@@ -1,0 +1,39 @@
+# Stage 1: Build Vite frontend
+FROM node:18 AS frontend
+
+# Set working directory
+WORKDIR /app/client
+
+# Install dependencies and build
+COPY client/package*.json ./
+RUN npm install
+COPY client/ .
+RUN npm run build
+
+# Stage 2: Set up Flask backend
+FROM python:3.11-slim AS backend
+
+# Metadata
+LABEL maintainer="yourname@example.com"
+LABEL stage="production"
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# Set working directory
+WORKDIR /app
+
+# Install dependencies
+COPY backend/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy backend and frontend
+COPY backend/ .
+COPY --from=frontend /app/client/dist /app/static
+
+# Expose port
+EXPOSE 5000
+
+# Run the app
+CMD ["python", "app.py"]
