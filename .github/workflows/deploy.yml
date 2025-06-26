@@ -100,6 +100,7 @@ jobs:
               -e STRIPE_PROD_ID_BASIC="${{ secrets.STRIPE_PROD_ID_BASIC }}" \
               -e STRIPE_PRICE_ID_BASIC="${{ secrets.STRIPE_PRICE_ID_BASIC }}" \
               -e GOOGLE_MAPS_API_KEY="${{ secrets.GOOGLE_MAPS_API_KEY }}" \
+              -e PERPLEXITY_API_KEY="${{ secrets.PERPLEXITY_API_KEY }}" \
               "$IMAGE"
 
             echo "⏳ Waiting for container to boot..."
