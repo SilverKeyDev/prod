@@ -33,7 +33,7 @@ def create_app(config=None):
     executor.init_app(app)
     
     # Enable CORS
-    cors = CORS(app, resources={r"/api/*": {"origins": ["http://localhost:5173"]}},
+    cors = CORS(app, resources={r"/api/*": {"origins": ["http://localhost:5000"]}},
                 supports_credentials=True)
     app.config['CORS_HEADERS'] = 'Content-Type'
 
