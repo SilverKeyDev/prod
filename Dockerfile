@@ -3,6 +3,14 @@ FROM node:22 AS frontend
 
 WORKDIR /app/client
 
+# Accept build-time variables
+ARG VITE_API_BASE_URL
+ARG VITE_GOOGLE_MAPS_API_KEY
+
+# Set them as environment variables for Vite to pick up
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+ENV VITE_GOOGLE_MAPS_API_KEY=$VITE_GOOGLE_MAPS_API_KEY
+
 # Install and build Vite project
 COPY Client/package*.json ./
 RUN npm install

@@ -17,6 +17,11 @@ interface Report {
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 
+
+if (!API_BASE_URL) {
+  console.error("❌ VITE_API_BASE_URL is not defined! Falling back to window.location.origin.");
+}
+
 export default function PastReports() {
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
@@ -299,7 +304,7 @@ export default function PastReports() {
                           Download
                         </a>
                       </>
-                    )}git 
+                    )}
                     {report.status === "generating" && (
                       <div className="w-full text-center py-2">
                         <div className="shimmer w-full h-4 rounded mx-auto"></div>
