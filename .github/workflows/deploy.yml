@@ -85,7 +85,7 @@ jobs:
             fi
 
             echo "🚀 Starting new container..."
-            docker run -d -p 127.0.0.1:5000:80 --name cre_app \
+            docker run -d -p 127.0.0.1:5000:5000 --name cre_app \
               -e AWS_REGION="${{ secrets.AWS_REGION }}" \
               -e AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" \
               -e AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
