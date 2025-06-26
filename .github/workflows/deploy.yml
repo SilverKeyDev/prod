@@ -101,6 +101,8 @@ jobs:
               -e STRIPE_PRICE_ID_BASIC="${{ secrets.STRIPE_PRICE_ID_BASIC }}" \
               -e GOOGLE_MAPS_API_KEY="${{ secrets.GOOGLE_MAPS_API_KEY }}" \
               -e PERPLEXITY_API_KEY="${{ secrets.PERPLEXITY_API_KEY }}" \
+              -e VITE_GOOGLE_MAPS_API_KEY="${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}" \
+              -e VITE_API_BASE_URL="${{ secrets.VITE_API_BASE_URL }}" \
               "$IMAGE"
 
             echo "⏳ Waiting for container to boot..."

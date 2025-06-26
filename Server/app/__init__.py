@@ -1,6 +1,6 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager
+from flask_login import login_manager
 from flask_migrate import Migrate
 from flask_cors import CORS
 from flask_marshmallow import Marshmallow
@@ -8,7 +8,7 @@ from flask_executor import Executor
 from .config import Config
 from .extensions import db, login_manager, ma
 
-login_manager = LoginManager()
+login_manager = login_manager()
 
 # Initialize extensions
 ma = Marshmallow()
@@ -17,7 +17,6 @@ ma = Marshmallow()
 executor = Executor()
 
 import os
-from flask import send_from_directory
 
 def create_app(config=None):
     app = Flask(__name__, static_folder="../static", static_url_path="")
