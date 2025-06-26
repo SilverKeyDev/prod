@@ -31,4 +31,4 @@ COPY --from=frontend /app/client/dist /app/static
 EXPOSE 5000
 
 # Run Flask app
-CMD ["python", "run.py"]
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "run:app"]
