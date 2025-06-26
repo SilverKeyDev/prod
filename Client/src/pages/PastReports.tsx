@@ -15,7 +15,7 @@ interface Report {
   pdfUrl?: string;
 }
 
-const API_BASE_URL = "http://localhost:5001";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 
 export default function PastReports() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -299,7 +299,7 @@ export default function PastReports() {
                           Download
                         </a>
                       </>
-                    )}
+                    )}git 
                     {report.status === "generating" && (
                       <div className="w-full text-center py-2">
                         <div className="shimmer w-full h-4 rounded mx-auto"></div>
