@@ -89,13 +89,11 @@ jobs:
               -e COGNITO_APP_CLIENT_ID=${{ secrets.COGNITO_APP_CLIENT_ID }} \
               -e COGNITO_APP_CLIENT_SECRET=${{ secrets.COGNITO_APP_CLIENT_SECRET }} \
               -e S3_BUCKET_NAME_PDF=${{ secrets.S3_BUCKET_NAME_PDF }} \
-              -e S3_BUCKET_NAME_EXCEL=${{ secrets.S3_BUCKET_NAME_EXCEL }} \
-              -e S3_REGION=${{ secrets.S3_REGION }} \
               -e STRIPE_PUBLIC_KEY=${{ secrets.STRIPE_PUBLIC_KEY }} \
               -e STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }} \
               -e STRIPE_PROD_ID_BASIC=${{ secrets.STRIPE_PROD_ID_BASIC }} \
-              -e STRIPE_PRICE_ID_BASIC=${{ secrets.STRIPE_PRICE_ID_BASIC }} \
               -e GOOGLE_MAPS_API_KEY=${{ secrets.GOOGLE_MAPS_API_KEY }} \
+              -e PERPLEXITY_API_KEY=${{ secrets.PERPLEXITY_API_KEY }} \
               $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO:$IMAGE_TAG
 
             echo "⏳ Waiting for container to boot..."
