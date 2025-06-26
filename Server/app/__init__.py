@@ -43,4 +43,8 @@ def create_app(config=None):
     app.register_blueprint(report_bp)
     app.register_blueprint(dashboard_bp)
 
+    @app.route('/')
+    def index():
+        return "CRE backend root is up and running! 🎉"
+
     return app
