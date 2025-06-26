@@ -1,6 +1,5 @@
 import { useEffect, useRef } from "react";
 
-const PARTICLE_COUNT = 260;
 const CONNECT_DISTANCE = 95;
 const MOUSE_RADIUS = 95;
 
@@ -23,21 +22,31 @@ export default function RippleBackground() {
     if (!container || !canvas) return;
 
     const ctx = canvas.getContext("2d")!;
+    const margin = 20;
+
     const resize = () => {
       canvas.width = container.clientWidth;
       canvas.height = container.clientHeight;
+
+      // Dynamically calculate particle count based on screen area
+      const baseParticleCount = 260;
+      const baseArea = window.innerWidth * window.innerHeight;
+      const particleDensity = baseParticleCount / baseArea;
+      const particleCount = Math.floor(
+        particleDensity * canvas.width * canvas.height
+      );
+
+      // Re-initialize particles after resize
+      particles.current = Array.from({ length: particleCount }, () => ({
+        x: Math.random() * (canvas.width - 2 * margin) + margin,
+        y: Math.random() * (canvas.height - 2 * margin) + margin,
+        vx: (Math.random() - 0.5) * 0.1,
+        vy: (Math.random() - 0.5) * 0.1,
+      }));
     };
+
     resize();
     window.addEventListener("resize", resize);
-
-    // Fully random particle distribution with small edge margin
-    const margin = 20;
-    particles.current = Array.from({ length: PARTICLE_COUNT }, () => ({
-      x: Math.random() * (canvas.width - 2 * margin) + margin,
-      y: Math.random() * (canvas.height - 2 * margin) + margin,
-      vx: (Math.random() - 0.5) * 0.1,
-      vy: (Math.random() - 0.5) * 0.1,
-    }));
 
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);

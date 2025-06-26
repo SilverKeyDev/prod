@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:5001/api';
+const API_BASE_URL = 'https://silverkeyestates.com/api';
 
 export const generateReport = async (address: string, notes?: string, files?: File[]) => {
   const formData = new FormData();

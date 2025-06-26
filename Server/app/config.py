@@ -18,7 +18,7 @@ class Config:
     MAX_CONTENT_LENGTH = int(os.getenv('MAX_CONTENT_LENGTH', 16 * 1024 * 1024))
     ALLOWED_FILE_TYPES = {'application/pdf'}
 
-    FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:5173')
+    FRONTEND_URL = os.getenv('FRONTEND_URL', 'https://silverkeyestates.com/')
     CORS_ORIGINS = [FRONTEND_URL]
 
     API_VERSION = 'v1'
