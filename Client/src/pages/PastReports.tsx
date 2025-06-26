@@ -32,7 +32,7 @@ export default function PastReports() {
 
   const fetchReports = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/report/all`);
+      const res = await fetch(`/api/v1/report/all`);
       const json = await res.json();
       if (json.success) {
         const parsed: Report[] = json.reports.map((r: any) => ({
@@ -57,7 +57,7 @@ export default function PastReports() {
 
   const retryGeneration = async (reportId: string) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/report/retry`, {
+      const res = await fetch(`/api/v1/report/retry`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: reportId }),
