@@ -26,16 +26,3 @@ def get_reports():
         'success': True,
         'documents': [doc.to_dict() for doc in documents]
     })
-
-@dashboard_bp.route('/subscription', methods=['GET'])
-@login_required
-def get_subscription():
-    user = current_user
-    return jsonify({
-        'success': True,
-        'subscription': {
-            'status': 'active',
-            'plan': 'basic',
-            'nextBillingDate': None
-        }
-    })

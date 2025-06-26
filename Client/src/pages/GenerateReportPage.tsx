@@ -78,7 +78,7 @@ export default function GenerateReportPage() {
     console.log("[ACTION] Starting report generation for:", trimmed);
 
     try {
-      const res = await fetch("http://localhost:5001/api/v1/report/generate", {
+      const res = await fetch("https://silverkeyestates.com/api/v1/report/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ address: trimmed }),
