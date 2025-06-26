@@ -10,3 +10,4 @@ python-dotenv
 requests
 reportlab
 json5
+gunicorn
