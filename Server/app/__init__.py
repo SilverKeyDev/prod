@@ -16,35 +16,45 @@ ma = Marshmallow()
 # Create executor instance
 executor = Executor()
 
+import os
+from flask import send_from_directory
+
 def create_app(config=None):
-    app = Flask(__name__)
-    
-    # Load default config
+    app = Flask(__name__, static_folder="../static", static_url_path="")
+
+    # Load config
     app.config.from_object(Config)
-    
-    # Override with provided config if any
     if config:
         app.config.update(config)
 
-    # Initialize extensions
+    # Init extensions
     db.init_app(app)
     login_manager.init_app(app)
     ma.init_app(app)
     executor.init_app(app)
-    
-    # Enable CORS
-    cors = CORS(app, resources={r"/api/*": {"origins": ["http://localhost:5000"]}},
-                supports_credentials=True)
+
+    # CORS
+    CORS(app, resources={r"/api/*": {"origins": ["http://localhost:5000"]}},
+         supports_credentials=True)
     app.config['CORS_HEADERS'] = 'Content-Type'
 
-    # Register blueprints
+    # Blueprints
     from .routes.report import report_bp
     from .routes.dashboard import dashboard_bp
     app.register_blueprint(report_bp)
     app.register_blueprint(dashboard_bp)
 
-    @app.route('/')
+    # Serve frontend
+    @app.route("/")
     def index():
-        return "CRE backend root is up and running! 🎉"
+        return send_from_directory(app.static_folder, "index.html")
+
+    @app.route("/<path:path>")
+    def static_proxy(path):
+        file_path = os.path.join(app.static_folder, path)
+        if os.path.isfile(file_path):
+            return send_from_directory(app.static_folder, path)
+        else:
+            return send_from_directory(app.static_folder, "index.html")
 
     return app
