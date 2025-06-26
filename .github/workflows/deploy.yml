@@ -35,9 +35,12 @@ jobs:
 
       - name: Build, Tag, and Push Docker Image to ECR
         run: |
-          docker build --no-cache -t $REPO:$IMAGE_TAG .
-          docker tag $REPO:$IMAGE_TAG $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO:$IMAGE_TAG
-          docker push $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO:$IMAGE_TAG
+            docker build --no-cache \
+              --build-arg VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }} \
+              --build-arg VITE_GOOGLE_MAPS_API_KEY=${{ secrets.VITE_GOOGLE_MAPS_API_KEY }} \
+              -t $REPO:$IMAGE_TAG .
+            docker tag $REPO:$IMAGE_TAG $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO:$IMAGE_TAG
+            docker push $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO:$IMAGE_TAG
 
       - name: SSH into EC2 and Deploy Container + Log Errors
         uses: appleboy/ssh-action@v1.0.0
