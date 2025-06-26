@@ -45,53 +45,65 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
-          port: 22
-          timeout: 30s
-          command_timeout: 10m
           script: |
             set -e
+
             echo "🚀 Starting EC2 deployment script..."
-            
+
             REGION=us-east-2
             REPO=cre
             IMAGE_TAG=latest
-            
+
             echo "📦 Installing Docker and AWS CLI if needed..."
             sudo apt update -y
             timeout 3m sudo apt install -y docker.io unzip curl > /dev/null
-            
+
             echo "🧹 Pruning old Docker images..."
             sudo docker system prune -af || true
-            
+
             if ! aws --version | grep -q aws-cli; then
               echo "⬇️ Installing AWS CLI..."
               curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
               unzip -q awscliv2.zip && sudo ./aws/install && rm -rf aws awscliv2.zip
               export PATH=$PATH:/usr/local/bin
             fi
-            
+
             echo "🔐 Authenticating to ECR..."
             export ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text --region $REGION)
-            export IMAGE="${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com/${REPO}:${IMAGE_TAG}"
+            export IMAGE="$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO:$IMAGE_TAG"
             echo "📦 Using image: $IMAGE"
-            
-            aws ecr get-login-password --region $REGION | sudo docker login --username AWS --password-stdin "${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com"
-            
+            aws ecr get-login-password --region $REGION | sudo docker login --username AWS --password-stdin "$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com"
+
             echo "📥 Pulling Docker image..."
             sudo docker pull "$IMAGE"
-            
+
             echo "🛑 Removing old container (if exists)..."
             if sudo docker ps -a --format '{{.Names}}' | grep -Eq '^cre_app$'; then
               sudo docker stop cre_app || true
               sudo docker rm cre_app || true
             fi
-            
+
             echo "🚀 Starting new container..."
-            sudo docker run -d -p 80:5000 --name cre_app -e AWS_REGION=${{ secrets.AWS_REGION }} -e AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} -e AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} -e COGNITO_USER_POOL_ID=${{ secrets.COGNITO_USER_POOL_ID }} -e COGNITO_APP_CLIENT_ID=${{ secrets.COGNITO_APP_CLIENT_ID }} -e COGNITO_APP_CLIENT_SECRET=${{ secrets.COGNITO_APP_CLIENT_SECRET }} -e S3_BUCKET_NAME_PDF=${{ secrets.S3_BUCKET_NAME_PDF }} -e STRIPE_PUBLIC_KEY=${{ secrets.STRIPE_PUBLIC_KEY }} -e STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }} -e STRIPE_PROD_ID_BASIC=${{ secrets.STRIPE_PROD_ID_BASIC }} -e GOOGLE_MAPS_API_KEY=${{ secrets.GOOGLE_MAPS_API_KEY }} -e PERPLEXITY_API_KEY=${{ secrets.PERPLEXITY_API_KEY }} "$IMAGE"
-            
+            sudo docker run -d -p 80:5000 --name cre_app \
+              -e AWS_REGION=${{ secrets.AWS_REGION }} \
+              -e AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
+              -e AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
+              -e COGNITO_USER_POOL_ID=${{ secrets.COGNITO_USER_POOL_ID }} \
+              -e COGNITO_APP_CLIENT_ID=${{ secrets.COGNITO_APP_CLIENT_ID }} \
+              -e COGNITO_APP_CLIENT_SECRET=${{ secrets.COGNITO_APP_CLIENT_SECRET }} \
+              -e S3_BUCKET_NAME_PDF=${{ secrets.S3_BUCKET_NAME_PDF }} \
+              -e S3_BUCKET_NAME_EXCEL=${{ secrets.S3_BUCKET_NAME_EXCEL }} \
+              -e S3_REGION=${{ secrets.S3_REGION }} \
+              -e STRIPE_PUBLIC_KEY=${{ secrets.STRIPE_PUBLIC_KEY }} \
+              -e STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }} \
+              -e STRIPE_PROD_ID_BASIC=${{ secrets.STRIPE_PROD_ID_BASIC }} \
+              -e STRIPE_PRICE_ID_BASIC=${{ secrets.STRIPE_PRICE_ID_BASIC }} \
+              -e GOOGLE_MAPS_API_KEY=${{ secrets.GOOGLE_MAPS_API_KEY }} \
+              "$IMAGE"
+
             echo "⏳ Waiting for container to boot..."
             sleep 5
-            
+
             echo "🔍 Verifying container status..."
             if ! sudo docker ps --format '{{.Names}}' | grep -q '^cre_app$'; then
               echo "❌ cre_app container is not running. Dumping logs:"
@@ -101,8 +113,3 @@ jobs:
             else
               echo "✅ Container is running normally."
             fi
-        env:
-          AWS_DEFAULT_REGION: us-east-2
-          AWS_REGION: us-east-2
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
