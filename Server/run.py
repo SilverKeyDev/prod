@@ -10,8 +10,4 @@ os.makedirs(instance_path, exist_ok=True)
 app = create_app()
 
 if __name__ == '__main__':
-
-    port = 5001  # Default port
-    if len(sys.argv) > 1 and sys.argv[1] == '--port':
-        port = int(sys.argv[2])
-    app.run(debug=False, port=port)
+    app.run(debug=False, port=5000)
