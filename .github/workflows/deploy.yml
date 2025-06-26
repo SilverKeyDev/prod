@@ -87,20 +87,7 @@ jobs:
             fi
             
             echo "🚀 Starting new container..."
-            sudo docker run -d -p 80:5000 --name cre_app \
-              -e AWS_REGION=${{ secrets.AWS_REGION }} \
-              -e AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
-              -e AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
-              -e COGNITO_USER_POOL_ID=${{ secrets.COGNITO_USER_POOL_ID }} \
-              -e COGNITO_APP_CLIENT_ID=${{ secrets.COGNITO_APP_CLIENT_ID }} \
-              -e COGNITO_APP_CLIENT_SECRET=${{ secrets.COGNITO_APP_CLIENT_SECRET }} \
-              -e S3_BUCKET_NAME_PDF=${{ secrets.S3_BUCKET_NAME_PDF }} \
-              -e STRIPE_PUBLIC_KEY=${{ secrets.STRIPE_PUBLIC_KEY }} \
-              -e STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }} \
-              -e STRIPE_PROD_ID_BASIC=${{ secrets.STRIPE_PROD_ID_BASIC }} \
-              -e GOOGLE_MAPS_API_KEY=${{ secrets.GOOGLE_MAPS_API_KEY }} \
-              -e PERPLEXITY_API_KEY=${{ secrets.PERPLEXITY_API_KEY }} \
-              "$IMAGE"
+            sudo docker run -d -p 80:5000 --name cre_app -e AWS_REGION=${{ secrets.AWS_REGION }} -e AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} -e AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} -e COGNITO_USER_POOL_ID=${{ secrets.COGNITO_USER_POOL_ID }} -e COGNITO_APP_CLIENT_ID=${{ secrets.COGNITO_APP_CLIENT_ID }} -e COGNITO_APP_CLIENT_SECRET=${{ secrets.COGNITO_APP_CLIENT_SECRET }} -e S3_BUCKET_NAME_PDF=${{ secrets.S3_BUCKET_NAME_PDF }} -e STRIPE_PUBLIC_KEY=${{ secrets.STRIPE_PUBLIC_KEY }} -e STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }} -e STRIPE_PROD_ID_BASIC=${{ secrets.STRIPE_PROD_ID_BASIC }} -e GOOGLE_MAPS_API_KEY=${{ secrets.GOOGLE_MAPS_API_KEY }} -e PERPLEXITY_API_KEY=${{ secrets.PERPLEXITY_API_KEY }} "$IMAGE"
             
             echo "⏳ Waiting for container to boot..."
             sleep 5
