@@ -1,11 +1,6 @@
 from flask import Blueprint, request, jsonify, send_from_directory
-import json
 import logging
-import requests
-import time
-from typing import Dict, Optional
 import os
-import uuid
 from app.services.report_generator import generate_report, REPORTS
 
 # Configure logger

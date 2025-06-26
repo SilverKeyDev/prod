@@ -18,7 +18,7 @@ ENV PYTHONUNBUFFERED=1
 WORKDIR /app
 
 # Install Python dependencies
-COPY Server/requirements.txt .
+COPY Server/requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy backend code
@@ -31,4 +31,4 @@ COPY --from=frontend /app/client/dist /app/static
 EXPOSE 5000
 
 # Run Flask app
-CMD ["python", "run.py"]
+CMD ["python", "app.py"]

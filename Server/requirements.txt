@@ -1,0 +1,12 @@
+Flask
+flask_sqlalchemy
+flask_login
+flask_cors
+flask_wtf
+flask_marshmallow
+flask_migrate
+flask_executor
+python-dotenv
+requests
+reportlab
+json5
