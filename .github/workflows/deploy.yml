@@ -65,10 +65,11 @@ jobs:
               echo "⬇️ Installing AWS CLI..."
               curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
               unzip -q awscliv2.zip && sudo ./aws/install && rm -rf aws awscliv2.zip
+              export PATH=$PATH:/usr/local/bin
             fi
 
             echo "🔐 Authenticating to ECR..."
-            ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text --region $REGION)
+            export ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text --region $REGION)
             aws ecr get-login-password --region $REGION | sudo docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com
 
             echo "📥 Pulling Docker image..."
