@@ -7,15 +7,17 @@ WORKDIR /app/client
 ARG VITE_API_BASE_URL
 ARG VITE_GOOGLE_MAPS_API_KEY
 
-# Set them as environment variables for Vite to pick up
-ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
-ENV VITE_GOOGLE_MAPS_API_KEY=$VITE_GOOGLE_MAPS_API_KEY
-
-# Install and build Vite project
+# Copy and install dependencies
 COPY Client/package*.json ./
 RUN npm install
+
+# Copy rest of the client code
 COPY Client/ .
-RUN npm run build
+
+# Inject build-time variables directly into the build command
+RUN VITE_API_BASE_URL=$VITE_API_BASE_URL \
+    VITE_GOOGLE_MAPS_API_KEY=$VITE_GOOGLE_MAPS_API_KEY \
+    npm run build
 
 # Stage 2: Set up Flask backend
 FROM python:3.11-slim AS backend
