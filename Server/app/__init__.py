@@ -34,7 +34,7 @@ def create_app(config=None):
     executor.init_app(app)
 
     # CORS
-    CORS(app, resources={r"/api/*": {"origins": ["http://localhost:5000"]}},
+    CORS(app, resources={r"/api/*": {"origins": ["https://silverkeyestates.com/"]}},
          supports_credentials=True)
     app.config['CORS_HEADERS'] = 'Content-Type'
 
