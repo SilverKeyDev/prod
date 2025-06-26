@@ -1,4 +1,45 @@
-- name: SSH into EC2 and Deploy Container + Log Errors
+name: Build and Deploy Docker App to EC2
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  REGION: us-east-2
+  REPO: cre
+  IMAGE_TAG: latest
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.REGION }}
+
+      - name: Login to ECR
+        run: |
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          echo "ACCOUNT_ID=$ACCOUNT_ID" >> $GITHUB_ENV
+          aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com
+
+      - name: Build, Tag, and Push Docker Image to ECR
+        run: |
+          docker build --no-cache -t $REPO:$IMAGE_TAG .
+          docker tag $REPO:$IMAGE_TAG $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO:$IMAGE_TAG
+          docker push $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO:$IMAGE_TAG
+
+ - name: SSH into EC2 and Deploy Container + Log Errors
   uses: appleboy/ssh-action@v1.0.0
   with:
     host: ${{ secrets.EC2_HOST }}
@@ -7,6 +48,7 @@
     script: |
       set -e
 
+      echo "🕒 Timestamp: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
       echo "🚀 Starting EC2 deployment script..."
 
       REGION="us-east-2"
@@ -34,7 +76,7 @@
       aws ecr get-login-password --region "$REGION" | sudo docker login --username AWS --password-stdin "$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com"
 
       echo "📥 Pulling Docker image..."
-      sudo docker pull "$IMAGE"
+      sudo docker pull "$IMAGE" || { echo "::error::Docker image pull failed"; exit 1; }
 
       echo "🛑 Removing old container (if exists)..."
       if sudo docker ps -a --format '{{.Names}}' | grep -Eq '^cre_app$'; then
@@ -71,4 +113,9 @@
         exit 1
       else
         echo "✅ Container is running normally."
+        echo "📜 Recent logs:"
+        sudo docker logs --tail 20 cre_app || true
+
+        echo "📈 Container health (if available):"
+        sudo docker inspect --format='{{json .State.Health}}' cre_app || echo "ℹ️ No health info"
       fi
