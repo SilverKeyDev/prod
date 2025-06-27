@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
@@ -18,11 +18,6 @@ function App() {
     }
     setLoading(false);
   }, []);
-
-  const handleLogin = (userData: User) => {
-    setUser(userData);
-    localStorage.setItem("user", JSON.stringify(userData));
-  };
 
   const handleLogout = () => {
     setUser(null);
@@ -47,9 +42,9 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route
             path="/signup"
-            element={<SignupPage onLogin={handleLogin} />}
+            element={<SignupPage />}
           />
-          <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
+          <Route path="/login" element={<LoginPage />} />
           <Route path="/verification" element={<VerificationPage/>} />
 
           {/* Protected Route */}

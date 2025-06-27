@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Mail, Lock, User as UserIcon, Phone, Building } from "lucide-react";
-import { User } from "../types/index.ts";
+import { authApi } from "../lib/api";
 
 interface SignupPageProps {
-  onLogin: (user: User) => void;
+  // Removed onLogin as we're handling auth state differently now
 }
 
-export default function SignupPage({ onLogin }: SignupPageProps) {
+export default function SignupPage({}: SignupPageProps) {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -22,20 +22,32 @@ export default function SignupPage({ onLogin }: SignupPageProps) {
     e.preventDefault();
     setLoading(true);
 
-    // Simulate signup
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    try {
+      const { success, error } = await authApi.signup({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        phone: formData.phone || undefined,
+        agency_name: formData.agencyName || undefined,
+      });
 
-    const user: User = {
-      id: "1",
-      name: formData.name,
-      email: formData.email,
-      agencyName: formData.agencyName || undefined,
-      phone: formData.phone || undefined,
-    };
+      if (!success) {
+        throw new Error(error || 'Failed to sign up');
+      }
 
-    onLogin(user);
-    setLoading(false);
-    navigate("/verification");
+      // Store user data in local storage
+      localStorage.setItem('signupEmail', formData.email);
+      
+      // Redirect to verification page
+      navigate("/verification", { state: { email: formData.email } });
+    } catch (error: unknown) {
+      console.error('Signup error:', error);
+      // Handle error (show error message to user)
+      const errorMessage = error instanceof Error ? error.message : 'Failed to sign up. Please try again.';
+      alert(errorMessage);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

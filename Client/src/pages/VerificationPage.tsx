@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Mail, ArrowLeft, RefreshCw } from "lucide-react";
+import { authApi } from "../lib/api";
 
 interface LocationState {
   email?: string;
@@ -46,19 +47,32 @@ export default function VerificationPage() {
     setCanResend(false);
   };
 
-  const handleEmailSubmit = (e: React.FormEvent) => {
+  const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) {
       setError("Please enter your email address");
       return;
     }
+    
     setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false);
+    setError("");
+    
+    try {
+      const { success, error } = await authApi.resendCode(email);
+
+      if (!success) {
+        throw new Error(error || 'Failed to send verification code');
+      }
+
       setActiveStep("code");
       startCountdown();
-    }, 1000);
+    } catch (error: unknown) {
+      console.error('Resend code error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to send verification code. Please try again.';
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCodeChange = (value: string, index: number) => {
@@ -75,7 +89,7 @@ export default function VerificationPage() {
     }
   };
 
-  const handleCodeSubmit = (e: React.FormEvent) => {
+  const handleCodeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const verificationCode = code.join("");
     if (verificationCode.length !== 4) {
@@ -84,25 +98,70 @@ export default function VerificationPage() {
     }
     
     setLoading(true);
-    // Simulate API verification
-    setTimeout(() => {
-      setLoading(false);
+    setError("");
+    
+    try {
+      const userEmail = email || localStorage.getItem('signupEmail') || '';
+      const { success, error, data } = await authApi.verify({
+        email: userEmail,
+        code: verificationCode,
+      });
+
+      if (!success) {
+        throw new Error(error || 'Verification failed');
+      }
+      
+      // Clear the stored email
+      localStorage.removeItem('signupEmail');
+      
+      // Store user data from the response
+      if (data?.user) {
+        localStorage.setItem('user', JSON.stringify(data.user));
+      }
+      
       // On success, redirect to dashboard
       navigate("/dashboard");
-    }, 1000);
+    } catch (error: unknown) {
+      console.error('Verification error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Invalid verification code. Please try again.';
+      setError(errorMessage);
+      // Clear the code on error
+      setCode(["", "", "", ""]);
+      document.getElementById('code-0')?.focus();
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleResendCode = () => {
+  const handleResendCode = async () => {
     if (!canResend) return;
     
     setLoading(true);
-    // Simulate resend API call
-    setTimeout(() => {
-      setLoading(false);
+    setError("");
+    
+    try {
+      const userEmail = email || localStorage.getItem('signupEmail');
+      if (!userEmail) {
+        throw new Error('Email not found. Please go back and try again.');
+      }
+      
+      const { success, error } = await authApi.resendCode(userEmail);
+
+      if (!success) {
+        throw new Error(error || 'Failed to resend verification code');
+      }
+      
+      // Reset UI state
       startCountdown();
       setCode(["", "", "", ""]);
-      document.getElementById("code-0")?.focus();
-    }, 1000);
+      document.getElementById('code-0')?.focus();
+    } catch (error: unknown) {
+      console.error('Resend code error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to resend verification code. Please try again.';
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleBack = () => {

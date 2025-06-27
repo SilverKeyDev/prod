@@ -1,35 +1,46 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Mail, Lock } from "lucide-react";
-import { User } from "../types/index.ts";
+import { authApi } from "../lib/api";
 
-interface LoginPageProps {
-  onLogin: (user: User) => void;
-}
-
-export default function LoginPage({ onLogin }: LoginPageProps) {
+export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError("");
 
-    // Simulate login
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    try {
+      const { success, error, data } = await authApi.login(email, password);
 
-    const user: User = {
-      id: "1",
-      name: "Sarah Mitchell",
-      email,
-      agencyName: "Elite Properties",
-    };
+      if (!success) {
+        throw new Error(error || 'Login failed');
+      }
 
-    onLogin(user);
-    setLoading(false);
-    navigate("/dashboard"); // ✅ Redirect after login
+      // Store user data in local storage
+      if (data?.user) {
+        localStorage.setItem('user', JSON.stringify(data.user));
+      }
+      
+      // Store access token if available
+      if (data?.access_token) {
+        localStorage.setItem('access_token', data.access_token);
+      }
+
+      // Redirect to dashboard on successful login
+      navigate("/dashboard");
+    } catch (error: unknown) {
+      console.error('Login error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Login failed. Please try again.';
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -42,6 +53,13 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             Generate premium property reports with AI
           </p>
         </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="mb-6 p-3 bg-red-50 text-red-600 text-sm rounded-md">
+            {error}
+          </div>
+        )}
 
         {/* Login Form */}
         <form onSubmit={handleSubmit} className="card space-y-6">

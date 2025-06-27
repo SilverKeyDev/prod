@@ -1,5 +1,6 @@
 import os
 from dotenv import load_dotenv
+from datetime import timedelta
 
 load_dotenv()
 
@@ -13,6 +14,16 @@ class Config:
     SECRET_KEY = os.getenv('SECRET_KEY', 'dev-key-change-in-production')
     SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', f'sqlite:///{os.path.join(instance_dir, "silverkey.db")}')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    
+    # JWT Settings
+    JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'jwt-secret-key-change-in-production')
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(days=1)
+    
+    # AWS Cognito Settings
+    AWS_REGION = os.getenv('AWS_REGION', 'us-east-2')
+    COGNITO_USER_POOL_ID = os.getenv('COGNITO_USER_POOL_ID')
+    COGNITO_CLIENT_ID = os.getenv('COGNITO_CLIENT_ID')
+    COGNITO_CLIENT_SECRET = os.getenv('COGNITO_CLIENT_SECRET')
 
     UPLOAD_FOLDER = os.getenv('UPLOAD_FOLDER', 'uploads')
     MAX_CONTENT_LENGTH = int(os.getenv('MAX_CONTENT_LENGTH', 16 * 1024 * 1024))

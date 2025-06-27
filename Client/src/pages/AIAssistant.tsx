@@ -1,11 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Send, Bot, MessageCircle, Trash2, Plus, User as UserIcon} from "lucide-react";
-import { User } from "../types/index.ts";
-
-interface AIAssistantProps {
-  user: User;
-  onLogout: () => void;
-}
 
 interface ChatMessage {
   id: string;

@@ -58,7 +58,7 @@ export default function HomePage() {
     <div className="min-h-screen bg-white flex flex-col">
       <RippleBackground />
       {/* Header */}
-      <header className="w-full flex justify-between items-center p-4 border-b border-gray-200 bg-white relative z-10">
+      <header className="w-full flex justify-between items-center p-4 border-b border-gray-200 bg-white relative z-10 shadow-lg">
         <h1 className="text-2xl font-bold text-navy">SilverKey</h1>
         <div className="flex space-x-4 text-sm font-medium">
           <Link to="/login" className="hover:underline">

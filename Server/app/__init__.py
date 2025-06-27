@@ -53,11 +53,21 @@ def create_app(config=None):
         response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
         return response
 
+    # Import models to ensure they are registered with SQLAlchemy
+    from .models.user import User
+    
+    # Create database tables
+    with app.app_context():
+        db.create_all()
+    
     # Blueprints
     from .routes.report import report_bp
     from .routes.dashboard import dashboard_bp
+    from .routes.auth import auth_bp
+    
     app.register_blueprint(report_bp)
     app.register_blueprint(dashboard_bp)
+    app.register_blueprint(auth_bp)
 
     # Serve frontend
     @app.route("/")
