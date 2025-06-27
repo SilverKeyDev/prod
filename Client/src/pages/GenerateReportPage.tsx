@@ -1,162 +1,258 @@
-export {}; // Ensures file is treated as a module
+export {};
 
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { MapPin, Loader2 } from "lucide-react";
-
+import { MapPin, Loader2, AlertCircle } from "lucide-react";
 
 declare global {
   interface Window {
-    initMapScripts: () => void;
     google?: any;
   }
-  namespace JSX {
-    interface IntrinsicElements {
-      "gmp-place-autocomplete": React.DetailedHTMLProps<
-        React.HTMLAttributes<HTMLElement>,
-        HTMLElement
-      > & {
-        placeholder?: string;
-        disabled?: boolean;
-        style?: React.CSSProperties;
-      };
-    }
-  }
+}
+
+interface Suggestion {
+  description: string;
+  placePrediction: any;
 }
 
 export default function GenerateReportPage() {
   const navigate = useNavigate();
-  const autoRef = useRef<HTMLElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
-  const [address, setAddress] = useState<string>("");
+  const [address, setAddress] = useState("");
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [selectedPlace, setSelectedPlace] = useState<any>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [scriptsReady, setScriptsReady] = useState(false);
-  const [hasSelected, setHasSelected] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
+  // Load Google Maps script
   useEffect(() => {
     const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+
     if (!apiKey) {
-      console.error("[ERROR] Missing Google Maps API key.");
+      setLoadError("Missing Google Maps API key.");
       return;
     }
 
-    window.initMapScripts = () => {
-      console.log("[INFO] Google Maps JS API initialized");
-    };
+    if (window.google?.maps?.places?.AutocompleteSuggestion) {
+      setScriptsReady(true);
+      return;
+    }
 
-    const loadScript = (src: string, id: string) => {
-      if (document.getElementById(id)) return;
-      const script = document.createElement("script");
-      script.src = src;
-      script.async = true;
-      script.defer = true;
-      script.id = id;
-      document.head.appendChild(script);
-    };
+    const script = document.createElement("script");
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&v=weekly`;
+    script.async = true;
+    script.defer = true;
+    script.onload = () => setScriptsReady(true);
+    script.onerror = () =>
+      setLoadError("Failed to load Google Maps script. Please check your API key or internet.");
 
-    loadScript(
-      `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&v=beta&callback=initMapScripts`,
-      "maps-js"
-    );
-    loadScript(
-      "https://unpkg.com/@googlemaps/extended-component-library@latest/dist/loader.js",
-      "gmp-web-component-loader"
-    );
+    document.head.appendChild(script);
   }, []);
 
+  // Fetch autocomplete suggestions as the user types
+  useEffect(() => {
+    if (!scriptsReady || address.trim().length < 3) {
+      setSuggestions([]);
+      return;
+    }
+
+    const fetchSuggestions = async () => {
+      try {
+        const sessionToken = new window.google.maps.places.AutocompleteSessionToken();
+        const request = {
+          input: address,
+          sessionToken,
+        };
+
+        const { suggestions: fetched } =
+          await window.google.maps.places.AutocompleteSuggestion.fetchAutocompleteSuggestions(request);
+
+        setSuggestions(fetched.map((s: any) => ({
+          description: s.placePrediction.text.text,
+          placePrediction: s.placePrediction,
+        })));
+      } catch (err) {
+        console.error("Autocomplete fetch error:", err);
+        setSuggestions([]);
+      }
+    };
+
+    const debounce = setTimeout(fetchSuggestions, 200);
+    return () => clearTimeout(debounce);
+  }, [address, scriptsReady]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setAddress(e.target.value);
+    setSelectedPlace(null);
+    setError(null);
+  };
+
+  const handleSelect = async (suggestion: Suggestion) => {
+    const place = suggestion.placePrediction.toPlace();
+    await place.fetchFields({
+      fields: ["displayName", "formattedAddress"],
+    });
+    setSelectedPlace(place);
+    setAddress(place.formattedAddress);
+    setSuggestions([]);
+  };
 
   const handleGenerate = async () => {
     const trimmed = address.trim();
     if (!trimmed) {
-      console.warn("[BLOCKED] No trimmed address");
+      setError("Please enter a valid address.");
       return;
     }
 
     setIsGenerating(true);
     setError(null);
-    console.log("[ACTION] Starting report generation for:", trimmed);
 
     try {
-      const res = await fetch("/api/v1/report/generate", {
+        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/v1/report/generate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ address: trimmed }),
-      });
+      });      
 
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || "Report generation failed");
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || "Report generation failed");
       }
 
       const data = await res.json();
-      if (!data.success) throw new Error(data.error || "Unknown error");
+      if (!data.success) throw new Error(data.error || "Failed to generate report");
 
-      localStorage.setItem(
-        "propertyData",
-        JSON.stringify({ address: trimmed, generatedReport: data.result })
-      );
-      navigate("/dashboard/reports?refresh=true");
-    } catch (err) {
-      console.error("[CATCH] Report generation failed:", err);
-      setError(err instanceof Error ? err.message : "Something went wrong.");
+      try {
+        localStorage.setItem(
+          "propertyData",
+          JSON.stringify({
+            address: trimmed,
+            generatedReport: data.result,
+            timestamp: new Date().toISOString(),
+          })
+        );
+        navigate("/dashboard/reports?refresh=true");
+      } catch (storageError) {
+        navigate("/dashboard/reports", {
+          state: {
+            propertyData: {
+              address: trimmed,
+              generatedReport: data.result,
+            },
+          },
+        });
+      }
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || "Unexpected error");
     } finally {
       setIsGenerating(false);
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-off-white to-white">
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-serif text-brown mb-4">Generate Property Report</h1>
-        <p className="text-lg text-brown/60 font-light max-w-2xl mx-auto">
-          Enter an address to generate a comprehensive AI-powered report
-        </p>
-      </div>
+  const isButtonDisabled = isGenerating || !address.trim() || !!loadError;
 
-      <div className="card max-w-2xl mx-auto space-y-8">
-        <label className="block text-lg font-medium text-brown mb-3">Enter Location</label>
-        <div className="relative">
-          <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-brown/40 pointer-events-none" />
-          {scriptsReady ? (
-            <gmp-place-autocomplete
-              ref={autoRef}
-              placeholder="Enter full address..."
-              style={{
-                width: "100%",
-                height: "3rem",
-                paddingLeft: "3rem",
-                fontSize: "1rem",
-                borderRadius: "0.5rem",
-                border: "1px solid #ddd",
-              }}
-              disabled={isGenerating ? true : undefined}
-            />
-          ) : (
-            <div className="text-sm text-gray-500">Loading address input...</div>
-          )}
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-off-white to-white p-6">
+      <div className="max-w-4xl mx-auto">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-serif text-brown mb-4">Generate Property Report</h1>
+          <p className="text-lg text-brown/60 font-light max-w-2xl mx-auto">
+            Enter an address to generate a comprehensive AI-powered property analysis report
+          </p>
         </div>
 
-        {error && <div className="text-red-500 text-sm">{error}</div>}
-
-        <button
-          onClick={handleGenerate}
-          className={`w-full py-4 px-6 rounded-lg text-lg font-medium transition-colors ${
-            isGenerating || !hasSelected
-              ? "cursor-not-allowed bg-olive"
-              : "bg-olive text-white hover:bg-olive/80"
-          }`}
-          disabled={isGenerating || !hasSelected}
-        >
-          {isGenerating ? (
-            <div className="flex items-center justify-center">
-              <Loader2 className="animate-spin h-5 w-5 mr-2" />
-              Generating...
+        <div className="card max-w-2xl mx-auto space-y-6">
+          <div>
+            <label htmlFor="address-input" className="block text-lg font-medium text-brown mb-3">
+              Property Address
+            </label>
+            <div className="relative">
+              <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-brown/40 pointer-events-none z-10" />
+              <input
+                id="address-input"
+                ref={inputRef}
+                type="text"
+                value={address}
+                onChange={handleInputChange}
+                placeholder={
+                  scriptsReady ? "Start typing an address..." : "Loading address search..."
+                }
+                disabled={!scriptsReady || isGenerating}
+                className="w-full h-14 pl-12 pr-4 rounded-lg border border-gray-300 text-base focus:ring-2 focus:ring-olive focus:border-olive transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed"
+                autoComplete="off"
+              />
             </div>
-          ) : (
-            "Generate Report"
+
+            {suggestions.length > 0 && (
+              <ul className="border mt-2 rounded-md overflow-hidden shadow-sm bg-white z-50 relative">
+                {suggestions.map((s, idx) => (
+                  <li
+                    key={idx}
+                    onClick={() => handleSelect(s)}
+                    className="px-4 py-2 cursor-pointer hover:bg-gray-100 text-sm"
+                  >
+                    {s.description}
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {!scriptsReady && !loadError && (
+              <p className="text-sm text-brown/60 mt-2 flex items-center">
+                <Loader2 className="animate-spin h-4 w-4 mr-2" />
+                Loading address autocomplete...
+              </p>
+            )}
+          </div>
+
+          {(error || loadError) && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start space-x-3">
+              <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+              <div className="text-red-700">
+                <p className="font-medium">Error</p>
+                <p className="text-sm">{error || loadError}</p>
+                {loadError && (
+                  <button
+                    onClick={() => window.location.reload()}
+                    className="text-sm underline mt-1 hover:no-underline"
+                  >
+                    Refresh page to retry
+                  </button>
+                )}
+              </div>
+            </div>
           )}
-        </button>
+
+          <button
+            onClick={handleGenerate}
+            disabled={isButtonDisabled}
+            className={`w-full py-4 px-6 rounded-lg text-lg font-medium transition-all duration-200 ${
+              isButtonDisabled
+                ? "cursor-not-allowed bg-gray-300 text-gray-500"
+                : "bg-olive text-white hover:bg-olive/90 hover:shadow-lg active:transform active:scale-[0.98]"
+            }`}
+          >
+            {isGenerating ? (
+              <div className="flex items-center justify-center">
+                <Loader2 className="animate-spin h-5 w-5 mr-2" />
+                Generating Report...
+              </div>
+            ) : (
+              "Generate Property Report"
+            )}
+          </button>
+
+          <div className="text-sm text-brown/60 text-center">
+            <p>
+              Select an address from the dropdown suggestions for best results. The report will
+              include property details, market analysis, and insights.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );

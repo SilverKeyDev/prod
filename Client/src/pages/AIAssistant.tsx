@@ -129,8 +129,8 @@ export default function AIAssistant() {
               </button>
             </div>
             <p className="text-sm text-navy/60">
-              Ask questions about property pricing, market analysis, and
-              investment strategies
+              Ask questions about travel, demographics, and
+              market analysis
             </p>
           </div>
 
@@ -200,8 +200,7 @@ export default function AIAssistant() {
                       Start a conversation
                     </h3>
                     <p className="text-navy/60 max-w-md mx-auto">
-                      Ask me anything about property valuation, market analysis,
-                      or pricing strategies
+                      Ask away!
                     </p>
                   </div>
                 ) : (

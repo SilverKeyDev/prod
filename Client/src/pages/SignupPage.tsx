@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, User as UserIcon, Phone, Building } from 'lucide-react';
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Mail, Lock, User as UserIcon, Phone, Building } from "lucide-react";
 import { User } from "../types/index.ts";
 
 interface SignupPageProps {
@@ -9,11 +9,11 @@ interface SignupPageProps {
 
 export default function SignupPage({ onLogin }: SignupPageProps) {
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    agencyName: '',
-    phone: '',
+    name: "",
+    email: "",
+    password: "",
+    agencyName: "",
+    phone: "",
   });
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -23,10 +23,10 @@ export default function SignupPage({ onLogin }: SignupPageProps) {
     setLoading(true);
 
     // Simulate signup
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
     const user: User = {
-      id: '1',
+      id: "1",
       name: formData.name,
       email: formData.email,
       agencyName: formData.agencyName || undefined,
@@ -35,13 +35,13 @@ export default function SignupPage({ onLogin }: SignupPageProps) {
 
     onLogin(user);
     setLoading(false);
-    navigate('/dashboard');
+    navigate("/dashboard");
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     }));
   };
 
@@ -50,15 +50,21 @@ export default function SignupPage({ onLogin }: SignupPageProps) {
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-serif text-navy mb-2">Create your account</h2>
-          <p className="text-navy/60 font-light">Join the future of real estate analysis</p>
+          <h2 className="text-3xl font-serif text-navy mb-2">
+            Create your account
+          </h2>
+          <p className="text-navy/60 font-light">
+            Join the future of real estate analysis
+          </p>
         </div>
 
         {/* Signup Form */}
         <form onSubmit={handleSubmit} className="card space-y-5">
           {/* Name */}
           <div>
-            <label className="block text-sm font-medium text-navy mb-2">Full name</label>
+            <label className="block text-sm font-medium text-navy mb-2">
+              Full name
+            </label>
             <div className="relative">
               <UserIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-navy/40" />
               <input
@@ -68,6 +74,7 @@ export default function SignupPage({ onLogin }: SignupPageProps) {
                 onChange={handleChange}
                 className="input-field pl-10"
                 placeholder="Enter your full name"
+                autoComplete="name"
                 required
               />
             </div>
@@ -75,7 +82,9 @@ export default function SignupPage({ onLogin }: SignupPageProps) {
 
           {/* Email */}
           <div>
-            <label className="block text-sm font-medium text-navy mb-2">Email address</label>
+            <label className="block text-sm font-medium text-navy mb-2">
+              Email address
+            </label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-navy/40" />
               <input
@@ -85,6 +94,7 @@ export default function SignupPage({ onLogin }: SignupPageProps) {
                 onChange={handleChange}
                 className="input-field pl-10"
                 placeholder="Enter your email"
+                autoComplete="email"
                 required
               />
             </div>
@@ -92,7 +102,9 @@ export default function SignupPage({ onLogin }: SignupPageProps) {
 
           {/* Password */}
           <div>
-            <label className="block text-sm font-medium text-navy mb-2">Password</label>
+            <label className="block text-sm font-medium text-navy mb-2">
+              Password
+            </label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-navy/40" />
               <input
@@ -102,6 +114,7 @@ export default function SignupPage({ onLogin }: SignupPageProps) {
                 onChange={handleChange}
                 className="input-field pl-10"
                 placeholder="Create a password"
+                autoComplete="new-password"
                 required
               />
             </div>
@@ -109,7 +122,9 @@ export default function SignupPage({ onLogin }: SignupPageProps) {
 
           {/* Agency Name */}
           <div>
-            <label className="block text-sm font-medium text-navy mb-2">Agency name (optional)</label>
+            <label className="block text-sm font-medium text-navy mb-2">
+              Agency name (optional)
+            </label>
             <div className="relative">
               <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-navy/40" />
               <input
@@ -119,13 +134,16 @@ export default function SignupPage({ onLogin }: SignupPageProps) {
                 onChange={handleChange}
                 className="input-field pl-10"
                 placeholder="Your real estate agency"
+                autoComplete="organization"
               />
             </div>
           </div>
 
           {/* Phone */}
           <div>
-            <label className="block text-sm font-medium text-navy mb-2">Phone number</label>
+            <label className="block text-sm font-medium text-navy mb-2">
+              Phone number
+            </label>
             <div className="relative">
               <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-navy/40" />
               <input
@@ -135,6 +153,7 @@ export default function SignupPage({ onLogin }: SignupPageProps) {
                 onChange={handleChange}
                 className="input-field pl-10"
                 placeholder="Your phone number"
+                autoComplete="tel"
               />
             </div>
           </div>
@@ -147,13 +166,16 @@ export default function SignupPage({ onLogin }: SignupPageProps) {
             {loading ? (
               <div className="shimmer w-20 h-5 rounded mx-auto"></div>
             ) : (
-              'Create account'
+              "Create account"
             )}
           </button>
 
           <div className="text-center text-sm">
             <span className="text-navy/60">Already have an account? </span>
-            <Link to="/login" className="text-gold hover:text-gold-light transition-colors">
+            <Link
+              to="/login"
+              className="text-gold hover:text-gold-light transition-colors"
+            >
               Sign in
             </Link>
           </div>
@@ -161,8 +183,12 @@ export default function SignupPage({ onLogin }: SignupPageProps) {
 
         {/* Footer */}
         <div className="text-center mt-8 space-x-6 text-sm text-navy/60">
-          <Link to="#" className="hover:text-navy transition-colors">Privacy</Link>
-          <Link to="#" className="hover:text-navy transition-colors">Terms</Link>
+          <Link to="#" className="hover:text-navy transition-colors">
+            Privacy
+          </Link>
+          <Link to="#" className="hover:text-navy transition-colors">
+            Terms
+          </Link>
         </div>
       </div>
     </div>
