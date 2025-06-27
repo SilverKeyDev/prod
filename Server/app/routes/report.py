@@ -50,4 +50,4 @@ def list_reports():
 def serve_report(filename):
     """Serve static report files from the reports directory."""
     directory = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'static', 'reports')
-    return send_from_directory(directory, filename, as_attachment=True)
+    return send_from_directory(directory, filename, as_attachment=False, mimetype='application/pdf')

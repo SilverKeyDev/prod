@@ -75,10 +75,6 @@ export default function HomePage() {
         <div className="absolute inset-0 z-0">
           <RippleBackground />
         </div>
-        <div
-          className="absolute inset-0 opacity-20 bg-cover bg-center z-0"
-          style={{ backgroundImage: "url('/network-bg.svg')" }}
-        />
         <div className="relative z-10 max-w-3xl text-center">
           <h2 className="text-5xl font-serif text-brown font-bold mb-4">
             Discover Something New

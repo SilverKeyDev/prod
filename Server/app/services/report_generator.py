@@ -12,6 +12,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 from flask import jsonify
 import json5
+from .pdf_creator import _create_pdf
 
 # Configure verbose logging
 logging.basicConfig(level=logging.DEBUG)
@@ -32,35 +33,6 @@ HEADERS = {
 REPORTS = {}
 
 # -------------------- UTILS --------------------
-
-def _flatten_report(data: dict, prefix: str = "") -> list[str]:
-    lines: list[str] = []
-    for k, v in data.items():
-        if isinstance(v, dict):
-            lines.extend(_flatten_report(v, prefix + f"{k} > "))
-        else:
-            lines.append(f"{prefix}{k}: {v}")
-    return lines
-
-def _create_pdf(report: dict, task_id: str) -> str:
-    output_dir = os.path.join("static", "reports")
-    os.makedirs(output_dir, exist_ok=True)
-
-    file_path = os.path.join(output_dir, f"{task_id}.pdf")
-    c = canvas.Canvas(file_path, pagesize=letter)
-    width, height = letter
-    y = height - 40
-
-    for line in _flatten_report(report):
-        c.drawString(40, y, line[:110])
-        y -= 14
-        if y < 40:
-            c.showPage()
-            y = height - 40
-    c.save()
-    
-    # Return the URL path that will be used to access this file
-    return f"/api/v1/report/static/reports/{task_id}.pdf"
 
 def validate_address(address: str) -> bool:
     return bool(address and isinstance(address, str))
@@ -116,6 +88,12 @@ You MUST include ALL fields exactly as shown — if you don’t know the value, 
 I want the returned JSON to contain ALL of this information in the same way it is displayed below.
 
 You MUST embed image URLs where appropriate (3–6 total), placing them naturally throughout fields like parks, nightlife, maps, or local culture — not just at the end.
+
+You MUST embed image references where appropriate (3–6 total), placing them naturally throughout fields — not just at the end.
+
+I want you to be very critical and expose the good and bad about these places. Do not be afraid to give a negative rating or comment.
+
+If there is no data for a field, give your best guess, and note that it is an estimate, not exact.
 
 Begin and end your output with curly brackets.
 DO NOT add any explanation, commentary, markdown, or thinking tags.
@@ -375,7 +353,7 @@ DO NOT add any explanation, commentary, markdown, or thinking tags.
         logger.debug(f"Raw model output:\n{raw_json_text}")
 
         report = _safe_parse_json(raw_json_text)
-        pdf_url = _create_pdf(report, task_id)
+        pdf_url = _create_pdf(report, address)
 
         REPORTS[task_id] = {
             "address": address,

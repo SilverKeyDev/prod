@@ -1,11 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Search, Download, Eye, Copy, Calendar, MapPin, X } from "lucide-react";
-import { User } from "../types/index.ts";
-
-interface DashboardProps {
-  user: User;
-  onLogout: () => void;
-}
 
 interface Report {
   id: string;
@@ -38,13 +32,23 @@ export default function PastReports() {
       });
       const json = await res.json();
       if (json.success) {
-        const parsed: Report[] = json.reports.map((r: any) => ({
-          id: r.id,
-          address: r.address,
-          status: r.status,
-          pdfUrl: r.pdfUrl,
-          generatedAt: new Date(r.generatedAt * 1000),
-        }));
+        const parsed: Report[] = json.reports.map((r: any) => {
+          // Ensure the URL is properly constructed
+          let pdfUrl = r.pdfUrl;
+          if (pdfUrl && !pdfUrl.startsWith('http')) {
+            // Remove any leading slashes to avoid double slashes
+            const cleanUrl = pdfUrl.startsWith('/') ? pdfUrl.substring(1) : pdfUrl;
+            pdfUrl = `${baseUrl}${baseUrl.endsWith('/') ? '' : '/'}${cleanUrl}`;
+          }
+          
+          return {
+            id: r.id,
+            address: r.address,
+            status: r.status,
+            pdfUrl: pdfUrl,
+            generatedAt: new Date(r.generatedAt * 1000),
+          };
+        });
         setReports(parsed);
       }
     } catch (err) {
@@ -152,6 +156,11 @@ export default function PastReports() {
   const PdfModal = () => {
     if (!currentPdf) return null;
 
+    // Ensure the URL is properly constructed for the iframe
+    const pdfUrl = currentPdf.startsWith('http') 
+      ? currentPdf 
+      : `${API_BASE_URL}${currentPdf.startsWith('/') ? '' : '/'}${currentPdf}`;
+
     return (
       <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4">
         <div
@@ -162,19 +171,41 @@ export default function PastReports() {
         >
           <div className="flex justify-between items-center p-4 border-b">
             <h3 className="text-lg font-medium">PDF Viewer</h3>
-            <button
-              onClick={closePdfModal}
-              className="text-navy hover:text-navy-dark"
-              aria-label="Close PDF viewer"
-            >
-              <X className="h-6 w-6" />
-            </button>
+            <div className="flex space-x-2">
+              <a 
+                href={pdfUrl}
+                download
+                className="text-navy hover:text-navy-dark p-1"
+                title="Download PDF"
+              >
+                <Download className="h-5 w-5" />
+              </a>
+              <button
+                onClick={closePdfModal}
+                className="text-navy hover:text-navy-dark p-1"
+                aria-label="Close PDF viewer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
           </div>
           <div className="flex-1 overflow-hidden">
             <iframe
-              src={currentPdf}
-              className="w-full h-full"
+              src={`${pdfUrl}#toolbar=1&navpanes=1&view=FitH`}
+              className="w-full h-full border-0"
               title="PDF Viewer"
+              onError={(e) => {
+                console.error("Error loading PDF:", e);
+                const iframe = e.target as HTMLIFrameElement;
+                iframe.contentDocument!.body.innerHTML = `
+                  <div style="padding: 20px; text-align: center;">
+                    <p>Unable to load PDF preview.</p>
+                    <a href="${pdfUrl}" download class="text-blue-600 underline">
+                      Click here to download the PDF
+                    </a>
+                  </div>
+                `;
+              }}
             />
           </div>
         </div>

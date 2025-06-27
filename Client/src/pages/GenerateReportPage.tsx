@@ -118,6 +118,8 @@ export default function GenerateReportPage() {
     setError(null);
 
     navigate("/dashboard/reports?refresh=true");
+    navigate(0);
+
 
     try {
       const apiBaseUrl =
@@ -132,7 +134,7 @@ export default function GenerateReportPage() {
         },
         body: JSON.stringify({ address: trimmed }),
       });
-
+      
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
         throw new Error(errorData.error || "Report generation failed");
@@ -151,7 +153,6 @@ export default function GenerateReportPage() {
             timestamp: new Date().toISOString(),
           })
         );
-        navigate("/dashboard/reports?refresh=true");
       } catch (storageError) {
         navigate("/dashboard/reports", {
           state: {
@@ -168,6 +169,7 @@ export default function GenerateReportPage() {
     } finally {
       setIsGenerating(false);
     }
+    navigate(0);
   };
 
   const isButtonDisabled = isGenerating || !address.trim() || !!loadError;
