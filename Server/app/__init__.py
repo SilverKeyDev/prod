@@ -34,9 +34,24 @@ def create_app(config=None):
     executor.init_app(app)
 
     # CORS
-    CORS(app, resources={r"/api/*": {"origins": ["https://silverkeyestates.com/"]}},
-         supports_credentials=True)
-    app.config['CORS_HEADERS'] = 'Content-Type'
+    CORS(app, resources={
+        r"/api/*": {
+            "origins": ["http://localhost:5173", "http://10.91.197.108:5173", "https://silverkeyestates.com"],
+            "supports_credentials": True,
+            "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"],
+            "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+            "expose_headers": ["Content-Type", "X-CSRFToken"],
+            "max_age": 600
+        }
+    })
+
+    # Handle preflight requests
+    @app.after_request
+    def after_request(response):
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+        response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+        return response
 
     # Blueprints
     from .routes.report import report_bp

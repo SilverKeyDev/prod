@@ -21,12 +21,13 @@ def generate_report_endpoint():
         return jsonify({
             'success': True,
             'status': 'completed',
+            'result': result_data  # Make sure this matches what the frontend expects
         })
     except Exception as e:
         import traceback
         logger.exception("Unhandled error in generate_report_endpoint")
         traceback.print_exc()
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': str(e), 'success': False}), 500
 
 @report_bp.route('/all', methods=['GET'])
 def list_reports():

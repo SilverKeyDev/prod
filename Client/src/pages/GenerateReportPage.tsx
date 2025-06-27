@@ -47,7 +47,9 @@ export default function GenerateReportPage() {
     script.defer = true;
     script.onload = () => setScriptsReady(true);
     script.onerror = () =>
-      setLoadError("Failed to load Google Maps script. Please check your API key or internet.");
+      setLoadError(
+        "Failed to load Google Maps script. Please check your API key or internet."
+      );
 
     document.head.appendChild(script);
   }, []);
@@ -61,19 +63,24 @@ export default function GenerateReportPage() {
 
     const fetchSuggestions = async () => {
       try {
-        const sessionToken = new window.google.maps.places.AutocompleteSessionToken();
+        const sessionToken =
+          new window.google.maps.places.AutocompleteSessionToken();
         const request = {
           input: address,
           sessionToken,
         };
 
         const { suggestions: fetched } =
-          await window.google.maps.places.AutocompleteSuggestion.fetchAutocompleteSuggestions(request);
+          await window.google.maps.places.AutocompleteSuggestion.fetchAutocompleteSuggestions(
+            request
+          );
 
-        setSuggestions(fetched.map((s: any) => ({
-          description: s.placePrediction.text.text,
-          placePrediction: s.placePrediction,
-        })));
+        setSuggestions(
+          fetched.map((s: any) => ({
+            description: s.placePrediction.text.text,
+            placePrediction: s.placePrediction,
+          }))
+        );
       } catch (err) {
         console.error("Autocomplete fetch error:", err);
         setSuggestions([]);
@@ -110,12 +117,21 @@ export default function GenerateReportPage() {
     setIsGenerating(true);
     setError(null);
 
+    navigate("/dashboard/reports?refresh=true");
+
     try {
-        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/v1/report/generate`, {
+      const apiBaseUrl =
+        import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+      const res = await fetch(`${apiBaseUrl}/api/v1/report/generate`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        mode: "cors",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
         body: JSON.stringify({ address: trimmed }),
-      });      
+      });
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
@@ -123,7 +139,8 @@ export default function GenerateReportPage() {
       }
 
       const data = await res.json();
-      if (!data.success) throw new Error(data.error || "Failed to generate report");
+      if (!data.success)
+        throw new Error(data.error || "Failed to generate report");
 
       try {
         localStorage.setItem(
@@ -159,15 +176,21 @@ export default function GenerateReportPage() {
     <div className="min-h-screen bg-gradient-to-br from-off-white to-white p-6">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-serif text-brown mb-4">Generate Property Report</h1>
+          <h1 className="text-4xl font-serif text-brown mb-4">
+            Generate Property Report
+          </h1>
           <p className="text-lg text-brown/60 font-light max-w-2xl mx-auto">
-            Enter an address to generate a comprehensive AI-powered property analysis report
+            Enter an address to generate a comprehensive AI-powered property
+            analysis report
           </p>
         </div>
 
         <div className="card max-w-2xl mx-auto space-y-6">
           <div>
-            <label htmlFor="address-input" className="block text-lg font-medium text-brown mb-3">
+            <label
+              htmlFor="address-input"
+              className="block text-lg font-medium text-brown mb-3"
+            >
               Property Address
             </label>
             <div className="relative">
@@ -179,7 +202,9 @@ export default function GenerateReportPage() {
                 value={address}
                 onChange={handleInputChange}
                 placeholder={
-                  scriptsReady ? "Start typing an address..." : "Loading address search..."
+                  scriptsReady
+                    ? "Start typing an address..."
+                    : "Loading address search..."
                 }
                 disabled={!scriptsReady || isGenerating}
                 className="w-full h-14 pl-12 pr-4 rounded-lg border border-gray-300 text-base focus:ring-2 focus:ring-olive focus:border-olive transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed"
@@ -248,8 +273,9 @@ export default function GenerateReportPage() {
 
           <div className="text-sm text-brown/60 text-center">
             <p>
-              Select an address from the dropdown suggestions for best results. The report will
-              include property details, market analysis, and insights.
+              Select an address from the dropdown suggestions for best results.
+              The report will include property details, market analysis, and
+              insights.
             </p>
           </div>
         </div>
