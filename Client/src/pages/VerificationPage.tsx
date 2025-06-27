@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Mail, ArrowLeft, RefreshCw } from "lucide-react";
 import { authApi } from "../lib/api";
@@ -9,16 +9,17 @@ interface LocationState {
 
 export default function VerificationPage() {
   const [email, setEmail] = useState("");
-  const [code, setCode] = useState(["", "", "", ""]);
+  const [code, setCode] = useState(["", "", "", "", "", ""]);
   const [activeStep, setActiveStep] = useState<"email" | "code">("email");
   const [loading, setLoading] = useState(false);
   const [countdown, setCountdown] = useState(30);
   const [canResend, setCanResend] = useState(false);
   const [error, setError] = useState("");
-  
+
   const navigate = useNavigate();
   const location = useLocation();
   const locationState = location.state as LocationState;
+  const inputRefs = useRef<Array<HTMLInputElement | null>>(Array(6).fill(null));
 
   // Pre-fill email if coming from signup
   useEffect(() => {
@@ -26,6 +27,8 @@ export default function VerificationPage() {
       setEmail(locationState.email);
       setActiveStep("code");
       startCountdown();
+      // Focus first input field when coming from signup
+      setTimeout(() => inputRefs.current[0]?.focus(), 100);
     }
   }, [locationState]);
 
@@ -47,87 +50,132 @@ export default function VerificationPage() {
     setCanResend(false);
   };
 
+  // Handle code input change
+  const handleCodeChange = (value: string, index: number) => {
+    if (!/^\d*$/.test(value)) return; // Only allow numbers
+
+    const newCode = [...code];
+    newCode[index] = value.slice(-1); // Only take the last character
+    setCode(newCode);
+
+    // Move to next input or submit if last digit
+    if (value && index < 5) {
+      inputRefs.current[index + 1]?.focus();
+    } else if (index === 5 && newCode.every((digit) => digit)) {
+      handleVerify();
+    }
+  };
+
+  // Handle paste
+  const handlePaste = (
+    e: React.ClipboardEvent<HTMLInputElement>,
+    index: number
+  ) => {
+    e.preventDefault();
+    const pasteData = e.clipboardData.getData("text/plain").slice(0, 6);
+    if (!/^\d+$/.test(pasteData)) return;
+
+    const newCode = [...code];
+    const pasteDigits = pasteData.split("");
+
+    // Fill in the code array with pasted digits
+    pasteDigits.forEach((digit, i) => {
+      if (index + i < 6) {
+        newCode[index + i] = digit;
+      }
+    });
+
+    setCode(newCode);
+
+    // Focus the next empty input or the last one if all filled
+    const nextEmptyIndex = newCode.findIndex((digit) => !digit);
+    const focusIndex = nextEmptyIndex === -1 ? 5 : Math.min(nextEmptyIndex, 5);
+    inputRefs.current[focusIndex]?.focus();
+  };
+
+  // Handle backspace
+  const handleKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+    index: number
+  ) => {
+    if (e.key === "Backspace" && !code[index] && index > 0) {
+      // Move to previous input on backspace if current is empty
+      inputRefs.current[index - 1]?.focus();
+    }
+  };
+
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) {
       setError("Please enter your email address");
       return;
     }
-    
+
     setLoading(true);
     setError("");
-    
+
     try {
       const { success, error } = await authApi.resendCode(email);
 
       if (!success) {
-        throw new Error(error || 'Failed to send verification code');
+        throw new Error(error || "Failed to send verification code");
       }
 
       setActiveStep("code");
       startCountdown();
     } catch (error: unknown) {
-      console.error('Resend code error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to send verification code. Please try again.';
+      console.error("Resend code error:", error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to send verification code. Please try again.";
       setError(errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCodeChange = (value: string, index: number) => {
-    if (value && !/^\d*$/.test(value)) return;
-    
-    const newCode = [...code];
-    newCode[index] = value;
-    setCode(newCode);
-    
-    // Auto-focus next input
-    if (value && index < 3) {
-      const nextInput = document.getElementById(`code-${index + 1}`);
-      if (nextInput) nextInput.focus();
-    }
-  };
-
-  const handleCodeSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleVerify = async () => {
     const verificationCode = code.join("");
-    if (verificationCode.length !== 4) {
-      setError("Please enter a 4-digit code");
+    if (verificationCode.length !== 6) {
+      setError("Please enter a 6-digit code");
       return;
     }
-    
+
     setLoading(true);
     setError("");
-    
+
     try {
-      const userEmail = email || localStorage.getItem('signupEmail') || '';
+      const userEmail = email || localStorage.getItem("signupEmail") || "";
       const { success, error, data } = await authApi.verify({
         email: userEmail,
         code: verificationCode,
       });
 
       if (!success) {
-        throw new Error(error || 'Verification failed');
+        throw new Error(error || "Verification failed");
       }
-      
+
       // Clear the stored email
-      localStorage.removeItem('signupEmail');
-      
+      localStorage.removeItem("signupEmail");
+
       // Store user data from the response
       if (data?.user) {
-        localStorage.setItem('user', JSON.stringify(data.user));
+        localStorage.setItem("user", JSON.stringify(data.user));
       }
-      
+
       // On success, redirect to dashboard
       navigate("/dashboard");
     } catch (error: unknown) {
-      console.error('Verification error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Invalid verification code. Please try again.';
+      console.error("Verification error:", error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Invalid verification code. Please try again.";
       setError(errorMessage);
       // Clear the code on error
-      setCode(["", "", "", ""]);
-      document.getElementById('code-0')?.focus();
+      setCode(["", "", "", "", "", ""]);
+      inputRefs.current[0]?.focus();
     } finally {
       setLoading(false);
     }
@@ -135,29 +183,32 @@ export default function VerificationPage() {
 
   const handleResendCode = async () => {
     if (!canResend) return;
-    
+
     setLoading(true);
     setError("");
-    
+
     try {
-      const userEmail = email || localStorage.getItem('signupEmail');
+      const userEmail = email || localStorage.getItem("signupEmail");
       if (!userEmail) {
-        throw new Error('Email not found. Please go back and try again.');
+        throw new Error("Email not found. Please go back and try again.");
       }
-      
+
       const { success, error } = await authApi.resendCode(userEmail);
 
       if (!success) {
-        throw new Error(error || 'Failed to resend verification code');
+        throw new Error(error || "Failed to resend verification code");
       }
-      
+
       // Reset UI state
       startCountdown();
-      setCode(["", "", "", ""]);
-      document.getElementById('code-0')?.focus();
+      setCode(["", "", "", "", "", ""]);
+      inputRefs.current[0]?.focus();
     } catch (error: unknown) {
-      console.error('Resend code error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to resend verification code. Please try again.';
+      console.error("Resend code error:", error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to resend verification code. Please try again.";
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -172,6 +223,27 @@ export default function VerificationPage() {
       navigate(-1);
     }
   };
+
+  const renderCodeInputs = () => (
+    <div className="flex justify-center space-x-3 mb-8">
+      {code.map((digit, index) => (
+        <input
+          key={index}
+          ref={(el) => (inputRefs.current[index] = el)}
+          type="text"
+          inputMode="numeric"
+          pattern="\d*"
+          maxLength={1}
+          value={digit}
+          onChange={(e) => handleCodeChange(e.target.value, index)}
+          onPaste={(e) => handlePaste(e, index)}
+          onKeyDown={(e) => handleKeyDown(e, index)}
+          className="w-12 h-16 text-2xl text-center border-2 border-olive rounded-lg focus:outline-none focus:ring-2 focus:ring-olive focus:border-transparent"
+          disabled={loading}
+        />
+      ))}
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-off-white flex items-center justify-center px-4 py-8">
@@ -188,12 +260,14 @@ export default function VerificationPage() {
         {/* Header */}
         <div className="text-center mb-8">
           <h2 className="text-3xl font-serif text-navy mb-2">
-            {activeStep === "email" ? "Verify your email" : "Enter verification code"}
+            {activeStep === "email"
+              ? "Verify your email"
+              : "Enter verification code"}
           </h2>
           <p className="text-navy/60 font-light">
             {activeStep === "email"
               ? "We'll send you a code to verify your email"
-              : `Enter the 4-digit code sent to ${email}`}
+              : `Enter the 6-digit code sent to ${email}`}
           </p>
         </div>
 
@@ -247,58 +321,36 @@ export default function VerificationPage() {
 
         {/* Verification Code Step */}
         {activeStep === "code" && (
-          <form onSubmit={handleCodeSubmit} className="space-y-6">
-            <div className="space-y-4">
-              <div className="flex justify-center space-x-3">
-                {[0, 1, 2, 3].map((index) => (
-                  <input
-                    key={index}
-                    id={`code-${index}`}
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={1}
-                    value={code[index]}
-                    onChange={(e) => handleCodeChange(e.target.value, index)}
-                    onKeyDown={(e) => {
-                      // Handle backspace to move to previous input
-                      if (e.key === "Backspace" && !code[index] && index > 0) {
-                        const prevInput = document.getElementById(`code-${index - 1}`);
-                        if (prevInput) prevInput.focus();
-                      }
-                    }}
-                    className="w-16 h-16 text-2xl text-center border border-navy/20 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent"
-                    autoFocus={index === 0}
-                  />
-                ))}
-              </div>
-              
-              <div className="text-center text-sm text-navy/60">
-                Didn't receive a code?{" "}
-                <button
-                  type="button"
-                  onClick={handleResendCode}
-                  disabled={!canResend || loading}
-                  className={`${
-                    canResend ? "text-gold hover:text-gold/80" : "text-navy/40"
-                  } font-medium transition-colors`}
-                >
-                  {loading ? (
-                    <span className="inline-flex items-center">
-                      <RefreshCw className="animate-spin h-3 w-3 mr-1" />
-                      Sending...
-                    </span>
-                  ) : canResend ? (
-                    "Resend code"
-                  ) : (
-                    `Resend in ${countdown}s`
-                  )}
-                </button>
-              </div>
+          <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
+            {renderCodeInputs()}
+
+            <div className="text-center text-sm text-navy/60">
+              Didn't receive a code?{" "}
+              <button
+                type="button"
+                onClick={handleResendCode}
+                disabled={!canResend || loading}
+                className={`${
+                  canResend ? "text-gold hover:text-gold/80" : "text-navy/40"
+                } font-medium transition-colors`}
+              >
+                {loading ? (
+                  <span className="inline-flex items-center">
+                    <RefreshCw className="animate-spin h-3 w-3 mr-1" />
+                    Sending...
+                  </span>
+                ) : canResend ? (
+                  "Resend code"
+                ) : (
+                  `Resend in ${countdown}s`
+                )}
+              </button>
             </div>
 
             <button
-              type="submit"
-              disabled={loading || code.join("").length !== 4}
+              type="button"
+              onClick={handleVerify}
+              disabled={loading || code.join("").length !== 6}
               className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (

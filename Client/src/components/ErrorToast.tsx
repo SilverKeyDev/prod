@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 
 interface ErrorToastProps {

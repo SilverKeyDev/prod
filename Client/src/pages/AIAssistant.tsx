@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Send, Bot, MessageCircle, Trash2, Plus, User as UserIcon} from "lucide-react";
 
 interface ChatMessage {

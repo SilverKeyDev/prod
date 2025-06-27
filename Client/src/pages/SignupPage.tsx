@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Mail, Lock, User as UserIcon, Phone, Building } from "lucide-react";
+import { Mail, Lock, User as UserIcon, Phone } from "lucide-react";
 import { authApi } from "../lib/api";
+import PhoneInput from "react-phone-number-input";
+import "react-phone-number-input/style.css";
 
-interface SignupPageProps {
-  // Removed onLogin as we're handling auth state differently now
-}
+interface SignupPageProps {}
 
 export default function SignupPage({}: SignupPageProps) {
   const [formData, setFormData] = useState({
@@ -13,8 +13,8 @@ export default function SignupPage({}: SignupPageProps) {
     email: "",
     password: "",
     agencyName: "",
-    phone: "",
   });
+  const [phoneValue, setPhoneValue] = useState<string | undefined>("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -27,23 +27,22 @@ export default function SignupPage({}: SignupPageProps) {
         name: formData.name,
         email: formData.email,
         password: formData.password,
-        phone: formData.phone || undefined,
+        phone: phoneValue || undefined,
         agency_name: formData.agencyName || undefined,
       });
 
       if (!success) {
-        throw new Error(error || 'Failed to sign up');
+        throw new Error(error || "Failed to sign up");
       }
 
-      // Store user data in local storage
-      localStorage.setItem('signupEmail', formData.email);
-      
-      // Redirect to verification page
+      localStorage.setItem("signupEmail", formData.email);
       navigate("/verification", { state: { email: formData.email } });
     } catch (error: unknown) {
-      console.error('Signup error:', error);
-      // Handle error (show error message to user)
-      const errorMessage = error instanceof Error ? error.message : 'Failed to sign up. Please try again.';
+      console.error("Signup error:", error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to sign up. Please try again.";
       alert(errorMessage);
     } finally {
       setLoading(false);
@@ -132,44 +131,52 @@ export default function SignupPage({}: SignupPageProps) {
             </div>
           </div>
 
-          {/* Agency Name */}
-          <div>
-            <label className="block text-sm font-medium text-navy mb-2">
-              Agency name (optional)
-            </label>
-            <div className="relative">
-              <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-navy/40" />
-              <input
-                type="text"
-                name="agencyName"
-                value={formData.agencyName}
-                onChange={handleChange}
-                className="input-field pl-10"
-                placeholder="Your real estate agency"
-                autoComplete="organization"
-              />
-            </div>
-          </div>
-
           {/* Phone */}
           <div>
             <label className="block text-sm font-medium text-navy mb-2">
               Phone number
             </label>
             <div className="relative">
-              <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-navy/40" />
-              <input
-                type="tel"
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                className="input-field pl-10"
-                placeholder="Your phone number"
-                autoComplete="tel"
+              <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-navy/40 z-10" />
+              <PhoneInput
+                international
+                defaultCountry="US"
+                value={phoneValue}
+                onChange={setPhoneValue}
+                placeholder="Enter phone number"
+                className="phone-input"
               />
+              <style>{`
+                .phone-input {
+                  width: 100%;
+                  padding: 0.5rem 0.75rem 0.5rem 2.5rem;
+                  border: 1px solid #d1d5db;
+                  border-radius: 0.5rem;
+                  font-size: 0.875rem;
+                  line-height: 1.25rem;
+                  background-color: white;
+                  transition: border-color 0.15s ease-in-out,
+                    box-shadow 0.15s ease-in-out;
+                }
+                .phone-input:focus {
+                  outline: none;
+                  border-color: #4a3228;
+                  box-shadow: 0 0 0 2px rgba(74, 50, 40, 0.2);
+                }
+                .PhoneInputCountry {
+                  margin-right: 0.5rem;
+                }
+                .PhoneInputInput {
+                  border: none;
+                  outline: none;
+                  width: 100%;
+                  padding: 0.5rem 0;
+                }
+              `}</style>
             </div>
           </div>
 
+          {/* Submit */}
           <button
             type="submit"
             disabled={loading}
