@@ -5,6 +5,7 @@ import SignupPage from "./pages/SignupPage";
 import HomePage from "./pages/HomePage.tsx";
 import { User } from "./types/index.ts";
 import Dashboard from "./components/Dashboard.tsx";
+import VerificationPage from "./pages/VerificationPage";
 
 function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -49,6 +50,7 @@ function App() {
             element={<SignupPage onLogin={handleLogin} />}
           />
           <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
+          <Route path="/verification" element={<VerificationPage/>} />
 
           {/* Protected Route */}
           <Route

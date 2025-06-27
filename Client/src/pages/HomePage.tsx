@@ -76,37 +76,39 @@ export default function HomePage() {
           <RippleBackground />
         </div>
         <div className="relative z-10 max-w-3xl text-center">
-          <h2 className="text-5xl font-serif text-brown font-bold mb-4">
-            Discover Something New
-          </h2>
-          <p className="text-gray-600 mb-8 text-lg">
-            Find the key to your next travel destination, home, or investment with SilverKey.
-          </p>
+          <div className="bg-white p-6 rounded-lg shadow-lg">
+            <h2 className="text-5xl font-serif text-brown font-bold mb-4">
+              Discover Something New
+            </h2>
+            <p className="text-gray-600 mb-8 text-lg">
+              Find the key to your next travel destination, home, or investment with SilverKey.
+            </p>
 
-          {/* Search */}
-          <div className="relative w-full max-w-xl mx-auto mb-6">
-            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500 pointer-events-none" />
-            <gmp-place-autocomplete
-              ref={autoRef}
-              placeholder="Search address..."
-              style={{
-                width: "100%",
-                height: "3rem",
-                paddingLeft: "2.5rem",
-                fontSize: "1rem",
-                border: "1px solid #999",
-                borderRadius: "0.5rem",
-              }}
-            />
-            {/* removed redundant <X /> */}
+            {/* Search */}
+            <div className="relative w-full max-w-xl mx-auto mb-6">
+              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500 pointer-events-none" />
+              <gmp-place-autocomplete
+                ref={autoRef}
+                placeholder="Search address..."
+                style={{
+                  width: "100%",
+                  height: "3rem",
+                  paddingLeft: "2.5rem",
+                  fontSize: "1rem",
+                  border: "1px solid #999",
+                  borderRadius: "0.5rem",
+                }}
+              />
+            </div>
           </div>
-
-          <button
-            onClick={() => setShowAuthModal(true)}
-            className="bg-olive text-white rounded-lg py-3 px-8 font-semibold hover:bg-olive/80 transition"
-          >
-            Generate Report
-          </button>
+          <div className="mt-8">
+            <button
+              onClick={() => setShowAuthModal(true)}
+              className="bg-olive text-white rounded-lg py-3 px-8 font-semibold hover:bg-olive/80 transition"
+            >
+              Generate Report
+            </button>
+          </div>
         </div>
 
         {/* Feature Cards */}

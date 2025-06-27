@@ -35,7 +35,7 @@ export default function SignupPage({ onLogin }: SignupPageProps) {
 
     onLogin(user);
     setLoading(false);
-    navigate("/dashboard");
+    navigate("/verification");
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
