@@ -17,13 +17,7 @@ class CognitoService:
         
         # Initialize with explicit region from config
         self.region = Config.AWS_REGION
-        ##CHANGE LATER, SHITTY TEMPORARY FIX
-        boto3.client(
-            'cognito-idp',
-            region_name='us-east-2',
-            endpoint_url='https://cognito-idp.us-east-2.amazonaws.com'
-        )
-
+        self.client = boto3.client('cognito-idp', region_name=self.region)
         self.user_pool_id = os.getenv('COGNITO_USER_POOL_ID')
         self.client_id = os.getenv('COGNITO_CLIENT_ID')
         self.client_secret = os.getenv('COGNITO_CLIENT_SECRET')
