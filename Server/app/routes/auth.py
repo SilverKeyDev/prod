@@ -4,6 +4,7 @@ from flask_jwt_extended import (
 )
 import os
 from ..services.auth import cognito_service
+import jwt
 
 # Blueprint setup
 auth_bp = Blueprint('auth', __name__, url_prefix='/api/v1/auth')
@@ -161,16 +162,22 @@ def login():
             }), 401
 
         # Create JWT (no DB user ID, so we use email or cognito sub as identity)
-        access_token = create_access_token(identity=result['user_sub'])
+        id_token = result['tokens']['IdToken']
+        decoded_id_token = jwt.decode(id_token, options={"verify_signature": False})
+        user_sub = decoded_id_token['sub']
+
+        access_token = create_access_token(identity=user_sub)
+
 
         return jsonify({
             'success': True,
             'access_token': access_token,
             'user': {
                 'email': data['email'],
-                'user_sub': result['user_sub']
+                'user_sub': user_sub
             }
         })
+
     except Exception as e:
         current_app.logger.error(f'Error logging in: {str(e)}')
         return jsonify({
