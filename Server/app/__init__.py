@@ -6,7 +6,7 @@ from flask_cors import CORS
 from flask_marshmallow import Marshmallow
 from flask_executor import Executor
 from .config import Config
-from .extensions import db, login_manager, ma
+from .extensions import login_manager, ma
 
 login_manager = LoginManager()
 
@@ -28,7 +28,6 @@ def create_app(config=None):
         app.config.update(config)
 
     # Init extensions
-    db.init_app(app)
     login_manager.init_app(app)
     ma.init_app(app)
     executor.init_app(app)
@@ -56,9 +55,6 @@ def create_app(config=None):
     # Import models to ensure they are registered with SQLAlchemy
     from .models.user import User
     
-    # Create database tables
-    with app.app_context():
-        db.create_all()
     
     # Blueprints
     from .routes.report import report_bp
