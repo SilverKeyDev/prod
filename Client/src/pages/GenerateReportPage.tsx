@@ -120,10 +120,8 @@ export default function GenerateReportPage() {
     navigate("/dashboard/reports?refresh=true");
     navigate(0);
 
-
     try {
-      const apiBaseUrl =
-        import.meta.env.VITE_API_BASE_URL;
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
       const res = await fetch(`${apiBaseUrl}/api/v1/report/generate`, {
         method: "POST",
         mode: "cors",
@@ -134,7 +132,7 @@ export default function GenerateReportPage() {
         },
         body: JSON.stringify({ address: trimmed }),
       });
-      
+
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
         throw new Error(errorData.error || "Report generation failed");

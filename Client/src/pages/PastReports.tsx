@@ -7,13 +7,15 @@ interface Report {
   generatedAt: Date;
   status: "completed" | "generating" | "failed";
   pdfUrl?: string;
+  s3Key?: string;
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
-
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 if (!API_BASE_URL) {
-  console.error("❌ VITE_API_BASE_URL is not defined! Falling back to window.location.origin.");
+  console.error(
+    "❌ VITE_API_BASE_URL is not defined! Falling back to window.location.origin."
+  );
 }
 
 export default function PastReports() {
@@ -22,30 +24,49 @@ export default function PastReports() {
   const [sortBy, setSortBy] = useState<"date" | "address">("date");
   const [reports, setReports] = useState<Report[]>([]);
   const [currentPdf, setCurrentPdf] = useState<string | null>(null);
+  const [loadingUrls, setLoadingUrls] = useState<Set<string>>(new Set());
   const hasFetched = useRef(false);
 
   const fetchReports = async () => {
     try {
-      const baseUrl = API_BASE_URL || '';
+      const baseUrl = API_BASE_URL || "";
       const res = await fetch(`${baseUrl}/api/v1/report/all`, {
-        credentials: 'include'
+        credentials: "include",
       });
       const json = await res.json();
       if (json.success) {
         const parsed: Report[] = json.reports.map((r: any) => {
-          // Ensure the URL is properly constructed
+          // Handle different URL types
           let pdfUrl = r.pdfUrl;
-          if (pdfUrl && !pdfUrl.startsWith('http')) {
-            // Remove any leading slashes to avoid double slashes
-            const cleanUrl = pdfUrl.startsWith('/') ? pdfUrl.substring(1) : pdfUrl;
-            pdfUrl = `${baseUrl}${baseUrl.endsWith('/') ? '' : '/'}${cleanUrl}`;
+          if (pdfUrl) {
+            if (pdfUrl.startsWith("http")) {
+              // This is already a presigned URL or external URL
+              pdfUrl = pdfUrl;
+            } else if (pdfUrl.startsWith("/")) {
+              // This is a local static file
+              const cleanUrl = pdfUrl.startsWith("/")
+                ? pdfUrl.substring(1)
+                : pdfUrl;
+              pdfUrl = `${baseUrl}${
+                baseUrl.endsWith("/") ? "" : "/"
+              }${cleanUrl}`;
+            } else {
+              // This is an S3 key, we'll need to get a fresh presigned URL
+              pdfUrl = null; // Will be fetched on demand
+            }
           }
-          
+
           return {
             id: r.id,
             address: r.address,
             status: r.status,
             pdfUrl: pdfUrl,
+            s3Key:
+              r.pdfUrl &&
+              !r.pdfUrl.startsWith("http") &&
+              !r.pdfUrl.startsWith("/")
+                ? r.pdfUrl
+                : null,
             generatedAt: new Date(r.generatedAt * 1000),
           };
         });
@@ -53,6 +74,92 @@ export default function PastReports() {
       }
     } catch (err) {
       console.error("Failed to fetch reports", err);
+    }
+  };
+
+  const getFreshDownloadUrl = async (
+    reportId: string
+  ): Promise<string | null> => {
+    try {
+      setLoadingUrls((prev) => new Set(prev).add(reportId));
+
+      const baseUrl = API_BASE_URL || "";
+      const res = await fetch(
+        `${baseUrl}/api/v1/report/${reportId}/download-url`,
+        {
+          credentials: "include",
+        }
+      );
+
+      if (!res.ok) {
+        throw new Error("Failed to get download URL");
+      }
+
+      const data = await res.json();
+      if (data.success && data.downloadUrl) {
+        return data.downloadUrl;
+      }
+
+      return null;
+    } catch (err) {
+      console.error("Failed to get fresh download URL", err);
+      return null;
+    } finally {
+      setLoadingUrls((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(reportId);
+        return newSet;
+      });
+    }
+  };
+
+  const handleViewPdf = async (report: Report) => {
+    let pdfUrl = report.pdfUrl;
+
+    // If we don't have a URL or it's an S3 key, get a fresh presigned URL
+    if (!pdfUrl && report.s3Key) {
+      pdfUrl = await getFreshDownloadUrl(report.id);
+      if (pdfUrl) {
+        // Update the report with the fresh URL
+        setReports((prev) =>
+          prev.map((r) => (r.id === report.id ? { ...r, pdfUrl } : r))
+        );
+      }
+    }
+
+    if (pdfUrl) {
+      openPdfModal(pdfUrl);
+    } else {
+      console.error("Failed to get PDF URL");
+    }
+  };
+
+  const handleDownloadPdf = async (report: Report) => {
+    let pdfUrl = report.pdfUrl;
+
+    // If we don't have a URL or it's an S3 key, get a fresh presigned URL
+    if (!pdfUrl && report.s3Key) {
+      pdfUrl = await getFreshDownloadUrl(report.id);
+      if (pdfUrl) {
+        // Update the report with the fresh URL
+        setReports((prev) =>
+          prev.map((r) => (r.id === report.id ? { ...r, pdfUrl } : r))
+        );
+      }
+    }
+
+    if (pdfUrl) {
+      // Create a temporary link and trigger download
+      const link = document.createElement("a");
+      link.href = pdfUrl;
+      link.download = `${report.address
+        .replace(/[^a-z0-9]/gi, "_")
+        .toLowerCase()}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } else {
+      console.error("Failed to get PDF URL for download");
     }
   };
 
@@ -64,7 +171,7 @@ export default function PastReports() {
 
   const retryGeneration = async (reportId: string) => {
     try {
-      const baseUrl = API_BASE_URL || '';
+      const baseUrl = API_BASE_URL || "";
       const res = await fetch(`${baseUrl}/api/v1/report/retry`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -143,7 +250,10 @@ export default function PastReports() {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+      if (
+        modalRef.current &&
+        !modalRef.current.contains(event.target as Node)
+      ) {
         closePdfModal();
       }
     };
@@ -156,11 +266,6 @@ export default function PastReports() {
   const PdfModal = () => {
     if (!currentPdf) return null;
 
-    // Ensure the URL is properly constructed for the iframe
-    const pdfUrl = currentPdf.startsWith('http') 
-      ? currentPdf 
-      : `${API_BASE_URL}${currentPdf.startsWith('/') ? '' : '/'}${currentPdf}`;
-
     return (
       <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4">
         <div
@@ -172,8 +277,8 @@ export default function PastReports() {
           <div className="flex justify-between items-center p-4 border-b">
             <h3 className="text-lg font-medium">PDF Viewer</h3>
             <div className="flex space-x-2">
-              <a 
-                href={pdfUrl}
+              <a
+                href={currentPdf}
                 download
                 className="text-navy hover:text-navy-dark p-1"
                 title="Download PDF"
@@ -191,7 +296,7 @@ export default function PastReports() {
           </div>
           <div className="flex-1 overflow-hidden">
             <iframe
-              src={`${pdfUrl}#toolbar=1&navpanes=1&view=FitH`}
+              src={`${currentPdf}#toolbar=1&navpanes=1&view=FitH`}
               className="w-full h-full border-0"
               title="PDF Viewer"
               onError={(e) => {
@@ -200,7 +305,7 @@ export default function PastReports() {
                 iframe.contentDocument!.body.innerHTML = `
                   <div style="padding: 20px; text-align: center;">
                     <p>Unable to load PDF preview.</p>
-                    <a href="${pdfUrl}" download class="text-blue-600 underline">
+                    <a href="${currentPdf}" download class="text-blue-600 underline">
                       Click here to download the PDF
                     </a>
                   </div>
@@ -243,44 +348,52 @@ export default function PastReports() {
             />
           </div>
           <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => setViewMode("grid")}
+                className={`p-2 rounded ${
+                  viewMode === "grid"
+                    ? "bg-navy text-white"
+                    : "bg-beige text-navy hover:bg-navy/10"
+                }`}
+              >
+                <div className="grid grid-cols-2 gap-1 w-4 h-4">
+                  <div className="bg-current rounded-sm"></div>
+                  <div className="bg-current rounded-sm"></div>
+                  <div className="bg-current rounded-sm"></div>
+                  <div className="bg-current rounded-sm"></div>
+                </div>
+              </button>
+              <button
+                onClick={() => setViewMode("list")}
+                className={`p-2 rounded ${
+                  viewMode === "list"
+                    ? "bg-navy text-white"
+                    : "bg-beige text-navy hover:bg-navy/10"
+                }`}
+              >
+                <div className="space-y-1 w-4 h-4">
+                  <div className="bg-current rounded-sm h-0.5"></div>
+                  <div className="bg-current rounded-sm h-0.5"></div>
+                  <div className="bg-current rounded-sm h-0.5"></div>
+                </div>
+              </button>
+            </div>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as "date" | "address")}
-              className="input-field py-2"
+              className="input-field"
             >
               <option value="date">Sort by Date</option>
               <option value="address">Sort by Address</option>
             </select>
-            <div className="flex items-center bg-beige/20 rounded-lg p-1">
-              <button
-                onClick={() => setViewMode("grid")}
-                className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                  viewMode === "grid"
-                    ? "bg-white text-navy shadow-sm"
-                    : "text-navy/60 hover:text-navy"
-                }`}
-              >
-                Grid
-              </button>
-              <button
-                onClick={() => setViewMode("list")}
-                className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                  viewMode === "list"
-                    ? "bg-white text-navy shadow-sm"
-                    : "text-navy/60 hover:text-navy"
-                }`}
-              >
-                List
-              </button>
-            </div>
           </div>
         </div>
       </div>
+
       {sortedReports.length === 0 ? (
-        <div className="card text-center py-12">
-          <div className="w-16 h-16 bg-beige/30 rounded-full flex items-center justify-center mx-auto mb-4">
-            <MapPin className="h-8 w-8 text-navy/40" />
-          </div>
+        <div className="text-center py-12">
+          <MapPin className="h-12 w-12 text-navy/40 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-navy mb-2">
             No reports found
           </h3>
@@ -301,43 +414,57 @@ export default function PastReports() {
           {sortedReports.map((report) => (
             <div
               key={report.id}
-              className={`card hover:shadow-lg transition-all duration-200 ${
-                viewMode === "list" ? "flex items-center justify-between" : ""
-              }`}
+              className={
+                viewMode === "grid"
+                  ? "card hover:shadow-lg transition-shadow"
+                  : "card flex items-center justify-between"
+              }
             >
-              {/* Grid */}
               {viewMode === "grid" ? (
                 <>
-                  <div className="mb-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(report.status)}`}>
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <span
+                        className={`inline-block px-2 py-1 rounded-full text-xs font-medium mb-2 ${getStatusColor(
+                          report.status
+                        )}`}
+                      >
                         {getStatusText(report.status)}
                       </span>
-                      <span className="text-sm text-navy/60 flex items-center">
+                      <h3
+                        className="font-medium text-navy mb-1 truncate overflow-hidden whitespace-nowrap max-w-[16rem]"
+                        title={report.address}
+                      >
+                        {report.address}
+                      </h3>
+                      <p className="text-sm text-navy/60 flex items-center">
                         <Calendar className="h-4 w-4 mr-1" />
                         {formatDate(report.generatedAt)}
-                      </span>
+                      </p>
                     </div>
-                    <h3 className="font-medium text-navy mb-1">{report.address}</h3>
                   </div>
+
                   <div className="flex items-center space-x-2">
                     {report.status === "completed" && (
                       <>
                         <button
-                          onClick={() => openPdfModal(report.pdfUrl!)}
-                          className="flex-1 btn-secondary py-2 text-sm flex items-center justify-center"
+                          onClick={() => handleViewPdf(report)}
+                          disabled={loadingUrls.has(report.id)}
+                          className="flex-1 btn-secondary py-2 text-sm flex items-center justify-center disabled:opacity-50"
                         >
                           <Eye className="h-4 w-4 mr-1" />
-                          View
+                          {loadingUrls.has(report.id) ? "Loading..." : "View"}
                         </button>
-                        <a
-                          href={report.pdfUrl}
-                          download={`${report.address.replace(/[^a-z0-9]/gi, "_").toLowerCase()}.pdf`}
-                          className="flex-1 btn-primary py-2 text-sm flex items-center justify-center"
+                        <button
+                          onClick={() => handleDownloadPdf(report)}
+                          disabled={loadingUrls.has(report.id)}
+                          className="flex-1 btn-primary py-2 text-sm flex items-center justify-center disabled:opacity-50"
                         >
                           <Download className="h-4 w-4 mr-1" />
-                          Download
-                        </a>
+                          {loadingUrls.has(report.id)
+                            ? "Loading..."
+                            : "Download"}
+                        </button>
                       </>
                     )}
                     {report.status === "generating" && (
@@ -361,7 +488,11 @@ export default function PastReports() {
                 <>
                   <div className="flex-1">
                     <div className="flex items-center space-x-3 mb-1">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(report.status)}`}>
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                          report.status
+                        )}`}
+                      >
                         {getStatusText(report.status)}
                       </span>
                       <span className="text-sm text-navy/60">
@@ -374,20 +505,23 @@ export default function PastReports() {
                     {report.status === "completed" && (
                       <>
                         <button
-                          onClick={() => openPdfModal(report.pdfUrl!)}
-                          className="btn-secondary py-2 px-3 text-sm flex items-center"
+                          onClick={() => handleViewPdf(report)}
+                          disabled={loadingUrls.has(report.id)}
+                          className="btn-secondary py-2 px-3 text-sm flex items-center disabled:opacity-50"
                         >
                           <Eye className="h-4 w-4 mr-1" />
-                          View
+                          {loadingUrls.has(report.id) ? "Loading..." : "View"}
                         </button>
-                        <a
-                          href={report.pdfUrl}
-                          download={`${report.address.replace(/[^a-z0-9]/gi, "_").toLowerCase()}.pdf`}
-                          className="btn-primary py-2 px-3 text-sm flex items-center"
+                        <button
+                          onClick={() => handleDownloadPdf(report)}
+                          disabled={loadingUrls.has(report.id)}
+                          className="btn-primary py-2 px-3 text-sm flex items-center disabled:opacity-50"
                         >
                           <Download className="h-4 w-4 mr-1" />
-                          Download
-                        </a>
+                          {loadingUrls.has(report.id)
+                            ? "Loading..."
+                            : "Download"}
+                        </button>
                       </>
                     )}
                     {report.status === "generating" && (

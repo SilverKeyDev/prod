@@ -1,9 +1,10 @@
+
 import { Link, useLocation } from "react-router-dom";
 import { Home, FileText, MessageCircle, LogOut } from "lucide-react";
 import { User } from "../types/index.ts";
 
 interface SidebarProps {
-  user: User;
+  user?: User; // make user optional to prevent crash
   onLogout: () => void;
   expanded: boolean;
   onToggleExpanded: () => void;
@@ -15,6 +16,7 @@ const navigation = [
   { name: "AI Assistant", href: "/dashboard/assistant", icon: MessageCircle },
 ];
 
+
 export default function Sidebar({
   user,
   onLogout,
@@ -23,7 +25,8 @@ export default function Sidebar({
 }: SidebarProps) {
   const location = useLocation();
 
-  const isActive = (href: string) => location.pathname === href;
+  const isActive = (href: string) =>
+    location.pathname === href || location.pathname.endsWith(href);
 
   return (
     <aside
@@ -32,7 +35,7 @@ export default function Sidebar({
       }`}
     >
       <div className="h-full flex flex-col justify-between overflow-hidden">
-        {/* Toggle Button – Always Visible */}
+        {/* Toggle Button */}
         <div className="p-2 border-b border-brown-light flex justify-end">
           <button
             onClick={onToggleExpanded}
@@ -65,12 +68,16 @@ export default function Sidebar({
               <div className="flex items-center">
                 <div className="w-10 h-10 bg-gold rounded-full flex items-center justify-center">
                   <span className="text-brown font-semibold text-sm">
-                    {user.name.charAt(0).toUpperCase()}
+                    {user?.name?.charAt(0).toUpperCase() ?? "?"}
                   </span>
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-white">{user.name}</p>
-                  <p className="text-xs text-white">{user.email}</p>
+                  <p className="text-sm font-medium text-white">
+                    {user?.name ?? "Unknown User"}
+                  </p>
+                  <p className="text-xs text-white">
+                    {user?.email ?? "No email"}
+                  </p>
                 </div>
               </div>
             </div>
@@ -79,15 +86,15 @@ export default function Sidebar({
           {/* Navigation */}
           <nav className="mt-4">
             {navigation.map((item) => (
-             <Link
-             key={item.name}
-             to={item.href}
-             className={`flex items-center px-4 py-3 transition-colors font-medium text-white ${
-               isActive(item.href)
-                 ? "bg-brown-light text-white font-semibold"
-                 : "text-brown-light/50 hover:bg-brown-light/50 hover:text-white"
-             }`}
-           >
+              <Link
+                key={item.name}
+                to={item.href}
+                className={`flex items-center px-4 py-3 transition-colors font-medium text-white ${
+                  isActive(item.href)
+                    ? "bg-brown-light text-white font-semibold"
+                    : "text-brown-light/50 hover:bg-brown-light/50 hover:text-white"
+                }`}
+              >
                 <item.icon className={`w-5 h-5 ${expanded ? "mr-4" : ""}`} />
                 <span className={expanded ? "block" : "hidden"}>
                   {item.name}

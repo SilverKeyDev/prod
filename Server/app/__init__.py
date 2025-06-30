@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_migrate import Migrate
@@ -6,21 +6,14 @@ from flask_cors import CORS
 from flask_marshmallow import Marshmallow
 from flask_executor import Executor
 from .config import Config
-from .extensions import login_manager, ma
-from flask_sqlalchemy import SQLAlchemy
-
-db = SQLAlchemy()
-
-login_manager = LoginManager()
+import os
+import logging
 
 # Initialize extensions
+db = SQLAlchemy()
+login_manager = LoginManager()
 ma = Marshmallow()
-
-# Create executor instance
 executor = Executor()
-
-import os
-from flask import send_from_directory
 
 def create_app(config=None):
     app = Flask(__name__, static_folder="../static", static_url_path="")
@@ -34,11 +27,16 @@ def create_app(config=None):
     login_manager.init_app(app)
     ma.init_app(app)
     executor.init_app(app)
+    db.init_app(app)   # <<< FIXED: added this line
 
     # CORS
     CORS(app, resources={
         r"/api/*": {
-            "origins": ["http://localhost:5173", "http://10.91.197.108:5173", "https://silverkeyestates.com"],
+            "origins": [
+                "http://localhost:5173",
+                "http://10.91.197.108:5173",
+                "https://silverkeyestates.com"
+            ],
             "supports_credentials": True,
             "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"],
             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -55,20 +53,28 @@ def create_app(config=None):
         response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
         return response
 
-    # Import models to ensure they are registered with SQLAlchemy
+    # Import models to register with SQLAlchemy
     from .models.user import User
-    
-    
+
+    # Initialize S3 service
+    with app.app_context():
+        try:
+            from .services.s3_service import s3_service
+            logger = logging.getLogger(__name__)
+            logger.info("S3 service initialized successfully")
+        except Exception as e:
+            logger = logging.getLogger(__name__)
+            logger.error(f"Failed to initialize S3 service: {str(e)}")
+            logger.error("Application will continue with local storage fallback")
+
     # Blueprints
     from .routes.report import report_bp
     from .routes.dashboard import dashboard_bp
     from .routes.auth import auth_bp
-    
+
     app.register_blueprint(report_bp)
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(auth_bp)
-
-    
 
     # Serve frontend
     @app.route("/")

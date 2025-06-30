@@ -29,8 +29,6 @@ def signup():
 
     if 'phone' in data:
         user_attributes.append({'Name': 'phone_number', 'Value': data['phone']})
-    if 'agency_name' in data:
-        user_attributes.append({'Name': 'custom:agency_name', 'Value': data['agency_name']})
 
     result = cognito_service.sign_up(
         username=data['email'],
@@ -131,8 +129,7 @@ def resend_code():
 def login():
     """Authenticate user and return Cognito JWT tokens directly"""
     data = request.get_json()
-    
-    current_app.logger.debug(f"Login request data: {data}")
+
     
     if not data or not all(field in data for field in ['email', 'password']):
         current_app.logger.error(f"Missing required fields in login request: {data}")
@@ -147,7 +144,6 @@ def login():
             username=data['email'],
             password=data['password']
         )
-        current_app.logger.debug(f"Sign in result: {result}")
 
         if not result['success']:
             error_message = 'Invalid email or password'

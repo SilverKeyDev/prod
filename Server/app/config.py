@@ -25,6 +25,13 @@ class Config:
     COGNITO_CLIENT_ID = os.getenv('COGNITO_CLIENT_ID')
     COGNITO_CLIENT_SECRET = os.getenv('COGNITO_CLIENT_SECRET')
 
+    # AWS S3 Settings
+    AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
+    S3_BUCKET_NAME_PDFS = os.getenv('S3_BUCKET_NAME_PDFS', 'silverkey-pdfs')
+    S3_REGION = os.getenv('S3_REGION', AWS_REGION)
+    S3_PRESIGNED_URL_EXPIRATION = int(os.getenv('S3_PRESIGNED_URL_EXPIRATION', 3600))  # 1 hour default
+
     UPLOAD_FOLDER = os.getenv('UPLOAD_FOLDER', 'uploads')
     MAX_CONTENT_LENGTH = int(os.getenv('MAX_CONTENT_LENGTH', 16 * 1024 * 1024))
     ALLOWED_FILE_TYPES = {'application/pdf'}
@@ -44,7 +51,9 @@ class Config:
         'NOT_FOUND': ('RESOURCE_NOT_FOUND', 'Resource not found.'),
         'INVALID_REQUEST': ('INVALID_REQUEST', 'Invalid request data.'),
         'SERVER_ERROR': ('SERVER_ERROR', 'Internal server error.'),
-        'FILE_NOT_FOUND': ('FILE_NOT_FOUND', 'The requested file was not found.')
+        'FILE_NOT_FOUND': ('FILE_NOT_FOUND', 'The requested file was not found.'),
+        'S3_UPLOAD_ERROR': ('S3_UPLOAD_FAILED', 'Failed to upload file to S3.'),
+        'S3_DOWNLOAD_ERROR': ('S3_DOWNLOAD_FAILED', 'Failed to generate download URL from S3.')
     }
 
     @classmethod

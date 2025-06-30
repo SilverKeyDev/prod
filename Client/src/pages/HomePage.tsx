@@ -32,9 +32,11 @@ export default function HomePage() {
       console.error("Missing Google Maps API key");
       return;
     }
+
     window.initMapScripts = () => {
       console.log("Google Maps scripts loaded");
     };
+
     const loadScript = (src: string, id: string) => {
       if (document.getElementById(id)) return;
       const s = document.createElement("script");
@@ -44,10 +46,12 @@ export default function HomePage() {
       s.id = id;
       document.head.appendChild(s);
     };
+
     loadScript(
       `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&v=beta&callback=initMapScripts`,
       "maps-js"
     );
+
     loadScript(
       "https://unpkg.com/@googlemaps/extended-component-library@latest/dist/loader.js",
       "maps-web-component"

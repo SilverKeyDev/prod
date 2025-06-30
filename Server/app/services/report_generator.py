@@ -12,6 +12,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 from flask import jsonify
 import json5
+import traceback
 from .pdf_creator import _create_pdf
 
 # Configure verbose logging
@@ -35,8 +36,22 @@ REPORTS = {}
 # -------------------- UTILS --------------------
 
 def validate_address(address: str) -> bool:
-    return bool(address and isinstance(address, str))
-
+    """Validate that the address is provided and is a string"""
+    if not address:
+        logger.error("Address is empty or None")
+        return False
+    
+    if not isinstance(address, str):
+        logger.error(f"Address is not a string: {type(address)}")
+        return False
+    
+    if len(address.strip()) == 0:
+        logger.error("Address is empty after stripping whitespace")
+        return False
+    
+    logger.debug(f"Address validation passed: {address}")
+    return True
+  
 def _safe_parse_json(text: str):
     try:
         # Remove all <think>...</think> blocks (and HTML encoded variants)
@@ -57,34 +72,48 @@ def _safe_parse_json(text: str):
                 except Exception:
                     continue
 
-        raise ValueError("No valid JSON block could be parsed.")
+        
     except Exception as e:
+        logger.error(f"Failed to parse JSON from model output: {str(e)}")
+        logger.error(f"Exception type: {type(e).__name__}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
         raise ValueError("Failed to parse JSON from model output") from e
 
 
 # -------------------- MAIN FUNCTION --------------------
 
 def generate_report(address: str) -> Dict:
+    """Generate a comprehensive property report and upload PDF to S3"""
     task_id = str(uuid.uuid4())
+    
+    logger.info(f"Starting report generation for address: {address}")
+    logger.info(f"Task ID: {task_id}")
+    
+    # Initialize report status
     REPORTS[task_id] = {
-            "address": address,
-            "status": "generating",
-            "timestamp": time.time(),
-        }
-    logger.info(f"Starting report generation for: {address}")
+        "address": address,
+        "status": "generating",
+        "timestamp": time.time(),
+    }
+    
+    try:
+        # Validate address
+        if not validate_address(address):
+            logger.error("Address validation failed")
+            REPORTS[task_id]["status"] = "failed"
+            REPORTS[task_id]["error"] = "Invalid address format"
+            raise ValueError("Invalid address format")
 
-    if not validate_address(address):
-        logger.error("Address validation failed.")
-        raise ValueError("Invalid address format")
+        logger.info("Address validation passed, proceeding with report generation")
 
-    prompt = f"""
+        prompt = f"""
 
 CRITICAL: Output ONLY a valid JSON object. Nothing else.
 
 You are given a location: "{address}".
 Use the template JSON structure below. 
 
-You MUST include ALL fields exactly as shown — if you don’t know the value, research further until you find a value.
+You MUST include ALL fields exactly as shown — if you don't know the value, research further until you find a value.
 I want the returned JSON to contain ALL of this information in the same way it is displayed below.
 
 You MUST embed image URLs where appropriate (3–6 total), placing them naturally throughout fields like parks, nightlife, maps, or local culture — not just at the end.
@@ -100,7 +129,7 @@ DO NOT add any explanation, commentary, markdown, or thinking tags.
 
 {{
   "neighborhood": {{
-    "overview of the neighborhood culture": "Uptown Charlotte is the sleek, busy center of the city—think glass buildings, rooftop bars, green parks, and a steady 9-to-5 buzz. It’s where suits and creatives mix, and there’s usually something happening: sports games, live music, street festivals.",
+    "overview of the neighborhood culture": "Uptown Charlotte is the sleek, busy center of the city—think glass buildings, rooftop bars, green parks, and a steady 9-to-5 buzz. It's where suits and creatives mix, and there's usually something happening: sports games, live music, street festivals.",
     "vibe": "Lively, youthful, walkable.",
     "community_events": "Monthly street fairs and local concerts.",
     "what_people_love": "Friendly neighbors, lots of coffee shops.",
@@ -304,65 +333,83 @@ DO NOT add any explanation, commentary, markdown, or thinking tags.
 }}
 """
 
-    payload = {
-    "model": "sonar-deep-research",
-    "messages": [
-        {
-            "role": "system",
-            "content": (
-                "You are a strict JSON-only generator. DO NOT include any think tags, markdown, or explanation. "
-                "You MUST respond with a valid JSON object only. Begin with '{' and end with '}'. No extra text. "
-                "You are generating a comprehensive lifestyle and culture report for a given address. "
-                "Use only verified online sources. Fill out ALL fields with accurate, up-to-date information."
-            )
-        },
-        {
-            "role": "user",
-            "content": prompt
-        }
-    ],
-    "search_mode": "web",
-    "reasoning_effort": "high", 
-    "temperature": 0.1,
-    "max_tokens": 20000,
-    "stream": False,
-    "return_images": True,
-    "return_related_questions": True
-}
+        payload = {
+        "model": "sonar-deep-research",
+        "messages": [
+            {
+                "role": "system",
+                "content": (
+                    "You are a strict JSON-only generator. DO NOT include any think tags, markdown, or explanation. "
+                    "You MUST respond with a valid JSON object only. Begin with '{' and end with '}'. No extra text. "
+                    "You are generating a comprehensive lifestyle and culture report for a given address. "
+                    "Use only verified online sources. Fill out ALL fields with accurate, up-to-date information."
+                )
+            },
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ],
+        "search_mode": "web",
+        "reasoning_effort": "high", 
+        "temperature": 0.1,
+        "max_tokens": 20000,
+        "stream": False,
+        "return_images": True,
+        "return_related_questions": True
+    }
 
+        session = requests.Session()
+        retries = Retry(total=3, backoff_factor=1, status_forcelist=[429, 500, 502, 503, 504])
+        session.mount("https://", HTTPAdapter(max_retries=retries))
 
+        try:
+            logger.info("Sending request to Perplexity API...")
+            start_time = time.perf_counter()
+            response = session.post("https://api.perplexity.ai/chat/completions", headers=HEADERS, json=payload)
+            duration = time.perf_counter() - start_time
+            logger.info(f"API request completed in {duration:.2f} seconds")
 
-    session = requests.Session()
-    retries = Retry(total=3, backoff_factor=1, status_forcelist=[429, 500, 502, 503, 504])
-    session.mount("https://", HTTPAdapter(max_retries=retries))
+            if response.status_code != 200:
+              logger.error(f"Perplexity API error response: {response.text}")
+              raise Exception(f"API request failed with status code {response.status_code}")
 
-    try:
-        logger.info("Sending request to Perplexity API...")
-        start_time = time.perf_counter()
-        response = session.post("https://api.perplexity.ai/chat/completions", headers=HEADERS, json=payload)
-        duration = time.perf_counter() - start_time
-        logger.info(f"API request completed in {duration:.2f} seconds")
+            content = response.json()
+            raw_json_text = content['choices'][0]['message']['content']
+            logger.debug(f"Raw model output:\n{raw_json_text}")
 
-        if response.status_code != 200:
-          logger.error(f"Perplexity API error response: {response.text}")
-          raise Exception(f"API request failed with status code {response.status_code}")
+            report = _safe_parse_json(raw_json_text)
+            pdf_url = _create_pdf(report, address)
 
+            REPORTS[task_id] = {
+                "address": address,
+                "status": "completed",
+                "report": report,
+                "pdfUrl": pdf_url,
+                "timestamp": time.time(),
+            }
 
-        content = response.json()
-        raw_json_text = content['choices'][0]['message']['content']
-        logger.debug(f"Raw model output:\n{raw_json_text}")
+            logger.info(f"Report generation completed successfully for task {task_id}")
+            return report
 
-        report = _safe_parse_json(raw_json_text)
-        pdf_url = _create_pdf(report, address)
-
-        REPORTS[task_id] = {
-            "address": address,
-            "status": "completed",
-            "report": report,
-            "pdfUrl": pdf_url,
-            "timestamp": time.time(),
-        }
+        except Exception as e:
+            logger.error(f"Unhandled error during report generation: {str(e)}")
+            logger.error(f"Exception type: {type(e).__name__}")
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            
+            # Update report status to failed
+            REPORTS[task_id]["status"] = "failed"
+            REPORTS[task_id]["error"] = str(e)
+            
+            raise
 
     except Exception as e:
-        logger.exception("Unhandled error during report generation")
+        logger.error(f"Unhandled error during report generation: {str(e)}")
+        logger.error(f"Exception type: {type(e).__name__}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        
+        # Update report status to failed
+        REPORTS[task_id]["status"] = "failed"
+        REPORTS[task_id]["error"] = str(e)
+        
         raise

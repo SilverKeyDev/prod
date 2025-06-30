@@ -114,4 +114,11 @@ export const reportApi = {
     });
     return response.blob();
   },
+
+  getDownloadUrl: async (reportId: string): Promise<ApiResponse<{ downloadUrl: string }>> => {
+    const response = await fetch(`${API_BASE_URL}/api/v1/report/${reportId}/download-url`, {
+      credentials: 'include',
+    });
+    return response.json();
+  },
 };
