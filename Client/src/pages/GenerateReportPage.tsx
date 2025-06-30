@@ -21,7 +21,7 @@ export default function GenerateReportPage() {
 
   const [address, setAddress] = useState("");
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
-  const [setSelectedPlace] = useState<any>(null);
+  const [selectedPlace, setSelectedPlace] = useState<any>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [scriptsReady, setScriptsReady] = useState(false);
