@@ -7,9 +7,6 @@ from flask_marshmallow import Marshmallow
 from flask_executor import Executor
 from .config import Config
 from .extensions import db, login_manager, ma
-from flask_jwt_extended import JWTManager
-
-jwt = JWTManager()
 
 login_manager = LoginManager()
 
@@ -35,7 +32,6 @@ def create_app(config=None):
     login_manager.init_app(app)
     ma.init_app(app)
     executor.init_app(app)
-    jwt.init_app(app)
 
     # CORS
     CORS(app, resources={

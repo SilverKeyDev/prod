@@ -129,10 +129,9 @@ def resend_code():
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
-    """Authenticate user and return JWT tokens"""
+    """Authenticate user and return Cognito JWT tokens directly"""
     data = request.get_json()
     
-    # Add debug logging
     current_app.logger.debug(f"Login request data: {data}")
     
     if not data or not all(field in data for field in ['email', 'password']):
@@ -151,7 +150,7 @@ def login():
         current_app.logger.debug(f"Sign in result: {result}")
 
         if not result['success']:
-            error_message = 'Invalid email or password'  # Default message
+            error_message = 'Invalid email or password'
             if result.get('error') == 'NotAuthorizedException':
                 error_message = 'Incorrect email or password. Please try again.'
             
@@ -161,17 +160,17 @@ def login():
                 'message': result.get('message', error_message)
             }), 401
 
-        # Create JWT (no DB user ID, so we use email or cognito sub as identity)
+        # decode IdToken to get Cognito user_sub
         id_token = result['tokens']['IdToken']
+        import jwt  # local decode only for sub
         decoded_id_token = jwt.decode(id_token, options={"verify_signature": False})
         user_sub = decoded_id_token['sub']
 
-        access_token = create_access_token(identity=user_sub)
-
-
         return jsonify({
             'success': True,
-            'access_token': access_token,
+            'access_token': result['tokens']['AccessToken'],
+            'id_token': result['tokens']['IdToken'],
+            'refresh_token': result['tokens']['RefreshToken'],
             'user': {
                 'email': data['email'],
                 'user_sub': user_sub
