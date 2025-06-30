@@ -7,6 +7,9 @@ from flask_marshmallow import Marshmallow
 from flask_executor import Executor
 from .config import Config
 from .extensions import login_manager, ma
+from flask_sqlalchemy import SQLAlchemy
+
+db = SQLAlchemy()
 
 login_manager = LoginManager()
 
