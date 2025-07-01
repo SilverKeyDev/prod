@@ -82,11 +82,10 @@ def create_app(config=None):
     @app.route("/", defaults={"path": ""})
     @app.route("/<path:path>")
     def catch_all(path):
-        print(f"FLASK STATIC FOLDER: {app.static_folder}")
+        print(f"CATCH_ALL: path={path} trying to serve index.html fallback")
         file_path = os.path.join(app.static_folder, path)
         if os.path.isfile(file_path):
             return send_from_directory(app.static_folder, path)
-        else:
-            return send_from_directory(app.static_folder, "index.html")
+        return send_from_directory(app.static_folder, "index.html")
 
     return app
