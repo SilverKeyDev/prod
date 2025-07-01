@@ -2,7 +2,8 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
 import path from 'path';
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
+  base: command === 'build' ? '/static' : '/',
   plugins: [react()],
   server: {
     host: '0.0.0.0',
@@ -17,16 +18,17 @@ export default defineConfig({
   optimizeDeps: {
     include: ['react', 'react-dom'],
     exclude: ["@types/*"],
-    },
+  },
   build: {
     target: 'es2020',
     sourcemap: false,
     minify: false,
-    outDir: 'dist',
+    outDir: '../Server/static',
+    emptyOutDir: true,
   },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "src"),
     },
   },
-});
+}));

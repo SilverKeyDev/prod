@@ -90,7 +90,8 @@ def list_reports():
                     'status': data.get('status'),
                     'generatedAt': data.get('timestamp'),
                     'pdfUrl': pdf_url,
-                    'address': address
+                    'address': address,
+                    's3Key': s3_key if s3_key else None
                 }
                 
                 reports_list.append(report_data)
@@ -132,7 +133,8 @@ def list_reports():
                     'status': 'completed',
                     'generatedAt': int(obj["LastModified"].timestamp()),
                     'pdfUrl': presigned_url,
-                    'address': os.path.splitext(os.path.basename(s3_key))[0]
+                    'address': os.path.splitext(os.path.basename(s3_key))[0],
+                    's3Key': s3_key
                 })
 
         else:
@@ -240,29 +242,84 @@ def serve_report(filename):
 @report_bp.route('/<report_id>', methods=['DELETE'])
 def delete_report(report_id):
     """Delete a report from S3 and in-memory storage"""
+    logger.info(f"[DELETE] Received delete request for report_id: {report_id}")
+    
     try:
-        data = request.get_json()
-        s3_key = data.get('s3Key') if data else None
+        # Log request data
+        data = request.get_json() or {}
+        s3_key = data.get('s3Key')
+        logger.info(f"[DELETE] Request data - s3Key: {s3_key}")
         
-        # Delete from S3 if s3_key is provided
-        if s3_key and s3_service.s3_client:
-            try:
-                config = current_app.config
-                bucket_name = config.get("S3_BUCKET_NAME_PDFS")
-                s3_service.s3_client.delete_object(Bucket=bucket_name, Key=s3_key)
-                logger.info(f"Deleted report from S3: {s3_key}")
-            except Exception as e:
-                logger.error(f"Error deleting from S3: {str(e)}")
-                # Continue to delete from in-memory even if S3 delete fails
+        # Delete from S3 if s3_key is provided and s3_client is available
+        if s3_key:
+            if not s3_service.s3_client:
+                logger.warning("[DELETE] S3 client not available, skipping S3 deletion")
+            else:
+                try:
+                    config = current_app.config
+                    bucket_name = config.get("S3_BUCKET_NAME_PDFS")
+                    
+                    if not bucket_name:
+                        logger.error("[DELETE] S3_BUCKET_NAME_PDFS not configured")
+                    else:
+                        # Ensure the key doesn't start with a slash
+                        s3_key = s3_key.lstrip('/')
+                        logger.info(f"[DELETE] Attempting to delete from S3 - Bucket: {bucket_name}, Key: {s3_key}")
+                        
+                        # Check if the object exists before trying to delete
+                        try:
+                            logger.info("[DELETE] Checking if object exists in S3...")
+                            s3_service.s3_client.head_object(Bucket=bucket_name, Key=s3_key)
+                            logger.info("[DELETE] Object exists, proceeding with deletion...")
+                            
+                            # Perform the deletion
+                            delete_response = s3_service.s3_client.delete_object(
+                                Bucket=bucket_name, 
+                                Key=s3_key
+                            )
+                            
+                            logger.info(f"[DELETE] Successfully deleted from S3. Response: {delete_response}")
+                            
+                        except s3_service.s3_client.exceptions.ClientError as e:
+                            error_code = e.response.get('Error', {}).get('Code', 'Unknown')
+                            if error_code == '404':
+                                logger.warning(f"[DELETE] S3 object not found (404): {s3_key}")
+                            elif error_code == '403':
+                                logger.error("[DELETE] Permission denied when accessing S3. Check IAM permissions.")
+                                logger.error(f"[DELETE] Error details: {str(e)}")
+                            else:
+                                logger.error(f"[DELETE] S3 client error: {str(e)}")
+                                logger.error(f"[DELETE] Response: {e.response}")
+                            # Continue execution to delete from in-memory
+                        except Exception as e:
+                            logger.error(f"[DELETE] Unexpected error during S3 deletion: {str(e)}")
+                            logger.error(traceback.format_exc())
+                            # Continue execution to delete from in-memory
+                except Exception as e:
+                    logger.error(f"[DELETE] Error in S3 deletion process: {str(e)}")
+                    logger.error(traceback.format_exc())
         
         # Delete from in-memory storage
+        logger.info(f"[DELETE] Attempting to delete from in-memory storage: {report_id}")
         if report_id in REPORTS:
             del REPORTS[report_id]
-            logger.info(f"Removed report from memory: {report_id}")
+            logger.info(f"[DELETE] Successfully removed report from memory: {report_id}")
+        else:
+            logger.warning(f"[DELETE] Report ID {report_id} not found in memory storage")
         
-        return jsonify({'success': True, 'message': 'Report deleted successfully'})
+        logger.info(f"[DELETE] Successfully completed deletion for report {report_id}")
+        return jsonify({
+            'success': True, 
+            'message': 'Report deleted successfully',
+            'deleted_from_s3': bool(s3_key and s3_service.s3_client)
+        })
         
     except Exception as e:
-        logger.error(f"Error deleting report: {str(e)}")
+        error_msg = f"[DELETE] Critical error in delete_report: {str(e)}"
+        logger.error(error_msg)
         logger.error(traceback.format_exc())
-        return jsonify({'success': False, 'error': str(e)}), 500
+        return jsonify({
+            'success': False, 
+            'error': error_msg,
+            'traceback': traceback.format_exc()
+        }), 500

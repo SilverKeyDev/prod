@@ -1,13 +1,24 @@
 import { useState, useEffect, useRef } from "react";
-import { Search, Download, Eye, Copy, Calendar, MapPin, X } from "lucide-react";
+import {
+  Search,
+  Download,
+  Eye,
+  Copy,
+  Calendar,
+  MapPin,
+  X,
+  Trash2,
+} from "lucide-react";
+import ErrorToast from "../components/ErrorToast";
+import SuccessToast from "../components/SuccessToast";
 
 interface Report {
   id: string;
   address: string;
   generatedAt: Date;
   status: "completed" | "generating" | "failed";
-  pdfUrl?: string;
-  s3Key?: string;
+  pdfUrl?: string | null;
+  s3Key?: string | null;
 }
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -25,6 +36,15 @@ export default function PastReports() {
   const [reports, setReports] = useState<Report[]>([]);
   const [currentPdf, setCurrentPdf] = useState<string | null>(null);
   const [loadingUrls, setLoadingUrls] = useState<Set<string>>(new Set());
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [reportToDelete, setReportToDelete] = useState<{
+    id: string;
+    s3Key: string | null | undefined;
+  } | null>(null);
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
   const hasFetched = useRef(false);
 
   const fetchReports = async () => {
@@ -35,41 +55,14 @@ export default function PastReports() {
       });
       const json = await res.json();
       if (json.success) {
-        const parsed: Report[] = json.reports.map((r: any) => {
-          // Handle different URL types
-          let pdfUrl = r.pdfUrl;
-          if (pdfUrl) {
-            if (pdfUrl.startsWith("http")) {
-              // This is already a presigned URL or external URL
-              pdfUrl = pdfUrl;
-            } else if (pdfUrl.startsWith("/")) {
-              // This is a local static file
-              const cleanUrl = pdfUrl.startsWith("/")
-                ? pdfUrl.substring(1)
-                : pdfUrl;
-              pdfUrl = `${baseUrl}${
-                baseUrl.endsWith("/") ? "" : "/"
-              }${cleanUrl}`;
-            } else {
-              // This is an S3 key, we'll need to get a fresh presigned URL
-              pdfUrl = null; // Will be fetched on demand
-            }
-          }
-
-          return {
-            id: r.id,
-            address: r.address,
-            status: r.status,
-            pdfUrl: pdfUrl,
-            s3Key:
-              r.pdfUrl &&
-              !r.pdfUrl.startsWith("http") &&
-              !r.pdfUrl.startsWith("/")
-                ? r.pdfUrl
-                : null,
-            generatedAt: new Date(r.generatedAt * 1000),
-          };
-        });
+        const parsed: Report[] = json.reports.map((r: any) => ({
+          id: r.id,
+          address: r.address,
+          status: r.status,
+          pdfUrl: r.pdfUrl ?? null,
+          s3Key: r.s3Key ?? null,
+          generatedAt: new Date(r.generatedAt * 1000),
+        }));        
         setReports(parsed);
       }
     } catch (err) {
@@ -163,43 +156,120 @@ export default function PastReports() {
     }
   };
 
-  const handleDeleteReport = async (reportId: string, s3Key: string | null) => {
-    if (
-      !window.confirm(
-        "Are you sure you want to delete this report? This action cannot be undone."
-      )
-    ) {
+  const openDeleteModal = (
+    reportId: string,
+    s3Key: string | null | undefined
+  ) => {
+    console.log('[DELETE] Open delete modal:', { reportId, s3Key });
+    setReportToDelete({ id: reportId, s3Key });
+    setDeleteModalOpen(true);
+  };
+
+  const closeDeleteModal = () => {
+    console.log('[DELETE] Close delete modal');
+    setDeleteModalOpen(false);
+    setReportToDelete(null);
+  };
+
+  const handleDeleteReport = async (
+    reportId: string,
+    s3Key: string | null | undefined
+  ) => {
+    console.log(`[DELETE] Starting delete for report ${reportId}`, { s3Key });
+
+    if (!reportId) {
+      console.error("[DELETE] Error: No report ID provided");
       return;
     }
 
     try {
+      setLoadingUrls((prev) => new Set(prev).add(reportId));
+      console.log(`[DELETE] Added report ${reportId} to loading set`);
+
+      // Prepare the S3 key
+      let processedS3Key = s3Key;
+      if (s3Key) {
+        if (s3Key.startsWith("http")) {
+          try {
+            const url = new URL(s3Key);
+            processedS3Key = url.pathname.substring(1); // Remove leading slash
+            console.log(
+              `[DELETE] Extracted S3 key from URL: ${s3Key} -> ${processedS3Key}`
+            );
+          } catch (e) {
+            console.warn(`[DELETE] Failed to parse URL ${s3Key}:`, e);
+          }
+        } else {
+          processedS3Key = s3Key;
+          console.log(`[DELETE] Using provided S3 key: ${s3Key}`);
+        }
+      } else {
+        console.warn(
+          "[DELETE] No S3 key provided, will only delete from in-memory storage"
+        );
+      }
+
       const baseUrl = API_BASE_URL || "";
-      const res = await fetch(`${baseUrl}/api/v1/report/${reportId}`, {
+      const endpoint = `${baseUrl}/api/v1/report/${reportId}`;
+      console.log(`[DELETE] Sending request to: ${endpoint}`, {
+        method: "DELETE",
+        s3Key: processedS3Key,
+      });
+
+      const startTime = Date.now();
+      const res = await fetch(endpoint, {
         method: "DELETE",
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ s3Key }),
+        body: JSON.stringify({ s3Key: processedS3Key }),
       });
 
+      const responseTime = Date.now() - startTime;
+      console.log(`[DELETE] Received response in ${responseTime}ms`, {
+        status: res.status,
+        statusText: res.statusText,
+      });
+
+      const responseData = await res.json().catch((e) => ({}));
+      console.log("[DELETE] Response data:", responseData);
+
       if (!res.ok) {
-        throw new Error("Failed to delete report");
+        throw new Error(
+          responseData.error || `HTTP error! status: ${res.status}`
+        );
       }
 
+      console.log(`[DELETE] Successfully deleted report ${reportId}`);
+      closeDeleteModal();
+      setSuccessMessage("Report deleted successfully");
+      setShowSuccess(true);
+
       // Refresh the reports list
+      console.log("[DELETE] Refreshing reports list...");
       await fetchReports();
-    } catch (err) {
-      console.error("Failed to delete report", err);
-      alert("Failed to delete report. Please try again.");
+    } catch (error) {
+      console.error("[DELETE] Error deleting report:", {
+        error,
+        reportId,
+        s3Key,
+        stack: error instanceof Error ? error.stack : "No stack trace",
+      });
+
+      setErrorMessage(
+        error instanceof Error ? error.message : "Failed to delete report"
+      );
+      setShowError(true);
+    } finally {
+      console.log(`[DELETE] Removing report ${reportId} from loading set`);
+      setLoadingUrls((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(reportId);
+        return newSet;
+      });
     }
   };
-
-  useEffect(() => {
-    if (hasFetched.current) return;
-    hasFetched.current = true;
-    fetchReports();
-  }, []);
 
   const retryGeneration = async (reportId: string) => {
     try {
@@ -350,9 +420,79 @@ export default function PastReports() {
     );
   };
 
+  useEffect(() => {
+    if (hasFetched.current) return;
+    hasFetched.current = true;
+    fetchReports();
+  }, []);
+
   return (
     <div className="max-w-7xl mx-auto">
       <PdfModal />
+      {/* Delete Confirmation Modal */}
+      {deleteModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl p-6 max-w-md w-full">
+            <div className="text-center">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                <svg
+                  className="h-6 w-6 text-red-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                Delete Report
+              </h3>
+              <p className="text-sm text-gray-500 mb-6">
+                Are you sure you want to delete this report? This action cannot
+                be undone.
+              </p>
+              <div className="flex justify-center space-x-3">
+                <button
+                  type="button"
+                  onClick={closeDeleteModal}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brown-500"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    reportToDelete &&
+                    handleDeleteReport(reportToDelete.id, reportToDelete.s3Key)
+                  }
+                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {showError && (
+        <ErrorToast
+          message={errorMessage}
+          onClose={() => setShowError(false)}
+          duration={5000}
+        />
+      )}
+      {showSuccess && (
+        <SuccessToast
+          message={successMessage}
+          onClose={() => setShowSuccess(false)}
+          duration={3000}
+        />
+      )}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
         <div>
           <h1 className="text-3xl font-serif text-navy mb-2">Past Reports</h1>
@@ -498,14 +638,20 @@ export default function PastReports() {
                             : "Download"}
                         </button>
                         <button
-                          onClick={() =>
-                            handleDeleteReport(report.id, report.s3Key || null)
-                          }
+                          onClick={() => {
+                            console.log('[DELETE] Delete button clicked for report:', {
+                              id: report.id,
+                              s3Key: report.s3Key,
+                              address: report.address,
+                              status: report.status
+                            });
+                            openDeleteModal(report.id, report.s3Key);
+                          }}
                           disabled={loadingUrls.has(report.id)}
                           className="p-2 text-red-600 hover:bg-red-50 rounded-full transition-colors"
                           title="Delete report"
                         >
-                          <X className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4" />
                         </button>
                       </>
                     )}
@@ -565,14 +711,20 @@ export default function PastReports() {
                             : "Download"}
                         </button>
                         <button
-                          onClick={() =>
-                            handleDeleteReport(report.id, report.s3Key || null)
-                          }
+                          onClick={() => {
+                            console.log('[DELETE] Delete button clicked for report:', {
+                              id: report.id,
+                              s3Key: report.s3Key,
+                              address: report.address,
+                              status: report.status
+                            });
+                            openDeleteModal(report.id, report.s3Key);
+                          }}
                           disabled={loadingUrls.has(report.id)}
                           className="p-2 text-red-600 hover:bg-red-50 rounded-full transition-colors"
                           title="Delete report"
                         >
-                          <X className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4" />
                         </button>
                       </>
                     )}
