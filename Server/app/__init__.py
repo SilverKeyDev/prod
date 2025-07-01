@@ -16,11 +16,12 @@ ma = Marshmallow()
 executor = Executor()
 
 def create_app(config=None):
-    static_dir = os.path.join(os.path.dirname(__file__), "../Client/dist")
+    # match Docker COPY --from=frontend /app/client/dist /app/static
+    static_dir = os.path.join(os.path.dirname(__file__), "static")
     app = Flask(
         __name__,
         static_folder=static_dir,
-        static_url_path="/static"
+        static_url_path=""
     )
 
     # Load config
