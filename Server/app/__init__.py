@@ -10,8 +10,6 @@ from datetime import datetime
 from .config import Config
 import os
 import logging
-from model.user import user
-from model.pdf_document import pdf_document
 
 # Initialize extensions
 db = SQLAlchemy()
