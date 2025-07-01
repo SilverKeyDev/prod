@@ -236,3 +236,33 @@ def serve_report(filename):
         logger.error(f"Exception type: {type(e).__name__}")
         logger.error(f"Traceback: {traceback.format_exc()}")
         return jsonify({'error': 'Internal server error'}), 500
+
+@report_bp.route('/<report_id>', methods=['DELETE'])
+def delete_report(report_id):
+    """Delete a report from S3 and in-memory storage"""
+    try:
+        data = request.get_json()
+        s3_key = data.get('s3Key') if data else None
+        
+        # Delete from S3 if s3_key is provided
+        if s3_key and s3_service.s3_client:
+            try:
+                config = current_app.config
+                bucket_name = config.get("S3_BUCKET_NAME_PDFS")
+                s3_service.s3_client.delete_object(Bucket=bucket_name, Key=s3_key)
+                logger.info(f"Deleted report from S3: {s3_key}")
+            except Exception as e:
+                logger.error(f"Error deleting from S3: {str(e)}")
+                # Continue to delete from in-memory even if S3 delete fails
+        
+        # Delete from in-memory storage
+        if report_id in REPORTS:
+            del REPORTS[report_id]
+            logger.info(f"Removed report from memory: {report_id}")
+        
+        return jsonify({'success': True, 'message': 'Report deleted successfully'})
+        
+    except Exception as e:
+        logger.error(f"Error deleting report: {str(e)}")
+        logger.error(traceback.format_exc())
+        return jsonify({'success': False, 'error': str(e)}), 500

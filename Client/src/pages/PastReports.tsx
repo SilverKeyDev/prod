@@ -163,6 +163,38 @@ export default function PastReports() {
     }
   };
 
+  const handleDeleteReport = async (reportId: string, s3Key: string | null) => {
+    if (
+      !window.confirm(
+        "Are you sure you want to delete this report? This action cannot be undone."
+      )
+    ) {
+      return;
+    }
+
+    try {
+      const baseUrl = API_BASE_URL || "";
+      const res = await fetch(`${baseUrl}/api/v1/report/${reportId}`, {
+        method: "DELETE",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ s3Key }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to delete report");
+      }
+
+      // Refresh the reports list
+      await fetchReports();
+    } catch (err) {
+      console.error("Failed to delete report", err);
+      alert("Failed to delete report. Please try again.");
+    }
+  };
+
   useEffect(() => {
     if (hasFetched.current) return;
     hasFetched.current = true;
@@ -465,6 +497,16 @@ export default function PastReports() {
                             ? "Loading..."
                             : "Download"}
                         </button>
+                        <button
+                          onClick={() =>
+                            handleDeleteReport(report.id, report.s3Key || null)
+                          }
+                          disabled={loadingUrls.has(report.id)}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                          title="Delete report"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
                       </>
                     )}
                     {report.status === "generating" && (
@@ -521,6 +563,16 @@ export default function PastReports() {
                           {loadingUrls.has(report.id)
                             ? "Loading..."
                             : "Download"}
+                        </button>
+                        <button
+                          onClick={() =>
+                            handleDeleteReport(report.id, report.s3Key || null)
+                          }
+                          disabled={loadingUrls.has(report.id)}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                          title="Delete report"
+                        >
+                          <X className="h-4 w-4" />
                         </button>
                       </>
                     )}

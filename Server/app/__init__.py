@@ -16,7 +16,7 @@ ma = Marshmallow()
 executor = Executor()
 
 def create_app(config=None):
-    # match Docker COPY --from=frontend /app/client/dist /app/static
+    # STATIC FOLDER: matches Docker
     static_dir = os.path.join(os.path.dirname(__file__), "static")
     app = Flask(
         __name__,
@@ -51,7 +51,7 @@ def create_app(config=None):
         }
     })
 
-    # Handle preflight requests
+    # Preflight / CORS handling
     @app.after_request
     def after_request(response):
         response.headers.add('Access-Control-Allow-Credentials', 'true')
@@ -73,7 +73,7 @@ def create_app(config=None):
             logger.error(f"Failed to initialize S3 service: {str(e)}")
             logger.error("Application will continue with local storage fallback")
 
-    # Blueprints
+    # Register blueprints
     from .routes.report import report_bp
     from .routes.dashboard import dashboard_bp
     from .routes.auth import auth_bp
@@ -82,7 +82,7 @@ def create_app(config=None):
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(auth_bp)
 
-    # SPA catch-all for client routing
+    # SPA catch-all for React/Vue client routing
     @app.route("/", defaults={"path": ""})
     @app.route("/<path:path>")
     def catch_all(path):
