@@ -16,7 +16,10 @@ ma = Marshmallow()
 executor = Executor()
 
 def create_app(config=None):
-    app = Flask(__name__, static_folder="../static", static_url_path="")
+    static_dir = os.path.join(os.path.dirname(__file__), "../Client/dist")
+    app = Flask(__name__, static_folder=static_dir, static_url_path="")
+
+
 
     # Load config
     app.config.from_object(Config)
