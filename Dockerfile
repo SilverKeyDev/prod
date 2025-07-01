@@ -35,7 +35,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY Server/ .
 
 # copy the dist build from previous stage
-COPY --from=frontend /app/client/dist ./dist
+COPY --from=frontend /app/client/dist /app/static
 
 # Expose Flask port
 EXPOSE 5000
