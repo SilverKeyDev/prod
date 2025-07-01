@@ -23,6 +23,7 @@ class S3Service:
             # Check if we have AWS credentials
             aws_access_key = config.get('AWS_ACCESS_KEY_ID')
             aws_secret_key = config.get('AWS_SECRET_ACCESS_KEY')
+            S3_BUCKET_NAME_PDFS = os.environ.get("S3_BUCKET_NAME_PDFS", "pdf-storage-jkdsfiugew")
             
             if not aws_access_key or not aws_secret_key:
                 logger.warning("AWS credentials not found in config. S3 operations will fail.")
