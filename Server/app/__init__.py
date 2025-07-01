@@ -17,9 +17,11 @@ executor = Executor()
 
 def create_app(config=None):
     static_dir = os.path.join(os.path.dirname(__file__), "../Client/dist")
-    app = Flask(__name__, static_folder=static_dir, static_url_path="")
-
-
+    app = Flask(
+        __name__,
+        static_folder=static_dir,
+        static_url_path="/static"
+    )
 
     # Load config
     app.config.from_object(Config)
@@ -30,7 +32,7 @@ def create_app(config=None):
     login_manager.init_app(app)
     ma.init_app(app)
     executor.init_app(app)
-    db.init_app(app)   # <<< FIXED: added this line
+    db.init_app(app)
 
     # CORS
     CORS(app, resources={
@@ -79,13 +81,10 @@ def create_app(config=None):
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(auth_bp)
 
-    # Serve frontend
-    @app.route("/")
-    def index():
-        return send_from_directory(app.static_folder, "index.html")
-
+    # SPA catch-all for client routing
+    @app.route("/", defaults={"path": ""})
     @app.route("/<path:path>")
-    def static_proxy(path):
+    def catch_all(path):
         file_path = os.path.join(app.static_folder, path)
         if os.path.isfile(file_path):
             return send_from_directory(app.static_folder, path)
