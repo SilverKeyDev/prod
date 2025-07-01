@@ -78,6 +78,18 @@ def create_app(config=None):
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(auth_bp)
 
+    @app.route('/static/<path:filename>')
+    def static_files(filename):
+        # Ensure the filename is safe and doesn't contain directory traversal
+        safe_path = os.path.normpath(filename).lstrip('/')
+        try:
+            return send_from_directory(
+                os.path.join(app.static_folder, 'static'),
+                safe_path
+            )
+        except FileNotFoundError:
+            abort(404)
+
     # SPA catch-all for React/Vue client routing
     @app.route("/", defaults={"path": ""})
     @app.route("/<path:path>")
