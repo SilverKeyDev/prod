@@ -18,3 +18,4 @@ python-jose[cryptography]==3.3.0
 PyJWT==2.8.0
 Werkzeug==2.3.7
 psycopg2-binary
+marshmallow-sqlalchemy==0.28.1

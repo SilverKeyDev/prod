@@ -28,7 +28,7 @@ class Config:
     # AWS S3 Settings
     AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
-    S3_BUCKET_NAME_PDFS = os.getenv('S3_BUCKET_NAME_PDFS', 'silverkey-pdfs')
+    S3_BUCKET_NAME_PDFS = os.getenv('S3_BUCKET_NAME_PDFS')
     S3_REGION = os.getenv('S3_REGION', AWS_REGION)
     S3_PRESIGNED_URL_EXPIRATION = int(os.getenv('S3_PRESIGNED_URL_EXPIRATION', 3600))  # 1 hour default
 

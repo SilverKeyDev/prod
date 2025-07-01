@@ -31,7 +31,7 @@ class S3Service:
                 return
             
             s3_region = config.get('S3_REGION', 'us-east-1')
-            bucket_name = config.get('S3_BUCKET_NAME_PDFS', 'silverkey-pdfs')
+            bucket_name = config.get('S3_BUCKET_NAME_PDFS')
             
             logger.info(f"Creating S3 client with region: {s3_region}")
             logger.info(f"Target bucket: {bucket_name}")

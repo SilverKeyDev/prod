@@ -1,40 +1,43 @@
-from flask import Flask, send_from_directory
+from flask import Flask, send_from_directory, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager
+from flask_login import LoginManager, UserMixin
 from flask_migrate import Migrate
 from flask_cors import CORS
 from flask_marshmallow import Marshmallow
 from flask_executor import Executor
+from flask_wtf.csrf import CSRFProtect
+from datetime import datetime
 from .config import Config
 import os
 import logging
-from .models.user import User
+from model.user import user
+from model.pdf_document import pdf_document
 
 # Initialize extensions
 db = SQLAlchemy()
 login_manager = LoginManager()
 ma = Marshmallow()
 executor = Executor()
+csrf = CSRFProtect()
+
 
 def create_app(config=None):
     # STATIC FOLDER: matches Docker
     STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../static")
-    app = Flask(__name__, static_folder=STATIC_DIR, static_url_path="") 
-
+    app = Flask(__name__, static_folder=STATIC_DIR, static_url_path="")
 
     # Load config
     app.config.from_object(Config)
     if config:
         app.config.update(config)
 
-    # Init extensions
+    # Initialize extensions
+    db.init_app(app)
     login_manager.init_app(app)
     ma.init_app(app)
     executor.init_app(app)
-    db.init_app(app)
-
-    migrate = Migrate()
-    migrate.init_app(app, db)
+    csrf.init_app(app)
+    migrate = Migrate(app, db)
 
     # CORS
     CORS(app, resources={
