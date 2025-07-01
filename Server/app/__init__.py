@@ -78,14 +78,15 @@ def create_app(config=None):
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(auth_bp)
 
-    # SPA catch-all for React/Vue client routing
-    @app.route("/", defaults={"path": ""})
-    @app.route("/<path:path>")
+    @app.route('/assets/<path:filename>')
+    def serve_assets(filename):
+        return send_from_directory('/app/Client/dist/assets', filename)
+
+    # your catch-all fallback
+    @app.route('/', defaults={'path': ''})
+    @app.route('/<path:path>')
     def catch_all(path):
-        print(f"STATIC FOLDER: {app.static_folder}")
-        print(f"CATCH_ALL: path={path} trying to serve index.html fallback")
-        if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
-            return send_from_directory(app.static_folder, path)
-        return send_from_directory(app.static_folder, "index.html")
+        print(f"CATCH_ALL: path={path}")
+        return send_from_directory('/app/Client/dist', 'index.html')
 
     return app
