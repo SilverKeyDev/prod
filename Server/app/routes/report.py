@@ -72,25 +72,32 @@ def list_reports():
             try:
                 pdf_url = data.get('pdfUrl')
                 original_pdf_url = pdf_url
-
+                address = data.get('address', 'Unknown Address')
+                
+                # Extract the S3 key if this is an S3 URL
+                s3_key = None
                 if pdf_url and not pdf_url.startswith('http') and not pdf_url.startswith('/'):
+                    s3_key = pdf_url
                     # This is an S3 key, generate a presigned URL
-                    fresh_url = s3_service.generate_presigned_url(pdf_url)
+                    fresh_url = s3_service.generate_presigned_url(s3_key)
                     if fresh_url:
                         pdf_url = fresh_url
                     else:
                         logger.warning(f"Failed to generate presigned URL for {original_pdf_url}")
 
-                reports_list.append({
+                report_data = {
                     'id': task_id,
                     'status': data.get('status'),
                     'generatedAt': data.get('timestamp'),
                     'pdfUrl': pdf_url,
-                    'address': os.path.splitext(os.path.basename(s3_key))[0]
-                })
+                    'address': address
+                }
+                
+                reports_list.append(report_data)
 
-                if pdf_url and not pdf_url.startswith('http') and not pdf_url.startswith('/'):
-                    seen_keys.add(pdf_url)
+                # Track the S3 key if available
+                if s3_key:
+                    seen_keys.add(s3_key)
 
             except Exception as e:
                 logger.error(f"Error processing report {task_id}: {str(e)}")
@@ -99,7 +106,7 @@ def list_reports():
                     'status': 'error',
                     'generatedAt': data.get('timestamp'),
                     'pdfUrl': None,
-                    'address': os.path.splitext(os.path.basename(s3_key))[0],
+                    'address': data.get('address', 'Unknown Address'),
                     'error': str(e)
                 })
 
