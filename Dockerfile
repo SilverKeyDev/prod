@@ -29,15 +29,14 @@
     ENV PYTHONDONTWRITEBYTECODE=1
     ENV PYTHONUNBUFFERED=1
     
-    WORKDIR /app
+    WORKDIR /app/Server
     
     # install Python deps
     COPY Server/requirements.txt ./
     RUN pip install --no-cache-dir -r requirements.txt
     
     # copy backend code
-    # copy backend code
-    COPY Server/ /app/Server/
+    COPY Server/ .
     
     # copy built frontend to expected location
     COPY --from=frontend /app/client/dist /app/Client/dist
