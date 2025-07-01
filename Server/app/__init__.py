@@ -33,6 +33,9 @@ def create_app(config=None):
     executor.init_app(app)
     db.init_app(app)
 
+    migrate = Migrate()
+    migrate.init_app(app, db)
+
     # CORS
     CORS(app, resources={
         r"/api/*": {
