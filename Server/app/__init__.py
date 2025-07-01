@@ -17,7 +17,7 @@ executor = Executor()
 
 def create_app(config=None):
     # STATIC FOLDER: matches Docker
-    app = Flask(__name__, static_folder="dist", static_url_path="")
+    app = Flask(__name__, static_folder="../static", static_url_path="")
 
     # Load config
     app.config.from_object(Config)
