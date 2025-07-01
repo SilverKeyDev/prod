@@ -84,8 +84,7 @@ def create_app(config=None):
     def catch_all(path):
         print(f"STATIC FOLDER: {app.static_folder}")
         print(f"CATCH_ALL: path={path} trying to serve index.html fallback")
-        file_path = os.path.join(app.static_folder, path)
-        if os.path.isfile(file_path):
+        if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
             return send_from_directory(app.static_folder, path)
         return send_from_directory(app.static_folder, "index.html")
 
