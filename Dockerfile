@@ -34,8 +34,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy backend code
 COPY Server/ .
 
-# Copy the dist build from previous stage
-COPY --from=frontend /app/client/dist /app/static
+# **THIS is the key fix: copy dist to match Flask expectations**
+COPY --from=frontend /app/client/dist /app/Client/dist
 
 # Expose Flask port
 EXPOSE 5000
