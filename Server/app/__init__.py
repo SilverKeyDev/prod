@@ -16,7 +16,6 @@ db = SQLAlchemy()
 login_manager = LoginManager()
 ma = Marshmallow()
 executor = Executor()
-csrf = CSRFProtect()
 
 
 def create_app(config=None):
@@ -34,10 +33,9 @@ def create_app(config=None):
     login_manager.init_app(app)
     ma.init_app(app)
     executor.init_app(app)
-    csrf.init_app(app)
     migrate = Migrate(app, db)
 
-    # CORS
+    # CORS Configuration
     CORS(app, resources={
         r"/api/*": {
             "origins": [
@@ -47,19 +45,11 @@ def create_app(config=None):
             ],
             "supports_credentials": True,
             "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"],
-            "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+            "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
             "expose_headers": ["Content-Type", "X-CSRFToken"],
             "max_age": 600
         }
     })
-
-    # Preflight / CORS handling
-    @app.after_request
-    def after_request(response):
-        response.headers.add('Access-Control-Allow-Credentials', 'true')
-        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-        response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
-        return response
 
     # Import models to register with SQLAlchemy
     from .models.user import User
