@@ -81,13 +81,13 @@ def create_app(config=None):
     @app.route('/assets/<path:filename>')
     def serve_assets(filename):
         print(f"Serving asset: {filename}")
-        return send_from_directory('/app/Client/dist/assets', filename)
+        return send_from_directory(os.path.join(app.static_folder, "assets"), filename)
 
-    # your catch-all fallback
     @app.route('/', defaults={'path': ''})
     @app.route('/<path:path>')
     def catch_all(path):
         print(f"CATCH_ALL: path={path}")
-        return send_from_directory('/app/Client/dist', 'index.html')
+        return send_from_directory(app.static_folder, 'index.html')
+
 
     return app
