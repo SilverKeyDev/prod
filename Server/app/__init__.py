@@ -80,6 +80,7 @@ def create_app(config=None):
 
     @app.route('/assets/<path:filename>')
     def serve_assets(filename):
+        print(f"Serving asset: {filename}")
         return send_from_directory('/app/Client/dist/assets', filename)
 
     # your catch-all fallback
