@@ -8,6 +8,7 @@ from flask_executor import Executor
 from .config import Config
 import os
 import logging
+from .models.user import User
 
 # Initialize extensions
 db = SQLAlchemy()
@@ -58,6 +59,10 @@ def create_app(config=None):
 
     # Import models to register with SQLAlchemy
     from .models.user import User
+
+    @login_manager.user_loader
+    def load_user(user_id):
+        return User.query.get(int(user_id))
 
     # Initialize S3 service
     with app.app_context():
