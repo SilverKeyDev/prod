@@ -35,7 +35,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY Server/ .
 
 # Copy built frontend assets into Flask static folder
-COPY --from=frontend /app/client/dist /app/static
+COPY --from=frontend /app/Server/static /app/static
 
 # Expose Flask port
 EXPOSE 5000
