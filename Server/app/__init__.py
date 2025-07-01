@@ -81,6 +81,7 @@ def create_app(config=None):
     @app.route("/", defaults={"path": ""})
     @app.route("/<path:path>")
     def catch_all(path):
+        print(f"FLASK STATIC FOLDER: {app.static_folder}")
         file_path = os.path.join(app.static_folder, path)
         if os.path.isfile(file_path):
             return send_from_directory(app.static_folder, path)
