@@ -9,23 +9,23 @@ WORKDIR /app/client
 ARG VITE_API_BASE_URL
 ARG VITE_GOOGLE_MAPS_API_KEY
 
-# install deps
+# install dependencies
 COPY Client/package*.json ./
 RUN npm install
 
-# copy the rest of the client source
+# copy rest of client source
 COPY Client/ .
 
-# build React/Vite
+# build with env vars
 RUN VITE_API_BASE_URL=$VITE_API_BASE_URL \
     VITE_GOOGLE_MAPS_API_KEY=$VITE_GOOGLE_MAPS_API_KEY \
     npm run build
 
-# ✅ Fail build if assets are missing or empty
-RUN test -d dist/assets && [ "$(ls -A dist/assets)" ] || (echo "❌ dist/assets is missing or empty after build!" && exit 1)
+# verify assets exist
+RUN test -d dist/assets && [ "$(ls -A dist/assets)" ] || (echo "❌ dist/assets missing or empty!" && exit 1)
 
 # ----------------------------
-# Stage 2: Set up Flask backend
+# Stage 2: Build Flask backend
 # ----------------------------
 FROM python:3.11-slim AS backend
 
@@ -34,17 +34,17 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app/Server
 
-# install Python deps
+# install Python dependencies
 COPY Server/requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
 # copy backend code
 COPY Server/ .
 
-# copy built frontend to expected location
+# copy the built frontend from previous stage
 COPY --from=frontend /app/client/dist /app/Client/dist
 
 EXPOSE 5000
 
-# run Flask app with Gunicorn
+# start Flask with Gunicorn
 CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "run:app"]
