@@ -6,12 +6,9 @@ echo "🔁 Clearing all caches and reinstalling dependencies..."
 rm -rf node_modules package-lock.json yarn.lock
 
 # Clean Vite cache (default + custom if configured)
-rm -rf .vite .vite-cache dist
+rm -rf .vite .vite-cache
 
 # Reinstall dependencies
 npm install
 
 echo "✅ Dependencies reinstalled."
-
-echo "🚀 Starting development server with Vite..."
-npm run dev
