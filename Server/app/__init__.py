@@ -76,7 +76,6 @@ def create_app(config=None):
     app.register_blueprint(report_bp)
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(auth_bp)
-    app.register_blueprint(app_bp)
 
     @app.route('/assets/<path:filename>')
     def serve_assets(filename):
