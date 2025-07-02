@@ -79,10 +79,10 @@ def create_app(config=None):
 
     @app.route('/assets/<path:filename>')
     def serve_assets(filename):
-        print(f"Serving asset: {filename}")
         path = os.path.join(app.static_folder, "assets")
         print(f"Serving from {path} filename={filename}")
-        return send_from_directory(app.static_folder, filename)
+        return send_from_directory(path, filename)
+
     
     @app.route("/", defaults={"path": ""})
     @app.route("/<path:path>")
