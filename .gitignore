@@ -8,7 +8,6 @@ __pycache__/
 .Python
 build/
 develop-eggs/
-dist/
 downloads/
 eggs/
 .eggs/
@@ -52,7 +51,6 @@ yarn-error.log*
 
 # Build directories
 build/
-dist/
 .next/
 out/
 
