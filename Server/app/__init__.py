@@ -76,17 +76,33 @@ def create_app(config=None):
     app.register_blueprint(report_bp)
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(auth_bp)
+    app.register_blueprint(app_bp)
 
     @app.route('/assets/<path:filename>')
     def serve_assets(filename):
         print(f"Serving asset: {filename}")
-        return send_from_directory(app.static_folder, filename)
-
-    @app.route('/assets/<path:filename>')
-    def serve_assets(filename):
         path = os.path.join(app.static_folder, "assets")
         print(f"Serving from {path} filename={filename}")
-        return send_from_directory(path, filename)
+        return send_from_directory(app.static_folder, filename)
+    
+    @app.route("/", defaults={"path": ""})
+    @app.route("/<path:path>")
+    def catch_all(path):
+        if path == "":
+            # root
+            print("CATCH_ALL: Serving index.html for root path")
+            return send_from_directory(app.static_folder, "index.html")
+
+        requested_file = os.path.join(app.static_folder, path)
+        if os.path.isfile(requested_file):
+            # serve the actual file
+            print(f"CATCH_ALL: Serving static file: {path}")
+            return send_from_directory(app.static_folder, path)
+        else:
+            # fallback to index.html for client-side routing
+            print(f"CATCH_ALL: Path not found: {path} — serving index.html fallback")
+            return send_from_directory(app.static_folder, "index.html")
+
 
 
     return app
