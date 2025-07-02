@@ -42,7 +42,7 @@ jobs:
           docker tag $REPO:$IMAGE_TAG $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO:$IMAGE_TAG
           docker push $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO:$IMAGE_TAG
 
-      - name: SSH into EC2 and Deploy Container + Log Errors
+      - name: SSH into EC2 and Deploy Container + Copy Frontend
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -89,7 +89,6 @@ jobs:
 
             echo "🚀 Starting new container..."
             sudo docker run -d -p 5000:5000 --name cre_app \
-              -v /var/www/html:/app/Client/dist \
               -e AWS_REGION="${{ secrets.AWS_REGION }}" \
               -e AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" \
               -e AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
@@ -108,6 +107,11 @@ jobs:
 
             echo "⏳ Waiting for container to boot..."
             sleep 5
+
+            echo "🗂 Copying static frontend from container to host..."
+            sudo rm -rf /var/www/html/*
+            sudo docker cp cre_app:/app/Client/dist/. /var/www/html/
+            sudo chown -R www-data:www-data /var/www/html
 
             echo "🔍 Verifying container status..."
             if ! sudo docker ps --format '{{.Names}}' | grep -q '^cre_app$'; then
