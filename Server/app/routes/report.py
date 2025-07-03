@@ -17,7 +17,6 @@ report_bp = Blueprint('report', __name__, url_prefix='/api/v1/report')
 def generate_report_endpoint():
     """Generate a property report and upload PDF to S3"""
     try:
-        logger.info("Report generation request received")
         
         if request.method == 'GET':
             logger.warning("GET request received for report generation endpoint")
@@ -33,11 +32,9 @@ def generate_report_endpoint():
             logger.error("No address provided in request data")
             return jsonify({'error': 'Address is required', 'success': False}), 400
         
-        logger.info(f"Generating report for address: {address}")
         
         result_data = generate_report(address)
         
-        logger.info(f"Report generation completed successfully for address: {address}")
         return jsonify({
             'success': True,
             'status': 'completed',
@@ -63,6 +60,50 @@ def list_reports():
         logger.info("List reports request received")
 
         reports_list = []
+
+        # Now pull directly from S3
+        s3_client = s3_service.s3_client
+        if s3_client:
+            config = current_app.config
+            bucket_name = config.get("S3_BUCKET_NAME_PDFS")
+
+            logger.info(f"Listing objects in S3 bucket: {bucket_name}")
+            response = s3_client.list_objects_v2(Bucket=bucket_name)
+
+            for obj in response.get("Contents", []):
+                s3_key = obj["Key"]
+
+                logger.debug(f"Found untracked file in S3: {s3_key}")
+
+                presigned_url = s3_service.generate_presigned_url(s3_key)
+                reports_list.append({
+                    'id': s3_key.replace("/", "_"),
+                    'status': 'completed',
+                    'generatedAt': int(obj["LastModified"].timestamp()),
+                    'pdfUrl': presigned_url,
+                    'address': os.path.splitext(os.path.basename(s3_key))[0],
+                    's3Key': s3_key
+                })
+
+        else:
+            logger.warning("S3 client not initialized, cannot list bucket")
+
+        logger.info(f"Returning {len(reports_list)} reports combined from memory + S3")
+        return jsonify({'success': True, 'reports': reports_list})
+
+    except Exception as e:
+        logger.error(f"Error listing reports: {str(e)}")
+        logger.error(traceback.format_exc())
+        return jsonify({'error': 'Internal server error'}), 500
+    
+@report_bp.route('/allnames', methods=['GET'])
+def list_report_names():
+    """
+    Return a list of all generated reports with basic metadata,
+    combining in-memory REPORTS plus any PDFs directly found in S3.
+    """
+    try:
+        reports_list = []
         seen_keys = set()
 
         # First add the in-memory reports
@@ -86,12 +127,7 @@ def list_reports():
                         logger.warning(f"Failed to generate presigned URL for {original_pdf_url}")
 
                 report_data = {
-                    'id': task_id,
-                    'status': data.get('status'),
-                    'generatedAt': data.get('timestamp'),
-                    'pdfUrl': pdf_url,
-                    'address': address,
-                    's3Key': s3_key if s3_key else None
+                    'address': address
                 }
                 
                 reports_list.append(report_data)
@@ -103,12 +139,7 @@ def list_reports():
             except Exception as e:
                 logger.error(f"Error processing report {task_id}: {str(e)}")
                 reports_list.append({
-                    'id': task_id,
-                    'status': 'error',
-                    'generatedAt': data.get('timestamp'),
-                    'pdfUrl': None,
-                    'address': data.get('address', 'Unknown Address'),
-                    'error': str(e)
+                    'address': data.get('address', 'Unknown Address')
                 })
 
         # Now pull directly from S3
@@ -116,8 +147,6 @@ def list_reports():
         if s3_client:
             config = current_app.config
             bucket_name = config.get("S3_BUCKET_NAME_PDFS")
-
-            logger.info(f"Listing objects in S3 bucket: {bucket_name}")
             response = s3_client.list_objects_v2(Bucket=bucket_name)
 
             for obj in response.get("Contents", []):
@@ -125,16 +154,8 @@ def list_reports():
                 if s3_key in seen_keys:
                     continue  # already included via REPORTS
 
-                logger.debug(f"Found untracked file in S3: {s3_key}")
-
-                presigned_url = s3_service.generate_presigned_url(s3_key)
                 reports_list.append({
-                    'id': s3_key.replace("/", "_"),
-                    'status': 'completed',
-                    'generatedAt': int(obj["LastModified"].timestamp()),
-                    'pdfUrl': presigned_url,
-                    'address': os.path.splitext(os.path.basename(s3_key))[0],
-                    's3Key': s3_key
+                    'address': os.path.splitext(os.path.basename(s3_key))[0]
                 })
 
         else:

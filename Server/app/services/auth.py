@@ -21,13 +21,6 @@ class CognitoService:
         self.user_pool_id = os.getenv('COGNITO_USER_POOL_ID')
         self.client_id = os.getenv('COGNITO_CLIENT_ID')
         self.client_secret = os.getenv('COGNITO_CLIENT_SECRET')
-        
-        # Debug logging
-        logger.debug(f"CognitoService initialized with:")
-        logger.debug(f"  AWS_REGION: {self.region}")
-        logger.debug(f"  COGNITO_USER_POOL_ID: {self.user_pool_id}")
-        logger.debug(f"  COGNITO_CLIENT_ID: {self.client_id}")
-        logger.debug(f"  COGNITO_CLIENT_SECRET: {'***' if self.client_secret else 'None'}")
 
     def sign_up(self, username, password, user_attributes):
         """Register a new user"""

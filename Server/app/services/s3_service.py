@@ -18,7 +18,6 @@ class S3Service:
         """Initialize the S3 client with credentials from config"""
         try:
             config = current_app.config
-            logger.info("Initializing S3 client...")
             
             # Check if we have AWS credentials
             aws_access_key = config.get('AWS_ACCESS_KEY_ID')
@@ -34,9 +33,6 @@ class S3Service:
             s3_region = config.get('S3_REGION', 'us-east-1')
             bucket_name = config.get('S3_BUCKET_NAME_PDFS')
             
-            logger.info(f"Creating S3 client with region: {s3_region}")
-            logger.info(f"Target bucket: {bucket_name}")
-            
             self.s3_client = boto3.client(
                 's3',
                 aws_access_key_id=aws_access_key,
@@ -45,9 +41,7 @@ class S3Service:
             )
             
             # Test the connection and bucket access
-            logger.info("Testing S3 connection and bucket access...")
             self.s3_client.head_bucket(Bucket=bucket_name)
-            logger.info(f"S3 client initialized successfully for bucket: {bucket_name}")
             
         except NoCredentialsError as e:
             logger.error("AWS credentials not found or invalid")
@@ -101,9 +95,7 @@ class S3Service:
         try:
             config = current_app.config
             bucket_name = config['S3_BUCKET_NAME_PDFS']
-            
-            logger.info(f"Uploading PDF to S3: bucket={bucket_name}, key={filename}, size={len(file_data)} bytes")
-            
+                        
             # Create a file-like object from bytes
             file_obj = BytesIO(file_data)
             
@@ -118,7 +110,6 @@ class S3Service:
                 }
             )
             
-            logger.info(f"Successfully uploaded PDF to S3: {filename}")
             return filename
             
         except ClientError as e:
@@ -170,9 +161,7 @@ class S3Service:
             config = current_app.config
             bucket_name = config['S3_BUCKET_NAME_PDFS']
             expiration = config['S3_PRESIGNED_URL_EXPIRATION']
-            
-            logger.info(f"Generating presigned URL: bucket={bucket_name}, key={s3_key}, expiration={expiration}s")
-            
+                        
             # Generate presigned URL
             presigned_url = self.s3_client.generate_presigned_url(
                 operation,
@@ -182,9 +171,7 @@ class S3Service:
                 },
                 ExpiresIn=expiration
             )
-            
-            logger.info(f"Successfully generated presigned URL for {s3_key}")
-            logger.debug(f"Presigned URL: {presigned_url[:100]}...")  # Log first 100 chars for debugging
+
             return presigned_url
             
         except ClientError as e:
@@ -232,15 +219,12 @@ class S3Service:
         try:
             config = current_app.config
             bucket_name = config['S3_BUCKET_NAME_PDFS']
-            
-            logger.info(f"Deleting PDF from S3: bucket={bucket_name}, key={s3_key}")
-            
+                        
             self.s3_client.delete_object(
                 Bucket=bucket_name,
                 Key=s3_key
             )
             
-            logger.info(f"Successfully deleted PDF from S3: {s3_key}")
             return True
             
         except ClientError as e:
@@ -289,9 +273,7 @@ class S3Service:
         try:
             config = current_app.config
             bucket_name = config['S3_BUCKET_NAME_PDFS']
-            
-            logger.debug(f"Checking if file exists in S3: bucket={bucket_name}, key={s3_key}")
-            
+                        
             self.s3_client.head_object(Bucket=bucket_name, Key=s3_key)
             logger.debug(f"File exists in S3: {s3_key}")
             return True
@@ -339,13 +321,10 @@ def get_pdf(self, s3_key: str) -> Optional[bytes]:
         config = current_app.config
         bucket_name = config['S3_BUCKET_NAME_PDFS']
         
-        logger.info(f"Downloading PDF from S3: bucket={bucket_name}, key={s3_key}")
-        
         file_obj = BytesIO()
         self.s3_client.download_fileobj(bucket_name, s3_key, file_obj)
         file_obj.seek(0)
         
-        logger.info(f"Successfully downloaded PDF from S3: {s3_key}")
         return file_obj.read()
         
     except ClientError as e:

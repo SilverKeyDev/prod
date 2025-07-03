@@ -34,7 +34,6 @@ def _create_pdf(report: dict, address: str) -> str:
     Returns:
         URL to access the PDF (presigned URL, S3 key, or local path)
     """
-    logger.info(f"Creating PDF report for address: {address}")
     
     if not report:
         logger.error("No report data provided")
@@ -46,7 +45,6 @@ def _create_pdf(report: dict, address: str) -> str:
     
     try:
         # Create PDF in memory instead of on disk
-        logger.info("Initializing PDF buffer and document template")
         pdf_buffer = BytesIO()
         
         doc = SimpleDocTemplate(
@@ -59,7 +57,6 @@ def _create_pdf(report: dict, address: str) -> str:
         )
 
         # serif styles throughout
-        logger.debug("Setting up PDF styles")
         styles = getSampleStyleSheet()
         styles.add(ParagraphStyle(
             name="SectionHeader",
@@ -107,15 +104,12 @@ def _create_pdf(report: dict, address: str) -> str:
         elements = []
 
         # HEADER
-        logger.debug("Adding PDF header")
         elements.append(Paragraph("SilverKey Property Report", styles["SectionHeader"]))
         elements.append(HRFlowable(width="100%", thickness=1, color="#6A7B52"))
         elements.append(Spacer(1, 12))
 
         # loop over sections
-        logger.debug(f"Processing {len(report)} report sections")
         for section, section_data in report.items():
-            logger.debug(f"Processing section: {section}")
             elements.append(Paragraph(section.replace("_", " ").title(), styles["SectionHeader"]))
             elements.append(HRFlowable(width="30%", thickness=1, color="#6A7B52"))
             elements.append(Spacer(1, 6))
@@ -133,24 +127,19 @@ def _create_pdf(report: dict, address: str) -> str:
             elements.append(HRFlowable(width="100%", thickness=0.5, color="#CCC"))
             elements.append(Spacer(1, 12))
 
-        logger.info("Building PDF document")
         doc.build(elements)
         
         # Get the PDF data from the buffer
         pdf_data = pdf_buffer.getvalue()
         pdf_buffer.close()
-        
-        logger.info(f"PDF created successfully, size: {len(pdf_data)} bytes")
-        
+                
         # Generate a unique filename for S3
         safe_address = "".join(c for c in address if c.isalnum() or c in (' ', '-', '_')).rstrip()
         safe_address = safe_address.replace(' ', '_')
         filename = f"reports/{safe_address}_{uuid.uuid4().hex[:8]}.pdf"
         
-        logger.info(f"Generated S3 filename: {filename}")
         
         # Upload to S3
-        logger.info("Attempting to upload PDF to S3")
         s3_key = s3_service.upload_pdf(pdf_data, filename)
         
         if s3_key:
@@ -188,7 +177,6 @@ def _save_pdf_locally(pdf_data: bytes, address: str) -> str:
         Local file path for the PDF
     """
     try:
-        logger.info("Saving PDF to local storage")
         output_dir = os.path.join("static", "reports")
         os.makedirs(output_dir, exist_ok=True)
         
@@ -199,7 +187,6 @@ def _save_pdf_locally(pdf_data: bytes, address: str) -> str:
         with open(file_path, 'wb') as f:
             f.write(pdf_data)
         
-        logger.info(f"PDF saved locally: {file_path}")
         return f"/api/v1/report/static/reports/{safe_address}.pdf"
         
     except Exception as e:
@@ -255,7 +242,6 @@ def _add_section(elements, data, styles, level=0):
                 # check if it's an image
                 if isinstance(v, str) and v.startswith("http") and (v.endswith(".jpg") or v.endswith(".png")):
                     try:
-                        logger.debug(f"Attempting to load image: {v}")
                         response = requests.get(v, timeout=5)
                         if response.status_code == 200:
                             img_data = BytesIO(response.content)
@@ -263,7 +249,6 @@ def _add_section(elements, data, styles, level=0):
                             elements.append(img)
                             elements.append(Paragraph(k.replace("_", " ").title(), styles["Caption"]))
                             elements.append(Spacer(1, 6))
-                            logger.debug(f"Successfully loaded image: {v}")
                         else:
                             logger.warning(f"Failed to load image {v}, status code: {response.status_code}")
                             elements.append(Paragraph(f"{key_label} [image failed to load - HTTP {response.status_code}]", styles["Body"]))
