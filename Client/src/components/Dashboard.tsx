@@ -4,6 +4,7 @@ import Sidebar from "./Sidebar.tsx";
 import GenerateReportPage from "../pages/GenerateReportPage.tsx";
 import PastReports from "../pages/PastReports.tsx";
 import AIAssistant from "../pages/AIAssistant.tsx";
+import Subscription from "../pages/Subscription.tsx";
 import { User } from "../types/index.ts";
 
 interface DashboardProps {
@@ -33,6 +34,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
             <Route path="/" element={<GenerateReportPage />} />
             <Route path="reports" element={<PastReports />} />
             <Route path="assistant" element={<AIAssistant />} />
+            <Route path="subscription" element={<Subscription />} />
           </Routes>
         </div>
       </main>

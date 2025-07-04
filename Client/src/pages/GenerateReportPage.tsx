@@ -282,4 +282,4 @@ export default function GenerateReportPage() {
       </div>
     </div>
   );
-}
+}  

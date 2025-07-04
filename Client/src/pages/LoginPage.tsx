@@ -127,14 +127,28 @@ export default function LoginPage() {
           </div>
         </form>
 
-        {/* Footer */}
-        <div className="text-center mt-12 space-x-6 text-sm text-navy/60">
-          <Link to="#" className="hover:text-navy transition-colors">
-            Privacy
-          </Link>
-          <Link to="#" className="hover:text-navy transition-colors">
-            Terms
-          </Link>
+        {/* Footer Links */}
+        <div className="mt-8 pt-6 border-t border-gray-100">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-sm">
+            <div className="flex items-center gap-6 text-navy/60">
+              <Link 
+                to="/privacy" 
+                className="hover:text-brown transition-colors hover:underline underline-offset-4 decoration-brown/40"
+              >
+                Privacy Policy
+              </Link>
+              <Link 
+                to="/terms" 
+                className="hover:text-brown transition-colors hover:underline underline-offset-4 decoration-brown/40"
+              >
+                Terms of Service
+              </Link>
+            </div>
+            <span className="hidden sm:inline-block h-4 w-px bg-gray-200"></span>
+            <p className="text-xs text-navy/40">
+              © {new Date().getFullYear()} SilverKey. All rights reserved.
+            </p>
+          </div>
         </div>
       </div>
     </div>

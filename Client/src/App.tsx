@@ -6,6 +6,8 @@ import HomePage from "./pages/HomePage.tsx";
 import { User } from "./types/index.ts";
 import Dashboard from "./components/Dashboard.tsx";
 import VerificationPage from "./pages/VerificationPage";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
 
 function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -46,6 +48,8 @@ function App() {
           />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/verification" element={<VerificationPage/>} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/terms" element={<TermsOfService />} />
 
           {/* Protected Route */}
           <Route

@@ -60,28 +60,69 @@ def list_reports():
         logger.info("List reports request received")
 
         reports_list = []
+        seen_names = set()
 
-        # Now pull directly from S3
+        # First add the in-memory reports
+        logger.debug(f"Processing {len(REPORTS)} in-memory reports")
+
+        for task_id, data in REPORTS.items():
+            try:
+                pdf_url = data.get('pdfUrl')
+                address = data.get('address', 'Unknown Address')
+                s3_key = None
+
+                if pdf_url and not pdf_url.startswith(('http', '/')):
+                    s3_key = pdf_url
+                    pdf_url = s3_service.generate_presigned_url(s3_key)
+                elif pdf_url and pdf_url.startswith('http'):
+                    # extract filename from presigned url
+                    s3_key = os.path.basename(pdf_url.split('?')[0])
+
+                # store just the file name for deduplication
+                if s3_key:
+                    seen_names.add(os.path.basename(s3_key))
+
+                reports_list.append({
+                    'id': task_id,
+                    'status': data.get('status'),
+                    'generatedAt': data.get('timestamp'),
+                    'pdfUrl': pdf_url,
+                    'address': address,
+                    's3Key': s3_key
+                })
+
+            except Exception as e:
+                logger.error(f"Error processing report {task_id}: {str(e)}")
+                reports_list.append({
+                    'id': task_id,
+                    'status': 'error',
+                    'generatedAt': data.get('timestamp'),
+                    'pdfUrl': None,
+                    'address': address,
+                    'error': str(e)
+                })
+
+        # Now list S3 objects
         s3_client = s3_service.s3_client
         if s3_client:
-            config = current_app.config
-            bucket_name = config.get("S3_BUCKET_NAME_PDFS")
-
+            bucket_name = current_app.config.get("S3_BUCKET_NAME_PDFS")
             logger.info(f"Listing objects in S3 bucket: {bucket_name}")
             response = s3_client.list_objects_v2(Bucket=bucket_name)
 
             for obj in response.get("Contents", []):
                 s3_key = obj["Key"]
+                file_name = os.path.basename(s3_key)
 
-                logger.debug(f"Found untracked file in S3: {s3_key}")
+                if file_name in seen_names:
+                    continue  # skip duplicate
 
                 presigned_url = s3_service.generate_presigned_url(s3_key)
                 reports_list.append({
-                    'id': s3_key.replace("/", "_"),
+                    'id': file_name.replace("/", "_"),
                     'status': 'completed',
                     'generatedAt': int(obj["LastModified"].timestamp()),
                     'pdfUrl': presigned_url,
-                    'address': os.path.splitext(os.path.basename(s3_key))[0],
+                    'address': os.path.splitext(file_name)[0],
                     's3Key': s3_key
                 })
 
@@ -95,7 +136,7 @@ def list_reports():
         logger.error(f"Error listing reports: {str(e)}")
         logger.error(traceback.format_exc())
         return jsonify({'error': 'Internal server error'}), 500
-    
+
 @report_bp.route('/allnames', methods=['GET'])
 def list_report_names():
     """
