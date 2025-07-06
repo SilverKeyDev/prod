@@ -27,7 +27,6 @@ cleanup() {
         kill "$VITE_PID" 2>/dev/null || true
     fi
     log "${GREEN}All processes terminated.${NC}"
-    exit 0
 }
 
 # Trap Ctrl+C and call cleanup
@@ -62,7 +61,7 @@ if [ "${1:-}" = "--production" ]; then
 else
     log "Starting Flask server in ${GREEN}development${NC} mode..."
     cd Server || exit 1
-    python run.py --port 5001 &
+    python run.py --host 0.0.0.0 --port 5000 &
     FLASK_PID=$!
     cd ..
 

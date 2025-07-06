@@ -119,6 +119,7 @@ export default function GenerateReportPage() {
 
     navigate("/dashboard/reports?refresh=true");
     navigate(0);
+    
 
     try {
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
@@ -167,7 +168,6 @@ export default function GenerateReportPage() {
     } finally {
       setIsGenerating(false);
     }
-    navigate(0);
   };
 
   const isButtonDisabled = isGenerating || !address.trim() || !!loadError;

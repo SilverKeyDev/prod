@@ -1,5 +1,6 @@
 from ..extensions import db
 from datetime import datetime
+from .subscription import Subscription
 
 class User(db.Model):
     __tablename__ = 'users'
@@ -13,6 +14,9 @@ class User(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     is_active = db.Column(db.Boolean, default=True)
+    
+    # Relationships
+    subscription = db.relationship('Subscription', back_populates='user', uselist=False)
     
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)
@@ -29,5 +33,7 @@ class User(db.Model):
             'phone': self.phone,
             'agency_name': self.agency_name,
             'created_at': self.created_at.isoformat() if self.created_at else None,
-            'is_active': self.is_active
+            'is_active': self.is_active,
+            'has_subscription': self.subscription is not None,
+            'subscription': self.subscription.to_dict() if self.subscription else None
         }

@@ -1,11 +1,22 @@
-import React, { useState } from 'react';
-import { Check, Zap, Crown, Building, CreditCard, Calendar, Download } from 'lucide-react';
+import { useState, useEffect } from "react";
+import axios from "axios";
+import {
+  Check,
+  Zap,
+  Crown,
+  Building,
+  CreditCard,
+  Calendar,
+  Download,
+  Loader2,
+} from "lucide-react";
+import { useStripePayment } from "../hooks/useStripePayment";
 
 interface Plan {
   id: string;
   name: string;
   price: number;
-  interval: 'month' | 'year';
+  interval: "month" | "year" | "one-time";
   features: string[];
   reportsLimit: number;
   popular?: boolean;
@@ -13,65 +24,125 @@ interface Plan {
 
 const plans: Plan[] = [
   {
-    id: 'free',
-    name: 'Starter',
-    price: 0,
-    interval: 'month',
-    reportsLimit: 3,
+    id: "5-reports",
+    name: "5 Reports",
+    price: 4.99, // $5.00
+    interval: "one-time",
+    reportsLimit: 5,
     features: [
-      '3 reports per month',
-      'Basic property analysis',
-      'Standard templates',
-      'Email support'
-    ]
+      "5 reports",
+      "Basic property analysis",
+      "General - Electronically Supplied Services",
+      "No expiration",
+    ],
   },
   {
-    id: 'pro',
-    name: 'Professional',
-    price: 49,
-    interval: 'month',
-    reportsLimit: 50,
+    id: "20-reports",
+    name: "20 Reports",
+    price: 14.99, // $15.00
+    interval: "one-time",
+    reportsLimit: 20,
     popular: true,
     features: [
-      '50 reports per month',
-      'Advanced AI analysis',
-      'Custom branding',
-      'Bulk property upload',
-      'Priority support',
-      'Export to multiple formats'
-    ]
+      "20 reports",
+      "Basic property analysis",
+      "General - Electronically Supplied Services",
+      "No expiration",
+      "Save 25% vs individual reports",
+    ],
   },
   {
-    id: 'enterprise',
-    name: 'Enterprise',
-    price: 149,
-    interval: 'month',
-    reportsLimit: -1, // Unlimited
+    id: "50-reports",
+    name: "50 Reports",
+    price: 29.99, // $30.00
+    interval: "one-time",
+    reportsLimit: 50,
     features: [
-      'Unlimited reports',
-      'White-label solution',
-      'API access',
-      'Custom integrations',
-      'Dedicated account manager',
-      'SLA guarantee'
-    ]
-  }
+      "50 reports",
+      "Basic property analysis",
+      "General - Electronically Supplied Services",
+      "No expiration",
+      "Save 40% vs individual reports",
+    ],
+  },
+  {
+    id: "unlimited-monthly",
+    name: "Monthly",
+    price: 9.99, // $9.99
+    interval: "month",
+    reportsLimit: -1,
+    features: [
+      "Unlimited reports",
+      "Advanced property analysis",
+      "General - Electronically Supplied Services",
+      "Priority support",
+      "Cancel anytime",
+    ],
+  },
+  {
+    id: "unlimited-yearly",
+    name: "Yearly",
+    price: 99.99, // $99.99
+    interval: "year",
+    reportsLimit: -1,
+    popular: true,
+    features: [
+      "Unlimited reports",
+      "Advanced property analysis",
+      "General - Electronically Supplied Services",
+      "Priority support",
+      "Save 17% vs monthly",
+      "Cancel anytime",
+    ],
+  },
 ];
 
 export default function Subscription() {
-  const [currentPlan] = useState('free');
-  const [billingInterval, setBillingInterval] = useState<'month' | 'year'>('month');
-  const [usage] = useState({
-    reportsUsed: 2,
-    reportsLimit: 3,
-    billingDate: new Date('2024-02-15')
+  const [activeTab, setActiveTab] = useState<"one-time" | "unlimited">(
+    "one-time"
+  );
+
+  const [usage, setUsage] = useState({
+    reportsUsed: 0,
+    reportsLimit: 0,
+    billingDate: new Date(),
+    isSubscribed: false,
   });
+
+  const { handleSubscription, loading: subscriptionLoading } = useStripePayment();
+  // Customer portal functionality can be added later
+  // const { handlePortal } = useStripePortal();
+
+  // Fetch user's subscription status and usage
+  useEffect(() => {
+    const fetchSubscriptionStatus = async () => {
+      try {
+        const { data } = await axios.get('/api/subscription-status');
+        setUsage({
+          reportsUsed: data.reports_used || 0,
+          reportsLimit: data.reports_limit || 0,
+          billingDate: new Date(data.next_billing_date || Date.now()),
+          isSubscribed: data.is_subscribed || false,
+        });
+      } catch (error) {
+        console.error('Failed to fetch subscription status:', error);
+      }
+    };
+
+    fetchSubscriptionStatus();
+  }, []);
+
+  const filteredPlans = plans.filter((plan) =>
+    activeTab === "one-time"
+      ? plan.interval === "one-time"
+      : plan.interval === "month" || plan.interval === "year"
+  );
 
   const getPlanIcon = (planId: string) => {
     switch (planId) {
-      case 'pro':
+      case "pro":
         return <Zap className="h-6 w-6" />;
-      case 'enterprise':
+      case "enterprise":
         return <Crown className="h-6 w-6" />;
       default:
         return <Building className="h-6 w-6" />;
@@ -79,10 +150,10 @@ export default function Subscription() {
   };
 
   const formatDate = (date: Date) => {
-    return date.toLocaleDateString('en-US', {
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric'
+    return date.toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
     });
   };
 
@@ -90,7 +161,9 @@ export default function Subscription() {
     <div className="max-w-6xl mx-auto">
       {/* Header */}
       <div className="text-center mb-12">
-        <h1 className="text-3xl font-serif text-navy mb-4">Subscription & Billing</h1>
+        <h1 className="text-3xl font-serif text-navy mb-4">
+          Subscription & Billing
+        </h1>
         <p className="text-lg text-navy/60 max-w-2xl mx-auto">
           Choose the perfect plan for your real estate business needs
         </p>
@@ -101,7 +174,7 @@ export default function Subscription() {
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-medium text-navy">Current Usage</h2>
           <span className="px-3 py-1 bg-beige/30 text-navy text-sm font-medium rounded-full">
-            {plans.find(p => p.id === currentPlan)?.name} Plan
+            {plans.find((p) => p.id === "5-reports")?.name} Plan
           </span>
         </div>
 
@@ -111,7 +184,8 @@ export default function Subscription() {
               <Download className="h-8 w-8 text-gold" />
             </div>
             <div className="text-2xl font-bold text-navy mb-1">
-              {usage.reportsUsed}/{usage.reportsLimit === -1 ? '∞' : usage.reportsLimit}
+              {usage.reportsUsed}/
+              {usage.reportsLimit === -1 ? "∞" : usage.reportsLimit}
             </div>
             <div className="text-sm text-navy/60">Reports Used</div>
           </div>
@@ -131,7 +205,7 @@ export default function Subscription() {
               <CreditCard className="h-8 w-8 text-green-600" />
             </div>
             <div className="text-2xl font-bold text-navy mb-1">
-              ${plans.find(p => p.id === currentPlan)?.price || 0}
+              ${plans.find((p) => p.id === "5-reports")?.price || 0}
             </div>
             <div className="text-sm text-navy/60">Monthly Cost</div>
           </div>
@@ -142,14 +216,22 @@ export default function Subscription() {
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-navy">Report Usage</span>
             <span className="text-sm text-navy/60">
-              {usage.reportsLimit === -1 ? 'Unlimited' : `${usage.reportsLimit - usage.reportsUsed} remaining`}
+              {usage.reportsLimit === -1
+                ? "Unlimited"
+                : `${usage.reportsLimit - usage.reportsUsed} remaining`}
             </span>
           </div>
           <div className="w-full bg-beige/30 rounded-full h-2">
-            <div 
+            <div
               className="bg-gold h-2 rounded-full transition-all duration-300"
-              style={{ 
-                width: usage.reportsLimit === -1 ? '20%' : `${Math.min((usage.reportsUsed / usage.reportsLimit) * 100, 100)}%` 
+              style={{
+                width:
+                  usage.reportsLimit === -1
+                    ? "20%"
+                    : `${Math.min(
+                        (usage.reportsUsed / usage.reportsLimit) * 100,
+                        100
+                      )}%`,
               }}
             ></div>
           </div>
@@ -160,43 +242,40 @@ export default function Subscription() {
       <div className="flex items-center justify-center mb-8">
         <div className="bg-beige/20 rounded-lg p-1 flex items-center">
           <button
-            onClick={() => setBillingInterval('month')}
-            className={`px-4 py-2 rounded text-sm font-medium transition-all ${
-              billingInterval === 'month'
-                ? 'bg-white text-navy shadow-sm'
-                : 'text-navy/60 hover:text-navy'
+            onClick={() => setActiveTab("one-time")}
+            className={`px-6 py-2 rounded text-sm font-medium transition-all ${
+              activeTab === "one-time"
+                ? "bg-white text-navy shadow-sm"
+                : "text-navy/60 hover:text-navy"
             }`}
           >
-            Monthly
+            One-Time Purchase
           </button>
           <button
-            onClick={() => setBillingInterval('year')}
-            className={`px-4 py-2 rounded text-sm font-medium transition-all ${
-              billingInterval === 'year'
-                ? 'bg-white text-navy shadow-sm'
-                : 'text-navy/60 hover:text-navy'
+            onClick={() => setActiveTab("unlimited")}
+            className={`px-6 py-2 rounded text-sm font-medium transition-all ${
+              activeTab === "unlimited"
+                ? "bg-white text-navy shadow-sm"
+                : "text-navy/60 hover:text-navy"
             }`}
           >
-            Annual
-            <span className="ml-1 text-xs bg-gold/20 text-gold px-1 rounded">Save 20%</span>
+            Unlimited Subscription
           </button>
         </div>
       </div>
 
       {/* Plans */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        {plans.map((plan) => {
-          const isCurrentPlan = plan.id === currentPlan;
-          const yearlyPrice = Math.round(plan.price * 12 * 0.8); // 20% discount
-          const displayPrice = billingInterval === 'year' ? yearlyPrice : plan.price;
-          
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {filteredPlans.map((plan) => {
+          // Calculate display price (monthly price for subscriptions)
+          const displayPrice = plan.price;
+
           return (
             <div
               key={plan.id}
               className={`
                 relative card transition-all duration-200 hover:shadow-lg
-                ${plan.popular ? 'ring-2 ring-gold shadow-lg' : ''}
-                ${isCurrentPlan ? 'bg-gold/5 border-gold' : ''}
+                ${plan.popular ? "ring-2 ring-gold shadow-lg" : ""}
               `}
             >
               {plan.popular && (
@@ -208,29 +287,33 @@ export default function Subscription() {
               )}
 
               <div className="text-center mb-6">
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 ${
-                  plan.popular ? 'bg-gold text-navy' : 'bg-navy/10 text-navy'
-                }`}>
+                <div
+                  className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 ${
+                    plan.popular ? "bg-gold text-navy" : "bg-navy/10 text-navy"
+                  }`}
+                >
                   {getPlanIcon(plan.id)}
                 </div>
-                
-                <h3 className="text-xl font-medium text-navy mb-2">{plan.name}</h3>
-                
+
+                <h3 className="text-xl font-medium text-navy mb-2">
+                  {plan.name}
+                </h3>
+
                 <div className="mb-4">
-                  {plan.price === 0 ? (
-                    <span className="text-3xl font-bold text-navy">Free</span>
-                  ) : (
-                    <>
-                      <span className="text-3xl font-bold text-navy">${displayPrice}</span>
-                      <span className="text-navy/60">
-                        /{billingInterval === 'year' ? 'year' : 'month'}
-                      </span>
-                      {billingInterval === 'year' && plan.price > 0 && (
-                        <div className="text-sm text-green-600 font-medium">
-                          Save ${(plan.price * 12) - yearlyPrice}/year
-                        </div>
-                      )}
-                    </>
+                  <span className="text-3xl font-bold text-navy">
+                    ${displayPrice.toFixed(2)}
+                  </span>
+                  <span className="text-navy/60">
+                    {plan.interval === "year"
+                      ? "/year"
+                      : plan.interval === "month"
+                      ? "/month"
+                      : ""}
+                  </span>
+                  {plan.interval === "year" && (
+                    <div className="text-sm text-green-600 font-medium">
+                      Save 17% vs monthly
+                    </div>
                   )}
                 </div>
               </div>
@@ -245,81 +328,24 @@ export default function Subscription() {
               </ul>
 
               <button
-                className={`w-full py-3 rounded-lg font-medium transition-all ${
-                  isCurrentPlan
-                    ? 'bg-beige/30 text-navy/60 cursor-not-allowed'
-                    : plan.popular
-                    ? 'btn-primary'
-                    : 'btn-secondary'
-                }`}
-                disabled={isCurrentPlan}
+                onClick={() => handleSubscription(plan.id)}
+                disabled={subscriptionLoading}
+                className={`w-full py-3 rounded-lg font-medium transition-all flex items-center justify-center ${
+                  plan.popular ? "btn-primary" : "btn-secondary"
+                } ${subscriptionLoading ? 'opacity-75' : ''}`}
               >
-                {isCurrentPlan ? 'Current Plan' : 'Upgrade to ' + plan.name}
+                {subscriptionLoading ? (
+                  <>
+                    <Loader2 className="animate-spin mr-2 h-4 w-4" />
+                    Processing...
+                  </>
+                ) : (
+                  `Purchase ${plan.name}`
+                )}
               </button>
             </div>
           );
         })}
-      </div>
-
-      {/* Billing History */}
-      <div className="card">
-        <h2 className="text-xl font-medium text-navy mb-6">Billing History</h2>
-        
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-beige">
-                <th className="text-left py-3 text-sm font-medium text-navy/60">Date</th>
-                <th className="text-left py-3 text-sm font-medium text-navy/60">Description</th>
-                <th className="text-left py-3 text-sm font-medium text-navy/60">Amount</th>
-                <th className="text-left py-3 text-sm font-medium text-navy/60">Status</th>
-                <th className="text-left py-3 text-sm font-medium text-navy/60">Invoice</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-beige/50">
-              {[
-                {
-                  date: new Date('2024-01-15'),
-                  description: 'Starter Plan - January 2024',
-                  amount: 0,
-                  status: 'Paid',
-                  invoice: '#INV-001'
-                },
-                {
-                  date: new Date('2023-12-15'),
-                  description: 'Starter Plan - December 2023',
-                  amount: 0,
-                  status: 'Paid',
-                  invoice: '#INV-002'
-                }
-              ].map((transaction, index) => (
-                <tr key={index} className="hover:bg-beige/10 transition-colors">
-                  <td className="py-3 text-sm text-navy">
-                    {transaction.date.toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric'
-                    })}
-                  </td>
-                  <td className="py-3 text-sm text-navy">{transaction.description}</td>
-                  <td className="py-3 text-sm text-navy">
-                    {transaction.amount === 0 ? 'Free' : `$${transaction.amount}`}
-                  </td>
-                  <td className="py-3">
-                    <span className="px-2 py-1 bg-green-50 text-green-600 text-xs rounded-full">
-                      {transaction.status}
-                    </span>
-                  </td>
-                  <td className="py-3">
-                    <button className="text-gold hover:text-gold-light text-sm font-medium">
-                      Download
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
       </div>
     </div>
   );

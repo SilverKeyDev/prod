@@ -18,6 +18,10 @@ executor = Executor()
 
 
 def create_app(config=None):
+    logging.getLogger("botocore").setLevel(logging.WARNING)
+    logging.getLogger("werkzeug").setLevel(logging.WARNING)
+    logging.getLogger("boto3").setLevel(logging.WARNING)
+
     # STATIC FOLDER: matches Docker
     STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../Client/dist")
     app = Flask(__name__, static_folder=STATIC_DIR, static_url_path="")
@@ -33,14 +37,22 @@ def create_app(config=None):
     ma.init_app(app)
     executor.init_app(app)
     migrate = Migrate(app, db)
+    
+    # Initialize database within app context
+    with app.app_context():
+        # Create tables if they don't exist
+        db.create_all()
+        
+        # Import models to ensure they are registered with SQLAlchemy
+        from .models import User, PDFDocument, Subscription
 
     # CORS Configuration
     CORS(app, resources={
         r"/api/*": {
             "origins": [
                 "http://localhost:5173",
-                "http://10.91.197.108:5173",
-                "http://10.91.128.151:5173/",
+                "http://127.0.0.1:5173",
+                "http://10.91.128.151:5173",
                 "https://silverkeyestates.com"
             ],
             "supports_credentials": True,
@@ -48,6 +60,26 @@ def create_app(config=None):
             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
             "expose_headers": ["Content-Type", "X-CSRFToken"],
             "max_age": 600
+        },
+        r"/create-checkout-session": {
+            "origins": [
+                "http://localhost:5173",
+                "http://127.0.0.1:5173",
+                "http://10.91.128.151:5173",
+                "https://silverkeyestates.com"
+            ],
+            "supports_credentials": True,
+            "methods": ["POST", "OPTIONS"]
+        },
+        r"/create-portal-session": {
+            "origins": [
+                "http://localhost:5173",
+                "http://127.0.0.1:5173",
+                "http://10.91.128.151:5173",
+                "https://silverkeyestates.com"
+            ],
+            "supports_credentials": True,
+            "methods": ["POST", "OPTIONS"]
         }
     })
 
@@ -73,10 +105,12 @@ def create_app(config=None):
     from .routes.report import report_bp
     from .routes.dashboard import dashboard_bp
     from .routes.auth import auth_bp
+    from .routes.payment import bp as payment_bp
 
     app.register_blueprint(report_bp)
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(auth_bp)
+    app.register_blueprint(payment_bp)
 
     @app.route('/assets/<path:filename>')
     def serve_assets(filename):

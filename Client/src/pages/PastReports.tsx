@@ -421,9 +421,19 @@ export default function PastReports() {
   };
 
   useEffect(() => {
-    if (hasFetched.current) return;
-    hasFetched.current = true;
-    fetchReports();
+    // Initial fetch
+    if (!hasFetched.current) {
+      fetchReports();
+      hasFetched.current = true;
+    }
+
+    // Set up interval to fetch reports every 15 seconds
+    const intervalId = setInterval(() => {
+      fetchReports();
+    }, 15000);
+
+    // Clean up interval on component unmount
+    return () => clearInterval(intervalId);
   }, []);
 
   return (
