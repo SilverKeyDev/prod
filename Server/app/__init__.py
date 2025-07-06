@@ -40,6 +40,7 @@ def create_app(config=None):
             "origins": [
                 "http://localhost:5173",
                 "http://10.91.197.108:5173",
+                "http://10.91.128.151:5173/",
                 "https://silverkeyestates.com"
             ],
             "supports_credentials": True,
