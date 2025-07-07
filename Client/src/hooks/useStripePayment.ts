@@ -21,7 +21,7 @@ export const useStripePayment = () => {
 
       // 1. Create a checkout session
       const { data } = await axios.post(
-        `${import.meta.env.VITE_API_URL}/payment/create-checkout-session`,
+        `${import.meta.env.VITE_API_BASE_URL}/payment/create-checkout-session`,
         { priceId },
         {
           withCredentials: true,

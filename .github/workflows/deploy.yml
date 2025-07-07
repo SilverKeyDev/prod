@@ -38,6 +38,7 @@ jobs:
           docker build --no-cache \
             --build-arg VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }} \
             --build-arg VITE_GOOGLE_MAPS_API_KEY=${{ secrets.VITE_GOOGLE_MAPS_API_KEY }} \
+            --build-arg VITE_STRIPE_PUBLIC_KEY=${{ secrets.VITE_STRIPE_PUBLIC_KEY }} \
             -t $REPO:$IMAGE_TAG .
           docker tag $REPO:$IMAGE_TAG $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO:$IMAGE_TAG
           docker push $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO:$IMAGE_TAG
@@ -103,6 +104,14 @@ jobs:
               -e PERPLEXITY_API_KEY="${{ secrets.PERPLEXITY_API_KEY }}" \
               -e VITE_GOOGLE_MAPS_API_KEY="${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}" \
               -e VITE_API_BASE_URL="${{ secrets.VITE_API_BASE_URL }}" \
+              -e STRIPE_PUBLIC_KEY="${{ secrets.STRIPE_PUBLIC_KEY }}" \
+              -e STRIPE_SECRET_KEY="${{ secrets.STRIPE_SECRET_KEY }}" \
+              -e STRIPE_WEBHOOK_SECRET="${{ secrets.STRIPE_WEBHOOK_SECRET }}" \
+              -e STRIPE_FIVE_REPORTS="${{ secrets.STRIPE_FIVE_REPORTS }}" \
+              -e STRIPE_TWENTY_REPORTS="${{ secrets.STRIPE_TWENTY_REPORTS }}" \
+              -e STRIPE_FIFTY_REPORTS="${{ secrets.STRIPE_FIFTY_REPORTS }}" \
+              -e STRIPE_UNLIMITED_MONTHLY="${{ secrets.STRIPE_UNLIMITED_MONTHLY }}" \
+              -e STRIPE_UNLIMITED_YEARLY="${{ secrets.STRIPE_UNLIMITED_YEARLY }}" \
               "$IMAGE"
 
             echo "⏳ Waiting for container to boot..."
