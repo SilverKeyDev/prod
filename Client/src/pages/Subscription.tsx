@@ -10,6 +10,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { useStripePayment } from "../hooks/useStripePayment";
+import { apiRequest } from "../lib/api";
 
 interface Plan {
   id: string;
@@ -94,36 +95,7 @@ interface SubscriptionStatus {
   is_subscribed: boolean;
 }
 
-async function apiRequest<T>(
-  url: string,
-  options: RequestInit = {}
-): Promise<{ success: boolean; data: T | null; error?: string }> {
-  try {
-    const token = localStorage.getItem("token");
-    const headers = {
-      "Content-Type": "application/json",
-      ...(options.headers || {}),
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    };
 
-    const response = await fetch(url, {
-      ...options,
-      headers,
-      credentials: "include",
-    });
-
-    const data = await response.json().catch(() => null);
-
-    return {
-      success: response.ok,
-      data,
-      ...(response.ok ? {} : { error: data?.error || "Request failed" }),
-    };
-  } catch (err: any) {
-    console.error("apiRequest failed:", err);
-    return { success: false, data: null, error: err.message };
-  }
-}
 
 export default function Subscription() {
   const [activeTab, setActiveTab] = useState<"one-time" | "unlimited">("one-time");

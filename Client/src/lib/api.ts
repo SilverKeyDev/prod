@@ -5,13 +5,15 @@ export interface ApiResponse<T = any> {
   data?: T;
   error?: string;
   message?: string;
-  [key: string]: any; // Allow additional properties
+  [key: string]: any;
 }
 
 // Helper to get the auth token from storage
 const getAuthToken = (): string | null => {
   if (typeof window === 'undefined') return null;
-  return localStorage.getItem('id_token') || localStorage.getItem('access_token');
+
+  const token = localStorage.getItem('access_token'); // Ensure this matches how you store it after login
+  return token;
 };
 
 /**
@@ -24,18 +26,16 @@ export async function apiRequest<T = any>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<ApiResponse<T>> {
-  // Ensure endpoint starts with a slash
   const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
   const url = `${API_BASE_URL}${normalizedEndpoint}`;
   const token = getAuthToken();
-  
-  // Prepare headers
+
   const headers = new Headers({
     'Content-Type': 'application/json',
     ...(token && { 'Authorization': `Bearer ${token}` }),
   });
 
-  // Add custom headers if provided
+  // Merge any custom headers
   if (options.headers) {
     if (options.headers instanceof Headers) {
       options.headers.forEach((value, key) => headers.set(key, value));
@@ -67,7 +67,6 @@ export async function apiRequest<T = any>(
       };
     }
 
-
     return {
       success: true,
       data,
@@ -90,7 +89,7 @@ export const authApi = {
     password: string;
     phone?: string;
     agency_name?: string;
-  }) => 
+  }) =>
     apiRequest('/api/v1/auth/signup', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -117,12 +116,16 @@ export const authApi = {
 
 // Report API
 export const reportApi = {
-  generateReport: async (address: string, notes?: string, files?: File[]): Promise<ApiResponse<{ report: any }>> => {
+  generateReport: async (
+    address: string,
+    notes?: string,
+    files?: File[]
+  ): Promise<ApiResponse<{ report: any }>> => {
     const formData = new FormData();
     formData.append('address', address);
     if (notes) formData.append('notes', notes);
     if (files) {
-      files.forEach(file => formData.append('files', file));
+      files.forEach((file) => formData.append('files', file));
     }
 
     const response = await fetch(`${API_BASE_URL}/generate-report`, {
@@ -134,10 +137,10 @@ export const reportApi = {
     return response.json();
   },
 
-  getReports: (): Promise<ApiResponse<{ reports: any[] }>> => 
+  getReports: (): Promise<ApiResponse<{ reports: any[] }>> =>
     apiRequest('/reports'),
 
-  getReport: (reportId: number): Promise<ApiResponse<{ report: any }>> => 
+  getReport: (reportId: number): Promise<ApiResponse<{ report: any }>> =>
     apiRequest(`/reports/${reportId}`),
 
   downloadReport: async (reportId: number): Promise<Blob> => {
@@ -147,10 +150,15 @@ export const reportApi = {
     return response.blob();
   },
 
-  getDownloadUrl: async (reportId: string): Promise<ApiResponse<{ downloadUrl: string }>> => {
-    const response = await fetch(`${API_BASE_URL}/api/v1/report/${reportId}/download-url`, {
-      credentials: 'include',
-    });
+  getDownloadUrl: async (
+    reportId: string
+  ): Promise<ApiResponse<{ downloadUrl: string }>> => {
+    const response = await fetch(
+      `${API_BASE_URL}/api/v1/report/${reportId}/download-url`,
+      {
+        credentials: 'include',
+      }
+    );
     return response.json();
   },
 };
