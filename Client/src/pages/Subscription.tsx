@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
 import {
   Check,
   Zap,
@@ -11,6 +10,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { useStripePayment } from "../hooks/useStripePayment";
+import { apiRequest } from "../lib/api";
 
 interface Plan {
   id: string;
@@ -32,7 +32,6 @@ const plans: Plan[] = [
     features: [
       "5 reports",
       "Basic property analysis",
-      "General - Electronically Supplied Services",
       "No expiration",
     ],
   },
@@ -46,7 +45,6 @@ const plans: Plan[] = [
     features: [
       "20 reports",
       "Basic property analysis",
-      "General - Electronically Supplied Services",
       "No expiration",
       "Save 25% vs individual reports",
     ],
@@ -60,7 +58,6 @@ const plans: Plan[] = [
     features: [
       "50 reports",
       "Basic property analysis",
-      "General - Electronically Supplied Services",
       "No expiration",
       "Save 40% vs individual reports",
     ],
@@ -74,7 +71,6 @@ const plans: Plan[] = [
     features: [
       "Unlimited reports",
       "Advanced property analysis",
-      "General - Electronically Supplied Services",
       "Priority support",
       "Cancel anytime",
     ],
@@ -89,7 +85,6 @@ const plans: Plan[] = [
     features: [
       "Unlimited reports",
       "Advanced property analysis",
-      "General - Electronically Supplied Services",
       "Priority support",
       "Save 17% vs monthly",
       "Cancel anytime",
@@ -113,17 +108,26 @@ export default function Subscription() {
   // Customer portal functionality can be added later
   // const { handlePortal } = useStripePortal();
 
+  interface SubscriptionStatus {
+    reports_used: number;
+    reports_limit: number;
+    next_billing_date?: string;
+    is_subscribed: boolean;
+  }
+
   // Fetch user's subscription status and usage
   useEffect(() => {
     const fetchSubscriptionStatus = async () => {
       try {
-        const { data } = await axios.get('/api/subscription-status');
-        setUsage({
-          reportsUsed: data.reports_used || 0,
-          reportsLimit: data.reports_limit || 0,
-          billingDate: new Date(data.next_billing_date || Date.now()),
-          isSubscribed: data.is_subscribed || false,
-        });
+        const response = await apiRequest<SubscriptionStatus>('/api/v1/payment/subscription-status');
+        if (response.success && response.data) {
+          setUsage({
+            reportsUsed: response.data.reports_used || 0,
+            reportsLimit: response.data.reports_limit || 0,
+            billingDate: new Date(response.data.next_billing_date || Date.now()),
+            isSubscribed: response.data.is_subscribed || false,
+          });
+        }
       } catch (error) {
         console.error('Failed to fetch subscription status:', error);
       }

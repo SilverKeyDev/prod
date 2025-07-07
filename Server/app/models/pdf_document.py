@@ -1,5 +1,6 @@
-from ..extensions import db
 from datetime import datetime
+# Import db from the main app package to ensure we're using the same instance
+from app import db
 
 class PDFDocument(db.Model):
     __tablename__ = 'pdf_documents'

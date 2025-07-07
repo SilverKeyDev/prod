@@ -1,13 +1,7 @@
 from flask import Blueprint, request, jsonify, current_app
 from flask_login import login_required, current_user
 from app.extensions import db
-from app.models import PDFDocument, User, Subscription
-from app.services.stripe_service import (
-    create_checkout_session, 
-    create_portal_session,
-    handle_webhook,
-    PRICE_IDS
-)
+from app.models import PDFDocument
 import os
 
 dashboard_bp = Blueprint('dashboard', __name__, url_prefix='/api/dashboard')

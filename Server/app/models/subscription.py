@@ -1,4 +1,5 @@
 from datetime import datetime
+# Import db from the main app package to ensure we're using the same instance
 from app import db
 
 class Subscription(db.Model):
@@ -6,7 +7,7 @@ class Subscription(db.Model):
     __tablename__ = 'subscriptions'
     
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)  # Changed to String to match User.id
     stripe_subscription_id = db.Column(db.String(255), unique=True, nullable=True)
     stripe_customer_id = db.Column(db.String(255), unique=True, nullable=True)
     plan_id = db.Column(db.String(50), nullable=False)  # e.g., '5-reports', 'unlimited-monthly'
@@ -22,8 +23,8 @@ class Subscription(db.Model):
     reports_used = db.Column(db.Integer, default=0)
     reports_limit = db.Column(db.Integer, nullable=False)  # -1 for unlimited
     
-    # Relationships
-    user = db.relationship('User', back_populates='subscription')
+    # Relationships - using string reference to avoid circular imports
+    user = db.relationship('User', back_populates='subscription', lazy='select')
     
     def __repr__(self):
         return f'<Subscription {self.plan_id} - {self.status}>'

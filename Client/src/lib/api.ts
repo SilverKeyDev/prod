@@ -1,22 +1,54 @@
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
 export interface ApiResponse<T = any> {
   success: boolean;
   data?: T;
   error?: string;
   message?: string;
+  [key: string]: any; // Allow additional properties
 }
 
+// Helper to get the auth token from storage
+const getAuthToken = (): string | null => {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('id_token') || localStorage.getItem('access_token');
+};
+
+/**
+ * Makes an API request with proper authentication and error handling
+ * @param endpoint The API endpoint (e.g., '/payment/create-checkout-session')
+ * @param options Fetch options (method, body, headers, etc.)
+ * @returns Promise with the API response
+ */
 export async function apiRequest<T = any>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<ApiResponse<T>> {
-  const url = `${API_BASE_URL}${endpoint}`;
+  // Ensure endpoint starts with a slash
+  const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  const url = `${API_BASE_URL}${normalizedEndpoint}`;
+  const token = getAuthToken();
   
-  const headers = {
+  // Prepare headers
+  const headers = new Headers({
     'Content-Type': 'application/json',
-    ...options.headers,
-  };
+    ...(token && { 'Authorization': `Bearer ${token}` }),
+  });
+
+  // Add custom headers if provided
+  if (options.headers) {
+    if (options.headers instanceof Headers) {
+      options.headers.forEach((value, key) => headers.set(key, value));
+    } else if (Array.isArray(options.headers)) {
+      options.headers.forEach(([key, value]) => headers.set(key, value));
+    } else {
+      Object.entries(options.headers).forEach(([key, value]) => {
+        if (value !== undefined) {
+          headers.set(key, String(value));
+        }
+      });
+    }
+  }
 
   try {
     const response = await fetch(url, {

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
-import axios from 'axios';
+import { apiRequest } from '../lib/api';
 
 // Initialize Stripe with your publishable key
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || '');
@@ -19,25 +19,22 @@ export const useStripePayment = () => {
         throw new Error('Stripe failed to initialize');
       }
 
-      // 1. Create a checkout session
-      const { data } = await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/payment/create-checkout-session`,
-        { priceId },
+      // 1. Create a checkout session using our API client
+      const response = await apiRequest<{ sessionId: string; url: string }>(
+        '/api/v1/payment/create-checkout-session',
         {
-          withCredentials: true,
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          method: 'POST',
+          body: JSON.stringify({ priceId }),
         }
       );
 
-      if (!data || !data.sessionId) {
-        throw new Error('Invalid response from server');
+      if (!response.success || !response.data?.sessionId) {
+        throw new Error(response.error || 'Failed to create checkout session');
       }
 
       // 2. Redirect to Stripe Checkout
       const { error } = await stripe.redirectToCheckout({
-        sessionId: data.sessionId,
+        sessionId: response.data.sessionId,
       });
 
       if (error) {
@@ -45,9 +42,8 @@ export const useStripePayment = () => {
       }
     } catch (err: any) {
       console.error('Checkout error:', err);
-      const errorMessage = err.response?.data?.error || err.message || 'An error occurred during checkout';
+      const errorMessage = err.message || 'An error occurred during checkout';
       setError(errorMessage);
-      // You can add a toast here if needed: toast.error(errorMessage);
       throw errorMessage;
     } finally {
       setLoading(false);
@@ -66,16 +62,25 @@ export const useStripePortal = () => {
     setError('');
     
     try {
-      // 1. Create a portal session
-      const { data } = await axios.post('/api/create-portal-session');
+      // 1. Create a portal session using our API client
+      const response = await apiRequest<{ url: string }>(
+        '/api/v1/payment/create-portal-session',
+        {
+          method: 'POST',
+          body: JSON.stringify({}),
+        }
+      );
 
-      // 2. Redirect to Stripe Customer Portal
-      window.location.href = data.url;
+      if (!response.success || !response.data?.url) {
+        throw new Error(response.error || 'Failed to create portal session');
+      }
+
+      // 2. Redirect to Stripe Portal
+      window.location.href = response.data.url;
     } catch (err: any) {
       console.error('Portal error:', err);
-      const errorMessage = err.response?.data?.error || err.message || 'An error occurred';
+      const errorMessage = err.message || 'An error occurred while accessing the customer portal';
       setError(errorMessage);
-      // You can add a toast here if needed: toast.error(errorMessage);
       throw errorMessage;
     } finally {
       setLoading(false);

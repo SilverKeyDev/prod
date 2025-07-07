@@ -1,10 +1,11 @@
+from datetime import datetime
 from flask import Blueprint, request, jsonify, current_app
-from flask_jwt_extended import (
-    create_access_token
-)
+from flask_jwt_extended import create_access_token
 import os
-from ..services.auth import cognito_service
 import jwt
+from .. import db
+from ..models.user import User
+from ..services.auth import cognito_service
 
 # Blueprint setup
 auth_bp = Blueprint('auth', __name__, url_prefix='/api/v1/auth')
@@ -42,6 +43,28 @@ def signup():
             'error': result.get('error', 'SIGNUP_FAILED'),
             'message': result.get('message', 'Failed to register user')
         }), 400
+
+    try:
+        # Create user in our database
+        user = User(
+            id=result['user_sub'],
+            cognito_id=result['user_sub'],
+            email=data['email'],
+            name=data['name'],
+            phone=data.get('phone'),
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow(),
+            is_active=True
+        )
+        db.session.add(user)
+        db.session.commit()
+        
+        current_app.logger.info(f'Successfully created user in database: {user.id}')
+        
+    except Exception as e:
+        current_app.logger.error(f'Error creating user in database: {str(e)}')
+        # Don't fail the signup if database creation fails, just log it
+        # The user can complete signup but might need to contact support
 
     return jsonify({
         'success': True,
