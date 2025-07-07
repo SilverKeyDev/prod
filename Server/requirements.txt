@@ -19,4 +19,4 @@ PyJWT==2.8.0
 Werkzeug==2.3.7
 psycopg2-binary
 marshmallow-sqlalchemy==0.28.1
-stripe==5.55.0
+stripe==9.4.0
