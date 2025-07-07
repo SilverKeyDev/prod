@@ -10,7 +10,6 @@ import {
   Loader2,
 } from "lucide-react";
 import { useStripePayment } from "../hooks/useStripePayment";
-import { apiRequest } from "../lib/api";
 
 interface Plan {
   id: string;
@@ -26,19 +25,15 @@ const plans: Plan[] = [
   {
     id: "5-reports",
     name: "5 Reports",
-    price: 4.99, // $5.00
+    price: 4.99,
     interval: "one-time",
     reportsLimit: 5,
-    features: [
-      "5 reports",
-      "Basic property analysis",
-      "No expiration",
-    ],
+    features: ["5 reports", "Basic property analysis", "No expiration"],
   },
   {
     id: "20-reports",
     name: "20 Reports",
-    price: 14.99, // $15.00
+    price: 14.99,
     interval: "one-time",
     reportsLimit: 20,
     popular: true,
@@ -52,7 +47,7 @@ const plans: Plan[] = [
   {
     id: "50-reports",
     name: "50 Reports",
-    price: 29.99, // $30.00
+    price: 29.99,
     interval: "one-time",
     reportsLimit: 50,
     features: [
@@ -65,7 +60,7 @@ const plans: Plan[] = [
   {
     id: "unlimited-monthly",
     name: "Monthly",
-    price: 9.99, // $9.99
+    price: 9.99,
     interval: "month",
     reportsLimit: -1,
     features: [
@@ -78,7 +73,7 @@ const plans: Plan[] = [
   {
     id: "unlimited-yearly",
     name: "Yearly",
-    price: 99.99, // $99.99
+    price: 99.99,
     interval: "year",
     reportsLimit: -1,
     popular: true,
@@ -92,10 +87,46 @@ const plans: Plan[] = [
   },
 ];
 
+interface SubscriptionStatus {
+  reports_used: number;
+  reports_limit: number;
+  next_billing_date?: string;
+  is_subscribed: boolean;
+}
+
+async function apiRequest<T>(
+  url: string,
+  options: RequestInit = {}
+): Promise<{ success: boolean; data: T | null; error?: string }> {
+  try {
+    const token = localStorage.getItem("token");
+    const headers = {
+      "Content-Type": "application/json",
+      ...(options.headers || {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
+
+    const response = await fetch(url, {
+      ...options,
+      headers,
+      credentials: "include",
+    });
+
+    const data = await response.json().catch(() => null);
+
+    return {
+      success: response.ok,
+      data,
+      ...(response.ok ? {} : { error: data?.error || "Request failed" }),
+    };
+  } catch (err: any) {
+    console.error("apiRequest failed:", err);
+    return { success: false, data: null, error: err.message };
+  }
+}
+
 export default function Subscription() {
-  const [activeTab, setActiveTab] = useState<"one-time" | "unlimited">(
-    "one-time"
-  );
+  const [activeTab, setActiveTab] = useState<"one-time" | "unlimited">("one-time");
 
   const [usage, setUsage] = useState({
     reportsUsed: 0,
@@ -105,31 +136,25 @@ export default function Subscription() {
   });
 
   const { handleSubscription, loading: subscriptionLoading } = useStripePayment();
-  // Customer portal functionality can be added later
-  // const { handlePortal } = useStripePortal();
 
-  interface SubscriptionStatus {
-    reports_used: number;
-    reports_limit: number;
-    next_billing_date?: string;
-    is_subscribed: boolean;
-  }
-
-  // Fetch user's subscription status and usage
   useEffect(() => {
     const fetchSubscriptionStatus = async () => {
       try {
-        const response = await apiRequest<SubscriptionStatus>('/api/v1/payment/subscription-status');
+        const response = await apiRequest<SubscriptionStatus>(
+          "/api/v1/payment/subscription-status"
+        );
         if (response.success && response.data) {
           setUsage({
             reportsUsed: response.data.reports_used || 0,
             reportsLimit: response.data.reports_limit || 0,
-            billingDate: new Date(response.data.next_billing_date || Date.now()),
+            billingDate: new Date(
+              response.data.next_billing_date || Date.now()
+            ),
             isSubscribed: response.data.is_subscribed || false,
           });
         }
       } catch (error) {
-        console.error('Failed to fetch subscription status:', error);
+        console.error("Failed to fetch subscription status:", error);
       }
     };
 
@@ -271,7 +296,6 @@ export default function Subscription() {
       {/* Plans */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {filteredPlans.map((plan) => {
-          // Calculate display price (monthly price for subscriptions)
           const displayPrice = plan.price;
 
           return (
@@ -336,7 +360,7 @@ export default function Subscription() {
                 disabled={subscriptionLoading}
                 className={`w-full py-3 rounded-lg font-medium transition-all flex items-center justify-center ${
                   plan.popular ? "btn-primary" : "btn-secondary"
-                } ${subscriptionLoading ? 'opacity-75' : ''}`}
+                } ${subscriptionLoading ? "opacity-75" : ""}`}
               >
                 {subscriptionLoading ? (
                   <>
