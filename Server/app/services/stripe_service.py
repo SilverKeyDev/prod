@@ -102,3 +102,12 @@ def handle_subscription_cancelled(subscription):
     # Update user's subscription status
     # This is a placeholder - implement based on your user model
     pass
+
+def get_subscription_status(subscription_id: str) -> str:
+    """Get the current status of a subscription from Stripe"""
+    try:
+        subscription = stripe.Subscription.retrieve(subscription_id)
+        return subscription.status
+    except stripe.error.StripeError as e:
+        current_app.logger.error(f'Error retrieving subscription status: {str(e)}')
+        return 'inactive'
