@@ -18,9 +18,9 @@ executor = Executor()
 
 
 def create_app(config=None):
-    logging.getLogger("botocore").setLevel(logging.WARNING)
-    logging.getLogger("werkzeug").setLevel(logging.WARNING)
-    logging.getLogger("boto3").setLevel(logging.WARNING)
+    #logging.getLogger("botocore").setLevel(logging.WARNING)
+    #logging.getLogger("werkzeug").setLevel(logging.WARNING)
+    #logging.getLogger("boto3").setLevel(logging.WARNING)
 
     # STATIC FOLDER: matches Docker
     STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../Client/dist")
