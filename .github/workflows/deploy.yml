@@ -96,6 +96,7 @@ jobs:
               -e COGNITO_USER_POOL_ID="${{ secrets.COGNITO_USER_POOL_ID }}" \
               -e COGNITO_CLIENT_ID="${{ secrets.COGNITO_CLIENT_ID }}" \
               -e COGNITO_CLIENT_SECRET="${{ secrets.COGNITO_CLIENT_SECRET }}" \
+              -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
               -e S3_BUCKET_NAME_PDFS="${{ secrets.S3_BUCKET_NAME_PDFS }}" \
               -e STRIPE_PUBLIC_KEY="${{ secrets.STRIPE_PUBLIC_KEY }}" \
               -e STRIPE_SECRET_KEY="${{ secrets.STRIPE_SECRET_KEY }}" \
