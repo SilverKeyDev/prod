@@ -29,28 +29,6 @@ export default function GenerateReportPage() {
   const [scriptsReady, setScriptsReady] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [showLimitModal, setShowLimitModal] = useState(false);
-  const [reportUsage, setReportUsage] = useState({ used: 0, limit: 0 });
-
-  // Fetch user's report usage
-  useEffect(() => {
-    const fetchReportUsage = async () => {
-      try {
-        const response = await apiRequest<{ reports_used: number; reports_limit: number }>(
-          "/api/v1/user/report-usage"
-        );
-        if (response.success && response.data) {
-          setReportUsage({
-            used: response.data.reports_used,
-            limit: response.data.reports_limit
-          });
-        }
-      } catch (error) {
-        console.error("Failed to fetch report usage:", error);
-      }
-    };
-
-    fetchReportUsage();
-  }, []);
 
   // Load Google Maps script
   useEffect(() => {
