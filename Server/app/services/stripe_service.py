@@ -45,8 +45,8 @@ def create_checkout_session(plan_id: str, customer_email: str):
                 'quantity': 1,
             }],
             mode='subscription' if 'unlimited' in plan_id.lower() else 'payment',
-            success_url=f"{os.getenv('FRONTEND_URL')}/dashboard?session_id={{CHECKOUT_SESSION_ID}}",
-            cancel_url=f"{os.getenv('FRONTEND_URL')}/subscription?cancelled=true",
+            success_url="https://silverkeyestates.com/dashboard?session_id={CHECKOUT_SESSION_ID}",
+            cancel_url="https://silverkeyestates.com/subscription?cancelled=true",
             customer_email=customer_email,
             metadata={'plan_id': plan_id}
         )
