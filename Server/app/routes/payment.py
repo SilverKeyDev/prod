@@ -61,7 +61,6 @@ def get_current_user():
             algorithms=["RS256"],
             audience=COGNITO_CLIENT_ID
         )
-        # claims['sub'] is the Cognito user UUID
         user = User.query.filter_by(cognito_id=claims['sub']).first()
         if not user:
             current_app.logger.warning(f"User not found for cognito_id: {claims['sub']}")

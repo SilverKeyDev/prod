@@ -1,5 +1,4 @@
 from datetime import datetime
-# Import db from the main app package to ensure we're using the same instance
 from app import db
 
 class Subscription(db.Model):
