@@ -20,11 +20,11 @@ def get_report_usage():
             'message': 'User not found'
         }), 404
     
-    reports_used = user.reports_available
+    reports_available = user.reports_available
     
     return jsonify({
         'success': True,
         'data': {
-            'reports_used': reports_used,
+            'reports_available': reports_available,
         }
     })

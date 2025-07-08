@@ -19,7 +19,13 @@ report_bp = Blueprint('report', __name__, url_prefix='/api/v1/report')
 @report_bp.route('/generate', methods=['POST', 'GET'])
 @jwt_required()
 def generate_report_endpoint():
-    """Generate a property report and upload PDF to S3"""
+    """
+    Generate a property report and upload PDF to S3
+    
+    Checks if user has an active subscription or available reports before generating.
+    If user has a subscription, report is generated without consuming reports.
+    If no subscription but has reports, consumes one report on generation.
+    """
     try:
         if request.method == 'GET':
             logger.warning("GET request received for report generation endpoint")
@@ -31,15 +37,24 @@ def generate_report_endpoint():
         if not user:
             logger.error(f"User not found with ID: {current_user_id}")
             return jsonify({'error': 'User not found', 'success': False}), 404
+        
+        # Check if user has an active subscription
+        has_active_subscription = user.subscription and user.subscription.status == 'active'
+        
+        # If no active subscription, check available reports
+        if not has_active_subscription:
+            if user.reports_available <= 0:
+                logger.warning(f"User {user.id} has no active subscription and no reports available")
+                return jsonify({
+                    'success': False,
+                    'error': 'NO_REPORTS_AVAILABLE',
+                    'message': 'No reports available. Please purchase a subscription or more reports.'
+                }), 402  # Payment Required
             
-        # Check if user has available reports
-        if user.reports_available <= 0:
-            logger.warning(f"User {user.id} has no reports available")
-            return jsonify({
-                'success': False,
-                'error': 'NO_REPORTS_AVAILABLE',
-                'message': 'No reports available. Please purchase more reports.'
-            }), 402  # Payment Required
+            # Deduct one report for non-subscription users
+            user.reports_available -= 1
+            db.session.commit()
+            logger.info(f"Deducted 1 report from user {user.id}. Remaining: {user.reports_available}")
         
         data = request.get_json()
         if not data:
@@ -53,10 +68,6 @@ def generate_report_endpoint():
         
         # Generate the report
         result_data = generate_report(address)
-        
-        # Decrement the user's report count
-        user.reports_available -= 1
-        db.session.commit()
         
         logger.info(f"Report generated for user {user.id}. Reports remaining: {user.reports_available}")
         

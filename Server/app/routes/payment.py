@@ -86,7 +86,6 @@ def get_subscription():
             'reports_limit': 0,
             'plan_id': None,
             'current_period_end': None,
-            'is_trial': False
         }
         
         # Check if user has a subscription
@@ -98,14 +97,11 @@ def get_subscription():
         response.update({
             'has_subscription': subscription.status in ['active', 'trialing'],
             'status': subscription.status,
-            'reports_used': subscription.reports_used,
-            'reports_limit': subscription.reports_limit,
             'plan_id': subscription.plan_id,
             'current_period_end': (
                 subscription.current_period_end.isoformat() 
                 if subscription.current_period_end else None
             ),
-            'is_trial': subscription.status == 'trialing'
         })
         
         # If we have a Stripe subscription ID, get the latest status
@@ -200,17 +196,31 @@ def webhook_received():
         elif event['type'] == 'customer.subscription.deleted':
             subscription = event['data']['object']
             handle_subscription_cancelled(subscription)
-            
-        return jsonify({'status': 'success'})
-        
-    except ValueError as e:
-        # Invalid payload
-        current_app.logger.error(f'Invalid payload: {str(e)}')
-        return jsonify({'error': 'Invalid payload'}), 400
-    except stripe.error.SignatureVerificationError as e:
-        # Invalid signature
-        current_app.logger.error(f'Invalid signature: {str(e)}')
-        return jsonify({'error': 'Invalid signature'}), 400
     except Exception as e:
         current_app.logger.error(f'Error processing webhook: {str(e)}')
         return jsonify({'error': str(e)}), 500
+
+# ------------------------
+
+@bp.route('/subscription/status', methods=['GET'])
+@cross_origin(**cors_config)
+def get_subscription_status():
+    """
+    Get the status of a subscription from Stripe
+    Query Parameters:
+        subscription_id (str): The Stripe subscription ID
+    """
+    subscription_id = request.args.get('subscription_id')
+    
+    if not subscription_id:
+        return jsonify({'error': 'subscription_id is required'}), 400
+    
+    try:
+        status = get_subscription_status(subscription_id)
+        return jsonify({
+            'subscription_id': subscription_id,
+            'status': status
+        }), 200
+    except Exception as e:
+        current_app.logger.error(f'Error getting subscription status: {str(e)}')
+        return jsonify({'error': 'Failed to get subscription status'}), 500
