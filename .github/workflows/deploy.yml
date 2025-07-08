@@ -60,6 +60,12 @@ jobs:
             IMAGE_TAG="latest"
 
             echo "📦 Installing Docker and AWS CLI if needed..."
+            while sudo fuser /var/lib/apt/lists/lock >/dev/null 2>&1 || \
+                  sudo fuser /var/lib/dpkg/lock >/dev/null 2>&1; do
+              echo "🔒 Waiting for apt lock to be released..."
+              sleep 3
+            done
+
             sudo apt update -y
             timeout 3m sudo apt install -y docker.io unzip curl > /dev/null
 
