@@ -127,9 +127,9 @@ def handle_checkout_session(session):
             user.reports_available += reports_limit
             db.session.add(user)
             subscription.current_period_end = None
+            subscription.reports_limit = reports_limit
             current_app.logger.info(f"[CHECKOUT] ➕ Incremented reports to {user.reports_available}")
         else:
-            subscription.reports_limit = reports_limit
             interval = 'month' if 'monthly' in plan_id else 'year'
             subscription.current_period_end = datetime.utcnow() + timedelta(
                 days=30 if interval == 'month' else 365
