@@ -109,71 +109,67 @@ def handle_webhook(payload, sig_header):
     return {'status': 'success'}
 
 def handle_checkout_session(session):
-    """Handle successful checkout session"""
     from app import db
     from app.models.user import User
     from app.models.subscription import Subscription
-    
+    from datetime import datetime, timedelta
+
     try:
+        current_app.logger.info(f"[CHECKOUT] Received session: {session}")
+
         customer_email = session.get('customer_email')
         if not customer_email:
-            current_app.logger.error('No customer email in checkout session')
+            current_app.logger.error('[CHECKOUT] No customer email in session')
             return
-            
-        # Find user by email
+
         user = User.query.filter_by(email=customer_email).first()
         if not user:
-            current_app.logger.error(f'User not found with email: {customer_email}')
+            current_app.logger.error(f'[CHECKOUT] No user with email: {customer_email}')
             return
-            
-        # Get plan details from metadata or line items
+
+        current_app.logger.info(f"[CHECKOUT] Found user {user.id} ({user.email})")
+
         plan_id = session.get('metadata', {}).get('plan_id', '5-reports')
+        current_app.logger.info(f"[CHECKOUT] Plan ID: {plan_id}")
+
         reports_limit = {
             '5-reports': 5,
             '20-reports': 20,
             '50-reports': 50,
-            'unlimited-monthly': -1,  # -1 means unlimited
+            'unlimited-monthly': -1,
             'unlimited-yearly': -1
         }.get(plan_id, 0)
-        
-        # Update or create subscription
+
         subscription = Subscription.query.filter_by(user_id=user.id).first()
         if not subscription:
-            subscription = Subscription(
-                user_id=user.id,
-                status='active',
-            )
+            subscription = Subscription(user_id=user.id, status='active')
             db.session.add(subscription)
-        
-        # For one-time purchases, add to the existing reports
+            current_app.logger.info(f"[CHECKOUT] Created new subscription for user {user.id}")
+
         if plan_id in ['5-reports', '20-reports', '50-reports']:
             user.reports_available += reports_limit
+            subscription.current_period_end = None
+            current_app.logger.info(f"[CHECKOUT] Incremented reports to {user.reports_available}")
         else:
-            # For subscriptions, set the reports_limit directly
             subscription.reports_limit = reports_limit
-            
+            interval = 'month' if 'monthly' in plan_id else 'year'
+            subscription.current_period_end = datetime.utcnow() + timedelta(
+                days=30 if interval == 'month' else 365
+            )
+            current_app.logger.info(f"[CHECKOUT] Set subscription limit {reports_limit} and period")
+
         subscription.plan_id = plan_id
         subscription.stripe_customer_id = session.get('customer')
         subscription.stripe_subscription_id = session.get('subscription')
         subscription.status = 'active'
-        
-        # For one-time purchases, set expiration date
-        if plan_id in ['5-reports', '20-reports', '50-reports']:
-            subscription.current_period_end = None  # No expiration for one-time purchases
-        else:
-            # For subscriptions, set period end based on interval
-            interval = 'month' if 'monthly' in plan_id else 'year'
-            from datetime import datetime, timedelta
-            subscription.current_period_end = datetime.utcnow() + timedelta(
-                days=30 if interval == 'month' else 365
-            )
-        
+
         db.session.commit()
-        current_app.logger.info(f'Updated subscription for user {user.id}')
-        
+        current_app.logger.info(f"[CHECKOUT] Committed subscription changes for user {user.id}")
+
     except Exception as e:
-        current_app.logger.error(f'Error handling checkout session: {str(e)}')
+        current_app.logger.error(f'[CHECKOUT] Error: {str(e)}', exc_info=True)
         db.session.rollback()
+
 
 def handle_successful_payment(invoice):
     """Handle successful payment"""
