@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   Check,
   Zap,
@@ -8,9 +9,12 @@ import {
   Calendar,
   Download,
   Loader2,
+  XCircle,
 } from "lucide-react";
 import { useStripePayment } from "../hooks/useStripePayment";
 import { apiRequest } from "../lib/api";
+import ErrorToast from "../components/ErrorToast";
+import SuccessToast from "../components/SuccessToast";
 
 interface Plan {
   id: string;
@@ -98,7 +102,12 @@ interface SubscriptionStatus {
 
 
 export default function Subscription() {
+  const [searchParams] = useSearchParams();
+  const cancelled = searchParams.get('cancelled') === 'true';
   const [activeTab, setActiveTab] = useState<"one-time" | "unlimited">("one-time");
+  const [showError, setShowError] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
 
   const [usage, setUsage] = useState({
     reportsUsed: 0,
@@ -159,7 +168,25 @@ export default function Subscription() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Cancellation Toast */}
+      {cancelled && (
+        <ErrorToast 
+          message="Your payment was cancelled. No charges have been made to your account."
+          onClose={() => setShowError(false)}
+          duration={5000}
+        />
+      )}
+      
+      {/* Success Toast */}
+      {showSuccess && (
+        <SuccessToast
+          message={toastMessage}
+          onClose={() => setShowSuccess(false)}
+          duration={3000}
+        />
+      )}
+      
       {/* Header */}
       <div className="text-center mb-12">
         <h1 className="text-3xl font-serif text-navy mb-4">
