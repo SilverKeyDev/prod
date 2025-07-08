@@ -3,8 +3,6 @@ export {};
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapPin, Loader2, AlertCircle } from "lucide-react";
-import { ReportLimitModal } from "../components/ReportLimitModal";
-import { apiRequest } from "../lib/api";
 
 declare global {
   interface Window {
@@ -28,8 +26,6 @@ export default function GenerateReportPage() {
   const [error, setError] = useState<string | null>(null);
   const [scriptsReady, setScriptsReady] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [showLimitModal, setShowLimitModal] = useState(false);
-
   // Load Google Maps script
   useEffect(() => {
     const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
