@@ -173,32 +173,38 @@ def create_customer_portal():
 
 @bp.route('/webhook', methods=['POST'])
 def webhook_received():
-    # Get the webhook payload and signature header
+    from flask import current_app
+
     payload = request.data
     sig_header = request.headers.get('Stripe-Signature')
-    
+
     try:
-        # Verify the webhook signature and handle the event
         event = stripe.Webhook.construct_event(
             payload, sig_header, os.getenv('STRIPE_WEBHOOK_SECRET')
         )
-        
-        # Handle the event
-        if event['type'] == 'checkout.session.completed':
-            session = event['data']['object']
-            handle_checkout_session(session)
-        elif event['type'] == 'invoice.payment_succeeded':
-            invoice = event['data']['object']
-            handle_successful_payment(invoice)
-        elif event['type'] == 'customer.subscription.updated':
-            subscription = event['data']['object']
-            handle_subscription_updated(subscription)
-        elif event['type'] == 'customer.subscription.deleted':
-            subscription = event['data']['object']
-            handle_subscription_cancelled(subscription)
+
+        current_app.logger.info(f"[WEBHOOK] 🔔 Received event: {event['type']}")
+
+        event_type = event['type']
+        data_object = event['data']['object']
+
+        if event_type == 'checkout.session.completed':
+            handle_checkout_session(data_object)
+        elif event_type == 'invoice.payment_succeeded':
+            handle_successful_payment(data_object)
+        elif event_type == 'customer.subscription.updated':
+            handle_subscription_updated(data_object)
+        elif event_type == 'customer.subscription.deleted':
+            handle_subscription_cancelled(data_object)
+        else:
+            current_app.logger.info(f"[WEBHOOK] ❓ Unhandled event type: {event_type}")
+
+        return jsonify({'status': 'success'}), 200
+
     except Exception as e:
-        current_app.logger.error(f'Error processing webhook: {str(e)}')
+        current_app.logger.error(f"[WEBHOOK] ❌ Error processing webhook: {str(e)}", exc_info=True)
         return jsonify({'error': str(e)}), 500
+
 
 # ------------------------
 
