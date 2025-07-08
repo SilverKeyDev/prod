@@ -77,3 +77,4 @@ yarn-error.log*
 *.sw?
 
 key.pem
+.env
