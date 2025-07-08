@@ -1,6 +1,7 @@
 import os
 import stripe
 from datetime import datetime, timezone
+from flask import current_app
 
 # Initialize Stripe
 stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
