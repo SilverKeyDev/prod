@@ -20,18 +20,11 @@ def get_report_usage():
             'message': 'User not found'
         }), 404
     
-    # Default values if no subscription
     reports_used = user.reports_available
-    reports_limit = 0  # Default to 0 if no subscription
-    
-    # If user has a subscription, use that for the limit
-    if hasattr(user, 'subscription') and user.subscription:
-        reports_limit = user.subscription.reports_limit
     
     return jsonify({
         'success': True,
         'data': {
             'reports_used': reports_used,
-            'reports_limit': reports_limit
         }
     })

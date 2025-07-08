@@ -139,12 +139,20 @@ def handle_checkout_session(session):
         # Update or create subscription
         subscription = Subscription.query.filter_by(user_id=user.id).first()
         if not subscription:
-            subscription = Subscription(user_id=user.id)
+            subscription = Subscription(
+                user_id=user.id,
+                status='active',
+            )
             db.session.add(subscription)
+        
+        # For one-time purchases, add to the existing reports
+        if plan_id in ['5-reports', '20-reports', '50-reports']:
+            user.reports_available += reports_limit
+        else:
+            # For subscriptions, set the reports_limit directly
+            subscription.reports_limit = reports_limit
             
         subscription.plan_id = plan_id
-        subscription.reports_used = 0
-        subscription.reports_limit = reports_limit
         subscription.stripe_customer_id = session.get('customer')
         subscription.stripe_subscription_id = session.get('subscription')
         subscription.status = 'active'
