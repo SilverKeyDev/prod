@@ -3,6 +3,8 @@ export {};
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapPin, Loader2, AlertCircle } from "lucide-react";
+import { ReportLimitModal } from "../components/ReportLimitModal";
+import { apiRequest } from "../lib/api";
 
 declare global {
   interface Window {
@@ -26,6 +28,29 @@ export default function GenerateReportPage() {
   const [error, setError] = useState<string | null>(null);
   const [scriptsReady, setScriptsReady] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [showLimitModal, setShowLimitModal] = useState(false);
+  const [reportUsage, setReportUsage] = useState({ used: 0, limit: 0 });
+
+  // Fetch user's report usage
+  useEffect(() => {
+    const fetchReportUsage = async () => {
+      try {
+        const response = await apiRequest<{ reports_used: number; reports_limit: number }>(
+          "/api/v1/user/report-usage"
+        );
+        if (response.success && response.data) {
+          setReportUsage({
+            used: response.data.reports_used,
+            limit: response.data.reports_limit
+          });
+        }
+      } catch (error) {
+        console.error("Failed to fetch report usage:", error);
+      }
+    };
+
+    fetchReportUsage();
+  }, []);
 
   // Load Google Maps script
   useEffect(() => {
@@ -111,6 +136,12 @@ export default function GenerateReportPage() {
     const trimmed = address.trim();
     if (!trimmed) {
       setError("Please enter a valid address.");
+      return;
+    }
+
+    // Check if user has available reports
+    if (reportUsage.used >= reportUsage.limit && reportUsage.limit !== -1) {
+      setShowLimitModal(true);
       return;
     }
 
@@ -280,6 +311,12 @@ export default function GenerateReportPage() {
           </div>
         </div>
       </div>
+
+      <ReportLimitModal
+        isOpen={showLimitModal}
+        onClose={() => setShowLimitModal(false)}
+        currentUsage={reportUsage.used}
+      />
     </div>
   );
-}  
+}

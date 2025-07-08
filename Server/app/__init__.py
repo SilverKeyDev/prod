@@ -106,11 +106,13 @@ def create_app(config=None):
     from .routes.dashboard import dashboard_bp
     from .routes.auth import auth_bp
     from .routes.payment import bp as payment_bp
+    from .routes.user import user_bp
 
     app.register_blueprint(report_bp)
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(payment_bp)
+    app.register_blueprint(user_bp)
 
     @app.route('/assets/<path:filename>')
     def serve_assets(filename):

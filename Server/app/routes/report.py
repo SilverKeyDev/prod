@@ -2,9 +2,12 @@ from flask import Blueprint, request, jsonify, send_from_directory
 import logging
 import os
 import traceback
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.services.report_generator import generate_report, REPORTS
 from app.services.s3_service import s3_service
 from flask import current_app
+from app import db
+from app.models.user import User
 
 # Configure logger
 logging.basicConfig(level=logging.INFO)
@@ -14,13 +17,29 @@ logger = logging.getLogger(__name__)
 report_bp = Blueprint('report', __name__, url_prefix='/api/v1/report')
 
 @report_bp.route('/generate', methods=['POST', 'GET'])
+@jwt_required()
 def generate_report_endpoint():
     """Generate a property report and upload PDF to S3"""
     try:
-        
         if request.method == 'GET':
             logger.warning("GET request received for report generation endpoint")
             return jsonify({'error': 'POST method required for report generation'}), 405
+        
+        # Get current user
+        current_user_id = get_jwt_identity()
+        user = User.query.get(current_user_id)
+        if not user:
+            logger.error(f"User not found with ID: {current_user_id}")
+            return jsonify({'error': 'User not found', 'success': False}), 404
+            
+        # Check if user has available reports
+        if user.reports_available <= 0:
+            logger.warning(f"User {user.id} has no reports available")
+            return jsonify({
+                'success': False,
+                'error': 'NO_REPORTS_AVAILABLE',
+                'message': 'No reports available. Please purchase more reports.'
+            }), 402  # Payment Required
         
         data = request.get_json()
         if not data:
@@ -32,13 +51,20 @@ def generate_report_endpoint():
             logger.error("No address provided in request data")
             return jsonify({'error': 'Address is required', 'success': False}), 400
         
-        
+        # Generate the report
         result_data = generate_report(address)
+        
+        # Decrement the user's report count
+        user.reports_available -= 1
+        db.session.commit()
+        
+        logger.info(f"Report generated for user {user.id}. Reports remaining: {user.reports_available}")
         
         return jsonify({
             'success': True,
             'status': 'completed',
-            'result': result_data
+            'result': result_data,
+            'reports_remaining': user.reports_available
         })
         
     except ValueError as e:
