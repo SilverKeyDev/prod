@@ -79,35 +79,7 @@ def create_portal_session(customer_id: str):
         print(f"Error creating portal session: {str(e)}")
         raise
 
-def handle_webhook(payload, sig_header):
-    """Handle Stripe webhook events"""
-    try:
-        event = stripe.Webhook.construct_event(
-            payload, sig_header, WEBHOOK_SECRET
-        )
-    except ValueError as e:
-        print(f"Invalid payload: {str(e)}")
-        raise e
-    except stripe.error.SignatureVerificationError as e:
-        print(f"Invalid signature: {str(e)}")
-        raise e
-
-    # Handle the event
-    if event['type'] == 'checkout.session.completed':
-        session = event['data']['object']
-        handle_checkout_session(session)
-    elif event['type'] == 'invoice.payment_succeeded':
-        invoice = event['data']['object']
-        handle_successful_payment(invoice)
-    elif event['type'] == 'customer.subscription.updated':
-        subscription = event['data']['object']
-        handle_subscription_updated(subscription)
-    elif event['type'] == 'customer.subscription.deleted':
-        subscription = event['data']['object']
-        handle_subscription_cancelled(subscription)
-
-    return {'status': 'success'}
-
+# Webhook handling has been moved to payment.py to avoid duplication
 def handle_checkout_session(session):
     from app import db
     from app.models.user import User
@@ -152,7 +124,7 @@ def handle_checkout_session(session):
 
         if plan_id in ['5-reports', '20-reports', '50-reports']:
             user.reports_available += reports_limit
-            db.session.add(user)  # ✅ Explicitly add user to session
+            db.session.add(user)
             subscription.current_period_end = None
             current_app.logger.info(f"[CHECKOUT] ➕ Incremented reports to {user.reports_available}")
         else:
