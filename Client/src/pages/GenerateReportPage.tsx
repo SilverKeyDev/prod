@@ -117,12 +117,6 @@ export default function GenerateReportPage() {
       return;
     }
 
-    // Check if user has available reports
-    if (reportUsage.used >= reportUsage.limit && reportUsage.limit !== -1) {
-      setShowLimitModal(true);
-      return;
-    }
-
     setIsGenerating(true);
     setError(null);
 
@@ -289,12 +283,6 @@ export default function GenerateReportPage() {
           </div>
         </div>
       </div>
-
-      <ReportLimitModal
-        isOpen={showLimitModal}
-        onClose={() => setShowLimitModal(false)}
-        currentUsage={reportUsage.used}
-      />
     </div>
   );
 }
