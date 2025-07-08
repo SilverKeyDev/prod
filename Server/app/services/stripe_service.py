@@ -115,22 +115,23 @@ def handle_checkout_session(session):
     from datetime import datetime, timedelta
 
     try:
-        current_app.logger.info(f"[CHECKOUT] Received session: {session}")
+        current_app.logger.info(f"[CHECKOUT] ✅ Received session: {session}")
 
         customer_email = session.get('customer_email')
         if not customer_email:
-            current_app.logger.error('[CHECKOUT] No customer email in session')
+            current_app.logger.error('[CHECKOUT] ❌ No customer email in session')
             return
 
         user = User.query.filter_by(email=customer_email).first()
         if not user:
-            current_app.logger.error(f'[CHECKOUT] No user with email: {customer_email}')
+            current_app.logger.error(f'[CHECKOUT] ❌ No user found with email: {customer_email}')
             return
 
-        current_app.logger.info(f"[CHECKOUT] Found user {user.id} ({user.email})")
+        current_app.logger.info(f"[CHECKOUT] 👤 Found user ID: {user.id}, email: {user.email}")
+        current_app.logger.info(f"[CHECKOUT] 📄 Reports available BEFORE update: {user.reports_available}")
 
         plan_id = session.get('metadata', {}).get('plan_id', '5-reports')
-        current_app.logger.info(f"[CHECKOUT] Plan ID: {plan_id}")
+        current_app.logger.info(f"[CHECKOUT] 📦 Plan ID from metadata: {plan_id}")
 
         reports_limit = {
             '5-reports': 5,
@@ -139,37 +140,45 @@ def handle_checkout_session(session):
             'unlimited-monthly': -1,
             'unlimited-yearly': -1
         }.get(plan_id, 0)
+        current_app.logger.info(f"[CHECKOUT] 📊 Resolved reports_limit: {reports_limit}")
 
         subscription = Subscription.query.filter_by(user_id=user.id).first()
         if not subscription:
             subscription = Subscription(user_id=user.id, status='active')
             db.session.add(subscription)
-            current_app.logger.info(f"[CHECKOUT] Created new subscription for user {user.id}")
+            current_app.logger.info(f"[CHECKOUT] 🆕 Created new subscription object for user {user.id}")
+        else:
+            current_app.logger.info(f"[CHECKOUT] 🔄 Updating existing subscription for user {user.id}")
 
         if plan_id in ['5-reports', '20-reports', '50-reports']:
             user.reports_available += reports_limit
+            db.session.add(user)  # ✅ Explicitly add user to session
             subscription.current_period_end = None
-            current_app.logger.info(f"[CHECKOUT] Incremented reports to {user.reports_available}")
+            current_app.logger.info(f"[CHECKOUT] ➕ Incremented reports to {user.reports_available}")
         else:
             subscription.reports_limit = reports_limit
             interval = 'month' if 'monthly' in plan_id else 'year'
             subscription.current_period_end = datetime.utcnow() + timedelta(
                 days=30 if interval == 'month' else 365
             )
-            current_app.logger.info(f"[CHECKOUT] Set subscription limit {reports_limit} and period")
+            current_app.logger.info(
+                f"[CHECKOUT] 📅 Set subscription period end to {subscription.current_period_end} "
+                f"(interval: {interval}, limit: {reports_limit})"
+            )
 
+        # Set final subscription fields
         subscription.plan_id = plan_id
         subscription.stripe_customer_id = session.get('customer')
         subscription.stripe_subscription_id = session.get('subscription')
         subscription.status = 'active'
 
         db.session.commit()
-        current_app.logger.info(f"[CHECKOUT] Committed subscription changes for user {user.id}")
+        current_app.logger.info(f"[CHECKOUT] ✅ Successfully committed subscription changes for user {user.id}")
+        current_app.logger.info(f"[CHECKOUT] 📄 Final reports_available: {user.reports_available}")
 
     except Exception as e:
-        current_app.logger.error(f'[CHECKOUT] Error: {str(e)}', exc_info=True)
+        current_app.logger.error(f"[CHECKOUT] ❗ Error occurred: {str(e)}", exc_info=True)
         db.session.rollback()
-
 
 def handle_successful_payment(invoice):
     """Handle successful payment"""
