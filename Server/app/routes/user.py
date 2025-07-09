@@ -12,6 +12,31 @@ from .. import db
 
 user_bp = Blueprint('user', __name__, url_prefix='/api/v1/user')
 
+@user_bp.route('/profile', methods=['GET'])
+def get_user_profile():
+    """Get the current user's profile information"""
+    try:
+        user = get_current_user()
+        if not user:
+            return jsonify({
+                'success': False,
+                'error': 'USER_NOT_FOUND',
+                'message': 'User not found'
+            }), 404
+            
+        return jsonify({
+            'success': True,
+            'data': user.to_dict()
+        })
+        
+    except Exception as e:
+        current_app.logger.error(f'Error getting user profile: {str(e)}')
+        return jsonify({
+            'success': False,
+            'error': 'SERVER_ERROR',
+            'message': 'Failed to retrieve user profile'
+        }), 500
+
 # Cognito Configuration
 COGNITO_REGION = os.getenv("S3_REGION", "us-east-2")
 COGNITO_POOL_ID = os.getenv("COGNITO_USER_POOL_ID")
