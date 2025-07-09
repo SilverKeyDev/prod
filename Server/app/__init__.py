@@ -53,7 +53,8 @@ def create_app(config=None):
                 "http://localhost:5173",
                 "http://127.0.0.1:5173",
                 "http://10.91.128.151:5173",
-                "https://silverkeyestates.com"
+                "https://silverkeyestates.com",
+                "http://100.110.76.47:5173"
             ],
             "supports_credentials": True,
             "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"],
