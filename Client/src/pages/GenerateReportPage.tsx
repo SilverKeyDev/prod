@@ -26,6 +26,7 @@ export default function GenerateReportPage() {
   const [error, setError] = useState<string | null>(null);
   const [scriptsReady, setScriptsReady] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [idToken, setIdToken] = useState<string | null>(null);
   // Load Google Maps script
   useEffect(() => {
     const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
@@ -118,17 +119,17 @@ export default function GenerateReportPage() {
 
     navigate("/dashboard/reports?refresh=true");
     navigate(0);
-    
 
     try {
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+      const idToken = localStorage.getItem("access_token");
       const res = await fetch(`${apiBaseUrl}/api/v1/report/generate`, {
         method: "POST",
         mode: "cors",
-        credentials: "include",
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
+          Authorization: `Bearer ${idToken}`,
         },
         body: JSON.stringify({ address: trimmed }),
       });
