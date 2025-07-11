@@ -143,14 +143,10 @@ def list_reports():
     combining in-memory REPORTS plus any PDFs directly found in S3.
     """
     try:
-        logger.info("List reports request received")
-
         reports_list = []
         seen_names = set()
 
         # First add the in-memory reports
-        logger.debug(f"Processing {len(REPORTS)} in-memory reports")
-
         for task_id, data in REPORTS.items():
             try:
                 pdf_url = data.get('pdfUrl')
@@ -192,7 +188,6 @@ def list_reports():
         s3_client = s3_service.s3_client
         if s3_client:
             bucket_name = current_app.config.get("S3_BUCKET_NAME_PDFS")
-            logger.info(f"Listing objects in S3 bucket: {bucket_name}")
             response = s3_client.list_objects_v2(Bucket=bucket_name)
 
             for obj in response.get("Contents", []):
