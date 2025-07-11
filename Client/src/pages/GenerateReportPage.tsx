@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapPin, Loader2, AlertCircle } from "lucide-react";
 
+
 declare global {
   interface Window {
     google?: any;
@@ -242,14 +243,6 @@ export default function GenerateReportPage() {
               <div className="text-red-700">
                 <p className="font-medium">Error</p>
                 <p className="text-sm">{error || loadError}</p>
-                {loadError && (
-                  <button
-                    onClick={() => window.location.reload()}
-                    className="text-sm underline mt-1 hover:no-underline"
-                  >
-                    Refresh page to retry
-                  </button>
-                )}
               </div>
             </div>
           )}

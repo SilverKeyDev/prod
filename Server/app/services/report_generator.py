@@ -14,6 +14,7 @@ from flask import jsonify
 import json5
 import traceback
 from .pdf_creator import _create_pdf
+from prompt_generator import generate_prompt
 
 # Configure verbose logging
 logging.basicConfig(level=logging.DEBUG)
