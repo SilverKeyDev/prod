@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, send_from_directory
+from flask import Blueprint, request, jsonify, send_from_directory, current_app
 import logging
 import os
 import traceback
@@ -7,7 +7,13 @@ from app.services.report_generator import generate_report, REPORTS
 from app.services.s3_service import s3_service
 from flask import current_app
 from app import db
+from flask_cors import cross_origin
+from jose import jwt
+import requests
+import os
 from app.models.user import User
+from app.models.pdf_document import PDFDocument
+
 
 # Configure logger
 logging.basicConfig(level=logging.INFO)
@@ -16,8 +22,52 @@ logger = logging.getLogger(__name__)
 # Blueprint setup
 report_bp = Blueprint('report', __name__, url_prefix='/api/v1/report')
 
+# CORS settings
+cors_config = {
+    'origins': [
+        "*"
+    ],
+    'supports_credentials': True
+}
+
+COGNITO_REGION = os.getenv("S3_REGION", "us-east-2")
+COGNITO_POOL_ID = os.getenv("COGNITO_USER_POOL_ID")
+COGNITO_CLIENT_ID = os.getenv("COGNITO_CLIENT_ID")
+
+if not COGNITO_POOL_ID or not COGNITO_CLIENT_ID:
+    raise RuntimeError("COGNITO_POOL_ID and COGNITO_CLIENT_ID must be set in environment variables.")
+
+COGNITO_KEYS_URL = f"https://cognito-idp.{COGNITO_REGION}.amazonaws.com/{COGNITO_POOL_ID}/.well-known/jwks.json"
+
+
+# cache the JWKS
+JWKS = requests.get(COGNITO_KEYS_URL).json()
+
+def get_current_user():
+    auth_header = request.headers.get('Authorization', None)
+    if not auth_header:
+        raise Exception("Authorization header missing")
+    
+    token = auth_header.replace("Bearer ", "")
+    
+    try:
+        claims = jwt.decode(
+            token,
+            JWKS,
+            algorithms=["RS256"],
+            audience=COGNITO_CLIENT_ID
+        )
+        user = User.query.filter_by(cognito_id=claims['sub']).first()
+        if not user:
+            current_app.logger.warning(f"User not found for cognito_id: {claims['sub']}")
+            raise Exception("User not found or not properly registered")
+        return user
+    except Exception as e:
+        current_app.logger.error(f"Token validation failed: {str(e)}")
+        raise
+
 @report_bp.route('/generate', methods=['POST', 'GET'])
-#@jwt_required()
+@cross_origin(**cors_config)
 def generate_report_endpoint():
     """
     Generate a property report and upload PDF to S3
@@ -32,7 +82,7 @@ def generate_report_endpoint():
             return jsonify({'error': 'POST method required for report generation'}), 405
         
         # Get current user
-        user = User.query.get(current_user_id)
+        user = get_current_user()
         if not user:
             logger.error(f"User not found with ID: {current_user_id}")
             return jsonify({'error': 'User not found', 'success': False}), 404
