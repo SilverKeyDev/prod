@@ -37,26 +37,25 @@ export default function CompareReportsPage() {
     const fetchReports = async () => {
       try {
         setIsLoading(true);
-        const response = await reportApi.getReports();
+        const baseUrl = import.meta.env.VITE_API_BASE_URL || "";
+        const res = await fetch(`${baseUrl}/api/v1/report/all`, {
+          credentials: "include",
+        });
+        const json = await res.json();
         
-        if (response.success && response.data?.reports) {
-          // Mock data - replace with actual API data structure
-          const mockReports = response.data.reports.map((report: any) => ({
-            ...report,
-            // Add mock data for demonstration
-            price: Math.floor(Math.random() * 1000000) + 500000,
-            squareFootage: Math.floor(Math.random() * 3000) + 1000,
-            yearBuilt: Math.floor(Math.random() * 50) + 1970,
-            propertyType: ['Single Family', 'Condo', 'Townhouse', 'Multi-Family'][Math.floor(Math.random() * 4)],
-            estimatedValue: Math.floor(Math.random() * 1200000) + 300000,
-            neighborhoodScore: Math.floor(Math.random() * 50) + 50, // 50-100
-            schoolScore: Math.floor(Math.random() * 50) + 50, // 50-100
+        if (json.success) {
+          const parsed = json.reports.map((r: any) => ({
+            id: r.id,
+            address: r.address,
+            status: r.status,
+            pdfUrl: r.pdfUrl ?? null,
+            s3Key: r.s3Key ?? null,
+            generatedAt: new Date(r.generatedAt * 1000)
           }));
-          
-          setReports(mockReports);
+          setReports(parsed);
           setError(null);
         } else {
-          throw new Error(response.error || 'Failed to load reports');
+          throw new Error('Failed to load reports');
         }
       } catch (error) {
         console.error("Failed to fetch reports:", error);

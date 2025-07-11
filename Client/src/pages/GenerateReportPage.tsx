@@ -120,8 +120,7 @@ export default function GenerateReportPage() {
     setIsGenerating(true);
     setError(null);
 
-    navigate("/dashboard/reports");
-    navigate(0);
+    navigate("/dashboard/reports?refresh=true");
 
     try {
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;

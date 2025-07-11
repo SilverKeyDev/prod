@@ -47,4 +47,4 @@ COPY --from=frontend /app/client/dist /app/Client/dist
 EXPOSE 5000
 
 # start Flask with Gunicorn
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "run:app"]
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "--timeout", "3600", "run:app"]
