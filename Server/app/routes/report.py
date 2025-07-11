@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 # Blueprint setup
 report_bp = Blueprint('report', __name__, url_prefix='/api/v1/report')
-
+x
 @report_bp.route('/generate', methods=['POST', 'GET'])
 @jwt_required()
 def generate_report_endpoint():
