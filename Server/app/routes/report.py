@@ -17,7 +17,6 @@ logger = logging.getLogger(__name__)
 report_bp = Blueprint('report', __name__, url_prefix='/api/v1/report')
 
 @report_bp.route('/generate', methods=['POST', 'GET'])
-@jwt_required()
 def generate_report_endpoint():
     """
     Generate a property report and upload PDF to S3
