@@ -32,6 +32,10 @@ export default function LoginPage() {
         localStorage.setItem('access_token', data.access_token);
       }
 
+      if (data?.id_token) {
+        localStorage.setItem('id_token', data.id_token);
+      }      
+
       // Redirect to dashboard on successful login
       navigate("/dashboard");
     } catch (error: unknown) {

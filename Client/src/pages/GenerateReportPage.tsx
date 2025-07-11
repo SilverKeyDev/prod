@@ -122,7 +122,7 @@ export default function GenerateReportPage() {
 
     try {
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
-      const idToken = localStorage.getItem("access_token");
+      
       const res = await fetch(`${apiBaseUrl}/api/v1/report/generate`, {
         method: "POST",
         mode: "cors",
