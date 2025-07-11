@@ -15,6 +15,8 @@ interface Suggestion {
   placePrediction: any;
 }
 
+console.log("✅ VITE_API_BASE_URL:", import.meta.env.VITE_API_BASE_URL);
+
 export default function GenerateReportPage() {
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement | null>(null);
