@@ -16,7 +16,6 @@ db = SQLAlchemy()
 login_manager = LoginManager()
 ma = Marshmallow()
 executor = Executor()
-jwt = JWTManager()  # <-- JWT Manager instance
 
 
 def create_app(config=None):
@@ -35,12 +34,13 @@ def create_app(config=None):
     app.config["JWT_HEADER_NAME"] = "Authorization"
     app.config["JWT_HEADER_TYPE"] = "Bearer"
 
+    jwt = JWTManager(app)
+
     # Initialize extensions
     db.init_app(app)
     login_manager.init_app(app)
     ma.init_app(app)
     executor.init_app(app)
-    jwt.init_app(app)  # <-- Initialize JWT manager
     migrate = Migrate(app, db)
 
     # Initialize database within app context
