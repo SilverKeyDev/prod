@@ -1,7 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { Check, X, Loader2, BarChart2, Home, RefreshCw, Download } from "lucide-react";
-import { reportApi } from "../lib/api";
+import { Check, Loader2, BarChart2, RefreshCw } from "lucide-react";
 import ErrorToast from "../components/ErrorToast";
 import SuccessToast from "../components/SuccessToast";
 
@@ -30,46 +28,46 @@ export default function CompareReportsPage() {
   const [showError, setShowError] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
-  const navigate = useNavigate();
 
+  const fetchReports = async () => {
+    try {
+      setIsLoading(true);
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || "";
+      const res = await fetch(`${baseUrl}/api/v1/report/all`, {
+        credentials: "include",
+      });
+      const json = await res.json();
+      
+      if (json.success) {
+        const parsed = json.reports.map((r: any) => ({
+          id: r.id,
+          address: r.address,
+          status: r.status,
+          pdfUrl: r.pdfUrl ?? null,
+          s3Key: r.s3Key ?? null,
+        }));
+        setReports(parsed);
+        setError(null);
+      } else {
+        throw new Error('Failed to load reports');
+      }
+    } catch (error) {
+      console.error("Failed to fetch reports:", error);
+      setError(error instanceof Error ? error.message : 'An unknown error occurred');
+      setShowError(true);
+    } finally {
+      setIsLoading(false);
+    }
+  };
   // Fetch user's reports
   useEffect(() => {
-    const fetchReports = async () => {
-      try {
-        setIsLoading(true);
-        const baseUrl = import.meta.env.VITE_API_BASE_URL || "";
-        const res = await fetch(`${baseUrl}/api/v1/report/all`, {
-          credentials: "include",
-        });
-        const json = await res.json();
-        
-        if (json.success) {
-          const parsed = json.reports.map((r: any) => ({
-            id: r.id,
-            address: r.address,
-            status: r.status,
-            pdfUrl: r.pdfUrl ?? null,
-            s3Key: r.s3Key ?? null,
-            generatedAt: new Date(r.generatedAt * 1000)
-          }));
-          setReports(parsed);
-          setError(null);
-        } else {
-          throw new Error('Failed to load reports');
-        }
-      } catch (error) {
-        console.error("Failed to fetch reports:", error);
-        setError(error instanceof Error ? error.message : 'An unknown error occurred');
-        setShowError(true);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchReports();
   }, []);
 
-  const toggleReportSelection = (report: Report) => {
+  const toggleReportSelection = (report: Report, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
     setSelectedReports(prev => {
       const isSelected = prev.some(r => r.id === report.id);
       if (isSelected) {
@@ -84,19 +82,12 @@ export default function CompareReportsPage() {
     });
   };
 
-  const generateNewReport = () => {
-    navigate('/generate-report');
-  };
-
   const refreshReports = async () => {
     setIsLoading(true);
     try {
-      const response = await reportApi.getReports();
-      if (response.success && response.data?.reports) {
-        setReports(response.data.reports);
-        setToastMessage("Reports refreshed successfully");
-        setShowSuccess(true);
-      }
+      fetchReports();
+      setToastMessage("Reports refreshed successfully");
+      setShowSuccess(true);
     } catch (error) {
       console.error("Failed to refresh reports:", error);
       setError(error instanceof Error ? error.message : 'Failed to refresh reports');
@@ -105,19 +96,6 @@ export default function CompareReportsPage() {
       setIsLoading(false);
     }
   };
-
-  // Comparison fields to display
-  const comparisonFields = [
-    { key: 'address', label: 'Address' },
-    { key: 'price', label: 'Price', format: (val: number) => `$${val.toLocaleString()}` },
-    { key: 'estimatedValue', label: 'Estimated Value', format: (val: number) => `$${val.toLocaleString()}` },
-    { key: 'squareFootage', label: 'Square Footage', format: (val: number) => val.toLocaleString() },
-    { key: 'yearBuilt', label: 'Year Built' },
-    { key: 'propertyType', label: 'Property Type' },
-    { key: 'neighborhoodScore', label: 'Neighborhood Score', format: (val: number) => `${val}/100` },
-    { key: 'schoolScore', label: 'School Score', format: (val: number) => `${val}/100` },
-  ];
-
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
@@ -126,7 +104,7 @@ export default function CompareReportsPage() {
           Compare Properties
         </h1>
         <p className="text-lg text-navy/60 max-w-3xl mx-auto">
-          Select up to 5 properties to compare their details side by side
+          Select 2-5 properties to compare their details side by side
         </p>
       </div>
 
@@ -151,22 +129,20 @@ export default function CompareReportsPage() {
       {/* Reports Selection */}
       <div className="card p-6 mb-8">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-medium text-navy">Select Properties to Compare</h2>
-          <div className="flex space-x-3">
+          <div>
+            <h2 className="text-xl font-medium text-navy">Your Property Reports</h2>
+            <p className="text-sm text-navy/60 mt-1">
+              {selectedReports.length} of {reports.length} selected
+            </p>
+          </div>
+          <div className="flex items-center space-x-3">
             <button
               onClick={refreshReports}
               disabled={isLoading}
-              className="flex items-center px-4 py-2 text-sm font-medium text-navy bg-beige/30 hover:bg-beige/50 rounded-lg transition-colors"
+              className="flex items-center px-4 py-2 text-sm font-medium text-navy bg-beige/30 hover:bg-beige/50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
               Refresh
-            </button>
-            <button
-              onClick={generateNewReport}
-              className="flex items-center px-4 py-2 text-sm font-medium text-white bg-olive hover:bg-olive/90 rounded-lg transition-colors"
-            >
-              <Home className="h-4 w-4 mr-2" />
-              Generate New Report
             </button>
           </div>
         </div>
@@ -184,12 +160,6 @@ export default function CompareReportsPage() {
             <BarChart2 className="h-12 w-12 mx-auto text-navy/30 mb-4" />
             <h3 className="text-lg font-medium text-navy mb-2">No reports found</h3>
             <p className="text-navy/60 mb-6">Generate your first property report to get started</p>
-            <button
-              onClick={generateNewReport}
-              className="px-6 py-2 bg-olive text-white rounded-lg font-medium hover:bg-olive/90 transition-colors"
-            >
-              Generate Report
-            </button>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -198,43 +168,30 @@ export default function CompareReportsPage() {
               return (
                 <div
                   key={report.id}
-                  onClick={() => toggleReportSelection(report)}
-                  className={`p-4 border rounded-lg cursor-pointer transition-all ${
-                    isSelected 
-                      ? 'border-olive bg-olive/5 ring-2 ring-olive/30' 
-                      : 'border-gray-200 hover:border-olive/50'
+                  onClick={(e) => toggleReportSelection(report, e)}
+                  onMouseDown={(e) => e.preventDefault()} // Prevent focus/highlight on click
+                  className={`p-4 border-2 rounded-2xl cursor-pointer transition-all duration-200 select-none ${
+                    isSelected
+                      ? 'border-olive bg-olive/5 ring-2 ring-olive/30'
+                      : 'border-gray-200 hover:border-olive/50 hover:bg-olive/5'
                   }`}
                 >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="font-medium text-navy">{report.address}</h3>
-                      <p className="text-sm text-navy/60">
-                        {new Date(report.createdAt).toLocaleDateString()}
-                      </p>
+                  <div className="flex items-start">
+                    <div className="flex-1 min-w-0 pr-3">
+                      <h3 className="text-sm font-medium text-navy truncate" title={report.address}>
+                        {report.address}
+                      </h3>
                     </div>
-                    <div className={`w-5 h-5 rounded-full flex items-center justify-center ${
-                      isSelected ? 'bg-olive text-white' : 'border-2 border-gray-300'
-                    }`}>
-                      {isSelected && <Check className="h-3.5 w-3.5" />}
+                    <div className="flex-shrink-0">
+                      {isSelected ? (
+                        <div className="h-5 w-5 rounded-full bg-olive flex items-center justify-center">
+                          <Check className="h-3.5 w-3.5 text-white" />
+                        </div>
+                      ) : (
+                        <div className="h-5 w-5 rounded-full border-2 border-navy/30" />
+                      )}
                     </div>
                   </div>
-                  {report.status === 'completed' && (
-                    <div className="mt-3 flex justify-between text-sm">
-                      <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
-                        Completed
-                      </span>
-                      <button 
-                        className="text-olive hover:underline flex items-center text-xs"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          // Handle download
-                        }}
-                      >
-                        <Download className="h-3 w-3 mr-1" />
-                        Download
-                      </button>
-                    </div>
-                  )}
                 </div>
               );
             })}
@@ -242,48 +199,17 @@ export default function CompareReportsPage() {
         )}
       </div>
 
-      {/* Comparison Table */}
       {selectedReports.length > 0 && (
-        <div className="card overflow-hidden">
-          <div className="p-6 border-b">
-            <h2 className="text-xl font-medium text-navy">
-              Comparing {selectedReports.length} {selectedReports.length === 1 ? 'Property' : 'Properties'}
-            </h2>
-          </div>
-          
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <tbody>
-                {comparisonFields.map((field, rowIndex) => (
-                  <tr key={field.key} className={rowIndex % 2 === 0 ? 'bg-navy/5' : ''}>
-                    <th className="text-left p-4 text-navy/80 font-medium border-r w-1/5">
-                      {field.label}
-                    </th>
-                    {selectedReports.map((report, colIndex) => (
-                      <td key={`${field.key}-${colIndex}`} className="p-4 border-r last:border-r-0">
-                        {field.format 
-                          ? field.format(report[field.key as keyof Report] as number)
-                          : report[field.key as keyof Report]?.toString() || '-'}
-                      </td>
-                    ))}
-                    {/* Fill empty cells if less than max selected */}
-                    {Array.from({ length: 5 - selectedReports.length }).map((_, i) => (
-                      <td key={`empty-${i}`} className="p-4 border-r last:border-r-0">-</td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="p-4 bg-navy/5 flex justify-end">
-            <button
-              onClick={() => setSelectedReports([])}
-              className="px-4 py-2 text-sm font-medium text-navy/70 hover:text-navy transition-colors"
-            >
-              Clear Selection
-            </button>
-          </div>
+        <div className="mt-6 text-center">
+          <p className="text-navy/70">
+            {selectedReports.length} {selectedReports.length === 1 ? 'property' : 'properties'} selected
+          </p>
+          <button
+            onClick={() => setSelectedReports([])}
+            className="mt-2 text-sm text-navy/70 hover:text-navy underline"
+          >
+            Clear selection
+          </button>
         </div>
       )}
     </div>

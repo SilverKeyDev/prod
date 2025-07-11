@@ -16,8 +16,6 @@ interface Suggestion {
   placePrediction: any;
 }
 
-console.log("✅ VITE_API_BASE_URL:", import.meta.env.VITE_API_BASE_URL);
-
 export default function GenerateReportPage() {
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -116,61 +114,53 @@ export default function GenerateReportPage() {
       setError("Please enter a valid address.");
       return;
     }
-
+  
     setIsGenerating(true);
     setError(null);
-
-    navigate("/dashboard/reports?refresh=true");
-
+  
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+    const idToken = localStorage.getItem("id_token");
+  
+    // Start both immediately
+    const delayPromise = new Promise((resolve) => setTimeout(resolve, 500));
+    const fetchPromise = fetch(`${apiBaseUrl}/api/v1/report/generate`, {
+      method: "POST",
+      mode: "cors",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${idToken}`,
+      },
+      body: JSON.stringify({ address: trimmed }),
+    });
+  
+    // Wait just for the 0.5 second delay, then navigate
+    await delayPromise;
+  
+    navigate("/dashboard/reports"); // ✅ happens after delay, regardless of fetch result
+  
     try {
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
-      const idToken = localStorage.getItem("id_token");
-      const res = await fetch(`${apiBaseUrl}/api/v1/report/generate`, {
-        method: "POST",
-        mode: "cors",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          Authorization: `Bearer ${idToken}`,
-        },
-        body: JSON.stringify({ address: trimmed }),
-      });
-
+      const res = await fetchPromise;
+  
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
         throw new Error(errorData.error || "Report generation failed");
       }
-
+  
       const data = await res.json();
-      if (!data.success)
+      if (!data.success) {
         throw new Error(data.error || "Failed to generate report");
-
-      try {
-        localStorage.setItem(
-          "propertyData",
-          JSON.stringify({
-            address: trimmed,
-            generatedReport: data.result,
-            timestamp: new Date().toISOString(),
-          })
-        );
-      } catch (storageError) {
-        navigate("/dashboard/reports", {
-          state: {
-            propertyData: {
-              address: trimmed,
-              generatedReport: data.result,
-            },
-          },
-        });
       }
+  
+      // Optional: store or handle data silently here
+      console.log("✅ Report successfully generated", data);
     } catch (err: any) {
-      console.error(err);
-      setError(err.message || "Unexpected error");
+      console.error("❌ API error after navigation:", err.message || err);
+      // Optionally persist the error to show in the next page
     } finally {
       setIsGenerating(false);
     }
-  };
+  };  
 
   const isButtonDisabled = isGenerating || !address.trim() || !!loadError;
 
