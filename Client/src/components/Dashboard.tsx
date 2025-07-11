@@ -3,7 +3,7 @@ import { Routes, Route } from "react-router-dom";
 import Sidebar from "./Sidebar.tsx";
 import GenerateReportPage from "../pages/GenerateReportPage.tsx";
 import PastReports from "../pages/PastReports.tsx";
-import AIAssistant from "../pages/AIAssistant.tsx";
+import CompareReportsPage from "../pages/CompareReportsPage.tsx";
 import Subscription from "../pages/Subscription.tsx";
 import { User } from "../types/index.ts";
 
@@ -33,7 +33,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
           <Routes>
             <Route path="/" element={<GenerateReportPage />} />
             <Route path="reports" element={<PastReports />} />
-            <Route path="assistant" element={<AIAssistant />} />
+            <Route path="compare-reports" element={<CompareReportsPage />} />
             <Route path="subscription" element={<Subscription />} />
           </Routes>
         </div>

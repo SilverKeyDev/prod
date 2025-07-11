@@ -1,6 +1,6 @@
 
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Home, FileText, MessageCircle, LogOut, CreditCard } from "lucide-react";
+import { Home, FileText, BarChart2, LogOut, CreditCard } from "lucide-react";
 import { User } from "../types/index.ts";
 import { useEffect, useState } from "react";
 import ConfirmationDialog from "./ConfirmationDialog";
@@ -16,7 +16,7 @@ interface SidebarProps {
 const navigation = [
   { name: "Generate Report", href: "/dashboard", icon: Home },
   { name: "Past Reports", href: "/dashboard/reports", icon: FileText },
-  { name: "AI Assistant", href: "/dashboard/assistant", icon: MessageCircle },
+  { name: "Compare Reports", href: "/dashboard/compare-reports", icon: BarChart2 },
   { name: "Subscription", href: "/dashboard/subscription", icon: CreditCard },
 ];
 
