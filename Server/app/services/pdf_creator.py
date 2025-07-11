@@ -19,6 +19,7 @@ import uuid
 import logging
 import traceback
 from .s3_service import s3_service
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -140,8 +141,18 @@ def _create_pdf(report: dict, address: str) -> str:
         
         
         # Upload to S3
-        s3_key = s3_service.upload_pdf(pdf_data, filename)
-        
+        s3_key = s3_service.upload_pdf(pdf_data, filename, 'application/pdf')
+
+        if s3_key:  # Only proceed if PDF upload was successful
+            try:
+                json_data = json.dumps(report, indent=2).encode('utf-8')
+                json_filename = f"{filename.removesuffix('.pdf')}.json"
+                s3_service.upload_pdf(json_data, json_filename, 'application/json')
+            except Exception as e:
+                logger.error(f"Failed to save raw JSON to S3: {str(e)}")
+                # Continue with PDF URL generation even if JSON save fails
+
+
         if s3_key:
             logger.info("S3 upload successful, generating presigned URL")
             # Generate presigned URL for immediate access

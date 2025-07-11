@@ -3,6 +3,8 @@ import logging
 import os
 import traceback
 import uuid
+from app.models.pdf_document import PDFDocument
+from app import db
 import time
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.services.report_generator import generate_report, REPORTS
@@ -213,6 +215,9 @@ def list_reports():
                 if file_name in seen_names:
                     continue  # skip duplicate
 
+                if not file_name.endswith('.pdf'):
+                    continue
+
                 presigned_url = s3_service.generate_presigned_url(s3_key)
                 reports_list.append({
                     'id': file_name.replace("/", "_"),
@@ -233,80 +238,6 @@ def list_reports():
         logger.error(f"Error listing reports: {str(e)}")
         logger.error(traceback.format_exc())
         return jsonify({'error': 'Internal server error'}), 500
-
-@report_bp.route('/allnames', methods=['GET'])
-def list_report_names():
-    """
-    Return a list of all generated reports with basic metadata,
-    combining in-memory REPORTS plus any PDFs directly found in S3.
-    """
-    try:
-        reports_list = []
-        seen_keys = set()
-
-        # First add the in-memory reports
-        logger.debug(f"Processing {len(REPORTS)} in-memory reports")
-
-        for task_id, data in REPORTS.items():
-            try:
-                pdf_url = data.get('pdfUrl')
-                original_pdf_url = pdf_url
-                address = data.get('address', 'Unknown Address')
-                
-                # Extract the S3 key if this is an S3 URL
-                s3_key = None
-                if pdf_url and not pdf_url.startswith('http') and not pdf_url.startswith('/'):
-                    s3_key = pdf_url
-                    # This is an S3 key, generate a presigned URL
-                    fresh_url = s3_service.generate_presigned_url(s3_key)
-                    if fresh_url:
-                        pdf_url = fresh_url
-                    else:
-                        logger.warning(f"Failed to generate presigned URL for {original_pdf_url}")
-
-                report_data = {
-                    'address': address
-                }
-                
-                reports_list.append(report_data)
-
-                # Track the S3 key if available
-                if s3_key:
-                    seen_keys.add(s3_key)
-
-            except Exception as e:
-                logger.error(f"Error processing report {task_id}: {str(e)}")
-                reports_list.append({
-                    'address': data.get('address', 'Unknown Address')
-                })
-
-        # Now pull directly from S3
-        s3_client = s3_service.s3_client
-        if s3_client:
-            config = current_app.config
-            bucket_name = config.get("S3_BUCKET_NAME_PDFS")
-            response = s3_client.list_objects_v2(Bucket=bucket_name)
-
-            for obj in response.get("Contents", []):
-                s3_key = obj["Key"]
-                if s3_key in seen_keys:
-                    continue  # already included via REPORTS
-
-                reports_list.append({
-                    'address': os.path.splitext(os.path.basename(s3_key))[0]
-                })
-
-        else:
-            logger.warning("S3 client not initialized, cannot list bucket")
-
-        logger.info(f"Returning {len(reports_list)} reports combined from memory + S3")
-        return jsonify({'success': True, 'reports': reports_list})
-
-    except Exception as e:
-        logger.error(f"Error listing reports: {str(e)}")
-        logger.error(traceback.format_exc())
-        return jsonify({'error': 'Internal server error'}), 500
-
 
 @report_bp.route('/<report_id>/download-url', methods=['GET'])
 def get_download_url(report_id):
@@ -431,13 +362,29 @@ def delete_report(report_id):
                             s3_service.s3_client.head_object(Bucket=bucket_name, Key=s3_key)
                             logger.info("[DELETE] Object exists, proceeding with deletion...")
                             
-                            # Perform the deletion
+                            # Delete the main PDF
                             delete_response = s3_service.s3_client.delete_object(
                                 Bucket=bucket_name, 
                                 Key=s3_key
                             )
-                            
                             logger.info(f"[DELETE] Successfully deleted from S3. Response: {delete_response}")
+                            
+                            # Also delete the _RAW version if it exists
+                            raw_s3_key = s3_key.replace('.pdf', '_RAW.json')
+                            try:
+                                s3_service.s3_client.head_object(Bucket=bucket_name, Key=raw_s3_key)
+                                raw_delete_response = s3_service.s3_client.delete_object(
+                                    Bucket=bucket_name,
+                                    Key=raw_s3_key
+                                )
+                                logger.info(f"[DELETE] Successfully deleted RAW version from S3: {raw_s3_key}")
+                            except s3_service.s3_client.exceptions.ClientError as e:
+                                if e.response['Error']['Code'] == '404':
+                                    logger.info(f"[DELETE] No RAW version found at {raw_s3_key}, skipping")
+                                else:
+                                    logger.error(f"[DELETE] Error checking/deleting RAW version: {str(e)}")
+                            except Exception as e:
+                                logger.error(f"[DELETE] Unexpected error with RAW version: {str(e)}")
                             
                         except s3_service.s3_client.exceptions.ClientError as e:
                             error_code = e.response.get('Error', {}).get('Code', 'Unknown')
@@ -466,11 +413,29 @@ def delete_report(report_id):
         else:
             logger.warning(f"[DELETE] Report ID {report_id} not found in memory storage")
         
+        # Delete from database
+        db_deleted = False
+        try:
+            # Try to find the PDF document by filename (report_id + .pdf)
+            pdf_doc = PDFDocument.query.filter_by(filename=f"{report_id}.pdf").first()
+            if pdf_doc:
+                db.session.delete(pdf_doc)
+                db.session.commit()
+                db_deleted = True
+                logger.info(f"[DELETE] Successfully deleted PDF document from database: {report_id}")
+            else:
+                logger.warning(f"[DELETE] PDF document not found in database: {report_id}")
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"[DELETE] Error deleting from database: {str(e)}")
+            logger.error(traceback.format_exc())
+        
         logger.info(f"[DELETE] Successfully completed deletion for report {report_id}")
         return jsonify({
             'success': True, 
             'message': 'Report deleted successfully',
-            'deleted_from_s3': bool(s3_key and s3_service.s3_client)
+            'deleted_from_s3': bool(s3_key and s3_service.s3_client),
+            'deleted_from_db': db_deleted
         })
         
     except Exception as e:

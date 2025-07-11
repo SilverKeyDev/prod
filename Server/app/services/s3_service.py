@@ -68,14 +68,14 @@ class S3Service:
             logger.error(f"Traceback: {traceback.format_exc()}")
             self.s3_client = None
     
-    def upload_pdf(self, file_data: bytes, filename: str, content_type: str = 'application/pdf') -> Optional[str]:
+    def upload_pdf(self, file_data: bytes, filename: str, content_type: str) -> Optional[str]:
         """
         Upload a PDF file to S3
         
         Args:
             file_data: The PDF file data as bytes
             filename: The filename to use in S3
-            content_type: The content type (default: application/pdf)
+            content_type: The content type
             
         Returns:
             The S3 key (path) of the uploaded file, or None if upload failed
