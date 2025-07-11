@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 report_bp = Blueprint('report', __name__, url_prefix='/api/v1/report')
 
 @report_bp.route('/generate', methods=['POST', 'GET'])
-@jwt_required()
+#@jwt_required()
 def generate_report_endpoint():
     """
     Generate a property report and upload PDF to S3
@@ -32,7 +32,6 @@ def generate_report_endpoint():
             return jsonify({'error': 'POST method required for report generation'}), 405
         
         # Get current user
-        current_user_id = get_jwt_identity()
         user = User.query.get(current_user_id)
         if not user:
             logger.error(f"User not found with ID: {current_user_id}")
