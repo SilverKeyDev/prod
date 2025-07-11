@@ -120,7 +120,7 @@ export default function GenerateReportPage() {
     setIsGenerating(true);
     setError(null);
 
-    navigate("/dashboard/reports?refresh=true");
+    navigate("/dashboard/reports");
     navigate(0);
 
     try {
