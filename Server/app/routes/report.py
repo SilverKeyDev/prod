@@ -2,6 +2,8 @@ from flask import Blueprint, request, jsonify, send_from_directory, current_app
 import logging
 import os
 import traceback
+import uuid
+import time
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.services.report_generator import generate_report, REPORTS
 from app.services.s3_service import s3_service
@@ -87,23 +89,19 @@ def generate_report_endpoint():
             logger.error(f"User not found with ID: {current_user_id}")
             return jsonify({'error': 'User not found', 'success': False}), 404
         
-        # Check if user has an active subscription
-        has_active_subscription = user.subscription and user.subscription.status == 'active'
         
-        # If no active subscription, check available reports
-        if not has_active_subscription:
-            if user.reports_available <= 0:
-                logger.warning(f"User {user.id} has no active subscription and no reports available")
-                return jsonify({
-                    'success': False,
-                    'error': 'NO_REPORTS_AVAILABLE',
-                    'message': 'No reports available. Please purchase a subscription or more reports.'
-                }), 402  # Payment Required
+        if user.reports_available <= 0:
+            logger.warning(f"User {user.id} has no active subscription and no reports available")
+            return jsonify({
+                'success': False,
+                'error': 'NO_REPORTS_AVAILABLE',
+                'message': 'No reports available. Please purchase a subscription or more reports.'
+            }), 402  # Payment Required
             
-            # Deduct one report for non-subscription users
-            user.reports_available -= 1
-            db.session.commit()
-            logger.info(f"Deducted 1 report from user {user.id}. Remaining: {user.reports_available}")
+        # Decrement reports_available for non-subscription users
+        user.reports_available -= 1
+        db.session.commit()
+        logger.info(f"Deducted 1 report from user {user.id}. Remaining: {user.reports_available}")
         
         data = request.get_json()
         if not data:
@@ -118,13 +116,31 @@ def generate_report_endpoint():
         # Generate the report
         result_data = generate_report(address)
         
+        # Create a PDF document record
+        try:
+            pdf_doc = PDFDocument(
+                id=str(uuid.uuid4()),
+                user_id=user.id,
+                filename=f"report_{int(time.time())}.pdf",
+                file_path=f"reports/{user.id}/{int(time.time())}_report.pdf",
+                status='processed',
+                file_size=len(str(result_data).encode('utf-8'))  # Approximate size
+            )
+            db.session.add(pdf_doc)
+            db.session.commit()
+            logger.info(f"Created PDF document record with ID: {pdf_doc.id} for user {user.id}")
+        except Exception as e:
+            logger.error(f"Failed to create PDF document record: {str(e)}")
+            # Don't fail the request if we can't create the record
+        
         logger.info(f"Report generated for user {user.id}. Reports remaining: {user.reports_available}")
         
         return jsonify({
             'success': True,
             'status': 'completed',
             'result': result_data,
-            'reports_remaining': user.reports_available
+            'reports_remaining': user.reports_available,
+            'document_id': pdf_doc.id if 'pdf_doc' in locals() else None
         })
         
     except ValueError as e:
