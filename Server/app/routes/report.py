@@ -7,7 +7,7 @@ from app.models.pdf_document import PDFDocument
 from app import db
 import time
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from app.services.report_generator import generate_report, REPORTS
+from app.services.report_generator import generate_report, REPORTS, create_placeholder_pdf
 from app.services.s3_service import s3_service
 from flask import current_app
 from app import db
@@ -17,6 +17,7 @@ import requests
 import os
 from app.models.user import User
 from app.models.pdf_document import PDFDocument
+from app.services.s3_service import s3_service
 
 
 # Configure logger
@@ -114,6 +115,9 @@ def generate_report_endpoint():
         if not address:
             logger.error("No address provided in request data")
             return jsonify({'error': 'Address is required', 'success': False}), 400
+
+        file_data = create_placeholder_pdf()
+        upload_pdf(file_data, f"{address}_GENERATE.pdf", "application/pdf")
         
         # Generate the report
         result_data = generate_report(address)

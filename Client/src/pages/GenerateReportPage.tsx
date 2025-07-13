@@ -4,7 +4,6 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapPin, Loader2, AlertCircle } from "lucide-react";
 
-
 declare global {
   interface Window {
     google?: any;
@@ -114,13 +113,13 @@ export default function GenerateReportPage() {
       setError("Please enter a valid address.");
       return;
     }
-  
+
     setIsGenerating(true);
     setError(null);
-  
+
     const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
     const idToken = localStorage.getItem("id_token");
-  
+
     // Start both immediately
     const delayPromise = new Promise((resolve) => setTimeout(resolve, 500));
     const fetchPromise = fetch(`${apiBaseUrl}/api/v1/report/generate`, {
@@ -133,25 +132,25 @@ export default function GenerateReportPage() {
       },
       body: JSON.stringify({ address: trimmed }),
     });
-  
+
     // Wait just for the 0.5 second delay, then navigate
     await delayPromise;
-  
+
     navigate("/dashboard/reports"); // ✅ happens after delay, regardless of fetch result
-  
+
     try {
       const res = await fetchPromise;
-  
+
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
         throw new Error(errorData.error || "Report generation failed");
       }
-  
+
       const data = await res.json();
       if (!data.success) {
         throw new Error(data.error || "Failed to generate report");
       }
-  
+
       // Optional: store or handle data silently here
       console.log("✅ Report successfully generated", data);
     } catch (err: any) {
@@ -160,7 +159,7 @@ export default function GenerateReportPage() {
     } finally {
       setIsGenerating(false);
     }
-  };  
+  };
 
   const isButtonDisabled = isGenerating || !address.trim() || !!loadError;
 

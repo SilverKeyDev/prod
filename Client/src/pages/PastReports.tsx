@@ -62,7 +62,7 @@ export default function PastReports() {
           pdfUrl: r.pdfUrl ?? null,
           s3Key: r.s3Key ?? null,
           generatedAt: new Date(r.generatedAt * 1000),
-        }));        
+        }));
         setReports(parsed);
       }
     } catch (err) {
@@ -160,13 +160,13 @@ export default function PastReports() {
     reportId: string,
     s3Key: string | null | undefined
   ) => {
-    console.log('[DELETE] Open delete modal:', { reportId, s3Key });
+    console.log("[DELETE] Open delete modal:", { reportId, s3Key });
     setReportToDelete({ id: reportId, s3Key });
     setDeleteModalOpen(true);
   };
 
   const closeDeleteModal = () => {
-    console.log('[DELETE] Close delete modal');
+    console.log("[DELETE] Close delete modal");
     setDeleteModalOpen(false);
     setReportToDelete(null);
   };
@@ -649,12 +649,15 @@ export default function PastReports() {
                         </button>
                         <button
                           onClick={() => {
-                            console.log('[DELETE] Delete button clicked for report:', {
-                              id: report.id,
-                              s3Key: report.s3Key,
-                              address: report.address,
-                              status: report.status
-                            });
+                            console.log(
+                              "[DELETE] Delete button clicked for report:",
+                              {
+                                id: report.id,
+                                s3Key: report.s3Key,
+                                address: report.address,
+                                status: report.status,
+                              }
+                            );
                             openDeleteModal(report.id, report.s3Key);
                           }}
                           disabled={loadingUrls.has(report.id)}
@@ -722,12 +725,15 @@ export default function PastReports() {
                         </button>
                         <button
                           onClick={() => {
-                            console.log('[DELETE] Delete button clicked for report:', {
-                              id: report.id,
-                              s3Key: report.s3Key,
-                              address: report.address,
-                              status: report.status
-                            });
+                            console.log(
+                              "[DELETE] Delete button clicked for report:",
+                              {
+                                id: report.id,
+                                s3Key: report.s3Key,
+                                address: report.address,
+                                status: report.status,
+                              }
+                            );
                             openDeleteModal(report.id, report.s3Key);
                           }}
                           disabled={loadingUrls.has(report.id)}

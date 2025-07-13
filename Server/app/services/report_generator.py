@@ -15,6 +15,9 @@ import json5
 import traceback
 from .pdf_creator import _create_pdf
 from .prompt_generator import generate_prompt
+from io import BytesIO
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
 
 # Configure verbose logging
 logging.basicConfig(level=logging.DEBUG)
@@ -35,6 +38,16 @@ HEADERS = {
 REPORTS = {}
 
 # -------------------- UTILS --------------------
+
+def create_placeholder_pdf() -> bytes:
+    buffer = BytesIO()
+    c = canvas.Canvas(buffer, pagesize=letter)
+    c.drawString(100, 750, "Report is generating...")
+    c.showPage()
+    c.save()
+    buffer.seek(0)
+    return buffer.read()
+
 
 def validate_address(address: str) -> bool:
     """Validate that the address is provided and is a string"""
