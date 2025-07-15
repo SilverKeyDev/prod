@@ -115,9 +115,6 @@ def generate_report_endpoint():
         if not address:
             logger.error("No address provided in request data")
             return jsonify({'error': 'Address is required', 'success': False}), 400
-
-        file_data = create_placeholder_pdf()
-        upload_pdf(file_data, f"{address}_GENERATE.pdf", "application/pdf")
         
         # Generate the report
         result_data = generate_report(address)
@@ -300,6 +297,26 @@ def get_download_url(report_id):
         logger.error(f"Exception type: {type(e).__name__}")
         logger.error(f"Traceback: {traceback.format_exc()}")
         return jsonify({'error': 'Internal server error'}), 500
+
+@report_bp.route('/compare', methods=['POST'])
+@cross_origin(**cors_config)
+def compare_reports_endpoint():
+    """Compare multiple report JSON files and return flattened table data."""
+    try:
+        data = request.get_json() or {}
+        s3_keys = data.get('s3Keys')
+        if not s3_keys or not isinstance(s3_keys, list):
+            return jsonify({'success': False, 'error': 's3Keys (list) is required'}), 400
+
+        from app.services.report_comparator import compare_reports
+        df = compare_reports(s3_keys)
+        table = df.reset_index().to_dict(orient='records')  # include address in index column
+        return jsonify({'success': True, 'table': table})
+    except Exception as e:
+        logger.error(f"Error comparing reports: {str(e)}")
+        logger.error(traceback.format_exc())
+        return jsonify({'success': False, 'error': 'Internal server error'}), 500
+
 
 @report_bp.route('/static/reports/<path:filename>', methods=['GET'])
 def serve_report(filename):

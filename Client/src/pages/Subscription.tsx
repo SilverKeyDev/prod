@@ -1,13 +1,11 @@
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useLocation } from "react-router-dom";
 import {
   Check,
   Zap,
   Crown,
   Building,
   CreditCard,
-  Calendar,
-  Download,
   Loader2,
   Clock,
   CheckCircle,
@@ -115,11 +113,12 @@ interface BillingInfo {
 
 export default function Subscription() {
   const [searchParams] = useSearchParams();
+  const location = useLocation();
+  const notificationMessage = location.state?.message;
   const cancelled = searchParams.get('cancelled') === 'true';
   const [activeTab, setActiveTab] = useState<"one-time" | "unlimited">("one-time");
-  const [showError, setShowError] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [toastMessage, setToastMessage] = useState("");
+  const [toastMessage] = useState(""); // setToastMessage was unused
 
   const [billingInfo, setBillingInfo] = useState<BillingInfo | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -171,11 +170,27 @@ export default function Subscription() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Notification from redirect */}
+      {notificationMessage && (
+        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-8">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <AlertCircle className="h-5 w-5 text-yellow-400" aria-hidden="true" />
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-yellow-700">
+                {notificationMessage}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Cancellation Toast */}
       {cancelled && (
         <ErrorToast 
           message="Your payment was cancelled. No charges have been made to your account."
-          onClose={() => setShowError(false)}
+          onClose={() => {}} // showError state was unused
           duration={5000}
         />
       )}

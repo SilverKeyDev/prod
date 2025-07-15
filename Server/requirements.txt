@@ -20,3 +20,4 @@ Werkzeug==2.3.7
 psycopg2-binary
 marshmallow-sqlalchemy==0.28.1
 stripe==9.4.0
+matplotlib==3.7.2

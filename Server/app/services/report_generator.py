@@ -66,6 +66,22 @@ def validate_address(address: str) -> bool:
     logger.debug(f"✅ Address validation passed: {address}")
     return True
 
+def _remove_image_prompts(obj):
+    """Recursively remove 'image_prompt' keys from a dictionary or list."""
+    if isinstance(obj, dict):
+        # Use a list of keys to remove to avoid modifying the dict while iterating
+        keys_to_remove = [k for k in obj if k == 'image_prompt']
+        for key in keys_to_remove:
+            del obj[key]
+        # Recurse into the values
+        for key in obj:
+            _remove_image_prompts(obj[key])
+    elif isinstance(obj, list):
+        # Recurse into each item in the list
+        for item in obj:
+            _remove_image_prompts(item)
+    return obj
+
 def _safe_parse_json(text: str):
     try:
         logger.debug("🔧 Cleaning and attempting to parse model output as JSON")
@@ -131,25 +147,35 @@ def generate_report(address: str) -> Dict:
                 {
                     "role": "system",
                     "content": (
-                        "You are a strict JSON-only generator. DO NOT include any think tags, markdown, or explanation. "
-                        "You MUST respond with a valid JSON object only. Begin with '{' and end with '}'. No extra text. "
-                        "You are generating a comprehensive lifestyle and culture report for a given address. "
-                        "Use only verified online sources. Fill out ALL fields with accurate, up-to-date information."
-                    )
-                },
-                {
-                    "role": "user",
-                    "content": prompt
-                }
-            ],
-            "search_mode": "web",
-            "reasoning_effort": "high", 
-            "temperature": 0.1,
-            "max_tokens": 20000,
-            "stream": False,
-            "return_images": True,
-            "return_related_questions": True
+                        "You are a JSON-only output model. NEVER respond with markdown, commentary, or text before/after the JSON. "
+                "You must return ONLY a valid JSON object, starting with '{' and ending with '}'. Every field must be present. "
+                "If exact data is unavailable, use your best estimate and clearly note it as 'estimated'. "
+                "You are generating a detailed lifestyle and culture report for a given address, using only trustworthy public sources. "
+                "Make it insightful and critical—do not hesitate to include negative aspects of the neighborhood."
+            )
+        },
+        {
+            "role": "user",
+            "content": prompt
         }
+    ],
+    "search_mode": "web",
+    "reasoning_effort": "high",
+    "temperature": 0.1,
+    "max_tokens": 20000,
+    "stream": False,
+    "return_images": True,
+    "image_domain_filter": [
+        "-gettyimages.com",
+        "-shutterstock.com",
+        "unsplash.com",
+        "wikimedia.org",
+        "pixabay.com",
+        "zillow.com",
+        "niche.com"
+        ],
+    "image_format_filter": ["jpg", "png"],
+}
 
         logger.debug(f"📡 Sending request to Perplexity with payload: {json.dumps(payload)[:500]}...")
 
@@ -179,6 +205,11 @@ def generate_report(address: str) -> Dict:
             logger.debug(f"🧾 Raw model output:\n{raw_json_text[:1000]}...")
 
             report = _safe_parse_json(raw_json_text)
+
+            # Remove all image_prompt fields before creating the PDF or returning the report
+            logger.info("Removing image prompts from the report data...")
+            report = _remove_image_prompts(report)
+            logger.debug(f"Report after removing image prompts: {json.dumps(report)[:500]}...")
 
             logger.debug("🖨️ Calling PDF generation helper...")
             pdf_url = _create_pdf(report, address)

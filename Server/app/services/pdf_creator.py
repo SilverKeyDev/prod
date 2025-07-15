@@ -5,7 +5,8 @@ from reportlab.platypus import (
     Image,
     Table,
     TableStyle,
-    HRFlowable
+    HRFlowable,
+    Indenter
 )
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.pagesizes import letter
@@ -18,270 +19,319 @@ from io import BytesIO
 import uuid
 import logging
 import traceback
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+from PIL import Image as PILImage
 from .s3_service import s3_service
-import json
+from urllib.parse import quote_plus
+
+SERP_API_KEY = os.getenv("SERP_API")
+SERP_API_ENDPOINT = "https://serpapi.com/search.json"
 
 logger = logging.getLogger(__name__)
 
-
 def _create_pdf(report: dict, address: str) -> str:
-    """
-    Create a PDF report and upload it to S3 with fallback to local storage
-    
-    Args:
-        report: The report data dictionary
-        address: The property address
-        
-    Returns:
-        URL to access the PDF (presigned URL, S3 key, or local path)
-    """
-    
     if not report:
         logger.error("No report data provided")
         raise ValueError("Report data is required")
-    
     if not address:
         logger.error("No address provided")
         raise ValueError("Address is required")
-    
+    logger.debug(f"report: {report}")
+
     try:
-        # Create PDF in memory instead of on disk
         pdf_buffer = BytesIO()
-        
         doc = SimpleDocTemplate(
             pdf_buffer,
             pagesize=letter,
             rightMargin=40,
-            leftMargin=40,
+            leftMargin=30,
             topMargin=60,
             bottomMargin=60,
+            title=f"SilverKey Property Report for {address}"
         )
 
-        # serif styles throughout
         styles = getSampleStyleSheet()
-        styles.add(ParagraphStyle(
-            name="SectionHeader",
-            fontSize=18,
-            leading=22,
-            textColor="#4B2E2C",
-            fontName="Times-Bold",
-            spaceAfter=10
-        ))
-        styles.add(ParagraphStyle(
-            name="SubHeader",
-            fontSize=12,
-            leading=14,
-            textColor="#6A7B52",
-            fontName="Times-Bold",
-            spaceAfter=6
-        ))
-        styles.add(ParagraphStyle(
-            name="Body",
-            fontSize=10,
-            leading=14,
-            fontName="Times-Roman",
-            spaceAfter=4
-        ))
-        styles.add(ParagraphStyle(
-            name="Caption",
-            fontSize=8,
-            textColor=colors.grey,
-            alignment=TA_CENTER,
-            fontName="Times-Roman"
-        ))
-        styles.add(ParagraphStyle(
-            name="HighlightBox",
-            fontSize=10,
-            backColor="#f6f6f6",
-            borderPadding=6,
-            borderColor="#6A7B52",
-            borderWidth=1,
-            borderRadius=4,
-            leading=14,
-            spaceAfter=8,
-            fontName="Times-Roman"
-        ))
+        styles.add(ParagraphStyle(name="SectionHeader", fontSize=18, leading=22, textColor="#000000", fontName="Times-Bold", spaceAfter=10))
+        styles.add(ParagraphStyle(name="SubHeader", fontSize=12, leading=14, textColor="#6A7B52", fontName="Times-Bold", spaceAfter=4))
+        styles.add(ParagraphStyle(name="Body", fontSize=10, leading=12, fontName="Times-Roman", leftIndent=6, spaceAfter=1))
+        styles.add(ParagraphStyle(name="Caption", fontSize=8, textColor=colors.grey, alignment=TA_CENTER, fontName="Times-Roman"))
+        styles.add(ParagraphStyle(name="HighlightBox", fontSize=10, backColor="#f6f6f6", borderPadding=6, borderColor="#6A7B52", borderWidth=1, borderRadius=4, leading=13, spaceAfter=6, fontName="Times-Roman"))
 
         elements = []
-
-        # HEADER
         elements.append(Paragraph("SilverKey Property Report", styles["SectionHeader"]))
-        elements.append(HRFlowable(width="100%", thickness=1, color="#6A7B52"))
-        elements.append(Spacer(1, 12))
+        elements.append(HRFlowable(width="100%", thickness=1, color="#888888"))
+        elements.append(Spacer(1, 5))
 
-        # loop over sections
         for section, section_data in report.items():
             elements.append(Paragraph(section.replace("_", " ").title(), styles["SectionHeader"]))
-            elements.append(HRFlowable(width="30%", thickness=1, color="#6A7B52"))
-            elements.append(Spacer(1, 6))
+            elements.append(HRFlowable(width="30%", thickness=0.5, color="#AAAAAA", hAlign="LEFT"))
+            elements.append(Spacer(1, 2))
 
             if isinstance(section_data, dict):
+                elements.append(Indenter(left=10))
                 _add_section(elements, section_data, styles)
+                elements.append(Indenter(left=-10))
             elif isinstance(section_data, list):
                 for item in section_data:
-                    _add_section(elements, item, styles)
+                    elements.append(Indenter(left=10))
+                    if isinstance(item, dict):
+                        _add_section(elements, item, styles)
+                    else:
+                        elements.append(Paragraph(f"- {item}", styles["Body"]))
+                    elements.append(Indenter(left=-10))
             else:
                 elements.append(Paragraph(str(section_data), styles["Body"]))
 
-            # subtle break between top-level sections
-            elements.append(Spacer(1, 8))
-            elements.append(HRFlowable(width="100%", thickness=0.5, color="#CCC"))
-            elements.append(Spacer(1, 12))
+            elements.append(Spacer(1, 2))
+            elements.append(HRFlowable(width="100%", thickness=0.5, color="#AAAAAA"))
+            elements.append(Spacer(1, 5))
 
         doc.build(elements)
-        
-        # Get the PDF data from the buffer
         pdf_data = pdf_buffer.getvalue()
         pdf_buffer.close()
-                
-        # Generate a unique filename for S3
-        safe_address = "".join(c for c in address if c.isalnum() or c in (' ', '-', '_')).rstrip()
-        safe_address = safe_address.replace(' ', '_')
+
+        safe_address = "".join(c for c in address if c.isalnum() or c in (' ', '-', '_')).rstrip().replace(' ', '_')
         filename = f"reports/{safe_address}_{uuid.uuid4().hex[:8]}.pdf"
-        
-        
-        # Upload to S3
         s3_key = s3_service.upload_pdf(pdf_data, filename, 'application/pdf')
 
-        if s3_key:  # Only proceed if PDF upload was successful
+        if s3_key:
             try:
+                import json
                 json_data = json.dumps(report, indent=2).encode('utf-8')
                 json_filename = f"{filename.removesuffix('.pdf')}.json"
                 s3_service.upload_pdf(json_data, json_filename, 'application/json')
             except Exception as e:
                 logger.error(f"Failed to save raw JSON to S3: {str(e)}")
-                # Continue with PDF URL generation even if JSON save fails
-
 
         if s3_key:
             logger.info("S3 upload successful, generating presigned URL")
-            # Generate presigned URL for immediate access
             presigned_url = s3_service.generate_presigned_url(s3_key)
-            if presigned_url:
-                logger.info("Presigned URL generated successfully")
-                return presigned_url
-            else:
-                logger.warning("Failed to generate presigned URL, returning S3 key")
-                # Fallback: return the S3 key if presigned URL generation fails
-                return s3_key
+            return presigned_url if presigned_url else s3_key
         else:
             logger.warning("S3 upload failed, falling back to local storage")
-            # Fallback: save locally if S3 upload fails
             return _save_pdf_locally(pdf_data, address)
-            
+
     except Exception as e:
         logger.error(f"Error creating PDF for address {address}: {str(e)}")
         logger.error(f"Exception type: {type(e).__name__}")
         logger.error(f"Traceback: {traceback.format_exc()}")
         raise
 
-
 def _save_pdf_locally(pdf_data: bytes, address: str) -> str:
-    """
-    Save PDF to local storage as fallback when S3 is unavailable
-    
-    Args:
-        pdf_data: The PDF data as bytes
-        address: The property address
-        
-    Returns:
-        Local file path for the PDF
-    """
     try:
         output_dir = os.path.join("static", "reports")
         os.makedirs(output_dir, exist_ok=True)
-        
-        safe_address = "".join(c for c in address if c.isalnum() or c in (' ', '-', '_')).rstrip()
-        safe_address = safe_address.replace(' ', '_')
+        safe_address = "".join(c for c in address if c.isalnum() or c in (' ', '-', '_')).rstrip().replace(' ', '_')
         file_path = os.path.join(output_dir, f"{safe_address}.pdf")
-        
         with open(file_path, 'wb') as f:
             f.write(pdf_data)
-        
         return f"/api/v1/report/static/reports/{safe_address}.pdf"
-        
     except Exception as e:
         logger.error(f"Failed to save PDF locally: {str(e)}")
         logger.error(f"Exception type: {type(e).__name__}")
         logger.error(f"Traceback: {traceback.format_exc()}")
         raise
 
+def _fetch_image_from_serp(prompt: str) -> str:
+    if not SERP_API_KEY:
+        logger.warning("SERP_API_KEY not set; cannot fetch images.")
+        return ""
+
+    try:
+        params = {
+            "engine": "google",
+            "q": prompt,
+            "tbm": "isch",
+            "num": "5",  # get up to 5 options to improve chances
+            "api_key": SERP_API_KEY,
+        }
+        query_str = "&".join(f"{k}={quote_plus(str(v))}" for k, v in params.items())
+        response = requests.get(f"{SERP_API_ENDPOINT}?{query_str}", timeout=30)
+
+        if response.status_code == 200:
+            data = response.json()
+            images_results = data.get("images_results", [])
+            for result in images_results:
+                candidate = result.get("original") or result.get("thumbnail") or ""
+                if not candidate:
+                    continue
+                if any(domain in candidate for domain in [
+                    "facebook.com",
+                    "lookaside.fbsbx.com",
+                    "shutterstock.com/thumb",
+                    "dreamstime.com",
+                    "alamy.com/comp",
+                    "123rf.com",
+                    "depositphotos.com"
+                ]):
+                    logger.debug(f"[SERP FILTER] Skipping bad image domain: {candidate}")
+                    continue
+                logger.debug(f"[SERP] Using image URL: {candidate}")
+                return candidate
+
+        logger.warning(f"SERP API returned no usable image for prompt: '{prompt}'")
+    except Exception as e:
+        logger.warning(f"SERP API error for prompt '{prompt}': {e}")
+
+    return ""
+
+
+def _resize_image_to_fit(img_data: BytesIO, max_width: float = 3 * inch, max_height: float = 2.25 * inch) -> Image:
+    pil_img = PILImage.open(img_data)
+    width, height = pil_img.size
+    aspect_ratio = width / height
+    if aspect_ratio >= 1:
+        display_width = min(max_width, width)
+        display_height = display_width / aspect_ratio
+    else:
+        display_height = min(max_height, height)
+        display_width = display_height * aspect_ratio
+    img_data.seek(0)
+    return Image(img_data, width=display_width, height=display_height)
+
+def generate_pie_chart(data: dict, title: str) -> BytesIO:
+    try:
+        labels = list(data.keys())
+        sizes = []
+        for val in data.values():
+            try:
+                if isinstance(val, str) and val.endswith('%'):
+                    sizes.append(float(val.strip('%')))
+                else:
+                    sizes.append(float(val))
+            except Exception as e:
+                logger.warning(f"Skipping non-numeric value in pie chart for '{title}': {val} - {e}")
+                return None
+
+        if not sizes or sum(sizes) == 0:
+            logger.warning(f"Skipping pie chart for '{title}' due to empty or invalid data.")
+            return None
+
+        pie_colors = [
+            '#A3B18A', '#E5E5E5', '#4A5A28', '#4A3228', '#DAD7CD',
+            '#588157', '#BC6C25', '#6C584C', '#CCD5AE', '#B5838D',
+        ]
+        colors = [pie_colors[i % len(pie_colors)] for i in range(len(sizes))]
+        fig, ax = plt.subplots()
+        ax.pie(sizes, labels=labels, autopct="%1.1f%%", startangle=140, colors=colors)
+        ax.axis("equal")
+        plt.title(title)
+        img_buffer = BytesIO()
+        plt.savefig(img_buffer, format="PNG", bbox_inches="tight")
+        plt.close(fig)
+        img_buffer.seek(0)
+        return img_buffer
+    except Exception as e:
+        logger.warning(f"Failed to generate pie chart for {title}: {e}")
+        return None
+
 
 def _add_section(elements, data, styles, level=0):
-    """
-    Recursively process nested dicts and lists into a cleaner, more styled PDF.
-    """
-    try:
-        indent_space = "&nbsp;" * 4 * level
+    logger.debug(f"[SECTION KEYS] Level {level}, keys: {[k for k in data.keys()]}")
+    for k, v in data.items():
+        key = k.replace("_", " ").title()
 
-        for k, v in data.items():
-            key_label = f"{indent_space}<b>{k.replace('_', ' ').title()}:</b>"
-
-            # if nested dict
+        # Handle keys that should be pie charts
+        if k.lower() in ["age_distribution", "gender_distribution", "racial_distribution"]:
+            logger.debug(f"[PIE CHART] Attempting pie chart for key '{k}' with values: {v}")
+            chart_buffer = generate_pie_chart(v, key)
+            label = Paragraph(f"<b>{key}:</b>", styles["SubHeader"])
+            
+            # Create a paragraph with the data for the chart
+            value_lines = []
             if isinstance(v, dict):
-                elements.append(Paragraph(key_label, styles["SubHeader"]))
-                elements.append(Spacer(1, 4))
-                _add_section(elements, v, styles, level + 1)
+                for subk, subv in v.items():
+                    subk_formatted = subk.replace("_", " ").title()
+                    value_lines.append(f"<b>{subk_formatted}:</b> {subv}")
+            value_paragraph = Paragraph("<br/>".join(value_lines), styles["Body"])
 
-            # if list
-            elif isinstance(v, list):
-                if v and isinstance(v[0], dict):
-                    # treat list of dicts as a table
-                    table_data = []
-                    columns = list(v[0].keys())
-                    table_data.append(
-                        [Paragraph(f"<b>{col.replace('_',' ').title()}</b>", styles["Body"]) for col in columns]
-                    )
-                    for item in v:
-                        row = [str(item.get(col, "")) for col in columns]
-                        table_data.append(row)
-                    table = Table(table_data, style=[
-                        ("BACKGROUND", (0, 0), (-1, 0), "#6A7B52"),
-                        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-                        ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
-                        ("FONTNAME", (0, 0), (-1, -1), "Times-Roman"),
-                        ("ALIGN", (0, 0), (-1, -1), "LEFT"),
-                    ])
-                    elements.append(table)
-                    elements.append(Spacer(1, 8))
-                else:
-                    # plain list
-                    for item in v:
-                        elements.append(Paragraph(f"{indent_space}- {item}", styles["Body"]))
-
+            if chart_buffer:
+               img = _resize_image_to_fit(chart_buffer)
+               table_data = [[img, value_paragraph]]
+               table = Table(table_data, colWidths=[2.5 * inch, 3.5 * inch])
+               table.setStyle(TableStyle([
+                   ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                   ("LEFTPADDING", (0, 0), (0, -1), 6),
+                   ("RIGHTPADDING", (0, 0), (0, -1), 18), # Space between chart and text
+                   ("LEFTPADDING", (1, 0), (1, -1), 18), # Space between chart and text
+                   ("RIGHTPADDING", (1, 0), (1, -1), 6),
+               ]))
+               elements.append(label)
+               elements.append(Spacer(1, 12))
+               elements.append(table)
+               elements.append(Paragraph(f"{key} Pie Chart", styles["Caption"]))
+               elements.append(Spacer(1, 8))
             else:
-                # check if it's an image
-                if isinstance(v, str) and v.startswith("http") and (v.endswith(".jpg") or v.endswith(".png")):
-                    try:
-                        response = requests.get(v, timeout=5)
-                        if response.status_code == 200:
-                            img_data = BytesIO(response.content)
-                            img = Image(img_data, width=3*inch, preserveAspectRatio=True)
-                            elements.append(img)
-                            elements.append(Paragraph(k.replace("_", " ").title(), styles["Caption"]))
-                            elements.append(Spacer(1, 6))
-                        else:
-                            logger.warning(f"Failed to load image {v}, status code: {response.status_code}")
-                            elements.append(Paragraph(f"{key_label} [image failed to load - HTTP {response.status_code}]", styles["Body"]))
-                    except requests.exceptions.Timeout:
-                        logger.warning(f"Timeout loading image: {v}")
-                        elements.append(Paragraph(f"{key_label} [image failed to load - timeout]", styles["Body"]))
-                    except requests.exceptions.RequestException as e:
-                        logger.warning(f"Request error loading image {v}: {str(e)}")
-                        elements.append(Paragraph(f"{key_label} [image failed to load - network error]", styles["Body"]))
-                    except Exception as e:
-                        logger.warning(f"Unexpected error loading image {v}: {str(e)}")
-                        elements.append(Paragraph(f"{key_label} [image failed to load]", styles["Body"]))
-                else:
-                    # highlight key metrics
-                    if k.lower() in ["financial rating", "family rating", "nightlife score", "neighborhood rating", "environmental rating"]:
-                        elements.append(Paragraph(f"{key_label} {v}", styles["HighlightBox"]))
-                    else:
-                        elements.append(Paragraph(f"{key_label} {v}", styles["Body"]))
-                        
-    except Exception as e:
-        logger.error(f"Error processing section data: {str(e)}")
-        logger.error(f"Exception type: {type(e).__name__}")
-        logger.error(f"Traceback: {traceback.format_exc()}")
-        # Add error message to PDF instead of failing completely
-        elements.append(Paragraph(f"Error processing section data: {str(e)}", styles["Body"]))
+                # Fallback if chart fails: just show the data
+                elements.append(label)
+                elements.append(value_paragraph)
+                elements.append(Spacer(1, 4))
+            continue
+
+        # Handle nested image_prompt fields
+        if isinstance(v, str) and k.lower().endswith("image_prompt"):
+            logger.debug(f"[IMAGE PROMPT] Attempting SERP fetch for key '{k}' with prompt: {v}")
+            image_url = _fetch_image_from_serp(v)
+            logger.debug(f"[IMAGE PROMPT] Got image URL: {image_url}")
+            if image_url:
+                try:
+                    response = requests.get(image_url, timeout=30)
+                    if response.status_code == 200:
+                        img_data = BytesIO(response.content)
+                        img = _resize_image_to_fit(img_data)
+                        elements.append(Spacer(1, 12))
+                        elements.append(img)
+                        elements.append(Paragraph(key.replace(" Prompt", ""), styles["Caption"]))
+                        elements.append(Spacer(1, 4))
+                except Exception as e:
+                    logger.warning(f"Failed to fetch image from URL {image_url}: {e}")
+
+        # Handle nested dicts
+        if isinstance(v, dict):
+            elements.append(Paragraph(f"<b>{key}:</b>", styles["SubHeader"]))
+            elements.append(Spacer(1, 2))
+            _add_section(elements, v, styles, level + 1)
+            continue
+
+        # Handle lists
+        elif isinstance(v, list):
+            if v and isinstance(v[0], dict):
+                table_data = [[Paragraph(f"<b>{col.replace('_', ' ').title()}</b>", styles["Body"]) for col in v[0].keys()]]
+                for item in v:
+                    row = [str(item.get(col, "")) for col in v[0].keys()]
+                    table_data.append(row)
+                table = Table(table_data, style=[
+                    ("BACKGROUND", (0, 0), (-1, 0), "#6A7B52"),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                    ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+                    ("FONTNAME", (0, 0), (-1, -1), "Times-Roman"),
+                    ("ALIGN", (0, 0), (-1, -1), "LEFT"),
+                ])
+                elements.append(table)
+                elements.append(Spacer(1, 4))
+            else:
+                for item in v:
+                    elements.append(Paragraph(f"- {item}", styles["Body"]))
+            continue
+
+        # Default field rendering
+        label = Paragraph(f"<b>{key}:</b>", styles["Body"])
+        style_key = k.lower()
+        highlight_style = styles.get("HighlightBox", styles["Body"])
+        if style_key in [
+            "financial rating", "family rating", "nightlife score",
+            "neighborhood rating", "environmental rating"
+        ]:
+            value = Paragraph(str(v), highlight_style)
+        else:
+            value = Paragraph(str(v), styles["Body"])
+        table = Table([[label, value]], colWidths=[2.5 * inch, 3.5 * inch])
+        table.setStyle(TableStyle([
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
+            ("TOPPADDING", (0, 0), (-1, -1), 2),
+        ]))
+        elements.append(table)
+        elements.append(Spacer(1, 2))

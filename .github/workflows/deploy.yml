@@ -119,6 +119,7 @@ jobs:
               -e STRIPE_FIFTY_REPORTS="${{ secrets.STRIPE_FIFTY_REPORTS }}" \
               -e STRIPE_UNLIMITED_MONTHLY="${{ secrets.STRIPE_UNLIMITED_MONTHLY }}" \
               -e STRIPE_UNLIMITED_YEARLY="${{ secrets.STRIPE_UNLIMITED_YEARLY }}" \
+              -e SERP_API="${{ secrets.SERP_API }}" \
               "$IMAGE"
 
             echo "⏳ Waiting for container to boot..."
