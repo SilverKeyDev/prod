@@ -57,7 +57,7 @@ def _section_neighborhood_overview(address, enabled=True):
     if not enabled:
         return ""
     return f'''
-  "neighborhood_overview": {{
+  {address}: {{
     "local_culture": "Uptown Charlotte is the sleek, busy center of the city—think glass buildings, rooftop bars, green parks, and a steady 9-to-5 buzz. It's where suits and creatives mix, and there's usually something happening: sports games, live music, street festivals.",
     "vibe": "Lively, youthful, walkable.",
     "known_for": "Atlanta is the cultural and technological hub of the South, and big on nightlife and music.",
@@ -100,17 +100,17 @@ def _section_safety(address, enabled=True):
     "crime_rating": "Moderate",
     "places_to_watch_out_for": "Downtown at night and the Eastside are extremely risky",
     "police_presence": "Visible on weekends and evenings",
-    "image_prompt": "crime heatmap for {address}",
-    "safety_rating": "7.5/10"
+    "safety_rating": "7.5/10",
+    "image_prompt": "crime heatmap for {address}"
   }},
 '''
 
-def _section_culture_and_events(enabled=True):
+def _section_culture_and_events(address, enabled=True):
     if not enabled:
         return ""
     return '''
   "culture_and_events": {
-    "local_events": ["Art Walk", "Summer Jazz Fest"],
+    "local_events": "Art Walk, Summer Jazz Fest",
     "seasonal_trends": "Busy in summer, quiet winters",
     "community_engagement": "Active neighborhood watch and cleanup days",
     "culture_rating": "9.0/10"
@@ -202,7 +202,6 @@ def _section_family_friendly(enabled=True):
   "family_friendly": {
     "lots_of_kids": "Yes, very family-oriented",
     "great_for_families": "Safe, good schools, lots of parks",
-    "nearby_daycares": ["Bright Start", "Little Owls", "Tiny Tots"],
     "family_rating": "9.2/10"
   },
 '''
@@ -214,7 +213,7 @@ def _section_nightlife_and_dating(enabled=True):
   "nightlife_and_dating": {
     "nightlife_rating": "High",
     "nightlife_score": 8.7,
-    "best_spots": ["Moonlight Lounge", "The Vinyl Room", "The 404", "Drinks and Sounds"],
+    "best_spots": "Moonlight Lounge, The Vinyl Room, The 404, Drinks and Sounds",
     "dating_scene": "Vibrant and casual",
     "average_attractiveness_rating": "4.7/10",
     "apps_popularity": {
@@ -293,7 +292,7 @@ def _section_schools(address, enabled=True):
       "walking_distance": true,
       "niche_rating": "A",
       "teacher_quality": "Excellent",
-      "parent_reviews": ["Supportive staff", "Creative learning environment"]
+      "known_for": "Supportive staff, creative learning environment"
     }},
     {{
       "name": "Emerson Community Charter School",
@@ -301,7 +300,7 @@ def _section_schools(address, enabled=True):
       "walking_distance": false,
       "school_rating": "A-",
       "teacher_quality": "Very Good",
-      "parent_reviews": ["Safe and inclusive", "Strong academic curriculum"]
+      "known_for": "Safe and inclusive, strong academic curriculum"
     }},
     {{
       "name": "Palisades Charter High School",
@@ -311,9 +310,9 @@ def _section_schools(address, enabled=True):
       "gpa_avg": 3.8,
       "sat_avg": 1320,
       "grad_rate": 96.1,
-      "top_colleges": ["UCLA", "UC Berkeley", "USC"],
+      "top_colleges": "UCLA, UC Berkeley, USC",
       "teacher_quality": "Outstanding",
-      "parent_reviews": ["Great prep for college", "Broad extracurriculars"]
+      "known_for": "very intense and excellent education, problems with mental health in the past"
     }}
   ],
 '''

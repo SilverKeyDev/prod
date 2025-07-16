@@ -60,8 +60,6 @@ def _create_pdf(report: dict, address: str) -> str:
         styles.add(ParagraphStyle(name="HighlightBox", fontSize=10, backColor="#f6f6f6", borderPadding=4, borderColor="#6A7B52", borderWidth=1, borderRadius=4, leading=12, spaceAfter=2, fontName="Times-Roman"))
 
         elements = []
-        elements.append(Paragraph("SilverKey Property Report", styles["SectionHeader"]))
-        elements.append(HRFlowable(width="100%", thickness=1, color="#888888"))
 
         for section, section_data in report.items():
             elements.append(Paragraph(section.replace("_", " ").title(), styles["SectionHeader"]))
