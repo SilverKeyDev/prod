@@ -1,6 +1,20 @@
-def generate_prompt(address: str) -> str:
+def generate_prompt(address: str,
+                    include_neighborhood_overview=True,
+                    include_safety=True,
+                    include_culture_and_events=True,
+                    include_weather=True,
+                    include_social_character=True,
+                    include_local_amenities=True,
+                    include_commute=True,
+                    include_family_friendly=True,
+                    include_nightlife_and_dating=True,
+                    include_accessibility=True,
+                    include_development=True,
+                    include_environment=True,
+                    include_money=True,
+                    include_schools=True,
+                    include_extra_tips=True) -> str:
     return f"""
-
 CRITICAL: Output ONLY a valid JSON object. Nothing else.
 
 You are given a location: "{address}".
@@ -21,54 +35,212 @@ Begin and end your output with curly brackets.
 DO NOT add any explanation, commentary, markdown, or thinking tags.
 
 {{
+  { _section_neighborhood_overview(address).strip() }
+  { _section_safety(address, include_safety).strip() }
+  { _section_culture_and_events(include_culture_and_events).strip() }
+  { _section_weather(address, include_weather).strip() }
+  { _section_social_character(include_social_character).strip() }
+  { _section_local_amenities(address, include_local_amenities).strip() }
+  { _section_commute(include_commute).strip() }
+  { _section_family_friendly(include_family_friendly).strip() }
+  { _section_nightlife_and_dating(include_nightlife_and_dating).strip() }
+  { _section_accessibility(include_accessibility).strip() }
+  { _section_extra_tips(include_extra_tips).strip() }
+  { _section_development(address, include_development).strip() }
+  { _section_environment_utilities(include_environment).strip() }
+  { _section_money_stuff(include_money).strip() }
+  { _section_schools(address, include_schools).strip() }
+}}
+"""
+
+def _section_neighborhood_overview(address, enabled=True):
+    if not enabled:
+        return ""
+    return f'''
   "neighborhood_overview": {{
     "local_culture": "Uptown Charlotte is the sleek, busy center of the city—think glass buildings, rooftop bars, green parks, and a steady 9-to-5 buzz. It's where suits and creatives mix, and there's usually something happening: sports games, live music, street festivals.",
     "vibe": "Lively, youthful, walkable.",
+    "known_for": "Atlanta is the cultural and technological hub of the South, and big on nightlife and music.",
     "community_events": "Monthly street fairs and local concerts.",
     "what_people_love": "Friendly neighbors, lots of coffee shops.",
     "things_to_watch_out_for": "Occasional late-night noise and traffic.",
-    "population_total": "1,200,000",
+    "population_total": "1,200,000 people",
     "image_prompt": "{address}",
-    "neighborhood_rating": 8.5/10,
+    "neighborhood_rating": "8.5/10",
     "demographics": {{
-        "gender_distribution": {{
-          "percent_men": 48.3%,
-          "percent_women": 51.7%,
-        }},
-        "racial_distribution": {{
-          "White": 60.2%,
-          "Black": 10.5%,
-          "Hispanic": 18.4%,
-          "Asian": 7.1%,
-          "Other": 3.8%
-        }},
-        "age_distribution": {{
-          "0-17": 12.3%,
-          "18-24": 14.1%,
-          "25-34": 32.7%,
-          "35-44": 18.9%,
-          "45-64": 16.4%,
-          "65+": 5.6
-        }},
-        "LGBTQ_representation": "9.1/10, many gay bars, 14% of local population is LGBTQ+",
+      "gender_distribution": {{
+        "percent_men": "48.3%",
+        "percent_women": "51.7%"
+      }},
+      "racial_distribution": {{
+        "White": "60.2%",
+        "Black": "10.5%",
+        "Hispanic": "18.4%",
+        "Asian": "7.1%",
+        "Other": "3.8%"
+      }},
+      "age_distribution": {{
+        "0-17": "12.3%",
+        "18-24": "14.1%",
+        "25-34": "32.7%",
+        "35-44": "18.9%",
+        "45-64": "16.4%",
+        "65+": "5.6%"
+      }},
+      "LGBTQ_representation": "9.1/10, many gay bars, 14% of local population is LGBTQ+"
     }}
   }},
+'''
+
+def _section_safety(address, enabled=True):
+    if not enabled:
+        return ""
+    return f'''
   "safety": {{
     "crime_rating": "Moderate",
-    "crime_score": 6.5/10,
-    "heatmap_description": "Some high-theft zones near downtown",
-    "sex_offender_info": "None within 0.5 miles",
-    "street_lighting": "Well-lit throughout",
+    "places_to_watch_out_for": "Downtown at night and the Eastside are extremely risky",
     "police_presence": "Visible on weekends and evenings",
-    "flood_or_fire_risk": "Low risk zone",
-    "image_prompt": "crime heatmap for {address}"
+    "image_prompt": "crime heatmap for {address}",
+    "safety_rating": "7.5/10"
   }},
-  "accessibility": {{
+'''
+
+def _section_culture_and_events(enabled=True):
+    if not enabled:
+        return ""
+    return '''
+  "culture_and_events": {
+    "local_events": ["Art Walk", "Summer Jazz Fest"],
+    "seasonal_trends": "Busy in summer, quiet winters",
+    "community_engagement": "Active neighborhood watch and cleanup days",
+    "culture_rating": "9.0/10"
+  },
+'''
+
+def _section_weather(address, enabled=True):
+    if not enabled:
+        return ""
+    return f'''
+  "weather": {{
+    "spring": "Avg low: 50, Avg high: 70, slightly cloudy, low humidity",
+    "summer": "Avg low: 65, Avg high: 85, very hot, high humidity",
+    "fall": "Avg low: 45, Avg high: 65, very temperate, best time to visit",
+    "winter": "Avg low: 30, Avg high: 50, cold, high chance of rain, low chance of snow",
+    "image_prompt": "yearly weather chart for {address}"
+  }},
+'''
+
+def _section_social_character(enabled=True):
+    if not enabled:
+        return ""
+    return '''
+  "social_character": {
+    "income_level": "Middle to upper-middle class",
+    "political_leaning": "Leans progressive in suburbs and is strongly progressive in central city",
+    "language_spoken": "English dominant, Spanish common",
+    "religiosity": "Low to moderate",
+    "cultural_tone": "Inclusive and artsy",
+    "social_rating": 8.5
+  },
+'''
+
+def _section_local_amenities(address, enabled=True):
+    if not enabled:
+        return ""
+    return f'''
+  "local_amenities": {{
+    "restaurants": [
+      {{
+        "name": "The Hollow Oak",
+        "vibe": "Cozy gastropub",
+        "what_to_try": "Lamb burger with truffle fries",
+      }}
+    ],
+    "activities": [
+      {{
+        "name": "Saturday Farmers Market",
+        "description": "Local produce, crafts, and live music"
+      }}
+    ],
+    "parks": [
+      {{
+        "name": "Maple Grove Park",
+        "features": "Playground, tennis courts, dog run"
+      }}
+    ],
+    "thrift_store": {{
+      "name": "Revive & Repeat",
+      "type": "Vintage clothing and home goods",
+    }},
+    "grocery_store": {{
+      "name": "Publix",
+      "type": "Organic and local groceries",
+    }},
+    "late_night_restaurant": {{
+      "name": "Taco Bell",
+      "vibe": "Fast food",
+    }}
+  }},
+'''
+
+def _section_commute(enabled=True):
+    if not enabled:
+        return ""
+    return '''
+  "commute": {
+    "commute_times": "20 min to downtown by car, 35 by bus",
+    "public_transport": "MARTA trains are okay for transportation but don't go beyond downtown; streetcars and buses are also present",
+    "traffic": "Heavy traffic in the mornings and evenings, moderate in afternoons",
+    "walkability": "5.2/10"
+  },
+'''
+
+def _section_family_friendly(enabled=True):
+    if not enabled:
+        return ""
+    return '''
+  "family_friendly": {
+    "lots_of_kids": "Yes, very family-oriented",
+    "great_for_families": "Safe, good schools, lots of parks",
+    "nearby_daycares": ["Bright Start", "Little Owls", "Tiny Tots"],
+    "family_rating": "9.2/10"
+  },
+'''
+
+def _section_nightlife_and_dating(enabled=True):
+    if not enabled:
+        return ""
+    return '''
+  "nightlife_and_dating": {
+    "nightlife_rating": "High",
+    "nightlife_score": 8.7,
+    "best_spots": ["Moonlight Lounge", "The Vinyl Room", "The 404", "Drinks and Sounds"],
+    "dating_scene": "Vibrant and casual",
+    "average_attractiveness_rating": "4.7/10",
+    "apps_popularity": {
+      "tinder": "High",
+      "hinge": "Medium"
+    },
+    "image_prompt": "The Vinyl Room"
+  },
+'''
+
+def _section_accessibility(enabled=True):
+    if not enabled:
+        return ""
+    return '''
+  "accessibility": {
     "wheelchair_friendly": "Yes, sidewalks and ramps throughout",
     "ada_compliance": "Generally compliant, though older buildings may vary",
     "age_friendly": "Good for seniors, with parks and health clinics nearby",
-    "accessibility_rating": 8.0
-  }},
+    "accessibility_rating": "8.0/10"
+  },
+'''
+
+def _section_development(address, enabled=True):
+    if not enabled:
+        return ""
+    return f'''
   "development": {{
     "upcoming_changes": "New light rail stop being added",
     "zoning_or_construction": "Several multi-use complexes approved",
@@ -76,81 +248,52 @@ DO NOT add any explanation, commentary, markdown, or thinking tags.
     "vacancy_or_decay": "Low vacancy; well-maintained",
     "image_prompt": "zoning map for {address}"
   }},
-  "culture_and_events": {{
-    "local_events": ["Art Walk", "Summer Jazz Fest"],
-    "seasonal_trends": "Busy in summer, quiet winters",
-    "community_engagement": "Active neighborhood watch and cleanup days",
-    "culture_rating": 9.0
-  }},
-  "environment_and_utilities": {{
+'''
+
+def _section_environment_utilities(enabled=True):
+    if not enabled:
+        return ""
+    return '''
+  "environment_and_utilities": {
     "air_quality": "Good",
     "noise_pollution": "Moderate near main roads",
     "light_pollution": "Noticeable at night in central areas",
     "water_quality": "Safe for drinking",
-    "avg_utility_costs": {{
-      "electricity": 120,
-      "gas": 60,
-      "water": 45
-    }},
+    "avg_utility_costs": {
+      "electricity": "$120",
+      "gas": "$60",
+      "water": "$45"
+    },
     "internet_speed": "Fast (avg 500 Mbps)",
-    "environmental_rating": 7.5
-  }},
-  "social_character": {{
-    "income_level": "Middle to upper-middle class",
-    "political_leaning": "Progressive",
-    "language_spoken": "English dominant, Spanish common",
-    "religiosity": "Low to moderate",
-    "cultural_tone": "Inclusive and artsy",
-    "social_rating": 8.5
-  }},
-  "money_stuff": {{
-    "monthly_payment": 2750$/month,
-    "property_taxes": 6300$/year,
+    "environmental_rating": "7.5/10"
+  },
+'''
+
+def _section_money_stuff(enabled=True):
+    if not enabled:
+        return ""
+    return '''
+  "money_stuff": {
+    "monthly_payment": "$2750/month",
+    "property_taxes": "$6300/year",
     "value_assessment": "Rising",
     "investment_potential": "Strong for rentals or resale",
-    "financial_rating": 8.2/10
-  }},
-  "cool_stuff_nearby": {{
-    "restaurants": [
-      {{
-        "name": "The Hollow Oak",
-        "vibe": "Cozy gastropub",
-        "what_to_try": "Lamb burger with truffle fries",
-        "image_prompt": "The Hollow Oak interior"
-      }}
-    ],
-    "activities": [
-      {{
-        "name": "Saturday Farmers Market",
-        "description": "Local produce, crafts, and live music",
-        "image_prompt": "Atlanta Saturday Farmers Market scene"
-      }}
-    ],
-    "parks": [
-      {{
-        "name": "Maple Grove Park",
-        "features": "Playground, tennis courts, dog run",
-        "image_prompt": "Atlanta Maple Grove Park"
-      }}
-    ],
-    "shopping": [
-      {{
-        "store": "Thrive Collective",
-        "type": "Boutique gifts and apparel",
-        "image_prompt": "Atlanta Thrive Collective"
-      }}
-    ]
-  }},
-  "schools": [
+    "financial_rating": "8.2/10"
+  },
+'''
+
+def _section_schools(address, enabled=True):
+    if not enabled:
+        return ""
+    return f'''
+   "schools": [
     {{
       "name": "Westwood Charter Elementary School",
       "level": "elementary",
       "walking_distance": true,
       "niche_rating": "A",
-      "niche_profile": "https://www.niche.com/k12/westwood-charter-elementary-school-los-angeles-ca/",
       "teacher_quality": "Excellent",
-      "parent_reviews": ["Supportive staff", "Creative learning environment"],
-      "image_prompt": "Atlanta Westwood Charter Elementary School"
+      "parent_reviews": ["Supportive staff", "Creative learning environment"]
     }},
     {{
       "name": "Emerson Community Charter School",
@@ -158,8 +301,7 @@ DO NOT add any explanation, commentary, markdown, or thinking tags.
       "walking_distance": false,
       "school_rating": "A-",
       "teacher_quality": "Very Good",
-      "parent_reviews": ["Safe and inclusive", "Strong academic curriculum"],
-      "image_prompt": "Atlanta Emerson Community Charter School"
+      "parent_reviews": ["Safe and inclusive", "Strong academic curriculum"]
     }},
     {{
       "name": "Palisades Charter High School",
@@ -171,55 +313,19 @@ DO NOT add any explanation, commentary, markdown, or thinking tags.
       "grad_rate": 96.1,
       "top_colleges": ["UCLA", "UC Berkeley", "USC"],
       "teacher_quality": "Outstanding",
-      "parent_reviews": ["Great prep for college", "Broad extracurriculars"],
-      "image_prompt": "Atlanta Palisades Charter High School"
+      "parent_reviews": ["Great prep for college", "Broad extracurriculars"]
     }}
   ],
-  "local_colleges": [
-    {{
-      "name": "University of California, Los Angeles (UCLA)",
-      "school_rating": "A+"
-    }},
-    {{
-      "name": "University of Southern California (USC)",
-      "school_rating": "A+"
-    }},
-    {{
-      "name": "Santa Monica College",
-      "school_rating": "B+"
-    }},
-    {{
-      "name": "California State University, Los Angeles (CSULA)",
-      "school_rating": "B"
-    }}
-  ],"commute": {{
-    "commute_times": "20 min to downtown by car, 35 by bus",
-    "commute_rating": 7.0/10,
-  }},
-  "family_friendly": {{
-    "lots_of_kids": "Yes, very family-oriented",
-    "great_for_families": "Safe, good schools, lots of parks",
-    "nearby_daycares": ["Bright Start", "Little Owls", "Tiny Tots"],
-    "family_rating": 9.2/10
-  }},
-  "young_people_vibes": {{
-    "nightlife_rating": "High",
-    "nightlife_score": 8.7,
-    "best_spots": ["Moonlight Lounge", "The Vinyl Room", "The 404", "Drinks and Sounds"],
-    "dating_scene": "Vibrant and casual",
-    "average_attractiveness_rating": "4.7/10",
-    "apps_popularity": {{
-      "tinder": "High",
-      "hinge": "Medium"
-    }},
-    "image_prompt": "nightlife scene at The Vinyl Room or Moonlight Lounge"
-  }},
-  "extra_tips": {{
-    "parking": "Street parking can be tough after 7pm",
+'''
+
+def _section_extra_tips(enabled=True):
+    if not enabled:
+        return ""
+    return '''
+  "extra_tips": {
+    "parking": "Street parking can be tough after 7pm and on weekends",
     "pet_friendly": "Most restaurants and parks welcome dogs",
     "cell_service_quality": "Strong across all major carriers",
-    "real_estate_agent_insights": ["Inventory moves fast", "High interest from remote workers"],
-    "other notable tips":" People around here tend to love run clubs and the beltline, including on weekdays",
-  }}
-}}
-"""
+    "other_notable_tips": "People around here tend to love run clubs and the beltline, including on weekdays"
+  }
+'''

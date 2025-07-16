@@ -66,22 +66,6 @@ def validate_address(address: str) -> bool:
     logger.debug(f"✅ Address validation passed: {address}")
     return True
 
-def _remove_image_prompts(obj):
-    """Recursively remove 'image_prompt' keys from a dictionary or list."""
-    if isinstance(obj, dict):
-        # Use a list of keys to remove to avoid modifying the dict while iterating
-        keys_to_remove = [k for k in obj if k == 'image_prompt']
-        for key in keys_to_remove:
-            del obj[key]
-        # Recurse into the values
-        for key in obj:
-            _remove_image_prompts(obj[key])
-    elif isinstance(obj, list):
-        # Recurse into each item in the list
-        for item in obj:
-            _remove_image_prompts(item)
-    return obj
-
 def _safe_parse_json(text: str):
     try:
         logger.debug("🔧 Cleaning and attempting to parse model output as JSON")
@@ -205,11 +189,6 @@ def generate_report(address: str) -> Dict:
             logger.debug(f"🧾 Raw model output:\n{raw_json_text[:1000]}...")
 
             report = _safe_parse_json(raw_json_text)
-
-            # Remove all image_prompt fields before creating the PDF or returning the report
-            logger.info("Removing image prompts from the report data...")
-            report = _remove_image_prompts(report)
-            logger.debug(f"Report after removing image prompts: {json.dumps(report)[:500]}...")
 
             logger.debug("🖨️ Calling PDF generation helper...")
             pdf_url = _create_pdf(report, address)

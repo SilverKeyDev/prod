@@ -27,6 +27,7 @@ def create_app(config=None):
     logging.getLogger('boto3').setLevel(logging.WARNING)
     logging.getLogger('urllib3').setLevel(logging.WARNING)
     logging.getLogger('s3transfer').setLevel(logging.WARNING)
+    logging.getLogger('matplotlib').setLevel(logging.WARNING)
     # STATIC FOLDER: matches Docker
     STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../Client/dist")
     app = Flask(__name__, static_folder=STATIC_DIR, static_url_path="")

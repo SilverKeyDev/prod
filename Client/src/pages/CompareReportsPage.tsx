@@ -104,12 +104,6 @@ export default function CompareReportsPage() {
       setShowError(true);
       return;
     }
-
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => {
-      controller.abort();
-    }, 20000); // 20-second timeout
-
     try {
       setIsLoading(true);
       const baseUrl = import.meta.env.VITE_API_BASE_URL || "";
@@ -118,11 +112,7 @@ export default function CompareReportsPage() {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({ s3Keys: keys }),
-        signal: controller.signal,
       });
-
-      clearTimeout(timeoutId);
-
       const json = await res.json();
       if (json.success) {
         console.log("Comparison table received:", json.table);
@@ -131,18 +121,11 @@ export default function CompareReportsPage() {
         throw new Error(json.error || "Comparison failed");
       }
     } catch (error) {
-      clearTimeout(timeoutId);
-      if ((error as Error).name === 'AbortError') {
-        console.error("Comparison fetch timed out");
-        setToastMessage("Comparison timed out after 20 seconds. Please try again.");
-        setShowError(true);
-      } else {
-        console.error(error);
-        setToastMessage(
-          error instanceof Error ? error.message : "Comparison failed"
-        );
-        setShowError(true);
-      }
+      console.error(error);
+      setToastMessage(
+        error instanceof Error ? error.message : "Comparison failed"
+      );
+      setShowError(true);
     } finally {
       setIsLoading(false);
     }

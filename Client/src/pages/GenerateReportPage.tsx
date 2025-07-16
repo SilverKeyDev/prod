@@ -157,6 +157,9 @@ export default function GenerateReportPage() {
         throw new Error(data.error || "Failed to generate report");
       }
 
+      // Dispatch event to notify other components that a new report has been generated
+      window.dispatchEvent(new CustomEvent("reportGenerated"));
+
       // Optional: store or handle data silently here
       console.log("✅ Report successfully generated", data);
     } catch (err: any) {

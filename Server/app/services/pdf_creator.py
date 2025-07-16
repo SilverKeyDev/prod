@@ -47,27 +47,25 @@ def _create_pdf(report: dict, address: str) -> str:
             pagesize=letter,
             rightMargin=40,
             leftMargin=30,
-            topMargin=60,
-            bottomMargin=60,
+            topMargin=40,
+            bottomMargin=40,
             title=f"SilverKey Property Report for {address}"
         )
 
         styles = getSampleStyleSheet()
-        styles.add(ParagraphStyle(name="SectionHeader", fontSize=18, leading=22, textColor="#000000", fontName="Times-Bold", spaceAfter=10))
-        styles.add(ParagraphStyle(name="SubHeader", fontSize=12, leading=14, textColor="#6A7B52", fontName="Times-Bold", spaceAfter=4))
-        styles.add(ParagraphStyle(name="Body", fontSize=10, leading=12, fontName="Times-Roman", leftIndent=6, spaceAfter=1))
-        styles.add(ParagraphStyle(name="Caption", fontSize=8, textColor=colors.grey, alignment=TA_CENTER, fontName="Times-Roman"))
-        styles.add(ParagraphStyle(name="HighlightBox", fontSize=10, backColor="#f6f6f6", borderPadding=6, borderColor="#6A7B52", borderWidth=1, borderRadius=4, leading=13, spaceAfter=6, fontName="Times-Roman"))
+        styles.add(ParagraphStyle(name="SectionHeader", fontSize=18, leading=20, textColor="#000000", fontName="Times-Bold", spaceAfter=2))
+        styles.add(ParagraphStyle(name="SubHeader", fontSize=12, leading=13, textColor="#6A7B52", fontName="Times-Bold", spaceAfter=1))
+        styles.add(ParagraphStyle(name="Body", fontSize=10, leading=11, fontName="Times-Roman", leftIndent=6, spaceAfter=0))
+        styles.add(ParagraphStyle(name="Caption", fontSize=8, leading=9, textColor=colors.grey, alignment=TA_CENTER, fontName="Times-Roman"))
+        styles.add(ParagraphStyle(name="HighlightBox", fontSize=10, backColor="#f6f6f6", borderPadding=4, borderColor="#6A7B52", borderWidth=1, borderRadius=4, leading=12, spaceAfter=2, fontName="Times-Roman"))
 
         elements = []
         elements.append(Paragraph("SilverKey Property Report", styles["SectionHeader"]))
         elements.append(HRFlowable(width="100%", thickness=1, color="#888888"))
-        elements.append(Spacer(1, 5))
 
         for section, section_data in report.items():
             elements.append(Paragraph(section.replace("_", " ").title(), styles["SectionHeader"]))
             elements.append(HRFlowable(width="30%", thickness=0.5, color="#AAAAAA", hAlign="LEFT"))
-            elements.append(Spacer(1, 2))
 
             if isinstance(section_data, dict):
                 elements.append(Indenter(left=10))
@@ -84,9 +82,9 @@ def _create_pdf(report: dict, address: str) -> str:
             else:
                 elements.append(Paragraph(str(section_data), styles["Body"]))
 
-            elements.append(Spacer(1, 2))
+            elements.append(Spacer(1, 1))
             elements.append(HRFlowable(width="100%", thickness=0.5, color="#AAAAAA"))
-            elements.append(Spacer(1, 5))
+            elements.append(Spacer(1, 1))
 
         doc.build(elements)
         pdf_data = pdf_buffer.getvalue()
@@ -229,17 +227,17 @@ def generate_pie_chart(data: dict, title: str) -> BytesIO:
 
 
 def _add_section(elements, data, styles, level=0):
+    indent = "  " * level
     logger.debug(f"[SECTION KEYS] Level {level}, keys: {[k for k in data.keys()]}")
+
     for k, v in data.items():
         key = k.replace("_", " ").title()
 
-        # Handle keys that should be pie charts
+        # PIE CHARTS
         if k.lower() in ["age_distribution", "gender_distribution", "racial_distribution"]:
-            logger.debug(f"[PIE CHART] Attempting pie chart for key '{k}' with values: {v}")
             chart_buffer = generate_pie_chart(v, key)
             label = Paragraph(f"<b>{key}:</b>", styles["SubHeader"])
             
-            # Create a paragraph with the data for the chart
             value_lines = []
             if isinstance(v, dict):
                 for subk, subv in v.items():
@@ -248,76 +246,65 @@ def _add_section(elements, data, styles, level=0):
             value_paragraph = Paragraph("<br/>".join(value_lines), styles["Body"])
 
             if chart_buffer:
-               img = _resize_image_to_fit(chart_buffer)
-               table_data = [[img, value_paragraph]]
-               table = Table(table_data, colWidths=[2.5 * inch, 3.5 * inch])
-               table.setStyle(TableStyle([
-                   ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                   ("LEFTPADDING", (0, 0), (0, -1), 6),
-                   ("RIGHTPADDING", (0, 0), (0, -1), 18), # Space between chart and text
-                   ("LEFTPADDING", (1, 0), (1, -1), 18), # Space between chart and text
-                   ("RIGHTPADDING", (1, 0), (1, -1), 6),
-               ]))
-               elements.append(label)
-               elements.append(Spacer(1, 12))
-               elements.append(table)
-               elements.append(Paragraph(f"{key} Pie Chart", styles["Caption"]))
-               elements.append(Spacer(1, 8))
+                img = _resize_image_to_fit(chart_buffer)
+                table_data = [[img, value_paragraph]]
+                table = Table(table_data, colWidths=[2.5 * inch, 3.5 * inch])
+                table.setStyle(TableStyle([
+                    ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                    ("LEFTPADDING", (0, 0), (0, -1), 6),
+                    ("RIGHTPADDING", (0, 0), (0, -1), 18),
+                    ("LEFTPADDING", (1, 0), (1, -1), 18),
+                    ("RIGHTPADDING", (1, 0), (1, -1), 6),
+                ]))
+                elements.append(label)
+                elements.append(Spacer(.5, .5))
+                elements.append(table)
+                elements.append(Paragraph(f"{key} Pie Chart", styles["Caption"]))
+                elements.append(Spacer(.5, .5))
             else:
-                # Fallback if chart fails: just show the data
                 elements.append(label)
                 elements.append(value_paragraph)
-                elements.append(Spacer(1, 4))
+                elements.append(Spacer(.5, .5))
             continue
 
-        # Handle nested image_prompt fields
-        if isinstance(v, str) and k.lower().endswith("image_prompt"):
-            logger.debug(f"[IMAGE PROMPT] Attempting SERP fetch for key '{k}' with prompt: {v}")
+        # IMAGE PROMPT (inline in dict)
+        if k.lower() == "image_prompt" and isinstance(v, str):
+            logger.debug(f"{indent}[IMAGE PROMPT] key '{k}', prompt: {v}")
             image_url = _fetch_image_from_serp(v)
-            logger.debug(f"[IMAGE PROMPT] Got image URL: {image_url}")
+            logger.debug(f"{indent}[IMAGE PROMPT] Got image URL: {image_url}")
             if image_url:
                 try:
                     response = requests.get(image_url, timeout=30)
                     if response.status_code == 200:
                         img_data = BytesIO(response.content)
                         img = _resize_image_to_fit(img_data)
-                        elements.append(Spacer(1, 12))
+                        elements.append(Spacer(1, 2))
                         elements.append(img)
                         elements.append(Paragraph(key.replace(" Prompt", ""), styles["Caption"]))
-                        elements.append(Spacer(1, 4))
+                        elements.append(Spacer(.5, .5))
                 except Exception as e:
                     logger.warning(f"Failed to fetch image from URL {image_url}: {e}")
+            continue
 
-        # Handle nested dicts
+        # NESTED DICTS
         if isinstance(v, dict):
             elements.append(Paragraph(f"<b>{key}:</b>", styles["SubHeader"]))
-            elements.append(Spacer(1, 2))
             _add_section(elements, v, styles, level + 1)
             continue
 
-        # Handle lists
-        elif isinstance(v, list):
+        # LISTS
+        if isinstance(v, list):
             if v and isinstance(v[0], dict):
-                table_data = [[Paragraph(f"<b>{col.replace('_', ' ').title()}</b>", styles["Body"]) for col in v[0].keys()]]
                 for item in v:
-                    row = [str(item.get(col, "")) for col in v[0].keys()]
-                    table_data.append(row)
-                table = Table(table_data, style=[
-                    ("BACKGROUND", (0, 0), (-1, 0), "#6A7B52"),
-                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-                    ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
-                    ("FONTNAME", (0, 0), (-1, -1), "Times-Roman"),
-                    ("ALIGN", (0, 0), (-1, -1), "LEFT"),
-                ])
-                elements.append(table)
-                elements.append(Spacer(1, 4))
+                    elements.append(Spacer(.5, 2))
+                    elements.append(Paragraph(f"<b>{key} Item:</b>", styles["SubHeader"]))
+                    _add_section(elements, item, styles, level + 1)  # ⬅ RECURSE into each item
             else:
                 for item in v:
                     elements.append(Paragraph(f"- {item}", styles["Body"]))
             continue
 
-        # Default field rendering
-        label = Paragraph(f"<b>{key}:</b>", styles["Body"])
+        # DEFAULT FIELDS
         style_key = k.lower()
         highlight_style = styles.get("HighlightBox", styles["Body"])
         if style_key in [
@@ -327,11 +314,11 @@ def _add_section(elements, data, styles, level=0):
             value = Paragraph(str(v), highlight_style)
         else:
             value = Paragraph(str(v), styles["Body"])
-        table = Table([[label, value]], colWidths=[2.5 * inch, 3.5 * inch])
+        table = Table([[Paragraph(f"<b>{key}:</b>", styles["Body"]), value]], colWidths=[2.5 * inch, 3.5 * inch])
         table.setStyle(TableStyle([
             ("VALIGN", (0, 0), (-1, -1), "TOP"),
             ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
             ("TOPPADDING", (0, 0), (-1, -1), 2),
         ]))
         elements.append(table)
-        elements.append(Spacer(1, 2))
+        elements.append(Spacer(.5, .5))

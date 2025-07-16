@@ -45,7 +45,7 @@ export default function PastReports() {
   const [errorMessage, setErrorMessage] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
-  const hasFetched = useRef(false);
+
 
   const fetchReports = async () => {
     try {
@@ -421,20 +421,23 @@ export default function PastReports() {
   };
 
   useEffect(() => {
-    // Initial fetch
-    if (!hasFetched.current) {
-      fetchReports();
-      hasFetched.current = true;
-    }
+    // 1. Initial fetch and event listener setup
+    fetchReports();
 
-    // Set up interval to fetch reports every 15 seconds
-    const intervalId = setInterval(() => {
+    const handleReportGenerated = () => {
+      console.log("reportGenerated event received, fetching reports.");
       fetchReports();
-    }, 15000);
+    };
 
-    // Clean up interval on component unmount
-    return () => clearInterval(intervalId);
-  }, []);
+    window.addEventListener("reportGenerated", handleReportGenerated);
+
+    // Cleanup on unmount
+    return () => {
+      window.removeEventListener("reportGenerated", handleReportGenerated);
+    };
+  }, []); // <-- Empty dependency array ensures this runs only once on mount
+
+
 
   return (
     <div className="max-w-7xl mx-auto">
