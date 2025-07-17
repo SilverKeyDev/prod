@@ -65,9 +65,16 @@ def _section_neighborhood_overview(address, enabled=True):
     "what_people_love": "Friendly neighbors, lots of coffee shops.",
     "things_to_watch_out_for": "Occasional late-night noise and traffic.",
     "population_total": "1,200,000 people",
-    "image_prompt": "{address}",
     "neighborhood_rating": "8.5/10",
+    "image_prompt": "{address}",
     "demographics": {{
+      "neighborhood_dna": {{
+       "tech_hub": "30%",
+       "family_friendly": "15%",
+       "nightlife": "45%",
+       "tourist_area": "10%",
+       "suburban": "5%"
+     }},
       "gender_distribution": {{
         "percent_men": "48.3%",
         "percent_women": "51.7%"

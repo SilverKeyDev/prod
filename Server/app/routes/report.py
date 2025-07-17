@@ -15,6 +15,7 @@ from flask_cors import cross_origin
 from jose import jwt
 import requests
 import os
+from sqlalchemy import or_
 from app.models.user import User
 from app.models.pdf_document import PDFDocument
 from app.services.s3_service import s3_service
@@ -56,11 +57,15 @@ def get_current_user():
     token = auth_header.replace("Bearer ", "")
     
     try:
+        current_app.logger.info("Decoding JWT with 30-second leeway for expiration.")
         claims = jwt.decode(
             token,
             JWKS,
             algorithms=["RS256"],
-            audience=COGNITO_CLIENT_ID
+            audience=COGNITO_CLIENT_ID,
+            options={
+                "leeway": 30
+            }
         )
         user = User.query.filter_by(cognito_id=claims['sub']).first()
         if not user:
@@ -150,17 +155,29 @@ def generate_report_endpoint():
             'status': 'completed',
             'result': result_data,
             'reports_remaining': user.reports_available,
-            'document_id': pdf_doc.id if 'pdf_doc' in locals() else None
+            'document_id': pdf_doc.id
         })
-        
-    except ValueError as e:
-        logger.error(f"Validation error in report generation: {str(e)}")
-        return jsonify({'error': str(e), 'success': False}), 400
+
     except Exception as e:
         logger.error(f"Unhandled error in generate_report_endpoint: {str(e)}")
         logger.error(f"Exception type: {type(e).__name__}")
         logger.error(f"Traceback: {traceback.format_exc()}")
-        return jsonify({'error': 'Internal server error', 'success': False}), 500
+
+        # Update the report status to 'error'
+        if 'pdf_doc' in locals() and pdf_doc:
+            try:
+                pdf_doc.status = 'error'
+                db.session.commit()
+                logger.info(f"Updated report {pdf_doc.id} status to 'error'")
+            except Exception as db_err:
+                logger.error(f"Failed to update report status to 'error': {db_err}")
+                db.session.rollback()
+
+        # Determine the correct status code and error message
+        if isinstance(e, ValueError):
+            return jsonify({'error': str(e), 'success': False}), 400
+        else:
+            return jsonify({'error': 'Internal server error', 'success': False}), 500
 
 @report_bp.route('/all', methods=['POST', 'GET'])
 @cross_origin(**cors_config)
@@ -174,19 +191,23 @@ def list_reports():
             return jsonify({'error': 'User not found', 'success': False}), 404
 
         # Get generating reports from database
-        generating_reports = PDFDocument.query.filter_by(
-            user_id=user.id,
-            status='generating'
+        generating_reports = PDFDocument.query.filter(
+            PDFDocument.user_id == user.id,
+            or_(
+                PDFDocument.status == 'generating',
+                PDFDocument.status == 'error'
+            )
         ).all()
         
         for report in generating_reports:
             reports_list.append({
                 'id': report.id,
-                'status': 'generating',
+                'status': report.status,
                 'generatedAt': int(report.created_at.timestamp()),
                 'address': os.path.splitext(os.path.basename(report.filename))[0],
                 's3Key': report.file_path
             })
+            logger.info(f"Found generating report for user {user.id}: {report.id}")
 
         # Get completed reports from S3
         s3_client = s3_service.s3_client
@@ -225,7 +246,18 @@ def list_reports():
     except Exception as e:
         logger.error(f"Error listing reports: {str(e)}")
         logger.error(traceback.format_exc())
-        return jsonify({'error': 'Internal server error'})
+
+        # Optionally mark generating reports as errored
+        if 'generating_reports' in locals():
+            try:
+                for report in generating_reports:
+                    report.status = 'error'
+                db.session.commit()
+            except Exception as db_err:
+                logger.error(f"Failed to update report statuses: {db_err}")
+                db.session.rollback()
+
+        return jsonify({'error': 'Internal server error', 'success': False}), 500
 
 @report_bp.route('/almostall', methods=['POST', 'GET'])
 @cross_origin(**cors_config)
@@ -457,15 +489,23 @@ def delete_report(report_id):
         # Delete from database
         db_deleted = False
         try:
-            # Try to find the PDF document by filename (report_id + .pdf)
-            pdf_doc = PDFDocument.query.filter_by(filename=f"{report_id}.pdf").first()
+            # First, try to find the document by its UUID (report_id)
+            pdf_doc = PDFDocument.query.get(report_id)
+            
+            # If not found by ID, try to find by filename from s3_key
+            if not pdf_doc and s3_key:
+                filename = os.path.basename(s3_key)
+                logger.info(f"[DELETE] Not found by ID, trying to find by filename: {filename}")
+                pdf_doc = PDFDocument.query.filter_by(filename=filename).first()
+
             if pdf_doc:
+                logger.info(f"[DELETE] Found PDF document in DB with ID: {pdf_doc.id}")
                 db.session.delete(pdf_doc)
                 db.session.commit()
                 db_deleted = True
-                logger.info(f"[DELETE] Successfully deleted PDF document from database: {report_id}")
+                logger.info(f"[DELETE] Successfully deleted PDF document from database: {pdf_doc.id}")
             else:
-                logger.warning(f"[DELETE] PDF document not found in database: {report_id}")
+                logger.warning(f"[DELETE] PDF document not found in database for report_id: {report_id}")
         except Exception as e:
             db.session.rollback()
             logger.error(f"[DELETE] Error deleting from database: {str(e)}")

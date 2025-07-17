@@ -16,7 +16,7 @@ interface Report {
   id: string;
   address: string;
   generatedAt: Date;
-  status: "completed" | "generating" | "failed";
+  status: "completed" | "generating" | "error";
   pdfUrl?: string | null;
   s3Key?: string | null;
 }
@@ -278,25 +278,6 @@ export default function PastReports() {
     }
   };
 
-  const retryGeneration = async (reportId: string) => {
-    try {
-      const baseUrl = API_BASE_URL || "";
-      const res = await fetch(`${baseUrl}/api/v1/report/retry`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: reportId }),
-      });
-
-      if (!res.ok) {
-        console.error("Retry failed with status", res.status);
-      } else {
-        fetchReports();
-      }
-    } catch (err) {
-      console.error("Retry request failed", err);
-    }
-  };
-
   const filteredReports = reports.filter((report) =>
     report.address.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -317,7 +298,7 @@ export default function PastReports() {
         return "text-green-600 bg-green-50";
       case "generating":
         return "text-gold bg-gold/10";
-      case "failed":
+      case "error":
         return "text-red-600 bg-red-50";
       default:
         return "text-navy/60 bg-beige/20";
@@ -330,8 +311,8 @@ export default function PastReports() {
         return "Completed";
       case "generating":
         return "Generating...";
-      case "failed":
-        return "Failed";
+      case "error":
+        return "Error";
       default:
         return status;
     }
@@ -681,14 +662,28 @@ export default function PastReports() {
                         <div className="shimmer w-full h-4 rounded mx-auto"></div>
                       </div>
                     )}
-                    {report.status === "failed" && (
-                      <button
-                        onClick={() => retryGeneration(report.id)}
-                        className="w-full btn-secondary py-2 text-sm flex items-center justify-center"
-                      >
-                        <Copy className="h-4 w-4 mr-1" />
-                        Retry
-                      </button>
+                    {report.status === "error" && (
+                      <div className="flex items-center justify-center space-x-2 w-full">
+                        <button
+                          onClick={() => {
+                            console.log(
+                              "[DELETE] Delete button clicked for report:",
+                              {
+                                id: report.id,
+                                s3Key: report.s3Key,
+                                address: report.address,
+                                status: report.status,
+                              }
+                            );
+                            openDeleteModal(report.id, report.s3Key);
+                          }}
+                          disabled={loadingUrls.has(report.id)}
+                          className="flex-1 btn-danger py-2 text-sm flex items-center justify-center disabled:opacity-50"
+                        >
+                          <Trash2 className="h-4 w-4 mr-1" />
+                          Delete
+                        </button>
+                      </div>
                     )}
                   </div>
                 </>
@@ -755,14 +750,28 @@ export default function PastReports() {
                     {report.status === "generating" && (
                       <div className="shimmer w-24 h-8 rounded"></div>
                     )}
-                    {report.status === "failed" && (
-                      <button
-                        onClick={() => retryGeneration(report.id)}
-                        className="btn-secondary py-2 px-3 text-sm flex items-center"
-                      >
-                        <Copy className="h-4 w-4 mr-1" />
-                        Retry
-                      </button>
+                    {report.status === "error" && (
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => {
+                            console.log(
+                              "[DELETE] Delete button clicked for report:",
+                              {
+                                id: report.id,
+                                s3Key: report.s3Key,
+                                address: report.address,
+                                status: report.status,
+                              }
+                            );
+                            openDeleteModal(report.id, report.s3Key);
+                          }}
+                          disabled={loadingUrls.has(report.id)}
+                          className="btn-danger py-2 px-3 text-sm flex items-center disabled:opacity-50"
+                        >
+                          <Trash2 className="h-4 w-4 mr-1" />
+                          Delete
+                        </button>
+                      </div>
                     )}
                   </div>
                 </>
