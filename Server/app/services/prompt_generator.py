@@ -140,7 +140,7 @@ def _section_social_character(enabled=True):
     "language_spoken": "English dominant, Spanish common",
     "religiosity": "Low to moderate",
     "cultural_tone": "Inclusive and artsy",
-    "social_rating": 8.5
+    "social_rating": 8.5/10
   },
 '''
 
@@ -212,7 +212,7 @@ def _section_nightlife_and_dating(enabled=True):
     return '''
   "nightlife_and_dating": {
     "nightlife_rating": "High",
-    "nightlife_score": 8.7,
+    "nightlife_score": 8.7/10,
     "best_spots": "Moonlight Lounge, The Vinyl Room, The 404, Drinks and Sounds",
     "dating_scene": "Vibrant and casual",
     "average_attractiveness_rating": "4.7/10",

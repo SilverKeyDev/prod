@@ -31,7 +31,7 @@ SERP_API_ENDPOINT = "https://serpapi.com/search.json"
 
 logger = logging.getLogger(__name__)
 
-def _create_pdf(report: dict, address: str) -> str:
+def _create_pdf(report: dict, address: str, filename: str) -> str:
     if not report:
         logger.error("No report data provided")
         raise ValueError("Report data is required")
@@ -88,8 +88,6 @@ def _create_pdf(report: dict, address: str) -> str:
         pdf_data = pdf_buffer.getvalue()
         pdf_buffer.close()
 
-        safe_address = "".join(c for c in address if c.isalnum() or c in (' ', '-', '_')).rstrip().replace(' ', '_')
-        filename = f"reports/{safe_address}_{uuid.uuid4().hex[:8]}.pdf"
         s3_key = s3_service.upload_pdf(pdf_data, filename, 'application/pdf')
 
         if s3_key:
@@ -105,27 +103,9 @@ def _create_pdf(report: dict, address: str) -> str:
             logger.info("S3 upload successful, generating presigned URL")
             presigned_url = s3_service.generate_presigned_url(s3_key)
             return presigned_url if presigned_url else s3_key
-        else:
-            logger.warning("S3 upload failed, falling back to local storage")
-            return _save_pdf_locally(pdf_data, address)
 
     except Exception as e:
         logger.error(f"Error creating PDF for address {address}: {str(e)}")
-        logger.error(f"Exception type: {type(e).__name__}")
-        logger.error(f"Traceback: {traceback.format_exc()}")
-        raise
-
-def _save_pdf_locally(pdf_data: bytes, address: str) -> str:
-    try:
-        output_dir = os.path.join("static", "reports")
-        os.makedirs(output_dir, exist_ok=True)
-        safe_address = "".join(c for c in address if c.isalnum() or c in (' ', '-', '_')).rstrip().replace(' ', '_')
-        file_path = os.path.join(output_dir, f"{safe_address}.pdf")
-        with open(file_path, 'wb') as f:
-            f.write(pdf_data)
-        return f"/api/v1/report/static/reports/{safe_address}.pdf"
-    except Exception as e:
-        logger.error(f"Failed to save PDF locally: {str(e)}")
         logger.error(f"Exception type: {type(e).__name__}")
         logger.error(f"Traceback: {traceback.format_exc()}")
         raise

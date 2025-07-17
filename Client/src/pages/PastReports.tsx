@@ -46,11 +46,18 @@ export default function PastReports() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
 
-
   const fetchReports = async () => {
+    const idToken = localStorage.getItem("id_token");
     try {
       const baseUrl = API_BASE_URL || "";
       const res = await fetch(`${baseUrl}/api/v1/report/all`, {
+        method: "POST",
+        mode: "cors",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: `Bearer ${idToken}`,
+        },
         credentials: "include",
       });
       const json = await res.json();
@@ -436,8 +443,6 @@ export default function PastReports() {
       window.removeEventListener("reportGenerated", handleReportGenerated);
     };
   }, []); // <-- Empty dependency array ensures this runs only once on mount
-
-
 
   return (
     <div className="max-w-7xl mx-auto">

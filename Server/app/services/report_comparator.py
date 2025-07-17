@@ -44,68 +44,70 @@ def _download_json_from_s3(s3_key: str) -> Dict:
 def _extract_summary(data: Dict) -> Dict:
     """Extracts summary fields from report data."""
     logger.debug(f"🔍 Extracting summary from data: {json.dumps(data, indent=2)}")
+
+    # Get the first location key
+    location_key = next(iter(data.keys()), None)
+    if not location_key:
+        raise ValueError("No location key found in report data")
     
-    # Mapping of desired fields to their locations in the JSON data
+    location_data = data.get(location_key, {})
+
+    # Mapping of fields to dot-separated paths
     field_mappings = {
-        "Neighborhood Vibe": ("neighborhood_overview", "vibe"),
-        "Nearby Amenities": ("cool_stuff_nearby", None), # Special handling for nested objects
-        "Community Events": ("neighborhood_overview", "community_events"),
-        "Neighborhood Rating": ("neighborhood_overview", "neighborhood_rating"),
-        "Crime Rating": ("safety", "crime_rating"),
-        "Crime Score": ("safety", "crime_score"),
-        "Flood/Fire Risk": ("safety", "flood_or_fire_risk"),
-        "Accessibility Rating": ("accessibility", "accessibility_rating"),
-        "Wheelchair Friendly": ("accessibility", "wheelchair_friendly"),
-        "Development": ("development", "upcoming_changes"),
-        "Gentrification": ("development", "gentrification_signs"),
-        "Culture Rating": ("culture_and_events", "culture_rating"),
-        "Seasonal Trends": ("culture_and_events", "seasonal_trends"),
-        "Environmental Rating": ("environment_and_utilities", "environmental_rating"),
-        "Air Quality": ("environment_and_utilities", "air_quality"),
-        "Internet Speed": ("environment_and_utilities", "internet_speed"),
-        "Social Rating": ("social_character", "social_rating"),
-        "Income Level": ("social_character", "income_level"),
-        "Religiosity": ("social_character", "religiosity"),
-        "Financial Rating": ("money_stuff", "financial_rating"),
-        "Monthly Rent": ("money_stuff", "monthly_payment"),
-        "Commute": ("commute", "commute_times"),
-        "Commute Rating": ("commute", "commute_rating"),
-        "Family Rating": ("family_friendly", "family_rating"),
-        "Family Notes": ("family_friendly", "great_for_families"),
-        "Nightlife Score": ("young_people_vibes", "nightlife_score"),
-        "Dating Scene": ("young_people_vibes", "dating_scene"),
-        "Pet Friendly": ("extra_tips", "pet_friendly"),
-        "Cell Service": ("extra_tips", "cell_service_quality"),
+        "Neighborhood Vibe": ("vibe", location_data),
+        "Community Events": ("community_events", location_data),
+        "Neighborhood Rating": ("neighborhood_rating", location_data),
+        "Crime Rating": ("safety.crime_rating", data),
+        "Accessibility Rating": ("accessibility.accessibility_rating", data),
+        "Wheelchair Friendly": ("accessibility.wheelchair_friendly", data),
+        "Development": ("development.upcoming_changes", data),
+        "Gentrification": ("development.gentrification_signs", data),
+        "Culture Rating": ("culture_and_events.culture_rating", data),
+        "Seasonal Trends": ("culture_and_events.seasonal_trends", data),
+        "Environmental Rating": ("environment_and_utilities.environmental_rating", data),
+        "Air Quality": ("environment_and_utilities.air_quality", data),
+        "Internet Speed": ("environment_and_utilities.internet_speed", data),
+        "Social Rating": ("social_character.social_rating", data),
+        "Income Level": ("social_character.income_level", data),
+        "Religiosity": ("social_character.religiosity", data),
+        "Financial Rating": ("money_stuff.financial_rating", data),
+        "Monthly Rent": ("money_stuff.monthly_payment", data),
+        "Commute": ("commute.commute_times", data),
+        "Family Rating": ("family_friendly.family_rating", data),
+        "Family Notes": ("family_friendly.great_for_families", data),
+        "Nightlife Score": ("nightlife_and_dating.nightlife_score", data),
+        "Dating Scene": ("nightlife_and_dating.dating_scene", data),
+        "Pet Friendly": ("extra_tips.pet_friendly", data),
+        "Cell Service": ("extra_tips.cell_service_quality", data),
     }
 
     summary = {}
     missing_fields = []
 
-    for field, (section, key) in field_mappings.items():
-        source_dict = data.get(section, {})
-        
-        if key:
-            value = source_dict.get(key)
-            if value is not None:
-                summary[field] = value
+    for field, (path, base) in field_mappings.items():
+        path_parts = path.split('.')
+        current = base
+        for part in path_parts:
+            if isinstance(current, dict):
+                current = current.get(part, None)
             else:
-                missing_fields.append(field)
-        elif section == "cool_stuff_nearby":
-            # Special handler for amenities
-            amenities = []
-            if source_dict.get("restaurants"): amenities.append("Restaurants")
-            if source_dict.get("activities"): amenities.append("Activities")
-            if source_dict.get("parks"): amenities.append("Parks")
-            if source_dict.get("shopping"): amenities.append("Shopping")
-            summary[field] = ", ".join(amenities) if amenities else None
-            if not summary[field]:
-                missing_fields.append(field)
+                current = None
+                break
+
+        if current is not None:
+            summary[field] = str(current)
+            logger.debug(f"✅ Found field '{field}' at path '{path}'")
+        else:
+            summary[field] = ""
+            logger.debug(f"🔍 Field '{field}' not found at path '{path}'")
+            missing_fields.append(field)
 
     if missing_fields:
         logger.warning(f"Missing fields in report data: {missing_fields}")
 
     logger.debug(f"✅ Extracted summary: {summary}")
     return summary
+
 
 
 def compare_reports(s3_keys: List[str]) -> pd.DataFrame:
@@ -124,18 +126,25 @@ def compare_reports(s3_keys: List[str]) -> pd.DataFrame:
             raw = _download_json_from_s3(key)
         except Exception as primary_exc:
             # Attempt fallbacks
-            base_key = key
-            alt_keys = set()
+            # Try different possible extensions
+            alt_keys = [
+                key.replace('.json', '_RAW.json'),
+                key.replace('_RAW.json', '.json'),
+                key.replace('.json', '.json.gz'),
+                key.replace('_RAW.json', '_RAW.json.gz')
+            ]
             
             for alt_key in alt_keys:
-                tried_keys.append(alt_key)
-                logger.debug(f"🔁 Trying fallback key: {alt_key}")
-                try:
-                    raw = _download_json_from_s3(alt_key)
-                    key = alt_key  # update to working key
-                    break
-                except Exception:
-                    continue
+                if alt_key != key:  # Don't try the original key again
+                    tried_keys.append(alt_key)
+                    logger.debug(f"🔁 Trying fallback key: {alt_key}")
+                    try:
+                        raw = _download_json_from_s3(alt_key)
+                        key = alt_key  # update to working key
+                        break
+                    except Exception as e:
+                        logger.debug(f"❌ Failed to download {alt_key}: {e}")
+                        continue
 
             if raw is None:
                 logger.error(f"❌ All attempts failed for: {tried_keys}")

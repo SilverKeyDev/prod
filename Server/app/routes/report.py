@@ -7,7 +7,7 @@ from app.models.pdf_document import PDFDocument
 from app import db
 import time
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from app.services.report_generator import generate_report, REPORTS, create_placeholder_pdf
+from app.services.report_generator import generate_report
 from app.services.s3_service import s3_service
 from flask import current_app
 from app import db
@@ -92,6 +92,29 @@ def generate_report_endpoint():
             logger.error(f"User not found with ID: {current_user_id}")
             return jsonify({'error': 'User not found', 'success': False}), 404
         
+        data = request.get_json()
+        if not data:
+            logger.error("No JSON data provided in request")
+            return jsonify({'error': 'No data provided', 'success': False}), 400
+        
+        address = data.get('address')
+        if not address:
+            logger.error("No address provided in request data")
+            return jsonify({'error': 'Address is required', 'success': False}), 400
+
+        safe_address = "".join(c for c in address if c.isalnum() or c in (' ', '-', '_')).rstrip().replace(' ', '_')
+        filenamee = f"reports/{safe_address}_{uuid.uuid4().hex[:8]}.pdf"
+
+        pdf_doc = PDFDocument(
+                id=str(uuid.uuid4()),
+                user_id=user.id,
+                filename=filenamee,
+                file_path=filenamee,  # Use the same path since it's stored in S3
+                status='generating',
+            )
+        db.session.add(pdf_doc)
+        db.session.commit()
+        
         
         if user.reports_available <= 0:
             logger.warning(f"User {user.id} has no active subscription and no reports available")
@@ -106,30 +129,14 @@ def generate_report_endpoint():
         db.session.commit()
         logger.info(f"Deducted 1 report from user {user.id}. Remaining: {user.reports_available}")
         
-        data = request.get_json()
-        if not data:
-            logger.error("No JSON data provided in request")
-            return jsonify({'error': 'No data provided', 'success': False}), 400
-        
-        address = data.get('address')
-        if not address:
-            logger.error("No address provided in request data")
-            return jsonify({'error': 'Address is required', 'success': False}), 400
         
         # Generate the report
-        result_data = generate_report(address)
+        result_data = generate_report(address, filenamee)
         
-        # Create a PDF document record
+        # Update PDF document record
         try:
-            pdf_doc = PDFDocument(
-                id=str(uuid.uuid4()),
-                user_id=user.id,
-                filename=f"report_{int(time.time())}.pdf",
-                file_path=f"reports/{user.id}/{int(time.time())}_report.pdf",
-                status='processed',
-                file_size=len(str(result_data).encode('utf-8'))  # Approximate size
-            )
-            db.session.add(pdf_doc)
+            pdf_doc.status = 'processed'
+            pdf_doc.file_size = len(str(result_data).encode('utf-8'))
             db.session.commit()
             logger.info(f"Created PDF document record with ID: {pdf_doc.id} for user {user.id}")
         except Exception as e:
@@ -155,55 +162,33 @@ def generate_report_endpoint():
         logger.error(f"Traceback: {traceback.format_exc()}")
         return jsonify({'error': 'Internal server error', 'success': False}), 500
 
-@report_bp.route('/all', methods=['GET'])
+@report_bp.route('/all', methods=['POST', 'GET'])
+@cross_origin(**cors_config)
 def list_reports():
-    """
-    Return a list of all generated reports with basic metadata,
-    combining in-memory REPORTS plus any PDFs directly found in S3.
-    """
     try:
         reports_list = []
         seen_names = set()
+        user = get_current_user()
+        if not user:
+            logger.error(f"User not found with ID: {current_user_id}")
+            return jsonify({'error': 'User not found', 'success': False}), 404
 
-        # First add the in-memory reports
-        for task_id, data in REPORTS.items():
-            try:
-                pdf_url = data.get('pdfUrl')
-                address = data.get('address', 'Unknown Address')
-                s3_key = None
+        # Get generating reports from database
+        generating_reports = PDFDocument.query.filter_by(
+            user_id=user.id,
+            status='generating'
+        ).all()
+        
+        for report in generating_reports:
+            reports_list.append({
+                'id': report.id,
+                'status': 'generating',
+                'generatedAt': int(report.created_at.timestamp()),
+                'address': os.path.splitext(os.path.basename(report.filename))[0],
+                's3Key': report.file_path
+            })
 
-                if pdf_url and not pdf_url.startswith(('http', '/')):
-                    s3_key = pdf_url
-                    pdf_url = s3_service.generate_presigned_url(s3_key)
-                elif pdf_url and pdf_url.startswith('http'):
-                    # extract filename from presigned url
-                    s3_key = os.path.basename(pdf_url.split('?')[0])
-
-                # store just the file name for deduplication
-                if s3_key:
-                    seen_names.add(os.path.basename(s3_key))
-
-                reports_list.append({
-                    'id': task_id,
-                    'status': data.get('status'),
-                    'generatedAt': data.get('timestamp'),
-                    'pdfUrl': pdf_url,
-                    'address': address,
-                    's3Key': s3_key
-                })
-
-            except Exception as e:
-                logger.error(f"Error processing report {task_id}: {str(e)}")
-                reports_list.append({
-                    'id': task_id,
-                    'status': 'error',
-                    'generatedAt': data.get('timestamp'),
-                    'pdfUrl': None,
-                    'address': address,
-                    'error': str(e)
-                })
-
-        # Now list S3 objects
+        # Get completed reports from S3
         s3_client = s3_service.s3_client
         if s3_client:
             bucket_name = current_app.config.get("S3_BUCKET_NAME_PDFS")
@@ -232,7 +217,55 @@ def list_reports():
         else:
             logger.warning("S3 client not initialized, cannot list bucket")
 
-        logger.info(f"Returning {len(reports_list)} reports combined from memory + S3")
+        # Sort reports with generating ones first, using default timestamp if missing
+        reports_list.sort(key=lambda x: (x['status'] != 'generating', x.get('generatedAt', 0)), reverse=True)
+
+        return jsonify({'success': True, 'reports': reports_list})
+
+    except Exception as e:
+        logger.error(f"Error listing reports: {str(e)}")
+        logger.error(traceback.format_exc())
+        return jsonify({'error': 'Internal server error'})
+
+@report_bp.route('/almostall', methods=['POST', 'GET'])
+@cross_origin(**cors_config)
+def list_reports_almostall():
+    try:
+        reports_list = []
+        seen_names = set()
+
+        # Get completed reports from S3
+        s3_client = s3_service.s3_client
+        if s3_client:
+            bucket_name = current_app.config.get("S3_BUCKET_NAME_PDFS")
+            response = s3_client.list_objects_v2(Bucket=bucket_name)
+
+            for obj in response.get("Contents", []):
+                s3_key = obj["Key"]
+                file_name = os.path.basename(s3_key)
+
+                if file_name in seen_names:
+                    continue  # skip duplicate
+
+                if not file_name.endswith('.pdf'):
+                    continue
+
+                presigned_url = s3_service.generate_presigned_url(s3_key)
+                reports_list.append({
+                    'id': file_name.replace("/", "_"),
+                    'status': 'completed',
+                    'generatedAt': int(obj["LastModified"].timestamp()),
+                    'pdfUrl': presigned_url,
+                    'address': os.path.splitext(file_name)[0],
+                    's3Key': s3_key
+                })
+
+        else:
+            logger.warning("S3 client not initialized, cannot list bucket")
+
+        # Sort reports with generating ones first, using default timestamp if missing
+        reports_list.sort(key=lambda x: (x['status'] != 'generating', x.get('generatedAt', 0)), reverse=True)
+
         return jsonify({'success': True, 'reports': reports_list})
 
     except Exception as e:
@@ -250,11 +283,6 @@ def get_download_url(report_id):
             logger.error("No report ID provided")
             return jsonify({'error': 'Report ID is required'}), 400
         
-        if report_id not in REPORTS:
-            logger.error(f"Report not found: {report_id}")
-            return jsonify({'error': 'Report not found'}), 404
-        
-        report_data = REPORTS[report_id]
         pdf_url = report_data.get('pdfUrl')
         
         if not pdf_url:
@@ -391,7 +419,7 @@ def delete_report(report_id):
                             logger.info(f"[DELETE] Successfully deleted from S3. Response: {delete_response}")
                             
                             # Also delete the _RAW version if it exists
-                            raw_s3_key = s3_key.replace('.pdf', '_RAW.json')
+                            raw_s3_key = s3_key.replace('.pdf', '.json')
                             try:
                                 s3_service.s3_client.head_object(Bucket=bucket_name, Key=raw_s3_key)
                                 raw_delete_response = s3_service.s3_client.delete_object(
@@ -425,14 +453,6 @@ def delete_report(report_id):
                 except Exception as e:
                     logger.error(f"[DELETE] Error in S3 deletion process: {str(e)}")
                     logger.error(traceback.format_exc())
-        
-        # Delete from in-memory storage
-        logger.info(f"[DELETE] Attempting to delete from in-memory storage: {report_id}")
-        if report_id in REPORTS:
-            del REPORTS[report_id]
-            logger.info(f"[DELETE] Successfully removed report from memory: {report_id}")
-        else:
-            logger.warning(f"[DELETE] Report ID {report_id} not found in memory storage")
         
         # Delete from database
         db_deleted = False

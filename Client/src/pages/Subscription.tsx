@@ -413,7 +413,7 @@ export default function Subscription() {
           >
             One-Time Purchase
           </button>
-          <button
+          {/*<button
             onClick={() => setActiveTab("unlimited")}
             className={`px-6 py-2 rounded text-sm font-medium transition-all ${
               activeTab === "unlimited"
@@ -422,7 +422,7 @@ export default function Subscription() {
             }`}
           >
             Unlimited Subscription
-          </button>
+          </button>*/}
         </div>
       </div>
 

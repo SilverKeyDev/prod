@@ -24,12 +24,9 @@ interface Report {
 
 const METRIC_KEYS: string[] = [
   "Neighborhood Vibe",
-  "Nearby Amenities",
   "Community Events",
   "Neighborhood Rating",
   "Crime Rating",
-  "Crime Score",
-  "Flood/Fire Risk",
   "Accessibility Rating",
   "Wheelchair Friendly",
   "Development",
@@ -45,7 +42,6 @@ const METRIC_KEYS: string[] = [
   "Financial Rating",
   "Monthly Rent",
   "Commute",
-  "Commute Rating",
   "Family Rating",
   "Family Notes",
   "Nightlife Score",
@@ -68,7 +64,7 @@ export default function CompareReportsPage() {
     try {
       setIsLoading(true);
       const baseUrl = import.meta.env.VITE_API_BASE_URL || "";
-      const res = await fetch(`${baseUrl}/api/v1/report/all`, {
+      const res = await fetch(`${baseUrl}/api/v1/report/almostall`, {
         credentials: "include",
       });
       const json = await res.json();

@@ -34,8 +34,6 @@ HEADERS = {
     "Content-Type": "application/json"
 }
 
-# Store reports in memory (should use a database in production)
-REPORTS = {}
 
 # -------------------- UTILS --------------------
 
@@ -99,24 +97,15 @@ def _safe_parse_json(text: str):
 
 # -------------------- MAIN FUNCTION --------------------
 
-def generate_report(address: str) -> Dict:
+def generate_report(address: str, filename: str) -> Dict:
     """Generate a comprehensive property report and upload PDF to S3"""
     task_id = str(uuid.uuid4())
     logger.info(f"📝 Starting report generation for address: {address}")
     logger.info(f"🆔 Task ID: {task_id}")
-
-    REPORTS[task_id] = {
-        "address": address,
-        "status": "generating",
-        "timestamp": time.time(),
-    }
-
     try:
         # Validate address
         if not validate_address(address):
             logger.error("🚫 Address validation failed")
-            REPORTS[task_id]["status"] = "failed"
-            REPORTS[task_id]["error"] = "Invalid address format"
             raise ValueError("Invalid address format")
 
         logger.info("✅ Address validation passed, building prompt")
@@ -191,15 +180,7 @@ def generate_report(address: str) -> Dict:
             report = _safe_parse_json(raw_json_text)
 
             logger.debug("🖨️ Calling PDF generation helper...")
-            pdf_url = _create_pdf(report, address)
-
-            REPORTS[task_id] = {
-                "address": address,
-                "status": "completed",
-                "report": report,
-                "pdfUrl": pdf_url,
-                "timestamp": time.time(),
-            }
+            pdf_url = _create_pdf(report, address, filename)
 
             logger.info(f"✅ Report generation completed successfully for task {task_id}")
             return report
@@ -209,14 +190,11 @@ def generate_report(address: str) -> Dict:
             logger.error(f"Exception type: {type(e).__name__}")
             logger.error(f"Traceback:\n{traceback.format_exc()}")
 
-            REPORTS[task_id]["status"] = "failed"
-            REPORTS[task_id]["error"] = str(e)
+
             raise
 
     except Exception as e:
         logger.error(f"❌ Unhandled error in generate_report: {str(e)}")
         logger.error(f"Exception type: {type(e).__name__}")
         logger.error(f"Traceback:\n{traceback.format_exc()}")
-        REPORTS[task_id]["status"] = "failed"
-        REPORTS[task_id]["error"] = str(e)
         raise
