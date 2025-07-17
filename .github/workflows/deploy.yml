@@ -125,6 +125,13 @@ jobs:
             echo "⏳ Waiting for container to boot..."
             sleep 5
 
+            echo "🗄 Running database migrations (flask db upgrade)..."
+            sudo docker exec cre_app flask db upgrade || {
+              echo "::error::Database migration failed"
+              sudo docker logs cre_app
+              exit 1
+            }
+
             echo "🗂 Copying static frontend from container to host..."
             sudo rm -rf /var/www/html/*
             sudo docker cp cre_app:/app/Client/dist/. /var/www/html/
