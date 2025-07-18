@@ -23,3 +23,5 @@ stripe==9.4.0
 matplotlib==3.7.2
 numpy<2
 pandas==2.0.3
+celery==5.3.4
+redis==5.0.1
