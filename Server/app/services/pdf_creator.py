@@ -54,9 +54,9 @@ def _create_pdf(report: dict, address: str, filename: str) -> str:
         )
 
         styles = getSampleStyleSheet()
-        styles.add(ParagraphStyle(name="MainTitle", fontSize=20, leading=28, fontName="Helvetica-Bold", textColor=colors.black, alignment=TA_CENTER, spaceAfter=4))
+        styles.add(ParagraphStyle(name="MainTitle", fontSize=20, leading=28, fontName="Helvetica-Bold", textColor=colors.black, alignment=TA_CENTER))
         styles.add(ParagraphStyle(name="SectionHeader", fontSize=18, leading=22, textColor=colors.black, fontName="Helvetica-Bold", spaceAfter=8))
-        styles.add(ParagraphStyle(name="SectionSubHeader", fontSize=16, leading=20, textColor=colors.black, fontName="Helvetica-Bold", spaceAfter=8))
+        styles.add(ParagraphStyle(name="SectionSubHeader", fontSize=16, leading=20, textColor=colors.green, fontName="Helvetica-Bold", spaceAfter=8))
         styles.add(ParagraphStyle(name="SubHeader", fontSize=11, leading=14, textColor="#6A7B52", fontName="Helvetica-Bold", spaceAfter=6))
         styles.add(ParagraphStyle(name="Body", fontSize=10, leading=13, fontName="Helvetica", spaceAfter=4))
         styles.add(ParagraphStyle(name="Caption", fontSize=8, leading=10, textColor=colors.grey, alignment=TA_CENTER, fontName="Helvetica-Oblique"))
@@ -275,7 +275,7 @@ def _add_section(elements, data, styles, level=0):
 
             if level == 0:
                 elements.append(Spacer(1, 12))
-                elements.append(Paragraph(f"<b>{key}:</b>", styles["SectionHeader"]))
+                elements.append(Paragraph(f"<b>{key}:</b>", styles["SectionSubHeader"]))
                 elements.append(HRFlowable(width="30%", thickness=0.5, color="#AAAAAA", hAlign='LEFT'))
             elif level == 1 and has_nested:
                 elements.append(Spacer(1, 6))
