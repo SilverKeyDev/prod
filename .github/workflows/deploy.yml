@@ -94,6 +94,12 @@ jobs:
               sudo docker rm cre_app || true
             fi
 
+            echo "🚀 Starting Celery worker..."
+            if sudo docker ps -a --format '{{.Names}}' | grep -Eq '^cre_worker$'; then
+              sudo docker stop cre_worker || true
+              sudo docker rm cre_worker || true
+            fi
+
             echo "🚀 Starting new container..."
             sudo docker run -d -p 5000:5000 --name cre_app \
               -e AWS_REGION="${{ secrets.AWS_REGION }}" \
@@ -104,8 +110,6 @@ jobs:
               -e COGNITO_CLIENT_SECRET="${{ secrets.COGNITO_CLIENT_SECRET }}" \
               -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
               -e S3_BUCKET_NAME_PDFS="${{ secrets.S3_BUCKET_NAME_PDFS }}" \
-              -e STRIPE_PUBLIC_KEY="${{ secrets.STRIPE_PUBLIC_KEY }}" \
-              -e STRIPE_SECRET_KEY="${{ secrets.STRIPE_SECRET_KEY }}" \
               -e STRIPE_PROD_ID_BASIC="${{ secrets.STRIPE_PROD_ID_BASIC }}" \
               -e GOOGLE_MAPS_API_KEY="${{ secrets.GOOGLE_MAPS_API_KEY }}" \
               -e PERPLEXITY_API_KEY="${{ secrets.PERPLEXITY_API_KEY }}" \
@@ -121,6 +125,37 @@ jobs:
               -e STRIPE_UNLIMITED_YEARLY="${{ secrets.STRIPE_UNLIMITED_YEARLY }}" \
               -e SERP_API="${{ secrets.SERP_API }}" \
               "$IMAGE"
+            
+            echo "📦 Ensuring Redis is running..."
+            if ! sudo docker ps --format '{{.Names}}' | grep -q '^redis$'; then
+              if sudo docker ps -a --format '{{.Names}}' | grep -q '^redis$'; then
+                sudo docker rm redis
+              fi
+              sudo docker run -d --name redis -p 6379:6379 redis:7
+            fi
+
+            
+            echo "🚀 Starting Celery worker container (cre_worker)..."
+            sudo docker run -d --name cre_worker \
+              --network host \
+              -e AWS_REGION="${{ secrets.AWS_REGION }}" \
+              -e AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" \
+              -e AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
+              -e COGNITO_USER_POOL_ID="${{ secrets.COGNITO_USER_POOL_ID }}" \
+              -e COGNITO_CLIENT_ID="${{ secrets.COGNITO_CLIENT_ID }}" \
+              -e COGNITO_CLIENT_SECRET="${{ secrets.COGNITO_CLIENT_SECRET }}" \
+              -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
+              -e S3_BUCKET_NAME_PDFS="${{ secrets.S3_BUCKET_NAME_PDFS }}" \
+              -e CELERY_BROKER_URL="redis://localhost:6379/0" \
+              -e CELERY_RESULT_BACKEND="redis://localhost:6379/0" \
+              -e STRIPE_PUBLIC_KEY="${{ secrets.STRIPE_PUBLIC_KEY }}" \
+              -e STRIPE_SECRET_KEY="${{ secrets.STRIPE_SECRET_KEY }}" \
+              -e STRIPE_PROD_ID_BASIC="${{ secrets.STRIPE_PROD_ID_BASIC }}" \
+              -e GOOGLE_MAPS_API_KEY="${{ secrets.GOOGLE_MAPS_API_KEY }}" \
+              -e PERPLEXITY_API_KEY="${{ secrets.PERPLEXITY_API_KEY }}" \
+              -e SERP_API="${{ secrets.SERP_API }}" \
+              "$IMAGE" \
+              celery -A app.celery.celery_worker worker --loglevel=info
 
             echo "⏳ Waiting for container to boot..."
             sleep 5
