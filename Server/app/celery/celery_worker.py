@@ -17,3 +17,5 @@ class ContextTask(celery.Task):
             return self.run(*args, **kwargs)
 
 celery.Task = ContextTask
+
+import app.celery.tasks
