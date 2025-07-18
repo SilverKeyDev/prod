@@ -126,22 +126,6 @@ jobs:
               -e SERP_API="${{ secrets.SERP_API }}" \
               "$IMAGE"
             
-            echo "📦 Ensuring Redis is running..."
-
-            # Kill any process using port 6379 (to avoid conflict with Redis container)
-            if sudo lsof -i :6379 >/dev/null 2>&1; then
-              echo "⚠️ Port 6379 is currently in use. Attempting to free it..."
-              sudo fuser -k 6379/tcp || true
-            fi
-
-            # Stop and remove Redis container if it already exists
-            if sudo docker ps -a --format '{{.Names}}' | grep -q '^redis$'; then
-              sudo docker stop redis || true
-              sudo docker rm redis || true
-            fi
-
-            # Start a fresh Redis container
-            sudo docker run -d --name redis -p 6379:6379 redis:7
             
             echo "🚀 Starting Celery worker container (cre_worker)..."
             sudo docker run -d --name cre_worker \
