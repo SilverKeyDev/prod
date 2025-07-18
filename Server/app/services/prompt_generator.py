@@ -120,7 +120,8 @@ def _section_culture_and_events(address, enabled=True):
     "local_events": "Art Walk, Summer Jazz Fest",
     "seasonal_trends": "Busy in summer, quiet winters",
     "community_engagement": "Active neighborhood watch and cleanup days",
-    "culture_rating": "9.0/10"
+    "culture_rating": "9.0/10",
+    "image_prompt": "Atlanta summer jazz fest"
   },
 '''
 
@@ -133,7 +134,7 @@ def _section_weather(address, enabled=True):
     "summer": "Avg low: 65, Avg high: 85, very hot, high humidity",
     "fall": "Avg low: 45, Avg high: 65, very temperate, best time to visit",
     "winter": "Avg low: 30, Avg high: 50, cold, high chance of rain, low chance of snow",
-    "image_prompt": "yearly weather chart for {address}"
+    "image_prompt": "yearly weather chart for Atlanta, GA"
   }},
 '''
 
@@ -147,7 +148,8 @@ def _section_social_character(enabled=True):
     "language_spoken": "English dominant, Spanish common",
     "religiosity": "Low to moderate",
     "cultural_tone": "Inclusive and artsy",
-    "social_rating": 8.5/10
+    "social_rating": 8.5/10,
+    "image_prompt": "Atlanta voting map 2024"
   },
 '''
 
