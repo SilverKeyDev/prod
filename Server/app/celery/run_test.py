@@ -1,7 +1,6 @@
-# run_test.py
-from tasks import add
+from tasks import example_task
 
 if __name__ == "__main__":
-    result = add.delay(3, 4)
+    result = example_task.delay()
     print("Task submitted! Waiting for result...")
-    print(result.get(timeout=10))  # should print 7
+    print(result.get(timeout=10))  # should print "Done"
