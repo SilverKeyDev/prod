@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Mail, Lock, User as UserIcon, Phone } from "lucide-react";
+import { Mail, Lock, User as UserIcon, Phone, ArrowLeft } from "lucide-react";
 import { authApi } from "../lib/api";
 import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
@@ -59,28 +59,37 @@ export default function SignupPage({}: SignupPageProps) {
   return (
     <div className="min-h-screen bg-off-white flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">
+        {/* Home Button */}
+        <Link
+          to="/"
+          className="inline-flex items-center text-black/60 hover:text-black mb-6 transition-colors"
+        >
+          <ArrowLeft className="h-5 w-5 mr-2" />
+          <span className="text-sm font-medium">Back to Home</span>
+        </Link>
+
         {/* Header */}
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-serif text-navy mb-2">
+        <div className="text-center mb-6 sm:mb-8">
+          <h2 className="text-2xl sm:text-3xl font-serif text-black mb-2">
             Create your account
           </h2>
         </div>
 
         {/* Signup Form */}
-        <form onSubmit={handleSubmit} className="card space-y-5">
+        <form onSubmit={handleSubmit} className="card space-y-4 sm:space-y-5">
           {/* Name */}
           <div>
-            <label className="block text-sm font-medium text-navy mb-2">
+            <label className="block text-sm font-medium text-black mb-2">
               Full name
             </label>
             <div className="relative">
-              <UserIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-navy/40" />
+              <UserIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-black/40" />
               <input
                 type="text"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                className="input-field pl-10"
+                className="input-field pl-10 h-12 sm:h-10 text-base sm:text-sm placeholder:text-base placeholder:sm:text-sm"
                 placeholder="Enter your full name"
                 autoComplete="name"
                 required
@@ -90,17 +99,17 @@ export default function SignupPage({}: SignupPageProps) {
 
           {/* Email */}
           <div>
-            <label className="block text-sm font-medium text-navy mb-2">
+            <label className="block text-sm font-medium text-black mb-2">
               Email address
             </label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-navy/40" />
+              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-black/40" />
               <input
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                className="input-field pl-10"
+                className="input-field pl-10 h-12 sm:h-10 text-base sm:text-sm"
                 placeholder="Enter your email"
                 autoComplete="email"
                 required
@@ -110,18 +119,18 @@ export default function SignupPage({}: SignupPageProps) {
 
           {/* Password */}
           <div>
-            <label className="block text-sm font-medium text-navy mb-2">
+            <label className="block text-sm font-medium text-black mb-2">
               Password
             </label>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-navy/40" />
+              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-black/40" />
               <input
                 type="password"
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                className="input-field pl-10"
-                placeholder="Create a password"
+                className="input-field pl-10 h-12 sm:h-10 text-base sm:text-sm"
+                placeholder="Enter password"
                 autoComplete="new-password"
                 required
               />
@@ -130,11 +139,11 @@ export default function SignupPage({}: SignupPageProps) {
 
           {/* Phone */}
           <div>
-            <label className="block text-sm font-medium text-navy mb-2">
+            <label className="block text-sm font-medium text-black mb-2">
               Phone number
             </label>
             <div className="relative">
-              <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-navy/40 z-10" />
+              <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-black/40 z-10" />
               <PhoneInput
                 international
                 defaultCountry="US"
@@ -146,14 +155,22 @@ export default function SignupPage({}: SignupPageProps) {
               <style>{`
                 .phone-input {
                   width: 100%;
-                  padding: 0.5rem 0.75rem 0.5rem 2.5rem;
+                  padding: 0.75rem 0.75rem 0.75rem 2.5rem;
                   border: 1px solid #d1d5db;
                   border-radius: 0.5rem;
-                  font-size: 0.875rem;
+                  font-size: 1rem;
                   line-height: 1.25rem;
                   background-color: white;
                   transition: border-color 0.15s ease-in-out,
                     box-shadow 0.15s ease-in-out;
+                  height: 3rem;
+                }
+                @media (min-width: 640px) {
+                  .phone-input {
+                    padding: 0.5rem 0.75rem 0.5rem 2.5rem;
+                    font-size: 0.875rem;
+                    height: 2.5rem;
+                  }
                 }
                 .phone-input:focus {
                   outline: none;
@@ -177,7 +194,7 @@ export default function SignupPage({}: SignupPageProps) {
           <button
             type="submit"
             disabled={loading}
-            className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed h-12 sm:h-10 text-base sm:text-sm font-semibold"
           >
             {loading ? (
               <div className="shimmer w-20 h-5 rounded mx-auto"></div>
@@ -186,8 +203,8 @@ export default function SignupPage({}: SignupPageProps) {
             )}
           </button>
 
-          <div className="text-center text-sm">
-            <span className="text-navy/60">Already have an account? </span>
+          <div className="text-center text-sm sm:text-base">
+            <span className="text-gray-600 sm:text-black/60">Already have an account? </span>
             <Link
               to="/login"
               className="text-gold hover:text-gold-light transition-colors"
@@ -200,22 +217,22 @@ export default function SignupPage({}: SignupPageProps) {
         {/* Footer Links */}
         <div className="mt-4 pt-6 border-t border-gray-100">
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-sm">
-            <div className="flex items-center gap-6 text-navy/60">
+            <div className="flex items-center gap-6 text-black/60">
               <Link 
                 to="/privacy" 
-                className="hover:text-brown transition-colors hover:underline underline-offset-4 decoration-brown/40"
+                className="hover:text-black transition-colors hover:underline underline-offset-4 decoration-brown/40"
               >
                 Privacy Policy
               </Link>
               <Link 
                 to="/terms" 
-                className="hover:text-brown transition-colors hover:underline underline-offset-4 decoration-brown/40"
+                className="hover:text-black transition-colors hover:underline underline-offset-4 decoration-brown/40"
               >
                 Terms of Service
               </Link>
             </div>
             <span className="hidden sm:inline-block h-4 w-px bg-gray-200"></span>
-            <p className="text-xs text-navy/40">
+            <p className="text-xs text-black/40">
               © {new Date().getFullYear()} SilverKey. All rights reserved.
             </p>
           </div>

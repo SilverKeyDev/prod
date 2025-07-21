@@ -21,12 +21,11 @@ export default function GenerateReportPage() {
 
   const [address, setAddress] = useState("");
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
-  const [selectedPlace, setSelectedPlace] = useState<any>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [scriptsReady, setScriptsReady] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [idToken, setIdToken] = useState<string | null>(null);
+  const [hasSelected, setHasSelected] = useState(false);
   // Load Google Maps script
   useEffect(() => {
     const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
@@ -56,7 +55,7 @@ export default function GenerateReportPage() {
 
   // Fetch autocomplete suggestions as the user types
   useEffect(() => {
-    if (!scriptsReady || address.trim().length < 3) {
+    if (!scriptsReady || address.trim().length < 3 || hasSelected) {
       setSuggestions([]);
       return;
     }
@@ -89,20 +88,20 @@ export default function GenerateReportPage() {
 
     const debounce = setTimeout(fetchSuggestions, 200);
     return () => clearTimeout(debounce);
-  }, [address, scriptsReady]);
+  }, [address, scriptsReady, hasSelected]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setHasSelected(false);
     setAddress(e.target.value);
-    setSelectedPlace(null);
     setError(null);
   };
 
   const handleSelect = async (suggestion: Suggestion) => {
+    setHasSelected(true);
     const place = suggestion.placePrediction.toPlace();
     await place.fetchFields({
       fields: ["displayName", "formattedAddress"],
     });
-    setSelectedPlace(place);
     setAddress(place.formattedAddress);
     setSuggestions([]);
   };
@@ -173,28 +172,28 @@ export default function GenerateReportPage() {
   const isButtonDisabled = isGenerating || !address.trim() || !!loadError;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-off-white to-white p-6">
+    <div className="min-h-screen bg-gradient-to-br from-off-white to-white mobile-padding py-6 sm:py-8">
       <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-serif text-brown mb-4">
-            Generate Property Report
+        <div className="text-center mb-8 sm:mb-12">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-serif text-black mb-3 sm:mb-4 px-2">
+            Generate Report
           </h1>
-          <p className="text-lg text-brown/60 font-light max-w-2xl mx-auto">
+          <p className="text-base sm:text-lg text-black/60 font-light max-w-2xl mx-auto px-2">
             Enter an address to generate a comprehensive AI-powered property
             analysis report
           </p>
         </div>
 
-        <div className="card max-w-2xl mx-auto space-y-6">
+        <div className="mobile-card max-w-2xl mx-auto space-y-4 sm:space-y-6">
           <div>
             <label
               htmlFor="address-input"
-              className="block text-lg font-medium text-brown mb-3"
+              className="block text-sm sm:text-lg font-medium text-black mb-2 sm:mb-3"
             >
               Property Address
             </label>
             <div className="relative">
-              <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-brown/40 pointer-events-none z-10" />
+              <MapPin className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-black/40 pointer-events-none z-10" />
               <input
                 id="address-input"
                 ref={inputRef}
@@ -203,22 +202,22 @@ export default function GenerateReportPage() {
                 onChange={handleInputChange}
                 placeholder={
                   scriptsReady
-                    ? "Start typing an address..."
-                    : "Loading address search..."
+                    ? "Search here"
+                    : "Loading..."
                 }
                 disabled={!scriptsReady || isGenerating}
-                className="w-full h-14 pl-12 pr-4 rounded-lg border border-gray-300 text-base focus:ring-2 focus:ring-olive focus:border-olive transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed"
+                className="w-full h-12 sm:h-14 pl-10 sm:pl-12 pr-3 sm:pr-4 rounded-lg border border-gray-300 text-xs sm:text-sm focus:ring-2 focus:ring-olive focus:border-olive transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed touch-manipulation"
                 autoComplete="off"
               />
             </div>
 
             {suggestions.length > 0 && (
-              <ul className="border mt-2 rounded-md overflow-hidden shadow-sm bg-white z-50 relative">
+              <ul className="border mt-2 rounded-md overflow-hidden shadow-sm bg-white z-50 relative max-h-60 overflow-y-auto">
                 {suggestions.map((s, idx) => (
                   <li
                     key={idx}
                     onClick={() => handleSelect(s)}
-                    className="px-4 py-2 cursor-pointer hover:bg-gray-100 text-sm"
+                    className="px-3 sm:px-4 py-3 sm:py-2 cursor-pointer hover:bg-gray-100 text-sm sm:text-base touch-friendly border-b border-gray-100 last:border-b-0"
                   >
                     {s.description}
                   </li>
@@ -227,7 +226,7 @@ export default function GenerateReportPage() {
             )}
 
             {!scriptsReady && !loadError && (
-              <p className="text-sm text-brown/60 mt-2 flex items-center">
+              <p className="text-sm text-black/60 mt-2 flex items-center">
                 <Loader2 className="animate-spin h-4 w-4 mr-2" />
                 Loading address autocomplete...
               </p>
@@ -235,11 +234,11 @@ export default function GenerateReportPage() {
           </div>
 
           {(error || loadError) && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start space-x-3">
-              <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3 sm:p-4 flex items-start space-x-2 sm:space-x-3">
+              <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-red-500 flex-shrink-0 mt-0.5" />
               <div className="text-red-700">
-                <p className="font-medium">Error</p>
-                <p className="text-sm">{error || loadError}</p>
+                <p className="font-medium text-sm sm:text-base">Error</p>
+                <p className="text-xs sm:text-sm">{error || loadError}</p>
               </div>
             </div>
           )}
@@ -247,23 +246,23 @@ export default function GenerateReportPage() {
           <button
             onClick={handleGenerate}
             disabled={isButtonDisabled}
-            className={`w-full py-4 px-6 rounded-lg text-lg font-medium transition-all duration-200 ${
+            className={`w-full py-3 sm:py-4 px-4 sm:px-6 rounded-lg text-base sm:text-lg font-medium transition-all duration-200 touch-manipulation min-h-12 sm:min-h-14 ${
               isButtonDisabled
                 ? "cursor-not-allowed bg-gray-300 text-gray-500"
-                : "bg-olive text-white hover:bg-olive/90 hover:shadow-lg active:transform active:scale-[0.98]"
+                : "bg-olive text-white hover:bg-dark-green hover:shadow-lg active:transform active:scale-[0.98]"
             }`}
           >
             {isGenerating ? (
               <div className="flex items-center justify-center">
-                <Loader2 className="animate-spin h-5 w-5 mr-2" />
-                Generating Report...
+                <Loader2 className="animate-spin h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                <span className="text-sm sm:text-base">Generating Report...</span>
               </div>
             ) : (
-              "Generate Property Report"
+              <span className="text-sm sm:text-base">Generate Report</span>
             )}
           </button>
 
-          <div className="text-sm text-brown/60 text-center">
+          <div className="hidden sm:block text-xs sm:text-sm text-black/60 text-center px-2">
             <p>
               Select an address from the dropdown suggestions for best results.
               The report will include property details, market analysis, and

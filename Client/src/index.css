@@ -10,7 +10,7 @@
   --color-off-white: #FAF9F6;
   --color-navy-light: #2A3150;
   --color-gold-light: #D4B572;
-  --color-brown: #786C3B;
+  --color-brown: #9E8371;
   --color-olive: #3E8E41;
 }
 
@@ -20,6 +20,28 @@
     background-color: var(--color-off-white);
     color: var(--color-navy);
     font-weight: 300;
+    /* Improve mobile scrolling */
+    -webkit-overflow-scrolling: touch;
+    /* Prevent zoom on input focus on iOS */
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* Prevent zoom on input focus on mobile */
+  @media screen and (max-width: 768px) {
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="tel"],
+    textarea,
+    select {
+      font-size: 16px !important;
+    }
+    
+    /* Override for specific inputs to make them smaller */
+    #address-input,
+    .mobile-input {
+      font-size: 11px !important;
+    }
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -39,11 +61,15 @@
 
 @layer components {
   .btn-primary {
-    @apply bg-olive hover:bg-olive-light text-brown font-medium px-6 py-3 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md;
+    @apply bg-olive hover:bg-dark-green text-white font-medium px-6 py-3 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md;
   }
 
   .btn-secondary {
-    @apply bg-transparent border border-brown text-brown hover:bg-brown hover:text-off-white font-medium px-6 py-3 rounded-lg transition-all duration-200;
+    @apply bg-transparent border border-brown text-white hover:bg-brown hover:text-white font-medium px-6 py-3 rounded-lg transition-all duration-200;
+  }
+
+  .btn-danger {
+    @apply bg-red-600 hover:bg-red-700 text-white font-medium px-6 py-3 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md;
   }
 
   .card {
@@ -52,6 +78,49 @@
 
   .input-field {
     @apply w-full px-4 py-3 rounded-lg border border-beige focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20 transition-all duration-200 bg-white;
+    /* Better touch targets on mobile */
+    min-height: 44px;
+  }
+
+  .mobile-input {
+    @apply w-full px-3 py-2 sm:px-4 sm:py-3 rounded-lg border border-beige focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20 transition-all duration-200 bg-white text-xs sm:text-sm;
+    /* Better touch targets on mobile */
+    min-height: 44px;
+  }
+
+  /* Mobile-specific button styles */
+  .btn-mobile {
+    @apply min-h-12 touch-manipulation;
+  }
+
+  /* Better touch targets for mobile */
+  .touch-target {
+    @apply min-h-11 min-w-11 touch-manipulation;
+  }
+
+  /* Fix mobile select dropdown styling */
+  select.mobile-input {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23374151' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    padding-right: 40px;
+  }
+
+  /* Ensure dropdown appears below select on mobile */
+  @media (max-width: 640px) {
+    select.mobile-input {
+      position: relative;
+      z-index: 10;
+    }
+    
+    /* Override iOS/Safari select styling */
+    select.mobile-input::-ms-expand {
+      display: none;
+    }
   }
 
   .glassmorphic {
@@ -86,5 +155,148 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* Mobile-specific utilities */
+@layer utilities {
+  /* Safe area insets for mobile devices with notches */
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  .safe-left {
+    padding-left: env(safe-area-inset-left);
+  }
+  
+  .safe-right {
+    padding-right: env(safe-area-inset-right);
+  }
+
+  /* Mobile-first responsive text */
+  .text-responsive {
+    @apply text-sm sm:text-base;
+  }
+  
+  .text-responsive-lg {
+    @apply text-base sm:text-lg;
+  }
+  
+  .text-responsive-xl {
+    @apply text-lg sm:text-xl;
+  }
+
+  /* Mobile-friendly spacing */
+  .mobile-padding {
+    @apply px-4 sm:px-6 lg:px-8;
+  }
+  
+  .mobile-margin {
+    @apply mx-4 sm:mx-6 lg:mx-8;
+  }
+
+  /* Touch-friendly interactive elements */
+  .touch-friendly {
+    @apply min-h-11 min-w-11 touch-manipulation select-none;
+  }
+
+  /* Mobile-optimized cards */
+  .mobile-card {
+    @apply bg-white rounded-lg shadow-sm border border-beige/30 p-4 sm:p-6 hover:shadow-md transition-all duration-200;
+  }
+
+  /* Hide scrollbars on mobile while keeping functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Mobile-friendly modal backdrop */
+  .mobile-backdrop {
+    @apply fixed inset-0 bg-black bg-opacity-50 z-50 touch-none;
+  }
+}
+
+/* Universal mobile text scaling - make all text smaller on mobile */
+@media (max-width: 640px) {
+  /* Scale down headings */
+  h1 { font-size: 1.5rem !important; line-height: 2rem !important; }
+  h2 { font-size: 1.25rem !important; line-height: 1.75rem !important; }
+  h3 { font-size: 1.125rem !important; line-height: 1.75rem !important; }
+  h4 { font-size: 1rem !important; line-height: 1.5rem !important; }
+  h5 { font-size: 0.875rem !important; line-height: 1.25rem !important; }
+  h6 { font-size: 0.75rem !important; line-height: 1rem !important; }
+  
+  /* Scale down Tailwind text classes */
+  .text-4xl { font-size: 1.875rem !important; line-height: 2.25rem !important; }
+  .text-3xl { font-size: 1.5rem !important; line-height: 2rem !important; }
+  .text-2xl { font-size: 1.25rem !important; line-height: 1.75rem !important; }
+  .text-xl { font-size: 1.125rem !important; line-height: 1.75rem !important; }
+  .text-lg { font-size: 1rem !important; line-height: 1.5rem !important; }
+  .text-base { font-size: 0.875rem !important; line-height: 1.25rem !important; }
+  .text-sm { font-size: 0.75rem !important; line-height: 1rem !important; }
+  .text-xs { font-size: 0.625rem !important; line-height: 0.875rem !important; }
+  
+  /* Scale down buttons, inputs, and interactive elements */
+  button { font-size: 0.75rem !important; }
+  input { font-size: 11px !important; }
+  select { font-size: 0.75rem !important; }
+  textarea { font-size: 0.75rem !important; }
+  label { font-size: 0.75rem !important; }
+  
+  /* Force smaller font size for Google Maps inputs and autocomplete */
+  input[type="text"] { font-size: 11px !important; }
+  .pac-container { font-size: 11px !important; }
+  .pac-item { font-size: 11px !important; }
+  .pac-item-query { font-size: 11px !important; }
+  .pac-matched { font-size: 11px !important; }
+  #address-input { font-size: 0.75rem !important; }
+  
+  /* Scale down common text elements */
+  p { font-size: 0.875rem !important; line-height: 1.25rem !important; }
+  span { font-size: 0.875rem !important; }
+  div { font-size: 0.875rem !important; }
+  
+  /* Scale down navigation and links */
+  a { font-size: 0.875rem !important; }
+  nav { font-size: 0.875rem !important; }
+  
+  /* Scale down table text */
+  table { font-size: 0.75rem !important; }
+  th { font-size: 0.75rem !important; }
+  td { font-size: 0.75rem !important; }
+}
+
+/* Additional Google Maps autocomplete targeting - applies globally */
+.pac-container {
+  font-size: 0.75rem !important;
+}
+
+.pac-item {
+  font-size: 0.75rem !important;
+}
+
+.pac-item-query {
+  font-size: 0.75rem !important;
+}
+
+.pac-matched {
+  font-size: 11px !important;
+}
+
+/* Force all text inputs to be smaller on mobile */
+@media (max-width: 640px) {
+  input[type="text"],
+  input[id="address-input"],
+  .mobile-input {
+    font-size:9px !important;
   }
 }

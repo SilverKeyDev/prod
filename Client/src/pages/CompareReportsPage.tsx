@@ -142,9 +142,7 @@ export default function CompareReportsPage() {
       if (key.endsWith(".json")) return key;
 
       // Otherwise, derive the JSON key from the PDF key.
-      const baseName = key
-        .replace(/^reports\//, "")
-        .replace(/\.pdf$/, "");
+      const baseName = key.replace(/^reports\//, "").replace(/\.pdf$/, "");
 
       return `reports/${baseName}.json`;
     };
@@ -225,13 +223,13 @@ export default function CompareReportsPage() {
     }
   };
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto mobile-padding py-6 sm:py-8">
       {/* Header */}
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-serif text-navy mb-4">
+      <div className="text-center mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-serif text-black mb-3 sm:mb-4 px-2">
           Compare Properties
         </h1>
-        <p className="text-lg text-navy/60 max-w-3xl mx-auto">
+        <p className="text-base sm:text-lg text-black/60 max-w-3xl mx-auto px-2">
           Select properties to compare their details side by side
         </p>
       </div>
@@ -255,62 +253,67 @@ export default function CompareReportsPage() {
       )}
 
       {/* Reports Selection */}
-      <div className="card p-6 mb-8">
-        <div className="flex justify-between items-center mb-6">
+      <div className="mobile-card mb-6 sm:mb-8">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 space-y-3 sm:space-y-0">
           <div>
-            <h2 className="text-xl font-medium text-navy">
+            <h2 className="text-lg sm:text-xl font-medium text-black">
               Your Property Reports
             </h2>
-            <p className="text-sm text-navy/60 mt-1">
+            <p className="text-xs sm:text-sm text-black/60 mt-1">
               {selectedReports.length} of {reports.length} selected
             </p>
           </div>
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2 sm:space-x-3">
             <button
               onClick={exportToExcel}
               disabled={
                 selectedReports.length === 0 || comparisonTable.length === 0
               }
-              className="flex items-center px-4 py-2 text-sm font-medium text-white bg-olive hover:bg-olive/80 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-white bg-olive hover:bg-dark-green rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-friendly"
             >
-              Export CSV
+              <span className="hidden sm:inline">Export CSV</span>
+              <span className="sm:hidden">CSV</span>
             </button>
             <button
               onClick={refreshReports}
               disabled={isLoading}
-              className="flex items-center px-4 py-2 text-sm font-medium text-navy bg-beige/30 hover:bg-beige/50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-black bg-beige/30 hover:bg-beige/50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-friendly"
             >
               <RefreshCw
-                className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`}
+                className={`h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 ${
+                  isLoading ? "animate-spin" : ""
+                }`}
               />
-              Refresh
+              <span className="hidden sm:inline">Refresh</span>
             </button>
           </div>
         </div>
 
         {isLoading ? (
-          <div className="flex justify-center items-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-navy" />
+          <div className="flex justify-center items-center py-8 sm:py-12">
+            <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 animate-spin text-black" />
           </div>
         ) : error ? (
-          <div className="text-center py-8 text-navy/60">
-            <p>No reports yet</p>
+          <div className="text-center py-6 sm:py-8 text-black/60">
+            <p className="text-sm sm:text-base">No reports yet</p>
           </div>
         ) : reports.length === 0 ? (
-          <div className="text-center py-12">
-            <BarChart2 className="h-12 w-12 mx-auto text-navy/30 mb-4" />
-            <h3 className="text-lg font-medium text-navy mb-2">
+          <div className="text-center py-8 sm:py-12">
+            <BarChart2 className="h-8 w-8 sm:h-12 sm:w-12 mx-auto text-black/30 mb-3 sm:mb-4" />
+            <h3 className="text-base sm:text-lg font-medium text-black mb-2">
               No reports found
             </h3>
-            <p className="text-navy/60 mb-6">
+            <p className="text-sm sm:text-base text-black/60 mb-4 sm:mb-6 px-4">
               Generate your first property report to get started
             </p>
           </div>
         ) : (
           <div
-  className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 ${reports.length > 9 ? 'overflow-y-auto' : ''}`}
-  style={reports.length > 9 ? { maxHeight: '13rem' } : {}}
->
+            className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 ${
+              reports.length > 9 ? "overflow-y-auto scrollbar-hide" : ""
+            }`}
+            style={reports.length > 9 ? { maxHeight: "16rem" } : {}}
+          >
             {reports.map((report) => {
               const isSelected = selectedReports.some(
                 (r) => r.id === report.id
@@ -320,28 +323,37 @@ export default function CompareReportsPage() {
                   key={report.id}
                   onClick={(e) => toggleReportSelection(report, e)}
                   onMouseDown={(e) => e.preventDefault()} // Prevent focus/highlight on click
-                  className={`p-4 border-2 rounded-2xl cursor-pointer transition-all duration-200 select-none ${
+                  className={`p-3 sm:p-4 border-2 rounded-xl sm:rounded-2xl cursor-pointer transition-all duration-200 select-none touch-manipulation ${
                     isSelected
-                      ? "border-olive bg-olive/5 ring-2 ring-olive/30"
+                      ? "border-olive bg-olive/5 sm:ring-2 sm:ring-olive/30"
                       : "border-gray-200 hover:border-olive/50 hover:bg-olive/5"
                   }`}
                 >
                   <div className="flex items-start">
-                    <div className="flex-1 min-w-0 pr-3">
-                      <h3
-                        className="text-sm font-medium text-navy truncate"
-                        title={report.address}
-                      >
-                        {report.address}
-                      </h3>
+                    <div className="flex-1 min-w-0 pr-2 sm:pr-3">
+                      <div className="flex-1 min-w-0 pr-2 sm:pr-3">
+                        <h3
+                          className="text-sm sm:text-base font-medium text-black leading-tight sm:leading-5 overflow-hidden"
+                          title={report.address}
+                          style={{
+                            display: "-webkit-box",
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: "vertical" as "vertical",
+                            wordBreak: "break-word",
+                            hyphens: "auto",
+                          }}
+                        >
+                          {report.address.replace(/_/g, " ").slice(0, -18).trim()}
+                        </h3>
+                      </div>
                     </div>
                     <div className="flex-shrink-0">
                       {isSelected ? (
-                        <div className="h-5 w-5 rounded-full bg-olive flex items-center justify-center">
-                          <Check className="h-3.5 w-3.5 text-white" />
+                        <div className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5 rounded-full bg-olive flex items-center justify-center touch-manipulation select-none">
+                          <Check className="h-2 w-2 sm:h-2.5 sm:w-2.5 md:h-3 md:w-3 text-white" />
                         </div>
                       ) : (
-                        <div className="h-5 w-5 rounded-full border-2 border-navy/30" />
+                        <div className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5 rounded-full border-2 border-navy/30 touch-manipulation select-none" />
                       )}
                     </div>
                   </div>
@@ -353,24 +365,31 @@ export default function CompareReportsPage() {
       </div>
 
       {/* Comparison Table */}
-      <div className="mt-10 overflow-auto">
-        <table className="min-w-full text-sm border divide-y divide-gray-200 rounded-lg overflow-hidden">
+      <div className="mt-6 sm:mt-10 w-full overflow-x-auto scrollbar-hide border rounded-lg">
+        <table className="min-w-full text-xs border-collapse">
           <thead className="bg-beige/30">
             <tr>
-              <th className="px-4 py-3 text-left font-semibold text-navy sticky left-0 bg-beige/30">
+              <th className="px-2 sm:px-4 py-2 sm:py-3 text-left font-semibold text-black sticky left-0 bg-beige/30 text-xs">
                 Metric
               </th>
               {selectedReports.map((r) => {
                 const colWidth =
                   selectedReports.length >= 3
-                    ? "min-w-[140px]"
-                    : "min-w-[180px]";
+                    ? "min-w-[120px] sm:min-w-[140px]"
+                    : "min-w-[150px] sm:min-w-[180px]";
                 return (
                   <th
                     key={r.id}
-                    className={`px-4 py-3 text-left font-semibold text-navy ${colWidth}`}
+                    className={`px-2 sm:px-4 py-2 sm:py-3 text-left font-semibold text-black text-xs ${colWidth}`}
                   >
-                    {r.address}
+                    <div className="truncate" title={r.address}>
+                      {(() => {
+                        const formattedAddress = r.address.replace(/_/g, " ");
+                        return formattedAddress
+                          .substring(0, formattedAddress.length - 18)
+                          .trim();
+                      })()}
+                    </div>
                   </th>
                 );
               })}
@@ -379,7 +398,7 @@ export default function CompareReportsPage() {
           <tbody>
             {METRIC_KEYS.map((metric) => (
               <tr key={metric} className="even:bg-white odd:bg-beige/10">
-                <td className="px-4 py-2 font-medium text-navy sticky left-0 bg-white/60 backdrop-blur">
+                <td className="px-2 sm:px-4 py-2 font-medium text-black sticky left-0 bg-white/80 backdrop-blur text-xs">
                   {metric}
                 </td>
                 {selectedReports.map((r) => {
@@ -392,14 +411,14 @@ export default function CompareReportsPage() {
                   const value = row ? (row as any)[metric] ?? "-" : "-";
                   const colWidth =
                     selectedReports.length >= 3
-                      ? "min-w-[140px]"
-                      : "min-w-[180px]";
+                      ? "min-w-[120px] sm:min-w-[140px]"
+                      : "min-w-[150px] sm:min-w-[180px]";
                   return (
                     <td
                       key={r.id + metric}
-                      className={`px-4 py-2 text-navy/90 whitespace-pre-wrap ${colWidth}`}
+                      className={`px-2 sm:px-4 py-2 text-black/90 whitespace-pre-wrap text-xs ${colWidth}`}
                     >
-                      {value}
+                      <div className="max-w-full overflow-hidden">{value}</div>
                     </td>
                   );
                 })}
@@ -412,13 +431,13 @@ export default function CompareReportsPage() {
       {/* Selection summary */}
       {true && (
         <div className="mt-6 text-center">
-          <p className="text-navy/70">
+          <p className="text-black/70">
             {selectedReports.length}{" "}
             {selectedReports.length === 1 ? "property" : "properties"} selected
           </p>
           <button
             onClick={() => setSelectedReports([])}
-            className="mt-2 text-sm text-navy/70 hover:text-navy underline"
+            className="mt-1 sm:mt-2 text-sm text-black/70 hover:text-black underline py-0.5 sm:py-1 touch-friendly"
           >
             Clear selection
           </button>

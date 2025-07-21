@@ -114,15 +114,15 @@ export default function AIAssistant() {
         <div className="w-80 border-r border-beige bg-white rounded-l-xl">
           <div className="p-4 border-b border-beige">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-medium text-navy">AI Assistant</h2>
+              <h2 className="text-lg font-medium text-black">AI Assistant</h2>
               <button
                 onClick={createNewChat}
                 className="p-2 hover:bg-beige/20 rounded-lg transition-colors"
               >
-                <Plus className="h-5 w-5 text-navy" />
+                <Plus className="h-5 w-5 text-black" />
               </button>
             </div>
-            <p className="text-sm text-navy/60">
+            <p className="text-sm text-black/60">
               Ask questions about travel, demographics, and
               market analysis
             </p>
@@ -140,16 +140,16 @@ export default function AIAssistant() {
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-navy text-sm truncate mb-1">
+                    <h3 className="font-medium text-black text-sm truncate mb-1">
                       {chat.title}
                     </h3>
                     {chat.propertyAddress && (
-                      <p className="text-xs text-navy/60 truncate mb-2">
+                      <p className="text-xs text-black/60 truncate mb-2">
                         {chat.propertyAddress}
                       </p>
                     )}
                     {chat.messages.length > 0 && (
-                      <p className="text-xs text-navy/50 truncate">
+                      <p className="text-xs text-black/50 truncate">
                         {chat.messages[chat.messages.length - 1].content}
                       </p>
                     )}
@@ -161,7 +161,7 @@ export default function AIAssistant() {
                     }}
                     className="opacity-0 group-hover:opacity-100 p-1 hover:bg-beige/30 rounded transition-all"
                   >
-                    <Trash2 className="h-4 w-4 text-navy/60" />
+                    <Trash2 className="h-4 w-4 text-black/60" />
                   </button>
                 </div>
               </div>
@@ -175,9 +175,9 @@ export default function AIAssistant() {
             <>
               {/* Chat Header */}
               <div className="p-4 border-b border-beige bg-white">
-                <h3 className="font-medium text-navy">{activeChat.title}</h3>
+                <h3 className="font-medium text-black">{activeChat.title}</h3>
                 {activeChat.propertyAddress && (
-                  <p className="text-sm text-navy/60 mt-1">
+                  <p className="text-sm text-black/60 mt-1">
                     {activeChat.propertyAddress}
                   </p>
                 )}
@@ -188,12 +188,12 @@ export default function AIAssistant() {
                 {activeChat.messages.length === 0 ? (
                   <div className="text-center py-12">
                     <div className="w-16 h-16 bg-beige/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <MessageCircle className="h-8 w-8 text-navy/40" />
+                      <MessageCircle className="h-8 w-8 text-black/40" />
                     </div>
-                    <h3 className="text-lg font-medium text-navy mb-2">
+                    <h3 className="text-lg font-medium text-black mb-2">
                       Start a conversation
                     </h3>
-                    <p className="text-navy/60 max-w-md mx-auto">
+                    <p className="text-black/60 max-w-md mx-auto">
                       Ask away!
                     </p>
                   </div>
@@ -208,7 +208,7 @@ export default function AIAssistant() {
                       >
                         {msg.role === "assistant" && (
                           <div className="w-8 h-8 bg-gold rounded-full flex items-center justify-center flex-shrink-0">
-                            <Bot className="h-4 w-4 text-navy" />
+                            <Bot className="h-4 w-4 text-black" />
                           </div>
                         )}
 
@@ -218,7 +218,7 @@ export default function AIAssistant() {
                           ${
                             msg.role === "user"
                               ? "bg-navy text-off-white"
-                              : "bg-white border border-beige text-navy"
+                              : "bg-white border border-beige text-black"
                           }
                         `}
                         >
@@ -229,7 +229,7 @@ export default function AIAssistant() {
                             className={`text-xs mt-2 ${
                               msg.role === "user"
                                 ? "text-off-white/60"
-                                : "text-navy/60"
+                                : "text-black/60"
                             }`}
                           >
                             {formatTime(msg.timestamp)}
@@ -238,7 +238,7 @@ export default function AIAssistant() {
 
                         {msg.role === "user" && (
                           <div className="w-8 h-8 bg-beige rounded-full flex items-center justify-center flex-shrink-0">
-                            <UserIcon className="h-4 w-4 text-navy" />
+                            <UserIcon className="h-4 w-4 text-black" />
                           </div>
                         )}
                       </div>
@@ -247,7 +247,7 @@ export default function AIAssistant() {
                     {isTyping && (
                       <div className="flex items-start space-x-3">
                         <div className="w-8 h-8 bg-gold rounded-full flex items-center justify-center flex-shrink-0">
-                          <Bot className="h-4 w-4 text-navy" />
+                          <Bot className="h-4 w-4 text-black" />
                         </div>
                         <div className="bg-white border border-beige rounded-xl px-4 py-3">
                           <div className="flex space-x-1">
@@ -300,11 +300,11 @@ export default function AIAssistant() {
           ) : (
             <div className="flex-1 flex items-center justify-center">
               <div className="text-center">
-                <MessageCircle className="h-12 w-12 text-navy/40 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-navy mb-2">
+                <MessageCircle className="h-12 w-12 text-black/40 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-black mb-2">
                   No conversation selected
                 </h3>
-                <p className="text-navy/60">
+                <p className="text-black/60">
                   Choose a conversation or start a new one
                 </p>
               </div>

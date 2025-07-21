@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
+import { Menu } from "lucide-react";
 import Sidebar from "./Sidebar.tsx";
 import GenerateReportPage from "../pages/GenerateReportPage.tsx";
 import PastReports from "../pages/PastReports.tsx";
@@ -14,6 +15,22 @@ interface DashboardProps {
 
 export default function Dashboard({ user, onLogout }: DashboardProps) {
   const [sidebarExpanded, setSidebarExpanded] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check if screen is mobile size
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024); // lg breakpoint
+      // Close sidebar on mobile by default
+      if (window.innerWidth < 1024) {
+        setSidebarExpanded(false);
+      }
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   return (
     <div className="min-h-screen bg-off-white flex">
@@ -22,14 +39,21 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
         onLogout={onLogout}
         expanded={sidebarExpanded}
         onToggleExpanded={() => setSidebarExpanded(!sidebarExpanded)}
+        isMobile={isMobile}
       />
 
       <main
-        className={`flex-1 ml-16 lg:ml-24 transition-all duration-200 ${
-          sidebarExpanded ? "lg:ml-72" : ""
+        className={`flex-1 transition-all duration-200 ${
+          isMobile 
+            ? sidebarExpanded 
+              ? "ml-72" // Full sidebar on mobile when expanded
+              : "ml-12" // Small sidebar on mobile when collapsed
+            : sidebarExpanded 
+              ? "ml-72" 
+              : "ml-16"
         }`}
       >
-        <div className="p-8">
+        <div className={`${isMobile ? 'p-4' : 'p-8'}`}>
           <Routes>
             <Route path="/" element={<GenerateReportPage />} />
             <Route path="reports" element={<PastReports />} />

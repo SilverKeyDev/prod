@@ -33,7 +33,7 @@ const plans: Plan[] = [
     price: 4.99,
     interval: "one-time",
     reportsLimit: 5,
-    features: ["5 reports", "Basic property analysis", "No expiration"],
+    features: ["5 reports", "No expiration"],
   },
   {
     id: "20-reports",
@@ -44,7 +44,6 @@ const plans: Plan[] = [
     popular: true,
     features: [
       "20 reports",
-      "Basic property analysis",
       "No expiration",
       "Save 25% vs individual reports",
     ],
@@ -57,7 +56,6 @@ const plans: Plan[] = [
     reportsLimit: 50,
     features: [
       "50 reports",
-      "Basic property analysis",
       "No expiration",
       "Save 40% vs individual reports",
     ],
@@ -169,7 +167,7 @@ export default function Subscription() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 lg:pt-0">
       {/* Notification from redirect */}
       {notificationMessage && (
         <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-8">
@@ -205,22 +203,63 @@ export default function Subscription() {
       )}
       
       {/* Header */}
-      <div className="text-center mb-12">
-        <h1 className="text-3xl font-serif text-navy mb-4">
+      <div className="text-center mb-4 lg:mb-6">
+        <h1 className="text-lg sm:text-xl lg:text-2xl font-serif text-black mb-2 lg:mb-3">
           Subscription & Billing
         </h1>
-        <p className="text-lg text-navy/60 max-w-2xl mx-auto">
+        <p className="text-xs sm:text-sm lg:text-base text-black/60 max-w-2xl mx-auto">
           Choose the perfect plan for your real estate business needs
         </p>
       </div>
 
       {/* Billing & Usage Summary */}
-      <div className="card mb-8">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-2xl font-medium text-navy">Your Plan</h2>
+      <div className="card mb-4 lg:mb-6">
+        {/* Mobile Layout */}
+        <div className="block sm:hidden mb-3">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-sm font-medium text-black">Your Plan</h2>
             {billingInfo?.subscription?.plan_id && (
-              <p className="text-navy/60">
+              <p className="text-black/60 font-medium text-xs">
+                {(() => {
+                  const plan = plans.find(p => p.id === billingInfo.subscription?.plan_id);
+                  return plan ? plan.name : 'No active plan';
+                })()}
+              </p>
+            )}
+          </div>
+          {/* Mobile Subscription Status */}
+          {billingInfo?.subscription && (
+            <div className="flex items-center justify-center space-x-2 mt-2">
+              <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                billingInfo.subscription.status === 'active' 
+                  ? 'bg-green-100 text-green-800' 
+                  : 'bg-yellow-100 text-yellow-800'
+              }`}>
+                {billingInfo.subscription.status === 'active' ? (
+                  <span className="flex items-center">
+                    <CheckCircle className="h-4 w-4 mr-1" /> Active
+                  </span>
+                ) : (
+                  <span className="flex items-center">
+                    <Clock className="h-4 w-4 mr-1" /> Inactive
+                  </span>
+                )}
+              </span>
+              {billingInfo.subscription.cancel_at_period_end && (
+                <span className="px-3 py-1 bg-red-100 text-red-800 text-sm font-medium rounded-full">
+                  Cancels at period end
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Desktop Layout */}
+        <div className="hidden sm:flex items-center justify-between mb-3 lg:mb-4">
+          <div>
+            <h2 className="text-sm sm:text-base lg:text-lg font-medium text-black">Your Plan</h2>
+            {billingInfo?.subscription?.plan_id && (
+              <p className="text-black/60 text-sm">
                 {(() => {
                   const plan = plans.find(p => p.id === billingInfo.subscription?.plan_id);
                   return plan ? plan.name : 'No active plan';
@@ -256,7 +295,7 @@ export default function Subscription() {
 
         {isLoading ? (
           <div className="flex justify-center items-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-navy" />
+            <Loader2 className="h-8 w-8 animate-spin text-black" />
           </div>
         ) : error ? (
           <div className="bg-red-50 p-4 rounded-lg flex items-start">
@@ -274,15 +313,15 @@ export default function Subscription() {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 lg:gap-4 mb-3 lg:mb-4">
               {/* Reports Remaining */}
-              <div className="flex flex-col items-center justify-center p-6">
-                <div className="text-5xl font-bold text-navy">
+              <div className="flex flex-col items-center justify-center p-3 lg:p-4">
+                <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-black">
                   {billingInfo?.usage.reports_available === -1 
                     ? "∞" 
                     : Math.max(0, billingInfo?.usage.reports_available || 0)}
                 </div>
-                <div className="text-sm text-navy/60 mt-2">
+                <div className="text-xs text-black/60 mt-1">
                   {billingInfo?.usage.reports_available === -1 
                     ? "Unlimited Reports" 
                     : "Reports Remaining"}
@@ -291,15 +330,15 @@ export default function Subscription() {
 
               {/* Plan Details */}
               {billingInfo?.subscription?.plan_id ? (
-                <div className="bg-gradient-to-br from-navy/5 to-navy/10 p-6 rounded-xl">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-medium text-navy">Plan Details</h3>
-                    <CreditCard className="h-6 w-6 text-navy" />
+                <div className="bg-gradient-to-br from-navy/5 to-navy/10 p-4 rounded-xl">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="font-medium text-black text-sm">Plan Details</h4>
+                    <CreditCard className="h-5 w-5 text-black" />
                   </div>
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     <div>
-                      <p className="text-sm text-navy/60">Current Plan</p>
-                      <p className="font-medium">
+                      <p className="text-xs text-black/60">Current Plan</p>
+                      <p className="font-medium text-sm">
                         {(() => {
                           const plan = plans.find(p => p.id === billingInfo.subscription?.plan_id);
                           return plan ? plan.name : 'Custom Plan';
@@ -307,8 +346,8 @@ export default function Subscription() {
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-navy/60">Billing</p>
-                      <p className="font-medium">
+                      <p className="text-xs text-black/60">Billing</p>
+                      <p className="font-medium text-sm">
                         {(() => {
                           const plan = plans.find(p => p.id === billingInfo.subscription?.plan_id);
                           if (!plan) return 'One-time';
@@ -319,12 +358,12 @@ export default function Subscription() {
                     </div>
                     {billingInfo.subscription.current_period_end && (
                       <div>
-                        <p className="text-sm text-navy/60">
+                        <p className="text-xs text-black/60">
                           {billingInfo.subscription.cancel_at_period_end 
                             ? 'Access until' 
                             : 'Next billing date'}
                         </p>
-                        <p className="font-medium">
+                        <p className="font-medium text-sm">
                           {new Date(billingInfo.subscription.current_period_end).toLocaleDateString('en-US', {
                             year: 'numeric',
                             month: 'long',
@@ -336,31 +375,31 @@ export default function Subscription() {
                   </div>
                 </div>
               ) : (
-                <div className="bg-gradient-to-br from-navy/5 to-navy/10 p-6 rounded-xl flex flex-col items-center justify-center text-center">
-                  <Clock className="h-10 w-10 text-navy/40 mb-3" />
-                  <h3 className="text-lg font-medium text-navy mb-1">No active subscription</h3>
-                  <p className="text-navy/60 text-sm">
+                <div className="bg-gradient-to-br from-navy/5 to-navy/10 p-4 rounded-xl flex flex-col items-center justify-center text-center">
+                  <Clock className="h-8 w-8 text-black/40 mb-2" />
+                  <h3 className="text-sm sm:text-base font-medium text-black mb-1">No active subscription</h3>
+                  <p className="text-black/60 text-xs">
                     Get started with one of our plans below
                   </p>
                 </div>
               )}
 
               {/* Price */}
-              <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-medium text-navy">Pricing</h3>
-                  <CreditCard className="h-6 w-6 text-green-600" />
+              <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-xl">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-medium text-black text-sm">Pricing</h4>
+                  <CreditCard className="h-5 w-5 text-green-600" />
                 </div>
                 {billingInfo?.subscription?.plan_id ? (
                   <>
-                    <div className="text-3xl font-bold text-navy mb-1">
+                    <div className="text-lg sm:text-xl lg:text-2xl font-bold text-black mb-1">
                       {(() => {
                         const plan = plans.find(p => p.id === billingInfo.subscription?.plan_id);
                         if (!plan) return '$0';
                         return `$${plan.price}${plan.interval === 'year' ? '/yr' : plan.interval === 'month' ? '/mo' : ''}`;
                       })()}
                     </div>
-                    <p className="text-sm text-navy/60 mb-4">
+                    <p className="text-xs text-black/60 mb-3">
                       {(() => {
                         const plan = plans.find(p => p.id === billingInfo.subscription?.plan_id);
                         if (!plan) return 'One-time payment';
@@ -368,25 +407,16 @@ export default function Subscription() {
                                plan.interval === 'month' ? 'Billed monthly' : 'One-time payment';
                       })()}
                     </p>
-                    <button
-                      onClick={() => {
-                        // Scroll to plans section
-                        document.getElementById('plans')?.scrollIntoView({ behavior: 'smooth' });
-                      }}
-                      className="w-full py-2 text-sm font-medium text-green-700 hover:text-green-800 transition-colors"
-                    >
-                      Change Plan →
-                    </button>
                   </>
                 ) : (
                   <div className="text-center">
-                    <p className="text-navy/60 mb-4">No active plan</p>
+                    <p className="text-black/60 mb-4">No active plan</p>
                     <button
                       onClick={() => {
                         // Scroll to plans section
                         document.getElementById('plans')?.scrollIntoView({ behavior: 'smooth' });
                       }}
-                      className="w-full py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
+                      className="w-full py-2 bg-green-600 hover:bg-dark-green text-white rounded-lg font-medium transition-colors"
                     >
                       Choose a Plan
                     </button>
@@ -400,15 +430,17 @@ export default function Subscription() {
         )}
       </div>
 
+
+
       {/* Billing Toggle */}
-      <div className="flex items-center justify-center mb-8">
+      <div className="flex items-center justify-center mb-4">
         <div className="bg-beige/20 rounded-lg p-1 flex items-center">
           <button
             onClick={() => setActiveTab("one-time")}
-            className={`px-6 py-2 rounded text-sm font-medium transition-all ${
+            className={`px-4 py-1.5 rounded text-xs font-medium transition-all ${
               activeTab === "one-time"
-                ? "bg-white text-navy shadow-sm"
-                : "text-navy/60 hover:text-navy"
+                ? "bg-white text-black hover:text-black shadow-sm"
+                : "text-black/60 hover:text-black"
             }`}
           >
             One-Time Purchase
@@ -417,8 +449,8 @@ export default function Subscription() {
             onClick={() => setActiveTab("unlimited")}
             className={`px-6 py-2 rounded text-sm font-medium transition-all ${
               activeTab === "unlimited"
-                ? "bg-white text-navy shadow-sm"
-                : "text-navy/60 hover:text-navy"
+                ? "bg-white text-black shadow-sm"
+                : "text-black/60 hover:text-black"
             }`}
           >
             Unlimited Subscription
@@ -427,7 +459,7 @@ export default function Subscription() {
       </div>
 
       {/* Plans */}
-      <div id="plans" className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div id="plans" className="grid grid-cols-1 md:grid-cols-3 gap-3 lg:gap-4">
         {filteredPlans.map((plan) => {
           const displayPrice = plan.price;
 
@@ -435,36 +467,36 @@ export default function Subscription() {
             <div
               key={plan.id}
               className={`
-                relative card transition-all duration-200 hover:shadow-lg
+                relative card transition-all duration-200 hover:shadow-lg flex flex-col
                 ${plan.popular ? "ring-2 ring-gold shadow-lg" : ""}
               `}
             >
               {plan.popular && (
                 <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                  <span className="bg-gold text-navy px-3 py-1 rounded-full text-xs font-medium">
+                  <span className="bg-gold text-black px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium">
                     Most Popular
                   </span>
                 </div>
               )}
 
-              <div className="text-center mb-6">
+              <div className="text-center mb-4">
                 <div
-                  className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 ${
-                    plan.popular ? "bg-gold text-navy" : "bg-navy/10 text-navy"
+                  className={`w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-3 ${
+                    plan.popular ? "bg-gold text-black" : "bg-black/10 text-black"
                   }`}
                 >
                   {getPlanIcon(plan.id)}
                 </div>
 
-                <h3 className="text-xl font-medium text-navy mb-2">
+                <h3 className="text-base sm:text-lg font-medium text-black mb-2">
                   {plan.name}
                 </h3>
 
-                <div className="mb-4">
-                  <span className="text-3xl font-bold text-navy">
+                <div className="mb-3">
+                  <span className="text-lg sm:text-xl lg:text-2xl font-bold text-black">
                     ${displayPrice.toFixed(2)}
                   </span>
-                  <span className="text-navy/60">
+                  <span className="text-black/60 text-sm">
                     {plan.interval === "year"
                       ? "/year"
                       : plan.interval === "month"
@@ -472,18 +504,18 @@ export default function Subscription() {
                       : ""}
                   </span>
                   {plan.interval === "year" && (
-                    <div className="text-sm text-green-600 font-medium">
+                    <div className="text-xs text-green-600 font-medium">
                       Save 17% vs monthly
                     </div>
                   )}
                 </div>
               </div>
 
-              <ul className="space-y-3 mb-8">
+              <ul className="space-y-2 mb-6 flex-grow">
                 {plan.features.map((feature, index) => (
                   <li key={index} className="flex items-start">
-                    <Check className="h-5 w-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-navy/80 text-sm">{feature}</span>
+                    <Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" />
+                    <span className="text-black/80 text-xs">{feature}</span>
                   </li>
                 ))}
               </ul>
@@ -491,8 +523,8 @@ export default function Subscription() {
               <button
                 onClick={() => handleSubscription(plan.id)}
                 disabled={subscriptionLoading}
-                className={`w-full py-3 rounded-lg font-medium transition-all flex items-center justify-center ${
-                  plan.popular ? "btn-primary" : "btn-secondary"
+                className={`w-full py-3 lg:py-3 rounded-lg font-medium transition-all flex items-center justify-center touch-friendly text-sm sm:text-base ${
+                  plan.popular ? "bg-olive text-white hover:bg-dark-green hover:text-white hover:font-bold border border-transparent" : "bg-transparent border border-brown text-black hover:bg-brown hover:text-white"
                 } ${subscriptionLoading ? "opacity-75" : ""}`}
               >
                 {subscriptionLoading ? (

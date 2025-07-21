@@ -11,6 +11,7 @@ interface SidebarProps {
   onLogout: () => void;
   expanded: boolean;
   onToggleExpanded: () => void;
+  isMobile?: boolean;
 }
 
 const navigation = [
@@ -25,6 +26,7 @@ export default function Sidebar({
   onLogout,
   expanded,
   onToggleExpanded,
+  isMobile = false,
 }: SidebarProps) {
   const [user, setUser] = useState<User | null>(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -83,17 +85,39 @@ export default function Sidebar({
     location.pathname === href || location.pathname.endsWith(href);
 
   return (
-    <aside
-      className={`fixed top-0 bottom-0 left-0 z-50 bg-brown transition-all duration-200 ${
-        expanded ? "w-72" : "w-16"
-      }`}
-    >
-      <div className="h-full flex flex-col justify-between overflow-hidden">
+    <>
+      {/* Mobile Overlay */}
+      {isMobile && expanded && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          onClick={onToggleExpanded}
+        />
+      )}
+      
+      <aside
+        className={`fixed top-0 bottom-0 left-0 z-50 bg-brown transition-all duration-200 ${
+          isMobile 
+            ? expanded 
+              ? "w-72 translate-x-0" 
+              : "w-12 translate-x-0" // Always show collapsed sidebar on mobile
+            : expanded 
+              ? "w-72" 
+              : "w-16"
+        }`}
+      >
+      <div className="h-full flex flex-col overflow-hidden" style={{ 
+          height: isMobile ? '100vh' : '100%', 
+          maxHeight: isMobile ? '100vh' : '100%'
+        }}>
         {/* Toggle Button */}
-        <div className="p-2 border-b border-brown-light flex justify-end">
+        <div className="flex-shrink-0 p-2 border-b border-brown-light flex justify-between items-center">
+          {/* Logo/Title for mobile */}
+          {isMobile && expanded && (
+            <span className="text-white font-bold text-lg">SilverKey</span>
+          )}
           <button
             onClick={onToggleExpanded}
-            className="p-2 text-brown-light hover:text-white"
+            className="p-2 text-black hover:text-white ml-auto touch-friendly"
             aria-label="Toggle sidebar"
           >
             <svg
@@ -114,56 +138,55 @@ export default function Sidebar({
           </button>
         </div>
 
-        {/* Top Section */}
-        <div className="flex-1 overflow-y-auto">
-          {/* User Info (only when expanded) */}
-          {expanded && (
-            <div className="p-4 border-b border-brown-light">
-              {isLoading ? (
-                <div className="animate-pulse space-y-3">
-                  <div className="flex items-center space-x-4">
-                    <div className="w-10 h-10 bg-brown-light rounded-full"></div>
-                    <div className="flex-1 space-y-2">
-                      <div className="h-4 bg-brown-light rounded w-3/4"></div>
-                      <div className="h-3 bg-brown-light rounded w-1/2"></div>
-                    </div>
+        {/* User Info (only when expanded) */}
+        {expanded && (
+          <div className="flex-shrink-0 p-4 border-b border-brown-light">
+            {isLoading ? (
+              <div className="animate-pulse space-y-3">
+                <div className="flex items-center space-x-4">
+                  <div className="w-10 h-10 bg-brown-light rounded-full"></div>
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 bg-brown-light rounded w-3/4"></div>
+                    <div className="h-3 bg-brown-light rounded w-1/2"></div>
                   </div>
                 </div>
-              ) : (
-                <div className="flex items-center">
-                  <div className="w-10 h-10 bg-gold rounded-full flex items-center justify-center">
-                    <span className="text-brown font-semibold text-sm">
-                      {user?.name?.charAt(0).toUpperCase() ?? "?"}
-                    </span>
-                  </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-white line-clamp-1">
-                      {user?.name ?? "Unknown User"}
-                    </p>
-                    <p className="text-xs text-white/80 line-clamp-1">
-                      {user?.email ?? "No email"}
-                    </p>
-                    {user?.agencyName && (
-                      <p className="text-xs text-white/60 line-clamp-1">
-                        {user.agencyName}
-                      </p>
-                    )}
-                  </div>
+              </div>
+            ) : (
+              <div className="flex items-center">
+                <div className="w-10 h-10 bg-gold rounded-full flex items-center justify-center">
+                  <span className="text-black font-semibold text-sm">
+                    {user?.name?.charAt(0).toUpperCase() ?? "?"}
+                  </span>
                 </div>
-              )}
-            </div>
-          )}
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-white line-clamp-1">
+                    {user?.name ?? "Unknown User"}
+                  </p>
+                  <p className="text-xs text-white/80 line-clamp-1">
+                    {user?.email ?? "No email"}
+                  </p>
+                  {user?.agencyName && (
+                    <p className="text-xs text-white/60 line-clamp-1">
+                      {user.agencyName}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
-          {/* Navigation */}
-          <nav className="mt-4">
+        {/* Navigation - Scrollable middle section */}
+        <div className="flex-1 overflow-y-auto min-h-0">
+          <nav className="mt-4 pb-4">
             {navigation.map((item) => (
               <Link
                 key={item.name}
                 to={item.href}
-                className={`flex items-center px-4 py-3 transition-colors font-medium text-white ${
+                className={`flex items-center px-4 py-3 transition-colors font-medium text-white touch-friendly ${
                   isActive(item.href)
                     ? "bg-brown-light text-white font-semibold"
-                    : "text-brown-light/50 hover:bg-brown-light/50 hover:text-white"
+                    : "text-white/50 hover:bg-brown-light/50 hover:text-white active:bg-brown-light/30"
                 }`}
               >
                 <item.icon className={`w-5 h-5 ${expanded ? "mr-4" : ""}`} />
@@ -175,11 +198,11 @@ export default function Sidebar({
           </nav>
         </div>
 
-        {/* Logout */}
-        <div className="border-t border-brown-light">
+        {/* Logout - Always visible at bottom */}
+        <div className="flex-shrink-0 border-t border-brown-light">
           <button
             onClick={handleLogoutClick}
-            className="flex items-center px-4 py-3 text-brown-light hover:bg-brown-light w-full"
+            className="flex items-center px-4 py-3 text-white hover:bg-brown-light/50 active:bg-brown-light/30 w-full touch-friendly transition-colors"
           >
             <LogOut className={`w-5 h-5 ${expanded ? "mr-4" : ""}`} />
             <span className={expanded ? "block" : "hidden"}>Logout</span>
@@ -196,5 +219,6 @@ export default function Sidebar({
         </div>
       </div>
     </aside>
+    </>
   );
 }

@@ -225,7 +225,7 @@ export default function VerificationPage() {
   };
 
   const renderCodeInputs = () => (
-    <div className="flex justify-center space-x-3 mb-8">
+    <div className="flex justify-center space-x-2 sm:space-x-3 mb-8">
       {code.map((digit, index) => (
         <input
           key={index}
@@ -238,7 +238,7 @@ export default function VerificationPage() {
           onChange={(e) => handleCodeChange(e.target.value, index)}
           onPaste={(e) => handlePaste(e, index)}
           onKeyDown={(e) => handleKeyDown(e, index)}
-          className="w-12 h-16 text-2xl text-center border-2 border-olive rounded-lg focus:outline-none focus:ring-2 focus:ring-olive focus:border-transparent"
+          className="w-8 h-10 sm:w-12 sm:h-16 text-xl sm:text-2xl text-center border-2 border-olive rounded-lg focus:outline-none focus:ring-2 focus:ring-olive focus:border-transparent font-bold"
           disabled={loading}
         />
       ))}
@@ -251,7 +251,7 @@ export default function VerificationPage() {
         {/* Back Button */}
         <button
           onClick={handleBack}
-          className="flex items-center text-navy/60 hover:text-navy mb-6 transition-colors"
+          className="flex items-center text-black/60 hover:text-black mb-6 transition-colors"
         >
           <ArrowLeft className="h-5 w-5 mr-1" />
           Back
@@ -259,12 +259,12 @@ export default function VerificationPage() {
 
         {/* Header */}
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-serif text-navy mb-2">
+          <h2 className="text-3xl font-serif text-black mb-2">
             {activeStep === "email"
               ? "Verify your email"
               : "Enter verification code"}
           </h2>
-          <p className="text-navy/60 font-light">
+          <p className="text-black/60 font-light">
             {activeStep === "email"
               ? "We'll send you a code to verify your email"
               : `Enter the 6-digit code sent to ${email}`}
@@ -282,11 +282,11 @@ export default function VerificationPage() {
         {activeStep === "email" && (
           <form onSubmit={handleEmailSubmit} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-navy mb-2">
+              <label className="block text-sm font-medium text-black mb-2">
                 Email address
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-navy/40" />
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-black/40" />
                 <input
                   type="email"
                   value={email}
@@ -324,14 +324,14 @@ export default function VerificationPage() {
           <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
             {renderCodeInputs()}
 
-            <div className="text-center text-sm text-navy/60">
+            <div className="text-center text-sm text-black/60">
               Didn't receive a code?{" "}
               <button
                 type="button"
                 onClick={handleResendCode}
                 disabled={!canResend || loading}
                 className={`${
-                  canResend ? "text-gold hover:text-gold/80" : "text-navy/40"
+                  canResend ? "text-gold hover:text-gold/80" : "text-black/40"
                 } font-medium transition-colors`}
               >
                 {loading ? (

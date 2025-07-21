@@ -3,7 +3,6 @@ import {
   Search,
   Download,
   Eye,
-  Copy,
   Calendar,
   MapPin,
   X,
@@ -149,17 +148,34 @@ export default function PastReports() {
     }
 
     if (pdfUrl) {
-      // Create a temporary link and trigger download
-      const link = document.createElement("a");
-      link.href = pdfUrl;
-      link.download = `${report.address
-        .replace(/[^a-z0-9]/gi, "_")
-        .toLowerCase()}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      // Mobile-friendly download approach
+      try {
+        // First try the programmatic approach for desktop
+        const link = document.createElement("a");
+        link.href = pdfUrl;
+        link.download = `${report.address
+          .replace(/[^a-z0-9]/gi, "_")
+          .toLowerCase()}.pdf`;
+        
+        // For mobile compatibility, add target="_blank" as fallback
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // If the programmatic download doesn't work (common on mobile),
+        // the target="_blank" will open the PDF in a new tab where users can download
+      } catch (error) {
+        console.error("Download failed, opening in new tab:", error);
+        // Fallback: open in new tab
+        window.open(pdfUrl, "_blank", "noopener,noreferrer");
+      }
     } else {
       console.error("Failed to get PDF URL for download");
+      setErrorMessage("Failed to download PDF. Please try again.");
+      setShowError(true);
     }
   };
 
@@ -239,7 +255,7 @@ export default function PastReports() {
         statusText: res.statusText,
       });
 
-      const responseData = await res.json().catch((e) => ({}));
+      const responseData = await res.json().catch(() => ({}));
       console.log("[DELETE] Response data:", responseData);
 
       if (!res.ok) {
@@ -301,7 +317,7 @@ export default function PastReports() {
       case "error":
         return "text-red-600 bg-red-50";
       default:
-        return "text-navy/60 bg-beige/20";
+        return "text-black/60 bg-beige/20";
     }
   };
 
@@ -357,30 +373,32 @@ export default function PastReports() {
     if (!currentPdf) return null;
 
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-2 sm:p-4">
         <div
           ref={modalRef}
-          className="bg-white rounded-lg w-full max-w-4xl h-[90vh] flex flex-col"
+          className="bg-white rounded-lg w-full max-w-4xl h-[95vh] sm:h-[90vh] flex flex-col"
           role="dialog"
           aria-modal="true"
         >
-          <div className="flex justify-between items-center p-4 border-b">
-            <h3 className="text-lg font-medium">PDF Viewer</h3>
-            <div className="flex space-x-2">
+          <div className="flex justify-between items-center p-3 sm:p-4 border-b">
+            <h3 className="text-base sm:text-lg font-medium">PDF Viewer</h3>
+            <div className="flex space-x-1 sm:space-x-2">
               <a
                 href={currentPdf}
                 download
-                className="text-navy hover:text-navy-dark p-1"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-black hover:text-black/80 p-1 sm:p-2 touch-friendly"
                 title="Download PDF"
               >
-                <Download className="h-5 w-5" />
+                <Download className="h-4 w-4 sm:h-5 sm:w-5" />
               </a>
               <button
                 onClick={closePdfModal}
-                className="text-navy hover:text-navy-dark p-1"
+                className="text-black hover:text-black/80 p-1 sm:p-2 touch-friendly"
                 aria-label="Close PDF viewer"
               >
-                <X className="h-5 w-5" />
+                <X className="h-4 w-4 sm:h-5 sm:w-5" />
               </button>
             </div>
           </div>
@@ -425,13 +443,33 @@ export default function PastReports() {
     };
   }, []); // <-- Empty dependency array ensures this runs only once on mount
 
+  // Force grid mode on mobile
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 640) {
+        // sm breakpoint
+        setViewMode("grid");
+      }
+    };
+
+    // Set initial state
+    handleResize();
+
+    // Listen for window resize
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
   return (
-    <div className="max-w-7xl mx-auto">
+    <div className="max-w-7xl mx-auto mobile-padding">
       <PdfModal />
       {/* Delete Confirmation Modal */}
       {deleteModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl p-6 max-w-md w-full">
+          <div className="bg-white rounded-xl p-4 sm:p-6 max-w-md w-full mx-4">
             <div className="text-center">
               <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
                 <svg
@@ -459,7 +497,7 @@ export default function PastReports() {
                 <button
                   type="button"
                   onClick={closeDeleteModal}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brown-500"
+                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-black bg-white hover:bg-gray-50 hover:text-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brown-500 touch-friendly"
                 >
                   Cancel
                 </button>
@@ -469,7 +507,7 @@ export default function PastReports() {
                     reportToDelete &&
                     handleDeleteReport(reportToDelete.id, reportToDelete.s3Key)
                   }
-                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 touch-friendly"
                 >
                   Delete
                 </button>
@@ -492,43 +530,45 @@ export default function PastReports() {
           duration={3000}
         />
       )}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8">
         <div>
-          <h1 className="text-3xl font-serif text-navy mb-2">Past Reports</h1>
-          <p className="text-navy/60">
+          <h1 className="text-2xl sm:text-3xl font-serif text-black mb-2">
+            Past Reports
+          </h1>
+          <p className="text-sm sm:text-base text-black/60">
             Manage and download your generated property reports
           </p>
         </div>
         <div className="mt-4 sm:mt-0">
-          <span className="text-sm text-navy/60">
+          <span className="text-sm text-black/60">
             {filteredReports.length} report
             {filteredReports.length !== 1 ? "s" : ""}
           </span>
         </div>
       </div>
-      <div className="card mb-6">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
-          <div className="relative flex-1 lg:max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-navy/40" />
+      <div className="mobile-card mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
+          <div className="relative flex-1 sm:max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-black/40" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="input-field pl-10 pr-4"
-              placeholder="Search by address..."
+              className="mobile-input pl-9 sm:pl-10 pr-4"
+              placeholder="Filter by address"
             />
           </div>
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end space-y-3 sm:space-y-0 sm:space-x-4 flex-1 sm:max-w-md sm:flex-none">
+            <div className="hidden sm:flex items-center space-x-1 sm:space-x-2">
               <button
                 onClick={() => setViewMode("grid")}
-                className={`p-2 rounded ${
+                className={`p-2 rounded touch-friendly ${
                   viewMode === "grid"
-                    ? "bg-navy text-white"
-                    : "bg-beige text-navy hover:bg-navy/10"
+                    ? "bg-brown text-white"
+                    : "bg-beige text-white hover:bg-brown/10"
                 }`}
               >
-                <div className="grid grid-cols-2 gap-1 w-4 h-4">
+                <div className="grid grid-cols-2 gap-1 w-3 h-3 sm:w-4 sm:h-4">
                   <div className="bg-current rounded-sm"></div>
                   <div className="bg-current rounded-sm"></div>
                   <div className="bg-current rounded-sm"></div>
@@ -537,13 +577,13 @@ export default function PastReports() {
               </button>
               <button
                 onClick={() => setViewMode("list")}
-                className={`p-2 rounded ${
+                className={`p-2 rounded touch-friendly ${
                   viewMode === "list"
-                    ? "bg-navy text-white"
-                    : "bg-beige text-navy hover:bg-navy/10"
+                    ? "bg-brown text-white"
+                    : "bg-beige text-white hover:bg-brown/10"
                 }`}
               >
-                <div className="space-y-1 w-4 h-4">
+                <div className="space-y-1 w-3 h-3 sm:w-4 sm:h-4">
                   <div className="bg-current rounded-sm h-0.5"></div>
                   <div className="bg-current rounded-sm h-0.5"></div>
                   <div className="bg-current rounded-sm h-0.5"></div>
@@ -553,7 +593,7 @@ export default function PastReports() {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as "date" | "address")}
-              className="input-field"
+              className="mobile-input sm:w-auto text-sm"
             >
               <option value="date">Sort by Date</option>
               <option value="address">Sort by Address</option>
@@ -563,12 +603,12 @@ export default function PastReports() {
       </div>
 
       {sortedReports.length === 0 ? (
-        <div className="text-center py-12">
-          <MapPin className="h-12 w-12 text-navy/40 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-navy mb-2">
+        <div className="text-center py-8 sm:py-12">
+          <MapPin className="h-8 w-8 sm:h-12 sm:w-12 text-black/40 mx-auto mb-3 sm:mb-4" />
+          <h3 className="text-base sm:text-lg font-medium text-black mb-2">
             No reports found
           </h3>
-          <p className="text-navy/60">
+          <p className="text-sm sm:text-base text-black/60 px-4">
             {searchTerm
               ? "Try adjusting your search terms"
               : "Generate your first property report to get started"}
@@ -578,8 +618,8 @@ export default function PastReports() {
         <div
           className={
             viewMode === "grid"
-              ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-              : "space-y-4"
+              ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
+              : "space-y-3 sm:space-y-4"
           }
         >
           {sortedReports.map((report) => (
@@ -587,51 +627,68 @@ export default function PastReports() {
               key={report.id}
               className={
                 viewMode === "grid"
-                  ? "card hover:shadow-lg transition-shadow"
-                  : "card flex items-center justify-between"
+                  ? "mobile-card hover:shadow-lg transition-shadow flex flex-col h-full"
+                  : "mobile-card flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0"
               }
             >
               {viewMode === "grid" ? (
                 <>
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <span
-                        className={`inline-block px-2 py-1 rounded-full text-xs font-medium mb-2 ${getStatusColor(
-                          report.status
-                        )}`}
-                      >
-                        {getStatusText(report.status)}
-                      </span>
-                      <h3
-                        className="font-medium text-navy mb-1 truncate overflow-hidden whitespace-nowrap max-w-[16rem]"
-                        title={report.address}
-                      >
-                        {report.address}
-                      </h3>
-                      <p className="text-sm text-navy/60 flex items-center">
-                        <Calendar className="h-4 w-4 mr-1" />
-                        {formatDate(report.generatedAt)}
-                      </p>
+                  <div className="flex-grow">
+                    <div className="flex items-start justify-between mb-3 sm:mb-4">
+                      <div className="flex-1">
+                        <span
+                          className={`inline-block px-2 py-1 rounded-full text-xs font-medium mb-2 ${getStatusColor(
+                            report.status
+                          )}`}
+                        >
+                          {getStatusText(report.status)}
+                        </span>
+                        <h3
+                          className="text-sm sm:text-base font-medium text-black mb-1 overflow-hidden leading-5"
+                          title={report.address}
+                          style={{
+                            display: "-webkit-box",
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: "vertical" as "vertical",
+                            wordBreak: "break-word",
+                            hyphens: "auto",
+                          }}
+                        >
+                          {(() => {
+                            const formattedAddress = report.address.replace(
+                              /_/g,
+                              " "
+                            );
+                            return formattedAddress
+                              .substring(0, formattedAddress.length - 18)
+                              .trim();
+                          })()}
+                        </h3>
+                        <p className="text-xs sm:text-sm text-black/60 flex items-center">
+                          <Calendar className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                          {formatDate(report.generatedAt)}
+                        </p>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center space-x-2">
+                  <div className="flex flex-col sm:flex-row gap-2">
                     {report.status === "completed" && (
                       <>
                         <button
                           onClick={() => handleViewPdf(report)}
                           disabled={loadingUrls.has(report.id)}
-                          className="flex-1 btn-secondary py-2 text-sm flex items-center justify-center disabled:opacity-50"
+                          className="flex-1 bg-transparent border border-brown text-gray-600 hover:bg-brown hover:text-white font-medium px-6 py-1 rounded-lg transition-all duration-200 text-xs font-bold flex items-center justify-center disabled:opacity-50 touch-manipulation select-none"
                         >
-                          <Eye className="h-4 w-4 mr-1" />
+                          <Eye className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
                           {loadingUrls.has(report.id) ? "Loading..." : "View"}
                         </button>
                         <button
                           onClick={() => handleDownloadPdf(report)}
                           disabled={loadingUrls.has(report.id)}
-                          className="flex-1 btn-primary py-2 text-sm flex items-center justify-center disabled:opacity-50"
+                          className="flex-1 btn-primary py-1 text-xs font-bold flex items-center justify-center disabled:opacity-50 touch-manipulation select-none"
                         >
-                          <Download className="h-4 w-4 mr-1" />
+                          <Download className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
                           {loadingUrls.has(report.id)
                             ? "Loading..."
                             : "Download"}
@@ -650,10 +707,10 @@ export default function PastReports() {
                             openDeleteModal(report.id, report.s3Key);
                           }}
                           disabled={loadingUrls.has(report.id)}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                          className="py-px px-2 text-xs bg-transparent border border-red-600 text-red-600 hover:bg-red-600 hover:text-white font-medium rounded-md transition-all duration-200 flex items-center justify-center touch-manipulation sm:py-2 sm:px-3 sm:text-sm sm:rounded-full"
                           title="Delete report"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
                         </button>
                       </>
                     )}
@@ -699,29 +756,50 @@ export default function PastReports() {
                       >
                         {getStatusText(report.status)}
                       </span>
-                      <span className="text-sm text-navy/60">
+                      <span className="text-sm text-black/60">
                         {formatDate(report.generatedAt)}
                       </span>
                     </div>
-                    <h3 className="font-medium text-navy">{report.address}</h3>
+                    <h3
+                      className="font-medium text-black overflow-hidden leading-5"
+                      title={report.address}
+                      style={{
+                        maxWidth: "calc(100% - 10rem)",
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical" as "vertical",
+                        wordBreak: "break-word",
+                        hyphens: "auto",
+                      }}
+                    >
+                      {(() => {
+                        const formattedAddress = report.address.replace(
+                          /_/g,
+                          " "
+                        );
+                        return formattedAddress
+                          .substring(0, formattedAddress.length - 18)
+                          .trim();
+                      })()}
+                    </h3>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex flex-col sm:flex-row gap-2">
                     {report.status === "completed" && (
                       <>
                         <button
                           onClick={() => handleViewPdf(report)}
                           disabled={loadingUrls.has(report.id)}
-                          className="btn-secondary py-2 px-3 text-sm flex items-center disabled:opacity-50"
+                          className="bg-transparent border border-brown text-gray-600 hover:bg-brown hover:text-white font-medium px-2 py-1 rounded-lg transition-all duration-200 text-xs font-bold flex items-center disabled:opacity-50 touch-manipulation select-none"
                         >
-                          <Eye className="h-4 w-4 mr-1" />
+                          <Eye className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
                           {loadingUrls.has(report.id) ? "Loading..." : "View"}
                         </button>
                         <button
                           onClick={() => handleDownloadPdf(report)}
                           disabled={loadingUrls.has(report.id)}
-                          className="btn-primary py-2 px-3 text-sm flex items-center disabled:opacity-50"
+                          className="btn-primary py-1 px-2 text-xs font-bold flex items-center disabled:opacity-50 touch-manipulation select-none"
                         >
-                          <Download className="h-4 w-4 mr-1" />
+                          <Download className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
                           {loadingUrls.has(report.id)
                             ? "Loading..."
                             : "Download"}
@@ -740,10 +818,10 @@ export default function PastReports() {
                             openDeleteModal(report.id, report.s3Key);
                           }}
                           disabled={loadingUrls.has(report.id)}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                          className="sm:p-2 sm:text-red-600 sm:hover:bg-red-50 sm:rounded-full sm:transition-colors touch-friendly bg-transparent border border-red-600 text-red-600 hover:bg-red-600 hover:text-white font-medium py-1 px-3 rounded-lg transition-all duration-200 flex items-center justify-center"
                           title="Delete report"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
                         </button>
                       </>
                     )}
@@ -766,9 +844,9 @@ export default function PastReports() {
                             openDeleteModal(report.id, report.s3Key);
                           }}
                           disabled={loadingUrls.has(report.id)}
-                          className="btn-danger py-2 px-3 text-sm flex items-center disabled:opacity-50"
+                          className="btn-danger py-2 px-3 text-xs sm:text-sm flex items-center disabled:opacity-50 touch-friendly"
                         >
-                          <Trash2 className="h-4 w-4 mr-1" />
+                          <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                           Delete
                         </button>
                       </div>
