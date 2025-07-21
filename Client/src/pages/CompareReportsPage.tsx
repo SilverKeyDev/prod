@@ -61,10 +61,18 @@ export default function CompareReportsPage() {
   const [comparisonTable, setComparisonTable] = useState<any[]>([]);
 
   const fetchReports = async () => {
+    const idToken = localStorage.getItem("id_token");
     try {
       setIsLoading(true);
       const baseUrl = import.meta.env.VITE_API_BASE_URL || "";
       const res = await fetch(`${baseUrl}/api/v1/report/almostall`, {
+        method: "POST",
+        mode: "cors",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: `Bearer ${idToken}`,
+        },
         credentials: "include",
       });
       const json = await res.json();
@@ -79,8 +87,6 @@ export default function CompareReportsPage() {
         }));
         setReports(parsed);
         setError(null);
-      } else {
-        throw new Error("Failed to load reports");
       }
     } catch (error) {
       console.error("Failed to fetch reports:", error);
@@ -288,7 +294,7 @@ export default function CompareReportsPage() {
           </div>
         ) : error ? (
           <div className="text-center py-8 text-navy/60">
-            <p>Failed to load reports. Please try again.</p>
+            <p>No reports yet</p>
           </div>
         ) : reports.length === 0 ? (
           <div className="text-center py-12">
