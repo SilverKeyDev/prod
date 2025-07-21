@@ -109,7 +109,9 @@ def generate_report_endpoint():
             return jsonify({'error': 'Address is required', 'success': False}), 400
 
         safe_address = "".join(c for c in address if c.isalnum() or c in (' ', '-', '_')).rstrip().replace(' ', '_')
-        filenamee = f"reports/{safe_address}_{uuid.uuid4().hex[:8]}.pdf"
+        # Include user ID in filename for uniqueness and organization
+        user_id_short = user.id[:8] if len(user.id) >= 8 else user.id
+        filenamee = f"reports/{safe_address}_{user_id_short}_{uuid.uuid4().hex[:8]}.pdf"
 
         pdf_doc = PDFDocument(
                 id=str(uuid.uuid4()),
@@ -212,6 +214,10 @@ def list_reports():
 
                 if not file_name.endswith('.pdf'):
                     continue
+                
+                # Only include files that contain the user's ID
+                if user.id[:8] not in file_name:
+                    continue
 
                 presigned_url = s3_service.generate_presigned_url(s3_key)
                 reports_list.append({
@@ -253,6 +259,10 @@ def list_reports_almostall():
     try:
         reports_list = []
         seen_names = set()
+        user = get_current_user()
+        if not user:
+            logger.error(f"User not found with ID: {current_user_id}")
+            return jsonify({'error': 'User not found', 'success': False}), 404
 
         # Get completed reports from S3
         s3_client = s3_service.s3_client
@@ -268,6 +278,10 @@ def list_reports_almostall():
                     continue  # skip duplicate
 
                 if not file_name.endswith('.pdf'):
+                    continue
+
+                # Only include files that contain the user's ID
+                if user.id[:8] not in file_name:
                     continue
 
                 presigned_url = s3_service.generate_presigned_url(s3_key)
