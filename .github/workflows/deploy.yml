@@ -100,14 +100,35 @@ jobs:
               sudo docker rm cre_worker || true
             fi
 
-            echo "🚀 Starting Redis container (if not running)..."
-            if ! sudo docker ps --format '{{.Names}}' | grep -q '^redis$'; then
-              if sudo docker ps -a --format '{{.Names}}' | grep -q '^redis$'; then
-                sudo docker rm redis || true
-              fi
-              sudo docker run -d --name redis --network host redis
+            echo "🚀 (Re)starting Redis container..."
+
+            # Stop & remove any old Redis container
+            if sudo docker ps -a --format '{{.Names}}' | grep -q '^redis$'; then
+              echo "🧹 Removing existing Redis container..."
+              sudo docker rm -f redis || true
             fi
 
+            # Kill any process using port 6379
+            if sudo lsof -i :6379 -sTCP:LISTEN -t >/dev/null; then
+              echo "⚠️ Port 6379 already in use. Killing the process..."
+              sudo kill -9 $(sudo lsof -i :6379 -sTCP:LISTEN -t) || true
+              sleep 1
+            fi
+
+            # Start Redis on host network
+            echo "🚀 Starting fresh Redis container..."
+            sudo docker run -d --name redis --network host redis
+
+            # Confirm it's up
+            sleep 2
+            if ! sudo docker ps --format '{{.Names}}' | grep -q '^redis$'; then
+              echo "::error::Redis failed to start"
+              sudo docker logs redis || true
+              exit 1
+            else
+              echo "✅ Redis container is running"
+            fi
+            
 
             echo "🚀 Starting new container..."
             sudo docker run -d -p 5000:5000 --name cre_app \
