@@ -11,6 +11,7 @@ NC='\033[0m' # No Color
 # Initialize PIDs to avoid unbound errors
 FLASK_PID=""
 VITE_PID=""
+CELERY_PID=""
 
 # Function to log messages with timestamp
 log() {
@@ -25,6 +26,9 @@ cleanup() {
     fi
     if [[ -n "$VITE_PID" ]]; then
         kill "$VITE_PID" 2>/dev/null || true
+    fi
+    if [[ -n "$CELERY_PID" ]]; then
+        kill "$CELERY_PID" 2>/dev/null || true
     fi
     log "${GREEN}All processes terminated.${NC}"
 }
@@ -51,6 +55,14 @@ until curl -s http://localhost:5173 > /dev/null; do
   sleep 0.5
 done
 log "${GREEN}✅ Vite is ready at http://localhost:5173${NC}"
+
+# Start Celery worker in background
+log "Starting Celery worker..."
+cd Server || exit 1
+celery -A app.celery.celery_worker:celery worker --loglevel=info &
+CELERY_PID=$!
+cd ..
+log "${GREEN}✅ Celery worker started${NC}"
 
 # Start Flask server
 if [ "${1:-}" = "--production" ]; then

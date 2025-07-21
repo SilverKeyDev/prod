@@ -8,6 +8,7 @@ from app import db
 import time
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.services.report_generator import generate_report
+
 from app.services.s3_service import s3_service
 from flask import current_app
 from app import db
@@ -132,30 +133,17 @@ def generate_report_endpoint():
         # Decrement reports_available for non-subscription users
         user.reports_available -= 1
         db.session.commit()
-        logger.info(f"Deducted 1 report from user {user.id}. Remaining: {user.reports_available}")
         
-        
-        # Generate the report
-        result_data = generate_report(address, filenamee)
-        
-        # Update PDF document record
-        try:
-            pdf_doc.status = 'processed'
-            pdf_doc.file_size = len(str(result_data).encode('utf-8'))
-            db.session.commit()
-            logger.info(f"Created PDF document record with ID: {pdf_doc.id} for user {user.id}")
-        except Exception as e:
-            logger.error(f"Failed to create PDF document record: {str(e)}")
-            # Don't fail the request if we can't create the record
-        
-        logger.info(f"Report generated for user {user.id}. Reports remaining: {user.reports_available}")
+        # Start async task (lazy import to avoid circular import)
+        from app.celery.tasks import generate_report_async
+        task = generate_report_async.delay(address, filenamee, pdf_doc.id, user.id)
         
         return jsonify({
             'success': True,
-            'status': 'completed',
-            'result': result_data,
-            'reports_remaining': user.reports_available,
-            'document_id': pdf_doc.id
+            'status': 'started',
+            'task_id': task.id,
+            'document_id': pdf_doc.id,
+            'reports_remaining': user.reports_available
         })
 
     except Exception as e:
