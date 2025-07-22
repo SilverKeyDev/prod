@@ -7,6 +7,7 @@ import {
   MapPin,
   X,
   Trash2,
+  ChevronDown,
 } from "lucide-react";
 import ErrorToast from "../components/ErrorToast";
 import SuccessToast from "../components/SuccessToast";
@@ -44,6 +45,8 @@ export default function PastReports() {
   const [errorMessage, setErrorMessage] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
+  const sortDropdownRef = useRef<HTMLDivElement>(null);
 
   const fetchReports = async () => {
     const idToken = localStorage.getItem("id_token");
@@ -156,15 +159,15 @@ export default function PastReports() {
         link.download = `${report.address
           .replace(/[^a-z0-9]/gi, "_")
           .toLowerCase()}.pdf`;
-        
+
         // For mobile compatibility, add target="_blank" as fallback
         link.target = "_blank";
         link.rel = "noopener noreferrer";
-        
+
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        
+
         // If the programmatic download doesn't work (common on mobile),
         // the target="_blank" will open the PDF in a new tab where users can download
       } catch (error) {
@@ -441,7 +444,21 @@ export default function PastReports() {
     return () => {
       window.removeEventListener("reportGenerated", handleReportGenerated);
     };
-  }, []); // <-- Empty dependency array ensures this runs only once on mount
+  }, []);
+
+  // Handle clicks outside the sort dropdown
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (sortDropdownRef.current && !sortDropdownRef.current.contains(event.target as Node)) {
+        setSortDropdownOpen(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   // Force grid mode on mobile
   useEffect(() => {
@@ -562,10 +579,10 @@ export default function PastReports() {
             <div className="hidden sm:flex items-center space-x-1 sm:space-x-2">
               <button
                 onClick={() => setViewMode("grid")}
-                className={`p-2 rounded touch-friendly ${
+                className={`p-2 rounded touch-friendly flex items-center justify-center ${
                   viewMode === "grid"
                     ? "bg-brown text-white"
-                    : "bg-beige text-white hover:bg-brown/10"
+                    : "bg-beige text-white hover:bg-brown/80"
                 }`}
               >
                 <div className="grid grid-cols-2 gap-1 w-3 h-3 sm:w-4 sm:h-4">
@@ -577,10 +594,10 @@ export default function PastReports() {
               </button>
               <button
                 onClick={() => setViewMode("list")}
-                className={`p-2 rounded touch-friendly ${
+                className={`p-2 rounded touch-friendly flex items-center justify-center ${
                   viewMode === "list"
                     ? "bg-brown text-white"
-                    : "bg-beige text-white hover:bg-brown/10"
+                    : "bg-beige text-white hover:bg-brown/80"
                 }`}
               >
                 <div className="space-y-1 w-3 h-3 sm:w-4 sm:h-4">
@@ -590,14 +607,56 @@ export default function PastReports() {
                 </div>
               </button>
             </div>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as "date" | "address")}
-              className="mobile-input sm:w-auto text-sm"
-            >
-              <option value="date">Sort by Date</option>
-              <option value="address">Sort by Address</option>
-            </select>
+            <div className="relative" ref={sortDropdownRef}>
+              <button
+                onClick={() => setSortDropdownOpen(!sortDropdownOpen)}
+                className="mobile-input sm:w-auto text-sm flex items-center justify-between min-w-[140px] cursor-pointer hover:border-brown focus:border-brown focus:ring-brown/20"
+              >
+                <span className="flex items-center space-x-2">
+                  {sortBy === "date" ? (
+                    <>
+                      <Calendar className="w-4 h-4" />
+                      <span>Sort by Date</span>
+                    </>
+                  ) : (
+                    <>
+                      <MapPin className="w-4 h-4" />
+                      <span>Sort by Address</span>
+                    </>
+                  )}
+                </span>
+                <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${sortDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+              
+              {sortDropdownOpen && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-beige rounded-lg shadow-lg z-50">
+                  <button
+                    onClick={() => {
+                      setSortBy("date");
+                      setSortDropdownOpen(false);
+                    }}
+                    className={`w-full px-3 py-2 text-left text-sm hover:bg-brown/5 flex items-center space-x-2 first:rounded-t-lg transition-colors duration-150 ${
+                      sortBy === "date" ? "bg-brown/10 text-brown font-medium" : "text-black"
+                    }`}
+                  >
+                    <Calendar className="w-4 h-4" />
+                    <span>Sort by Date</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSortBy("address");
+                      setSortDropdownOpen(false);
+                    }}
+                    className={`w-full px-3 py-2 text-left text-sm hover:bg-brown/5 flex items-center space-x-2 last:rounded-b-lg transition-colors duration-150 ${
+                      sortBy === "address" ? "bg-brown/10 text-brown font-medium" : "text-black"
+                    }`}
+                  >
+                    <MapPin className="w-4 h-4" />
+                    <span>Sort by Address</span>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -678,7 +737,7 @@ export default function PastReports() {
                         <button
                           onClick={() => handleViewPdf(report)}
                           disabled={loadingUrls.has(report.id)}
-                          className="flex-1 bg-transparent border border-brown text-gray-600 hover:bg-brown hover:text-white font-medium px-6 py-1 rounded-lg transition-all duration-200 text-xs font-bold flex items-center justify-center disabled:opacity-50 touch-manipulation select-none"
+                          className="flex-1 bg-transparent border border-brown text-black hover:bg-brown hover:text-white font-medium px-6 py-1 rounded-lg transition-all duration-200 text-xs font-bold flex items-center justify-center disabled:opacity-50 touch-manipulation select-none"
                         >
                           <Eye className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
                           {loadingUrls.has(report.id) ? "Loading..." : "View"}
@@ -707,7 +766,7 @@ export default function PastReports() {
                             openDeleteModal(report.id, report.s3Key);
                           }}
                           disabled={loadingUrls.has(report.id)}
-                          className="py-px px-2 text-xs bg-transparent border border-red-600 text-red-600 hover:bg-red-600 hover:text-white font-medium rounded-md transition-all duration-200 flex items-center justify-center touch-manipulation sm:py-2 sm:px-3 sm:text-sm sm:rounded-full"
+                          className="py-px px-2 text-xs bg-white border border-red-600 text-red-600 hover:bg-red-500 hover:text-white font-medium rounded-md transition-all duration-200 flex items-center justify-center touch-manipulation sm:py-2 sm:px-3 sm:text-sm sm:rounded-full"
                           title="Delete report"
                         >
                           <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -818,7 +877,7 @@ export default function PastReports() {
                             openDeleteModal(report.id, report.s3Key);
                           }}
                           disabled={loadingUrls.has(report.id)}
-                          className="sm:p-2 sm:text-red-600 sm:hover:bg-red-50 sm:rounded-full sm:transition-colors touch-friendly bg-transparent border border-red-600 text-red-600 hover:bg-red-600 hover:text-white font-medium py-1 px-3 rounded-lg transition-all duration-200 flex items-center justify-center"
+                          className="sm:p-2 sm:text-red-600 sm:hover:bg-red-50 sm:rounded-full sm:transition-colors touch-friendly bg-white border border-red-600 text-red-600 hover:bg-red-500 hover:text-white font-medium py-1 px-3 rounded-lg transition-all duration-200 flex items-center justify-center"
                           title="Delete report"
                         >
                           <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />

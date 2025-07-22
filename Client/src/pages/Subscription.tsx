@@ -33,7 +33,7 @@ const plans: Plan[] = [
     price: 4.99,
     interval: "one-time",
     reportsLimit: 5,
-    features: ["5 reports", "No expiration"],
+    features: ["No expiration"],
   },
   {
     id: "20-reports",
@@ -43,8 +43,6 @@ const plans: Plan[] = [
     reportsLimit: 20,
     popular: true,
     features: [
-      "20 reports",
-      "No expiration",
       "Save 25% vs individual reports",
     ],
   },
@@ -55,8 +53,6 @@ const plans: Plan[] = [
     interval: "one-time",
     reportsLimit: 50,
     features: [
-      "50 reports",
-      "No expiration",
       "Save 40% vs individual reports",
     ],
   },

@@ -14,11 +14,11 @@ export default {
       colors: {
         brown: {
           DEFAULT: '#8C6F5A',
-          light: '#6E5947',
+          light: '#8C6F5A',
         },
         olive: {
           DEFAULT: '#A3B18A',
-          light: '##93A367',
+          light: '#6C8B75',
         },
         beige: {
           DEFAULT: '#D8CAB8',

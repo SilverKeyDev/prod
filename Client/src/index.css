@@ -69,7 +69,7 @@
   }
 
   .btn-danger {
-    @apply bg-red-600 hover:bg-red-700 text-white font-medium px-6 py-3 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md;
+    @apply bg-white border border-red-600 text-red-600 hover:bg-red-500 hover:text-white font-medium px-6 py-3 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md;
   }
 
   .card {
