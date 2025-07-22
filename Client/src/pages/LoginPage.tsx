@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Mail, Lock, ArrowLeft } from "lucide-react";
 import { authApi } from "../lib/api";
@@ -9,6 +9,16 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
+
+  // Clear any existing auth data when login page loads
+  useEffect(() => {
+    localStorage.removeItem("user");
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("id_token");
+    
+    // Dispatch auth change event to update App component state
+    window.dispatchEvent(new Event('authChange'));
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
