@@ -766,7 +766,7 @@ export default function PastReports() {
                             openDeleteModal(report.id, report.s3Key);
                           }}
                           disabled={loadingUrls.has(report.id)}
-                          className="py-px px-2 text-xs bg-white border border-red-600 text-red-600 hover:bg-red-500 hover:text-white font-medium rounded-md transition-all duration-200 flex items-center justify-center touch-manipulation sm:py-2 sm:px-3 sm:text-sm sm:rounded-full"
+                          className="py-px px-2 text-xs bg-white border border-red-600 text-red-600 hover:bg-red-500 hover:text-white font-medium rounded-lg transition-all duration-200 flex items-center justify-center touch-manipulation sm:py-2 sm:px-3 sm:text-sm sm:rounded-lg"
                           title="Delete report"
                         >
                           <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -877,7 +877,7 @@ export default function PastReports() {
                             openDeleteModal(report.id, report.s3Key);
                           }}
                           disabled={loadingUrls.has(report.id)}
-                          className="sm:p-2 sm:text-red-600 sm:hover:bg-red-50 sm:rounded-full sm:transition-colors touch-friendly bg-white border border-red-600 text-red-600 hover:bg-red-500 hover:text-white font-medium py-1 px-3 rounded-lg transition-all duration-200 flex items-center justify-center"
+                          className="sm:p-2 sm:text-red-600 sm:hover:bg-red-50 sm:rounded-lg sm:transition-colors touch-friendly bg-white border border-red-600 text-red-600 hover:bg-red-500 hover:text-white font-medium py-1 px-3 rounded-lg transition-all duration-200 flex items-center justify-center"
                           title="Delete report"
                         >
                           <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />

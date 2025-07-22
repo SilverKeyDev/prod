@@ -50,15 +50,6 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-off-white flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">
-        {/* Home Button */}
-        <Link
-          to="/"
-          className="inline-flex items-center text-black/60 hover:text-black mb-6 transition-colors"
-        >
-          <ArrowLeft className="h-5 w-5 mr-2" />
-          <span className="text-sm font-medium">Back to Home</span>
-        </Link>
-
         {/* Header */}
         <div className="text-center mb-8 sm:mb-12">
           <h2 className="text-2xl sm:text-3xl font-serif text-black mb-2">Welcome back</h2>
@@ -76,6 +67,14 @@ export default function LoginPage() {
 
         {/* Login Form */}
         <form onSubmit={handleSubmit} className="card space-y-4 sm:space-y-6">
+          {/* Home Button */}
+          <Link
+            to="/"
+            className="inline-flex items-center text-black/60 hover:text-black transition-colors"
+          >
+            <ArrowLeft className="h-5 w-5 mr-2" />
+            <span className="text-sm font-medium">Back to Home</span>
+          </Link>
           <div>
             <label className="block text-xs font-medium text-black mb-2">
               Email address

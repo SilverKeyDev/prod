@@ -59,15 +59,6 @@ export default function SignupPage({}: SignupPageProps) {
   return (
     <div className="min-h-screen bg-off-white flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">
-        {/* Home Button */}
-        <Link
-          to="/"
-          className="inline-flex items-center text-black/60 hover:text-black mb-6 transition-colors"
-        >
-          <ArrowLeft className="h-5 w-5 mr-2" />
-          <span className="text-sm font-medium">Back to Home</span>
-        </Link>
-
         {/* Header */}
         <div className="text-center mb-6 sm:mb-8">
           <h2 className="text-2xl sm:text-3xl font-serif text-black mb-2">
@@ -77,6 +68,14 @@ export default function SignupPage({}: SignupPageProps) {
 
         {/* Signup Form */}
         <form onSubmit={handleSubmit} className="card space-y-4 sm:space-y-5">
+          {/* Home Button */}
+          <Link
+            to="/"
+            className="inline-flex items-center text-black/60 hover:text-black transition-colors"
+          >
+            <ArrowLeft className="h-5 w-5 mr-2" />
+            <span className="text-sm font-medium">Back to Home</span>
+          </Link>
           {/* Name */}
           <div>
             <label className="block text-sm font-medium text-black mb-2">
@@ -207,7 +206,7 @@ export default function SignupPage({}: SignupPageProps) {
             <span className="text-gray-600 sm:text-black/60">Already have an account? </span>
             <Link
               to="/login"
-              className="text-gold hover:text-gold-light transition-colors"
+              className="text-brown hover:text-brown/80 hover:underline underline-offset-4 transition-colors"
             >
               Sign in
             </Link>
