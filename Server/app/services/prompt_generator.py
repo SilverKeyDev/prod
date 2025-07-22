@@ -15,25 +15,6 @@ def generate_prompt(address: str,
                     include_schools=True,
                     include_extra_tips=True) -> str:
     return f"""
-CRITICAL: Output ONLY a valid JSON object. Nothing else.
-
-You are given a location: "{address}".
-Use the template JSON structure below. 
-
-You MUST include ALL fields exactly as shown — if you don't know the value, research further until you find a value.
-I want the returned JSON to contain ALL of this information in the same way it is displayed below.
-
-You MUST embed image URLs where appropriate (3–6 total), placing them naturally throughout fields like parks, nightlife, maps, or local culture — not just at the end.
-
-You MUST embed image references where appropriate (3–6 total), placing them naturally throughout fields — not just at the end.
-
-I want you to be very critical and expose the good and bad about these places. Do not be afraid to give a negative rating or comment.
-
-If there is no data for a field, give your best guess, and note that it is an estimate, not exact.
-
-Begin and end your output with curly brackets.
-DO NOT add any explanation, commentary, markdown, or thinking tags.
-
 {{
   { _section_neighborhood_overview(address).strip() }
   { _section_safety(address, include_safety).strip() }

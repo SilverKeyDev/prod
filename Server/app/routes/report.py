@@ -359,6 +359,57 @@ def get_download_url(report_id):
         logger.error(f"Traceback: {traceback.format_exc()}")
         return jsonify({'error': 'Internal server error'}), 500
 
+@report_bp.route('/<report_id>/view-url', methods=['GET'])
+def get_view_url(report_id):
+    """Generate a fresh presigned URL for viewing a specific report inline in browser."""
+    try:
+        logger.info(f"View URL request received for report: {report_id}")
+
+        if not report_id:
+            logger.error("No report ID provided")
+            return jsonify({'error': 'Report ID is required'}), 400
+
+        # Fetch report from DB
+        report = PDFDocument.query.filter_by(id=report_id).first()
+        if not report:
+            logger.error(f"Report not found for ID: {report_id}")
+            return jsonify({'error': 'Report not found'}), 404
+
+        pdf_url = report.pdf_url or report.file_path
+        if not pdf_url:
+            logger.error(f"PDF URL or S3 key missing for report: {report_id}")
+            return jsonify({'error': 'PDF not found for this report'}), 404
+
+        logger.debug(f"Processing PDF URL for report {report_id}: {pdf_url}")
+
+        # If already a full presigned URL, return it
+        if pdf_url.startswith("http"):
+            logger.debug(f"PDF URL is already a presigned URL: {pdf_url[:100]}...")
+            return jsonify({
+                'success': True,
+                'viewUrl': pdf_url
+            })
+
+        # Generate new presigned URL for inline viewing (no attachment disposition)
+        if not pdf_url.startswith("/"):
+            logger.info(f"Generating fresh view URL for S3 key: {pdf_url}")
+            fresh_url = s3_service.generate_view_url(pdf_url)
+            if fresh_url:
+                logger.info(f"Successfully generated view URL for report {report_id}")
+                return jsonify({'success': True, 'viewUrl': fresh_url})
+            else:
+                logger.error(f"Failed to generate view URL for {pdf_url}")
+                return jsonify({'error': 'Failed to generate view URL'}), 500
+
+        # Local static path fallback (if used)
+        logger.debug(f"PDF URL is a local file path: {pdf_url}")
+        return jsonify({'success': True, 'viewUrl': pdf_url})
+
+    except Exception as e:
+        logger.error(f"Error generating view URL for report {report_id}: {str(e)}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        return jsonify({'error': 'Internal server error'}), 500
+
 @report_bp.route('/compare', methods=['POST'])
 @cross_origin(**cors_config)
 def compare_reports_endpoint():

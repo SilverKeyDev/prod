@@ -207,6 +207,71 @@ class S3Service:
             logger.error(f"Traceback: {traceback.format_exc()}")
             return None
     
+    def generate_view_url(self, s3_key: str, operation: str = 'get_object') -> Optional[str]:
+        """
+        Generate a presigned URL for viewing a PDF inline in the browser (no forced download).
+
+        Args:
+            s3_key: The S3 key (path) of the file
+            operation: The S3 operation (default: 'get_object' for viewing)
+
+        Returns:
+            The presigned URL, or None if generation failed
+        """
+        if not self.s3_client:
+            logger.error("S3 client not initialized - cannot generate presigned URL")
+            return None
+
+        if not s3_key:
+            logger.error("No S3 key provided for presigned URL generation")
+            return None
+
+        try:
+            config = current_app.config
+            bucket_name = config['S3_BUCKET_NAME_PDFS']
+            expiration = config['S3_PRESIGNED_URL_EXPIRATION']
+
+            # For inline viewing, set Content-Disposition to inline
+            params = {
+                'Bucket': bucket_name,
+                'Key': s3_key,
+                'ResponseContentDisposition': 'inline'
+            }
+
+            presigned_url = self.s3_client.generate_presigned_url(
+                operation,
+                Params=params,
+                ExpiresIn=expiration
+            )
+
+            return presigned_url
+
+        except ClientError as e:
+            error_code = e.response['Error']['Code']
+            error_message = e.response['Error']['Message']
+            logger.error(f"Failed to generate view URL for {s3_key}")
+            logger.error(f"ClientError code: {error_code}")
+            logger.error(f"ClientError message: {error_message}")
+
+            if error_code == 'NoSuchKey':
+                logger.error(f"S3 object {s3_key} does not exist in bucket {bucket_name}")
+            elif error_code == 'NoSuchBucket':
+                logger.error(f"S3 bucket {bucket_name} does not exist")
+            elif error_code == 'AccessDenied':
+                logger.error("Access denied to S3 bucket - check IAM permissions")
+
+            return None
+
+        except ParamValidationError as e:
+            logger.error(f"Parameter validation error generating view URL: {str(e)}")
+            return None
+
+        except Exception as e:
+            logger.error(f"Unexpected error generating view URL: {str(e)}")
+            logger.error(f"Exception type: {type(e).__name__}")
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            return None
+    
     def delete_pdf(self, s3_key: str) -> bool:
         """
         Delete a PDF file from S3

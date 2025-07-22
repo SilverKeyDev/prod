@@ -54,9 +54,9 @@ def _create_pdf(report: dict, address: str, filename: str) -> str:
         )
 
         styles = getSampleStyleSheet()
-        styles.add(ParagraphStyle(name="MainTitle", fontSize=20, leading=28, fontName="Helvetica-Bold", textColor=colors.black, alignment=TA_CENTER))
-        styles.add(ParagraphStyle(name="SectionHeader", fontSize=18, leading=22, textColor=colors.black, fontName="Helvetica-Bold", spaceAfter=8))
-        styles.add(ParagraphStyle(name="SectionSubHeader", fontSize=16, leading=20, textColor=colors.green, fontName="Helvetica-Bold", spaceAfter=8))
+        styles.add(ParagraphStyle(name="MainTitle", fontSize=20, leading=28, fontName="Helvetica", textColor=colors.black, alignment=TA_CENTER))
+        styles.add(ParagraphStyle(name="SectionHeader", fontSize=18, leading=22, textColor=colors.black, fontName="Helvetica", spaceAfter=8))
+        styles.add(ParagraphStyle(name="SectionSubHeader", fontSize=16, leading=20, textColor="#D8CAB8", fontName="Helvetica-Bold", spaceAfter=8))
         styles.add(ParagraphStyle(name="SubHeader", fontSize=11, leading=14, textColor="#6A7B52", fontName="Helvetica-Bold", spaceAfter=6))
         styles.add(ParagraphStyle(name="Body", fontSize=10, leading=13, fontName="Helvetica", spaceAfter=4))
         styles.add(ParagraphStyle(name="Caption", fontSize=8, leading=10, textColor=colors.grey, alignment=TA_CENTER, fontName="Helvetica-Oblique"))
@@ -64,15 +64,12 @@ def _create_pdf(report: dict, address: str, filename: str) -> str:
 
         elements = []
 
+        # Add main title with address
+        elements.append(Paragraph(address, styles["MainTitle"]))
+        elements.append(Spacer(1, 12))
+
         for i, (section, section_data) in enumerate(report.items()):
-            if i > 0:
-                elements.append(Spacer(1, 8))
-            
-            title_style = None
-            if i == 0:
-                title_style = styles["MainTitle"]
-            else:
-                title_style = styles["SectionHeader"]
+            title_style = styles["SectionHeader"]
             elements.append(Paragraph(section.replace("_", " ").title(), title_style))
 
             elements.append(HRFlowable(width="100%", thickness=0.5, color="#AAAAAA"))

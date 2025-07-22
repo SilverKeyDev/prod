@@ -18,6 +18,10 @@ from .prompt_generator import generate_prompt
 from io import BytesIO
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
+from .guidance_generator import give_guidance
+
+# Import Pydantic models for structured JSON output
+from ..models.report_models import FullReport
 
 # Configure verbose logging
 logging.basicConfig(level=logging.DEBUG)
@@ -53,10 +57,6 @@ def validate_address(address: str) -> bool:
         logger.error("❌ Address is empty or None")
         return False
     
-    if not isinstance(address, str):
-        logger.error(f"❌ Address is not a string: {type(address)}")
-        return False
-    
     if len(address.strip()) == 0:
         logger.error("❌ Address is empty after stripping whitespace")
         return False
@@ -84,12 +84,36 @@ def _safe_parse_json(text: str):
                 logger.debug(f"📋 JSON block preview: {match[:200]}...")
                 try:
                     logger.debug("🔑 Trying to parse JSON using `json.loads()`")
-                    return json.loads(match)
+                    parsed_json = json.loads(match)
+                    
+                    # Validate against Pydantic model
+                    logger.debug("✅ JSON parsed successfully, validating against PropertyReport schema")
+                    try:
+                        validated_report = PropertyReport(**parsed_json)
+                        logger.debug("🎯 Pydantic validation successful")
+                        return validated_report.model_dump()
+                    except Exception as validation_error:
+                        logger.warning(f"⚠️ Pydantic validation failed: {str(validation_error)}")
+                        logger.warning("📋 Returning raw JSON without validation")
+                        return parsed_json
+                        
                 except json.JSONDecodeError as je:
                     logger.warning(f"⚠️ Failed with `json.loads`: {str(je)}")
                     logger.warning("⚠️ Trying `json5.loads`")
                     try:
-                        return json5.loads(match)
+                        parsed_json = json5.loads(match)
+                        
+                        # Validate against Pydantic model
+                        logger.debug("✅ JSON5 parsed successfully, validating against PropertyReport schema")
+                        try:
+                            validated_report = PropertyReport(**parsed_json)
+                            logger.debug("🎯 Pydantic validation successful")
+                            return validated_report.model_dump()
+                        except Exception as validation_error:
+                            logger.warning(f"⚠️ Pydantic validation failed: {str(validation_error)}")
+                            logger.warning("📋 Returning raw JSON without validation")
+                            return parsed_json
+                            
                     except Exception as e:
                         logger.debug(f"⛔ `json5` parse also failed: {str(e)}")
                         continue
@@ -132,24 +156,33 @@ def generate_report(address: str, filename: str) -> Dict:
                 {
                     "role": "system",
                     "content": (
-                        "OUTPUT ONLY VALID JSON, THIS IS EXTRMELY IMPORTANT, CHECK AFTER GENERATION TO ENSURE JSON IS VALID, FAILURE TO DO SO WILL DESTROY PROGRAM"
-                        "If exact data is unavailable, use your best estimate and clearly note it as 'estimated'. "
-                        "You are generating a detailed lifestyle and culture report for a given address, using only trustworthy public sources. "
-                        "Make it insightful and critical, do not hesitate to BE VERY negative OR VERY positive about aspects of the neighborhood."
-                        "OUTPUT ONLY VALID JSON, THIS IS EXTRMELY IMPORTANT, CHECK AFTER GENERATION TO ENSURE JSON IS VALID, FAILURE TO DO SO WILL DESTROY PROGRAM"
+                        f"You are a comprehensive property research assistant. Given an address, {address}, you must provide a detailed property report in valid JSON format.\n\n"
+
+                        "CRITICAL REQUIREMENTS:\n"
+                        "1. Include ALL fields exactly as shown in the template - if you don't know a value, research until you find one\n"
+                        "2. Be  critical and honest - expose both good and bad aspects of locations\n"
+                        "3. If no data exists for a field, provide your best educated estimate based on similar areas\n"
+                        "4. All ratings should be out of 10 and realistic, do not be afraid to rate somewhere very low or high\n"
+                        "5. You MUST respond with ONLY valid JSON (no markdown, no explanation). Do not wrap your response in ``` or any code fences.\n"
+
+                        "STRICT GUIDANCE FOR EACH SECTION:\n"
+                        
+                         f"{give_guidance()}"
                     )
-                },
-                {
-                    "role": "user",
-                    "content": prompt
-                }
+                }, {"role": "user", "content": address}
             ],
             "search_mode": "web",
-            "reasoning_effort": "high",
+            "reasoning_effort": "medium",
             "temperature": 0.1,
-            "max_tokens": 20000,
+            "max_tokens": 10000,
             "stream": False,
-            "return_images": False
+            "return_images": False,
+            "response_format": {
+                "type": "json_schema",
+                "json_schema": {
+                    "schema": FullReport.model_json_schema()
+                }
+            }
         }
 
         logger.debug(f"📡 Sending request to Perplexity with payload: {json.dumps(payload)[:500]}...")
