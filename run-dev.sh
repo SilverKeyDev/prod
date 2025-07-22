@@ -12,6 +12,7 @@ NC='\033[0m' # No Color
 FLASK_PID=""
 VITE_PID=""
 CELERY_PID=""
+REDIS_PID=""
 
 # Function to log messages with timestamp
 log() {
@@ -29,6 +30,9 @@ cleanup() {
     fi
     if [[ -n "$CELERY_PID" ]]; then
         kill "$CELERY_PID" 2>/dev/null || true
+    fi
+    if [[ -n "$REDIS_PID" ]]; then
+        kill "$REDIS_PID" 2>/dev/null || true
     fi
     log "${GREEN}All processes terminated.${NC}"
 }
@@ -55,6 +59,18 @@ until curl -s http://localhost:5173 > /dev/null; do
   sleep 0.5
 done
 log "${GREEN}✅ Vite is ready at http://localhost:5173${NC}"
+
+# Start Redis server in background
+log "Starting Redis server..."
+redis-server --daemonize no --port 6379 &
+REDIS_PID=$!
+
+# Wait for Redis to be ready
+log "Waiting for Redis to start on localhost:6379..."
+until redis-cli ping > /dev/null 2>&1; do
+  sleep 0.5
+done
+log "${GREEN}✅ Redis is ready at localhost:6379${NC}"
 
 # Start Celery worker in background
 log "Starting Celery worker..."

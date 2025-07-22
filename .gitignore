@@ -78,3 +78,5 @@ yarn-error.log*
 
 key.pem
 .env
+
+dump.rdb

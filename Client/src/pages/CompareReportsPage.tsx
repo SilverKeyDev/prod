@@ -3,13 +3,14 @@ import { useState, useEffect } from "react";
 import { Check, Loader2, BarChart2, RefreshCw, Share } from "lucide-react";
 import ErrorToast from "../components/ErrorToast";
 import SuccessToast from "../components/SuccessToast";
+import { useData } from "../contexts/DataContext";
 
 interface Report {
   id: string;
   address: string;
-  status: "generating" | "completed" | "failed";
-  createdAt: string;
-  updatedAt?: string;
+  status: "generating" | "completed" | "error";
+  pdfUrl?: string | null;
+  s3Key?: string | null;
   // Add more report fields as needed
   price?: number;
   squareFootage?: number;
@@ -18,7 +19,6 @@ interface Report {
   estimatedValue?: number;
   neighborhoodScore?: number;
   schoolScore?: number;
-  s3Key?: string;
   // Add more fields as needed
 }
 
@@ -51,53 +51,25 @@ const METRIC_KEYS: string[] = [
 ];
 
 export default function CompareReportsPage() {
-  const [reports, setReports] = useState<Report[]>([]);
+  // Use preloaded data from context
+  const { compareReports, compareReportsError, refreshCompareReports } = useData();
+  
+  // Refresh data when page loads to ensure latest updates
+  useEffect(() => {
+    refreshCompareReports();
+  }, [refreshCompareReports]);
+  
+  // Alias for compatibility with existing code
+  const reports = compareReports;
+  
   const [selectedReports, setSelectedReports] = useState<Report[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false); // Only for comparison loading
   const [showError, setShowError] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [comparisonTable, setComparisonTable] = useState<any[]>([]);
 
-  const fetchReports = async () => {
-    const idToken = localStorage.getItem("id_token");
-    try {
-      setIsLoading(true);
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || "";
-      const res = await fetch(`${baseUrl}/api/v1/report/almostall`, {
-        method: "POST",
-        mode: "cors",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          Authorization: `Bearer ${idToken}`,
-        },
-        credentials: "include",
-      });
-      const json = await res.json();
-
-      if (json.success) {
-        const parsed = json.reports.map((r: any) => ({
-          id: r.id,
-          address: r.address,
-          status: r.status,
-          pdfUrl: r.pdfUrl ?? null,
-          s3Key: r.s3Key ?? null,
-        }));
-        setReports(parsed);
-        setError(null);
-      }
-    } catch (error) {
-      console.error("Failed to fetch reports:", error);
-      setError(
-        error instanceof Error ? error.message : "An unknown error occurred"
-      );
-      setShowError(true);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Removed fetchReports - now using preloaded data from context
   // Helper to compare
   // Fetch comparison data whenever selection changes (2-5 selected)
   const fetchComparison = async (keys: string[]) => {
@@ -154,10 +126,7 @@ export default function CompareReportsPage() {
     }
   }, [selectedReports]);
 
-  // Fetch user's reports
-  useEffect(() => {
-    fetchReports();
-  }, []);
+  // Data is already preloaded by context - no need to fetch
 
   const toggleReportSelection = (report: Report, e: React.MouseEvent) => {
     e.preventDefault();
@@ -277,19 +246,16 @@ export default function CompareReportsPage() {
   };
 
   const refreshReports = async () => {
-    setIsLoading(true);
     try {
-      fetchReports();
+      await refreshCompareReports();
       setToastMessage("Reports refreshed successfully");
       setShowSuccess(true);
     } catch (error) {
       console.error("Failed to refresh reports:", error);
-      setError(
+      setToastMessage(
         error instanceof Error ? error.message : "Failed to refresh reports"
       );
       setShowError(true);
-    } finally {
-      setIsLoading(false);
     }
   };
   return (
@@ -307,7 +273,7 @@ export default function CompareReportsPage() {
       {/* Error Toast */}
       {showError && (
         <ErrorToast
-          message={toastMessage || error || "An error occurred"}
+          message={toastMessage || compareReportsError || "An error occurred"}
           onClose={() => setShowError(false)}
           duration={5000}
         />
@@ -374,7 +340,7 @@ export default function CompareReportsPage() {
           <div className="flex justify-center items-center py-8 sm:py-12">
             <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 animate-spin text-black" />
           </div>
-        ) : error ? (
+        ) : compareReportsError ? (
           <div className="text-center py-6 sm:py-8 text-black/60">
             <p className="text-sm sm:text-base">No reports yet</p>
           </div>

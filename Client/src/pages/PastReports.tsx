@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import ErrorToast from "../components/ErrorToast";
 import SuccessToast from "../components/SuccessToast";
+import { useData } from "../contexts/DataContext";
 
 interface Report {
   id: string;
@@ -34,7 +35,17 @@ export default function PastReports() {
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [sortBy, setSortBy] = useState<"date" | "address">("date");
-  const [reports, setReports] = useState<Report[]>([]);
+  
+  // Use preloaded data from context
+  const { reports, refreshReports } = useData();
+  
+  // Refresh data when page loads to ensure latest updates
+  useEffect(() => {
+    refreshReports();
+  }, [refreshReports]);
+  
+  // Local cache for PDF URLs to avoid modifying context state
+  const [pdfUrlCache, setPdfUrlCache] = useState<Record<string, string>>({});
   const [currentPdf, setCurrentPdf] = useState<string | null>(null);
   const [loadingUrls, setLoadingUrls] = useState<Set<string>>(new Set());
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -49,36 +60,7 @@ export default function PastReports() {
   const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
   const sortDropdownRef = useRef<HTMLDivElement>(null);
 
-  const fetchReports = async () => {
-    const idToken = localStorage.getItem("id_token");
-    try {
-      const baseUrl = API_BASE_URL || "";
-      const res = await fetch(`${baseUrl}/api/v1/report/all`, {
-        method: "POST",
-        mode: "cors",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          Authorization: `Bearer ${idToken}`,
-        },
-        credentials: "include",
-      });
-      const json = await res.json();
-      if (json.success) {
-        const parsed: Report[] = json.reports.map((r: any) => ({
-          id: r.id,
-          address: r.address,
-          status: r.status,
-          pdfUrl: r.pdfUrl ?? null,
-          s3Key: r.s3Key ?? null,
-          generatedAt: new Date(r.generatedAt * 1000),
-        }));
-        setReports(parsed);
-      }
-    } catch (err) {
-      console.error("Failed to fetch reports", err);
-    }
-  };
+
 
   const getFreshDownloadUrl = async (
     reportId: string
@@ -123,11 +105,12 @@ export default function PastReports() {
     if (!pdfUrl && report.s3Key) {
       pdfUrl = await getFreshDownloadUrl(report.id);
       if (pdfUrl) {
-        // Update the report with the fresh URL
-        setReports((prev) =>
-          prev.map((r) => (r.id === report.id ? { ...r, pdfUrl } : r))
-        );
+        // Cache the fresh URL locally
+        setPdfUrlCache(prev => ({ ...prev, [report.id]: pdfUrl! }));
       }
+    } else if (pdfUrlCache[report.id]) {
+      // Use cached URL if available
+      pdfUrl = pdfUrlCache[report.id];
     }
 
     if (pdfUrl) {
@@ -143,10 +126,12 @@ export default function PastReports() {
     if (!pdfUrl && report.s3Key) {
       pdfUrl = await getFreshDownloadUrl(report.id);
       if (pdfUrl) {
-        setReports((prev) =>
-          prev.map((r) => (r.id === report.id ? { ...r, pdfUrl } : r))
-        );
+        // Cache the fresh URL locally
+        setPdfUrlCache(prev => ({ ...prev, [report.id]: pdfUrl! }));
       }
+    } else if (pdfUrlCache[report.id]) {
+      // Use cached URL if available
+      pdfUrl = pdfUrlCache[report.id];
     }
   
     if (pdfUrl) {
@@ -311,7 +296,7 @@ export default function PastReports() {
 
       // Refresh the reports list
       console.log("[DELETE] Refreshing reports list...");
-      await fetchReports();
+      await refreshReports();
     } catch (error) {
       console.error("[DELETE] Error deleting report:", {
         error,
@@ -479,12 +464,10 @@ export default function PastReports() {
   };
 
   useEffect(() => {
-    // 1. Initial fetch and event listener setup
-    fetchReports();
-
+    // Event listener setup - data is already preloaded by context
     const handleReportGenerated = () => {
-      console.log("reportGenerated event received, fetching reports.");
-      fetchReports();
+      console.log("reportGenerated event received, refreshing reports.");
+      refreshReports();
     };
 
     window.addEventListener("reportGenerated", handleReportGenerated);

@@ -12,7 +12,7 @@ export interface ApiResponse<T = any> {
 const getAuthToken = (): string | null => {
   if (typeof window === 'undefined') return null;
 
-  const token = localStorage.getItem('access_token'); // Ensure this matches how you store it after login
+  const token = localStorage.getItem('id_token'); // Use id_token to match other API calls
   return token;
 };
 

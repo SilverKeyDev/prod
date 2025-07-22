@@ -139,13 +139,13 @@ export default function LoginPage() {
           <div className="flex items-center justify-center gap-6 text-sm">
             <Link
               to="/signup"
-              className="text-black hover:text-black/80 transition-colors text-sm sm:text-base text-gray-600 sm:text-black"
+              className="text-gray-600 hover:text-gray-800 transition-colors text-sm sm:text-base"
             >
               Create an account
             </Link>
             <Link
               to="/forgot-password"
-              className="text-black hover:text-black/80 transition-colors text-sm sm:text-base text-gray-600 sm:text-black"
+              className="text-gray-600 hover:text-gray-800 transition-colors text-sm sm:text-base"
             >
               Forgot password?
             </Link>

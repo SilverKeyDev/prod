@@ -8,6 +8,7 @@ import Dashboard from "./components/Dashboard.tsx";
 import VerificationPage from "./pages/VerificationPage";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
+import { DataProvider } from "./contexts/DataContext";
 
 function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -63,36 +64,38 @@ function App() {
   }
 
   return (
-    <BrowserRouter
-      future={{ v7_relativeSplatPath: true, v7_startTransition: true }}
-    >
-      <div className="min-h-screen bg-off-white">
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={<HomePage />} />
-          <Route
-            path="/signup"
-            element={<SignupPage />}
-          />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/verification" element={<VerificationPage/>} />
-          <Route path="/privacy" element={<PrivacyPolicy />} />
-          <Route path="/terms" element={<TermsOfService />} />
+    <DataProvider>
+      <BrowserRouter
+        future={{ v7_relativeSplatPath: true, v7_startTransition: true }}
+      >
+        <div className="min-h-screen bg-off-white">
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<HomePage />} />
+            <Route
+              path="/signup"
+              element={<SignupPage />}
+            />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/verification" element={<VerificationPage/>} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<TermsOfService />} />
 
-          {/* Protected Route */}
-          <Route
-            path="/dashboard/*"
-            element={
-              user ? (
-                <Dashboard user={user} onLogout={handleLogout} />
-              ) : (
-                <Navigate to="/login" />
-              )
-            }
-          />
-        </Routes>
-      </div>
-    </BrowserRouter>
+            {/* Protected Route */}
+            <Route
+              path="/dashboard/*"
+              element={
+                user ? (
+                  <Dashboard user={user} onLogout={handleLogout} />
+                ) : (
+                  <Navigate to="/login" />
+                )
+              }
+            />
+          </Routes>
+        </div>
+      </BrowserRouter>
+    </DataProvider>
   );
 }
 

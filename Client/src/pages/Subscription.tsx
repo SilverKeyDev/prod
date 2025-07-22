@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useSearchParams, useLocation } from "react-router-dom";
 import {
   Check,
@@ -12,9 +12,9 @@ import {
   AlertCircle
 } from "lucide-react";
 import { useStripePayment } from "../hooks/useStripePayment";
-import { apiRequest } from "../lib/api";
 import ErrorToast from "../components/ErrorToast";
 import SuccessToast from "../components/SuccessToast";
+import { useData } from "../contexts/DataContext";
 
 interface Plan {
   id: string;
@@ -86,22 +86,7 @@ const plans: Plan[] = [
   },
 ];
 
-interface BillingInfo {
-  subscription: {
-    status: string;
-    plan_id: string;
-    current_period_end: string | null;
-    cancel_at_period_end: boolean;
-    reports_limit: number;
-    stripe_subscription_id: string | null;
-  } | null;
-  usage: {
-    reports_available: number;
-    reports_used: number;
-    reports_limit: number;
-  };
-  has_active_subscription: boolean;
-}
+// BillingInfo type is now imported from DataContext
 
 
 
@@ -114,36 +99,12 @@ export default function Subscription() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [toastMessage] = useState(""); // setToastMessage was unused
 
-  const [billingInfo, setBillingInfo] = useState<BillingInfo | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // Use preloaded data from context
+  const { billingInfo, billingLoading: isLoading, billingError } = useData();
 
   const { handleSubscription, loading: subscriptionLoading } = useStripePayment();
 
-  useEffect(() => {
-    const fetchBillingInfo = async () => {
-      try {
-        setIsLoading(true);
-        const response = await apiRequest<BillingInfo>(
-          "/api/v1/user/billing-info"
-        );
-        
-        if (response.success && response.data) {
-          setBillingInfo(response.data);
-          setError(null);
-        } else {
-          throw new Error(response.error || 'Failed to fetch billing information');
-        }
-      } catch (error) {
-        console.error("Failed to fetch billing info:", error);
-        setError(error instanceof Error ? error.message : 'An unknown error occurred');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchBillingInfo();
-  }, []);
+  // Data is already preloaded by context - no need to fetch
 
   const filteredPlans = plans.filter((plan) =>
     activeTab === "one-time"
@@ -293,12 +254,12 @@ export default function Subscription() {
           <div className="flex justify-center items-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-black" />
           </div>
-        ) : error ? (
+        ) : billingError ? (
           <div className="bg-red-50 p-4 rounded-lg flex items-start">
             <AlertCircle className="h-5 w-5 text-red-500 mr-3 mt-0.5 flex-shrink-0" />
             <div>
               <h3 className="text-sm font-medium text-red-800">Error loading billing information</h3>
-              <p className="text-sm text-red-700 mt-1">{error}</p>
+              <p className="text-sm text-red-700 mt-1">{billingError}</p>
               <button
                 onClick={() => window.location.reload()}
                 className="mt-2 text-sm font-medium text-red-700 hover:text-red-600"

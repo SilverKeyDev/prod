@@ -51,8 +51,8 @@ export default function RippleBackgroundMobile() {
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = "#888";
-      ctx.strokeStyle = "#ccc";
-      ctx.lineWidth = 0.5;
+      ctx.strokeStyle = "#999";
+      ctx.lineWidth = 0.65;
 
       for (const p of particles.current) {
         p.x += p.vx;

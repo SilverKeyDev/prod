@@ -204,7 +204,7 @@ export default function Sidebar({
           </div>
 
           {/* Logout - Always visible at bottom */}
-          <div className="flex-shrink-0 border-t border-brown-light">
+          <div className="flex-shrink-0 border-t border-brown-light mb-4 sm:mb-0">
             <button
               onClick={handleLogoutClick}
               className="flex items-center px-4 py-3 text-white hover:bg-brown-light/50 active:bg-brown-light/30 w-full touch-friendly transition-colors"
