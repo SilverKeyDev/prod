@@ -219,7 +219,7 @@ def list_reports():
                 if user.id[:8] not in file_name:
                     continue
 
-                presigned_url = s3_service.generate_presigned_url(s3_key)
+                presigned_url = s3_service.generate_presigned_url(s3_key, download_filename=file_name)
                 reports_list.append({
                     'id': file_name.replace("/", "_"),
                     'status': 'completed',
@@ -284,7 +284,7 @@ def list_reports_almostall():
                 if user.id[:8] not in file_name:
                     continue
 
-                presigned_url = s3_service.generate_presigned_url(s3_key)
+                presigned_url = s3_service.generate_presigned_url(s3_key, download_filename=file_name)
                 reports_list.append({
                     'id': file_name.replace("/", "_"),
                     'status': 'completed',

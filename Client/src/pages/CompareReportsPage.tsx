@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-import { Check, Loader2, BarChart2, RefreshCw } from "lucide-react";
+import { Check, Loader2, BarChart2, RefreshCw, Share } from "lucide-react";
 import ErrorToast from "../components/ErrorToast";
 import SuccessToast from "../components/SuccessToast";
 
@@ -206,6 +206,76 @@ export default function CompareReportsPage() {
     document.body.removeChild(link);
   };
 
+  // Share comparison CSV
+  const shareCSV = async () => {
+    if (selectedReports.length === 0 || comparisonTable.length === 0) {
+      setToastMessage("Select properties to share");
+      setShowError(true);
+      return;
+    }
+
+    const header = ["Metric", ...selectedReports.map((r) => r.address)];
+    const sanitize = (str: string) =>
+      (str || "").toLowerCase().replace(/\s+/g, "_");
+    const rows = METRIC_KEYS.map((metric) => {
+      const values = selectedReports.map((r) => {
+        const row = comparisonTable.find(
+          (item: any) => sanitize(item.Address) === sanitize(r.address)
+        );
+        return row ? (row as any)[metric] ?? "-" : "-";
+      });
+      return [metric, ...values];
+    });
+    const csvRows = [header, ...rows].map((r) =>
+      r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")
+    );
+    const csvContent = csvRows.join("\n");
+
+    if (navigator.share) {
+      try {
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const file = new File([blob], "property_comparison.csv", {
+          type: "text/csv",
+        });
+        await navigator.share({
+          title: "Property Comparison Report",
+          text: `Comparison of ${selectedReports.length} properties`,
+          files: [file],
+        });
+        setToastMessage("CSV shared successfully");
+        setShowSuccess(true);
+      } catch (error) {
+        if ((error as Error).name !== "AbortError") {
+          console.error("Error sharing CSV:", error);
+          // Fallback to copy link
+          fallbackShareCSV(csvContent);
+        }
+      }
+    } else {
+      // Fallback for browsers without Web Share API
+      fallbackShareCSV(csvContent);
+    }
+  };
+
+  const fallbackShareCSV = (csvContent: string) => {
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const shareText = `Property Comparison Report: ${url}`;
+    
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(shareText).then(() => {
+        setToastMessage("Share link copied to clipboard");
+        setShowSuccess(true);
+      }).catch(() => {
+        setToastMessage("Unable to share CSV. Please use Export instead.");
+        setShowError(true);
+      });
+    } else {
+      setToastMessage("Sharing not supported. Please use Export instead.");
+      setShowError(true);
+    }
+  };
+
   const refreshReports = async () => {
     setIsLoading(true);
     try {
@@ -273,6 +343,17 @@ export default function CompareReportsPage() {
             >
               <span className="hidden sm:inline">Export CSV</span>
               <span className="sm:hidden">CSV</span>
+            </button>
+            <button
+              onClick={shareCSV}
+              disabled={
+                selectedReports.length === 0 || comparisonTable.length === 0
+              }
+              className="flex items-center px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-black bg-beige hover:bg-beige/80 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-friendly"
+            >
+              <Share className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Share CSV</span>
+              <span className="sm:hidden">Share</span>
             </button>
             <button
               onClick={refreshReports}

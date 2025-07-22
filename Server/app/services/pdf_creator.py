@@ -111,7 +111,7 @@ def _create_pdf(report: dict, address: str, filename: str) -> str:
 
         if s3_key:
             logger.info("S3 upload successful, generating presigned URL")
-            presigned_url = s3_service.generate_presigned_url(s3_key)
+            presigned_url = s3_service.generate_presigned_url(s3_key, download_filename=filename)
             return presigned_url if presigned_url else s3_key
 
     except Exception as e:

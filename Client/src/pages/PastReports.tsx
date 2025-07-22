@@ -8,6 +8,7 @@ import {
   X,
   Trash2,
   ChevronDown,
+  Share,
 } from "lucide-react";
 import ErrorToast from "../components/ErrorToast";
 import SuccessToast from "../components/SuccessToast";
@@ -167,6 +168,54 @@ export default function PastReports() {
       console.error("Failed to get PDF URL for download");
       setErrorMessage("Failed to download PDF. Please try again.");
       setShowError(true);
+    }
+  };
+
+  // Share individual report
+  const handleShareReport = async (report: Report) => {
+    try {
+      setLoadingUrls((prev) => new Set(prev).add(report.id));
+      
+      let pdfUrl = report.pdfUrl;
+      if (!pdfUrl) {
+        pdfUrl = await getFreshDownloadUrl(report.id);
+      }
+
+      if (!pdfUrl) {
+        throw new Error("Unable to get report URL");
+      }
+
+      const shareData = {
+        title: `Property Report - ${report.address.replace(/_/g, " ").slice(0, -18).trim()}`,
+        text: `Check out this property report for ${report.address.replace(/_/g, " ").slice(0, -18).trim()}`,
+        url: pdfUrl,
+      };
+
+      if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+        await navigator.share(shareData);
+        setSuccessMessage("Report shared successfully");
+        setShowSuccess(true);
+      } else {
+        // Fallback to clipboard
+        if (navigator.clipboard) {
+          await navigator.clipboard.writeText(`Property Report: ${shareData.title} - ${pdfUrl}`);
+          setSuccessMessage("Report link copied to clipboard");
+          setShowSuccess(true);
+        } else {
+          setErrorMessage("Sharing not supported on this device");
+          setShowError(true);
+        }
+      }
+    } catch (error) {
+      console.error("Share failed:", error);
+      setErrorMessage(error instanceof Error ? error.message : "Failed to share report");
+      setShowError(true);
+    } finally {
+      setLoadingUrls((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(report.id);
+        return newSet;
+      });
     }
   };
 
@@ -384,6 +433,18 @@ export default function PastReports() {
               >
                 <Download className="h-4 w-4 sm:h-5 sm:w-5" />
               </a>
+              <button
+                onClick={() => {
+                  const currentReport = reports.find(r => r.pdfUrl === currentPdf);
+                  if (currentReport) {
+                    handleShareReport(currentReport);
+                  }
+                }}
+                className="bg-beige hover:bg-beige/80 text-black p-1 sm:p-2 touch-friendly rounded"
+                title="Share PDF"
+              >
+                <Share className="h-4 w-4 sm:h-5 sm:w-5" />
+              </button>
               <button
                 onClick={closePdfModal}
                 className="text-black hover:text-black/80 p-1 sm:p-2 touch-friendly"
@@ -719,45 +780,55 @@ export default function PastReports() {
                     </div>
                   </div>
 
-                  <div className="flex flex-col sm:flex-row gap-2">
+                  <div className="flex flex-col gap-2">
                     {report.status === "completed" && (
                       <>
+                        <div className="flex flex-col sm:flex-row gap-2">
+                          <button
+                            onClick={() => handleViewPdf(report)}
+                            disabled={loadingUrls.has(report.id)}
+                            className="flex-1 bg-transparent border border-brown text-black hover:bg-brown hover:text-white font-medium px-6 py-1 rounded-lg transition-all duration-200 text-xs font-bold flex items-center justify-center disabled:opacity-50 touch-manipulation select-none"
+                          >
+                            <Eye className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
+                            {loadingUrls.has(report.id) ? "Loading..." : "View"}
+                          </button>
+                          <button
+                            onClick={() => handleDownloadPdf(report)}
+                            disabled={loadingUrls.has(report.id)}
+                            className="flex-1 btn-primary py-1 text-xs font-bold flex items-center justify-center disabled:opacity-50 touch-manipulation select-none"
+                          >
+                            <Download className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
+                            {loadingUrls.has(report.id)
+                              ? "Loading..."
+                              : "Download"}
+                          </button>
+                          <button
+                            onClick={() => {
+                              console.log(
+                                "[DELETE] Delete button clicked for report:",
+                                {
+                                  id: report.id,
+                                  s3Key: report.s3Key,
+                                  address: report.address,
+                                  status: report.status,
+                                }
+                              );
+                              openDeleteModal(report.id, report.s3Key);
+                            }}
+                            disabled={loadingUrls.has(report.id)}
+                            className="py-px px-2 text-xs bg-white border border-red-600 text-red-600 hover:bg-red-500 hover:text-white font-medium rounded-lg transition-all duration-200 flex items-center justify-center touch-manipulation sm:py-2 sm:px-3 sm:text-sm sm:rounded-lg"
+                            title="Delete report"
+                          >
+                            <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                          </button>
+                        </div>
                         <button
-                          onClick={() => handleViewPdf(report)}
+                          onClick={() => handleShareReport(report)}
                           disabled={loadingUrls.has(report.id)}
-                          className="flex-1 bg-transparent border border-brown text-black hover:bg-brown hover:text-white font-medium px-6 py-1 rounded-lg transition-all duration-200 text-xs font-bold flex items-center justify-center disabled:opacity-50 touch-manipulation select-none"
+                          className="w-full bg-beige hover:bg-beige/80 text-black font-medium px-6 py-2 rounded-lg transition-all duration-200 text-xs font-bold flex items-center justify-center disabled:opacity-50 touch-manipulation select-none"
                         >
-                          <Eye className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
-                          {loadingUrls.has(report.id) ? "Loading..." : "View"}
-                        </button>
-                        <button
-                          onClick={() => handleDownloadPdf(report)}
-                          disabled={loadingUrls.has(report.id)}
-                          className="flex-1 btn-primary py-1 text-xs font-bold flex items-center justify-center disabled:opacity-50 touch-manipulation select-none"
-                        >
-                          <Download className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
-                          {loadingUrls.has(report.id)
-                            ? "Loading..."
-                            : "Download"}
-                        </button>
-                        <button
-                          onClick={() => {
-                            console.log(
-                              "[DELETE] Delete button clicked for report:",
-                              {
-                                id: report.id,
-                                s3Key: report.s3Key,
-                                address: report.address,
-                                status: report.status,
-                              }
-                            );
-                            openDeleteModal(report.id, report.s3Key);
-                          }}
-                          disabled={loadingUrls.has(report.id)}
-                          className="py-px px-2 text-xs bg-white border border-red-600 text-red-600 hover:bg-red-500 hover:text-white font-medium rounded-lg transition-all duration-200 flex items-center justify-center touch-manipulation sm:py-2 sm:px-3 sm:text-sm sm:rounded-lg"
-                          title="Delete report"
-                        >
-                          <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                          <Share className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
+                          {loadingUrls.has(report.id) ? "Loading..." : "Share"}
                         </button>
                       </>
                     )}
@@ -830,45 +901,55 @@ export default function PastReports() {
                       })()}
                     </h3>
                   </div>
-                  <div className="flex flex-col sm:flex-row gap-2">
+                  <div className="flex flex-col gap-2">
                     {report.status === "completed" && (
                       <>
+                        <div className="flex flex-col sm:flex-row gap-2">
+                          <button
+                            onClick={() => handleViewPdf(report)}
+                            disabled={loadingUrls.has(report.id)}
+                            className="bg-transparent border border-brown text-gray-600 hover:bg-brown hover:text-white font-medium px-2 py-1 rounded-lg transition-all duration-200 text-xs font-bold flex items-center disabled:opacity-50 touch-manipulation select-none"
+                          >
+                            <Eye className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
+                            {loadingUrls.has(report.id) ? "Loading..." : "View"}
+                          </button>
+                          <button
+                            onClick={() => handleDownloadPdf(report)}
+                            disabled={loadingUrls.has(report.id)}
+                            className="btn-primary py-1 px-2 text-xs font-bold flex items-center disabled:opacity-50 touch-manipulation select-none"
+                          >
+                            <Download className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
+                            {loadingUrls.has(report.id)
+                              ? "Loading..."
+                              : "Download"}
+                          </button>
+                          <button
+                            onClick={() => {
+                              console.log(
+                                "[DELETE] Delete button clicked for report:",
+                                {
+                                  id: report.id,
+                                  s3Key: report.s3Key,
+                                  address: report.address,
+                                  status: report.status,
+                                }
+                              );
+                              openDeleteModal(report.id, report.s3Key);
+                            }}
+                            disabled={loadingUrls.has(report.id)}
+                            className="sm:p-2 sm:text-red-600 sm:hover:bg-red-50 sm:rounded-lg sm:transition-colors touch-friendly bg-white border border-red-600 text-red-600 hover:bg-red-500 hover:text-white font-medium py-1 px-3 rounded-lg transition-all duration-200 flex items-center justify-center"
+                            title="Delete report"
+                          >
+                            <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                          </button>
+                        </div>
                         <button
-                          onClick={() => handleViewPdf(report)}
+                          onClick={() => handleShareReport(report)}
                           disabled={loadingUrls.has(report.id)}
-                          className="bg-transparent border border-brown text-gray-600 hover:bg-brown hover:text-white font-medium px-2 py-1 rounded-lg transition-all duration-200 text-xs font-bold flex items-center disabled:opacity-50 touch-manipulation select-none"
+                          className="w-full bg-beige hover:bg-beige/80 text-black font-medium px-6 py-2 rounded-lg transition-all duration-200 text-xs font-bold flex items-center justify-center disabled:opacity-50 touch-manipulation select-none"
                         >
-                          <Eye className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
-                          {loadingUrls.has(report.id) ? "Loading..." : "View"}
-                        </button>
-                        <button
-                          onClick={() => handleDownloadPdf(report)}
-                          disabled={loadingUrls.has(report.id)}
-                          className="btn-primary py-1 px-2 text-xs font-bold flex items-center disabled:opacity-50 touch-manipulation select-none"
-                        >
-                          <Download className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
-                          {loadingUrls.has(report.id)
-                            ? "Loading..."
-                            : "Download"}
-                        </button>
-                        <button
-                          onClick={() => {
-                            console.log(
-                              "[DELETE] Delete button clicked for report:",
-                              {
-                                id: report.id,
-                                s3Key: report.s3Key,
-                                address: report.address,
-                                status: report.status,
-                              }
-                            );
-                            openDeleteModal(report.id, report.s3Key);
-                          }}
-                          disabled={loadingUrls.has(report.id)}
-                          className="sm:p-2 sm:text-red-600 sm:hover:bg-red-50 sm:rounded-lg sm:transition-colors touch-friendly bg-white border border-red-600 text-red-600 hover:bg-red-500 hover:text-white font-medium py-1 px-3 rounded-lg transition-all duration-200 flex items-center justify-center"
-                          title="Delete report"
-                        >
-                          <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                          <Share className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
+                          {loadingUrls.has(report.id) ? "Loading..." : "Share"}
                         </button>
                       </>
                     )}
