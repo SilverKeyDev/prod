@@ -19,11 +19,39 @@ function App() {
       setUser(JSON.parse(savedUser));
     }
     setLoading(false);
+
+    // Listen for auth changes (login/logout)
+    const handleAuthChange = () => {
+      const savedUser = localStorage.getItem("user");
+      if (savedUser) {
+        setUser(JSON.parse(savedUser));
+      } else {
+        setUser(null);
+      }
+    };
+
+    // Listen for storage changes from other tabs
+    window.addEventListener('storage', handleAuthChange);
+    
+    // Listen for custom auth events from same tab
+    window.addEventListener('authChange', handleAuthChange);
+
+    return () => {
+      window.removeEventListener('storage', handleAuthChange);
+      window.removeEventListener('authChange', handleAuthChange);
+    };
   }, []);
 
   const handleLogout = () => {
     setUser(null);
+    // Clear all authentication-related localStorage items
     localStorage.removeItem("user");
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("id_token");
+    localStorage.removeItem("signupEmail"); // Also clear any leftover signup email
+    
+    // Dispatch auth change event
+    window.dispatchEvent(new Event('authChange'));
   };
 
   if (loading) {

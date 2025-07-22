@@ -36,6 +36,9 @@ export default function LoginPage() {
         localStorage.setItem('id_token', data.id_token);
       }      
 
+      // Dispatch auth change event to update App component state
+      window.dispatchEvent(new Event('authChange'));
+
       // Redirect to dashboard on successful login
       navigate("/dashboard");
     } catch (error: unknown) {
