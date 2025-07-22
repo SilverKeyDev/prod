@@ -312,51 +312,50 @@ def get_download_url(report_id):
     """Generate a fresh presigned URL for downloading a specific report."""
     try:
         logger.info(f"Download URL request received for report: {report_id}")
-        
+
         if not report_id:
             logger.error("No report ID provided")
             return jsonify({'error': 'Report ID is required'}), 400
-        
-        pdf_url = report_data.get('pdfUrl')
-        
+
+        # Fetch report from DB
+        report = PDFDocument.query.filter_by(id=report_id).first()
+        if not report:
+            logger.error(f"Report not found for ID: {report_id}")
+            return jsonify({'error': 'Report not found'}), 404
+
+        pdf_url = report.pdf_url or report.file_path
         if not pdf_url:
-            logger.error(f"PDF not found for report: {report_id}")
+            logger.error(f"PDF URL or S3 key missing for report: {report_id}")
             return jsonify({'error': 'PDF not found for this report'}), 404
-        
+
         logger.debug(f"Processing PDF URL for report {report_id}: {pdf_url}")
-        
-        # If it's already a presigned URL, return it
-        if pdf_url.startswith('http'):
+
+        # If already a full presigned URL, return it
+        if pdf_url.startswith("http"):
             logger.debug(f"PDF URL is already a presigned URL: {pdf_url[:100]}...")
             return jsonify({
                 'success': True,
                 'downloadUrl': pdf_url
             })
-        
-        # If it's an S3 key, generate a fresh presigned URL
-        if not pdf_url.startswith('/'):
+
+        # Generate new presigned URL with attachment download disposition
+        if not pdf_url.startswith("/"):
+            filename = os.path.basename(pdf_url)
             logger.info(f"Generating fresh presigned URL for S3 key: {pdf_url}")
-            fresh_url = s3_service.generate_presigned_url(pdf_url)
+            fresh_url = s3_service.generate_presigned_url(pdf_url, download_filename=filename)
             if fresh_url:
                 logger.info(f"Successfully generated presigned URL for report {report_id}")
-                return jsonify({
-                    'success': True,
-                    'downloadUrl': fresh_url
-                })
+                return jsonify({'success': True, 'downloadUrl': fresh_url})
             else:
-                logger.error(f"Failed to generate presigned URL for S3 key: {pdf_url}")
+                logger.error(f"Failed to generate presigned URL for {pdf_url}")
                 return jsonify({'error': 'Failed to generate download URL'}), 500
-        
-        # If it's a local file path, return the static URL
+
+        # Local static path fallback (if used)
         logger.debug(f"PDF URL is a local file path: {pdf_url}")
-        return jsonify({
-            'success': True,
-            'downloadUrl': pdf_url
-        })
-        
+        return jsonify({'success': True, 'downloadUrl': pdf_url})
+
     except Exception as e:
         logger.error(f"Error generating download URL for report {report_id}: {str(e)}")
-        logger.error(f"Exception type: {type(e).__name__}")
         logger.error(f"Traceback: {traceback.format_exc()}")
         return jsonify({'error': 'Internal server error'}), 500
 

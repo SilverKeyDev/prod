@@ -138,42 +138,30 @@ export default function PastReports() {
 
   const handleDownloadPdf = async (report: Report) => {
     let pdfUrl = report.pdfUrl;
-
-    // If we don't have a URL or it's an S3 key, get a fresh presigned URL
+  
     if (!pdfUrl && report.s3Key) {
       pdfUrl = await getFreshDownloadUrl(report.id);
       if (pdfUrl) {
-        // Update the report with the fresh URL
         setReports((prev) =>
           prev.map((r) => (r.id === report.id ? { ...r, pdfUrl } : r))
         );
       }
     }
-
+  
     if (pdfUrl) {
-      // Mobile-friendly download approach
       try {
-        // First try the programmatic approach for desktop
         const link = document.createElement("a");
         link.href = pdfUrl;
-        link.download = `${report.address
-          .replace(/[^a-z0-9]/gi, "_")
-          .toLowerCase()}.pdf`;
-
-        // For mobile compatibility, add target="_blank" as fallback
-        link.target = "_blank";
-        link.rel = "noopener noreferrer";
-
+        link.setAttribute("download", `${report.address.replace(/[^a-z0-9]/gi, "_").toLowerCase()}.pdf`);
+  
+        // Append to DOM to ensure download triggers
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-
-        // If the programmatic download doesn't work (common on mobile),
-        // the target="_blank" will open the PDF in a new tab where users can download
       } catch (error) {
-        console.error("Download failed, opening in new tab:", error);
-        // Fallback: open in new tab
-        window.open(pdfUrl, "_blank", "noopener,noreferrer");
+        console.error("Download failed:", error);
+        setErrorMessage("Failed to download PDF. Please try again.");
+        setShowError(true);
       }
     } else {
       console.error("Failed to get PDF URL for download");
