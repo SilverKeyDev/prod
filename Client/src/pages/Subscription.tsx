@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams, useLocation } from "react-router-dom";
 import {
   Check,
@@ -9,7 +9,7 @@ import {
   Loader2,
   Clock,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
 } from "lucide-react";
 import { useStripePayment } from "../hooks/useStripePayment";
 import ErrorToast from "../components/ErrorToast";
@@ -42,9 +42,7 @@ const plans: Plan[] = [
     interval: "one-time",
     reportsLimit: 20,
     popular: true,
-    features: [
-      "Save 25% vs individual reports",
-    ],
+    features: ["Save 25% vs individual reports"],
   },
   {
     id: "50-reports",
@@ -52,9 +50,7 @@ const plans: Plan[] = [
     price: 29.99,
     interval: "one-time",
     reportsLimit: 50,
-    features: [
-      "Save 40% vs individual reports",
-    ],
+    features: ["Save 40% vs individual reports"],
   },
   {
     id: "unlimited-monthly",
@@ -88,21 +84,32 @@ const plans: Plan[] = [
 
 // BillingInfo type is now imported from DataContext
 
-
-
 export default function Subscription() {
   const [searchParams] = useSearchParams();
   const location = useLocation();
   const notificationMessage = location.state?.message;
-  const cancelled = searchParams.get('cancelled') === 'true';
-  const [activeTab, setActiveTab] = useState<"one-time" | "unlimited">("one-time");
+  const cancelled = searchParams.get("cancelled") === "true";
+  const [activeTab, setActiveTab] = useState<"one-time" | "unlimited">(
+    "one-time"
+  );
   const [showSuccess, setShowSuccess] = useState(false);
   const [toastMessage] = useState(""); // setToastMessage was unused
 
   // Use preloaded data from context
-  const { billingInfo, billingLoading: isLoading, billingError } = useData();
+  const {
+    billingInfo,
+    billingLoading: isLoading,
+    billingError,
+    refreshBillingInfo,
+  } = useData();
 
-  const { handleSubscription, loading: subscriptionLoading } = useStripePayment();
+  // Refresh data when page loads to ensure latest updates
+  useEffect(() => {
+    refreshBillingInfo();
+  }, [refreshBillingInfo]);
+
+  const { handleSubscription, loading: subscriptionLoading } =
+    useStripePayment();
 
   // Data is already preloaded by context - no need to fetch
 
@@ -130,12 +137,13 @@ export default function Subscription() {
         <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-8">
           <div className="flex">
             <div className="flex-shrink-0">
-              <AlertCircle className="h-5 w-5 text-yellow-400" aria-hidden="true" />
+              <AlertCircle
+                className="h-5 w-5 text-yellow-400"
+                aria-hidden="true"
+              />
             </div>
             <div className="ml-3">
-              <p className="text-sm text-yellow-700">
-                {notificationMessage}
-              </p>
+              <p className="text-sm text-yellow-700">{notificationMessage}</p>
             </div>
           </div>
         </div>
@@ -143,13 +151,13 @@ export default function Subscription() {
 
       {/* Cancellation Toast */}
       {cancelled && (
-        <ErrorToast 
+        <ErrorToast
           message="Your payment was cancelled. No charges have been made to your account."
           onClose={() => {}} // showError state was unused
           duration={5000}
         />
       )}
-      
+
       {/* Success Toast */}
       {showSuccess && (
         <SuccessToast
@@ -158,7 +166,7 @@ export default function Subscription() {
           duration={3000}
         />
       )}
-      
+
       {/* Header */}
       <div className="text-center mb-4 lg:mb-6">
         <h1 className="text-lg sm:text-xl lg:text-2xl font-serif text-black mb-2 lg:mb-3">
@@ -178,8 +186,10 @@ export default function Subscription() {
             {billingInfo?.subscription?.plan_id && (
               <p className="text-black/60 font-medium text-xs">
                 {(() => {
-                  const plan = plans.find(p => p.id === billingInfo.subscription?.plan_id);
-                  return plan ? plan.name : 'No active plan';
+                  const plan = plans.find(
+                    (p) => p.id === billingInfo.subscription?.plan_id
+                  );
+                  return plan ? plan.name : "No active plan";
                 })()}
               </p>
             )}
@@ -187,12 +197,14 @@ export default function Subscription() {
           {/* Mobile Subscription Status */}
           {billingInfo?.subscription && (
             <div className="flex items-center justify-center space-x-2 mt-2">
-              <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                billingInfo.subscription.status === 'active' 
-                  ? 'bg-green-100 text-green-800' 
-                  : 'bg-yellow-100 text-yellow-800'
-              }`}>
-                {billingInfo.subscription.status === 'active' ? (
+              <span
+                className={`px-3 py-1 rounded-full text-sm font-medium ${
+                  billingInfo.subscription.status === "active"
+                    ? "bg-green-100 text-green-800"
+                    : "bg-yellow-100 text-yellow-800"
+                }`}
+              >
+                {billingInfo.subscription.status === "active" ? (
                   <span className="flex items-center">
                     <CheckCircle className="h-4 w-4 mr-1" /> Active
                   </span>
@@ -214,24 +226,30 @@ export default function Subscription() {
         {/* Desktop Layout */}
         <div className="hidden sm:flex items-center justify-between mb-3 lg:mb-4">
           <div>
-            <h2 className="text-sm sm:text-base lg:text-lg font-medium text-black">Your Plan</h2>
+            <h2 className="text-sm sm:text-base lg:text-lg font-medium text-black">
+              Your Plan
+            </h2>
             {billingInfo?.subscription?.plan_id && (
               <p className="text-black/60 text-sm">
                 {(() => {
-                  const plan = plans.find(p => p.id === billingInfo.subscription?.plan_id);
-                  return plan ? plan.name : 'No active plan';
+                  const plan = plans.find(
+                    (p) => p.id === billingInfo.subscription?.plan_id
+                  );
+                  return plan ? plan.name : "No active plan";
                 })()}
               </p>
             )}
           </div>
           {billingInfo?.subscription && (
             <div className="flex items-center space-x-2">
-              <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                billingInfo.subscription.status === 'active' 
-                  ? 'bg-green-100 text-green-800' 
-                  : 'bg-yellow-100 text-yellow-800'
-              }`}>
-                {billingInfo.subscription.status === 'active' ? (
+              <span
+                className={`px-3 py-1 rounded-full text-sm font-medium ${
+                  billingInfo.subscription.status === "active"
+                    ? "bg-green-100 text-green-800"
+                    : "bg-yellow-100 text-yellow-800"
+                }`}
+              >
+                {billingInfo.subscription.status === "active" ? (
                   <span className="flex items-center">
                     <CheckCircle className="h-4 w-4 mr-1" /> Active
                   </span>
@@ -258,7 +276,9 @@ export default function Subscription() {
           <div className="bg-red-50 p-4 rounded-lg flex items-start">
             <AlertCircle className="h-5 w-5 text-red-500 mr-3 mt-0.5 flex-shrink-0" />
             <div>
-              <h3 className="text-sm font-medium text-red-800">Error loading billing information</h3>
+              <h3 className="text-sm font-medium text-red-800">
+                Error loading billing information
+              </h3>
               <p className="text-sm text-red-700 mt-1">{billingError}</p>
               <button
                 onClick={() => window.location.reload()}
@@ -274,13 +294,13 @@ export default function Subscription() {
               {/* Reports Remaining */}
               <div className="flex flex-col items-center justify-center p-3 lg:p-4">
                 <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-black">
-                  {billingInfo?.usage.reports_available === -1 
-                    ? "∞" 
+                  {billingInfo?.usage.reports_available === -1
+                    ? "∞"
                     : Math.max(0, billingInfo?.usage.reports_available || 0)}
                 </div>
                 <div className="text-xs text-black/60 mt-1">
-                  {billingInfo?.usage.reports_available === -1 
-                    ? "Unlimited Reports" 
+                  {billingInfo?.usage.reports_available === -1
+                    ? "Unlimited Reports"
                     : "Reports Remaining"}
                 </div>
               </div>
@@ -289,7 +309,9 @@ export default function Subscription() {
               {billingInfo?.subscription?.plan_id ? (
                 <div className="bg-gradient-to-br from-navy/5 to-navy/10 p-4 rounded-xl">
                   <div className="flex items-center justify-between mb-3">
-                    <h4 className="font-medium text-black text-sm">Plan Details</h4>
+                    <h4 className="font-medium text-black text-sm">
+                      Plan Details
+                    </h4>
                     <CreditCard className="h-5 w-5 text-black" />
                   </div>
                   <div className="space-y-2">
@@ -297,8 +319,10 @@ export default function Subscription() {
                       <p className="text-xs text-black/60">Current Plan</p>
                       <p className="font-medium text-sm">
                         {(() => {
-                          const plan = plans.find(p => p.id === billingInfo.subscription?.plan_id);
-                          return plan ? plan.name : 'Custom Plan';
+                          const plan = plans.find(
+                            (p) => p.id === billingInfo.subscription?.plan_id
+                          );
+                          return plan ? plan.name : "Custom Plan";
                         })()}
                       </p>
                     </div>
@@ -306,25 +330,32 @@ export default function Subscription() {
                       <p className="text-xs text-black/60">Billing</p>
                       <p className="font-medium text-sm">
                         {(() => {
-                          const plan = plans.find(p => p.id === billingInfo.subscription?.plan_id);
-                          if (!plan) return 'One-time';
-                          return plan.interval === 'month' ? 'Monthly' : 
-                                 plan.interval === 'year' ? 'Yearly' : 'One-time';
+                          const plan = plans.find(
+                            (p) => p.id === billingInfo.subscription?.plan_id
+                          );
+                          if (!plan) return "One-time";
+                          return plan.interval === "month"
+                            ? "Monthly"
+                            : plan.interval === "year"
+                            ? "Yearly"
+                            : "One-time";
                         })()}
                       </p>
                     </div>
                     {billingInfo.subscription.current_period_end && (
                       <div>
                         <p className="text-xs text-black/60">
-                          {billingInfo.subscription.cancel_at_period_end 
-                            ? 'Access until' 
-                            : 'Next billing date'}
+                          {billingInfo.subscription.cancel_at_period_end
+                            ? "Access until"
+                            : "Next billing date"}
                         </p>
                         <p className="font-medium text-sm">
-                          {new Date(billingInfo.subscription.current_period_end).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
+                          {new Date(
+                            billingInfo.subscription.current_period_end
+                          ).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
                           })}
                         </p>
                       </div>
@@ -334,7 +365,9 @@ export default function Subscription() {
               ) : (
                 <div className="bg-gradient-to-br from-navy/5 to-navy/10 p-4 rounded-xl flex flex-col items-center justify-center text-center">
                   <Clock className="h-8 w-8 text-black/40 mb-2" />
-                  <h3 className="text-sm sm:text-base font-medium text-black mb-1">No active subscription</h3>
+                  <h3 className="text-sm sm:text-base font-medium text-black mb-1">
+                    No active subscription
+                  </h3>
                   <p className="text-black/60 text-xs">
                     Get started with one of our plans below
                   </p>
@@ -351,17 +384,30 @@ export default function Subscription() {
                   <>
                     <div className="text-lg sm:text-xl lg:text-2xl font-bold text-black mb-1">
                       {(() => {
-                        const plan = plans.find(p => p.id === billingInfo.subscription?.plan_id);
-                        if (!plan) return '$0';
-                        return `$${plan.price}${plan.interval === 'year' ? '/yr' : plan.interval === 'month' ? '/mo' : ''}`;
+                        const plan = plans.find(
+                          (p) => p.id === billingInfo.subscription?.plan_id
+                        );
+                        if (!plan) return "$0";
+                        return `$${plan.price}${
+                          plan.interval === "year"
+                            ? "/yr"
+                            : plan.interval === "month"
+                            ? "/mo"
+                            : ""
+                        }`;
                       })()}
                     </div>
                     <p className="text-xs text-black/60 mb-3">
                       {(() => {
-                        const plan = plans.find(p => p.id === billingInfo.subscription?.plan_id);
-                        if (!plan) return 'One-time payment';
-                        return plan.interval === 'year' ? 'Billed annually' : 
-                               plan.interval === 'month' ? 'Billed monthly' : 'One-time payment';
+                        const plan = plans.find(
+                          (p) => p.id === billingInfo.subscription?.plan_id
+                        );
+                        if (!plan) return "One-time payment";
+                        return plan.interval === "year"
+                          ? "Billed annually"
+                          : plan.interval === "month"
+                          ? "Billed monthly"
+                          : "One-time payment";
                       })()}
                     </p>
                   </>
@@ -371,7 +417,9 @@ export default function Subscription() {
                     <button
                       onClick={() => {
                         // Scroll to plans section
-                        document.getElementById('plans')?.scrollIntoView({ behavior: 'smooth' });
+                        document
+                          .getElementById("plans")
+                          ?.scrollIntoView({ behavior: "smooth" });
                       }}
                       className="w-full py-2 bg-green-600 hover:bg-olive-light text-white rounded-lg font-medium transition-colors"
                     >
@@ -381,13 +429,9 @@ export default function Subscription() {
                 )}
               </div>
             </div>
-
-
           </>
         )}
       </div>
-
-
 
       {/* Billing Toggle */}
       <div className="flex items-center justify-center mb-4">
@@ -416,7 +460,10 @@ export default function Subscription() {
       </div>
 
       {/* Plans */}
-      <div id="plans" className="grid grid-cols-1 md:grid-cols-3 gap-3 lg:gap-4">
+      <div
+        id="plans"
+        className="grid grid-cols-1 md:grid-cols-3 gap-3 lg:gap-4"
+      >
         {filteredPlans.map((plan) => {
           const displayPrice = plan.price;
 
@@ -439,7 +486,9 @@ export default function Subscription() {
               <div className="text-center mb-4">
                 <div
                   className={`w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-3 ${
-                    plan.popular ? "bg-gold text-black" : "bg-black/10 text-black"
+                    plan.popular
+                      ? "bg-gold text-black"
+                      : "bg-black/10 text-black"
                   }`}
                 >
                   {getPlanIcon(plan.id)}
@@ -481,7 +530,9 @@ export default function Subscription() {
                 onClick={() => handleSubscription(plan.id)}
                 disabled={subscriptionLoading}
                 className={`w-full py-3 lg:py-3 rounded-lg font-medium transition-all flex items-center justify-center touch-friendly text-sm sm:text-base ${
-                  plan.popular ? "bg-olive text-white hover:bg-olive-light hover:text-white hover:font-bold border border-transparent" : "bg-transparent border border-brown text-black hover:bg-brown hover:text-white"
+                  plan.popular
+                    ? "bg-olive text-white hover:bg-olive-light hover:text-white hover:font-bold border border-transparent"
+                    : "bg-transparent border border-brown text-black hover:bg-brown hover:text-white"
                 } ${subscriptionLoading ? "opacity-75" : ""}`}
               >
                 {subscriptionLoading ? (
