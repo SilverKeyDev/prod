@@ -18,7 +18,7 @@ export default {
         },
         olive: {
           DEFAULT: '#A3B18A',
-          light: '#6C8B75',
+          light: '#97a77b',
         },
         beige: {
           DEFAULT: '#D8CAB8',

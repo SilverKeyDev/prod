@@ -269,7 +269,7 @@ export default function CompareReportsPage() {
               disabled={
                 selectedReports.length === 0 || comparisonTable.length === 0
               }
-              className="flex items-center px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-white bg-olive hover:bg-dark-green rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-friendly"
+              className="flex items-center px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-white bg-olive hover:bg-olive-light rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-friendly"
             >
               <span className="hidden sm:inline">Export CSV</span>
               <span className="sm:hidden">CSV</span>

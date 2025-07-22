@@ -175,7 +175,7 @@ def generate_report(address: str, filename: str) -> Dict:
                 raise KeyError("Missing or empty 'choices' key in API response")
 
             raw_json_text = content["choices"][0]["message"]["content"]
-            logger.debug(f"🧾 Raw model output:\n{raw_json_text[:1000]}...")
+            logger.debug(f"🧾 Raw model output:\n{raw_json_text}")
 
             report = _safe_parse_json(raw_json_text)
 

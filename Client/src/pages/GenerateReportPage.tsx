@@ -249,7 +249,7 @@ export default function GenerateReportPage() {
             className={`w-full py-3 sm:py-4 px-4 sm:px-6 rounded-lg text-base sm:text-lg font-medium transition-all duration-200 touch-manipulation min-h-12 sm:min-h-14 ${
               isButtonDisabled
                 ? "cursor-not-allowed bg-gray-300 text-gray-500"
-                : "bg-olive text-white hover:bg-dark-green hover:shadow-lg active:transform active:scale-[0.98]"
+                : "bg-olive text-white hover:bg-olive-light hover:shadow-lg active:transform active:scale-[0.98]"
             }`}
           >
             {isGenerating ? (

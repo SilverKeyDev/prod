@@ -412,7 +412,7 @@ export default function Subscription() {
                         // Scroll to plans section
                         document.getElementById('plans')?.scrollIntoView({ behavior: 'smooth' });
                       }}
-                      className="w-full py-2 bg-green-600 hover:bg-dark-green text-white rounded-lg font-medium transition-colors"
+                      className="w-full py-2 bg-green-600 hover:bg-olive-light text-white rounded-lg font-medium transition-colors"
                     >
                       Choose a Plan
                     </button>
@@ -520,7 +520,7 @@ export default function Subscription() {
                 onClick={() => handleSubscription(plan.id)}
                 disabled={subscriptionLoading}
                 className={`w-full py-3 lg:py-3 rounded-lg font-medium transition-all flex items-center justify-center touch-friendly text-sm sm:text-base ${
-                  plan.popular ? "bg-olive text-white hover:bg-dark-green hover:text-white hover:font-bold border border-transparent" : "bg-transparent border border-brown text-black hover:bg-brown hover:text-white"
+                  plan.popular ? "bg-olive text-white hover:bg-olive-light hover:text-white hover:font-bold border border-transparent" : "bg-transparent border border-brown text-black hover:bg-brown hover:text-white"
                 } ${subscriptionLoading ? "opacity-75" : ""}`}
               >
                 {subscriptionLoading ? (

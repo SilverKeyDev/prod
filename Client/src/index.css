@@ -61,7 +61,7 @@
 
 @layer components {
   .btn-primary {
-    @apply bg-olive hover:bg-dark-green text-white font-medium px-6 py-3 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md;
+    @apply bg-olive hover:bg-olive-light text-white font-medium px-6 py-3 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md;
   }
 
   .btn-secondary {

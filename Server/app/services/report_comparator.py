@@ -1,6 +1,7 @@
 import json
 from io import BytesIO
 from typing import List, Dict
+from typing import Any, Dict
 
 import pandas as pd
 import logging
@@ -41,27 +42,17 @@ def _download_json_from_s3(s3_key: str) -> Dict:
     return parsed_data
 
 
-def get_nested_value(d: Dict, path: str) -> str:
-    """Safely get value from nested dictionary using dot notation path."""
-    try:
-        for key in path.split('.'):
-            d = d.get(key, None)
-            if d is None:
-                return ""
-        return str(d)
-    except Exception:
-        return ""
-
-
-def _extract_summary(data: Dict) -> Dict:
-    """Extracts summary fields from report data."""
+def _extract_summary(data: Dict) -> Dict[str, str]:
+    """Extracts summary fields with full recursive fallback and top-level section merge."""
     logger.debug(f"🔍 Extracting summary from data: {json.dumps(data, indent=2)}")
 
-    location_key = next(iter(data.keys()), None)
-    if not location_key:
-        raise ValueError("No location key found in report data")
-
-    location_data = data.get(location_key, {})
+    # Merge all top-level sections into a single structure
+    merged_data = {}
+    for key, section in data.items():
+        if isinstance(section, dict):
+            merged_data.update({key: section})  # keep address wrapper
+            for subkey, subval in section.items():
+                merged_data[subkey] = subval  # flatten it into merged
 
     field_paths = {
         "Neighborhood Vibe": "vibe",
@@ -91,23 +82,61 @@ def _extract_summary(data: Dict) -> Dict:
         "Cell Service": "extra_tips.cell_service_quality",
     }
 
+    def deep_search(obj: Any, target_key: str) -> Any:
+        if isinstance(obj, dict):
+            for k, v in obj.items():
+                if k == target_key:
+                    return v
+                result = deep_search(v, target_key)
+                if result not in [None, ""]:
+                    return result
+        elif isinstance(obj, list):
+            for item in obj:
+                result = deep_search(item, target_key)
+                if result not in [None, ""]:
+                    return result
+        return None
+
     summary = {}
     missing_fields = []
 
     for label, path in field_paths.items():
-        value = get_nested_value(location_data, path)
-        summary[label] = value
-        if value:
-            logger.debug(f"✅ Found field '{label}' at path '{path}'")
+        keys = path.split('.')
+        current = merged_data
+        value = None
+
+        try:
+            for key in keys:
+                if isinstance(current, dict):
+                    current = current.get(key)
+                else:
+                    current = None
+                    break
+            if current not in [None, ""]:
+                value = str(current)
+        except Exception:
+            value = None
+
+        if value in [None, ""]:
+            search_key = keys[-1]
+            fallback = deep_search(merged_data, search_key)
+            if fallback not in [None, ""]:
+                value = str(fallback)
+                logger.debug(f"🔄 Fallback found '{label}' via deep search for '{search_key}'")
+            else:
+                logger.warning(f"⚠️ Could not find '{label}' via path '{path}' or fallback for key '{search_key}'")
+                missing_fields.append(label)
         else:
-            logger.debug(f"🔍 Field '{label}' not found at path '{path}'")
-            missing_fields.append(label)
+            logger.debug(f"✅ Found '{label}' via path '{path}'")
+
+        summary[label] = value or ""
 
     if missing_fields:
         logger.warning(f"Missing fields in report data: {missing_fields}")
 
-    logger.debug(f"✅ Extracted summary: {summary}")
+    logger.debug(f"✅ Final extracted summary: {json.dumps(summary, indent=2)}")
     return summary
+
 
 
 def compare_reports(s3_keys: List[str]) -> pd.DataFrame:

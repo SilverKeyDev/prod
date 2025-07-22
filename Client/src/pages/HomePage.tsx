@@ -193,7 +193,7 @@ export default function HomePage() {
             <div className="mt-4 sm:mt-8">
               <button
                 onClick={() => setShowAuthModal(true)}
-                className="bg-olive text-white rounded-lg py-3 px-6 sm:px-8 font-semibold hover:bg-dark-green transition text-sm sm:text-base w-full sm:w-auto"
+                className="bg-olive text-white rounded-lg py-3 px-6 sm:px-8 font-semibold hover:bg-olive-light transition text-sm sm:text-base w-full sm:w-auto"
               >
                 Generate Report
               </button>
@@ -256,7 +256,7 @@ export default function HomePage() {
             <div className="flex gap-4">
               <Link
                 to="/signup"
-                className="flex-1 bg-olive text-white hover:bg-dark-green rounded-lg py-3 text-center transition-colors"
+                className="flex-1 bg-olive text-white hover:bg-olive-light rounded-lg py-3 text-center transition-colors"
               >
                 Sign Up
               </Link>
