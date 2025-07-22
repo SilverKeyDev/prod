@@ -106,6 +106,68 @@ export default function GenerateReportPage() {
     setSuggestions([]);
   };
 
+  const pollForReportCompletion = async (documentId: string) => {
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+    const idToken = localStorage.getItem("id_token");
+    const maxAttempts = 80; // Poll for up to 5 minutes (60 * 5 seconds)
+    let attempts = 0;
+
+    const checkStatus = async (): Promise<boolean> => {
+      try {
+        const response = await fetch(`${apiBaseUrl}/api/v1/report/all`, {
+          method: "POST",
+          mode: "cors",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: `Bearer ${idToken}`,
+          },
+          credentials: "include",
+        });
+
+        if (!response.ok) {
+          console.error("Failed to fetch reports for polling");
+          return false;
+        }
+
+        const data = await response.json();
+        if (data.success && data.reports) {
+          // Find the report with matching document ID
+          const report = data.reports.find((r: any) => r.id === documentId);
+          
+          if (report) {
+            if (report.status === "completed" || report.status === "error") {
+              // Report is done, dispatch the event
+              console.log(`✅ Report ${documentId} completed with status: ${report.status}`);
+              window.dispatchEvent(new CustomEvent("reportGenerated"));
+              return true; // Stop polling
+            }
+            console.log(`⏳ Report ${documentId} still generating...`);
+          }
+        }
+        return false; // Continue polling
+      } catch (error) {
+        console.error("Error polling for report completion:", error);
+        return false;
+      }
+    };
+
+    // Start polling
+    const pollInterval = setInterval(async () => {
+      attempts++;
+      const isComplete = await checkStatus();
+      
+      if (isComplete || attempts >= maxAttempts) {
+        clearInterval(pollInterval);
+        if (attempts >= maxAttempts) {
+          console.warn(`⚠️ Polling timeout for report ${documentId} after ${maxAttempts} attempts`);
+          // Still dispatch the event so the UI refreshes
+          window.dispatchEvent(new CustomEvent("reportGenerated"));
+        }
+      }
+    }, 5000); // Poll every 5 seconds
+  };
+
   const handleGenerate = async () => {
     const trimmed = address.trim();
     if (!trimmed) {
@@ -156,11 +218,15 @@ export default function GenerateReportPage() {
         throw new Error(data.error || "Failed to generate report");
       }
 
-      // Dispatch event to notify other components that a new report has been generated
-      window.dispatchEvent(new CustomEvent("reportGenerated"));
+      // Start polling for report completion instead of immediately dispatching event
+      if (data.document_id) {
+        pollForReportCompletion(data.document_id);
+      } else {
+        // Fallback: dispatch immediately if no document_id
+        window.dispatchEvent(new CustomEvent("reportGenerated"));
+      }
 
-      // Optional: store or handle data silently here
-      console.log("✅ Report successfully generated", data);
+      console.log("✅ Report generation started", data);
     } catch (err: any) {
       console.error("❌ API error after navigation:", err.message || err);
       // Optionally persist the error to show in the next page

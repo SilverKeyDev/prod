@@ -67,26 +67,38 @@ def validate_address(address: str) -> bool:
 def _safe_parse_json(text: str):
     try:
         logger.debug("🔧 Cleaning and attempting to parse model output as JSON")
+        logger.debug(f"📝 Raw model output (first 500 chars): {text[:500]}...")
+        
         cleaned = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL | re.IGNORECASE)
         cleaned = re.sub(r'&lt;think&gt;.*?&lt;/think&gt;', '', cleaned, flags=re.DOTALL | re.IGNORECASE)
         cleaned = cleaned.strip()
+        
+        logger.debug(f"🧹 Cleaned output (first 500 chars): {cleaned[:500]}...")
 
         matches = re.findall(r'{[\s\S]*}', cleaned)
         logger.debug(f"🔍 Found {len(matches)} potential JSON blocks")
-
-        for match in sorted(matches, key=len, reverse=True):
-            try:
-                logger.debug("🔑 Trying to parse JSON using `json.loads()`")
-                return json.loads(match)
-            except json.JSONDecodeError:
-                logger.warning("⚠️ Failed with `json.loads`, trying `json5.loads`")
+        
+        if matches:
+            for i, match in enumerate(sorted(matches, key=len, reverse=True)):
+                logger.debug(f"🎯 Attempting to parse JSON block {i+1} (length: {len(match)})")
+                logger.debug(f"📋 JSON block preview: {match[:200]}...")
                 try:
-                    return json5.loads(match)
-                except Exception as e:
-                    logger.debug(f"⛔ `json5` parse also failed: {str(e)}")
-                    continue
+                    logger.debug("🔑 Trying to parse JSON using `json.loads()`")
+                    return json.loads(match)
+                except json.JSONDecodeError as je:
+                    logger.warning(f"⚠️ Failed with `json.loads`: {str(je)}")
+                    logger.warning("⚠️ Trying `json5.loads`")
+                    try:
+                        return json5.loads(match)
+                    except Exception as e:
+                        logger.debug(f"⛔ `json5` parse also failed: {str(e)}")
+                        continue
+        else:
+            logger.error("🚫 No JSON blocks found in cleaned output")
+            logger.error(f"📄 Full cleaned output: {cleaned}")
 
         logger.error("❌ Failed to parse any valid JSON from model output")
+        logger.error(f"📄 Full raw output for debugging: {text}")
         raise ValueError("Could not parse any valid JSON block")
 
     except Exception as e:
@@ -120,35 +132,25 @@ def generate_report(address: str, filename: str) -> Dict:
                 {
                     "role": "system",
                     "content": (
-                        "You are a JSON-only output model. NEVER respond with markdown, commentary, or text before/after the JSON. "
-                "You must return ONLY a valid JSON object, starting with '{' and ending with '}'. Every field must be present. "
-                "If exact data is unavailable, use your best estimate and clearly note it as 'estimated'. "
-                "You are generating a detailed lifestyle and culture report for a given address, using only trustworthy public sources. "
-                "Make it insightful and critical—do not hesitate to include negative aspects of the neighborhood."
-            )
-        },
-        {
-            "role": "user",
-            "content": prompt
+                        "OUTPUT ONLY VALID JSON, THIS IS EXTRMELY IMPORTANT, CHECK AFTER GENERATION TO ENSURE JSON IS VALID, FAILURE TO DO SO WILL DESTROY PROGRAM"
+                        "If exact data is unavailable, use your best estimate and clearly note it as 'estimated'. "
+                        "You are generating a detailed lifestyle and culture report for a given address, using only trustworthy public sources. "
+                        "Make it insightful and critical, do not hesitate to BE VERY negative OR VERY positive about aspects of the neighborhood."
+                        "OUTPUT ONLY VALID JSON, THIS IS EXTRMELY IMPORTANT, CHECK AFTER GENERATION TO ENSURE JSON IS VALID, FAILURE TO DO SO WILL DESTROY PROGRAM"
+                    )
+                },
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
+            "search_mode": "web",
+            "reasoning_effort": "high",
+            "temperature": 0.1,
+            "max_tokens": 20000,
+            "stream": False,
+            "return_images": False
         }
-    ],
-    "search_mode": "web",
-    "reasoning_effort": "high",
-    "temperature": 0.1,
-    "max_tokens": 20000,
-    "stream": False,
-    "return_images": True,
-    "image_domain_filter": [
-        "-gettyimages.com",
-        "-shutterstock.com",
-        "unsplash.com",
-        "wikimedia.org",
-        "pixabay.com",
-        "zillow.com",
-        "niche.com"
-        ],
-    "image_format_filter": ["jpg", "png"],
-}
 
         logger.debug(f"📡 Sending request to Perplexity with payload: {json.dumps(payload)[:500]}...")
 
