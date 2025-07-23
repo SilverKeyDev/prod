@@ -54,10 +54,10 @@ def _create_pdf(report: dict, address: str, filename: str) -> str:
         )
 
         styles = getSampleStyleSheet()
-        styles.add(ParagraphStyle(name="MainTitle", fontSize=20, leading=28, fontName="Helvetica", textColor=colors.black, alignment=TA_CENTER))
+        styles.add(ParagraphStyle(name="MainTitle", fontSize=24, leading=30, fontName="Helvetica", textColor=colors.black, alignment=TA_CENTER))
         styles.add(ParagraphStyle(name="SectionHeader", fontSize=18, leading=22, textColor=colors.black, fontName="Helvetica", spaceAfter=8))
         styles.add(ParagraphStyle(name="SectionSubHeader", fontSize=16, leading=20, textColor="#D8CAB8", fontName="Helvetica-Bold", spaceAfter=8))
-        styles.add(ParagraphStyle(name="SubHeader", fontSize=11, leading=14, textColor="#6A7B52", fontName="Helvetica-Bold", spaceAfter=6))
+        styles.add(ParagraphStyle(name="SubHeader", fontSize=11, leading=14, textColor="#6A7B52", fontName="Helvetica-Oblique", spaceAfter=6))
         styles.add(ParagraphStyle(name="Body", fontSize=10, leading=13, fontName="Helvetica", spaceAfter=4))
         styles.add(ParagraphStyle(name="Caption", fontSize=8, leading=10, textColor=colors.grey, alignment=TA_CENTER, fontName="Helvetica-Oblique"))
         styles.add(ParagraphStyle(name="HighlightBox", fontSize=10, backColor="#f6f6f6", borderPadding=4, borderColor="#6A7B52", borderWidth=1, borderRadius=4, leading=12, spaceAfter=6, fontName="Helvetica"))
@@ -66,7 +66,9 @@ def _create_pdf(report: dict, address: str, filename: str) -> str:
 
         # Add main title with address
         elements.append(Paragraph(address, styles["MainTitle"]))
-        elements.append(Spacer(1, 12))
+        elements.append(Spacer(1, 1))
+        elements.append(HRFlowable(width="100%", thickness=1.2, color="#D8CAB8"))
+        elements.append(Spacer(1, 20))
 
         for i, (section, section_data) in enumerate(report.items()):
             title_style = styles["SectionHeader"]
