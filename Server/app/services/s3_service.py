@@ -167,7 +167,7 @@ class S3Service:
             params = {
                 'Bucket': bucket_name,
                 'Key': s3_key,
-                'ResponseContentDisposition': f'attachment; filename="{download_filename}"'
+                'ResponseContentDisposition': f'attachment; filename="{download_filename}"',
             }
 
             if download_filename:
@@ -235,13 +235,14 @@ class S3Service:
             params = {
                 'Bucket': bucket_name,
                 'Key': s3_key,
-                'ResponseContentDisposition': 'inline'
+                'ResponseContentDisposition': 'inline',
+                'ResponseContentType': 'application/pdf'
             }
 
             presigned_url = self.s3_client.generate_presigned_url(
                 operation,
                 Params=params,
-                ExpiresIn=expiration
+                ExpiresIn=expiration,
             )
 
             return presigned_url

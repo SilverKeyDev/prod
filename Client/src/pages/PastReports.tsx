@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import {
   Search,
   Download,
@@ -27,9 +27,87 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 if (!API_BASE_URL) {
   console.error(
-    "❌ VITE_API_BASE_URL is not defined! Falling back to window.location.origin."
+    "VITE_API_BASE_URL is not defined. Please check your environment variables."
   );
 }
+
+// PdfModal component moved outside to prevent remounting on every render
+interface PdfModalProps {
+  currentPdf: string | null;
+  onClose: () => void;
+  onShare: (report: Report) => void;
+  reports: Report[];
+}
+
+const PdfModal: React.FC<PdfModalProps> = ({ currentPdf, onClose, onShare, reports }) => {
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  // Log mount/unmount of the component
+  useEffect(() => {
+    console.log("[PdfModal] Component mounted");
+    return () => {
+      console.log("[PdfModal] Component unmounted");
+    };
+  }, []);
+
+  // Log whenever currentPdf changes while modal is open
+  useEffect(() => {
+    console.log("[PdfModal] currentPdf updated:", currentPdf);
+  }, [currentPdf]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        modalRef.current &&
+        !modalRef.current.contains(event.target as Node)
+      ) {
+        onClose();
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [onClose]);
+
+  if (!currentPdf) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-2 sm:p-4">
+      <div
+        ref={modalRef}
+        className="bg-white rounded-lg w-full max-w-4xl h-[95vh] sm:h-[90vh] flex flex-col"
+        role="dialog"
+        aria-modal="true"
+      >
+      <div className="flex-1 overflow-hidden">
+        <iframe
+          src={`${currentPdf}#toolbar=1&navpanes=1&view=FitH`}
+          className="w-full h-full border-0"
+          title="PDF Viewer"
+          onLoad={() => {
+            console.log("[PdfModal] iframe onLoad event fired for:", currentPdf);
+          }}
+          onError={(e) => {
+            console.error("[PdfModal] Error loading PDF:", e);
+            const iframe = e.target as HTMLIFrameElement;
+            if (iframe?.contentDocument?.body) {
+              iframe.contentDocument.body.innerHTML = `
+                <div style="padding: 20px; text-align: center;">
+                  <p>Unable to load PDF preview.</p>
+                  <a href="${currentPdf}" download class="text-blue-600 underline">
+                    Click here to download the PDF
+                  </a>
+                </div>
+              `;
+            }
+          }}
+        />
+      </div>
+      </div>
+    </div>
+  );
+};
 
 export default function PastReports() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -61,6 +139,42 @@ export default function PastReports() {
   const sortDropdownRef = useRef<HTMLDivElement>(null);
 
 
+
+  const getFreshViewUrl = async (
+    reportId: string
+  ): Promise<string | null> => {
+    try {
+      setLoadingUrls((prev) => new Set(prev).add(reportId));
+
+      const baseUrl = API_BASE_URL || "";
+      const res = await fetch(
+        `${baseUrl}/api/v1/report/${reportId}/view-url`,
+        {
+          credentials: "include",
+        }
+      );
+
+      if (!res.ok) {
+        throw new Error("Failed to get view URL");
+      }
+
+      const data = await res.json();
+      if (data.success && data.viewUrl) {
+        return data.viewUrl;
+      }
+
+      return null;
+    } catch (err) {
+      console.error("Failed to get fresh view URL", err);
+      return null;
+    } finally {
+      setLoadingUrls((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(reportId);
+        return newSet;
+      });
+    }
+  };
 
   const getFreshDownloadUrl = async (
     reportId: string
@@ -99,24 +213,12 @@ export default function PastReports() {
   };
 
   const handleViewPdf = async (report: Report) => {
-    let pdfUrl = report.pdfUrl;
-
-    // If we don't have a URL or it's an S3 key, get a fresh presigned URL
-    if (!pdfUrl && report.s3Key) {
-      pdfUrl = await getFreshDownloadUrl(report.id);
-      if (pdfUrl) {
-        // Cache the fresh URL locally
-        setPdfUrlCache(prev => ({ ...prev, [report.id]: pdfUrl! }));
-      }
-    } else if (pdfUrlCache[report.id]) {
-      // Use cached URL if available
-      pdfUrl = pdfUrlCache[report.id];
-    }
+    let pdfUrl = await getFreshViewUrl(report.id);
 
     if (pdfUrl) {
       openPdfModal(pdfUrl);
     } else {
-      console.error("Failed to get PDF URL");
+      console.error("Failed to get PDF view URL");
     }
   };
 
@@ -157,7 +259,7 @@ export default function PastReports() {
   };
 
   // Share individual report
-  const handleShareReport = async (report: Report) => {
+  const handleShareReport = useCallback(async (report: Report) => {
     try {
       setLoadingUrls((prev) => new Set(prev).add(report.id));
       
@@ -202,7 +304,7 @@ export default function PastReports() {
         return newSet;
       });
     }
-  };
+  }, []);
 
   const openDeleteModal = (
     reportId: string,
@@ -368,14 +470,16 @@ export default function PastReports() {
   };
 
   const openPdfModal = (pdfUrl: string) => {
+    console.log("[PdfModal] Opening PDF modal for:", pdfUrl);
     setCurrentPdf(pdfUrl);
     document.body.style.overflow = "hidden";
   };
 
-  const closePdfModal = () => {
+  const closePdfModal = useCallback(() => {
+    console.log("[PdfModal] Closing PDF modal");
     setCurrentPdf(null);
     document.body.style.overflow = "auto";
-  };
+  }, []);
 
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -394,74 +498,7 @@ export default function PastReports() {
     };
   }, []);
 
-  const PdfModal = () => {
-    if (!currentPdf) return null;
 
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-2 sm:p-4">
-        <div
-          ref={modalRef}
-          className="bg-white rounded-lg w-full max-w-4xl h-[95vh] sm:h-[90vh] flex flex-col"
-          role="dialog"
-          aria-modal="true"
-        >
-          <div className="flex justify-between items-center p-3 sm:p-4 border-b">
-            <h3 className="text-base sm:text-lg font-medium">PDF Viewer</h3>
-            <div className="flex space-x-1 sm:space-x-2">
-              <a
-                href={currentPdf}
-                download
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-black hover:text-black/80 p-1 sm:p-2 touch-friendly"
-                title="Download PDF"
-              >
-                <Download className="h-4 w-4 sm:h-5 sm:w-5" />
-              </a>
-              <button
-                onClick={() => {
-                  const currentReport = reports.find(r => r.pdfUrl === currentPdf);
-                  if (currentReport) {
-                    handleShareReport(currentReport);
-                  }
-                }}
-                className="bg-beige hover:bg-beige/80 text-black p-1 sm:p-2 touch-friendly rounded"
-                title="Share PDF"
-              >
-                <Share className="h-4 w-4 sm:h-5 sm:w-5" />
-              </button>
-              <button
-                onClick={closePdfModal}
-                className="text-black hover:text-black/80 p-1 sm:p-2 touch-friendly"
-                aria-label="Close PDF viewer"
-              >
-                <X className="h-4 w-4 sm:h-5 sm:w-5" />
-              </button>
-            </div>
-          </div>
-          <div className="flex-1 overflow-hidden">
-            <iframe
-              src={`${currentPdf}#toolbar=1&navpanes=1&view=FitH`}
-              className="w-full h-full border-0"
-              title="PDF Viewer"
-              onError={(e) => {
-                console.error("Error loading PDF:", e);
-                const iframe = e.target as HTMLIFrameElement;
-                iframe.contentDocument!.body.innerHTML = `
-                  <div style="padding: 20px; text-align: center;">
-                    <p>Unable to load PDF preview.</p>
-                    <a href="${currentPdf}" download class="text-blue-600 underline">
-                      Click here to download the PDF
-                    </a>
-                  </div>
-                `;
-              }}
-            />
-          </div>
-        </div>
-      </div>
-    );
-  };
 
   useEffect(() => {
     // Event listener setup - data is already preloaded by context
@@ -514,7 +551,14 @@ export default function PastReports() {
 
   return (
     <div className="max-w-7xl mx-auto mobile-padding">
-      <PdfModal />
+      {currentPdf && (
+        <PdfModal
+          currentPdf={currentPdf}
+          onClose={closePdfModal}
+          onShare={handleShareReport}
+          reports={reports}
+        />
+      )}
       {/* Delete Confirmation Modal */}
       {deleteModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
