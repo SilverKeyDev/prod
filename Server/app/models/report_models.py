@@ -166,7 +166,7 @@ class FullReport(BaseModel):
     accessibility: Optional[Accessibility] = None
     development: Optional[Development] = None
     environment_utilities: Optional[EnvironmentUtilities] = None
-    money_stuff: Optional[MoneyStuff] = None
+    living_expenses: Optional[LivingExpenses] = None
     schools: Optional[Schools] = None
     extra_tips: Optional[ExtraTips] = None
 
