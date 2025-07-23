@@ -71,11 +71,11 @@ def _create_pdf(report: dict, address: str, filename: str) -> str:
         elements.append(Spacer(1, 20))
 
         for i, (section, section_data) in enumerate(report.items()):
-            title_style = styles["SectionHeader"]
-            elements.append(Paragraph(section.replace("_", " ").title(), title_style))
-
-            elements.append(HRFlowable(width="100%", thickness=0.5, color="#AAAAAA"))
-            elements.append(Spacer(1, 1))
+            if i!= 0:
+                title_style = styles["SectionHeader"]
+                elements.append(HRFlowable(width="100%", thickness=0.5, color="#AAAAAA"))
+                elements.append(Paragraph(section.replace("_", " ").title(), title_style))
+                elements.append(Spacer(1, 1))
 
             if isinstance(section_data, dict):
                 elements.append(Indenter(left=1))
