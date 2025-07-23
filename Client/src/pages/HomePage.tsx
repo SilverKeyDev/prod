@@ -159,7 +159,7 @@ export default function HomePage() {
                     : "Loading..."
                 }
                 disabled={!scriptsReady}
-                className="w-full h-12 sm:h-14 pl-10 sm:pl-12 pr-3 sm:pr-4 rounded-lg border border-gray-300 text-xs sm:text-sm focus:ring-2 focus:ring-olive focus:border-olive transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed touch-manipulation"
+                className="w-full h-12 sm:h-14 pl-10 sm:pl-12 pr-3 sm:pr-4 rounded-lg border border-gray-300 text-xs sm:text-base focus:ring-2 focus:ring-olive focus:border-olive transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed touch-manipulation"
                 autoComplete="off"
               />
             </div>
@@ -238,13 +238,13 @@ export default function HomePage() {
         
         {/* Footer Links */}
         <div className="relative z-10 mt-16 flex flex-wrap justify-center items-center gap-4 sm:gap-8 text-sm text-center">
-          <Link to="/privacy" className="text-gray-600 hover:text-brown transition-colors duration-200 underline">
+          <Link to="/privacy" className="bg-white text-black px-4 py-2 rounded-lg shadow hover:shadow-md transition-colors duration-200">
             Privacy Policy
           </Link>
-          <Link to="/terms" className="text-gray-600 hover:text-brown transition-colors duration-200 underline">
+          <Link to="/terms" className="bg-white text-black px-4 py-2 rounded-lg shadow hover:shadow-md transition-colors duration-200">
             Terms of Service
           </Link>
-          <Link to="/contact" className="text-gray-600 hover:text-brown transition-colors duration-200 underline">
+          <Link to="/contact" className="bg-white text-black px-4 py-2 rounded-lg shadow hover:shadow-md transition-colors duration-200">
             Contact Us
           </Link>
         </div>
