@@ -87,9 +87,9 @@ def _safe_parse_json(text: str):
                     parsed_json = json.loads(match)
                     
                     # Validate against Pydantic model
-                    logger.debug("✅ JSON parsed successfully, validating against PropertyReport schema")
+                    logger.debug("✅ JSON parsed successfully, validating against FullReport schema")
                     try:
-                        validated_report = PropertyReport(**parsed_json)
+                        validated_report = FullReport(**parsed_json)
                         logger.debug("🎯 Pydantic validation successful")
                         return validated_report.model_dump()
                     except Exception as validation_error:
@@ -104,9 +104,9 @@ def _safe_parse_json(text: str):
                         parsed_json = json5.loads(match)
                         
                         # Validate against Pydantic model
-                        logger.debug("✅ JSON5 parsed successfully, validating against PropertyReport schema")
+                        logger.debug("✅ JSON5 parsed successfully, validating against FullReport schema")
                         try:
-                            validated_report = PropertyReport(**parsed_json)
+                            validated_report = FullReport(**parsed_json)
                             logger.debug("🎯 Pydantic validation successful")
                             return validated_report.model_dump()
                         except Exception as validation_error:
@@ -159,11 +159,12 @@ def generate_report(address: str, filename: str) -> Dict:
                         f"You are a comprehensive property research assistant. Given an address, {address}, you must provide a detailed property report in valid JSON format.\n\n"
 
                         "CRITICAL REQUIREMENTS:\n"
-                        "1. Include ALL fields exactly as shown in the template - if you don't know a value, research until you find one\n"
+                        "1. Follow all instrucions EXACTLY for ALL fields exactly as in the given guidance - if you don't know a value, research until you find one\n"
                         "2. Be  critical and honest - expose both good and bad aspects of locations\n"
                         "3. If no data exists for a field, provide your best educated estimate based on similar areas\n"
                         "4. All ratings should be out of 10 and realistic, do not be afraid to rate somewhere very low or high\n"
                         "5. You MUST respond with ONLY valid JSON (no markdown, no explanation). Do not wrap your response in ``` or any code fences.\n"
+                        "6. Use the recommended sources first in research. If a decent answer is found, do not continue to search the web for that field\n"
 
                         "STRICT GUIDANCE FOR EACH SECTION:\n"
                         

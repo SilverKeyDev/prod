@@ -49,7 +49,15 @@ def _guidance_neighborhood_overview(enabled=True):
 - what_people_love / watch_out_for: Use friendly, relatable phrases ("parking sucks after 6pm") (Niche.com, Yelp, or Livability)
 - population_total: Round estimate or census data (Niche or BestPlaces.net typically show this in sidebars)
 - neighborhood_rating: 1–10 score. Use the full scale. (Base this on livability data from AreaVibes, BestPlaces, or Niche)
-- demographics: Estimate distribution for gender, race, age, LGBTQ, and lifestyle DNA. Must total ~100%. (Niche and City-Data offer good snapshots)
+- Gender, Race: Estimate distribution for gender, race, age, LGBTQ, and lifestyle DNA. Must total ~100%. (Niche and City-Data offer good snapshots) THESE MUST ALL BE PERCENTAGES I.E. 34.1%, NOTHING ELSE IS ACCEPTABLE
+- Age distribution: Estimate distribution for ranges Children (0–9 years), Adolescents (10–19 years), Young Adults (20–29 years), Early Career Adults (30–39 years), Middle-Aged Adults (40–49 years), Older Adults (50–64 years), Seniors (65+ years). Must total ~100%. (Niche and City-Data offer good snapshots) THESE MUST ALL BE CAPTIONS and PERCENTAGES I.E. Children (0–9 years): 14.2.1%, NOTHING ELSE IS ACCEPTABLE
+
+Middle-Aged Adults (40–49 years)
+
+Older Adults (50–64 years)
+
+Seniors (65+ years). Must total ~100%. (Niche and City-Data offer good snapshots) THESE MUST ALL BE PERCENTAGES I.E. 34.1%, NOTHING ELSE IS ACCEPTABLE
+- Lifestyle DNA: Give distribution of lifestyle DNA, take into account all parts of the neighborhood overview. Must total ~100%. THESE MUST ALL BE A BRIEF EXPLANATION : PERCENTAGE I.E. Suburban: 25%, NOTHING ELSE IS ACCEPTABLE
 """
 
 def _guidance_safety(enabled=True):
@@ -59,7 +67,7 @@ def _guidance_safety(enabled=True):
 ---
 
 2. SAFETY
-- crime_rating: "Low", "Moderate", or "High" — be honest (AreaVibes and NeighborhoodScout show indexed crime ratings)
+- crime_rating: "Nonexistant", "Low", "Moderate", "High", "Very High" — be honest (AreaVibes and NeighborhoodScout show indexed crime ratings)
 - places_to_watch_out_for: Name risky intersections or parts of town (Search forums like City-Data or Reddit for specifics)
 - police_presence: Indicate actual patterns (Google search “[neighborhood] police patrol schedule” or check local forums)
 - safety_rating: Critical — don't default to 7s (Base on AreaVibes crime and perception on forums or Niche)
