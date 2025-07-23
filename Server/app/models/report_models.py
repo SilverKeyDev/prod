@@ -146,8 +146,7 @@ class FinancialInformation(BaseModel):
     seller_information: str
     purchase_strategy: str
 
-class School(BaseModel):
-    name: str
+class SchoolName(BaseModel):
     level: str
     walking_distance: Optional[bool] = None
     school_rating: Optional[str] = None
@@ -159,7 +158,7 @@ class School(BaseModel):
     top_colleges: Optional[str] = None
 
 class Schools(BaseModel):
-    schools: List[School]
+    schools: List[SchoolName]
 
 class ExtraTips(BaseModel):
     parking: str

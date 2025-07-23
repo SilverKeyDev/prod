@@ -14,7 +14,6 @@ from flask import jsonify
 import json5
 import traceback
 from .pdf_creator import _create_pdf
-from .prompt_generator import generate_prompt
 from io import BytesIO
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
@@ -143,12 +142,6 @@ def generate_report(address: str, filename: str) -> Dict:
         if not validate_address(address):
             logger.error("🚫 Address validation failed")
             raise ValueError("Invalid address format")
-
-        logger.info("✅ Address validation passed, building prompt")
-
-        prompt = generate_prompt(address)
-
-        logger.debug("🧠 Prompt assembled successfully")
 
         payload = {
             "model": "sonar-deep-research",
