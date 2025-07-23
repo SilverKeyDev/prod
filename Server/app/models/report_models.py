@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field, Extra
 from typing import List, Dict, Optional, Any
 
 class Demographics(BaseModel):
-    neighborhood_dna: Dict[str, str]
+    neighborhood_distribution: Dict[str, str]
     gender_distribution: Dict[str, str]
     racial_distribution: Dict[str, str]
     age_distribution: Dict[str, str]

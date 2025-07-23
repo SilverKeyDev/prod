@@ -49,7 +49,7 @@ def _guidance_neighborhood_overview(enabled=True):
 - what_people_love / watch_out_for: Use friendly, relatable phrases ("parking sucks after 6pm") (Niche.com, Yelp, or Livability)
 - population_total: Round estimate or census data (Niche or BestPlaces.net typically show this in sidebars)
 - neighborhood_rating: 1–10 score. Use the full scale. (Base this on livability data from AreaVibes, BestPlaces, or Niche)
-- Gender, Race: Estimate distribution for gender, race, age, LGBTQ, and lifestyle DNA. Must total ~100%. (Niche and City-Data offer good snapshots) THESE MUST ALL BE PERCENTAGES I.E. 34.1%, NOTHING ELSE IS ACCEPTABLE
+- Gender, Race: Estimate distribution for gender, race, age, LGBTQ, and lifestyle DNA. Must total ~100%. (Niche and City-Data offer good snapshots) THESE BE PERCENTAGES I.E. 34.1%, NOTHING ELSE IS ACCEPTABLE
 - Age distribution: Estimate distribution for ranges Children (0–9 years), Adolescents (10–19 years), Young Adults (20–29 years), Early Career Adults (30–39 years), Middle-Aged Adults (40–49 years), Older Adults (50–64 years), Seniors (65+ years). Must total ~100%. (Niche and City-Data offer good snapshots) THESE MUST ALL BE CAPTIONS and PERCENTAGES I.E. Children (0–9 years): 14.2.1%, NOTHING ELSE IS ACCEPTABLE
 
 Middle-Aged Adults (40–49 years)
