@@ -42,13 +42,21 @@ def _guidance_neighborhood_overview(enabled=True):
 ---
 
 1. NEIGHBORHOOD OVERVIEW
-- local_culture: Describe cultural texture — e.g. "hipster", "corporate", "family-centered" (Use Google Maps Local Guide reviews, Niche, or Yelp for vibe clues)
-- vibe: Concise summary in 2–5 words, e.g., "Quiet, green, upscale" (Pull phrasing from AreaVibes or Walk Score if available)
-- known_for: Highlight actual attractions, industries, or features (Search Google or Redfin Neighborhood pages)
+- local_culture: Describe cultural texture — e.g. "hipster", "corporate", "family-centered" (Use Google Maps Local Guide reviews, Niche, or Yelp for vibe clues) e.g. 
+(Dana Point embodies coastal Southern California living with a focus on marine
+activities, beach culture, and outdoor recreation. The community centers
+around Dana Point Harbor, which serves as a hub for boating, whale watching,
+and waterfront dining. The area maintains a relaxed yet
+upscale vibe, balancing tourist attractions with residential tranquility)
+- vibe: Concise summary in 2–5 words, e.g., "Quiet, green, upscale" (Pull phrasing from AreaVibes or Walk Score if available) e.g. (Weekly farmers market at La Plaza Park, summer Concerts in the Park series,
+Festival of Whales, and Holidays at the Harbor with extensive light displays.
+Harbor-centric events include sailing regattas and tall ship festivals.)
+- known_for: Highlight actual attractions, industries, or features (Search Google or Redfin Neighborhood pages) e.g. (Dana Point is known for its beautiful beaches, surfing, and whale watching.)
 - community_events: Real events or typical examples (Eventbrite, City-Data Forums, or local news)
 - what_people_love / watch_out_for: Use friendly, relatable phrases ("parking sucks after 6pm") (Niche.com, Yelp, or Livability)
 - population_total: Round estimate or census data (Niche or BestPlaces.net typically show this in sidebars)
 - neighborhood_rating: 1–10 score. Use the full scale. (Base this on livability data from AreaVibes, BestPlaces, or Niche)
+- LGBTQ representation: Estimate percentage of LGBTQ population and some examples of LGBTQ-friendly amenities 
 - Gender, Race: Estimate distribution for gender, race, age, LGBTQ, and lifestyle DNA. Must total ~100%. (Niche and City-Data offer good snapshots) THESE BE PERCENTAGES I.E. 34.1%, NOTHING ELSE IS ACCEPTABLE
 - Age distribution: Estimate distribution for ranges Children (0–9 years), Adolescents (10–19 years), Young Adults (20–29 years), Early Career Adults (30–39 years), Middle-Aged Adults (40–49 years), Older Adults (50–64 years), Seniors (65+ years). Must total ~100%. (Niche and City-Data offer good snapshots) THESE MUST ALL BE CAPTIONS and PERCENTAGES I.E. Children (0–9 years): 14.2.1%, NOTHING ELSE IS ACCEPTABLE
 

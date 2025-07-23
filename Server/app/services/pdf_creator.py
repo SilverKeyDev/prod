@@ -183,7 +183,7 @@ def _add_section(elements, data, styles, level=0):
         key = k.replace("_", " ").title()
 
         # CHARTS
-        if k.lower() == "neighborhood_dna":
+        if k.lower() == "neighborhood_distribution":
             chart_buffer = generate_horizontal_bar_chart(v, key)
             chart_type = "DNA Bar Chart"
         elif k.lower() == "gender_distribution":

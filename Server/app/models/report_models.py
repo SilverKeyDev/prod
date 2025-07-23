@@ -6,7 +6,6 @@ class Demographics(BaseModel):
     gender_distribution: Dict[str, str]
     racial_distribution: Dict[str, str]
     age_distribution: Dict[str, str]
-    LGBTQ_representation: str
 
 class NeighborhoodOverview(BaseModel):
     local_culture: str
@@ -18,6 +17,7 @@ class NeighborhoodOverview(BaseModel):
     population_total: str
     neighborhood_rating: str
     image_prompt: str
+    LGBTQ_representation: str
     demographics: Demographics
 
 class Safety(BaseModel):
