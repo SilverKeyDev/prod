@@ -207,7 +207,10 @@ class FullReport(BaseModel):
         address_section = data.pop(dynamic_address_key)
 
         # Remove duplicate if present
-        data.pop('demographics', None)
+        # If 'demographics' was included at the top level, prefer moving it into the address block
+        demographics = data.pop('demographics', None)
+        if demographics and 'demographics' not in address_section:
+            address_section['demographics'] = demographics
 
         data['address_key'] = dynamic_address_key
         data['neighborhood_overview'] = NeighborhoodOverview(**address_section)

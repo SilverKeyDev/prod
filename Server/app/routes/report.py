@@ -185,7 +185,6 @@ def list_reports():
             PDFDocument.user_id == user.id,
             or_(
                 PDFDocument.status == 'generating',
-                PDFDocument.status == 'processed',
                 PDFDocument.status == 'error'
             )
         ).all()
