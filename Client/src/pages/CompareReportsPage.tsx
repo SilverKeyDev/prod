@@ -5,6 +5,29 @@ import ErrorToast from "../components/ErrorToast";
 import SuccessToast from "../components/SuccessToast";
 import { useData } from "../contexts/DataContext";
 
+// Custom scrollbar styles
+const scrollbarStyles = `
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    margin-left: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: #f3f4f6;
+    border-radius: 3px;
+    margin-left: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #E8D5B560; /* Lighter brown with 60% opacity */
+    border-radius: 3px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #E8D5B580; /* Slightly darker on hover with 80% opacity */
+  }
+  .custom-scrollbar {
+    padding-right: 8px;
+  }
+`;
+
 interface Report {
   id: string;
   address: string;
@@ -259,7 +282,9 @@ export default function CompareReportsPage() {
     }
   };
   return (
-    <div className="max-w-7xl mx-auto mobile-padding py-6 sm:py-8">
+    <>
+      <style dangerouslySetInnerHTML={{ __html: scrollbarStyles }} />
+      <div className="max-w-7xl mx-auto mobile-padding py-6 sm:py-8">
       {/* Header */}
       <div className="text-center mb-6 sm:mb-8">
         <h1 className="text-2xl sm:text-3xl font-serif text-black mb-3 sm:mb-4 px-2">
@@ -289,7 +314,7 @@ export default function CompareReportsPage() {
       )}
 
       {/* Reports Selection */}
-      <div className="mobile-card mb-6 sm:mb-8">
+      <div className="mobile-card mb-20 sm:mb-8">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 space-y-3 sm:space-y-0">
           <div>
             <h2 className="text-lg sm:text-xl font-medium text-black">
@@ -357,9 +382,15 @@ export default function CompareReportsPage() {
         ) : (
           <div
             className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 ${
-              reports.length > 9 ? "overflow-y-auto scrollbar-hide" : ""
+              reports.length > 9 ? "overflow-y-auto custom-scrollbar" : ""
             }`}
-            style={reports.length > 9 ? { maxHeight: "16rem" } : {}}
+            style={{
+              ...(reports.length > 9 ? { maxHeight: "16rem" } : {}),
+              ...(reports.length > 9 ? {
+                scrollbarWidth: 'thin',
+                scrollbarColor: '#E8D5B560 #f3f4f6'
+              } : {})
+            }}
           >
             {reports.map((report) => {
               const isSelected = selectedReports.some(
@@ -490,6 +521,7 @@ export default function CompareReportsPage() {
           </button>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }
