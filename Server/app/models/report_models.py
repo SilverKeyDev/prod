@@ -1,11 +1,30 @@
-from pydantic import BaseModel, Field, Extra
-from typing import List, Dict, Optional, Any
+from pydantic import BaseModel, Field, Extra, model_validator
+from typing import List, Dict, Optional, Any, Union
 
 class Demographics(BaseModel):
-    neighborhood_distribution: Dict[str, str]
-    gender_distribution: Dict[str, str]
-    racial_distribution: Dict[str, str]
-    age_distribution: Dict[str, str]
+    neighborhood_distribution: Optional[Union[str, Dict[str, str]]] = None
+    gender_distribution: Optional[Union[str, Dict[str, str]]] = None
+    racial_distribution: Optional[Union[str, Dict[str, str]]] = None
+    age_distribution: Optional[Union[str, Dict[str, str]]] = None
+    lifestyle_dna: Optional[Union[str, Dict[str, str]]] = None
+    # Handle alternative field names that AI might use
+    gender: Optional[Union[str, Dict[str, str]]] = None
+    race: Optional[Union[str, Dict[str, str]]] = None
+    
+    @model_validator(mode='before')
+    @classmethod
+    def map_alternative_fields(cls, values):
+        """Map alternative field names to standard names if main fields are missing."""
+        if isinstance(values, dict):
+            # Map gender to gender_distribution if missing
+            if not values.get('gender_distribution') and values.get('gender'):
+                values['gender_distribution'] = values['gender']
+            
+            # Map race to racial_distribution if missing
+            if not values.get('racial_distribution') and values.get('race'):
+                values['racial_distribution'] = values['race']
+        
+        return values
 
 class NeighborhoodOverview(BaseModel):
     local_culture: str

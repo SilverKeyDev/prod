@@ -182,22 +182,26 @@ def _add_section(elements, data, styles, level=0):
     for k, v in data.items():
         key = k.replace("_", " ").title()
 
-        # CHARTS
-        if k.lower() == "neighborhood_distribution":
-            chart_buffer = generate_horizontal_bar_chart(v, key)
-            chart_type = "DNA Bar Chart"
-        elif k.lower() == "gender_distribution":
-            chart_buffer = generate_donut_chart(v, key)
-            chart_type = "Donut Chart"
-        elif k.lower() == "racial_distribution":
-            chart_buffer = generate_pie_chart(v, key)
-            chart_type = "Pie Chart"
-        elif k.lower() == "age_distribution":
-            chart_buffer = generate_vertical_lollipop_chart(v, key)
-            chart_type = "Bar Chart"
-        else:
-            chart_buffer = NonE
-            chart_type = ""
+        # CHARTS - Only generate if data is a dictionary
+        chart_buffer = None
+        chart_type = ""
+        
+        if isinstance(v, dict):
+            if k.lower() == "neighborhood_distribution":
+                chart_buffer = generate_horizontal_bar_chart(v, key)
+                chart_type = "DNA Bar Chart"
+            elif k.lower() in ["gender_distribution", "gender"]:
+                chart_buffer = generate_donut_chart(v, key)
+                chart_type = "Donut Chart"
+            elif k.lower() in ["racial_distribution", "race"]:
+                chart_buffer = generate_pie_chart(v, key)
+                chart_type = "Pie Chart"
+            elif k.lower() == "age_distribution":
+                chart_buffer = generate_vertical_lollipop_chart(v, key)
+                chart_type = "Bar Chart"
+            elif k.lower() == "lifestyle_dna":
+                chart_buffer = generate_horizontal_bar_chart(v, key)
+                chart_type = "Lifestyle Chart"
 
         if chart_buffer:
             label = Paragraph(f"<b>{key}:</b>", styles["SubHeader"])
@@ -207,6 +211,9 @@ def _add_section(elements, data, styles, level=0):
                 for subk, subv in v.items():
                     subk_formatted = subk.replace("_", " ").title()
                     value_lines.append(f"<b>{subk_formatted}:</b> {subv}")
+            else:
+                # Fallback for string data
+                value_lines.append(str(v))
             value_paragraph = Paragraph("<br/>".join(value_lines), styles["Body"])
 
             img = _resize_image_to_fit(chart_buffer)
