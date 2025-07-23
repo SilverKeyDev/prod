@@ -54,7 +54,7 @@ Harbor-centric events include sailing regattas and tall ship festivals.)
 - known_for: Highlight actual attractions, industries, or features (Search Google or Redfin Neighborhood pages) e.g. (Dana Point is known for its beautiful beaches, surfing, and whale watching.)
 - community_events: Real events or typical examples (Eventbrite, City-Data Forums, or local news)
 - what_people_love / watch_out_for: Use friendly, relatable phrases ("parking sucks after 6pm") (Niche.com, Yelp, or Livability)
-- population_total: Round estimate or census data (Niche or BestPlaces.net typically show this in sidebars)
+- population_total: Census data, give exact number (Niche or BestPlaces.net typically show this in sidebars)
 - neighborhood_rating: 1–10 score. Use the full scale. (Base this on livability data from AreaVibes, BestPlaces, or Niche)
 - LGBTQ representation: Estimate percentage of LGBTQ population and some examples of LGBTQ-friendly amenities 
 - Gender, Race: Estimate distribution for gender, race, age, LGBTQ, and lifestyle DNA. Must total ~100%. (Niche and City-Data offer good snapshots) THESE BE PERCENTAGES I.E. 34.1%, NOTHING ELSE IS ACCEPTABLE
@@ -166,7 +166,7 @@ def _guidance_nightlife_and_dating(enabled=True):
 - nightlife_score: Rate vibrancy of bars, music, and scenes (Yelp, Google Maps, or City-Data forum nightlife threads)
 - dating_scene: Describe energy and dating pool (Search “dating in [city] Reddit” or Nomad List for vibe)
 - average_attractiveness_rating: Be playful but grounded (Use cultural tone and tongue-in-cheek phrasing)
-- apps_popularity: Break down by app (Check Reddit threads or blog posts comparing app usage)
+- apps_popularity: Break down by app, score relative to national averages (Check Reddit threads or blog posts comparing app usage)
 """
 
 def _guidance_accessibility(enabled=True):
@@ -228,7 +228,7 @@ def _guidance_schools(enabled=True):
 
 14. SCHOOLS
 - name, level, walking_distance: Include elementary/middle/high (Use Google Maps or Realtor.com school map view)
-- niche_rating / GPA / SAT / grad_rate: Pull from Niche school profiles directly
+- niche_rating / GPA / SAT / grad_rate: (ONLY INCLUDE FOR HIGH SCHOOLS)
 - known_for: Culture or reputation (e.g., "STEM focus", "Liberal arts", "pressure cooker") (Niche student reviews are gold here)
 - teacher_quality: Great / Good / Mixed / Poor (See Niche teacher quality grade)
 """

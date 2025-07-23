@@ -52,8 +52,8 @@ class SocialCharacter(BaseModel):
 
 class Restaurant(BaseModel):
     name: str
-    vibe: str
-    what_to_try: str
+    vibe: Optional[str] = None
+    what_to_try: Optional[str] = None
 
 class Activity(BaseModel):
     name: str
@@ -119,7 +119,7 @@ class EnvironmentUtilities(BaseModel):
     internet_speed: str
     environmental_rating: str
 
-class MoneyStuff(BaseModel):
+class LivingExpenses(BaseModel):
     monthly_payment: str
     property_taxes: str
     value_assessment: str
