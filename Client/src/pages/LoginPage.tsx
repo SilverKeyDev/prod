@@ -154,8 +154,8 @@ export default function LoginPage() {
 
         {/* Footer Links */}
         <div className="mt-4 pt-4 border-t border-gray-100">
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-sm">
-            <div className="flex items-center gap-6 text-black/60">
+          <div className="flex flex-col items-center justify-center gap-4 text-sm text-center">
+            <div className="flex flex-wrap items-center justify-center gap-6 text-black/60">
               <Link 
                 to="/privacy" 
                 className="hover:text-black transition-colors hover:underline underline-offset-4 decoration-brown/40"
@@ -168,8 +168,13 @@ export default function LoginPage() {
               >
                 Terms of Service
               </Link>
+              <Link 
+                to="/contact" 
+                className="hover:text-black transition-colors hover:underline underline-offset-4 decoration-brown/40"
+              >
+                Contact Us
+              </Link>
             </div>
-            <span className="hidden sm:inline-block h-4 w-px bg-gray-200"></span>
             <p className="text-xs text-black/40">
               © {new Date().getFullYear()} SilverKey. All rights reserved.
             </p>

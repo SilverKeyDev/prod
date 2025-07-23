@@ -9,6 +9,7 @@ import Dashboard from "./components/Dashboard.tsx";
 import VerificationPage from "./pages/VerificationPage";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
+import ContactUs from "./pages/ContactUs";
 import { DataProvider } from "./contexts/DataContext";
 
 function App() {
@@ -82,6 +83,7 @@ function App() {
             <Route path="/verification" element={<VerificationPage/>} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsOfService />} />
+            <Route path="/contact" element={<ContactUs />} />
 
             {/* Protected Route */}
             <Route

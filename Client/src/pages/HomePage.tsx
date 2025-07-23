@@ -235,6 +235,19 @@ export default function HomePage() {
             </div>
           ))}
         </div>
+        
+        {/* Footer Links */}
+        <div className="relative z-10 mt-16 flex flex-wrap justify-center items-center gap-4 sm:gap-8 text-sm text-center">
+          <Link to="/privacy" className="text-gray-600 hover:text-brown transition-colors duration-200 underline">
+            Privacy Policy
+          </Link>
+          <Link to="/terms" className="text-gray-600 hover:text-brown transition-colors duration-200 underline">
+            Terms of Service
+          </Link>
+          <Link to="/contact" className="text-gray-600 hover:text-brown transition-colors duration-200 underline">
+            Contact Us
+          </Link>
+        </div>
       </main>
 
       {/* Auth Modal */}
