@@ -180,24 +180,27 @@ def list_reports():
             logger.error(f"User not found with ID: {current_user_id}")
             return jsonify({'error': 'User not found', 'success': False}), 404
 
-        # Get generating reports from database
+        # Get generating and processed reports from database
         generating_reports = PDFDocument.query.filter(
             PDFDocument.user_id == user.id,
             or_(
                 PDFDocument.status == 'generating',
+                PDFDocument.status == 'processed',
                 PDFDocument.status == 'error'
             )
         ).all()
         
         for report in generating_reports:
+            # Map 'processed' status to 'completed' for frontend compatibility
+            status = 'completed' if report.status == 'processed' else report.status
             reports_list.append({
                 'id': report.id,
-                'status': report.status,
+                'status': status,
                 'generatedAt': int(report.created_at.timestamp()),
                 'address': os.path.splitext(os.path.basename(report.filename))[0],
                 's3Key': report.file_path
             })
-            logger.info(f"Found generating report for user {user.id}: {report.id}")
+            logger.info(f"Found {report.status} report for user {user.id}: {report.id}")
 
         # Get completed reports from S3
         s3_client = s3_service.s3_client

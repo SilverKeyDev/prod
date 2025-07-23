@@ -165,13 +165,11 @@ def generate_report(address: str, filename: str) -> Dict:
                         "4. All ratings should be out of 10 and realistic, do not be afraid to rate somewhere very low or high\n"
                         "5. You MUST respond with ONLY valid JSON (no markdown, no explanation). Do not wrap your response in ``` or any code fences.\n"
                         "6. Use the recommended sources first in research. If a decent answer is found, do not continue to search the web for that field\n"
+                        "7. Do not include citations in the response\n"
 
                         "Formatting: if the name includes the phrase, must be formatted this way"
                         "_demographics: caption: percentage (total must add to 100%) e.g. Children (0–9 years): 14.2%"
                         "_rating: 1-10 score. Use the full scale. e.g. 4.3/10\n"
-                        "7. Use soft inline citations in Primary Style (e.g., (Reuters, 2024)) immediately after statements derived from external sources.\n"
-                        "8. Include a top-level array `citations` where each element has an `id` (integer) and `source` (string). Ensure IDs referenced in `citation_ids` map to this list.\n"
-
                         "STRICT GUIDANCE FOR EACH SECTION:\n"
                         
                          f"{give_guidance()}"
@@ -184,6 +182,7 @@ def generate_report(address: str, filename: str) -> Dict:
             "max_tokens": 10000,
             "stream": False,
             "return_images": False,
+            "return_citations": False,
             "response_format": {
                 "type": "json_schema",
                 "json_schema": {

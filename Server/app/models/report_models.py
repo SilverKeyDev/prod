@@ -18,7 +18,6 @@ class NeighborhoodOverview(BaseModel):
     neighborhood_rating: str
     image_prompt: str
     LGBTQ_representation: str
-    citation_ids: Optional[List[int]] = Field(None, description="Citation IDs for sources used in this section.")
     demographics: Demographics
 
 class Safety(BaseModel):
@@ -26,7 +25,6 @@ class Safety(BaseModel):
     places_to_watch_out_for: str
     police_presence: str
     safety_rating: str
-    citation_ids: Optional[List[int]] = Field(None, description="Citation IDs for sources used in this section.")
     image_prompt: str
 
 class CultureAndEvents(BaseModel):
@@ -34,7 +32,6 @@ class CultureAndEvents(BaseModel):
     seasonal_trends: str
     community_engagement: str
     culture_rating: str
-    citation_ids: Optional[List[int]] = Field(None, description="Citation IDs for sources used in this section.")
     image_prompt: str
 
 class Weather(BaseModel):
@@ -51,7 +48,6 @@ class SocialCharacter(BaseModel):
     religiosity: str
     cultural_tone: str
     social_rating: str
-    citation_ids: Optional[List[int]] = Field(None, description="Citation IDs for sources used in this section.")
     image_prompt: str
 
 class Restaurant(BaseModel):
@@ -85,13 +81,11 @@ class Commute(BaseModel):
     public_transport: str
     traffic: str
     walkability: str
-    citation_ids: Optional[List[int]] = Field(None, description="Citation IDs for sources used in this section.")
 
 class FamilyFriendly(BaseModel):
     lots_of_kids: str
     great_for_families: str
     family_rating: str
-    citation_ids: Optional[List[int]] = Field(None, description="Citation IDs for sources used in this section.")
 
 class NightlifeAndDating(BaseModel):
     nightlife_rating: str
@@ -100,7 +94,6 @@ class NightlifeAndDating(BaseModel):
     dating_scene: str
     average_attractiveness_rating: str
     apps_popularity: Dict[str, str]
-    citation_ids: Optional[List[int]] = Field(None, description="Citation IDs for sources used in this section.")
     image_prompt: str
 
 class Accessibility(BaseModel):
@@ -108,14 +101,12 @@ class Accessibility(BaseModel):
     ada_compliance: str
     age_friendly: str
     accessibility_rating: str
-    citation_ids: Optional[List[int]] = Field(None, description="Citation IDs for sources used in this section.")
 
 class Development(BaseModel):
     upcoming_changes: str
     zoning_or_construction: str
     gentrification_signs: str
     vacancy_or_decay: str
-    citation_ids: Optional[List[int]] = Field(None, description="Citation IDs for sources used in this section.")
     image_prompt: str
 
 class EnvironmentUtilities(BaseModel):
@@ -126,7 +117,6 @@ class EnvironmentUtilities(BaseModel):
     avg_utility_costs: Dict[str, str]
     internet_speed: str
     environmental_rating: str
-    citation_ids: Optional[List[int]] = Field(None, description="Citation IDs for sources used in this section.")
 
 class FinancialInformation(BaseModel):
     monthly_payment: str
@@ -136,7 +126,6 @@ class FinancialInformation(BaseModel):
     financial_rating: str
     seller_information: str
     purchase_strategy: str
-    citation_ids: Optional[List[int]] = Field(None, description="Citation IDs for sources used in this section.")
 
 class School(BaseModel):
     name: str
@@ -149,7 +138,6 @@ class School(BaseModel):
     sat_avg: Optional[int] = None
     grad_rate: Optional[float] = None
     top_colleges: Optional[str] = None
-    citation_ids: Optional[List[int]] = Field(None, description="Citation IDs for sources used in this section.")
 
 class Schools(BaseModel):
     schools: List[School]
@@ -186,12 +174,11 @@ class FullReport(BaseModel):
         extra = Extra.allow  # Still allow unknown fields just in case
 
     def __init__(self, **data):
-        # Identify the dynamic address key (should be the only unknown field)
         known_keys = {
             'safety', 'culture_and_events', 'weather', 'social_character',
             'local_amenities', 'commute', 'family_friendly', 'nightlife_and_dating',
-            'accessibility', 'development', 'environment_utilities', 'money_stuff',
-            'schools', 'extra_tips'
+            'accessibility', 'development', 'environment_utilities', 'financial_information',
+            'schools', 'extra_tips', 'demographics'
         }
 
         dynamic_address_key = next((k for k in data if k not in known_keys), None)
@@ -200,7 +187,9 @@ class FullReport(BaseModel):
 
         address_section = data.pop(dynamic_address_key)
 
-        # Populate neighborhood_overview and address_key
+        # Remove duplicate if present
+        data.pop('demographics', None)
+
         data['address_key'] = dynamic_address_key
         data['neighborhood_overview'] = NeighborhoodOverview(**address_section)
 

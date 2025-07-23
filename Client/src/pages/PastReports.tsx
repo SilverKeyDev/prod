@@ -32,6 +32,52 @@ if (!API_BASE_URL) {
   );
 }
 
+// Progress bar component for generating reports
+interface ProgressBarProps {
+  startTime: Date;
+}
+
+const ProgressBar: React.FC<ProgressBarProps> = ({ startTime }) => {
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const updateProgress = () => {
+      const now = new Date();
+      const elapsed = (now.getTime() - startTime.getTime()) / 1000; // seconds
+      const maxTime = 240; // 240 seconds to reach 95%
+      const maxProgress = 95; // 95% completion
+      
+      let currentProgress = (elapsed / maxTime) * maxProgress;
+      currentProgress = Math.min(currentProgress, maxProgress); // Cap at 95%
+      
+      setProgress(currentProgress);
+    };
+
+    // Update immediately
+    updateProgress();
+    
+    // Update every second
+    const interval = setInterval(updateProgress, 1000);
+    
+    return () => clearInterval(interval);
+  }, [startTime]);
+
+  return (
+    <div className="w-full">
+      <div className="flex items-center justify-between mb-1">
+        <span className="text-xs text-gold font-medium">Generating...</span>
+        <span className="text-xs text-gold font-medium">{Math.round(progress)}%</span>
+      </div>
+      <div className="w-full bg-gold/20 rounded-full h-2">
+        <div 
+          className="bg-gold h-2 rounded-full transition-all duration-1000 ease-out"
+          style={{ width: `${progress}%` }}
+        ></div>
+      </div>
+    </div>
+  );
+};
+
 // PdfModal component moved outside to prevent remounting on every render
 interface PdfModalProps {
   currentPdf: string | null;
@@ -886,8 +932,8 @@ export default function PastReports() {
                       </>
                     )}
                     {report.status === "generating" && (
-                      <div className="w-full text-center py-2">
-                        <div className="shimmer w-full h-4 rounded mx-auto"></div>
+                      <div className="w-full py-2">
+                        <ProgressBar startTime={report.generatedAt} />
                       </div>
                     )}
                     {report.status === "error" && (
@@ -928,7 +974,7 @@ export default function PastReports() {
                         {getStatusText(report.status)}
                       </span>
                       <span className="text-sm text-black/60">
-                        {formatDate(report.generatedAt)}
+                        {formatDate(new Date(report.generatedAt.getTime()))}
                       </span>
                     </div>
                     <h3
@@ -1007,7 +1053,9 @@ export default function PastReports() {
                       </>
                     )}
                     {report.status === "generating" && (
-                      <div className="shimmer w-24 h-8 rounded"></div>
+                      <div className="w-full">
+                        <ProgressBar startTime={new Date(report.generatedAt.getTime())} />
+                      </div>
                     )}
                     {report.status === "error" && (
                       <div className="flex items-center space-x-2">
