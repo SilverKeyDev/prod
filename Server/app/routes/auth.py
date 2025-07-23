@@ -201,5 +201,63 @@ def login():
         return jsonify({
             'success': False,
             'error': 'LOGIN_FAILED',
-            'message': 'Failed to log in. Please try again.'
+            'message': 'Failed to authenticate user'
         }), 500
+
+@auth_bp.route('/forgot-password', methods=['POST'])
+def forgot_password():
+    """Initiate forgot password flow"""
+    data = request.get_json()
+    
+    if 'email' not in data:
+        return jsonify({
+            'success': False,
+            'error': 'MISSING_EMAIL',
+            'message': 'Email is required'
+        }), 400
+    
+    result = cognito_service.forgot_password(data['email'])
+    
+    if not result['success']:
+        return jsonify({
+            'success': False,
+            'error': result.get('error', 'FORGOT_PASSWORD_FAILED'),
+            'message': result.get('message', 'Failed to initiate password reset')
+        }), 400
+    
+    return jsonify({
+        'success': True,
+        'message': 'Password reset code sent to your email',
+        'code_delivery': result.get('code_delivery')
+    })
+
+@auth_bp.route('/reset-password', methods=['POST'])
+def reset_password():
+    """Confirm forgot password with code and set new password"""
+    data = request.get_json()
+    
+    required_fields = ['email', 'code', 'new_password']
+    if not all(field in data for field in required_fields):
+        return jsonify({
+            'success': False,
+            'error': 'MISSING_FIELDS',
+            'message': 'Email, code, and new password are required'
+        }), 400
+    
+    result = cognito_service.confirm_forgot_password(
+        username=data['email'],
+        confirmation_code=data['code'],
+        new_password=data['new_password']
+    )
+    
+    if not result['success']:
+        return jsonify({
+            'success': False,
+            'error': result.get('error', 'RESET_PASSWORD_FAILED'),
+            'message': result.get('message', 'Failed to reset password')
+        }), 400
+    
+    return jsonify({
+        'success': True,
+        'message': 'Password reset successfully'
+    })

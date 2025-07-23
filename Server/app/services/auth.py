@@ -90,6 +90,45 @@ class CognitoService:
                 'message': e.response['Error']['Message']
             }
 
+    def forgot_password(self, username):
+        """Initiate forgot password flow"""
+        try:
+            response = self.client.forgot_password(
+                ClientId=self.client_id,
+                SecretHash=self._get_secret_hash(username),
+                Username=username
+            )
+            return {
+                'success': True,
+                'code_delivery': response['CodeDeliveryDetails']
+            }
+        except ClientError as e:
+            logger.error(f"Error initiating forgot password: {e}")
+            return {
+                'success': False,
+                'error': e.response['Error']['Code'],
+                'message': e.response['Error']['Message']
+            }
+
+    def confirm_forgot_password(self, username, confirmation_code, new_password):
+        """Confirm forgot password with code and set new password"""
+        try:
+            self.client.confirm_forgot_password(
+                ClientId=self.client_id,
+                SecretHash=self._get_secret_hash(username),
+                Username=username,
+                ConfirmationCode=confirmation_code,
+                Password=new_password
+            )
+            return {'success': True}
+        except ClientError as e:
+            logger.error(f"Error confirming forgot password: {e}")
+            return {
+                'success': False,
+                'error': e.response['Error']['Code'],
+                'message': e.response['Error']['Message']
+            }
+
     def _get_secret_hash(self, username):
         """Generate secret hash for Cognito"""
         if not username:

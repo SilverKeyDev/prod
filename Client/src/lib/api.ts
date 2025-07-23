@@ -112,6 +112,18 @@ export const authApi = {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     }),
+
+  forgotPassword: (email: string) =>
+    apiRequest('/api/v1/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    }),
+
+  resetPassword: (email: string, code: string, new_password: string) =>
+    apiRequest('/api/v1/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({ email, code, new_password }),
+    }),
 };
 
 // Report API

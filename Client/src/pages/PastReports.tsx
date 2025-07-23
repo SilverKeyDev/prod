@@ -9,6 +9,7 @@ import {
   Trash2,
   ChevronDown,
   Share,
+  RefreshCw,
 } from "lucide-react";
 import ErrorToast from "../components/ErrorToast";
 import SuccessToast from "../components/SuccessToast";
@@ -113,6 +114,7 @@ export default function PastReports() {
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [sortBy, setSortBy] = useState<"date" | "address">("date");
+  const [isRefreshing, setIsRefreshing] = useState(false);
   
   // Use preloaded data from context
   const { reports, refreshReports } = useData();
@@ -121,6 +123,16 @@ export default function PastReports() {
   useEffect(() => {
     refreshReports();
   }, [refreshReports]);
+  
+  // Handle refresh button click with loading state
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await refreshReports();
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
   
   // Local cache for PDF URLs to avoid modifying context state
   const [pdfUrlCache, setPdfUrlCache] = useState<Record<string, string>>({});
@@ -683,6 +695,20 @@ export default function PastReports() {
                 </div>
               </button>
             </div>
+            <button
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className={`p-2 rounded touch-friendly flex items-center justify-center transition-colors duration-200 ${
+                isRefreshing 
+                  ? "bg-gray-300 text-gray-600 cursor-not-allowed" 
+                  : "bg-gray-300 text-gray-600 hover:bg-gray-500 hover:text-white"
+              }`}
+              title={isRefreshing ? "Refreshing..." : "Refresh reports"}
+            >
+              <RefreshCw className={`w-3 h-3 sm:w-4 sm:h-4 transition-transform duration-200 ${
+                isRefreshing ? "animate-spin" : ""
+              }`} />
+            </button>
             <div className="relative" ref={sortDropdownRef}>
               <button
                 onClick={() => setSortDropdownOpen(!sortDropdownOpen)}

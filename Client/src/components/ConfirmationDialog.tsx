@@ -23,17 +23,26 @@ export default function ConfirmationDialog({
   if (!isOpen) return null;
 
   const dialogContent = (
-    <div className="fixed inset-0 z-[9999] overflow-y-auto" style={{ left: 0, right: 0, top: 0, bottom: 0 }}>
-      <div className="flex min-h-screen items-center justify-center p-4 sm:p-6" style={{ width: '100vw', height: '100vh' }}>
+    <div
+      className="fixed inset-0 z-[9999] overflow-y-auto"
+      style={{ left: 0, right: 0, top: 0, bottom: 0 }}
+    >
+      <div
+        className="flex min-h-screen items-center justify-center p-4 sm:p-6"
+        style={{ width: "100vw", height: "100vh" }}
+      >
         {/* Backdrop */}
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 transition-opacity"
           onClick={onCancel}
           style={{ left: 0, right: 0, top: 0, bottom: 0 }}
         />
-        
+
         {/* Dialog */}
-        <div className="relative z-[10000] w-full max-w-sm mx-auto transform overflow-hidden rounded-2xl bg-white p-6 text-left shadow-xl transition-all" style={{ maxWidth: '320px' }}>
+        <div
+          className="relative z-[10000] w-full max-w-sm mx-auto transform overflow-hidden rounded-2xl bg-white p-6 text-left shadow-xl transition-all"
+          style={{ maxWidth: "320px" }}
+        >
           {/* Close button */}
           <button
             type="button"
