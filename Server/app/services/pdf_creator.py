@@ -195,6 +195,9 @@ def _add_section(elements, data, styles, level=0):
         elif k.lower() == "age_distribution":
             chart_buffer = generate_vertical_lollipop_chart(v, key)
             chart_type = "Bar Chart"
+        else:
+            chart_buffer = None
+            chart_type = ""
 
         if chart_buffer:
             label = Paragraph(f"<b>{key}:</b>", styles["SubHeader"])
