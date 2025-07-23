@@ -197,6 +197,7 @@ def _add_section(elements, data, styles, level=0):
             chart_type = "Bar Chart"
         else:
             chart_buffer = None
+            
             chart_type = ""
 
         if chart_buffer:

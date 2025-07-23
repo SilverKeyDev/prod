@@ -218,6 +218,8 @@ def _guidance_money(enabled=True):
 - value_assessment: Stable / Rising / Declining (Redfin neighborhood market trends)
 - investment_potential: E.g., "Good for long-term hold" (Search for home value trendlines on Redfin or Realtor)
 - financial_rating: Overall financial upside or downside (Blend of affordability + appreciation using Redfin + Niche)
+- seller_information: Who is selling the property at [address]? Please determine if the seller is an individual, realtor, or corporate/investor entity. Search public listing platforms (Zillow, Redfin, Realtor.com), local MLS info, and county assessor or property tax records. If the property is owned by an LLC, summarize what is known about the company (business filings, other properties owned). If it's listed as FSBO (for sale by owner), confirm that as well. Prioritize accurate, up-to-date sources.
+- purchase_strategy: Recommend a smart strategy based on the current market context. For example: "Act quickly if priced below comps", "Negotiate hard due to days on market", "Avoid bidding wars in this zip code", or "Wait for seasonal dip in pricing". Use Redfin trends, listing history, and buyer competition data if available.
 """
 
 def _guidance_schools(enabled=True):

@@ -18,6 +18,7 @@ class NeighborhoodOverview(BaseModel):
     neighborhood_rating: str
     image_prompt: str
     LGBTQ_representation: str
+    citation_ids: Optional[List[int]] = Field(None, description="Citation IDs for sources used in this section.")
     demographics: Demographics
 
 class Safety(BaseModel):
@@ -25,6 +26,7 @@ class Safety(BaseModel):
     places_to_watch_out_for: str
     police_presence: str
     safety_rating: str
+    citation_ids: Optional[List[int]] = Field(None, description="Citation IDs for sources used in this section.")
     image_prompt: str
 
 class CultureAndEvents(BaseModel):
@@ -32,6 +34,7 @@ class CultureAndEvents(BaseModel):
     seasonal_trends: str
     community_engagement: str
     culture_rating: str
+    citation_ids: Optional[List[int]] = Field(None, description="Citation IDs for sources used in this section.")
     image_prompt: str
 
 class Weather(BaseModel):
@@ -48,6 +51,7 @@ class SocialCharacter(BaseModel):
     religiosity: str
     cultural_tone: str
     social_rating: str
+    citation_ids: Optional[List[int]] = Field(None, description="Citation IDs for sources used in this section.")
     image_prompt: str
 
 class Restaurant(BaseModel):
@@ -81,11 +85,13 @@ class Commute(BaseModel):
     public_transport: str
     traffic: str
     walkability: str
+    citation_ids: Optional[List[int]] = Field(None, description="Citation IDs for sources used in this section.")
 
 class FamilyFriendly(BaseModel):
     lots_of_kids: str
     great_for_families: str
     family_rating: str
+    citation_ids: Optional[List[int]] = Field(None, description="Citation IDs for sources used in this section.")
 
 class NightlifeAndDating(BaseModel):
     nightlife_rating: str
@@ -94,20 +100,22 @@ class NightlifeAndDating(BaseModel):
     dating_scene: str
     average_attractiveness_rating: str
     apps_popularity: Dict[str, str]
+    citation_ids: Optional[List[int]] = Field(None, description="Citation IDs for sources used in this section.")
     image_prompt: str
-
 
 class Accessibility(BaseModel):
     wheelchair_friendly: str
     ada_compliance: str
     age_friendly: str
     accessibility_rating: str
+    citation_ids: Optional[List[int]] = Field(None, description="Citation IDs for sources used in this section.")
 
 class Development(BaseModel):
     upcoming_changes: str
     zoning_or_construction: str
     gentrification_signs: str
     vacancy_or_decay: str
+    citation_ids: Optional[List[int]] = Field(None, description="Citation IDs for sources used in this section.")
     image_prompt: str
 
 class EnvironmentUtilities(BaseModel):
@@ -118,13 +126,17 @@ class EnvironmentUtilities(BaseModel):
     avg_utility_costs: Dict[str, str]
     internet_speed: str
     environmental_rating: str
+    citation_ids: Optional[List[int]] = Field(None, description="Citation IDs for sources used in this section.")
 
-class LivingExpenses(BaseModel):
+class FinancialInformation(BaseModel):
     monthly_payment: str
     property_taxes: str
     value_assessment: str
     investment_potential: str
     financial_rating: str
+    seller_information: str
+    purchase_strategy: str
+    citation_ids: Optional[List[int]] = Field(None, description="Citation IDs for sources used in this section.")
 
 class School(BaseModel):
     name: str
@@ -137,6 +149,7 @@ class School(BaseModel):
     sat_avg: Optional[int] = None
     grad_rate: Optional[float] = None
     top_colleges: Optional[str] = None
+    citation_ids: Optional[List[int]] = Field(None, description="Citation IDs for sources used in this section.")
 
 class Schools(BaseModel):
     schools: List[School]
@@ -146,7 +159,6 @@ class ExtraTips(BaseModel):
     pet_friendly: str
     cell_service_quality: str
     other_notable_tips: str
-
 
 
 
@@ -166,7 +178,7 @@ class FullReport(BaseModel):
     accessibility: Optional[Accessibility] = None
     development: Optional[Development] = None
     environment_utilities: Optional[EnvironmentUtilities] = None
-    living_expenses: Optional[LivingExpenses] = None
+    financial_information: Optional[FinancialInformation] = None
     schools: Optional[Schools] = None
     extra_tips: Optional[ExtraTips] = None
 

@@ -168,7 +168,9 @@ def generate_report(address: str, filename: str) -> Dict:
 
                         "Formatting: if the name includes the phrase, must be formatted this way"
                         "_demographics: caption: percentage (total must add to 100%) e.g. Children (0–9 years): 14.2%"
-                        "_rating: 1-10 score. Use the full scale. e.g. 4.3/10"
+                        "_rating: 1-10 score. Use the full scale. e.g. 4.3/10\n"
+                        "7. Use soft inline citations in Primary Style (e.g., (Reuters, 2024)) immediately after statements derived from external sources.\n"
+                        "8. Include a top-level array `citations` where each element has an `id` (integer) and `source` (string). Ensure IDs referenced in `citation_ids` map to this list.\n"
 
                         "STRICT GUIDANCE FOR EACH SECTION:\n"
                         
@@ -178,7 +180,6 @@ def generate_report(address: str, filename: str) -> Dict:
             ],
             "search_mode": "web",
             "reasoning_effort": "medium",
-            "return_citations": False,
             "temperature": 0.1,
             "max_tokens": 10000,
             "stream": False,
