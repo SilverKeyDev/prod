@@ -10,6 +10,7 @@ from datetime import datetime
 from .config import Config
 import os
 import logging
+from jose.exceptions import ExpiredSignatureError
 
 # Initialize extensions
 db = SQLAlchemy()
@@ -99,6 +100,16 @@ def create_app(config=None):
     app.register_blueprint(auth_bp)
     app.register_blueprint(payment_bp)
     app.register_blueprint(user_bp)
+
+    # Global handler for expired JWT tokens
+    @app.errorhandler(ExpiredSignatureError)
+    def handle_expired_signature(error):
+        app.logger.warning("Expired token detected, prompting re-login.")
+        return jsonify({
+            'success': False,
+            'error': 'TOKEN_EXPIRED',
+            'message': 'Signature has expired. Please log in again.'
+        }), 401
 
     # Static asset serving
     @app.route('/assets/<path:filename>')

@@ -59,6 +59,22 @@ export async function apiRequest<T = any>(
 
     const data = await response.json().catch(() => ({}));
 
+    // If the server indicates the token has expired or unauthorized, redirect to login
+    if (response.status === 401 || data?.error === 'TOKEN_EXPIRED') {
+      try {
+        localStorage.removeItem('id_token');
+        localStorage.removeItem('access_token');
+      } catch (_) {
+        /* ignore */
+      }
+      window.location.href = '/login';
+      return {
+        success: false,
+        error: 'TOKEN_EXPIRED',
+        message: 'Session expired. Redirecting to login.'
+      } as ApiResponse<T>;
+    }
+
     if (!response.ok) {
       return {
         success: false,
