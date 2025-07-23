@@ -4,6 +4,9 @@ from app.services.report_generator import generate_report
 from app.models.pdf_document import PDFDocument
 from app import db
 import traceback
+from flask import current_app as app
+import json
+
 
 @celery.task(name="tasks.example_task")
 def example_task():
@@ -24,7 +27,8 @@ def generate_report_async(address, filename, document_id, user_id):
                 pdf_doc.status = 'processed'
                 pdf_doc.file_size = len(str(result_data).encode('utf-8'))
                 db.session.commit()
-        
+            logger = current_app.logger
+            logger.info(f"🔍 Raw JSON response:\n{json.dumps(result_data, indent=2)}")
         return {'success': True, 'result': result_data, 'document_id': document_id}
         
     except Exception as e:

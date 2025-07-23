@@ -44,7 +44,7 @@ const ProgressBar: React.FC<ProgressBarProps> = ({ startTime }) => {
     const updateProgress = () => {
       const now = new Date();
       const elapsed = (now.getTime() - startTime.getTime()) / 1000; // seconds
-      const maxTime = 240; // 240 seconds to reach 95%
+      const maxTime = 290; // 240 seconds to reach 95%
       const maxProgress = 95; // 95% completion
       
       let currentProgress = (elapsed / maxTime) * maxProgress;
@@ -52,7 +52,7 @@ const ProgressBar: React.FC<ProgressBarProps> = ({ startTime }) => {
       
       setProgress(currentProgress);
     };
-
+    
     // Update immediately
     updateProgress();
     
