@@ -14,8 +14,11 @@ class User(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     is_active = db.Column(db.Boolean, default=True)
+    has_preferences = db.Column(db.Boolean, default=False)
     
     subscription = db.relationship('Subscription', back_populates='user', uselist=False, lazy='select')
+    user_preferences = db.relationship('UserPreferences', back_populates='user', uselist=False, lazy='select')
+
     
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)
@@ -36,5 +39,6 @@ class User(db.Model):
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'is_active': self.is_active,
             'has_subscription': self.subscription is not None,
-            'subscription': self.subscription.to_dict() if self.subscription else None
+            'subscription': self.subscription.to_dict() if self.subscription else None,
+            'has_preferences': self.has_preferences,
         }
