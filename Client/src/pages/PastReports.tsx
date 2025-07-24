@@ -5,7 +5,6 @@ import {
   Eye,
   Calendar,
   MapPin,
-  X,
   Trash2,
   ChevronDown,
   Share,
@@ -82,11 +81,9 @@ const ProgressBar: React.FC<ProgressBarProps> = ({ startTime }) => {
 interface PdfModalProps {
   currentPdf: string | null;
   onClose: () => void;
-  onShare: (report: Report) => void;
-  reports: Report[];
 }
 
-const PdfModal: React.FC<PdfModalProps> = ({ currentPdf, onClose, onShare, reports }) => {
+const PdfModal: React.FC<PdfModalProps> = ({ currentPdf, onClose }) => {
   const modalRef = useRef<HTMLDivElement>(null);
 
   // Log mount/unmount of the component
@@ -613,8 +610,6 @@ export default function PastReports() {
         <PdfModal
           currentPdf={currentPdf}
           onClose={closePdfModal}
-          onShare={handleShareReport}
-          reports={reports}
         />
       )}
       {/* Delete Confirmation Modal */}
