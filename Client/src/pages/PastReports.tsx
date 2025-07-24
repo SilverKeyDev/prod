@@ -45,19 +45,19 @@ const ProgressBar: React.FC<ProgressBarProps> = ({ startTime }) => {
       const elapsed = (now.getTime() - startTime.getTime()) / 1000; // seconds
       const maxTime = 290; // 240 seconds to reach 95%
       const maxProgress = 95; // 95% completion
-      
+
       let currentProgress = (elapsed / maxTime) * maxProgress;
       currentProgress = Math.min(currentProgress, maxProgress); // Cap at 95%
-      
+
       setProgress(currentProgress);
     };
-    
+
     // Update immediately
     updateProgress();
-    
+
     // Update every second
     const interval = setInterval(updateProgress, 1000);
-    
+
     return () => clearInterval(interval);
   }, [startTime]);
 
@@ -65,10 +65,12 @@ const ProgressBar: React.FC<ProgressBarProps> = ({ startTime }) => {
     <div className="w-full">
       <div className="flex items-center justify-between mb-1">
         <span className="text-xs text-gold font-medium">Generating...</span>
-        <span className="text-xs text-gold font-medium">{Math.round(progress)}%</span>
+        <span className="text-xs text-gold font-medium">
+          {Math.round(progress)}%
+        </span>
       </div>
       <div className="w-full bg-gold/20 rounded-full h-2">
-        <div 
+        <div
           className="bg-gold h-2 rounded-full transition-all duration-1000 ease-out"
           style={{ width: `${progress}%` }}
         ></div>
@@ -124,19 +126,22 @@ const PdfModal: React.FC<PdfModalProps> = ({ currentPdf, onClose }) => {
         role="dialog"
         aria-modal="true"
       >
-      <div className="flex-1 overflow-hidden">
-        <iframe
-          src={`${currentPdf}#toolbar=1&navpanes=1&view=FitH`}
-          className="w-full h-full border-0"
-          title="PDF Viewer"
-          onLoad={() => {
-            console.log("[PdfModal] iframe onLoad event fired for:", currentPdf);
-          }}
-          onError={(e) => {
-            console.error("[PdfModal] Error loading PDF:", e);
-            const iframe = e.target as HTMLIFrameElement;
-            if (iframe?.contentDocument?.body) {
-              iframe.contentDocument.body.innerHTML = `
+        <div className="flex-1 overflow-hidden">
+          <iframe
+            src={`${currentPdf}#toolbar=1&navpanes=1&view=FitH`}
+            className="w-full h-full border-0"
+            title="PDF Viewer"
+            onLoad={() => {
+              console.log(
+                "[PdfModal] iframe onLoad event fired for:",
+                currentPdf
+              );
+            }}
+            onError={(e) => {
+              console.error("[PdfModal] Error loading PDF:", e);
+              const iframe = e.target as HTMLIFrameElement;
+              if (iframe?.contentDocument?.body) {
+                iframe.contentDocument.body.innerHTML = `
                 <div style="padding: 20px; text-align: center;">
                   <p>Unable to load PDF preview.</p>
                   <a href="${currentPdf}" download class="text-blue-600 underline">
@@ -144,10 +149,10 @@ const PdfModal: React.FC<PdfModalProps> = ({ currentPdf, onClose }) => {
                   </a>
                 </div>
               `;
-            }
-          }}
-        />
-      </div>
+              }
+            }}
+          />
+        </div>
       </div>
     </div>
   );
@@ -158,15 +163,15 @@ export default function PastReports() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [sortBy, setSortBy] = useState<"date" | "address">("date");
   const [isRefreshing, setIsRefreshing] = useState(false);
-  
+
   // Use preloaded data from context
   const { reports, refreshReports } = useData();
-  
+
   // Refresh data when page loads to ensure latest updates
   useEffect(() => {
     refreshReports();
   }, [refreshReports]);
-  
+
   // Handle refresh button click with loading state
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -176,7 +181,7 @@ export default function PastReports() {
       setIsRefreshing(false);
     }
   };
-  
+
   // Local cache for PDF URLs to avoid modifying context state
   const [pdfUrlCache, setPdfUrlCache] = useState<Record<string, string>>({});
   const [currentPdf, setCurrentPdf] = useState<string | null>(null);
@@ -193,21 +198,14 @@ export default function PastReports() {
   const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
   const sortDropdownRef = useRef<HTMLDivElement>(null);
 
-
-
-  const getFreshViewUrl = async (
-    reportId: string
-  ): Promise<string | null> => {
+  const getFreshViewUrl = async (reportId: string): Promise<string | null> => {
     try {
       setLoadingUrls((prev) => new Set(prev).add(reportId));
 
       const baseUrl = API_BASE_URL || "";
-      const res = await fetch(
-        `${baseUrl}/api/v1/report/${reportId}/view-url`,
-        {
-          credentials: "include",
-        }
-      );
+      const res = await fetch(`${baseUrl}/api/v1/report/${reportId}/view-url`, {
+        credentials: "include",
+      });
 
       if (!res.ok) {
         throw new Error("Failed to get view URL");
@@ -279,24 +277,27 @@ export default function PastReports() {
 
   const handleDownloadPdf = async (report: Report) => {
     let pdfUrl = report.pdfUrl;
-  
+
     if (!pdfUrl && report.s3Key) {
       pdfUrl = await getFreshDownloadUrl(report.id);
       if (pdfUrl) {
         // Cache the fresh URL locally
-        setPdfUrlCache(prev => ({ ...prev, [report.id]: pdfUrl! }));
+        setPdfUrlCache((prev) => ({ ...prev, [report.id]: pdfUrl! }));
       }
     } else if (pdfUrlCache[report.id]) {
       // Use cached URL if available
       pdfUrl = pdfUrlCache[report.id];
     }
-  
+
     if (pdfUrl) {
       try {
         const link = document.createElement("a");
         link.href = pdfUrl;
-        link.setAttribute("download", `${report.address.replace(/[^a-z0-9]/gi, "_").toLowerCase()}.pdf`);
-  
+        link.setAttribute(
+          "download",
+          `${report.address.replace(/[^a-z0-9]/gi, "_").toLowerCase()}.pdf`
+        );
+
         // Append to DOM to ensure download triggers
         document.body.appendChild(link);
         link.click();
@@ -317,7 +318,7 @@ export default function PastReports() {
   const handleShareReport = useCallback(async (report: Report) => {
     try {
       setLoadingUrls((prev) => new Set(prev).add(report.id));
-      
+
       let pdfUrl = report.pdfUrl;
       if (!pdfUrl) {
         pdfUrl = await getFreshDownloadUrl(report.id);
@@ -328,19 +329,31 @@ export default function PastReports() {
       }
 
       const shareData = {
-        title: `Property Report - ${report.address.replace(/_/g, " ").slice(0, -18).trim()}`,
-        text: `Check out this property report for ${report.address.replace(/_/g, " ").slice(0, -18).trim()}`,
+        title: `Property Report - ${report.address
+          .replace(/_/g, " ")
+          .slice(0, -18)
+          .trim()}`,
+        text: `Check out this property report for ${report.address
+          .replace(/_/g, " ")
+          .slice(0, -18)
+          .trim()}`,
         url: pdfUrl,
       };
 
-      if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+      if (
+        navigator.share &&
+        navigator.canShare &&
+        navigator.canShare(shareData)
+      ) {
         await navigator.share(shareData);
         setSuccessMessage("Report shared successfully");
         setShowSuccess(true);
       } else {
         // Fallback to clipboard
         if (navigator.clipboard) {
-          await navigator.clipboard.writeText(`Property Report: ${shareData.title} - ${pdfUrl}`);
+          await navigator.clipboard.writeText(
+            `Property Report: ${shareData.title} - ${pdfUrl}`
+          );
           setSuccessMessage("Report link copied to clipboard");
           setShowSuccess(true);
         } else {
@@ -350,7 +363,9 @@ export default function PastReports() {
       }
     } catch (error) {
       console.error("Share failed:", error);
-      setErrorMessage(error instanceof Error ? error.message : "Failed to share report");
+      setErrorMessage(
+        error instanceof Error ? error.message : "Failed to share report"
+      );
       setShowError(true);
     } finally {
       setLoadingUrls((prev) => {
@@ -553,7 +568,261 @@ export default function PastReports() {
     };
   }, []);
 
+  const pollForReportCompletion = useCallback(
+    async (documentId: string) => {
+      const pollInterval = 5000; // 5 seconds
+      const maxAttempts = 120; // 10 minutes
+      let attempts = 0;
+      const startTime = Date.now();
+      let consecutiveErrors = 0;
+      const maxConsecutiveErrors = 5;
 
+      console.log(`\n==============================`);
+
+      const idToken = localStorage.getItem("id_token");
+      if (!idToken) {
+        console.error(`[PastReports] ❌ No auth token found`);
+        return;
+      }
+
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+      let lastReportSnapshot: string | null = null;
+
+      // Step 1: Initial check
+      try {
+        const initialResponse = await fetch(
+          `${apiBaseUrl}/api/v1/report/poll/${documentId}`,
+          {
+            method: "GET",
+            mode: "cors",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+              Authorization: `Bearer ${idToken}`,
+            },
+            credentials: "include",
+          }
+        );
+
+        if (!initialResponse.ok) {
+          console.error(
+            `[PastReports] ❌ Initial poll failed with status: ${initialResponse.status}`
+          );
+          return;
+        }
+
+        const initialData = await initialResponse.json();
+        
+        // LOG EVERY DETAIL OF INITIAL POLL RESPONSE
+        console.log(`[PastReports] 📥 === INITIAL POLL RESPONSE DETAILS ===`);
+        console.log(`[PastReports] 📥 Raw JSON:`, JSON.stringify(initialData, null, 2));
+        console.log(`[PastReports] 📥 === END INITIAL POLL RESPONSE ===`);
+
+        if (initialData.success && initialData.report) {
+          lastReportSnapshot = JSON.stringify(initialData.report);
+
+          // Check if already completed
+          if (
+            initialData.report.status === "completed" ||
+            initialData.report.status === "error"
+          ) {
+            console.log(
+              `[PastReports] ✅ Report already ${initialData.report.status}, triggering refresh`
+            );
+            await handleRefresh();
+            window.dispatchEvent(new CustomEvent("reportGenerated"));
+            console.log(`==============================\n`);
+            return;
+          }
+        } else if (initialData.success && !initialData.report) {
+          console.log(
+            `[PastReports] 📭 Report not found initially, will continue polling`
+          );
+          lastReportSnapshot = null;
+        } else {
+          console.error(
+            `[PastReports] ❌ Initial poll failed:`,
+            initialData.error
+          );
+          return;
+        }
+      } catch (err) {
+        console.error(`[PastReports] ❌ Error during initial poll:`, err);
+        return;
+      }
+
+      // Step 2: Polling loop
+      const pollForCompletion = async (): Promise<void> => {
+        attempts++;
+        const elapsedTime = Math.round((Date.now() - startTime) / 1000);
+
+        console.log(
+          `[PastReports] 🔍 Poll attempt ${attempts}/${maxAttempts} (${elapsedTime}s elapsed) for documentId: ${documentId}`
+        );
+
+        try {
+          const response = await fetch(
+            `${apiBaseUrl}/api/v1/report/poll/${documentId}`,
+            {
+              method: "GET",
+              mode: "cors",
+              headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+                Authorization: `Bearer ${idToken}`,
+              },
+              credentials: "include",
+            }
+          );
+
+          if (!response.ok) {
+            consecutiveErrors++;
+            console.error(
+              `[PastReports] ❌ Poll error: ${response.status} ${response.statusText} (${consecutiveErrors}/${maxConsecutiveErrors})`
+            );
+
+            if (consecutiveErrors >= maxConsecutiveErrors) {
+              console.error(
+                `[PastReports] 🚫 Too many consecutive errors (${consecutiveErrors}), aborting poll`
+              );
+              return;
+            }
+
+            if (attempts < maxAttempts) {
+              console.log(`[PastReports] 🔁 Retrying in ${pollInterval}ms...`);
+              setTimeout(pollForCompletion, pollInterval);
+            }
+            return;
+          }
+
+          const data = await response.json();
+          consecutiveErrors = 0; // Reset error counter on success
+
+          // LOG EVERY DETAIL OF POLL RESPONSE
+          console.log(`[PastReports] 📥 Raw JSON:`, JSON.stringify(data, null, 2));
+
+          if (!data.success) {
+            console.error(`[PastReports] ❌ Poll API error:`, data.error);
+            if (attempts < maxAttempts) {
+              setTimeout(pollForCompletion, pollInterval);
+            }
+            return;
+          }
+
+          // Handle case where report is not found (null)
+          if (!data.report) {
+            console.log(
+              `[PastReports] 📭 Report not found - may have been deleted or completed elsewhere`
+            );
+            if (lastReportSnapshot !== null) {
+              await handleRefresh();
+              window.dispatchEvent(new CustomEvent("reportGenerated"));
+              console.log(
+                `[PastReports] ✅ Polling completed after ${attempts} attempts (${elapsedTime}s)`
+              );
+              console.log(`==============================\n`);
+              return;
+            }
+
+            if (attempts < maxAttempts) {
+              console.log(
+                `[PastReports] ⏳ Report still not found. Polling again in ${pollInterval}ms`
+              );
+              setTimeout(pollForCompletion, pollInterval);
+            } else {
+              console.warn(
+                `[PastReports] ⚠️ TIMEOUT - Report never appeared after ${
+                  elapsedTime / 60
+                } mins`
+              );
+              console.log(`==============================\n`);
+            }
+            return;
+          }
+
+          // Compare report snapshots for changes
+          const currentReportSnapshot = JSON.stringify(data.report);
+          const hasChanged = currentReportSnapshot !== lastReportSnapshot;
+
+          console.log(
+            `[PastReports] 📊 Report status: ${data.report.status}, changed: ${hasChanged}`
+          );
+
+          // Check for completion or significant changes
+          if (
+            data.report.status === "completed" ||
+            data.report.status === "error" ||
+            hasChanged
+          ) {
+            console.log(
+              `[PastReports] 🎉 Report ${
+                data.report.status === "completed"
+                  ? "completed"
+                  : data.report.status === "error"
+                  ? "failed"
+                  : "changed"
+              } for documentId: ${documentId}`
+            );
+            console.log(
+              `[PastReports] 🔁 Triggering refresh and dispatching event`
+            );
+            await handleRefresh();
+            window.dispatchEvent(new CustomEvent("reportGenerated"));
+            console.log(
+              `[PastReports] ✅ Polling completed after ${attempts} attempts (${elapsedTime}s)`
+            );
+            console.log(`==============================\n`);
+            return;
+          }
+
+          // Update snapshot for next comparison
+          lastReportSnapshot = currentReportSnapshot;
+
+          if (attempts < maxAttempts) {
+            console.log(
+              `[PastReports] ⏳ Report still ${
+                data.report.status
+              }. Polling again in ${pollInterval}ms (${
+                maxAttempts - attempts
+              } left)`
+            );
+            setTimeout(pollForCompletion, pollInterval);
+          } else {
+            console.warn(
+              `[PastReports] ⚠️ TIMEOUT after ${
+                elapsedTime / 60
+              } mins — Report still ${data.report.status}`
+            );
+            console.log(`==============================\n`);
+          }
+        } catch (error) {
+          consecutiveErrors++;
+          console.error(
+            `[PastReports] ❌ Polling exception (${consecutiveErrors}/${maxConsecutiveErrors}):`,
+            error
+          );
+
+          if (consecutiveErrors >= maxConsecutiveErrors) {
+            console.error(
+              `[PastReports] 🚫 Too many consecutive errors, aborting poll`
+            );
+            return;
+          }
+
+          if (attempts < maxAttempts) {
+            console.log(`[PastReports] 🔄 Will retry in ${pollInterval}ms...`);
+            setTimeout(pollForCompletion, pollInterval);
+          }
+        }
+      };
+
+      console.log(
+        `[PastReports] ⏰ First poll attempt will run in ${pollInterval}ms`
+      );
+      setTimeout(pollForCompletion, pollInterval);
+    },
+    [refreshReports]
+  );
 
   useEffect(() => {
     // Event listener setup - data is already preloaded by context
@@ -564,23 +833,38 @@ export default function PastReports() {
 
     window.addEventListener("reportGenerated", handleReportGenerated);
 
+    // Expose refresh function globally for GenerateReportPage to call
+    (window as any).refreshPastReports = handleRefresh;
+    console.log("[PastReports] Exposed refresh function globally");
+
+    // Expose polling function globally for GenerateReportPage to call
+    (window as any).pollForReportCompletion = pollForReportCompletion;
+    console.log("[PastReports] Exposed polling function globally");
+
     // Cleanup on unmount
     return () => {
       window.removeEventListener("reportGenerated", handleReportGenerated);
+      // Clean up global function references
+      delete (window as any).refreshPastReports;
+      delete (window as any).pollForReportCompletion;
+      console.log("[PastReports] Cleaned up global functions");
     };
-  }, []);
+  }, [handleRefresh, pollForReportCompletion]);
 
   // Handle clicks outside the sort dropdown
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (sortDropdownRef.current && !sortDropdownRef.current.contains(event.target as Node)) {
+      if (
+        sortDropdownRef.current &&
+        !sortDropdownRef.current.contains(event.target as Node)
+      ) {
         setSortDropdownOpen(false);
       }
     }
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
@@ -607,10 +891,7 @@ export default function PastReports() {
   return (
     <div className="max-w-7xl mx-auto mobile-padding">
       {currentPdf && (
-        <PdfModal
-          currentPdf={currentPdf}
-          onClose={closePdfModal}
-        />
+        <PdfModal currentPdf={currentPdf} onClose={closePdfModal} />
       )}
       {/* Delete Confirmation Modal */}
       {deleteModalOpen && (
@@ -740,15 +1021,17 @@ export default function PastReports() {
               onClick={handleRefresh}
               disabled={isRefreshing}
               className={`p-2 rounded touch-friendly flex items-center justify-center transition-colors duration-200 ${
-                isRefreshing 
-                  ? "bg-gray-300 text-gray-600 cursor-not-allowed" 
+                isRefreshing
+                  ? "bg-gray-300 text-gray-600 cursor-not-allowed"
                   : "bg-gray-300 text-gray-600 hover:bg-gray-500 hover:text-white"
               }`}
               title={isRefreshing ? "Refreshing..." : "Refresh reports"}
             >
-              <RefreshCw className={`w-3 h-3 sm:w-4 sm:h-4 transition-transform duration-200 ${
-                isRefreshing ? "animate-spin" : ""
-              }`} />
+              <RefreshCw
+                className={`w-3 h-3 sm:w-4 sm:h-4 transition-transform duration-200 ${
+                  isRefreshing ? "animate-spin" : ""
+                }`}
+              />
             </button>
             <div className="relative" ref={sortDropdownRef}>
               <button
@@ -768,9 +1051,13 @@ export default function PastReports() {
                     </>
                   )}
                 </span>
-                <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${sortDropdownOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown
+                  className={`w-4 h-4 transition-transform duration-200 ${
+                    sortDropdownOpen ? "rotate-180" : ""
+                  }`}
+                />
               </button>
-              
+
               {sortDropdownOpen && (
                 <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-beige rounded-lg shadow-lg z-50">
                   <button
@@ -779,7 +1066,9 @@ export default function PastReports() {
                       setSortDropdownOpen(false);
                     }}
                     className={`w-full px-3 py-2 text-left text-sm hover:bg-brown/5 flex items-center space-x-2 first:rounded-t-lg transition-colors duration-150 ${
-                      sortBy === "date" ? "bg-brown/10 text-brown font-medium" : "text-black"
+                      sortBy === "date"
+                        ? "bg-brown/10 text-brown font-medium"
+                        : "text-black"
                     }`}
                   >
                     <Calendar className="w-4 h-4" />
@@ -791,7 +1080,9 @@ export default function PastReports() {
                       setSortDropdownOpen(false);
                     }}
                     className={`w-full px-3 py-2 text-left text-sm hover:bg-brown/5 flex items-center space-x-2 last:rounded-b-lg transition-colors duration-150 ${
-                      sortBy === "address" ? "bg-brown/10 text-brown font-medium" : "text-black"
+                      sortBy === "address"
+                        ? "bg-brown/10 text-brown font-medium"
+                        : "text-black"
                     }`}
                   >
                     <MapPin className="w-4 h-4" />
@@ -1049,7 +1340,9 @@ export default function PastReports() {
                     )}
                     {report.status === "generating" && (
                       <div className="w-full">
-                        <ProgressBar startTime={new Date(report.generatedAt.getTime())} />
+                        <ProgressBar
+                          startTime={new Date(report.generatedAt.getTime())}
+                        />
                       </div>
                     )}
                     {report.status === "error" && (

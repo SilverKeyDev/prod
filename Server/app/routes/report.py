@@ -255,6 +255,57 @@ def list_reports():
 
         return jsonify({'error': 'Internal server error', 'success': False}), 500
 
+@report_bp.route('/poll/<document_id>', methods=['GET'])
+@cross_origin(**cors_config)
+def poll_report_status(document_id):
+    """
+    Poll for a specific report's status by document ID.
+    Returns only the specific report data or null if not found/completed.
+    More efficient than fetching all reports for polling purposes.
+    """
+    try:
+        # Get current user
+        user = get_current_user()
+        if not user:
+            return jsonify({'error': 'User not found', 'success': False}), 404
+
+        # Look for the report in the database first
+        report = PDFDocument.query.filter(
+            PDFDocument.id == document_id,
+            PDFDocument.user_id == user.id
+        ).first()
+
+        if not report:
+            logger.info(f"Report {document_id} not found in database for user {user.id}")
+            return jsonify({
+                'success': True,
+                'report': None,
+                'message': 'Report not found'
+            }), 200
+
+        # Map status for frontend compatibility
+        status = 'completed' if report.status == 'processed' else report.status
+        
+        report_data = {
+            'id': report.id,
+            'status': status,
+            'generatedAt': int(report.created_at.timestamp()),
+            'address': os.path.splitext(os.path.basename(report.filename))[0],
+            's3Key': report.file_path
+        }
+
+        logger.info(f"Polling report {document_id}: status={report.status} (mapped to {status})")
+        
+        return jsonify({
+            'success': True,
+            'report': report_data
+        }), 200
+
+    except Exception as e:
+        logger.error(f"Error polling report {document_id}: {str(e)}")
+        logger.error(traceback.format_exc())
+        return jsonify({'error': 'Internal server error', 'success': False}), 500
+
 @report_bp.route('/almostall', methods=['POST', 'GET'])
 @cross_origin(**cors_config)
 def list_reports_almostall():

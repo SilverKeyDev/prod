@@ -106,66 +106,93 @@ export default function GenerateReportPage() {
     setSuggestions([]);
   };
 
-  const pollForReportCompletion = async (documentId: string) => {
-    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
-    const idToken = localStorage.getItem("id_token");
-    const maxAttempts = 80; // Poll for up to 5 minutes (60 * 5 seconds)
-    let attempts = 0;
+  // Start polling for report completion using PastReports polling function
+  const setupReportCompletionListener = (documentId: string) => {
+    console.log(
+      `[GenerateReport] 🚀 Setting up completion listener for report: ${documentId}`
+    );
 
-    const checkStatus = async (): Promise<boolean> => {
-      try {
-        const response = await fetch(`${apiBaseUrl}/api/v1/report/all`, {
-          method: "POST",
-          mode: "cors",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-            Authorization: `Bearer ${idToken}`,
-          },
-          credentials: "include",
-        });
-
-        if (!response.ok) {
-          console.error("Failed to fetch reports for polling");
-          return false;
+    try {
+      // Try to call the polling function from PastReports
+      if ((window as any).pollForReportCompletion) {
+        console.log(
+          `[GenerateReport] ✅ Found PastReports polling function, starting polling immediately`
+        );
+        try {
+          (window as any).pollForReportCompletion(documentId);
+          console.log(
+            `[GenerateReport] ✅ Successfully initiated polling for report: ${documentId}`
+          );
+        } catch (pollingError) {
+          console.error(
+            `[GenerateReport] ❌ Error calling polling function:`,
+            pollingError
+          );
         }
+      } else {
+        console.log(
+          `[GenerateReport] ⏳ PastReports polling function not available yet, will retry...`
+        );
 
-        const data = await response.json();
-        if (data.success && data.reports) {
-          // Find the report with matching document ID
-          const report = data.reports.find((r: any) => r.id === documentId);
-          
-          if (report) {
-            if (report.status === "completed" || report.status === "error") {
-              // Report is done, dispatch the event
-              console.log(`✅ Report ${documentId} completed with status: ${report.status}`);
-              window.dispatchEvent(new CustomEvent("reportGenerated"));
-              return true; // Stop polling
+        // PastReports component might not be mounted yet, retry a few times
+        let retryCount = 0;
+        const maxRetries = 20; // Try for 10 seconds (20 * 500ms)
+
+        const retryPolling = () => {
+          retryCount++;
+          console.log(
+            `[GenerateReport] 🔄 Retry attempt ${retryCount}/${maxRetries} - checking for polling function...`
+          );
+
+          try {
+            if ((window as any).pollForReportCompletion) {
+              console.log(
+                `[GenerateReport] ✅ Found polling function on retry ${retryCount}, starting polling`
+              );
+              (window as any).pollForReportCompletion(documentId);
+              console.log(
+                `[GenerateReport] ✅ Successfully initiated polling for report: ${documentId}`
+              );
+            } else if (retryCount < maxRetries) {
+              console.log(
+                `[GenerateReport] ⏳ Polling function still not available, will retry in 500ms...`
+              );
+              setTimeout(retryPolling, 500); // Retry every 500ms
+            } else {
+              console.error(
+                `[GenerateReport] ❌ CRITICAL: Could not find PastReports polling function after ${maxRetries} retries (${
+                  maxRetries * 500
+                }ms). Report completion detection will NOT work!`
+              );
+              console.error(
+                `[GenerateReport] ❌ This means the report will generate but the UI won't refresh automatically.`
+              );
+              console.error(
+                `[GenerateReport] ❌ User will need to manually refresh the reports page.`
+              );
             }
-            console.log(`⏳ Report ${documentId} still generating...`);
+          } catch (retryError) {
+            console.error(
+              `[GenerateReport] ❌ Error during retry ${retryCount}:`,
+              retryError
+            );
+            if (retryCount < maxRetries) {
+              setTimeout(retryPolling, 500);
+            }
           }
-        }
-        return false; // Continue polling
-      } catch (error) {
-        console.error("Error polling for report completion:", error);
-        return false;
-      }
-    };
+        };
 
-    // Start polling
-    const pollInterval = setInterval(async () => {
-      attempts++;
-      const isComplete = await checkStatus();
-      
-      if (isComplete || attempts >= maxAttempts) {
-        clearInterval(pollInterval);
-        if (attempts >= maxAttempts) {
-          console.warn(`⚠️ Polling timeout for report ${documentId} after ${maxAttempts} attempts`);
-          // Still dispatch the event so the UI refreshes
-          window.dispatchEvent(new CustomEvent("reportGenerated"));
-        }
+        setTimeout(retryPolling, 500);
       }
-    }, 5000); // Poll every 5 seconds
+    } catch (setupError) {
+      console.error(
+        `[GenerateReport] ❌ CRITICAL ERROR in setupReportCompletionListener:`,
+        setupError
+      );
+      console.error(
+        `[GenerateReport] ❌ Report polling will not work. Document ID: ${documentId}`
+      );
+    }
   };
 
   const handleGenerate = async () => {
@@ -194,9 +221,8 @@ export default function GenerateReportPage() {
       body: JSON.stringify({ address: trimmed }),
     });
 
-    // Wait just for the 0.5 second delay, then navigate
+    // Wait for the 0.5 second delay, then navigate
     await delayPromise;
-
     navigate("/dashboard/reports"); // ✅ happens after delay, regardless of fetch result
 
     try {
@@ -206,7 +232,11 @@ export default function GenerateReportPage() {
         const errorData = await res.json().catch(() => ({}));
         if (res.status === 402) {
           navigate("/dashboard/subscription", {
-            state: { message: errorData.error || "You have no reports available. Please subscribe to continue." },
+            state: {
+              message:
+                errorData.error ||
+                "You have no reports available. Please subscribe to continue.",
+            },
           });
           return; // Stop further execution
         }
@@ -218,15 +248,16 @@ export default function GenerateReportPage() {
         throw new Error(data.error || "Failed to generate report");
       }
 
-      // Start polling for report completion instead of immediately dispatching event
-      if (data.document_id) {
-        pollForReportCompletion(data.document_id);
-      } else {
-        // Fallback: dispatch immediately if no document_id
-        window.dispatchEvent(new CustomEvent("reportGenerated"));
-      }
-
       console.log("✅ Report generation started", data);
+
+      // Set up listener for when report generation actually completes (~5 minutes)
+      if (data.document_id) {
+        console.log(
+          "[GenerateReport] Setting up completion listener for document:",
+          data.document_id
+        );
+        setupReportCompletionListener(data.document_id);
+      }
     } catch (err: any) {
       console.error("❌ API error after navigation:", err.message || err);
       // Optionally persist the error to show in the next page
@@ -266,11 +297,7 @@ export default function GenerateReportPage() {
                 type="text"
                 value={address}
                 onChange={handleInputChange}
-                placeholder={
-                  scriptsReady
-                    ? "Search here"
-                    : "Loading..."
-                }
+                placeholder={scriptsReady ? "Search here" : "Loading..."}
                 disabled={!scriptsReady || isGenerating}
                 className="w-full h-12 sm:h-14 pl-10 sm:pl-12 pr-3 sm:pr-4 rounded-lg border border-gray-300 text-xs sm:text-base focus:ring-2 focus:ring-olive focus:border-olive transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed touch-manipulation"
                 autoComplete="off"
@@ -321,7 +348,9 @@ export default function GenerateReportPage() {
             {isGenerating ? (
               <div className="flex items-center justify-center">
                 <Loader2 className="animate-spin h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-                <span className="text-sm sm:text-base">Generating Report...</span>
+                <span className="text-sm sm:text-base">
+                  Generating Report...
+                </span>
               </div>
             ) : (
               <span className="text-sm sm:text-base">Generate Report</span>

@@ -21,7 +21,7 @@ executor = Executor()
 
 def create_app(config=None):
     # Set Flask app logger to INFO or WARNING
-    logging.getLogger('flask.app').setLevel(logging.INFO)
+    #logging.getLogger('flask.app').setLevel(logging.INFO)
 
     # Silence common verbose libraries
     logging.getLogger('botocore').setLevel(logging.WARNING)
@@ -29,6 +29,8 @@ def create_app(config=None):
     logging.getLogger('urllib3').setLevel(logging.WARNING)
     logging.getLogger('s3transfer').setLevel(logging.WARNING)
     logging.getLogger('matplotlib').setLevel(logging.WARNING)
+    logging.getLogger('celery').setLevel(logging.WARNING)
+    logging.getLogger('werkzeug').setLevel(logging.WARNING)
     # STATIC FOLDER: matches Docker
     STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../Client/dist")
     app = Flask(__name__, static_folder=STATIC_DIR, static_url_path="")
