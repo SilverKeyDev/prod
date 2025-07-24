@@ -183,7 +183,7 @@ def _fetch_image_from_serp(prompt: str) -> str:
 
 
 def _resize_image_to_fit(img_data: BytesIO, max_width: float = 3 * inch, max_height: float = 2.25 * inch) -> Image:
-    pil_img = PILImage.open(img_data)
+    pil_img = Image.open(img_data)
     width, height = pil_img.size
     aspect_ratio = width / height
     if aspect_ratio >= 1:
