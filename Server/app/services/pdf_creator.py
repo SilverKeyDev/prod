@@ -189,19 +189,19 @@ def _add_section(elements, data, styles, level=0):
         chart_type = ""
         
         if isinstance(v, dict):
-            if k.lower() == "neighborhood_distribution":
+            if k.lower() == "lifestyle_dna":
                 chart_buffer = generate_horizontal_bar_chart(v, key)
-                chart_type = "DNA Bar Chart"
-            elif k.lower() in ["gender_distribution", "gender"]:
+                chart_type = "Lifestyle DNA Bar Chart"
+            elif k.lower() in ["gender_distribution"]:
                 chart_buffer = generate_donut_chart(v, key)
-                chart_type = "Donut Chart"
-            elif k.lower() in ["racial_distribution", "race"]:
+                chart_type = "Gender Distribution Donut Chart"
+            elif k.lower() in ["racial_distribution"]:
                 chart_buffer = generate_pie_chart(v, key)
-                chart_type = "Pie Chart"
+                chart_type = "Racial Distribution Pie Chart"
             elif k.lower() == "age_distribution":
                 chart_buffer = generate_vertical_lollipop_chart(v, key)
-                chart_type = "Bar Chart"
-            elif k.lower() == "lifestyle_dna":
+                chart_type = "Age Distribution Bar Chart"
+            else:
                 chart_buffer = generate_horizontal_bar_chart(v, key)
                 chart_type = "Lifestyle Chart"
 
