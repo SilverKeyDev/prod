@@ -164,8 +164,8 @@ export default function VerificationPage() {
         localStorage.setItem("user", JSON.stringify(data.user));
       }
 
-      // On success, redirect to dashboard
-      navigate("/dashboard");
+      // On success, redirect to login
+      navigate("/login");
     } catch (error: unknown) {
       console.error("Verification error:", error);
       const errorMessage =
