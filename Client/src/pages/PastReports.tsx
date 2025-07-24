@@ -1162,6 +1162,29 @@ export default function PastReports() {
                           {formatDate(report.generatedAt)}
                         </p>
                       </div>
+                      {report.status === "generating" && (
+                        <div className="flex-shrink-0">
+                          <button
+                            onClick={() => {
+                              console.log(
+                                "[DELETE] Delete button clicked for generating report:",
+                                {
+                                  id: report.id,
+                                  s3Key: report.s3Key,
+                                  address: report.address,
+                                  status: report.status,
+                                }
+                              );
+                              openDeleteModal(report.id, report.s3Key);
+                            }}
+                            disabled={loadingUrls.has(report.id)}
+                            className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-all duration-200 disabled:opacity-50 touch-manipulation"
+                            title="Cancel and delete report"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -1339,7 +1362,29 @@ export default function PastReports() {
                       </>
                     )}
                     {report.status === "generating" && (
-                      <div className="w-full">
+                      <div className="w-full space-y-2">
+                        <div className="flex justify-end">
+                          <button
+                            onClick={() => {
+                              console.log(
+                                "[DELETE] Delete button clicked for generating report:",
+                                {
+                                  id: report.id,
+                                  s3Key: report.s3Key,
+                                  address: report.address,
+                                  status: report.status,
+                                }
+                              );
+                              openDeleteModal(report.id, report.s3Key);
+                            }}
+                            disabled={loadingUrls.has(report.id)}
+                            className="py-1 px-2 text-xs bg-white border border-red-600 text-red-600 hover:bg-red-500 hover:text-white font-medium rounded-lg transition-all duration-200 flex items-center justify-center disabled:opacity-50 touch-manipulation"
+                            title="Cancel and delete report"
+                          >
+                            <Trash2 className="h-3 w-3 mr-1" />
+                            Cancel
+                          </button>
+                        </div>
                         <ProgressBar
                           startTime={new Date(report.generatedAt.getTime())}
                         />
