@@ -62,8 +62,6 @@ class Weather(BaseModel):
 
 class SocialCharacter(BaseModel):
     income_level: str
-    political_leaning: str
-    language_spoken: str
     religiosity: str
     cultural_tone: str
     social_rating: str
@@ -111,7 +109,6 @@ class NightlifeAndDating(BaseModel):
     nightlife_score: float
     best_spots: str
     dating_scene: str
-    average_attractiveness_rating: str
     apps_popularity: Dict[str, str]
     image_prompt: str
 
@@ -143,8 +140,6 @@ class FinancialInformation(BaseModel):
     value_assessment: str
     investment_potential: str
     financial_rating: str
-    seller_information: str
-    purchase_strategy: str
 
 class SchoolInfo(BaseModel):
     level: str
