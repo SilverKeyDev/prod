@@ -16,8 +16,8 @@ class NeighborhoodOverview(BaseModel):
     things_to_watch_out_for: str
     population_total: str
     neighborhood_rating: str
-    image_prompt: str
     LGBTQ_representation: str
+    image_prompt: str
     demographics: Demographics
 
     @model_validator(mode="before")
@@ -148,8 +148,8 @@ class FinancialInformation(BaseModel):
 
 class SchoolInfo(BaseModel):
     level: str
-    walking_distance: Optional[bool] = None
-    school_rating: Optional[str] = None
+    walking_distance: bool
+    school_rating: str
     teacher_quality: str
     known_for: str
     gpa_avg: Optional[float] = None

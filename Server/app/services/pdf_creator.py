@@ -22,10 +22,10 @@ import traceback
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from PIL import Image as PILImage
 from .s3_service import s3_service
 from urllib.parse import quote_plus
 from .graphic_generation import generate_pie_chart, generate_horizontal_bar_chart, generate_donut_chart, generate_vertical_lollipop_chart
+from PIL import Image
 
 SERP_API_KEY = os.getenv("SERP_API")
 SERP_API_ENDPOINT = "https://serpapi.com/search.json"
@@ -119,6 +119,13 @@ def _create_pdf(report: dict, address: str, filename: str) -> str:
         logger.error(f"Traceback: {traceback.format_exc()}")
         raise
 
+
+BAD_IMAGE_DOMAINS = {
+    "facebook.com", "lookaside.fbsbx.com", "shutterstock.com",
+    "dreamstime.com", "alamy.com", "123rf.com", "depositphotos.com",
+    "lookaside.instagram.com"
+}
+
 def _fetch_image_from_serp(prompt: str) -> str:
     if not SERP_API_KEY:
         logger.warning("SERP_API_KEY not set; cannot fetch images.")
@@ -129,36 +136,48 @@ def _fetch_image_from_serp(prompt: str) -> str:
             "engine": "google",
             "q": prompt,
             "tbm": "isch",
-            "num": "5",  # get up to 5 options to improve chances
+            "num": "5",
             "api_key": SERP_API_KEY,
         }
         query_str = "&".join(f"{k}={quote_plus(str(v))}" for k, v in params.items())
         response = requests.get(f"{SERP_API_ENDPOINT}?{query_str}", timeout=30)
 
-        if response.status_code == 200:
-            data = response.json()
-            images_results = data.get("images_results", [])
-            for result in images_results:
-                candidate = result.get("original") or result.get("thumbnail") or ""
-                if not candidate:
+        if response.status_code != 200:
+            logger.warning(f"SERP API request failed: {response.status_code} - {response.text}")
+            return ""
+
+        data = response.json()
+        images_results = data.get("images_results", [])
+        logger.debug(f"[SERP] Retrieved {len(images_results)} image candidates for '{prompt}'")
+
+        for result in images_results:
+            candidate = result.get("original") or result.get("thumbnail") or ""
+            if not candidate:
+                continue
+
+            # Skip known bad domains
+            if any(domain in candidate for domain in BAD_IMAGE_DOMAINS):
+                logger.debug(f"[SERP FILTER] Skipping blacklisted domain: {candidate}")
+                continue
+
+            try:
+                # Check image validity without full decode
+                img_resp = requests.get(candidate, timeout=10)
+                content_type = img_resp.headers.get("Content-Type", "")
+                if "image" not in content_type.lower():
+                    logger.debug(f"[SERP FILTER] Skipping non-image content-type: {candidate} ({content_type})")
                     continue
-                if any(domain in candidate for domain in [
-                    "facebook.com",
-                    "lookaside.fbsbx.com",
-                    "shutterstock.com/thumb",
-                    "dreamstime.com",
-                    "alamy.com/comp",
-                    "123rf.com",
-                    "depositphotos.com"
-                ]):
-                    logger.debug(f"[SERP FILTER] Skipping bad image domain: {candidate}")
-                    continue
-                logger.debug(f"[SERP] Using image URL: {candidate}")
+
+                img = Image.open(BytesIO(img_resp.content))
+                img.verify()  # Ensure it's a valid image
+                logger.debug(f"[SERP] Valid image selected: {candidate}")
                 return candidate
+            except Exception as img_error:
+                logger.debug(f"[SERP FILTER] Invalid image at {candidate}: {img_error}")
 
         logger.warning(f"SERP API returned no usable image for prompt: '{prompt}'")
     except Exception as e:
-        logger.warning(f"SERP API error for prompt '{prompt}': {e}")
+        logger.warning(f"[SERP API] Error for prompt '{prompt}': {e}")
 
     return ""
 
