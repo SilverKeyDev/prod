@@ -63,72 +63,32 @@ def validate_address(address: str) -> bool:
     logger.debug(f"✅ Address validation passed: {address}")
     return True
 
-def _safe_parse_json(text: str):
+def _safe_parse_json(text: str) -> dict:
     try:
-        logger.debug("🔧 Cleaning and attempting to parse model output as JSON")
+        logger.debug("🔧 Attempting to parse model output as structured JSON")
         logger.debug(f"📝 Raw model output (first 500 chars): {text[:500]}...")
-        
-        cleaned = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL | re.IGNORECASE)
-        cleaned = re.sub(r'&lt;think&gt;.*?&lt;/think&gt;', '', cleaned, flags=re.DOTALL | re.IGNORECASE)
-        cleaned = cleaned.strip()
-        
-        logger.debug(f"🧹 Cleaned output (first 500 chars): {cleaned[:500]}...")
 
-        matches = re.findall(r'{[\s\S]*}', cleaned)
-        logger.debug(f"🔍 Found {len(matches)} potential JSON blocks")
-        
-        if matches:
-            for i, match in enumerate(sorted(matches, key=len, reverse=True)):
-                logger.debug(f"🎯 Attempting to parse JSON block {i+1} (length: {len(match)})")
-                logger.debug(f"📋 JSON block preview: {match[:200]}...")
-                try:
-                    logger.debug("🔑 Trying to parse JSON using `json.loads()`")
-                    parsed_json = json.loads(match)
-                    
-                    # Validate against Pydantic model
-                    logger.debug("✅ JSON parsed successfully, validating against FullReport schema")
-                    try:
-                        validated_report = FullReport(**parsed_json)
-                        logger.debug("🎯 Pydantic validation successful")
-                        return validated_report.model_dump()
-                    except Exception as validation_error:
-                        logger.warning(f"⚠️ Pydantic validation failed: {str(validation_error)}")
-                        logger.warning("📋 Returning raw JSON without validation")
-                        return parsed_json
-                        
-                except json.JSONDecodeError as je:
-                    logger.warning(f"⚠️ Failed with `json.loads`: {str(je)}")
-                    logger.warning("⚠️ Trying `json5.loads`")
-                    try:
-                        parsed_json = json5.loads(match)
-                        
-                        # Validate against Pydantic model
-                        logger.debug("✅ JSON5 parsed successfully, validating against FullReport schema")
-                        try:
-                            validated_report = FullReport(**parsed_json)
-                            logger.debug("🎯 Pydantic validation successful")
-                            return validated_report.model_dump()
-                        except Exception as validation_error:
-                            logger.warning(f"⚠️ Pydantic validation failed: {str(validation_error)}")
-                            logger.warning("📋 Returning raw JSON without validation")
-                            return parsed_json
-                            
-                    except Exception as e:
-                        logger.debug(f"⛔ `json5` parse also failed: {str(e)}")
-                        continue
-        else:
-            logger.error("🚫 No JSON blocks found in cleaned output")
-            logger.error(f"📄 Full cleaned output: {cleaned}")
+        # Strip any non-JSON hallucinated wrappers just in case
+        cleaned = re.sub(r'(<think>.*?</think>|&lt;think&gt;.*?&lt;/think&gt;)', '', text, flags=re.DOTALL | re.IGNORECASE).strip()
 
-        logger.error("❌ Failed to parse any valid JSON from model output")
-        logger.error(f"📄 Full raw output for debugging: {text}")
-        raise ValueError("Could not parse any valid JSON block")
+        # Parse the raw output directly
+        parsed = json.loads(cleaned)
+        logger.debug("✅ Parsed with json.loads")
+
+        # Validate with FullReport schema
+        try:
+            validated = FullReport(**parsed)
+            logger.debug("🎯 Validation with Pydantic successful")
+            return validated.model_dump()
+        except Exception as ve:
+            logger.warning(f"⚠️ Validation failed: {ve}")
+            logger.warning("📋 Returning unvalidated parsed JSON")
+            return parsed
 
     except Exception as e:
-        logger.error(f"🛑 Exception during JSON parsing: {str(e)}")
-        logger.error(f"Exception type: {type(e).__name__}")
-        logger.error(f"Traceback:\n{traceback.format_exc()}")
-        raise ValueError("Failed to parse JSON from model output") from e
+        logger.error(f"🛑 Failed to parse structured JSON: {e}")
+        logger.error(f"🧵 Traceback:\n{traceback.format_exc()}")
+        raise ValueError("Failed to parse structured JSON from model output") from e
 
 # -------------------- MAIN FUNCTION --------------------
 
@@ -203,7 +163,7 @@ def generate_report(address: str, filename: str) -> Dict:
                 raise Exception(f"API request failed with status code {response.status_code}")
 
             content = response.json()
-            logger.debug(f"📬 Raw response JSON: {json.dumps(content)[:1000]}...")
+            logger.debug(f"📬 Raw response JSON: {json.dumps(content)}")
 
             if "choices" not in content or not content["choices"]:
                 raise KeyError("Missing or empty 'choices' key in API response")

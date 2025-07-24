@@ -414,17 +414,6 @@ export default function Subscription() {
                 ) : (
                   <div className="text-center">
                     <p className="text-black/60 mb-4">No active plan</p>
-                    <button
-                      onClick={() => {
-                        // Scroll to plans section
-                        document
-                          .getElementById("plans")
-                          ?.scrollIntoView({ behavior: "smooth" });
-                      }}
-                      className="w-full py-2 bg-green-600 hover:bg-olive-light text-white rounded-lg font-medium transition-colors"
-                    >
-                      Choose a Plan
-                    </button>
                   </div>
                 )}
               </div>
