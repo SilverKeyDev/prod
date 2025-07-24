@@ -3,6 +3,7 @@ export {};
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapPin, Loader2, AlertCircle } from "lucide-react";
+import { useData } from "../contexts/DataContext";
 
 declare global {
   interface Window {
@@ -18,6 +19,7 @@ interface Suggestion {
 export default function GenerateReportPage() {
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const { billingInfo } = useData();
 
   const [address, setAddress] = useState("");
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -201,6 +203,19 @@ export default function GenerateReportPage() {
       setError("Please enter a valid address.");
       return;
     }
+
+    // Check if user has reports available before starting any operations
+    if (!billingInfo || billingInfo.usage.reports_available <= 0) {
+      console.log("[GenerateReport] ❌ No reports available, redirecting to subscription");
+      navigate("/dashboard/subscription", {
+        state: {
+          message: "You have no reports available. Please subscribe or purchase additional reports to continue.",
+        },
+      });
+      return;
+    }
+
+    console.log(`[GenerateReport] ✅ Reports available: ${billingInfo.usage.reports_available}, proceeding with generation`);
 
     setIsGenerating(true);
     setError(null);
