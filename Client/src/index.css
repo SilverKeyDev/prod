@@ -199,6 +199,19 @@
     @apply mx-4 sm:mx-6 lg:mx-8;
   }
 
+  /* Hide scrollbar utility */
+  .scrollbar-hide {
+    /* Hide scrollbar for Chrome, Safari and Opera */
+    -webkit-scrollbar: none;
+    /* Hide scrollbar for IE, Edge and Firefox */
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
   /* Touch-friendly interactive elements */
   .touch-friendly {
     @apply min-h-11 min-w-11 touch-manipulation select-none;

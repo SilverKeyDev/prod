@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Send, Bot, MessageCircle, Trash2, Plus, User as UserIcon} from "lucide-react";
+import { Send, Bot, MessageCircle, Trash2, User as UserIcon} from "lucide-react";
 
 interface ChatMessage {
   id: string;
@@ -19,10 +19,10 @@ interface Chat {
 
 export default function AIAssistant() {
   const [chats, setChats] = useState<Chat[]>([]);
-
-  const [activeChatId, setActiveChatId] = useState<string>("1");
+  const [activeChatId, setActiveChatId] = useState<string>("");
   const [message, setMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const activeChat = chats.find((chat) => chat.id === activeChatId);
@@ -30,6 +30,61 @@ export default function AIAssistant() {
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
+
+  // Format address the same way as CompareReportsPage
+  const formatAddress = (address: string) => {
+    const formattedAddress = address.replace(/_/g, " ");
+    return formattedAddress
+      .substring(0, formattedAddress.length - 18)
+      .trim();
+  };
+
+  // Fetch reports and create conversations
+  const fetchReportsAndCreateChats = async () => {
+    try {
+      setIsLoading(true);
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || "";
+      const idToken = localStorage.getItem("id_token");
+      
+      const response = await fetch(`${baseUrl}/api/v1/report/almostall`, {
+        method: "POST",
+        mode: "cors",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: `Bearer ${idToken}`,
+        },
+        credentials: "include",
+      });
+      
+      const json = await response.json();
+      
+      if (json.success && json.reports) {
+        const newChats: Chat[] = json.reports.map((report: any) => ({
+          id: report.id,
+          title: report.address ? formatAddress(report.address) : `Report ${report.id}`,
+          propertyAddress: report.address,
+          messages: [],
+          createdAt: new Date(report.generatedAt ? report.generatedAt * 1000 : Date.now()),
+        }));
+        
+        setChats(newChats);
+        
+        // Set the first chat as active if no active chat is set
+        if (newChats.length > 0 && !activeChatId) {
+          setActiveChatId(newChats[0].id);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to fetch reports:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchReportsAndCreateChats();
+  }, []);
 
   useEffect(() => {
     scrollToBottom();
@@ -79,26 +134,6 @@ export default function AIAssistant() {
     }, 2000);
   };
 
-  const createNewChat = () => {
-    const newChat: Chat = {
-      id: Date.now().toString(),
-      title: "New Conversation",
-      createdAt: new Date(),
-      messages: [],
-    };
-
-    setChats((prev) => [newChat, ...prev]);
-    setActiveChatId(newChat.id);
-  };
-
-  const deleteChat = (chatId: string) => {
-    setChats((prev) => prev.filter((chat) => chat.id !== chatId));
-    if (activeChatId === chatId && chats.length > 1) {
-      const remainingChats = chats.filter((chat) => chat.id !== chatId);
-      setActiveChatId(remainingChats[0]?.id || "");
-    }
-  };
-
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString("en-US", {
       hour: "numeric",
@@ -109,27 +144,32 @@ export default function AIAssistant() {
 
   return (
     <div className="max-w-7xl mx-auto h-[calc(100vh-8rem)]">
-      <div className="flex h-full">
+      <div className="flex h-full shadow-lg rounded-xl overflow-hidden">
         {/* Chat Sidebar */}
         <div className="w-80 border-r border-beige bg-white rounded-l-xl">
           <div className="p-4 border-b border-beige">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-medium text-black">AI Assistant</h2>
-              <button
-                onClick={createNewChat}
-                className="p-2 hover:bg-beige/20 rounded-lg transition-colors"
-              >
-                <Plus className="h-5 w-5 text-black" />
-              </button>
             </div>
             <p className="text-sm text-black/60">
-              Ask questions about travel, demographics, and
-              market analysis
+              Ask questions about your future home
             </p>
           </div>
 
           <div className="overflow-y-auto h-full pb-20">
-            {chats.map((chat) => (
+            {isLoading ? (
+              <div className="p-4 text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brown mx-auto mb-2"></div>
+                <p className="text-sm text-black/60">Loading your property conversations...</p>
+              </div>
+            ) : chats.length === 0 ? (
+              <div className="p-4 text-center">
+                <MessageCircle className="h-12 w-12 text-black/30 mx-auto mb-2" />
+                <p className="text-sm text-black/60">No property reports found.</p>
+                <p className="text-xs text-black/40 mt-1">Generate a report to start chatting about properties.</p>
+              </div>
+            ) : (
+              chats.map((chat) => (
               <div
                 key={chat.id}
                 onClick={() => setActiveChatId(chat.id)}
@@ -143,29 +183,16 @@ export default function AIAssistant() {
                     <h3 className="font-medium text-black text-sm truncate mb-1">
                       {chat.title}
                     </h3>
-                    {chat.propertyAddress && (
-                      <p className="text-xs text-black/60 truncate mb-2">
-                        {chat.propertyAddress}
-                      </p>
-                    )}
                     {chat.messages.length > 0 && (
                       <p className="text-xs text-black/50 truncate">
                         {chat.messages[chat.messages.length - 1].content}
                       </p>
                     )}
                   </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      deleteChat(chat.id);
-                    }}
-                    className="opacity-0 group-hover:opacity-100 p-1 hover:bg-beige/30 rounded transition-all"
-                  >
-                    <Trash2 className="h-4 w-4 text-black/60" />
-                  </button>
                 </div>
               </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
 
@@ -176,15 +203,10 @@ export default function AIAssistant() {
               {/* Chat Header */}
               <div className="p-4 border-b border-beige bg-white">
                 <h3 className="font-medium text-black">{activeChat.title}</h3>
-                {activeChat.propertyAddress && (
-                  <p className="text-sm text-black/60 mt-1">
-                    {activeChat.propertyAddress}
-                  </p>
-                )}
               </div>
 
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-hide">
                 {activeChat.messages.length === 0 ? (
                   <div className="text-center py-12">
                     <div className="w-16 h-16 bg-beige/30 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -283,7 +305,7 @@ export default function AIAssistant() {
                         }
                       }}
                       placeholder="Ask about property pricing, market trends, or analysis..."
-                      className="input-field resize-none h-12 py-3"
+                      className="input-field resize-none h-12 py-3 scrollbar-hide"
                       disabled={isTyping}
                     />
                   </div>

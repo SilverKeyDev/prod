@@ -657,7 +657,8 @@ export default function CompareReportsPage() {
         </div>
 
         {/* Comparison Table */}
-        <div className="mt-6 sm:mt-10 w-full overflow-x-auto scrollbar-hide border rounded-lg">
+        {selectedReports.length > 0 && (
+          <div className="mt-6 sm:mt-10 w-full overflow-x-auto scrollbar-hide border rounded-lg">
           <table className="min-w-full text-xs border-collapse">
             <thead className="bg-beige/30">
               <tr>
@@ -720,7 +721,8 @@ export default function CompareReportsPage() {
               ))}
             </tbody>
           </table>
-        </div>
+          </div>
+        )}
 
         {/* Selection summary */}
         {selectedReports.length > 0 && (
