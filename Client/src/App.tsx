@@ -7,6 +7,7 @@ import HomePage from "./pages/HomePage.tsx";
 import { User } from "./types/index.ts";
 import Dashboard from "./components/Dashboard.tsx";
 import VerificationPage from "./pages/VerificationPage";
+import OnboardingPage from "./pages/OnboardingPage";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import ContactUs from "./pages/ContactUs";
@@ -80,6 +81,7 @@ function App() {
             />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/forgot-password" element={<ResetPasswordPage />} />
+            <Route path="/onboarding" element={<OnboardingPage />} />
             <Route path="/verification" element={<VerificationPage/>} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsOfService />} />

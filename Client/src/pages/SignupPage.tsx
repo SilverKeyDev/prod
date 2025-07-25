@@ -36,7 +36,7 @@ export default function SignupPage({}: SignupPageProps) {
       }
 
       localStorage.setItem("signupEmail", formData.email);
-      navigate("/verification", { state: { email: formData.email } });
+      navigate("/onboarding", { state: { email: formData.email } });
     } catch (error: unknown) {
       console.error("Signup error:", error);
       const errorMessage =
