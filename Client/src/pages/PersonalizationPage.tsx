@@ -71,7 +71,13 @@ interface OnboardingData {
   selling_current_home?: string;
   first_time_buyer?: string;
   previous_home_experience?: string;
+  property_search_stage?: string;
+  home_buying_experience?: string;
+  financing_preference?: string;
   communication_preference?: string;
+  preferred_support_channel?: string;
+  information_detail_level?: string;
+  meeting_preference?: string;
   meeting_availability?: string;
   response_time_expectation?: string;
   agent_experience_preference?: string;
@@ -100,9 +106,7 @@ export default function PersonalizationPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState<OnboardingData>({});
   const [originalData, setOriginalData] = useState<OnboardingData>({});
-  const [draftTextInputs, setDraftTextInputs] = useState<
-    Record<string, string>
-  >({});
+
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
 
   useEffect(() => {
@@ -135,9 +139,56 @@ export default function PersonalizationPage() {
         method: "GET",
       });
 
+      console.log("🔍 API Response:", response);
+      console.log("🔍 Response.preferences:", response.preferences);
+
       if (response.preferences) {
-        setFormData(response.preferences);
-        setOriginalData(response.preferences);
+        // Flatten the nested structure to match OnboardingData interface
+        const flattenedData: OnboardingData = {
+          // Demographics
+          ...response.preferences.demographics,
+          
+          // Financial Profile
+          ...response.preferences.financial_profile,
+          
+          // Housing Preferences
+          ...response.preferences.housing_preferences,
+          
+          // Location Preferences
+          ...response.preferences.location_preferences,
+          
+          // Lifestyle Preferences
+          ...response.preferences.lifestyle_preferences,
+          
+          // Behavioral Patterns
+          ...response.preferences.behavioral_patterns,
+          
+          // Real Estate
+          ...response.preferences.real_estate,
+          
+          // Agent Preferences (Communication)
+          ...response.preferences.agent_preferences,
+          
+          // Values
+          ...response.preferences.values,
+          
+          // Emotional Signals
+          ...response.preferences.emotional_signals,
+          
+          // Ensure specific fields are mapped correctly
+          communication_preference: response.preferences.agent_preferences?.communication_preference || response.preferences.communication_preference,
+          previous_home_experience: response.preferences.real_estate?.previous_home_experience || response.preferences.previous_home_experience,
+          first_time_buyer: response.preferences.real_estate?.first_time_buyer || response.preferences.first_time_buyer,
+          response_time_expectation: response.preferences.agent_preferences?.response_time_expectation || response.preferences.response_time_expectation,
+          meeting_availability: response.preferences.agent_preferences?.meeting_availability || response.preferences.meeting_availability,
+          additional_context: response.preferences.personalization_insights?.additional_context || response.preferences.additional_context,
+        };
+        
+        console.log("✅ Flattened data:", flattenedData);
+        setFormData(flattenedData);
+        setOriginalData(flattenedData);
+      } else {
+        console.log("❌ No preferences found in response");
       }
     } catch (error) {
       console.error("Failed to load user preferences:", error);
@@ -153,6 +204,18 @@ export default function PersonalizationPage() {
   const handleSaveChanges = async () => {
     try {
       setIsSaving(true);
+      
+      // Debug: Log the data being saved
+      console.log("💾 Saving formData:", formData);
+      console.log("💾 Specific fields being saved:", {
+        communication_preference: formData.communication_preference,
+        previous_home_experience: formData.previous_home_experience,
+        first_time_buyer: formData.first_time_buyer,
+        response_time_expectation: formData.response_time_expectation,
+        meeting_availability: formData.meeting_availability,
+        additional_context: formData.additional_context,
+      });
+      
       await apiRequest("/api/v1/preferences", {
         method: "POST",
         headers: {
@@ -175,7 +238,6 @@ export default function PersonalizationPage() {
   const handleCancel = () => {
     setFormData(originalData);
     setIsEditMode(false);
-    setDraftTextInputs({});
   };
 
   const scrollToSection = (sectionId: string) => {
@@ -184,6 +246,29 @@ export default function PersonalizationPage() {
     if (element) {
       element.scrollIntoView({ behavior: "smooth", block: "start" });
     }
+  };
+
+  // Utility function to format display values
+  const formatDisplayValue = (value: string | number | undefined): string => {
+    if (!value) return "";
+    
+    let formatted = String(value);
+    
+    // Handle ranges (keep hyphens for ranges like "100k-150k", "30-45")
+    if (/\d+[kK]?[-–]\d+[kK]?/.test(formatted) || /\d+[-–]\d+/.test(formatted)) {
+      // This is a range, keep the hyphen but ensure proper formatting
+      formatted = formatted.replace(/[-–]/g, "-");
+    } else {
+      // Replace underscores and hyphens with spaces
+      formatted = formatted.replace(/[_-]/g, " ");
+    }
+    
+    // Capitalize each word
+    formatted = formatted.split(" ")
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(" ");
+    
+    return formatted;
   };
 
   const TagInput = ({
@@ -199,29 +284,29 @@ export default function PersonalizationPage() {
     value?: string;
     onChange?: (value: string) => void;
   }) => {
-    const inputValue =
-      value !== undefined ? value : draftTextInputs[field] || "";
+    const [inputValue, setInputValue] = useState("");
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const newValue = e.target.value;
       if (onChange) {
         onChange(newValue);
       } else {
-        setDraftTextInputs((prev) => ({ ...prev, [field]: newValue }));
+        setInputValue(newValue);
       }
     };
 
     const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-      if (e.key === "Enter" && inputValue.trim()) {
+      const currentInputValue = onChange && value !== undefined ? value : inputValue;
+      if (e.key === "Enter" && currentInputValue.trim()) {
         e.preventDefault();
         const currentArray = (formData[field] as string[]) || [];
-        const newArray = [...currentArray, inputValue.trim()];
+        const newArray = [...currentArray, currentInputValue.trim()];
         updateFormData(field, newArray);
 
         if (onChange) {
           onChange("");
         } else {
-          setDraftTextInputs((prev) => ({ ...prev, [field]: "" }));
+          setInputValue("");
         }
       }
     };
@@ -241,7 +326,15 @@ export default function PersonalizationPage() {
         <label className="block text-black font-medium">{label}</label>
         {isEditMode ? (
           <>
-            <div className="flex flex-wrap gap-2 mb-2">
+            <input
+              type="text"
+              value={onChange && value !== undefined ? value : inputValue}
+              onChange={handleInputChange}
+              onKeyPress={handleKeyPress}
+              placeholder={placeholder}
+              className="mobile-input mb-3"
+            />
+            <div className="flex flex-wrap gap-2">
               {currentTags.map((tag, index) => (
                 <span
                   key={index}
@@ -258,17 +351,9 @@ export default function PersonalizationPage() {
                 </span>
               ))}
             </div>
-            <input
-              type="text"
-              value={inputValue}
-              onChange={handleInputChange}
-              onKeyPress={handleKeyPress}
-              placeholder={placeholder}
-              className="mobile-input"
-            />
           </>
         ) : (
-          <div className="p-3 bg-gray-50 rounded-md border border-gray-200 min-h-[48px]">
+          <div className="p-3 min-h-[48px]">
             {currentTags.length > 0 ? (
               <div className="flex flex-wrap gap-2">
                 {currentTags.map((tag, index) => (
@@ -328,7 +413,15 @@ export default function PersonalizationPage() {
         <label className="block text-black font-medium">{label}</label>
         {isEditMode ? (
           <>
-            <div className="flex flex-wrap gap-2 mb-2">
+            <input
+              type="number"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder={placeholder}
+              className="mobile-input mb-3"
+            />
+            <div className="flex flex-wrap gap-2">
               {currentTags.map((tag, index) => (
                 <span
                   key={index}
@@ -345,17 +438,9 @@ export default function PersonalizationPage() {
                 </span>
               ))}
             </div>
-            <input
-              type="number"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder={placeholder}
-              className="mobile-input"
-            />
           </>
         ) : (
-          <div className="p-3 bg-gray-50 rounded-md border border-gray-200 min-h-[48px]">
+          <div className="p-3 min-h-[48px]">
             {currentTags.length > 0 ? (
               <div className="flex flex-wrap gap-2">
                 {currentTags.map((tag, index) => (
@@ -415,8 +500,8 @@ export default function PersonalizationPage() {
                     className="mobile-input"
                   />
                 ) : (
-                  <div className="p-3 bg-gray-50 rounded-md border border-gray-200">
-                    {formData.age || <span className="text-gray-500">Not specified</span>}
+                  <div className="p-3 bg-white rounded-md border border-gray-300">
+                    {formatDisplayValue(formData.age) || <span className="text-gray-500">Not specified</span>}
                   </div>
                 )}
               </div>
@@ -438,8 +523,8 @@ export default function PersonalizationPage() {
                     <option value="prefer-not-to-say">Prefer not to say</option>
                   </select>
                 ) : (
-                  <div className="p-3 bg-gray-50 rounded-md border border-gray-200">
-                    {formData.gender || <span className="text-gray-500">Not specified</span>}
+                  <div className="p-3 bg-white rounded-md border border-gray-300">
+                    {formatDisplayValue(formData.gender) || <span className="text-gray-500">Not specified</span>}
                   </div>
                 )}
               </div>
@@ -466,8 +551,8 @@ export default function PersonalizationPage() {
                     </option>
                   </select>
                 ) : (
-                  <div className="p-3 bg-gray-50 rounded-md border border-gray-200">
-                    {formData.marital_status || <span className="text-gray-500">Not specified</span>}
+                  <div className="p-3 bg-white rounded-md border border-gray-300">
+                    {formatDisplayValue(formData.marital_status) || <span className="text-gray-500">Not specified</span>}
                   </div>
                 )}
               </div>
@@ -489,8 +574,8 @@ export default function PersonalizationPage() {
                     className="mobile-input"
                   />
                 ) : (
-                  <div className="p-3 bg-gray-50 rounded-md border border-gray-200">
-                    {formData.household_size || <span className="text-gray-500">Not specified</span>}
+                  <div className="p-3 bg-white rounded-md border border-gray-300">
+                    {formatDisplayValue(formData.household_size) || <span className="text-gray-500">Not specified</span>}
                   </div>
                 )}
               </div>
@@ -514,8 +599,8 @@ export default function PersonalizationPage() {
                     className="mobile-input"
                   />
                 ) : (
-                  <div className="p-3 bg-gray-50 rounded-md border border-gray-200">
-                    {formData.children_count || <span className="text-gray-500">Not specified</span>}
+                  <div className="p-3 bg-white rounded-md border border-gray-300">
+                    {formatDisplayValue(formData.children_count) || <span className="text-gray-500">Not specified</span>}
                   </div>
                 )}
               </div>
@@ -549,8 +634,8 @@ export default function PersonalizationPage() {
                     <option value="trade-school">Trade School</option>
                   </select>
                 ) : (
-                  <div className="p-3 bg-gray-50 rounded-md border border-gray-200">
-                    {formData.education_level || <span className="text-gray-500">Not specified</span>}
+                  <div className="p-3 bg-white rounded-md border border-gray-300">
+                    {formatDisplayValue(formData.education_level) || <span className="text-gray-500">Not specified</span>}
                   </div>
                 )}
               </div>
@@ -570,8 +655,8 @@ export default function PersonalizationPage() {
                     placeholder="Your occupation"
                   />
                 ) : (
-                  <div className="p-3 bg-gray-50 rounded-md border border-gray-200">
-                    {formData.occupation || <span className="text-gray-500">Not specified</span>}
+                  <div className="p-3 bg-white rounded-md border border-gray-300">
+                    {formatDisplayValue(formData.occupation) || <span className="text-gray-500">Not specified</span>}
                   </div>
                 )}
               </div>
@@ -590,8 +675,8 @@ export default function PersonalizationPage() {
                   placeholder="Your industry"
                 />
               ) : (
-                <div className="p-3 bg-gray-50 rounded-md border border-gray-200">
-                  {formData.industry || <span className="text-gray-500">Not specified</span>}
+                <div className="p-3 bg-white rounded-md border border-gray-300">
+                  {formatDisplayValue(formData.industry) || <span className="text-gray-500">Not specified</span>}
                 </div>
               )}
             </div>
@@ -607,6 +692,83 @@ export default function PersonalizationPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
+                  Employment Status
+                </label>
+                {isEditMode ? (
+                  <select
+                    value={formData.employment_status || ""}
+                    onChange={(e) =>
+                      updateFormData("employment_status", e.target.value)
+                    }
+                    className="mobile-input"
+                  >
+                    <option value="">Select employment status</option>
+                    <option value="full-time">Full-time</option>
+                    <option value="part-time">Part-time</option>
+                    <option value="self-employed">Self-employed</option>
+                    <option value="unemployed">Unemployed</option>
+                    <option value="retired">Retired</option>
+                    <option value="student">Student</option>
+                  </select>
+                ) : (
+                  <div className="p-3 bg-white rounded-md border border-gray-300">
+                    {formatDisplayValue(formData.employment_status) || <span className="text-gray-500">Not specified</span>}
+                  </div>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-black mb-2">
+                  Income Range
+                </label>
+                {isEditMode ? (
+                  <select
+                    value={formData.income_range || ""}
+                    onChange={(e) =>
+                      updateFormData("income_range", e.target.value)
+                    }
+                    className="mobile-input"
+                  >
+                    <option value="">Select income range</option>
+                    <option value="under_50k">Under $50,000</option>
+                    <option value="50k_100k">$50,000 - $100,000</option>
+                    <option value="100k_150k">$100,000 - $150,000</option>
+                    <option value="150k_250k">$150,000 - $250,000</option>
+                    <option value="250k_plus">$250,000+</option>
+                  </select>
+                ) : (
+                  <div className="p-3 bg-white rounded-md border border-gray-300">
+                    {formatDisplayValue(formData.income_range) || <span className="text-gray-500">Not specified</span>}
+                  </div>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-black mb-2">
+                  Preferred Home Price Range
+                </label>
+                {isEditMode ? (
+                  <select
+                    value={formData.preferred_home_price_range || ""}
+                    onChange={(e) =>
+                      updateFormData("preferred_home_price_range", e.target.value)
+                    }
+                    className="mobile-input"
+                  >
+                    <option value="">Select price range</option>
+                    <option value="under_200k">Under $200,000</option>
+                    <option value="200k_400k">$200,000 - $400,000</option>
+                    <option value="400k_600k">$400,000 - $600,000</option>
+                    <option value="600k_800k">$600,000 - $800,000</option>
+                    <option value="800k_1m">$800,000 - $1,000,000</option>
+                    <option value="1m_plus">$1,000,000+</option>
+                  </select>
+                ) : (
+                  <div className="p-3 bg-white rounded-md border border-gray-300">
+                    {formatDisplayValue(formData.preferred_home_price_range) || <span className="text-gray-500">Not specified</span>}
+                  </div>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-black mb-2">
                   Credit Score Range
                 </label>
                 {isEditMode ? (
@@ -617,7 +779,7 @@ export default function PersonalizationPage() {
                     }
                     className="mobile-input"
                   >
-                    <option value="">Select income range</option>
+                    <option value="">Select credit score range</option>
                     <option value="poor">Poor (300-579)</option>
                     <option value="fair">Fair (580-669)</option>
                     <option value="good">Good (670-739)</option>
@@ -625,8 +787,8 @@ export default function PersonalizationPage() {
                     <option value="excellent">Excellent (800+)</option>
                   </select>
                 ) : (
-                  <div className="p-3 bg-gray-50 rounded-md border border-gray-200">
-                    {formData.credit_score_range || <span className="text-gray-500">Not specified</span>}
+                  <div className="p-3 bg-white rounded-md border border-gray-300">
+                    {formatDisplayValue(formData.credit_score_range) || <span className="text-gray-500">Not specified</span>}
                   </div>
                 )}
               </div>
@@ -649,8 +811,55 @@ export default function PersonalizationPage() {
                     <option value="100k_plus">$100,000+</option>
                   </select>
                 ) : (
-                  <div className="p-3 bg-gray-50 rounded-md border border-gray-200">
-                    {formData.savings_amount_range || <span className="text-gray-500">Not specified</span>}
+                  <div className="p-3 bg-white rounded-md border border-gray-300">
+                    {formatDisplayValue(formData.savings_amount_range) || <span className="text-gray-500">Not specified</span>}
+                  </div>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-black mb-2">
+                  Investment Experience
+                </label>
+                {isEditMode ? (
+                  <select
+                    value={formData.investment_experience || ""}
+                    onChange={(e) =>
+                      updateFormData("investment_experience", e.target.value)
+                    }
+                    className="mobile-input"
+                  >
+                    <option value="">Select experience level</option>
+                    <option value="none">No experience</option>
+                    <option value="beginner">Beginner</option>
+                    <option value="intermediate">Intermediate</option>
+                    <option value="advanced">Advanced</option>
+                  </select>
+                ) : (
+                  <div className="p-3 bg-white rounded-md border border-gray-300">
+                    {formatDisplayValue(formData.investment_experience) || <span className="text-gray-500">Not specified</span>}
+                  </div>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-black mb-2">
+                  Risk Tolerance
+                </label>
+                {isEditMode ? (
+                  <select
+                    value={formData.risk_tolerance || ""}
+                    onChange={(e) =>
+                      updateFormData("risk_tolerance", e.target.value)
+                    }
+                    className="mobile-input"
+                  >
+                    <option value="">Select risk tolerance</option>
+                    <option value="conservative">Conservative</option>
+                    <option value="moderate">Moderate</option>
+                    <option value="aggressive">Aggressive</option>
+                  </select>
+                ) : (
+                  <div className="p-3 bg-white rounded-md border border-gray-300">
+                    {formatDisplayValue(formData.risk_tolerance) || <span className="text-gray-500">Not specified</span>}
                   </div>
                 )}
               </div>
@@ -684,8 +893,8 @@ export default function PersonalizationPage() {
                     <option value="apartment">Apartment</option>
                   </select>
                 ) : (
-                  <div className="p-3 bg-gray-50 rounded-md border border-gray-200">
-                    {formData.desired_housing_type || <span className="text-gray-500">Not specified</span>}
+                  <div className="p-3 bg-white rounded-md border border-gray-300">
+                    {formatDisplayValue(formData.desired_housing_type) || <span className="text-gray-500">Not specified</span>}
                   </div>
                 )}
               </div>
@@ -707,8 +916,109 @@ export default function PersonalizationPage() {
                     min="1"
                   />
                 ) : (
-                  <div className="p-3 bg-gray-50 rounded-md border border-gray-200">
-                    {formData.preferred_bedrooms || <span className="text-gray-500">Not specified</span>}
+                  <div className="p-3 bg-white rounded-md border border-gray-300">
+                    {formatDisplayValue(formData.preferred_bedrooms) || <span className="text-gray-500">Not specified</span>}
+                  </div>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-black mb-2">
+                  Preferred Bathrooms
+                </label>
+                {isEditMode ? (
+                  <input
+                    type="number"
+                    value={formData.preferred_bathrooms || ""}
+                    onChange={(e) =>
+                      updateFormData(
+                        "preferred_bathrooms",
+                        parseInt(e.target.value) || 0
+                      )
+                    }
+                    className="mobile-input"
+                    min="1"
+                    step="0.5"
+                  />
+                ) : (
+                  <div className="p-3 bg-white rounded-md border border-gray-300">
+                    {formatDisplayValue(formData.preferred_bathrooms) || <span className="text-gray-500">Not specified</span>}
+                  </div>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-black mb-2">
+                  Preferred Lot Size
+                </label>
+                {isEditMode ? (
+                  <select
+                    value={formData.preferred_lot_size || ""}
+                    onChange={(e) =>
+                      updateFormData("preferred_lot_size", e.target.value)
+                    }
+                    className="mobile-input"
+                  >
+                    <option value="">Select lot size</option>
+                    <option value="small">Small (under 0.25 acres)</option>
+                    <option value="medium">Medium (0.25 - 0.5 acres)</option>
+                    <option value="large">Large (0.5 - 1 acre)</option>
+                    <option value="extra_large">Extra Large (1+ acres)</option>
+                  </select>
+                ) : (
+                  <div className="p-3 bg-white rounded-md border border-gray-300">
+                    {formatDisplayValue(formData.preferred_lot_size) || <span className="text-gray-500">Not specified</span>}
+                  </div>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-black mb-2">
+                  Preferred Home Age
+                </label>
+                {isEditMode ? (
+                  <select
+                    value={formData.preferred_home_age || ""}
+                    onChange={(e) =>
+                      updateFormData("preferred_home_age", e.target.value)
+                    }
+                    className="mobile-input"
+                  >
+                    <option value="">Select home age preference</option>
+                    <option value="new">New Construction (0-5 years)</option>
+                    <option value="recent">Recent (5-15 years)</option>
+                    <option value="established">Established (15-30 years)</option>
+                    <option value="mature">Mature (30+ years)</option>
+                    <option value="historic">Historic (50+ years)</option>
+                  </select>
+                ) : (
+                  <div className="p-3 bg-white rounded-md border border-gray-300">
+                    {formatDisplayValue(formData.preferred_home_age) || <span className="text-gray-500">Not specified</span>}
+                  </div>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-black mb-2">
+                  Preferred Architectural Style
+                </label>
+                {isEditMode ? (
+                  <select
+                    value={formData.preferred_architectural_style || ""}
+                    onChange={(e) =>
+                      updateFormData("preferred_architectural_style", e.target.value)
+                    }
+                    className="mobile-input"
+                  >
+                    <option value="">Select architectural style</option>
+                    <option value="modern">Modern</option>
+                    <option value="traditional">Traditional</option>
+                    <option value="colonial">Colonial</option>
+                    <option value="ranch">Ranch</option>
+                    <option value="craftsman">Craftsman</option>
+                    <option value="victorian">Victorian</option>
+                    <option value="mediterranean">Mediterranean</option>
+                    <option value="contemporary">Contemporary</option>
+                  </select>
+                ) : (
+                  <div className="p-3 bg-white rounded-md border border-gray-300">
+                    {formatDisplayValue(formData.preferred_architectural_style) || <span className="text-gray-500">Not specified</span>}
                   </div>
                 )}
               </div>
@@ -732,6 +1042,129 @@ export default function PersonalizationPage() {
             <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
               Location Preferences
             </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-black mb-2">
+                  Preferred Climate
+                </label>
+                {isEditMode ? (
+                  <select
+                    value={formData.preferred_climate || ""}
+                    onChange={(e) =>
+                      updateFormData("preferred_climate", e.target.value)
+                    }
+                    className="mobile-input"
+                  >
+                    <option value="">Select climate preference</option>
+                    <option value="tropical">Tropical</option>
+                    <option value="subtropical">Subtropical</option>
+                    <option value="temperate">Temperate</option>
+                    <option value="continental">Continental</option>
+                    <option value="arid">Arid/Desert</option>
+                    <option value="mediterranean">Mediterranean</option>
+                  </select>
+                ) : (
+                  <div className="p-3 bg-white rounded-md border border-gray-300">
+                    {formatDisplayValue(formData.preferred_climate) || <span className="text-gray-500">Not specified</span>}
+                  </div>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-black mb-2">
+                  Urban/Rural Preference
+                </label>
+                {isEditMode ? (
+                  <select
+                    value={formData.urban_rural_preference || ""}
+                    onChange={(e) =>
+                      updateFormData("urban_rural_preference", e.target.value)
+                    }
+                    className="mobile-input"
+                  >
+                    <option value="">Select preference</option>
+                    <option value="urban">Urban</option>
+                    <option value="suburban">Suburban</option>
+                    <option value="rural">Rural</option>
+                    <option value="mixed">Mixed/Flexible</option>
+                  </select>
+                ) : (
+                  <div className="p-3 bg-white rounded-md border border-gray-300">
+                    {formatDisplayValue(formData.urban_rural_preference) || <span className="text-gray-500">Not specified</span>}
+                  </div>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-black mb-2">
+                  Commute Tolerance
+                </label>
+                {isEditMode ? (
+                  <select
+                    value={formData.commute_tolerance || ""}
+                    onChange={(e) =>
+                      updateFormData("commute_tolerance", e.target.value)
+                    }
+                    className="mobile-input"
+                  >
+                    <option value="">Select commute tolerance</option>
+                    <option value="under_15">Under 15 minutes</option>
+                    <option value="15_30">15-30 minutes</option>
+                    <option value="30_45">30-45 minutes</option>
+                    <option value="45_60">45-60 minutes</option>
+                    <option value="over_60">Over 60 minutes</option>
+                  </select>
+                ) : (
+                  <div className="p-3 bg-white rounded-md border border-gray-300">
+                    {formatDisplayValue(formData.commute_tolerance) || <span className="text-gray-500">Not specified</span>}
+                  </div>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-black mb-2">
+                  Proximity to Family
+                </label>
+                {isEditMode ? (
+                  <select
+                    value={formData.proximity_to_family || ""}
+                    onChange={(e) =>
+                      updateFormData("proximity_to_family", e.target.value)
+                    }
+                    className="mobile-input"
+                  >
+                    <option value="">Select importance</option>
+                    <option value="very_important">Very Important</option>
+                    <option value="somewhat_important">Somewhat Important</option>
+                    <option value="not_important">Not Important</option>
+                  </select>
+                ) : (
+                  <div className="p-3 bg-white rounded-md border border-gray-300">
+                    {formatDisplayValue(formData.proximity_to_family) || <span className="text-gray-500">Not specified</span>}
+                  </div>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-black mb-2">
+                  Walkability Importance
+                </label>
+                {isEditMode ? (
+                  <select
+                    value={formData.walkability_importance || ""}
+                    onChange={(e) =>
+                      updateFormData("walkability_importance", e.target.value)
+                    }
+                    className="mobile-input"
+                  >
+                    <option value="">Select importance</option>
+                    <option value="very_important">Very Important</option>
+                    <option value="somewhat_important">Somewhat Important</option>
+                    <option value="not_important">Not Important</option>
+                  </select>
+                ) : (
+                  <div className="p-3 bg-white rounded-md border border-gray-300">
+                    {formatDisplayValue(formData.walkability_importance) || <span className="text-gray-500">Not specified</span>}
+                  </div>
+                )}
+              </div>
+            </div>
             <div>
               <label className="block text-sm font-medium text-black mb-2">
                 Preferred Regions
@@ -754,43 +1187,28 @@ export default function PersonalizationPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
-                  Marital Status
+                  Lifestyle Type
                 </label>
                 {isEditMode ? (
                   <select
-                    value={formData.marital_status || ""}
+                    value={formData.lifestyle_type || ""}
                     onChange={(e) =>
-                      updateFormData("marital_status", e.target.value)
+                      updateFormData("lifestyle_type", e.target.value)
                     }
                     className="mobile-input"
                   >
-                    <option value="">Select status</option>
-                    <option value="single">Single</option>
-                    <option value="married">Married</option>
-                    <option value="divorced">Divorced</option>
-                    <option value="widowed">Widowed</option>
+                    <option value="">Select lifestyle type</option>
+                    <option value="active">Active/Outdoorsy</option>
+                    <option value="social">Social/Entertaining</option>
+                    <option value="quiet">Quiet/Private</option>
+                    <option value="family_oriented">Family-Oriented</option>
+                    <option value="career_focused">Career-Focused</option>
+                    <option value="creative">Creative/Artistic</option>
+                    <option value="minimalist">Minimalist</option>
                   </select>
                 ) : (
-                  <div className="p-3 bg-gray-50 rounded-md border border-gray-200">
-                    {formData.marital_status || <span className="text-gray-500">Not specified</span>}
-                  </div>
-                )}
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Children Ages
-                </label>
-                {isEditMode ? (
-                  <NumberTagInput
-                    field="children_ages"
-                    label=""
-                    placeholder="Enter child age and press Enter"
-                  />
-                ) : (
-                  <div className="p-3 bg-gray-50 rounded-md border border-gray-200">
-                    {formData.children_ages?.length
-                      ? formData.children_ages.join(", ")
-                      : <span className="text-gray-500">Not specified</span>}
+                  <div className="p-3 bg-white rounded-md border border-gray-300">
+                    {formatDisplayValue(formData.lifestyle_type) || <span className="text-gray-500">Not specified</span>}
                   </div>
                 )}
               </div>
@@ -833,8 +1251,8 @@ export default function PersonalizationPage() {
                     <option value="collaborative">Collaborative</option>
                   </select>
                 ) : (
-                  <div className="p-3 bg-gray-50 rounded-md border border-gray-200">
-                    {formData.decision_making_style || <span className="text-gray-500">Not specified</span>}
+                  <div className="p-3 bg-white rounded-md border border-gray-300">
+                    {formatDisplayValue(formData.decision_making_style) || <span className="text-gray-500">Not specified</span>}
                   </div>
                 )}
               </div>
@@ -856,8 +1274,8 @@ export default function PersonalizationPage() {
                     <option value="minimal">Minimal contact</option>
                   </select>
                 ) : (
-                  <div className="p-3 bg-gray-50 rounded-md border border-gray-200">
-                    {formData.communication_preference || <span className="text-gray-500">Not specified</span>}
+                  <div className="p-3 bg-white rounded-md border border-gray-300">
+                    {formatDisplayValue(formData.communication_preference) || <span className="text-gray-500">Not specified</span>}
                   </div>
                 )}
               </div>
@@ -874,46 +1292,101 @@ export default function PersonalizationPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
-                  First Time Buyer
+                  Property Search Stage
                 </label>
                 {isEditMode ? (
                   <select
-                    value={formData.first_time_buyer || ""}
+                    value={formData.property_search_stage || ""}
                     onChange={(e) =>
-                      updateFormData("first_time_buyer", e.target.value)
+                      updateFormData("property_search_stage", e.target.value)
                     }
                     className="mobile-input"
                   >
-                    <option value="">Select option</option>
-                    <option value="yes">Yes</option>
-                    <option value="no">No</option>
+                    <option value="">Select stage</option>
+                    <option value="just_looking">Just Looking</option>
+                    <option value="actively_searching">Actively Searching</option>
+                    <option value="ready_to_buy">Ready to Buy</option>
+                    <option value="under_contract">Under Contract</option>
                   </select>
                 ) : (
-                  <div className="p-3 bg-gray-50 rounded-md border border-gray-200">
-                    {formData.first_time_buyer || <span className="text-gray-500">Not specified</span>}
+                  <div className="p-3 bg-white rounded-md border border-gray-300">
+                    {formatDisplayValue(formData.property_search_stage) || <span className="text-gray-500">Not specified</span>}
                   </div>
                 )}
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
-                  Previous Home Experience
+                  Home Buying Experience
                 </label>
                 {isEditMode ? (
                   <select
-                    value={formData.previous_home_experience || ""}
+                    value={formData.home_buying_experience || ""}
                     onChange={(e) =>
-                      updateFormData("previous_home_experience", e.target.value)
+                      updateFormData("home_buying_experience", e.target.value)
                     }
                     className="mobile-input"
                   >
                     <option value="">Select experience</option>
-                    <option value="none">No experience</option>
-                    <option value="some">Some experience</option>
-                    <option value="extensive">Extensive experience</option>
+                    <option value="first_time">First Time Buyer</option>
+                    <option value="experienced">Experienced Buyer</option>
+                    <option value="investor">Real Estate Investor</option>
                   </select>
                 ) : (
-                  <div className="p-3 bg-gray-50 rounded-md border border-gray-200">
-                    {formData.previous_home_experience || <span className="text-gray-500">Not specified</span>}
+                  <div className="p-3 bg-white rounded-md border border-gray-300">
+                    {formatDisplayValue(formData.home_buying_experience) || <span className="text-gray-500">Not specified</span>}
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-black mb-2">
+                  Financing Preference
+                </label>
+                {isEditMode ? (
+                  <select
+                    value={formData.financing_preference || ""}
+                    onChange={(e) =>
+                      updateFormData("financing_preference", e.target.value)
+                    }
+                    className="mobile-input"
+                  >
+                    <option value="">Select financing</option>
+                    <option value="cash">Cash</option>
+                    <option value="conventional">Conventional Loan</option>
+                    <option value="fha">FHA Loan</option>
+                    <option value="va">VA Loan</option>
+                    <option value="usda">USDA Loan</option>
+                    <option value="jumbo">Jumbo Loan</option>
+                  </select>
+                ) : (
+                  <div className="p-3 bg-white rounded-md border border-gray-300">
+                    {formatDisplayValue(formData.financing_preference) || <span className="text-gray-500">Not specified</span>}
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-black mb-2">
+                  Renovation Willingness
+                </label>
+                {isEditMode ? (
+                  <select
+                    value={formData.renovation_willingness || ""}
+                    onChange={(e) =>
+                      updateFormData("renovation_willingness", e.target.value)
+                    }
+                    className="mobile-input"
+                  >
+                    <option value="">Select willingness</option>
+                    <option value="none">None - Move-in Ready</option>
+                    <option value="minor">Minor Cosmetic Updates</option>
+                    <option value="major">Major Renovations</option>
+                    <option value="complete">Complete Renovation</option>
+                  </select>
+                ) : (
+                  <div className="p-3 bg-white rounded-md border border-gray-300">
+                    {formatDisplayValue(formData.renovation_willingness) || <span className="text-gray-500">Not specified</span>}
                   </div>
                 )}
               </div>
@@ -957,8 +1430,8 @@ export default function PersonalizationPage() {
                     <option value="flexible">Flexible</option>
                   </select>
                 ) : (
-                  <div className="p-3 bg-gray-50 rounded-md border border-gray-200">
-                    {formData.meeting_availability || <span className="text-gray-500">Not specified</span>}
+                  <div className="p-3 bg-white rounded-md border border-gray-300">
+                    {formatDisplayValue(formData.meeting_availability) || <span className="text-gray-500">Not specified</span>}
                   </div>
                 )}
               </div>
@@ -984,8 +1457,83 @@ export default function PersonalizationPage() {
                     <option value="flexible">Flexible</option>
                   </select>
                 ) : (
-                  <div className="p-3 bg-gray-50 rounded-md border border-gray-200">
-                    {formData.response_time_expectation || <span className="text-gray-500">Not specified</span>}
+                  <div className="p-3 bg-white rounded-md border border-gray-300">
+                    {formatDisplayValue(formData.response_time_expectation) || <span className="text-gray-500">Not specified</span>}
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-black mb-2">
+                  Preferred Support Channel
+                </label>
+                {isEditMode ? (
+                  <select
+                    value={formData.preferred_support_channel || ""}
+                    onChange={(e) =>
+                      updateFormData("preferred_support_channel", e.target.value)
+                    }
+                    className="mobile-input"
+                  >
+                    <option value="">Select channel</option>
+                    <option value="phone">Phone</option>
+                    <option value="email">Email</option>
+                    <option value="text">Text/SMS</option>
+                    <option value="app">Mobile App</option>
+                  </select>
+                ) : (
+                  <div className="p-3 bg-white rounded-md border border-gray-300">
+                    {formatDisplayValue(formData.preferred_support_channel) || <span className="text-gray-500">Not specified</span>}
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-black mb-2">
+                  Information Detail Level
+                </label>
+                {isEditMode ? (
+                  <select
+                    value={formData.information_detail_level || ""}
+                    onChange={(e) =>
+                      updateFormData("information_detail_level", e.target.value)
+                    }
+                    className="mobile-input"
+                  >
+                    <option value="">Select detail level</option>
+                    <option value="brief">Brief</option>
+                    <option value="moderate">Moderate</option>
+                    <option value="detailed">Detailed</option>
+                    <option value="comprehensive">Comprehensive</option>
+                  </select>
+                ) : (
+                  <div className="p-3 bg-white rounded-md border border-gray-300">
+                    {formatDisplayValue(formData.information_detail_level) || <span className="text-gray-500">Not specified</span>}
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-black mb-2">
+                  Meeting Preference
+                </label>
+                {isEditMode ? (
+                  <select
+                    value={formData.meeting_preference || ""}
+                    onChange={(e) =>
+                      updateFormData("meeting_preference", e.target.value)
+                    }
+                    className="mobile-input"
+                  >
+                    <option value="">Select preference</option>
+                    <option value="in_person">In Person</option>
+                    <option value="virtual">Virtual</option>
+                    <option value="phone">Phone</option>
+                    <option value="email">Email</option>
+                  </select>
+                ) : (
+                  <div className="p-3 bg-white rounded-md border border-gray-300">
+                    {formatDisplayValue(formData.meeting_preference) || <span className="text-gray-500">Not specified</span>}
                   </div>
                 )}
               </div>
@@ -1044,8 +1592,8 @@ export default function PersonalizationPage() {
                   placeholder="Any additional information you'd like to share..."
                 />
               ) : (
-                <div className="p-3 bg-gray-50 rounded-md border border-gray-200 min-h-[100px]">
-                  {formData.additional_context || <span className="text-gray-500">Not specified</span>}
+                <div className="p-3 bg-white rounded-md border border-gray-300 min-h-[100px]">
+                  {formatDisplayValue(formData.additional_context) || <span className="text-gray-500">Not specified</span>}
                 </div>
               )}
             </div>
@@ -1233,7 +1781,7 @@ export default function PersonalizationPage() {
                 <button
                   type="button"
                   onClick={() => setShowSuccessDialog(false)}
-                  className="inline-flex w-full justify-center rounded-md border border-transparent bg-gold px-6 py-2 text-sm font-medium text-white shadow-sm hover:bg-gold/90 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:ring-offset-2 sm:w-auto touch-friendly min-w-[100px]"
+                  className="inline-flex w-full justify-center rounded-md border border-transparent bg-gold px-6 py-2 text-sm font-medium text-black shadow-sm hover:bg-gold/90 focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-2 sm:w-auto touch-friendly min-w-[100px]"
                 >
                   Okay
                 </button>

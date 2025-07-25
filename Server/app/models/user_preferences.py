@@ -89,14 +89,18 @@ class UserPreferences(db.Model):
     
     # === AGENT INTERACTION PREFERENCES ===
     preferred_support_channel = db.Column(db.String(20))  # phone, email, chat, self_service
+    communication_preference = db.Column(db.String(20))  # frequent, regular, minimal
     communication_frequency = db.Column(db.String(20))  # minimal, weekly, daily, as_needed, constant
     information_detail_level = db.Column(db.String(20))  # summary, moderate, detailed, comprehensive
     meeting_preference = db.Column(db.String(20))  # virtual, in_person, hybrid, no_preference
+    meeting_availability = db.Column(db.String(20))  # weekdays, evenings, weekends, flexible
+    response_time_expectation = db.Column(db.String(20))  # immediate, same_day, 24_hours, flexible
     
     # === PERSONALIZATION INSIGHTS (AI) ===
     content_feedback_log = db.Column(db.Text)  # JSON of how they rated or reacted to prior reports
     agent_interaction_history = db.Column(db.Text)  # JSON list of touchpoints or agent name → type → feedback
     personality_insights = db.Column(db.Text)  # JSON with MBTI or Big 5 profile extracted from responses
+    additional_context = db.Column(db.Text)  # Additional context or notes from user
     
     # === EMOTIONAL / NARRATIVE SIGNALS ===
     quote_bubbles = db.Column(db.Text)  # JSON array of user-submitted thoughts on what matters most
@@ -200,15 +204,19 @@ class UserPreferences(db.Model):
 
             'agent_preferences': {
                 'preferred_support_channel': self.preferred_support_channel,
+                'communication_preference': self.communication_preference,
                 'communication_frequency': self.communication_frequency,
                 'information_detail_level': self.information_detail_level,
                 'meeting_preference': self.meeting_preference,
+                'meeting_availability': self.meeting_availability,
+                'response_time_expectation': self.response_time_expectation,
             },
 
             'personalization_insights': {
                 'content_feedback_log': self._parse_json_field(self.content_feedback_log),
                 'agent_interaction_history': self._parse_json_field(self.agent_interaction_history),
                 'personality_insights': self._parse_json_field(self.personality_insights),
+                'additional_context': self.additional_context,
             },
 
             'emotional_signals': {

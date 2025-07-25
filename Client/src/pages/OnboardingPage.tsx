@@ -65,6 +65,7 @@ interface OnboardingData {
   timeline_to_purchase?: string;
   current_home_ownership_status?: string;
   moving_reason?: string;
+  agent_experience_preference?: string;
   preferred_support_channel?: string;
   communication_frequency?: string;
   information_detail_level?: string;
@@ -615,6 +616,49 @@ export default function OnboardingPage() {
                 </select>
               </div>
 
+              <div>
+                <label className="block text-sm font-medium text-black mb-2">
+                  Preferred Home Age
+                </label>
+                <select
+                  value={formData.preferred_home_age || ""}
+                  onChange={(e) =>
+                    updateFormData("preferred_home_age", e.target.value)
+                  }
+                  className="mobile-input"
+                >
+                  <option value="">Select...</option>
+                  <option value="new">New (0-5 years)</option>
+                  <option value="recent">Recent (5-15 years)</option>
+                  <option value="established">Established (15-30 years)</option>
+                  <option value="mature">Mature (30-50 years)</option>
+                  <option value="historic">Historic (50+ years)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-black mb-2">
+                  Preferred Architectural Style
+                </label>
+                <select
+                  value={formData.preferred_architectural_style || ""}
+                  onChange={(e) =>
+                    updateFormData("preferred_architectural_style", e.target.value)
+                  }
+                  className="mobile-input"
+                >
+                  <option value="">Select...</option>
+                  <option value="modern">Modern</option>
+                  <option value="traditional">Traditional</option>
+                  <option value="colonial">Colonial</option>
+                  <option value="ranch">Ranch</option>
+                  <option value="craftsman">Craftsman</option>
+                  <option value="victorian">Victorian</option>
+                  <option value="mediterranean">Mediterranean</option>
+                  <option value="contemporary">Contemporary</option>
+                </select>
+              </div>
+
               <div className="md:col-span-2">
                 <TagInput
                   key="preferred_home_features"
@@ -682,6 +726,63 @@ export default function OnboardingPage() {
                   placeholder="Maximum commute time"
                 />
               </div>
+
+              <div>
+                <label className="block text-sm font-medium text-black mb-2">
+                  Preferred Climate
+                </label>
+                <select
+                  value={formData.preferred_climate || ""}
+                  onChange={(e) =>
+                    updateFormData("preferred_climate", e.target.value)
+                  }
+                  className="mobile-input"
+                >
+                  <option value="">Select...</option>
+                  <option value="tropical">Tropical</option>
+                  <option value="subtropical">Subtropical</option>
+                  <option value="temperate">Temperate</option>
+                  <option value="continental">Continental</option>
+                  <option value="arid">Arid</option>
+                  <option value="mediterranean">Mediterranean</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-black mb-2">
+                  Proximity to Family
+                </label>
+                <select
+                  value={formData.proximity_to_family || ""}
+                  onChange={(e) =>
+                    updateFormData("proximity_to_family", e.target.value)
+                  }
+                  className="mobile-input"
+                >
+                  <option value="">Select...</option>
+                  <option value="very_important">Very Important</option>
+                  <option value="somewhat_important">Somewhat Important</option>
+                  <option value="not_important">Not Important</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-black mb-2">
+                  Walkability Importance
+                </label>
+                <select
+                  value={formData.walkability_importance || ""}
+                  onChange={(e) =>
+                    updateFormData("walkability_importance", e.target.value)
+                  }
+                  className="mobile-input"
+                >
+                  <option value="">Select...</option>
+                  <option value="very_important">Very Important</option>
+                  <option value="somewhat_important">Somewhat Important</option>
+                  <option value="not_important">Not Important</option>
+                </select>
+              </div>
             </div>
           </div>
         );
@@ -720,6 +821,24 @@ export default function OnboardingPage() {
                   field="hobbies_interests"
                   label="Hobbies & Interests"
                   placeholder="Enter hobby or interest and click + to add (e.g., hiking, cooking, reading)"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <TagInput
+                  key="dining_preferences"
+                  field="dining_preferences"
+                  label="Dining Preferences"
+                  placeholder="Enter dining preference and click + to add (e.g., Italian, Vegetarian, Fine dining)"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <TagInput
+                  key="fitness_activities"
+                  field="fitness_activities"
+                  label="Fitness Activities"
+                  placeholder="Enter fitness activity and click + to add (e.g., Running, Yoga, Swimming)"
                 />
               </div>
             </div>
@@ -770,6 +889,64 @@ export default function OnboardingPage() {
                   <option value="moderate">Moderate</option>
                   <option value="extensive">Extensive</option>
                   <option value="obsessive">Obsessive</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-black mb-2">
+                  Favored Information Style
+                </label>
+                <select
+                  value={formData.favored_information_style || ""}
+                  onChange={(e) =>
+                    updateFormData("favored_information_style", e.target.value)
+                  }
+                  className="mobile-input"
+                >
+                  <option value="">Select...</option>
+                  <option value="visual">Visual</option>
+                  <option value="textual">Textual</option>
+                  <option value="detailed">Detailed</option>
+                  <option value="summary">Summary</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-black mb-2">
+                  Political Leaning
+                </label>
+                <select
+                  value={formData.political_leaning || ""}
+                  onChange={(e) =>
+                    updateFormData("political_leaning", e.target.value)
+                  }
+                  className="mobile-input"
+                >
+                  <option value="">Select...</option>
+                  <option value="conservative">Conservative</option>
+                  <option value="liberal">Liberal</option>
+                  <option value="moderate">Moderate</option>
+                  <option value="independent">Independent</option>
+                  <option value="prefer_not_to_say">Prefer not to say</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-black mb-2">
+                  Community Involvement
+                </label>
+                <select
+                  value={formData.community_involvement || ""}
+                  onChange={(e) =>
+                    updateFormData("community_involvement", e.target.value)
+                  }
+                  className="mobile-input"
+                >
+                  <option value="">Select...</option>
+                  <option value="high">High</option>
+                  <option value="moderate">Moderate</option>
+                  <option value="low">Low</option>
+                  <option value="none">None</option>
                 </select>
               </div>
             </div>
@@ -844,6 +1021,133 @@ export default function OnboardingPage() {
                 </select>
               </div>
 
+              <div>
+                <label className="block text-sm font-medium text-black mb-2">
+                  Financing Preference
+                </label>
+                <select
+                  value={formData.financing_preference || ""}
+                  onChange={(e) =>
+                    updateFormData("financing_preference", e.target.value)
+                  }
+                  className="mobile-input"
+                >
+                  <option value="">Select...</option>
+                  <option value="cash">Cash</option>
+                  <option value="conventional">Conventional Loan</option>
+                  <option value="fha">FHA Loan</option>
+                  <option value="va">VA Loan</option>
+                  <option value="usda">USDA Loan</option>
+                  <option value="jumbo">Jumbo Loan</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-black mb-2">
+                  Renovation Willingness
+                </label>
+                <select
+                  value={formData.renovation_willingness || ""}
+                  onChange={(e) =>
+                    updateFormData("renovation_willingness", e.target.value)
+                  }
+                  className="mobile-input"
+                >
+                  <option value="">Select...</option>
+                  <option value="none">None - Move-in Ready</option>
+                  <option value="minor">Minor Cosmetic Updates</option>
+                  <option value="major">Major Renovations</option>
+                  <option value="complete">Complete Renovation</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-black mb-2">
+                  Intended Property Use
+                </label>
+                <select
+                  value={formData.intended_property_use || ""}
+                  onChange={(e) =>
+                    updateFormData("intended_property_use", e.target.value)
+                  }
+                  className="mobile-input"
+                >
+                  <option value="">Select...</option>
+                  <option value="primary">Primary Residence</option>
+                  <option value="investment">Investment Property</option>
+                  <option value="vacation">Vacation Home</option>
+                  <option value="rental">Rental Property</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-black mb-2">
+                  Current Home Ownership Status
+                </label>
+                <select
+                  value={formData.current_home_ownership_status || ""}
+                  onChange={(e) =>
+                    updateFormData("current_home_ownership_status", e.target.value)
+                  }
+                  className="mobile-input"
+                >
+                  <option value="">Select...</option>
+                  <option value="own">Own Current Home</option>
+                  <option value="rent">Rent Current Home</option>
+                  <option value="living_with_family">Living with Family</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-black mb-2">
+                  Moving Reason
+                </label>
+                <select
+                  value={formData.moving_reason || ""}
+                  onChange={(e) =>
+                    updateFormData("moving_reason", e.target.value)
+                  }
+                  className="mobile-input"
+                >
+                  <option value="">Select...</option>
+                  <option value="job">Job/Career Change</option>
+                  <option value="family">Family Changes</option>
+                  <option value="upgrade">Upgrade Home</option>
+                  <option value="downsize">Downsize</option>
+                  <option value="investment">Investment Opportunity</option>
+                  <option value="lifestyle">Lifestyle Change</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-black mb-2">
+                  Agent Experience Preference
+                </label>
+                <select
+                  value={formData.agent_experience_preference || ""}
+                  onChange={(e) =>
+                    updateFormData("agent_experience_preference", e.target.value)
+                  }
+                  className="mobile-input"
+                >
+                  <option value="">Select...</option>
+                  <option value="new_agent">New Agent</option>
+                  <option value="experienced">Experienced Agent</option>
+                  <option value="top_producer">Top Producer</option>
+                  <option value="no_preference">No Preference</option>
+                </select>
+              </div>
+
+              <div className="md:col-span-2">
+                <TagInput
+                  key="property_features_priority"
+                  field="property_features_priority"
+                  label="Property Features Priority"
+                  placeholder="Enter prioritized feature and click + to add (e.g., Updated kitchen, Large yard, Good schools)"
+                />
+              </div>
+
               <div className="md:col-span-2">
                 <TagInput
                   key="deal_breakers"
@@ -899,6 +1203,44 @@ export default function OnboardingPage() {
                   <option value="weekly">Weekly</option>
                   <option value="daily">Daily</option>
                   <option value="as_needed">As Needed</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-black mb-2">
+                  Information Detail Level
+                </label>
+                <select
+                  value={formData.information_detail_level || ""}
+                  onChange={(e) =>
+                    updateFormData("information_detail_level", e.target.value)
+                  }
+                  className="mobile-input"
+                >
+                  <option value="">Select...</option>
+                  <option value="brief">Brief</option>
+                  <option value="moderate">Moderate</option>
+                  <option value="detailed">Detailed</option>
+                  <option value="comprehensive">Comprehensive</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-black mb-2">
+                  Meeting Preference
+                </label>
+                <select
+                  value={formData.meeting_preference || ""}
+                  onChange={(e) =>
+                    updateFormData("meeting_preference", e.target.value)
+                  }
+                  className="mobile-input"
+                >
+                  <option value="">Select...</option>
+                  <option value="in_person">In Person</option>
+                  <option value="virtual">Virtual</option>
+                  <option value="phone">Phone</option>
+                  <option value="email">Email</option>
                 </select>
               </div>
             </div>
