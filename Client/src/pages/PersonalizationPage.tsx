@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import {
   Edit,
@@ -12,6 +12,7 @@ import {
   Brain,
   MessageSquare,
   Lightbulb,
+  ChevronDown,
 } from "lucide-react";
 import { apiRequest } from "../lib/api";
 
@@ -47,9 +48,10 @@ interface OnboardingData {
   walkability_importance?: string;
   lifestyle_type?: string;
   hobbies_interests?: string[];
+  dining_preferences?: string[];
+  fitness_activities?: string[];
   social_preferences?: string;
   entertainment_preferences?: string;
-  dining_preferences?: string;
   shopping_preferences?: string;
   outdoor_activity_level?: string;
   travel_frequency?: string;
@@ -99,6 +101,72 @@ const STEPS = [
   { id: "insights", title: "Personal Insights", icon: Lightbulb },
 ];
 
+// Custom dropdown component matching PastReports implementation
+interface CustomDropdownProps {
+  value: string;
+  onChange: (value: string) => void;
+  options: { value: string; label: string }[];
+  placeholder: string;
+  isOpen: boolean;
+  onToggle: () => void;
+  dropdownRef: React.RefObject<HTMLDivElement>;
+}
+
+const CustomDropdown: React.FC<CustomDropdownProps> = ({
+  value,
+  onChange,
+  options,
+  placeholder,
+  isOpen,
+  onToggle,
+  dropdownRef
+}) => {
+  const selectedOption = options.find(opt => opt.value === value);
+  
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <button
+        onClick={onToggle}
+        className="mobile-input text-sm flex items-center justify-between cursor-pointer hover:border-brown focus:border-brown focus:ring-brown/20"
+      >
+        <span className="text-left">
+          {selectedOption ? selectedOption.label : placeholder}
+        </span>
+        <ChevronDown
+          className={`w-4 h-4 transition-transform duration-200 ${
+            isOpen ? "rotate-180" : ""
+          }`}
+        />
+      </button>
+
+      {isOpen && (
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-beige rounded-lg shadow-lg z-50">
+          {options.map((option, index) => (
+            <button
+              key={option.value}
+              onClick={() => {
+                onChange(option.value);
+                onToggle();
+              }}
+              className={`w-full px-3 py-2 text-left text-sm hover:bg-brown/5 transition-colors duration-150 ${
+                index === 0 ? "first:rounded-t-lg" : ""
+              } ${
+                index === options.length - 1 ? "last:rounded-b-lg" : ""
+              } ${
+                value === option.value
+                  ? "bg-brown/10 text-brown font-medium"
+                  : "text-black"
+              }`}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 export default function PersonalizationPage() {
   const [activeSection, setActiveSection] = useState("demographics");
   const [isEditMode, setIsEditMode] = useState(false);
@@ -108,6 +176,47 @@ export default function PersonalizationPage() {
   const [originalData, setOriginalData] = useState<OnboardingData>({});
 
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [openDropdowns, setOpenDropdowns] = useState<{[key: string]: boolean}>({});
+  
+  // Refs for dropdown management
+  const dropdownRefs = useRef<{[key: string]: React.RefObject<HTMLDivElement>}>({});
+  
+  // Helper function to get or create dropdown ref
+  const getDropdownRef = (fieldName: string) => {
+    if (!dropdownRefs.current[fieldName]) {
+      dropdownRefs.current[fieldName] = React.createRef<HTMLDivElement>();
+    }
+    return dropdownRefs.current[fieldName];
+  };
+  
+  // Helper function to toggle dropdown
+  const toggleDropdown = (fieldName: string) => {
+    setOpenDropdowns(prev => ({
+      ...prev,
+      [fieldName]: !prev[fieldName]
+    }));
+  };
+  
+  // Close all dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+      let shouldClose = true;
+      
+      Object.entries(dropdownRefs.current).forEach(([_fieldName, ref]) => {
+        if (ref.current && ref.current.contains(target)) {
+          shouldClose = false;
+        }
+      });
+      
+      if (shouldClose) {
+        setOpenDropdowns({});
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     loadUserPreferences();
@@ -332,7 +441,7 @@ export default function PersonalizationPage() {
               onChange={handleInputChange}
               onKeyPress={handleKeyPress}
               placeholder={placeholder}
-              className="mobile-input mb-3"
+              className="mobile-input mb-3 hover:border-brown focus:border-brown focus:ring-brown/20"
             />
             <div className="flex flex-wrap gap-2">
               {currentTags.map((tag, index) => (
@@ -419,7 +528,7 @@ export default function PersonalizationPage() {
               onChange={(e) => setInputValue(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder={placeholder}
-              className="mobile-input mb-3"
+              className="mobile-input mb-3 hover:border-brown focus:border-brown focus:ring-brown/20"
             />
             <div className="flex flex-wrap gap-2">
               {currentTags.map((tag, index) => (
@@ -497,7 +606,7 @@ export default function PersonalizationPage() {
                         parseInt(e.target.value) || undefined
                       )
                     }
-                    className="mobile-input"
+                    className="mobile-input hover:border-brown focus:border-brown focus:ring-brown/20 cursor-pointer"
                   />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
@@ -511,17 +620,20 @@ export default function PersonalizationPage() {
                   Gender
                 </label>
                 {isEditMode ? (
-                  <select
+                  <CustomDropdown
                     value={formData.gender || ""}
-                    onChange={(e) => updateFormData("gender", e.target.value)}
-                    className="mobile-input"
-                  >
-                    <option value="">Select gender</option>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                    <option value="non-binary">Non-binary</option>
-                    <option value="prefer-not-to-say">Prefer not to say</option>
-                  </select>
+                    onChange={(value) => updateFormData("gender", value)}
+                    options={[
+                      { value: "male", label: "Male" },
+                      { value: "female", label: "Female" },
+                      { value: "non-binary", label: "Non-binary" },
+                      { value: "prefer-not-to-say", label: "Prefer not to say" }
+                    ]}
+                    placeholder="Select gender"
+                    isOpen={openDropdowns.gender || false}
+                    onToggle={() => toggleDropdown("gender")}
+                    dropdownRef={getDropdownRef("gender")}
+                  />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
                     {formatDisplayValue(formData.gender) || <span className="text-gray-500">Not specified</span>}
@@ -534,22 +646,21 @@ export default function PersonalizationPage() {
                   Marital Status
                 </label>
                 {isEditMode ? (
-                  <select
+                  <CustomDropdown
                     value={formData.marital_status || ""}
-                    onChange={(e) =>
-                      updateFormData("marital_status", e.target.value)
-                    }
-                    className="mobile-input"
-                  >
-                    <option value="">Select status</option>
-                    <option value="single">Single</option>
-                    <option value="married">Married</option>
-                    <option value="divorced">Divorced</option>
-                    <option value="widowed">Widowed</option>
-                    <option value="domestic-partnership">
-                      Domestic Partnership
-                    </option>
-                  </select>
+                    onChange={(value) => updateFormData("marital_status", value)}
+                    options={[
+                      { value: "single", label: "Single" },
+                      { value: "married", label: "Married" },
+                      { value: "divorced", label: "Divorced" },
+                      { value: "widowed", label: "Widowed" },
+                      { value: "domestic-partnership", label: "Domestic Partnership" }
+                    ]}
+                    placeholder="Select status"
+                    isOpen={openDropdowns.marital_status || false}
+                    onToggle={() => toggleDropdown("marital_status")}
+                    dropdownRef={getDropdownRef("marital_status")}
+                  />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
                     {formatDisplayValue(formData.marital_status) || <span className="text-gray-500">Not specified</span>}
@@ -571,7 +682,7 @@ export default function PersonalizationPage() {
                         parseInt(e.target.value) || undefined
                       )
                     }
-                    className="mobile-input"
+                    className="mobile-input hover:border-brown focus:border-brown focus:ring-brown/20 cursor-pointer"
                   />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
@@ -596,7 +707,7 @@ export default function PersonalizationPage() {
                         parseInt(e.target.value) || undefined
                       )
                     }
-                    className="mobile-input"
+                    className="mobile-input hover:border-brown focus:border-brown focus:ring-brown/20 cursor-pointer"
                   />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
@@ -618,21 +729,22 @@ export default function PersonalizationPage() {
                   Education Level
                 </label>
                 {isEditMode ? (
-                  <select
+                  <CustomDropdown
                     value={formData.education_level || ""}
-                    onChange={(e) =>
-                      updateFormData("education_level", e.target.value)
-                    }
-                    className="mobile-input"
-                  >
-                    <option value="">Select education level</option>
-                    <option value="high-school">High School</option>
-                    <option value="some-college">Some College</option>
-                    <option value="bachelors">Bachelor's Degree</option>
-                    <option value="masters">Master's Degree</option>
-                    <option value="doctorate">Doctorate</option>
-                    <option value="trade-school">Trade School</option>
-                  </select>
+                    onChange={(value) => updateFormData("education_level", value)}
+                    options={[
+                      { value: "high-school", label: "High School" },
+                      { value: "some-college", label: "Some College" },
+                      { value: "bachelors", label: "Bachelor's Degree" },
+                      { value: "masters", label: "Master's Degree" },
+                      { value: "doctorate", label: "Doctorate" },
+                      { value: "trade-school", label: "Trade School" }
+                    ]}
+                    placeholder="Select education level"
+                    isOpen={openDropdowns.education_level || false}
+                    onToggle={() => toggleDropdown("education_level")}
+                    dropdownRef={getDropdownRef("education_level")}
+                  />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
                     {formatDisplayValue(formData.education_level) || <span className="text-gray-500">Not specified</span>}
@@ -651,7 +763,7 @@ export default function PersonalizationPage() {
                     onChange={(e) =>
                       updateFormData("occupation", e.target.value)
                     }
-                    className="mobile-input"
+                    className="mobile-input hover:border-brown focus:border-brown focus:ring-brown/20 cursor-pointer"
                     placeholder="Your occupation"
                   />
                 ) : (
@@ -671,7 +783,7 @@ export default function PersonalizationPage() {
                   type="text"
                   value={formData.industry || ""}
                   onChange={(e) => updateFormData("industry", e.target.value)}
-                  className="mobile-input"
+                  className="mobile-input hover:border-brown focus:border-brown focus:ring-brown/20"
                   placeholder="Your industry"
                 />
               ) : (
@@ -695,21 +807,22 @@ export default function PersonalizationPage() {
                   Employment Status
                 </label>
                 {isEditMode ? (
-                  <select
+                  <CustomDropdown
                     value={formData.employment_status || ""}
-                    onChange={(e) =>
-                      updateFormData("employment_status", e.target.value)
-                    }
-                    className="mobile-input"
-                  >
-                    <option value="">Select employment status</option>
-                    <option value="full-time">Full-time</option>
-                    <option value="part-time">Part-time</option>
-                    <option value="self-employed">Self-employed</option>
-                    <option value="unemployed">Unemployed</option>
-                    <option value="retired">Retired</option>
-                    <option value="student">Student</option>
-                  </select>
+                    onChange={(value) => updateFormData("employment_status", value)}
+                    options={[
+                      { value: "full-time", label: "Full-time" },
+                      { value: "part-time", label: "Part-time" },
+                      { value: "self-employed", label: "Self-employed" },
+                      { value: "unemployed", label: "Unemployed" },
+                      { value: "retired", label: "Retired" },
+                      { value: "student", label: "Student" }
+                    ]}
+                    placeholder="Select employment status"
+                    isOpen={openDropdowns.employment_status || false}
+                    onToggle={() => toggleDropdown("employment_status")}
+                    dropdownRef={getDropdownRef("employment_status")}
+                  />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
                     {formatDisplayValue(formData.employment_status) || <span className="text-gray-500">Not specified</span>}
@@ -721,20 +834,21 @@ export default function PersonalizationPage() {
                   Income Range
                 </label>
                 {isEditMode ? (
-                  <select
+                  <CustomDropdown
                     value={formData.income_range || ""}
-                    onChange={(e) =>
-                      updateFormData("income_range", e.target.value)
-                    }
-                    className="mobile-input"
-                  >
-                    <option value="">Select income range</option>
-                    <option value="under_50k">Under $50,000</option>
-                    <option value="50k_100k">$50,000 - $100,000</option>
-                    <option value="100k_150k">$100,000 - $150,000</option>
-                    <option value="150k_250k">$150,000 - $250,000</option>
-                    <option value="250k_plus">$250,000+</option>
-                  </select>
+                    onChange={(value) => updateFormData("income_range", value)}
+                    options={[
+                      { value: "under_50k", label: "Under $50,000" },
+                      { value: "50k_100k", label: "$50,000 - $100,000" },
+                      { value: "100k_150k", label: "$100,000 - $150,000" },
+                      { value: "150k_250k", label: "$150,000 - $250,000" },
+                      { value: "250k_plus", label: "$250,000+" }
+                    ]}
+                    placeholder="Select income range"
+                    isOpen={openDropdowns.income_range || false}
+                    onToggle={() => toggleDropdown("income_range")}
+                    dropdownRef={getDropdownRef("income_range")}
+                  />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
                     {formatDisplayValue(formData.income_range) || <span className="text-gray-500">Not specified</span>}
@@ -746,21 +860,22 @@ export default function PersonalizationPage() {
                   Preferred Home Price Range
                 </label>
                 {isEditMode ? (
-                  <select
+                  <CustomDropdown
                     value={formData.preferred_home_price_range || ""}
-                    onChange={(e) =>
-                      updateFormData("preferred_home_price_range", e.target.value)
-                    }
-                    className="mobile-input"
-                  >
-                    <option value="">Select price range</option>
-                    <option value="under_200k">Under $200,000</option>
-                    <option value="200k_400k">$200,000 - $400,000</option>
-                    <option value="400k_600k">$400,000 - $600,000</option>
-                    <option value="600k_800k">$600,000 - $800,000</option>
-                    <option value="800k_1m">$800,000 - $1,000,000</option>
-                    <option value="1m_plus">$1,000,000+</option>
-                  </select>
+                    onChange={(value) => updateFormData("preferred_home_price_range", value)}
+                    options={[
+                      { value: "under_200k", label: "Under $200,000" },
+                      { value: "200k_400k", label: "$200,000 - $400,000" },
+                      { value: "400k_600k", label: "$400,000 - $600,000" },
+                      { value: "600k_800k", label: "$600,000 - $800,000" },
+                      { value: "800k_1m", label: "$800,000 - $1,000,000" },
+                      { value: "1m_plus", label: "$1,000,000+" }
+                    ]}
+                    placeholder="Select price range"
+                    isOpen={openDropdowns.preferred_home_price_range || false}
+                    onToggle={() => toggleDropdown("preferred_home_price_range")}
+                    dropdownRef={getDropdownRef("preferred_home_price_range")}
+                  />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
                     {formatDisplayValue(formData.preferred_home_price_range) || <span className="text-gray-500">Not specified</span>}
@@ -772,20 +887,21 @@ export default function PersonalizationPage() {
                   Credit Score Range
                 </label>
                 {isEditMode ? (
-                  <select
+                  <CustomDropdown
                     value={formData.credit_score_range || ""}
-                    onChange={(e) =>
-                      updateFormData("credit_score_range", e.target.value)
-                    }
-                    className="mobile-input"
-                  >
-                    <option value="">Select credit score range</option>
-                    <option value="poor">Poor (300-579)</option>
-                    <option value="fair">Fair (580-669)</option>
-                    <option value="good">Good (670-739)</option>
-                    <option value="very_good">Very Good (740-799)</option>
-                    <option value="excellent">Excellent (800+)</option>
-                  </select>
+                    onChange={(value) => updateFormData("credit_score_range", value)}
+                    options={[
+                      { value: "poor", label: "Poor (300-579)" },
+                      { value: "fair", label: "Fair (580-669)" },
+                      { value: "good", label: "Good (670-739)" },
+                      { value: "very_good", label: "Very Good (740-799)" },
+                      { value: "excellent", label: "Excellent (800+)" }
+                    ]}
+                    placeholder="Select credit score range"
+                    isOpen={openDropdowns.credit_score_range || false}
+                    onToggle={() => toggleDropdown("credit_score_range")}
+                    dropdownRef={getDropdownRef("credit_score_range")}
+                  />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
                     {formatDisplayValue(formData.credit_score_range) || <span className="text-gray-500">Not specified</span>}
@@ -797,19 +913,20 @@ export default function PersonalizationPage() {
                   Savings Amount Range
                 </label>
                 {isEditMode ? (
-                  <select
+                  <CustomDropdown
                     value={formData.savings_amount_range || ""}
-                    onChange={(e) =>
-                      updateFormData("savings_amount_range", e.target.value)
-                    }
-                    className="mobile-input"
-                  >
-                    <option value="">Select savings range</option>
-                    <option value="under_10k">Under $10,000</option>
-                    <option value="10k_50k">$10,000 - $50,000</option>
-                    <option value="50k_100k">$50,000 - $100,000</option>
-                    <option value="100k_plus">$100,000+</option>
-                  </select>
+                    onChange={(value) => updateFormData("savings_amount_range", value)}
+                    options={[
+                      { value: "under_10k", label: "Under $10,000" },
+                      { value: "10k_50k", label: "$10,000 - $50,000" },
+                      { value: "50k_100k", label: "$50,000 - $100,000" },
+                      { value: "100k_plus", label: "$100,000+" }
+                    ]}
+                    placeholder="Select savings range"
+                    isOpen={openDropdowns.savings_amount_range || false}
+                    onToggle={() => toggleDropdown("savings_amount_range")}
+                    dropdownRef={getDropdownRef("savings_amount_range")}
+                  />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
                     {formatDisplayValue(formData.savings_amount_range) || <span className="text-gray-500">Not specified</span>}
@@ -821,19 +938,20 @@ export default function PersonalizationPage() {
                   Investment Experience
                 </label>
                 {isEditMode ? (
-                  <select
+                  <CustomDropdown
                     value={formData.investment_experience || ""}
-                    onChange={(e) =>
-                      updateFormData("investment_experience", e.target.value)
-                    }
-                    className="mobile-input"
-                  >
-                    <option value="">Select experience level</option>
-                    <option value="none">No experience</option>
-                    <option value="beginner">Beginner</option>
-                    <option value="intermediate">Intermediate</option>
-                    <option value="advanced">Advanced</option>
-                  </select>
+                    onChange={(value) => updateFormData("investment_experience", value)}
+                    options={[
+                      { value: "none", label: "No experience" },
+                      { value: "beginner", label: "Beginner" },
+                      { value: "intermediate", label: "Intermediate" },
+                      { value: "advanced", label: "Advanced" }
+                    ]}
+                    placeholder="Select experience level"
+                    isOpen={openDropdowns.investment_experience || false}
+                    onToggle={() => toggleDropdown("investment_experience")}
+                    dropdownRef={getDropdownRef("investment_experience")}
+                  />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
                     {formatDisplayValue(formData.investment_experience) || <span className="text-gray-500">Not specified</span>}
@@ -845,18 +963,19 @@ export default function PersonalizationPage() {
                   Risk Tolerance
                 </label>
                 {isEditMode ? (
-                  <select
+                  <CustomDropdown
                     value={formData.risk_tolerance || ""}
-                    onChange={(e) =>
-                      updateFormData("risk_tolerance", e.target.value)
-                    }
-                    className="mobile-input"
-                  >
-                    <option value="">Select risk tolerance</option>
-                    <option value="conservative">Conservative</option>
-                    <option value="moderate">Moderate</option>
-                    <option value="aggressive">Aggressive</option>
-                  </select>
+                    onChange={(value) => updateFormData("risk_tolerance", value)}
+                    options={[
+                      { value: "conservative", label: "Conservative" },
+                      { value: "moderate", label: "Moderate" },
+                      { value: "aggressive", label: "Aggressive" }
+                    ]}
+                    placeholder="Select risk tolerance"
+                    isOpen={openDropdowns.risk_tolerance || false}
+                    onToggle={() => toggleDropdown("risk_tolerance")}
+                    dropdownRef={getDropdownRef("risk_tolerance")}
+                  />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
                     {formatDisplayValue(formData.risk_tolerance) || <span className="text-gray-500">Not specified</span>}
@@ -879,19 +998,20 @@ export default function PersonalizationPage() {
                   Desired Housing Type
                 </label>
                 {isEditMode ? (
-                  <select
+                  <CustomDropdown
                     value={formData.desired_housing_type || ""}
-                    onChange={(e) =>
-                      updateFormData("desired_housing_type", e.target.value)
-                    }
-                    className="mobile-input"
-                  >
-                    <option value="">Select property type</option>
-                    <option value="house">House</option>
-                    <option value="condo">Condo</option>
-                    <option value="townhouse">Townhouse</option>
-                    <option value="apartment">Apartment</option>
-                  </select>
+                    onChange={(value) => updateFormData("desired_housing_type", value)}
+                    options={[
+                      { value: "house", label: "House" },
+                      { value: "condo", label: "Condo" },
+                      { value: "townhouse", label: "Townhouse" },
+                      { value: "apartment", label: "Apartment" }
+                    ]}
+                    placeholder="Select property type"
+                    isOpen={openDropdowns.desired_housing_type || false}
+                    onToggle={() => toggleDropdown("desired_housing_type")}
+                    dropdownRef={getDropdownRef("desired_housing_type")}
+                  />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
                     {formatDisplayValue(formData.desired_housing_type) || <span className="text-gray-500">Not specified</span>}
@@ -912,7 +1032,7 @@ export default function PersonalizationPage() {
                         parseInt(e.target.value) || 0
                       )
                     }
-                    className="mobile-input"
+                    className="mobile-input hover:border-brown focus:border-brown focus:ring-brown/20 cursor-pointer"
                     min="1"
                   />
                 ) : (
@@ -935,7 +1055,7 @@ export default function PersonalizationPage() {
                         parseInt(e.target.value) || 0
                       )
                     }
-                    className="mobile-input"
+                    className="mobile-input hover:border-brown focus:border-brown focus:ring-brown/20 cursor-pointer"
                     min="1"
                     step="0.5"
                   />
@@ -950,19 +1070,20 @@ export default function PersonalizationPage() {
                   Preferred Lot Size
                 </label>
                 {isEditMode ? (
-                  <select
+                  <CustomDropdown
                     value={formData.preferred_lot_size || ""}
-                    onChange={(e) =>
-                      updateFormData("preferred_lot_size", e.target.value)
-                    }
-                    className="mobile-input"
-                  >
-                    <option value="">Select lot size</option>
-                    <option value="small">Small (under 0.25 acres)</option>
-                    <option value="medium">Medium (0.25 - 0.5 acres)</option>
-                    <option value="large">Large (0.5 - 1 acre)</option>
-                    <option value="extra_large">Extra Large (1+ acres)</option>
-                  </select>
+                    onChange={(value) => updateFormData("preferred_lot_size", value)}
+                    options={[
+                      { value: "small", label: "Small (under 0.25 acres)" },
+                      { value: "medium", label: "Medium (0.25 - 0.5 acres)" },
+                      { value: "large", label: "Large (0.5 - 1 acre)" },
+                      { value: "extra_large", label: "Extra Large (1+ acres)" }
+                    ]}
+                    placeholder="Select lot size"
+                    isOpen={openDropdowns.preferred_lot_size || false}
+                    onToggle={() => toggleDropdown("preferred_lot_size")}
+                    dropdownRef={getDropdownRef("preferred_lot_size")}
+                  />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
                     {formatDisplayValue(formData.preferred_lot_size) || <span className="text-gray-500">Not specified</span>}
@@ -974,20 +1095,21 @@ export default function PersonalizationPage() {
                   Preferred Home Age
                 </label>
                 {isEditMode ? (
-                  <select
+                  <CustomDropdown
                     value={formData.preferred_home_age || ""}
-                    onChange={(e) =>
-                      updateFormData("preferred_home_age", e.target.value)
-                    }
-                    className="mobile-input"
-                  >
-                    <option value="">Select home age preference</option>
-                    <option value="new">New Construction (0-5 years)</option>
-                    <option value="recent">Recent (5-15 years)</option>
-                    <option value="established">Established (15-30 years)</option>
-                    <option value="mature">Mature (30+ years)</option>
-                    <option value="historic">Historic (50+ years)</option>
-                  </select>
+                    onChange={(value) => updateFormData("preferred_home_age", value)}
+                    options={[
+                      { value: "new", label: "New Construction (0-5 years)" },
+                      { value: "recent", label: "Recent (5-15 years)" },
+                      { value: "established", label: "Established (15-30 years)" },
+                      { value: "mature", label: "Mature (30+ years)" },
+                      { value: "historic", label: "Historic (50+ years)" }
+                    ]}
+                    placeholder="Select home age preference"
+                    isOpen={openDropdowns.preferred_home_age || false}
+                    onToggle={() => toggleDropdown("preferred_home_age")}
+                    dropdownRef={getDropdownRef("preferred_home_age")}
+                  />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
                     {formatDisplayValue(formData.preferred_home_age) || <span className="text-gray-500">Not specified</span>}
@@ -999,23 +1121,24 @@ export default function PersonalizationPage() {
                   Preferred Architectural Style
                 </label>
                 {isEditMode ? (
-                  <select
+                  <CustomDropdown
                     value={formData.preferred_architectural_style || ""}
-                    onChange={(e) =>
-                      updateFormData("preferred_architectural_style", e.target.value)
-                    }
-                    className="mobile-input"
-                  >
-                    <option value="">Select architectural style</option>
-                    <option value="modern">Modern</option>
-                    <option value="traditional">Traditional</option>
-                    <option value="colonial">Colonial</option>
-                    <option value="ranch">Ranch</option>
-                    <option value="craftsman">Craftsman</option>
-                    <option value="victorian">Victorian</option>
-                    <option value="mediterranean">Mediterranean</option>
-                    <option value="contemporary">Contemporary</option>
-                  </select>
+                    onChange={(value) => updateFormData("preferred_architectural_style", value)}
+                    options={[
+                      { value: "modern", label: "Modern" },
+                      { value: "traditional", label: "Traditional" },
+                      { value: "colonial", label: "Colonial" },
+                      { value: "ranch", label: "Ranch" },
+                      { value: "craftsman", label: "Craftsman" },
+                      { value: "victorian", label: "Victorian" },
+                      { value: "mediterranean", label: "Mediterranean" },
+                      { value: "contemporary", label: "Contemporary" }
+                    ]}
+                    placeholder="Select architectural style"
+                    isOpen={openDropdowns.preferred_architectural_style || false}
+                    onToggle={() => toggleDropdown("preferred_architectural_style")}
+                    dropdownRef={getDropdownRef("preferred_architectural_style")}
+                  />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
                     {formatDisplayValue(formData.preferred_architectural_style) || <span className="text-gray-500">Not specified</span>}
@@ -1048,21 +1171,22 @@ export default function PersonalizationPage() {
                   Preferred Climate
                 </label>
                 {isEditMode ? (
-                  <select
+                  <CustomDropdown
                     value={formData.preferred_climate || ""}
-                    onChange={(e) =>
-                      updateFormData("preferred_climate", e.target.value)
-                    }
-                    className="mobile-input"
-                  >
-                    <option value="">Select climate preference</option>
-                    <option value="tropical">Tropical</option>
-                    <option value="subtropical">Subtropical</option>
-                    <option value="temperate">Temperate</option>
-                    <option value="continental">Continental</option>
-                    <option value="arid">Arid/Desert</option>
-                    <option value="mediterranean">Mediterranean</option>
-                  </select>
+                    onChange={(value) => updateFormData("preferred_climate", value)}
+                    options={[
+                      { value: "tropical", label: "Tropical" },
+                      { value: "subtropical", label: "Subtropical" },
+                      { value: "temperate", label: "Temperate" },
+                      { value: "continental", label: "Continental" },
+                      { value: "arid", label: "Arid/Desert" },
+                      { value: "mediterranean", label: "Mediterranean" }
+                    ]}
+                    placeholder="Select climate preference"
+                    isOpen={openDropdowns.preferred_climate || false}
+                    onToggle={() => toggleDropdown("preferred_climate")}
+                    dropdownRef={getDropdownRef("preferred_climate")}
+                  />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
                     {formatDisplayValue(formData.preferred_climate) || <span className="text-gray-500">Not specified</span>}
@@ -1074,19 +1198,20 @@ export default function PersonalizationPage() {
                   Urban/Rural Preference
                 </label>
                 {isEditMode ? (
-                  <select
+                  <CustomDropdown
                     value={formData.urban_rural_preference || ""}
-                    onChange={(e) =>
-                      updateFormData("urban_rural_preference", e.target.value)
-                    }
-                    className="mobile-input"
-                  >
-                    <option value="">Select preference</option>
-                    <option value="urban">Urban</option>
-                    <option value="suburban">Suburban</option>
-                    <option value="rural">Rural</option>
-                    <option value="mixed">Mixed/Flexible</option>
-                  </select>
+                    onChange={(value) => updateFormData("urban_rural_preference", value)}
+                    options={[
+                      { value: "urban", label: "Urban" },
+                      { value: "suburban", label: "Suburban" },
+                      { value: "rural", label: "Rural" },
+                      { value: "mixed", label: "Mixed/Flexible" }
+                    ]}
+                    placeholder="Select preference"
+                    isOpen={openDropdowns.urban_rural_preference || false}
+                    onToggle={() => toggleDropdown("urban_rural_preference")}
+                    dropdownRef={getDropdownRef("urban_rural_preference")}
+                  />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
                     {formatDisplayValue(formData.urban_rural_preference) || <span className="text-gray-500">Not specified</span>}
@@ -1098,20 +1223,21 @@ export default function PersonalizationPage() {
                   Commute Tolerance
                 </label>
                 {isEditMode ? (
-                  <select
-                    value={formData.commute_tolerance || ""}
-                    onChange={(e) =>
-                      updateFormData("commute_tolerance", e.target.value)
-                    }
-                    className="mobile-input"
-                  >
-                    <option value="">Select commute tolerance</option>
-                    <option value="under_15">Under 15 minutes</option>
-                    <option value="15_30">15-30 minutes</option>
-                    <option value="30_45">30-45 minutes</option>
-                    <option value="45_60">45-60 minutes</option>
-                    <option value="over_60">Over 60 minutes</option>
-                  </select>
+                  <CustomDropdown
+                    value={formData.commute_tolerance?.toString() || ""}
+                    onChange={(value) => updateFormData("commute_tolerance", value)}
+                    options={[
+                      { value: "under_15", label: "Under 15 minutes" },
+                      { value: "15_30", label: "15-30 minutes" },
+                      { value: "30_45", label: "30-45 minutes" },
+                      { value: "45_60", label: "45-60 minutes" },
+                      { value: "over_60", label: "Over 60 minutes" }
+                    ]}
+                    placeholder="Select commute tolerance"
+                    isOpen={openDropdowns.commute_tolerance || false}
+                    onToggle={() => toggleDropdown("commute_tolerance")}
+                    dropdownRef={getDropdownRef("commute_tolerance")}
+                  />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
                     {formatDisplayValue(formData.commute_tolerance) || <span className="text-gray-500">Not specified</span>}
@@ -1123,18 +1249,19 @@ export default function PersonalizationPage() {
                   Proximity to Family
                 </label>
                 {isEditMode ? (
-                  <select
+                  <CustomDropdown
                     value={formData.proximity_to_family || ""}
-                    onChange={(e) =>
-                      updateFormData("proximity_to_family", e.target.value)
-                    }
-                    className="mobile-input"
-                  >
-                    <option value="">Select importance</option>
-                    <option value="very_important">Very Important</option>
-                    <option value="somewhat_important">Somewhat Important</option>
-                    <option value="not_important">Not Important</option>
-                  </select>
+                    onChange={(value) => updateFormData("proximity_to_family", value)}
+                    options={[
+                      { value: "very_important", label: "Very Important" },
+                      { value: "somewhat_important", label: "Somewhat Important" },
+                      { value: "not_important", label: "Not Important" }
+                    ]}
+                    placeholder="Select importance"
+                    isOpen={openDropdowns.proximity_to_family || false}
+                    onToggle={() => toggleDropdown("proximity_to_family")}
+                    dropdownRef={getDropdownRef("proximity_to_family")}
+                  />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
                     {formatDisplayValue(formData.proximity_to_family) || <span className="text-gray-500">Not specified</span>}
@@ -1146,18 +1273,19 @@ export default function PersonalizationPage() {
                   Walkability Importance
                 </label>
                 {isEditMode ? (
-                  <select
+                  <CustomDropdown
                     value={formData.walkability_importance || ""}
-                    onChange={(e) =>
-                      updateFormData("walkability_importance", e.target.value)
-                    }
-                    className="mobile-input"
-                  >
-                    <option value="">Select importance</option>
-                    <option value="very_important">Very Important</option>
-                    <option value="somewhat_important">Somewhat Important</option>
-                    <option value="not_important">Not Important</option>
-                  </select>
+                    onChange={(value) => updateFormData("walkability_importance", value)}
+                    options={[
+                      { value: "very_important", label: "Very Important" },
+                      { value: "somewhat_important", label: "Somewhat Important" },
+                      { value: "not_important", label: "Not Important" }
+                    ]}
+                    placeholder="Select importance"
+                    isOpen={openDropdowns.walkability_importance || false}
+                    onToggle={() => toggleDropdown("walkability_importance")}
+                    dropdownRef={getDropdownRef("walkability_importance")}
+                  />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
                     {formatDisplayValue(formData.walkability_importance) || <span className="text-gray-500">Not specified</span>}
@@ -1190,22 +1318,23 @@ export default function PersonalizationPage() {
                   Lifestyle Type
                 </label>
                 {isEditMode ? (
-                  <select
+                  <CustomDropdown
                     value={formData.lifestyle_type || ""}
-                    onChange={(e) =>
-                      updateFormData("lifestyle_type", e.target.value)
-                    }
-                    className="mobile-input"
-                  >
-                    <option value="">Select lifestyle type</option>
-                    <option value="active">Active/Outdoorsy</option>
-                    <option value="social">Social/Entertaining</option>
-                    <option value="quiet">Quiet/Private</option>
-                    <option value="family_oriented">Family-Oriented</option>
-                    <option value="career_focused">Career-Focused</option>
-                    <option value="creative">Creative/Artistic</option>
-                    <option value="minimalist">Minimalist</option>
-                  </select>
+                    onChange={(value) => updateFormData("lifestyle_type", value)}
+                    options={[
+                      { value: "active", label: "Active/Outdoorsy" },
+                      { value: "social", label: "Social/Entertaining" },
+                      { value: "quiet", label: "Quiet/Private" },
+                      { value: "family_oriented", label: "Family-Oriented" },
+                      { value: "career_focused", label: "Career-Focused" },
+                      { value: "creative", label: "Creative/Artistic" },
+                      { value: "minimalist", label: "Minimalist" }
+                    ]}
+                    placeholder="Select lifestyle type"
+                    isOpen={openDropdowns.lifestyle_type || false}
+                    onToggle={() => toggleDropdown("lifestyle_type")}
+                    dropdownRef={getDropdownRef("lifestyle_type")}
+                  />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
                     {formatDisplayValue(formData.lifestyle_type) || <span className="text-gray-500">Not specified</span>}
@@ -1223,6 +1352,26 @@ export default function PersonalizationPage() {
                 placeholder="Add hobbies and interests..."
               />
             </div>
+            <div>
+              <label className="block text-sm font-medium text-black mb-2">
+                Dining Preferences
+              </label>
+              <TagInput
+                field="dining_preferences"
+                label=""
+                placeholder="Add cuisine types, dietary restrictions..."
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-black mb-2">
+                Fitness Activities
+              </label>
+              <TagInput
+                field="fitness_activities"
+                label=""
+                placeholder="Add fitness activities and sports..."
+              />
+            </div>
           </div>
         );
 
@@ -1238,18 +1387,19 @@ export default function PersonalizationPage() {
                   Decision Making Style
                 </label>
                 {isEditMode ? (
-                  <select
+                  <CustomDropdown
                     value={formData.decision_making_style || ""}
-                    onChange={(e) =>
-                      updateFormData("decision_making_style", e.target.value)
-                    }
-                    className="mobile-input"
-                  >
-                    <option value="">Select style</option>
-                    <option value="quick">Quick decision maker</option>
-                    <option value="thorough">Thorough researcher</option>
-                    <option value="collaborative">Collaborative</option>
-                  </select>
+                    onChange={(value) => updateFormData("decision_making_style", value)}
+                    options={[
+                      { value: "quick", label: "Quick decision maker" },
+                      { value: "thorough", label: "Thorough researcher" },
+                      { value: "collaborative", label: "Collaborative" }
+                    ]}
+                    placeholder="Select style"
+                    isOpen={openDropdowns.decision_making_style || false}
+                    onToggle={() => toggleDropdown("decision_making_style")}
+                    dropdownRef={getDropdownRef("decision_making_style")}
+                  />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
                     {formatDisplayValue(formData.decision_making_style) || <span className="text-gray-500">Not specified</span>}
@@ -1261,18 +1411,19 @@ export default function PersonalizationPage() {
                   Communication Preference
                 </label>
                 {isEditMode ? (
-                  <select
+                  <CustomDropdown
                     value={formData.communication_preference || ""}
-                    onChange={(e) =>
-                      updateFormData("communication_preference", e.target.value)
-                    }
-                    className="mobile-input"
-                  >
-                    <option value="">Select style</option>
-                    <option value="frequent">Frequent updates</option>
-                    <option value="milestone">Milestone updates</option>
-                    <option value="minimal">Minimal contact</option>
-                  </select>
+                    onChange={(value) => updateFormData("communication_preference", value)}
+                    options={[
+                      { value: "frequent", label: "Frequent updates" },
+                      { value: "milestone", label: "Milestone updates" },
+                      { value: "minimal", label: "Minimal contact" }
+                    ]}
+                    placeholder="Select style"
+                    isOpen={openDropdowns.communication_preference || false}
+                    onToggle={() => toggleDropdown("communication_preference")}
+                    dropdownRef={getDropdownRef("communication_preference")}
+                  />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
                     {formatDisplayValue(formData.communication_preference) || <span className="text-gray-500">Not specified</span>}
@@ -1295,19 +1446,20 @@ export default function PersonalizationPage() {
                   Property Search Stage
                 </label>
                 {isEditMode ? (
-                  <select
+                  <CustomDropdown
                     value={formData.property_search_stage || ""}
-                    onChange={(e) =>
-                      updateFormData("property_search_stage", e.target.value)
-                    }
-                    className="mobile-input"
-                  >
-                    <option value="">Select stage</option>
-                    <option value="just_looking">Just Looking</option>
-                    <option value="actively_searching">Actively Searching</option>
-                    <option value="ready_to_buy">Ready to Buy</option>
-                    <option value="under_contract">Under Contract</option>
-                  </select>
+                    onChange={(value) => updateFormData("property_search_stage", value)}
+                    options={[
+                      { value: "just_looking", label: "Just Looking" },
+                      { value: "actively_searching", label: "Actively Searching" },
+                      { value: "ready_to_buy", label: "Ready to Buy" },
+                      { value: "under_contract", label: "Under Contract" }
+                    ]}
+                    placeholder="Select stage"
+                    isOpen={openDropdowns.property_search_stage || false}
+                    onToggle={() => toggleDropdown("property_search_stage")}
+                    dropdownRef={getDropdownRef("property_search_stage")}
+                  />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
                     {formatDisplayValue(formData.property_search_stage) || <span className="text-gray-500">Not specified</span>}
@@ -1320,18 +1472,19 @@ export default function PersonalizationPage() {
                   Home Buying Experience
                 </label>
                 {isEditMode ? (
-                  <select
+                  <CustomDropdown
                     value={formData.home_buying_experience || ""}
-                    onChange={(e) =>
-                      updateFormData("home_buying_experience", e.target.value)
-                    }
-                    className="mobile-input"
-                  >
-                    <option value="">Select experience</option>
-                    <option value="first_time">First Time Buyer</option>
-                    <option value="experienced">Experienced Buyer</option>
-                    <option value="investor">Real Estate Investor</option>
-                  </select>
+                    onChange={(value) => updateFormData("home_buying_experience", value)}
+                    options={[
+                      { value: "first_time", label: "First Time Buyer" },
+                      { value: "experienced", label: "Experienced Buyer" },
+                      { value: "investor", label: "Real Estate Investor" }
+                    ]}
+                    placeholder="Select experience"
+                    isOpen={openDropdowns.home_buying_experience || false}
+                    onToggle={() => toggleDropdown("home_buying_experience")}
+                    dropdownRef={getDropdownRef("home_buying_experience")}
+                  />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
                     {formatDisplayValue(formData.home_buying_experience) || <span className="text-gray-500">Not specified</span>}
@@ -1344,21 +1497,22 @@ export default function PersonalizationPage() {
                   Financing Preference
                 </label>
                 {isEditMode ? (
-                  <select
+                  <CustomDropdown
                     value={formData.financing_preference || ""}
-                    onChange={(e) =>
-                      updateFormData("financing_preference", e.target.value)
-                    }
-                    className="mobile-input"
-                  >
-                    <option value="">Select financing</option>
-                    <option value="cash">Cash</option>
-                    <option value="conventional">Conventional Loan</option>
-                    <option value="fha">FHA Loan</option>
-                    <option value="va">VA Loan</option>
-                    <option value="usda">USDA Loan</option>
-                    <option value="jumbo">Jumbo Loan</option>
-                  </select>
+                    onChange={(value) => updateFormData("financing_preference", value)}
+                    options={[
+                      { value: "cash", label: "Cash" },
+                      { value: "conventional", label: "Conventional Loan" },
+                      { value: "fha", label: "FHA Loan" },
+                      { value: "va", label: "VA Loan" },
+                      { value: "usda", label: "USDA Loan" },
+                      { value: "jumbo", label: "Jumbo Loan" }
+                    ]}
+                    placeholder="Select financing"
+                    isOpen={openDropdowns.financing_preference || false}
+                    onToggle={() => toggleDropdown("financing_preference")}
+                    dropdownRef={getDropdownRef("financing_preference")}
+                  />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
                     {formatDisplayValue(formData.financing_preference) || <span className="text-gray-500">Not specified</span>}
@@ -1371,19 +1525,20 @@ export default function PersonalizationPage() {
                   Renovation Willingness
                 </label>
                 {isEditMode ? (
-                  <select
+                  <CustomDropdown
                     value={formData.renovation_willingness || ""}
-                    onChange={(e) =>
-                      updateFormData("renovation_willingness", e.target.value)
-                    }
-                    className="mobile-input"
-                  >
-                    <option value="">Select willingness</option>
-                    <option value="none">None - Move-in Ready</option>
-                    <option value="minor">Minor Cosmetic Updates</option>
-                    <option value="major">Major Renovations</option>
-                    <option value="complete">Complete Renovation</option>
-                  </select>
+                    onChange={(value) => updateFormData("renovation_willingness", value)}
+                    options={[
+                      { value: "none", label: "None - Move-in Ready" },
+                      { value: "minor", label: "Minor Cosmetic Updates" },
+                      { value: "major", label: "Major Renovations" },
+                      { value: "complete", label: "Complete Renovation" }
+                    ]}
+                    placeholder="Select willingness"
+                    isOpen={openDropdowns.renovation_willingness || false}
+                    onToggle={() => toggleDropdown("renovation_willingness")}
+                    dropdownRef={getDropdownRef("renovation_willingness")}
+                  />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
                     {formatDisplayValue(formData.renovation_willingness) || <span className="text-gray-500">Not specified</span>}
@@ -1416,19 +1571,20 @@ export default function PersonalizationPage() {
                   Meeting Availability
                 </label>
                 {isEditMode ? (
-                  <select
+                  <CustomDropdown
                     value={formData.meeting_availability || ""}
-                    onChange={(e) =>
-                      updateFormData("meeting_availability", e.target.value)
-                    }
-                    className="mobile-input"
-                  >
-                    <option value="">Select method</option>
-                    <option value="weekdays">Weekdays</option>
-                    <option value="weekends">Weekends</option>
-                    <option value="evenings">Evenings</option>
-                    <option value="flexible">Flexible</option>
-                  </select>
+                    onChange={(value) => updateFormData("meeting_availability", value)}
+                    options={[
+                      { value: "weekdays", label: "Weekdays" },
+                      { value: "weekends", label: "Weekends" },
+                      { value: "evenings", label: "Evenings" },
+                      { value: "flexible", label: "Flexible" }
+                    ]}
+                    placeholder="Select method"
+                    isOpen={openDropdowns.meeting_availability || false}
+                    onToggle={() => toggleDropdown("meeting_availability")}
+                    dropdownRef={getDropdownRef("meeting_availability")}
+                  />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
                     {formatDisplayValue(formData.meeting_availability) || <span className="text-gray-500">Not specified</span>}
@@ -1440,22 +1596,20 @@ export default function PersonalizationPage() {
                   Response Time Expectation
                 </label>
                 {isEditMode ? (
-                  <select
+                  <CustomDropdown
                     value={formData.response_time_expectation || ""}
-                    onChange={(e) =>
-                      updateFormData(
-                        "response_time_expectation",
-                        e.target.value
-                      )
-                    }
-                    className="mobile-input"
-                  >
-                    <option value="">Select expectation</option>
-                    <option value="immediate">Immediate (within hours)</option>
-                    <option value="same_day">Same day</option>
-                    <option value="next_day">Next business day</option>
-                    <option value="flexible">Flexible</option>
-                  </select>
+                    onChange={(value) => updateFormData("response_time_expectation", value)}
+                    options={[
+                      { value: "immediate", label: "Immediate (within hours)" },
+                      { value: "same_day", label: "Same day" },
+                      { value: "next_day", label: "Next business day" },
+                      { value: "flexible", label: "Flexible" }
+                    ]}
+                    placeholder="Select expectation"
+                    isOpen={openDropdowns.response_time_expectation || false}
+                    onToggle={() => toggleDropdown("response_time_expectation")}
+                    dropdownRef={getDropdownRef("response_time_expectation")}
+                  />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
                     {formatDisplayValue(formData.response_time_expectation) || <span className="text-gray-500">Not specified</span>}
@@ -1468,19 +1622,20 @@ export default function PersonalizationPage() {
                   Preferred Support Channel
                 </label>
                 {isEditMode ? (
-                  <select
+                  <CustomDropdown
                     value={formData.preferred_support_channel || ""}
-                    onChange={(e) =>
-                      updateFormData("preferred_support_channel", e.target.value)
-                    }
-                    className="mobile-input"
-                  >
-                    <option value="">Select channel</option>
-                    <option value="phone">Phone</option>
-                    <option value="email">Email</option>
-                    <option value="text">Text/SMS</option>
-                    <option value="app">Mobile App</option>
-                  </select>
+                    onChange={(value) => updateFormData("preferred_support_channel", value)}
+                    options={[
+                      { value: "phone", label: "Phone" },
+                      { value: "email", label: "Email" },
+                      { value: "text", label: "Text/SMS" },
+                      { value: "app", label: "Mobile App" }
+                    ]}
+                    placeholder="Select channel"
+                    isOpen={openDropdowns.preferred_support_channel || false}
+                    onToggle={() => toggleDropdown("preferred_support_channel")}
+                    dropdownRef={getDropdownRef("preferred_support_channel")}
+                  />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
                     {formatDisplayValue(formData.preferred_support_channel) || <span className="text-gray-500">Not specified</span>}
@@ -1493,19 +1648,20 @@ export default function PersonalizationPage() {
                   Information Detail Level
                 </label>
                 {isEditMode ? (
-                  <select
+                  <CustomDropdown
                     value={formData.information_detail_level || ""}
-                    onChange={(e) =>
-                      updateFormData("information_detail_level", e.target.value)
-                    }
-                    className="mobile-input"
-                  >
-                    <option value="">Select detail level</option>
-                    <option value="brief">Brief</option>
-                    <option value="moderate">Moderate</option>
-                    <option value="detailed">Detailed</option>
-                    <option value="comprehensive">Comprehensive</option>
-                  </select>
+                    onChange={(value) => updateFormData("information_detail_level", value)}
+                    options={[
+                      { value: "brief", label: "Brief" },
+                      { value: "moderate", label: "Moderate" },
+                      { value: "detailed", label: "Detailed" },
+                      { value: "comprehensive", label: "Comprehensive" }
+                    ]}
+                    placeholder="Select detail level"
+                    isOpen={openDropdowns.information_detail_level || false}
+                    onToggle={() => toggleDropdown("information_detail_level")}
+                    dropdownRef={getDropdownRef("information_detail_level")}
+                  />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
                     {formatDisplayValue(formData.information_detail_level) || <span className="text-gray-500">Not specified</span>}
@@ -1518,19 +1674,20 @@ export default function PersonalizationPage() {
                   Meeting Preference
                 </label>
                 {isEditMode ? (
-                  <select
+                  <CustomDropdown
                     value={formData.meeting_preference || ""}
-                    onChange={(e) =>
-                      updateFormData("meeting_preference", e.target.value)
-                    }
-                    className="mobile-input"
-                  >
-                    <option value="">Select preference</option>
-                    <option value="in_person">In Person</option>
-                    <option value="virtual">Virtual</option>
-                    <option value="phone">Phone</option>
-                    <option value="email">Email</option>
-                  </select>
+                    onChange={(value) => updateFormData("meeting_preference", value)}
+                    options={[
+                      { value: "in_person", label: "In Person" },
+                      { value: "virtual", label: "Virtual" },
+                      { value: "phone", label: "Phone" },
+                      { value: "email", label: "Email" }
+                    ]}
+                    placeholder="Select preference"
+                    isOpen={openDropdowns.meeting_preference || false}
+                    onToggle={() => toggleDropdown("meeting_preference")}
+                    dropdownRef={getDropdownRef("meeting_preference")}
+                  />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
                     {formatDisplayValue(formData.meeting_preference) || <span className="text-gray-500">Not specified</span>}
@@ -1587,7 +1744,7 @@ export default function PersonalizationPage() {
                   onChange={(e) =>
                     updateFormData("additional_context", e.target.value)
                   }
-                  className="mobile-input"
+                  className="mobile-input hover:border-brown focus:border-brown focus:ring-brown/20"
                   rows={4}
                   placeholder="Any additional information you'd like to share..."
                 />

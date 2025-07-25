@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Check,
   User,
   Home,
@@ -70,9 +71,12 @@ interface OnboardingData {
   communication_frequency?: string;
   information_detail_level?: string;
   meeting_preference?: string;
+  meeting_availability?: string;
+  response_time_expectation?: string;
   quote_bubbles?: string[];
   deal_makers?: string[];
   concerns_or_fears?: string[];
+  additional_context?: string;
 }
 
 const STEPS = [
@@ -87,10 +91,78 @@ const STEPS = [
   { id: "insights", title: "Personal Insights", icon: Lightbulb },
 ];
 
+// Custom dropdown component matching PastReports implementation
+interface CustomDropdownProps {
+  value: string;
+  onChange: (value: string) => void;
+  options: { value: string; label: string }[];
+  placeholder: string;
+  isOpen: boolean;
+  onToggle: () => void;
+  dropdownRef: React.RefObject<HTMLDivElement>;
+}
+
+const CustomDropdown: React.FC<CustomDropdownProps> = ({
+  value,
+  onChange,
+  options,
+  placeholder,
+  isOpen,
+  onToggle,
+  dropdownRef
+}) => {
+  const selectedOption = options.find(opt => opt.value === value);
+  
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <button
+        onClick={onToggle}
+        className="mobile-input text-sm flex items-center justify-between cursor-pointer hover:border-brown focus:border-brown focus:ring-brown/20"
+      >
+        <span className="text-left">
+          {selectedOption ? selectedOption.label : placeholder}
+        </span>
+        <ChevronDown
+          className={`w-4 h-4 transition-transform duration-200 ${
+            isOpen ? "rotate-180" : ""
+          }`}
+        />
+      </button>
+
+      {isOpen && (
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-beige rounded-lg shadow-lg z-50">
+          {options.map((option, index) => (
+            <button
+              key={option.value}
+              onClick={() => {
+                onChange(option.value);
+                onToggle();
+              }}
+              className={`w-full px-3 py-2 text-left text-sm hover:bg-brown/5 transition-colors duration-150 ${
+                index === 0 ? "first:rounded-t-lg" : ""
+              } ${
+                index === options.length - 1 ? "last:rounded-b-lg" : ""
+              } ${
+                value === option.value
+                  ? "bg-brown/10 text-brown font-medium"
+                  : "text-black"
+              }`}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 export default function OnboardingPage() {
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<OnboardingData>({});
   const [loading, setLoading] = useState(false);
+  const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>({});
+  const dropdownRefs = useRef<Record<string, React.RefObject<HTMLDivElement>>>({});
   const navigate = useNavigate();
 
   // Load formData from localStorage on mount
@@ -115,7 +187,43 @@ export default function OnboardingPage() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  // Dropdown utility functions
+  const toggleDropdown = (fieldName: string) => {
+    setOpenDropdowns(prev => ({
+      ...prev,
+      [fieldName]: !prev[fieldName]
+    }));
+  };
 
+  const getDropdownRef = (fieldName: string) => {
+    if (!dropdownRefs.current[fieldName]) {
+      dropdownRefs.current[fieldName] = React.createRef<HTMLDivElement>();
+    }
+    return dropdownRefs.current[fieldName];
+  };
+
+  // Close all dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+      let shouldClose = true;
+      
+      Object.entries(dropdownRefs.current).forEach(([_fieldName, ref]) => {
+        if (ref.current && ref.current.contains(target)) {
+          shouldClose = false;
+        }
+      });
+      
+      if (shouldClose) {
+        setOpenDropdowns({});
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const nextStep = () => {
     if (currentStep < STEPS.length - 1) {
@@ -247,37 +355,41 @@ export default function OnboardingPage() {
                 <label className="block text-sm font-medium text-black mb-2">
                   Gender
                 </label>
-                <select
+                <CustomDropdown
                   value={formData.gender || ""}
-                  onChange={(e) => updateFormData("gender", e.target.value)}
-                  className="mobile-input"
-                >
-                  <option value="">Select...</option>
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
-                  <option value="non-binary">Non-binary</option>
-                  <option value="prefer_not_to_say">Prefer not to say</option>
-                </select>
+                  onChange={(value) => updateFormData("gender", value)}
+                  options={[
+                    { value: "male", label: "Male" },
+                    { value: "female", label: "Female" },
+                    { value: "non-binary", label: "Non-binary" },
+                    { value: "prefer_not_to_say", label: "Prefer not to say" }
+                  ]}
+                  placeholder="Select..."
+                  isOpen={openDropdowns.gender || false}
+                  onToggle={() => toggleDropdown("gender")}
+                  dropdownRef={getDropdownRef("gender")}
+                />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
                   Marital Status
                 </label>
-                <select
+                <CustomDropdown
                   value={formData.marital_status || ""}
-                  onChange={(e) =>
-                    updateFormData("marital_status", e.target.value)
-                  }
-                  className="mobile-input"
-                >
-                  <option value="">Select...</option>
-                  <option value="single">Single</option>
-                  <option value="married">Married</option>
-                  <option value="divorced">Divorced</option>
-                  <option value="widowed">Widowed</option>
-                  <option value="partnered">Partnered</option>
-                </select>
+                  onChange={(value) => updateFormData("marital_status", value)}
+                  options={[
+                    { value: "single", label: "Single" },
+                    { value: "married", label: "Married" },
+                    { value: "divorced", label: "Divorced" },
+                    { value: "widowed", label: "Widowed" },
+                    { value: "partnered", label: "Partnered" }
+                  ]}
+                  placeholder="Select..."
+                  isOpen={openDropdowns.marital_status || false}
+                  onToggle={() => toggleDropdown("marital_status")}
+                  dropdownRef={getDropdownRef("marital_status")}
+                />
               </div>
 
               <div>
@@ -328,21 +440,22 @@ export default function OnboardingPage() {
                 <label className="block text-sm font-medium text-black mb-2">
                   Education Level
                 </label>
-                <select
+                <CustomDropdown
                   value={formData.education_level || ""}
-                  onChange={(e) =>
-                    updateFormData("education_level", e.target.value)
-                  }
-                  className="mobile-input"
-                >
-                  <option value="">Select...</option>
-                  <option value="high_school">High School</option>
-                  <option value="some_college">Some College</option>
-                  <option value="bachelors">Bachelor's Degree</option>
-                  <option value="masters">Master's Degree</option>
-                  <option value="doctorate">Doctorate</option>
-                  <option value="other">Other</option>
-                </select>
+                  onChange={(value) => updateFormData("education_level", value)}
+                  options={[
+                    { value: "high_school", label: "High School" },
+                    { value: "some_college", label: "Some College" },
+                    { value: "bachelors", label: "Bachelor's Degree" },
+                    { value: "masters", label: "Master's Degree" },
+                    { value: "doctorate", label: "Doctorate" },
+                    { value: "other", label: "Other" }
+                  ]}
+                  placeholder="Select..."
+                  isOpen={openDropdowns.education_level || false}
+                  onToggle={() => toggleDropdown("education_level")}
+                  dropdownRef={getDropdownRef("education_level")}
+                />
               </div>
 
               <div>
@@ -362,20 +475,22 @@ export default function OnboardingPage() {
                 <label className="block text-sm font-medium text-black mb-2">
                   Employment Status
                 </label>
-                <select
+                <CustomDropdown
                   value={formData.employment_status || ""}
-                  onChange={(e) =>
-                    updateFormData("employment_status", e.target.value)
-                  }
-                  className="mobile-input"
-                >
-                  <option value="">Select...</option>
-                  <option value="employed">Employed</option>
-                  <option value="unemployed">Unemployed</option>
-                  <option value="retired">Retired</option>
-                  <option value="student">Student</option>
-                  <option value="freelance">Freelance</option>
-                </select>
+                  onChange={(value) => updateFormData("employment_status", value)}
+                  options={[
+                    { value: "employed", label: "Employed" },
+                    { value: "unemployed", label: "Unemployed" },
+                    { value: "retired", label: "Retired" },
+                    { value: "student", label: "Student" },
+                    { value: "freelance", label: "Freelance" },
+                    { value: "other", label: "Other" }
+                  ]}
+                  placeholder="Select..."
+                  isOpen={openDropdowns.employment_status || false}
+                  onToggle={() => toggleDropdown("employment_status")}
+                  dropdownRef={getDropdownRef("employment_status")}
+                />
               </div>
             </div>
           </div>
@@ -406,122 +521,128 @@ export default function OnboardingPage() {
                 <label className="block text-sm font-medium text-black mb-2">
                   Income Range
                 </label>
-                <select
+                <CustomDropdown
                   value={formData.income_range || ""}
-                  onChange={(e) =>
-                    updateFormData("income_range", e.target.value)
-                  }
-                  className="mobile-input"
-                >
-                  <option value="">Select...</option>
-                  <option value="under_30k">Under $30,000</option>
-                  <option value="30k_50k">$30,000 - $50,000</option>
-                  <option value="50k_75k">$50,000 - $75,000</option>
-                  <option value="75k_100k">$75,000 - $100,000</option>
-                  <option value="100k_150k">$100,000 - $150,000</option>
-                  <option value="150k_plus">$150,000+</option>
-                </select>
+                  onChange={(value) => updateFormData("income_range", value)}
+                  options={[
+                    { value: "under_30k", label: "Under $30,000" },
+                    { value: "30k_50k", label: "$30,000 - $50,000" },
+                    { value: "50k_75k", label: "$50,000 - $75,000" },
+                    { value: "75k_100k", label: "$75,000 - $100,000" },
+                    { value: "100k_150k", label: "$100,000 - $150,000" },
+                    { value: "150k_plus", label: "$150,000+" }
+                  ]}
+                  placeholder="Select..."
+                  isOpen={openDropdowns.income_range || false}
+                  onToggle={() => toggleDropdown("income_range")}
+                  dropdownRef={getDropdownRef("income_range")}
+                />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
                   Preferred Home Price Range
                 </label>
-                <select
+                <CustomDropdown
                   value={formData.preferred_home_price_range || ""}
-                  onChange={(e) =>
-                    updateFormData("preferred_home_price_range", e.target.value)
-                  }
-                  className="mobile-input"
-                >
-                  <option value="">Select...</option>
-                  <option value="under_200k">Under $200,000</option>
-                  <option value="200k_400k">$200,000 - $400,000</option>
-                  <option value="400k_600k">$400,000 - $600,000</option>
-                  <option value="600k_800k">$600,000 - $800,000</option>
-                  <option value="800k_1m">$800,000 - $1,000,000</option>
-                  <option value="1m_plus">$1,000,000+</option>
-                </select>
+                  onChange={(value) => updateFormData("preferred_home_price_range", value)}
+                  options={[
+                    { value: "under_200k", label: "Under $200,000" },
+                    { value: "200k_400k", label: "$200,000 - $400,000" },
+                    { value: "400k_600k", label: "$400,000 - $600,000" },
+                    { value: "600k_800k", label: "$600,000 - $800,000" },
+                    { value: "800k_1m", label: "$800,000 - $1,000,000" },
+                    { value: "1m_plus", label: "$1,000,000+" }
+                  ]}
+                  placeholder="Select..."
+                  isOpen={openDropdowns.preferred_home_price_range || false}
+                  onToggle={() => toggleDropdown("preferred_home_price_range")}
+                  dropdownRef={getDropdownRef("preferred_home_price_range")}
+                />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
                   Credit Score Range
                 </label>
-                <select
+                <CustomDropdown
                   value={formData.credit_score_range || ""}
-                  onChange={(e) =>
-                    updateFormData("credit_score_range", e.target.value)
-                  }
-                  className="mobile-input"
-                >
-                  <option value="">Select...</option>
-                  <option value="poor">Poor (300-579)</option>
-                  <option value="fair">Fair (580-669)</option>
-                  <option value="good">Good (670-739)</option>
-                  <option value="very_good">Very Good (740-799)</option>
-                  <option value="excellent">Excellent (800-850)</option>
-                </select>
+                  onChange={(value) => updateFormData("credit_score_range", value)}
+                  options={[
+                    { value: "poor", label: "Poor (300-579)" },
+                    { value: "fair", label: "Fair (580-669)" },
+                    { value: "good", label: "Good (670-739)" },
+                    { value: "very_good", label: "Very Good (740-799)" },
+                    { value: "excellent", label: "Excellent (800-850)" }
+                  ]}
+                  placeholder="Select..."
+                  isOpen={openDropdowns.credit_score_range || false}
+                  onToggle={() => toggleDropdown("credit_score_range")}
+                  dropdownRef={getDropdownRef("credit_score_range")}
+                />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
                   Savings Amount Range
                 </label>
-                <select
+                <CustomDropdown
                   value={formData.savings_amount_range || ""}
-                  onChange={(e) =>
-                    updateFormData("savings_amount_range", e.target.value)
-                  }
-                  className="mobile-input"
-                >
-                  <option value="">Select...</option>
-                  <option value="under_10k">Under $10,000</option>
-                  <option value="10k_25k">$10,000 - $25,000</option>
-                  <option value="25k_50k">$25,000 - $50,000</option>
-                  <option value="50k_100k">$50,000 - $100,000</option>
-                  <option value="100k_plus">$100,000+</option>
-                </select>
+                  onChange={(value) => updateFormData("savings_amount_range", value)}
+                  options={[
+                    { value: "under_10k", label: "Under $10,000" },
+                    { value: "10k_25k", label: "$10,000 - $25,000" },
+                    { value: "25k_50k", label: "$25,000 - $50,000" },
+                    { value: "50k_100k", label: "$50,000 - $100,000" },
+                    { value: "100k_plus", label: "$100,000+" }
+                  ]}
+                  placeholder="Select..."
+                  isOpen={openDropdowns.savings_amount_range || false}
+                  onToggle={() => toggleDropdown("savings_amount_range")}
+                  dropdownRef={getDropdownRef("savings_amount_range")}
+                />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
                   Investment Experience
                 </label>
-                <select
+                <CustomDropdown
                   value={formData.investment_experience || ""}
-                  onChange={(e) =>
-                    updateFormData("investment_experience", e.target.value)
-                  }
-                  className="mobile-input"
-                >
-                  <option value="">Select...</option>
-                  <option value="none">None</option>
-                  <option value="beginner">Beginner</option>
-                  <option value="intermediate">Intermediate</option>
-                  <option value="advanced">Advanced</option>
-                  <option value="expert">Expert</option>
-                </select>
+                  onChange={(value) => updateFormData("investment_experience", value)}
+                  options={[
+                    { value: "none", label: "None" },
+                    { value: "beginner", label: "Beginner" },
+                    { value: "intermediate", label: "Intermediate" },
+                    { value: "advanced", label: "Advanced" },
+                    { value: "expert", label: "Expert" }
+                  ]}
+                  placeholder="Select..."
+                  isOpen={openDropdowns.investment_experience || false}
+                  onToggle={() => toggleDropdown("investment_experience")}
+                  dropdownRef={getDropdownRef("investment_experience")}
+                />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
                   Risk Tolerance
                 </label>
-                <select
+                <CustomDropdown
                   value={formData.risk_tolerance || ""}
-                  onChange={(e) =>
-                    updateFormData("risk_tolerance", e.target.value)
-                  }
-                  className="mobile-input"
-                >
-                  <option value="">Select...</option>
-                  <option value="very_low">Very Low</option>
-                  <option value="low">Low</option>
-                  <option value="moderate">Moderate</option>
-                  <option value="high">High</option>
-                  <option value="very_high">Very High</option>
-                </select>
+                  onChange={(value) => updateFormData("risk_tolerance", value)}
+                  options={[
+                    { value: "very_low", label: "Very Low" },
+                    { value: "low", label: "Low" },
+                    { value: "moderate", label: "Moderate" },
+                    { value: "high", label: "High" },
+                    { value: "very_high", label: "Very High" }
+                  ]}
+                  placeholder="Select..."
+                  isOpen={openDropdowns.risk_tolerance || false}
+                  onToggle={() => toggleDropdown("risk_tolerance")}
+                  dropdownRef={getDropdownRef("risk_tolerance")}
+                />
               </div>
             </div>
           </div>
@@ -539,21 +660,22 @@ export default function OnboardingPage() {
                 <label className="block text-sm font-medium text-black mb-2">
                   Desired Housing Type
                 </label>
-                <select
+                <CustomDropdown
                   value={formData.desired_housing_type || ""}
-                  onChange={(e) =>
-                    updateFormData("desired_housing_type", e.target.value)
-                  }
-                  className="mobile-input"
-                >
-                  <option value="">Select...</option>
-                  <option value="single_family">Single Family Home</option>
-                  <option value="condo">Condominium</option>
-                  <option value="townhouse">Townhouse</option>
-                  <option value="apartment">Apartment</option>
-                  <option value="duplex">Duplex</option>
-                  <option value="mobile_home">Mobile Home</option>
-                </select>
+                  onChange={(value) => updateFormData("desired_housing_type", value)}
+                  options={[
+                    { value: "single_family", label: "Single Family Home" },
+                    { value: "condo", label: "Condominium" },
+                    { value: "townhouse", label: "Townhouse" },
+                    { value: "apartment", label: "Apartment" },
+                    { value: "duplex", label: "Duplex" },
+                    { value: "mobile_home", label: "Mobile Home" }
+                  ]}
+                  placeholder="Select..."
+                  isOpen={openDropdowns.desired_housing_type || false}
+                  onToggle={() => toggleDropdown("desired_housing_type")}
+                  dropdownRef={getDropdownRef("desired_housing_type")}
+                />
               </div>
 
               <div>
@@ -601,62 +723,65 @@ export default function OnboardingPage() {
                 <label className="block text-sm font-medium text-black mb-2">
                   Preferred Lot Size
                 </label>
-                <select
+                <CustomDropdown
                   value={formData.preferred_lot_size || ""}
-                  onChange={(e) =>
-                    updateFormData("preferred_lot_size", e.target.value)
-                  }
-                  className="mobile-input"
-                >
-                  <option value="">Select...</option>
-                  <option value="small">Small (under 0.25 acres)</option>
-                  <option value="medium">Medium (0.25 - 0.5 acres)</option>
-                  <option value="large">Large (0.5 - 1 acre)</option>
-                  <option value="very_large">Very Large (1+ acres)</option>
-                </select>
+                  onChange={(value) => updateFormData("preferred_lot_size", value)}
+                  options={[
+                    { value: "small", label: "Small (under 0.25 acres)" },
+                    { value: "medium", label: "Medium (0.25 - 0.5 acres)" },
+                    { value: "large", label: "Large (0.5 - 1 acre)" },
+                    { value: "very_large", label: "Very Large (1+ acres)" }
+                  ]}
+                  placeholder="Select..."
+                  isOpen={openDropdowns.preferred_lot_size || false}
+                  onToggle={() => toggleDropdown("preferred_lot_size")}
+                  dropdownRef={getDropdownRef("preferred_lot_size")}
+                />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
                   Preferred Home Age
                 </label>
-                <select
+                <CustomDropdown
                   value={formData.preferred_home_age || ""}
-                  onChange={(e) =>
-                    updateFormData("preferred_home_age", e.target.value)
-                  }
-                  className="mobile-input"
-                >
-                  <option value="">Select...</option>
-                  <option value="new">New (0-5 years)</option>
-                  <option value="recent">Recent (5-15 years)</option>
-                  <option value="established">Established (15-30 years)</option>
-                  <option value="mature">Mature (30-50 years)</option>
-                  <option value="historic">Historic (50+ years)</option>
-                </select>
+                  onChange={(value) => updateFormData("preferred_home_age", value)}
+                  options={[
+                    { value: "new", label: "New (0-5 years)" },
+                    { value: "recent", label: "Recent (5-15 years)" },
+                    { value: "established", label: "Established (15-30 years)" },
+                    { value: "mature", label: "Mature (30-50 years)" },
+                    { value: "historic", label: "Historic (50+ years)" }
+                  ]}
+                  placeholder="Select..."
+                  isOpen={openDropdowns.preferred_home_age || false}
+                  onToggle={() => toggleDropdown("preferred_home_age")}
+                  dropdownRef={getDropdownRef("preferred_home_age")}
+                />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
                   Preferred Architectural Style
                 </label>
-                <select
+                <CustomDropdown
                   value={formData.preferred_architectural_style || ""}
-                  onChange={(e) =>
-                    updateFormData("preferred_architectural_style", e.target.value)
-                  }
-                  className="mobile-input"
-                >
-                  <option value="">Select...</option>
-                  <option value="modern">Modern</option>
-                  <option value="traditional">Traditional</option>
-                  <option value="colonial">Colonial</option>
-                  <option value="ranch">Ranch</option>
-                  <option value="craftsman">Craftsman</option>
-                  <option value="victorian">Victorian</option>
-                  <option value="mediterranean">Mediterranean</option>
-                  <option value="contemporary">Contemporary</option>
-                </select>
+                  onChange={(value) => updateFormData("preferred_architectural_style", value)}
+                  options={[
+                    { value: "modern", label: "Modern" },
+                    { value: "traditional", label: "Traditional" },
+                    { value: "colonial", label: "Colonial" },
+                    { value: "ranch", label: "Ranch" },
+                    { value: "craftsman", label: "Craftsman" },
+                    { value: "victorian", label: "Victorian" },
+                    { value: "mediterranean", label: "Mediterranean" },
+                    { value: "contemporary", label: "Contemporary" }
+                  ]}
+                  placeholder="Select..."
+                  isOpen={openDropdowns.preferred_architectural_style || false}
+                  onToggle={() => toggleDropdown("preferred_architectural_style")}
+                  dropdownRef={getDropdownRef("preferred_architectural_style")}
+                />
               </div>
 
               <div className="md:col-span-2">
@@ -692,19 +817,20 @@ export default function OnboardingPage() {
                 <label className="block text-sm font-medium text-black mb-2">
                   Urban/Rural Preference
                 </label>
-                <select
+                <CustomDropdown
                   value={formData.urban_rural_preference || ""}
-                  onChange={(e) =>
-                    updateFormData("urban_rural_preference", e.target.value)
-                  }
-                  className="mobile-input"
-                >
-                  <option value="">Select...</option>
-                  <option value="urban">Urban</option>
-                  <option value="suburban">Suburban</option>
-                  <option value="rural">Rural</option>
-                  <option value="mixed">Mixed</option>
-                </select>
+                  onChange={(value) => updateFormData("urban_rural_preference", value)}
+                  options={[
+                    { value: "urban", label: "Urban" },
+                    { value: "suburban", label: "Suburban" },
+                    { value: "rural", label: "Rural" },
+                    { value: "mixed", label: "Mixed" }
+                  ]}
+                  placeholder="Select..."
+                  isOpen={openDropdowns.urban_rural_preference || false}
+                  onToggle={() => toggleDropdown("urban_rural_preference")}
+                  dropdownRef={getDropdownRef("urban_rural_preference")}
+                />
               </div>
 
               <div>
@@ -731,57 +857,60 @@ export default function OnboardingPage() {
                 <label className="block text-sm font-medium text-black mb-2">
                   Preferred Climate
                 </label>
-                <select
+                <CustomDropdown
                   value={formData.preferred_climate || ""}
-                  onChange={(e) =>
-                    updateFormData("preferred_climate", e.target.value)
-                  }
-                  className="mobile-input"
-                >
-                  <option value="">Select...</option>
-                  <option value="tropical">Tropical</option>
-                  <option value="subtropical">Subtropical</option>
-                  <option value="temperate">Temperate</option>
-                  <option value="continental">Continental</option>
-                  <option value="arid">Arid</option>
-                  <option value="mediterranean">Mediterranean</option>
-                </select>
+                  onChange={(value) => updateFormData("preferred_climate", value)}
+                  options={[
+                    { value: "tropical", label: "Tropical" },
+                    { value: "subtropical", label: "Subtropical" },
+                    { value: "temperate", label: "Temperate" },
+                    { value: "continental", label: "Continental" },
+                    { value: "arid", label: "Arid" },
+                    { value: "mediterranean", label: "Mediterranean" }
+                  ]}
+                  placeholder="Select..."
+                  isOpen={openDropdowns.preferred_climate || false}
+                  onToggle={() => toggleDropdown("preferred_climate")}
+                  dropdownRef={getDropdownRef("preferred_climate")}
+                />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
                   Proximity to Family
                 </label>
-                <select
+                <CustomDropdown
                   value={formData.proximity_to_family || ""}
-                  onChange={(e) =>
-                    updateFormData("proximity_to_family", e.target.value)
-                  }
-                  className="mobile-input"
-                >
-                  <option value="">Select...</option>
-                  <option value="very_important">Very Important</option>
-                  <option value="somewhat_important">Somewhat Important</option>
-                  <option value="not_important">Not Important</option>
-                </select>
+                  onChange={(value) => updateFormData("proximity_to_family", value)}
+                  options={[
+                    { value: "very_important", label: "Very Important" },
+                    { value: "somewhat_important", label: "Somewhat Important" },
+                    { value: "not_important", label: "Not Important" }
+                  ]}
+                  placeholder="Select..."
+                  isOpen={openDropdowns.proximity_to_family || false}
+                  onToggle={() => toggleDropdown("proximity_to_family")}
+                  dropdownRef={getDropdownRef("proximity_to_family")}
+                />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
                   Walkability Importance
                 </label>
-                <select
+                <CustomDropdown
                   value={formData.walkability_importance || ""}
-                  onChange={(e) =>
-                    updateFormData("walkability_importance", e.target.value)
-                  }
-                  className="mobile-input"
-                >
-                  <option value="">Select...</option>
-                  <option value="very_important">Very Important</option>
-                  <option value="somewhat_important">Somewhat Important</option>
-                  <option value="not_important">Not Important</option>
-                </select>
+                  onChange={(value) => updateFormData("walkability_importance", value)}
+                  options={[
+                    { value: "very_important", label: "Very Important" },
+                    { value: "somewhat_important", label: "Somewhat Important" },
+                    { value: "not_important", label: "Not Important" }
+                  ]}
+                  placeholder="Select..."
+                  isOpen={openDropdowns.walkability_importance || false}
+                  onToggle={() => toggleDropdown("walkability_importance")}
+                  dropdownRef={getDropdownRef("walkability_importance")}
+                />
               </div>
             </div>
           </div>
@@ -799,20 +928,21 @@ export default function OnboardingPage() {
                 <label className="block text-sm font-medium text-black mb-2">
                   Lifestyle Type
                 </label>
-                <select
+                <CustomDropdown
                   value={formData.lifestyle_type || ""}
-                  onChange={(e) =>
-                    updateFormData("lifestyle_type", e.target.value)
-                  }
-                  className="mobile-input"
-                >
-                  <option value="">Select...</option>
-                  <option value="active">Active</option>
-                  <option value="quiet">Quiet</option>
-                  <option value="social">Social</option>
-                  <option value="family_oriented">Family Oriented</option>
-                  <option value="career_focused">Career Focused</option>
-                </select>
+                  onChange={(value) => updateFormData("lifestyle_type", value)}
+                  options={[
+                    { value: "active", label: "Active" },
+                    { value: "quiet", label: "Quiet" },
+                    { value: "social", label: "Social" },
+                    { value: "family_oriented", label: "Family Oriented" },
+                    { value: "career_focused", label: "Career Focused" }
+                  ]}
+                  placeholder="Select..."
+                  isOpen={openDropdowns.lifestyle_type || false}
+                  onToggle={() => toggleDropdown("lifestyle_type")}
+                  dropdownRef={getDropdownRef("lifestyle_type")}
+                />
               </div>
 
               <div className="md:col-span-2">
@@ -857,97 +987,102 @@ export default function OnboardingPage() {
                 <label className="block text-sm font-medium text-black mb-2">
                   Decision Making Style
                 </label>
-                <select
+                <CustomDropdown
                   value={formData.decision_making_style || ""}
-                  onChange={(e) =>
-                    updateFormData("decision_making_style", e.target.value)
-                  }
-                  className="mobile-input"
-                >
-                  <option value="">Select...</option>
-                  <option value="analytical">Analytical</option>
-                  <option value="intuitive">Intuitive</option>
-                  <option value="collaborative">Collaborative</option>
-                  <option value="quick">Quick</option>
-                  <option value="deliberate">Deliberate</option>
-                </select>
+                  onChange={(value) => updateFormData("decision_making_style", value)}
+                  options={[
+                    { value: "analytical", label: "Analytical" },
+                    { value: "intuitive", label: "Intuitive" },
+                    { value: "collaborative", label: "Collaborative" },
+                    { value: "quick", label: "Quick" },
+                    { value: "deliberate", label: "Deliberate" }
+                  ]}
+                  placeholder="Select..."
+                  isOpen={openDropdowns.decision_making_style || false}
+                  onToggle={() => toggleDropdown("decision_making_style")}
+                  dropdownRef={getDropdownRef("decision_making_style")}
+                />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
                   Research Behavior
                 </label>
-                <select
+                <CustomDropdown
                   value={formData.research_behavior || ""}
-                  onChange={(e) =>
-                    updateFormData("research_behavior", e.target.value)
-                  }
-                  className="mobile-input"
-                >
-                  <option value="">Select...</option>
-                  <option value="minimal">Minimal</option>
-                  <option value="moderate">Moderate</option>
-                  <option value="extensive">Extensive</option>
-                  <option value="obsessive">Obsessive</option>
-                </select>
+                  onChange={(value) => updateFormData("research_behavior", value)}
+                  options={[
+                    { value: "minimal", label: "Minimal" },
+                    { value: "moderate", label: "Moderate" },
+                    { value: "extensive", label: "Extensive" },
+                    { value: "obsessive", label: "Obsessive" }
+                  ]}
+                  placeholder="Select..."
+                  isOpen={openDropdowns.research_behavior || false}
+                  onToggle={() => toggleDropdown("research_behavior")}
+                  dropdownRef={getDropdownRef("research_behavior")}
+                />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
                   Favored Information Style
                 </label>
-                <select
+                <CustomDropdown
                   value={formData.favored_information_style || ""}
-                  onChange={(e) =>
-                    updateFormData("favored_information_style", e.target.value)
-                  }
-                  className="mobile-input"
-                >
-                  <option value="">Select...</option>
-                  <option value="visual">Visual</option>
-                  <option value="textual">Textual</option>
-                  <option value="detailed">Detailed</option>
-                  <option value="summary">Summary</option>
-                </select>
+                  onChange={(value) => updateFormData("favored_information_style", value)}
+                  options={[
+                    { value: "visual", label: "Visual" },
+                    { value: "textual", label: "Textual" },
+                    { value: "detailed", label: "Detailed" },
+                    { value: "summary", label: "Summary" }
+                  ]}
+                  placeholder="Select..."
+                  isOpen={openDropdowns.favored_information_style || false}
+                  onToggle={() => toggleDropdown("favored_information_style")}
+                  dropdownRef={getDropdownRef("favored_information_style")}
+                />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
                   Political Leaning
                 </label>
-                <select
+                <CustomDropdown
                   value={formData.political_leaning || ""}
-                  onChange={(e) =>
-                    updateFormData("political_leaning", e.target.value)
-                  }
-                  className="mobile-input"
-                >
-                  <option value="">Select...</option>
-                  <option value="conservative">Conservative</option>
-                  <option value="liberal">Liberal</option>
-                  <option value="moderate">Moderate</option>
-                  <option value="independent">Independent</option>
-                  <option value="prefer_not_to_say">Prefer not to say</option>
-                </select>
+                  onChange={(value) => updateFormData("political_leaning", value)}
+                  options={[
+                    { value: "conservative", label: "Conservative" },
+                    { value: "liberal", label: "Liberal" },
+                    { value: "moderate", label: "Moderate" },
+                    { value: "independent", label: "Independent" },
+                    { value: "prefer_not_to_say", label: "Prefer not to say" }
+                  ]}
+                  placeholder="Select..."
+                  isOpen={openDropdowns.political_leaning || false}
+                  onToggle={() => toggleDropdown("political_leaning")}
+                  dropdownRef={getDropdownRef("political_leaning")}
+                />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
                   Community Involvement
                 </label>
-                <select
+                <CustomDropdown
                   value={formData.community_involvement || ""}
-                  onChange={(e) =>
-                    updateFormData("community_involvement", e.target.value)
-                  }
-                  className="mobile-input"
-                >
-                  <option value="">Select...</option>
-                  <option value="high">High</option>
-                  <option value="moderate">Moderate</option>
-                  <option value="low">Low</option>
-                  <option value="none">None</option>
-                </select>
+                  onChange={(value) => updateFormData("community_involvement", value)}
+                  options={[
+                    { value: "high", label: "High" },
+                    { value: "moderate", label: "Moderate" },
+                    { value: "low", label: "Low" },
+                    { value: "none", label: "None" }
+                  ]}
+                  placeholder="Select..."
+                  isOpen={openDropdowns.community_involvement || false}
+                  onToggle={() => toggleDropdown("community_involvement")}
+                  dropdownRef={getDropdownRef("community_involvement")}
+                />
               </div>
             </div>
           </div>
@@ -965,178 +1100,185 @@ export default function OnboardingPage() {
                 <label className="block text-sm font-medium text-black mb-2">
                   Property Search Stage
                 </label>
-                <select
+                <CustomDropdown
                   value={formData.property_search_stage || ""}
-                  onChange={(e) =>
-                    updateFormData("property_search_stage", e.target.value)
-                  }
-                  className="mobile-input"
-                >
-                  <option value="">Select...</option>
-                  <option value="not_looking">Not Looking</option>
-                  <option value="browsing">Browsing</option>
-                  <option value="actively_searching">Actively Searching</option>
-                  <option value="ready_to_buy">Ready to Buy</option>
-                </select>
+                  onChange={(value) => updateFormData("property_search_stage", value)}
+                  options={[
+                    { value: "not_looking", label: "Not Looking" },
+                    { value: "browsing", label: "Browsing" },
+                    { value: "actively_searching", label: "Actively Searching" },
+                    { value: "ready_to_buy", label: "Ready to Buy" }
+                  ]}
+                  placeholder="Select..."
+                  isOpen={openDropdowns.property_search_stage || false}
+                  onToggle={() => toggleDropdown("property_search_stage")}
+                  dropdownRef={getDropdownRef("property_search_stage")}
+                />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
                   Home Buying Experience
                 </label>
-                <select
+                <CustomDropdown
                   value={formData.home_buying_experience || ""}
-                  onChange={(e) =>
-                    updateFormData("home_buying_experience", e.target.value)
-                  }
-                  className="mobile-input"
-                >
-                  <option value="">Select...</option>
-                  <option value="first_time">First Time</option>
-                  <option value="experienced">Experienced</option>
-                  <option value="investor">Investor</option>
-                  <option value="multiple_properties">
-                    Multiple Properties
-                  </option>
-                </select>
+                  onChange={(value) => updateFormData("home_buying_experience", value)}
+                  options={[
+                    { value: "first_time", label: "First Time" },
+                    { value: "experienced", label: "Experienced" },
+                    { value: "investor", label: "Investor" },
+                    { value: "multiple_properties", label: "Multiple Properties" }
+                  ]}
+                  placeholder="Select..."
+                  isOpen={openDropdowns.home_buying_experience || false}
+                  onToggle={() => toggleDropdown("home_buying_experience")}
+                  dropdownRef={getDropdownRef("home_buying_experience")}
+                />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
                   Timeline to Purchase
                 </label>
-                <select
+                <CustomDropdown
                   value={formData.timeline_to_purchase || ""}
-                  onChange={(e) =>
-                    updateFormData("timeline_to_purchase", e.target.value)
-                  }
-                  className="mobile-input"
-                >
-                  <option value="">Select...</option>
-                  <option value="<3_months">Less than 3 months</option>
-                  <option value="3-6_months">3-6 months</option>
-                  <option value="6-12_months">6-12 months</option>
-                  <option value=">1_year">More than 1 year</option>
-                  <option value="not_sure">Not sure</option>
-                </select>
+                  onChange={(value) => updateFormData("timeline_to_purchase", value)}
+                  options={[
+                    { value: "<3_months", label: "Less than 3 months" },
+                    { value: "3-6_months", label: "3-6 months" },
+                    { value: "6-12_months", label: "6-12 months" },
+                    { value: ">1_year", label: "More than 1 year" },
+                    { value: "not_sure", label: "Not sure" }
+                  ]}
+                  placeholder="Select..."
+                  isOpen={openDropdowns.timeline_to_purchase || false}
+                  onToggle={() => toggleDropdown("timeline_to_purchase")}
+                  dropdownRef={getDropdownRef("timeline_to_purchase")}
+                />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
                   Financing Preference
                 </label>
-                <select
+                <CustomDropdown
                   value={formData.financing_preference || ""}
-                  onChange={(e) =>
-                    updateFormData("financing_preference", e.target.value)
-                  }
-                  className="mobile-input"
-                >
-                  <option value="">Select...</option>
-                  <option value="cash">Cash</option>
-                  <option value="conventional">Conventional Loan</option>
-                  <option value="fha">FHA Loan</option>
-                  <option value="va">VA Loan</option>
-                  <option value="usda">USDA Loan</option>
-                  <option value="jumbo">Jumbo Loan</option>
-                </select>
+                  onChange={(value) => updateFormData("financing_preference", value)}
+                  options={[
+                    { value: "cash", label: "Cash" },
+                    { value: "conventional", label: "Conventional Loan" },
+                    { value: "fha", label: "FHA Loan" },
+                    { value: "va", label: "VA Loan" },
+                    { value: "usda", label: "USDA Loan" },
+                    { value: "jumbo", label: "Jumbo Loan" }
+                  ]}
+                  placeholder="Select..."
+                  isOpen={openDropdowns.financing_preference || false}
+                  onToggle={() => toggleDropdown("financing_preference")}
+                  dropdownRef={getDropdownRef("financing_preference")}
+                />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
                   Renovation Willingness
                 </label>
-                <select
+                <CustomDropdown
                   value={formData.renovation_willingness || ""}
-                  onChange={(e) =>
-                    updateFormData("renovation_willingness", e.target.value)
-                  }
-                  className="mobile-input"
-                >
-                  <option value="">Select...</option>
-                  <option value="none">None - Move-in Ready</option>
-                  <option value="minor">Minor Cosmetic Updates</option>
-                  <option value="major">Major Renovations</option>
-                  <option value="complete">Complete Renovation</option>
-                </select>
+                  onChange={(value) => updateFormData("renovation_willingness", value)}
+                  options={[
+                    { value: "none", label: "None - Move-in Ready" },
+                    { value: "minor", label: "Minor Cosmetic Updates" },
+                    { value: "major", label: "Major Renovations" },
+                    { value: "complete", label: "Complete Renovation" }
+                  ]}
+                  placeholder="Select..."
+                  isOpen={openDropdowns.renovation_willingness || false}
+                  onToggle={() => toggleDropdown("renovation_willingness")}
+                  dropdownRef={getDropdownRef("renovation_willingness")}
+                />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
                   Intended Property Use
                 </label>
-                <select
+                <CustomDropdown
                   value={formData.intended_property_use || ""}
-                  onChange={(e) =>
-                    updateFormData("intended_property_use", e.target.value)
-                  }
-                  className="mobile-input"
-                >
-                  <option value="">Select...</option>
-                  <option value="primary">Primary Residence</option>
-                  <option value="investment">Investment Property</option>
-                  <option value="vacation">Vacation Home</option>
-                  <option value="rental">Rental Property</option>
-                </select>
+                  onChange={(value) => updateFormData("intended_property_use", value)}
+                  options={[
+                    { value: "primary", label: "Primary Residence" },
+                    { value: "investment", label: "Investment Property" },
+                    { value: "vacation", label: "Vacation Home" },
+                    { value: "rental", label: "Rental Property" }
+                  ]}
+                  placeholder="Select..."
+                  isOpen={openDropdowns.intended_property_use || false}
+                  onToggle={() => toggleDropdown("intended_property_use")}
+                  dropdownRef={getDropdownRef("intended_property_use")}
+                />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
                   Current Home Ownership Status
                 </label>
-                <select
+                <CustomDropdown
                   value={formData.current_home_ownership_status || ""}
-                  onChange={(e) =>
-                    updateFormData("current_home_ownership_status", e.target.value)
-                  }
-                  className="mobile-input"
-                >
-                  <option value="">Select...</option>
-                  <option value="own">Own Current Home</option>
-                  <option value="rent">Rent Current Home</option>
-                  <option value="living_with_family">Living with Family</option>
-                  <option value="other">Other</option>
-                </select>
+                  onChange={(value) => updateFormData("current_home_ownership_status", value)}
+                  options={[
+                    { value: "own", label: "Own Current Home" },
+                    { value: "rent", label: "Rent Current Home" },
+                    { value: "living_with_family", label: "Living with Family" },
+                    { value: "other", label: "Other" }
+                  ]}
+                  placeholder="Select..."
+                  isOpen={openDropdowns.current_home_ownership_status || false}
+                  onToggle={() => toggleDropdown("current_home_ownership_status")}
+                  dropdownRef={getDropdownRef("current_home_ownership_status")}
+                />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
                   Moving Reason
                 </label>
-                <select
+                <CustomDropdown
                   value={formData.moving_reason || ""}
-                  onChange={(e) =>
-                    updateFormData("moving_reason", e.target.value)
-                  }
-                  className="mobile-input"
-                >
-                  <option value="">Select...</option>
-                  <option value="job">Job/Career Change</option>
-                  <option value="family">Family Changes</option>
-                  <option value="upgrade">Upgrade Home</option>
-                  <option value="downsize">Downsize</option>
-                  <option value="investment">Investment Opportunity</option>
-                  <option value="lifestyle">Lifestyle Change</option>
-                </select>
+                  onChange={(value) => updateFormData("moving_reason", value)}
+                  options={[
+                    { value: "job", label: "Job/Career Change" },
+                    { value: "family", label: "Family Changes" },
+                    { value: "upgrade", label: "Upgrade Home" },
+                    { value: "downsize", label: "Downsize" },
+                    { value: "investment", label: "Investment Opportunity" },
+                    { value: "lifestyle", label: "Lifestyle Change" }
+                  ]}
+                  placeholder="Select..."
+                  isOpen={openDropdowns.moving_reason || false}
+                  onToggle={() => toggleDropdown("moving_reason")}
+                  dropdownRef={getDropdownRef("moving_reason")}
+                />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
                   Agent Experience Preference
                 </label>
-                <select
+                <CustomDropdown
                   value={formData.agent_experience_preference || ""}
-                  onChange={(e) =>
-                    updateFormData("agent_experience_preference", e.target.value)
-                  }
-                  className="mobile-input"
-                >
-                  <option value="">Select...</option>
-                  <option value="new_agent">New Agent</option>
-                  <option value="experienced">Experienced Agent</option>
-                  <option value="top_producer">Top Producer</option>
-                  <option value="no_preference">No Preference</option>
-                </select>
+                  onChange={(value) => updateFormData("agent_experience_preference", value)}
+                  options={[
+                    { value: "new_agent", label: "New Agent" },
+                    { value: "experienced", label: "Experienced Agent" },
+                    { value: "top_producer", label: "Top Producer" },
+                    { value: "no_preference", label: "No Preference" }
+                  ]}
+                  placeholder="Select..."
+                  isOpen={openDropdowns.agent_experience_preference || false}
+                  onToggle={() => toggleDropdown("agent_experience_preference")}
+                  dropdownRef={getDropdownRef("agent_experience_preference")}
+                />
               </div>
 
               <div className="md:col-span-2">
@@ -1172,76 +1314,120 @@ export default function OnboardingPage() {
                 <label className="block text-sm font-medium text-black mb-2">
                   Preferred Support Channel
                 </label>
-                <select
+                <CustomDropdown
                   value={formData.preferred_support_channel || ""}
-                  onChange={(e) =>
-                    updateFormData("preferred_support_channel", e.target.value)
-                  }
-                  className="mobile-input"
-                >
-                  <option value="">Select...</option>
-                  <option value="phone">Phone</option>
-                  <option value="email">Email</option>
-                  <option value="chat">Chat</option>
-                  <option value="self_service">Self Service</option>
-                </select>
+                  onChange={(value) => updateFormData("preferred_support_channel", value)}
+                  options={[
+                    { value: "phone", label: "Phone" },
+                    { value: "email", label: "Email" },
+                    { value: "chat", label: "Chat" },
+                    { value: "self_service", label: "Self Service" }
+                  ]}
+                  placeholder="Select..."
+                  isOpen={openDropdowns.preferred_support_channel || false}
+                  onToggle={() => toggleDropdown("preferred_support_channel")}
+                  dropdownRef={getDropdownRef("preferred_support_channel")}
+                />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
                   Communication Frequency
                 </label>
-                <select
+                <CustomDropdown
                   value={formData.communication_frequency || ""}
-                  onChange={(e) =>
-                    updateFormData("communication_frequency", e.target.value)
-                  }
-                  className="mobile-input"
-                >
-                  <option value="">Select...</option>
-                  <option value="minimal">Minimal</option>
-                  <option value="weekly">Weekly</option>
-                  <option value="daily">Daily</option>
-                  <option value="as_needed">As Needed</option>
-                </select>
+                  onChange={(value) => updateFormData("communication_frequency", value)}
+                  options={[
+                    { value: "minimal", label: "Minimal" },
+                    { value: "weekly", label: "Weekly" },
+                    { value: "daily", label: "Daily" },
+                    { value: "as_needed", label: "As Needed" }
+                  ]}
+                  placeholder="Select..."
+                  isOpen={openDropdowns.communication_frequency || false}
+                  onToggle={() => toggleDropdown("communication_frequency")}
+                  dropdownRef={getDropdownRef("communication_frequency")}
+                />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
                   Information Detail Level
                 </label>
-                <select
+                <CustomDropdown
                   value={formData.information_detail_level || ""}
-                  onChange={(e) =>
-                    updateFormData("information_detail_level", e.target.value)
-                  }
-                  className="mobile-input"
-                >
-                  <option value="">Select...</option>
-                  <option value="brief">Brief</option>
-                  <option value="moderate">Moderate</option>
-                  <option value="detailed">Detailed</option>
-                  <option value="comprehensive">Comprehensive</option>
-                </select>
+                  onChange={(value) => updateFormData("information_detail_level", value)}
+                  options={[
+                    { value: "brief", label: "Brief" },
+                    { value: "moderate", label: "Moderate" },
+                    { value: "detailed", label: "Detailed" },
+                    { value: "comprehensive", label: "Comprehensive" }
+                  ]}
+                  placeholder="Select..."
+                  isOpen={openDropdowns.information_detail_level || false}
+                  onToggle={() => toggleDropdown("information_detail_level")}
+                  dropdownRef={getDropdownRef("information_detail_level")}
+                />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
                   Meeting Preference
                 </label>
-                <select
+                <CustomDropdown
                   value={formData.meeting_preference || ""}
-                  onChange={(e) =>
-                    updateFormData("meeting_preference", e.target.value)
-                  }
-                  className="mobile-input"
-                >
-                  <option value="">Select...</option>
-                  <option value="in_person">In Person</option>
-                  <option value="virtual">Virtual</option>
-                  <option value="phone">Phone</option>
-                  <option value="email">Email</option>
-                </select>
+                  onChange={(value) => updateFormData("meeting_preference", value)}
+                  options={[
+                    { value: "in_person", label: "In Person" },
+                    { value: "virtual", label: "Virtual" },
+                    { value: "phone", label: "Phone" },
+                    { value: "email", label: "Email" }
+                  ]}
+                  placeholder="Select..."
+                  isOpen={openDropdowns.meeting_preference || false}
+                  onToggle={() => toggleDropdown("meeting_preference")}
+                  dropdownRef={getDropdownRef("meeting_preference")}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-black mb-2">
+                  Meeting Availability
+                </label>
+                <CustomDropdown
+                  value={formData.meeting_availability || ""}
+                  onChange={(value) => updateFormData("meeting_availability", value)}
+                  options={[
+                    { value: "weekdays", label: "Weekdays" },
+                    { value: "evenings", label: "Evenings" },
+                    { value: "weekends", label: "Weekends" },
+                    { value: "flexible", label: "Flexible" }
+                  ]}
+                  placeholder="Select..."
+                  isOpen={openDropdowns.meeting_availability || false}
+                  onToggle={() => toggleDropdown("meeting_availability")}
+                  dropdownRef={getDropdownRef("meeting_availability")}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-black mb-2">
+                  Response Time Expectation
+                </label>
+                <CustomDropdown
+                  value={formData.response_time_expectation || ""}
+                  onChange={(value) => updateFormData("response_time_expectation", value)}
+                  options={[
+                    { value: "immediate", label: "Immediate" },
+                    { value: "same_day", label: "Same Day" },
+                    { value: "24_hours", label: "Within 24 Hours" },
+                    { value: "flexible", label: "Flexible" }
+                  ]}
+                  placeholder="Select..."
+                  isOpen={openDropdowns.response_time_expectation || false}
+                  onToggle={() => toggleDropdown("response_time_expectation")}
+                  dropdownRef={getDropdownRef("response_time_expectation")}
+                />
               </div>
             </div>
           </div>
@@ -1275,6 +1461,21 @@ export default function OnboardingPage() {
                 label="Any concerns or fears about buying?"
                 placeholder="Add concerns (e.g., Hidden problems, Bad neighbors, Market crash)"
               />
+
+              <div>
+                <label className="block text-sm font-medium text-black mb-2">
+                  Additional Context
+                </label>
+                <textarea
+                  value={formData.additional_context || ""}
+                  onChange={(e) =>
+                    updateFormData("additional_context", e.target.value)
+                  }
+                  className="mobile-input"
+                  rows={4}
+                  placeholder="Share any additional context, special requirements, or important details about your home buying journey..."
+                />
+              </div>
             </div>
           </div>
         );
