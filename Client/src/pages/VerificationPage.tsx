@@ -147,25 +147,42 @@ export default function VerificationPage() {
 
     try {
       const userEmail = email || localStorage.getItem("signupEmail") || "";
+      const userPassword = localStorage.getItem("signupPassword") || "";
+      
+      if (!userPassword) {
+        throw new Error("Password not found. Please sign up again.");
+      }
+
       const { success, error, data } = await authApi.verify({
         email: userEmail,
         code: verificationCode,
+        password: userPassword,
       });
 
       if (!success) {
         throw new Error(error || "Verification failed");
       }
 
-      // Clear the stored email
+      // Clear the stored signup data
       localStorage.removeItem("signupEmail");
+      localStorage.removeItem("signupPassword");
 
-      // Store user data from the response
+      // Store authentication tokens and user data
+      if (data?.access_token) {
+        localStorage.setItem("access_token", data.access_token);
+      }
+      if (data?.id_token) {
+        localStorage.setItem("id_token", data.id_token);
+      }
+      if (data?.refresh_token) {
+        localStorage.setItem("refresh_token", data.refresh_token);
+      }
       if (data?.user) {
         localStorage.setItem("user", JSON.stringify(data.user));
       }
 
-      // On success, redirect to login
-      navigate("/login");
+      // On success, redirect to onboarding
+      navigate("/onboarding");
     } catch (error: unknown) {
       console.error("Verification error:", error);
       const errorMessage =

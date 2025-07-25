@@ -137,33 +137,79 @@ export default function OnboardingPage() {
     try {
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
       const idToken = localStorage.getItem("id_token");
-      const response = await fetch(`${apiBaseUrl}/api/v1/preferences`, {
+      
+      // Enhanced logging for debugging
+      console.log("[OnboardingPage] Starting preferences submission...");
+      console.log("[OnboardingPage] API Base URL:", apiBaseUrl);
+      console.log("[OnboardingPage] ID Token exists:", !!idToken);
+      console.log("[OnboardingPage] ID Token length:", idToken?.length || 0);
+      console.log("[OnboardingPage] Form data payload:", JSON.stringify(formData, null, 2));
+      
+      const requestUrl = `${apiBaseUrl}/api/v1/preferences`;
+      console.log("[OnboardingPage] Request URL:", requestUrl);
+      
+      const requestHeaders = {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${idToken}`,
+      };
+      console.log("[OnboardingPage] Request headers:", requestHeaders);
+      
+      const response = await fetch(requestUrl, {
         method: "POST",
         mode: "cors",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          Authorization: `Bearer ${idToken}`,
-        },
+        headers: requestHeaders,
         body: JSON.stringify(formData),
       });
 
+      console.log("[OnboardingPage] Response status:", response.status);
+      console.log("[OnboardingPage] Response status text:", response.statusText);
+      console.log("[OnboardingPage] Response headers:", Object.fromEntries(response.headers.entries()));
+
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        // Try to get error details from response body
+        let errorDetails = "No additional error details";
+        try {
+          const errorText = await response.text();
+          console.log("[OnboardingPage] Error response body:", errorText);
+          errorDetails = errorText;
+        } catch (e) {
+          console.log("[OnboardingPage] Could not read error response body:", e);
+        }
+        
+        const errorMessage = `HTTP error! status: ${response.status} - ${response.statusText}. Details: ${errorDetails}`;
+        console.error("[OnboardingPage] Request failed:", errorMessage);
+        throw new Error(errorMessage);
       }
 
       const result = await response.json();
+      console.log("[OnboardingPage] Success response:", result);
 
       if (result.success || result.document_id) {
+        console.log("[OnboardingPage] Preferences submitted successfully, navigating to dashboard");
         localStorage.removeItem("onboardingDraft");
-        // Navigate to past reports or generate page after successful submission
-        navigate("/past-reports");
+        // Navigate to dashboard after successful onboarding completion
+        navigate("/dashboard");
       } else {
-        throw new Error(result.error || "Failed to generate report");
+        const errorMsg = result.error || "Failed to generate report";
+        console.error("[OnboardingPage] Server returned unsuccessful result:", result);
+        throw new Error(errorMsg);
       }
     } catch (error) {
-      console.error("Error generating report:", error);
-      alert("Failed to generate report. Please try again.");
+      console.error("[OnboardingPage] Error in handleSubmit:", error);
+      console.error("[OnboardingPage] Error stack:", error instanceof Error ? error.stack : 'No stack trace');
+      
+      // More user-friendly error message
+      let userMessage = "Failed to generate report. Please try again.";
+      if (error instanceof Error && error.message.includes("500")) {
+        userMessage = "Server error occurred. Please check your information and try again.";
+      } else if (error instanceof Error && error.message.includes("401")) {
+        userMessage = "Authentication error. Please log in again.";
+      } else if (error instanceof Error && error.message.includes("403")) {
+        userMessage = "Access denied. Please check your permissions.";
+      }
+      
+      alert(userMessage);
     } finally {
       setLoading(false);
     }

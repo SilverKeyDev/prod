@@ -46,6 +46,7 @@ def signup():
 
     try:
         # Create user in our database
+        current_app.logger.info(f'Signup user_sub from Cognito: {result["user_sub"]}')
         user = User(
             id=result['user_sub'],
             cognito_id=result['user_sub'],
@@ -74,16 +75,17 @@ def signup():
 
 @auth_bp.route('/verify', methods=['POST'])
 def verify():
-    """Verify user's email with code"""
+    """Verify user's email with code and automatically log them in"""
     data = request.get_json()
 
-    if not all(field in data for field in ['email', 'code']):
+    if not all(field in data for field in ['email', 'code', 'password']):
         return jsonify({
             'success': False,
             'error': 'MISSING_FIELDS',
-            'message': 'Email and verification code are required'
+            'message': 'Email, verification code, and password are required'
         }), 400
 
+    # First verify the email
     result = cognito_service.confirm_sign_up(
         username=data['email'],
         confirmation_code=data['code']
@@ -96,10 +98,51 @@ def verify():
             'message': result.get('message', 'Failed to verify user')
         }), 400
 
-    return jsonify({
-        'success': True,
-        'message': 'Email verified successfully. You can now log in.'
-    })
+    # After successful verification, automatically log the user in
+    try:
+        login_result = cognito_service.sign_in(
+            username=data['email'],
+            password=data['password']
+        )
+
+        if not login_result['success']:
+            # Verification succeeded but login failed
+            return jsonify({
+                'success': True,
+                'message': 'Email verified successfully. Please log in manually.',
+                'verification_complete': True,
+                'login_failed': True
+            })
+
+        # Decode IdToken to get Cognito user_sub
+        id_token = login_result['tokens']['IdToken']
+        decoded_id_token = jwt.decode(id_token, options={"verify_signature": False})
+        user_sub = decoded_id_token['sub']
+        
+        current_app.logger.info(f'JWT token sub: {user_sub}')
+        current_app.logger.info(f'JWT token email: {decoded_id_token.get("email")}')
+
+        return jsonify({
+            'success': True,
+            'message': 'Email verified and logged in successfully',
+            'access_token': login_result['tokens']['AccessToken'],
+            'id_token': login_result['tokens']['IdToken'],
+            'refresh_token': login_result['tokens']['RefreshToken'],
+            'user': {
+                'email': data['email'],
+                'user_sub': user_sub
+            }
+        })
+
+    except Exception as e:
+        current_app.logger.error(f'Error during auto-login after verification: {str(e)}')
+        # Verification succeeded but auto-login failed
+        return jsonify({
+            'success': True,
+            'message': 'Email verified successfully. Please log in manually.',
+            'verification_complete': True,
+            'auto_login_failed': True
+        })
 
 @auth_bp.route('/resend-code', methods=['POST'])
 def resend_code():

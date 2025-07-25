@@ -111,7 +111,7 @@ export const authApi = {
       body: JSON.stringify(data),
     }),
 
-  verify: (data: { email: string; code: string }) =>
+  verify: (data: { email: string; code: string; password: string }) =>
     apiRequest('/api/v1/auth/verify', {
       method: 'POST',
       body: JSON.stringify(data),

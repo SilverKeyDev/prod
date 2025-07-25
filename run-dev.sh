@@ -19,6 +19,32 @@ log() {
     echo -e "${BLUE}[$(date +%T)]${NC} $1"
 }
 
+# Function to kill processes on required ports
+kill_port_processes() {
+    local ports=(5000 5173 6379)
+    
+    for port in "${ports[@]}"; do
+        log "Checking for processes on port $port..."
+        local pids=$(lsof -ti:$port 2>/dev/null || true)
+        
+        if [[ -n "$pids" ]]; then
+            log "${RED}Killing processes on port $port: $pids${NC}"
+            echo "$pids" | xargs kill -9 2>/dev/null || true
+            sleep 1
+            
+            # Double-check if processes are still running
+            local remaining_pids=$(lsof -ti:$port 2>/dev/null || true)
+            if [[ -n "$remaining_pids" ]]; then
+                log "${RED}Warning: Some processes on port $port may still be running${NC}"
+            else
+                log "${GREEN}✅ Port $port is now free${NC}"
+            fi
+        else
+            log "${GREEN}✅ Port $port is already free${NC}"
+        fi
+    done
+}
+
 # Function to clean up on exit
 cleanup() {
     log "${RED}Cleaning up..."
@@ -45,6 +71,10 @@ if [ -f Server/.env ]; then
     log "Loading environment variables from Server/.env"
     source Server/.env
 fi
+
+# Kill any existing processes on required ports
+log "${RED}Cleaning up existing processes on ports 5000, 5173, and 6379...${NC}"
+kill_port_processes
 
 # Start Vite client in background
 log "Starting Vite client..."

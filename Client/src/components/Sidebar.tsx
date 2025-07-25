@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Home, FileText, BarChart2, LogOut, CreditCard } from "lucide-react";
+import { Home, FileText, BarChart2, LogOut, CreditCard, User as UserIcon } from "lucide-react";
 import { User } from "../types/index.ts";
 import { useEffect, useState } from "react";
 import ConfirmationDialog from "./ConfirmationDialog";
@@ -21,6 +21,7 @@ const navigation = [
     href: "/dashboard/compare-reports",
     icon: BarChart2,
   },
+  { name: "Personalization", href: "/dashboard/personalization", icon: UserIcon },
   { name: "Subscription", href: "/dashboard/subscription", icon: CreditCard },
 ];
 

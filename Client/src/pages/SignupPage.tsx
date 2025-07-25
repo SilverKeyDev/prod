@@ -35,8 +35,10 @@ export default function SignupPage({}: SignupPageProps) {
         throw new Error(error || "Failed to sign up");
       }
 
+      // Store email and password temporarily for verification auto-login
       localStorage.setItem("signupEmail", formData.email);
-      navigate("/onboarding", { state: { email: formData.email } });
+      localStorage.setItem("signupPassword", formData.password);
+      navigate("/verification", { state: { email: formData.email } });
     } catch (error: unknown) {
       console.error("Signup error:", error);
       const errorMessage =

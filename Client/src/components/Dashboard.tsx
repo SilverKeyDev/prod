@@ -5,6 +5,7 @@ import Sidebar from "./Sidebar.tsx";
 import GenerateReportPage from "../pages/GenerateReportPage.tsx";
 import PastReports from "../pages/PastReports.tsx";
 import CompareReportsPage from "../pages/CompareReportsPage.tsx";
+import PersonalizationPage from "../pages/PersonalizationPage.tsx";
 import Subscription from "../pages/Subscription.tsx";
 import { User } from "../types/index.ts";
 
@@ -58,6 +59,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
             <Route path="/" element={<GenerateReportPage />} />
             <Route path="reports" element={<PastReports />} />
             <Route path="compare-reports" element={<CompareReportsPage />} />
+            <Route path="personalization" element={<PersonalizationPage />} />
             <Route path="subscription" element={<Subscription />} />
           </Routes>
         </div>
