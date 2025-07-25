@@ -109,15 +109,15 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
   placeholder,
   isOpen,
   onToggle,
-  dropdownRef
+  dropdownRef,
 }) => {
-  const selectedOption = options.find(opt => opt.value === value);
-  
+  const selectedOption = options.find((opt) => opt.value === value);
+
   return (
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={onToggle}
-        className="mobile-input text-sm flex items-center justify-between cursor-pointer hover:border-brown focus:border-brown focus:ring-brown/20"
+        className="mobile-input text-sm flex items-center justify-between cursor-pointer hover:border-brown focus:border-brown focus:ring-brown/20 w-full"
       >
         <span className="text-left">
           {selectedOption ? selectedOption.label : placeholder}
@@ -140,9 +140,7 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
               }}
               className={`w-full px-3 py-2 text-left text-sm hover:bg-brown/5 transition-colors duration-150 ${
                 index === 0 ? "first:rounded-t-lg" : ""
-              } ${
-                index === options.length - 1 ? "last:rounded-b-lg" : ""
-              } ${
+              } ${index === options.length - 1 ? "last:rounded-b-lg" : ""} ${
                 value === option.value
                   ? "bg-brown/10 text-brown font-medium"
                   : "text-black"
@@ -161,8 +159,12 @@ export default function OnboardingPage() {
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<OnboardingData>({});
   const [loading, setLoading] = useState(false);
-  const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>({});
-  const dropdownRefs = useRef<Record<string, React.RefObject<HTMLDivElement>>>({});
+  const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>(
+    {}
+  );
+  const dropdownRefs = useRef<Record<string, React.RefObject<HTMLDivElement>>>(
+    {}
+  );
   const navigate = useNavigate();
 
   // Load formData from localStorage on mount
@@ -189,9 +191,9 @@ export default function OnboardingPage() {
 
   // Dropdown utility functions
   const toggleDropdown = (fieldName: string) => {
-    setOpenDropdowns(prev => ({
+    setOpenDropdowns((prev) => ({
       ...prev,
-      [fieldName]: !prev[fieldName]
+      [fieldName]: !prev[fieldName],
     }));
   };
 
@@ -207,23 +209,26 @@ export default function OnboardingPage() {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Node;
       let shouldClose = true;
-      
+
       Object.entries(dropdownRefs.current).forEach(([_fieldName, ref]) => {
         if (ref.current && ref.current.contains(target)) {
           shouldClose = false;
         }
       });
-      
-      if (shouldClose) {
+
+      if (
+        shouldClose &&
+        Object.keys(openDropdowns).some((key) => openDropdowns[key])
+      ) {
         setOpenDropdowns({});
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("click", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("click", handleClickOutside);
     };
-  }, []);
+  }, [openDropdowns]);
 
   const nextStep = () => {
     if (currentStep < STEPS.length - 1) {
@@ -246,24 +251,27 @@ export default function OnboardingPage() {
     try {
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
       const idToken = localStorage.getItem("id_token");
-      
+
       // Enhanced logging for debugging
       console.log("[OnboardingPage] Starting preferences submission...");
       console.log("[OnboardingPage] API Base URL:", apiBaseUrl);
       console.log("[OnboardingPage] ID Token exists:", !!idToken);
       console.log("[OnboardingPage] ID Token length:", idToken?.length || 0);
-      console.log("[OnboardingPage] Form data payload:", JSON.stringify(formData, null, 2));
-      
+      console.log(
+        "[OnboardingPage] Form data payload:",
+        JSON.stringify(formData, null, 2)
+      );
+
       const requestUrl = `${apiBaseUrl}/api/v1/preferences`;
       console.log("[OnboardingPage] Request URL:", requestUrl);
-      
+
       const requestHeaders = {
         "Content-Type": "application/json",
         Accept: "application/json",
         Authorization: `Bearer ${idToken}`,
       };
       console.log("[OnboardingPage] Request headers:", requestHeaders);
-      
+
       const response = await fetch(requestUrl, {
         method: "POST",
         mode: "cors",
@@ -272,8 +280,14 @@ export default function OnboardingPage() {
       });
 
       console.log("[OnboardingPage] Response status:", response.status);
-      console.log("[OnboardingPage] Response status text:", response.statusText);
-      console.log("[OnboardingPage] Response headers:", Object.fromEntries(response.headers.entries()));
+      console.log(
+        "[OnboardingPage] Response status text:",
+        response.statusText
+      );
+      console.log(
+        "[OnboardingPage] Response headers:",
+        Object.fromEntries(response.headers.entries())
+      );
 
       if (!response.ok) {
         // Try to get error details from response body
@@ -283,9 +297,12 @@ export default function OnboardingPage() {
           console.log("[OnboardingPage] Error response body:", errorText);
           errorDetails = errorText;
         } catch (e) {
-          console.log("[OnboardingPage] Could not read error response body:", e);
+          console.log(
+            "[OnboardingPage] Could not read error response body:",
+            e
+          );
         }
-        
+
         const errorMessage = `HTTP error! status: ${response.status} - ${response.statusText}. Details: ${errorDetails}`;
         console.error("[OnboardingPage] Request failed:", errorMessage);
         throw new Error(errorMessage);
@@ -295,29 +312,38 @@ export default function OnboardingPage() {
       console.log("[OnboardingPage] Success response:", result);
 
       if (result.success || result.document_id) {
-        console.log("[OnboardingPage] Preferences submitted successfully, navigating to dashboard");
+        console.log(
+          "[OnboardingPage] Preferences submitted successfully, navigating to dashboard"
+        );
         localStorage.removeItem("onboardingDraft");
         // Navigate to dashboard after successful onboarding completion
         navigate("/dashboard");
       } else {
         const errorMsg = result.error || "Failed to generate report";
-        console.error("[OnboardingPage] Server returned unsuccessful result:", result);
+        console.error(
+          "[OnboardingPage] Server returned unsuccessful result:",
+          result
+        );
         throw new Error(errorMsg);
       }
     } catch (error) {
       console.error("[OnboardingPage] Error in handleSubmit:", error);
-      console.error("[OnboardingPage] Error stack:", error instanceof Error ? error.stack : 'No stack trace');
-      
+      console.error(
+        "[OnboardingPage] Error stack:",
+        error instanceof Error ? error.stack : "No stack trace"
+      );
+
       // More user-friendly error message
       let userMessage = "Failed to generate report. Please try again.";
       if (error instanceof Error && error.message.includes("500")) {
-        userMessage = "Server error occurred. Please check your information and try again.";
+        userMessage =
+          "Server error occurred. Please check your information and try again.";
       } else if (error instanceof Error && error.message.includes("401")) {
         userMessage = "Authentication error. Please log in again.";
       } else if (error instanceof Error && error.message.includes("403")) {
         userMessage = "Access denied. Please check your permissions.";
       }
-      
+
       alert(userMessage);
     } finally {
       setLoading(false);
@@ -362,7 +388,7 @@ export default function OnboardingPage() {
                     { value: "male", label: "Male" },
                     { value: "female", label: "Female" },
                     { value: "non-binary", label: "Non-binary" },
-                    { value: "prefer_not_to_say", label: "Prefer not to say" }
+                    { value: "prefer_not_to_say", label: "Prefer not to say" },
                   ]}
                   placeholder="Select..."
                   isOpen={openDropdowns.gender || false}
@@ -383,7 +409,7 @@ export default function OnboardingPage() {
                     { value: "married", label: "Married" },
                     { value: "divorced", label: "Divorced" },
                     { value: "widowed", label: "Widowed" },
-                    { value: "partnered", label: "Partnered" }
+                    { value: "partnered", label: "Partnered" },
                   ]}
                   placeholder="Select..."
                   isOpen={openDropdowns.marital_status || false}
@@ -449,7 +475,7 @@ export default function OnboardingPage() {
                     { value: "bachelors", label: "Bachelor's Degree" },
                     { value: "masters", label: "Master's Degree" },
                     { value: "doctorate", label: "Doctorate" },
-                    { value: "other", label: "Other" }
+                    { value: "other", label: "Other" },
                   ]}
                   placeholder="Select..."
                   isOpen={openDropdowns.education_level || false}
@@ -477,14 +503,16 @@ export default function OnboardingPage() {
                 </label>
                 <CustomDropdown
                   value={formData.employment_status || ""}
-                  onChange={(value) => updateFormData("employment_status", value)}
+                  onChange={(value) =>
+                    updateFormData("employment_status", value)
+                  }
                   options={[
                     { value: "employed", label: "Employed" },
                     { value: "unemployed", label: "Unemployed" },
                     { value: "retired", label: "Retired" },
                     { value: "student", label: "Student" },
                     { value: "freelance", label: "Freelance" },
-                    { value: "other", label: "Other" }
+                    { value: "other", label: "Other" },
                   ]}
                   placeholder="Select..."
                   isOpen={openDropdowns.employment_status || false}
@@ -530,7 +558,7 @@ export default function OnboardingPage() {
                     { value: "50k_75k", label: "$50,000 - $75,000" },
                     { value: "75k_100k", label: "$75,000 - $100,000" },
                     { value: "100k_150k", label: "$100,000 - $150,000" },
-                    { value: "150k_plus", label: "$150,000+" }
+                    { value: "150k_plus", label: "$150,000+" },
                   ]}
                   placeholder="Select..."
                   isOpen={openDropdowns.income_range || false}
@@ -545,14 +573,16 @@ export default function OnboardingPage() {
                 </label>
                 <CustomDropdown
                   value={formData.preferred_home_price_range || ""}
-                  onChange={(value) => updateFormData("preferred_home_price_range", value)}
+                  onChange={(value) =>
+                    updateFormData("preferred_home_price_range", value)
+                  }
                   options={[
                     { value: "under_200k", label: "Under $200,000" },
                     { value: "200k_400k", label: "$200,000 - $400,000" },
                     { value: "400k_600k", label: "$400,000 - $600,000" },
                     { value: "600k_800k", label: "$600,000 - $800,000" },
                     { value: "800k_1m", label: "$800,000 - $1,000,000" },
-                    { value: "1m_plus", label: "$1,000,000+" }
+                    { value: "1m_plus", label: "$1,000,000+" },
                   ]}
                   placeholder="Select..."
                   isOpen={openDropdowns.preferred_home_price_range || false}
@@ -567,13 +597,15 @@ export default function OnboardingPage() {
                 </label>
                 <CustomDropdown
                   value={formData.credit_score_range || ""}
-                  onChange={(value) => updateFormData("credit_score_range", value)}
+                  onChange={(value) =>
+                    updateFormData("credit_score_range", value)
+                  }
                   options={[
                     { value: "poor", label: "Poor (300-579)" },
                     { value: "fair", label: "Fair (580-669)" },
                     { value: "good", label: "Good (670-739)" },
                     { value: "very_good", label: "Very Good (740-799)" },
-                    { value: "excellent", label: "Excellent (800-850)" }
+                    { value: "excellent", label: "Excellent (800-850)" },
                   ]}
                   placeholder="Select..."
                   isOpen={openDropdowns.credit_score_range || false}
@@ -588,13 +620,15 @@ export default function OnboardingPage() {
                 </label>
                 <CustomDropdown
                   value={formData.savings_amount_range || ""}
-                  onChange={(value) => updateFormData("savings_amount_range", value)}
+                  onChange={(value) =>
+                    updateFormData("savings_amount_range", value)
+                  }
                   options={[
                     { value: "under_10k", label: "Under $10,000" },
                     { value: "10k_25k", label: "$10,000 - $25,000" },
                     { value: "25k_50k", label: "$25,000 - $50,000" },
                     { value: "50k_100k", label: "$50,000 - $100,000" },
-                    { value: "100k_plus", label: "$100,000+" }
+                    { value: "100k_plus", label: "$100,000+" },
                   ]}
                   placeholder="Select..."
                   isOpen={openDropdowns.savings_amount_range || false}
@@ -609,13 +643,15 @@ export default function OnboardingPage() {
                 </label>
                 <CustomDropdown
                   value={formData.investment_experience || ""}
-                  onChange={(value) => updateFormData("investment_experience", value)}
+                  onChange={(value) =>
+                    updateFormData("investment_experience", value)
+                  }
                   options={[
                     { value: "none", label: "None" },
                     { value: "beginner", label: "Beginner" },
                     { value: "intermediate", label: "Intermediate" },
                     { value: "advanced", label: "Advanced" },
-                    { value: "expert", label: "Expert" }
+                    { value: "expert", label: "Expert" },
                   ]}
                   placeholder="Select..."
                   isOpen={openDropdowns.investment_experience || false}
@@ -636,7 +672,7 @@ export default function OnboardingPage() {
                     { value: "low", label: "Low" },
                     { value: "moderate", label: "Moderate" },
                     { value: "high", label: "High" },
-                    { value: "very_high", label: "Very High" }
+                    { value: "very_high", label: "Very High" },
                   ]}
                   placeholder="Select..."
                   isOpen={openDropdowns.risk_tolerance || false}
@@ -662,14 +698,16 @@ export default function OnboardingPage() {
                 </label>
                 <CustomDropdown
                   value={formData.desired_housing_type || ""}
-                  onChange={(value) => updateFormData("desired_housing_type", value)}
+                  onChange={(value) =>
+                    updateFormData("desired_housing_type", value)
+                  }
                   options={[
                     { value: "single_family", label: "Single Family Home" },
                     { value: "condo", label: "Condominium" },
                     { value: "townhouse", label: "Townhouse" },
                     { value: "apartment", label: "Apartment" },
                     { value: "duplex", label: "Duplex" },
-                    { value: "mobile_home", label: "Mobile Home" }
+                    { value: "mobile_home", label: "Mobile Home" },
                   ]}
                   placeholder="Select..."
                   isOpen={openDropdowns.desired_housing_type || false}
@@ -725,12 +763,14 @@ export default function OnboardingPage() {
                 </label>
                 <CustomDropdown
                   value={formData.preferred_lot_size || ""}
-                  onChange={(value) => updateFormData("preferred_lot_size", value)}
+                  onChange={(value) =>
+                    updateFormData("preferred_lot_size", value)
+                  }
                   options={[
                     { value: "small", label: "Small (under 0.25 acres)" },
                     { value: "medium", label: "Medium (0.25 - 0.5 acres)" },
                     { value: "large", label: "Large (0.5 - 1 acre)" },
-                    { value: "very_large", label: "Very Large (1+ acres)" }
+                    { value: "very_large", label: "Very Large (1+ acres)" },
                   ]}
                   placeholder="Select..."
                   isOpen={openDropdowns.preferred_lot_size || false}
@@ -745,13 +785,18 @@ export default function OnboardingPage() {
                 </label>
                 <CustomDropdown
                   value={formData.preferred_home_age || ""}
-                  onChange={(value) => updateFormData("preferred_home_age", value)}
+                  onChange={(value) =>
+                    updateFormData("preferred_home_age", value)
+                  }
                   options={[
                     { value: "new", label: "New (0-5 years)" },
                     { value: "recent", label: "Recent (5-15 years)" },
-                    { value: "established", label: "Established (15-30 years)" },
+                    {
+                      value: "established",
+                      label: "Established (15-30 years)",
+                    },
                     { value: "mature", label: "Mature (30-50 years)" },
-                    { value: "historic", label: "Historic (50+ years)" }
+                    { value: "historic", label: "Historic (50+ years)" },
                   ]}
                   placeholder="Select..."
                   isOpen={openDropdowns.preferred_home_age || false}
@@ -766,7 +811,9 @@ export default function OnboardingPage() {
                 </label>
                 <CustomDropdown
                   value={formData.preferred_architectural_style || ""}
-                  onChange={(value) => updateFormData("preferred_architectural_style", value)}
+                  onChange={(value) =>
+                    updateFormData("preferred_architectural_style", value)
+                  }
                   options={[
                     { value: "modern", label: "Modern" },
                     { value: "traditional", label: "Traditional" },
@@ -775,11 +822,13 @@ export default function OnboardingPage() {
                     { value: "craftsman", label: "Craftsman" },
                     { value: "victorian", label: "Victorian" },
                     { value: "mediterranean", label: "Mediterranean" },
-                    { value: "contemporary", label: "Contemporary" }
+                    { value: "contemporary", label: "Contemporary" },
                   ]}
                   placeholder="Select..."
                   isOpen={openDropdowns.preferred_architectural_style || false}
-                  onToggle={() => toggleDropdown("preferred_architectural_style")}
+                  onToggle={() =>
+                    toggleDropdown("preferred_architectural_style")
+                  }
                   dropdownRef={getDropdownRef("preferred_architectural_style")}
                 />
               </div>
@@ -819,12 +868,14 @@ export default function OnboardingPage() {
                 </label>
                 <CustomDropdown
                   value={formData.urban_rural_preference || ""}
-                  onChange={(value) => updateFormData("urban_rural_preference", value)}
+                  onChange={(value) =>
+                    updateFormData("urban_rural_preference", value)
+                  }
                   options={[
                     { value: "urban", label: "Urban" },
                     { value: "suburban", label: "Suburban" },
                     { value: "rural", label: "Rural" },
-                    { value: "mixed", label: "Mixed" }
+                    { value: "mixed", label: "Mixed" },
                   ]}
                   placeholder="Select..."
                   isOpen={openDropdowns.urban_rural_preference || false}
@@ -859,14 +910,16 @@ export default function OnboardingPage() {
                 </label>
                 <CustomDropdown
                   value={formData.preferred_climate || ""}
-                  onChange={(value) => updateFormData("preferred_climate", value)}
+                  onChange={(value) =>
+                    updateFormData("preferred_climate", value)
+                  }
                   options={[
                     { value: "tropical", label: "Tropical" },
                     { value: "subtropical", label: "Subtropical" },
                     { value: "temperate", label: "Temperate" },
                     { value: "continental", label: "Continental" },
                     { value: "arid", label: "Arid" },
-                    { value: "mediterranean", label: "Mediterranean" }
+                    { value: "mediterranean", label: "Mediterranean" },
                   ]}
                   placeholder="Select..."
                   isOpen={openDropdowns.preferred_climate || false}
@@ -881,11 +934,16 @@ export default function OnboardingPage() {
                 </label>
                 <CustomDropdown
                   value={formData.proximity_to_family || ""}
-                  onChange={(value) => updateFormData("proximity_to_family", value)}
+                  onChange={(value) =>
+                    updateFormData("proximity_to_family", value)
+                  }
                   options={[
                     { value: "very_important", label: "Very Important" },
-                    { value: "somewhat_important", label: "Somewhat Important" },
-                    { value: "not_important", label: "Not Important" }
+                    {
+                      value: "somewhat_important",
+                      label: "Somewhat Important",
+                    },
+                    { value: "not_important", label: "Not Important" },
                   ]}
                   placeholder="Select..."
                   isOpen={openDropdowns.proximity_to_family || false}
@@ -900,11 +958,16 @@ export default function OnboardingPage() {
                 </label>
                 <CustomDropdown
                   value={formData.walkability_importance || ""}
-                  onChange={(value) => updateFormData("walkability_importance", value)}
+                  onChange={(value) =>
+                    updateFormData("walkability_importance", value)
+                  }
                   options={[
                     { value: "very_important", label: "Very Important" },
-                    { value: "somewhat_important", label: "Somewhat Important" },
-                    { value: "not_important", label: "Not Important" }
+                    {
+                      value: "somewhat_important",
+                      label: "Somewhat Important",
+                    },
+                    { value: "not_important", label: "Not Important" },
                   ]}
                   placeholder="Select..."
                   isOpen={openDropdowns.walkability_importance || false}
@@ -936,7 +999,7 @@ export default function OnboardingPage() {
                     { value: "quiet", label: "Quiet" },
                     { value: "social", label: "Social" },
                     { value: "family_oriented", label: "Family Oriented" },
-                    { value: "career_focused", label: "Career Focused" }
+                    { value: "career_focused", label: "Career Focused" },
                   ]}
                   placeholder="Select..."
                   isOpen={openDropdowns.lifestyle_type || false}
@@ -989,13 +1052,15 @@ export default function OnboardingPage() {
                 </label>
                 <CustomDropdown
                   value={formData.decision_making_style || ""}
-                  onChange={(value) => updateFormData("decision_making_style", value)}
+                  onChange={(value) =>
+                    updateFormData("decision_making_style", value)
+                  }
                   options={[
                     { value: "analytical", label: "Analytical" },
                     { value: "intuitive", label: "Intuitive" },
                     { value: "collaborative", label: "Collaborative" },
                     { value: "quick", label: "Quick" },
-                    { value: "deliberate", label: "Deliberate" }
+                    { value: "deliberate", label: "Deliberate" },
                   ]}
                   placeholder="Select..."
                   isOpen={openDropdowns.decision_making_style || false}
@@ -1010,12 +1075,14 @@ export default function OnboardingPage() {
                 </label>
                 <CustomDropdown
                   value={formData.research_behavior || ""}
-                  onChange={(value) => updateFormData("research_behavior", value)}
+                  onChange={(value) =>
+                    updateFormData("research_behavior", value)
+                  }
                   options={[
                     { value: "minimal", label: "Minimal" },
                     { value: "moderate", label: "Moderate" },
                     { value: "extensive", label: "Extensive" },
-                    { value: "obsessive", label: "Obsessive" }
+                    { value: "obsessive", label: "Obsessive" },
                   ]}
                   placeholder="Select..."
                   isOpen={openDropdowns.research_behavior || false}
@@ -1030,12 +1097,14 @@ export default function OnboardingPage() {
                 </label>
                 <CustomDropdown
                   value={formData.favored_information_style || ""}
-                  onChange={(value) => updateFormData("favored_information_style", value)}
+                  onChange={(value) =>
+                    updateFormData("favored_information_style", value)
+                  }
                   options={[
                     { value: "visual", label: "Visual" },
                     { value: "textual", label: "Textual" },
                     { value: "detailed", label: "Detailed" },
-                    { value: "summary", label: "Summary" }
+                    { value: "summary", label: "Summary" },
                   ]}
                   placeholder="Select..."
                   isOpen={openDropdowns.favored_information_style || false}
@@ -1050,13 +1119,15 @@ export default function OnboardingPage() {
                 </label>
                 <CustomDropdown
                   value={formData.political_leaning || ""}
-                  onChange={(value) => updateFormData("political_leaning", value)}
+                  onChange={(value) =>
+                    updateFormData("political_leaning", value)
+                  }
                   options={[
                     { value: "conservative", label: "Conservative" },
                     { value: "liberal", label: "Liberal" },
                     { value: "moderate", label: "Moderate" },
                     { value: "independent", label: "Independent" },
-                    { value: "prefer_not_to_say", label: "Prefer not to say" }
+                    { value: "prefer_not_to_say", label: "Prefer not to say" },
                   ]}
                   placeholder="Select..."
                   isOpen={openDropdowns.political_leaning || false}
@@ -1071,12 +1142,14 @@ export default function OnboardingPage() {
                 </label>
                 <CustomDropdown
                   value={formData.community_involvement || ""}
-                  onChange={(value) => updateFormData("community_involvement", value)}
+                  onChange={(value) =>
+                    updateFormData("community_involvement", value)
+                  }
                   options={[
                     { value: "high", label: "High" },
                     { value: "moderate", label: "Moderate" },
                     { value: "low", label: "Low" },
-                    { value: "none", label: "None" }
+                    { value: "none", label: "None" },
                   ]}
                   placeholder="Select..."
                   isOpen={openDropdowns.community_involvement || false}
@@ -1102,12 +1175,17 @@ export default function OnboardingPage() {
                 </label>
                 <CustomDropdown
                   value={formData.property_search_stage || ""}
-                  onChange={(value) => updateFormData("property_search_stage", value)}
+                  onChange={(value) =>
+                    updateFormData("property_search_stage", value)
+                  }
                   options={[
                     { value: "not_looking", label: "Not Looking" },
                     { value: "browsing", label: "Browsing" },
-                    { value: "actively_searching", label: "Actively Searching" },
-                    { value: "ready_to_buy", label: "Ready to Buy" }
+                    {
+                      value: "actively_searching",
+                      label: "Actively Searching",
+                    },
+                    { value: "ready_to_buy", label: "Ready to Buy" },
                   ]}
                   placeholder="Select..."
                   isOpen={openDropdowns.property_search_stage || false}
@@ -1122,12 +1200,17 @@ export default function OnboardingPage() {
                 </label>
                 <CustomDropdown
                   value={formData.home_buying_experience || ""}
-                  onChange={(value) => updateFormData("home_buying_experience", value)}
+                  onChange={(value) =>
+                    updateFormData("home_buying_experience", value)
+                  }
                   options={[
                     { value: "first_time", label: "First Time" },
                     { value: "experienced", label: "Experienced" },
                     { value: "investor", label: "Investor" },
-                    { value: "multiple_properties", label: "Multiple Properties" }
+                    {
+                      value: "multiple_properties",
+                      label: "Multiple Properties",
+                    },
                   ]}
                   placeholder="Select..."
                   isOpen={openDropdowns.home_buying_experience || false}
@@ -1142,13 +1225,15 @@ export default function OnboardingPage() {
                 </label>
                 <CustomDropdown
                   value={formData.timeline_to_purchase || ""}
-                  onChange={(value) => updateFormData("timeline_to_purchase", value)}
+                  onChange={(value) =>
+                    updateFormData("timeline_to_purchase", value)
+                  }
                   options={[
                     { value: "<3_months", label: "Less than 3 months" },
                     { value: "3-6_months", label: "3-6 months" },
                     { value: "6-12_months", label: "6-12 months" },
                     { value: ">1_year", label: "More than 1 year" },
-                    { value: "not_sure", label: "Not sure" }
+                    { value: "not_sure", label: "Not sure" },
                   ]}
                   placeholder="Select..."
                   isOpen={openDropdowns.timeline_to_purchase || false}
@@ -1163,14 +1248,16 @@ export default function OnboardingPage() {
                 </label>
                 <CustomDropdown
                   value={formData.financing_preference || ""}
-                  onChange={(value) => updateFormData("financing_preference", value)}
+                  onChange={(value) =>
+                    updateFormData("financing_preference", value)
+                  }
                   options={[
                     { value: "cash", label: "Cash" },
                     { value: "conventional", label: "Conventional Loan" },
                     { value: "fha", label: "FHA Loan" },
                     { value: "va", label: "VA Loan" },
                     { value: "usda", label: "USDA Loan" },
-                    { value: "jumbo", label: "Jumbo Loan" }
+                    { value: "jumbo", label: "Jumbo Loan" },
                   ]}
                   placeholder="Select..."
                   isOpen={openDropdowns.financing_preference || false}
@@ -1185,12 +1272,14 @@ export default function OnboardingPage() {
                 </label>
                 <CustomDropdown
                   value={formData.renovation_willingness || ""}
-                  onChange={(value) => updateFormData("renovation_willingness", value)}
+                  onChange={(value) =>
+                    updateFormData("renovation_willingness", value)
+                  }
                   options={[
                     { value: "none", label: "None - Move-in Ready" },
                     { value: "minor", label: "Minor Cosmetic Updates" },
                     { value: "major", label: "Major Renovations" },
-                    { value: "complete", label: "Complete Renovation" }
+                    { value: "complete", label: "Complete Renovation" },
                   ]}
                   placeholder="Select..."
                   isOpen={openDropdowns.renovation_willingness || false}
@@ -1205,12 +1294,14 @@ export default function OnboardingPage() {
                 </label>
                 <CustomDropdown
                   value={formData.intended_property_use || ""}
-                  onChange={(value) => updateFormData("intended_property_use", value)}
+                  onChange={(value) =>
+                    updateFormData("intended_property_use", value)
+                  }
                   options={[
                     { value: "primary", label: "Primary Residence" },
                     { value: "investment", label: "Investment Property" },
                     { value: "vacation", label: "Vacation Home" },
-                    { value: "rental", label: "Rental Property" }
+                    { value: "rental", label: "Rental Property" },
                   ]}
                   placeholder="Select..."
                   isOpen={openDropdowns.intended_property_use || false}
@@ -1225,16 +1316,23 @@ export default function OnboardingPage() {
                 </label>
                 <CustomDropdown
                   value={formData.current_home_ownership_status || ""}
-                  onChange={(value) => updateFormData("current_home_ownership_status", value)}
+                  onChange={(value) =>
+                    updateFormData("current_home_ownership_status", value)
+                  }
                   options={[
                     { value: "own", label: "Own Current Home" },
                     { value: "rent", label: "Rent Current Home" },
-                    { value: "living_with_family", label: "Living with Family" },
-                    { value: "other", label: "Other" }
+                    {
+                      value: "living_with_family",
+                      label: "Living with Family",
+                    },
+                    { value: "other", label: "Other" },
                   ]}
                   placeholder="Select..."
                   isOpen={openDropdowns.current_home_ownership_status || false}
-                  onToggle={() => toggleDropdown("current_home_ownership_status")}
+                  onToggle={() =>
+                    toggleDropdown("current_home_ownership_status")
+                  }
                   dropdownRef={getDropdownRef("current_home_ownership_status")}
                 />
               </div>
@@ -1252,7 +1350,7 @@ export default function OnboardingPage() {
                     { value: "upgrade", label: "Upgrade Home" },
                     { value: "downsize", label: "Downsize" },
                     { value: "investment", label: "Investment Opportunity" },
-                    { value: "lifestyle", label: "Lifestyle Change" }
+                    { value: "lifestyle", label: "Lifestyle Change" },
                   ]}
                   placeholder="Select..."
                   isOpen={openDropdowns.moving_reason || false}
@@ -1267,12 +1365,14 @@ export default function OnboardingPage() {
                 </label>
                 <CustomDropdown
                   value={formData.agent_experience_preference || ""}
-                  onChange={(value) => updateFormData("agent_experience_preference", value)}
+                  onChange={(value) =>
+                    updateFormData("agent_experience_preference", value)
+                  }
                   options={[
                     { value: "new_agent", label: "New Agent" },
                     { value: "experienced", label: "Experienced Agent" },
                     { value: "top_producer", label: "Top Producer" },
-                    { value: "no_preference", label: "No Preference" }
+                    { value: "no_preference", label: "No Preference" },
                   ]}
                   placeholder="Select..."
                   isOpen={openDropdowns.agent_experience_preference || false}
@@ -1316,12 +1416,14 @@ export default function OnboardingPage() {
                 </label>
                 <CustomDropdown
                   value={formData.preferred_support_channel || ""}
-                  onChange={(value) => updateFormData("preferred_support_channel", value)}
+                  onChange={(value) =>
+                    updateFormData("preferred_support_channel", value)
+                  }
                   options={[
                     { value: "phone", label: "Phone" },
                     { value: "email", label: "Email" },
                     { value: "chat", label: "Chat" },
-                    { value: "self_service", label: "Self Service" }
+                    { value: "self_service", label: "Self Service" },
                   ]}
                   placeholder="Select..."
                   isOpen={openDropdowns.preferred_support_channel || false}
@@ -1336,12 +1438,14 @@ export default function OnboardingPage() {
                 </label>
                 <CustomDropdown
                   value={formData.communication_frequency || ""}
-                  onChange={(value) => updateFormData("communication_frequency", value)}
+                  onChange={(value) =>
+                    updateFormData("communication_frequency", value)
+                  }
                   options={[
                     { value: "minimal", label: "Minimal" },
                     { value: "weekly", label: "Weekly" },
                     { value: "daily", label: "Daily" },
-                    { value: "as_needed", label: "As Needed" }
+                    { value: "as_needed", label: "As Needed" },
                   ]}
                   placeholder="Select..."
                   isOpen={openDropdowns.communication_frequency || false}
@@ -1356,12 +1460,14 @@ export default function OnboardingPage() {
                 </label>
                 <CustomDropdown
                   value={formData.information_detail_level || ""}
-                  onChange={(value) => updateFormData("information_detail_level", value)}
+                  onChange={(value) =>
+                    updateFormData("information_detail_level", value)
+                  }
                   options={[
                     { value: "brief", label: "Brief" },
                     { value: "moderate", label: "Moderate" },
                     { value: "detailed", label: "Detailed" },
-                    { value: "comprehensive", label: "Comprehensive" }
+                    { value: "comprehensive", label: "Comprehensive" },
                   ]}
                   placeholder="Select..."
                   isOpen={openDropdowns.information_detail_level || false}
@@ -1376,12 +1482,14 @@ export default function OnboardingPage() {
                 </label>
                 <CustomDropdown
                   value={formData.meeting_preference || ""}
-                  onChange={(value) => updateFormData("meeting_preference", value)}
+                  onChange={(value) =>
+                    updateFormData("meeting_preference", value)
+                  }
                   options={[
                     { value: "in_person", label: "In Person" },
                     { value: "virtual", label: "Virtual" },
                     { value: "phone", label: "Phone" },
-                    { value: "email", label: "Email" }
+                    { value: "email", label: "Email" },
                   ]}
                   placeholder="Select..."
                   isOpen={openDropdowns.meeting_preference || false}
@@ -1396,12 +1504,14 @@ export default function OnboardingPage() {
                 </label>
                 <CustomDropdown
                   value={formData.meeting_availability || ""}
-                  onChange={(value) => updateFormData("meeting_availability", value)}
+                  onChange={(value) =>
+                    updateFormData("meeting_availability", value)
+                  }
                   options={[
                     { value: "weekdays", label: "Weekdays" },
                     { value: "evenings", label: "Evenings" },
                     { value: "weekends", label: "Weekends" },
-                    { value: "flexible", label: "Flexible" }
+                    { value: "flexible", label: "Flexible" },
                   ]}
                   placeholder="Select..."
                   isOpen={openDropdowns.meeting_availability || false}
@@ -1416,12 +1526,14 @@ export default function OnboardingPage() {
                 </label>
                 <CustomDropdown
                   value={formData.response_time_expectation || ""}
-                  onChange={(value) => updateFormData("response_time_expectation", value)}
+                  onChange={(value) =>
+                    updateFormData("response_time_expectation", value)
+                  }
                   options={[
                     { value: "immediate", label: "Immediate" },
                     { value: "same_day", label: "Same Day" },
                     { value: "24_hours", label: "Within 24 Hours" },
-                    { value: "flexible", label: "Flexible" }
+                    { value: "flexible", label: "Flexible" },
                   ]}
                   placeholder="Select..."
                   isOpen={openDropdowns.response_time_expectation || false}
@@ -1486,90 +1598,92 @@ export default function OnboardingPage() {
   };
 
   // Self-contained TagInput component that manages its own state
-  const TagInput = React.memo(({
-    field,
-    label,
-    placeholder
-  }: {
-    field: keyof OnboardingData;
-    label: string;
-    placeholder: string;
-  }) => {
-    const [draftText, setDraftText] = React.useState('');
-    const currentTags = (formData[field] as string[]) || [];
+  const TagInput = React.memo(
+    ({
+      field,
+      label,
+      placeholder,
+    }: {
+      field: keyof OnboardingData;
+      label: string;
+      placeholder: string;
+    }) => {
+      const [draftText, setDraftText] = React.useState("");
+      const currentTags = (formData[field] as string[]) || [];
 
-    const handleAddTag = (value: string) => {
-      if (!value.trim()) return;
-      const currentArray = (formData[field] as string[]) || [];
-      if (!currentArray.includes(value.trim())) {
-        updateFormData(field, [...currentArray, value.trim()]);
-      }
-      setDraftText('');
-    };
+      const handleAddTag = (value: string) => {
+        if (!value.trim()) return;
+        const currentArray = (formData[field] as string[]) || [];
+        if (!currentArray.includes(value.trim())) {
+          updateFormData(field, [...currentArray, value.trim()]);
+        }
+        setDraftText("");
+      };
 
-    const handleRemoveTag = (valueToRemove: string) => {
-      const currentArray = (formData[field] as string[]) || [];
-      updateFormData(
-        field,
-        currentArray.filter((item) => item !== valueToRemove)
-      );
-    };
+      const handleRemoveTag = (valueToRemove: string) => {
+        const currentArray = (formData[field] as string[]) || [];
+        updateFormData(
+          field,
+          currentArray.filter((item) => item !== valueToRemove)
+        );
+      };
 
-    const handleKeyPress = (e: React.KeyboardEvent) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        handleAddTag(draftText);
-      }
-    };
+      const handleKeyPress = (e: React.KeyboardEvent) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          handleAddTag(draftText);
+        }
+      };
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      setDraftText(e.target.value);
-    };
+      const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setDraftText(e.target.value);
+      };
 
-    return (
-      <div>
-        <label className="block text-sm font-medium text-black mb-2">
-          {label}
-        </label>
-        <div className="flex space-x-2 mb-3">
-          <input
-            type="text"
-            value={draftText}
-            onChange={handleInputChange}
-            onKeyPress={handleKeyPress}
-            className="mobile-input flex-1"
-            placeholder={placeholder}
-          />
-          <button
-            type="button"
-            onClick={() => handleAddTag(draftText)}
-            className="px-4 py-2 bg-brown text-white rounded-lg hover:bg-brown/80 transition-colors touch-friendly flex items-center"
-          >
-            <Plus className="w-4 h-4" />
-          </button>
-        </div>
-        {currentTags.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {currentTags.map((tag, index) => (
-              <span
-                key={index}
-                className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-beige text-black"
-              >
-                {tag}
-                <button
-                  type="button"
-                  onClick={() => handleRemoveTag(tag)}
-                  className="ml-2 text-black/60 hover:text-black"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              </span>
-            ))}
+      return (
+        <div>
+          <label className="block text-sm font-medium text-black mb-2">
+            {label}
+          </label>
+          <div className="flex space-x-2 mb-3">
+            <input
+              type="text"
+              value={draftText}
+              onChange={handleInputChange}
+              onKeyPress={handleKeyPress}
+              className="mobile-input flex-1"
+              placeholder={placeholder}
+            />
+            <button
+              type="button"
+              onClick={() => handleAddTag(draftText)}
+              className="px-4 py-2 bg-brown text-white rounded-lg hover:bg-brown/80 transition-colors touch-friendly flex items-center"
+            >
+              <Plus className="w-4 h-4" />
+            </button>
           </div>
-        )}
-      </div>
-    );
-  });
+          {currentTags.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {currentTags.map((tag, index) => (
+                <span
+                  key={index}
+                  className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-beige text-black"
+                >
+                  {tag}
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveTag(tag)}
+                    className="ml-2 text-black/60 hover:text-black"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      );
+    }
+  );
 
   // Self-contained NumberTagInput component
   const NumberTagInput = ({
@@ -1581,7 +1695,7 @@ export default function OnboardingPage() {
     label: string;
     placeholder: string;
   }) => {
-    const [draftValue, setDraftValue] = useState('');
+    const [draftValue, setDraftValue] = useState("");
     const currentTags = (formData[field] as number[]) || [];
 
     const handleAddNumberTag = (value: string) => {
@@ -1591,7 +1705,7 @@ export default function OnboardingPage() {
       if (!currentArray.includes(numValue)) {
         updateFormData(field, [...currentArray, numValue]);
       }
-      setDraftValue('');
+      setDraftValue("");
     };
 
     const handleRemoveNumberTag = (valueToRemove: number) => {
@@ -1609,6 +1723,10 @@ export default function OnboardingPage() {
       }
     };
 
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setDraftValue(e.target.value);
+    };
+
     return (
       <div>
         <label className="block text-sm font-medium text-black mb-2">
@@ -1618,7 +1736,7 @@ export default function OnboardingPage() {
           <input
             type="number"
             value={draftValue}
-            onChange={(e) => setDraftValue(e.target.value)}
+            onChange={handleInputChange}
             onKeyPress={handleKeyPress}
             className="mobile-input flex-1"
             placeholder={placeholder}

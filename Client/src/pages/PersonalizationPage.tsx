@@ -13,6 +13,7 @@ import {
   MessageSquare,
   Lightbulb,
   ChevronDown,
+  Plus,
 } from "lucide-react";
 import { apiRequest } from "../lib/api";
 
@@ -119,15 +120,15 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
   placeholder,
   isOpen,
   onToggle,
-  dropdownRef
+  dropdownRef,
 }) => {
-  const selectedOption = options.find(opt => opt.value === value);
-  
+  const selectedOption = options.find((opt) => opt.value === value);
+
   return (
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={onToggle}
-        className="mobile-input text-sm flex items-center justify-between cursor-pointer hover:border-brown focus:border-brown focus:ring-brown/20"
+        className="mobile-input text-sm flex items-center justify-between cursor-pointer hover:border-brown focus:border-brown focus:ring-brown/20 w-full"
       >
         <span className="text-left">
           {selectedOption ? selectedOption.label : placeholder}
@@ -150,9 +151,7 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
               }}
               className={`w-full px-3 py-2 text-left text-sm hover:bg-brown/5 transition-colors duration-150 ${
                 index === 0 ? "first:rounded-t-lg" : ""
-              } ${
-                index === options.length - 1 ? "last:rounded-b-lg" : ""
-              } ${
+              } ${index === options.length - 1 ? "last:rounded-b-lg" : ""} ${
                 value === option.value
                   ? "bg-brown/10 text-brown font-medium"
                   : "text-black"
@@ -176,11 +175,15 @@ export default function PersonalizationPage() {
   const [originalData, setOriginalData] = useState<OnboardingData>({});
 
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
-  const [openDropdowns, setOpenDropdowns] = useState<{[key: string]: boolean}>({});
-  
+  const [openDropdowns, setOpenDropdowns] = useState<{
+    [key: string]: boolean;
+  }>({});
+
   // Refs for dropdown management
-  const dropdownRefs = useRef<{[key: string]: React.RefObject<HTMLDivElement>}>({});
-  
+  const dropdownRefs = useRef<{
+    [key: string]: React.RefObject<HTMLDivElement>;
+  }>({});
+
   // Helper function to get or create dropdown ref
   const getDropdownRef = (fieldName: string) => {
     if (!dropdownRefs.current[fieldName]) {
@@ -188,35 +191,38 @@ export default function PersonalizationPage() {
     }
     return dropdownRefs.current[fieldName];
   };
-  
+
   // Helper function to toggle dropdown
   const toggleDropdown = (fieldName: string) => {
-    setOpenDropdowns(prev => ({
+    setOpenDropdowns((prev) => ({
       ...prev,
-      [fieldName]: !prev[fieldName]
+      [fieldName]: !prev[fieldName],
     }));
   };
-  
+
   // Close all dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Node;
       let shouldClose = true;
-      
+
       Object.entries(dropdownRefs.current).forEach(([_fieldName, ref]) => {
         if (ref.current && ref.current.contains(target)) {
           shouldClose = false;
         }
       });
-      
-      if (shouldClose) {
+
+      if (
+        shouldClose &&
+        Object.keys(openDropdowns).some((key) => openDropdowns[key])
+      ) {
         setOpenDropdowns({});
       }
     };
-    
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, [openDropdowns]);
 
   useEffect(() => {
     loadUserPreferences();
@@ -256,43 +262,55 @@ export default function PersonalizationPage() {
         const flattenedData: OnboardingData = {
           // Demographics
           ...response.preferences.demographics,
-          
+
           // Financial Profile
           ...response.preferences.financial_profile,
-          
+
           // Housing Preferences
           ...response.preferences.housing_preferences,
-          
+
           // Location Preferences
           ...response.preferences.location_preferences,
-          
+
           // Lifestyle Preferences
           ...response.preferences.lifestyle_preferences,
-          
+
           // Behavioral Patterns
           ...response.preferences.behavioral_patterns,
-          
+
           // Real Estate
           ...response.preferences.real_estate,
-          
+
           // Agent Preferences (Communication)
           ...response.preferences.agent_preferences,
-          
+
           // Values
           ...response.preferences.values,
-          
+
           // Emotional Signals
           ...response.preferences.emotional_signals,
-          
+
           // Ensure specific fields are mapped correctly
-          communication_preference: response.preferences.agent_preferences?.communication_preference || response.preferences.communication_preference,
-          previous_home_experience: response.preferences.real_estate?.previous_home_experience || response.preferences.previous_home_experience,
-          first_time_buyer: response.preferences.real_estate?.first_time_buyer || response.preferences.first_time_buyer,
-          response_time_expectation: response.preferences.agent_preferences?.response_time_expectation || response.preferences.response_time_expectation,
-          meeting_availability: response.preferences.agent_preferences?.meeting_availability || response.preferences.meeting_availability,
-          additional_context: response.preferences.personalization_insights?.additional_context || response.preferences.additional_context,
+          communication_preference:
+            response.preferences.agent_preferences?.communication_preference ||
+            response.preferences.communication_preference,
+          previous_home_experience:
+            response.preferences.real_estate?.previous_home_experience ||
+            response.preferences.previous_home_experience,
+          first_time_buyer:
+            response.preferences.real_estate?.first_time_buyer ||
+            response.preferences.first_time_buyer,
+          response_time_expectation:
+            response.preferences.agent_preferences?.response_time_expectation ||
+            response.preferences.response_time_expectation,
+          meeting_availability:
+            response.preferences.agent_preferences?.meeting_availability ||
+            response.preferences.meeting_availability,
+          additional_context:
+            response.preferences.personalization_insights?.additional_context ||
+            response.preferences.additional_context,
         };
-        
+
         console.log("✅ Flattened data:", flattenedData);
         setFormData(flattenedData);
         setOriginalData(flattenedData);
@@ -313,7 +331,7 @@ export default function PersonalizationPage() {
   const handleSaveChanges = async () => {
     try {
       setIsSaving(true);
-      
+
       // Debug: Log the data being saved
       console.log("💾 Saving formData:", formData);
       console.log("💾 Specific fields being saved:", {
@@ -324,7 +342,7 @@ export default function PersonalizationPage() {
         meeting_availability: formData.meeting_availability,
         additional_context: formData.additional_context,
       });
-      
+
       await apiRequest("/api/v1/preferences", {
         method: "POST",
         headers: {
@@ -360,23 +378,27 @@ export default function PersonalizationPage() {
   // Utility function to format display values
   const formatDisplayValue = (value: string | number | undefined): string => {
     if (!value) return "";
-    
+
     let formatted = String(value);
-    
+
     // Handle ranges (keep hyphens for ranges like "100k-150k", "30-45")
-    if (/\d+[kK]?[-–]\d+[kK]?/.test(formatted) || /\d+[-–]\d+/.test(formatted)) {
+    if (
+      /\d+[kK]?[-–]\d+[kK]?/.test(formatted) ||
+      /\d+[-–]\d+/.test(formatted)
+    ) {
       // This is a range, keep the hyphen but ensure proper formatting
       formatted = formatted.replace(/[-–]/g, "-");
     } else {
       // Replace underscores and hyphens with spaces
       formatted = formatted.replace(/[_-]/g, " ");
     }
-    
+
     // Capitalize each word
-    formatted = formatted.split(" ")
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    formatted = formatted
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
       .join(" ");
-    
+
     return formatted;
   };
 
@@ -404,19 +426,25 @@ export default function PersonalizationPage() {
       }
     };
 
-    const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-      const currentInputValue = onChange && value !== undefined ? value : inputValue;
-      if (e.key === "Enter" && currentInputValue.trim()) {
-        e.preventDefault();
-        const currentArray = (formData[field] as string[]) || [];
-        const newArray = [...currentArray, currentInputValue.trim()];
-        updateFormData(field, newArray);
+    const handleAddTag = (valueToAdd: string) => {
+      if (!valueToAdd.trim()) return;
+      const currentArray = (formData[field] as string[]) || [];
+      if (!currentArray.includes(valueToAdd.trim())) {
+        updateFormData(field, [...currentArray, valueToAdd.trim()]);
+      }
+      if (onChange) {
+        onChange("");
+      } else {
+        setInputValue("");
+      }
+    };
 
-        if (onChange) {
-          onChange("");
-        } else {
-          setInputValue("");
-        }
+    const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        const currentInputValue =
+          onChange && value !== undefined ? value : inputValue;
+        handleAddTag(currentInputValue);
       }
     };
 
@@ -432,34 +460,49 @@ export default function PersonalizationPage() {
 
     return (
       <div className="space-y-2">
-        <label className="block text-black font-medium">{label}</label>
+        <label className="block text-sm font-medium text-black mb-2">{label}</label>
         {isEditMode ? (
           <>
-            <input
-              type="text"
-              value={onChange && value !== undefined ? value : inputValue}
-              onChange={handleInputChange}
-              onKeyPress={handleKeyPress}
-              placeholder={placeholder}
-              className="mobile-input mb-3 hover:border-brown focus:border-brown focus:ring-brown/20"
-            />
-            <div className="flex flex-wrap gap-2">
-              {currentTags.map((tag, index) => (
-                <span
-                  key={index}
-                  className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-beige text-black"
-                >
-                  {tag}
-                  <button
-                    type="button"
-                    onClick={() => removeTag(index)}
-                    className="ml-2 text-black/60 hover:text-black"
-                  >
-                    <X size={14} />
-                  </button>
-                </span>
-              ))}
+            <div className="flex space-x-2 mb-3">
+              <input
+                type="text"
+                value={onChange && value !== undefined ? value : inputValue}
+                onChange={handleInputChange}
+                onKeyPress={handleKeyPress}
+                placeholder={placeholder}
+                className="mobile-input flex-1"
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  const currentInputValue =
+                    onChange && value !== undefined ? value : inputValue;
+                  handleAddTag(currentInputValue);
+                }}
+                className="px-4 py-2 bg-brown text-white rounded-lg hover:bg-brown/80 transition-colors touch-friendly flex items-center"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
             </div>
+            {currentTags.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {currentTags.map((tag, index) => (
+                  <span
+                    key={index}
+                    className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-beige text-black"
+                  >
+                    {tag}
+                    <button
+                      type="button"
+                      onClick={() => removeTag(index)}
+                      className="ml-2 text-black/60 hover:text-black"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
           </>
         ) : (
           <div className="p-3 min-h-[48px]">
@@ -492,61 +535,81 @@ export default function PersonalizationPage() {
     label: string;
     placeholder: string;
   }) => {
-    const [inputValue, setInputValue] = useState("");
+    const [draftValue, setDraftValue] = useState("");
+    const currentTags = (formData[field] as number[]) || [];
 
-    const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-      if (e.key === "Enter" && inputValue.trim()) {
+    const handleAddNumberTag = (value: string) => {
+      const numValue = parseInt(value.trim());
+      if (isNaN(numValue)) return;
+      const currentArray = (formData[field] as number[]) || [];
+      if (!currentArray.includes(numValue)) {
+        updateFormData(field, [...currentArray, numValue]);
+      }
+      setDraftValue("");
+    };
+
+    const handleRemoveNumberTag = (valueToRemove: number) => {
+      const currentArray = (formData[field] as number[]) || [];
+      updateFormData(
+        field,
+        currentArray.filter((item) => item !== valueToRemove)
+      );
+    };
+
+    const handleKeyPress = (e: React.KeyboardEvent) => {
+      if (e.key === "Enter") {
         e.preventDefault();
-        const num = parseInt(inputValue.trim());
-        if (!isNaN(num)) {
-          const currentArray = (formData[field] as number[]) || [];
-          const newArray = [...currentArray, num];
-          updateFormData(field, newArray);
-          setInputValue("");
-        }
+        handleAddNumberTag(draftValue);
       }
     };
 
-    const removeTag = (indexToRemove: number) => {
-      const currentArray = (formData[field] as number[]) || [];
-      const newArray = currentArray.filter(
-        (_, index) => index !== indexToRemove
-      );
-      updateFormData(field, newArray);
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setDraftValue(e.target.value);
     };
-
-    const currentTags = (formData[field] as number[]) || [];
 
     return (
       <div className="space-y-2">
-        <label className="block text-black font-medium">{label}</label>
+        <label className="block text-sm font-medium text-black mb-2">
+          {label}
+        </label>
         {isEditMode ? (
           <>
-            <input
-              type="number"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder={placeholder}
-              className="mobile-input mb-3 hover:border-brown focus:border-brown focus:ring-brown/20"
-            />
-            <div className="flex flex-wrap gap-2">
-              {currentTags.map((tag, index) => (
-                <span
-                  key={index}
-                  className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-beige text-black"
-                >
-                  {tag}
-                  <button
-                    type="button"
-                    onClick={() => removeTag(index)}
-                    className="ml-2 text-black/60 hover:text-black"
-                  >
-                    <X size={14} />
-                  </button>
-                </span>
-              ))}
+            <div className="flex space-x-2 mb-3">
+              <input
+                type="number"
+                value={draftValue}
+                onChange={handleInputChange}
+                onKeyPress={handleKeyPress}
+                className="mobile-input flex-1"
+                placeholder={placeholder}
+              />
+              <button
+                type="button"
+                onClick={() => handleAddNumberTag(draftValue)}
+                className="px-4 py-2 bg-brown text-white rounded-lg hover:bg-brown/80 transition-colors touch-friendly flex items-center"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
             </div>
+            {currentTags.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {currentTags.map((tag, index) => (
+                  <span
+                    key={index}
+                    className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-beige text-black"
+                  >
+                    {tag}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveNumberTag(tag)}
+                      className="ml-2 text-black/60 hover:text-black"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
           </>
         ) : (
           <div className="p-3 min-h-[48px]">
@@ -610,7 +673,9 @@ export default function PersonalizationPage() {
                   />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.age) || <span className="text-gray-500">Not specified</span>}
+                    {formatDisplayValue(formData.age) || (
+                      <span className="text-gray-500">Not specified</span>
+                    )}
                   </div>
                 )}
               </div>
@@ -627,7 +692,10 @@ export default function PersonalizationPage() {
                       { value: "male", label: "Male" },
                       { value: "female", label: "Female" },
                       { value: "non-binary", label: "Non-binary" },
-                      { value: "prefer-not-to-say", label: "Prefer not to say" }
+                      {
+                        value: "prefer-not-to-say",
+                        label: "Prefer not to say",
+                      },
                     ]}
                     placeholder="Select gender"
                     isOpen={openDropdowns.gender || false}
@@ -636,7 +704,9 @@ export default function PersonalizationPage() {
                   />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.gender) || <span className="text-gray-500">Not specified</span>}
+                    {formatDisplayValue(formData.gender) || (
+                      <span className="text-gray-500">Not specified</span>
+                    )}
                   </div>
                 )}
               </div>
@@ -648,13 +718,18 @@ export default function PersonalizationPage() {
                 {isEditMode ? (
                   <CustomDropdown
                     value={formData.marital_status || ""}
-                    onChange={(value) => updateFormData("marital_status", value)}
+                    onChange={(value) =>
+                      updateFormData("marital_status", value)
+                    }
                     options={[
                       { value: "single", label: "Single" },
                       { value: "married", label: "Married" },
                       { value: "divorced", label: "Divorced" },
                       { value: "widowed", label: "Widowed" },
-                      { value: "domestic-partnership", label: "Domestic Partnership" }
+                      {
+                        value: "domestic-partnership",
+                        label: "Domestic Partnership",
+                      },
                     ]}
                     placeholder="Select status"
                     isOpen={openDropdowns.marital_status || false}
@@ -663,7 +738,9 @@ export default function PersonalizationPage() {
                   />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.marital_status) || <span className="text-gray-500">Not specified</span>}
+                    {formatDisplayValue(formData.marital_status) || (
+                      <span className="text-gray-500">Not specified</span>
+                    )}
                   </div>
                 )}
               </div>
@@ -686,7 +763,9 @@ export default function PersonalizationPage() {
                   />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.household_size) || <span className="text-gray-500">Not specified</span>}
+                    {formatDisplayValue(formData.household_size) || (
+                      <span className="text-gray-500">Not specified</span>
+                    )}
                   </div>
                 )}
               </div>
@@ -711,7 +790,9 @@ export default function PersonalizationPage() {
                   />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.children_count) || <span className="text-gray-500">Not specified</span>}
+                    {formatDisplayValue(formData.children_count) || (
+                      <span className="text-gray-500">Not specified</span>
+                    )}
                   </div>
                 )}
               </div>
@@ -731,14 +812,16 @@ export default function PersonalizationPage() {
                 {isEditMode ? (
                   <CustomDropdown
                     value={formData.education_level || ""}
-                    onChange={(value) => updateFormData("education_level", value)}
+                    onChange={(value) =>
+                      updateFormData("education_level", value)
+                    }
                     options={[
                       { value: "high-school", label: "High School" },
                       { value: "some-college", label: "Some College" },
                       { value: "bachelors", label: "Bachelor's Degree" },
                       { value: "masters", label: "Master's Degree" },
                       { value: "doctorate", label: "Doctorate" },
-                      { value: "trade-school", label: "Trade School" }
+                      { value: "trade-school", label: "Trade School" },
                     ]}
                     placeholder="Select education level"
                     isOpen={openDropdowns.education_level || false}
@@ -747,7 +830,9 @@ export default function PersonalizationPage() {
                   />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.education_level) || <span className="text-gray-500">Not specified</span>}
+                    {formatDisplayValue(formData.education_level) || (
+                      <span className="text-gray-500">Not specified</span>
+                    )}
                   </div>
                 )}
               </div>
@@ -768,7 +853,9 @@ export default function PersonalizationPage() {
                   />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.occupation) || <span className="text-gray-500">Not specified</span>}
+                    {formatDisplayValue(formData.occupation) || (
+                      <span className="text-gray-500">Not specified</span>
+                    )}
                   </div>
                 )}
               </div>
@@ -788,7 +875,9 @@ export default function PersonalizationPage() {
                 />
               ) : (
                 <div className="p-3 bg-white rounded-md border border-gray-300">
-                  {formatDisplayValue(formData.industry) || <span className="text-gray-500">Not specified</span>}
+                  {formatDisplayValue(formData.industry) || (
+                    <span className="text-gray-500">Not specified</span>
+                  )}
                 </div>
               )}
             </div>
@@ -809,14 +898,16 @@ export default function PersonalizationPage() {
                 {isEditMode ? (
                   <CustomDropdown
                     value={formData.employment_status || ""}
-                    onChange={(value) => updateFormData("employment_status", value)}
+                    onChange={(value) =>
+                      updateFormData("employment_status", value)
+                    }
                     options={[
                       { value: "full-time", label: "Full-time" },
                       { value: "part-time", label: "Part-time" },
                       { value: "self-employed", label: "Self-employed" },
                       { value: "unemployed", label: "Unemployed" },
                       { value: "retired", label: "Retired" },
-                      { value: "student", label: "Student" }
+                      { value: "student", label: "Student" },
                     ]}
                     placeholder="Select employment status"
                     isOpen={openDropdowns.employment_status || false}
@@ -825,7 +916,9 @@ export default function PersonalizationPage() {
                   />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.employment_status) || <span className="text-gray-500">Not specified</span>}
+                    {formatDisplayValue(formData.employment_status) || (
+                      <span className="text-gray-500">Not specified</span>
+                    )}
                   </div>
                 )}
               </div>
@@ -842,7 +935,7 @@ export default function PersonalizationPage() {
                       { value: "50k_100k", label: "$50,000 - $100,000" },
                       { value: "100k_150k", label: "$100,000 - $150,000" },
                       { value: "150k_250k", label: "$150,000 - $250,000" },
-                      { value: "250k_plus", label: "$250,000+" }
+                      { value: "250k_plus", label: "$250,000+" },
                     ]}
                     placeholder="Select income range"
                     isOpen={openDropdowns.income_range || false}
@@ -851,7 +944,9 @@ export default function PersonalizationPage() {
                   />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.income_range) || <span className="text-gray-500">Not specified</span>}
+                    {formatDisplayValue(formData.income_range) || (
+                      <span className="text-gray-500">Not specified</span>
+                    )}
                   </div>
                 )}
               </div>
@@ -862,23 +957,29 @@ export default function PersonalizationPage() {
                 {isEditMode ? (
                   <CustomDropdown
                     value={formData.preferred_home_price_range || ""}
-                    onChange={(value) => updateFormData("preferred_home_price_range", value)}
+                    onChange={(value) =>
+                      updateFormData("preferred_home_price_range", value)
+                    }
                     options={[
                       { value: "under_200k", label: "Under $200,000" },
                       { value: "200k_400k", label: "$200,000 - $400,000" },
                       { value: "400k_600k", label: "$400,000 - $600,000" },
                       { value: "600k_800k", label: "$600,000 - $800,000" },
                       { value: "800k_1m", label: "$800,000 - $1,000,000" },
-                      { value: "1m_plus", label: "$1,000,000+" }
+                      { value: "1m_plus", label: "$1,000,000+" },
                     ]}
                     placeholder="Select price range"
                     isOpen={openDropdowns.preferred_home_price_range || false}
-                    onToggle={() => toggleDropdown("preferred_home_price_range")}
+                    onToggle={() =>
+                      toggleDropdown("preferred_home_price_range")
+                    }
                     dropdownRef={getDropdownRef("preferred_home_price_range")}
                   />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.preferred_home_price_range) || <span className="text-gray-500">Not specified</span>}
+                    {formatDisplayValue(
+                      formData.preferred_home_price_range
+                    ) || <span className="text-gray-500">Not specified</span>}
                   </div>
                 )}
               </div>
@@ -889,13 +990,15 @@ export default function PersonalizationPage() {
                 {isEditMode ? (
                   <CustomDropdown
                     value={formData.credit_score_range || ""}
-                    onChange={(value) => updateFormData("credit_score_range", value)}
+                    onChange={(value) =>
+                      updateFormData("credit_score_range", value)
+                    }
                     options={[
                       { value: "poor", label: "Poor (300-579)" },
                       { value: "fair", label: "Fair (580-669)" },
                       { value: "good", label: "Good (670-739)" },
                       { value: "very_good", label: "Very Good (740-799)" },
-                      { value: "excellent", label: "Excellent (800+)" }
+                      { value: "excellent", label: "Excellent (800+)" },
                     ]}
                     placeholder="Select credit score range"
                     isOpen={openDropdowns.credit_score_range || false}
@@ -904,7 +1007,9 @@ export default function PersonalizationPage() {
                   />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.credit_score_range) || <span className="text-gray-500">Not specified</span>}
+                    {formatDisplayValue(formData.credit_score_range) || (
+                      <span className="text-gray-500">Not specified</span>
+                    )}
                   </div>
                 )}
               </div>
@@ -915,12 +1020,14 @@ export default function PersonalizationPage() {
                 {isEditMode ? (
                   <CustomDropdown
                     value={formData.savings_amount_range || ""}
-                    onChange={(value) => updateFormData("savings_amount_range", value)}
+                    onChange={(value) =>
+                      updateFormData("savings_amount_range", value)
+                    }
                     options={[
                       { value: "under_10k", label: "Under $10,000" },
                       { value: "10k_50k", label: "$10,000 - $50,000" },
                       { value: "50k_100k", label: "$50,000 - $100,000" },
-                      { value: "100k_plus", label: "$100,000+" }
+                      { value: "100k_plus", label: "$100,000+" },
                     ]}
                     placeholder="Select savings range"
                     isOpen={openDropdowns.savings_amount_range || false}
@@ -929,7 +1036,9 @@ export default function PersonalizationPage() {
                   />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.savings_amount_range) || <span className="text-gray-500">Not specified</span>}
+                    {formatDisplayValue(formData.savings_amount_range) || (
+                      <span className="text-gray-500">Not specified</span>
+                    )}
                   </div>
                 )}
               </div>
@@ -940,12 +1049,14 @@ export default function PersonalizationPage() {
                 {isEditMode ? (
                   <CustomDropdown
                     value={formData.investment_experience || ""}
-                    onChange={(value) => updateFormData("investment_experience", value)}
+                    onChange={(value) =>
+                      updateFormData("investment_experience", value)
+                    }
                     options={[
                       { value: "none", label: "No experience" },
                       { value: "beginner", label: "Beginner" },
                       { value: "intermediate", label: "Intermediate" },
-                      { value: "advanced", label: "Advanced" }
+                      { value: "advanced", label: "Advanced" },
                     ]}
                     placeholder="Select experience level"
                     isOpen={openDropdowns.investment_experience || false}
@@ -954,7 +1065,9 @@ export default function PersonalizationPage() {
                   />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.investment_experience) || <span className="text-gray-500">Not specified</span>}
+                    {formatDisplayValue(formData.investment_experience) || (
+                      <span className="text-gray-500">Not specified</span>
+                    )}
                   </div>
                 )}
               </div>
@@ -965,11 +1078,13 @@ export default function PersonalizationPage() {
                 {isEditMode ? (
                   <CustomDropdown
                     value={formData.risk_tolerance || ""}
-                    onChange={(value) => updateFormData("risk_tolerance", value)}
+                    onChange={(value) =>
+                      updateFormData("risk_tolerance", value)
+                    }
                     options={[
                       { value: "conservative", label: "Conservative" },
                       { value: "moderate", label: "Moderate" },
-                      { value: "aggressive", label: "Aggressive" }
+                      { value: "aggressive", label: "Aggressive" },
                     ]}
                     placeholder="Select risk tolerance"
                     isOpen={openDropdowns.risk_tolerance || false}
@@ -978,7 +1093,9 @@ export default function PersonalizationPage() {
                   />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.risk_tolerance) || <span className="text-gray-500">Not specified</span>}
+                    {formatDisplayValue(formData.risk_tolerance) || (
+                      <span className="text-gray-500">Not specified</span>
+                    )}
                   </div>
                 )}
               </div>
@@ -1000,12 +1117,14 @@ export default function PersonalizationPage() {
                 {isEditMode ? (
                   <CustomDropdown
                     value={formData.desired_housing_type || ""}
-                    onChange={(value) => updateFormData("desired_housing_type", value)}
+                    onChange={(value) =>
+                      updateFormData("desired_housing_type", value)
+                    }
                     options={[
                       { value: "house", label: "House" },
                       { value: "condo", label: "Condo" },
                       { value: "townhouse", label: "Townhouse" },
-                      { value: "apartment", label: "Apartment" }
+                      { value: "apartment", label: "Apartment" },
                     ]}
                     placeholder="Select property type"
                     isOpen={openDropdowns.desired_housing_type || false}
@@ -1014,7 +1133,9 @@ export default function PersonalizationPage() {
                   />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.desired_housing_type) || <span className="text-gray-500">Not specified</span>}
+                    {formatDisplayValue(formData.desired_housing_type) || (
+                      <span className="text-gray-500">Not specified</span>
+                    )}
                   </div>
                 )}
               </div>
@@ -1037,7 +1158,9 @@ export default function PersonalizationPage() {
                   />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.preferred_bedrooms) || <span className="text-gray-500">Not specified</span>}
+                    {formatDisplayValue(formData.preferred_bedrooms) || (
+                      <span className="text-gray-500">Not specified</span>
+                    )}
                   </div>
                 )}
               </div>
@@ -1061,7 +1184,9 @@ export default function PersonalizationPage() {
                   />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.preferred_bathrooms) || <span className="text-gray-500">Not specified</span>}
+                    {formatDisplayValue(formData.preferred_bathrooms) || (
+                      <span className="text-gray-500">Not specified</span>
+                    )}
                   </div>
                 )}
               </div>
@@ -1072,12 +1197,14 @@ export default function PersonalizationPage() {
                 {isEditMode ? (
                   <CustomDropdown
                     value={formData.preferred_lot_size || ""}
-                    onChange={(value) => updateFormData("preferred_lot_size", value)}
+                    onChange={(value) =>
+                      updateFormData("preferred_lot_size", value)
+                    }
                     options={[
                       { value: "small", label: "Small (under 0.25 acres)" },
                       { value: "medium", label: "Medium (0.25 - 0.5 acres)" },
                       { value: "large", label: "Large (0.5 - 1 acre)" },
-                      { value: "extra_large", label: "Extra Large (1+ acres)" }
+                      { value: "extra_large", label: "Extra Large (1+ acres)" },
                     ]}
                     placeholder="Select lot size"
                     isOpen={openDropdowns.preferred_lot_size || false}
@@ -1086,7 +1213,9 @@ export default function PersonalizationPage() {
                   />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.preferred_lot_size) || <span className="text-gray-500">Not specified</span>}
+                    {formatDisplayValue(formData.preferred_lot_size) || (
+                      <span className="text-gray-500">Not specified</span>
+                    )}
                   </div>
                 )}
               </div>
@@ -1097,13 +1226,18 @@ export default function PersonalizationPage() {
                 {isEditMode ? (
                   <CustomDropdown
                     value={formData.preferred_home_age || ""}
-                    onChange={(value) => updateFormData("preferred_home_age", value)}
+                    onChange={(value) =>
+                      updateFormData("preferred_home_age", value)
+                    }
                     options={[
                       { value: "new", label: "New Construction (0-5 years)" },
                       { value: "recent", label: "Recent (5-15 years)" },
-                      { value: "established", label: "Established (15-30 years)" },
+                      {
+                        value: "established",
+                        label: "Established (15-30 years)",
+                      },
                       { value: "mature", label: "Mature (30+ years)" },
-                      { value: "historic", label: "Historic (50+ years)" }
+                      { value: "historic", label: "Historic (50+ years)" },
                     ]}
                     placeholder="Select home age preference"
                     isOpen={openDropdowns.preferred_home_age || false}
@@ -1112,7 +1246,9 @@ export default function PersonalizationPage() {
                   />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.preferred_home_age) || <span className="text-gray-500">Not specified</span>}
+                    {formatDisplayValue(formData.preferred_home_age) || (
+                      <span className="text-gray-500">Not specified</span>
+                    )}
                   </div>
                 )}
               </div>
@@ -1123,7 +1259,9 @@ export default function PersonalizationPage() {
                 {isEditMode ? (
                   <CustomDropdown
                     value={formData.preferred_architectural_style || ""}
-                    onChange={(value) => updateFormData("preferred_architectural_style", value)}
+                    onChange={(value) =>
+                      updateFormData("preferred_architectural_style", value)
+                    }
                     options={[
                       { value: "modern", label: "Modern" },
                       { value: "traditional", label: "Traditional" },
@@ -1132,16 +1270,24 @@ export default function PersonalizationPage() {
                       { value: "craftsman", label: "Craftsman" },
                       { value: "victorian", label: "Victorian" },
                       { value: "mediterranean", label: "Mediterranean" },
-                      { value: "contemporary", label: "Contemporary" }
+                      { value: "contemporary", label: "Contemporary" },
                     ]}
                     placeholder="Select architectural style"
-                    isOpen={openDropdowns.preferred_architectural_style || false}
-                    onToggle={() => toggleDropdown("preferred_architectural_style")}
-                    dropdownRef={getDropdownRef("preferred_architectural_style")}
+                    isOpen={
+                      openDropdowns.preferred_architectural_style || false
+                    }
+                    onToggle={() =>
+                      toggleDropdown("preferred_architectural_style")
+                    }
+                    dropdownRef={getDropdownRef(
+                      "preferred_architectural_style"
+                    )}
                   />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.preferred_architectural_style) || <span className="text-gray-500">Not specified</span>}
+                    {formatDisplayValue(
+                      formData.preferred_architectural_style
+                    ) || <span className="text-gray-500">Not specified</span>}
                   </div>
                 )}
               </div>
@@ -1173,14 +1319,16 @@ export default function PersonalizationPage() {
                 {isEditMode ? (
                   <CustomDropdown
                     value={formData.preferred_climate || ""}
-                    onChange={(value) => updateFormData("preferred_climate", value)}
+                    onChange={(value) =>
+                      updateFormData("preferred_climate", value)
+                    }
                     options={[
                       { value: "tropical", label: "Tropical" },
                       { value: "subtropical", label: "Subtropical" },
                       { value: "temperate", label: "Temperate" },
                       { value: "continental", label: "Continental" },
                       { value: "arid", label: "Arid/Desert" },
-                      { value: "mediterranean", label: "Mediterranean" }
+                      { value: "mediterranean", label: "Mediterranean" },
                     ]}
                     placeholder="Select climate preference"
                     isOpen={openDropdowns.preferred_climate || false}
@@ -1189,7 +1337,9 @@ export default function PersonalizationPage() {
                   />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.preferred_climate) || <span className="text-gray-500">Not specified</span>}
+                    {formatDisplayValue(formData.preferred_climate) || (
+                      <span className="text-gray-500">Not specified</span>
+                    )}
                   </div>
                 )}
               </div>
@@ -1200,12 +1350,14 @@ export default function PersonalizationPage() {
                 {isEditMode ? (
                   <CustomDropdown
                     value={formData.urban_rural_preference || ""}
-                    onChange={(value) => updateFormData("urban_rural_preference", value)}
+                    onChange={(value) =>
+                      updateFormData("urban_rural_preference", value)
+                    }
                     options={[
                       { value: "urban", label: "Urban" },
                       { value: "suburban", label: "Suburban" },
                       { value: "rural", label: "Rural" },
-                      { value: "mixed", label: "Mixed/Flexible" }
+                      { value: "mixed", label: "Mixed/Flexible" },
                     ]}
                     placeholder="Select preference"
                     isOpen={openDropdowns.urban_rural_preference || false}
@@ -1214,7 +1366,9 @@ export default function PersonalizationPage() {
                   />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.urban_rural_preference) || <span className="text-gray-500">Not specified</span>}
+                    {formatDisplayValue(formData.urban_rural_preference) || (
+                      <span className="text-gray-500">Not specified</span>
+                    )}
                   </div>
                 )}
               </div>
@@ -1225,13 +1379,15 @@ export default function PersonalizationPage() {
                 {isEditMode ? (
                   <CustomDropdown
                     value={formData.commute_tolerance?.toString() || ""}
-                    onChange={(value) => updateFormData("commute_tolerance", value)}
+                    onChange={(value) =>
+                      updateFormData("commute_tolerance", value)
+                    }
                     options={[
                       { value: "under_15", label: "Under 15 minutes" },
                       { value: "15_30", label: "15-30 minutes" },
                       { value: "30_45", label: "30-45 minutes" },
                       { value: "45_60", label: "45-60 minutes" },
-                      { value: "over_60", label: "Over 60 minutes" }
+                      { value: "over_60", label: "Over 60 minutes" },
                     ]}
                     placeholder="Select commute tolerance"
                     isOpen={openDropdowns.commute_tolerance || false}
@@ -1240,7 +1396,9 @@ export default function PersonalizationPage() {
                   />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.commute_tolerance) || <span className="text-gray-500">Not specified</span>}
+                    {formatDisplayValue(formData.commute_tolerance) || (
+                      <span className="text-gray-500">Not specified</span>
+                    )}
                   </div>
                 )}
               </div>
@@ -1251,11 +1409,16 @@ export default function PersonalizationPage() {
                 {isEditMode ? (
                   <CustomDropdown
                     value={formData.proximity_to_family || ""}
-                    onChange={(value) => updateFormData("proximity_to_family", value)}
+                    onChange={(value) =>
+                      updateFormData("proximity_to_family", value)
+                    }
                     options={[
                       { value: "very_important", label: "Very Important" },
-                      { value: "somewhat_important", label: "Somewhat Important" },
-                      { value: "not_important", label: "Not Important" }
+                      {
+                        value: "somewhat_important",
+                        label: "Somewhat Important",
+                      },
+                      { value: "not_important", label: "Not Important" },
                     ]}
                     placeholder="Select importance"
                     isOpen={openDropdowns.proximity_to_family || false}
@@ -1264,7 +1427,9 @@ export default function PersonalizationPage() {
                   />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.proximity_to_family) || <span className="text-gray-500">Not specified</span>}
+                    {formatDisplayValue(formData.proximity_to_family) || (
+                      <span className="text-gray-500">Not specified</span>
+                    )}
                   </div>
                 )}
               </div>
@@ -1275,11 +1440,16 @@ export default function PersonalizationPage() {
                 {isEditMode ? (
                   <CustomDropdown
                     value={formData.walkability_importance || ""}
-                    onChange={(value) => updateFormData("walkability_importance", value)}
+                    onChange={(value) =>
+                      updateFormData("walkability_importance", value)
+                    }
                     options={[
                       { value: "very_important", label: "Very Important" },
-                      { value: "somewhat_important", label: "Somewhat Important" },
-                      { value: "not_important", label: "Not Important" }
+                      {
+                        value: "somewhat_important",
+                        label: "Somewhat Important",
+                      },
+                      { value: "not_important", label: "Not Important" },
                     ]}
                     placeholder="Select importance"
                     isOpen={openDropdowns.walkability_importance || false}
@@ -1288,7 +1458,9 @@ export default function PersonalizationPage() {
                   />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.walkability_importance) || <span className="text-gray-500">Not specified</span>}
+                    {formatDisplayValue(formData.walkability_importance) || (
+                      <span className="text-gray-500">Not specified</span>
+                    )}
                   </div>
                 )}
               </div>
@@ -1320,7 +1492,9 @@ export default function PersonalizationPage() {
                 {isEditMode ? (
                   <CustomDropdown
                     value={formData.lifestyle_type || ""}
-                    onChange={(value) => updateFormData("lifestyle_type", value)}
+                    onChange={(value) =>
+                      updateFormData("lifestyle_type", value)
+                    }
                     options={[
                       { value: "active", label: "Active/Outdoorsy" },
                       { value: "social", label: "Social/Entertaining" },
@@ -1328,7 +1502,7 @@ export default function PersonalizationPage() {
                       { value: "family_oriented", label: "Family-Oriented" },
                       { value: "career_focused", label: "Career-Focused" },
                       { value: "creative", label: "Creative/Artistic" },
-                      { value: "minimalist", label: "Minimalist" }
+                      { value: "minimalist", label: "Minimalist" },
                     ]}
                     placeholder="Select lifestyle type"
                     isOpen={openDropdowns.lifestyle_type || false}
@@ -1337,7 +1511,9 @@ export default function PersonalizationPage() {
                   />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.lifestyle_type) || <span className="text-gray-500">Not specified</span>}
+                    {formatDisplayValue(formData.lifestyle_type) || (
+                      <span className="text-gray-500">Not specified</span>
+                    )}
                   </div>
                 )}
               </div>
@@ -1389,11 +1565,13 @@ export default function PersonalizationPage() {
                 {isEditMode ? (
                   <CustomDropdown
                     value={formData.decision_making_style || ""}
-                    onChange={(value) => updateFormData("decision_making_style", value)}
+                    onChange={(value) =>
+                      updateFormData("decision_making_style", value)
+                    }
                     options={[
                       { value: "quick", label: "Quick decision maker" },
                       { value: "thorough", label: "Thorough researcher" },
-                      { value: "collaborative", label: "Collaborative" }
+                      { value: "collaborative", label: "Collaborative" },
                     ]}
                     placeholder="Select style"
                     isOpen={openDropdowns.decision_making_style || false}
@@ -1402,7 +1580,9 @@ export default function PersonalizationPage() {
                   />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.decision_making_style) || <span className="text-gray-500">Not specified</span>}
+                    {formatDisplayValue(formData.decision_making_style) || (
+                      <span className="text-gray-500">Not specified</span>
+                    )}
                   </div>
                 )}
               </div>
@@ -1413,11 +1593,13 @@ export default function PersonalizationPage() {
                 {isEditMode ? (
                   <CustomDropdown
                     value={formData.communication_preference || ""}
-                    onChange={(value) => updateFormData("communication_preference", value)}
+                    onChange={(value) =>
+                      updateFormData("communication_preference", value)
+                    }
                     options={[
                       { value: "frequent", label: "Frequent updates" },
                       { value: "milestone", label: "Milestone updates" },
-                      { value: "minimal", label: "Minimal contact" }
+                      { value: "minimal", label: "Minimal contact" },
                     ]}
                     placeholder="Select style"
                     isOpen={openDropdowns.communication_preference || false}
@@ -1426,7 +1608,9 @@ export default function PersonalizationPage() {
                   />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.communication_preference) || <span className="text-gray-500">Not specified</span>}
+                    {formatDisplayValue(formData.communication_preference) || (
+                      <span className="text-gray-500">Not specified</span>
+                    )}
                   </div>
                 )}
               </div>
@@ -1448,12 +1632,17 @@ export default function PersonalizationPage() {
                 {isEditMode ? (
                   <CustomDropdown
                     value={formData.property_search_stage || ""}
-                    onChange={(value) => updateFormData("property_search_stage", value)}
+                    onChange={(value) =>
+                      updateFormData("property_search_stage", value)
+                    }
                     options={[
                       { value: "just_looking", label: "Just Looking" },
-                      { value: "actively_searching", label: "Actively Searching" },
+                      {
+                        value: "actively_searching",
+                        label: "Actively Searching",
+                      },
                       { value: "ready_to_buy", label: "Ready to Buy" },
-                      { value: "under_contract", label: "Under Contract" }
+                      { value: "under_contract", label: "Under Contract" },
                     ]}
                     placeholder="Select stage"
                     isOpen={openDropdowns.property_search_stage || false}
@@ -1462,7 +1651,9 @@ export default function PersonalizationPage() {
                   />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.property_search_stage) || <span className="text-gray-500">Not specified</span>}
+                    {formatDisplayValue(formData.property_search_stage) || (
+                      <span className="text-gray-500">Not specified</span>
+                    )}
                   </div>
                 )}
               </div>
@@ -1474,11 +1665,13 @@ export default function PersonalizationPage() {
                 {isEditMode ? (
                   <CustomDropdown
                     value={formData.home_buying_experience || ""}
-                    onChange={(value) => updateFormData("home_buying_experience", value)}
+                    onChange={(value) =>
+                      updateFormData("home_buying_experience", value)
+                    }
                     options={[
                       { value: "first_time", label: "First Time Buyer" },
                       { value: "experienced", label: "Experienced Buyer" },
-                      { value: "investor", label: "Real Estate Investor" }
+                      { value: "investor", label: "Real Estate Investor" },
                     ]}
                     placeholder="Select experience"
                     isOpen={openDropdowns.home_buying_experience || false}
@@ -1487,7 +1680,9 @@ export default function PersonalizationPage() {
                   />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.home_buying_experience) || <span className="text-gray-500">Not specified</span>}
+                    {formatDisplayValue(formData.home_buying_experience) || (
+                      <span className="text-gray-500">Not specified</span>
+                    )}
                   </div>
                 )}
               </div>
@@ -1499,14 +1694,16 @@ export default function PersonalizationPage() {
                 {isEditMode ? (
                   <CustomDropdown
                     value={formData.financing_preference || ""}
-                    onChange={(value) => updateFormData("financing_preference", value)}
+                    onChange={(value) =>
+                      updateFormData("financing_preference", value)
+                    }
                     options={[
                       { value: "cash", label: "Cash" },
                       { value: "conventional", label: "Conventional Loan" },
                       { value: "fha", label: "FHA Loan" },
                       { value: "va", label: "VA Loan" },
                       { value: "usda", label: "USDA Loan" },
-                      { value: "jumbo", label: "Jumbo Loan" }
+                      { value: "jumbo", label: "Jumbo Loan" },
                     ]}
                     placeholder="Select financing"
                     isOpen={openDropdowns.financing_preference || false}
@@ -1515,7 +1712,9 @@ export default function PersonalizationPage() {
                   />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.financing_preference) || <span className="text-gray-500">Not specified</span>}
+                    {formatDisplayValue(formData.financing_preference) || (
+                      <span className="text-gray-500">Not specified</span>
+                    )}
                   </div>
                 )}
               </div>
@@ -1527,12 +1726,14 @@ export default function PersonalizationPage() {
                 {isEditMode ? (
                   <CustomDropdown
                     value={formData.renovation_willingness || ""}
-                    onChange={(value) => updateFormData("renovation_willingness", value)}
+                    onChange={(value) =>
+                      updateFormData("renovation_willingness", value)
+                    }
                     options={[
                       { value: "none", label: "None - Move-in Ready" },
                       { value: "minor", label: "Minor Cosmetic Updates" },
                       { value: "major", label: "Major Renovations" },
-                      { value: "complete", label: "Complete Renovation" }
+                      { value: "complete", label: "Complete Renovation" },
                     ]}
                     placeholder="Select willingness"
                     isOpen={openDropdowns.renovation_willingness || false}
@@ -1541,7 +1742,9 @@ export default function PersonalizationPage() {
                   />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.renovation_willingness) || <span className="text-gray-500">Not specified</span>}
+                    {formatDisplayValue(formData.renovation_willingness) || (
+                      <span className="text-gray-500">Not specified</span>
+                    )}
                   </div>
                 )}
               </div>
@@ -1573,12 +1776,14 @@ export default function PersonalizationPage() {
                 {isEditMode ? (
                   <CustomDropdown
                     value={formData.meeting_availability || ""}
-                    onChange={(value) => updateFormData("meeting_availability", value)}
+                    onChange={(value) =>
+                      updateFormData("meeting_availability", value)
+                    }
                     options={[
                       { value: "weekdays", label: "Weekdays" },
                       { value: "weekends", label: "Weekends" },
                       { value: "evenings", label: "Evenings" },
-                      { value: "flexible", label: "Flexible" }
+                      { value: "flexible", label: "Flexible" },
                     ]}
                     placeholder="Select method"
                     isOpen={openDropdowns.meeting_availability || false}
@@ -1587,7 +1792,9 @@ export default function PersonalizationPage() {
                   />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.meeting_availability) || <span className="text-gray-500">Not specified</span>}
+                    {formatDisplayValue(formData.meeting_availability) || (
+                      <span className="text-gray-500">Not specified</span>
+                    )}
                   </div>
                 )}
               </div>
@@ -1598,12 +1805,14 @@ export default function PersonalizationPage() {
                 {isEditMode ? (
                   <CustomDropdown
                     value={formData.response_time_expectation || ""}
-                    onChange={(value) => updateFormData("response_time_expectation", value)}
+                    onChange={(value) =>
+                      updateFormData("response_time_expectation", value)
+                    }
                     options={[
                       { value: "immediate", label: "Immediate (within hours)" },
                       { value: "same_day", label: "Same day" },
                       { value: "next_day", label: "Next business day" },
-                      { value: "flexible", label: "Flexible" }
+                      { value: "flexible", label: "Flexible" },
                     ]}
                     placeholder="Select expectation"
                     isOpen={openDropdowns.response_time_expectation || false}
@@ -1612,7 +1821,9 @@ export default function PersonalizationPage() {
                   />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.response_time_expectation) || <span className="text-gray-500">Not specified</span>}
+                    {formatDisplayValue(formData.response_time_expectation) || (
+                      <span className="text-gray-500">Not specified</span>
+                    )}
                   </div>
                 )}
               </div>
@@ -1624,12 +1835,14 @@ export default function PersonalizationPage() {
                 {isEditMode ? (
                   <CustomDropdown
                     value={formData.preferred_support_channel || ""}
-                    onChange={(value) => updateFormData("preferred_support_channel", value)}
+                    onChange={(value) =>
+                      updateFormData("preferred_support_channel", value)
+                    }
                     options={[
                       { value: "phone", label: "Phone" },
                       { value: "email", label: "Email" },
                       { value: "text", label: "Text/SMS" },
-                      { value: "app", label: "Mobile App" }
+                      { value: "app", label: "Mobile App" },
                     ]}
                     placeholder="Select channel"
                     isOpen={openDropdowns.preferred_support_channel || false}
@@ -1638,7 +1851,9 @@ export default function PersonalizationPage() {
                   />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.preferred_support_channel) || <span className="text-gray-500">Not specified</span>}
+                    {formatDisplayValue(formData.preferred_support_channel) || (
+                      <span className="text-gray-500">Not specified</span>
+                    )}
                   </div>
                 )}
               </div>
@@ -1650,12 +1865,14 @@ export default function PersonalizationPage() {
                 {isEditMode ? (
                   <CustomDropdown
                     value={formData.information_detail_level || ""}
-                    onChange={(value) => updateFormData("information_detail_level", value)}
+                    onChange={(value) =>
+                      updateFormData("information_detail_level", value)
+                    }
                     options={[
                       { value: "brief", label: "Brief" },
                       { value: "moderate", label: "Moderate" },
                       { value: "detailed", label: "Detailed" },
-                      { value: "comprehensive", label: "Comprehensive" }
+                      { value: "comprehensive", label: "Comprehensive" },
                     ]}
                     placeholder="Select detail level"
                     isOpen={openDropdowns.information_detail_level || false}
@@ -1664,7 +1881,9 @@ export default function PersonalizationPage() {
                   />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.information_detail_level) || <span className="text-gray-500">Not specified</span>}
+                    {formatDisplayValue(formData.information_detail_level) || (
+                      <span className="text-gray-500">Not specified</span>
+                    )}
                   </div>
                 )}
               </div>
@@ -1676,12 +1895,14 @@ export default function PersonalizationPage() {
                 {isEditMode ? (
                   <CustomDropdown
                     value={formData.meeting_preference || ""}
-                    onChange={(value) => updateFormData("meeting_preference", value)}
+                    onChange={(value) =>
+                      updateFormData("meeting_preference", value)
+                    }
                     options={[
                       { value: "in_person", label: "In Person" },
                       { value: "virtual", label: "Virtual" },
                       { value: "phone", label: "Phone" },
-                      { value: "email", label: "Email" }
+                      { value: "email", label: "Email" },
                     ]}
                     placeholder="Select preference"
                     isOpen={openDropdowns.meeting_preference || false}
@@ -1690,7 +1911,9 @@ export default function PersonalizationPage() {
                   />
                 ) : (
                   <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.meeting_preference) || <span className="text-gray-500">Not specified</span>}
+                    {formatDisplayValue(formData.meeting_preference) || (
+                      <span className="text-gray-500">Not specified</span>
+                    )}
                   </div>
                 )}
               </div>
@@ -1750,7 +1973,9 @@ export default function PersonalizationPage() {
                 />
               ) : (
                 <div className="p-3 bg-white rounded-md border border-gray-300 min-h-[100px]">
-                  {formatDisplayValue(formData.additional_context) || <span className="text-gray-500">Not specified</span>}
+                  {formatDisplayValue(formData.additional_context) || (
+                    <span className="text-gray-500">Not specified</span>
+                  )}
                 </div>
               )}
             </div>
@@ -1889,65 +2114,68 @@ export default function PersonalizationPage() {
           </div>
         </div>
       </div>
-      
+
       {/* Success Dialog */}
-      {showSuccessDialog && createPortal(
-        <div
-          className="fixed inset-0 z-[9999] overflow-y-auto"
-          style={{ left: 0, right: 0, top: 0, bottom: 0 }}
-        >
+      {showSuccessDialog &&
+        createPortal(
           <div
-            className="flex min-h-screen items-center justify-center p-4 sm:p-6"
-            style={{ width: "100vw", height: "100vh" }}
+            className="fixed inset-0 z-[9999] overflow-y-auto"
+            style={{ left: 0, right: 0, top: 0, bottom: 0 }}
           >
-            {/* Backdrop */}
             <div
-              className="fixed inset-0 bg-black/50 transition-opacity"
-              onClick={() => setShowSuccessDialog(false)}
-              style={{ left: 0, right: 0, top: 0, bottom: 0 }}
-            />
-
-            {/* Dialog */}
-            <div
-              className="relative z-[10000] w-full max-w-sm mx-auto transform overflow-hidden rounded-2xl bg-white p-6 text-left shadow-xl transition-all"
-              style={{ maxWidth: "320px" }}
+              className="flex min-h-screen items-center justify-center p-4 sm:p-6"
+              style={{ width: "100vw", height: "100vh" }}
             >
-              {/* Close button */}
-              <button
-                type="button"
+              {/* Backdrop */}
+              <div
+                className="fixed inset-0 bg-black/50 transition-opacity"
                 onClick={() => setShowSuccessDialog(false)}
-                className="absolute right-2 top-2 text-gray-400 hover:text-gray-500 touch-friendly"
+                style={{ left: 0, right: 0, top: 0, bottom: 0 }}
+              />
+
+              {/* Dialog */}
+              <div
+                className="relative z-[10000] w-full max-w-sm mx-auto transform overflow-hidden rounded-2xl bg-white p-6 text-left shadow-xl transition-all"
+                style={{ maxWidth: "320px" }}
               >
-                <X className="h-5 w-5" aria-hidden="true" />
-              </button>
-
-              {/* Content */}
-              <div className="flex items-start justify-center">
-                <div className="mt-3 text-center w-full">
-                  <h3 className="text-lg font-medium leading-6 text-gray-900">
-                    Success!
-                  </h3>
-                  <div className="mt-2">
-                    <p className="text-sm text-gray-500">Preferences updated successfully!</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Action */}
-              <div className="mt-5 sm:mt-6 flex justify-center">
+                {/* Close button */}
                 <button
                   type="button"
                   onClick={() => setShowSuccessDialog(false)}
-                  className="inline-flex w-full justify-center rounded-md border border-transparent bg-gold px-6 py-2 text-sm font-medium text-black shadow-sm hover:bg-gold/90 focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-2 sm:w-auto touch-friendly min-w-[100px]"
+                  className="absolute right-2 top-2 text-gray-400 hover:text-gray-500 touch-friendly"
                 >
-                  Okay
+                  <X className="h-5 w-5" aria-hidden="true" />
                 </button>
+
+                {/* Content */}
+                <div className="flex items-start justify-center">
+                  <div className="mt-3 text-center w-full">
+                    <h3 className="text-lg font-medium leading-6 text-gray-900">
+                      Success!
+                    </h3>
+                    <div className="mt-2">
+                      <p className="text-sm text-gray-500">
+                        Preferences updated successfully!
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action */}
+                <div className="mt-5 sm:mt-6 flex justify-center">
+                  <button
+                    type="button"
+                    onClick={() => setShowSuccessDialog(false)}
+                    className="inline-flex w-full justify-center rounded-md border border-transparent bg-gold px-6 py-2 text-sm font-medium text-black shadow-sm hover:bg-gold/90 focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-2 sm:w-auto touch-friendly min-w-[100px]"
+                  >
+                    Okay
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        </div>,
-        document.body
-      )}
+          </div>,
+          document.body
+        )}
     </div>
   );
 }
