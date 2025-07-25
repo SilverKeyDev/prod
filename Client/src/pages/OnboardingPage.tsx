@@ -15,7 +15,25 @@ import {
   Lightbulb,
   Plus,
   X,
+  GripVertical,
 } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 interface OnboardingData {
   age?: number;
@@ -77,6 +95,23 @@ interface OnboardingData {
   deal_makers?: string[];
   concerns_or_fears?: string[];
   additional_context?: string;
+  // Report Customization
+  include_neighborhood_overview?: boolean;
+  include_safety?: boolean;
+  include_culture_and_events?: boolean;
+  include_weather?: boolean;
+  include_social_character?: boolean;
+  include_local_amenities?: boolean;
+  include_commute?: boolean;
+  include_family_friendly?: boolean;
+  include_nightlife_and_dating?: boolean;
+  include_accessibility?: boolean;
+  include_development?: boolean;
+  include_environment?: boolean;
+  include_money?: boolean;
+  include_schools?: boolean;
+  include_extra_tips?: boolean;
+  report_section_priorities?: string[];
 }
 
 const STEPS = [
@@ -89,7 +124,118 @@ const STEPS = [
   { id: "realestate", title: "Real Estate Goals", icon: Building },
   { id: "communication", title: "Communication", icon: MessageSquare },
   { id: "insights", title: "Personal Insights", icon: Lightbulb },
+  { id: "reportcustomization", title: "Report Customization", icon: Check },
 ];
+
+// Default report sections with their labels
+const defaultReportSections = [
+  { key: "include_neighborhood_overview", label: "Neighborhood Overview" },
+  { key: "include_safety", label: "Safety & Crime" },
+  { key: "include_culture_and_events", label: "Culture & Events" },
+  { key: "include_weather", label: "Weather & Climate" },
+  { key: "include_social_character", label: "Social Character" },
+  { key: "include_local_amenities", label: "Local Amenities" },
+  { key: "include_commute", label: "Commute & Transportation" },
+  { key: "include_family_friendly", label: "Family Friendliness" },
+  { key: "include_nightlife_and_dating", label: "Nightlife & Dating" },
+  { key: "include_accessibility", label: "Accessibility" },
+  { key: "include_development", label: "Development & Growth" },
+  { key: "include_environment", label: "Environment & Nature" },
+  { key: "include_money", label: "Cost of Living & Finances" },
+  { key: "include_schools", label: "Schools & Education" },
+  { key: "include_extra_tips", label: "Extra Tips & Insights" },
+];
+
+// Sortable Report Section Component
+interface SortableReportSectionProps {
+  id: string;
+  label: string;
+  checked: boolean;
+  priority?: number;
+  onToggle: (checked: boolean) => void;
+}
+
+const SortableReportSection: React.FC<SortableReportSectionProps> = ({
+  id,
+  label,
+  checked,
+  priority,
+  onToggle,
+}) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition: isDragging ? 'none' : transition,
+    opacity: isDragging ? 0.9 : 1,
+    zIndex: isDragging ? 1000 : 'auto',
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`flex items-center space-x-3 p-3 bg-white border border-beige rounded-lg hover:border-brown/30 transition-all duration-200 ${
+        !checked ? "opacity-60" : ""
+      } ${
+        isDragging ? "shadow-lg bg-white border-brown/50" : ""
+      }`}
+    >
+      <div
+        {...attributes}
+        {...listeners}
+        className="cursor-grab active:cursor-grabbing p-1 hover:bg-brown/10 rounded transition-colors"
+        title="Drag to reorder"
+      >
+        <GripVertical className="w-4 h-4 text-brown/60" />
+      </div>
+      
+      <div className="flex-shrink-0 w-6 h-6 bg-gray-100 text-gray-600 text-xs font-medium rounded-full flex items-center justify-center border border-gray-200 decoration-gray-400 decoration-1">
+        {priority}
+      </div>
+      
+      <label className="flex items-center space-x-3 flex-1 cursor-pointer">
+        <input
+          type="checkbox"
+          checked={checked}
+          onChange={(e) => onToggle(e.target.checked)}
+          className="sr-only"
+        />
+        <div
+          className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all duration-200 ${
+            checked
+              ? "bg-brown border-brown text-white shadow-sm"
+              : "border-beige hover:border-brown/50 bg-white"
+          }`}
+        >
+          {checked && (
+            <svg
+              className="w-3 h-3"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fillRule="evenodd"
+                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                clipRule="evenodd"
+              />
+            </svg>
+          )}
+        </div>
+        <span className="text-sm font-medium text-gray-700 flex-1">
+          {label}
+        </span>
+      </label>
+    </div>
+  );
+};
 
 // Custom dropdown component matching PastReports implementation
 interface CustomDropdownProps {
@@ -157,7 +303,25 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
 
 export default function OnboardingPage() {
   const [currentStep, setCurrentStep] = useState(0);
-  const [formData, setFormData] = useState<OnboardingData>({});
+  const [formData, setFormData] = useState<OnboardingData>({
+    // Initialize report customization fields with default true values
+    include_neighborhood_overview: true,
+    include_safety: true,
+    include_culture_and_events: true,
+    include_weather: true,
+    include_social_character: true,
+    include_local_amenities: true,
+    include_commute: true,
+    include_family_friendly: true,
+    include_nightlife_and_dating: true,
+    include_accessibility: true,
+    include_development: true,
+    include_environment: true,
+    include_money: true,
+    include_schools: true,
+    include_extra_tips: true,
+    report_section_priorities: [],
+  });
   const [loading, setLoading] = useState(false);
   const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>(
     {}
@@ -166,6 +330,97 @@ export default function OnboardingPage() {
     {}
   );
   const navigate = useNavigate();
+
+  // Drag and drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 3, // Start dragging after 3px movement
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  // Get ordered report sections based on user preferences
+  const getOrderedReportSections = () => {
+    try {
+      if (!formData || !defaultReportSections) {
+        return [];
+      }
+      
+      const priorities = formData.report_section_priorities || [];
+      const sections = [...defaultReportSections];
+      
+      // Sort sections based on priorities, with unchecked items at the end
+      const orderedSections = sections.sort((a, b) => {
+        if (!a || !b || !a.key || !b.key) return 0;
+        
+        const aChecked = (formData[a.key as keyof OnboardingData] as boolean) ?? true;
+        const bChecked = (formData[b.key as keyof OnboardingData] as boolean) ?? true;
+        
+        // Unchecked items go to the end
+        if (aChecked !== bChecked) {
+          return aChecked ? -1 : 1;
+        }
+        
+        // For checked items, use priority order
+        const aPriority = priorities.indexOf(a.key);
+        const bPriority = priorities.indexOf(b.key);
+        
+        // Items not in priorities should come after items in priorities
+        if (aPriority === -1 && bPriority === -1) return 0;
+        if (aPriority === -1) return 1;  // A comes after B
+        if (bPriority === -1) return -1; // B comes after A
+        
+        return aPriority - bPriority;
+      });
+      
+      return orderedSections;
+    } catch (error) {
+      console.error("Error in getOrderedReportSections:", error);
+      return [];
+    }
+  };
+
+  // Handle drag end for reordering
+  const handleDragEnd = (event: DragEndEvent) => {
+    try {
+      const { active, over } = event;
+      
+      if (!active || !over || !active.id || !over.id || active.id === over.id) return;
+      
+      const sections = getOrderedReportSections();
+      const oldIndex = sections.findIndex(section => section.key === active.id);
+      const newIndex = sections.findIndex(section => section.key === over.id);
+      
+      if (oldIndex === -1 || newIndex === -1) return;
+      
+      const reorderedSections = arrayMove(sections, oldIndex, newIndex);
+      const newPriorities = reorderedSections.map(section => section.key);
+      
+      updateFormData("report_section_priorities", newPriorities);
+    } catch (error) {
+      console.error("Error in handleDragEnd:", error);
+    }
+  };
+
+  // Handle checkbox toggle for report sections
+  const handleReportSectionToggle = (sectionKey: string, checked: boolean) => {
+    updateFormData(sectionKey as keyof OnboardingData, checked);
+    
+    if (!checked) {
+      const currentPriorities = formData.report_section_priorities || [];
+      const newPriorities = currentPriorities.filter(key => key !== sectionKey);
+      updateFormData("report_section_priorities", newPriorities);
+    } else {
+      const currentPriorities = formData.report_section_priorities || [];
+      if (!currentPriorities.includes(sectionKey)) {
+        updateFormData("report_section_priorities", [...currentPriorities, sectionKey]);
+      }
+    }
+  };
 
   // Load formData from localStorage on mount
   useEffect(() => {
@@ -1589,6 +1844,49 @@ export default function OnboardingPage() {
                 />
               </div>
             </div>
+          </div>
+        );
+
+      case "reportcustomization":
+        const orderedSections = getOrderedReportSections();
+        
+        return (
+          <div className="space-y-6">
+            <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
+              Customize Your Reports
+            </h2>
+            <p className="text-gray-600 mb-6">
+              Choose which sections to include in your property reports and drag to reorder them by priority. All sections are enabled by default, but you can customize them to focus on what matters most to you.
+            </p>
+
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={orderedSections?.map(section => section?.key).filter(Boolean) || []}
+                strategy={verticalListSortingStrategy}
+              >
+                <div className="space-y-2">
+                  {orderedSections?.map((section, index) => {
+                    if (!section || !section.key) return null;
+                    const isChecked = (formData[section.key as keyof OnboardingData] as boolean) ?? true;
+                    const priority = index + 1; // Always show position number
+                    return (
+                      <SortableReportSection
+                        key={section.key}
+                        id={section.key}
+                        label={section.label}
+                        checked={isChecked}
+                        priority={priority}
+                        onToggle={(checked) => handleReportSectionToggle(section.key, checked)}
+                      />
+                    );
+                  })}
+                </div>
+              </SortableContext>
+            </DndContext>
           </div>
         );
 

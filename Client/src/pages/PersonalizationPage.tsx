@@ -14,7 +14,27 @@ import {
   Lightbulb,
   ChevronDown,
   Plus,
+  GripVertical,
 } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import {
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { apiRequest } from "../lib/api";
 
 interface OnboardingData {
@@ -88,15 +108,33 @@ interface OnboardingData {
   deal_makers?: string[];
   concerns_or_fears?: string[];
   additional_context?: string;
+  // Report Customization
+  include_neighborhood_overview?: boolean;
+  include_safety?: boolean;
+  include_culture_and_events?: boolean;
+  include_weather?: boolean;
+  include_social_character?: boolean;
+  include_local_amenities?: boolean;
+  include_commute?: boolean;
+  include_family_friendly?: boolean;
+  include_nightlife_and_dating?: boolean;
+  include_accessibility?: boolean;
+  include_development?: boolean;
+  include_environment?: boolean;
+  include_money?: boolean;
+  include_schools?: boolean;
+  include_extra_tips?: boolean;
+  report_section_priorities?: string[];
 }
 
 const STEPS = [
+  { id: "reportcustomization", title: "Report Customization", icon: Building },
+  { id: "behavior", title: "Behavior & Preferences", icon: Brain },
   { id: "demographics", title: "About You", icon: User },
   { id: "financial", title: "Financial Profile", icon: Building },
   { id: "housing", title: "Housing Preferences", icon: Home },
   { id: "location", title: "Location Preferences", icon: MapPin },
   { id: "lifestyle", title: "Lifestyle", icon: Heart },
-  { id: "behavior", title: "Behavior & Preferences", icon: Brain },
   { id: "realestate", title: "Real Estate Experience", icon: Building },
   { id: "communication", title: "Communication", icon: MessageSquare },
   { id: "insights", title: "Personal Insights", icon: Lightbulb },
@@ -166,6 +204,114 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
   );
 };
 
+// Sortable Report Section Component
+interface SortableReportSectionProps {
+  id: string;
+  label: string;
+  checked: boolean;
+  onToggle: (checked: boolean) => void;
+  priority?: number;
+}
+
+const SortableReportSection: React.FC<SortableReportSectionProps> = ({
+  id,
+  label,
+  checked,
+  onToggle,
+  priority,
+}) => {
+  // Safety checks for props
+  if (!id || !label || typeof checked !== 'boolean' || typeof onToggle !== 'function') {
+    console.warn('SortableReportSection received invalid props:', { id, label, checked, onToggle });
+    return null;
+  }
+
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition: isDragging ? 'none' : transition,
+    zIndex: isDragging ? 1000 : 'auto',
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`flex items-center space-x-3 p-3 border rounded-lg transition-all duration-200 border-beige hover:bg-beige/10 hover:border-brown/30 ${
+        !checked ? "opacity-60" : ""
+      } ${
+        isDragging ? "shadow-lg bg-white border-brown/50" : ""
+      }`}
+    >
+      <div
+        {...attributes}
+        {...listeners}
+        className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 p-1 rounded hover:bg-gray-100 transition-colors"
+        title="Drag to reorder"
+      >
+        <GripVertical className="w-5 h-5" />
+      </div>
+      
+      <div className="flex items-center space-x-3 flex-1">
+        <div className="flex items-center space-x-2">
+          {priority && (
+            <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">
+              {priority}
+            </span>
+          )}
+          
+          <label
+            htmlFor={id}
+            className="flex items-center space-x-3 cursor-pointer flex-1"
+          >
+            <div className="relative">
+              <input
+                type="checkbox"
+                id={id}
+                checked={checked}
+                onChange={(e) => onToggle(e.target.checked)}
+                className="sr-only"
+              />
+              <div
+                className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all duration-200 ${
+                  checked
+                    ? "bg-brown border-brown text-white shadow-sm"
+                    : "border-beige hover:border-brown/50 bg-white"
+                }`}
+              >
+                {checked && (
+                  <svg
+                    className="w-3 h-3"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                )}
+              </div>
+            </div>
+            <span className="text-sm font-medium text-gray-700 flex-1">
+              {label}
+            </span>
+          </label>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function PersonalizationPage() {
   const [activeSection, setActiveSection] = useState("demographics");
   const [isEditMode, setIsEditMode] = useState(false);
@@ -178,6 +324,118 @@ export default function PersonalizationPage() {
   const [openDropdowns, setOpenDropdowns] = useState<{
     [key: string]: boolean;
   }>({});
+
+  // Drag and drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 3, // Start dragging after 3px movement
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  // Default report sections with their labels
+  const defaultReportSections = [
+    { key: "include_neighborhood_overview", label: "Neighborhood Overview" },
+    { key: "include_safety", label: "Safety & Crime" },
+    { key: "include_culture_and_events", label: "Culture & Events" },
+    { key: "include_weather", label: "Weather & Climate" },
+    { key: "include_social_character", label: "Social Character" },
+    { key: "include_local_amenities", label: "Local Amenities" },
+    { key: "include_commute", label: "Commute & Transportation" },
+    { key: "include_family_friendly", label: "Family Friendliness" },
+    { key: "include_nightlife_and_dating", label: "Nightlife & Dating" },
+    { key: "include_accessibility", label: "Accessibility" },
+    { key: "include_development", label: "Development & Growth" },
+    { key: "include_environment", label: "Environment & Nature" },
+    { key: "include_money", label: "Cost of Living & Finances" },
+    { key: "include_schools", label: "Schools & Education" },
+    { key: "include_extra_tips", label: "Extra Tips & Insights" },
+  ];
+
+  // Get ordered report sections based on user preferences
+  const getOrderedReportSections = () => {
+    try {
+      if (!formData || !defaultReportSections) {
+        return [];
+      }
+      
+      const priorities = formData.report_section_priorities || [];
+      const sections = [...defaultReportSections];
+      
+      // Sort sections based on priorities, with unchecked items at the end
+      const orderedSections = sections.sort((a, b) => {
+        if (!a || !b || !a.key || !b.key) return 0;
+        
+        const aChecked = (formData[a.key as keyof OnboardingData] as boolean) ?? true;
+        const bChecked = (formData[b.key as keyof OnboardingData] as boolean) ?? true;
+        
+        // Unchecked items go to the end
+        if (aChecked !== bChecked) {
+          return aChecked ? -1 : 1;
+        }
+        
+        // For checked items, use priority order
+        const aPriority = priorities.indexOf(a.key);
+        const bPriority = priorities.indexOf(b.key);
+        
+        // Items not in priorities should come after items in priorities
+        if (aPriority === -1 && bPriority === -1) return 0;
+        if (aPriority === -1) return 1;  // A comes after B
+        if (bPriority === -1) return -1; // B comes after A
+        
+        return aPriority - bPriority;
+      });
+      
+      return orderedSections;
+    } catch (error) {
+      console.error("Error in getOrderedReportSections:", error);
+      return [];
+    }
+  };
+
+  // Handle drag end for reordering
+  const handleDragEnd = (event: DragEndEvent) => {
+    try {
+      const { active, over } = event;
+      
+      if (!active || !over || !active.id || !over.id || active.id === over.id) return;
+      
+      const sections = getOrderedReportSections();
+      const oldIndex = sections.findIndex(section => section.key === active.id);
+      const newIndex = sections.findIndex(section => section.key === over.id);
+      
+      if (oldIndex === -1 || newIndex === -1) return;
+      
+      const reorderedSections = arrayMove(sections, oldIndex, newIndex);
+      const newPriorities = reorderedSections.map(section => section.key);
+      
+      updateFormData("report_section_priorities", newPriorities);
+    } catch (error) {
+      console.error("Error in handleDragEnd:", error);
+    }
+  };
+
+  // Handle checkbox toggle for report sections
+  const handleReportSectionToggle = (sectionKey: string, checked: boolean) => {
+    updateFormData(sectionKey as keyof OnboardingData, checked);
+    
+    // If unchecking, remove from priorities and it will automatically go to bottom
+    if (!checked) {
+      const currentPriorities = formData.report_section_priorities || [];
+      const newPriorities = currentPriorities.filter(key => key !== sectionKey);
+      updateFormData("report_section_priorities", newPriorities);
+    } else {
+      // If checking, add to end of priorities if not already there
+      const currentPriorities = formData.report_section_priorities || [];
+      if (!currentPriorities.includes(sectionKey)) {
+        updateFormData("report_section_priorities", [...currentPriorities, sectionKey]);
+      }
+    }
+  };
 
   // Refs for dropdown management
   const dropdownRefs = useRef<{
@@ -256,6 +514,8 @@ export default function PersonalizationPage() {
 
       console.log("🔍 API Response:", response);
       console.log("🔍 Response.preferences:", response.preferences);
+      console.log("🔍 Report customization from API:", response.preferences?.report_customization);
+      console.log("🔍 Report section priorities from API:", response.preferences?.report_customization?.report_section_priorities);
 
       if (response.preferences) {
         // Flatten the nested structure to match OnboardingData interface
@@ -290,6 +550,9 @@ export default function PersonalizationPage() {
           // Emotional Signals
           ...response.preferences.emotional_signals,
 
+          // Report Customization
+          ...response.preferences.report_customization,
+
           // Ensure specific fields are mapped correctly
           communication_preference:
             response.preferences.agent_preferences?.communication_preference ||
@@ -312,6 +575,11 @@ export default function PersonalizationPage() {
         };
 
         console.log("✅ Flattened data:", flattenedData);
+        console.log("✅ Report section priorities in flattened data:", flattenedData.report_section_priorities);
+        console.log(
+          "🔍 Report customization data:",
+          response.preferences.report_customization
+        );
         setFormData(flattenedData);
         setOriginalData(flattenedData);
       } else {
@@ -334,6 +602,7 @@ export default function PersonalizationPage() {
 
       // Debug: Log the data being saved
       console.log("💾 Saving formData:", formData);
+      console.log("💾 Report section priorities being saved:", formData.report_section_priorities);
       console.log("💾 Specific fields being saved:", {
         communication_preference: formData.communication_preference,
         previous_home_experience: formData.previous_home_experience,
@@ -341,6 +610,7 @@ export default function PersonalizationPage() {
         response_time_expectation: formData.response_time_expectation,
         meeting_availability: formData.meeting_availability,
         additional_context: formData.additional_context,
+        report_section_priorities: formData.report_section_priorities,
       });
 
       await apiRequest("/api/v1/preferences", {
@@ -460,7 +730,9 @@ export default function PersonalizationPage() {
 
     return (
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-black mb-2">{label}</label>
+        <label className="block text-sm font-medium text-black mb-2">
+          {label}
+        </label>
         {isEditMode ? (
           <>
             <div className="flex space-x-2 mb-3">
@@ -1982,13 +2254,129 @@ export default function PersonalizationPage() {
           </div>
         );
 
-      default:
+      case "reportcustomization":
+        if (isLoading) {
+          return (
+            <div className="space-y-6">
+              <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
+                Report Customization
+              </h2>
+              <p className="text-gray-600">Loading report customization options...</p>
+            </div>
+          );
+        }
+        
+        const orderedSections = getOrderedReportSections();
+        
+        if (!orderedSections || orderedSections.length === 0) {
+          return (
+            <div className="space-y-6">
+              <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
+                Report Customization
+              </h2>
+              <p className="text-gray-600">Loading report customization options...</p>
+            </div>
+          );
+        }
+        
         return (
-          <div className="text-center py-8">
-            <p className="text-gray-600">This section is under development.</p>
-            <p className="text-sm text-gray-500 mt-2">
-              Please check back later or contact support.
+          <div className="space-y-6">
+            <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
+              Report Customization
+            </h2>
+            <p className="text-gray-600 mb-4">
+              {isEditMode
+                ? "Customize your report sections below:"
+                : "Choose which sections to include in your property reports. All sections are enabled by default, but you can customize them to focus on what matters most to you."}
             </p>
+
+            {isEditMode ? (
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext
+                  items={orderedSections?.map(section => section?.key).filter(Boolean) || []}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <div className="space-y-2">
+                    {orderedSections?.map((section) => {
+                      if (!section || !section.key || !section.label) return null;
+                      
+                      const isChecked = (formData[section.key as keyof OnboardingData] as boolean) ?? true;
+                      const priorities = formData.report_section_priorities || [];
+                      const priorityIndex = priorities.indexOf(section.key);
+                      const priority = isChecked && priorityIndex !== -1 ? priorityIndex + 1 : undefined;
+                      return (
+                        <SortableReportSection
+                          key={section.key}
+                          id={section.key}
+                          label={section.label}
+                          checked={isChecked}
+                          onToggle={(checked) => handleReportSectionToggle(section.key, checked)}
+                          priority={priority}
+                        />
+                      );
+                    })}
+                  </div>
+                </SortableContext>
+              </DndContext>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {orderedSections?.map((section) => {
+                  if (!section || !section.key || !section.label) return null;
+                  
+                  const isChecked = (formData[section.key as keyof OnboardingData] as boolean) ?? true;
+                  const priorities = formData.report_section_priorities || [];
+                  const priorityIndex = priorities.indexOf(section.key);
+                  const priority = isChecked && priorityIndex !== -1 ? priorityIndex + 1 : undefined;
+                  return (
+                    <div
+                      key={section.key}
+                      className={`flex items-center space-x-3 p-3 border rounded-lg transition-all duration-200 border-beige hover:bg-beige/10 hover:border-brown/30 ${
+                        !isChecked ? "opacity-60" : ""
+                      }`}
+                    >
+                      <div className="flex items-center space-x-2">
+                        {priority && (
+                          <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                            {priority}
+                          </span>
+                        )}
+                        
+                        <div className="relative">
+                          <div
+                            className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all duration-200 ${
+                              isChecked
+                                ? "bg-brown border-brown text-white shadow-sm"
+                                : "border-beige bg-white"
+                            }`}
+                          >
+                            {isChecked && (
+                              <svg
+                                className="w-3 h-3"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                  clipRule="evenodd"
+                                />
+                              </svg>
+                            )}
+                          </div>
+                        </div>
+                        <span className="text-sm font-medium text-gray-700 flex-1">
+                          {section.label}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         );
     }

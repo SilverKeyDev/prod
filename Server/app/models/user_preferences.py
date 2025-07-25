@@ -107,6 +107,24 @@ class UserPreferences(db.Model):
     deal_makers = db.Column(db.Text)  # JSON array of features that would seal a deal
     concerns_or_fears = db.Column(db.Text)  # JSON array like crime, flooding, bad neighbors, old plumbing
     
+    # === REPORT CUSTOMIZATION ===
+    include_neighborhood_overview = db.Column(db.Boolean, default=True)
+    include_safety = db.Column(db.Boolean, default=True)
+    include_culture_and_events = db.Column(db.Boolean, default=True)
+    include_weather = db.Column(db.Boolean, default=True)
+    include_social_character = db.Column(db.Boolean, default=True)
+    include_local_amenities = db.Column(db.Boolean, default=True)
+    include_commute = db.Column(db.Boolean, default=True)
+    include_family_friendly = db.Column(db.Boolean, default=True)
+    include_nightlife_and_dating = db.Column(db.Boolean, default=True)
+    include_accessibility = db.Column(db.Boolean, default=True)
+    include_development = db.Column(db.Boolean, default=True)
+    include_environment = db.Column(db.Boolean, default=True)
+    include_money = db.Column(db.Boolean, default=True)
+    include_schools = db.Column(db.Boolean, default=True)
+    include_extra_tips = db.Column(db.Boolean, default=True)
+    report_section_priorities = db.Column(db.Text)  # JSON array of section keys in priority order
+    
     # Relationship
     user = db.relationship('User', back_populates='user_preferences', lazy='select')
     
@@ -223,6 +241,25 @@ class UserPreferences(db.Model):
                 'quote_bubbles': self._parse_json_field(self.quote_bubbles),
                 'deal_makers': self._parse_json_field(self.deal_makers),
                 'concerns_or_fears': self._parse_json_field(self.concerns_or_fears),
+            },
+
+            'report_customization': {
+                'include_neighborhood_overview': self.include_neighborhood_overview,
+                'include_safety': self.include_safety,
+                'include_culture_and_events': self.include_culture_and_events,
+                'include_weather': self.include_weather,
+                'include_social_character': self.include_social_character,
+                'include_local_amenities': self.include_local_amenities,
+                'include_commute': self.include_commute,
+                'include_family_friendly': self.include_family_friendly,
+                'include_nightlife_and_dating': self.include_nightlife_and_dating,
+                'include_accessibility': self.include_accessibility,
+                'include_development': self.include_development,
+                'include_environment': self.include_environment,
+                'include_money': self.include_money,
+                'include_schools': self.include_schools,
+                'include_extra_tips': self.include_extra_tips,
+                'report_section_priorities': self._parse_json_field(self.report_section_priorities),
             },
 
             'metadata': {

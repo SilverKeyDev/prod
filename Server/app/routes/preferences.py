@@ -180,7 +180,8 @@ def create_or_update_preferences():
             'property_features_priority', 'deal_breakers', 'content_feedback_log',
             'agent_interaction_history', 'personality_insights', 'quote_bubbles',
             'deal_makers', 'concerns_or_fears', 'solo_reports_addresses',
-            'group_reports_addresses', 'chat_sessions', 'data_sources'
+            'group_reports_addresses', 'chat_sessions', 'data_sources',
+            'report_section_priorities'
         }
 
         updated_fields = []

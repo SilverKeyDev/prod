@@ -18,7 +18,7 @@ def generate_report_async(address, filename, document_id, user_id):
     """Asynchronously generate a property report"""
     try:
         # Generate the report
-        result_data = generate_report(address, filename)
+        result_data = generate_report(address, filename, user_id)
         
         # Update PDF document record
         with current_app.app_context():

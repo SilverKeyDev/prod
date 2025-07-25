@@ -186,9 +186,37 @@ class FullReport(BaseModel):
     class Config:
         extra = Extra.allow  # Still allow unknown fields just in case
 
-    def __init__(self, **data):
+    def __init__(self, user_preferences=None, **data):
+        # Extract user preferences for report customization
+        if user_preferences is None:
+            user_preferences = {}
+        
+        # Map preference keys to data keys
+        preference_mapping = {
+            'include_neighborhood_overview': 'neighborhood_overview',
+            'include_safety': 'safety',
+            'include_culture_and_events': 'culture_and_events', 
+            'include_weather': 'weather',
+            'include_social_character': 'social_character',
+            'include_local_amenities': 'local_amenities',
+            'include_commute': 'commute',
+            'include_family_friendly': 'family_friendly',
+            'include_nightlife_and_dating': 'nightlife_and_dating',
+            'include_accessibility': 'accessibility',
+            'include_development': 'development',
+            'include_environment': 'environment_utilities',
+            'include_money': 'financial_information',
+            'include_schools': 'schools',
+            'include_extra_tips': 'extra_tips'
+        }
+        
+        # Filter out sections based on user preferences
+        for pref_key, data_key in preference_mapping.items():
+            if not user_preferences.get(pref_key, True):  # Default to True if not specified
+                data.pop(data_key, None)  # Remove the section if preference is False
+        
         known_keys = {
-            'safety', 'culture_and_events', 'weather', 'social_character',
+            'neighborhood_overview', 'safety', 'culture_and_events', 'weather', 'social_character',
             'local_amenities', 'commute', 'family_friendly', 'nightlife_and_dating',
             'accessibility', 'development', 'environment_utilities', 'financial_information',
             'schools', 'extra_tips', 'demographics'  # include for cleanup
