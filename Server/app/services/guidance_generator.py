@@ -1,38 +1,79 @@
-def give_guidance(include_neighborhood_overview=True,
-                  include_safety=True,
-                  include_culture_and_events=True,
-                  include_weather=True,
-                  include_social_character=True,
-                  include_local_amenities=True,
-                  include_commute=True,
-                  include_family_friendly=True,
-                  include_nightlife_and_dating=True,
-                  include_accessibility=True,
-                  include_development=True,
-                  include_environment=True,
-                  include_money=True,
-                  include_schools=True,
-                  include_extra_tips=True) -> str:
+def give_guidance(report_customization=None) -> str:
+    """
+    Generate guidance based on report customization preferences.
+    
+    Args:
+        report_customization: Dict containing:
+            - include_* fields for each section (bool)
+            - report_section_priorities: List of section keys in desired order
+    """
+    if report_customization is None:
+        report_customization = {}
+    
+    # Default preferences (all enabled)
+    defaults = {
+        'include_neighborhood_overview': True,
+        'include_safety': True,
+        'include_culture_and_events': True,
+        'include_weather': True,
+        'include_social_character': True,
+        'include_local_amenities': True,
+        'include_commute': True,
+        'include_family_friendly': True,
+        'include_nightlife_and_dating': True,
+        'include_accessibility': True,
+        'include_development': True,
+        'include_environment': True,
+        'include_money': True,
+        'include_schools': True,
+        'include_extra_tips': True,
+    }
+    
+    # Merge with provided preferences
+    prefs = {**defaults, **report_customization}
+    
+    # Get section priorities or use default order
+    priorities = report_customization.get('report_section_priorities', [
+        'include_neighborhood_overview', 'include_safety', 'include_culture_and_events',
+        'include_weather', 'include_social_character', 'include_local_amenities',
+        'include_commute', 'include_family_friendly', 'include_nightlife_and_dating',
+        'include_accessibility', 'include_development', 'include_environment',
+        'include_money', 'include_schools', 'include_extra_tips'
+    ])
+    
+    # Map section keys to guidance functions
+    guidance_functions = {
+        'include_neighborhood_overview': lambda: _guidance_neighborhood_overview(prefs['include_neighborhood_overview']),
+        'include_safety': lambda: _guidance_safety(prefs['include_safety']),
+        'include_culture_and_events': lambda: _guidance_culture_and_events(prefs['include_culture_and_events']),
+        'include_weather': lambda: _guidance_weather(prefs['include_weather']),
+        'include_social_character': lambda: _guidance_social_character(prefs['include_social_character']),
+        'include_local_amenities': lambda: _guidance_local_amenities(prefs['include_local_amenities']),
+        'include_commute': lambda: _guidance_commute(prefs['include_commute']),
+        'include_family_friendly': lambda: _guidance_family_friendly(prefs['include_family_friendly']),
+        'include_nightlife_and_dating': lambda: _guidance_nightlife_and_dating(prefs['include_nightlife_and_dating']),
+        'include_accessibility': lambda: _guidance_accessibility(prefs['include_accessibility']),
+        'include_development': lambda: _guidance_development(prefs['include_development']),
+        'include_environment': lambda: _guidance_environment(prefs['include_environment']),
+        'include_money': lambda: _guidance_money(prefs['include_money']),
+        'include_schools': lambda: _guidance_schools(prefs['include_schools']),
+        'include_extra_tips': lambda: _guidance_extra_tips(prefs['include_extra_tips']),
+    }
+    
+    # Generate guidance sections in priority order
+    guidance_sections = []
+    for section_key in priorities:
+        if section_key in guidance_functions and prefs.get(section_key, True):
+            section_guidance = guidance_functions[section_key]().strip()
+            if section_guidance:  # Only add non-empty sections
+                guidance_sections.append(section_guidance)
+    
     return f"""
 SECTION GUIDANCE — interpret and complete each field with high specificity, vivid language, and a balance of praise and criticism:
 
-If the recommended site in tne reocmmendation has the correct information, there is no need to continue to search the web
+If the recommended site in the recommendation has the correct information, there is no need to continue to search the web
 
-{_guidance_neighborhood_overview(include_neighborhood_overview).strip()}
-{_guidance_safety(include_safety).strip()}
-{_guidance_culture_and_events(include_culture_and_events).strip()}
-{_guidance_weather(include_weather).strip()}
-{_guidance_social_character(include_social_character).strip()}
-{_guidance_local_amenities(include_local_amenities).strip()}
-{_guidance_commute(include_commute).strip()}
-{_guidance_family_friendly(include_family_friendly).strip()}
-{_guidance_nightlife_and_dating(include_nightlife_and_dating).strip()}
-{_guidance_accessibility(include_accessibility).strip()}
-{_guidance_development(include_development).strip()}
-{_guidance_environment(include_environment).strip()}
-{_guidance_money(include_money).strip()}
-{_guidance_schools(include_schools).strip()}
-{_guidance_extra_tips(include_extra_tips).strip()}
+{chr(10).join(guidance_sections)}
 """
 
 def _guidance_neighborhood_overview(enabled=True):

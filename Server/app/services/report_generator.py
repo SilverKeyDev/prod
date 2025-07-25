@@ -65,10 +65,11 @@ def validate_address(address: str) -> bool:
     logger.debug(f"✅ Address validation passed: {address}")
     return True
 
-def _safe_parse_json(text: str, user_preferences: dict = None) -> dict:
+def _safe_parse_json(text: str, report_customization: dict = None) -> dict:
     try:
         logger.debug("🔧 Attempting to parse model output as structured JSON")
         logger.debug(f"📝 Raw model output (first 500 chars): {text[:500]}...")
+        logger.info(f"🎛️ Report customization passed to FullReport: {json.dumps(report_customization, indent=2) if report_customization else 'None'}")
 
         # Strip any non-JSON hallucinated wrappers just in case
         cleaned = re.sub(r'(<think>.*?</think>|&lt;think&gt;.*?&lt;/think&gt;)', '', text, flags=re.DOTALL | re.IGNORECASE).strip()
@@ -76,14 +77,24 @@ def _safe_parse_json(text: str, user_preferences: dict = None) -> dict:
         # Parse the raw output directly
         parsed = json.loads(cleaned)
         logger.debug("✅ Parsed with json.loads")
+        logger.info(f"📊 Parsed JSON keys: {list(parsed.keys()) if isinstance(parsed, dict) else 'Not a dict'}")
 
         # Validate with FullReport schema
         try:
-            validated = FullReport(user_preferences=user_preferences, **parsed)
-            logger.debug("🎯 Validation with Pydantic successful")
-            return validated.model_dump()
+            logger.info("🏗️ Instantiating FullReport with report_customization...")
+            validated = FullReport(report_customization=report_customization, **parsed)
+            logger.info("🎯 FullReport validation with Pydantic successful")
+            
+            # Log the final validated report structure
+            validated_dict = validated.model_dump()
+            logger.info(f"📋 Final FullReport sections: {list(validated_dict.keys())}")
+            logger.debug(f"📋 Full validated FullReport JSON:\n{json.dumps(validated_dict, indent=2)}")
+            
+            return validated_dict
         except Exception as ve:
-            logger.warning(f"⚠️ Validation failed: {ve}")
+            logger.error(f"❌ FullReport validation failed: {ve}")
+            logger.error(f"❌ Validation error type: {type(ve).__name__}")
+            logger.error(f"❌ Full traceback:\n{traceback.format_exc()}")
             logger.warning("📋 Returning unvalidated parsed JSON")
             return parsed
 
@@ -118,31 +129,23 @@ def generate_report(address: str, filename: str, user_id: int) -> Dict:
     
     # Get user preferences
     user_preferences = get_preferences(user_id)
+    logger.info(f"👤 Retrieved user preferences for user_id {user_id}: {user_preferences is not None}")
     
     # Handle report customization preferences
     if user_preferences and 'report_customization' in user_preferences:
-        report_prefs = user_preferences['report_customization']
+        report_customization = user_preferences['report_customization']
+        logger.info(f"🎛️ Using user's report customization preferences: {json.dumps(report_customization, indent=2)}")
     else:
         # Default all to True if no preferences found
-        report_prefs = {}
+        report_customization = {}
+        logger.info("🎛️ No report customization found, using defaults (all sections enabled)")
 
-    guidance = give_guidance(
-        include_neighborhood_overview=report_prefs.get("include_neighborhood_overview", True),
-        include_safety=report_prefs.get("include_safety", True),
-        include_culture_and_events=report_prefs.get("include_culture_and_events", True),
-        include_weather=report_prefs.get("include_weather", True),
-        include_social_character=report_prefs.get("include_social_character", True),
-        include_local_amenities=report_prefs.get("include_local_amenities", True),
-        include_commute=report_prefs.get("include_commute", True),
-        include_family_friendly=report_prefs.get("include_family_friendly", True),
-        include_nightlife_and_dating=report_prefs.get("include_nightlife_and_dating", True),
-        include_accessibility=report_prefs.get("include_accessibility", True),
-        include_development=report_prefs.get("include_development", True),
-        include_environment=report_prefs.get("include_environment", True),
-        include_money=report_prefs.get("include_money", True),
-        include_schools=report_prefs.get("include_schools", True),
-        include_extra_tips=report_prefs.get("include_extra_tips", True)
-    )
+    logger.info("📋 Generating guidance with report customization...")
+    guidance = give_guidance(report_customization=report_customization)
+    logger.debug(f"📋 Full guidance content:\n{guidance}")
+
+    logger.debug(f"FullReport model schema: {FullReport.model_json_schema()} characters")
+
     
     try:
         # Validate address
@@ -178,10 +181,10 @@ def generate_report(address: str, filename: str, user_id: int) -> Dict:
 
                         f"{user_preferences}"
                     )
-                }, {"role": "user", "content": address}
+                }, {"role": "user", "content": f"Sell me the property at {address}"}
             ],
             "search_mode": "web",
-            "reasoning_effort": "medium",
+            "reasoning_effort": "high",
             "temperature": 0.1,
             "max_tokens": 10000,
             "stream": False,
@@ -222,7 +225,11 @@ def generate_report(address: str, filename: str, user_id: int) -> Dict:
             raw_json_text = content["choices"][0]["message"]["content"]
             logger.debug(f"🧾 Raw model output:\n{raw_json_text}")
 
-            report = _safe_parse_json(raw_json_text, report_prefs)
+            report = _safe_parse_json(raw_json_text, report_customization)
+            
+            # Log final report structure before PDF generation
+            logger.info(f"📋 Final report structure keys: {list(report.keys()) if isinstance(report, dict) else 'Not a dict'}")
+            logger.debug(f"📋 Complete final report JSON:\n{json.dumps(report, indent=2)}")
 
             logger.debug("🖨️ Calling PDF generation helper...")
             pdf_url = _create_pdf(report, address, filename)

@@ -21,12 +21,12 @@ export default {
           light: '#97a77b',
         },
         beige: {
-          DEFAULT: '#D8CAB8',
-          light: '#E5DCC9',
+          DEFAULT: '#D2C3A1',
+          light: '#D2C3A1',
         },
         gold: {
-          DEFAULT: '#EAD9B3',
-          light: '#EAD9B3',
+          DEFAULT: '#D2C3A1',
+          light: '#D2C3A1',
         },
         'off-white': '#FAF9F6',
         navy: '#1A1F36',

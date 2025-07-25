@@ -186,10 +186,10 @@ class FullReport(BaseModel):
     class Config:
         extra = Extra.allow  # Still allow unknown fields just in case
 
-    def __init__(self, user_preferences=None, **data):
-        # Extract user preferences for report customization
-        if user_preferences is None:
-            user_preferences = {}
+    def __init__(self, report_customization=None, **data):
+        # Extract report customization preferences
+        if report_customization is None:
+            report_customization = {}
         
         # Map preference keys to data keys
         preference_mapping = {
@@ -212,7 +212,7 @@ class FullReport(BaseModel):
         
         # Filter out sections based on user preferences
         for pref_key, data_key in preference_mapping.items():
-            if not user_preferences.get(pref_key, True):  # Default to True if not specified
+            if not report_customization.get(pref_key, True):  # Default to True if not specified
                 data.pop(data_key, None)  # Remove the section if preference is False
         
         known_keys = {
