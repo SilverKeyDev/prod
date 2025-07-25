@@ -55,31 +55,165 @@ def _extract_summary(data: Dict) -> Dict[str, str]:
                 merged_data[subkey] = subval  # flatten it into merged
 
     field_paths = {
-        "Neighborhood Vibe": "vibe",
-        "Community Events": "community_events",
-        "Neighborhood Rating": "neighborhood_rating",
+        # Neighborhood Overview
+        "Local Culture": "neighborhood_overview.local_culture",
+        "Neighborhood Vibe": "neighborhood_overview.vibe",
+        "Known For": "neighborhood_overview.known_for",
+        "Community Events": "neighborhood_overview.community_events",
+        "What People Love": "neighborhood_overview.what_people_love",
+        "Things to Watch Out For": "neighborhood_overview.things_to_watch_out_for",
+        "Population Total": "neighborhood_overview.population_total",
+        "Neighborhood Rating": "neighborhood_overview.neighborhood_rating",
+        "LGBTQ Representation": "neighborhood_overview.LGBTQ_representation",
+        
+        # Demographics
+        "Gender Distribution": "neighborhood_overview.demographics.gender_distribution",
+        "Racial Distribution": "neighborhood_overview.demographics.racial_distribution",
+        "Age Distribution": "neighborhood_overview.demographics.age_distribution",
+        "Lifestyle DNA": "neighborhood_overview.demographics.lifestyle_dna",
+        
+        # Safety
         "Crime Rating": "safety.crime_rating",
-        "Accessibility Rating": "accessibility.accessibility_rating",
-        "Wheelchair Friendly": "accessibility.wheelchair_friendly",
-        "Development": "development.upcoming_changes",
-        "Gentrification": "development.gentrification_signs",
-        "Culture Rating": "culture_and_events.culture_rating",
+        "Places to Watch Out For": "safety.places_to_watch_out_for",
+        "Police Presence": "safety.police_presence",
+        "Safety Rating": "safety.safety_rating",
+        
+        # Culture and Events
+        "Local Events": "culture_and_events.local_events",
         "Seasonal Trends": "culture_and_events.seasonal_trends",
-        "Environmental Rating": "environment_and_utilities.environmental_rating",
-        "Air Quality": "environment_and_utilities.air_quality",
-        "Internet Speed": "environment_and_utilities.internet_speed",
-        "Social Rating": "social_character.social_rating",
+        "Community Engagement": "culture_and_events.community_engagement",
+        "Culture Rating": "culture_and_events.culture_rating",
+        
+        # Weather
+        "Spring Weather": "weather.spring",
+        "Summer Weather": "weather.summer",
+        "Fall Weather": "weather.fall",
+        "Winter Weather": "weather.winter",
+        
+        # Social Character
         "Income Level": "social_character.income_level",
         "Religiosity": "social_character.religiosity",
-        "Financial Rating": "money_stuff.financial_rating",
-        "Monthly Rent": "money_stuff.monthly_payment",
-        "Commute": "commute.commute_times",
+        "Cultural Tone": "social_character.cultural_tone",
+        "Social Rating": "social_character.social_rating",
+        
+        # Local Amenities - Restaurants
+        "Restaurant 1 Name": "local_amenities.restaurants.0.name",
+        "Restaurant 1 Vibe": "local_amenities.restaurants.0.vibe",
+        "Restaurant 1 What to Try": "local_amenities.restaurants.0.what_to_try",
+        "Restaurant 2 Name": "local_amenities.restaurants.1.name",
+        "Restaurant 2 Vibe": "local_amenities.restaurants.1.vibe",
+        "Restaurant 2 What to Try": "local_amenities.restaurants.1.what_to_try",
+        "Restaurant 3 Name": "local_amenities.restaurants.2.name",
+        "Restaurant 3 Vibe": "local_amenities.restaurants.2.vibe",
+        "Restaurant 3 What to Try": "local_amenities.restaurants.2.what_to_try",
+        
+        # Local Amenities - Activities
+        "Activity 1 Name": "local_amenities.activities.0.name",
+        "Activity 1 Description": "local_amenities.activities.0.description",
+        "Activity 2 Name": "local_amenities.activities.1.name",
+        "Activity 2 Description": "local_amenities.activities.1.description",
+        "Activity 3 Name": "local_amenities.activities.2.name",
+        "Activity 3 Description": "local_amenities.activities.2.description",
+        
+        # Local Amenities - Parks
+        "Park 1 Name": "local_amenities.parks.0.name",
+        "Park 1 Features": "local_amenities.parks.0.features",
+        "Park 2 Name": "local_amenities.parks.1.name",
+        "Park 2 Features": "local_amenities.parks.1.features",
+        "Park 3 Name": "local_amenities.parks.2.name",
+        "Park 3 Features": "local_amenities.parks.2.features",
+        
+        # Local Amenities - Stores
+        "Thrift Store Name": "local_amenities.thrift_store.name",
+        "Thrift Store Type": "local_amenities.thrift_store.type",
+        "Thrift Store Vibe": "local_amenities.thrift_store.vibe",
+        "Grocery Store Name": "local_amenities.grocery_store.name",
+        "Grocery Store Type": "local_amenities.grocery_store.type",
+        "Grocery Store Vibe": "local_amenities.grocery_store.vibe",
+        "Late Night Restaurant Name": "local_amenities.late_night_restaurant.name",
+        "Late Night Restaurant Type": "local_amenities.late_night_restaurant.type",
+        "Late Night Restaurant Vibe": "local_amenities.late_night_restaurant.vibe",
+        
+        # Commute
+        "Commute Times": "commute.commute_times",
+        "Public Transport": "commute.public_transport",
+        "Traffic": "commute.traffic",
+        "Walkability": "commute.walkability",
+        
+        # Family Friendly
+        "Lots of Kids": "family_friendly.lots_of_kids",
+        "Great for Families": "family_friendly.great_for_families",
         "Family Rating": "family_friendly.family_rating",
-        "Family Notes": "family_friendly.great_for_families",
+        
+        # Nightlife and Dating
+        "Nightlife Rating": "nightlife_and_dating.nightlife_rating",
         "Nightlife Score": "nightlife_and_dating.nightlife_score",
+        "Best Spots": "nightlife_and_dating.best_spots",
         "Dating Scene": "nightlife_and_dating.dating_scene",
+        "Tinder Popularity": "nightlife_and_dating.apps_popularity.tinder",
+        "Bumble Popularity": "nightlife_and_dating.apps_popularity.bumble",
+        "Hinge Popularity": "nightlife_and_dating.apps_popularity.hinge",
+        
+        # Accessibility
+        "Wheelchair Friendly": "accessibility.wheelchair_friendly",
+        "ADA Compliance": "accessibility.ada_compliance",
+        "Age Friendly": "accessibility.age_friendly",
+        "Accessibility Rating": "accessibility.accessibility_rating",
+        
+        # Development
+        "Upcoming Changes": "development.upcoming_changes",
+        "Zoning or Construction": "development.zoning_or_construction",
+        "Gentrification Signs": "development.gentrification_signs",
+        "Vacancy or Decay": "development.vacancy_or_decay",
+        
+        # Environment and Utilities
+        "Air Quality": "environment_utilities.air_quality",
+        "Noise Pollution": "environment_utilities.noise_pollution",
+        "Light Pollution": "environment_utilities.light_pollution",
+        "Water Quality": "environment_utilities.water_quality",
+        "Electric Costs": "environment_utilities.avg_utility_costs.electric",
+        "Gas Costs": "environment_utilities.avg_utility_costs.gas",
+        "Water Costs": "environment_utilities.avg_utility_costs.water",
+        "Internet Speed": "environment_utilities.internet_speed",
+        "Environmental Rating": "environment_utilities.environmental_rating",
+        
+        # Financial Information
+        "Monthly Payment": "financial_information.monthly_payment",
+        "Property Taxes": "financial_information.property_taxes",
+        "Value Assessment": "financial_information.value_assessment",
+        "Investment Potential": "financial_information.investment_potential",
+        "Financial Rating": "financial_information.financial_rating",
+        
+        # Schools (Elementary)
+        "Elementary School Level": "schools.schools.elementary.level",
+        "Elementary Walking Distance": "schools.schools.elementary.walking_distance",
+        "Elementary School Rating": "schools.schools.elementary.school_rating",
+        "Elementary Teacher Quality": "schools.schools.elementary.teacher_quality",
+        "Elementary Known For": "schools.schools.elementary.known_for",
+        
+        # Schools (Middle)
+        "Middle School Level": "schools.schools.middle.level",
+        "Middle Walking Distance": "schools.schools.middle.walking_distance",
+        "Middle School Rating": "schools.schools.middle.school_rating",
+        "Middle Teacher Quality": "schools.schools.middle.teacher_quality",
+        "Middle Known For": "schools.schools.middle.known_for",
+        
+        # Schools (High)
+        "High School Level": "schools.schools.high.level",
+        "High Walking Distance": "schools.schools.high.walking_distance",
+        "High School Rating": "schools.schools.high.school_rating",
+        "High Teacher Quality": "schools.schools.high.teacher_quality",
+        "High Known For": "schools.schools.high.known_for",
+        "High GPA Average": "schools.schools.high.gpa_avg",
+        "High SAT Average": "schools.schools.high.sat_avg",
+        "High Graduation Rate": "schools.schools.high.grad_rate",
+        "High Top Colleges": "schools.schools.high.top_colleges",
+        
+        # Extra Tips
+        "Parking": "extra_tips.parking",
         "Pet Friendly": "extra_tips.pet_friendly",
-        "Cell Service": "extra_tips.cell_service_quality",
+        "Cell Service Quality": "extra_tips.cell_service_quality",
+        "Other Notable Tips": "extra_tips.other_notable_tips",
     }
 
     def deep_search(obj: Any, target_key: str) -> Any:
@@ -109,11 +243,28 @@ def _extract_summary(data: Dict) -> Dict[str, str]:
             for key in keys:
                 if isinstance(current, dict):
                     current = current.get(key)
+                elif isinstance(current, list) and key.isdigit():
+                    # Handle array indices like "0", "1", "2"
+                    index = int(key)
+                    if 0 <= index < len(current):
+                        current = current[index]
+                    else:
+                        current = None
+                        break
                 else:
                     current = None
                     break
             if current not in [None, ""]:
-                value = str(current)
+                # Handle boolean values properly
+                if isinstance(current, bool):
+                    value = "Yes" if current else "No"
+                elif isinstance(current, (int, float)):
+                    value = str(current)
+                elif isinstance(current, dict):
+                    # If we get a dict, try to extract a meaningful string representation
+                    value = str(current)
+                else:
+                    value = str(current)
         except Exception:
             value = None
 
