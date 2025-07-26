@@ -1,36 +1,15 @@
-def give_guidance(report_customization=None) -> str:
+def give_guidance(user_preferences=None) -> str:
     """
-    Generate guidance based on report customization preferences.
+    Generate guidance based on user preferences with report customization.
     
     Args:
-        report_customization: Dict containing:
-            - fields for each section (bool)
-            - report_section_priorities: List of section keys in desired order
+        user_preferences: Dict containing user preferences including report_customization
     """
-    if report_customization is None:
-        report_customization = {}
+    if user_preferences is None:
+        user_preferences = {}
     
-    # Default preferences (all enabled)
-    defaults = {
-        'neighborhood_overview': True,
-        'safety': True,
-        'culture_and_events': True,
-        'weather': True,
-        'social_character': True,
-        'local_amenities': True,
-        'commute': True,
-        'family_friendly': True,
-        'nightlife_and_dating': True,
-        'accessibility': True,
-        'development': True,
-        'environment': True,
-        'money': True,
-        'schools': True,
-        'extra_tips': True,
-    }
-    
-    # Merge with provided preferences
-    prefs = {**defaults, **report_customization}
+    # Extract report customization from user preferences
+    report_customization = user_preferences.get('report_customization', {})
     
     # Get section priorities or use default order
     priorities = report_customization.get('report_section_priorities', [
@@ -41,32 +20,42 @@ def give_guidance(report_customization=None) -> str:
         'money', 'schools', 'extra_tips'
     ])
     
-    # Map section keys to guidance functions
-    guidance_functions = {
-        'neighborhood_overview': lambda: _guidance_neighborhood_overview(prefs['neighborhood_overview']),
-        'safety': lambda: _guidance_safety(prefs['safety']),
-        'culture_and_events': lambda: _guidance_culture_and_events(prefs['culture_and_events']),
-        'weather': lambda: _guidance_weather(prefs['weather']),
-        'social_character': lambda: _guidance_social_character(prefs['social_character']),
-        'local_amenities': lambda: _guidance_local_amenities(prefs['local_amenities']),
-        'commute': lambda: _guidance_commute(prefs['commute']),
-        'family_friendly': lambda: _guidance_family_friendly(prefs['family_friendly']),
-        'nightlife_and_dating': lambda: _guidance_nightlife_and_dating(prefs['nightlife_and_dating']),
-        'accessibility': lambda: _guidance_accessibility(prefs['accessibility']),
-        'development': lambda: _guidance_development(prefs['development']),
-        'environment': lambda: _guidance_environment(prefs['environment']),
-        'money': lambda: _guidance_money(prefs['money']),
-        'schools': lambda: _guidance_schools(prefs['schools']),
-        'extra_tips': lambda: _guidance_extra_tips(prefs['extra_tips']),
-    }
-    
     # Generate guidance sections in priority order
     guidance_sections = []
+    
     for section_key in priorities:
-        if section_key in guidance_functions and prefs.get(section_key, True):
-            section_guidance = guidance_functions[section_key]().strip()
-            if section_guidance:  # Only add non-empty sections
-                guidance_sections.append(section_guidance)
+        # Check if section is enabled (default to True if not specified)
+        if report_customization.get(section_key, True):
+            if section_key == 'neighborhood_overview':
+                guidance_sections.append(_guidance_neighborhood_overview())
+            elif section_key == 'safety':
+                guidance_sections.append(_guidance_safety())
+            elif section_key == 'culture_and_events':
+                guidance_sections.append(_guidance_culture_and_events())
+            elif section_key == 'weather':
+                guidance_sections.append(_guidance_weather())
+            elif section_key == 'social_character':
+                guidance_sections.append(_guidance_social_character())
+            elif section_key == 'local_amenities':
+                guidance_sections.append(_guidance_local_amenities())
+            elif section_key == 'commute':
+                guidance_sections.append(_guidance_commute())
+            elif section_key == 'family_friendly':
+                guidance_sections.append(_guidance_family_friendly())
+            elif section_key == 'nightlife_and_dating':
+                guidance_sections.append(_guidance_nightlife_and_dating())
+            elif section_key == 'accessibility':
+                guidance_sections.append(_guidance_accessibility())
+            elif section_key == 'development':
+                guidance_sections.append(_guidance_development())
+            elif section_key == 'environment':
+                guidance_sections.append(_guidance_environment())
+            elif section_key == 'money':
+                guidance_sections.append(_guidance_money())
+            elif section_key == 'schools':
+                guidance_sections.append(_guidance_schools())
+            elif section_key == 'extra_tips':
+                guidance_sections.append(_guidance_extra_tips())
     
     return f"""
 SECTION GUIDANCE — interpret and complete each field with high specificity, vivid language, and a balance of praise and criticism:
@@ -82,7 +71,7 @@ def _guidance_neighborhood_overview(enabled=True):
     return """
 ---
 
-1. NEIGHBORHOOD OVERVIEW
+NEIGHBORHOOD OVERVIEW
 - local_culture: Describe cultural texture — e.g. "hipster", "corporate", "family-centered" (Use Google Maps Local Guide reviews, Niche, or Yelp for vibe clues) e.g. 
 (Dana Point embodies coastal Southern California living with a focus on marine
 activities, beach culture, and outdoor recreation. The community centers
@@ -115,7 +104,7 @@ def _guidance_safety(enabled=True):
     return """
 ---
 
-2. SAFETY
+SAFETY
 - crime_rating: "Nonexistant", "Low", "Moderate", "High", "Very High" — be honest (AreaVibes and NeighborhoodScout show indexed crime ratings)
 - places_to_watch_out_for: Name risky intersections or parts of town (Search forums like City-Data or Reddit for specifics)
 - police_presence: Indicate actual patterns (Google search “[neighborhood] police patrol schedule” or check local forums)
@@ -128,7 +117,7 @@ def _guidance_culture_and_events(enabled=True):
     return """
 ---
 
-3. CULTURE AND EVENTS
+CULTURE AND EVENTS
 - local_events: Events people attend — use names or examples (Eventbrite, Meetup, City-Data Forums)
 - seasonal_trends: E.g., "Busy in summer, quieter winters" (Check Nomad List or blog search results)
 - community_engagement: Civic participation (e.g., cleanup days, local watch groups) (Mention if visible on Meetup or forums)
@@ -141,7 +130,7 @@ def _guidance_weather(enabled=True):
     return """
 ---
 
-4. WEATHER
+WEATHER
 - Give low/high temps and commentary for each season (Teleport city pages often summarize this well, or use WeatherSpark/BestPlaces)
 - Mention comfort, humidity, storm risks if relevant (Look for mentions on Nomad List or BestPlaces.net)
 """
@@ -152,7 +141,7 @@ def _guidance_social_character(enabled=True):
     return """
 ---
 
-5. SOCIAL CHARACTER
+SOCIAL CHARACTER
 - income_level: E.g., "Middle-class professionals" (Use Niche or AreaVibes income distribution)
 - political_leaning: State clearly (Niche political maps or Redfin voting overlays if accessible)
 - language_spoken: Include major spoken languages beyond English (Niche + City-Data often break this down)
@@ -167,7 +156,7 @@ def _guidance_local_amenities(enabled=True):
     return """
 ---
 
-6. LOCAL AMENITIES
+LOCAL AMENITIES
 - restaurants, activities, parks: Include real or believable names, vibes, and features (Google Maps and Yelp are top sources)
 - thrift_store / grocery_store / late_night_restaurant: Include types and unique value (Use Walk Score or Google Maps search with review snippets)
 """
@@ -178,7 +167,7 @@ def _guidance_commute(enabled=True):
     return """
 ---
 
-7. COMMUTE
+COMMUTE
 - commute_times: Include time by car and public transit (Redfin and Realtor.com neighborhood pages sometimes show this)
 - public_transport: Mention system quality (Walk Score’s Transit Score or local public agency blog results)
 - traffic: Describe congestion windows (City-Data forums often contain commuting complaints or hacks)
@@ -191,7 +180,7 @@ def _guidance_family_friendly(enabled=True):
     return """
 ---
 
-8. FAMILY FRIENDLY
+FAMILY FRIENDLY
 - lots_of_kids: "Yes / Some / Few" with reasoning (Niche family scores + Livability.com insights)
 - great_for_families: Emphasize parks, schools, safety (Search “[neighborhood] with kids” or use Niche)
 - family_rating: Honest reflection (Niche “family grade” is a strong proxy)
@@ -203,7 +192,7 @@ def _guidance_nightlife_and_dating(enabled=True):
     return """
 ---
 
-9. NIGHTLIFE & DATING
+NIGHTLIFE & DATING
 - nightlife_score: Rate vibrancy of bars, music, and scenes (Yelp, Google Maps, or City-Data forum nightlife threads)
 - dating_scene: Describe energy and dating pool (Search “dating in [city] Reddit” or Nomad List for vibe)
 - average_attractiveness_rating: Be playful but grounded (Use cultural tone and tongue-in-cheek phrasing)
@@ -216,7 +205,7 @@ def _guidance_accessibility(enabled=True):
     return """
 ---
 
-10. ACCESSIBILITY
+ACCESSIBILITY
 - wheelchair_friendly / ADA_compliance / age_friendly: Think about sidewalks, ramps, transport (Search blog reviews or City-Data forums)
 - accessibility_rating: Be realistic — older areas may have limited access (Use street view impressions + user complaints)
 """
@@ -227,7 +216,7 @@ def _guidance_development(enabled=True):
     return """
 ---
 
-11. DEVELOPMENT
+DEVELOPMENT
 - upcoming_changes / zoning_or_construction: Include new projects, cranes, planned expansions (Search “[neighborhood] development plans” on Redfin blogs or local news)
 - gentrification_signs: Rising rents, boutique shops, protests? (Look for shifting business reviews or mentions on City-Data/Reddit)
 - vacancy_or_decay: Look for boarded-up homes or well-kept blocks (Homes.com or Redfin street views may reflect this)
@@ -239,7 +228,7 @@ def _guidance_environment(enabled=True):
     return """
 ---
 
-12. ENVIRONMENT AND UTILITIES
+ENVIRONMENT AND UTILITIES
 - air_quality / noise / light pollution: Use adjectives (e.g., "smoggy, clean, noisy at night") (Search “[city] air quality” + BestPlaces)
 - water_quality: Safe / filtered / low pressure? (Local news, forums, or city health pages)
 - avg_utility_costs: Dollar ranges (Moving.com, BestPlaces utility cost estimates)
@@ -253,7 +242,7 @@ def _guidance_money(enabled=True):
     return """
 ---
 
-13. MONEY STUFF
+MONEY STUFF
 - monthly_payment: Median rent/mortgage (Redfin, Zillow, or Homes.com listings by zip code)
 - property_taxes: Realistic annual property tax (Search “[county] property tax rate” or use Realtor.com)
 - value_assessment: Stable / Rising / Declining (Redfin neighborhood market trends)
@@ -269,7 +258,7 @@ def _guidance_schools(enabled=True):
     return """
 ---
 
-14. SCHOOLS
+SCHOOLS
 - name, level, walking_distance: Include elementary/middle/high (Use Google Maps or Realtor.com school map view)
 - niche_rating / GPA / SAT / grad_rate: (ONLY INCLUDE FOR HIGH SCHOOLS)
 - known_for: Culture or reputation (e.g., "STEM focus", "Liberal arts", "pressure cooker") (Niche student reviews are gold here)
@@ -282,7 +271,7 @@ def _guidance_extra_tips(enabled=True):
     return """
 ---
 
-15. EXTRA TIPS
+EXTRA TIPS
 - parking: Easy or chaotic? (Yelp mentions, City-Data discussions)
 - pet_friendly: Parks, patios, trails (Google Maps or Niche “Outdoor Activities” grade)
 - cell_service_quality: Strong/Spotty, carrier breakdown optional (Search “cell coverage in [neighborhood]” for crowdsourced maps)
