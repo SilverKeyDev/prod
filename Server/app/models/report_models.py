@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, Extra, model_validator
+from pydantic import BaseModel, Field, Extra, model_validator, PrivateAttr
 from typing import List, Dict, Optional, Any, Union
 from collections import OrderedDict
 
@@ -164,6 +164,7 @@ class ExtraTips(BaseModel):
     other_notable_tips: str
 
 class FullReport(BaseModel):
+    # === All your sections ===
     neighborhood_overview: Optional[NeighborhoodOverview] = None
     safety: Optional[Safety] = None
     culture_and_events: Optional[CultureAndEvents] = None
@@ -180,23 +181,22 @@ class FullReport(BaseModel):
     schools: Optional[Schools] = None
     extra_tips: Optional[ExtraTips] = None
 
+    # === Internal field (not part of schema) ===
+    _prioritized_fields: List[str] = PrivateAttr(default=[])
+
     class Config:
-        extra = Extra.allow
+        extra = "allow"
 
+    # ✅ Modern init with PrivateAttr
     def __init__(self, report_customization: Dict[str, Any], **data):
-        self._prioritized_fields: List[str] = report_customization.get("report_section_priorities", [])
         super().__init__(**data)
+        self._prioritized_fields = report_customization.get("report_section_priorities", [])
 
+    # ✅ Dict override to only return prioritized sections
     def dict(self, **kwargs) -> Dict[str, Any]:
-        """
-        Override the default .dict() to return only prioritized fields in order
-        """
         base_dict = super().dict(**kwargs)
-        output = {}
-
-        # Only include prioritized fields, in order
-        for key in self._prioritized_fields:
-            if key in base_dict and base_dict[key] is not None:
-                output[key] = base_dict[key]
-
-        return output
+        return {
+            key: base_dict[key]
+            for key in self._prioritized_fields
+            if key in base_dict and base_dict[key] is not None
+        }
