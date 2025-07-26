@@ -373,6 +373,19 @@ export default function GenerateReportPage() {
     const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
     const idToken = localStorage.getItem("id_token");
 
+    // Prepare request body
+    const requestBody = { 
+      address: trimmed,
+      ...(reportType === "comparison" && { comparisonAddress: comparisonAddress.trim() })
+    };
+    
+    console.log(`[GenerateReport] 📤 Request body:`, requestBody);
+    console.log(`[GenerateReport] 📤 Report type: ${reportType}`);
+    console.log(`[GenerateReport] 📤 Address: ${trimmed}`);
+    if (reportType === "comparison") {
+      console.log(`[GenerateReport] 📤 Comparison address: ${comparisonAddress.trim()}`);
+    }
+
     // Start both immediately
     const delayPromise = new Promise((resolve) => setTimeout(resolve, 500));
     const fetchPromise = fetch(`${apiBaseUrl}/api/v1/report/generate`, {
@@ -383,10 +396,7 @@ export default function GenerateReportPage() {
         Accept: "application/json",
         Authorization: `Bearer ${idToken}`,
       },
-      body: JSON.stringify({ 
-        address: trimmed,
-        ...(reportType === "comparison" && { comparisonAddress: comparisonAddress.trim() })
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     // Wait for the 0.5 second delay, then navigate

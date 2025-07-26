@@ -260,7 +260,13 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
 
     guidance = give_guidance(report_customization=report_customization)
 
-    solo_payload = {
+    try:
+        # Validate address
+        if not validate_address(address):
+            logger.error("🚫 Address validation failed")
+            raise ValueError("Invalid address format")
+        if comparison_address is None or comparison_address == "":
+            payload = {
             "model": "sonar-deep-research",
             "messages": [
                 {
@@ -304,15 +310,7 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                 }
             }
         }
-
-    try:
-        # Validate address
-        if not validate_address(address):
-            logger.error("🚫 Address validation failed")
-            raise ValueError("Invalid address format")
-        if(comparison_address == None):
-            payload = solo_payload
-        else:
+        if comparison_address is not None and comparison_address != "":
             # Comparison report logic - need to get JSON data for both properties
             logger.info(f"🔄 Generating comparison report for {address} vs {comparison_address}")
             
@@ -329,7 +327,7 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                         "role": "system",
                         "content": (
                             f"You are a critical, strategic, and personalized PROPERTY COMPARISON EXPERT. "
-                            f"You must evaluate and compare two properties using their detailed report data.\n\n"
+                            f"Help me make a decision on which property to move in to based on my priorities and user preferences.\n\n"
 
                             "CRITICAL OBJECTIVES:\n"
                             "1. Compare both properties across all categories in structured JSON format, using the guidance schema.\n"
@@ -357,7 +355,7 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                     {
                         "role": "user",
                         "content": (
-                            f"Compare these two properties and tell me which is the better fit for me:\n\n"
+                            f"Based on my priorities and user preferences, for each field, tell me which porperty is better, worse, or the same FOR ME:\n\n"
                             f"Property A ({address}):\n{json.dumps(primary_report_json, indent=2)}\n\n"
                             f"Property B ({comparison_address}):\n{json.dumps(comparison_report_json, indent=2)}"
                         )
@@ -377,8 +375,8 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                     }
                 }
             }
-            logger.debug(f"📡 Complete final comparison payload being sent to Perplexity:\n{json.dumps(payload, indent=2)}")
 
+        logger.info(f"📡 Complete final comparison payload being sent to Perplexity:\n{json.dumps(payload, indent=2)}")
         session = requests.Session()
         retries = Retry(total=3, backoff_factor=1, status_forcelist=[429, 500, 502, 503, 504])
         session.mount("https://", HTTPAdapter(max_retries=retries))
@@ -403,7 +401,6 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                 raise KeyError("Missing or empty 'choices' key in API response")
 
             raw_json_text = content["choices"][0]["message"]["content"]
-            logger.info(f"🧾 Raw model output (first 500 chars): {raw_json_text[:500]}...")
 
             report = _safe_parse_json(raw_json_text, report_customization)
 
