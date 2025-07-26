@@ -610,23 +610,47 @@ def delete_report(report_id):
         # Delete from database
         db_deleted = False
         try:
-            # First, try to find the document by its UUID (report_id)
-            pdf_doc = PDFDocument.query.get(report_id)
+            pdf_doc = None
             
-            # If not found by ID, try to find by filename from s3_key
-            if not pdf_doc and s3_key:
+            # Strategy 1: If we have s3_key, try to find by filename first (most reliable)
+            if s3_key:
                 filename = os.path.basename(s3_key)
-                logger.info(f"[DELETE] Not found by ID, trying to find by filename: {filename}")
+                logger.info(f"[DELETE] Searching for PDF document by filename: {filename}")
                 pdf_doc = PDFDocument.query.filter_by(filename=filename).first()
+                
+                # Also try to find by file_path (s3_key)
+                if not pdf_doc:
+                    logger.info(f"[DELETE] Not found by filename, trying by file_path: {s3_key}")
+                    pdf_doc = PDFDocument.query.filter_by(file_path=s3_key).first()
+            
+            # Strategy 2: Try to find the document by its UUID (report_id) as fallback
+            if not pdf_doc:
+                logger.info(f"[DELETE] Trying to find PDF document by ID: {report_id}")
+                pdf_doc = PDFDocument.query.get(report_id)
+            
+            # Strategy 3: If still not found and we have s3_key, try partial matches
+            if not pdf_doc and s3_key:
+                logger.info(f"[DELETE] Trying partial file_path match for: {s3_key}")
+                # Try to find by partial file_path match (in case of URL encoding issues)
+                pdf_doc = PDFDocument.query.filter(
+                    PDFDocument.file_path.like(f"%{os.path.basename(s3_key)}%")
+                ).first()
 
             if pdf_doc:
-                logger.info(f"[DELETE] Found PDF document in DB with ID: {pdf_doc.id}")
+                logger.info(f"[DELETE] Found PDF document in DB - ID: {pdf_doc.id}, filename: {pdf_doc.filename}, file_path: {pdf_doc.file_path}")
                 db.session.delete(pdf_doc)
                 db.session.commit()
                 db_deleted = True
                 logger.info(f"[DELETE] Successfully deleted PDF document from database: {pdf_doc.id}")
             else:
-                logger.warning(f"[DELETE] PDF document not found in database for report_id: {report_id}")
+                logger.warning(f"[DELETE] PDF document not found in database for report_id: {report_id}, s3_key: {s3_key}")
+                # Log all PDF documents for this user to help debug
+                user = get_current_user()
+                if user:
+                    user_docs = PDFDocument.query.filter_by(user_id=user.id).all()
+                    logger.info(f"[DELETE] User {user.id} has {len(user_docs)} PDF documents:")
+                    for doc in user_docs:
+                        logger.info(f"[DELETE]   - ID: {doc.id}, filename: {doc.filename}, file_path: {doc.file_path}")
         except Exception as e:
             db.session.rollback()
             logger.error(f"[DELETE] Error deleting from database: {str(e)}")

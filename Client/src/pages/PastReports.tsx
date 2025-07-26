@@ -63,15 +63,15 @@ const ProgressBar: React.FC<ProgressBarProps> = ({ startTime }) => {
 
   return (
     <div className="w-full">
-      <div className="flex items-center justify-between mb-1">
+      <div className="flex items-center justify-between mb-2">
         <span className="text-xs text-gold font-medium">Generating...</span>
         <span className="text-xs text-gold font-medium">
           {Math.round(progress)}%
         </span>
       </div>
-      <div className="w-full bg-gold/20 rounded-full h-2">
+      <div className="w-full bg-gray-300 rounded-full h-2.5 shadow-inner">
         <div
-          className="bg-gold h-2 rounded-full transition-all duration-1000 ease-out"
+          className="bg-gold h-2.5 rounded-full transition-all duration-1000 ease-out shadow-sm"
           style={{ width: `${progress}%` }}
         ></div>
       </div>

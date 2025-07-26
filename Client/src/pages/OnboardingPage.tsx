@@ -96,21 +96,6 @@ interface OnboardingData {
   concerns_or_fears?: string[];
   additional_context?: string;
   // Report Customization
-  include_neighborhood_overview?: boolean;
-  include_safety?: boolean;
-  include_culture_and_events?: boolean;
-  include_weather?: boolean;
-  include_social_character?: boolean;
-  include_local_amenities?: boolean;
-  include_commute?: boolean;
-  include_family_friendly?: boolean;
-  include_nightlife_and_dating?: boolean;
-  include_accessibility?: boolean;
-  include_development?: boolean;
-  include_environment?: boolean;
-  include_money?: boolean;
-  include_schools?: boolean;
-  include_extra_tips?: boolean;
   report_section_priorities?: string[];
 }
 
@@ -304,23 +289,24 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
 export default function OnboardingPage() {
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<OnboardingData>({
-    // Initialize report customization fields with default true values
-    include_neighborhood_overview: true,
-    include_safety: true,
-    include_culture_and_events: true,
-    include_weather: true,
-    include_social_character: true,
-    include_local_amenities: true,
-    include_commute: true,
-    include_family_friendly: true,
-    include_nightlife_and_dating: true,
-    include_accessibility: true,
-    include_development: true,
-    include_environment: true,
-    include_money: true,
-    include_schools: true,
-    include_extra_tips: true,
-    report_section_priorities: [],
+    // Initialize report customization with all sections included by default
+    report_section_priorities: [
+      'include_neighborhood_overview',
+      'include_safety',
+      'include_culture_and_events',
+      'include_weather',
+      'include_social_character',
+      'include_local_amenities',
+      'include_commute',
+      'include_family_friendly',
+      'include_nightlife_and_dating',
+      'include_accessibility',
+      'include_development',
+      'include_environment',
+      'include_money',
+      'include_schools',
+      'include_extra_tips'
+    ],
   });
   const [loading, setLoading] = useState(false);
   const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>(
@@ -353,19 +339,19 @@ export default function OnboardingPage() {
       const priorities = formData.report_section_priorities || [];
       const sections = [...defaultReportSections];
       
-      // Sort sections based on priorities, with unchecked items at the end
+      // Sort sections based on priorities - included items first in priority order, excluded items at end
       const orderedSections = sections.sort((a, b) => {
         if (!a || !b || !a.key || !b.key) return 0;
         
-        const aChecked = (formData[a.key as keyof OnboardingData] as boolean) ?? true;
-        const bChecked = (formData[b.key as keyof OnboardingData] as boolean) ?? true;
+        const aIncluded = priorities.includes(a.key);
+        const bIncluded = priorities.includes(b.key);
         
-        // Unchecked items go to the end
-        if (aChecked !== bChecked) {
-          return aChecked ? -1 : 1;
+        // Excluded items go to the end
+        if (aIncluded !== bIncluded) {
+          return aIncluded ? -1 : 1;
         }
         
-        // For checked items, use priority order
+        // For included items, use priority order
         const aPriority = priorities.indexOf(a.key);
         const bPriority = priorities.indexOf(b.key);
         
@@ -408,14 +394,14 @@ export default function OnboardingPage() {
 
   // Handle checkbox toggle for report sections
   const handleReportSectionToggle = (sectionKey: string, checked: boolean) => {
-    updateFormData(sectionKey as keyof OnboardingData, checked);
+    const currentPriorities = formData.report_section_priorities || [];
     
     if (!checked) {
-      const currentPriorities = formData.report_section_priorities || [];
+      // Remove from priorities when unchecked
       const newPriorities = currentPriorities.filter(key => key !== sectionKey);
       updateFormData("report_section_priorities", newPriorities);
     } else {
-      const currentPriorities = formData.report_section_priorities || [];
+      // Add to priorities when checked (if not already there)
       if (!currentPriorities.includes(sectionKey)) {
         updateFormData("report_section_priorities", [...currentPriorities, sectionKey]);
       }
@@ -1871,7 +1857,8 @@ export default function OnboardingPage() {
                 <div className="space-y-2">
                   {orderedSections?.map((section, index) => {
                     if (!section || !section.key) return null;
-                    const isChecked = (formData[section.key as keyof OnboardingData] as boolean) ?? true;
+                    const priorities = formData.report_section_priorities || [];
+                    const isChecked = priorities.includes(section.key);
                     const priority = index + 1; // Always show position number
                     return (
                       <SortableReportSection

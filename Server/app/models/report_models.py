@@ -1,5 +1,7 @@
 from pydantic import BaseModel, Field, Extra, model_validator
 from typing import List, Dict, Optional, Any, Union
+from collections import OrderedDict
+
 
 class Demographics(BaseModel):
     gender_distribution: Optional[Union[str, Dict[str, str]]] = None
@@ -161,10 +163,8 @@ class ExtraTips(BaseModel):
     cell_service_quality: str
     other_notable_tips: str
 
-
-
 class FullReport(BaseModel):
-    # Address key and overview must be provided
+    # Required field
     neighborhood_overview: NeighborhoodOverview
 
     # Optional sections
@@ -184,18 +184,19 @@ class FullReport(BaseModel):
     extra_tips: Optional[ExtraTips] = None
 
     class Config:
-        extra = Extra.allow  # Still allow unknown fields just in case
+        extra = Extra.allow
 
     def __init__(self, report_customization=None, **data):
-        # Extract report customization preferences
         if report_customization is None:
             report_customization = {}
-        
-        # Map preference keys to data keys
-        preference_mapping = {
-            'include_neighborhood_overview': 'neighborhood_overview',
+
+        section_priorities = report_customization.get('report_section_priorities', [])
+
+        self._section_priorities = section_priorities  # store for later use
+
+        priority_to_data_mapping = {
             'include_safety': 'safety',
-            'include_culture_and_events': 'culture_and_events', 
+            'include_culture_and_events': 'culture_and_events',
             'include_weather': 'weather',
             'include_social_character': 'social_character',
             'include_local_amenities': 'local_amenities',
@@ -209,20 +210,44 @@ class FullReport(BaseModel):
             'include_schools': 'schools',
             'include_extra_tips': 'extra_tips'
         }
-        
-        # Filter out sections based on user preferences
-        for pref_key, data_key in preference_mapping.items():
-            if not report_customization.get(pref_key, True):  # Default to True if not specified
-                data.pop(data_key, None)  # Remove the section if preference is False
-        
-        known_keys = {
-            'neighborhood_overview', 'safety', 'culture_and_events', 'weather', 'social_character',
-            'local_amenities', 'commute', 'family_friendly', 'nightlife_and_dating',
-            'accessibility', 'development', 'environment_utilities', 'financial_information',
-            'schools', 'extra_tips', 'demographics'  # include for cleanup
-        }
 
-        # Remove top-level demographics if it exists (cleanup)
+        for priority_key, data_key in priority_to_data_mapping.items():
+            if priority_key not in section_priorities:
+                data.pop(data_key, None)
+
         data.pop("demographics", None)
 
         super().__init__(**data)
+
+    def dict_by_priority(self) -> Dict:
+        result = OrderedDict()
+        result['neighborhood_overview'] = self.neighborhood_overview.dict()
+
+        priority_to_data_mapping = {
+            'include_safety': 'safety',
+            'include_culture_and_events': 'culture_and_events',
+            'include_weather': 'weather',
+            'include_social_character': 'social_character',
+            'include_local_amenities': 'local_amenities',
+            'include_commute': 'commute',
+            'include_family_friendly': 'family_friendly',
+            'include_nightlife_and_dating': 'nightlife_and_dating',
+            'include_accessibility': 'accessibility',
+            'include_development': 'development',
+            'include_environment': 'environment_utilities',
+            'include_money': 'financial_information',
+            'include_schools': 'schools',
+            'include_extra_tips': 'extra_tips'
+        }
+
+        for priority_key in self._section_priorities:
+            field_name = priority_to_data_mapping.get(priority_key)
+            if field_name:
+                section = getattr(self, field_name)
+                if section is not None:
+                    result[field_name] = section.dict()
+
+        return result
+
+    def json_by_priority(self) -> str:
+        return self.__class__.construct(**self.dict_by_priority()).json()
