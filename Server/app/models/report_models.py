@@ -195,8 +195,27 @@ class FullReport(BaseModel):
     # ✅ Dict override to only return prioritized sections
     def dict(self, **kwargs) -> Dict[str, Any]:
         base_dict = super().dict(**kwargs)
-        return {
-            key: base_dict[key]
-            for key in self._prioritized_fields
-            if key in base_dict and base_dict[key] is not None
-        }
+
+        print("\n🔍 DEBUG: base_dict keys and values:")
+        for k, v in base_dict.items():
+            print(f"  - {k}: {'✅ has value' if v is not None else '❌ None'}")
+
+        print("\n📌 DEBUG: prioritized fields from report customization:")
+        print(f"  {self._prioritized_fields}")
+
+        final_dict = {}
+        print("\n📦 DEBUG: Filtering prioritized fields...")
+
+        for key in self._prioritized_fields:
+            if key not in base_dict:
+                print(f"  ⛔ '{key}' not found in base_dict — skipping")
+                continue
+            
+            # Include the key regardless of whether it's None or has a value
+            print(f"  ✅ Including '{key}' (value: {'None' if base_dict[key] is None else 'populated'})")
+            final_dict[key] = base_dict[key]
+
+        print("\n✅ Final filtered dict keys:")
+        print(f"  {list(final_dict.keys())}\n")
+
+        return final_dict

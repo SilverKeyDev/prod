@@ -87,8 +87,8 @@ def _safe_parse_json(text: str, report_customization: dict = None) -> dict:
             validated = FullReport(report_customization=report_customization, **parsed)
             logger.info("🎯 FullReport validation with Pydantic successful")
             
-            # Log the final validated report structure
-            validated_dict = validated.model_dump()
+            # Log the final validated report structure using custom dict() method
+            validated_dict = validated.dict()  # Use custom dict() method that filters by priorities
             logger.info(f"📋 Final FullReport sections: {list(validated_dict.keys())}")
             logger.debug(f"📋 Full validated FullReport JSON:\n{json.dumps(validated_dict, indent=2)}")
             
@@ -252,7 +252,6 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
     # Handle report customization preferences
     if user_preferences and 'report_customization' in user_preferences:
         report_customization = user_preferences['report_customization']
-        logger.info(f"🎛️ Using user's report customization preferences: {json.dumps(report_customization, indent=2)}")
     else:
         # Default all to True if no preferences found
         raise Exception("No report customization found")
@@ -260,7 +259,6 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
     # Generate guidance with error handling
     try:
         guidance = give_guidance(user_preferences=user_preferences)
-        logger.info(f"📝 Successfully generated guidance with {guidance} characters")
     except Exception as e:
         logger.error(f"❌ Failed to generate guidance: {str(e)}")
         logger.exception("Guidance generation error details:")
@@ -268,8 +266,44 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
 
     # Create FullReport schema with error handling
     try:
-        schema = FullReport(report_customization=report_customization).model_json_schema()
-        logger.info(f"📊 Successfully created FullReport schema with {schema} characters")
+        section_keys = report_customization.get("report_section_priorities", [])
+        
+        # Create a FullReport instance to get the full schema structure
+        report = FullReport(report_customization=report_customization)
+        
+        # Get the full Pydantic schema for all fields
+        full_schema = report.schema()
+        
+        # Create proper JSON Schema format for Perplexity API
+        properties = {}
+        definitions = full_schema.get('$defs', {})
+        
+        for section_key in section_keys:
+            if section_key in full_schema.get('properties', {}):
+                section_schema = full_schema['properties'][section_key]
+                
+                # If it has a $ref, expand it from definitions
+                if 'anyOf' in section_schema:
+                    for option in section_schema['anyOf']:
+                        if '$ref' in option:
+                            # Extract the definition name from $ref
+                            ref_name = option['$ref'].split('/')[-1]
+                            if ref_name in definitions:
+                                # Use the expanded definition directly
+                                properties[section_key] = definitions[ref_name]
+                                break
+                else:
+                    properties[section_key] = section_schema
+            else:
+                # Fallback to basic object type if section not found
+                properties[section_key] = {"type": "object"}
+        
+        # Create proper top-level JSON Schema
+        schema = {
+            "type": "object",
+            "properties": properties,
+            "required": list(section_keys)
+        }
     except Exception as e:
         logger.error(f"❌ Failed to create FullReport schema: {str(e)}")
         logger.exception("FullReport schema creation error details:")
@@ -312,7 +346,7 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                 }, {"role": "user", "content": f"Sell me the property at {address}"}
             ],
             "search_mode": "web",
-            "reasoning_effort": "high",
+            "reasoning_effort": "low",
             "temperature": 0.1,
             "max_tokens": 10000,
             "stream": False,
