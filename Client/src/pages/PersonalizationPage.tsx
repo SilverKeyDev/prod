@@ -36,6 +36,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { apiRequest } from "../lib/api";
+import { useData } from "../contexts/DataContext";
 
 interface OnboardingData {
   age?: number;
@@ -313,13 +314,13 @@ const SortableReportSection: React.FC<SortableReportSectionProps> = ({
 };
 
 export default function PersonalizationPage() {
-  const [activeSection, setActiveSection] = useState("demographics");
+  const { userPreferences, refreshUserPreferences } = useData();
+  const [formData, setFormData] = useState<OnboardingData>({});
+  const [originalData, setOriginalData] = useState<OnboardingData>({});
   const [isEditMode, setIsEditMode] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [formData, setFormData] = useState<OnboardingData>({});
-  const [originalData, setOriginalData] = useState<OnboardingData>({});
-
+  const [activeSection, setActiveSection] = useState("demographics");
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [openDropdowns, setOpenDropdowns] = useState<{
     [key: string]: boolean;
@@ -482,9 +483,17 @@ export default function PersonalizationPage() {
     return () => document.removeEventListener("click", handleClickOutside);
   }, [openDropdowns]);
 
+  // Refresh data when page loads to ensure latest updates
   useEffect(() => {
-    loadUserPreferences();
-  }, []);
+    refreshUserPreferences();
+  }, [refreshUserPreferences]);
+
+  // Load user preferences from centralized context
+  useEffect(() => {
+    if (userPreferences) {
+      loadUserPreferencesFromContext();
+    }
+  }, [userPreferences]);
 
   // Track scroll position to update active section
   useEffect(() => {
@@ -505,88 +514,84 @@ export default function PersonalizationPage() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const loadUserPreferences = async () => {
+  const loadUserPreferencesFromContext = () => {
     try {
       setIsLoading(true);
-      const response = await apiRequest("/api/v1/preferences", {
-        method: "GET",
-      });
+      
+      console.log("🔍 Loading from context - userPreferences:", userPreferences);
+      console.log("🔍 Report customization from context:", userPreferences?.report_customization);
+      console.log("🔍 Report section priorities from context:", userPreferences?.report_customization?.report_section_priorities);
 
-      console.log("🔍 API Response:", response);
-      console.log("🔍 Response.preferences:", response.preferences);
-      console.log("🔍 Report customization from API:", response.preferences?.report_customization);
-      console.log("🔍 Report section priorities from API:", response.preferences?.report_customization?.report_section_priorities);
-
-      if (response.preferences) {
+      if (userPreferences) {
         // Flatten the nested structure to match OnboardingData interface
         const flattenedData: OnboardingData = {
           // Demographics
-          ...response.preferences.demographics,
+          ...userPreferences.demographics,
 
           // Financial Profile
-          ...response.preferences.financial_profile,
+          ...userPreferences.financial_profile,
 
           // Housing Preferences
-          ...response.preferences.housing_preferences,
+          ...userPreferences.housing_preferences,
 
           // Location Preferences
-          ...response.preferences.location_preferences,
+          ...userPreferences.location_preferences,
 
           // Lifestyle Preferences
-          ...response.preferences.lifestyle_preferences,
+          ...userPreferences.lifestyle_preferences,
 
           // Behavioral Patterns
-          ...response.preferences.behavioral_patterns,
+          ...userPreferences.behavioral_patterns,
 
           // Real Estate
-          ...response.preferences.real_estate,
+          ...userPreferences.real_estate,
 
           // Agent Preferences (Communication)
-          ...response.preferences.agent_preferences,
+          ...userPreferences.agent_preferences,
 
           // Values
-          ...response.preferences.values,
+          ...userPreferences.values,
 
           // Emotional Signals
-          ...response.preferences.emotional_signals,
+          ...userPreferences.emotional_signals,
 
           // Report Customization
-          ...response.preferences.report_customization,
+          ...userPreferences.report_customization,
 
           // Ensure specific fields are mapped correctly
           communication_preference:
-            response.preferences.agent_preferences?.communication_preference ||
-            response.preferences.communication_preference,
+            userPreferences.agent_preferences?.communication_preference ||
+            userPreferences.communication_preference,
           previous_home_experience:
-            response.preferences.real_estate?.previous_home_experience ||
-            response.preferences.previous_home_experience,
+            userPreferences.real_estate?.previous_home_experience ||
+            userPreferences.previous_home_experience,
           first_time_buyer:
-            response.preferences.real_estate?.first_time_buyer ||
-            response.preferences.first_time_buyer,
+            userPreferences.real_estate?.first_time_buyer ||
+            userPreferences.first_time_buyer,
           response_time_expectation:
-            response.preferences.agent_preferences?.response_time_expectation ||
-            response.preferences.response_time_expectation,
+            userPreferences.agent_preferences?.response_time_expectation ||
+            userPreferences.response_time_expectation,
           meeting_availability:
-            response.preferences.agent_preferences?.meeting_availability ||
-            response.preferences.meeting_availability,
+            userPreferences.agent_preferences?.meeting_availability ||
+            userPreferences.meeting_availability,
           additional_context:
-            response.preferences.personalization_insights?.additional_context ||
-            response.preferences.additional_context,
+            userPreferences.personalization_insights?.additional_context ||
+            userPreferences.additional_context,
         };
 
         console.log("✅ Flattened data:", flattenedData);
         console.log("✅ Report section priorities in flattened data:", flattenedData.report_section_priorities);
         console.log(
           "🔍 Report customization data:",
-          response.preferences.report_customization
+          userPreferences.report_customization
         );
         setFormData(flattenedData);
         setOriginalData(flattenedData);
       } else {
-        console.log("❌ No preferences found in response");
+        console.log("❌ No preferences found in context");
       }
     } catch (error) {
-      console.error("Failed to load user preferences:", error);
+      console.error("Failed to load user preferences from context:", error);
     } finally {
       setIsLoading(false);
     }

@@ -104,14 +104,30 @@ def generate_report_endpoint():
             return jsonify({'error': 'No data provided', 'success': False}), 400
         
         address = data.get('address')
+        comparison_address = data.get('comparisonAddress', None)  # Default to None if not provided
+        
         if not address:
             logger.error("No address provided in request data")
             return jsonify({'error': 'Address is required', 'success': False}), 400
+        
+        # Check if this is a comparison report
+        is_comparison = bool(comparison_address and comparison_address.strip())
+        
+        if is_comparison:
+            logger.info(f"Generating comparison report for: {address} vs {comparison_address}")
+        else:
+            logger.info(f"Generating detailed report for: {address}")
 
         safe_address = "".join(c for c in address if c.isalnum() or c in (' ', '-', '_')).rstrip().replace(' ', '_')
+        
         # Include user ID in filename for uniqueness and organization
         user_id_short = user.id[:8] if len(user.id) >= 8 else user.id
-        filenamee = f"reports/{safe_address}_{user_id_short}_{uuid.uuid4().hex[:8]}.pdf"
+        
+        if is_comparison:
+            safe_comparison_address = "".join(c for c in comparison_address if c.isalnum() or c in (' ', '-', '_')).rstrip().replace(' ', '_')
+            filenamee = f"reports/comparison_{safe_address}_vs_{safe_comparison_address}_{user_id_short}_{uuid.uuid4().hex[:8]}.pdf"
+        else:
+            filenamee = f"reports/{safe_address}_{user_id_short}_{uuid.uuid4().hex[:8]}.pdf"
 
         pdf_doc = PDFDocument(
                 id=str(uuid.uuid4()),
@@ -119,6 +135,9 @@ def generate_report_endpoint():
                 filename=filenamee,
                 file_path=filenamee,  # Use the same path since it's stored in S3
                 status='generating',
+                primary_address=address,
+                comparison_address=comparison_address if is_comparison else None,
+                report_type='comparison' if is_comparison else 'detailed',
             )
         db.session.add(pdf_doc)
         db.session.commit()
@@ -137,15 +156,26 @@ def generate_report_endpoint():
         db.session.commit()
         
         # Start async task (lazy import to avoid circular import)
+        # Always use the unified generate_report_async task, passing comparison_address (None for detailed reports)
         from app.celery.tasks import generate_report_async
-        task = generate_report_async.delay(address, filenamee, pdf_doc.id, user.id)
+        task = generate_report_async.delay(address, comparison_address, filenamee, pdf_doc.id, user.id)
+        
+        if is_comparison:
+            logger.info(f"Started comparison report task {task.id} for addresses: {address} vs {comparison_address}")
+        else:
+            logger.info(f"Started detailed report task {task.id} for address: {address}")
         
         return jsonify({
             'success': True,
             'status': 'started',
             'task_id': task.id,
             'document_id': pdf_doc.id,
-            'reports_remaining': user.reports_available
+            'reports_remaining': user.reports_available,
+            'report_type': 'comparison' if is_comparison else 'detailed',
+            'addresses': {
+                'primary': address,
+                'comparison': comparison_address if is_comparison else None
+            }
         })
 
     except Exception as e:

@@ -225,14 +225,6 @@ class FullReport(BaseModel):
         # Remove top-level demographics if it exists (we will always inject it correctly below)
         top_level_demo = data.pop("demographics", None)
 
-        # Identify the address key
-        dynamic_address_key = next((k for k in data if k not in known_keys), None)
-        if not dynamic_address_key:
-            raise ValueError("Missing dynamic address key (e.g., '123 Main St')")
-
-        # Get the nested address section
-        address_section = data.pop(dynamic_address_key)
-
         # Always force `demographics` to live inside the address block
         if top_level_demo:
             address_section["demographics"] = top_level_demo
@@ -241,8 +233,6 @@ class FullReport(BaseModel):
         else:
             address_section["demographics"] = {}  # if completely missing, insert empty
 
-        # Final assignments
-        data["address_key"] = dynamic_address_key
         data["neighborhood_overview"] = NeighborhoodOverview(**address_section)
 
         super().__init__(**data)

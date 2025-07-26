@@ -3,11 +3,11 @@ import {
   Send,
   Bot,
   MessageCircle,
-  Trash2,
   User as UserIcon,
   FileText,
   X,
 } from "lucide-react";
+import { useData } from "../contexts/DataContext";
 
 interface ChatMessage {
   id: string;
@@ -25,7 +25,8 @@ interface Chat {
 }
 
 export default function AIAssistant() {
-  const [chats, setChats] = useState<Chat[]>([]);
+  const { chats, refreshChats } = useData();
+  const [localChats, setLocalChats] = useState<Chat[]>([]);
   const [activeChatId, setActiveChatId] = useState<string>("");
   const [message, setMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -35,97 +36,60 @@ export default function AIAssistant() {
   const [loadingPdf, setLoadingPdf] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const activeChat = chats.find((chat) => chat.id === activeChatId);
+  const activeChat = localChats.find((chat) => chat.id === activeChatId);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  // Format address the same way as CompareReportsPage
-  const formatAddress = (address: string) => {
-    const formattedAddress = address.replace(/_/g, " ");
-    return formattedAddress.substring(0, formattedAddress.length - 18).trim();
-  };
-
-  // Fetch reports and create conversations
-  const fetchReportsAndCreateChats = async () => {
-    console.log("[AI_ASSISTANT] Starting to fetch reports and create chats");
+  // Load chats from centralized context
+  const loadChatsFromContext = () => {
+    console.log("[AI_ASSISTANT] Loading chats from centralized context");
     setIsLoading(true);
     try {
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
-      const idToken = localStorage.getItem("id_token");
-
-      console.log("[AI_ASSISTANT] Making request to almostall endpoint", {
-        url: `${apiBaseUrl}/api/v1/report/almostall`,
-        hasToken: !!idToken,
-      });
-
-      const response = await fetch(`${apiBaseUrl}/api/v1/report/almostall`, {
-        method: "GET",
-        mode: "cors",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          Authorization: `Bearer ${idToken}`,
-        },
-      });
-
-      console.log("[AI_ASSISTANT] Almostall response status:", response.status);
-
-      const json = await response.json();
-      console.log("[AI_ASSISTANT] Almostall response data:", {
-        success: json.success,
-        reportCount: json.reports?.length || 0,
-      });
-
-      if (json.success && json.reports) {
-        const newChats: Chat[] = json.reports.map((report: any) => {
-          // Find existing chat to preserve messages
-          const existingChat = chats.find(chat => chat.id === report.id);
-          
+      if (chats && chats.length > 0) {
+        // Preserve existing messages from localChats when updating from context
+        const updatedChats = chats.map((contextChat) => {
+          const existingChat = localChats.find(chat => chat.id === contextChat.id);
           return {
-            id: report.id,
-            title: report.address
-              ? formatAddress(report.address)
-              : `Report ${report.id}`,
-            propertyAddress: report.address,
+            ...contextChat,
             messages: existingChat ? existingChat.messages : [], // Preserve existing messages
-            createdAt: new Date(
-              report.generatedAt ? report.generatedAt * 1000 : Date.now()
-            ),
           };
         });
 
-        console.log("[AI_ASSISTANT] Created chats:", {
-          chatCount: newChats.length,
-          chatIds: newChats.map((c) => c.id),
-          preservedMessages: newChats.filter(c => c.messages.length > 0).length,
+        console.log("[AI_ASSISTANT] Updated chats from context:", {
+          chatCount: updatedChats.length,
+          chatIds: updatedChats.map((c) => c.id),
+          preservedMessages: updatedChats.filter(c => c.messages.length > 0).length,
         });
 
-        setChats(newChats);
+        setLocalChats(updatedChats);
 
-        // Set the first chat as active if no active chat is set
-        if (newChats.length > 0 && !activeChatId) {
-          console.log(
-            "[AI_ASSISTANT] Setting first chat as active:",
-            newChats[0].id
-          );
-          setActiveChatId(newChats[0].id);
+        // Set first chat as active if none selected
+        if (!activeChatId && updatedChats.length > 0) {
+          setActiveChatId(updatedChats[0].id);
         }
       } else {
-        console.warn("[AI_ASSISTANT] No reports found or request failed", json);
+        console.log("[AI_ASSISTANT] No chats found in context");
+        setLocalChats([]);
       }
     } catch (error) {
-      console.error("[AI_ASSISTANT] Failed to fetch reports:", error);
+      console.error("[AI_ASSISTANT] Error loading chats from context:", error);
     } finally {
       setIsLoading(false);
-      console.log("[AI_ASSISTANT] Finished fetching reports");
     }
   };
 
+  // Refresh data when page loads to ensure latest updates
   useEffect(() => {
-    fetchReportsAndCreateChats();
-  }, []);
+    refreshChats();
+  }, [refreshChats]);
+
+  useEffect(() => {
+    if (chats && chats.length > 0) {
+      loadChatsFromContext();
+    }
+  }, [chats]);
 
   useEffect(() => {
     scrollToBottom();
@@ -243,7 +207,7 @@ export default function AIAssistant() {
         );
 
         // Update the chat with loaded messages
-        setChats((prev) =>
+        setLocalChats((prev: Chat[]) =>
           prev.map((chat) =>
             chat.id === chatId ? { ...chat, messages } : chat
           )
@@ -295,7 +259,7 @@ export default function AIAssistant() {
 
     // Add user message immediately
     console.log(`[AI_ASSISTANT] Adding user message to UI`);
-    setChats((prev) =>
+    setLocalChats((prev: Chat[]) =>
       prev.map((chat) =>
         chat.id === activeChatId
           ? { ...chat, messages: [...chat.messages, newMessage] }
@@ -354,7 +318,7 @@ export default function AIAssistant() {
         };
 
         console.log(`[AI_ASSISTANT] Adding AI response to UI`);
-        setChats((prev) =>
+        setLocalChats((prev: Chat[]) =>
           prev.map((chat) =>
             chat.id === activeChatId
               ? { ...chat, messages: [...chat.messages, aiResponse] }
@@ -384,7 +348,7 @@ export default function AIAssistant() {
         };
 
         console.log(`[AI_ASSISTANT] Adding error message to UI`);
-        setChats((prev) =>
+        setLocalChats((prev: Chat[]) =>
           prev.map((chat) =>
             chat.id === activeChatId
               ? { ...chat, messages: [...chat.messages, errorMessage] }
@@ -403,7 +367,7 @@ export default function AIAssistant() {
       };
 
       console.log(`[AI_ASSISTANT] Adding network error message to UI`);
-      setChats((prev) =>
+      setLocalChats((prev: Chat[]) =>
         prev.map((chat) =>
           chat.id === activeChatId
             ? { ...chat, messages: [...chat.messages, errorMessage] }

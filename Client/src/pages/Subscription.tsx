@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useSearchParams, useLocation } from "react-router-dom";
 import {
   Check,
@@ -100,13 +100,9 @@ export default function Subscription() {
     billingInfo,
     billingLoading: isLoading,
     billingError,
-    refreshBillingInfo,
   } = useData();
 
-  // Refresh data when page loads to ensure latest updates
-  useEffect(() => {
-    refreshBillingInfo();
-  }, [refreshBillingInfo]);
+  // Data is preloaded by context - no auto-refresh on page load
 
   const { handleSubscription, loading: subscriptionLoading } =
     useStripePayment();

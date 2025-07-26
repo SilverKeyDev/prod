@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
-import { Menu } from "lucide-react";
 import Sidebar from "./Sidebar.tsx";
 import GenerateReportPage from "../pages/GenerateReportPage.tsx";
 import PastReports from "../pages/PastReports.tsx";

@@ -15,11 +15,11 @@ def example_task():
     return "Done"
 
 @celery.task(name="tasks.generate_report_async")
-def generate_report_async(address, filename, document_id, user_id):
+def generate_report_async(address, comparison_address, filename, document_id, user_id):
     """Asynchronously generate a property report"""
     try:
         # Generate the report
-        result_data = generate_report(address, filename, user_id)
+        result_data = generate_report(address, comparison_address, filename, user_id)
         
         # Update PDF document record and user preferences
         with current_app.app_context():
@@ -70,5 +70,3 @@ def generate_report_async(address, filename, document_id, user_id):
                     db.session.commit()
         except:
             pass
-        
-        return {'success': False, 'error': str(e), 'document_id': document_id}

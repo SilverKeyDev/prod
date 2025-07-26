@@ -50,6 +50,36 @@ interface BillingInfo {
   has_active_subscription: boolean;
 }
 
+interface UserPreferences {
+  demographics?: any;
+  financial_profile?: any;
+  housing_preferences?: any;
+  location_preferences?: any;
+  lifestyle_preferences?: any;
+  behavioral_patterns?: any;
+  real_estate?: any;
+  agent_preferences?: any;
+  values?: any;
+  emotional_signals?: any;
+  report_customization?: any;
+  [key: string]: any;
+}
+
+interface ChatMessage {
+  id: string;
+  content: string;
+  role: "user" | "assistant";
+  timestamp: Date;
+}
+
+interface Chat {
+  id: string;
+  title: string;
+  propertyAddress?: string;
+  messages: ChatMessage[];
+  createdAt: Date;
+}
+
 interface DataContextType {
   // Past Reports data
   reports: Report[];
@@ -68,6 +98,18 @@ interface DataContextType {
   billingLoading: boolean;
   billingError: string | null;
   refreshBillingInfo: () => Promise<void>;
+  
+  // User Preferences data
+  userPreferences: UserPreferences | null;
+  preferencesLoading: boolean;
+  preferencesError: string | null;
+  refreshUserPreferences: () => Promise<void>;
+  
+  // Chat data
+  chats: Chat[];
+  chatsLoading: boolean;
+  chatsError: string | null;
+  refreshChats: () => Promise<void>;
   
   // Global refresh
   refreshAllData: () => Promise<void>;
@@ -94,6 +136,16 @@ export function DataProvider({ children }: DataProviderProps) {
   const [billingInfo, setBillingInfo] = useState<BillingInfo | null>(null);
   const [billingLoading, setBillingLoading] = useState(false);
   const [billingError, setBillingError] = useState<string | null>(null);
+  
+  // User Preferences state
+  const [userPreferences, setUserPreferences] = useState<UserPreferences | null>(null);
+  const [preferencesLoading, setPreferencesLoading] = useState(false);
+  const [preferencesError, setPreferencesError] = useState<string | null>(null);
+  
+  // Chat data state
+  const [chats, setChats] = useState<Chat[]>([]);
+  const [chatsLoading, setChatsLoading] = useState(false);
+  const [chatsError, setChatsError] = useState<string | null>(null);
 
   // Fetch Past Reports - using exact same pattern as PastReports.tsx
   const fetchReports = async () => {
@@ -210,6 +262,86 @@ export function DataProvider({ children }: DataProviderProps) {
     }
   };
 
+  // Fetch User Preferences - using exact same pattern as PersonalizationPage.tsx
+  const fetchUserPreferences = async () => {
+    const idToken = localStorage.getItem("id_token");
+    if (!idToken) return; // Don't fetch if not authenticated
+    
+    try {
+      setPreferencesLoading(true);
+      setPreferencesError(null);
+      
+      const response = await apiRequest("/api/v1/preferences", {
+        method: "GET",
+      });
+      
+      if (response.preferences) {
+        setUserPreferences(response.preferences);
+      } else {
+        throw new Error('Failed to fetch user preferences');
+      }
+    } catch (error) {
+      console.error("Failed to fetch user preferences:", error);
+      setPreferencesError(error instanceof Error ? error.message : 'Failed to fetch user preferences');
+    } finally {
+      setPreferencesLoading(false);
+    }
+  };
+
+  // Fetch Chat Data - using exact same pattern as AIAssistant.tsx
+  const fetchChats = async () => {
+    const idToken = localStorage.getItem("id_token");
+    if (!idToken) return; // Don't fetch if not authenticated
+    
+    try {
+      setChatsLoading(true);
+      setChatsError(null);
+      
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || "";
+      
+      const response = await fetch(`${baseUrl}/api/v1/report/almostall`, {
+        method: "GET",
+        mode: "cors",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: `Bearer ${idToken}`,
+        },
+      });
+      
+      const json = await response.json();
+      
+      if (json.success && json.reports) {
+        // Format address the same way as AIAssistant
+        const formatAddress = (address: string) => {
+          const formattedAddress = address.replace(/_/g, " ");
+          return formattedAddress.substring(0, formattedAddress.length - 18).trim();
+        };
+        
+        const newChats: Chat[] = json.reports.map((report: any) => ({
+          id: report.id,
+          title: report.address
+            ? formatAddress(report.address)
+            : `Report ${report.id}`,
+          propertyAddress: report.address,
+          messages: [], // Start with empty messages - will be loaded when chat is selected
+          createdAt: new Date(
+            report.generatedAt ? report.generatedAt * 1000 : Date.now()
+          ),
+        }));
+        
+        setChats(newChats);
+      } else {
+        throw new Error(json.error || 'Failed to fetch chat data');
+      }
+    } catch (error) {
+      console.error("Failed to fetch chat data:", error);
+      setChatsError(error instanceof Error ? error.message : 'Failed to fetch chat data');
+    } finally {
+      setChatsLoading(false);
+    }
+  };
+
   // Refresh functions - wrapped with useCallback to prevent unnecessary re-renders
   const refreshReports = useCallback(async () => {
     await fetchReports();
@@ -223,11 +355,21 @@ export function DataProvider({ children }: DataProviderProps) {
     await fetchBillingInfo();
   }, []);
 
+  const refreshUserPreferences = useCallback(async () => {
+    await fetchUserPreferences();
+  }, []);
+
+  const refreshChats = useCallback(async () => {
+    await fetchChats();
+  }, []);
+
   const refreshAllData = useCallback(async () => {
     await Promise.all([
       fetchReports(),
       fetchCompareReports(),
-      fetchBillingInfo()
+      fetchBillingInfo(),
+      fetchUserPreferences(),
+      fetchChats()
     ]);
   }, []);
 
@@ -252,9 +394,13 @@ export function DataProvider({ children }: DataProviderProps) {
           setReports([]);
           setCompareReports([]);
           setBillingInfo(null);
+          setUserPreferences(null);
+          setChats([]);
           setReportsError(null);
           setCompareReportsError(null);
           setBillingError(null);
+          setPreferencesError(null);
+          setChatsError(null);
         }
       }
     };
@@ -288,6 +434,14 @@ export function DataProvider({ children }: DataProviderProps) {
     billingLoading,
     billingError,
     refreshBillingInfo,
+    userPreferences,
+    preferencesLoading,
+    preferencesError,
+    refreshUserPreferences,
+    chats,
+    chatsLoading,
+    chatsError,
+    refreshChats,
     refreshAllData,
   };
 

@@ -2,7 +2,7 @@ export {};
 
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { MapPin, Loader2, AlertCircle } from "lucide-react";
+import { MapPin, Loader2, AlertCircle, ChevronDown } from "lucide-react";
 import { useData } from "../contexts/DataContext";
 
 declare global {
@@ -16,18 +16,93 @@ interface Suggestion {
   placePrediction: any;
 }
 
+interface CustomDropdownProps {
+  value: string;
+  onChange: (value: string) => void;
+  options: { value: string; label: string }[];
+  placeholder: string;
+  isOpen: boolean;
+  onToggle: () => void;
+  dropdownRef: React.RefObject<HTMLDivElement>;
+}
+
+const CustomDropdown: React.FC<CustomDropdownProps> = ({
+  value,
+  onChange,
+  options,
+  placeholder,
+  isOpen,
+  onToggle,
+  dropdownRef,
+}) => {
+  const selectedOption = options.find((opt) => opt.value === value);
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <button
+        onClick={onToggle}
+        className="mobile-input text-sm flex items-center justify-between cursor-pointer hover:border-brown focus:border-brown focus:ring-brown/20 w-full"
+      >
+        <span className="text-left">
+          {selectedOption ? selectedOption.label : placeholder}
+        </span>
+        <ChevronDown
+          className={`w-4 h-4 transition-transform duration-200 ${
+            isOpen ? "rotate-180" : ""
+          }`}
+        />
+      </button>
+
+      {isOpen && (
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-beige rounded-lg shadow-lg z-50">
+          {options.map((option, index) => (
+            <button
+              key={option.value}
+              onClick={() => {
+                onChange(option.value);
+                onToggle();
+              }}
+              className={`w-full px-3 py-2 text-left text-sm hover:bg-brown/5 transition-colors duration-150 ${
+                index === 0 ? "first:rounded-t-lg" : ""
+              } ${index === options.length - 1 ? "last:rounded-b-lg" : ""} ${
+                value === option.value
+                  ? "bg-brown/10 text-brown font-medium"
+                  : "text-black"
+              }`}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 export default function GenerateReportPage() {
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const comparisonInputRef = useRef<HTMLInputElement | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const { billingInfo } = useData();
 
   const [address, setAddress] = useState("");
+  const [comparisonAddress, setComparisonAddress] = useState("");
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [comparisonSuggestions, setComparisonSuggestions] = useState<Suggestion[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [scriptsReady, setScriptsReady] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [hasSelected, setHasSelected] = useState(false);
+  const [hasSelectedComparison, setHasSelectedComparison] = useState(false);
+  const [reportType, setReportType] = useState("detailed");
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  const reportTypeOptions = [
+    { value: "detailed", label: "Detailed Report" },
+    { value: "comparison", label: "Comparison Report" },
+  ];
   // Load Google Maps script
   useEffect(() => {
     const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
@@ -92,9 +167,66 @@ export default function GenerateReportPage() {
     return () => clearTimeout(debounce);
   }, [address, scriptsReady, hasSelected]);
 
+  // Fetch autocomplete suggestions for comparison address
+  useEffect(() => {
+    if (!scriptsReady || comparisonAddress.trim().length < 3 || hasSelectedComparison || reportType !== "comparison") {
+      setComparisonSuggestions([]);
+      return;
+    }
+
+    const fetchComparisonSuggestions = async () => {
+      try {
+        const sessionToken =
+          new window.google.maps.places.AutocompleteSessionToken();
+        const request = {
+          input: comparisonAddress,
+          sessionToken,
+        };
+
+        const { suggestions: fetched } =
+          await window.google.maps.places.AutocompleteSuggestion.fetchAutocompleteSuggestions(
+            request
+          );
+
+        setComparisonSuggestions(
+          fetched.map((s: any) => ({
+            description: s.placePrediction.text.text,
+            placePrediction: s.placePrediction,
+          }))
+        );
+      } catch (err) {
+        console.error("Comparison autocomplete fetch error:", err);
+        setComparisonSuggestions([]);
+      }
+    };
+
+    const debounce = setTimeout(fetchComparisonSuggestions, 200);
+    return () => clearTimeout(debounce);
+  }, [comparisonAddress, scriptsReady, hasSelectedComparison, reportType]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setHasSelected(false);
     setAddress(e.target.value);
+    setError(null);
+  };
+
+  const handleComparisonInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setHasSelectedComparison(false);
+    setComparisonAddress(e.target.value);
     setError(null);
   };
 
@@ -106,6 +238,16 @@ export default function GenerateReportPage() {
     });
     setAddress(place.formattedAddress);
     setSuggestions([]);
+  };
+
+  const handleComparisonSelect = async (suggestion: Suggestion) => {
+    setHasSelectedComparison(true);
+    const place = suggestion.placePrediction.toPlace();
+    await place.fetchFields({
+      fields: ["displayName", "formattedAddress"],
+    });
+    setComparisonAddress(place.formattedAddress);
+    setComparisonSuggestions([]);
   };
 
   // Start polling for report completion using PastReports polling function
@@ -204,6 +346,14 @@ export default function GenerateReportPage() {
       return;
     }
 
+    if (reportType === "comparison") {
+      const trimmedComparison = comparisonAddress.trim();
+      if (!trimmedComparison) {
+        setError("Please enter a valid comparison address.");
+        return;
+      }
+    }
+
     // Check if user has reports available before starting any operations
     if (!billingInfo || billingInfo.usage.reports_available <= 0) {
       console.log("[GenerateReport] ❌ No reports available, redirecting to subscription");
@@ -233,7 +383,10 @@ export default function GenerateReportPage() {
         Accept: "application/json",
         Authorization: `Bearer ${idToken}`,
       },
-      body: JSON.stringify({ address: trimmed }),
+      body: JSON.stringify({ 
+        address: trimmed,
+        ...(reportType === "comparison" && { comparisonAddress: comparisonAddress.trim() })
+      }),
     });
 
     // Wait for the 0.5 second delay, then navigate
@@ -281,7 +434,8 @@ export default function GenerateReportPage() {
     }
   };
 
-  const isButtonDisabled = isGenerating || !address.trim() || !!loadError;
+  const isButtonDisabled = isGenerating || !address.trim() || !!loadError || 
+    (reportType === "comparison" && !comparisonAddress.trim());
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-off-white to-white mobile-padding py-6 sm:py-8">
@@ -291,18 +445,49 @@ export default function GenerateReportPage() {
             Generate Report
           </h1>
           <p className="text-base sm:text-lg text-black/60 font-light max-w-2xl mx-auto px-2">
-            Enter an address to generate a comprehensive AI-powered property
-            analysis report
+            Enter an address to generate a comprehensive AI-powered property report
           </p>
         </div>
 
         <div className="mobile-card max-w-2xl mx-auto space-y-4 sm:space-y-6">
           <div>
             <label
+              htmlFor="report-type"
+              className="block text-sm sm:text-lg font-medium text-black mb-2 sm:mb-3"
+            >
+              Report Type
+            </label>
+            <CustomDropdown
+              value={reportType}
+              onChange={setReportType}
+              options={reportTypeOptions}
+              placeholder="Select report type"
+              isOpen={isDropdownOpen}
+              onToggle={() => setIsDropdownOpen(!isDropdownOpen)}
+              dropdownRef={dropdownRef}
+            />
+          </div>
+
+          {reportType === "comparison" && (
+            <div className="bg-olive/10 border border-olive/30 rounded-lg p-3 sm:p-4">
+              <div className="flex items-start space-x-2 sm:space-x-3">
+                <div className="text-olive">
+                  <p className="font-medium text-sm sm:text-base mb-1">Comparison Report</p>
+                  <p className="text-xs sm:text-sm">
+                    Compare two properties side-by-side with detailed analysis of neighborhoods, 
+                    amenities, market trends, and key differences to help you make an informed decision.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div>
+            <label
               htmlFor="address-input"
               className="block text-sm sm:text-lg font-medium text-black mb-2 sm:mb-3"
             >
-              Property Address
+              {reportType === "comparison" ? "First Property Address" : "Property Address"}
             </label>
             <div className="relative">
               <MapPin className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-black/40 pointer-events-none z-10" />
@@ -341,6 +526,45 @@ export default function GenerateReportPage() {
             )}
           </div>
 
+          {reportType === "comparison" && (
+            <div>
+              <label
+                htmlFor="comparison-address-input"
+                className="block text-sm sm:text-lg font-medium text-black mb-2 sm:mb-3"
+              >
+                Second Property Address
+              </label>
+              <div className="relative">
+                <MapPin className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-black/40 pointer-events-none z-10" />
+                <input
+                  id="comparison-address-input"
+                  ref={comparisonInputRef}
+                  type="text"
+                  value={comparisonAddress}
+                  onChange={handleComparisonInputChange}
+                  placeholder={scriptsReady ? "Search comparison property" : "Loading..."}
+                  disabled={!scriptsReady || isGenerating}
+                  className="w-full h-12 sm:h-14 pl-10 sm:pl-12 pr-3 sm:pr-4 rounded-lg border border-gray-300 text-xs sm:text-base focus:ring-2 focus:ring-olive focus:border-olive transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed touch-manipulation"
+                  autoComplete="off"
+                />
+              </div>
+
+              {comparisonSuggestions.length > 0 && (
+                <ul className="border mt-2 rounded-md overflow-hidden shadow-sm bg-white z-50 relative max-h-60 overflow-y-auto">
+                  {comparisonSuggestions.map((s, idx) => (
+                    <li
+                      key={idx}
+                      onClick={() => handleComparisonSelect(s)}
+                      className="px-3 sm:px-4 py-3 sm:py-2 cursor-pointer hover:bg-gray-100 text-sm sm:text-base touch-friendly border-b border-gray-100 last:border-b-0"
+                    >
+                      {s.description}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+
           {(error || loadError) && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-3 sm:p-4 flex items-start space-x-2 sm:space-x-3">
               <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-red-500 flex-shrink-0 mt-0.5" />
@@ -368,17 +592,11 @@ export default function GenerateReportPage() {
                 </span>
               </div>
             ) : (
-              <span className="text-sm sm:text-base">Generate Report</span>
+              <span className="text-sm sm:text-base">
+                {reportType === "comparison" ? "Generate Comparison Report" : "Generate Report"}
+              </span>
             )}
           </button>
-
-          <div className="hidden sm:block text-xs sm:text-sm text-black/60 text-center px-2">
-            <p>
-              Select an address from the dropdown suggestions for best results.
-              The report will include property details, market analysis, and
-              insights.
-            </p>
-          </div>
         </div>
       </div>
     </div>
