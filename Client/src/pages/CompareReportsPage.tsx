@@ -513,6 +513,14 @@ export default function CompareReportsPage() {
             </div>
             <div className="flex items-center space-x-2 sm:space-x-3">
               <button
+                  onClick={() => setSelectedReports([])}
+                  disabled={selectedReports.length === 0}
+                  className="flex items-center px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-black/70 bg-gray-100 border border-gray-300 hover:bg-gray-200 hover:border-gray-400 rounded-lg transition-colors disabled:bg-gray-200 disabled:text-gray-500 disabled:border-transparent disabled:cursor-not-allowed touch-friendly"
+                >
+                <X className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">Clear</span>
+              </button>
+              <button
                 onClick={exportToExcel}
                 disabled={
                   selectedReports.length === 0 || comparisonTable.length === 0
