@@ -182,9 +182,11 @@ const SortableReportSection: React.FC<SortableReportSectionProps> = ({
         <GripVertical className="w-4 h-4 text-brown/60" />
       </div>
       
-      <div className="flex-shrink-0 w-6 h-6 bg-gray-100 text-gray-600 text-xs font-medium rounded-full flex items-center justify-center border border-gray-200 decoration-gray-400 decoration-1">
-        {priority}
-      </div>
+      {checked && priority && (
+        <div className="flex-shrink-0 w-6 h-6 bg-gray-100 text-gray-600 text-xs font-medium rounded-full flex items-center justify-center border border-gray-200 decoration-gray-400 decoration-1">
+          {priority}
+        </div>
+      )}
       
       <label className="flex items-center space-x-3 flex-1 cursor-pointer">
         <input
@@ -1857,9 +1859,15 @@ export default function OnboardingPage() {
                 <div className="space-y-2">
                   {orderedSections?.map((section, index) => {
                     if (!section || !section.key) return null;
+                    
+                    // Get the actual boolean field value (section.key already has include_ prefix)
+                    const booleanFieldName = section.key as keyof OnboardingData;
+                    const fieldValue = formData[booleanFieldName];
+                    const isChecked = typeof fieldValue === 'boolean' ? fieldValue : true;
                     const priorities = formData.report_section_priorities || [];
-                    const isChecked = priorities.includes(section.key);
-                    const priority = index + 1; // Always show position number
+                    const priorityIndex = priorities.indexOf(section.key);
+                    const priority = isChecked && priorityIndex !== -1 ? priorityIndex + 1 : undefined;
+                    
                     return (
                       <SortableReportSection
                         key={section.key}
@@ -1867,7 +1875,12 @@ export default function OnboardingPage() {
                         label={section.label}
                         checked={isChecked}
                         priority={priority}
-                        onToggle={(checked) => handleReportSectionToggle(section.key, checked)}
+                        onToggle={(checked) => {
+                          // Update the boolean field directly
+                          updateFormData(booleanFieldName, checked);
+                          // Also update priorities array
+                          handleReportSectionToggle(section.key, checked);
+                        }}
                       />
                     );
                   })}

@@ -2292,17 +2292,26 @@ export default function PersonalizationPage() {
                     {orderedSections?.map((section) => {
                       if (!section || !section.key || !section.label) return null;
                       
+                      // Get the actual boolean field value (section.key already has include_ prefix)
+                      const booleanFieldName = section.key as keyof OnboardingData;
+                      const fieldValue = formData[booleanFieldName];
+                      const isChecked = typeof fieldValue === 'boolean' ? fieldValue : true;
                       const priorities = formData.report_section_priorities || [];
-                      const isChecked = priorities.includes(section.key);
                       const priorityIndex = priorities.indexOf(section.key);
                       const priority = isChecked && priorityIndex !== -1 ? priorityIndex + 1 : undefined;
+                      
                       return (
                         <SortableReportSection
                           key={section.key}
                           id={section.key}
                           label={section.label}
                           checked={isChecked}
-                          onToggle={(checked) => handleReportSectionToggle(section.key, checked)}
+                          onToggle={(checked) => {
+                            // Update the boolean field directly
+                            updateFormData(booleanFieldName, checked);
+                            // Also update priorities array
+                            handleReportSectionToggle(section.key, checked);
+                          }}
                           priority={priority}
                         />
                       );
@@ -2315,14 +2324,17 @@ export default function PersonalizationPage() {
                 {orderedSections?.map((section) => {
                   if (!section || !section.key || !section.label) return null;
                   
+                  const booleanFieldName = section.key as keyof OnboardingData;
+                  const fieldValue = formData[booleanFieldName];
+                  const isChecked = typeof fieldValue === 'boolean' ? fieldValue : true;
                   const priorities = formData.report_section_priorities || [];
-                  const isChecked = priorities.includes(section.key);
                   const priorityIndex = priorities.indexOf(section.key);
                   const priority = isChecked && priorityIndex !== -1 ? priorityIndex + 1 : undefined;
+                  
                   return (
                     <div
                       key={section.key}
-                      className={`flex items-center space-x-3 p-3 border rounded-lg transition-all duration-200 border-beige hover:bg-beige/10 hover:border-brown/30 ${
+                      className={`flex items-center space-x-3 p-3 bg-gray-50 border border-gray-300 rounded-lg ${
                         !isChecked ? "opacity-60" : ""
                       }`}
                     >
@@ -2338,7 +2350,7 @@ export default function PersonalizationPage() {
                             className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all duration-200 ${
                               isChecked
                                 ? "bg-brown border-brown text-white shadow-sm"
-                                : "border-beige bg-white"
+                                : "border-gray-300 bg-gray-100"
                             }`}
                           >
                             {isChecked && (

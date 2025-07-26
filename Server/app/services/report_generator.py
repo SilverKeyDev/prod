@@ -260,7 +260,7 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
     # Generate guidance with error handling
     try:
         guidance = give_guidance(user_preferences=user_preferences)
-        logger.info(f"📝 Successfully generated guidance with {len(guidance)} characters")
+        logger.info(f"📝 Successfully generated guidance with {guidance} characters")
     except Exception as e:
         logger.error(f"❌ Failed to generate guidance: {str(e)}")
         logger.exception("Guidance generation error details:")
@@ -268,9 +268,8 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
 
     # Create FullReport schema with error handling
     try:
-        schema_raw = FullReport(report_customization=report_customization, **primary_report_json)
-        schema = json.dumps(schema_raw.dict(), indent=2)
-        logger.info(f"📊 Successfully created FullReport schema with {len(schema)} characters")
+        schema = FullReport(report_customization=report_customization).model_json_schema()
+        logger.info(f"📊 Successfully created FullReport schema with {schema} characters")
     except Exception as e:
         logger.error(f"❌ Failed to create FullReport schema: {str(e)}")
         logger.exception("FullReport schema creation error details:")

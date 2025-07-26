@@ -18,7 +18,7 @@ class User(db.Model):
     
     subscription = db.relationship('Subscription', back_populates='user', uselist=False, lazy='select')
     user_preferences = db.relationship('UserPreferences', back_populates='user', uselist=False, lazy='select')
-
+    is_agent = db.Column(db.Boolean, default=False)
     
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)
@@ -41,4 +41,5 @@ class User(db.Model):
             'has_subscription': self.subscription is not None,
             'subscription': self.subscription.to_dict() if self.subscription else None,
             'has_preferences': self.has_preferences,
+            'is_agent': self.is_agent,
         }
