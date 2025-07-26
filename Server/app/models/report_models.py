@@ -164,10 +164,7 @@ class ExtraTips(BaseModel):
     other_notable_tips: str
 
 class FullReport(BaseModel):
-    # Required field
-    neighborhood_overview: NeighborhoodOverview
-
-    # Optional sections
+    neighborhood_overview: Optional[NeighborhoodOverview] = None
     safety: Optional[Safety] = None
     culture_and_events: Optional[CultureAndEvents] = None
     weather: Optional[Weather] = None
@@ -186,68 +183,20 @@ class FullReport(BaseModel):
     class Config:
         extra = Extra.allow
 
-    def __init__(self, report_customization=None, **data):
-        if report_customization is None:
-            report_customization = {}
-
-        section_priorities = report_customization.get('report_section_priorities', [])
-
-        self._section_priorities = section_priorities  # store for later use
-
-        priority_to_data_mapping = {
-            'include_safety': 'safety',
-            'include_culture_and_events': 'culture_and_events',
-            'include_weather': 'weather',
-            'include_social_character': 'social_character',
-            'include_local_amenities': 'local_amenities',
-            'include_commute': 'commute',
-            'include_family_friendly': 'family_friendly',
-            'include_nightlife_and_dating': 'nightlife_and_dating',
-            'include_accessibility': 'accessibility',
-            'include_development': 'development',
-            'include_environment': 'environment_utilities',
-            'include_money': 'financial_information',
-            'include_schools': 'schools',
-            'include_extra_tips': 'extra_tips'
-        }
-
-        for priority_key, data_key in priority_to_data_mapping.items():
-            if priority_key not in section_priorities:
-                data.pop(data_key, None)
-
-        data.pop("demographics", None)
-
+    def __init__(self, report_customization: Dict[str, Any], **data):
+        self._prioritized_fields: List[str] = report_customization.get("report_section_priorities", [])
         super().__init__(**data)
 
-    def dict_by_priority(self) -> Dict:
-        result = OrderedDict()
-        result['neighborhood_overview'] = self.neighborhood_overview.dict()
+    def dict(self, **kwargs) -> Dict[str, Any]:
+        """
+        Override the default .dict() to return only prioritized fields in order
+        """
+        base_dict = super().dict(**kwargs)
+        output = {}
 
-        priority_to_data_mapping = {
-            'include_safety': 'safety',
-            'include_culture_and_events': 'culture_and_events',
-            'include_weather': 'weather',
-            'include_social_character': 'social_character',
-            'include_local_amenities': 'local_amenities',
-            'include_commute': 'commute',
-            'include_family_friendly': 'family_friendly',
-            'include_nightlife_and_dating': 'nightlife_and_dating',
-            'include_accessibility': 'accessibility',
-            'include_development': 'development',
-            'include_environment': 'environment_utilities',
-            'include_money': 'financial_information',
-            'include_schools': 'schools',
-            'include_extra_tips': 'extra_tips'
-        }
+        # Only include prioritized fields, in order
+        for key in self._prioritized_fields:
+            if key in base_dict and base_dict[key] is not None:
+                output[key] = base_dict[key]
 
-        for priority_key in self._section_priorities:
-            field_name = priority_to_data_mapping.get(priority_key)
-            if field_name:
-                section = getattr(self, field_name)
-                if section is not None:
-                    result[field_name] = section.dict()
-
-        return result
-
-    def json_by_priority(self) -> str:
-        return self.__class__.construct(**self.dict_by_priority()).json()
+        return output

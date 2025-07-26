@@ -260,6 +260,9 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
 
     guidance = give_guidance(report_customization=report_customization)
 
+    report = FullReport(report_customization=report_customization, **primary_report_json)
+    structured_json_str = json.dumps(report.dict(), indent=2) 
+
     try:
         # Validate address
         if not validate_address(address):
@@ -306,7 +309,7 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
             "response_format": {
                 "type": "json_schema",
                 "json_schema": {
-                    "schema": FullReport.model_json_schema()
+                    "schema": report
                 }
             }
         }
@@ -371,7 +374,7 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                 "response_format": {
                     "type": "json_schema",
                     "json_schema": {
-                        "schema": FullReport.model_json_schema()
+                        "schema": report
                     }
                 }
             }
