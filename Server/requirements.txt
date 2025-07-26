@@ -26,3 +26,4 @@ pandas==2.0.3
 celery==5.3.4
 redis==5.0.1
 pydantic==2.5.0
+openai==1.51.0

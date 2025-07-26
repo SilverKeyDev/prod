@@ -59,6 +59,7 @@ def create_app(config=None):
     with app.app_context():
         db.create_all()
         from .models import User, PDFDocument, Subscription
+        from .models.chat_history import ChatHistory
 
     # CORS Configuration
     CORS(app, resources={
@@ -97,6 +98,7 @@ def create_app(config=None):
     from .routes.payment import bp as payment_bp
     from .routes.user import user_bp
     from .routes.preferences import preferences_bp
+    from .routes.chatbot import chatbot_bp
 
     app.register_blueprint(report_bp)
     app.register_blueprint(dashboard_bp)
@@ -104,6 +106,7 @@ def create_app(config=None):
     app.register_blueprint(payment_bp)
     app.register_blueprint(user_bp)
     app.register_blueprint(preferences_bp)
+    app.register_blueprint(chatbot_bp)
 
     # Global handler for expired JWT tokens
     @app.errorhandler(ExpiredSignatureError)
