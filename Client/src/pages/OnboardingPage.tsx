@@ -114,21 +114,21 @@ const STEPS = [
 
 // Default report sections with their labels
 const defaultReportSections = [
-  { key: "include_neighborhood_overview", label: "Neighborhood Overview" },
-  { key: "include_safety", label: "Safety & Crime" },
-  { key: "include_culture_and_events", label: "Culture & Events" },
-  { key: "include_weather", label: "Weather & Climate" },
-  { key: "include_social_character", label: "Social Character" },
-  { key: "include_local_amenities", label: "Local Amenities" },
-  { key: "include_commute", label: "Commute & Transportation" },
-  { key: "include_family_friendly", label: "Family Friendliness" },
-  { key: "include_nightlife_and_dating", label: "Nightlife & Dating" },
-  { key: "include_accessibility", label: "Accessibility" },
-  { key: "include_development", label: "Development & Growth" },
-  { key: "include_environment", label: "Environment & Nature" },
-  { key: "include_money", label: "Cost of Living & Finances" },
-  { key: "include_schools", label: "Schools & Education" },
-  { key: "include_extra_tips", label: "Extra Tips & Insights" },
+  { key: "neighborhood_overview", label: "Neighborhood Overview" },
+  { key: "safety", label: "Safety & Crime" },
+  { key: "culture_and_events", label: "Culture & Events" },
+  { key: "weather", label: "Weather & Climate" },
+  { key: "social_character", label: "Social Character" },
+  { key: "local_amenities", label: "Local Amenities" },
+  { key: "commute", label: "Commute & Transportation" },
+  { key: "family_friendly", label: "Family Friendliness" },
+  { key: "nightlife_and_dating", label: "Nightlife & Dating" },
+  { key: "accessibility", label: "Accessibility" },
+  { key: "development", label: "Development & Growth" },
+  { key: "environment", label: "Environment & Nature" },
+  { key: "money", label: "Cost of Living & Finances" },
+  { key: "schools", label: "Schools & Education" },
+  { key: "extra_tips", label: "Extra Tips & Insights" },
 ];
 
 // Sortable Report Section Component
@@ -291,21 +291,21 @@ export default function OnboardingPage() {
   const [formData, setFormData] = useState<OnboardingData>({
     // Initialize report customization with all sections included by default
     report_section_priorities: [
-      'include_neighborhood_overview',
-      'include_safety',
-      'include_culture_and_events',
-      'include_weather',
-      'include_social_character',
-      'include_local_amenities',
-      'include_commute',
-      'include_family_friendly',
-      'include_nightlife_and_dating',
-      'include_accessibility',
-      'include_development',
-      'include_environment',
-      'include_money',
-      'include_schools',
-      'include_extra_tips'
+      'neighborhood_overview',
+      'safety',
+      'culture_and_events',
+      'weather',
+      'social_character',
+      'local_amenities',
+      'commute',
+      'family_friendly',
+      'nightlife_and_dating',
+      'accessibility',
+      'development',
+      'environment',
+      'money',
+      'schools',
+      'extra_tips'
     ],
   });
   const [loading, setLoading] = useState(false);

@@ -4,7 +4,7 @@ def give_guidance(report_customization=None) -> str:
     
     Args:
         report_customization: Dict containing:
-            - include_* fields for each section (bool)
+            - fields for each section (bool)
             - report_section_priorities: List of section keys in desired order
     """
     if report_customization is None:
@@ -12,21 +12,21 @@ def give_guidance(report_customization=None) -> str:
     
     # Default preferences (all enabled)
     defaults = {
-        'include_neighborhood_overview': True,
-        'include_safety': True,
-        'include_culture_and_events': True,
-        'include_weather': True,
-        'include_social_character': True,
-        'include_local_amenities': True,
-        'include_commute': True,
-        'include_family_friendly': True,
-        'include_nightlife_and_dating': True,
-        'include_accessibility': True,
-        'include_development': True,
-        'include_environment': True,
-        'include_money': True,
-        'include_schools': True,
-        'include_extra_tips': True,
+        'neighborhood_overview': True,
+        'safety': True,
+        'culture_and_events': True,
+        'weather': True,
+        'social_character': True,
+        'local_amenities': True,
+        'commute': True,
+        'family_friendly': True,
+        'nightlife_and_dating': True,
+        'accessibility': True,
+        'development': True,
+        'environment': True,
+        'money': True,
+        'schools': True,
+        'extra_tips': True,
     }
     
     # Merge with provided preferences
@@ -34,30 +34,30 @@ def give_guidance(report_customization=None) -> str:
     
     # Get section priorities or use default order
     priorities = report_customization.get('report_section_priorities', [
-        'include_neighborhood_overview', 'include_safety', 'include_culture_and_events',
-        'include_weather', 'include_social_character', 'include_local_amenities',
-        'include_commute', 'include_family_friendly', 'include_nightlife_and_dating',
-        'include_accessibility', 'include_development', 'include_environment',
-        'include_money', 'include_schools', 'include_extra_tips'
+        'neighborhood_overview', 'safety', 'culture_and_events',
+        'weather', 'social_character', 'local_amenities',
+        'commute', 'family_friendly', 'nightlife_and_dating',
+        'accessibility', 'development', 'environment',
+        'money', 'schools', 'extra_tips'
     ])
     
     # Map section keys to guidance functions
     guidance_functions = {
-        'include_neighborhood_overview': lambda: _guidance_neighborhood_overview(prefs['include_neighborhood_overview']),
-        'include_safety': lambda: _guidance_safety(prefs['include_safety']),
-        'include_culture_and_events': lambda: _guidance_culture_and_events(prefs['include_culture_and_events']),
-        'include_weather': lambda: _guidance_weather(prefs['include_weather']),
-        'include_social_character': lambda: _guidance_social_character(prefs['include_social_character']),
-        'include_local_amenities': lambda: _guidance_local_amenities(prefs['include_local_amenities']),
-        'include_commute': lambda: _guidance_commute(prefs['include_commute']),
-        'include_family_friendly': lambda: _guidance_family_friendly(prefs['include_family_friendly']),
-        'include_nightlife_and_dating': lambda: _guidance_nightlife_and_dating(prefs['include_nightlife_and_dating']),
-        'include_accessibility': lambda: _guidance_accessibility(prefs['include_accessibility']),
-        'include_development': lambda: _guidance_development(prefs['include_development']),
-        'include_environment': lambda: _guidance_environment(prefs['include_environment']),
-        'include_money': lambda: _guidance_money(prefs['include_money']),
-        'include_schools': lambda: _guidance_schools(prefs['include_schools']),
-        'include_extra_tips': lambda: _guidance_extra_tips(prefs['include_extra_tips']),
+        'neighborhood_overview': lambda: _guidance_neighborhood_overview(prefs['neighborhood_overview']),
+        'safety': lambda: _guidance_safety(prefs['safety']),
+        'culture_and_events': lambda: _guidance_culture_and_events(prefs['culture_and_events']),
+        'weather': lambda: _guidance_weather(prefs['weather']),
+        'social_character': lambda: _guidance_social_character(prefs['social_character']),
+        'local_amenities': lambda: _guidance_local_amenities(prefs['local_amenities']),
+        'commute': lambda: _guidance_commute(prefs['commute']),
+        'family_friendly': lambda: _guidance_family_friendly(prefs['family_friendly']),
+        'nightlife_and_dating': lambda: _guidance_nightlife_and_dating(prefs['nightlife_and_dating']),
+        'accessibility': lambda: _guidance_accessibility(prefs['accessibility']),
+        'development': lambda: _guidance_development(prefs['development']),
+        'environment': lambda: _guidance_environment(prefs['environment']),
+        'money': lambda: _guidance_money(prefs['money']),
+        'schools': lambda: _guidance_schools(prefs['schools']),
+        'extra_tips': lambda: _guidance_extra_tips(prefs['extra_tips']),
     }
     
     # Generate guidance sections in priority order
