@@ -258,12 +258,7 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
         report_customization = {}
         logger.info("🎛️ No report customization found, using defaults (all sections enabled)")
 
-    logger.info("📋 Generating guidance with report customization...")
     guidance = give_guidance(report_customization=report_customization)
-    logger.info(f"📋 Generated guidance length: {len(guidance)} characters")
-    logger.debug(f"📋 Full guidance content:\n{guidance}")
-
-    logger.debug(f"FullReport model schema: {FullReport.model_json_schema()} characters")
 
     solo_payload = {
             "model": "sonar-deep-research",
@@ -317,11 +312,6 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
             raise ValueError("Invalid address format")
         if(comparison_address == None):
             payload = solo_payload
-            logger.info(f"📦 Solo report payload prepared - Model: {payload['model']}, Temperature: {payload['temperature']}")
-            logger.info(f"📝 Solo report system prompt length: {len(payload['messages'][0]['content'])} characters")
-            logger.debug(f"📝 Complete solo report system prompt:\n{payload['messages'][0]['content']}")
-            logger.debug(f"📝 Complete solo report user prompt:\n{payload['messages'][1]['content']}")
-            logger.info(f"📦 Complete solo payload:\n{json.dumps(payload, indent=2)}")
         else:
             # Comparison report logic - need to get JSON data for both properties
             logger.info(f"🔄 Generating comparison report for {address} vs {comparison_address}")
@@ -361,8 +351,6 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                             "   * 1–2 sentences of summary analysis\n"
                             "   * declared winner\n\n"
 
-                            f"STRICT GUIDANCE FOR EACH SECTION:\n{guidance}\n\n"
-
                             f"Use this user preference profile to guide your evaluation and make a strong, confident recommendation:\n{user_preferences}"
                         )
                     },
@@ -389,15 +377,7 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                     }
                 }
             }
-            
-            logger.info(f"📦 Comparison report payload prepared - Model: {payload['model']}, Temperature: {payload['temperature']}")
-            logger.info(f"📝 Comparison report system prompt length: {len(payload['messages'][0]['content'])} characters")
-            logger.debug(f"📝 Complete comparison report system prompt:\n{payload['messages'][0]['content']}")
-            logger.debug(f"📝 Complete comparison report user prompt:\n{payload['messages'][1]['content']}")
-            logger.info(f"📦 Complete comparison payload:\n{json.dumps(payload, indent=2)}")
-
-        logger.info(f"📡 Final payload summary - Model: {payload['model']}, Messages: {len(payload['messages'])}, Max tokens: {payload['max_tokens']}")
-        logger.debug(f"📡 Complete final payload being sent to Perplexity:\n{json.dumps(payload, indent=2)}")
+            logger.debug(f"📡 Complete final comparison payload being sent to Perplexity:\n{json.dumps(payload, indent=2)}")
 
         session = requests.Session()
         retries = Retry(total=3, backoff_factor=1, status_forcelist=[429, 500, 502, 503, 504])
@@ -416,28 +396,20 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                 raise Exception(f"API request failed with status code {response.status_code}")
 
             content = response.json()
-            logger.info(f"📬 API Response received - Status: {response.status_code}, Content length: {len(response.text)} characters")
-            logger.info(f"📬 Response metadata: {json.dumps({k: v for k, v in content.items() if k != 'choices'}, indent=2)}")
-            logger.debug(f"📬 Complete raw response JSON:\n{json.dumps(content, indent=2)}")
-
+         
             if "choices" not in content or not content["choices"]:
                 logger.error("❌ Missing or empty 'choices' key in API response")
                 logger.error(f"❌ Available keys in response: {list(content.keys())}")
                 raise KeyError("Missing or empty 'choices' key in API response")
 
             raw_json_text = content["choices"][0]["message"]["content"]
-            logger.info(f"🧾 Raw model output length: {len(raw_json_text)} characters")
             logger.info(f"🧾 Raw model output (first 500 chars): {raw_json_text[:500]}...")
-            logger.debug(f"🧾 Complete raw model output:\n{raw_json_text}")
 
             report = _safe_parse_json(raw_json_text, report_customization)
-            
-            # Log final report structure before PDF generation
-            logger.info(f"📋 Final report structure keys: {list(report.keys()) if isinstance(report, dict) else 'Not a dict'}")
-            logger.debug(f"📋 Complete final report JSON:\n{json.dumps(report, indent=2)}")
 
             logger.debug("🖨️ Calling PDF generation helper...")
-            pdf_url = _create_pdf(report, address, filename)
+            
+            _create_pdf(report, address, filename)
 
             logger.info(f"✅ Report generation completed successfully for task {task_id}")
             return report
@@ -446,8 +418,6 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
             logger.error(f"❌ Unhandled error during API call or parsing: {str(e)}")
             logger.error(f"Exception type: {type(e).__name__}")
             logger.error(f"Traceback:\n{traceback.format_exc()}")
-
-
             raise
 
     except Exception as e:

@@ -222,17 +222,7 @@ class FullReport(BaseModel):
             'schools', 'extra_tips', 'demographics'  # include for cleanup
         }
 
-        # Remove top-level demographics if it exists (we will always inject it correctly below)
-        top_level_demo = data.pop("demographics", None)
-
-        # Always force `demographics` to live inside the address block
-        if top_level_demo:
-            address_section["demographics"] = top_level_demo
-        elif "demographics" in address_section:
-            pass  # already correctly placed
-        else:
-            address_section["demographics"] = {}  # if completely missing, insert empty
-
-        data["neighborhood_overview"] = NeighborhoodOverview(**address_section)
+        # Remove top-level demographics if it exists (cleanup)
+        data.pop("demographics", None)
 
         super().__init__(**data)
