@@ -2295,10 +2295,11 @@ export default function PersonalizationPage() {
                       // Get the actual boolean field value (section.key already has include_ prefix)
                       const booleanFieldName = section.key as keyof OnboardingData;
                       const fieldValue = formData[booleanFieldName];
-                      const isChecked = typeof fieldValue === 'boolean' ? fieldValue : true;
                       const priorities = formData.report_section_priorities || [];
                       const priorityIndex = priorities.indexOf(section.key);
-                      const priority = isChecked && priorityIndex !== -1 ? priorityIndex + 1 : undefined;
+                      // Only checked if both boolean field is true AND section is in priorities array
+                      const isChecked = (typeof fieldValue === 'boolean' ? fieldValue : true) && priorityIndex !== -1;
+                      const priority = isChecked ? priorityIndex + 1 : undefined;
                       
                       return (
                         <SortableReportSection
@@ -2326,10 +2327,11 @@ export default function PersonalizationPage() {
                   
                   const booleanFieldName = section.key as keyof OnboardingData;
                   const fieldValue = formData[booleanFieldName];
-                  const isChecked = typeof fieldValue === 'boolean' ? fieldValue : true;
                   const priorities = formData.report_section_priorities || [];
                   const priorityIndex = priorities.indexOf(section.key);
-                  const priority = isChecked && priorityIndex !== -1 ? priorityIndex + 1 : undefined;
+                  // Only checked if both boolean field is true AND section is in priorities array
+                  const isChecked = (typeof fieldValue === 'boolean' ? fieldValue : true) && priorityIndex !== -1;
+                  const priority = isChecked ? priorityIndex + 1 : undefined;
                   
                   return (
                     <div
