@@ -3,8 +3,7 @@ export {};
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapPin, Loader2, AlertCircle, ChevronDown } from "lucide-react";
-// COMMENTED OUT: Individual report purchases disabled
-// import { useData } from "../contexts/DataContext";
+import { useData } from "../contexts/DataContext";
 
 declare global {
   interface Window {
@@ -85,13 +84,15 @@ export default function GenerateReportPage() {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const comparisonInputRef = useRef<HTMLInputElement | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  // COMMENTED OUT: Individual report purchases disabled
-  // const { billingInfo, billingLoading } = useData();
+
+  const { userProfile } = useData();
 
   const [address, setAddress] = useState("");
   const [comparisonAddress, setComparisonAddress] = useState("");
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
-  const [comparisonSuggestions, setComparisonSuggestions] = useState<Suggestion[]>([]);
+  const [comparisonSuggestions, setComparisonSuggestions] = useState<
+    Suggestion[]
+  >([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [scriptsReady, setScriptsReady] = useState(false);
@@ -104,7 +105,16 @@ export default function GenerateReportPage() {
   const reportTypeOptions = [
     { value: "detailed", label: "Detailed Report" },
     { value: "comparison", label: "Comparison Report" },
+    ...(userProfile?.is_agent
+      ? [
+          {
+            value: "marketing",
+            label: "Marketing Material",
+          },
+        ]
+      : []),
   ];
+
   // Load Google Maps script
   useEffect(() => {
     const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
@@ -171,7 +181,12 @@ export default function GenerateReportPage() {
 
   // Fetch autocomplete suggestions for comparison address
   useEffect(() => {
-    if (!scriptsReady || comparisonAddress.trim().length < 3 || hasSelectedComparison || reportType !== "comparison") {
+    if (
+      !scriptsReady ||
+      comparisonAddress.trim().length < 3 ||
+      hasSelectedComparison ||
+      reportType !== "comparison"
+    ) {
       setComparisonSuggestions([]);
       return;
     }
@@ -209,7 +224,10 @@ export default function GenerateReportPage() {
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsDropdownOpen(false);
       }
     };
@@ -226,7 +244,9 @@ export default function GenerateReportPage() {
     setError(null);
   };
 
-  const handleComparisonInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleComparisonInputChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     setHasSelectedComparison(false);
     setComparisonAddress(e.target.value);
     setError(null);
@@ -356,27 +376,6 @@ export default function GenerateReportPage() {
       }
     }
 
-    // COMMENTED OUT: Individual report purchases disabled
-    // // Check if billing data is still loading
-    // if (billingLoading) {
-    //   console.log("[GenerateReport] ⏳ Billing data still loading, please wait...");
-    //   setError("Loading billing information, please try again in a moment.");
-    //   return;
-    // }
-
-    // // Check if user has reports available before starting any operations
-    // if (!billingInfo || billingInfo.usage.reports_available <= 0) {
-    //   console.log("[GenerateReport] ❌ No reports available, redirecting to subscription");
-    //   navigate("/dashboard/subscription", {
-    //     state: {
-    //       message: "You have no reports available. Please subscribe or purchase additional reports to continue.",
-    //     },
-    //   });
-    //   return;
-    // }
-
-    // console.log(`[GenerateReport] ✅ Reports available: ${billingInfo.usage.reports_available}, proceeding with generation`);
-
     setIsGenerating(true);
     setError(null);
 
@@ -384,16 +383,20 @@ export default function GenerateReportPage() {
     const idToken = localStorage.getItem("id_token");
 
     // Prepare request body
-    const requestBody = { 
+    const requestBody = {
       address: trimmed,
-      ...(reportType === "comparison" && { comparisonAddress: comparisonAddress.trim() })
+      ...(reportType === "comparison" && {
+        comparisonAddress: comparisonAddress.trim(),
+      }),
     };
-    
+
     console.log(`[GenerateReport] 📤 Request body:`, requestBody);
     console.log(`[GenerateReport] 📤 Report type: ${reportType}`);
     console.log(`[GenerateReport] 📤 Address: ${trimmed}`);
     if (reportType === "comparison") {
-      console.log(`[GenerateReport] 📤 Comparison address: ${comparisonAddress.trim()}`);
+      console.log(
+        `[GenerateReport] 📤 Comparison address: ${comparisonAddress.trim()}`
+      );
     }
 
     // Start both immediately
@@ -454,7 +457,10 @@ export default function GenerateReportPage() {
     }
   };
 
-  const isButtonDisabled = isGenerating || !address.trim() || !!loadError || 
+  const isButtonDisabled =
+    isGenerating ||
+    !address.trim() ||
+    !!loadError ||
     (reportType === "comparison" && !comparisonAddress.trim());
 
   return (
@@ -465,7 +471,8 @@ export default function GenerateReportPage() {
             Generate Report
           </h1>
           <p className="text-base sm:text-lg text-black/60 font-light max-w-2xl mx-auto px-2">
-            Enter an address to generate a comprehensive AI-powered property report
+            Enter an address to generate a comprehensive AI-powered property
+            report
           </p>
         </div>
 
@@ -492,10 +499,34 @@ export default function GenerateReportPage() {
             <div className="bg-olive/10 border border-olive/30 rounded-lg p-3 sm:p-4">
               <div className="flex items-start space-x-2 sm:space-x-3">
                 <div className="text-olive">
-                  <p className="font-medium text-sm sm:text-base mb-1">Comparison Report</p>
+                  <p className="font-medium text-sm sm:text-base mb-1">
+                    Comparison Report
+                  </p>
                   <p className="text-xs sm:text-sm">
-                    Compare two properties side-by-side with detailed analysis of neighborhoods, 
-                    amenities, market trends, and key differences to help you make an informed decision.
+                    Compare two properties side-by-side with detailed analysis
+                    of neighborhoods, amenities, market trends, and key
+                    differences to help you make an informed decision.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {reportType === "marketing" && (
+            <div className="bg-gold/10 border border-gold/30 rounded-lg p-3 sm:p-4">
+              <div className="flex items-start space-x-2 sm:space-x-3">
+                <div className="text-gold">
+                  <p className="font-medium text-sm sm:text-base mb-1">
+                    Marketing Material
+                  </p>
+                  <p className="text-xs sm:text-sm">
+                    Generate personalized marketing materials tailored to your
+                    client's specific preferences and needs. This report
+                    leverages your client's demographic data, lifestyle
+                    preferences, and real estate criteria to create compelling
+                    property descriptions, targeted market insights, and
+                    customized selling points that resonate with their unique
+                    situation and decision-making factors.
                   </p>
                 </div>
               </div>
@@ -507,7 +538,9 @@ export default function GenerateReportPage() {
               htmlFor="address-input"
               className="block text-sm sm:text-lg font-medium text-black mb-2 sm:mb-3"
             >
-              {reportType === "comparison" ? "First Property Address" : "Property Address"}
+              {reportType === "comparison"
+                ? "First Property Address"
+                : "Property Address"}
             </label>
             <div className="relative">
               <MapPin className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-black/40 pointer-events-none z-10" />
@@ -613,7 +646,9 @@ export default function GenerateReportPage() {
               </div>
             ) : (
               <span className="text-sm sm:text-base">
-                {reportType === "comparison" ? "Generate Comparison Report" : "Generate Report"}
+                {reportType === "comparison"
+                  ? "Generate Comparison Report"
+                  : "Generate Report"}
               </span>
             )}
           </button>

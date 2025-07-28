@@ -39,7 +39,6 @@ def get_current_user():
     token = auth_header.replace("Bearer ", "")
     
     try:
-        current_app.logger.info("Decoding JWT with 30-second leeway for expiration.")
         claims = jwt.decode(
             token,
             JWKS,

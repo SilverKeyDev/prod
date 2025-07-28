@@ -45,12 +45,13 @@ export default function AIAssistant() {
   // Load chats from centralized context
   const loadChatsFromContext = () => {
     console.log("[AI_ASSISTANT] Loading chats from centralized context");
-    setIsLoading(true);
     try {
       if (chats && chats.length > 0) {
         // Preserve existing messages from localChats when updating from context
         const updatedChats = chats.map((contextChat) => {
-          const existingChat = localChats.find(chat => chat.id === contextChat.id);
+          const existingChat = localChats.find(
+            (chat) => chat.id === contextChat.id
+          );
           return {
             ...contextChat,
             messages: existingChat ? existingChat.messages : [], // Preserve existing messages
@@ -60,7 +61,8 @@ export default function AIAssistant() {
         console.log("[AI_ASSISTANT] Updated chats from context:", {
           chatCount: updatedChats.length,
           chatIds: updatedChats.map((c) => c.id),
-          preservedMessages: updatedChats.filter(c => c.messages.length > 0).length,
+          preservedMessages: updatedChats.filter((c) => c.messages.length > 0)
+            .length,
         });
 
         setLocalChats(updatedChats);
@@ -86,9 +88,8 @@ export default function AIAssistant() {
   }, [refreshChats]);
 
   useEffect(() => {
-    if (chats && chats.length > 0) {
-      loadChatsFromContext();
-    }
+    // Always call loadChatsFromContext when chats data changes (including when it's empty)
+    loadChatsFromContext();
   }, [chats]);
 
   useEffect(() => {
@@ -98,9 +99,11 @@ export default function AIAssistant() {
   // Load chat history and PDF when active chat changes
   useEffect(() => {
     if (activeChatId) {
-      const currentChat = chats.find(chat => chat.id === activeChatId);
+      const currentChat = chats.find((chat) => chat.id === activeChatId);
       if (currentChat && currentChat.messages.length === 0) {
-        console.log(`[AI_ASSISTANT] Loading chat history for new active chat: ${activeChatId}`);
+        console.log(
+          `[AI_ASSISTANT] Loading chat history for new active chat: ${activeChatId}`
+        );
         loadChatHistory(activeChatId);
       }
       loadPdfForChat(activeChatId);
@@ -414,18 +417,16 @@ export default function AIAssistant() {
                   Loading your property conversations...
                 </p>
               </div>
-            ) : chats.length === 0 ? (
+            ) : localChats.length === 0 ? (
               <div className="p-4 text-center">
                 <MessageCircle className="h-12 w-12 text-black/30 mx-auto mb-2" />
-                <p className="text-sm text-black/60">
-                  No property reports found.
-                </p>
+                <p className="text-sm text-black/60">No reports yet</p>
                 <p className="text-xs text-black/40 mt-1">
                   Generate a report to start chatting about properties.
                 </p>
               </div>
             ) : (
-              chats.map((chat) => (
+              localChats.map((chat) => (
                 <div
                   key={chat.id}
                   onClick={() => setActiveChatId(chat.id)}

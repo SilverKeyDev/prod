@@ -1,6 +1,7 @@
 from celery import Celery
 from app import create_app
 from celery.signals import worker_process_init, worker_process_shutdown
+import socket
 
 # Initialize Flask app
 flask_app = create_app()
@@ -44,11 +45,11 @@ celery.Task = ContextTask
 # Optional lifecycle logging
 @worker_process_init.connect
 def worker_started(**_):
-    print("🔄 Celery worker process started")
+    print(" Celery worker process started")
 
 @worker_process_shutdown.connect
 def worker_stopped(**_):
-    print("🛑 Celery worker process shutting down")
+    print(" Celery worker process shutting down")
 
 # Register all tasks
 import app.celery.tasks

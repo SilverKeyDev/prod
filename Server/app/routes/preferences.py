@@ -96,7 +96,6 @@ def get_current_user():
         raise Exception(f"Invalid JWT format: token has {len(token_parts)} parts instead of 3")
     
     try:
-        current_app.logger.info("🔓 Decoding JWT with 30-second leeway for expiration.")
         # Get the proper signing key for this token
         key = get_signing_key(token)
         claims = jose_jwt.decode(

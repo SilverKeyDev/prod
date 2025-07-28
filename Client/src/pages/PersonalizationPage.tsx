@@ -31,9 +31,7 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import {
-  useSortable,
-} from "@dnd-kit/sortable";
+import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { apiRequest } from "../lib/api";
 import { useData } from "../contexts/DataContext";
@@ -207,8 +205,18 @@ const SortableReportSection: React.FC<SortableReportSectionProps> = ({
   priority,
 }) => {
   // Safety checks for props
-  if (!id || !label || typeof checked !== 'boolean' || typeof onToggle !== 'function') {
-    console.warn('SortableReportSection received invalid props:', { id, label, checked, onToggle });
+  if (
+    !id ||
+    !label ||
+    typeof checked !== "boolean" ||
+    typeof onToggle !== "function"
+  ) {
+    console.warn("SortableReportSection received invalid props:", {
+      id,
+      label,
+      checked,
+      onToggle,
+    });
     return null;
   }
 
@@ -223,8 +231,8 @@ const SortableReportSection: React.FC<SortableReportSectionProps> = ({
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition: isDragging ? 'none' : transition,
-    zIndex: isDragging ? 1000 : 'auto',
+    transition: isDragging ? "none" : transition,
+    zIndex: isDragging ? 1000 : "auto",
   };
 
   return (
@@ -233,9 +241,7 @@ const SortableReportSection: React.FC<SortableReportSectionProps> = ({
       style={style}
       className={`flex items-center space-x-3 p-3 border rounded-lg transition-all duration-200 border-beige hover:bg-beige/10 hover:border-brown/30 ${
         !checked ? "opacity-60" : ""
-      } ${
-        isDragging ? "shadow-lg bg-white border-brown/50" : ""
-      }`}
+      } ${isDragging ? "shadow-lg bg-white border-brown/50" : ""}`}
     >
       <div
         {...attributes}
@@ -245,7 +251,7 @@ const SortableReportSection: React.FC<SortableReportSectionProps> = ({
       >
         <GripVertical className="w-5 h-5" />
       </div>
-      
+
       <div className="flex items-center space-x-3 flex-1">
         <div className="flex items-center space-x-2">
           {priority && (
@@ -253,7 +259,7 @@ const SortableReportSection: React.FC<SortableReportSectionProps> = ({
               {priority}
             </span>
           )}
-          
+
           <label
             htmlFor={id}
             className="flex items-center space-x-3 cursor-pointer flex-1"
@@ -323,6 +329,25 @@ export default function PersonalizationPage() {
     })
   );
 
+  // Valid report sections that exactly match backend models
+  const VALID_REPORT_SECTIONS = [
+    "neighborhood_overview",
+    "safety",
+    "culture_and_events",
+    "weather",
+    "social_character",
+    "local_amenities",
+    "commute",
+    "family_friendly",
+    "nightlife_and_dating",
+    "accessibility",
+    "development",
+    "environment_utilities",
+    "financial_information",
+    "schools",
+    "extra_tips",
+  ];
+
   // Default report sections with their labels
   const defaultReportSections = [
     { key: "neighborhood_overview", label: "Neighborhood Overview" },
@@ -332,12 +357,12 @@ export default function PersonalizationPage() {
     { key: "social_character", label: "Social Character" },
     { key: "local_amenities", label: "Local Amenities" },
     { key: "commute", label: "Commute & Transportation" },
-    { key: "family_friendly", label: "Family Friendliness" },
+    { key: "family_friendly", label: "Family-Friendly Features" },
     { key: "nightlife_and_dating", label: "Nightlife & Dating" },
     { key: "accessibility", label: "Accessibility" },
     { key: "development", label: "Development & Growth" },
-    { key: "environment", label: "Environment & Nature" },
-    { key: "money", label: "Cost of Living & Finances" },
+    { key: "environment_utilities", label: "Environment & Utilities" },
+    { key: "financial_information", label: "Cost of Living & Finances" },
     { key: "schools", label: "Schools & Education" },
     { key: "extra_tips", label: "Extra Tips & Insights" },
   ];
@@ -348,34 +373,34 @@ export default function PersonalizationPage() {
       if (!formData || !defaultReportSections) {
         return [];
       }
-      
+
       const priorities = formData.report_section_priorities || [];
       const sections = [...defaultReportSections];
-      
+
       // Sort sections based on priorities - included items first in priority order, excluded items at end
       const orderedSections = sections.sort((a, b) => {
         if (!a || !b || !a.key || !b.key) return 0;
-        
+
         const aIncluded = priorities.includes(a.key);
         const bIncluded = priorities.includes(b.key);
-        
+
         // Excluded items go to the end
         if (aIncluded !== bIncluded) {
           return aIncluded ? -1 : 1;
         }
-        
+
         // For included items, use priority order
         const aPriority = priorities.indexOf(a.key);
         const bPriority = priorities.indexOf(b.key);
-        
+
         // Items not in priorities should come after items in priorities
         if (aPriority === -1 && bPriority === -1) return 0;
-        if (aPriority === -1) return 1;  // A comes after B
+        if (aPriority === -1) return 1; // A comes after B
         if (bPriority === -1) return -1; // B comes after A
-        
+
         return aPriority - bPriority;
       });
-      
+
       return orderedSections;
     } catch (error) {
       console.error("Error in getOrderedReportSections:", error);
@@ -387,18 +412,21 @@ export default function PersonalizationPage() {
   const handleDragEnd = (event: DragEndEvent) => {
     try {
       const { active, over } = event;
-      
-      if (!active || !over || !active.id || !over.id || active.id === over.id) return;
-      
+
+      if (!active || !over || !active.id || !over.id || active.id === over.id)
+        return;
+
       const sections = getOrderedReportSections();
-      const oldIndex = sections.findIndex(section => section.key === active.id);
-      const newIndex = sections.findIndex(section => section.key === over.id);
-      
+      const oldIndex = sections.findIndex(
+        (section) => section.key === active.id
+      );
+      const newIndex = sections.findIndex((section) => section.key === over.id);
+
       if (oldIndex === -1 || newIndex === -1) return;
-      
+
       const reorderedSections = arrayMove(sections, oldIndex, newIndex);
-      const newPriorities = reorderedSections.map(section => section.key);
-      
+      const newPriorities = reorderedSections.map((section) => section.key);
+
       updateFormData("report_section_priorities", newPriorities);
     } catch (error) {
       console.error("Error in handleDragEnd:", error);
@@ -408,15 +436,20 @@ export default function PersonalizationPage() {
   // Handle checkbox toggle for report sections
   const handleReportSectionToggle = (sectionKey: string, checked: boolean) => {
     const currentPriorities = formData.report_section_priorities || [];
-    
+
     if (!checked) {
       // Remove from priorities when unchecked
-      const newPriorities = currentPriorities.filter(key => key !== sectionKey);
+      const newPriorities = currentPriorities.filter(
+        (key) => key !== sectionKey
+      );
       updateFormData("report_section_priorities", newPriorities);
     } else {
       // Add to priorities when checked (if not already there)
       if (!currentPriorities.includes(sectionKey)) {
-        updateFormData("report_section_priorities", [...currentPriorities, sectionKey]);
+        updateFormData("report_section_priorities", [
+          ...currentPriorities,
+          sectionKey,
+        ]);
       }
     }
   };
@@ -500,10 +533,19 @@ export default function PersonalizationPage() {
   const loadUserPreferencesFromContext = () => {
     try {
       setIsLoading(true);
-      
-      console.log("🔍 Loading from context - userPreferences:", userPreferences);
-      console.log("🔍 Report customization from context:", userPreferences?.report_customization);
-      console.log("🔍 Report section priorities from context:", userPreferences?.report_customization?.report_section_priorities);
+
+      console.log(
+        "🔍 Loading from context - userPreferences:",
+        userPreferences
+      );
+      console.log(
+        "🔍 Report customization from context:",
+        userPreferences?.report_customization
+      );
+      console.log(
+        "🔍 Report section priorities from context:",
+        userPreferences?.report_customization?.report_section_priorities
+      );
 
       if (userPreferences) {
         // Flatten the nested structure to match OnboardingData interface
@@ -540,7 +582,12 @@ export default function PersonalizationPage() {
 
           // Report Customization
           ...userPreferences.report_customization,
-
+          report_section_priorities: userPreferences.report_customization
+            ?.report_section_priorities
+            ? userPreferences.report_customization.report_section_priorities.filter(
+                (key: string) => VALID_REPORT_SECTIONS.includes(key)
+              )
+            : [...VALID_REPORT_SECTIONS],
           // Ensure specific fields are mapped correctly
           communication_preference:
             userPreferences.agent_preferences?.communication_preference ||
@@ -563,7 +610,10 @@ export default function PersonalizationPage() {
         };
 
         console.log("✅ Flattened data:", flattenedData);
-        console.log("✅ Report section priorities in flattened data:", flattenedData.report_section_priorities);
+        console.log(
+          "✅ Report section priorities in flattened data:",
+          flattenedData.report_section_priorities
+        );
         console.log(
           "🔍 Report customization data:",
           userPreferences.report_customization
@@ -590,7 +640,10 @@ export default function PersonalizationPage() {
 
       // Debug: Log the data being saved
       console.log("💾 Saving formData:", formData);
-      console.log("💾 Report section priorities being saved:", formData.report_section_priorities);
+      console.log(
+        "💾 Report section priorities being saved:",
+        formData.report_section_priorities
+      );
       console.log("💾 Specific fields being saved:", {
         communication_preference: formData.communication_preference,
         previous_home_experience: formData.previous_home_experience,
@@ -2249,24 +2302,28 @@ export default function PersonalizationPage() {
               <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
                 Report Customization
               </h2>
-              <p className="text-gray-600">Loading report customization options...</p>
+              <p className="text-gray-600">
+                Loading report customization options...
+              </p>
             </div>
           );
         }
-        
+
         const orderedSections = getOrderedReportSections();
-        
+
         if (!orderedSections || orderedSections.length === 0) {
           return (
             <div className="space-y-6">
               <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
                 Report Customization
               </h2>
-              <p className="text-gray-600">Loading report customization options...</p>
+              <p className="text-gray-600">
+                Loading report customization options...
+              </p>
             </div>
           );
         }
-        
+
         return (
           <div className="space-y-6">
             <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
@@ -2285,22 +2342,33 @@ export default function PersonalizationPage() {
                 onDragEnd={handleDragEnd}
               >
                 <SortableContext
-                  items={orderedSections?.map(section => section?.key).filter(Boolean) || []}
+                  items={
+                    orderedSections
+                      ?.map((section) => section?.key)
+                      .filter(Boolean) || []
+                  }
                   strategy={verticalListSortingStrategy}
                 >
                   <div className="space-y-2">
                     {orderedSections?.map((section) => {
-                      if (!section || !section.key || !section.label) return null;
-                      
+                      if (!section || !section.key || !section.label)
+                        return null;
+
                       // Get the actual boolean field value (section.key already has include_ prefix)
-                      const booleanFieldName = section.key as keyof OnboardingData;
+                      const booleanFieldName =
+                        section.key as keyof OnboardingData;
                       const fieldValue = formData[booleanFieldName];
-                      const priorities = formData.report_section_priorities || [];
+                      const priorities =
+                        formData.report_section_priorities || [];
                       const priorityIndex = priorities.indexOf(section.key);
                       // Only checked if both boolean field is true AND section is in priorities array
-                      const isChecked = (typeof fieldValue === 'boolean' ? fieldValue : true) && priorityIndex !== -1;
-                      const priority = isChecked ? priorityIndex + 1 : undefined;
-                      
+                      const isChecked =
+                        (typeof fieldValue === "boolean" ? fieldValue : true) &&
+                        priorityIndex !== -1;
+                      const priority = isChecked
+                        ? priorityIndex + 1
+                        : undefined;
+
                       return (
                         <SortableReportSection
                           key={section.key}
@@ -2324,15 +2392,17 @@ export default function PersonalizationPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {orderedSections?.map((section) => {
                   if (!section || !section.key || !section.label) return null;
-                  
+
                   const booleanFieldName = section.key as keyof OnboardingData;
                   const fieldValue = formData[booleanFieldName];
                   const priorities = formData.report_section_priorities || [];
                   const priorityIndex = priorities.indexOf(section.key);
                   // Only checked if both boolean field is true AND section is in priorities array
-                  const isChecked = (typeof fieldValue === 'boolean' ? fieldValue : true) && priorityIndex !== -1;
+                  const isChecked =
+                    (typeof fieldValue === "boolean" ? fieldValue : true) &&
+                    priorityIndex !== -1;
                   const priority = isChecked ? priorityIndex + 1 : undefined;
-                  
+
                   return (
                     <div
                       key={section.key}
@@ -2346,7 +2416,7 @@ export default function PersonalizationPage() {
                             {priority}
                           </span>
                         )}
-                        
+
                         <div className="relative">
                           <div
                             className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all duration-200 ${

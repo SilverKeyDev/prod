@@ -1,5 +1,12 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
-import { apiRequest } from '../lib/api';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  ReactNode,
+} from "react";
+import { apiRequest } from "../lib/api";
 
 // Types
 interface Report {
@@ -50,6 +57,20 @@ interface BillingInfo {
   has_active_subscription: boolean;
 }
 
+interface UserProfile {
+  id: string;
+  email: string;
+  name: string;
+  phone?: string;
+  reports_available: number;
+  created_at: string | null;
+  is_active: boolean;
+  has_subscription: boolean;
+  subscription: any;
+  has_preferences: boolean;
+  is_agent: boolean;
+}
+
 interface UserPreferences {
   demographics?: any;
   financial_profile?: any;
@@ -86,31 +107,37 @@ interface DataContextType {
   reportsLoading: boolean;
   reportsError: string | null;
   refreshReports: () => Promise<void>;
-  
+
   // Compare Reports data
   compareReports: CompareReport[];
   compareReportsLoading: boolean;
   compareReportsError: string | null;
   refreshCompareReports: () => Promise<void>;
-  
+
   // Billing Info data
   billingInfo: BillingInfo | null;
   billingLoading: boolean;
   billingError: string | null;
   refreshBillingInfo: () => Promise<void>;
-  
+
+  // User Profile data
+  userProfile: UserProfile | null;
+  userProfileLoading: boolean;
+  userProfileError: string | null;
+  refreshUserProfile: () => Promise<void>;
+
   // User Preferences data
   userPreferences: UserPreferences | null;
   preferencesLoading: boolean;
   preferencesError: string | null;
   refreshUserPreferences: () => Promise<void>;
-  
+
   // Chat data
   chats: Chat[];
   chatsLoading: boolean;
   chatsError: string | null;
   refreshChats: () => Promise<void>;
-  
+
   // Global refresh
   refreshAllData: () => Promise<void>;
 }
@@ -126,22 +153,30 @@ export function DataProvider({ children }: DataProviderProps) {
   const [reports, setReports] = useState<Report[]>([]);
   const [reportsLoading, setReportsLoading] = useState(false);
   const [reportsError, setReportsError] = useState<string | null>(null);
-  
+
   // Compare Reports state
   const [compareReports, setCompareReports] = useState<CompareReport[]>([]);
   const [compareReportsLoading, setCompareReportsLoading] = useState(false);
-  const [compareReportsError, setCompareReportsError] = useState<string | null>(null);
-  
+  const [compareReportsError, setCompareReportsError] = useState<string | null>(
+    null
+  );
+
   // Billing Info state
   const [billingInfo, setBillingInfo] = useState<BillingInfo | null>(null);
   const [billingLoading, setBillingLoading] = useState(false);
   const [billingError, setBillingError] = useState<string | null>(null);
-  
+
+  // User Profile state
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [userProfileLoading, setUserProfileLoading] = useState(false);
+  const [userProfileError, setUserProfileError] = useState<string | null>(null);
+
   // User Preferences state
-  const [userPreferences, setUserPreferences] = useState<UserPreferences | null>(null);
+  const [userPreferences, setUserPreferences] =
+    useState<UserPreferences | null>(null);
   const [preferencesLoading, setPreferencesLoading] = useState(false);
   const [preferencesError, setPreferencesError] = useState<string | null>(null);
-  
+
   // Chat data state
   const [chats, setChats] = useState<Chat[]>([]);
   const [chatsLoading, setChatsLoading] = useState(false);
@@ -151,13 +186,13 @@ export function DataProvider({ children }: DataProviderProps) {
   const fetchReports = async () => {
     const idToken = localStorage.getItem("id_token");
     if (!idToken) return; // Don't fetch if not authenticated
-    
+
     try {
       setReportsLoading(true);
       setReportsError(null);
-      
+
       const baseUrl = import.meta.env.VITE_API_BASE_URL || "";
-      
+
       const res = await fetch(`${baseUrl}/api/v1/report/all`, {
         method: "POST",
         mode: "cors",
@@ -168,9 +203,9 @@ export function DataProvider({ children }: DataProviderProps) {
         },
         credentials: "include",
       });
-      
+
       const json = await res.json();
-      
+
       if (json.success) {
         const parsed: Report[] = json.reports.map((r: any) => ({
           id: r.id,
@@ -182,11 +217,13 @@ export function DataProvider({ children }: DataProviderProps) {
         }));
         setReports(parsed);
       } else {
-        throw new Error(json.error || 'Failed to fetch reports');
+        throw new Error(json.error || "Failed to fetch reports");
       }
     } catch (err) {
       console.error("Failed to fetch reports", err);
-      setReportsError(err instanceof Error ? err.message : 'Failed to fetch reports');
+      setReportsError(
+        err instanceof Error ? err.message : "Failed to fetch reports"
+      );
     } finally {
       setReportsLoading(false);
     }
@@ -196,13 +233,13 @@ export function DataProvider({ children }: DataProviderProps) {
   const fetchCompareReports = async () => {
     const idToken = localStorage.getItem("id_token");
     if (!idToken) return; // Don't fetch if not authenticated
-    
+
     try {
       setCompareReportsLoading(true);
       setCompareReportsError(null);
-      
+
       const baseUrl = import.meta.env.VITE_API_BASE_URL || "";
-      
+
       const res = await fetch(`${baseUrl}/api/v1/report/almostall`, {
         method: "POST",
         mode: "cors",
@@ -213,7 +250,7 @@ export function DataProvider({ children }: DataProviderProps) {
         },
         credentials: "include",
       });
-      
+
       const json = await res.json();
 
       if (json.success) {
@@ -226,11 +263,13 @@ export function DataProvider({ children }: DataProviderProps) {
         }));
         setCompareReports(parsed);
       } else {
-        throw new Error(json.error || 'Failed to fetch compare reports');
+        throw new Error(json.error || "Failed to fetch compare reports");
       }
     } catch (err) {
       console.error("Failed to fetch compare reports", err);
-      setCompareReportsError(err instanceof Error ? err.message : 'Failed to fetch compare reports');
+      setCompareReportsError(
+        err instanceof Error ? err.message : "Failed to fetch compare reports"
+      );
     } finally {
       setCompareReportsLoading(false);
     }
@@ -240,25 +279,55 @@ export function DataProvider({ children }: DataProviderProps) {
   const fetchBillingInfo = async () => {
     const idToken = localStorage.getItem("id_token");
     if (!idToken) return; // Don't fetch if not authenticated
-    
+
     try {
       setBillingLoading(true);
       setBillingError(null);
-      
+
       const response = await apiRequest<BillingInfo>(
         "/api/v1/user/billing-info"
       );
-      
+
       if (response.success && response.data) {
         setBillingInfo(response.data);
       } else {
-        throw new Error(response.error || 'Failed to fetch billing information');
+        throw new Error(
+          response.error || "Failed to fetch billing information"
+        );
       }
     } catch (error) {
       console.error("Failed to fetch billing info:", error);
-      setBillingError(error instanceof Error ? error.message : 'An unknown error occurred');
+      setBillingError(
+        error instanceof Error ? error.message : "An unknown error occurred"
+      );
     } finally {
       setBillingLoading(false);
+    }
+  };
+
+  // Fetch User Profile - using exact same pattern as UserProfilePage.tsx
+  const fetchUserProfile = async () => {
+    const idToken = localStorage.getItem("id_token");
+    if (!idToken) return; // Don't fetch if not authenticated
+
+    try {
+      setUserProfileLoading(true);
+      setUserProfileError(null);
+
+      const response = await apiRequest<UserProfile>("/api/v1/user/profile");
+
+      if (response.success && response.data) {
+        setUserProfile(response.data);
+      } else {
+        throw new Error(response.error || "Failed to fetch user profile");
+      }
+    } catch (error) {
+      console.error("Failed to fetch user profile:", error);
+      setUserProfileError(
+        error instanceof Error ? error.message : "An unknown error occurred"
+      );
+    } finally {
+      setUserProfileLoading(false);
     }
   };
 
@@ -266,23 +335,27 @@ export function DataProvider({ children }: DataProviderProps) {
   const fetchUserPreferences = async () => {
     const idToken = localStorage.getItem("id_token");
     if (!idToken) return; // Don't fetch if not authenticated
-    
+
     try {
       setPreferencesLoading(true);
       setPreferencesError(null);
-      
+
       const response = await apiRequest("/api/v1/preferences", {
         method: "GET",
       });
-      
+
       if (response.preferences) {
         setUserPreferences(response.preferences);
       } else {
-        throw new Error('Failed to fetch user preferences');
+        throw new Error("Failed to fetch user preferences");
       }
     } catch (error) {
       console.error("Failed to fetch user preferences:", error);
-      setPreferencesError(error instanceof Error ? error.message : 'Failed to fetch user preferences');
+      setPreferencesError(
+        error instanceof Error
+          ? error.message
+          : "Failed to fetch user preferences"
+      );
     } finally {
       setPreferencesLoading(false);
     }
@@ -292,13 +365,13 @@ export function DataProvider({ children }: DataProviderProps) {
   const fetchChats = async () => {
     const idToken = localStorage.getItem("id_token");
     if (!idToken) return; // Don't fetch if not authenticated
-    
+
     try {
       setChatsLoading(true);
       setChatsError(null);
-      
+
       const baseUrl = import.meta.env.VITE_API_BASE_URL || "";
-      
+
       const response = await fetch(`${baseUrl}/api/v1/report/almostall`, {
         method: "GET",
         mode: "cors",
@@ -308,16 +381,18 @@ export function DataProvider({ children }: DataProviderProps) {
           Authorization: `Bearer ${idToken}`,
         },
       });
-      
+
       const json = await response.json();
-      
+
       if (json.success && json.reports) {
         // Format address the same way as AIAssistant
         const formatAddress = (address: string) => {
           const formattedAddress = address.replace(/_/g, " ");
-          return formattedAddress.substring(0, formattedAddress.length - 18).trim();
+          return formattedAddress
+            .substring(0, formattedAddress.length - 18)
+            .trim();
         };
-        
+
         const newChats: Chat[] = json.reports.map((report: any) => ({
           id: report.id,
           title: report.address
@@ -329,14 +404,16 @@ export function DataProvider({ children }: DataProviderProps) {
             report.generatedAt ? report.generatedAt * 1000 : Date.now()
           ),
         }));
-        
+
         setChats(newChats);
       } else {
-        throw new Error(json.error || 'Failed to fetch chat data');
+        throw new Error(json.error || "Failed to fetch chat data");
       }
     } catch (error) {
       console.error("Failed to fetch chat data:", error);
-      setChatsError(error instanceof Error ? error.message : 'Failed to fetch chat data');
+      setChatsError(
+        error instanceof Error ? error.message : "Failed to fetch chat data"
+      );
     } finally {
       setChatsLoading(false);
     }
@@ -355,6 +432,10 @@ export function DataProvider({ children }: DataProviderProps) {
     await fetchBillingInfo();
   }, []);
 
+  const refreshUserProfile = useCallback(async () => {
+    await fetchUserProfile();
+  }, []);
+
   const refreshUserPreferences = useCallback(async () => {
     await fetchUserPreferences();
   }, []);
@@ -368,8 +449,9 @@ export function DataProvider({ children }: DataProviderProps) {
       fetchReports(),
       fetchCompareReports(),
       fetchBillingInfo(),
+      fetchUserProfile(),
       fetchUserPreferences(),
-      fetchChats()
+      fetchChats(),
     ]);
   }, []);
 
@@ -385,7 +467,7 @@ export function DataProvider({ children }: DataProviderProps) {
   // Listen for authentication changes to refresh data
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'id_token') {
+      if (e.key === "id_token") {
         if (e.newValue) {
           // User logged in, fetch data
           refreshAllData();
@@ -394,19 +476,21 @@ export function DataProvider({ children }: DataProviderProps) {
           setReports([]);
           setCompareReports([]);
           setBillingInfo(null);
+          setUserProfile(null);
           setUserPreferences(null);
           setChats([]);
           setReportsError(null);
           setCompareReportsError(null);
           setBillingError(null);
+          setUserProfileError(null);
           setPreferencesError(null);
           setChatsError(null);
         }
       }
     };
 
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
   // Listen for report generation events to refresh reports data
@@ -418,7 +502,8 @@ export function DataProvider({ children }: DataProviderProps) {
     };
 
     window.addEventListener("reportGenerated", handleReportGenerated);
-    return () => window.removeEventListener("reportGenerated", handleReportGenerated);
+    return () =>
+      window.removeEventListener("reportGenerated", handleReportGenerated);
   }, []);
 
   const value: DataContextType = {
@@ -434,6 +519,10 @@ export function DataProvider({ children }: DataProviderProps) {
     billingLoading,
     billingError,
     refreshBillingInfo,
+    userProfile,
+    userProfileLoading,
+    userProfileError,
+    refreshUserProfile,
     userPreferences,
     preferencesLoading,
     preferencesError,
@@ -451,7 +540,7 @@ export function DataProvider({ children }: DataProviderProps) {
 export function useData() {
   const context = useContext(DataContext);
   if (context === undefined) {
-    throw new Error('useData must be used within a DataProvider');
+    throw new Error("useData must be used within a DataProvider");
   }
   return context;
 }

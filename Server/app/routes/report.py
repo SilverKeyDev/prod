@@ -58,7 +58,6 @@ def get_current_user():
     token = auth_header.replace("Bearer ", "")
     
     try:
-        current_app.logger.info("Decoding JWT with 30-second leeway for expiration.")
         claims = jwt.decode(
             token,
             JWKS,
@@ -143,16 +142,16 @@ def generate_report_endpoint():
         db.session.commit()
         
         
-        if user.reports_available <= 0:
-            logger.warning(f"User {user.id} has no active subscription and no reports available")
-            return jsonify({
-                'success': False,
-                'error': 'NO_REPORTS_AVAILABLE',
-                'message': 'No reports available. Please purchase a subscription or more reports.'
-            }), 402  # Payment Required
+        #if user.reports_available <= 0:
+        #    logger.warning(f"User {user.id} has no active subscription and no reports available")
+        #    return jsonify({
+        #        'success': False,
+        #        'error': 'NO_REPORTS_AVAILABLE',
+        #        'message': 'No reports available. Please purchase a subscription or more reports.'
+        #    }), 402  # Payment Required
             
         # Decrement reports_available for non-subscription users
-        user.reports_available -= 1
+        #user.reports_available -= 1
         db.session.commit()
         
         # Start async task (lazy import to avoid circular import)
