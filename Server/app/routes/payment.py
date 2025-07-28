@@ -157,17 +157,21 @@ def create_checkout():
 def create_portal_session_route():
     try:
         user = get_current_user()
-        subscription = Subscription.query.filter_by(user_id=user.id).first()
+        current_app.logger.info(f"[Portal] User ID: {user.id}")
         
+        subscription = Subscription.query.filter_by(user_id=user.id).first()
         if not subscription or not subscription.stripe_customer_id:
+            current_app.logger.warning(f"[Portal] No subscription or Stripe ID for user {user.id}")
             return jsonify({'error': 'No subscription found'}), 404
             
+        current_app.logger.info(f"[Portal] Creating portal session for Stripe ID: {subscription.stripe_customer_id}")
         session = create_portal_session(subscription.stripe_customer_id)
         return jsonify(session)
         
     except Exception as e:
-        current_app.logger.error(f'Error creating customer portal: {str(e)}')
+        current_app.logger.exception(f"[Portal] Failed to create customer portal: {str(e)}")
         return jsonify({'error': 'Failed to create customer portal'}), 500
+
 
 # ------------------------
 

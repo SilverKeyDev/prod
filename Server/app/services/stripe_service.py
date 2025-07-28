@@ -71,13 +71,19 @@ def create_checkout_session(plan_id: str, customer_email: str):
 def create_portal_session(customer_id: str):
     """Create a Stripe Customer Portal session"""
     try:
+        frontend_url = os.getenv('FRONTEND_URL')
+        print(f"[Portal] Attempting to create portal session for customer: {customer_id}")
+        print(f"[Portal] FRONTEND_URL: {frontend_url}")
+
         session = stripe.billing_portal.Session.create(
             customer=customer_id,
-            return_url=f"{os.getenv('FRONTEND_URL')}/dashboard",
+            return_url=f"{frontend_url}/dashboard",
         )
+        print(f"[Portal] Created session: {session.url}")
         return {'url': session.url}
+
     except Exception as e:
-        print(f"Error creating portal session: {str(e)}")
+        print(f"[Portal] Error creating portal session: {str(e)}")
         raise
 
 # Webhook handling has been moved to payment.py to avoid duplication
