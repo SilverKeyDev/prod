@@ -2,7 +2,7 @@
 
 from flask import Blueprint, request, jsonify, current_app
 from app.models.user_preferences import UserPreferences
-from app.services.chatbot.chatbot_utils import get_chat_response, get_preferences
+from app.services.chatbot.chatbot_utils import get_chat_response, get_preferences, summarize_user_message
 from app.models.chat_history import ChatHistory
 from app.models.user import User
 from app import db
@@ -11,6 +11,7 @@ import logging
 import traceback
 import requests
 import os
+import json
 from jose import jwt
 
 # Configure logger
@@ -81,6 +82,53 @@ def chat_for_address(report_id):
         logger.info(f"[CHAT_ROUTE] User {user_id} sending message to report {report_id}")
         logger.info(f"[CHAT_ROUTE] Message length: {len(user_message)} characters")
 
+        # Generate 3-word summary of user message
+        logger.info(f"[CHAT_ROUTE] Generating summary for user message")
+        message_summary = summarize_user_message(user_message)
+        logger.info(f"[CHAT_ROUTE] Generated summary: '{message_summary}'")
+
+        # Store summary in user_preferences.chat_sessions
+        try:
+            user_prefs = UserPreferences.query.filter_by(user_id=user_id).first()
+            if not user_prefs:
+                logger.info(f"[CHAT_ROUTE] Creating new user preferences for user {user_id}")
+                user_prefs = UserPreferences(user_id=user_id)
+                db.session.add(user_prefs)
+                db.session.flush()
+
+            # Get existing chat sessions or initialize empty list
+            existing_sessions = []
+            if user_prefs.chat_sessions:
+                try:
+                    existing_sessions = json.loads(user_prefs.chat_sessions)
+                    if not isinstance(existing_sessions, list):
+                        existing_sessions = []
+                except json.JSONDecodeError:
+                    logger.warning(f"[CHAT_ROUTE] Invalid JSON in chat_sessions, resetting to empty list")
+                    existing_sessions = []
+
+            # Add new summary with timestamp
+            session_entry = {
+                "summary": message_summary,
+                "timestamp": datetime.utcnow().isoformat(),
+                "report_id": report_id
+            }
+            existing_sessions.append(session_entry)
+
+            # Keep only the last 100 sessions to prevent unlimited growth
+            if len(existing_sessions) > 100:
+                existing_sessions = existing_sessions[-100:]
+
+            # Update user preferences
+            user_prefs.chat_sessions = json.dumps(existing_sessions)
+            user_prefs.updated_at = datetime.utcnow()
+            
+            logger.info(f"[CHAT_ROUTE] Stored chat summary in user preferences. Total sessions: {len(existing_sessions)}")
+
+        except Exception as prefs_error:
+            logger.error(f"[CHAT_ROUTE] Error storing chat summary: {str(prefs_error)}")
+            # Continue with chat processing even if summary storage fails
+
         address = report_id.replace("_", " ").replace(".pdf", "") if report_id else "Unknown Address"
         logger.info(f"[CHAT_ROUTE] Report address: {address}")
 
@@ -150,7 +198,8 @@ def chat_for_address(report_id):
         return jsonify({
             "response": reply,
             "function_call": function_call,
-            "message_id": ai_chat.id
+            "message_id": ai_chat.id,
+            "message_summary": message_summary  # Include summary in response for debugging
         })
 
     except Exception as e:

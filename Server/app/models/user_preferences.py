@@ -17,7 +17,7 @@ class UserPreferences(db.Model):
     solo_reports_addresses = db.Column(db.Text)  # JSON array of addresses
     group_reports_created = db.Column(db.Integer, default=0)
     group_reports_addresses = db.Column(db.Text)  # JSON array of addresses
-    chat_sessions = db.Column(db.Text)  # JSON array of addresses
+    chat_sessions = db.Column(db.Text)  # JSON array of sentiments
     preferences_version = db.Column(db.String(10), default='1.0')
     last_updated_section = db.Column(db.String(50))
     data_sources = db.Column(db.Text)  # JSON array of data sources
@@ -256,63 +256,6 @@ class UserPreferences(db.Model):
                     setattr(self, key, value)
         self.last_updated_section = section_name
         self.updated_at = datetime.utcnow()
-
-    def get_profile_completeness(self):
-        """Calculate how complete the user profile is (0-100%)"""
-        total_fields = 0
-        filled_fields = 0
-        for column in self.__table__.columns:
-            if column.name not in [
-                'id', 'user_id', 'created_at', 'updated_at', 
-                'last_updated_section', 'preferences_version', 
-                'data_sources', 'confidence_score'
-            ]:
-                total_fields += 1
-                if getattr(self, column.name) is not None:
-                    filled_fields += 1
-        return round((filled_fields / total_fields) * 100, 1) if total_fields > 0 else 0.0
-
-    def get_agent_summary(self):
-        """Generate a concise summary for AI agents"""
-        return {
-            'key_demographics': {
-                'age': self.age,
-                'income_range': self.income_range,
-                'household_size': self.household_size,
-                'employment_status': self.employment_status,
-                'marital_status': self.marital_status,
-            },
-            'real_estate_readiness': {
-                'search_stage': self.property_search_stage,
-                'experience_level': self.home_buying_experience,
-                'financing_preference': self.financing_preference,
-                'timeline_to_purchase': self.timeline_to_purchase,
-                'intended_use': self.intended_property_use,
-                'current_status': self.current_home_ownership_status,
-                'moving_reason': self.moving_reason,
-            },
-            'communication_preferences': {
-                'preferred_channel': self.preferred_support_channel,
-                'frequency': self.communication_frequency,
-                'detail_level': self.information_detail_level,
-                'meeting_preference': self.meeting_preference,
-            },
-            'decision_factors': {
-                'decision_style': self.decision_making_style,
-                'research_behavior': self.research_behavior,
-                'renovation_willingness': self.renovation_willingness,
-            },
-            'personalization_data': {
-                'personality_insights': self._parse_json_field(self.personality_insights),
-                'content_feedback': self._parse_json_field(self.content_feedback_log),
-                'interaction_history': self._parse_json_field(self.agent_interaction_history),
-            },
-            'emotional_signals': {
-                'key_motivators': self._parse_json_field(self.deal_makers),
-                'concerns': self._parse_json_field(self.concerns_or_fears),
-                'personal_quotes': self._parse_json_field(self.quote_bubbles),
-            }
-        }
 
     def __repr__(self):
         return f'<UserPreferences {self.user_id} - {self.get_profile_completeness()}% complete>'

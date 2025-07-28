@@ -106,3 +106,61 @@ Now respond helpfully to the user's question.
         logger.error(f"[CHATBOT] Error generating chat response: {str(e)}")
         logger.error("[CHATBOT] Traceback:", exc_info=True)
         return "I'm sorry, I'm having trouble processing your request right now. Please try again.", None
+
+
+def summarize_user_message(user_message):
+    """Summarize user message in 3 words or less using OpenAI"""
+    logger.info(f"[CHATBOT] Summarizing user message: {len(user_message)} characters")
+    logger.debug(f"[CHATBOT] Message to summarize: {user_message[:100]}")
+    
+    try:
+        api_key = os.getenv("OPENAI_KEY")
+        if not api_key:
+            logger.error("[CHATBOT] OPENAI_KEY is not set for summarization.")
+            return "chat message"  # Fallback summary
+        
+        client = OpenAI(api_key=api_key, http_client=httpx.Client())
+        
+        SUMMARY_PROMPT = """Summarize the following user message in exactly 3 words or less. 
+Focus on the main topic or intent. Use simple, clear words.
+Examples:
+- "What's the crime rate in this neighborhood?" → "crime rate question"
+- "Tell me about schools nearby" → "schools inquiry"
+- "How much is this house worth?" → "property value"
+- "Is this a good investment?" → "investment advice"
+
+Message to summarize:"""
+        
+        logger.info(f"[CHATBOT] Sending summarization request to GPT-4o")
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": SUMMARY_PROMPT},
+                {"role": "user", "content": user_message}
+            ],
+            temperature=0.3,  # Lower temperature for more consistent summaries
+            max_tokens=10     # Very short response needed
+        )
+        
+        summary = response.choices[0].message.content.strip()
+        logger.info(f"[CHATBOT] Generated summary: '{summary}'")
+        
+        # Ensure summary is 3 words or less
+        words = summary.split()
+        if len(words) > 3:
+            summary = " ".join(words[:3])
+            logger.info(f"[CHATBOT] Truncated summary to 3 words: '{summary}'")
+        
+        try:
+            usage = response.usage
+            if usage:
+                logger.info(f"[CHATBOT] Summarization token usage: Prompt={usage.prompt_tokens}, Completion={usage.completion_tokens}, Total={usage.total_tokens}")
+        except Exception as usage_error:
+            logger.warning(f"[CHATBOT] Summarization token usage not available: {usage_error}")
+        
+        return summary
+        
+    except Exception as e:
+        logger.error(f"[CHATBOT] Error summarizing user message: {str(e)}")
+        logger.error("[CHATBOT] Summarization traceback:", exc_info=True)
+        return "chat message"  # Fallback summary
