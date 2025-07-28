@@ -96,7 +96,6 @@ export default function Subscription() {
   // );
   const [showSuccess, setShowSuccess] = useState(false);
   const [toastMessage] = useState(""); // setToastMessage was unused
-  const [showCancelModal, setShowCancelModal] = useState(false);
 
   // Use preloaded data from context
   const {
@@ -425,12 +424,12 @@ export default function Subscription() {
                   billingInfo?.subscription?.status === "active" && (
                     <div className="mt-auto pt-3">
                       <button
-                        onClick={() => setShowCancelModal(true)}
+                        onClick={handlePortal}
                         disabled={portalLoading}
                         className="w-full text-black hover:text-gray-700 px-3 py-2 text-xs font-medium transition-colors flex items-center justify-center"
                       >
                         <Settings className="h-3 w-3 mr-1" />
-                        Manage Subscription
+                        {portalLoading ? "Loading..." : "Manage Subscription"}
                       </button>
                     </div>
                   )}
@@ -529,50 +528,6 @@ export default function Subscription() {
           );
         })}
       </div>
-
-      {/* Cancel Subscription Confirmation Modal */}
-      {showCancelModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <div className="flex items-center mb-4">
-              <AlertCircle className="h-6 w-6 text-red-500 mr-3" />
-              <h3 className="text-lg font-semibold text-gray-900">
-                Cancel Subscription
-              </h3>
-            </div>
-            <p className="text-gray-600 mb-6">
-              Are you sure you want to cancel your subscription? You'll lose
-              access to unlimited reports and premium features at the end of
-              your current billing period.
-            </p>
-            <div className="flex space-x-3">
-              <button
-                onClick={() => setShowCancelModal(false)}
-                className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition-colors"
-              >
-                Keep Subscription
-              </button>
-              <button
-                onClick={async () => {
-                  setShowCancelModal(false);
-                  await handlePortal();
-                }}
-                disabled={portalLoading}
-                className="flex-1 px-4 py-2 bg-red-400 hover:bg-red-500 disabled:bg-red-300 text-white rounded-lg font-medium transition-colors flex items-center justify-center"
-              >
-                {portalLoading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    Loading...
-                  </>
-                ) : (
-                  "Cancel Subscription"
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

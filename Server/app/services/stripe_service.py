@@ -250,6 +250,7 @@ def handle_subscription_cancelled(subscription):
     """Handle subscription cancellation"""
     from app import db
     from app.models.subscription import Subscription
+    from app.models.user import User
     
     try:
         subscription_id = subscription['id']
@@ -262,12 +263,22 @@ def handle_subscription_cancelled(subscription):
         if not db_subscription:
             current_app.logger.error(f'Subscription not found for cancellation: {subscription_id}')
             return
-            
-        # Update status to canceled
+        
+        # Find user through subscription relationship
+        user = User.query.get(db_subscription.user_id)
+        if not user:
+            current_app.logger.error(f'User not found for subscription: {subscription_id}')
+            return
+        
+        # Update subscription status to canceled
         db_subscription.status = 'canceled'
+        
+        # Remove agent status from user
+        user.is_agent = False
+        
         db.session.commit()
         
-        current_app.logger.info(f'Canceled subscription: {subscription_id}')
+        current_app.logger.info(f'Canceled subscription: {subscription_id}, removed agent status from user: {user.id}')
         
     except Exception as e:
         current_app.logger.error(f'Error canceling subscription: {str(e)}')
