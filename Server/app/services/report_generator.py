@@ -18,6 +18,7 @@ from io import BytesIO
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 from .guidance_generator import give_guidance
+from .schema_generator import generate_report_schema
 
 # Import Pydantic models for structured JSON output
 from ..models.report_models import FullReport
@@ -194,9 +195,21 @@ def _get_or_generate_report_json(address: str, user_id: int, filename: str) -> D
             try:
                 db.session.add(pdf_doc)
                 db.session.commit()
+                logger.info(f"✅ Successfully created PDF document record: {pdf_doc.id}")
             except Exception as e:
                 logger.error(f"❌ Database error when creating PDF document: {str(e)}")
-                db.session.rollback()
+                logger.error(f"Traceback: {traceback.format_exc()}")
+                try:
+                    db.session.rollback()
+                    logger.info("🔄 Database session rolled back successfully")
+                except Exception as rollback_error:
+                    logger.error(f"❌ Failed to rollback session: {str(rollback_error)}")
+                finally:
+                    try:
+                        db.session.remove()
+                        logger.debug("🧹 Database session cleaned up")
+                    except Exception as cleanup_error:
+                        logger.error(f"❌ Failed to clean up session: {str(cleanup_error)}")
                 raise e
             
             
@@ -212,26 +225,56 @@ def _get_or_generate_report_json(address: str, user_id: int, filename: str) -> D
             user.reports_available -= 1
             try:
                 db.session.commit()
+                logger.info(f"✅ Successfully decremented reports_available for user {user.id}: {user.reports_available}")
             except Exception as e:
                 logger.error(f"❌ Database error when updating user reports: {str(e)}")
-                db.session.rollback()
+                logger.error(f"Traceback: {traceback.format_exc()}")
+                try:
+                    db.session.rollback()
+                    logger.info("🔄 Database session rolled back successfully")
+                except Exception as rollback_error:
+                    logger.error(f"❌ Failed to rollback session: {str(rollback_error)}")
+                finally:
+                    try:
+                        db.session.remove()
+                        logger.debug("🧹 Database session cleaned up")
+                    except Exception as cleanup_error:
+                        logger.error(f"❌ Failed to clean up session: {str(cleanup_error)}")
                 raise e
             
             # Start async task (lazy import to avoid circular import)
             # Always use the unified generate_report_async task, passing comparison_address (None for detailed reports)
             from app.celery.tasks import generate_report_async
             task = generate_report_async.delay(address, None, filenamee, pdf_doc.id, user_id)
+            try:
+                from app.services.s3_service import s3_service
+                from flask import current_app
+                from io import BytesIO
+                
+                # Construct JSON file path (assuming JSON is stored alongside PDF)
+                json_file_path = existing_report.file_path.replace('.pdf', '.json')
+                
+                # Try to download JSON from S3 using the same method as report_comparator
+                if s3_service.s3_client is None:
+                    raise RuntimeError("S3 client not initialised")
+                
+                bucket_name = current_app.config.get("S3_BUCKET_NAME_PDFS")
+                if not bucket_name:
+                    raise RuntimeError("S3_BUCKET_NAME_PDFS config missing")
+                
+                logger.debug(f"🔽 Attempting to download JSON: Bucket={bucket_name}, Key={json_file_path}")
+                buffer = BytesIO()
+                
+                s3_service.s3_client.download_fileobj(bucket_name, json_file_path, buffer)
+                buffer.seek(0)
+                raw_json = buffer.read().decode("utf-8")
+                
+                logger.info(f"✅ Retrieved existing JSON report from S3 for {address}")
+                return json.loads(raw_json)
+            except Exception as e:
+                logger.error(f"No JSON found for {address}: {str(e)}, will generate new report")
+                
             
-            return jsonify({
-                'success': True,
-                'status': 'started',
-                'task_id': task.id,
-                'document_id': pdf_doc.id,
-                'report_type': 'detailed',
-                'addresses': {
-                    'primary': address,
-                }
-            })
     except Exception as e:
         logger.error(f"❌ Failed to get or generate report JSON for {address}: {str(e)}")
         logger.error(f"Traceback: {traceback.format_exc()}")
@@ -266,49 +309,20 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
 
     # Create FullReport schema with error handling
     try:
-        section_keys = report_customization.get("report_section_priorities", [])
-        
-        # Create a FullReport instance to get the full schema structure
-        report = FullReport(report_customization=report_customization)
-        
-        # Get the full Pydantic schema for all fields
-        full_schema = report.schema()
-        
-        # Create proper JSON Schema format for Perplexity API
-        properties = {}
-        definitions = full_schema.get('$defs', {})
-        
-        for section_key in section_keys:
-            if section_key in full_schema.get('properties', {}):
-                section_schema = full_schema['properties'][section_key]
-                
-                # If it has a $ref, expand it from definitions
-                if 'anyOf' in section_schema:
-                    for option in section_schema['anyOf']:
-                        if '$ref' in option:
-                            # Extract the definition name from $ref
-                            ref_name = option['$ref'].split('/')[-1]
-                            if ref_name in definitions:
-                                # Use the expanded definition directly
-                                properties[section_key] = definitions[ref_name]
-                                break
-                else:
-                    properties[section_key] = section_schema
-            else:
-                # Fallback to basic object type if section not found
-                properties[section_key] = {"type": "object"}
-        
-        # Create proper top-level JSON Schema
-        schema = {
-            "type": "object",
-            "properties": properties,
-            "required": list(section_keys)
-        }
+        # Use the dedicated schema generator for clean, maintainable code
+        # Pass user preferences for interpolation in example fields
+        # Note: user_preferences is already a dict from get_preferences()
+        if comparison_address is not None and comparison_address != "":
+            schema = generate_report_schema(report_customization, user_preferences, compare=True)
+        else:
+            schema = generate_report_schema(report_customization, user_preferences)
+
     except Exception as e:
         logger.error(f"❌ Failed to create FullReport schema: {str(e)}")
         logger.exception("FullReport schema creation error details:")
         raise Exception(f"FullReport schema creation failed: {str(e)}")
 
+    guidance_schema = generate_guidance_schema(user_preferences)
     try:
         # Validate address
         if not validate_address(address):
@@ -323,6 +337,10 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                     "content": (
                         f"You are a comprehensive PERSONALIZED property research assistant. Given an address, {address}, you must provide a detailed property report in valid JSON format.\n\n"
 
+                        "Use the examples in the schema to determine how to structure your response.\n\n"
+                        "Use the descriptions to figure out how to formulate a response unique to this address and user preferences.\n\n"
+                        "Use the guidance schema to determine where to find different data sources and how to use them.\n\n"
+
                         "CRITICAL REQUIREMENTS:\n"
                         "1. Follow all instrucions EXACTLY for ALL fields exactly as in the given guidance - if you don't know a value, research until you find one\n"
                         "2. Be  critical and honest - expose both good and bad aspects of locations\n"
@@ -331,17 +349,11 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                         "5. You MUST respond with ONLY valid JSON (no markdown, no explanation). Do not wrap your response in ``` or any code fences.\n"
                         "6. Use the recommended sources first in research. If a decent answer is found, do not continue to search the web for that field\n"
                         "7. Do not include citations in the response\n"
-
-                        "Formatting: if the name includes the phrase, must be formatted this way"
-                        "_demographics: caption: percentage (total must add to 100%) e.g. Children (0–9 years): 14.2%"
-                        "_rating: 1-10 score. Use the full scale. e.g. 4.3/10\n"
-                        "STRICT GUIDANCE FOR EACH SECTION:\n"
-                        
-                        f"{guidance}"
-
-                        "Use the following user information to persuade the user on why this is the property for them"
-
-                        f"{user_preferences}"
+                        "8. MANDATORY: You MUST provide ALL required fields in the schema. NEVER return null or omit any field. Every field must have a meaningful value.\n"
+                        "9. MANDATORY: If you cannot find specific data for a field, provide a reasonable estimate or placeholder value instead of null.\n"
+                    
+                        "follow this for where to find different data sources and how to use them:\n"
+                        f"{guidance_schema}"
                     )
                 }, {"role": "user", "content": f"Sell me the property at {address}"}
             ],
@@ -363,6 +375,22 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
             # Comparison report logic - need to get JSON data for both properties
             logger.info(f"🔄 Generating comparison report for {address} vs {comparison_address}")
             
+            # Generate ComparisonReport schema with user preference interpolation
+            from ..models.duel_report_models import ComparisonReport
+            comparison_report = ComparisonReport(report_customization=report_customization)
+            comparison_schema = comparison_report.schema()
+            
+            # Add schema metadata
+            comparison_schema["$schema"] = "https://json-schema.org/draft/2020-12/schema"
+            comparison_schema["title"] = "Property Comparison Report Schema"
+            comparison_schema["description"] = "Structured schema for generating personalized neighborhood comparison reports"
+            
+            # Interpolate user preferences in comparison schema
+            if user_preferences:
+                logger.info(f"🔄 Interpolating user preferences in comparison schema examples")
+                from .schema_generator import interpolate_schema_examples
+                comparison_schema = interpolate_schema_examples(comparison_schema, user_preferences)
+            
             # Get or generate JSON reports for both addresses
             primary_report_json = _get_or_generate_report_json(address, user_id, filename)
             comparison_report_json = _get_or_generate_report_json(comparison_address, user_id, filename)
@@ -378,14 +406,14 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                             f"You are a critical, strategic, and personalized PROPERTY COMPARISON EXPERT. "
                             f"Help me make a decision on which property to move in to based on my priorities and user preferences.\n\n"
 
+                            "Use the examples in the schema to determine how to structure your response.\n\n"
+                            "Use the descriptions to figure out how to formulate a response unique to this address and user preferences.\n\n"
+                            "Use the guidance schema to determine where to find different data sources and how to use them.\n\n"
+
                             "CRITICAL OBJECTIVES:\n"
-                            "1. Compare both properties across all categories in structured JSON format, using the guidance schema.\n"
-                            "2. Be honest, critical, and balanced. Highlight both strengths and weaknesses for each.\n"
-                            "3. Use the provided detailed report data for accurate comparisons.\n"
-                            "4. Provide ratings out of 10 using the full scale—do not inflate scores.\n"
-                            "5. Do not include any markdown, citations, or explanation. ONLY return pure valid JSON.\n"
-                            "6. Do not favor both equally—make a persuasive recommendation based on user preferences.\n"
-                            "7. Add a clear winner for each category and overall, along with justification.\n\n"
+                            "1. Be honest, critical, and balanced. Highlight both strengths and weaknesses for each.\n"
+                            "2. Do not favor both equally—make a persuasive recommendation based on user preferences.\n"
+                            "3. Add a clear winner for each category and overall, along with justification.\n\n"
 
                             "FORMATTING:\n"
                             "- _demographics: caption: percentage (total 100%)\n"
@@ -420,7 +448,7 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                 "response_format": {
                     "type": "json_schema",
                     "json_schema": {
-                        "schema": schema
+                        "schema": comparison_schema
                     }
                 }
             }

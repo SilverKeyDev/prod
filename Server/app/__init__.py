@@ -49,7 +49,7 @@ def create_app(config=None):
     jwt = JWTManager(app)
 
     # Initialize extensions
-    db.init_app(app)
+    db.init_app(app)    
     login_manager.init_app(app)
     ma.init_app(app)
     executor.init_app(app)

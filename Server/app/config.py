@@ -16,8 +16,10 @@ class Config:
     CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'redis://localhost:6379/0')
     CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', 'redis://localhost:6379/0')
     SQLALCHEMY_ENGINE_OPTIONS = {
-        "pool_pre_ping": True,
-        "pool_recycle": 1800,
+        'pool_pre_ping': True,  # Verify connections before use
+        'pool_recycle': 300,    # Recycle connections every 5 minutes
+        'pool_timeout': 20,     # Timeout for getting connection from pool
+        'max_overflow': 0,      # Don't allow overflow connections
     }
 
     SECRET_KEY = os.getenv('SECRET_KEY', 'dev-key-change-in-production')

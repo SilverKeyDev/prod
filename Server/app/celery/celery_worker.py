@@ -37,6 +37,7 @@ class ContextTask(celery.Task):
             finally:
                 db.session.remove()
 
+
 # Set the custom task base
 celery.Task = ContextTask
 

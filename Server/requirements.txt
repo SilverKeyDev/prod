@@ -17,7 +17,7 @@ boto3==1.28.44
 python-jose[cryptography]==3.3.0
 PyJWT==2.8.0
 Werkzeug==2.3.7
-psycopg2-binary
+psycopg2-binary>=2.9.9
 marshmallow-sqlalchemy==0.28.1
 stripe==9.4.0
 matplotlib==3.7.2
