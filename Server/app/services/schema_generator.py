@@ -27,8 +27,42 @@ def generate_report_schema(report_customization: Dict[str, Any], user_preference
             # Just copy the base section schema structure (with $ref)
             properties[section_key] = deepcopy(full_schema["properties"][section_key])
 
-        # Step 3: Enhance $defs with personalized examples and descriptions
+        # Step 3: Include ALL model definitions (main models + nested models)
+        # We need to include all referenced models, not just the main section models
         original_defs = full_schema.get("$defs", {})
+        
+        # Include all definitions from the original schema to ensure nested models are present
+        enhanced_defs = deepcopy(original_defs)
+        
+        # Step 3.1: Manually add missing nested model definitions that Pydantic doesn't include automatically
+        from app.models.report_models import (
+            GenderDistribution, RacialDistribution, AgeDistribution, LifestyleDNA,
+            AppsPopularity, SchoolInfo, Restaurant, Activity, Park, UtilityCosts
+        )
+        
+        missing_models = {
+            'GenderDistribution': GenderDistribution,
+            'RacialDistribution': RacialDistribution, 
+            'AgeDistribution': AgeDistribution,
+            'LifestyleDNA': LifestyleDNA,
+            'AppsPopularity': AppsPopularity,
+            'SchoolInfo': SchoolInfo,
+            'Restaurant': Restaurant,
+            'Activity': Activity,
+            'Park': Park,
+            'UtilityCosts': UtilityCosts
+        }
+        
+        # Add missing nested model schemas to enhanced_defs
+        for model_name, model_class in missing_models.items():
+            if model_name not in enhanced_defs:
+                try:
+                    model_schema = model_class.schema()
+                    enhanced_defs[model_name] = model_schema
+                    logger.info(f"✅ Added missing nested model definition: {model_name}")
+                except Exception as e:
+                    logger.warning(f"❌ Failed to add nested model {model_name}: {e}")
+        
         description_map = {
             "NeighborhoodOverview": "Comprehensive overview of the neighborhood including demographics, culture, and community characteristics",
             "Demographics": "Population demographics including age, gender, race, and lifestyle distribution",
@@ -48,20 +82,21 @@ def generate_report_schema(report_customization: Dict[str, Any], user_preference
             "ExtraTips": "Parking, pet rules, mobile service, and miscellaneous local hacks"
         }
 
-        enhanced_defs = {}
-        for def_name, def_schema in original_defs.items():
-            enhanced_def = deepcopy(def_schema)
-            enhanced_def["description"] = description_map.get(def_name, "")
+        # Add personalization only to main section models that are selected
+        for def_name, def_schema in enhanced_defs.items():
+            # Add description if available
+            if def_name in description_map:
+                enhanced_defs[def_name]["description"] = description_map[def_name]
             
-            # Inject personalized examples and descriptions for selected sections
+            # Only add personalization for main section models that are selected
             section_key = _get_section_key_from_def_name(def_name)
-            logger.info(f"🔍 Processing def '{def_name}' -> section '{section_key}' (in selected: {section_key in section_keys})")
-            if section_key in section_keys:
-                # Inject personalized example at the definition level
+            if section_key and section_key in section_keys:
+                # Inject personalized examples
                 try:
-                    # Get the field type from the report model using proper field access
-                    field_descriptor = getattr(type(report), section_key, None)
+                    # Get the model class for this section
                     section_type = None
+                    if hasattr(FullReport, '__fields__') and section_key in FullReport.__fields__:
+                        field_descriptor = FullReport.__fields__[section_key]
                     
                     if field_descriptor and hasattr(field_descriptor, 'type_'):
                         section_type = field_descriptor.type_
@@ -72,13 +107,10 @@ def generate_report_schema(report_customization: Dict[str, Any], user_preference
                                     section_type = arg
                                     break
                     
-                    has_method = hasattr(section_type, 'get_example') if section_type else False
-                    logger.info(f"🔧 {section_key}: field_descriptor={field_descriptor is not None}, section_type={type(section_type).__name__ if section_type else None}, method={has_method}")
-                    
                     if section_type and hasattr(section_type, 'get_example'):
                         logger.info(f"🎯 Using dynamic example for {section_key}")
                         example = section_type.get_example(user_preferences)
-                        enhanced_def["example"] = example
+                        enhanced_defs[def_name]["example"] = example
                         logger.info(f"✅ Injected example for {def_name} (section: {section_key})")
                     else:
                         logger.debug(f"📝 No get_example() method found for {section_key}")
@@ -89,25 +121,39 @@ def generate_report_schema(report_customization: Dict[str, Any], user_preference
                 try:
                     if section_type and hasattr(section_type, 'get_description'):
                         field_descriptions = section_type.get_description(user_preferences)
-                        if "properties" in enhanced_def:
+                        if "properties" in enhanced_defs[def_name]:
                             for field_name, desc in field_descriptions.items():
-                                if field_name in enhanced_def["properties"]:
-                                    enhanced_def["properties"][field_name]["description"] = desc
+                                if field_name in enhanced_defs[def_name]["properties"]:
+                                    enhanced_defs[def_name]["properties"][field_name]["description"] = desc
                         logger.info(f"✅ Injected descriptions for {def_name} (section: {section_key})")
                 except Exception as e:
                     logger.warning(f"❌ Failed to get descriptions for '{def_name}': {e}")
-            
-            enhanced_defs[def_name] = enhanced_def
 
         # Step 4: Final schema assembly
+        # Filter required fields to only include those actually present in properties
+        valid_required = [key for key in section_keys if key in properties]
+        
         schema = {
             "$schema": "https://json-schema.org/draft/2020-12/schema",
             "title": "Property Report Schema",
             "type": "object",
             "properties": properties,
-            "required": section_keys,
+            "required": valid_required,
             "$defs": enhanced_defs,
         }
+        
+        logger.info(f"📋 Schema required fields: {valid_required}")
+        logger.info(f"📋 Schema properties keys: {list(properties.keys())}")
+        
+        # Step 5: Debug and validate schema before cleaning
+        logger.info(f"🔍 DEBUG: Original $defs keys: {list(original_defs.keys())}")
+        logger.info(f"🔍 DEBUG: Enhanced $defs keys: {list(enhanced_defs.keys())}")
+        
+        # Step 6: Validate and clean $defs to prevent unconstrained fields
+        _validate_and_clean_schema_defs(schema)
+        
+        # Step 7: Final validation - log what's in the final schema
+        logger.info(f"🔍 DEBUG: Final $defs keys: {list(schema.get('$defs', {}).keys())}")
 
         # Log final schema structure for debugging
         for section_key in section_keys:
@@ -128,6 +174,69 @@ def generate_report_schema(report_customization: Dict[str, Any], user_preference
         logger.error(f"❌ Failed to generate report schema: {str(e)}")
         logger.debug(traceback.format_exc())
         raise Exception(f"Schema creation failed: {str(e)}")
+
+
+def _validate_and_clean_schema_defs(schema: Dict[str, Any]) -> None:
+    """Validate and clean schema $defs to prevent unconstrained fields."""
+    logger = logging.getLogger(__name__)
+    
+    if "$defs" not in schema:
+        return
+    
+    # Step 1: Clean up main properties that have conflicting allOf + type definitions
+    if "properties" in schema:
+        for prop_name, prop_schema in schema["properties"].items():
+            # Fix conflicting allOf + $ref + type definitions
+            if "allOf" in prop_schema and "type" in prop_schema:
+                logger.warning(f"⚠️ Property '{prop_name}' has conflicting allOf + type, removing type")
+                del prop_schema["type"]
+            
+            # Simplify allOf with single $ref to direct $ref
+            if "allOf" in prop_schema and len(prop_schema["allOf"]) == 1 and "$ref" in prop_schema["allOf"][0]:
+                ref_value = prop_schema["allOf"][0]["$ref"]
+                description = prop_schema.get("description", "")
+                prop_schema.clear()
+                prop_schema["$ref"] = ref_value
+                if description:
+                    prop_schema["description"] = description
+                logger.info(f"✅ Simplified '{prop_name}' from allOf to direct $ref")
+    
+    # Step 2: Validate and clean $defs
+    for def_name, def_schema in schema["$defs"].items():
+        # Ensure all definitions have proper type constraints
+        if "type" not in def_schema:
+            logger.warning(f"⚠️ Definition '{def_name}' missing type, adding 'object'")
+            def_schema["type"] = "object"
+        
+        # Ensure additionalProperties is explicitly set to false for objects
+        if def_schema.get("type") == "object" and "additionalProperties" not in def_schema:
+            logger.warning(f"⚠️ Definition '{def_name}' missing additionalProperties, setting to false")
+            def_schema["additionalProperties"] = False
+        
+        # Filter required fields to only include those present in properties
+        if "required" in def_schema and "properties" in def_schema:
+            original_required = def_schema["required"]
+            valid_required = [field for field in original_required if field in def_schema["properties"]]
+            
+            if len(valid_required) != len(original_required):
+                removed_fields = set(original_required) - set(valid_required)
+                logger.warning(f"⚠️ Removed invalid required fields from '{def_name}': {removed_fields}")
+                def_schema["required"] = valid_required
+        
+        # Clean up properties with conflicting definitions
+        if "properties" in def_schema:
+            for prop_name, prop_schema in def_schema["properties"].items():
+                # Fix conflicting allOf + type definitions in nested properties
+                if "allOf" in prop_schema and "type" in prop_schema:
+                    logger.warning(f"⚠️ Property '{prop_name}' in '{def_name}' has conflicting allOf + type, removing type")
+                    del prop_schema["type"]
+                
+                # Ensure properties have proper type constraints
+                if "type" not in prop_schema and "$ref" not in prop_schema and "anyOf" not in prop_schema and "allOf" not in prop_schema:
+                    logger.warning(f"⚠️ Property '{prop_name}' in '{def_name}' missing type, adding 'string'")
+                    prop_schema["type"] = "string"
+    
+    logger.info(f"✅ Schema validation completed for {len(schema['$defs'])} definitions")
 
 
 def _get_section_key_from_def_name(def_name: str) -> str:
