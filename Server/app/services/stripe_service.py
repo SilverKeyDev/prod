@@ -72,8 +72,13 @@ def create_portal_session(customer_id: str):
     """Create a Stripe Customer Portal session"""
     try:
         frontend_url = os.getenv('FRONTEND_URL')
+        
+        # Fallback to production URL if FRONTEND_URL is not set
+        if not frontend_url:
+            frontend_url = "https://silverkeyestates.com"
+            
         print(f"[Portal] Attempting to create portal session for customer: {customer_id}")
-        print(f"[Portal] FRONTEND_URL: {frontend_url}")
+        print(f"[Portal] Using return URL: {frontend_url}/dashboard")
 
         session = stripe.billing_portal.Session.create(
             customer=customer_id,
