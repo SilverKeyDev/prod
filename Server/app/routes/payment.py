@@ -152,9 +152,9 @@ def create_checkout():
 
 # ------------------------
 
-@bp.route('/create-customer-portal', methods=['POST'])
+@bp.route('/create-portal-session', methods=['POST'])
 @cross_origin(**cors_config)
-def create_customer_portal():
+def create_portal_session_route():
     try:
         user = get_current_user()
         subscription = Subscription.query.filter_by(user_id=user.id).first()

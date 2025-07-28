@@ -68,23 +68,17 @@ def create_checkout_session(plan_id: str, customer_email: str):
         raise
 
 
-@payment_bp.route("/create-portal-session", methods=["POST"])
-@jwt_required()
-def create_portal_session_route():
-    user_id = get_jwt_identity()
-    
-    # You’ll need to look up the Stripe customer ID for this user
-    from app.models.user import User
-    user = User.query.filter_by(id=user_id).first()
-
-    if not user or not user.stripe_customer_id:
-        return jsonify({"error": "Customer not found"}), 404
-
+def create_portal_session(customer_id: str):
+    """Create a Stripe Customer Portal session"""
     try:
-        session = create_portal_session(user.stripe_customer_id)
-        return jsonify(session)
+        session = stripe.billing_portal.Session.create(
+            customer=customer_id,
+            return_url=f"{os.getenv('FRONTEND_URL')}/dashboard",
+        )
+        return {'url': session.url}
     except Exception as e:
-        return jsonify({"error": str(e)}), 5
+        print(f"Error creating portal session: {str(e)}")
+        raise
 
 # Webhook handling has been moved to payment.py to avoid duplication
 def handle_checkout_session(session):
@@ -143,7 +137,6 @@ def handle_checkout_session(session):
                 days=30 if interval == 'month' else 365
             )
             subscription.reports_limit = -1  # Set reports_limit for unlimited subscriptions
-            current_app.logger.info(f"[CHECKOUT] 🔧 DEBUG: Set subscription.reports_limit = {subscription.reports_limit}")
             current_app.logger.info(
                 f"[CHECKOUT] 🎯 Set user as agent (is_agent=True) for subscription plan: {plan_id}"
             )
@@ -157,8 +150,6 @@ def handle_checkout_session(session):
         subscription.stripe_customer_id = session.get('customer')
         subscription.stripe_subscription_id = session.get('subscription')
         subscription.status = 'active'
-        
-        current_app.logger.info(f"[CHECKOUT] 🔧 DEBUG: Final subscription.reports_limit before commit = {subscription.reports_limit}")
 
         db.session.commit()
         current_app.logger.info(f"[CHECKOUT] ✅ Successfully committed subscription changes for user {user.id}")
