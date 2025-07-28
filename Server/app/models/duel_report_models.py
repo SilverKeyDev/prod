@@ -1,15 +1,27 @@
 from pydantic import BaseModel, Field, Extra, model_validator, PrivateAttr
 from typing import List, Dict, Optional, Any, Union
 from collections import OrderedDict
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+# Base comparison structure for all sections
+class ComparisonField(BaseModel):
+    """Base model for comparison fields with location_a, location_b, winner, and reason"""
+    location_a: Any = Field(..., description="Property A value for this field")
+    location_b: Any = Field(..., description="Property B value for this field")
+    winner: str = Field(..., description="Winner: 'location_a', 'location_b', or 'same'")
+    reason: str = Field(..., description="Explanation for why this location wins")
 
 
 class ComparisonSummary(BaseModel):
-    overall_recommendation: str = Field(...)
-    priority_based_analysis: str = Field(...)
-    lifestyle_match_score: str = Field(...)
-    key_tradeoffs: str = Field(...)
-    personalized_advice: str = Field(...)
-    deal_breaker_analysis: str = Field(...)
+    overall_recommendation: ComparisonField = Field(...)
+    priority_based_analysis: ComparisonField = Field(...)
+    lifestyle_match_score: ComparisonField = Field(...)
+    key_tradeoffs: ComparisonField = Field(...)
+    personalized_advice: ComparisonField = Field(...)
+    deal_breaker_analysis: ComparisonField = Field(...)
     
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -26,9 +38,8 @@ class ComparisonSummary(BaseModel):
                 "reason": f"Better matches user's lifestyle: {lifestyle} and family needs with {children_count} children"
             },
             "priority_based_analysis": {
-                "top_priority": "family_friendly (user priority #1)",
-                "location_a_score": "9.2/10 - Excellent schools, many families, safe streets",
-                "location_b_score": "6.1/10 - Limited family amenities, busy urban environment",
+                "location_a": "9.2/10 - Excellent schools, many families, safe streets",
+                "location_b": "6.1/10 - Limited family amenities, busy urban environment",
                 "winner": "location_a",
                 "reason": f"Significantly better for families with {children_count} children"
             },
@@ -39,22 +50,20 @@ class ComparisonSummary(BaseModel):
                 "reason": f"Better overall alignment with user profile: {lifestyle}, income {income_range}, {children_count} children"
             },
             "key_tradeoffs": {
-                "location_a_advantages": "Family-friendly, lower cost, outdoor activities, walkable",
-                "location_a_disadvantages": "Limited career opportunities, fewer nightlife options",
-                "location_b_advantages": "Career growth, nightlife, cultural events, transit access",
-                "location_b_disadvantages": "Higher cost, less family-friendly, traffic congestion",
-                "recommendation": "Choose A if family life is priority, B if career advancement is key"
+                "location_a": "Advantages: Family-friendly, lower cost, outdoor activities, walkable. Disadvantages: Limited career opportunities, fewer nightlife options",
+                "location_b": "Advantages: Career growth, nightlife, cultural events, transit access. Disadvantages: Higher cost, less family-friendly, traffic congestion",
+                "winner": "location_a",
+                "reason": "Choose A if family life is priority, B if career advancement is key"
             },
             "personalized_advice": {
-                "user_situation": f"Young family with {children_count} children, income {income_range}",
-                "advice": "Given your family priorities and moderate income, Location A offers better value and family amenities. Consider Location B only if career growth outweighs family considerations.",
-                "timeline_consideration": "Location A's stable market gives you more flexibility",
-                "financing_note": "Both locations work well with conventional financing"
+                "location_a": f"Perfect for young family with {children_count} children, income {income_range}. Stable market gives flexibility.",
+                "location_b": "Better for career growth but challenging for families. Higher costs may strain budget.",
+                "winner": "location_a",
+                "reason": "Given your family priorities and moderate income, Location A offers better value and family amenities"
             },
             "deal_breaker_analysis": {
-                "user_deal_breakers": "Heavy traffic, high crime, poor schools",
-                "location_a_issues": "None of your deal breakers present",
-                "location_b_issues": "High traffic (matches your deal breaker: heavy commute)",
+                "location_a": "None of your deal breakers present (heavy traffic, high crime, poor schools)",
+                "location_b": "High traffic matches your deal breaker: heavy commute",
                 "winner": "location_a",
                 "reason": "Location B has deal breaker issues that conflict with your requirements"
             }
@@ -69,20 +78,20 @@ class ComparisonSummary(BaseModel):
         income_range = user_preferences.get('income_range', '$50,000-$75,000') if user_preferences else '$50,000-$75,000'
         
         return {
-            "overall_recommendation": f"Overall comparison and recommendation between the two locations. Consider user's lifestyle ({lifestyle}), family situation ({children_count} children), and income ({income_range}) when making the recommendation.",
-            "priority_based_analysis": "Analysis based on user's top priorities. Weight the comparison heavily toward the user's most important factors and life stage needs.",
-            "lifestyle_match_score": f"Percentage match score for each location based on user's lifestyle preferences ({lifestyle}) and personal situation. Include reasoning for the scores.",
-            "key_tradeoffs": "Clear comparison of advantages and disadvantages for each location. Help user understand what they gain and lose with each choice.",
-            "personalized_advice": f"Specific advice tailored to user's situation: {lifestyle} lifestyle, {children_count} children, income {income_range}. Include practical considerations and timeline factors.",
-            "deal_breaker_analysis": "Analysis of any factors that would be absolute deal breakers for the user. Identify if either location has issues that conflict with user's non-negotiable requirements."
+            "overall_recommendation": f"Executive summary comparing both locations with clear winner and reasoning. Consider user's lifestyle ({lifestyle}), family situation ({children_count} children), and income ({income_range}). Use data from all report sections to make evidence-based recommendation.",
+            "priority_based_analysis": "Analysis weighted by user's top priorities from preferences. Focus heavily on user's most important factors (safety, schools, commute, etc.) and score each location accordingly.",
+            "lifestyle_match_score": f"Percentage match scores (0-100%) for each location based on user's lifestyle preferences ({lifestyle}) and personal situation. Include detailed reasoning for scores using specific neighborhood characteristics.",
+            "key_tradeoffs": "Clear side-by-side comparison of major advantages and disadvantages. Help user understand what they gain and lose with each choice, focusing on practical daily life impacts.",
+            "personalized_advice": f"Specific actionable advice for user's situation: {lifestyle} lifestyle, {children_count} children, income {income_range}. Include timing considerations, visit recommendations, and next steps.",
+            "deal_breaker_analysis": "Analysis of any absolute deal breakers from user preferences. Identify if either location has critical issues that conflict with user's non-negotiable requirements or concerns."
         }
 
 
 class Demographics(BaseModel):
-    gender_distribution: Dict[str, str] = Field(..., description="REQUIRED: Gender distribution as object with percentage values. Must use format: {'Male': 'X%', 'Female': 'Y%'} where percentages add to 100%")
-    racial_distribution: Dict[str, str] = Field(..., description="REQUIRED: Racial/ethnic distribution as object with percentage values. Must use format: {'White': 'X%', 'Latino': 'Y%', 'Asian': 'Z%', 'Other': 'W%'} where percentages add to 100%")
-    age_distribution: Dict[str, str] = Field(..., description="REQUIRED: Age distribution as object with percentage values. Must use EXACT format: {'18-24': 'X%', '25-34': 'Y%', '35-49': 'Z%', '50-64': 'W%', '65+': 'V%'} where percentages add to 100%. DO NOT use median_age or other formats.")
-    lifestyle_dna: Dict[str, str] = Field(..., description="REQUIRED: Lifestyle characteristics as object with percentage values. Must use format: {'Lifestyle1': 'X%', 'Lifestyle2': 'Y%', 'Lifestyle3': 'Z%'} where percentages add to 100%. DO NOT use High/Moderate/Low - use actual percentages.")
+    gender_distribution: ComparisonField = Field(..., description="REQUIRED: Gender distribution comparison with percentage values for each location")
+    racial_distribution: ComparisonField = Field(..., description="REQUIRED: Racial/ethnic distribution comparison with percentage values for each location")
+    age_distribution: ComparisonField = Field(..., description="REQUIRED: Age distribution comparison with percentage values for each location")
+    lifestyle_dna: ComparisonField = Field(..., description="REQUIRED: Lifestyle characteristics comparison with percentage values for each location")
     
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -126,24 +135,24 @@ class Demographics(BaseModel):
         lifestyle = user_preferences.get("lifestyle_type", "laid-back") if user_preferences else "laid-back"
         
         return {
-            "gender_distribution": f"Gender distribution breakdown for each location. Consider how the gender balance aligns with user's identity ({gender}) and social preferences.",
-            "racial_distribution": "Racial and ethnic diversity breakdown for each location. Assess community diversity and cultural representation that matches user values.",
-            "age_distribution": f"Age demographic breakdown for each location. Focus on age groups that align with user's life stage (age {age}) and social connections.",
-            "lifestyle_dna": f"Dominant lifestyle and occupational groups in each location. Emphasize communities that match user's lifestyle type ({lifestyle}) and professional interests."
+            "gender_distribution": f"Gender distribution breakdown for each location using Census data. Consider how the gender balance aligns with user's identity ({gender}) and social preferences. Use Census Bureau or city demographic reports.",
+            "racial_distribution": "Racial and ethnic diversity breakdown using Census data. Use Census Bureau demographics or city reports to assess community diversity and cultural representation.",
+            "age_distribution": f"Age demographic breakdown using Census data. Focus on age groups that align with user's life stage (age {age}). Use Census Bureau age distribution data or city demographic reports.",
+            "lifestyle_dna": f"Dominant lifestyle and occupational groups using Census occupation data, Niche community insights, or AreaVibes lifestyle metrics. Emphasize communities that match user's lifestyle type ({lifestyle})."
         }
 
 
 class NeighborhoodOverview(BaseModel):
-    local_culture: str = Field(...)
-    vibe: str = Field(...)
-    known_for: str = Field(...)
-    community_events: str = Field(...)
-    what_people_love: str = Field(...)
-    things_to_watch_out_for: str = Field(...)
-    population_total: str = Field(...)
-    neighborhood_rating: str = Field(...)
-    LGBTQ_representation: str = Field(...)
-    image_prompt: str = Field(...)
+    local_culture: ComparisonField = Field(...)
+    vibe: ComparisonField = Field(...)
+    known_for: ComparisonField = Field(...)
+    community_events: ComparisonField = Field(...)
+    what_people_love: ComparisonField = Field(...)
+    things_to_watch_out_for: ComparisonField = Field(...)
+    population_total: ComparisonField = Field(...)
+    neighborhood_rating: ComparisonField = Field(...)
+    LGBTQ_representation: ComparisonField = Field(...)
+    image_prompt: ComparisonField = Field(...)
     demographics: Demographics = Field(...)
 
     @model_validator(mode="before")
@@ -189,25 +198,25 @@ class NeighborhoodOverview(BaseModel):
         children_count = user_preferences.get('children_count', 0) if user_preferences else 0
         
         return {
-            "local_culture": f"Cultural texture and personality of the neighborhood. Focus on aspects that align with user's {lifestyle} lifestyle preferences.",
-            "vibe": "Concise summary of neighborhood atmosphere in 2-5 words. Capture the essence that would appeal to the user's personality.",
-            "known_for": "Main attractions, industries, or distinctive features that define the area. Highlight elements relevant to user interests.",
-            "community_events": "Regular events, festivals, or community gatherings. Emphasize events that match user's social preferences and family situation.",
-            "what_people_love": "Positive aspects residents frequently mention. Focus on benefits that align with user's priorities and lifestyle.",
-            "things_to_watch_out_for": "Potential drawbacks or concerns residents should know about. Include issues particularly relevant to user's situation.",
-            "population_total": "Total population count for the neighborhood. Consider if the community size matches user's preferences.",
-            "neighborhood_rating": "Overall livability rating out of 10. Weight factors based on user's priorities and life stage.",
-            "LGBTQ_representation": "Estimate of LGBTQ population percentage and community friendliness. Include inclusivity indicators important to user.",
+            "local_culture": f"Cultural texture and personality using Google Maps reviews, City-Data forums, or Niche community insights. Focus on aspects that align with user's {lifestyle} lifestyle preferences.",
+            "vibe": "Concise summary (2-5 words) using Google Maps reviews or local forums. Capture the essence that would appeal to the user's personality.",
+            "known_for": "Main attractions, industries, or distinctive features using Wikipedia, city websites, or tourism boards. Highlight elements relevant to user interests.",
+            "community_events": "Regular events using Eventbrite, Meetup, city websites, or local news. Emphasize events that match user's social preferences and family situation.",
+            "what_people_love": "Positive aspects from Google Maps reviews, Yelp, City-Data forums, or Nextdoor. Focus on benefits that align with user's priorities and lifestyle.",
+            "things_to_watch_out_for": "Potential drawbacks from resident reviews, City-Data forums, or local news. Include issues particularly relevant to user's situation.",
+            "population_total": "Total population from Census data or city demographic reports. Consider if the community size matches user's preferences.",
+            "neighborhood_rating": "Overall livability rating using Niche, AreaVibes, or similar platforms. Weight factors based on user's priorities and life stage.",
+            "LGBTQ_representation": "LGBTQ population and community friendliness using Census data, local LGBTQ organizations, or community resources. Include inclusivity indicators.",
             "image_prompt": "Descriptive prompt for generating a representative image of the neighborhood that captures its appeal to the user.",
-            "demographics": "Detailed demographic breakdown using the Demographics model. Ensure data aligns with user's community preferences."
+            "demographics": "Detailed demographic breakdown using the Demographics model with Census data. Ensure data aligns with user's community preferences."
         }
 
 class Safety(BaseModel):
-    crime_rating: str = Field(...)
-    places_to_watch_out_for: str = Field(...)
-    police_presence: str = Field(...)
-    safety_rating: str = Field(...)
-    image_prompt: str = Field(...)
+    crime_rating: ComparisonField = Field(...)
+    places_to_watch_out_for: ComparisonField = Field(...)
+    police_presence: ComparisonField = Field(...)
+    safety_rating: ComparisonField = Field(...)
+    image_prompt: ComparisonField = Field(...)
     
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -250,19 +259,19 @@ class Safety(BaseModel):
         safety_focus = "family safety" if children_count > 0 else "general safety"
         
         return {
-            "crime_rating": "Crime level assessment (Nonexistent, Low, Moderate, High, Very High). Focus on safety factors most relevant to user's situation.",
-            "places_to_watch_out_for": "Specific areas, intersections, or locations with higher risk. Prioritize areas relevant to user's daily routines and family needs.",
-            "police_presence": "Frequency and visibility of police patrols in the area. Emphasize community policing and response times.",
-            "safety_rating": "Overall safety score out of 10 based on crime data and community perception. Weight factors based on user's safety priorities.",
+            "crime_rating": "Crime level assessment using AreaVibes, Neighborhood Scout, or local police data. Focus on safety factors most relevant to user's situation. Use FBI crime statistics or city crime reports.",
+            "places_to_watch_out_for": "Specific areas using crime maps, police reports, or resident forums. Prioritize areas relevant to user's daily routines and family needs. Check City-Data forums or Nextdoor for local insights.",
+            "police_presence": "Police patrol frequency using local police department data or community reports. Emphasize community policing and response times from official sources.",
+            "safety_rating": "Overall safety score using AreaVibes, Neighborhood Scout, or Niche safety ratings. Weight factors based on user's safety priorities and family situation.",
             "image_prompt": f"Descriptive prompt for generating an image representing neighborhood safety (emphasizing {safety_focus})."
         }
 
 class CultureAndEvents(BaseModel):
-    local_events: str = Field(...)
-    seasonal_trends: str = Field(...)
-    community_engagement: str = Field(...)
-    culture_rating: str = Field(...)
-    image_prompt: str = Field(...)
+    local_events: ComparisonField = Field(...)
+    seasonal_trends: ComparisonField = Field(...)
+    community_engagement: ComparisonField = Field(...)
+    culture_rating: ComparisonField = Field(...)
+    image_prompt: ComparisonField = Field(...)
     
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -308,19 +317,19 @@ class CultureAndEvents(BaseModel):
         lifestyle = user_preferences.get("lifestyle_type", "laid-back") if user_preferences else "laid-back"
         
         return {
-            "local_events": f"Regular events, festivals, and activities that residents attend. Focus on events that align with user's {lifestyle} lifestyle and social preferences.",
-            "seasonal_trends": "How activity and atmosphere change throughout the year. Consider user's preferences for seasonal variety and activity levels.",
-            "community_engagement": "Level of civic participation and community involvement. Emphasize engagement opportunities that match user's social interests.",
-            "culture_rating": "Cultural vibrancy score out of 10 based on events and community activities. Weight factors based on user's cultural priorities.",
+            "local_events": f"Regular events using Eventbrite, Meetup, city websites, or local news. Focus on events that align with user's {lifestyle} lifestyle and social preferences. Check City-Data forums for resident perspectives.",
+            "seasonal_trends": "Seasonal activity changes using Nomad List seasonal data, local blogs, or tourism websites. Consider user's preferences for seasonal variety and activity levels.",
+            "community_engagement": "Civic participation using city council meeting attendance, volunteer organization activity, or community board involvement. Check local government websites or community organizations.",
+            "culture_rating": "Cultural vibrancy score using Niche culture ratings, AreaVibes lifestyle scores, or local arts organization data. Weight factors based on user's cultural priorities.",
             "image_prompt": "Descriptive prompt for generating an image of local culture and events that captures the community spirit appealing to the user."
         }
 
 class Weather(BaseModel):
-    spring: str = Field(...)
-    summer: str = Field(...)
-    fall: str = Field(...)
-    winter: str = Field(...)
-    image_prompt: str = Field(...)
+    spring: ComparisonField = Field(...)
+    summer: ComparisonField = Field(...)
+    fall: ComparisonField = Field(...)
+    winter: ComparisonField = Field(...)
+    image_prompt: ComparisonField = Field(...)
     
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -362,19 +371,19 @@ class Weather(BaseModel):
     def get_description(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, str]:
         """Generate personalized field descriptions based on user preferences"""
         return {
-            "spring": "Spring weather conditions, temperatures, and comfort level. Consider user's outdoor activity preferences and seasonal comfort needs.",
-            "summer": "Summer weather patterns, heat levels, and seasonal characteristics. Factor in user's heat tolerance and cooling costs.",
-            "fall": "Autumn weather conditions and seasonal transitions. Consider user's preferences for fall activities and seasonal changes.",
-            "winter": "Winter weather patterns, cold levels, and seasonal activities. Factor in user's cold tolerance and heating costs.",
+            "spring": "Spring weather using WeatherSpark, BestPlaces, or Teleport city data. Consider user's outdoor activity preferences and seasonal comfort needs. Include temperature ranges and precipitation.",
+            "summer": "Summer weather using WeatherSpark, BestPlaces, or Nomad List climate data. Factor in user's heat tolerance and cooling costs. Include humidity and heat index information.",
+            "fall": "Autumn weather using WeatherSpark or BestPlaces seasonal data. Consider user's preferences for fall activities and seasonal changes. Include temperature transitions.",
+            "winter": "Winter weather using WeatherSpark, BestPlaces, or local weather services. Factor in user's cold tolerance and heating costs. Include snow/rain patterns.",
             "image_prompt": "Descriptive prompt for generating an image representing the area's climate that appeals to user's weather preferences."
         }
 
 class SocialCharacter(BaseModel):
-    income_level: str = Field(...)
-    religiosity: str = Field(...)
-    cultural_tone: str = Field(...)
-    social_rating: str = Field(...)
-    image_prompt: str = Field(...)
+    income_level: ComparisonField = Field(...)
+    religiosity: ComparisonField = Field(...)
+    cultural_tone: ComparisonField = Field(...)
+    social_rating: ComparisonField = Field(...)
+    image_prompt: ComparisonField = Field(...)
     
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -420,10 +429,10 @@ class SocialCharacter(BaseModel):
         income_range = user_preferences.get('income_range', '$50,000-$75,000') if user_preferences else '$50,000-$75,000'
         
         return {
-            "income_level": f"Economic demographic of residents. Consider how the income levels align with user's financial situation ({income_range}) and social comfort.",
-            "religiosity": "Level of religious activity and influence in the community. Assess compatibility with user's spiritual preferences and tolerance for religious influence.",
-            "cultural_tone": "Overall social atmosphere and community personality. Focus on cultural aspects that match user's social preferences and values.",
-            "social_rating": "Community inclusivity and social cohesion score out of 10. Weight factors based on user's social priorities and community involvement preferences.",
+            "income_level": f"Economic demographic using Census data, Niche income data, or AreaVibes economic metrics. Consider how income levels align with user's financial situation ({income_range}) and social comfort.",
+            "religiosity": "Religious activity using Census religious affiliation data, local religious organization directories, or community surveys. Assess compatibility with user's spiritual preferences.",
+            "cultural_tone": "Social atmosphere using Google Maps reviews, Niche community insights, or political voting data. Focus on cultural aspects that match user's social preferences and values.",
+            "social_rating": "Community inclusivity using Niche community ratings, AreaVibes social scores, or local diversity metrics. Weight factors based on user's social priorities and community involvement preferences.",
             "image_prompt": "Descriptive prompt for generating an image representing the social character that appeals to user's community preferences."
         }
 
@@ -446,12 +455,12 @@ class Amenity(BaseModel):
     vibe: Optional[str] = Field(None)
 
 class LocalAmenities(BaseModel):
-    restaurants: List[Restaurant] = Field(...)
-    activities: List[Activity] = Field(...)
-    parks: List[Park] = Field(...)
-    thrift_store: Amenity = Field(...)
-    grocery_store: Amenity = Field(...)
-    late_night_restaurant: Amenity = Field(...)
+    restaurants: ComparisonField = Field(...)
+    activities: ComparisonField = Field(...)
+    parks: ComparisonField = Field(...)
+    thrift_store: ComparisonField = Field(...)
+    grocery_store: ComparisonField = Field(...)
+    late_night_restaurant: ComparisonField = Field(...)
     
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -557,20 +566,20 @@ class LocalAmenities(BaseModel):
         hobbies_str = ', '.join(hobbies) if isinstance(hobbies, list) else str(hobbies)
         
         return {
-            "restaurants": f"List of local dining establishments. Focus on options that match user's dining preferences: {dining_str}.",
-            "activities": f"Local recreational activities and attractions. Prioritize activities that align with user's interests: {hobbies_str}.",
-            "parks": "Green spaces and recreational areas. Consider accessibility, safety, and amenities that matter to the user.",
-            "thrift_store": "Local thrift or second-hand shopping options. Assess quality, selection, and community character.",
-            "grocery_store": "Primary grocery shopping options. Consider quality, price range, and specialty offerings that match user preferences.",
-            "late_night_restaurant": "Late-night dining options for convenience and lifestyle needs."
+            "restaurants": f"Local dining establishments using Google Maps and Yelp. Focus on options that match user's dining preferences: {dining_str}. Include real names, vibes, and features.",
+            "activities": f"Recreational activities using Google Maps and Yelp. Prioritize activities that align with user's interests: {hobbies_str}. Include real names and features.",
+            "parks": "Green spaces using Google Maps and park websites. Consider accessibility, safety, and amenities. Include real names and specific features.",
+            "thrift_store": "Thrift shopping using Google Maps and Yelp reviews. Assess quality, selection, and community character. Include real store names if available.",
+            "grocery_store": "Grocery options using Google Maps and store websites. Consider quality, price range, and specialty offerings. Include real store names and chains.",
+            "late_night_restaurant": "Late-night dining using Google Maps hours and Yelp reviews. Focus on convenience and lifestyle needs. Include real establishment names."
         }
 
 
 class Commute(BaseModel):
-    commute_times: str = Field(...)
-    public_transport: str = Field(...)
-    traffic: str = Field(...)
-    walkability: str = Field(...)
+    commute_times: ComparisonField = Field(...)
+    public_transport: ComparisonField = Field(...)
+    traffic: ComparisonField = Field(...)
+    walkability: ComparisonField = Field(...)
     
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -612,16 +621,16 @@ class Commute(BaseModel):
         walkability_importance = user_preferences.get('walkability_importance', 'somewhat_important') if user_preferences else 'somewhat_important'
         
         return {
-            "commute_times": f"Typical commute times to major employment centers and downtown areas. Emphasize routes and times relevant to user's commute tolerance ({commute_tolerance}).",
-            "public_transport": "Available public transportation options and their quality. Focus on transit options that align with user's transportation preferences.",
-            "traffic": "Traffic patterns and congestion levels throughout the day. Highlight peak times and alternative routes based on user's schedule flexibility.",
-            "walkability": f"How pedestrian-friendly the area is with Walk Score details. Weight walkability factors based on user's walkability importance ({walkability_importance})."
+            "commute_times": f"Commute times using Redfin, Realtor.com, or Google Maps traffic data. Emphasize routes and times relevant to user's commute tolerance ({commute_tolerance}). Include peak vs off-peak times.",
+            "public_transport": "Public transit using local transit authority websites, Google Maps transit, or Walk Score transit data. Focus on options that align with user's transportation preferences.",
+            "traffic": "Traffic patterns using Google Maps traffic data, Waze insights, or City-Data forum discussions. Highlight peak times and alternative routes based on user's schedule flexibility.",
+            "walkability": f"Pedestrian-friendliness using Walk Score, Google Street View, or local walkability assessments. Weight walkability factors based on user's walkability importance ({walkability_importance})."
         }
 
 class FamilyFriendly(BaseModel):
-    lots_of_kids: str = Field(...)
-    great_for_families: str = Field(...)
-    family_rating: str = Field(...)
+    lots_of_kids: ComparisonField = Field(...)
+    great_for_families: ComparisonField = Field(...)
+    family_rating: ComparisonField = Field(...)
     
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -655,18 +664,18 @@ class FamilyFriendly(BaseModel):
         children_count = user_preferences.get('children_count', 0) if user_preferences else 0
         
         return {
-            "lots_of_kids": f"Presence and visibility of children in the neighborhood. Focus on family density and child-friendly atmosphere (user has {children_count} children).",
-            "great_for_families": "Family-oriented features and why families choose this area. Emphasize amenities and safety features most relevant to families with children.",
-            "family_rating": "Overall family-friendliness score out of 10. Weight factors based on user's family situation and child-related needs."
+            "lots_of_kids": f"'Yes / Some / Few' with reasoning using Niche family scores + Livability.com insights. Focus on family density and child-friendly atmosphere (user has {children_count} children).",
+            "great_for_families": "Emphasize parks, schools, safety. Search '[neighborhood] with kids' or use Niche. Emphasize amenities and safety features most relevant to families with children.",
+            "family_rating": "Honest reflection. Niche 'family grade' is a strong proxy. Weight factors based on user's family situation and child-related needs."
         }
 
 class NightlifeAndDating(BaseModel):
-    nightlife_rating: str = Field(...)
-    nightlife_score: float = Field(...)
-    best_spots: str = Field(...)
-    dating_scene: str = Field(...)
-    apps_popularity: Dict[str, str] = Field(...)
-    image_prompt: str = Field(...)
+    nightlife_rating: ComparisonField = Field(...)
+    nightlife_score: ComparisonField = Field(...)
+    best_spots: ComparisonField = Field(...)
+    dating_scene: ComparisonField = Field(...)
+    apps_popularity: ComparisonField = Field(...)
+    image_prompt: ComparisonField = Field(...)
     
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -715,19 +724,19 @@ class NightlifeAndDating(BaseModel):
         age = user_preferences.get('age', 30) if user_preferences else 30
         
         return {
-            "nightlife_rating": "Overall nightlife quality and variety rating out of 10. Consider what appeals to the user's demographic and lifestyle.",
-            "nightlife_score": "Numerical nightlife score for data analysis. Weight based on user's social preferences and age group.",
-            "best_spots": "Popular bars, clubs, and entertainment venues. Focus on venues that match the user's social style and interests.",
-            "dating_scene": f"Local dating culture and opportunities for meeting people. Tailor to user's marital status ({marital_status}) and age ({age}) - focus on relevant social opportunities.",
-            "apps_popularity": "Dating app usage and popularity in the area. Emphasize apps most relevant to user's age group and relationship goals.",
+            "nightlife_rating": "Rate vibrancy of bars, music, and scenes using Yelp, Google Maps, or City-Data forum nightlife threads. Consider what appeals to the user's demographic and lifestyle.",
+            "nightlife_score": "Numerical nightlife score using Yelp, Google Maps, or City-Data forum nightlife threads. Weight based on user's social preferences and age group.",
+            "best_spots": "Popular bars, clubs, and entertainment venues using Yelp, Google Maps, or City-Data forum nightlife threads. Focus on venues that match the user's social style and interests.",
+            "dating_scene": f"Describe energy and dating pool. Search 'dating in [city] Reddit' or Nomad List for vibe. Tailor to user's marital status ({marital_status}) and age ({age}) - focus on relevant social opportunities.",
+            "apps_popularity": "Break down by app, score relative to national averages. Check Reddit threads or blog posts comparing app usage. Emphasize apps most relevant to user's age group and relationship goals.",
             "image_prompt": "Descriptive prompt for generating an image of local nightlife that reflects the user's preferred social atmosphere."
         }
 
 class Accessibility(BaseModel):
-    wheelchair_friendly: str = Field(...)
-    ada_compliance: str = Field(...)
-    age_friendly: str = Field(...)
-    accessibility_rating: str = Field(...)
+    wheelchair_friendly: ComparisonField = Field(...)
+    ada_compliance: ComparisonField = Field(...)
+    age_friendly: ComparisonField = Field(...)
+    accessibility_rating: ComparisonField = Field(...)
     
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -767,18 +776,18 @@ class Accessibility(BaseModel):
         age = user_preferences.get('age', 30) if user_preferences else 30
         
         return {
-            "wheelchair_friendly": "Wheelchair accessibility of sidewalks, buildings, and public spaces. Focus on infrastructure that supports mobility needs.",
-            "ada_compliance": "Americans with Disabilities Act compliance level in the area. Assess how well the area accommodates people with disabilities.",
-            "age_friendly": f"Features that support aging in place and senior-friendly amenities. Consider relevance to user's age ({age}) and future needs.",
-            "accessibility_rating": "Overall accessibility score out of 10 for people with disabilities. Weight factors based on user's accessibility needs and priorities."
+            "wheelchair_friendly": "Assess sidewalk curb cuts, ramps, accessible parking using Google Street View for visual inspection. Focus on practical mobility for daily activities.",
+            "ada_compliance": "Check public buildings, transit stops, crosswalks using city accessibility reports or ADA compliance databases if available.",
+            "age_friendly": f"Look for senior centers, medical facilities, flat terrain, good lighting using Google Maps to identify senior-focused amenities. Consider relevance to user's age ({age}) and future needs.",
+            "accessibility_rating": "Overall accessibility score out of 10. Weight factors based on user's age and accessibility needs. Consider infrastructure quality and support services."
         }
 
 class Development(BaseModel):
-    upcoming_changes: str = Field(...)
-    zoning_or_construction: str = Field(...)
-    gentrification_signs: str = Field(...)
-    vacancy_or_decay: str = Field(...)
-    image_prompt: str = Field(...)
+    upcoming_changes: ComparisonField = Field(...)
+    zoning_or_construction: ComparisonField = Field(...)
+    gentrification_signs: ComparisonField = Field(...)
+    vacancy_or_decay: ComparisonField = Field(...)
+    image_prompt: ComparisonField = Field(...)
     
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -820,21 +829,21 @@ class Development(BaseModel):
     def get_description(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, str]:
         """Generate personalized field descriptions based on user preferences"""
         return {
-            "upcoming_changes": "Planned developments, infrastructure projects, and future changes. Focus on how these changes will impact the user's lifestyle and property values.",
-            "zoning_or_construction": "Current construction activity and zoning changes. Assess how ongoing development affects livability and future neighborhood character.",
-            "gentrification_signs": "Indicators of neighborhood change and gentrification trends. Consider both positive improvements and potential displacement concerns.",
-            "vacancy_or_decay": "Signs of economic decline or property neglect. Evaluate neighborhood stability and maintenance standards.",
+            "upcoming_changes": "Search city planning sites, '[city] development projects', or local news. Look for major infrastructure, transit, or commercial projects. Focus on how these changes will impact the user's lifestyle and property values.",
+            "zoning_or_construction": "Check city zoning maps, building permits, or construction notices. Use Google Maps satellite view to spot active construction sites. Assess how ongoing development affects livability and future neighborhood character.",
+            "gentrification_signs": "Look for rising rents, new upscale businesses, demographic shifts. Search '[neighborhood] gentrification' or check local forums for resident discussions. Consider both positive improvements and potential displacement concerns.",
+            "vacancy_or_decay": "Use Google Street View to assess building conditions, vacant lots, or boarded storefronts. Check local crime or economic indicators. Evaluate neighborhood stability and maintenance standards.",
             "image_prompt": "Descriptive prompt for generating an image of neighborhood development that reflects the area's growth trajectory."
         }
 
 class EnvironmentUtilities(BaseModel):
-    air_quality: str = Field(...)
-    noise_pollution: str = Field(...)
-    light_pollution: str = Field(...)
-    water_quality: str = Field(...)
-    avg_utility_costs: Dict[str, str] = Field(...)
-    internet_speed: str = Field(...)
-    environmental_rating: str = Field(...)
+    air_quality: ComparisonField = Field(...)
+    noise_pollution: ComparisonField = Field(...)
+    light_pollution: ComparisonField = Field(...)
+    water_quality: ComparisonField = Field(...)
+    avg_utility_costs: ComparisonField = Field(...)
+    internet_speed: ComparisonField = Field(...)
+    environmental_rating: ComparisonField = Field(...)
     
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -892,21 +901,21 @@ class EnvironmentUtilities(BaseModel):
         income_range = user_preferences.get('income_range', '$50,000-$75,000') if user_preferences else '$50,000-$75,000'
         
         return {
-            "air_quality": "Air quality index and pollution levels in the area. Focus on health impacts and outdoor activity suitability.",
-            "noise_pollution": "Noise levels from traffic, construction, and urban activity. Consider impact on sleep quality and daily comfort.",
-            "light_pollution": "Light pollution levels and night sky visibility. Assess impact on sleep and natural environment enjoyment.",
-            "water_quality": "Municipal water quality and safety ratings. Evaluate taste, safety, and reliability of water supply.",
-            "avg_utility_costs": f"Average monthly utility costs for the area. Compare against user's income range ({income_range}) and budget expectations.",
-            "internet_speed": "Available internet speeds and service providers. Consider work-from-home needs and entertainment requirements.",
-            "environmental_rating": "Overall environmental quality score out of 10. Weight factors based on user's environmental priorities and health concerns."
+            "air_quality": "Check EPA AirNow or IQAir for AQI data. Look for industrial sources, traffic patterns, or natural factors affecting air quality. Focus on health impacts and outdoor activity suitability.",
+            "noise_pollution": "Use Google Street View to assess traffic volume, proximity to airports/highways. Check local noise ordinances or community complaints. Consider impact on sleep quality and daily comfort.",
+            "light_pollution": "Use Dark Site Finder or Light Pollution Map. Consider street lighting, commercial areas, and night sky visibility. Assess impact on sleep and natural environment enjoyment.",
+            "water_quality": "Check EPA Safe Drinking Water database or local water utility reports. Look for recent violations or boil advisories. Evaluate taste, safety, and reliability of water supply.",
+            "avg_utility_costs": f"Search '[city] average utility costs' or check local utility company websites. Include electricity, gas, water, internet costs. Compare against user's income range ({income_range}) and budget expectations.",
+            "internet_speed": "Use Speedtest.net coverage maps or check ISP availability. Important for remote work and modern connectivity needs. Consider work-from-home needs and entertainment requirements.",
+            "environmental_rating": "Overall environmental quality score out of 10. Weight factors based on user's work-from-home needs and lifestyle preferences."
         }
 
 class FinancialInformation(BaseModel):
-    monthly_payment: str = Field(...)
-    property_taxes: str = Field(...)
-    value_assessment: str = Field(...)
-    investment_potential: str = Field(...)
-    financial_rating: str = Field(...)
+    monthly_payment: ComparisonField = Field(...)
+    property_taxes: ComparisonField = Field(...)
+    value_assessment: ComparisonField = Field(...)
+    investment_potential: ComparisonField = Field(...)
+    financial_rating: ComparisonField = Field(...)
     
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -954,23 +963,23 @@ class FinancialInformation(BaseModel):
         preferred_price_range = user_preferences.get('preferred_home_price_range', '$300,000-$500,000') if user_preferences else '$300,000-$500,000'
         
         return {
-            "monthly_payment": f"Estimated monthly mortgage payment for typical home in the area. Consider user's income range ({income_range}) and preferred price range ({preferred_price_range}) when providing context.",
-            "property_taxes": "Annual property tax rates and typical amounts. Relate to user's financial capacity and budget expectations.",
-            "value_assessment": "Property value trends and market assessment. Frame in context of user's investment timeline and financial goals.",
-            "investment_potential": "Long-term investment outlook and rental potential. Consider user's investment experience and risk tolerance.",
+            "monthly_payment": f"Estimated monthly mortgage payment using Redfin, Realtor.com, or mortgage calculators. Consider user's income range ({income_range}) and preferred price range ({preferred_price_range}) when providing context.",
+            "property_taxes": "Annual property tax rates using county assessor websites or Redfin/Realtor.com tax data. Relate to user's financial capacity and budget expectations.",
+            "value_assessment": "Property value trends using Redfin, Zillow, or Realtor.com market data. Frame in context of user's investment timeline and financial goals.",
+            "investment_potential": "Long-term outlook using rental yield data, population growth, and economic indicators. Consider user's investment experience and risk tolerance.",
             "financial_rating": "Overall financial attractiveness score out of 10. Weight factors based on user's financial priorities and constraints."
         }
 
 class SchoolInfo(BaseModel):
-    level: str = Field(...)
-    walking_distance: bool = Field(...)
-    school_rating: str = Field(...)
-    teacher_quality: str = Field(...)
-    known_for: str = Field(...)
-    gpa_avg: Optional[float] = Field(None)
-    sat_avg: Optional[int] = Field(None)
-    grad_rate: Optional[float] = Field(None)
-    top_colleges: Optional[str] = Field(None)
+    level: ComparisonField = Field(...)
+    walking_distance: ComparisonField = Field(...)
+    school_rating: ComparisonField = Field(...)
+    teacher_quality: ComparisonField = Field(...)
+    known_for: ComparisonField = Field(...)
+    gpa_avg: ComparisonField = Field(...)
+    sat_avg: ComparisonField = Field(...)
+    grad_rate: ComparisonField = Field(...)
+    top_colleges: ComparisonField = Field(...)
     
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -995,19 +1004,19 @@ class SchoolInfo(BaseModel):
         children_count = user_preferences.get('children_count', 0) if user_preferences else 0
         
         return {
-            "level": "Educational level of the school (Elementary, Middle, High School). Focus on levels relevant to user's children.",
-            "walking_distance": f"Whether the school is within walking distance. Important for families with {children_count} children for safety and convenience.",
-            "school_rating": "Overall school rating out of 10. Weight academic performance and factors most important to the user's educational priorities.",
-            "teacher_quality": "Quality and experience of teaching staff. Assess teacher credentials, retention, and program excellence.",
-            "known_for": "Special programs or areas of excellence. Highlight programs that align with user's educational values and children's interests.",
-            "gpa_avg": "Average GPA for high school students. Relevant for families with older children planning for college.",
-            "sat_avg": "Average SAT score for high school students. Important for college preparation and academic achievement assessment.",
-            "grad_rate": "Graduation rate as a percentage. Indicates school success in supporting students through completion.",
-            "top_colleges": "Top colleges that graduates typically attend. Shows school's track record for college preparation and placement."
+            "level": "Elementary, Middle, or High School designation using GreatSchools.org or Niche for school level information. Focus on levels relevant to user's children.",
+            "walking_distance": f"Whether school is within walking distance (typically under 0.5 miles) using Google Maps to measure distance from property. Important for families with {children_count} children for safety and convenience.",
+            "school_rating": "GreatSchools rating out of 10 or similar metric using GreatSchools.org, Niche, or state education department ratings. Weight academic performance and factors most important to the user's educational priorities.",
+            "teacher_quality": "Teacher qualifications, experience, and student-teacher ratios using school websites or education department data. Assess teacher credentials, retention, and program excellence.",
+            "known_for": "Special programs, academic strengths, or unique offerings using school websites, awards, and community reputation. Highlight programs that align with user's educational values and children's interests.",
+            "gpa_avg": "Average GPA if available for high schools using school report cards or state education data. Relevant for families with older children planning for college.",
+            "sat_avg": "Average SAT scores for high schools using school websites or state/district report cards. Important for college preparation and academic achievement assessment.",
+            "grad_rate": "Graduation rate percentage from state education departments or school report cards. Indicates school success in supporting students through completion.",
+            "top_colleges": "Common college destinations for graduates using school websites or guidance counselor information. Shows school's track record for college preparation and placement."
         }
 
 class Schools(BaseModel):
-    schools: Dict[str, SchoolInfo] = Field(...)
+    schools: ComparisonField = Field(...)
     
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -1064,14 +1073,14 @@ class Schools(BaseModel):
         children_count = user_preferences.get('children_count', 0) if user_preferences else 0
         
         return {
-            "schools": f"Dictionary of schools in the area by name with detailed information. Focus on school quality, programs, and accessibility for families with {children_count} children. Compare educational opportunities between locations."
+            "schools": f"Dictionary of local schools with comprehensive information using GreatSchools.org, Niche, or state education department data for accurate school ratings, programs, and performance metrics. Focus on schools within reasonable distance of the property. Compare educational opportunities between locations for families with {children_count} children."
         }
 
 class ExtraTips(BaseModel):
-    parking: str = Field(...)
-    pet_friendly: str = Field(...)
-    cell_service_quality: str = Field(...)
-    other_notable_tips: str = Field(...)
+    parking: ComparisonField = Field(...)
+    pet_friendly: ComparisonField = Field(...)
+    cell_service_quality: ComparisonField = Field(...)
+    other_notable_tips: ComparisonField = Field(...)
     
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -1107,14 +1116,15 @@ class ExtraTips(BaseModel):
     def get_description(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, str]:
         """Generate personalized field descriptions based on user preferences"""
         return {
-            "parking": "Parking availability, costs, and regulations in the area. Consider user's vehicle needs and budget for parking expenses.",
-            "pet_friendly": "Pet amenities, dog parks, and pet-friendly establishments. Focus on features relevant to user's pet ownership and animal preferences.",
-            "cell_service_quality": "Mobile phone coverage and data speeds across carriers. Assess connectivity needs for work, communication, and entertainment.",
-            "other_notable_tips": "Additional insider tips and local knowledge for residents. Provide practical advice that helps users navigate daily life in each location."
+            "parking": "Street parking rules, permit requirements, garage availability using Google Street View to assess parking density and local parking signs. Consider user's vehicle needs and budget for parking expenses.",
+            "pet_friendly": "Dog parks, pet stores, veterinarians, pet policies. Search '[neighborhood] dog park' or use Google Maps to find pet amenities. Focus on features relevant to user's pet ownership and animal preferences.",
+            "cell_service_quality": "Coverage quality for major carriers using carrier coverage maps or local forums for dead zone reports. Assess connectivity needs for work, communication, and entertainment.",
+            "other_notable_tips": "Local insider knowledge, best times to visit places, hidden gems, traffic patterns using local forums, Reddit, or Nextdoor for community insights. Provide practical advice that helps users navigate daily life in each location."
         }
 
-class CompareReport(BaseModel):
+class ComparisonReport(BaseModel):
     # === All your sections ===
+    comparison_summary: Optional[ComparisonSummary] = None
     neighborhood_overview: Optional[NeighborhoodOverview] = None
     safety: Optional[Safety] = None
     culture_and_events: Optional[CultureAndEvents] = None
@@ -1210,6 +1220,7 @@ class CompareReport(BaseModel):
                         filtered_properties[field_name] = prop_def
             
             base["properties"] = filtered_properties
+            base["required"] = list(filtered_properties.keys())
             logger.info(f"✂️ Filtered properties to: {list(filtered_properties.keys())}")
         
         # Collect model classes that are actually used (including nested dependencies)
@@ -1260,9 +1271,10 @@ class CompareReport(BaseModel):
             base["$defs"] = filtered_defs
             logger.info(f"✂️ Filtered $defs to: {list(filtered_defs.keys())}")
             
-            # Remove nullable anyOf patterns from $defs properties
+            # Remove nullable anyOf patterns from $defs properties and ensure all fields are constrained
             for def_name, def_content in base["$defs"].items():
                 if "properties" in def_content:
+                    constrained_properties = {}
                     for prop_name, prop_def in def_content["properties"].items():
                         if isinstance(prop_def, dict) and "anyOf" in prop_def:
                             # Find the non-null references
@@ -1270,12 +1282,38 @@ class CompareReport(BaseModel):
                             if len(non_null_refs) >= 1:
                                 if len(non_null_refs) == 1:
                                     # Single non-null type: replace with direct reference
-                                    base["$defs"][def_name]["properties"][prop_name] = non_null_refs[0]
+                                    constrained_properties[prop_name] = non_null_refs[0]
                                     logger.info(f"🔧 Removed nullable anyOf for {def_name}.{prop_name}, now required (single type)")
                                 else:
-                                    # Multiple non-null types: keep anyOf but remove null option
-                                    base["$defs"][def_name]["properties"][prop_name] = {"anyOf": non_null_refs}
-                                    logger.info(f"🔧 Removed null option from anyOf for {def_name}.{prop_name}, now required (multiple types)")
+                                    # Multiple non-null types: For Perplexity compliance, pick the first non-null type
+                                    # This avoids unconstrained anyOf patterns that Perplexity rejects
+                                    constrained_properties[prop_name] = non_null_refs[0]
+                                    logger.info(f"🔧 Simplified anyOf to single type for {def_name}.{prop_name} (Perplexity compliance)")
+                            else:
+                                # No valid types found, default to string
+                                constrained_properties[prop_name] = {"type": "string"}
+                                logger.warning(f"⚠️ No valid types in anyOf for {def_name}.{prop_name}, defaulting to string")
+                        elif isinstance(prop_def, dict):
+                            # Ensure all properties have a type constraint
+                            if "type" not in prop_def and "$ref" not in prop_def:
+                                # If it's an object without type, add type constraint
+                                if "properties" in prop_def:
+                                    prop_def["type"] = "object"
+                                else:
+                                    prop_def["type"] = "string"  # Default to string for safety
+                                logger.info(f"🔧 Added missing type constraint for {def_name}.{prop_name}")
+                            constrained_properties[prop_name] = prop_def
+                        else:
+                            # Non-dict properties, ensure they're constrained
+                            constrained_properties[prop_name] = prop_def
+                    
+                    # Update the properties with constrained versions
+                    base["$defs"][def_name]["properties"] = constrained_properties
+                    
+                    # Ensure the definition itself has required type
+                    if "type" not in base["$defs"][def_name]:
+                        base["$defs"][def_name]["type"] = "object"
+                        logger.info(f"🔧 Added missing type to definition {def_name}")
 
         # Inject personalized examples and descriptions for used fields only
         for field_name in prioritized_fields:
@@ -1315,5 +1353,52 @@ class CompareReport(BaseModel):
 
                 except Exception as e:
                     logger.warning(f"⚠️ Failed to inject descriptions for {field_name}: {e}")
+
+        base["required"] = list(filtered_properties.keys())
+        base["type"] = "object"  # required for top-level schema
+        base["$schema"] = "https://json-schema.org/draft/2020-12/schema"  # optional but recommended
+        
+        # Comprehensive safety check: ensure all fields have proper type constraints for Perplexity compliance
+        def ensure_field_constraints(properties_dict, context="top-level"):
+            """Recursively ensure all properties have proper type constraints"""
+            for fname, fdef in properties_dict.items():
+                if isinstance(fdef, dict):
+                    # Check if field has proper constraints
+                    if "$ref" not in fdef and "type" not in fdef:
+                        logger.warning(f"❌ Unconstrained field '{fname}' in {context} — auto-fixing with 'type: object'")
+                        fdef["type"] = "object"
+                    
+                    # Recursively check nested properties
+                    if "properties" in fdef and isinstance(fdef["properties"], dict):
+                        ensure_field_constraints(fdef["properties"], f"{context}.{fname}")
+                    
+                    # Check anyOf patterns that might still exist
+                    if "anyOf" in fdef:
+                        # For Perplexity compliance, replace anyOf with the first valid type
+                        any_of_items = fdef["anyOf"]
+                        if isinstance(any_of_items, list) and len(any_of_items) > 0:
+                            # Find first item with proper constraints
+                            for item in any_of_items:
+                                if isinstance(item, dict) and ("type" in item or "$ref" in item):
+                                    # Replace anyOf with this constrained item
+                                    fdef.clear()
+                                    fdef.update(item)
+                                    logger.info(f"🔧 Replaced anyOf with constrained type for {context}.{fname}")
+                                    break
+                            else:
+                                # No valid constrained items found, default to string
+                                fdef.clear()
+                                fdef["type"] = "string"
+                                logger.warning(f"⚠️ No constrained items in anyOf for {context}.{fname}, defaulting to string")
+        
+        # Apply constraints to top-level properties
+        if "properties" in base:
+            ensure_field_constraints(base["properties"], "top-level")
+        
+        # Apply constraints to all $defs
+        if "$defs" in base:
+            for def_name, def_content in base["$defs"].items():
+                if "properties" in def_content:
+                    ensure_field_constraints(def_content["properties"], f"$defs.{def_name}")
 
         return base

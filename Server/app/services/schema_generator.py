@@ -1,6 +1,6 @@
 from copy import deepcopy
 from app.models.report_models import FullReport
-from app.models.duel_report_models import CompareReport
+from app.models.duel_report_models import ComparisonReport
 from typing import Dict, Any
 import logging
 
@@ -9,11 +9,12 @@ logger = logging.getLogger(__name__)
 def generate_report_schema(report_customization: Dict[str, Any], user_preferences: Dict[str, Any] = None, compare: bool = False) -> Dict[str, Any]:
     try:
         section_keys = report_customization.get("report_section_priorities", [])
+        if compare and 'comparison_summary' not in section_keys: section_keys.insert(0, 'comparison_summary')  # Ensure comparison_summary is always first
         logger.info(f"🔧 Schema generation started with sections: {section_keys}")
         logger.info(f"🔧 User preferences provided: {user_preferences is not None}")
 
         # Step 1: Instantiate and get full schema
-        report = CompareReport(report_customization=report_customization) if compare else FullReport(report_customization=report_customization)
+        report = ComparisonReport(report_customization=report_customization) if compare else FullReport(report_customization=report_customization)
         full_schema = report.schema(report_customization=report_customization)
 
         # Step 2: Build filtered properties (just copy the base schema structure)

@@ -275,7 +275,6 @@ class UserPreferences(db.Model):
     def get_agent_summary(self):
         """Generate a concise summary for AI agents"""
         return {
-            'profile_completeness': f"{self.get_profile_completeness()}%",
             'key_demographics': {
                 'age': self.age,
                 'income_range': self.income_range,

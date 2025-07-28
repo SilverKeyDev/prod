@@ -125,7 +125,7 @@ def generate_report_endpoint():
         
         if is_comparison:
             safe_comparison_address = "".join(c for c in comparison_address if c.isalnum() or c in (' ', '-', '_')).rstrip().replace(' ', '_')
-            filenamee = f"reports/comparison_{safe_address}_vs_{safe_comparison_address}_{user_id_short}_{uuid.uuid4().hex[:8]}.pdf"
+            filenamee = f"reports/Comparison:_{safe_address}_vs_{safe_comparison_address}_{user_id_short}_{uuid.uuid4().hex[:8]}.pdf"
         else:
             filenamee = f"reports/{safe_address}_{user_id_short}_{uuid.uuid4().hex[:8]}.pdf"
 

@@ -17,10 +17,7 @@ from .pdf_creator import _create_pdf
 from io import BytesIO
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
-from .guidance_generator import give_guidance
 from .schema_generator import generate_report_schema
-
-# Import Pydantic models for structured JSON output
 from ..models.report_models import FullReport
 from ..models.user_preferences import UserPreferences
 from ..services.s3_service import s3_service
@@ -298,14 +295,6 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
     else:
         # Default all to True if no preferences found
         raise Exception("No report customization found")
-    
-    # Generate guidance with error handling
-    try:
-        guidance = give_guidance(user_preferences=user_preferences)
-    except Exception as e:
-        logger.error(f"❌ Failed to generate guidance: {str(e)}")
-        logger.exception("Guidance generation error details:")
-        raise Exception(f"Guidance generation failed: {str(e)}")
 
     # Create FullReport schema with error handling
     try:
@@ -322,7 +311,6 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
         logger.exception("FullReport schema creation error details:")
         raise Exception(f"FullReport schema creation failed: {str(e)}")
 
-    guidance_schema = generate_guidance_schema(user_preferences)
     try:
         # Validate address
         if not validate_address(address):
@@ -351,9 +339,6 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                         "7. Do not include citations in the response\n"
                         "8. MANDATORY: You MUST provide ALL required fields in the schema. NEVER return null or omit any field. Every field must have a meaningful value.\n"
                         "9. MANDATORY: If you cannot find specific data for a field, provide a reasonable estimate or placeholder value instead of null.\n"
-                    
-                        "follow this for where to find different data sources and how to use them:\n"
-                        f"{guidance_schema}"
                     )
                 }, {"role": "user", "content": f"Sell me the property at {address}"}
             ],
@@ -378,18 +363,12 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
             # Generate ComparisonReport schema with user preference interpolation
             from ..models.duel_report_models import ComparisonReport
             comparison_report = ComparisonReport(report_customization=report_customization)
-            comparison_schema = comparison_report.schema()
+            comparison_schema = comparison_report.schema(report_customization=report_customization)
             
             # Add schema metadata
             comparison_schema["$schema"] = "https://json-schema.org/draft/2020-12/schema"
             comparison_schema["title"] = "Property Comparison Report Schema"
             comparison_schema["description"] = "Structured schema for generating personalized neighborhood comparison reports"
-            
-            # Interpolate user preferences in comparison schema
-            if user_preferences:
-                logger.info(f"🔄 Interpolating user preferences in comparison schema examples")
-                from .schema_generator import interpolate_schema_examples
-                comparison_schema = interpolate_schema_examples(comparison_schema, user_preferences)
             
             # Get or generate JSON reports for both addresses
             primary_report_json = _get_or_generate_report_json(address, user_id, filename)
@@ -419,14 +398,6 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                             "- _demographics: caption: percentage (total 100%)\n"
                             "- _rating: number out of 10 (e.g., 6.8/10)\n\n"
 
-                            "COMPARISON REPORT STRUCTURE:\n"
-                            "- Report should include section-by-section comparisons for: Safety, Lifestyle, Commute, Education, Amenities, Financial, Environment, Investment Potential\n"
-                            "- Each section should have:\n"
-                            "   * data/ratings for both properties\n"
-                            "   * 1–2 sentences of summary analysis\n"
-                            "   * declared winner\n\n"
-
-                            f"Use this user preference profile to guide your evaluation and make a strong, confident recommendation:\n{user_preferences}"
                         )
                     },
                     {
@@ -439,7 +410,7 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                     }
                 ],
                 "search_mode": "web",
-                "reasoning_effort": "high",
+                "reasoning_effort": "medium",
                 "temperature": 0.1,
                 "max_tokens": 10000,
                 "stream": False,

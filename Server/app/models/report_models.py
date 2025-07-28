@@ -76,6 +76,23 @@ class NeighborhoodOverview(BaseModel):
             "image_prompt": "Aerial view of a lively beach neighborhood with colorful homes and palm trees",
         }
 
+    @classmethod
+    def get_description(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, str]:
+        """Generate personalized field descriptions based on user preferences"""
+        return {
+            "local_culture": "Describe cultural texture — e.g. 'hipster', 'corporate', 'family-centered'. Use Google Maps Local Guide reviews, Niche, or Yelp for vibe clues. Example: Dana Point embodies coastal Southern California living with a focus on marine activities, beach culture, and outdoor recreation. The community centers around Dana Point Harbor, which serves as a hub for boating, whale watching, and waterfront dining. The area maintains a relaxed yet upscale vibe, balancing tourist attractions with residential tranquility.",
+            "vibe": "Concise summary in 2–5 words, e.g., 'Quiet, green, upscale'. Pull phrasing from AreaVibes or Walk Score if available. Example: Weekly farmers market at La Plaza Park, summer Concerts in the Park series, Festival of Whales, and Holidays at the Harbor with extensive light displays. Harbor-centric events include sailing regattas and tall ship festivals.",
+            "known_for": "Highlight actual attractions, industries, or features. Search Google or Redfin Neighborhood pages. Example: Dana Point is known for its beautiful beaches, surfing, and whale watching.",
+            "community_events": "Real events or typical examples. Use Eventbrite, City-Data Forums, or local news. Example: Weekly farmers market at La Plaza Park, summer Concerts in the Park series, Festival of Whales, and Holidays at the Harbor with extensive light displays. Harbor-centric events include sailing regattas and tall ship festivals.",
+            "what_people_love": "Use friendly, relatable phrases ('parking sucks after 6pm'). Source from Niche.com, Yelp, or Livability.",
+            "things_to_watch_out_for": "Use friendly, relatable phrases about potential drawbacks ('parking sucks after 6pm'). Source from Niche.com, Yelp, or Livability.",
+            "population_total": "Census data, give exact number. Niche or BestPlaces.net typically show this in sidebars.",
+            "neighborhood_rating": "1–10 score. Use the full scale. Base this on livability data from AreaVibes, BestPlaces, or Niche.",
+            "LGBTQ_representation": "Estimate percentage of LGBTQ population and some examples of LGBTQ-friendly amenities.",
+            "image_prompt": "Descriptive prompt for generating a representative image of the neighborhood.",
+            "demographics": "Gender, Race: Estimate distribution for gender, race, age, LGBTQ, and lifestyle DNA. Must total ~100%. Use Niche and City-Data for good snapshots. THESE MUST BE PERCENTAGES I.E. 34.1%, NOTHING ELSE IS ACCEPTABLE. Age distribution: Children (0–9 years), Adolescents (10–19 years), Young Adults (20–29 years), Early Career Adults (30–39 years), Middle-Aged Adults (40–49 years), Older Adults (50–64 years), Seniors (65+ years). Must total ~100%. Lifestyle DNA: Give distribution of lifestyle DNA, take into account all parts of the neighborhood overview. Must total ~100%. THESE MUST ALL BE A BRIEF EXPLANATION : PERCENTAGE I.E. Suburban: 25%, NOTHING ELSE IS ACCEPTABLE."
+        }
+
 class Safety(BaseModel):
     crime_rating: str = Field(
         ...,
@@ -106,11 +123,11 @@ class Safety(BaseModel):
         safety_focus = "family safety" if children_count > 0 else "general safety"
         
         return {
-            "crime_rating": "Crime level assessment (Nonexistent, Low, Moderate, High, Very High). Focus on safety factors most relevant to user's situation.",
-            "places_to_watch_out_for": "Specific areas, intersections, or locations with higher risk. Prioritize areas relevant to user's daily routines and family needs.",
-            "police_presence": "Frequency and visibility of police patrols in the area. Emphasize community policing and response times.",
-            "safety_rating": "Overall safety score out of 10 based on crime data and community perception. Weight factors based on user's safety priorities.",
-            "image_prompt": f"Descriptive prompt for generating an image representing neighborhood safety (emphasizing {safety_focus})."
+            "crime_rating": "Crime level assessment using categories: Nonexistent, Low, Moderate, High, Very High. Base on local crime statistics, police reports, and community safety data. Use sources like local police department crime maps, Neighborhood Scout, or AreaVibes crime data. Focus on safety factors most relevant to user's situation.",
+            "places_to_watch_out_for": "Specific areas, intersections, or locations with higher risk or safety concerns. Include times of day when relevant. Use local knowledge from City-Data forums, Nextdoor, or police reports. Be specific with street names and locations. Prioritize areas relevant to user's daily routines and family needs.",
+            "police_presence": "Describe frequency and visibility of police patrols, community policing programs, and response times. Source from local police department websites, community meetings, or resident feedback on Nextdoor/City-Data. Emphasize community policing and response times.",
+            "safety_rating": "Overall safety score out of 10 based on crime data, community perception, and safety infrastructure. Use data from AreaVibes, Neighborhood Scout, or local crime statistics. Format as 'X.X/10'. Weight factors based on user's safety priorities.",
+            "image_prompt": f"Descriptive prompt for generating an image that represents neighborhood safety features like well-lit streets, security measures, or safe community spaces (emphasizing {safety_focus})."
         }
 
 class CultureAndEvents(BaseModel):
@@ -141,10 +158,10 @@ class CultureAndEvents(BaseModel):
         hobbies_str = ', '.join(hobbies) if isinstance(hobbies, list) else str(hobbies)
         
         return {
-            "local_events": f"Regular events, festivals, and activities that residents attend. Focus on events that align with user's interests: {hobbies_str}.",
-            "seasonal_trends": "How activity and atmosphere change throughout the year. Consider seasonal preferences and activity patterns that match user's lifestyle.",
-            "community_engagement": "Level of civic participation and community involvement. Assess community spirit and opportunities for user to get involved.",
-            "culture_rating": "Cultural vibrancy score out of 10 based on events and community activities. Weight cultural factors that matter most to the user.",
+            "local_events": f"Events people attend — use names or examples. Search Eventbrite, Meetup, City-Data Forums for specific events. Focus on events that align with user's interests: {hobbies_str}. Include real event names and venues when possible.",
+            "seasonal_trends": "How activity changes throughout the year, e.g., 'Busy in summer, quieter winters'. Check Nomad List or blog search results for seasonal patterns. Consider how seasons affect the user's preferred activities and lifestyle.",
+            "community_engagement": "Civic participation level (e.g., cleanup days, local watch groups). Mention if visible on Meetup or community forums. Assess opportunities for user involvement based on their community involvement preferences.",
+            "culture_rating": "Score should reflect vibrancy and access. Weigh frequency and diversity of events, Eventbrite density is a clue for cultural activity. Rate based on cultural factors that matter most to the user's interests and lifestyle.",
             "image_prompt": "Descriptive prompt for generating an image of local culture and events that reflects the community's cultural character."
         }
 
@@ -170,10 +187,10 @@ class Weather(BaseModel):
     def get_description(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, str]:
         """Generate personalized field descriptions based on user preferences"""
         return {
-            "spring": "Spring weather conditions, temperatures, and comfort level. Consider user's seasonal activity preferences and comfort with spring weather.",
-            "summer": "Summer weather patterns, heat levels, and seasonal characteristics. Focus on summer activities and heat tolerance relevant to user.",
-            "fall": "Autumn weather conditions and seasonal transitions. Assess fall weather appeal based on user's seasonal preferences.",
-            "winter": "Winter weather patterns, cold levels, and seasonal activities. Consider user's cold tolerance and winter activity preferences.",
+            "spring": "Give low/high temps and commentary for spring season. Teleport city pages often summarize this well, or use WeatherSpark/BestPlaces. Mention comfort, humidity, storm risks if relevant. Look for mentions on Nomad List or BestPlaces.net. Consider user's seasonal activity preferences and comfort with spring weather.",
+            "summer": "Give low/high temps and commentary for summer season. Teleport city pages often summarize this well, or use WeatherSpark/BestPlaces. Mention comfort, humidity, storm risks if relevant. Look for mentions on Nomad List or BestPlaces.net. Focus on summer activities and heat tolerance relevant to user.",
+            "fall": "Give low/high temps and commentary for fall season. Teleport city pages often summarize this well, or use WeatherSpark/BestPlaces. Mention comfort, humidity, storm risks if relevant. Look for mentions on Nomad List or BestPlaces.net. Assess fall weather appeal based on user's seasonal preferences.",
+            "winter": "Give low/high temps and commentary for winter season. Teleport city pages often summarize this well, or use WeatherSpark/BestPlaces. Mention comfort, humidity, storm risks if relevant. Look for mentions on Nomad List or BestPlaces.net. Consider user's cold tolerance and winter activity preferences.",
             "image_prompt": "Descriptive prompt for generating an image representing the area's climate that appeals to user's weather preferences."
         }
 
@@ -203,10 +220,12 @@ class SocialCharacter(BaseModel):
         income_range = user_preferences.get('income_range', '$50,000-$75,000') if user_preferences else '$50,000-$75,000'
         
         return {
-            "income_level": f"Economic demographic of residents. Consider how the income levels align with user's financial situation ({income_range}) and social comfort.",
-            "religiosity": "Level of religious activity and influence in the community. Assess compatibility with user's spiritual preferences and tolerance for religious influence.",
-            "cultural_tone": "Overall social atmosphere and community personality. Focus on cultural aspects that match user's social preferences and values.",
-            "social_rating": "Community inclusivity and social cohesion score out of 10. Weight factors based on user's social priorities and community involvement preferences.",
+            "income_level": f"E.g., 'Middle-class professionals'. Use Niche or AreaVibes income distribution. Consider how the income levels align with user's financial situation ({income_range}) and social comfort.",
+            "political_leaning": "State clearly. Use Niche political maps or Redfin voting overlays if accessible.",
+            "language_spoken": "Include major spoken languages beyond English. Niche + City-Data often break this down.",
+            "religiosity": "Low / Moderate / High — explain the tone. Use BestPlaces religion % or Niche. Assess compatibility with user's spiritual preferences and tolerance for religious influence.",
+            "cultural_tone": "Summary of vibe ('laid-back but proud'). Pull from Google Maps reviews or Niche user feedback. Focus on cultural aspects that match user's social preferences and values.",
+            "social_rating": "Reflects inclusivity, education, worldview. Niche 'diversity' and 'community' scores are good proxies. Weight factors based on user's social priorities and community involvement preferences.",
             "image_prompt": "Descriptive prompt for generating an image representing the social character that appeals to user's community preferences."
         }
 
@@ -241,16 +260,18 @@ class Restaurant(BaseModel):
             }
     
     @classmethod
-    def get_description(cls, user_preferences: Dict[str, Any]) -> str:
+    def get_description(cls, user_preferences: Dict[str, Any] = None) -> str:
         """Generate field descriptions for Restaurant based on user preferences."""
-        lifestyle = user_preferences.get('lifestyle_type', 'balanced')
+        lifestyle = user_preferences.get('lifestyle_type', 'balanced') if user_preferences else 'balanced'
+        dining_prefs = user_preferences.get('dining_preferences', []) if user_preferences else []
+        dining_str = ', '.join(dining_prefs) if isinstance(dining_prefs, list) else str(dining_prefs)
         
         if lifestyle == 'nightlife':
-            return "Notable restaurants and dining establishments in the area, focusing on trendy spots, late-night dining, and social venues that align with an active nightlife lifestyle."
+            return f"Include real or believable names, vibes, and features. Use Google Maps and Yelp as top sources. Focus on trendy spots, late-night dining, and social venues that align with an active nightlife lifestyle. Consider user's dining preferences: {dining_str}."
         elif lifestyle == 'family':
-            return "Family-friendly restaurants and dining options in the neighborhood, highlighting establishments with kid-friendly menus, accommodating atmospheres, and convenient locations for families."
+            return f"Include real or believable names, vibes, and features. Use Google Maps and Yelp as top sources. Focus on family-friendly restaurants with kid-friendly menus, accommodating atmospheres, and convenient locations for families. Consider user's dining preferences: {dining_str}."
         else:
-            return "Popular restaurants and dining establishments in the area, showcasing the local culinary scene and dining options available to residents."
+            return f"Include real or believable names, vibes, and features. Use Google Maps and Yelp as top sources. Showcase the local culinary scene and dining options available to residents. Consider user's dining preferences: {dining_str}."
 
 class Activity(BaseModel):
     name: str = Field(...)
@@ -280,17 +301,19 @@ class Activity(BaseModel):
             }
     
     @classmethod
-    def get_description(cls, user_preferences: Dict[str, Any]) -> str:
+    def get_description(cls, user_preferences: Dict[str, Any] = None) -> str:
         """Generate field descriptions for Activity based on user preferences."""
-        lifestyle = user_preferences.get('lifestyle_type', 'balanced')
-        children = user_preferences.get('children_count', 0)
+        lifestyle = user_preferences.get('lifestyle_type', 'balanced') if user_preferences else 'balanced'
+        children = user_preferences.get('children_count', 0) if user_preferences else 0
+        hobbies = user_preferences.get('hobbies_interests', []) if user_preferences else []
+        hobbies_str = ', '.join(hobbies) if isinstance(hobbies, list) else str(hobbies)
         
         if lifestyle == 'active':
-            return "Local recreational activities and attractions that promote an active lifestyle, including sports, fitness activities, and outdoor adventures available in the neighborhood."
+            return f"Include real or believable names, vibes, and features. Use Google Maps and Yelp as top sources. Focus on activities that promote an active lifestyle, including sports, fitness activities, and outdoor adventures. Consider user's interests: {hobbies_str}."
         elif children > 0:
-            return "Family-oriented activities and attractions in the area, focusing on entertainment and recreational options suitable for families with children."
+            return f"Include real or believable names, vibes, and features. Use Google Maps and Yelp as top sources. Focus on family-oriented activities and attractions suitable for families with children. Consider user's interests: {hobbies_str}."
         else:
-            return "Popular local activities and attractions available to residents, highlighting recreational opportunities and community engagement options in the neighborhood."
+            return f"Include real or believable names, vibes, and features. Use Google Maps and Yelp as top sources. Highlight recreational opportunities and community engagement options. Consider user's interests: {hobbies_str}."
 
 class Park(BaseModel):
     name: str = Field(...)
@@ -319,17 +342,19 @@ class Park(BaseModel):
             }
     
     @classmethod
-    def get_description(cls, user_preferences: Dict[str, Any]) -> str:
+    def get_description(cls, user_preferences: Dict[str, Any] = None) -> str:
         """Generate field descriptions for Park based on user preferences."""
-        lifestyle = user_preferences.get('lifestyle_type', 'balanced')
-        children = user_preferences.get('children_count', 0)
+        lifestyle = user_preferences.get('lifestyle_type', 'balanced') if user_preferences else 'balanced'
+        children = user_preferences.get('children_count', 0) if user_preferences else 0
+        fitness_activities = user_preferences.get('fitness_activities', []) if user_preferences else []
+        fitness_str = ', '.join(fitness_activities) if isinstance(fitness_activities, list) else str(fitness_activities)
         
         if lifestyle == 'active':
-            return "Parks and green spaces in the area with emphasis on recreational facilities, fitness amenities, and outdoor activity options that support an active lifestyle."
+            return f"Include real or believable names, vibes, and features. Use Google Maps and Yelp as top sources. Focus on parks with recreational facilities, fitness amenities, and outdoor activity options that support an active lifestyle. Consider user's fitness interests: {fitness_str}."
         elif children > 0:
-            return "Local parks and recreational areas with family-friendly amenities, playgrounds, and facilities designed for children and family activities."
+            return f"Include real or believable names, vibes, and features. Use Google Maps and Yelp as top sources. Focus on family-friendly amenities, playgrounds, and facilities designed for children and family activities. Consider user's fitness interests: {fitness_str}."
         else:
-            return "Parks and green spaces available in the neighborhood, highlighting key amenities and recreational features for residents to enjoy."
+            return f"Include real or believable names, vibes, and features. Use Google Maps and Yelp as top sources. Highlight key amenities and recreational features for residents. Consider user's fitness interests: {fitness_str}."
 
 class Amenity(BaseModel):
     name: str = Field(...)
@@ -362,15 +387,15 @@ class Amenity(BaseModel):
             }
     
     @classmethod
-    def get_description(cls, user_preferences: Dict[str, Any]) -> str:
+    def get_description(cls, user_preferences: Dict[str, Any] = None) -> str:
         """Generate field descriptions for Amenity based on user preferences."""
-        lifestyle = user_preferences.get('lifestyle_type', 'balanced')
-        income = user_preferences.get('income_range', 'middle')
+        lifestyle = user_preferences.get('lifestyle_type', 'balanced') if user_preferences else 'balanced'
+        income = user_preferences.get('income_range', 'middle') if user_preferences else 'middle'
         
         if income in ['high', 'very_high']:
-            return "Local amenities and establishments in the area, with focus on upscale shopping, premium services, and high-quality retail options that match your lifestyle preferences."
+            return "Include types and unique value. Use Walk Score or Google Maps search with review snippets. Focus on upscale shopping, premium services, and high-quality retail options that match your lifestyle preferences."
         elif lifestyle == 'family':
-            return "Neighborhood amenities and services with emphasis on family-friendly establishments, convenient shopping options, and services that cater to household and family needs."
+            return "Include types and unique value. Use Walk Score or Google Maps search with review snippets. Focus on family-friendly establishments, convenient shopping options, and services that cater to household and family needs."
         else:
             return "Local amenities and establishments available in the neighborhood, including shopping, services, and convenience options for daily needs."
 
@@ -453,12 +478,12 @@ class LocalAmenities(BaseModel):
         hobbies_str = ', '.join(hobbies) if isinstance(hobbies, list) else str(hobbies)
         
         return {
-            "restaurants": f"List of notable restaurants and dining establishments in the area. Focus on restaurants that match user's dining preferences: {dining_str}.",
-            "activities": f"Popular local activities and attractions. Emphasize activities that align with user's hobbies and interests: {hobbies_str}.",
-            "parks": "Parks and green spaces in the neighborhood. Highlight features that match user's outdoor activity preferences.",
-            "thrift_store": "Local thrift or second-hand store. Include unique character and shopping experience details.",
-            "grocery_store": "Primary grocery store for the area. Focus on quality, selection, and convenience factors.",
-            "late_night_restaurant": "Restaurant or eatery open late for night owls. Consider user's lifestyle and dining schedule preferences."
+            "restaurants": f"Include real or believable names, vibes, and features. Use Google Maps and Yelp as top sources. Focus on restaurants that match user's dining preferences: {dining_str}.",
+            "activities": f"Include real or believable names, vibes, and features. Use Google Maps and Yelp as top sources. Emphasize activities that align with user's hobbies and interests: {hobbies_str}.",
+            "parks": "Include real or believable names, vibes, and features. Use Google Maps and Yelp as top sources. Highlight features that match user's outdoor activity preferences.",
+            "thrift_store": "Include types and unique value. Use Walk Score or Google Maps search with review snippets. Include unique character and shopping experience details.",
+            "grocery_store": "Include types and unique value. Use Walk Score or Google Maps search with review snippets. Focus on quality, selection, and convenience factors.",
+            "late_night_restaurant": "Include types and unique value. Use Walk Score or Google Maps search with review snippets. Consider user's lifestyle and dining schedule preferences."
         }
 
 class Commute(BaseModel):
@@ -502,10 +527,10 @@ class Commute(BaseModel):
         walkability_importance = user_preferences.get('walkability_importance', 'somewhat_important') if user_preferences else 'somewhat_important'
         
         return {
-            "commute_times": f"Typical commute times to major employment centers and downtown areas. Emphasize routes and times relevant to user's commute tolerance ({commute_tolerance}).",
-            "public_transport": "Available public transportation options and their quality. Focus on transit options that align with user's transportation preferences.",
-            "traffic": "Traffic patterns and congestion levels throughout the day. Highlight peak times and alternative routes based on user's schedule flexibility.",
-            "walkability": f"How pedestrian-friendly the area is with Walk Score details. Weight walkability factors based on user's walkability importance ({walkability_importance})."
+            "commute_times": f"Include time by car and public transit. Redfin and Realtor.com neighborhood pages sometimes show this. Emphasize routes and times relevant to user's commute tolerance ({commute_tolerance}).",
+            "public_transport": "Mention system quality. Walk Score's Transit Score or local public agency blog results. Focus on transit options that align with user's transportation preferences.",
+            "traffic": "Describe congestion windows. City-Data forums often contain commuting complaints or hacks. Highlight peak times and alternative routes based on user's schedule flexibility.",
+            "walkability": f"Score should reflect actual pedestrian accessibility. Use Walk Score directly. Weight walkability factors based on user's walkability importance ({walkability_importance})."
         }
 
 class FamilyFriendly(BaseModel):
@@ -544,9 +569,9 @@ class FamilyFriendly(BaseModel):
         children_count = user_preferences.get('children_count', 0) if user_preferences else 0
         
         return {
-            "lots_of_kids": f"Presence and visibility of children in the neighborhood. Focus on family density and child-friendly atmosphere (user has {children_count} children).",
-            "great_for_families": "Family-oriented features and why families choose this area. Emphasize amenities and safety features most relevant to families with children.",
-            "family_rating": "Overall family-friendliness score out of 10. Weight factors based on user's family situation and child-related needs."
+            "lots_of_kids": f"'Yes / Some / Few' with reasoning. Use Niche family scores + Livability.com insights. Focus on family density and child-friendly atmosphere (user has {children_count} children).",
+            "great_for_families": "Emphasize parks, schools, safety. Search '[neighborhood] with kids' or use Niche. Emphasize amenities and safety features most relevant to families with children.",
+            "family_rating": "Honest reflection. Niche 'family grade' is a strong proxy. Weight factors based on user's family situation and child-related needs."
         }
 
 class NightlifeAndDating(BaseModel):
@@ -599,11 +624,12 @@ class NightlifeAndDating(BaseModel):
         age = user_preferences.get('age', 30) if user_preferences else 30
         
         return {
-            "nightlife_rating": "Overall nightlife quality and variety rating out of 10. Consider what appeals to the user's demographic and lifestyle.",
-            "nightlife_score": "Numerical nightlife score for data analysis. Weight based on user's social preferences and age group.",
-            "best_spots": "Popular bars, clubs, and entertainment venues. Focus on venues that match the user's social style and interests.",
-            "dating_scene": f"Local dating culture and opportunities for meeting people. Tailor to user's marital status ({marital_status}) and age ({age}) - focus on relevant social opportunities.",
-            "apps_popularity": "Dating app usage and popularity in the area. Emphasize apps most relevant to user's age group and relationship goals.",
+            "nightlife_rating": "Rate vibrancy of bars, music, and scenes. Use Yelp, Google Maps, or City-Data forum nightlife threads. Consider what appeals to the user's demographic and lifestyle.",
+            "nightlife_score": "Rate vibrancy of bars, music, and scenes. Use Yelp, Google Maps, or City-Data forum nightlife threads. Weight based on user's social preferences and age group.",
+            "best_spots": "Popular bars, clubs, and entertainment venues. Use Yelp, Google Maps, or City-Data forum nightlife threads. Focus on venues that match the user's social style and interests.",
+            "dating_scene": f"Describe energy and dating pool. Search 'dating in [city] Reddit' or Nomad List for vibe. Tailor to user's marital status ({marital_status}) and age ({age}) - focus on relevant social opportunities.",
+            "average_attractiveness_rating": "Be playful but grounded. Use cultural tone and tongue-in-cheek phrasing.",
+            "apps_popularity": "Break down by app, score relative to national averages. Check Reddit threads or blog posts comparing app usage. Emphasize apps most relevant to user's age group and relationship goals.",
             "image_prompt": "Descriptive prompt for generating an image of local nightlife that reflects the user's preferred social atmosphere."
         }
 
@@ -642,17 +668,17 @@ class Accessibility(BaseModel):
             }
     
     @classmethod
-    def get_description(cls, user_preferences: Dict[str, Any]) -> str:
+    def get_description(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, str]:
         """Generate field descriptions for Accessibility based on user preferences."""
-        age = user_preferences.get('age', 30)
-        accessibility_needs = user_preferences.get('accessibility_needs', False)
+        age = user_preferences.get('age', 30) if user_preferences else 30
+        accessibility_needs = user_preferences.get('accessibility_needs', False) if user_preferences else False
         
-        if accessibility_needs:
-            return "Comprehensive accessibility features in the neighborhood, with detailed focus on wheelchair accessibility, ADA compliance, and mobility support features that directly impact daily living for individuals with accessibility needs."
-        elif age > 60:
-            return "Neighborhood accessibility features with emphasis on age-friendly amenities, senior support services, and infrastructure that supports aging in place comfortably and safely."
-        else:
-            return "General accessibility features and compliance levels in the neighborhood, including wheelchair accessibility, ADA compliance, and age-friendly amenities for future planning."
+        return {
+            "wheelchair_friendly": "Assess sidewalk curb cuts, ramps, accessible parking. Use Google Street View for visual inspection. Focus on practical mobility for daily activities.",
+            "ada_compliance": "Check public buildings, transit stops, crosswalks. Use city accessibility reports or ADA compliance databases if available.",
+            "age_friendly": "Look for senior centers, medical facilities, flat terrain, good lighting. Use Google Maps to identify senior-focused amenities and services.",
+            "accessibility_rating": "Overall accessibility score out of 10. Weight factors based on user's age and accessibility needs. Consider infrastructure quality and support services."
+        }
 
 class Development(BaseModel):
     upcoming_changes: str = Field(...)
@@ -694,17 +720,18 @@ class Development(BaseModel):
             }
     
     @classmethod
-    def get_description(cls, user_preferences: Dict[str, Any]) -> str:
+    def get_description(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, str]:
         """Generate field descriptions for Development based on user preferences."""
-        income = user_preferences.get('income_range', 'middle')
-        lifestyle = user_preferences.get('lifestyle_type', 'balanced')
+        income = user_preferences.get('income_range', 'middle') if user_preferences else 'middle'
+        lifestyle = user_preferences.get('lifestyle_type', 'balanced') if user_preferences else 'balanced'
         
-        if income in ['high', 'very_high']:
-            return "Neighborhood development trends and future changes, with focus on luxury developments, premium amenities, and high-end infrastructure projects that may impact property values and lifestyle quality."
-        elif lifestyle == 'family':
-            return "Development activities and planned changes in the neighborhood, emphasizing family-oriented improvements, school construction, park developments, and infrastructure that supports family living."
-        else:
-            return "Current and planned development in the neighborhood, including construction projects, zoning changes, and economic trends that may affect the area's character and livability over time."
+        return {
+            "upcoming_changes": "Search city planning sites, '[city] development projects', or local news. Look for major infrastructure, transit, or commercial projects.",
+            "zoning_or_construction": "Check city zoning maps, building permits, or construction notices. Use Google Maps satellite view to spot active construction sites.",
+            "gentrification_signs": "Look for rising rents, new upscale businesses, demographic shifts. Search '[neighborhood] gentrification' or check local forums for resident discussions.",
+            "vacancy_or_decay": "Use Google Street View to assess building conditions, vacant lots, or boarded storefronts. Check local crime or economic indicators.",
+            "image_prompt": "Descriptive prompt for generating an image that reflects the neighborhood's development character and future trajectory."
+        }
 
 
 
@@ -756,17 +783,20 @@ class EnvironmentUtilities(BaseModel):
             }
     
     @classmethod
-    def get_description(cls, user_preferences: Dict[str, Any]) -> str:
+    def get_description(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, str]:
         """Generate field descriptions for EnvironmentUtilities based on user preferences."""
-        work_from_home = user_preferences.get('work_from_home', False)
-        lifestyle = user_preferences.get('lifestyle_type', 'balanced')
+        work_from_home = user_preferences.get('work_from_home', False) if user_preferences else False
+        lifestyle = user_preferences.get('lifestyle_type', 'balanced') if user_preferences else 'balanced'
         
-        if work_from_home:
-            return "Environmental quality and utility information for the neighborhood, with emphasis on factors important for remote work including internet reliability, noise levels during work hours, and utility costs for home office use."
-        elif lifestyle == 'family':
-            return "Environmental conditions and utility services in the area, focusing on air and water quality for family health, noise levels for children, and utility costs for family households."
-        else:
-            return "Environmental quality indicators and utility information for the neighborhood, including air quality, noise levels, water quality, and average utility costs for residents."
+        return {
+            "air_quality": "Check EPA AirNow or IQAir for AQI data. Look for industrial sources, traffic patterns, or natural factors affecting air quality.",
+            "noise_pollution": "Use Google Street View to assess traffic volume, proximity to airports/highways. Check local noise ordinances or community complaints.",
+            "light_pollution": "Use Dark Site Finder or Light Pollution Map. Consider street lighting, commercial areas, and night sky visibility.",
+            "water_quality": "Check EPA Safe Drinking Water database or local water utility reports. Look for recent violations or boil advisories.",
+            "avg_utility_costs": "Search '[city] average utility costs' or check local utility company websites. Include electricity, gas, water, internet costs.",
+            "internet_speed": "Use Speedtest.net coverage maps or check ISP availability. Important for remote work and modern connectivity needs.",
+            "environmental_rating": "Overall environmental quality score out of 10. Weight factors based on user's work-from-home needs and lifestyle preferences."
+        }
 
 class FinancialInformation(BaseModel):
     monthly_payment: str = Field(...)
@@ -875,14 +905,21 @@ class SchoolInfo(BaseModel):
             }
     
     @classmethod
-    def get_description(cls, user_preferences: Dict[str, Any]) -> str:
+    def get_description(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, str]:
         """Generate field descriptions for SchoolInfo based on user preferences."""
-        children_count = user_preferences.get('children_count', 0)
+        children_count = user_preferences.get('children_count', 0) if user_preferences else 0
         
-        if children_count > 0:
-            return "Detailed information about schools in the area, with comprehensive focus on educational quality, teacher excellence, special programs, and academic outcomes that directly impact your children's educational experience and future opportunities."
-        else:
-            return "School information in the neighborhood for future planning and property value considerations, including educational quality, programs, and academic performance metrics."
+        return {
+            "level": "Elementary, Middle, or High School designation. Use GreatSchools.org or Niche for school level information.",
+            "walking_distance": "Whether school is within walking distance (typically under 0.5 miles). Use Google Maps to measure distance from property.",
+            "school_rating": "GreatSchools rating out of 10 or similar metric. Use GreatSchools.org, Niche, or state education department ratings.",
+            "teacher_quality": "Teacher qualifications, experience, and student-teacher ratios. Check school websites or education department data.",
+            "known_for": "Special programs, academic strengths, or unique offerings. Research school websites, awards, and community reputation.",
+            "gpa_avg": "Average GPA if available for high schools. Check school report cards or state education data.",
+            "sat_avg": "Average SAT scores for high schools. Use school websites or state/district report cards.",
+            "grad_rate": "Graduation rate percentage. Available from state education departments or school report cards.",
+            "top_colleges": "Common college destinations for graduates. Check school websites or guidance counselor information."
+        }
 
 class Schools(BaseModel):
     schools: Dict[str, SchoolInfo] = Field(...)
@@ -934,14 +971,13 @@ class Schools(BaseModel):
             }
     
     @classmethod
-    def get_description(cls, user_preferences: Dict[str, Any]) -> str:
+    def get_description(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, str]:
         """Generate field descriptions for Schools based on user preferences."""
-        children_count = user_preferences.get('children_count', 0)
+        children_count = user_preferences.get('children_count', 0) if user_preferences else 0
         
-        if children_count > 0:
-            return "Comprehensive directory of schools in the neighborhood with detailed information about educational quality, programs, and facilities that directly impact your children's academic success and development."
-        else:
-            return "Local schools information for future planning and property value considerations, including educational quality and community reputation factors."
+        return {
+            "schools": "Dictionary of local schools with comprehensive information. Use GreatSchools.org, Niche, or state education department data for accurate school ratings, programs, and performance metrics. Focus on schools within reasonable distance of the property."
+        }
 
 class ExtraTips(BaseModel):
     parking: str = Field(...)
@@ -979,17 +1015,17 @@ class ExtraTips(BaseModel):
         }
     
     @classmethod
-    def get_description(cls, user_preferences: Dict[str, Any]) -> str:
+    def get_description(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, str]:
         """Generate field descriptions for ExtraTips based on user preferences."""
-        lifestyle = user_preferences.get('lifestyle_type', 'balanced')
-        has_pets = user_preferences.get('has_pets', False)
+        lifestyle = user_preferences.get('lifestyle_type', 'balanced') if user_preferences else 'balanced'
+        has_pets = user_preferences.get('has_pets', False) if user_preferences else False
         
-        if has_pets:
-            return "Essential local tips and practical information for neighborhood living, with special emphasis on pet-friendly amenities, parking solutions, connectivity, and insider knowledge that enhances daily life with pets."
-        elif lifestyle == 'family':
-            return "Practical neighborhood tips and local insights focused on family living, including parking, connectivity, and insider knowledge about the best family-friendly spots and timing for activities."
-        else:
-            return "Helpful local tips and practical information for neighborhood residents, including parking details, pet amenities, connectivity quality, and insider knowledge that makes daily living easier."
+        return {
+            "parking": "Street parking rules, permit requirements, garage availability. Use Google Street View to assess parking density and local parking signs.",
+            "pet_friendly": "Dog parks, pet stores, veterinarians, pet policies. Search '[neighborhood] dog park' or use Google Maps to find pet amenities.",
+            "cell_service_quality": "Coverage quality for major carriers. Check carrier coverage maps or local forums for dead zone reports.",
+            "other_notable_tips": "Local insider knowledge, best times to visit places, hidden gems, traffic patterns. Use local forums, Reddit, or Nextdoor for community insights."
+        }
 
 class FullReport(BaseModel):
     # === All your sections ===

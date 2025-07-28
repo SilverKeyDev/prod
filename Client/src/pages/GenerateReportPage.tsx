@@ -84,7 +84,7 @@ export default function GenerateReportPage() {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const comparisonInputRef = useRef<HTMLInputElement | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const { billingInfo } = useData();
+  const { billingInfo, billingLoading } = useData();
 
   const [address, setAddress] = useState("");
   const [comparisonAddress, setComparisonAddress] = useState("");
@@ -354,6 +354,13 @@ export default function GenerateReportPage() {
       }
     }
 
+    // Check if billing data is still loading
+    if (billingLoading) {
+      console.log("[GenerateReport] ⏳ Billing data still loading, please wait...");
+      setError("Loading billing information, please try again in a moment.");
+      return;
+    }
+
     // Check if user has reports available before starting any operations
     if (!billingInfo || billingInfo.usage.reports_available <= 0) {
       console.log("[GenerateReport] ❌ No reports available, redirecting to subscription");
@@ -552,7 +559,7 @@ export default function GenerateReportPage() {
                   type="text"
                   value={comparisonAddress}
                   onChange={handleComparisonInputChange}
-                  placeholder={scriptsReady ? "Search comparison property" : "Loading..."}
+                  placeholder={scriptsReady ? "Search here" : "Loading..."}
                   disabled={!scriptsReady || isGenerating}
                   className="w-full h-12 sm:h-14 pl-10 sm:pl-12 pr-3 sm:pr-4 rounded-lg border border-gray-300 text-xs sm:text-base focus:ring-2 focus:ring-olive focus:border-olive transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed touch-manipulation"
                   autoComplete="off"
