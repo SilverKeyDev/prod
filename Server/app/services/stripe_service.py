@@ -136,6 +136,8 @@ def handle_checkout_session(session):
             subscription.current_period_end = datetime.utcnow() + timedelta(
                 days=30 if interval == 'month' else 365
             )
+            subscription.reports_limit = -1  # Set reports_limit for unlimited subscriptions
+            current_app.logger.info(f"[CHECKOUT] 🔧 DEBUG: Set subscription.reports_limit = {subscription.reports_limit}")
             current_app.logger.info(
                 f"[CHECKOUT] 🎯 Set user as agent (is_agent=True) for subscription plan: {plan_id}"
             )
@@ -149,6 +151,8 @@ def handle_checkout_session(session):
         subscription.stripe_customer_id = session.get('customer')
         subscription.stripe_subscription_id = session.get('subscription')
         subscription.status = 'active'
+        
+        current_app.logger.info(f"[CHECKOUT] 🔧 DEBUG: Final subscription.reports_limit before commit = {subscription.reports_limit}")
 
         db.session.commit()
         current_app.logger.info(f"[CHECKOUT] ✅ Successfully committed subscription changes for user {user.id}")
