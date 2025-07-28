@@ -6,11 +6,57 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+class GenderDistribution(BaseModel):
+    Male: str = Field(..., description="Percentage of male population")
+    Female: str = Field(..., description="Percentage of female population")
+    
+    class Config:
+        extra = "forbid"
+
+class RacialDistribution(BaseModel):
+    White: str = Field(..., description="Percentage of White population")
+    Latino: str = Field(..., description="Percentage of Latino population")
+    Asian: str = Field(..., description="Percentage of Asian population")
+    Black: str = Field(..., description="Percentage of Black population")
+    Other: str = Field(..., description="Percentage of other racial groups")
+    
+    class Config:
+        extra = "forbid"
+
+class AgeDistribution(BaseModel):
+    age_18_24: str = Field(..., alias="18-24", description="Percentage of population aged 18-24")
+    age_25_34: str = Field(..., alias="25-34", description="Percentage of population aged 25-34")
+    age_35_49: str = Field(..., alias="35-49", description="Percentage of population aged 35-49")
+    age_50_64: str = Field(..., alias="50-64", description="Percentage of population aged 50-64")
+    age_65_plus: str = Field(..., alias="65+", description="Percentage of population aged 65+")
+    
+    class Config:
+        extra = "forbid"
+        allow_population_by_field_name = True
+
+class LifestyleDNA(BaseModel):
+    # Common lifestyle categories - can be extended but these are the main ones
+    Artistic: Optional[str] = Field(None, description="Percentage of artistic lifestyle")
+    Professional: Optional[str] = Field(None, description="Percentage of professional lifestyle")
+    Family_Oriented: Optional[str] = Field(None, description="Percentage of family-oriented lifestyle")
+    Active_Outdoor: Optional[str] = Field(None, description="Percentage of active/outdoor lifestyle")
+    Tech_Remote: Optional[str] = Field(None, description="Percentage of tech/remote worker lifestyle")
+    Retiree: Optional[str] = Field(None, description="Percentage of retiree lifestyle")
+    Student: Optional[str] = Field(None, description="Percentage of student lifestyle")
+    Suburban: Optional[str] = Field(None, description="Percentage of suburban lifestyle")
+    Urban: Optional[str] = Field(None, description="Percentage of urban lifestyle")
+    
+    class Config:
+        extra = "forbid"
+
 class Demographics(BaseModel):
-    gender_distribution: Dict[str, str] = Field(..., description="REQUIRED: Gender distribution as object with percentage values. Must use format: {'Male': 'X%', 'Female': 'Y%'} where percentages add to 100%")
-    racial_distribution: Dict[str, str] = Field(..., description="REQUIRED: Racial/ethnic distribution as object with percentage values. Must use format: {'White': 'X%', 'Latino': 'Y%', 'Asian': 'Z%', 'Other': 'W%'} where percentages add to 100%")
-    age_distribution: Dict[str, str] = Field(..., description="REQUIRED: Age distribution as object with percentage values. Must use EXACT format: {'18-24': 'X%', '25-34': 'Y%', '35-49': 'Z%', '50-64': 'W%', '65+': 'V%'} where percentages add to 100%. DO NOT use median_age or other formats.")
-    lifestyle_dna: Dict[str, str] = Field(..., description="REQUIRED: Lifestyle characteristics as object with percentage values. Must use format: {'Lifestyle1': 'X%', 'Lifestyle2': 'Y%', 'Lifestyle3': 'Z%'} where percentages add to 100%. DO NOT use High/Moderate/Low - use actual percentages.")
+    gender_distribution: GenderDistribution = Field(..., description="REQUIRED: Gender distribution with percentage values that add to 100%")
+    racial_distribution: RacialDistribution = Field(..., description="REQUIRED: Racial/ethnic distribution with percentage values that add to 100%")
+    age_distribution: AgeDistribution = Field(..., description="REQUIRED: Age distribution with percentage values that add to 100%")
+    lifestyle_dna: LifestyleDNA = Field(..., description="REQUIRED: Lifestyle characteristics with percentage values that add to 100%")
+    
+    class Config:
+        extra = "forbid"
     
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -21,9 +67,9 @@ class Demographics(BaseModel):
         
         return {
             "gender_distribution": {"Male": "49%", "Female": "51%"},
-            "racial_distribution": {"White": "70%", "Latino": "15%", "Asian": "10%", "Other": "5%"},
+            "racial_distribution": {"White": "70%", "Latino": "15%", "Asian": "10%", "Black": "3%", "Other": "2%"},
             "age_distribution": {"18-24": "10%", "25-34": "30%", "35-49": "25%", "50-64": "20%", "65+": "15%"},
-            "lifestyle_dna": {"Artistic": "50%", "Surfer": "20%", "Tech Remote Workers": "30%"}
+            "lifestyle_dna": {"Artistic": "50%", "Active_Outdoor": "20%", "Tech_Remote": "30%"}
         }
 
 
@@ -39,6 +85,9 @@ class NeighborhoodOverview(BaseModel):
     LGBTQ_representation: str = Field(...)
     image_prompt: str = Field(...)
     demographics: Demographics = Field(...)
+    
+    class Config:
+        extra = "forbid"
 
     @model_validator(mode="before")
     @classmethod
@@ -115,6 +164,9 @@ class Safety(BaseModel):
         example="Well-lit residential street with sidewalks, street lamps, and visible security features"
     )
     
+    class Config:
+        extra = "forbid"
+    
     @classmethod
     def get_description(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, str]:
         """Generate personalized field descriptions based on user preferences"""
@@ -136,6 +188,9 @@ class CultureAndEvents(BaseModel):
     community_engagement: str = Field(...)
     culture_rating: str = Field(...)
     image_prompt: str = Field(...)
+    
+    class Config:
+        extra = "forbid"
     
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -172,6 +227,9 @@ class Weather(BaseModel):
     winter: str = Field(...)
     image_prompt: str = Field(...)
     
+    class Config:
+        extra = "forbid"
+    
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
         """Generate personalized example based on user preferences"""
@@ -200,6 +258,9 @@ class SocialCharacter(BaseModel):
     cultural_tone: str = Field(...)
     social_rating: str = Field(...)
     image_prompt: str = Field(...)
+    
+    class Config:
+        extra = "forbid"
     
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -233,6 +294,9 @@ class Restaurant(BaseModel):
     name: str = Field(...)
     vibe: Optional[str] = Field(None)
     what_to_try: Optional[str] = Field(None)
+    
+    class Config:
+        extra = "forbid"
     
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any]) -> Dict[str, Any]:
@@ -277,6 +341,9 @@ class Activity(BaseModel):
     name: str = Field(...)
     description: str = Field(...)
     
+    class Config:
+        extra = "forbid"
+    
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any]) -> Dict[str, Any]:
         """Generate example Activity data based on user preferences."""
@@ -319,6 +386,9 @@ class Park(BaseModel):
     name: str = Field(...)
     features: str = Field(...)
     
+    class Config:
+        extra = "forbid"
+    
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any]) -> Dict[str, Any]:
         """Generate example Park data based on user preferences."""
@@ -360,6 +430,9 @@ class Amenity(BaseModel):
     name: str = Field(...)
     type: str = Field(...)
     vibe: Optional[str] = Field(None)
+    
+    class Config:
+        extra = "forbid"
     
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any]) -> Dict[str, Any]:
@@ -408,6 +481,9 @@ class LocalAmenities(BaseModel):
     thrift_store: Amenity = Field(...)
     grocery_store: Amenity = Field(...)
     late_night_restaurant: Amenity = Field(...)
+    
+    class Config:
+        extra = "forbid"
     
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any]) -> Dict[str, Any]:
@@ -492,6 +568,9 @@ class Commute(BaseModel):
     traffic: str = Field(...)
     walkability: str = Field(...)
     
+    class Config:
+        extra = "forbid"
+    
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any]) -> Dict[str, Any]:
         """Generate example Commute data based on user preferences."""
@@ -538,6 +617,9 @@ class FamilyFriendly(BaseModel):
     great_for_families: str = Field(...)
     family_rating: str = Field(...)
     
+    class Config:
+        extra = "forbid"
+    
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any]) -> Dict[str, Any]:
         """Generate example FamilyFriendly data based on user preferences."""
@@ -574,13 +656,26 @@ class FamilyFriendly(BaseModel):
             "family_rating": "Honest reflection. Niche 'family grade' is a strong proxy. Weight factors based on user's family situation and child-related needs."
         }
 
+class AppsPopularity(BaseModel):
+    Tinder: str = Field(..., description="Popularity rating/percentage for Tinder")
+    Hinge: str = Field(..., description="Popularity rating/percentage for Hinge")
+    Bumble: str = Field(..., description="Popularity rating/percentage for Bumble")
+    Coffee_Meets_Bagel: Optional[str] = Field(None, description="Popularity rating/percentage for Coffee Meets Bagel")
+    Match: Optional[str] = Field(None, description="Popularity rating/percentage for Match")
+    OkCupid: Optional[str] = Field(None, description="Popularity rating/percentage for OkCupid")
+    
+    class Config:
+        extra = "forbid"
 class NightlifeAndDating(BaseModel):
     nightlife_rating: str = Field(...)
     nightlife_score: float = Field(...)
     best_spots: str = Field(...)
     dating_scene: str = Field(...)
-    apps_popularity: Dict[str, str] = Field(...)
+    apps_popularity: AppsPopularity = Field(..., description="Dating app popularity in the area")
     image_prompt: str = Field(...)
+    
+    class Config:
+        extra = "forbid"
     
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any]) -> Dict[str, Any]:
@@ -639,6 +734,9 @@ class Accessibility(BaseModel):
     age_friendly: str = Field(...)
     accessibility_rating: str = Field(...)
     
+    class Config:
+        extra = "forbid"
+    
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any]) -> Dict[str, Any]:
         """Generate example Accessibility data based on user preferences."""
@@ -686,6 +784,9 @@ class Development(BaseModel):
     gentrification_signs: str = Field(...)
     vacancy_or_decay: str = Field(...)
     image_prompt: str = Field(...)
+    
+    class Config:
+        extra = "forbid"
     
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any]) -> Dict[str, Any]:
@@ -735,12 +836,22 @@ class Development(BaseModel):
 
 
 
+class UtilityCosts(BaseModel):
+    electricity: str = Field(..., description="Average monthly electricity cost")
+    gas: str = Field(..., description="Average monthly gas cost")
+    water: str = Field(..., description="Average monthly water cost")
+    internet: str = Field(..., description="Average monthly internet cost")
+    trash: Optional[str] = Field(None, description="Average monthly trash/recycling cost")
+    
+    class Config:
+        extra = "forbid"
+
 class EnvironmentUtilities(BaseModel):
     air_quality: str = Field(...)
     noise_pollution: str = Field(...)
     light_pollution: str = Field(...)
     water_quality: str = Field(...)
-    avg_utility_costs: Dict[str, str] = Field(...)
+    avg_utility_costs: UtilityCosts = Field(..., description="Average monthly utility costs breakdown")
     internet_speed: str = Field(...)
     environmental_rating: str = Field(...)
     
@@ -757,7 +868,7 @@ class EnvironmentUtilities(BaseModel):
                 "noise_pollution": "Low - Quiet residential area, minimal traffic, sound barriers on major roads",
                 "light_pollution": "Low - Excellent night sky visibility, thoughtful lighting design",
                 "water_quality": "Premium - Exceeds EPA standards, filtered municipal supply, excellent taste",
-                "avg_utility_costs": {"Electricity": "$180", "Gas": "$65", "Water": "$45", "Internet": "$95"},
+                "avg_utility_costs": {"electricity": "$180", "gas": "$65", "water": "$45", "internet": "$95", "trash": "$25"},
                 "internet_speed": "Fiber available up to 2Gbps, premium service providers, 99.9% uptime",
                 "environmental_rating": "9.2/10"
             }
@@ -767,7 +878,7 @@ class EnvironmentUtilities(BaseModel):
                 "noise_pollution": "Low to moderate - Quiet during work hours, some evening activity",
                 "light_pollution": "Moderate - Some night sky visibility, residential lighting",
                 "water_quality": "Excellent - Meets all EPA standards, good taste, reliable supply",
-                "avg_utility_costs": {"Electricity": "$140", "Gas": "$50", "Water": "$40", "Internet": "$85"},
+                "avg_utility_costs": {"electricity": "$140", "gas": "$50", "water": "$40", "internet": "$85", "trash": "$25"},
                 "internet_speed": "Fiber available up to 1Gbps, multiple high-speed options, reliable for remote work",
                 "environmental_rating": "8.8/10"
             }
@@ -777,7 +888,7 @@ class EnvironmentUtilities(BaseModel):
                 "noise_pollution": "Moderate - Some traffic noise on main roads, generally quiet residential streets",
                 "light_pollution": "Low to moderate - Can see some stars, street lighting present but not excessive",
                 "water_quality": "Excellent - Meets all EPA standards, tastes good, no boil advisories in recent years",
-                "avg_utility_costs": {"Electricity": "$120", "Gas": "$45", "Water": "$35", "Internet": "$65"},
+                "avg_utility_costs": {"electricity": "$120", "gas": "$45", "water": "$35", "internet": "$65", "trash": "$20"},
                 "internet_speed": "Fiber available up to 1Gbps, cable up to 500Mbps, multiple provider options",
                 "environmental_rating": "8.4/10"
             }
@@ -804,6 +915,9 @@ class FinancialInformation(BaseModel):
     value_assessment: str = Field(...)
     investment_potential: str = Field(...)
     financial_rating: str = Field(...)
+    
+    class Config:
+        extra = "forbid"
     
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any]) -> Dict[str, Any]:
@@ -851,6 +965,7 @@ class FinancialInformation(BaseModel):
         }
 
 class SchoolInfo(BaseModel):
+    name: str = Field(..., description="Name of the school")
     level: str = Field(...)
     walking_distance: bool = Field(...)
     school_rating: str = Field(...)
@@ -861,6 +976,9 @@ class SchoolInfo(BaseModel):
     grad_rate: Optional[float] = Field(None)
     top_colleges: Optional[str] = Field(None)
     
+    class Config:
+        extra = "forbid"
+    
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any]) -> Dict[str, Any]:
         """Generate example SchoolInfo data based on user preferences."""
@@ -869,6 +987,7 @@ class SchoolInfo(BaseModel):
         
         if children_count > 0 and income in ['high', 'very_high']:
             return {
+                "name": "Prestigious Academy Elementary",
                 "level": "Elementary",
                 "walking_distance": True,
                 "school_rating": "9.8/10",
@@ -881,6 +1000,7 @@ class SchoolInfo(BaseModel):
             }
         elif children_count > 2:
             return {
+                "name": "Family-Friendly Elementary",
                 "level": "Elementary",
                 "walking_distance": True,
                 "school_rating": "9.4/10",
@@ -893,6 +1013,7 @@ class SchoolInfo(BaseModel):
             }
         else:
             return {
+                "name": "Seaside Elementary",
                 "level": "Elementary",
                 "walking_distance": True,
                 "school_rating": "9.2/10",
@@ -922,7 +1043,10 @@ class SchoolInfo(BaseModel):
         }
 
 class Schools(BaseModel):
-    schools: Dict[str, SchoolInfo] = Field(...)
+    schools: List[SchoolInfo] = Field(..., description="List of schools in the area")
+    
+    class Config:
+        extra = "forbid"
     
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any]) -> Dict[str, Any]:
@@ -935,39 +1059,48 @@ class Schools(BaseModel):
         
         if children_count > 0 and income in ['high', 'very_high']:
             return {
-                "schools": {
-                    "Prestigious Academy Elementary": school_example,
-                    "Excellence Prep Middle School": {
+                "schools": [
+                    {
                         **school_example,
+                        "name": "Prestigious Academy Elementary"
+                    },
+                    {
+                        **school_example,
+                        "name": "Excellence Prep Middle School",
                         "level": "Middle School",
                         "school_rating": "9.9/10",
                         "known_for": "Advanced placement programs, robotics team, debate championship"
                     }
-                }
+                ]
             }
         elif children_count > 2:
             return {
-                "schools": {
-                    "Family-Friendly Elementary": school_example,
-                    "Community Middle School": {
+                "schools": [
+                    {
                         **school_example,
+                        "name": "Family-Friendly Elementary"
+                    },
+                    {
+                        **school_example,
+                        "name": "Community Middle School",
                         "level": "Middle School",
                         "school_rating": "9.0/10",
                         "known_for": "Strong community involvement, diverse programs, inclusive environment"
                     }
-                }
+                ]
             }
         else:
             return {
-                "schools": {
-                    "Seaside Elementary": {
+                "schools": [
+                    {
+                        "name": "Seaside Elementary",
                         "level": "Elementary",
                         "walking_distance": True,
                         "school_rating": "9.2/10",
                         "teacher_quality": "Excellent",
                         "known_for": "STEM programs"
                     }
-                }
+                ]
             }
     
     @classmethod
@@ -984,6 +1117,9 @@ class ExtraTips(BaseModel):
     pet_friendly: str = Field(...)
     cell_service_quality: str = Field(...)
     other_notable_tips: str = Field(...)
+    
+    class Config:
+        extra = "forbid"
     
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any]) -> Dict[str, Any]:
@@ -1049,7 +1185,7 @@ class FullReport(BaseModel):
     _prioritized_fields: List[str] = PrivateAttr(default=[])
 
     class Config:
-        extra = "allow"
+        extra = "forbid"
 
     # ✅ Modern init with PrivateAttr
     def __init__(self, report_customization: Dict[str, Any], **data):
