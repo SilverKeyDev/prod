@@ -430,7 +430,7 @@ export default function Subscription() {
                         className="w-full text-black hover:text-gray-700 px-3 py-2 text-xs font-medium transition-colors flex items-center justify-center"
                       >
                         <Settings className="h-3 w-3 mr-1" />
-                        Cancel Subscription
+                        Manage Subscription
                       </button>
                     </div>
                   )}
