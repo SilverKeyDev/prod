@@ -7,6 +7,7 @@ import CompareReportsPage from "../pages/CompareReportsPage.tsx";
 import PersonalizationPage from "../pages/PersonalizationPage.tsx";
 import Subscription from "../pages/Subscription.tsx";
 import AIAssistant from "../pages/AIAssistant.tsx";
+import ClientIntelPage from "../pages/ClientIntelPage.tsx";
 import { User } from "../types/index.ts";
 
 interface DashboardProps {
@@ -27,10 +28,10 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
         setSidebarExpanded(false);
       }
     };
-    
+
     checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
   return (
@@ -45,16 +46,16 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
 
       <main
         className={`flex-1 transition-all duration-200 ${
-          isMobile 
-            ? sidebarExpanded 
+          isMobile
+            ? sidebarExpanded
               ? "ml-72" // Full sidebar on mobile when expanded
               : "ml-12" // Small sidebar on mobile when collapsed
-            : sidebarExpanded 
-              ? "ml-72" 
-              : "ml-16"
+            : sidebarExpanded
+            ? "ml-72"
+            : "ml-16"
         }`}
       >
-        <div className={`${isMobile ? 'p-4' : 'p-8'}`}>
+        <div className={`${isMobile ? "p-4" : "p-8"}`}>
           <Routes>
             <Route path="/" element={<GenerateReportPage />} />
             <Route path="reports" element={<PastReports />} />
@@ -62,6 +63,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
             <Route path="ai-assistant" element={<AIAssistant />} />
             <Route path="personalization" element={<PersonalizationPage />} />
             <Route path="subscription" element={<Subscription />} />
+            <Route path="client-information" element={<ClientIntelPage />} />
           </Routes>
         </div>
       </main>

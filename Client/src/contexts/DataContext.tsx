@@ -69,6 +69,8 @@ interface UserProfile {
   subscription: any;
   has_preferences: boolean;
   is_agent: boolean;
+  agent_id?: string;
+  client_ids?: string;
 }
 
 interface UserPreferences {
@@ -340,7 +342,7 @@ export function DataProvider({ children }: DataProviderProps) {
       setPreferencesLoading(true);
       setPreferencesError(null);
 
-      const response = await apiRequest("/api/v1/preferences", {
+      const response = await apiRequest("/api/v1/preferences/preferences", {
         method: "GET",
       });
 

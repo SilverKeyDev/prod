@@ -282,3 +282,4 @@ def get_preferences():
     except Exception as e:
         logger.error(f"🔥 Failed to fetch preferences from DB: {str(e)}", exc_info=True)
         return jsonify({'success': False, 'error': 'Failed to get preferences'}), 500
+    

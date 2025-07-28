@@ -19,6 +19,8 @@ class User(db.Model):
     subscription = db.relationship('Subscription', back_populates='user', uselist=False, lazy='select')
     user_preferences = db.relationship('UserPreferences', back_populates='user', uselist=False, lazy='select')
     is_agent = db.Column(db.Boolean, default=False)
+    client_ids = db.Column(db.Text)  # array of ids of clients
+    agent_id = db.Column(db.String(36))  # id of agent
     
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)
@@ -42,4 +44,6 @@ class User(db.Model):
             'subscription': self.subscription.to_dict() if self.subscription else None,
             'has_preferences': self.has_preferences,
             'is_agent': self.is_agent,
+            'client_ids': self.client_ids,
+            'agent_id': self.agent_id,
         }

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Mail, Lock, ArrowLeft } from "lucide-react";
 import { authApi } from "../lib/api";
 
@@ -8,7 +8,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const navigate = useNavigate();
+
 
   // Clear any existing auth data when login page loads
   useEffect(() => {
@@ -49,8 +49,8 @@ export default function LoginPage() {
       // Dispatch auth change event to update App component state
       window.dispatchEvent(new Event('authChange'));
 
-      // Redirect to dashboard on successful login
-      navigate("/dashboard");
+      // Hard refresh to ensure clean app state
+      window.location.href = "/dashboard";
     } catch (error: unknown) {
       console.error('Login error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Login failed. Please try again.';

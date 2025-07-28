@@ -1,9 +1,19 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Home, FileText, BarChart2, LogOut, CreditCard, User as UserIcon, MessageCircle } from "lucide-react";
+import {
+  Home,
+  FileText,
+  BarChart2,
+  LogOut,
+  CreditCard,
+  User as UserIcon,
+  MessageCircle,
+  Users,
+} from "lucide-react";
 import { User } from "../types/index.ts";
 import { useEffect, useState } from "react";
 import ConfirmationDialog from "./ConfirmationDialog";
 import { apiRequest } from "../lib/api";
+import { useData } from "../contexts/DataContext";
 
 interface SidebarProps {
   user?: User; // make user optional to prevent crash
@@ -21,9 +31,18 @@ const navigation = [
     href: "/dashboard/compare-reports",
     icon: BarChart2,
   },
-  { name: "AI Assistant", href: "/dashboard/ai-assistant", icon: MessageCircle },
-  { name: "Personalization", href: "/dashboard/personalization", icon: UserIcon },
+  {
+    name: "AI Assistant",
+    href: "/dashboard/ai-assistant",
+    icon: MessageCircle,
+  },
+  {
+    name: "Personalization",
+    href: "/dashboard/personalization",
+    icon: UserIcon,
+  },
   { name: "Subscription", href: "/dashboard/subscription", icon: CreditCard },
+  { name: "Client Intel", href: "/dashboard/client-information", icon: Users },
 ];
 
 export default function Sidebar({
@@ -37,6 +56,9 @@ export default function Sidebar({
   const [isLoading, setIsLoading] = useState(true);
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Get userProfile from DataContext for agent check
+  const { userProfile } = useData();
 
   const handleLogoutClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -161,7 +183,10 @@ export default function Sidebar({
               ) : (
                 <div className="flex items-center">
                   <div className="w-9 h-9 bg-gold rounded-full flex items-center justify-center">
-                    <span className="text-black font-semibold" style={{ fontSize: '16px' }}>
+                    <span
+                      className="text-black font-semibold"
+                      style={{ fontSize: "16px" }}
+                    >
                       {user?.name?.charAt(0).toUpperCase() ?? "?"}
                     </span>
                   </div>
@@ -196,7 +221,11 @@ export default function Sidebar({
                       : "text-white/50 hover:bg-brown-light/50 hover:text-white active:bg-brown-light/30"
                   }`}
                 >
-                  <item.icon className={`${isActive(item.href) ? "w-8 h-8" : "w-6 h-6"} transition-all duration-200 ${expanded ? "mr-4" : ""}`} />
+                  <item.icon
+                    className={`${
+                      isActive(item.href) ? "w-8 h-8" : "w-6 h-6"
+                    } transition-all duration-200 ${expanded ? "mr-4" : ""}`}
+                  />
                   <span className={expanded ? "block" : "hidden"}>
                     {item.name}
                   </span>
