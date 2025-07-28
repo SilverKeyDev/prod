@@ -3,7 +3,8 @@ export {};
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapPin, Loader2, AlertCircle, ChevronDown } from "lucide-react";
-import { useData } from "../contexts/DataContext";
+// COMMENTED OUT: Individual report purchases disabled
+// import { useData } from "../contexts/DataContext";
 
 declare global {
   interface Window {
@@ -84,7 +85,8 @@ export default function GenerateReportPage() {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const comparisonInputRef = useRef<HTMLInputElement | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const { billingInfo, billingLoading } = useData();
+  // COMMENTED OUT: Individual report purchases disabled
+  // const { billingInfo, billingLoading } = useData();
 
   const [address, setAddress] = useState("");
   const [comparisonAddress, setComparisonAddress] = useState("");
@@ -354,25 +356,26 @@ export default function GenerateReportPage() {
       }
     }
 
-    // Check if billing data is still loading
-    if (billingLoading) {
-      console.log("[GenerateReport] ⏳ Billing data still loading, please wait...");
-      setError("Loading billing information, please try again in a moment.");
-      return;
-    }
+    // COMMENTED OUT: Individual report purchases disabled
+    // // Check if billing data is still loading
+    // if (billingLoading) {
+    //   console.log("[GenerateReport] ⏳ Billing data still loading, please wait...");
+    //   setError("Loading billing information, please try again in a moment.");
+    //   return;
+    // }
 
-    // Check if user has reports available before starting any operations
-    if (!billingInfo || billingInfo.usage.reports_available <= 0) {
-      console.log("[GenerateReport] ❌ No reports available, redirecting to subscription");
-      navigate("/dashboard/subscription", {
-        state: {
-          message: "You have no reports available. Please subscribe or purchase additional reports to continue.",
-        },
-      });
-      return;
-    }
+    // // Check if user has reports available before starting any operations
+    // if (!billingInfo || billingInfo.usage.reports_available <= 0) {
+    //   console.log("[GenerateReport] ❌ No reports available, redirecting to subscription");
+    //   navigate("/dashboard/subscription", {
+    //     state: {
+    //       message: "You have no reports available. Please subscribe or purchase additional reports to continue.",
+    //     },
+    //   });
+    //   return;
+    // }
 
-    console.log(`[GenerateReport] ✅ Reports available: ${billingInfo.usage.reports_available}, proceeding with generation`);
+    // console.log(`[GenerateReport] ✅ Reports available: ${billingInfo.usage.reports_available}, proceeding with generation`);
 
     setIsGenerating(true);
     setError(null);

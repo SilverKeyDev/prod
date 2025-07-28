@@ -27,57 +27,56 @@ interface Plan {
 }
 
 const plans: Plan[] = [
-  {
-    id: "5-reports",
-    name: "5 Reports",
-    price: 4.99,
-    interval: "one-time",
-    reportsLimit: 5,
-    features: ["No expiration"],
-  },
-  {
-    id: "20-reports",
-    name: "20 Reports",
-    price: 14.99,
-    interval: "one-time",
-    reportsLimit: 20,
-    popular: true,
-    features: ["Save 25% vs individual reports"],
-  },
-  {
-    id: "50-reports",
-    name: "50 Reports",
-    price: 29.99,
-    interval: "one-time",
-    reportsLimit: 50,
-    features: ["Save 40% vs individual reports"],
-  },
+  // COMMENTED OUT: Individual report purchases disabled
+  // {
+  //   id: "5-reports",
+  //   name: "5 Reports",
+  //   price: 4.99,
+  //   interval: "one-time",
+  //   reportsLimit: 5,
+  //   features: ["No expiration"],
+  // },
+  // {
+  //   id: "20-reports",
+  //   name: "20 Reports",
+  //   price: 14.99,
+  //   interval: "one-time",
+  //   reportsLimit: 20,
+  //   popular: true,
+  //   features: ["Save 25% vs individual reports"],
+  // },
+  // {
+  //   id: "50-reports",
+  //   name: "50 Reports",
+  //   price: 29.99,
+  //   interval: "one-time",
+  //   reportsLimit: 50,
+  //   features: ["Save 40% vs individual reports"],
+  // },
   {
     id: "unlimited-monthly",
-    name: "Monthly",
-    price: 9.99,
+    name: "Enterprise Monthly",
+    price: 24.99,
     interval: "month",
     reportsLimit: -1,
     features: [
-      "Unlimited reports",
-      "Advanced property analysis",
       "Priority support",
       "Cancel anytime",
+      "Access to consumer insights",
     ],
   },
   {
     id: "unlimited-yearly",
-    name: "Yearly",
-    price: 99.99,
+    name: "Enterprise Yearly",
+    price: 249.99,
     interval: "year",
     reportsLimit: -1,
     popular: true,
     features: [
-      "Unlimited reports",
-      "Advanced property analysis",
-      "Priority support",
       "Save 17% vs monthly",
+      "Priority support",
       "Cancel anytime",
+      "Access to consumer insights",
     ],
   },
 ];
@@ -89,9 +88,10 @@ export default function Subscription() {
   const location = useLocation();
   const notificationMessage = location.state?.message;
   const cancelled = searchParams.get("cancelled") === "true";
-  const [activeTab, setActiveTab] = useState<"one-time" | "unlimited">(
-    "one-time"
-  );
+  // COMMENTED OUT: Tab functionality removed - only unlimited plans available
+  // const [activeTab, setActiveTab] = useState<"one-time" | "unlimited">(
+  //   "unlimited"
+  // );
   const [showSuccess, setShowSuccess] = useState(false);
   const [toastMessage] = useState(""); // setToastMessage was unused
 
@@ -113,10 +113,9 @@ export default function Subscription() {
 
   // Data is already preloaded by context - no need to fetch
 
+  // Show only unlimited plans since tab functionality is removed
   const filteredPlans = plans.filter((plan) =>
-    activeTab === "one-time"
-      ? plan.interval === "one-time"
-      : plan.interval === "month" || plan.interval === "year"
+    plan.interval === "month" || plan.interval === "year"
   );
 
   const getPlanIcon = (planId: string) => {
@@ -290,9 +289,9 @@ export default function Subscription() {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 lg:gap-4 mb-3 lg:mb-4">
-              {/* Reports Remaining */}
-              <div className="flex flex-col items-center justify-center p-3 lg:p-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 lg:gap-4 mb-3 lg:mb-4">
+              {/* COMMENTED OUT: Reports Remaining - Individual report purchases disabled */}
+              {/* <div className="flex flex-col items-center justify-center p-3 lg:p-4">
                 <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-black">
                   {billingInfo?.usage.reports_available === -1
                     ? "∞"
@@ -303,7 +302,7 @@ export default function Subscription() {
                     ? "Unlimited Reports"
                     : "Reports Remaining"}
                 </div>
-              </div>
+              </div> */}
 
               {/* Plan Details */}
               {billingInfo?.subscription?.plan_id ? (
@@ -422,8 +421,8 @@ export default function Subscription() {
         )}
       </div>
 
-      {/* Billing Toggle */}
-      <div className="flex items-center justify-center mb-4">
+      {/* COMMENTED OUT: Billing Toggle - Tab selector removed since only unlimited plans available */}
+      {/* <div className="flex items-center justify-center mb-4">
         <div className="bg-beige/20 rounded-lg p-1 flex items-center">
           <button
             onClick={() => setActiveTab("one-time")}
@@ -435,7 +434,7 @@ export default function Subscription() {
           >
             One-Time Purchase
           </button>
-          {/*<button
+          <button
             onClick={() => setActiveTab("unlimited")}
             className={`px-6 py-2 rounded text-sm font-medium transition-all ${
               activeTab === "unlimited"
@@ -444,14 +443,14 @@ export default function Subscription() {
             }`}
           >
             Unlimited Subscription
-          </button>*/}
+          </button>
         </div>
-      </div>
+      </div> */}
 
       {/* Plans */}
       <div
         id="plans"
-        className="grid grid-cols-1 md:grid-cols-3 gap-3 lg:gap-4"
+        className="grid grid-cols-1 md:grid-cols-2 gap-3 lg:gap-4"
       >
         {filteredPlans.map((plan) => {
           const displayPrice = plan.price;
