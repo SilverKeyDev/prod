@@ -68,17 +68,23 @@ def create_checkout_session(plan_id: str, customer_email: str):
         raise
 
 
-def create_portal_session(customer_id: str):
-    """Create a Stripe Customer Portal session"""
+@payment_bp.route("/create-portal-session", methods=["POST"])
+@jwt_required()
+def create_portal_session_route():
+    user_id = get_jwt_identity()
+    
+    # You’ll need to look up the Stripe customer ID for this user
+    from app.models.user import User
+    user = User.query.filter_by(id=user_id).first()
+
+    if not user or not user.stripe_customer_id:
+        return jsonify({"error": "Customer not found"}), 404
+
     try:
-        session = stripe.billing_portal.Session.create(
-            customer=customer_id,
-            return_url=f"{os.getenv('FRONTEND_URL')}/dashboard",
-        )
-        return {'url': session.url}
+        session = create_portal_session(user.stripe_customer_id)
+        return jsonify(session)
     except Exception as e:
-        print(f"Error creating portal session: {str(e)}")
-        raise
+        return jsonify({"error": str(e)}), 5
 
 # Webhook handling has been moved to payment.py to avoid duplication
 def handle_checkout_session(session):
