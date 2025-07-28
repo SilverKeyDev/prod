@@ -127,7 +127,6 @@ def handle_checkout_session(session):
             user.reports_available += reports_limit
             db.session.add(user)
             subscription.current_period_end = None
-            subscription.reports_limit = reports_limit
             current_app.logger.info(f"[CHECKOUT] ➕ Incremented reports to {user.reports_available}")
         else:
             # For unlimited subscriptions, set user as agent and activate subscription
