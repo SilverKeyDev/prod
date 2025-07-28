@@ -10,8 +10,9 @@ import {
   Clock,
   CheckCircle,
   AlertCircle,
+  Settings,
 } from "lucide-react";
-import { useStripePayment } from "../hooks/useStripePayment";
+import { useStripePayment, useStripePortal } from "../hooks/useStripePayment";
 import ErrorToast from "../components/ErrorToast";
 import SuccessToast from "../components/SuccessToast";
 import { useData } from "../contexts/DataContext";
@@ -110,12 +111,13 @@ export default function Subscription() {
 
   const { handleSubscription, loading: subscriptionLoading } =
     useStripePayment();
+  const { handlePortal, loading: portalLoading } = useStripePortal();
 
   // Data is already preloaded by context - no need to fetch
 
   // Show only unlimited plans since tab functionality is removed
-  const filteredPlans = plans.filter((plan) =>
-    plan.interval === "month" || plan.interval === "year"
+  const filteredPlans = plans.filter(
+    (plan) => plan.interval === "month" || plan.interval === "year"
   );
 
   const getPlanIcon = (planId: string) => {
@@ -372,6 +374,39 @@ export default function Subscription() {
                   </p>
                 </div>
               )}
+
+              {/* Cancel Membership Button - Show only for active subscriptions */}
+              {billingInfo?.subscription?.plan_id &&
+                billingInfo?.subscription?.status === "active" && (
+                  <div className="bg-gradient-to-br from-red-50 to-red-100 p-4 rounded-xl">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-medium text-black text-sm">
+                        Manage Subscription
+                      </h4>
+                      <Settings className="h-5 w-5 text-red-600" />
+                    </div>
+                    <p className="text-xs text-black/60 mb-3">
+                      Cancel your subscription or update payment methods
+                    </p>
+                    <button
+                      onClick={handlePortal}
+                      disabled={portalLoading}
+                      className="w-full bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center"
+                    >
+                      {portalLoading ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                          Loading...
+                        </>
+                      ) : (
+                        <>
+                          <CreditCard className="h-4 w-4 mr-2" />
+                          Manage Subscription
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
 
               {/* Price */}
               <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-xl">

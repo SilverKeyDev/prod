@@ -130,9 +130,15 @@ def handle_checkout_session(session):
             subscription.reports_limit = reports_limit
             current_app.logger.info(f"[CHECKOUT] ➕ Incremented reports to {user.reports_available}")
         else:
+            # For unlimited subscriptions, set user as agent and activate subscription
+            user.is_agent = True
+            db.session.add(user)
             interval = 'month' if 'monthly' in plan_id else 'year'
             subscription.current_period_end = datetime.utcnow() + timedelta(
                 days=30 if interval == 'month' else 365
+            )
+            current_app.logger.info(
+                f"[CHECKOUT] 🎯 Set user as agent (is_agent=True) for subscription plan: {plan_id}"
             )
             current_app.logger.info(
                 f"[CHECKOUT] 📅 Set subscription period end to {subscription.current_period_end} "
@@ -179,6 +185,14 @@ def handle_successful_payment(invoice):
         # Update subscription status and period
         subscription.status = 'active'
         subscription.current_period_end = datetime.utcfromtimestamp(invoice['period_end'])
+        
+        # For subscription payments, ensure user is set as agent
+        user = User.query.get(subscription.user_id)
+        if user and subscription.plan_id in ['unlimited-monthly', 'unlimited-yearly']:
+            user.is_agent = True
+            db.session.add(user)
+            current_app.logger.info(f'Set user {user.id} as agent (is_agent=True) for subscription payment')
+        
         db.session.commit()
         
         current_app.logger.info(f'Processed payment for subscription {subscription_id}')
