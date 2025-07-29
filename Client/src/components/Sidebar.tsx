@@ -23,7 +23,8 @@ interface SidebarProps {
   isMobile?: boolean;
 }
 
-const navigation = [
+// Base navigation items that are common to all users
+const baseNavigation = [
   { name: "Generate Report", href: "/dashboard", icon: Home },
   { name: "Past Reports", href: "/dashboard/reports", icon: FileText },
   {
@@ -42,8 +43,22 @@ const navigation = [
     icon: UserIcon,
   },
   { name: "Subscription", href: "/dashboard/subscription", icon: CreditCard },
-  { name: "Client Intel", href: "/dashboard/client-information", icon: Users },
 ];
+
+// Function to generate navigation array based on user type
+const getNavigation = (isAgent?: boolean) => {
+  const navigation = [...baseNavigation];
+  
+  if (isAgent) {
+    // For agents, show "Client Information"
+    navigation.push({ name: "Client Information", href: "/dashboard/client-information", icon: Users });
+  } else {
+    // For regular users, show "Agent Connection"
+    navigation.push({ name: "Agent Connection", href: "/dashboard/agent-connection", icon: Users });
+  }
+  
+  return navigation;
+};
 
 export default function Sidebar({
   onLogout,
@@ -211,7 +226,7 @@ export default function Sidebar({
           {/* Navigation - Scrollable middle section */}
           <div className="flex-1 overflow-y-auto min-h-0">
             <nav className="mt-4 pb-4">
-              {navigation.map((item) => (
+              {getNavigation(userProfile?.is_agent).map((item) => (
                 <Link
                   key={item.name}
                   to={item.href}

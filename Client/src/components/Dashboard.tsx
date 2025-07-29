@@ -8,6 +8,7 @@ import PersonalizationPage from "../pages/PersonalizationPage.tsx";
 import Subscription from "../pages/Subscription.tsx";
 import AIAssistant from "../pages/AIAssistant.tsx";
 import ClientIntelPage from "../pages/ClientIntelPage.tsx";
+import AgentConnection from "../pages/AgentConnection.tsx";
 import { User } from "../types/index.ts";
 
 interface DashboardProps {
@@ -64,6 +65,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
             <Route path="personalization" element={<PersonalizationPage />} />
             <Route path="subscription" element={<Subscription />} />
             <Route path="client-information" element={<ClientIntelPage />} />
+            <Route path="agent-connection" element={<AgentConnection />} />
           </Routes>
         </div>
       </main>
