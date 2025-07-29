@@ -15,6 +15,8 @@ import {
   ChevronDown,
   Plus,
   GripVertical,
+  Search,
+  UserPlus,
 } from "lucide-react";
 import {
   DndContext,
@@ -35,6 +37,14 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { apiRequest } from "../lib/api";
 import { useData } from "../contexts/DataContext";
+
+interface Agent {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  created_at?: string;
+}
 
 interface OnboardingData {
   age?: number;
@@ -305,7 +315,7 @@ const SortableReportSection: React.FC<SortableReportSectionProps> = ({
 };
 
 export default function PersonalizationPage() {
-  const { userPreferences, refreshUserPreferences } = useData();
+  const { userPreferences, refreshUserPreferences, userProfile } = useData();
   const [formData, setFormData] = useState<OnboardingData>({});
   const [originalData, setOriginalData] = useState<OnboardingData>({});
   const [isEditMode, setIsEditMode] = useState(false);
@@ -316,6 +326,12 @@ export default function PersonalizationPage() {
   const [openDropdowns, setOpenDropdowns] = useState<{
     [key: string]: boolean;
   }>({});
+  
+  // Agent search state
+  const [agentSearchTerm, setAgentSearchTerm] = useState("");
+  const [agents, setAgents] = useState<Agent[]>([]);
+  const [agentSearchLoading, setAgentSearchLoading] = useState(false);
+  const [currentAgent, setCurrentAgent] = useState<Agent | null>(null);
 
   // Drag and drop sensors
   const sensors = useSensors(
@@ -405,6 +421,114 @@ export default function PersonalizationPage() {
     } catch (error) {
       console.error("Error in getOrderedReportSections:", error);
       return [];
+    }
+  };
+
+  // Agent search functions
+  const searchAgents = async (searchTerm: string) => {
+    if (!searchTerm.trim()) {
+      setAgents([]);
+      return;
+    }
+
+    try {
+      setAgentSearchLoading(true);
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+      const idToken = localStorage.getItem("id_token");
+
+      const response = await fetch(
+        `${apiBaseUrl}/api/v1/preferences/agents?search=${encodeURIComponent(searchTerm)}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const data = await response.json();
+      if (data.success) {
+        setAgents(data.agents || []);
+      } else {
+        console.error("Failed to search agents:", data.error);
+        setAgents([]);
+      }
+    } catch (error) {
+      console.error("Error searching agents:", error);
+      setAgents([]);
+    } finally {
+      setAgentSearchLoading(false);
+    }
+  };
+
+  const handleAgentSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setAgentSearchTerm(value);
+    
+    // Debounce search
+    const timeoutId = setTimeout(() => {
+      searchAgents(value);
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  };
+
+  const assignAgent = async (agent: Agent) => {
+    try {
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+      const idToken = localStorage.getItem("id_token");
+
+      const response = await fetch(
+        `${apiBaseUrl}/api/v1/user/assign-agent`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ agent_id: agent.id }),
+        }
+      );
+
+      const data = await response.json();
+      if (data.success) {
+        setCurrentAgent(agent);
+        setAgentSearchTerm("");
+        setAgents([]);
+      } else {
+        console.error("Failed to assign agent:", data.error);
+      }
+    } catch (error) {
+      console.error("Error assigning agent:", error);
+    }
+  };
+
+  const removeAgent = async () => {
+    try {
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+      const idToken = localStorage.getItem("id_token");
+
+      const response = await fetch(
+        `${apiBaseUrl}/api/v1/user/assign-agent`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ agent_id: null }),
+        }
+      );
+
+      const data = await response.json();
+      if (data.success) {
+        setCurrentAgent(null);
+      } else {
+        console.error("Failed to remove agent:", data.error);
+      }
+    } catch (error) {
+      console.error("Error removing agent:", error);
     }
   };
 
@@ -2231,6 +2355,44 @@ export default function PersonalizationPage() {
                 )}
               </div>
             </div>
+            
+            {/* Agent Search Section */}
+            <div className="mt-8 pt-6 border-t border-gray-200">
+              <h3 className="text-lg font-medium text-black mb-4">Find Your Agent</h3>
+              
+              {/* Search Input */}
+              <div className="space-y-4">
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Search className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <input
+                    type="text"
+                    value={agentSearchTerm}
+                    onChange={handleAgentSearch}
+                    placeholder="Search agents by name or email..."
+                    className="mobile-input pl-10 hover:border-brown focus:border-brown focus:ring-brown/20"
+                  />
+                </div>
+                
+                {/* Search Results Placeholder */}
+                {agentSearchTerm && (
+                  <div className="space-y-2 max-h-60 overflow-y-auto">
+                    <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                      <div>
+                        <h4 className="font-medium text-black">Sample Agent</h4>
+                        <p className="text-sm text-gray-600">agent@example.com</p>
+                        <p className="text-sm text-gray-600">(555) 123-4567</p>
+                      </div>
+                      <button className="flex items-center px-3 py-1 bg-brown text-white rounded-md hover:bg-brown/80 transition-colors text-sm">
+                        <UserPlus className="w-4 h-4 mr-1" />
+                        Add
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         );
 
@@ -2498,6 +2660,92 @@ export default function PersonalizationPage() {
             )}
           </div>
         </div>
+
+        {/* Agent Search Section - Only show for non-agents */}
+        {userProfile && !userProfile.is_agent && (
+          <div className="mb-8">
+            <div className="mobile-card">
+              <h3 className="text-lg font-medium text-black mb-4">Find Your Agent</h3>
+              
+              {/* Search Input */}
+              <div className="space-y-4">
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Search className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <input
+                    type="text"
+                    value={agentSearchTerm}
+                    onChange={handleAgentSearch}
+                    placeholder="Search agents by name or email..."
+                    className="mobile-input pl-10 hover:border-brown focus:border-brown focus:ring-brown/20"
+                  />
+                </div>
+                
+                {/* Search Results */}
+                {agentSearchLoading && (
+                  <div className="text-sm text-gray-500 flex items-center">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-brown mr-2"></div>
+                    Searching agents...
+                  </div>
+                )}
+                
+                {agents.length > 0 && (
+                  <div className="space-y-2 max-h-60 overflow-y-auto">
+                    {agents.map((agent) => (
+                      <div
+                        key={agent.id}
+                        className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                      >
+                        <div>
+                          <h4 className="font-medium text-black">{agent.name}</h4>
+                          <p className="text-sm text-gray-600">{agent.email}</p>
+                          {agent.phone && (
+                            <p className="text-sm text-gray-600">{agent.phone}</p>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => assignAgent(agent)}
+                          className="flex items-center px-3 py-1 bg-brown text-white rounded-md hover:bg-brown/80 transition-colors text-sm"
+                        >
+                          <UserPlus className="w-4 h-4 mr-1" />
+                          Add
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
+                {agentSearchTerm && !agentSearchLoading && agents.length === 0 && (
+                  <div className="text-sm text-gray-500 text-center py-4">
+                    No agents found matching "{agentSearchTerm}"
+                  </div>
+                )}
+                
+                {/* Current Agent Display */}
+                {currentAgent && (
+                  <div className="bg-beige/20 border border-beige rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-medium text-black">{currentAgent.name}</h4>
+                        <p className="text-sm text-gray-600">{currentAgent.email}</p>
+                        {currentAgent.phone && (
+                          <p className="text-sm text-gray-600">{currentAgent.phone}</p>
+                        )}
+                      </div>
+                      <button
+                        onClick={removeAgent}
+                        className="px-3 py-1 text-sm bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Sidebar and Content Layout */}
         <div className="flex gap-8">

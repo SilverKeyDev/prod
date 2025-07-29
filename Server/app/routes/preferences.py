@@ -307,11 +307,14 @@ def get_clients_preferences():
         return jsonify({'success': True, 'preferences': [], 'has_preferences': False}), 500
 
     preferences_list = []
+    user_list = []
     try:
         for client_id in clients:
             pref = UserPreferences.query.filter_by(user_id=client_id).first()
+            user = User.query.filter_by(id=client_id).first()
             if pref:
                 preferences_list.append(pref.to_dict())
+                user_list.append(user.to_dict())
             else:
                 logger.info(f"ℹ️ No preferences found for client user {client_id}")
 
@@ -320,9 +323,59 @@ def get_clients_preferences():
         return jsonify({
             'success': True,
             'preferences': preferences_list,
-            'has_preferences': len(preferences_list) > 0
+            'user_information': user_list
         })
 
     except Exception as e:
         logger.error(f"🔥 Failed to fetch client preferences from DB: {str(e)}", exc_info=True)
         return jsonify({'success': False, 'error': 'Failed to get client preferences'}), 500
+
+
+@preferences_bp.route('/api/v1/preferences/agents', methods=['GET'])
+def get_agents():
+    """
+    Get all agents whose names start with the provided search string.
+    Query parameter: search (optional) - string to search for at the beginning of agent names
+    """
+    try:
+        # Get the search parameter from query string
+        search_term = request.args.get('search', '').strip()
+        
+        logger.info(f"[GET_AGENTS] Searching for agents with name starting with: '{search_term}'")
+        
+        # Build the query to find agents
+        query = User.query.filter(User.is_agent == True)
+        
+        # If search term is provided, filter by name starting with the search term (case-insensitive)
+        if search_term:
+            query = query.filter(User.name.ilike(f'{search_term}%'))
+        
+        # Execute query and get results
+        agents = query.all()
+        
+        # Format the response
+        agent_list = []
+        for agent in agents:
+            agent_data = {
+                'id': agent.id,
+                'name': agent.name,
+                'email': agent.email,
+                'phone': agent.phone,
+                'created_at': agent.created_at.isoformat() if agent.created_at else None
+            }
+            agent_list.append(agent_data)
+        
+        logger.info(f"[GET_AGENTS] Found {len(agent_list)} agents matching search criteria")
+        
+        return jsonify({
+            'success': True,
+            'agents': agent_list,
+            'count': len(agent_list)
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"🔥 Failed to fetch agents: {str(e)}", exc_info=True)
+        return jsonify({
+            'success': False, 
+            'error': 'Failed to fetch agents'
+        }), 500
