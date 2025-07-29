@@ -1840,12 +1840,38 @@ export default function OnboardingPage() {
         );
 
       case "reportcustomization":
+        if (loading) {
+          return (
+            <div className="space-y-6">
+              <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
+                Report Customization
+              </h2>
+              <p className="text-gray-600">
+                Loading report customization options...
+              </p>
+            </div>
+          );
+        }
+
         const orderedSections = getOrderedReportSections();
+
+        if (!orderedSections || orderedSections.length === 0) {
+          return (
+            <div className="space-y-6">
+              <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
+                Report Customization
+              </h2>
+              <p className="text-gray-600">
+                Loading report customization options...
+              </p>
+            </div>
+          );
+        }
 
         return (
           <div className="space-y-6">
             <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
-              Customize Your Reports
+              Report Customization
             </h2>
             <p className="text-gray-600 mb-6">
               Choose which sections to include in your property reports and drag
@@ -1867,21 +1893,24 @@ export default function OnboardingPage() {
                 strategy={verticalListSortingStrategy}
               >
                 <div className="space-y-2">
-                  {orderedSections?.map((section, index) => {
-                    if (!section || !section.key) return null;
+                  {orderedSections?.map((section) => {
+                    if (!section || !section.key || !section.label)
+                      return null;
 
                     // Get the actual boolean field value (section.key already has include_ prefix)
                     const booleanFieldName =
                       section.key as keyof OnboardingData;
                     const fieldValue = formData[booleanFieldName];
-                    const isChecked =
-                      typeof fieldValue === "boolean" ? fieldValue : true;
-                    const priorities = formData.report_section_priorities || [];
+                    const priorities =
+                      formData.report_section_priorities || [];
                     const priorityIndex = priorities.indexOf(section.key);
-                    const priority =
-                      isChecked && priorityIndex !== -1
-                        ? priorityIndex + 1
-                        : undefined;
+                    // Only checked if both boolean field is true AND section is in priorities array
+                    const isChecked =
+                      (typeof fieldValue === "boolean" ? fieldValue : true) &&
+                      priorityIndex !== -1;
+                    const priority = isChecked
+                      ? priorityIndex + 1
+                      : undefined;
 
                     return (
                       <SortableReportSection
