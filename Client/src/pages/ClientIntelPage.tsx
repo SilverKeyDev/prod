@@ -76,14 +76,15 @@ const ClientIntelPage: React.FC = () => {
   const fetchClientData = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("jwtToken");
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+      const idToken = localStorage.getItem("id_token");
 
       const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/api/v1/preferences/clients`,
+        `${apiBaseUrl}/api/v1/preferences/clients`,
         {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${idToken}`,
             "Content-Type": "application/json",
           },
         }

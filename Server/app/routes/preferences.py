@@ -282,4 +282,47 @@ def get_preferences():
     except Exception as e:
         logger.error(f"🔥 Failed to fetch preferences from DB: {str(e)}", exc_info=True)
         return jsonify({'success': False, 'error': 'Failed to get preferences'}), 500
-    
+
+
+@preferences_bp.route('/api/v1/preferences/clients', methods=['GET'])
+def get_clients_preferences():
+    logger = current_app.logger
+    logger.info("📥 [GET] /api/v1/preferences/clients - Fetching preferences for client users")
+
+    try:
+        user = get_current_user()
+        if not user:
+            logger.warning("🚫 Unauthorized request: user not found in token")
+            return jsonify({'error': 'Unauthorized', 'success': False}), 401
+        logger.info(f"👤 Authenticated user ID: {user.id}")
+    except Exception as e:
+        logger.error(f"🔥 Failed to get current user: {str(e)}", exc_info=True)
+        return jsonify({'success': False, 'error': 'Authorization failure'}), 500
+
+    try:
+        clients = user.client_ids
+        logger.info(f"🔗 Client IDs: {clients}")
+    except Exception as e:
+        logger.error(f"🔥 Failed to parse client IDs: {str(e)}", exc_info=True)
+        return jsonify({'success': True, 'preferences': [], 'has_preferences': False}), 500
+
+    preferences_list = []
+    try:
+        for client_id in clients:
+            pref = UserPreferences.query.filter_by(user_id=client_id).first()
+            if pref:
+                preferences_list.append(pref.to_dict())
+            else:
+                logger.info(f"ℹ️ No preferences found for client user {client_id}")
+
+        logger.info(f"✅ Retrieved {len(preferences_list)} preferences out of {len(clients)} clients")
+
+        return jsonify({
+            'success': True,
+            'preferences': preferences_list,
+            'has_preferences': len(preferences_list) > 0
+        })
+
+    except Exception as e:
+        logger.error(f"🔥 Failed to fetch client preferences from DB: {str(e)}", exc_info=True)
+        return jsonify({'success': False, 'error': 'Failed to get client preferences'}), 500

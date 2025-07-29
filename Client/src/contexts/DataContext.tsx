@@ -342,7 +342,7 @@ export function DataProvider({ children }: DataProviderProps) {
       setPreferencesLoading(true);
       setPreferencesError(null);
 
-      const response = await apiRequest("/api/v1/preferences/preferences", {
+      const response = await apiRequest("/api/v1/preferences", {
         method: "GET",
       });
 
