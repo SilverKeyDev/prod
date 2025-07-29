@@ -2,16 +2,16 @@ import React, { useState, useEffect } from "react";
 import {
   Users,
   Download,
-  Share2,
   Search,
   Eye,
-  Calendar,
   Phone,
   Mail,
   User,
   FileText,
-  Clock,
   AlertCircle,
+  X,
+  Check,
+  Target,
 } from "lucide-react";
 import { useData } from "../contexts/DataContext";
 
@@ -63,6 +63,8 @@ const ClientIntelPage: React.FC = () => {
   const [filterBy, setFilterBy] = useState<
     "all" | "with_preferences" | "without_preferences"
   >("all");
+  const [selectedClient, setSelectedClient] = useState<ClientData | null>(null);
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     fetchClientData();
@@ -74,33 +76,32 @@ const ClientIntelPage: React.FC = () => {
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
       const idToken = localStorage.getItem("id_token");
 
-      const response = await fetch(
-        `${apiBaseUrl}/api/v1/preferences/clients`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${idToken}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await fetch(`${apiBaseUrl}/api/v1/preferences/clients`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+          "Content-Type": "application/json",
+        },
+      });
 
       const data: ClientIntelResponse = await response.json();
 
       if (data.success) {
         // Combine user information with preferences data
-        const combinedData: ClientData[] = data.user_information.map((user: any, index: number) => {
-          const preferences = data.preferences[index] || null;
-          return {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            phone: user.phone,
-            created_at: user.created_at,
-            has_preferences: preferences !== null,
-            preferences: preferences
-          };
-        });
+        const combinedData: ClientData[] = data.user_information.map(
+          (user: any, index: number) => {
+            const preferences = data.preferences[index] || null;
+            return {
+              id: user.id,
+              name: user.name,
+              email: user.email,
+              phone: user.phone,
+              created_at: user.created_at,
+              has_preferences: preferences !== null,
+              preferences: preferences,
+            };
+          }
+        );
         setClientData(combinedData);
       }
     } catch (err) {
@@ -123,6 +124,216 @@ const ClientIntelPage: React.FC = () => {
 
     return matchesSearch && matchesFilter;
   });
+
+  // Handler function for viewing details
+  const handleViewDetails = (client: ClientData) => {
+    setSelectedClient(client);
+    setShowModal(true);
+  };
+
+  // Handler function for action plan
+  const handleActionPlan = (client: ClientData) => {
+    // TODO: Implement action plan functionality
+    console.log('Action Plan clicked for client:', client.name);
+    // This could open a new modal, navigate to a different page, or show action plan details
+    alert(`Action Plan for ${client.name} - Feature coming soon!`);
+  };
+
+  // Export user preferences to CSV
+  const exportPreferencesToCSV = () => {
+    if (!selectedClient || !selectedClient.preferences) {
+      return;
+    }
+
+    const preferences = selectedClient.preferences;
+    const rows: string[][] = [];
+
+    // Add header
+    rows.push(["Section", "Field", "Value"]);
+
+    // Process each section
+    Object.entries(preferences).forEach(([sectionKey, sectionData]) => {
+      if (
+        sectionData &&
+        typeof sectionData === "object" &&
+        !Array.isArray(sectionData)
+      ) {
+        Object.entries(sectionData).forEach(([fieldKey, fieldValue]) => {
+          if (
+            fieldValue !== null &&
+            fieldValue !== undefined &&
+            fieldValue !== ""
+          ) {
+            const sectionName = sectionKey
+              .replace(/_/g, " ")
+              .replace(/\b\w/g, (l) => l.toUpperCase());
+            const fieldName = fieldKey
+              .replace(/_/g, " ")
+              .replace(/\b\w/g, (l) => l.toUpperCase());
+
+            let value = "";
+            if (Array.isArray(fieldValue)) {
+              value =
+                fieldValue.length > 0 ? fieldValue.join(", ") : "Not specified";
+            } else if (typeof fieldValue === "object") {
+              value = JSON.stringify(fieldValue);
+            } else if (typeof fieldValue === "boolean") {
+              value = fieldValue ? "Yes" : "No";
+            } else {
+              // Apply the same formatting logic as the table
+              const rangeFields = [
+                "savings_amount_range",
+                "income_range",
+                "preferred_home_price_range",
+              ];
+              if (rangeFields.includes(fieldKey)) {
+                value = String(fieldValue).replace(/_/g, "-");
+              } else {
+                value = String(fieldValue).replace(/_/g, " ");
+              }
+            }
+
+            rows.push([sectionName, fieldName, value]);
+          }
+        });
+      }
+    });
+
+    // Convert to CSV
+    const csvContent = rows
+      .map((row) =>
+        row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",")
+      )
+      .join("\n");
+
+    // Download CSV
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute(
+      "download",
+      `${selectedClient.name.replace(/\s+/g, "_")}_preferences.csv`
+    );
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Share user preferences CSV
+  const sharePreferencesCSV = async () => {
+    if (!selectedClient || !selectedClient.preferences) {
+      return;
+    }
+
+    const preferences = selectedClient.preferences;
+    const rows: string[][] = [];
+
+    // Add header
+    rows.push(["Section", "Field", "Value"]);
+
+    // Process each section (same logic as export)
+    Object.entries(preferences).forEach(([sectionKey, sectionData]) => {
+      if (
+        sectionData &&
+        typeof sectionData === "object" &&
+        !Array.isArray(sectionData)
+      ) {
+        Object.entries(sectionData).forEach(([fieldKey, fieldValue]) => {
+          if (
+            fieldValue !== null &&
+            fieldValue !== undefined &&
+            fieldValue !== ""
+          ) {
+            const sectionName = sectionKey
+              .replace(/_/g, " ")
+              .replace(/\b\w/g, (l) => l.toUpperCase());
+            const fieldName = fieldKey
+              .replace(/_/g, " ")
+              .replace(/\b\w/g, (l) => l.toUpperCase());
+
+            let value = "";
+            if (Array.isArray(fieldValue)) {
+              value =
+                fieldValue.length > 0 ? fieldValue.join(", ") : "Not specified";
+            } else if (typeof fieldValue === "object") {
+              value = JSON.stringify(fieldValue);
+            } else if (typeof fieldValue === "boolean") {
+              value = fieldValue ? "Yes" : "No";
+            } else {
+              const rangeFields = [
+                "savings_amount_range",
+                "income_range",
+                "preferred_home_price_range",
+              ];
+              if (rangeFields.includes(fieldKey)) {
+                value = String(fieldValue).replace(/_/g, "-");
+              } else {
+                value = String(fieldValue).replace(/_/g, " ");
+              }
+            }
+
+            rows.push([sectionName, fieldName, value]);
+          }
+        });
+      }
+    });
+
+    // Convert to CSV
+    const csvContent = rows
+      .map((row) =>
+        row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",")
+      )
+      .join("\n");
+
+    if (navigator.share) {
+      try {
+        const blob = new Blob([csvContent], {
+          type: "text/csv;charset=utf-8;",
+        });
+        const file = new File(
+          [blob],
+          `${selectedClient.name.replace(/\s+/g, "_")}_preferences.csv`,
+          {
+            type: "text/csv",
+          }
+        );
+        await navigator.share({
+          title: `${selectedClient.name} - User Preferences`,
+          text: `User preferences for ${selectedClient.name}`,
+          files: [file],
+        });
+      } catch (error) {
+        if ((error as Error).name !== "AbortError") {
+          console.error("Error sharing CSV:", error);
+          // Fallback to copy link
+          fallbackSharePreferencesCSV(csvContent);
+        }
+      }
+    } else {
+      // Fallback for browsers without Web Share API
+      fallbackSharePreferencesCSV(csvContent);
+    }
+  };
+
+  const fallbackSharePreferencesCSV = (csvContent: string) => {
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const shareText = `${selectedClient?.name} User Preferences: ${url}`;
+
+    if (navigator.clipboard) {
+      navigator.clipboard
+        .writeText(shareText)
+        .then(() => {
+          console.log("Share link copied to clipboard");
+        })
+        .catch(() => {
+          console.error("Unable to share CSV. Please use Export instead.");
+        });
+    } else {
+      console.error("Sharing not supported. Please use Export instead.");
+    }
+  };
 
   if (loading) {
     return (
@@ -254,9 +465,6 @@ const ClientIntelPage: React.FC = () => {
                       Contact
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Joined
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Preferences
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -281,6 +489,9 @@ const ClientIntelPage: React.FC = () => {
                             <div className="text-sm font-medium text-black">
                               {client.name}
                             </div>
+                            <div className="text-xs text-gray-500">
+                              Joined: {new Date(client.created_at).toLocaleDateString()}
+                            </div>
                           </div>
                         </div>
                       </td>
@@ -298,12 +509,15 @@ const ClientIntelPage: React.FC = () => {
                           </div>
                         )}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
                         {client.has_preferences ? (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            <FileText className="h-3 w-3 mr-1" />
-                            Complete
-                          </span>
+                          <button
+                            onClick={() => handleViewDetails(client)}
+                            className="text-gold hover:text-gold-light flex items-center transition-colors font-medium"
+                          >
+                            <Eye className="h-4 w-4 mr-1" />
+                            View Details
+                          </button>
                         ) : (
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                             <AlertCircle className="h-3 w-3 mr-1" />
@@ -312,9 +526,12 @@ const ClientIntelPage: React.FC = () => {
                         )}
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
-                        <button className="text-gold hover:text-gold-light flex items-center transition-colors font-medium">
-                          <Eye className="h-4 w-4 mr-1" />
-                          View Details
+                        <button
+                          onClick={() => handleActionPlan(client)}
+                          className="text-olive hover:text-olive-light flex items-center transition-colors font-medium"
+                        >
+                          <Target className="h-4 w-4 mr-1" />
+                          Action Plan
                         </button>
                       </td>
                     </tr>
@@ -339,7 +556,321 @@ const ClientIntelPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* User Preferences Modal */}
+      {showModal && selectedClient && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
+            {/* Modal Header */}
+            <div className="px-6 py-4 border-b border-gray-200 bg-cream/30">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-semibold text-black">
+                    User Preferences - {selectedClient.name}
+                  </h2>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {selectedClient.email}
+                  </p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  {selectedClient.preferences && (
+                    <>
+                      <button
+                        onClick={exportPreferencesToCSV}
+                        className="flex items-center px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-white bg-olive hover:bg-olive-light rounded-lg transition-colors touch-friendly"
+                      >
+                        <Download className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                        <span className="hidden sm:inline">Export CSV</span>
+                        <span className="sm:hidden">CSV</span>
+                      </button>
+                    </>
+                  )}
+                  <button
+                    onClick={() => setShowModal(false)}
+                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <X className="h-6 w-6" />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)] custom-scrollbar">
+              {selectedClient.preferences ? (
+                <UserPreferencesTable
+                  preferences={selectedClient.preferences}
+                />
+              ) : (
+                <div className="text-center py-12">
+                  <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-black mb-2">
+                    No Preferences Found
+                  </h3>
+                  <p className="text-gray-600">
+                    This user hasn't completed their preference setup yet.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </>
+  );
+};
+
+// User Preferences Table Component
+interface UserPreferencesTableProps {
+  preferences: any;
+}
+
+const UserPreferencesTable: React.FC<UserPreferencesTableProps> = ({
+  preferences,
+}) => {
+  // Debug logging for preferences data
+  console.log("[DEBUG] Full preferences object:", preferences);
+  console.log("[DEBUG] Preferences keys:", Object.keys(preferences || {}));
+  console.log("[DEBUG] Report customization data:", preferences?.report_customization);
+  const formatValue = (value: any, fieldKey?: string): string => {
+    if (value === null || value === undefined) {
+      return "Not specified";
+    }
+    if (Array.isArray(value)) {
+      return value.length > 0 ? value.join(", ") : "Not specified";
+    }
+    if (typeof value === "object") {
+      return JSON.stringify(value, null, 2);
+    }
+    if (typeof value === "boolean") {
+      return value ? "Yes" : "No";
+    }
+
+    let stringValue = String(value);
+
+    // Special handling for range fields - use hyphens instead of spaces
+    const rangeFields = [
+      "savings_amount_range",
+      "income_range",
+      "preferred_home_price_range",
+    ];
+    if (fieldKey && rangeFields.includes(fieldKey)) {
+      return stringValue.replace(/_/g, "-");
+    }
+
+    // For all other fields, replace underscores with spaces and capitalize each word
+    return stringValue.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+  };
+
+  const formatFieldName = (key: string): string => {
+    return key.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+  };
+
+  // Define the report section priority order
+  const VALID_REPORT_SECTIONS = [
+    "neighborhood_overview",
+    "safety",
+    "culture_and_events",
+    "weather",
+    "social_character",
+    "local_amenities",
+    "commute",
+    "family_friendly",
+    "nightlife_and_dating",
+    "accessibility",
+    "development",
+    "environment_utilities",
+    "financial_information",
+    "schools",
+    "extra_tips",
+  ];
+
+
+
+
+
+  const renderSection = (title: string, data: any) => {
+    // Add debugging for Report Customization section
+    if (title === "Report Customization") {
+      console.log("[DEBUG] Report Customization data:", data);
+      console.log("[DEBUG] Data type:", typeof data);
+      console.log("[DEBUG] Data keys:", data ? Object.keys(data) : "No data");
+    }
+
+    if (!data || typeof data !== "object") {
+      if (title === "Report Customization") {
+        console.log("[DEBUG] Report Customization: No data or not an object");
+      }
+      return null;
+    }
+
+    const entries = Object.entries(data).filter(
+      ([_, value]) => value !== null && value !== undefined && value !== ""
+    );
+
+    if (title === "Report Customization") {
+      console.log("[DEBUG] Report Customization entries:", entries);
+      console.log("[DEBUG] Entries length:", entries.length);
+    }
+
+    if (entries.length === 0) {
+      if (title === "Report Customization") {
+        console.log("[DEBUG] Report Customization: No entries found");
+      }
+      return null;
+    }
+
+    // Special handling for Report Customization section
+    const isReportCustomization = title === "Report Customization";
+
+    // Sort entries for report customization based on priority order
+    const sortedEntries = isReportCustomization
+      ? entries.sort(([keyA], [keyB]) => {
+          const sectionKeyA = keyA.replace(/^include_/, "");
+          const sectionKeyB = keyB.replace(/^include_/, "");
+          const indexA = VALID_REPORT_SECTIONS.indexOf(sectionKeyA);
+          const indexB = VALID_REPORT_SECTIONS.indexOf(sectionKeyB);
+
+          // Priority sections come first, ordered by their index (1, 2, 3, etc.)
+          if (indexA !== -1 && indexB !== -1) {
+            return indexA - indexB;
+          }
+          // Priority sections come before non-priority sections
+          if (indexA !== -1 && indexB === -1) return -1;
+          if (indexA === -1 && indexB !== -1) return 1;
+          // Non-priority sections are sorted alphabetically at the bottom
+          return sectionKeyA.localeCompare(sectionKeyB);
+        })
+      : entries;
+
+    // Special styling for Report Customization section
+    if (isReportCustomization) {
+      console.log("[DEBUG] Processing Report Customization section");
+      
+      // Handle the actual data structure: {report_section_priorities: [array of sections]}
+      const prioritizedSections = data.report_section_priorities || [];
+      console.log("[DEBUG] Prioritized sections:", prioritizedSections);
+      
+      // Determine which sections are enabled (in the priorities) vs disabled (not in priorities)
+      const enabledSections = prioritizedSections.map((sectionKey: string, index: number) => {
+        const name = sectionKey.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+        const displayName = `${index + 1}. ${name}`;
+        return { key: sectionKey, displayName };
+      });
+      
+      // Find disabled sections (sections in VALID_REPORT_SECTIONS but not in priorities)
+      const disabledSections = VALID_REPORT_SECTIONS
+        .filter(section => !prioritizedSections.includes(section))
+        .map(sectionKey => {
+          const name = sectionKey.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+          const displayName = name; // No numbering for disabled sections
+          return { key: sectionKey, displayName };
+        });
+      
+      console.log("[DEBUG] Enabled sections:", enabledSections);
+      console.log("[DEBUG] Disabled sections:", disabledSections);
+      
+      return (
+        <div className="mb-8">
+          <h3 className="text-lg font-semibold text-black mb-4 pb-2 border-b border-gray-200">
+            {title}
+          </h3>
+          
+          {/* Enabled Sections */}
+          {enabledSections.length > 0 && (
+            <div className="mb-6">
+              <h4 className="text-md font-medium text-olive mb-3 flex items-center gap-2">
+                <Check className="w-4 h-4" />
+                Enabled Sections ({enabledSections.length})
+              </h4>
+              <div className="border-2 border-olive rounded-lg p-4 bg-green-100">
+                <div className="space-y-2">
+                  {enabledSections.map(({ key, displayName }: { key: string; displayName: string }) => (
+                    <div key={key} className="flex items-center text-sm text-black">
+                      <span className="font-medium">{displayName}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {/* Disabled Sections */}
+          {disabledSections.length > 0 && (
+            <div className="mb-6">
+              <h4 className="text-md font-medium text-gray-600 mb-3 flex items-center gap-2">
+                <X className="w-4 h-4" />
+                Disabled Sections ({disabledSections.length})
+              </h4>
+              <div className="border-2 border-gray-300 rounded-lg p-4 bg-gray-50">
+                <div className="space-y-2">
+                  {disabledSections.map(({ key, displayName }: { key: string; displayName: string }) => (
+                    <div key={key} className="flex items-center text-sm text-gray-500">
+                      <span className="font-medium">{displayName}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // Default table rendering for other sections
+    return (
+      <div className="mb-8">
+        <h3 className="text-lg font-semibold text-black mb-4 pb-2 border-b border-gray-200">
+          {title}
+        </h3>
+        <div className="overflow-x-auto">
+          <table className="min-w-full">
+            <tbody className="divide-y divide-gray-100">
+              {sortedEntries.map(([key, value]) => {
+                let displayName = formatFieldName(key);
+
+                return (
+                  <tr key={key} className="hover:bg-gray-50">
+                    <td className="py-3 pr-6 text-sm font-medium text-gray-700 w-1/3">
+                      {displayName}
+                    </td>
+                    <td className="py-3 text-sm text-gray-900">
+                      <div className="max-w-md break-words">
+                        {formatValue(value, key)}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="space-y-6">
+      {renderSection("Demographics", preferences.demographics)}
+      {renderSection("Financial Profile", preferences.financial_profile)}
+      {renderSection("Housing Preferences", preferences.housing_preferences)}
+      {renderSection("Location Preferences", preferences.location_preferences)}
+      {renderSection(
+        "Lifestyle Preferences",
+        preferences.lifestyle_preferences
+      )}
+      {renderSection("Behavioral Patterns", preferences.behavioral_patterns)}
+      {renderSection("Values", preferences.values)}
+      {renderSection("Real Estate", preferences.real_estate)}
+      {renderSection("Agent Preferences", preferences.agent_preferences)}
+      {renderSection(
+        "Personalization Insights",
+        preferences.personalization_insights
+      )}
+      {renderSection("Emotional Signals", preferences.emotional_signals)}
+      {renderSection("Report Customization", preferences.report_customization)}
+      {renderSection("Metadata", preferences.metadata)}
+    </div>
   );
 };
 

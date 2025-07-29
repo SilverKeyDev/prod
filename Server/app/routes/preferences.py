@@ -46,7 +46,6 @@ def get_signing_key(token):
     try:
         headers = jose_jwt.get_unverified_header(token)
         key_id = headers.get('kid')
-        current_app.logger.info(f"Token kid: {key_id}")
         
         # Get JWKS
         jwks = get_jwks()
@@ -75,7 +74,6 @@ def get_signing_key(token):
 
 def get_current_user():
     auth_header = request.headers.get('Authorization', None)
-    current_app.logger.info(f"🔍 Authorization header received: {auth_header[:50] if auth_header else 'None'}...")
     
     if not auth_header:
         current_app.logger.error("❌ Authorization header missing")
@@ -284,6 +282,56 @@ def get_preferences():
         return jsonify({'success': False, 'error': 'Failed to get preferences'}), 500
 
 
+@preferences_bp.route('/api/v1/preferences/user/<user_id>', methods=['GET'])
+def get_user_preferences_by_id(user_id):
+    """
+    Get preferences for a specific user by user ID.
+    Used by agents to view client preferences in ClientIntel.
+    Requires JWT authentication.
+    """
+    try:
+        # Get current user (agent)
+        current_user = get_current_user()
+        if not current_user:
+            return jsonify({'success': False, 'error': 'Authentication required'}), 401
+
+        logger.info(f"🔍 Agent {current_user.id} requesting preferences for user {user_id}")
+
+        # Verify the requested user is in the agent's client list
+        if not hasattr(current_user, 'client_ids') or not current_user.client_ids:
+            logger.warning(f"⚠️ Agent {current_user.id} has no clients assigned")
+            return jsonify({'success': False, 'error': 'No clients assigned to this agent'}), 403
+
+        try:
+            client_ids = json.loads(current_user.client_ids) if isinstance(current_user.client_ids, str) else current_user.client_ids
+        except (json.JSONDecodeError, TypeError):
+            client_ids = []
+
+        if user_id not in client_ids:
+            logger.warning(f"⚠️ Agent {current_user.id} attempted to access preferences for user {user_id} who is not their client")
+            return jsonify({'success': False, 'error': 'Access denied: User is not your client'}), 403
+
+        # Fetch the user's preferences
+        preferences = UserPreferences.query.filter_by(user_id=user_id).first()
+        
+        if preferences:
+            logger.info(f"✅ Found preferences for user {user_id}")
+            return jsonify({
+                'success': True,
+                'preferences': preferences.to_dict()
+            })
+        else:
+            logger.info(f"ℹ️ No preferences found for user {user_id}")
+            return jsonify({
+                'success': True,
+                'preferences': None
+            })
+
+    except Exception as e:
+        logger.error(f"🔥 Failed to fetch user preferences: {str(e)}", exc_info=True)
+        return jsonify({'success': False, 'error': 'Failed to get user preferences'}), 500
+
+
 @preferences_bp.route('/api/v1/preferences/clients', methods=['GET'])
 def get_clients_preferences():
     logger = current_app.logger
@@ -399,8 +447,7 @@ def set_as_agent():
             return jsonify({'success': False, 'error': 'Authorization required'}), 401
 
         token = auth_header.split(' ')[1]
-        logger.info(f"🔍 Authorization header received: Bearer {token[:50]}...")
-        logger.info(f"🎫 Extracted token length: {len(token)} characters")
+
 
         try:
             # Get the signing key for this token
@@ -594,9 +641,7 @@ def remove_agent_relationship():
             return jsonify({'success': False, 'error': 'Authorization required'}), 401
 
         token = auth_header.split(' ')[1]
-        logger.info(f"🔍 Authorization header received: Bearer {token[:50]}...")
-        logger.info(f"🎫 Extracted token length: {len(token)} characters")
-
+      
         try:
             key = get_signing_key(token)
             decoded_token = jose_jwt.decode(

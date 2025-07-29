@@ -326,13 +326,13 @@ export default function PersonalizationPage() {
   const [openDropdowns, setOpenDropdowns] = useState<{
     [key: string]: boolean;
   }>({});
-  
+
   // Agent search state
   const [agentSearchTerm, setAgentSearchTerm] = useState("");
   const [agents, setAgents] = useState<Agent[]>([]);
   const [agentSearchLoading, setAgentSearchLoading] = useState(false);
   const [assignedAgents, setAssignedAgents] = useState<Agent[]>([]);
-  
+
   // Confirmation modal state
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [agentToRemove, setAgentToRemove] = useState<Agent | null>(null);
@@ -448,7 +448,10 @@ export default function PersonalizationPage() {
       const data = await response.json();
       if (data.success) {
         setAssignedAgents(data.agents || []);
-        console.log("✅ Successfully loaded user agents:", data.agents?.length || 0);
+        console.log(
+          "✅ Successfully loaded user agents:",
+          data.agents?.length || 0
+        );
       } else {
         console.error("❌ Failed to fetch user agents:", data.error);
       }
@@ -470,7 +473,9 @@ export default function PersonalizationPage() {
       const idToken = localStorage.getItem("id_token");
 
       const response = await fetch(
-        `${apiBaseUrl}/api/v1/preferences/agents?search=${encodeURIComponent(searchTerm)}`,
+        `${apiBaseUrl}/api/v1/preferences/agents?search=${encodeURIComponent(
+          searchTerm
+        )}`,
         {
           method: "GET",
           headers: {
@@ -483,7 +488,7 @@ export default function PersonalizationPage() {
       const data = await response.json();
       if (data.success) {
         // Filter out all assigned agents from search results
-        const assignedAgentIds = assignedAgents.map(agent => agent.id);
+        const assignedAgentIds = assignedAgents.map((agent) => agent.id);
         const filteredAgents = (data.agents || []).filter((agent: Agent) => {
           return !assignedAgentIds.includes(agent.id);
         });
@@ -503,7 +508,7 @@ export default function PersonalizationPage() {
   const handleAgentSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setAgentSearchTerm(value);
-    
+
     // Debounce search
     const timeoutId = setTimeout(() => {
       searchAgents(value);
@@ -518,7 +523,9 @@ export default function PersonalizationPage() {
       const idToken = localStorage.getItem("id_token");
 
       const response = await fetch(
-        `${apiBaseUrl}/api/v1/preferences/add?agent_id=${encodeURIComponent(agent.id)}`,
+        `${apiBaseUrl}/api/v1/preferences/add?agent_id=${encodeURIComponent(
+          agent.id
+        )}`,
         {
           method: "GET",
           headers: {
@@ -530,7 +537,7 @@ export default function PersonalizationPage() {
 
       const data = await response.json();
       if (data.success) {
-        setAssignedAgents(prev => [...prev, agent]);
+        setAssignedAgents((prev) => [...prev, agent]);
         setAgentSearchTerm("");
         setAgents([]);
         console.log("✅ Successfully assigned agent:", data.message);
@@ -556,7 +563,9 @@ export default function PersonalizationPage() {
       const idToken = localStorage.getItem("id_token");
 
       const response = await fetch(
-        `${apiBaseUrl}/api/v1/preferences/remove?agent_id=${encodeURIComponent(agentToRemove.id)}`,
+        `${apiBaseUrl}/api/v1/preferences/remove?agent_id=${encodeURIComponent(
+          agentToRemove.id
+        )}`,
         {
           method: "GET",
           headers: {
@@ -569,7 +578,9 @@ export default function PersonalizationPage() {
       const data = await response.json();
       if (data.success) {
         // Remove agent from frontend state
-        setAssignedAgents(prev => prev.filter(agent => agent.id !== agentToRemove.id));
+        setAssignedAgents((prev) =>
+          prev.filter((agent) => agent.id !== agentToRemove.id)
+        );
         console.log("✅ Successfully removed agent:", agentToRemove.name);
       } else {
         console.error("❌ Failed to remove agent:", data.error);
@@ -2412,11 +2423,13 @@ export default function PersonalizationPage() {
                 )}
               </div>
             </div>
-            
+
             {/* Agent Search Section */}
             <div className="mt-8 pt-6 border-t border-gray-200">
-              <h3 className="text-lg font-medium text-black mb-4">Find Your Agent</h3>
-              
+              <h3 className="text-lg font-medium text-black mb-4">
+                Find Your Agent
+              </h3>
+
               {/* Search Input */}
               <div className="space-y-4">
                 <div className="relative">
@@ -2431,14 +2444,16 @@ export default function PersonalizationPage() {
                     className="mobile-input pl-10 hover:border-brown focus:border-brown focus:ring-brown/20"
                   />
                 </div>
-                
+
                 {/* Search Results Placeholder */}
                 {agentSearchTerm && (
                   <div className="space-y-2 max-h-60 overflow-y-auto">
                     <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                       <div>
                         <h4 className="font-medium text-black">Sample Agent</h4>
-                        <p className="text-sm text-gray-600">agent@example.com</p>
+                        <p className="text-sm text-gray-600">
+                          agent@example.com
+                        </p>
                         <p className="text-sm text-gray-600">(555) 123-4567</p>
                       </div>
                       <button className="flex items-center px-3 py-1 bg-brown text-white rounded-md hover:bg-brown/80 transition-colors text-sm">
@@ -2722,8 +2737,10 @@ export default function PersonalizationPage() {
         {userProfile && !userProfile.is_agent && (
           <div className="mb-8">
             <div className="mobile-card">
-              <h3 className="text-lg font-medium text-black mb-4">Find Your Agent</h3>
-              
+              <h3 className="text-lg font-medium text-black mb-4">
+                Find Your Agent
+              </h3>
+
               {/* Search Input */}
               <div className="space-y-4">
                 <div className="relative">
@@ -2738,7 +2755,7 @@ export default function PersonalizationPage() {
                     className="mobile-input pl-10 hover:border-brown focus:border-brown focus:ring-brown/20"
                   />
                 </div>
-                
+
                 {/* Search Results */}
                 {agentSearchLoading && (
                   <div className="text-sm text-gray-500 flex items-center">
@@ -2746,7 +2763,7 @@ export default function PersonalizationPage() {
                     Searching agents...
                   </div>
                 )}
-                
+
                 {agents.length > 0 && (
                   <div className="space-y-2 max-h-60 overflow-y-auto">
                     {agents.map((agent) => (
@@ -2755,10 +2772,14 @@ export default function PersonalizationPage() {
                         className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                       >
                         <div>
-                          <h4 className="font-medium text-black">{agent.name}</h4>
+                          <h4 className="font-medium text-black">
+                            {agent.name}
+                          </h4>
                           <p className="text-sm text-gray-600">{agent.email}</p>
                           {agent.phone && (
-                            <p className="text-sm text-gray-600">{agent.phone}</p>
+                            <p className="text-sm text-gray-600">
+                              {agent.phone}
+                            </p>
                           )}
                         </div>
                         <button
@@ -2772,25 +2793,38 @@ export default function PersonalizationPage() {
                     ))}
                   </div>
                 )}
-                
-                {agentSearchTerm && !agentSearchLoading && agents.length === 0 && (
-                  <div className="text-sm text-gray-500 text-center py-4">
-                    No agents found matching "{agentSearchTerm}"
-                  </div>
-                )}
-                
+
+                {agentSearchTerm &&
+                  !agentSearchLoading &&
+                  agents.length === 0 && (
+                    <div className="text-sm text-gray-500 text-center py-4">
+                      No agents found matching "{agentSearchTerm}"
+                    </div>
+                  )}
+
                 {/* Assigned Agents Display */}
                 {assignedAgents.length > 0 && (
                   <div className="space-y-3">
-                    <h4 className="font-medium text-black text-sm">Your Agents</h4>
+                    <h4 className="font-medium text-black text-sm">
+                      Your Agents
+                    </h4>
                     {assignedAgents.map((agent) => (
-                      <div key={agent.id} className="bg-beige/20 border border-beige rounded-lg p-4">
+                      <div
+                        key={agent.id}
+                        className="bg-beige/20 border border-beige rounded-lg p-4"
+                      >
                         <div className="flex items-center justify-between">
                           <div>
-                            <h4 className="font-medium text-black">{agent.name}</h4>
-                            <p className="text-sm text-gray-600">{agent.email}</p>
+                            <h4 className="font-medium text-black">
+                              {agent.name}
+                            </h4>
+                            <p className="text-sm text-gray-600">
+                              {agent.email}
+                            </p>
                             {agent.phone && (
-                              <p className="text-sm text-gray-600">{agent.phone}</p>
+                              <p className="text-sm text-gray-600">
+                                {agent.phone}
+                              </p>
                             )}
                           </div>
                           <button
@@ -2949,7 +2983,8 @@ export default function PersonalizationPage() {
         )}
 
       {/* Agent Removal Confirmation Modal */}
-      {showConfirmModal && agentToRemove &&
+      {showConfirmModal &&
+        agentToRemove &&
         createPortal(
           <div
             className="fixed inset-0 z-[9999] overflow-y-auto"
@@ -2984,23 +3019,39 @@ export default function PersonalizationPage() {
                 <div className="text-center">
                   {/* Warning Icon */}
                   <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 mb-4">
-                    <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                    <svg
+                      className="h-6 w-6 text-red-600"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth="1.5"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
+                      />
                     </svg>
                   </div>
-                  
+
                   {/* Title */}
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">
                     Remove Agent
                   </h3>
-                  
+
                   {/* Message */}
                   <p className="text-sm text-gray-600 mb-6">
-                    Are you sure you want to remove <span className="font-medium text-gray-900">{agentToRemove.name}</span> as your agent?
-                    <br /><br />
-                    This will remove them from your agent list and you from their client list.
+                    Are you sure you want to remove{" "}
+                    <span className="font-medium text-gray-900">
+                      {agentToRemove.name}
+                    </span>{" "}
+                    as your agent?
+                    <br />
+                    <br />
+                    This will remove them from your agent list and you from
+                    their client list.
                   </p>
-                  
+
                   {/* Buttons */}
                   <div className="flex gap-3 justify-center">
                     <button
