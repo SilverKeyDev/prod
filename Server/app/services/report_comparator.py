@@ -285,7 +285,6 @@ def _extract_summary(data: Dict) -> Dict[str, str]:
     if missing_fields:
         logger.warning(f"Missing fields in report data: {missing_fields}")
 
-    logger.debug(f"✅ Final extracted summary: {json.dumps(summary, indent=2)}")
     return summary
 
 
@@ -333,7 +332,6 @@ def compare_reports(s3_keys: List[str]) -> pd.DataFrame:
             summary = _extract_summary(raw)
             summary["Address"] = address
             results.append(summary)
-            logger.debug(f"✅ Extracted summary for {address}")
         except Exception as e:
             logger.exception(f"❌ Failed to parse or extract report for key={key}")
             results.append({"Address": key, "Error": str(e)})

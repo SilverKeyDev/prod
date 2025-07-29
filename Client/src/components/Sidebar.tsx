@@ -8,6 +8,7 @@ import {
   User as UserIcon,
   MessageCircle,
   Users,
+  Search,
 } from "lucide-react";
 import { User } from "../types/index.ts";
 import { useEffect, useState } from "react";
@@ -31,6 +32,11 @@ const baseNavigation = [
     name: "Compare Reports",
     href: "/dashboard/compare-reports",
     icon: BarChart2,
+  },
+  {
+    name: "Property Search",
+    href: "/dashboard/search",
+    icon: Search,
   },
   {
     name: "AI Assistant",

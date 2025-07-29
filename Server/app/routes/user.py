@@ -25,7 +25,6 @@ def get_user_profile():
             }), 404
             
         user_data = user.to_dict()
-        current_app.logger.debug(f"User profile data being sent: {user_data}")
         return jsonify({
             'success': True,
             'data': user_data

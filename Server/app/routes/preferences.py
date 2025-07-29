@@ -85,7 +85,6 @@ def get_current_user():
         raise Exception("Invalid Authorization header format")
     
     token = auth_header.replace("Bearer ", "")
-    current_app.logger.info(f"🎫 Extracted token length: {len(token)} characters")
     
     # Check if token has the expected JWT format (3 parts separated by dots)
     token_parts = token.split('.')
@@ -142,7 +141,6 @@ def create_or_update_preferences():
         if not user:
             logger.warning("🚫 Unauthorized request: user not found in token")
             return jsonify({'error': 'Unauthorized', 'success': False}), 401
-        logger.info(f"👤 Authenticated user ID: {user.id}")
     except Exception as e:
         logger.error(f"🔥 Failed to get current user: {str(e)}", exc_info=True)
         return jsonify({'success': False, 'error': 'Authorization failure'}), 500
@@ -255,7 +253,6 @@ def get_preferences():
         if not user:
             logger.warning("🚫 Unauthorized request: user not found in token")
             return jsonify({'error': 'Unauthorized', 'success': False}), 401
-        logger.info(f"👤 Authenticated user ID: {user.id}")
     except Exception as e:
         logger.error(f"🔥 Failed to get current user: {str(e)}", exc_info=True)
         return jsonify({'success': False, 'error': 'Authorization failure'}), 500
@@ -270,7 +267,6 @@ def get_preferences():
                 'has_preferences': False
             })
 
-        logger.info(f"✅ Preferences retrieved successfully for user {user.id}")
         return jsonify({
             'success': True,
             'preferences': preferences.to_dict(),
@@ -342,7 +338,6 @@ def get_clients_preferences():
         if not user:
             logger.warning("🚫 Unauthorized request: user not found in token")
             return jsonify({'error': 'Unauthorized', 'success': False}), 401
-        logger.info(f"👤 Authenticated user ID: {user.id}")
     except Exception as e:
         logger.error(f"🔥 Failed to get current user: {str(e)}", exc_info=True)
         return jsonify({'success': False, 'error': 'Authorization failure'}), 500
@@ -472,7 +467,6 @@ def set_as_agent():
                 logger.error("🚫 No user ID found in token")
                 return jsonify({'success': False, 'error': 'Invalid token'}), 401
                 
-            logger.info(f"👤 Authenticated user ID: {user_id}")
             
         except ExpiredSignatureError:
             logger.error("🚫 Token has expired")
@@ -660,7 +654,6 @@ def remove_agent_relationship():
             if not user_id:
                 logger.error("🚫 No user ID found in token")
                 return jsonify({'success': False, 'error': 'Invalid token'}), 401
-            logger.info(f"👤 Authenticated user ID: {user_id}")
 
         except ExpiredSignatureError:
             logger.error("🚫 Token has expired")

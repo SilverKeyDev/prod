@@ -4,6 +4,7 @@ import Sidebar from "./Sidebar.tsx";
 import GenerateReportPage from "../pages/GenerateReportPage.tsx";
 import PastReports from "../pages/PastReports.tsx";
 import CompareReportsPage from "../pages/CompareReportsPage.tsx";
+import SearchPage from "../pages/SearchPage.tsx";
 import PersonalizationPage from "../pages/PersonalizationPage.tsx";
 import Subscription from "../pages/Subscription.tsx";
 import AIAssistant from "../pages/AIAssistant.tsx";
@@ -61,6 +62,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
             <Route path="/" element={<GenerateReportPage />} />
             <Route path="reports" element={<PastReports />} />
             <Route path="compare-reports" element={<CompareReportsPage />} />
+            <Route path="search" element={<SearchPage />} />
             <Route path="ai-assistant" element={<AIAssistant />} />
             <Route path="personalization" element={<PersonalizationPage />} />
             <Route path="subscription" element={<Subscription />} />
