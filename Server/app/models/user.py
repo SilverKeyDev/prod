@@ -20,7 +20,7 @@ class User(db.Model):
     user_preferences = db.relationship('UserPreferences', back_populates='user', uselist=False, lazy='select')
     is_agent = db.Column(db.Boolean, default=False)
     client_ids = db.Column(db.Text)  # array of ids of clients
-    agent_id = db.Column(db.String(36))  # id of agent
+    agent_id = db.Column(db.Text)  # array of ids of agents
     
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)

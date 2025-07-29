@@ -331,7 +331,11 @@ export default function PersonalizationPage() {
   const [agentSearchTerm, setAgentSearchTerm] = useState("");
   const [agents, setAgents] = useState<Agent[]>([]);
   const [agentSearchLoading, setAgentSearchLoading] = useState(false);
-  const [currentAgent, setCurrentAgent] = useState<Agent | null>(null);
+  const [assignedAgents, setAssignedAgents] = useState<Agent[]>([]);
+  
+  // Confirmation modal state
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [agentToRemove, setAgentToRemove] = useState<Agent | null>(null);
 
   // Drag and drop sensors
   const sensors = useSensors(
@@ -424,6 +428,35 @@ export default function PersonalizationPage() {
     }
   };
 
+  // Fetch user's assigned agents
+  const fetchUserAgents = async () => {
+    try {
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+      const idToken = localStorage.getItem("id_token");
+
+      const response = await fetch(
+        `${apiBaseUrl}/api/v1/preferences/users_agents`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const data = await response.json();
+      if (data.success) {
+        setAssignedAgents(data.agents || []);
+        console.log("✅ Successfully loaded user agents:", data.agents?.length || 0);
+      } else {
+        console.error("❌ Failed to fetch user agents:", data.error);
+      }
+    } catch (error) {
+      console.error("💥 Error fetching user agents:", error);
+    }
+  };
+
   // Agent search functions
   const searchAgents = async (searchTerm: string) => {
     if (!searchTerm.trim()) {
@@ -449,7 +482,12 @@ export default function PersonalizationPage() {
 
       const data = await response.json();
       if (data.success) {
-        setAgents(data.agents || []);
+        // Filter out all assigned agents from search results
+        const assignedAgentIds = assignedAgents.map(agent => agent.id);
+        const filteredAgents = (data.agents || []).filter((agent: Agent) => {
+          return !assignedAgentIds.includes(agent.id);
+        });
+        setAgents(filteredAgents);
       } else {
         console.error("Failed to search agents:", data.error);
         setAgents([]);
@@ -480,56 +518,74 @@ export default function PersonalizationPage() {
       const idToken = localStorage.getItem("id_token");
 
       const response = await fetch(
-        `${apiBaseUrl}/api/v1/user/assign-agent`,
+        `${apiBaseUrl}/api/v1/preferences/add?agent_id=${encodeURIComponent(agent.id)}`,
         {
-          method: "POST",
+          method: "GET",
           headers: {
             Authorization: `Bearer ${idToken}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ agent_id: agent.id }),
         }
       );
 
       const data = await response.json();
       if (data.success) {
-        setCurrentAgent(agent);
+        setAssignedAgents(prev => [...prev, agent]);
         setAgentSearchTerm("");
         setAgents([]);
+        console.log("✅ Successfully assigned agent:", data.message);
       } else {
-        console.error("Failed to assign agent:", data.error);
+        console.error("❌ Failed to assign agent:", data.error);
       }
     } catch (error) {
-      console.error("Error assigning agent:", error);
+      console.error("💥 Error assigning agent:", error);
     }
   };
 
-  const removeAgent = async () => {
+  const removeAgent = (agent: Agent) => {
+    // Show custom confirmation modal
+    setAgentToRemove(agent);
+    setShowConfirmModal(true);
+  };
+
+  const confirmRemoveAgent = async () => {
+    if (!agentToRemove) return;
+
     try {
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
       const idToken = localStorage.getItem("id_token");
 
       const response = await fetch(
-        `${apiBaseUrl}/api/v1/user/assign-agent`,
+        `${apiBaseUrl}/api/v1/preferences/remove?agent_id=${encodeURIComponent(agentToRemove.id)}`,
         {
-          method: "POST",
+          method: "GET",
           headers: {
             Authorization: `Bearer ${idToken}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ agent_id: null }),
         }
       );
 
       const data = await response.json();
       if (data.success) {
-        setCurrentAgent(null);
+        // Remove agent from frontend state
+        setAssignedAgents(prev => prev.filter(agent => agent.id !== agentToRemove.id));
+        console.log("✅ Successfully removed agent:", agentToRemove.name);
       } else {
-        console.error("Failed to remove agent:", data.error);
+        console.error("❌ Failed to remove agent:", data.error);
       }
     } catch (error) {
-      console.error("Error removing agent:", error);
+      console.error("💥 Error removing agent:", error);
+    } finally {
+      // Close modal and reset state
+      setShowConfirmModal(false);
+      setAgentToRemove(null);
     }
+  };
+
+  const cancelRemoveAgent = () => {
+    setShowConfirmModal(false);
+    setAgentToRemove(null);
   };
 
   // Handle drag end for reordering
@@ -626,6 +682,7 @@ export default function PersonalizationPage() {
   // Refresh data when page loads to ensure latest updates
   useEffect(() => {
     refreshUserPreferences();
+    fetchUserAgents();
   }, [refreshUserPreferences]);
 
   // Load user preferences from centralized context
@@ -2722,24 +2779,30 @@ export default function PersonalizationPage() {
                   </div>
                 )}
                 
-                {/* Current Agent Display */}
-                {currentAgent && (
-                  <div className="bg-beige/20 border border-beige rounded-lg p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h4 className="font-medium text-black">{currentAgent.name}</h4>
-                        <p className="text-sm text-gray-600">{currentAgent.email}</p>
-                        {currentAgent.phone && (
-                          <p className="text-sm text-gray-600">{currentAgent.phone}</p>
-                        )}
+                {/* Assigned Agents Display */}
+                {assignedAgents.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="font-medium text-black text-sm">Your Agents</h4>
+                    {assignedAgents.map((agent) => (
+                      <div key={agent.id} className="bg-beige/20 border border-beige rounded-lg p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="font-medium text-black">{agent.name}</h4>
+                            <p className="text-sm text-gray-600">{agent.email}</p>
+                            {agent.phone && (
+                              <p className="text-sm text-gray-600">{agent.phone}</p>
+                            )}
+                          </div>
+                          <button
+                            onClick={() => removeAgent(agent)}
+                            className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
+                            title="Remove agent"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
-                      <button
-                        onClick={removeAgent}
-                        className="px-3 py-1 text-sm bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors"
-                      >
-                        Remove
-                      </button>
-                    </div>
+                    ))}
                   </div>
                 )}
               </div>
@@ -2878,6 +2941,83 @@ export default function PersonalizationPage() {
                   >
                     Okay
                   </button>
+                </div>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
+
+      {/* Agent Removal Confirmation Modal */}
+      {showConfirmModal && agentToRemove &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[9999] overflow-y-auto"
+            style={{ left: 0, right: 0, top: 0, bottom: 0 }}
+          >
+            <div
+              className="flex min-h-screen items-center justify-center p-4 sm:p-6"
+              style={{ width: "100vw", height: "100vh" }}
+            >
+              {/* Backdrop */}
+              <div
+                className="fixed inset-0 bg-black/50 transition-opacity"
+                onClick={cancelRemoveAgent}
+                style={{ left: 0, right: 0, top: 0, bottom: 0 }}
+              />
+
+              {/* Dialog */}
+              <div
+                className="relative z-[10000] w-full max-w-md mx-auto transform overflow-hidden rounded-2xl bg-white p-6 text-left shadow-xl transition-all"
+                style={{ maxWidth: "400px" }}
+              >
+                {/* Close button */}
+                <button
+                  type="button"
+                  onClick={cancelRemoveAgent}
+                  className="absolute right-2 top-2 text-gray-400 hover:text-gray-500 touch-friendly"
+                >
+                  <X className="h-5 w-5" aria-hidden="true" />
+                </button>
+
+                {/* Content */}
+                <div className="text-center">
+                  {/* Warning Icon */}
+                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 mb-4">
+                    <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                    </svg>
+                  </div>
+                  
+                  {/* Title */}
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    Remove Agent
+                  </h3>
+                  
+                  {/* Message */}
+                  <p className="text-sm text-gray-600 mb-6">
+                    Are you sure you want to remove <span className="font-medium text-gray-900">{agentToRemove.name}</span> as your agent?
+                    <br /><br />
+                    This will remove them from your agent list and you from their client list.
+                  </p>
+                  
+                  {/* Buttons */}
+                  <div className="flex gap-3 justify-center">
+                    <button
+                      type="button"
+                      onClick={cancelRemoveAgent}
+                      className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brown transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={confirmRemoveAgent}
+                      className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+                    >
+                      Remove Agent
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

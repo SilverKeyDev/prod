@@ -379,3 +379,308 @@ def get_agents():
             'success': False, 
             'error': 'Failed to fetch agents'
         }), 500
+
+
+@preferences_bp.route('/api/v1/preferences/add', methods=['GET'])
+def set_as_agent():
+    """
+    Add the current user to an agent's client list and set the user's agent_id.
+    Query parameter: agent_id (required) - ID of the agent to assign to the user
+    """
+    try:
+        # Get JWT token and verify user
+        auth_header = request.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            logger.warning("🚫 No valid authorization header found")
+            return jsonify({'success': False, 'error': 'Authorization required'}), 401
+
+        token = auth_header.split(' ')[1]
+        logger.info(f"🔍 Authorization header received: Bearer {token[:50]}...")
+        logger.info(f"🎫 Extracted token length: {len(token)} characters")
+
+        try:
+            # Get the signing key for this token
+            key = get_signing_key(token)
+            
+            # Decode and verify the token
+            decoded_token = jose_jwt.decode(
+                token,
+                key=key,
+                algorithms=['RS256'],
+                issuer=COGNITO_ISSUER,
+                options={
+                    'verify_signature': True,
+                    'verify_aud': False,  # We're not verifying audience
+                    'verify_iss': True,
+                    'verify_exp': True
+                }
+            )
+            
+            user_id = decoded_token.get('sub')
+            if not user_id:
+                logger.error("🚫 No user ID found in token")
+                return jsonify({'success': False, 'error': 'Invalid token'}), 401
+                
+            logger.info(f"👤 Authenticated user ID: {user_id}")
+            
+        except ExpiredSignatureError:
+            logger.error("🚫 Token has expired")
+            return jsonify({'success': False, 'error': 'Token expired'}), 401
+        except JWTClaimsError as e:
+            logger.error(f"🚫 JWT claims error: {str(e)}")
+            return jsonify({'success': False, 'error': 'Invalid token claims'}), 401
+        except JWTError as e:
+            logger.error(f"🚫 JWT verification failed: {str(e)}")
+            return jsonify({'success': False, 'error': 'Token verification failed'}), 401
+
+        # Get the agent_id parameter from query string
+        agent_id = request.args.get('agent_id')
+        if not agent_id:
+            logger.warning("🚫 No agent_id provided in request")
+            return jsonify({'success': False, 'error': 'agent_id parameter is required'}), 400
+
+        logger.info(f"[SET_AS_AGENT] Adding user {user_id} to agent {agent_id}'s client list")
+
+        # Find the current user
+        current_user = User.query.filter_by(cognito_id=user_id).first()
+        if not current_user:
+            logger.error(f"🚫 User not found with cognito_id: {user_id}")
+            return jsonify({'success': False, 'error': 'User not found'}), 404
+
+        # Find the agent
+        agent = User.query.filter_by(id=agent_id, is_agent=True).first()
+        if not agent:
+            logger.error(f"🚫 Agent not found with id: {agent_id}")
+            return jsonify({'success': False, 'error': 'Agent not found'}), 404
+
+        # Parse the agent's current client_ids (JSON array)
+        try:
+            if agent.client_ids:
+                client_ids = json.loads(agent.client_ids) if isinstance(agent.client_ids, str) else agent.client_ids
+            else:
+                client_ids = []
+        except (json.JSONDecodeError, TypeError):
+            logger.warning(f"⚠️ Invalid client_ids format for agent {agent_id}, resetting to empty list")
+            client_ids = []
+
+        # Add the current user to the agent's client list if not already present
+        if current_user.id not in client_ids:
+            client_ids.append(current_user.id)
+            agent.client_ids = json.dumps(client_ids)
+            logger.info(f"✅ Added user {current_user.id} to agent {agent_id}'s client list")
+        else:
+            logger.info(f"ℹ️ User {current_user.id} already in agent {agent_id}'s client list")
+
+        # Parse the user's current agent_ids (JSON array like client_ids)
+        try:
+            if current_user.agent_id:
+                agent_ids = json.loads(current_user.agent_id) if isinstance(current_user.agent_id, str) else current_user.agent_id
+            else:
+                agent_ids = []
+        except (json.JSONDecodeError, TypeError):
+            logger.warning(f"⚠️ Invalid agent_id format for user {current_user.id}, resetting to empty list")
+            agent_ids = []
+
+        # Add the agent to the user's agent list if not already present
+        if agent_id not in agent_ids:
+            agent_ids.append(agent_id)
+            current_user.agent_id = json.dumps(agent_ids)
+            logger.info(f"✅ Added agent {agent_id} to user {current_user.id}'s agent list")
+        else:
+            logger.info(f"ℹ️ Agent {agent_id} already in user {current_user.id}'s agent list")
+
+        # Save changes to database
+        db.session.commit()
+        logger.info(f"💾 Successfully saved agent assignment for user {current_user.id}")
+
+        return jsonify({
+            'success': True,
+            'message': f'Successfully assigned agent {agent.name} to user {current_user.name}',
+            'agent': {
+                'id': agent.id,
+                'name': agent.name,
+                'email': agent.email,
+                'phone': agent.phone
+            }
+        }), 200
+
+    except Exception as e:
+        logger.error(f"🔥 Failed to assign agent: {str(e)}", exc_info=True)
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'error': 'Failed to assign agent'
+        }), 500
+
+@preferences_bp.route('/api/v1/preferences/users_agents', methods=['GET'])
+def get_user_agents():
+    """
+    Get all agents assigned to the authenticated user from their agent_id array.
+    Requires JWT authentication.
+    """
+    try:
+        # Find the current user
+        current_user = get_current_user()
+        if not current_user:
+            logger.error(f"🚫 User not found")
+            return jsonify({'success': False, 'error': 'User not found'}), 404
+
+        logger.info(f"[GET_USER_AGENTS] Getting agents for user {current_user.id}")
+
+        # Parse the user's agent_ids (JSON array)
+        try:
+            if current_user.agent_id:
+                agent_ids = json.loads(current_user.agent_id) if isinstance(current_user.agent_id, str) else current_user.agent_id
+            else:
+                agent_ids = []
+        except (json.JSONDecodeError, TypeError):
+            logger.warning(f"⚠️ Invalid agent_id format for user {current_user.id}, treating as empty")
+            agent_ids = []
+
+        # If no agents assigned, return empty list
+        if not agent_ids:
+            logger.info(f"[GET_USER_AGENTS] No agents assigned to user {current_user.id}")
+            return jsonify({
+                'success': True,
+                'agents': [],
+                'count': 0
+            }), 200
+
+        # Get all assigned agents
+        agents = User.query.filter(User.id.in_(agent_ids), User.is_agent == True).all()
+        
+        # Format the response
+        agent_list = []
+        for agent in agents:
+            agent_data = {
+                'id': agent.id,
+                'name': agent.name,
+                'email': agent.email,
+                'phone': agent.phone,
+                'created_at': agent.created_at.isoformat() if agent.created_at else None
+            }
+            agent_list.append(agent_data)
+        
+        logger.info(f"[GET_USER_AGENTS] Found {len(agent_list)} assigned agents for user {current_user.id}")
+        
+        return jsonify({
+            'success': True,
+            'agents': agent_list,
+            'count': len(agent_list)
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"🔥 Failed to fetch user agents: {str(e)}", exc_info=True)
+        return jsonify({
+            'success': False, 
+            'error': 'Failed to fetch user agents'
+        }), 500
+
+@preferences_bp.route('/api/v1/preferences/remove', methods=['GET'])
+def remove_agent_relationship():
+    """
+    Remove the current user from an agent's client list and remove the agent from the user's agent_id list.
+    Query parameter: agent_id (required) - ID of the agent to disassociate from the user
+    """
+    try:
+        # Get JWT token and verify user
+        auth_header = request.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            logger.warning("🚫 No valid authorization header found")
+            return jsonify({'success': False, 'error': 'Authorization required'}), 401
+
+        token = auth_header.split(' ')[1]
+        logger.info(f"🔍 Authorization header received: Bearer {token[:50]}...")
+        logger.info(f"🎫 Extracted token length: {len(token)} characters")
+
+        try:
+            key = get_signing_key(token)
+            decoded_token = jose_jwt.decode(
+                token,
+                key=key,
+                algorithms=['RS256'],
+                issuer=COGNITO_ISSUER,
+                options={
+                    'verify_signature': True,
+                    'verify_aud': False,
+                    'verify_iss': True,
+                    'verify_exp': True
+                }
+            )
+            user_id = decoded_token.get('sub')
+            if not user_id:
+                logger.error("🚫 No user ID found in token")
+                return jsonify({'success': False, 'error': 'Invalid token'}), 401
+            logger.info(f"👤 Authenticated user ID: {user_id}")
+
+        except ExpiredSignatureError:
+            logger.error("🚫 Token has expired")
+            return jsonify({'success': False, 'error': 'Token expired'}), 401
+        except JWTClaimsError as e:
+            logger.error(f"🚫 JWT claims error: {str(e)}")
+            return jsonify({'success': False, 'error': 'Invalid token claims'}), 401
+        except JWTError as e:
+            logger.error(f"🚫 JWT verification failed: {str(e)}")
+            return jsonify({'success': False, 'error': 'Token verification failed'}), 401
+
+        agent_id = request.args.get('agent_id')
+        if not agent_id:
+            logger.warning("🚫 No agent_id provided in request")
+            return jsonify({'success': False, 'error': 'agent_id parameter is required'}), 400
+
+        logger.info(f"[REMOVE_AGENT_RELATIONSHIP] Removing user {user_id} from agent {agent_id}'s client list")
+
+        current_user = User.query.filter_by(cognito_id=user_id).first()
+        if not current_user:
+            logger.error(f"🚫 User not found with cognito_id: {user_id}")
+            return jsonify({'success': False, 'error': 'User not found'}), 404
+
+        agent = User.query.filter_by(id=agent_id, is_agent=True).first()
+        if not agent:
+            logger.error(f"🚫 Agent not found with id: {agent_id}")
+            return jsonify({'success': False, 'error': 'Agent not found'}), 404
+
+        try:
+            client_ids = json.loads(agent.client_ids) if agent.client_ids else []
+        except (json.JSONDecodeError, TypeError):
+            logger.warning(f"⚠️ Invalid client_ids format for agent {agent_id}, resetting to empty list")
+            client_ids = []
+
+        if current_user.id in client_ids:
+            client_ids.remove(current_user.id)
+            agent.client_ids = json.dumps(client_ids)
+            logger.info(f"🗑️ Removed user {current_user.id} from agent {agent_id}'s client list")
+        else:
+            logger.info(f"ℹ️ User {current_user.id} not in agent {agent_id}'s client list")
+
+        try:
+            agent_ids = json.loads(current_user.agent_id) if current_user.agent_id else []
+        except (json.JSONDecodeError, TypeError):
+            logger.warning(f"⚠️ Invalid agent_id format for user {current_user.id}, resetting to empty list")
+            agent_ids = []
+
+        if agent_id in agent_ids:
+            agent_ids.remove(agent_id)
+            current_user.agent_id = json.dumps(agent_ids)
+            logger.info(f"🗑️ Removed agent {agent_id} from user {current_user.id}'s agent list")
+        else:
+            logger.info(f"ℹ️ Agent {agent_id} not in user {current_user.id}'s agent list")
+
+        db.session.commit()
+        logger.info(f"💾 Successfully removed agent relationship for user {current_user.id}")
+
+        return jsonify({
+            'success': True,
+            'message': f'Successfully removed agent {agent.name} from user {current_user.name}',
+            'agent': {
+                'id': agent.id,
+                'name': agent.name,
+                'email': agent.email,
+                'phone': agent.phone
+            }
+        }), 200
+
+    except Exception as e:
+        logger.error(f"🔥 Failed to remove agent: {str(e)}", exc_info=True)
+        db.session.rollback()
+        return jsonify({'success': False, 'error': 'Failed to remove agent'}), 500
