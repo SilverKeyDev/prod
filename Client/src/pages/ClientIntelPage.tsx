@@ -50,10 +50,8 @@ interface ClientData {
 
 interface ClientIntelResponse {
   success: boolean;
-  agent_id: string;
-  agent_name: string;
-  clients: ClientData[];
-  total_clients: number;
+  preferences: any[];
+  user_information: any[];
 }
 
 const ClientIntelPage: React.FC = () => {
@@ -65,9 +63,6 @@ const ClientIntelPage: React.FC = () => {
   const [filterBy, setFilterBy] = useState<
     "all" | "with_preferences" | "without_preferences"
   >("all");
-  const [selectedClients, setSelectedClients] = useState<Set<string>>(
-    new Set()
-  );
 
   useEffect(() => {
     fetchClientData();
@@ -93,7 +88,20 @@ const ClientIntelPage: React.FC = () => {
       const data: ClientIntelResponse = await response.json();
 
       if (data.success) {
-        setClientData(data.clients);
+        // Combine user information with preferences data
+        const combinedData: ClientData[] = data.user_information.map((user: any, index: number) => {
+          const preferences = data.preferences[index] || null;
+          return {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            phone: user.phone,
+            created_at: user.created_at,
+            has_preferences: preferences !== null,
+            preferences: preferences
+          };
+        });
+        setClientData(combinedData);
       }
     } catch (err) {
       setError("Network error occurred");
@@ -115,103 +123,6 @@ const ClientIntelPage: React.FC = () => {
 
     return matchesSearch && matchesFilter;
   });
-
-  const handleSelectClient = (clientId: string) => {
-    const newSelected = new Set(selectedClients);
-    if (newSelected.has(clientId)) {
-      newSelected.delete(clientId);
-    } else {
-      newSelected.add(clientId);
-    }
-    setSelectedClients(newSelected);
-  };
-
-  const handleSelectAll = () => {
-    if (selectedClients.size === filteredClients.length) {
-      setSelectedClients(new Set());
-    } else {
-      setSelectedClients(new Set(filteredClients.map((c) => c.id)));
-    }
-  };
-
-  const handleDownload = () => {
-    const selectedData = clientData.filter((client) =>
-      selectedClients.has(client.id)
-    );
-    const csvContent = generateCSV(selectedData);
-    const blob = new Blob([csvContent], { type: "text/csv" });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `client-intel-${new Date().toISOString().split("T")[0]}.csv`;
-    a.click();
-    window.URL.revokeObjectURL(url);
-  };
-
-  const handleShare = async () => {
-    const selectedData = clientData.filter((client) =>
-      selectedClients.has(client.id)
-    );
-    const shareText = `Client Intel Report - ${
-      selectedData.length
-    } clients\n\n${selectedData
-      .map(
-        (c) =>
-          `${c.name} (${c.email}) - ${
-            c.has_preferences ? "Has Preferences" : "No Preferences"
-          }`
-      )
-      .join("\n")}`;
-
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: "Client Intel Report",
-          text: shareText,
-        });
-      } catch (err) {
-        console.log("Share cancelled");
-      }
-    } else {
-      navigator.clipboard.writeText(shareText);
-      alert("Client data copied to clipboard!");
-    }
-  };
-
-  const generateCSV = (data: ClientData[]) => {
-    const headers = [
-      "Name",
-      "Email",
-      "Phone",
-      "Created Date",
-      "Has Preferences",
-      "Preferences Summary",
-    ];
-    const rows = data.map((client) => [
-      client.name,
-      client.email,
-      client.phone || "N/A",
-      client.created_at
-        ? new Date(client.created_at).toLocaleDateString()
-        : "N/A",
-      client.has_preferences ? "Yes" : "No",
-      client.preferences
-        ? Object.keys(client.preferences).length + " sections"
-        : "None",
-    ]);
-
-    return [headers, ...rows]
-      .map((row) => row.map((field) => `"${field}"`).join(","))
-      .join("\n");
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
 
   if (loading) {
     return (
@@ -262,7 +173,7 @@ const ClientIntelPage: React.FC = () => {
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 max-w-4xl mx-auto">
             <div className="card">
               <div className="flex items-center">
                 <Users className="h-8 w-8 text-blue-600" />
@@ -302,17 +213,6 @@ const ClientIntelPage: React.FC = () => {
                 </div>
               </div>
             </div>
-            <div className="card">
-              <div className="flex items-center">
-                <Clock className="h-8 w-8 text-purple-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Selected</p>
-                  <p className="text-2xl font-bold text-black">
-                    {selectedClients.size}
-                  </p>
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* Filters and Search */}
@@ -340,32 +240,6 @@ const ClientIntelPage: React.FC = () => {
                 <h3 className="text-lg font-medium text-black">
                   Client List ({filteredClients.length})
                 </h3>
-                <div className="flex items-center space-x-3">
-                  <button
-                    onClick={handleSelectAll}
-                    className="text-sm text-gold hover:text-gold-light transition-colors font-medium"
-                  >
-                    {selectedClients.size === filteredClients.length
-                      ? "Deselect All"
-                      : "Select All"}
-                  </button>
-                  <button
-                    onClick={handleShare}
-                    disabled={selectedClients.size === 0}
-                    className="btn-primary py-1 px-2 text-xs font-bold flex items-center disabled:opacity-50 touch-manipulation select-none"
-                  >
-                    <Share2 className="h-3 w-3 mr-1.5" />
-                    Share ({selectedClients.size})
-                  </button>
-                  <button
-                    onClick={handleDownload}
-                    disabled={selectedClients.size === 0}
-                    className="btn-primary py-1 px-2 text-xs font-bold flex items-center disabled:opacity-50 touch-manipulation select-none"
-                  >
-                    <Download className="h-3 w-3 mr-1.5" />
-                    Download ({selectedClients.size})
-                  </button>
-                </div>
               </div>
             </div>
 
@@ -373,17 +247,6 @@ const ClientIntelPage: React.FC = () => {
               <table className="min-w-full divide-y divide-beige">
                 <thead className="bg-cream/50">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
-                      <input
-                        type="checkbox"
-                        checked={
-                          selectedClients.size === filteredClients.length &&
-                          filteredClients.length > 0
-                        }
-                        onChange={handleSelectAll}
-                        className="rounded border-beige text-gold focus:ring-gold/20"
-                      />
-                    </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Client
                     </th>
@@ -408,14 +271,6 @@ const ClientIntelPage: React.FC = () => {
                       className="hover:bg-cream/30 transition-colors"
                     >
                       <td className="px-4 py-4 whitespace-nowrap">
-                        <input
-                          type="checkbox"
-                          checked={selectedClients.has(client.id)}
-                          onChange={() => handleSelectClient(client.id)}
-                          className="rounded border-beige text-gold focus:ring-gold/20"
-                        />
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-10 w-10">
                             <div className="h-10 w-10 rounded-full bg-cream flex items-center justify-center border border-beige">
@@ -425,9 +280,6 @@ const ClientIntelPage: React.FC = () => {
                           <div className="ml-4">
                             <div className="text-sm font-medium text-black">
                               {client.name}
-                            </div>
-                            <div className="text-sm text-gray-500">
-                              ID: {client.id}
                             </div>
                           </div>
                         </div>
@@ -445,14 +297,6 @@ const ClientIntelPage: React.FC = () => {
                             {client.phone}
                           </div>
                         )}
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <div className="text-sm text-black flex items-center">
-                          <Calendar className="h-4 w-4 text-gray-400 mr-2" />
-                          {client.created_at
-                            ? formatDate(client.created_at)
-                            : "N/A"}
-                        </div>
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap">
                         {client.has_preferences ? (

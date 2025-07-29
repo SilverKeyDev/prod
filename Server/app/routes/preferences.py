@@ -300,10 +300,14 @@ def get_clients_preferences():
         return jsonify({'success': False, 'error': 'Authorization failure'}), 500
 
     try:
-        clients = user.client_ids
+        # Parse client_ids JSON string
+        if user.client_ids:
+            clients = json.loads(user.client_ids) if isinstance(user.client_ids, str) else user.client_ids
+        else:
+            clients = []
         logger.info(f"🔗 Client IDs: {clients}")
-    except Exception as e:
-        logger.error(f"🔥 Failed to parse client IDs: {str(e)}", exc_info=True)
+    except (json.JSONDecodeError, TypeError) as e:
+        logger.error(f"🔥 Failed to parse client IDs JSON: {str(e)}", exc_info=True)
         return jsonify({'success': True, 'preferences': [], 'has_preferences': False}), 500
 
     preferences_list = []
