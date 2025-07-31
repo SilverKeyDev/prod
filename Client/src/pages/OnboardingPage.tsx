@@ -86,6 +86,7 @@ interface OnboardingData {
   moving_reason?: string;
   agent_experience_preference?: string;
   preferred_support_channel?: string;
+  communication_preference?: string;
   communication_frequency?: string;
   information_detail_level?: string;
   meeting_preference?: string;
@@ -438,19 +439,19 @@ export default function OnboardingPage() {
     if (value === "") {
       return undefined;
     }
-    
+
     const numValue = parseInt(value, 10);
-    
+
     // Check if it's a valid number
     if (isNaN(numValue)) {
       return undefined;
     }
-    
+
     // Must be non-negative integer (0 or greater)
     if (numValue < 0) {
       return undefined;
     }
-    
+
     return numValue;
   };
 
@@ -713,7 +714,11 @@ export default function OnboardingPage() {
                   type="number"
                   min="0"
                   max="20"
-                  value={formData.children_count !== undefined ? formData.children_count : ""}
+                  value={
+                    formData.children_count !== undefined
+                      ? formData.children_count
+                      : ""
+                  }
                   onChange={(e) =>
                     updateFormData(
                       "children_count",
@@ -1683,23 +1688,22 @@ export default function OnboardingPage() {
 
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
-                  Communication Frequency
+                  Communication Preference
                 </label>
                 <CustomDropdown
-                  value={formData.communication_frequency || ""}
+                  value={formData.communication_preference || ""}
                   onChange={(value) =>
-                    updateFormData("communication_frequency", value)
+                    updateFormData("communication_preference", value)
                   }
                   options={[
-                    { value: "minimal", label: "Minimal" },
-                    { value: "weekly", label: "Weekly" },
-                    { value: "daily", label: "Daily" },
-                    { value: "as_needed", label: "As Needed" },
+                    { value: "frequent", label: "Frequent updates" },
+                    { value: "milestone", label: "Milestone updates" },
+                    { value: "minimal", label: "Minimal contact" },
                   ]}
                   placeholder="Select..."
-                  isOpen={openDropdowns.communication_frequency || false}
-                  onToggle={() => toggleDropdown("communication_frequency")}
-                  dropdownRef={getDropdownRef("communication_frequency")}
+                  isOpen={openDropdowns.communication_preference || false}
+                  onToggle={() => toggleDropdown("communication_preference")}
+                  dropdownRef={getDropdownRef("communication_preference")}
                 />
               </div>
 
@@ -1896,23 +1900,13 @@ export default function OnboardingPage() {
               >
                 <div className="space-y-2">
                   {orderedSections?.map((section) => {
-                    if (!section || !section.key || !section.label)
-                      return null;
+                    if (!section || !section.key || !section.label) return null;
 
-                    // Get the actual boolean field value (section.key already has include_ prefix)
-                    const booleanFieldName =
-                      section.key as keyof OnboardingData;
-                    const fieldValue = formData[booleanFieldName];
-                    const priorities =
-                      formData.report_section_priorities || [];
+                    const priorities = formData.report_section_priorities || [];
                     const priorityIndex = priorities.indexOf(section.key);
-                    // Only checked if both boolean field is true AND section is in priorities array
-                    const isChecked =
-                      (typeof fieldValue === "boolean" ? fieldValue : true) &&
-                      priorityIndex !== -1;
-                    const priority = isChecked
-                      ? priorityIndex + 1
-                      : undefined;
+                    // Section is checked if it's in the priorities array
+                    const isChecked = priorityIndex !== -1;
+                    const priority = isChecked ? priorityIndex + 1 : undefined;
 
                     return (
                       <SortableReportSection
@@ -1922,9 +1916,7 @@ export default function OnboardingPage() {
                         checked={isChecked}
                         priority={priority}
                         onToggle={(checked) => {
-                          // Update the boolean field directly
-                          updateFormData(booleanFieldName, checked);
-                          // Also update priorities array
+                          // Only update priorities array (no boolean fields)
                           handleReportSectionToggle(section.key, checked);
                         }}
                       />
@@ -2125,7 +2117,8 @@ export default function OnboardingPage() {
             Welcome to SilverKey
           </h1>
           <p className="text-sm sm:text-base text-black/60">
-            Information you give helps your agent and SilverKey serve you, but all fields are optional!
+            Information you give helps your agent and SilverKey serve you, but
+            all fields are optional!
           </p>
         </div>
         <div className="mt-4 sm:mt-0">
