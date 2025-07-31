@@ -183,6 +183,25 @@ const ClientIntelPage: React.FC = () => {
     }
   };
 
+  const downloadActionPlan = () => {
+    if (!actionPlanData) return;
+
+    const content = `ACTION PLAN - ${actionPlanData.client_name}\n` +
+      `Generated on: ${new Date(actionPlanData.generated_at).toLocaleDateString()} at ${new Date(actionPlanData.generated_at).toLocaleTimeString()}\n` +
+      `\n${'='.repeat(60)}\n\n` +
+      actionPlanData.action_plan;
+
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `action-plan-${actionPlanData.client_name.replace(/\s+/g, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   // Export user preferences to CSV
   const exportPreferencesToCSV = () => {
     if (!selectedClient || !selectedClient.preferences) {
@@ -682,15 +701,27 @@ const ClientIntelPage: React.FC = () => {
                     AI-generated personalized action plan based on client preferences
                   </p>
                 </div>
-                <button
-                  onClick={() => {
-                    setShowActionPlanModal(false);
-                    setActionPlanData(null);
-                  }}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                  <X className="h-6 w-6" />
-                </button>
+                <div className="flex items-center space-x-2">
+                  {actionPlanData && (
+                    <button
+                      onClick={downloadActionPlan}
+                      className="flex items-center px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-white bg-olive hover:bg-olive-light rounded-lg transition-colors touch-friendly"
+                    >
+                      <Download className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                      <span className="hidden sm:inline">Download</span>
+                      <span className="sm:hidden">DL</span>
+                    </button>
+                  )}
+                  <button
+                    onClick={() => {
+                      setShowActionPlanModal(false);
+                      setActionPlanData(null);
+                    }}
+                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <X className="h-6 w-6" />
+                  </button>
+                </div>
               </div>
             </div>
 
