@@ -681,6 +681,26 @@ export default function GenerateReportPage() {
             </div>
           )}
 
+          {reportType === "detailed" && (
+            <div className="bg-brown/10 border border-brown/30 rounded-lg p-3 sm:p-4">
+              <div className="flex items-start space-x-2 sm:space-x-3">
+                <div className="text-brown">
+                  <p className="font-medium text-sm sm:text-base mb-1">
+                    Detailed Report
+                  </p>
+                  <p className="text-xs sm:text-sm">
+                    Generate a comprehensive neighborhood analysis with detailed
+                    insights into demographics, safety, amenities, schools,
+                    transportation, and lifestyle factors. This personalized
+                    report is tailored to your specific preferences and
+                    priorities, providing in-depth information to help you
+                    make an informed decision about the property and area.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div>
             <label
               htmlFor="address-input"
