@@ -234,7 +234,7 @@ export default function GenerateReportPage() {
       }
     };
 
-    const debounce = setTimeout(fetchSuggestions, 200);
+    const debounce = setTimeout(fetchSuggestions, 500);
     return () => clearTimeout(debounce);
   }, [address, scriptsReady, hasSelected]);
 

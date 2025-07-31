@@ -448,7 +448,7 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                     "https://api.perplexity.ai/chat/completions", 
                     headers=HEADERS, 
                     json=payload,
-                    timeout=60  # 60 second timeout
+                    timeout=500  # 500 second timeout
                 )
                 
                 duration = time.perf_counter() - start_time

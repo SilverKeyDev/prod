@@ -17,8 +17,8 @@ class Config:
     CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', 'redis://localhost:6379/0')
     SQLALCHEMY_ENGINE_OPTIONS = {
         'pool_pre_ping': True,  # Verify connections before use
-        'pool_recycle': 300,    # Recycle connections every 5 minutes
-        'pool_timeout': 20,     # Timeout for getting connection from pool
+        'pool_recycle': 500,    # Recycle connections every 5 minutes
+        'pool_timeout': 500,     # Timeout for getting connection from pool
         'max_overflow': 0,      # Don't allow overflow connections
     }
 
