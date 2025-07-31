@@ -94,8 +94,10 @@ def generate_report_endpoint():
         # Get current user
         user = get_current_user()
         if not user:
-            logger.error(f"User not found with ID: {current_user_id}")
+            logger.error("User not found - authentication failed")
             return jsonify({'error': 'User not found', 'success': False}), 404
+        
+        logger.info(f"🔐 Authenticated user: {user.id} (is_agent: {user.is_agent})")
         
         data = request.get_json()
         if not data:
@@ -106,16 +108,21 @@ def generate_report_endpoint():
         comparison_address = data.get('comparisonAddress', None)  # Default to None if not provided
         target_user_id = data.get('user_id', None)  # For agent client selection
         
+        logger.info(f"📥 Request parameters: address='{address}', comparison_address='{comparison_address}', target_user_id='{target_user_id}'")
+        
         if not address:
             logger.error("No address provided in request data")
             return jsonify({'error': 'Address is required', 'success': False}), 400
         
         # Determine which user's preferences to use for report generation
         preferences_user_id = user.id  # Default to authenticated user
+        logger.info(f"🎯 Initial preferences_user_id set to authenticated user: {preferences_user_id}")
+        logger.info(f"🔍 preferences_user_id type: {type(preferences_user_id)}, target_user_id type: {type(target_user_id)}")
         
         if target_user_id:
             # Agent is generating report for a client
-            logger.info(f"Agent {user.id} generating report for client {target_user_id}")
+            logger.info(f"🔄 Agent {user.id} requesting to generate report for client {target_user_id}")
+            logger.info(f"🔍 target_user_id received as: '{target_user_id}' (type: {type(target_user_id)})")
             
             # Verify the agent has access to this client
             if not user.is_agent:
@@ -134,8 +141,10 @@ def generate_report_endpoint():
                     logger.warning(f"Agent {user.id} attempted to access client {target_user_id} who is not in their client list")
                     return jsonify({'error': 'Access denied: User is not your client', 'success': False}), 403
                 
-                preferences_user_id = target_user_id
+                # Ensure preferences_user_id is the same type as user.id (string)
+                preferences_user_id = str(target_user_id) if target_user_id else user.id
                 logger.info(f"✅ Agent {user.id} authorized to generate report using preferences from client {target_user_id}")
+                logger.info(f"🎯 preferences_user_id updated to client: {preferences_user_id} (type: {type(preferences_user_id)})")
                 
             except (json.JSONDecodeError, TypeError) as e:
                 logger.error(f"Failed to parse agent's client_ids: {str(e)}")
@@ -144,10 +153,16 @@ def generate_report_endpoint():
         # Check if this is a comparison report
         is_comparison = bool(comparison_address and comparison_address.strip())
         
-        if is_comparison:
-            logger.info(f"Generating comparison report for: {address} vs {comparison_address}")
+        logger.info(f"📊 FINAL DECISION - Using preferences from user_id: {preferences_user_id}")
+        if preferences_user_id == user.id:
+            logger.info(f"📋 Will use AUTHENTICATED USER's preferences (user_id: {user.id})")
         else:
-            logger.info(f"Generating detailed report for: {address}")
+            logger.info(f"📋 Will use CLIENT's preferences (client_id: {preferences_user_id}, agent_id: {user.id})")
+        
+        if is_comparison:
+            logger.info(f"📝 Generating comparison report for: {address} vs {comparison_address} using preferences from user_id: {preferences_user_id}")
+        else:
+            logger.info(f"📝 Generating detailed report for: {address} using preferences from user_id: {preferences_user_id}")
 
         safe_address = "".join(c for c in address if c.isalnum() or c in (' ', '-', '_')).rstrip().replace(' ', '_')
         
@@ -189,6 +204,7 @@ def generate_report_endpoint():
         # Start async task (lazy import to avoid circular import)
         # Always use the unified generate_report_async task, passing comparison_address (None for detailed reports)
         # Use preferences_user_id for report generation (could be agent's client or agent themselves)
+        logger.info(f"🚀 Starting async task with preferences_user_id: {preferences_user_id} (type: {type(preferences_user_id)})")
         from app.celery.tasks import generate_report_async
         task = generate_report_async.delay(address, comparison_address, filenamee, pdf_doc.id, preferences_user_id)
         

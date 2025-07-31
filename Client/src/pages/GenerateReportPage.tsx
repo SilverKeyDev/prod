@@ -129,13 +129,18 @@ export default function GenerateReportPage() {
   // Fetch clients for agents and set default selection
   useEffect(() => {
     const fetchClients = async () => {
-      if (!userProfile?.is_agent) return;
+      if (!userProfile?.is_agent) {
+        console.log("👤 FRONTEND: User is not an agent, skipping client fetch");
+        return;
+      }
       
+      console.log("🔄 FRONTEND: Agent detected, fetching client list for user:", userProfile.id);
       setClientsLoading(true);
       try {
         const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
         const idToken = localStorage.getItem("id_token");
         
+        console.log("📡 FRONTEND: Making API call to fetch clients");
         const response = await fetch(`${apiBaseUrl}/api/v1/preferences/clients`, {
           method: "GET",
           headers: {
@@ -146,21 +151,26 @@ export default function GenerateReportPage() {
         
         if (response.ok) {
           const data = await response.json();
+          console.log("✅ FRONTEND: Client fetch response:", data);
           if (data.success && data.user_information) {
             const clientList: ClientInfo[] = data.user_information.map((user: any) => ({
               id: user.id,
               name: user.name || user.email,
               email: user.email,
             }));
+            console.log("📋 FRONTEND: Processed client list:", clientList.map(c => ({ id: c.id, name: c.name })));
             setClients(clientList);
+          } else {
+            console.warn("⚠️ FRONTEND: API response missing expected data structure");
           }
         } else {
-          console.error("Failed to fetch clients:", response.statusText);
+          console.error("❌ FRONTEND: Failed to fetch clients:", response.statusText);
         }
       } catch (error) {
-        console.error("Error fetching clients:", error);
+        console.error("💥 FRONTEND: Error fetching clients:", error);
       } finally {
         setClientsLoading(false);
+        console.log("🏁 FRONTEND: Client fetch process completed");
       }
     };
     
@@ -170,7 +180,12 @@ export default function GenerateReportPage() {
   // Set default client selection to agent themselves
   useEffect(() => {
     if (userProfile?.is_agent && userProfile.id && !selectedClientId) {
+      console.log("🎯 FRONTEND: Setting default selectedClientId to agent's own ID:", userProfile.id);
       setSelectedClientId(userProfile.id);
+    } else if (userProfile?.is_agent && selectedClientId) {
+      console.log("📌 FRONTEND: selectedClientId already set to:", selectedClientId);
+    } else if (!userProfile?.is_agent) {
+      console.log("👤 FRONTEND: Non-agent user, no client selection needed");
     }
   }, [userProfile?.is_agent, userProfile?.id, selectedClientId]);
 
@@ -448,15 +463,33 @@ export default function GenerateReportPage() {
     const idToken = localStorage.getItem("id_token");
 
     // Prepare request body
+    console.log("🔧 FRONTEND: Preparing request body...");
+    console.log("📊 FRONTEND: Current state - userProfile.is_agent:", userProfile?.is_agent);
+    console.log("📊 FRONTEND: Current state - selectedClientId:", selectedClientId);
+    console.log("📊 FRONTEND: Current state - userProfile.id:", userProfile?.id);
+    
+    const willSendUserId = userProfile?.is_agent && selectedClientId && selectedClientId !== userProfile?.id;
+    console.log("🎯 FRONTEND: Will send user_id parameter:", willSendUserId);
+    
+    if (willSendUserId) {
+      console.log("🔄 FRONTEND: Agent generating report for client:", selectedClientId);
+    } else if (userProfile?.is_agent) {
+      console.log("👤 FRONTEND: Agent generating report for themselves (no user_id sent)");
+    } else {
+      console.log("👤 FRONTEND: Regular user generating report (no user_id sent)");
+    }
+    
     const requestBody = {
       address: trimmed,
       ...(reportType === "comparison" && {
         comparisonAddress: comparisonAddress.trim(),
       }),
-      ...(userProfile?.is_agent && selectedClientId && selectedClientId !== userProfile?.id && {
+      ...(willSendUserId && {
         user_id: selectedClientId,
       }),
     };
+    
+    console.log("📤 FRONTEND: Final request body:", requestBody);
 
     console.log(`[GenerateReport] 📤 Request body:`, requestBody);
     console.log(`[GenerateReport] 📤 Report type: ${reportType}`);

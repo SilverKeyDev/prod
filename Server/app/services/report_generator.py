@@ -105,18 +105,27 @@ def _safe_parse_json(text: str, report_customization: dict = None) -> dict:
 
 # -------------------- HELPER FUNCTIONS --------------------
 
-def get_preferences(user_id: int) -> Dict:
+def get_preferences(user_id: str) -> Dict:
     """Get user preferences by user_id"""
     try:
+        logger.info(f"🔍 PREFERENCES: Looking up preferences for user_id: {user_id}")
         preferences = UserPreferences.query.filter_by(user_id=user_id).first()
         if preferences:
-            logger.info(f"✅ User preferences found for user {user_id}")
-            return preferences.to_dict()
+            logger.info(f"✅ PREFERENCES: Found preferences for user_id {user_id}")
+            prefs_dict = preferences.to_dict()
+            logger.info(f"📊 PREFERENCES: Preferences keys: {list(prefs_dict.keys()) if prefs_dict else 'None'}")
+            if prefs_dict and 'report_customization' in prefs_dict:
+                logger.info(f"🎯 PREFERENCES: report_customization found with keys: {list(prefs_dict['report_customization'].keys()) if prefs_dict['report_customization'] else 'None'}")
+            else:
+                logger.warning(f"⚠️ PREFERENCES: No report_customization found in preferences for user_id {user_id}")
+            return prefs_dict
         else:
-            logger.info(f"ℹ️ No preferences found for user {user_id}")
+            logger.warning(f"⚠️ PREFERENCES: No preferences record found for user_id {user_id}")
             return None
     except Exception as e:
-        logger.error(f"🔥 Failed to fetch preferences for user {user_id}: {str(e)}")
+        logger.error(f"🔥 PREFERENCES: Failed to fetch preferences for user_id {user_id}: {str(e)}")
+        logger.error(f"🔥 PREFERENCES: Exception traceback: {traceback.format_exc()}")
+        return None
         return None
 
 # -------------------- HELPER FUNCTIONS --------------------
@@ -279,22 +288,37 @@ def _get_or_generate_report_json(address: str, user_id: int, filename: str) -> D
 
 # -------------------- MAIN FUNCTION --------------------
 
-def generate_report(address: str, comparison_address: str, filename: str, user_id: int) -> Dict:
+def generate_report(address: str, comparison_address: str, filename: str, user_id: str) -> Dict:
     """Generate a comprehensive property report and upload PDF to S3"""
     task_id = str(uuid.uuid4())
-    logger.info(f"📝 Starting report generation for address: {address}")
-    logger.info(f"🆔 Task ID: {task_id}")
+    logger.info(f"📝 REPORT_GEN: Starting report generation for address: {address}")
+    logger.info(f"🆔 REPORT_GEN: Task ID: {task_id}")
+    logger.info(f"🎯 REPORT_GEN: Using user_id for preferences: {user_id}")
     
     # Get user preferences
+    logger.info(f"🔍 REPORT_GEN: Calling get_preferences with user_id: {user_id}")
     user_preferences = get_preferences(user_id)
-    logger.info(f"👤 Retrieved user preferences for user_id {user_id}: {user_preferences is not None}")
+    logger.info(f"📊 REPORT_GEN: get_preferences returned: {user_preferences is not None}")
+    
+    if user_preferences:
+        logger.info(f"✅ REPORT_GEN: Successfully retrieved preferences for user_id {user_id}")
+        logger.info(f"📋 REPORT_GEN: Preferences summary: {len(user_preferences)} keys found")
+    else:
+        logger.error(f"❌ REPORT_GEN: No preferences found for user_id {user_id} - this will cause report generation to fail")
     
     # Handle report customization preferences
     if user_preferences and 'report_customization' in user_preferences:
         report_customization = user_preferences['report_customization']
+        logger.info(f"✅ REPORT_GEN: Using report_customization from user_id {user_id}")
+        logger.info(f"🎯 REPORT_GEN: Customization options: {list(report_customization.keys()) if report_customization else 'None'}")
     else:
         # Default all to True if no preferences found
-        raise Exception("No report customization found")
+        logger.error(f"❌ REPORT_GEN: No report_customization found for user_id {user_id}")
+        if user_preferences:
+            logger.error(f"❌ REPORT_GEN: Available preference keys: {list(user_preferences.keys())}")
+        else:
+            logger.error(f"❌ REPORT_GEN: user_preferences is None for user_id {user_id}")
+        raise Exception(f"No report customization found for user_id {user_id}")
 
     # Create FullReport schema with error handling
     try:
@@ -424,9 +448,8 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                 }
             }
 
-        logger.info(f"📡 Complete final comparison payload being sent to Perplexity:\n{json.dumps(payload, indent=2)}")
         # Enhanced retry logic with exponential backoff
-        max_retries = 3
+        max_retries = 2
         base_delay = 1  # Start with 1 second delay
         
         for attempt in range(max_retries + 1):  # +1 to include the initial attempt
@@ -434,7 +457,7 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                 # Configure session with retry adapter for connection-level retries
                 session = requests.Session()
                 retries = Retry(
-                    total=2,  # Lower since we're doing manual retries
+                    total=1,  # Lower since we're doing manual retries
                     backoff_factor=0.5,
                     status_forcelist=[429, 500, 502, 503, 504],
                     raise_on_status=False  # We'll handle status codes manually

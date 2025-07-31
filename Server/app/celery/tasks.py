@@ -12,6 +12,9 @@ import json
 def generate_report_async(address, comparison_address, filename, document_id, user_id):
     """Asynchronously generate a property report with robust DB session management"""
     try:
+        current_app.logger.info(f"🔧 CELERY TASK: Starting report generation with user_id: {user_id}")
+        current_app.logger.info(f"📍 Task parameters: address='{address}', comparison_address='{comparison_address}', filename='{filename}'")
+        
         # Generate the report (this does not depend on db.session)
         result_data = generate_report(address, comparison_address, filename, user_id)
 
@@ -24,8 +27,10 @@ def generate_report_async(address, comparison_address, filename, document_id, us
                     pdf_doc.file_size = len(str(result_data).encode('utf-8'))
 
                     # Handle user preferences
+                    current_app.logger.info(f"🔍 CELERY TASK: Looking up preferences for user_id: {user_id}")
                     user_prefs = UserPreferences.query.filter_by(user_id=user_id).first()
                     if user_prefs:
+                        current_app.logger.info(f"✅ CELERY TASK: Found preferences for user_id: {user_id}")
                         user_prefs.solo_reports_created = (user_prefs.solo_reports_created or 0) + 1
 
                         # Maintain unique addresses
@@ -42,12 +47,12 @@ def generate_report_async(address, comparison_address, filename, document_id, us
                         user_prefs.solo_reports_addresses = json.dumps(current_addresses)
 
                         current_app.logger.info(
-                            f"📊 Updated user preferences for user {user_id}: "
+                            f"📊 CELERY TASK: Updated user preferences for user_id {user_id}: "
                             f"solo_reports_created={user_prefs.solo_reports_created}, "
                             f"addresses_count={len(current_addresses)}"
                         )
                     else:
-                        current_app.logger.warning(f"⚠️ No user preferences found for user {user_id}")
+                        current_app.logger.warning(f"⚠️ CELERY TASK: No user preferences found for user_id {user_id}")
 
                     # Commit everything
                     db.session.commit()
