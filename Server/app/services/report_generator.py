@@ -19,6 +19,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 from .schema_generator import generate_report_schema
 from ..models.report_models import FullReport
+from ..models.marketing_model import MarketingReport
 from ..models.user_preferences import UserPreferences
 from ..services.s3_service import s3_service
 from flask import current_app
@@ -288,12 +289,13 @@ def _get_or_generate_report_json(address: str, user_id: int, filename: str) -> D
 
 # -------------------- MAIN FUNCTION --------------------
 
-def generate_report(address: str, comparison_address: str, filename: str, user_id: str) -> Dict:
+def generate_report(address: str, comparison_address: str, filename: str, user_id: str, marketing_model: bool = False) -> Dict:
     """Generate a comprehensive property report and upload PDF to S3"""
     task_id = str(uuid.uuid4())
     logger.info(f"📝 REPORT_GEN: Starting report generation for address: {address}")
     logger.info(f"🆔 REPORT_GEN: Task ID: {task_id}")
     logger.info(f"🎯 REPORT_GEN: Using user_id for preferences: {user_id}")
+    logger.info(f"📈 REPORT_GEN: Marketing model enabled: {marketing_model}")
     
     # Get user preferences
     logger.info(f"🔍 REPORT_GEN: Calling get_preferences with user_id: {user_id}")
@@ -320,14 +322,25 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
             logger.error(f"❌ REPORT_GEN: user_preferences is None for user_id {user_id}")
         raise Exception(f"No report customization found for user_id {user_id}")
 
-    # Create FullReport schema with error handling
+    # Create schema with error handling - use MarketingReport if marketing_model is True
     try:
         # Use the dedicated schema generator for clean, maintainable code
         # Pass user preferences for interpolation in example fields
         # Note: user_preferences is already a dict from get_preferences()
-        if comparison_address is not None and comparison_address != "":
+        if marketing_model:
+            logger.info(f"🎯 REPORT_GEN: Using MarketingReport schema for marketing model")
+            # Use MarketingReport schema directly
+            marketing_report = MarketingReport(report_customization=report_customization)
+            schema = marketing_report.schema(report_customization=report_customization)
+            # Add schema metadata
+            schema["$schema"] = "https://json-schema.org/draft/2020-12/schema"
+            schema["title"] = "Marketing Report Schema"
+            schema["description"] = "Structured schema for generating personalized marketing reports"
+        elif comparison_address is not None and comparison_address != "":
+            logger.info(f"🔄 REPORT_GEN: Using comparison report schema")
             schema = generate_report_schema(report_customization, user_preferences, compare=True)
         else:
+            logger.info(f"📋 REPORT_GEN: Using standard FullReport schema")
             schema = generate_report_schema(report_customization, user_preferences)
 
     except Exception as e:

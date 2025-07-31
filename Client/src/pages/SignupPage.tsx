@@ -4,6 +4,7 @@ import { Mail, Lock, User as UserIcon, Phone, ArrowLeft } from "lucide-react";
 import { authApi } from "../lib/api";
 import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
+import { PasswordValidation, usePasswordValidation } from "../components/PasswordValidation";
 
 interface SignupPageProps {}
 
@@ -17,10 +18,20 @@ export default function SignupPage({}: SignupPageProps) {
   const [phoneValue, setPhoneValue] = useState<string | undefined>("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  
+  // Password validation
+  const { isValid: isPasswordValid, errors: passwordErrors } = usePasswordValidation(formData.password);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+
+    // Validate password before submission
+    if (!isPasswordValid) {
+      alert(`Password must meet all requirements: ${passwordErrors.join(', ')}`);
+      setLoading(false);
+      return;
+    }
 
     try {
       const { success, error } = await authApi.signup({
@@ -136,6 +147,10 @@ export default function SignupPage({}: SignupPageProps) {
                 required
               />
             </div>
+            <PasswordValidation 
+              password={formData.password} 
+              showValidation={formData.password.length > 0}
+            />
           </div>
 
           {/* Phone */}

@@ -487,6 +487,9 @@ export default function GenerateReportPage() {
       ...(willSendUserId && {
         user_id: selectedClientId,
       }),
+      ...(reportType === "marketing" && {
+        marketing_model: true,
+      }),
     };
     
     console.log("📤 FRONTEND: Final request body:", requestBody);

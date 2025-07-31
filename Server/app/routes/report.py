@@ -107,8 +107,9 @@ def generate_report_endpoint():
         address = data.get('address')
         comparison_address = data.get('comparisonAddress', None)  # Default to None if not provided
         target_user_id = data.get('user_id', None)  # For agent client selection
+        marketing_model = data.get('marketing_model', False)  # For marketing model selection
         
-        logger.info(f"📥 Request parameters: address='{address}', comparison_address='{comparison_address}', target_user_id='{target_user_id}'")
+        logger.info(f"📥 Request parameters: address='{address}', comparison_address='{comparison_address}', target_user_id='{target_user_id}', marketing_model={marketing_model}")
         
         if not address:
             logger.error("No address provided in request data")
@@ -206,7 +207,7 @@ def generate_report_endpoint():
         # Use preferences_user_id for report generation (could be agent's client or agent themselves)
         logger.info(f"🚀 Starting async task with preferences_user_id: {preferences_user_id} (type: {type(preferences_user_id)})")
         from app.celery.tasks import generate_report_async
-        task = generate_report_async.delay(address, comparison_address, filenamee, pdf_doc.id, preferences_user_id)
+        task = generate_report_async.delay(address, comparison_address, filenamee, pdf_doc.id, preferences_user_id, marketing_model)
         
         if is_comparison:
             logger.info(f"Started comparison report task {task.id} for addresses: {address} vs {comparison_address} using preferences from user {preferences_user_id}")

@@ -9,14 +9,14 @@ import json
 
 
 @celery.task(name="tasks.generate_report_async")
-def generate_report_async(address, comparison_address, filename, document_id, user_id):
+def generate_report_async(address, comparison_address, filename, document_id, user_id, marketing_model=False):
     """Asynchronously generate a property report with robust DB session management"""
     try:
         current_app.logger.info(f"🔧 CELERY TASK: Starting report generation with user_id: {user_id}")
-        current_app.logger.info(f"📍 Task parameters: address='{address}', comparison_address='{comparison_address}', filename='{filename}'")
+        current_app.logger.info(f"📍 Task parameters: address='{address}', comparison_address='{comparison_address}', filename='{filename}', marketing_model={marketing_model}")
         
         # Generate the report (this does not depend on db.session)
-        result_data = generate_report(address, comparison_address, filename, user_id)
+        result_data = generate_report(address, comparison_address, filename, user_id, marketing_model)
 
         # Use a fresh app context and db session for all database operations
         with current_app.app_context():

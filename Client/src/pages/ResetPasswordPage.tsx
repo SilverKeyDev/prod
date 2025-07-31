@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Mail, Lock, ArrowLeft, Key } from "lucide-react";
 import { authApi } from "../lib/api";
 import SuccessDialog from "../components/SuccessDialog";
+import { PasswordValidation, usePasswordValidation } from "../components/PasswordValidation";
 
 export default function ResetPasswordPage() {
   const [searchParams] = useSearchParams();
@@ -15,6 +16,9 @@ export default function ResetPasswordPage() {
   const [step, setStep] = useState<'request' | 'reset'>('request');
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const navigate = useNavigate();
+  
+  // Password validation
+  const { isValid: isPasswordValid, errors: passwordErrors } = usePasswordValidation(newPassword);
 
   const handleRequestReset = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,8 +53,9 @@ export default function ResetPasswordPage() {
       return;
     }
 
-    if (newPassword.length < 8) {
-      setError("Password must be at least 8 characters long");
+    // Validate password using comprehensive validation
+    if (!isPasswordValid) {
+      setError(`Password must meet all requirements: ${passwordErrors.join(', ')}`);
       setLoading(false);
       return;
     }
@@ -184,6 +189,10 @@ export default function ResetPasswordPage() {
                     required
                   />
                 </div>
+                <PasswordValidation 
+                  password={newPassword} 
+                  showValidation={newPassword.length > 0}
+                />
               </div>
 
               <div>
