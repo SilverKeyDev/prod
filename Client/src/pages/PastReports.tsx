@@ -835,11 +835,9 @@ export default function PastReports() {
 
     // Expose refresh function globally for GenerateReportPage to call
     (window as any).refreshPastReports = handleRefresh;
-    console.log("[PastReports] Exposed refresh function globally");
 
     // Expose polling function globally for GenerateReportPage to call
     (window as any).pollForReportCompletion = pollForReportCompletion;
-    console.log("[PastReports] Exposed polling function globally");
 
     // Cleanup on unmount
     return () => {
@@ -847,7 +845,6 @@ export default function PastReports() {
       // Clean up global function references
       delete (window as any).refreshPastReports;
       delete (window as any).pollForReportCompletion;
-      console.log("[PastReports] Cleaned up global functions");
     };
   }, [handleRefresh, pollForReportCompletion]);
 

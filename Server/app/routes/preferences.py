@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify, current_app
 from app.models.user import User
 from app.models.user_preferences import UserPreferences
 from app import db
+from app.services.chatbot.chatbot_utils import generate_action_plan
 from jose import jwk, jwt as jose_jwt
 from jose.exceptions import JWTError, JWTClaimsError, ExpiredSignatureError
 import json
@@ -10,7 +11,7 @@ import os
 import requests
 
 logger = logging.getLogger(__name__)
-preferences_bp = Blueprint('preferences', __name__)
+preferences_bp = Blueprint('preferences', __name__, url_prefix='/api/v1/preferences')
 
 # JWT Configuration
 COGNITO_REGION = os.getenv("S3_REGION", "us-east-2")
@@ -131,7 +132,7 @@ def get_current_user():
         current_app.logger.error(f"Token validation failed: {str(e)}")
         raise
 
-@preferences_bp.route('/api/v1/preferences', methods=['POST'])
+@preferences_bp.route('', methods=['POST'])
 def create_or_update_preferences():
     logger = current_app.logger
     logger.info("🔐 [POST] /api/v1/preferences - Start processing user preferences")
@@ -243,7 +244,7 @@ def create_or_update_preferences():
         return jsonify({'success': False, 'error': 'Failed to save preferences'}), 500
 
 
-@preferences_bp.route('/api/v1/preferences', methods=['GET'])
+@preferences_bp.route('', methods=['GET'])
 def get_preferences():
     logger = current_app.logger
     logger.info("📥 [GET] /api/v1/preferences - Fetching user preferences")
@@ -278,7 +279,7 @@ def get_preferences():
         return jsonify({'success': False, 'error': 'Failed to get preferences'}), 500
 
 
-@preferences_bp.route('/api/v1/preferences/user/<user_id>', methods=['GET'])
+@preferences_bp.route('/user/<user_id>', methods=['GET'])
 def get_user_preferences_by_id(user_id):
     """
     Get preferences for a specific user by user ID.
@@ -328,7 +329,7 @@ def get_user_preferences_by_id(user_id):
         return jsonify({'success': False, 'error': 'Failed to get user preferences'}), 500
 
 
-@preferences_bp.route('/api/v1/preferences/clients', methods=['GET'])
+@preferences_bp.route('/clients', methods=['GET'])
 def get_clients_preferences():
     logger = current_app.logger
     logger.info("📥 [GET] /api/v1/preferences/clients - Fetching preferences for client users")
@@ -378,7 +379,7 @@ def get_clients_preferences():
         return jsonify({'success': False, 'error': 'Failed to get client preferences'}), 500
 
 
-@preferences_bp.route('/api/v1/preferences/agents', methods=['GET'])
+@preferences_bp.route('/agents', methods=['GET'])
 def get_agents():
     """
     Get all agents whose names start with the provided search string.
@@ -428,7 +429,7 @@ def get_agents():
         }), 500
 
 
-@preferences_bp.route('/api/v1/preferences/add', methods=['GET'])
+@preferences_bp.route('/add', methods=['GET'])
 def set_as_agent():
     """
     Add the current user to an agent's client list and set the user's agent_id.
@@ -557,7 +558,7 @@ def set_as_agent():
             'error': 'Failed to assign agent'
         }), 500
 
-@preferences_bp.route('/api/v1/preferences/users_agents', methods=['GET'])
+@preferences_bp.route('/users_agents', methods=['GET'])
 def get_user_agents():
     """
     Get all agents assigned to the authenticated user from their agent_id array.
@@ -621,7 +622,7 @@ def get_user_agents():
             'error': 'Failed to fetch user agents'
         }), 500
 
-@preferences_bp.route('/api/v1/preferences/remove', methods=['GET'])
+@preferences_bp.route('/remove', methods=['GET'])
 def remove_agent_relationship():
     """
     Remove the current user from an agent's client list and remove the agent from the user's agent_id list.
@@ -726,3 +727,65 @@ def remove_agent_relationship():
         logger.error(f"🔥 Failed to remove agent: {str(e)}", exc_info=True)
         db.session.rollback()
         return jsonify({'success': False, 'error': 'Failed to remove agent'}), 500
+
+
+@preferences_bp.route('/action-plan/<client_id>', methods=['POST'])
+def generate_client_action_plan(client_id):
+    """
+    Generate a personalized action plan for a client using OpenAI.
+    Requires JWT authentication and agent permissions.
+    """
+    try:
+        # Get current user (agent)
+        current_user = get_current_user()
+        if not current_user:
+            return jsonify({'success': False, 'error': 'Authentication required'}), 401
+        
+        # Verify the current user is an agent
+        if not current_user.is_agent:
+            return jsonify({'success': False, 'error': 'Agent access required'}), 403
+        
+        # Get the client user
+        client_user = User.query.filter_by(id=client_id).first()
+        if not client_user:
+            return jsonify({'success': False, 'error': 'Client not found'}), 404
+        
+        # Verify the client is assigned to this agent
+        try:
+            client_ids = json.loads(current_user.client_ids) if current_user.client_ids else []
+        except (json.JSONDecodeError, TypeError):
+            client_ids = []
+        
+        if client_id not in client_ids:
+            return jsonify({'success': False, 'error': 'Client not assigned to this agent'}), 403
+        
+        # Get client preferences
+        client_preferences = UserPreferences.query.filter_by(user_id=client_id).first()
+        if not client_preferences:
+            return jsonify({
+                'success': False, 
+                'error': 'Client preferences not found. Client needs to complete onboarding first.'
+            }), 404
+        
+        # Generate action plan using OpenAI
+        logger.info(f"[ACTION_PLAN] Generating action plan for client {client_user.name} by agent {current_user.name}")
+        action_plan = generate_action_plan(client_preferences, client_user.name)
+        
+        if action_plan.startswith("AI service unavailable") or action_plan.startswith("Unable to generate"):
+            return jsonify({
+                'success': False,
+                'error': action_plan
+            }), 500
+        
+        from datetime import datetime
+        
+        return jsonify({
+            'success': True,
+            'action_plan': action_plan,
+            'client_name': client_user.name,
+            'generated_at': datetime.now().isoformat()
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"🔥 Failed to generate action plan: {str(e)}", exc_info=True)
+        return jsonify({'success': False, 'error': 'Failed to generate action plan'}), 500

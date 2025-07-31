@@ -65,6 +65,13 @@ const ClientIntelPage: React.FC = () => {
   >("all");
   const [selectedClient, setSelectedClient] = useState<ClientData | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [showActionPlanModal, setShowActionPlanModal] = useState(false);
+  const [actionPlanData, setActionPlanData] = useState<{
+    client_name: string;
+    action_plan: string;
+    generated_at: string;
+  } | null>(null);
+  const [actionPlanLoading, setActionPlanLoading] = useState(false);
 
   useEffect(() => {
     fetchClientData();
@@ -132,11 +139,48 @@ const ClientIntelPage: React.FC = () => {
   };
 
   // Handler function for action plan
-  const handleActionPlan = (client: ClientData) => {
-    // TODO: Implement action plan functionality
-    console.log('Action Plan clicked for client:', client.name);
-    // This could open a new modal, navigate to a different page, or show action plan details
-    alert(`Action Plan for ${client.name} - Feature coming soon!`);
+  const handleActionPlan = async (client: ClientData) => {
+    if (!client.has_preferences) {
+      alert(`${client.name} needs to complete their preferences setup before generating an action plan.`);
+      return;
+    }
+
+    setActionPlanLoading(true);
+    setActionPlanData(null);
+    setShowActionPlanModal(true);
+
+    try {
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+      const idToken = localStorage.getItem("id_token");
+
+      const response = await fetch(`${apiBaseUrl}/api/v1/preferences/action-plan/${client.id}`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setActionPlanData({
+          client_name: data.client_name,
+          action_plan: data.action_plan,
+          generated_at: data.generated_at,
+        });
+      } else {
+        console.error("Failed to generate action plan:", data.error);
+        alert(`Failed to generate action plan: ${data.error}`);
+        setShowActionPlanModal(false);
+      }
+    } catch (error) {
+      console.error("Error generating action plan:", error);
+      alert("Network error occurred while generating action plan. Please try again.");
+      setShowActionPlanModal(false);
+    } finally {
+      setActionPlanLoading(false);
+    }
   };
 
   // Export user preferences to CSV
@@ -609,6 +653,100 @@ const ClientIntelPage: React.FC = () => {
                   </h3>
                   <p className="text-gray-600">
                     This user hasn't completed their preference setup yet.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Action Plan Modal */}
+      {showActionPlanModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+            {/* Modal Header */}
+            <div className="px-6 py-4 border-b border-gray-200 bg-cream/30">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-semibold text-black flex items-center">
+                    <Target className="h-6 w-6 text-olive mr-3" />
+                    Action Plan
+                    {actionPlanData && (
+                      <span className="text-base font-normal text-gray-600 ml-2">
+                        - {actionPlanData.client_name}
+                      </span>
+                    )}
+                  </h2>
+                  <p className="text-sm text-gray-600 mt-1">
+                    AI-generated personalized action plan based on client preferences
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowActionPlanModal(false);
+                    setActionPlanData(null);
+                  }}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)] custom-scrollbar">
+              {actionPlanLoading ? (
+                <div className="text-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-olive mx-auto mb-4"></div>
+                  <h3 className="text-lg font-medium text-black mb-2">
+                    Generating Action Plan
+                  </h3>
+                  <p className="text-gray-600">
+                    AI is analyzing client preferences and creating a personalized plan...
+                  </p>
+                </div>
+              ) : actionPlanData ? (
+                <div className="space-y-6">
+                  {/* Action Plan Content */}
+                  <div className="prose max-w-none">
+                    <div 
+                      className="text-gray-800 leading-relaxed whitespace-pre-wrap"
+                      style={{
+                        fontFamily: 'system-ui, -apple-system, sans-serif',
+                        lineHeight: '1.6'
+                      }}
+                    >
+                      {actionPlanData.action_plan}
+                    </div>
+                  </div>
+                  
+                  {/* Footer with generation info */}
+                  <div className="border-t border-gray-200 pt-4 mt-6">
+                    <div className="flex items-center justify-between text-sm text-gray-500">
+                      <div className="flex items-center">
+                        <Check className="h-4 w-4 text-green-500 mr-2" />
+                        Generated successfully
+                      </div>
+                      <div>
+                        {actionPlanData.generated_at && (
+                          <span>
+                            Generated on {new Date(actionPlanData.generated_at).toLocaleDateString()} at{' '}
+                            {new Date(actionPlanData.generated_at).toLocaleTimeString()}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <AlertCircle className="h-12 w-12 text-red-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-black mb-2">
+                    Failed to Generate Action Plan
+                  </h3>
+                  <p className="text-gray-600">
+                    There was an error generating the action plan. Please try again.
                   </p>
                 </div>
               )}
