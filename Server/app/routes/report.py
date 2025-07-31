@@ -104,10 +104,42 @@ def generate_report_endpoint():
         
         address = data.get('address')
         comparison_address = data.get('comparisonAddress', None)  # Default to None if not provided
+        target_user_id = data.get('user_id', None)  # For agent client selection
         
         if not address:
             logger.error("No address provided in request data")
             return jsonify({'error': 'Address is required', 'success': False}), 400
+        
+        # Determine which user's preferences to use for report generation
+        preferences_user_id = user.id  # Default to authenticated user
+        
+        if target_user_id:
+            # Agent is generating report for a client
+            logger.info(f"Agent {user.id} generating report for client {target_user_id}")
+            
+            # Verify the agent has access to this client
+            if not user.is_agent:
+                logger.warning(f"Non-agent user {user.id} attempted to generate report for another user {target_user_id}")
+                return jsonify({'error': 'Only agents can generate reports for other users', 'success': False}), 403
+            
+            # Parse agent's client_ids to verify access
+            try:
+                import json
+                if user.client_ids:
+                    client_ids = json.loads(user.client_ids) if isinstance(user.client_ids, str) else user.client_ids
+                else:
+                    client_ids = []
+                
+                if target_user_id not in client_ids:
+                    logger.warning(f"Agent {user.id} attempted to access client {target_user_id} who is not in their client list")
+                    return jsonify({'error': 'Access denied: User is not your client', 'success': False}), 403
+                
+                preferences_user_id = target_user_id
+                logger.info(f"✅ Agent {user.id} authorized to generate report using preferences from client {target_user_id}")
+                
+            except (json.JSONDecodeError, TypeError) as e:
+                logger.error(f"Failed to parse agent's client_ids: {str(e)}")
+                return jsonify({'error': 'Invalid agent client configuration', 'success': False}), 500
         
         # Check if this is a comparison report
         is_comparison = bool(comparison_address and comparison_address.strip())
@@ -156,13 +188,14 @@ def generate_report_endpoint():
         
         # Start async task (lazy import to avoid circular import)
         # Always use the unified generate_report_async task, passing comparison_address (None for detailed reports)
+        # Use preferences_user_id for report generation (could be agent's client or agent themselves)
         from app.celery.tasks import generate_report_async
-        task = generate_report_async.delay(address, comparison_address, filenamee, pdf_doc.id, user.id)
+        task = generate_report_async.delay(address, comparison_address, filenamee, pdf_doc.id, preferences_user_id)
         
         if is_comparison:
-            logger.info(f"Started comparison report task {task.id} for addresses: {address} vs {comparison_address}")
+            logger.info(f"Started comparison report task {task.id} for addresses: {address} vs {comparison_address} using preferences from user {preferences_user_id}")
         else:
-            logger.info(f"Started detailed report task {task.id} for address: {address}")
+            logger.info(f"Started detailed report task {task.id} for address: {address} using preferences from user {preferences_user_id}")
         
         return jsonify({
             'success': True,

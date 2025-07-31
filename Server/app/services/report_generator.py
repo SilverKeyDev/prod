@@ -425,45 +425,173 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
             }
 
         logger.info(f"📡 Complete final comparison payload being sent to Perplexity:\n{json.dumps(payload, indent=2)}")
-        session = requests.Session()
-        retries = Retry(total=3, backoff_factor=1, status_forcelist=[429, 500, 502, 503, 504])
-        session.mount("https://", HTTPAdapter(max_retries=retries))
-
-        try:
-            logger.info("📨 Sending request to Perplexity API...")
-            start_time = time.perf_counter()
-            response = session.post("https://api.perplexity.ai/chat/completions", headers=HEADERS, json=payload)
-            duration = time.perf_counter() - start_time
-            logger.info(f"✅ API request completed in {duration:.2f} seconds")
-
-            if response.status_code != 200:
-                logger.error(f"❌ Perplexity API returned error {response.status_code}")
-                logger.error(f"📄 Full response: {response.text}")
-                raise Exception(f"API request failed with status code {response.status_code}")
-
-            content = response.json()
-         
-            if "choices" not in content or not content["choices"]:
-                logger.error("❌ Missing or empty 'choices' key in API response")
-                logger.error(f"❌ Available keys in response: {list(content.keys())}")
-                raise KeyError("Missing or empty 'choices' key in API response")
-
-            raw_json_text = content["choices"][0]["message"]["content"]
-
-            report = _safe_parse_json(raw_json_text, report_customization)
-
-            logger.debug("🖨️ Calling PDF generation helper...")
-            
-            _create_pdf(report, address, filename)
-
-            logger.info(f"✅ Report generation completed successfully for task {task_id}")
-            return report
-
-        except Exception as e:
-            logger.error(f"❌ Unhandled error during API call or parsing: {str(e)}")
-            logger.error(f"Exception type: {type(e).__name__}")
-            logger.error(f"Traceback:\n{traceback.format_exc()}")
-            raise
+        # Enhanced retry logic with exponential backoff
+        max_retries = 3
+        base_delay = 1  # Start with 1 second delay
+        
+        for attempt in range(max_retries + 1):  # +1 to include the initial attempt
+            try:
+                # Configure session with retry adapter for connection-level retries
+                session = requests.Session()
+                retries = Retry(
+                    total=2,  # Lower since we're doing manual retries
+                    backoff_factor=0.5,
+                    status_forcelist=[429, 500, 502, 503, 504],
+                    raise_on_status=False  # We'll handle status codes manually
+                )
+                session.mount("https://", HTTPAdapter(max_retries=retries))
+                
+                logger.info(f"📨 Sending request to Perplexity API (attempt {attempt + 1}/{max_retries + 1})...")
+                start_time = time.perf_counter()
+                
+                response = session.post(
+                    "https://api.perplexity.ai/chat/completions", 
+                    headers=HEADERS, 
+                    json=payload,
+                    timeout=60  # 60 second timeout
+                )
+                
+                duration = time.perf_counter() - start_time
+                logger.info(f"📊 API request completed in {duration:.2f} seconds with status {response.status_code}")
+                
+                # Handle successful response
+                if response.status_code == 200:
+                    logger.info(f"✅ API request successful on attempt {attempt + 1}")
+                    
+                    try:
+                        content = response.json()
+                    except json.JSONDecodeError as je:
+                        logger.error(f"❌ Failed to parse JSON response: {str(je)}")
+                        logger.error(f"📄 Raw response: {response.text[:1000]}...")
+                        if attempt < max_retries:
+                            delay = base_delay * (2 ** attempt)
+                            logger.warning(f"⏳ Retrying in {delay} seconds due to JSON parse error...")
+                            time.sleep(delay)
+                            continue
+                        raise Exception(f"Failed to parse API response as JSON after {max_retries + 1} attempts")
+                    
+                    # Validate response structure
+                    if "choices" not in content or not content["choices"]:
+                        logger.error("❌ Missing or empty 'choices' key in API response")
+                        logger.error(f"❌ Available keys in response: {list(content.keys())}")
+                        if attempt < max_retries:
+                            delay = base_delay * (2 ** attempt)
+                            logger.warning(f"⏳ Retrying in {delay} seconds due to malformed response...")
+                            time.sleep(delay)
+                            continue
+                        raise KeyError("Missing or empty 'choices' key in API response")
+                    
+                    # Extract and process the response
+                    raw_json_text = content["choices"][0]["message"]["content"]
+                    logger.info(f"📝 Received response content ({len(raw_json_text)} characters)")
+                    
+                    # Parse the JSON response
+                    try:
+                        report = _safe_parse_json(raw_json_text, report_customization)
+                        logger.info("✅ Successfully parsed report JSON")
+                    except Exception as pe:
+                        logger.error(f"❌ Failed to parse report JSON: {str(pe)}")
+                        if attempt < max_retries:
+                            delay = base_delay * (2 ** attempt)
+                            logger.warning(f"⏳ Retrying in {delay} seconds due to parsing error...")
+                            time.sleep(delay)
+                            continue
+                        raise Exception(f"Failed to parse report JSON after {max_retries + 1} attempts: {str(pe)}")
+                    
+                    # Generate PDF
+                    logger.debug("🖨️ Calling PDF generation helper...")
+                    try:
+                        _create_pdf(report, address, filename)
+                        logger.info(f"✅ Report generation completed successfully for task {task_id}")
+                        return report
+                    except Exception as pdf_error:
+                        logger.error(f"❌ PDF generation failed: {str(pdf_error)}")
+                        # PDF generation failure is not retryable, so we raise immediately
+                        raise Exception(f"PDF generation failed: {str(pdf_error)}")
+                
+                # Handle retryable errors (5xx server errors)
+                elif response.status_code >= 500:
+                    logger.warning(f"⚠️ Perplexity API returned server error {response.status_code}")
+                    logger.warning(f"📄 Error response: {response.text[:500]}...")
+                    
+                    if attempt < max_retries:
+                        delay = base_delay * (2 ** attempt)  # Exponential backoff: 1s, 2s, 4s
+                        logger.warning(f"⏳ Retrying in {delay} seconds (attempt {attempt + 1}/{max_retries + 1})...")
+                        time.sleep(delay)
+                        continue
+                    else:
+                        logger.error(f"🔥 Perplexity API failed with {response.status_code} after {max_retries + 1} attempts")
+                        raise Exception(f"Perplexity API server error {response.status_code} after {max_retries + 1} attempts: {response.text}")
+                
+                # Handle rate limiting (429)
+                elif response.status_code == 429:
+                    logger.warning(f"⚠️ Rate limited by Perplexity API (429)")
+                    
+                    if attempt < max_retries:
+                        # For rate limiting, use a longer delay
+                        delay = base_delay * (3 ** attempt)  # More aggressive backoff: 1s, 3s, 9s
+                        logger.warning(f"⏳ Retrying in {delay} seconds due to rate limiting...")
+                        time.sleep(delay)
+                        continue
+                    else:
+                        logger.error(f"🔥 Rate limited by Perplexity API after {max_retries + 1} attempts")
+                        raise Exception(f"Rate limited by Perplexity API after {max_retries + 1} attempts")
+                
+                # Handle non-retryable client errors (4xx except 429)
+                elif 400 <= response.status_code < 500:
+                    logger.error(f"❌ Perplexity API returned client error {response.status_code}")
+                    logger.error(f"📄 Full response: {response.text}")
+                    # Client errors are not retryable
+                    raise Exception(f"Perplexity API client error {response.status_code}: {response.text}")
+                
+                # Handle other unexpected status codes
+                else:
+                    logger.error(f"❌ Perplexity API returned unexpected status {response.status_code}")
+                    logger.error(f"📄 Full response: {response.text}")
+                    raise Exception(f"Perplexity API unexpected status {response.status_code}: {response.text}")
+                    
+            except requests.exceptions.Timeout as te:
+                logger.warning(f"⚠️ Request timeout on attempt {attempt + 1}: {str(te)}")
+                if attempt < max_retries:
+                    delay = base_delay * (2 ** attempt)
+                    logger.warning(f"⏳ Retrying in {delay} seconds due to timeout...")
+                    time.sleep(delay)
+                    continue
+                else:
+                    logger.error(f"🔥 Request timed out after {max_retries + 1} attempts")
+                    raise Exception(f"Request timed out after {max_retries + 1} attempts")
+                    
+            except requests.exceptions.ConnectionError as ce:
+                logger.warning(f"⚠️ Connection error on attempt {attempt + 1}: {str(ce)}")
+                if attempt < max_retries:
+                    delay = base_delay * (2 ** attempt)
+                    logger.warning(f"⏳ Retrying in {delay} seconds due to connection error...")
+                    time.sleep(delay)
+                    continue
+                else:
+                    logger.error(f"🔥 Connection failed after {max_retries + 1} attempts")
+                    raise Exception(f"Connection failed after {max_retries + 1} attempts: {str(ce)}")
+                    
+            except requests.exceptions.RequestException as re:
+                logger.warning(f"⚠️ Request exception on attempt {attempt + 1}: {str(re)}")
+                if attempt < max_retries:
+                    delay = base_delay * (2 ** attempt)
+                    logger.warning(f"⏳ Retrying in {delay} seconds due to request exception...")
+                    time.sleep(delay)
+                    continue
+                else:
+                    logger.error(f"🔥 Request failed after {max_retries + 1} attempts")
+                    raise Exception(f"Request failed after {max_retries + 1} attempts: {str(re)}")
+                    
+            except Exception as e:
+                # For unexpected errors, log and re-raise without retry
+                logger.error(f"❌ Unexpected error during API call: {str(e)}")
+                logger.error(f"Exception type: {type(e).__name__}")
+                logger.error(f"Traceback:\n{traceback.format_exc()}")
+                raise Exception(f"Unexpected error during API call: {str(e)}")
+        
+        # This should never be reached due to the logic above, but just in case
+        raise Exception(f"Failed to complete API request after {max_retries + 1} attempts")
 
     except Exception as e:
         logger.error(f"❌ Unhandled error in generate_report: {str(e)}")
