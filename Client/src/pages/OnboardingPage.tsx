@@ -432,6 +432,28 @@ export default function OnboardingPage() {
     localStorage.setItem("onboardingDraft", JSON.stringify(formData));
   }, [formData]);
 
+  // Validation method for children count
+  const validateAllowZero = (value: string): number | undefined => {
+    // Allow empty string (not specified)
+    if (value === "") {
+      return undefined;
+    }
+    
+    const numValue = parseInt(value, 10);
+    
+    // Check if it's a valid number
+    if (isNaN(numValue)) {
+      return undefined;
+    }
+    
+    // Must be non-negative integer (0 or greater)
+    if (numValue < 0) {
+      return undefined;
+    }
+    
+    return numValue;
+  };
+
   const updateFormData = (field: keyof OnboardingData, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
@@ -689,11 +711,13 @@ export default function OnboardingPage() {
                 </label>
                 <input
                   type="number"
-                  value={formData.children_count || ""}
+                  min="0"
+                  max="20"
+                  value={formData.children_count !== undefined ? formData.children_count : ""}
                   onChange={(e) =>
                     updateFormData(
                       "children_count",
-                      parseInt(e.target.value) || undefined
+                      validateAllowZero(e.target.value)
                     )
                   }
                   className="mobile-input"
@@ -701,7 +725,7 @@ export default function OnboardingPage() {
                 />
               </div>
 
-              <div className="md:col-span-2">
+              <div>
                 <NumberTagInput
                   field="children_ages"
                   label="Children's Ages"
@@ -1603,28 +1627,6 @@ export default function OnboardingPage() {
                   isOpen={openDropdowns.moving_reason || false}
                   onToggle={() => toggleDropdown("moving_reason")}
                   dropdownRef={getDropdownRef("moving_reason")}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Agent Experience Preference
-                </label>
-                <CustomDropdown
-                  value={formData.agent_experience_preference || ""}
-                  onChange={(value) =>
-                    updateFormData("agent_experience_preference", value)
-                  }
-                  options={[
-                    { value: "new_agent", label: "New Agent" },
-                    { value: "experienced", label: "Experienced Agent" },
-                    { value: "top_producer", label: "Top Producer" },
-                    { value: "no_preference", label: "No Preference" },
-                  ]}
-                  placeholder="Select..."
-                  isOpen={openDropdowns.agent_experience_preference || false}
-                  onToggle={() => toggleDropdown("agent_experience_preference")}
-                  dropdownRef={getDropdownRef("agent_experience_preference")}
                 />
               </div>
 

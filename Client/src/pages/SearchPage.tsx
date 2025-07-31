@@ -362,9 +362,8 @@ export default function SearchPage() {
   
     return { fillColor, strokeColor };
   };
-  
-  
 
+  
   // Initialize Google Maps
   useEffect(() => {
     const initializeMap = async () => {
