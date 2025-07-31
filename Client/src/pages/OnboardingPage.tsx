@@ -2125,12 +2125,7 @@ export default function OnboardingPage() {
             Welcome to SilverKey
           </h1>
           <p className="text-sm sm:text-base text-black/60">
-            This information is to help our recommendation systems and for your
-            agent to better help you
-          </p>
-          <p className="text-sm sm:text-base text-black/60">
-            Feel free to skip any questions you don't want to answer, do what
-            serves you
+            Information you give helps your agent and SilverKey serve you, but all fields are optional!
           </p>
         </div>
         <div className="mt-4 sm:mt-0">
