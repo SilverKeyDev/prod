@@ -58,7 +58,7 @@ const plans: Plan[] = [
   {
     id: "unlimited-monthly",
     name: "Enterprise Monthly",
-    price: 24.99,
+    price: 49.99,
     interval: "month",
     reportsLimit: -1,
     features: [
@@ -70,7 +70,7 @@ const plans: Plan[] = [
   {
     id: "unlimited-yearly",
     name: "Enterprise Yearly",
-    price: 249.99,
+    price: 499.99,
     interval: "year",
     reportsLimit: -1,
     popular: true,
