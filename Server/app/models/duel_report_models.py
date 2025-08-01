@@ -317,60 +317,6 @@ class CultureAndEvents(BaseModel):
             "image_prompt": "Descriptive prompt for generating an image of local culture and events that captures the community spirit appealing to the user."
         }
 
-class Weather(BaseModel):
-    spring: ComparisonField = Field(...)
-    summer: ComparisonField = Field(...)
-    fall: ComparisonField = Field(...)
-    winter: ComparisonField = Field(...)
-    image_prompt: ComparisonField = Field(...)
-    
-    @classmethod
-    def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
-        """Generate personalized example based on user preferences"""
-        return {
-            "spring": {
-                "location_a": "Mild and pleasant, 60-75°F, occasional rain, perfect for outdoor activities",
-                "location_b": "Cool and wet, 50-65°F, frequent rain, limited outdoor time",
-                "winner": "location_a",
-                "reason": "Better spring weather for outdoor lifestyle"
-            },
-            "summer": {
-                "location_a": "Warm and dry, 75-85°F, coastal breeze, ideal beach weather",
-                "location_b": "Hot and humid, 85-95°F, oppressive heat, high energy costs",
-                "winner": "location_a",
-                "reason": "More comfortable summer temperatures"
-            },
-            "fall": {
-                "location_a": "Cool and crisp, 55-70°F, beautiful foliage, comfortable for hiking",
-                "location_b": "Mild but rainy, 60-70°F, overcast skies, limited outdoor activities",
-                "winner": "location_a",
-                "reason": "Better fall weather for outdoor activities"
-            },
-            "winter": {
-                "location_a": "Mild winters, 45-60°F, some rain, rarely freezing",
-                "location_b": "Cold winters, 25-40°F, snow and ice, high heating costs",
-                "winner": "location_a",
-                "reason": "Milder winter climate reduces costs and discomfort"
-            },
-            "image_prompt": {
-                "location_a": "Four-season collage showing pleasant coastal weather year-round",
-                "location_b": "Four-season collage showing more extreme weather variations",
-                "winner": "location_a",
-                "reason": "More appealing year-round climate"
-            }
-        }
-    
-    @classmethod
-    def get_description(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, str]:
-        """Generate personalized field descriptions based on user preferences"""
-        return {
-            "spring": "Spring weather using WeatherSpark, BestPlaces, or Teleport city data. Consider user's outdoor activity preferences and seasonal comfort needs. Include temperature ranges and precipitation.",
-            "summer": "Summer weather using WeatherSpark, BestPlaces, or Nomad List climate data. Factor in user's heat tolerance and cooling costs. Include humidity and heat index information.",
-            "fall": "Autumn weather using WeatherSpark or BestPlaces seasonal data. Consider user's preferences for fall activities and seasonal changes. Include temperature transitions.",
-            "winter": "Winter weather using WeatherSpark, BestPlaces, or local weather services. Factor in user's cold tolerance and heating costs. Include snow/rain patterns.",
-            "image_prompt": "Descriptive prompt for generating an image representing the area's climate that appeals to user's weather preferences."
-        }
-
 class SocialCharacter(BaseModel):
     income_level: ComparisonField = Field(...)
     religiosity: ComparisonField = Field(...)
@@ -725,56 +671,6 @@ class NightlifeAndDating(BaseModel):
             "image_prompt": "Descriptive prompt for generating an image of local nightlife that reflects the user's preferred social atmosphere."
         }
 
-class Accessibility(BaseModel):
-    wheelchair_friendly: ComparisonField = Field(...)
-    ada_compliance: ComparisonField = Field(...)
-    age_friendly: ComparisonField = Field(...)
-    accessibility_rating: ComparisonField = Field(...)
-    
-    @classmethod
-    def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
-        """Generate personalized example based on user preferences"""
-        age = user_preferences.get('age', 30) if user_preferences else 30
-        
-        return {
-            "wheelchair_friendly": {
-                "location_a": "Good - Most sidewalks have curb cuts, accessible parking available, ramps at major buildings",
-                "location_b": "Limited - Some older sidewalks lack curb cuts, limited accessible parking",
-                "winner": "location_a",
-                "reason": "Better wheelchair accessibility infrastructure"
-            },
-            "ada_compliance": {
-                "location_a": "High compliance - New construction follows ADA standards, accessible public transportation",
-                "location_b": "Moderate compliance - Older buildings may lack full accessibility features",
-                "winner": "location_a",
-                "reason": "Better ADA compliance across buildings and services"
-            },
-            "age_friendly": {
-                "location_a": "Senior center nearby, medical facilities within walking distance, flat terrain, good lighting",
-                "location_b": "Limited senior services, hilly terrain, some areas poorly lit at night",
-                "winner": "location_a",
-                "reason": f"More age-friendly features (user age: {age})"
-            },
-            "accessibility_rating": {
-                "location_a": "8.1/10",
-                "location_b": "6.3/10",
-                "winner": "location_a",
-                "reason": "Higher overall accessibility score for people with disabilities"
-            }
-        }
-    
-    @classmethod
-    def get_description(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, str]:
-        """Generate personalized field descriptions based on user preferences"""
-        age = user_preferences.get('age', 30) if user_preferences else 30
-        
-        return {
-            "wheelchair_friendly": "Assess sidewalk curb cuts, ramps, accessible parking using Google Street View for visual inspection. Focus on practical mobility for daily activities.",
-            "ada_compliance": "Check public buildings, transit stops, crosswalks using city accessibility reports or ADA compliance databases if available.",
-            "age_friendly": f"Look for senior centers, medical facilities, flat terrain, good lighting using Google Maps to identify senior-focused amenities. Consider relevance to user's age ({age}) and future needs.",
-            "accessibility_rating": "Overall accessibility score out of 10. Weight factors based on user's age and accessibility needs. Consider infrastructure quality and support services."
-        }
-
 class Development(BaseModel):
     upcoming_changes: ComparisonField = Field(...)
     zoning_or_construction: ComparisonField = Field(...)
@@ -1121,13 +1017,11 @@ class ComparisonReport(BaseModel):
     neighborhood_overview: Optional[NeighborhoodOverview] = None
     safety: Optional[Safety] = None
     culture_and_events: Optional[CultureAndEvents] = None
-    weather: Optional[Weather] = None
     social_character: Optional[SocialCharacter] = None
     local_amenities: Optional[LocalAmenities] = None
     commute: Optional[Commute] = None
     family_friendly: Optional[FamilyFriendly] = None
     nightlife_and_dating: Optional[NightlifeAndDating] = None
-    accessibility: Optional[Accessibility] = None
     development: Optional[Development] = None
     environment_utilities: Optional[EnvironmentUtilities] = None
     financial_information: Optional[FinancialInformation] = None

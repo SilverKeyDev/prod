@@ -279,69 +279,6 @@ class CultureAndEvents(BaseModel):
             "image_prompt": "Visual that captures the cultural energy and community spirit buyers want to be part of. Should make viewers excited about the social and cultural opportunities available."
         }
 
-class Weather(BaseModel):
-    spring: str = Field(...)
-    summer: str = Field(...)
-    fall: str = Field(...)
-    winter: str = Field(...)
-    image_prompt: str = Field(...)
-    
-    class Config:
-        extra = "forbid"
-    
-    @classmethod
-    def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
-        """Generate personalized example based on user preferences"""
-        # Extract user preferences for weather personalization
-        lifestyle = user_preferences.get('lifestyle_type', 'balanced') if user_preferences else 'balanced'
-        hobbies = user_preferences.get('hobbies_interests', ['outdoor activities']) if user_preferences else ['outdoor activities']
-        age = user_preferences.get('age', 35) if user_preferences else 35
-        
-        # Customize weather messaging based on user profile
-        if 'outdoor' in str(hobbies).lower() or 'fitness' in str(hobbies).lower():
-            spring_focus = "Perfect for hiking and outdoor fitness - mild 65-75°F with blooming trails"
-            summer_focus = "Ideal outdoor activity weather - sunny 75-85°F, perfect for all your favorite activities"
-            fall_focus = "Beautiful hiking and cycling conditions - crisp 60-70°F with stunning foliage"
-            winter_focus = "Great for winter sports and cozy outdoor activities - 45-55°F, mostly sunny"
-            image_focus = "outdoor enthusiasts enjoying activities in beautiful weather"
-        elif age < 30:
-            spring_focus = "Festival season begins - perfect 70°F weather for outdoor events and socializing"
-            summer_focus = "Prime social season - warm 80°F days ideal for rooftop bars and outdoor dining"
-            fall_focus = "Cozy sweater weather - comfortable 65°F perfect for farmers markets and outdoor cafes"
-            winter_focus = "Mild winter charm - 50°F days great for holiday markets and outdoor gatherings"
-            image_focus = "young people enjoying seasonal outdoor social activities"
-        else:
-            spring_focus = "Delightful spring weather - comfortable 68-75°F perfect for gardening and walks"
-            summer_focus = "Pleasant summer climate - warm but not oppressive 78-85°F with low humidity"
-            fall_focus = "Gorgeous autumn conditions - mild 62-72°F ideal for outdoor activities"
-            winter_focus = "Mild, enjoyable winters - 48-58°F allowing year-round outdoor enjoyment"
-            image_focus = "residents comfortably enjoying all four seasons outdoors"
-        
-        return {
-            "spring": spring_focus,
-            "summer": summer_focus,
-            "fall": fall_focus,
-            "winter": winter_focus,
-            "image_prompt": f"Beautiful seasonal scene showing {image_focus} in this desirable climate"
-        }
-    
-    @classmethod
-    def get_description(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, str]:
-        """Generate personalized field descriptions based on user preferences"""
-        # Extract user context for weather priorities
-        hobbies = user_preferences.get('hobbies_interests', ['outdoor activities']) if user_preferences else ['outdoor activities']
-        lifestyle = user_preferences.get('lifestyle_type', 'balanced') if user_preferences else 'balanced'
-        
-        weather_priorities = "outdoor activity conditions" if 'outdoor' in str(hobbies).lower() else "comfortable living conditions"
-        
-        return {
-            "spring": f"Highlight the appeal of spring weather for {weather_priorities}. Focus on temperature ranges, rainfall, and seasonal activities that buyers can enjoy.",
-            "summer": f"Showcase summer climate advantages for {weather_priorities}. Emphasize comfort, outdoor opportunities, and lifestyle benefits.",
-            "fall": f"Present autumn weather as an asset for {weather_priorities}. Highlight seasonal beauty, comfortable temperatures, and outdoor enjoyment.",
-            "winter": f"Frame winter weather positively for {weather_priorities}. Show how mild conditions allow year-round outdoor activities and comfortable living.",
-            "image_prompt": "Visual that showcases the area's appealing climate and how residents enjoy the weather year-round. Should make viewers want to experience this climate."
-        }
-
 class SocialCharacter(BaseModel):
     income_level: str = Field(...)
     religiosity: str = Field(...)

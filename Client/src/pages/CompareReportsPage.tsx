@@ -75,12 +75,6 @@ const ALL_METRIC_KEYS: string[] = [
   "Community Engagement",
   "Culture Rating",
 
-  // Weather
-  "Spring Weather",
-  "Summer Weather",
-  "Fall Weather",
-  "Winter Weather",
-
   // Social Character
   "Income Level",
   "Religiosity",
@@ -144,12 +138,6 @@ const ALL_METRIC_KEYS: string[] = [
   "Tinder Popularity",
   "Bumble Popularity",
   "Hinge Popularity",
-
-  // Accessibility
-  "Wheelchair Friendly",
-  "ADA Compliance",
-  "Age Friendly",
-  "Accessibility Rating",
 
   // Development
   "Upcoming Changes",

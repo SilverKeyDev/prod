@@ -84,12 +84,6 @@ def _extract_summary(data: Dict) -> Dict[str, str]:
         "Community Engagement": "culture_and_events.community_engagement",
         "Culture Rating": "culture_and_events.culture_rating",
         
-        # Weather
-        "Spring Weather": "weather.spring",
-        "Summer Weather": "weather.summer",
-        "Fall Weather": "weather.fall",
-        "Winter Weather": "weather.winter",
-        
         # Social Character
         "Income Level": "social_character.income_level",
         "Religiosity": "social_character.religiosity",
@@ -153,13 +147,7 @@ def _extract_summary(data: Dict) -> Dict[str, str]:
         "Tinder Popularity": "nightlife_and_dating.apps_popularity.tinder",
         "Bumble Popularity": "nightlife_and_dating.apps_popularity.bumble",
         "Hinge Popularity": "nightlife_and_dating.apps_popularity.hinge",
-        
-        # Accessibility
-        "Wheelchair Friendly": "accessibility.wheelchair_friendly",
-        "ADA Compliance": "accessibility.ada_compliance",
-        "Age Friendly": "accessibility.age_friendly",
-        "Accessibility Rating": "accessibility.accessibility_rating",
-        
+      
         # Development
         "Upcoming Changes": "development.upcoming_changes",
         "Zoning or Construction": "development.zoning_or_construction",

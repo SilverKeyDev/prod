@@ -67,14 +67,12 @@ def generate_report_schema(report_customization: Dict[str, Any], user_preference
             "NeighborhoodOverview": "Comprehensive overview of the neighborhood including demographics, culture, and community characteristics",
             "Demographics": "Population demographics including age, gender, race, and lifestyle distribution",
             "Safety": "Safety and crime information including ratings, police presence, and risks",
-            "Weather": "Seasonal weather and climate characteristics across all four seasons",
             "CultureAndEvents": "Community events, cultural dynamics, and local traditions",
             "SocialCharacter": "Community tone including income, religiosity, and social cohesion",
             "LocalAmenities": "Nearby restaurants, parks, activities, and local gems",
             "Commute": "Walkability, traffic, and public transit access",
             "FamilyFriendly": "Child- and family-centric aspects including schools and parks",
             "NightlifeAndDating": "Local dating dynamics, nightlife ratings, and popular venues",
-            "Accessibility": "Disability-friendly and age-inclusive features",
             "Development": "Zoning changes, gentrification trends, and neighborhood evolution",
             "EnvironmentUtilities": "Air/water quality, utility costs, internet, pollution",
             "FinancialInformation": "Property cost, taxes, and investment potential",
@@ -158,7 +156,7 @@ def generate_report_schema(report_customization: Dict[str, Any], user_preference
         # Log final schema structure for debugging
         for section_key in section_keys:
             def_name = None
-            for name, mapping in {"NeighborhoodOverview": "neighborhood_overview", "CultureAndEvents": "culture_and_events", "Safety": "safety", "Weather": "weather", "SocialCharacter": "social_character"}.items():
+            for name, mapping in {"NeighborhoodOverview": "neighborhood_overview", "CultureAndEvents": "culture_and_events", "Safety": "safety", "SocialCharacter": "social_character"}.items():
                 if mapping == section_key:
                     def_name = name
                     break
@@ -245,14 +243,12 @@ def _get_section_key_from_def_name(def_name: str) -> str:
         "NeighborhoodOverview": "neighborhood_overview",
         "Demographics": "demographics", 
         "Safety": "safety",
-        "Weather": "weather",
         "CultureAndEvents": "culture_and_events",
         "SocialCharacter": "social_character",
         "LocalAmenities": "local_amenities",
         "Commute": "commute",
         "FamilyFriendly": "family_friendly",
         "NightlifeAndDating": "nightlife_and_dating",
-        "Accessibility": "accessibility",
         "Development": "development",
         "EnvironmentUtilities": "environment_utilities",
         "FinancialInformation": "financial_information",

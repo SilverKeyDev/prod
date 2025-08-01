@@ -220,38 +220,6 @@ class CultureAndEvents(BaseModel):
             "image_prompt": "Descriptive prompt for generating an image of local culture and events that reflects the community's cultural character."
         }
 
-class Weather(BaseModel):
-    spring: str = Field(...)
-    summer: str = Field(...)
-    fall: str = Field(...)
-    winter: str = Field(...)
-    image_prompt: str = Field(...)
-    
-    class Config:
-        extra = "forbid"
-    
-    @classmethod
-    def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
-        """Generate personalized example based on user preferences"""
-        return {
-            "spring": "Mild and pleasant, 60-75°F, occasional rain, perfect for outdoor activities",
-            "summer": "Warm and dry, 75-85°F, coastal breeze, ideal beach weather with low humidity",
-            "fall": "Cool and crisp, 55-70°F, beautiful foliage, comfortable for hiking and outdoor events",
-            "winter": "Mild winters, 45-60°F, some rain, rarely freezing, good for year-round outdoor living",
-            "image_prompt": "Four-season collage showing the neighborhood in spring blooms, summer sunshine, fall colors, and mild winter"
-        }
-    
-    @classmethod
-    def get_description(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, str]:
-        """Generate personalized field descriptions based on user preferences"""
-        return {
-            "spring": "Give low/high temps and commentary for spring season. Teleport city pages often summarize this well, or use WeatherSpark/BestPlaces. Mention comfort, humidity, storm risks if relevant. Look for mentions on Nomad List or BestPlaces.net. Consider user's seasonal activity preferences and comfort with spring weather.",
-            "summer": "Give low/high temps and commentary for summer season. Teleport city pages often summarize this well, or use WeatherSpark/BestPlaces. Mention comfort, humidity, storm risks if relevant. Look for mentions on Nomad List or BestPlaces.net. Focus on summer activities and heat tolerance relevant to user.",
-            "fall": "Give low/high temps and commentary for fall season. Teleport city pages often summarize this well, or use WeatherSpark/BestPlaces. Mention comfort, humidity, storm risks if relevant. Look for mentions on Nomad List or BestPlaces.net. Assess fall weather appeal based on user's seasonal preferences.",
-            "winter": "Give low/high temps and commentary for winter season. Teleport city pages often summarize this well, or use WeatherSpark/BestPlaces. Mention comfort, humidity, storm risks if relevant. Look for mentions on Nomad List or BestPlaces.net. Consider user's cold tolerance and winter activity preferences.",
-            "image_prompt": "Descriptive prompt for generating an image representing the area's climate that appeals to user's weather preferences."
-        }
-
 class SocialCharacter(BaseModel):
     income_level: str = Field(...)
     religiosity: str = Field(...)
@@ -728,55 +696,6 @@ class NightlifeAndDating(BaseModel):
             "image_prompt": "Descriptive prompt for generating an image of local nightlife that reflects the user's preferred social atmosphere."
         }
 
-class Accessibility(BaseModel):
-    wheelchair_friendly: str = Field(...)
-    ada_compliance: str = Field(...)
-    age_friendly: str = Field(...)
-    accessibility_rating: str = Field(...)
-    
-    class Config:
-        extra = "forbid"
-    
-    @classmethod
-    def get_example(cls, user_preferences: Dict[str, Any]) -> Dict[str, Any]:
-        """Generate example Accessibility data based on user preferences."""
-        age = user_preferences.get('age', 30)
-        accessibility_needs = user_preferences.get('accessibility_needs', False)
-        
-        if accessibility_needs or age > 65:
-            return {
-                "wheelchair_friendly": "Excellent - All sidewalks have curb cuts, accessible parking abundant, ramps and elevators at all buildings",
-                "ada_compliance": "Full compliance - All public spaces meet ADA standards, accessible public transportation with audio announcements",
-                "age_friendly": "Outstanding - Senior center, medical facilities within 2 blocks, flat terrain, excellent lighting, benches every block",
-                "accessibility_rating": "9.5/10"
-            }
-        elif age > 50:
-            return {
-                "wheelchair_friendly": "Very Good - Most sidewalks accessible, some older buildings have ramps added, accessible parking available",
-                "ada_compliance": "High compliance - New construction follows ADA standards, accessible public transportation",
-                "age_friendly": "Good - Senior center nearby, medical facilities within walking distance, mostly flat terrain, good lighting",
-                "accessibility_rating": "8.5/10"
-            }
-        else:
-            return {
-                "wheelchair_friendly": "Good - Most sidewalks have curb cuts, accessible parking available, ramps at major buildings",
-                "ada_compliance": "High compliance - New construction follows ADA standards, accessible public transportation",
-                "age_friendly": "Senior center nearby, medical facilities within walking distance, flat terrain, good lighting",
-                "accessibility_rating": "8.1/10"
-            }
-    
-    @classmethod
-    def get_description(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, str]:
-        """Generate field descriptions for Accessibility based on user preferences."""
-        age = user_preferences.get('age', 30) if user_preferences else 30
-        accessibility_needs = user_preferences.get('accessibility_needs', False) if user_preferences else False
-        
-        return {
-            "wheelchair_friendly": "Assess sidewalk curb cuts, ramps, accessible parking. Use Google Street View for visual inspection. Focus on practical mobility for daily activities.",
-            "ada_compliance": "Check public buildings, transit stops, crosswalks. Use city accessibility reports or ADA compliance databases if available.",
-            "age_friendly": "Look for senior centers, medical facilities, flat terrain, good lighting. Use Google Maps to identify senior-focused amenities and services.",
-            "accessibility_rating": "Overall accessibility score out of 10. Weight factors based on user's age and accessibility needs. Consider infrastructure quality and support services."
-        }
 
 class Development(BaseModel):
     upcoming_changes: str = Field(...)
@@ -1168,13 +1087,11 @@ class FullReport(BaseModel):
     neighborhood_overview: Optional[NeighborhoodOverview] = None
     safety: Optional[Safety] = None
     culture_and_events: Optional[CultureAndEvents] = None
-    weather: Optional[Weather] = None
     social_character: Optional[SocialCharacter] = None
     local_amenities: Optional[LocalAmenities] = None
     commute: Optional[Commute] = None
     family_friendly: Optional[FamilyFriendly] = None
     nightlife_and_dating: Optional[NightlifeAndDating] = None
-    accessibility: Optional[Accessibility] = None
     development: Optional[Development] = None
     environment_utilities: Optional[EnvironmentUtilities] = None
     financial_information: Optional[FinancialInformation] = None
