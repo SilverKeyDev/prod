@@ -9,10 +9,20 @@ logger = logging.getLogger(__name__)
 # Base comparison structure for all sections
 class ComparisonField(BaseModel):
     """Base model for comparison fields with location_a, location_b, winner, and reason"""
-    location_a: Any = Field(..., description="Property A value for this field")
-    location_b: Any = Field(..., description="Property B value for this field")
-    winner: str = Field(..., description="Winner: 'location_a', 'location_b', or 'same'")
-    reason: str = Field(..., description="Explanation for why this location wins")
+    location_a: Any = Field(..., description="Detailed analysis of this location's(LOCATION_A) performance **only** in the context of this field (e.g., crime_rating, community_events, lifestyle match, etc.). Do not mention other dimensions.")
+    location_b: Any = Field(..., description="Detailed analysis of this location's(LOCATION_B) performance **only** in the context of this field (e.g., crime_rating, community_events, lifestyle match, etc.). Do not mention other dimensions.")
+    winner: str = Field(..., description="Winner: 'location_a', 'location_b', or 'same', based solely on the specific comparison dimension this field represents (e.g., safety, lifestyle, cost). Do NOT base on overall factors.")
+    reason: str = Field(..., description="Human-readable justification for why this location wins BASED ON THIS DIMENSION")
+    
+    # New fields for deeper traceability
+    criteria: Optional[List[str]] = Field(
+        default=None,
+        description="List of criteria used to evaluate this field (e.g. 'safety', 'walkability', etc.) BASED ON THIS DIMENSION"
+    )
+    user_preference_tags: Optional[List[str]] = Field(
+        default=None,
+        description="Which user preferences this comparison directly maps to BASED ON THIS DIMENSION"
+    )
 
 
 class ComparisonSummary(BaseModel):
@@ -30,42 +40,59 @@ class ComparisonSummary(BaseModel):
         children_count = user_preferences.get('children_count', 0) if user_preferences else 0
         income_range = user_preferences.get('income_range', '$50,000-$75,000') if user_preferences else '$50,000-$75,000'
         
+        # Determine user preference tags based on profile
+        family_tags = ["children_count", "family_friendly"] if children_count > 0 else []
+        lifestyle_tags = ["lifestyle_type"]
+        income_tags = ["income_range", "budget_considerations"]
+        
         return {
             "overall_recommendation": {
                 "location_a": "Dana Point - Coastal lifestyle with family amenities",
                 "location_b": "Downtown LA - Urban professional environment",
                 "winner": "location_a",
-                "reason": f"Better matches user's lifestyle: {lifestyle} and family needs with {children_count} children"
+                "reason": f"Better matches user's lifestyle: {lifestyle} and family needs with {children_count} children",
+                "criteria": ["lifestyle_alignment", "family_amenities", "cost_of_living"],
+                "user_preference_tags": lifestyle_tags + family_tags + ["overall_priorities"]
             },
             "priority_based_analysis": {
                 "location_a": "9.2/10 - Excellent schools, many families, safe streets",
                 "location_b": "6.1/10 - Limited family amenities, busy urban environment",
                 "winner": "location_a",
-                "reason": f"Significantly better for families with {children_count} children"
+                "reason": f"Significantly better for families with {children_count} children" if children_count > 0 else "Better overall quality of life metrics",
+                "criteria": ["school_quality", "family_density", "safety_rating", "community_feel"],
+                "user_preference_tags": family_tags + ["safety_priorities", "education_priorities"]
             },
             "lifestyle_match_score": {
                 "location_a": f"85% match - Aligns with {lifestyle} lifestyle, family needs, moderate income",
                 "location_b": "62% match - Good for career growth but lacks family amenities",
                 "winner": "location_a",
-                "reason": f"Better overall alignment with user profile: {lifestyle}, income {income_range}, {children_count} children"
+                "reason": f"Better overall alignment with user profile: {lifestyle}, income {income_range}, {children_count} children",
+                "criteria": ["lifestyle_compatibility", "income_alignment", "life_stage_match"],
+                "user_preference_tags": lifestyle_tags + income_tags + family_tags
             },
             "key_tradeoffs": {
                 "location_a": "Advantages: Family-friendly, lower cost, outdoor activities, walkable. Disadvantages: Limited career opportunities, fewer nightlife options",
                 "location_b": "Advantages: Career growth, nightlife, cultural events, transit access. Disadvantages: Higher cost, less family-friendly, traffic congestion",
                 "winner": "location_a",
-                "reason": "Choose A if family life is priority, B if career advancement is key"
+                "reason": "Choose A if family life is priority, B if career advancement is key",
+                "criteria": ["career_opportunities", "family_amenities", "cost_analysis", "lifestyle_options"],
+                "user_preference_tags": ["career_priorities", "family_priorities", "budget_considerations"]
             },
             "personalized_advice": {
                 "location_a": f"Perfect for young family with {children_count} children, income {income_range}. Stable market gives flexibility.",
                 "location_b": "Better for career growth but challenging for families. Higher costs may strain budget.",
                 "winner": "location_a",
-                "reason": "Given your family priorities and moderate income, Location A offers better value and family amenities"
+                "reason": "Given your family priorities and moderate income, Location A offers better value and family amenities",
+                "criteria": ["financial_fit", "family_suitability", "long_term_value"],
+                "user_preference_tags": family_tags + income_tags + ["long_term_goals"]
             },
             "deal_breaker_analysis": {
                 "location_a": "None of your deal breakers present (heavy traffic, high crime, poor schools)",
                 "location_b": "High traffic matches your deal breaker: heavy commute",
                 "winner": "location_a",
-                "reason": "Location B has deal breaker issues that conflict with your requirements"
+                "reason": "Location B has deal breaker issues that conflict with your requirements",
+                "criteria": ["deal_breaker_assessment", "requirement_compliance"],
+                "user_preference_tags": ["deal_breakers", "non_negotiables"]
             }
         }
 
@@ -87,61 +114,6 @@ class ComparisonSummary(BaseModel):
         }
 
 
-class Demographics(BaseModel):
-    gender_distribution: ComparisonField = Field(..., description="REQUIRED: Gender distribution comparison with percentage values for each location")
-    racial_distribution: ComparisonField = Field(..., description="REQUIRED: Racial/ethnic distribution comparison with percentage values for each location")
-    age_distribution: ComparisonField = Field(..., description="REQUIRED: Age distribution comparison with percentage values for each location")
-    lifestyle_dna: ComparisonField = Field(..., description="REQUIRED: Lifestyle characteristics comparison with percentage values for each location")
-    
-    @classmethod
-    def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
-        """Generate personalized example based on user preferences"""
-        gender = user_preferences.get("gender", "Female") if user_preferences else "Female"
-        age = user_preferences.get('age', 30) if user_preferences else 30
-        lifestyle = user_preferences.get("lifestyle_type", "laid-back") if user_preferences else "laid-back"
-        
-        return {
-            "gender_distribution": {
-                "location_a": {"Male": "49%", "Female": "51%"},
-                "location_b": {"Male": "52%", "Female": "48%"},
-                "winner": "location_a",
-                "reason": f"Better matches user gender identity: {gender}"
-            },
-            "racial_distribution": {
-                "location_a": {"White": "70%", "Latino": "15%", "Asian": "10%", "Other": "5%"},
-                "location_b": {"White": "60%", "Latino": "25%", "Asian": "12%", "Other": "3%"},
-                "winner": "location_b",
-                "reason": "More diverse community aligns with user values"
-            },
-            "age_distribution": {
-                "location_a": {"18-24": "10%", "25-34": "30%", "35-49": "25%", "50-64": "20%", "65+": "15%"},
-                "location_b": {"18-24": "15%", "25-34": "40%", "35-49": "30%", "50-64": "10%", "65+": "5%"},
-                "winner": "location_b",
-                "reason": f"Higher concentration of user's age group: {age} years old"
-            },
-            "lifestyle_dna": {
-                "location_a": {"Artistic": "50%", "Surfer": "20%", "Tech Remote Workers": "30%"},
-                "location_b": {"Corporate": "60%", "Young Families": "25%", "Retirees": "15%"},
-                "winner": "location_a",
-                "reason": f"Better matches user lifestyle type: {lifestyle}"
-            }
-        }
-    
-    @classmethod
-    def get_description(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, str]:
-        """Generate personalized field descriptions based on user preferences"""
-        gender = user_preferences.get("gender", "Female") if user_preferences else "Female"
-        age = user_preferences.get('age', 30) if user_preferences else 30
-        lifestyle = user_preferences.get("lifestyle_type", "laid-back") if user_preferences else "laid-back"
-        
-        return {
-            "gender_distribution": f"Gender distribution breakdown for each location using Census data. Consider how the gender balance aligns with user's identity ({gender}) and social preferences. Use Census Bureau or city demographic reports.",
-            "racial_distribution": "Racial and ethnic diversity breakdown using Census data. Use Census Bureau demographics or city reports to assess community diversity and cultural representation.",
-            "age_distribution": f"Age demographic breakdown using Census data. Focus on age groups that align with user's life stage (age {age}). Use Census Bureau age distribution data or city demographic reports.",
-            "lifestyle_dna": f"Dominant lifestyle and occupational groups using Census occupation data, Niche community insights, or AreaVibes lifestyle metrics. Emphasize communities that match user's lifestyle type ({lifestyle})."
-        }
-
-
 class NeighborhoodOverview(BaseModel):
     local_culture: ComparisonField = Field(...)
     vibe: ComparisonField = Field(...)
@@ -153,7 +125,6 @@ class NeighborhoodOverview(BaseModel):
     neighborhood_rating: ComparisonField = Field(...)
     LGBTQ_representation: ComparisonField = Field(...)
     image_prompt: ComparisonField = Field(...)
-    demographics: Demographics = Field(...)
 
     @model_validator(mode="before")
     @classmethod
@@ -208,7 +179,6 @@ class NeighborhoodOverview(BaseModel):
             "neighborhood_rating": "Overall livability rating using Niche, AreaVibes, or similar platforms. Weight factors based on user's priorities and life stage.",
             "LGBTQ_representation": "LGBTQ population and community friendliness using Census data, local LGBTQ organizations, or community resources. Include inclusivity indicators.",
             "image_prompt": "Descriptive prompt for generating a representative image of the neighborhood that captures its appeal to the user.",
-            "demographics": "Detailed demographic breakdown using the Demographics model with Census data. Ensure data aligns with user's community preferences."
         }
 
 class Safety(BaseModel):
@@ -222,34 +192,57 @@ class Safety(BaseModel):
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
         """Generate personalized example based on user preferences"""
         children_count = user_preferences.get('children_count', 0) if user_preferences else 0
+        gender = user_preferences.get('gender', '') if user_preferences else ''
         safety_focus = "family safety" if children_count > 0 else "general safety"
+        
+        # Determine user preference tags based on profile
+        safety_tags = ["safety_priorities"]
+        if children_count > 0:
+            safety_tags.extend(["children_count", "family_safety"])
+        if gender == "Female":
+            safety_tags.append("personal_safety")
         
         return {
             "crime_rating": {
                 "location_a": "Low - Minimal property crime, rare violent incidents",
                 "location_b": "Moderate - Some break-ins, occasional street crime",
                 "winner": "location_a",
-                "reason": "Significantly lower crime rates provide better security"
+                "reason": f"Lower crime rates align better with {safety_focus} priorities" if children_count > 0 else "Significantly lower crime rates provide better security",
+                "criteria": ["crime_rate", "violent_incidents", "property_crime"],
+                "user_preference_tags": safety_tags
             },
             "places_to_watch_out_for": {
                 "location_a": "Main St after 10pm, parking lots near train station",
                 "location_b": "Multiple areas: downtown core, several intersections, park after dark",
                 "winner": "location_a",
-                "reason": "Fewer problematic areas, easier to avoid risk zones"
+                "reason": "Fewer problematic areas, easier to avoid risk zones" + (" - important for family navigation" if children_count > 0 else ""),
+                "criteria": ["risk_areas", "avoidability", "area_safety"],
+                "user_preference_tags": safety_tags + (["navigation_safety"] if children_count > 0 else [])
             },
             "police_presence": {
                 "location_a": "Regular patrol cars, community policing, quick response",
                 "location_b": "Limited patrols, slower response times, understaffed",
                 "winner": "location_a",
-                "reason": "Superior police presence and community engagement"
+                "reason": "Superior police presence and community engagement" + (" provides peace of mind for families" if children_count > 0 else ""),
+                "criteria": ["patrol_frequency", "response_time", "community_policing"],
+                "user_preference_tags": safety_tags + (["emergency_response"] if children_count > 0 else [])
             },
             "safety_rating": {
                 "location_a": "7.8/10",
                 "location_b": "5.2/10",
                 "winner": "location_a",
-                "reason": "Significantly higher safety rating"
+                "reason": "Significantly higher safety rating" + (" meets family safety standards" if children_count > 0 else ""),
+                "criteria": ["overall_safety", "safety_metrics", "community_safety"],
+                "user_preference_tags": safety_tags
             },
-            "image_prompt": f"Well-lit residential street with sidewalks, street lamps, and visible security features (emphasizing {safety_focus})"
+            "image_prompt": {
+                "location_a": f"Well-lit residential street with sidewalks, street lamps, and visible security features (emphasizing {safety_focus})",
+                "location_b": f"Dimly lit urban street with fewer safety features (contrasting {safety_focus} concerns)",
+                "winner": "location_a",
+                "reason": "Better visual representation of safety features that matter to user",
+                "criteria": ["lighting", "visibility", "security_features"],
+                "user_preference_tags": safety_tags + ["visual_safety"]
+            }
         }
     
     @classmethod

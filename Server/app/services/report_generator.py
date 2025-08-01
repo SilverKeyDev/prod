@@ -29,6 +29,13 @@ from app import db
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+# Optional: Enable HTTP-level debugging for requests
+# Uncomment the following lines for detailed HTTP debugging:
+# import urllib3
+# urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+# logging.getLogger("urllib3.connectionpool").setLevel(logging.DEBUG)
+# logging.getLogger("requests.packages.urllib3").setLevel(logging.DEBUG)
+
 # Perplexity API configuration
 PERPLEXITY_API_KEY = os.getenv('PERPLEXITY_API_KEY')
 if not PERPLEXITY_API_KEY:
@@ -427,10 +434,13 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                             "Use the guidance schema to determine where to find different data sources and how to use them.\n\n"
 
                             "CRITICAL OBJECTIVES:\n"
-                            "1. Be honest, critical, and balanced. Highlight both strengths and weaknesses for each.\n"
-                            "2. Do not favor both equally—make a persuasive recommendation based on user preferences.\n"
-                            "3. Add a clear winner for each category and overall, along with justification.\n\n"
-
+                            "You are filling out a structured JSON response using the provided schema. Each field represents a distinct dimension (e.g., crime_rating, police_presence, etc.). When completing each field, you must only consider the named dimension and avoid referencing unrelated factors.\n\n"
+                            "For every ComparisonField, you must:\n"
+                            "- Provide only dimension-specific analysis in location_a and location_b.\n"
+                            "- Select the winner solely based on that dimension.\n"
+                            "- Explain the reason as if you are arguing why the winner is better for this specific dimension.\n"
+                            "- Use the criteria and user_preference_tags fields to justify the decision traceably.\n\n"
+                           
                             "FORMATTING:\n"
                             "- _demographics: caption: percentage (total 100%)\n"
                             "- _rating: number out of 10 (e.g., 6.8/10)\n\n"
@@ -488,7 +498,10 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                 )
                 
                 duration = time.perf_counter() - start_time
-                logger.info(f"📊 API request completed in {duration:.2f} seconds with status {response.status_code}")
+                logger.info(f"📊 API request completed in {duration:.2f} seconds → status {response.status_code}")
+                
+                # Log response headers for debugging
+                logger.debug(f"🔁 Response Headers: {dict(response.headers)}")
                 
                 # Handle successful response
                 if response.status_code == 200:
@@ -548,7 +561,20 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                 # Handle retryable errors (5xx server errors)
                 elif response.status_code >= 500:
                     logger.warning(f"⚠️ Perplexity API returned server error {response.status_code}")
-                    logger.warning(f"📄 Error response: {response.text[:500]}...")
+                    
+                    # Capture full error response JSON with request ID if available
+                    try:
+                        error_data = response.json()
+                        logger.warning(f"🧾 Full API Error Detail: {json.dumps(error_data, indent=2)}")
+                        
+                        # Extract request_id if present
+                        if isinstance(error_data, dict):
+                            request_id = error_data.get('request_id') or error_data.get('error', {}).get('request_id')
+                            if request_id:
+                                logger.warning(f"🆔 Request ID for support: {request_id}")
+                    except Exception:
+                        # Fallback to raw text if not valid JSON
+                        logger.warning(f"📄 Raw Error Response: {response.text[:1000]}...")
                     
                     if attempt < max_retries:
                         delay = base_delay * (2 ** attempt)  # Exponential backoff: 1s, 2s, 4s
@@ -563,6 +589,28 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                 elif response.status_code == 429:
                     logger.warning(f"⚠️ Rate limited by Perplexity API (429)")
                     
+                    # Capture full rate limit error response
+                    try:
+                        error_data = response.json()
+                        logger.warning(f"🧾 Full Rate Limit Error Detail: {json.dumps(error_data, indent=2)}")
+                        
+                        # Extract request_id and rate limit details if present
+                        if isinstance(error_data, dict):
+                            request_id = error_data.get('request_id') or error_data.get('error', {}).get('request_id')
+                            if request_id:
+                                logger.warning(f"🆔 Request ID for support: {request_id}")
+                                
+                            # Log rate limit headers if available
+                            rate_limit_headers = {
+                                k: v for k, v in response.headers.items() 
+                                if 'rate' in k.lower() or 'limit' in k.lower() or 'retry' in k.lower()
+                            }
+                            if rate_limit_headers:
+                                logger.warning(f"📊 Rate Limit Headers: {rate_limit_headers}")
+                    except Exception:
+                        # Fallback to raw text if not valid JSON
+                        logger.warning(f"📄 Raw Rate Limit Response: {response.text[:1000]}...")
+                    
                     if attempt < max_retries:
                         # For rate limiting, use a longer delay
                         delay = base_delay * (3 ** attempt)  # More aggressive backoff: 1s, 3s, 9s
@@ -576,15 +624,45 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                 # Handle non-retryable client errors (4xx except 429)
                 elif 400 <= response.status_code < 500:
                     logger.error(f"❌ Perplexity API returned client error {response.status_code}")
-                    logger.error(f"📄 Full response: {response.text}")
-                    # Client errors are not retryable
-                    raise Exception(f"Perplexity API client error {response.status_code}: {response.text}")
+                    
+                    # Capture full client error response JSON with request ID if available
+                    try:
+                        error_data = response.json()
+                        logger.error(f"🧾 Full Client Error Detail: {json.dumps(error_data, indent=2)}")
+                        
+                        # Extract request_id if present
+                        if isinstance(error_data, dict):
+                            request_id = error_data.get('request_id') or error_data.get('error', {}).get('request_id')
+                            if request_id:
+                                logger.error(f"🆔 Request ID for support: {request_id}")
+                        
+                        # Client errors are not retryable
+                        raise Exception(f"Perplexity API client error {response.status_code}: {json.dumps(error_data)}")
+                    except json.JSONDecodeError:
+                        # Fallback to raw text if not valid JSON
+                        logger.error(f"📄 Raw Client Error Response: {response.text}")
+                        raise Exception(f"Perplexity API client error {response.status_code}: {response.text}")
                 
                 # Handle other unexpected status codes
                 else:
                     logger.error(f"❌ Perplexity API returned unexpected status {response.status_code}")
-                    logger.error(f"📄 Full response: {response.text}")
-                    raise Exception(f"Perplexity API unexpected status {response.status_code}: {response.text}")
+                    
+                    # Capture full unexpected error response JSON with request ID if available
+                    try:
+                        error_data = response.json()
+                        logger.error(f"🧾 Full Unexpected Error Detail: {json.dumps(error_data, indent=2)}")
+                        
+                        # Extract request_id if present
+                        if isinstance(error_data, dict):
+                            request_id = error_data.get('request_id') or error_data.get('error', {}).get('request_id')
+                            if request_id:
+                                logger.error(f"🆔 Request ID for support: {request_id}")
+                        
+                        raise Exception(f"Perplexity API unexpected status {response.status_code}: {json.dumps(error_data)}")
+                    except json.JSONDecodeError:
+                        # Fallback to raw text if not valid JSON
+                        logger.error(f"📄 Raw Unexpected Error Response: {response.text}")
+                        raise Exception(f"Perplexity API unexpected status {response.status_code}: {response.text}")
                     
             except requests.exceptions.Timeout as te:
                 logger.warning(f"⚠️ Request timeout on attempt {attempt + 1}: {str(te)}")
