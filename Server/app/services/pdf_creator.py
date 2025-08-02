@@ -457,9 +457,7 @@ def _resize_image_for_home_hero(img_data: BytesIO, target_width: float = 5.0 * i
     """
     pil_img = PILImage.open(img_data)
     
-    # Apply image enhancement pipeline for home images
-    pil_img = _enhance_image_for_pdf(pil_img)
-    
+    # Apply image enhancement pipeline for home images    
     width, height = pil_img.size
     aspect_ratio = width / height
 

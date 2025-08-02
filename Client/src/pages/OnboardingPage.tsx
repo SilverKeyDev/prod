@@ -34,6 +34,15 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { apiRequest } from "../lib/api";
+import ImportantLocationsInput from "../components/ImportantLocationsInput";
+
+// Extend window interface for Google Maps
+declare global {
+  interface Window {
+    google?: any;
+  }
+}
 
 interface OnboardingData {
   age?: number;
@@ -65,6 +74,7 @@ interface OnboardingData {
   commute_tolerance?: number;
   proximity_to_family?: string;
   walkability_importance?: string;
+  important_locations?: { name: string; address: string }[];
   lifestyle_type?: string;
   hobbies_interests?: string[];
   dining_preferences?: string[];
@@ -302,8 +312,11 @@ export default function OnboardingPage() {
   const [formData, setFormData] = useState<OnboardingData>({
     // Initialize report customization with all valid sections included by default
     report_section_priorities: [...VALID_REPORT_SECTIONS],
+    important_locations: [],
   });
   const [loading, setLoading] = useState(false);
+  const [scriptsReady, setScriptsReady] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>(
     {}
   );
@@ -495,6 +508,43 @@ export default function OnboardingPage() {
       document.removeEventListener("click", handleClickOutside);
     };
   }, [openDropdowns]);
+
+  // Load Google Places API script
+  useEffect(() => {
+    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+
+    if (!apiKey) {
+      setLoadError("Missing Google Maps API key.");
+      return;
+    }
+
+    if (window.google?.maps?.places?.AutocompleteSuggestion) {
+      setScriptsReady(true);
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&v=weekly`;
+    script.async = true;
+    script.defer = true;
+    script.onload = () => setScriptsReady(true);
+    script.onerror = () =>
+      setLoadError(
+        "Failed to load Google Maps script. Please check your API key or internet."
+      );
+
+    document.head.appendChild(script);
+
+    return () => {
+      // Clean up script if component unmounts
+      const existingScript = document.querySelector(
+        `script[src*="maps.googleapis.com"]`
+      );
+      if (existingScript) {
+        document.head.removeChild(existingScript);
+      }
+    };
+  }, []);
 
   const nextStep = () => {
     if (currentStep < STEPS.length - 1) {
@@ -1247,6 +1297,24 @@ export default function OnboardingPage() {
                   dropdownRef={getDropdownRef("walkability_importance")}
                 />
               </div>
+            </div>
+
+            {/* Important Locations for Commute */}
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-black mb-2">
+                Important Locations
+              </label>
+              <p className="text-xs text-black/60 mb-4">
+                Add locations that are important for your commute (e.g., workplace, family home, gym)
+              </p>
+              <ImportantLocationsInput
+                locations={formData.important_locations || []}
+                onChange={(locations) => updateFormData("important_locations", locations)}
+                scriptsReady={scriptsReady}
+              />
+              {loadError && (
+                <p className="text-red-500 text-xs mt-2">{loadError}</p>
+              )}
             </div>
           </div>
         );

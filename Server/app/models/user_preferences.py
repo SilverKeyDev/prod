@@ -60,6 +60,9 @@ class UserPreferences(db.Model):
     proximity_to_family = db.Column(db.String(20))  # very_important, important, neutral, not_important
     walkability_importance = db.Column(db.String(20))  # very_important, important, neutral, not_important
     
+    # === IMPORTANT LOCATIONS (for commute) ===
+    important_locations = db.Column(db.Text)  # JSON array of {name: string, address: string} objects
+    
     # === LIFESTYLE PREFERENCES ===
     lifestyle_type = db.Column(db.String(30))  # active, quiet, social, family_oriented, career_focused
     hobbies_interests = db.Column(db.Text)  # JSON array of hobbies/interests
@@ -172,6 +175,7 @@ class UserPreferences(db.Model):
                 'commute_tolerance': self.commute_tolerance,
                 'proximity_to_family': self.proximity_to_family,
                 'walkability_importance': self.walkability_importance,
+                'important_locations': self._parse_json_field(self.important_locations),
             },
 
             'lifestyle_preferences': {

@@ -177,7 +177,7 @@ def create_or_update_preferences():
             'agent_interaction_history', 'personality_insights', 'quote_bubbles',
             'deal_makers', 'concerns_or_fears', 'solo_reports_addresses',
             'group_reports_addresses', 'chat_sessions', 'data_sources',
-            'report_section_priorities'
+            'report_section_priorities', 'important_locations'
         }
 
         updated_fields = []
