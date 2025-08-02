@@ -1159,7 +1159,60 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
         if not validate_address(address):
             logger.error("🚫 Address validation failed")
             raise ValueError("Invalid address format")
-        if marketing_model or comparison_address is None or comparison_address == "":
+        elif marketing_model:
+            payload = {
+                "model": "sonar-deep-research",
+                "messages": [
+                    {
+                        "role": "system",
+                    "content": (
+                        f"You are a comprehensive PERSONALIZED property research assistant. Given an address, {address}, you must provide a detailed property report in valid JSON format.\n\n"
+
+                        "SCHEMA COMPLIANCE: You MUST follow the schema structure EXACTLY. Use the examples in the schema to determine how to structure your response.\n\n"
+                        "FIELD NAMES: For dictionary fields (like age_distribution, lifestyle_dna), you MUST use the EXACT field names specified in the schema descriptions. Do NOT create your own field names.\n\n"
+                        "LIFESTYLE DNA REQUIREMENTS: Return ALL keys in lifestyle_dna (Artistic, Professional, Family_Oriented, Active_Outdoor, Tech_Remote, Retiree, Student, Suburban, Urban). The percentages MUST sum to exactly 100%. Distribute percentages realistically based on the neighborhood demographics. Do NOT omit or return null for any key.\n\n"
+                        "AGE DISTRIBUTION REQUIREMENTS: Return ALL keys in age_distribution (18-24, 25-34, 35-49, 50-64, 65+). The percentages MUST sum to exactly 100%. Distribute percentages realistically based on census data or neighborhood demographics. Do NOT omit or return null for any key.\n\n"
+                        "PERCENTAGE NORMALIZATION: For both age_distribution and lifestyle_dna, ensure all percentage values are realistic and sum to exactly 100%. Use actual demographic data when available, or make educated estimates based on similar neighborhoods. Example: age_distribution might be '18-24': '15%', '25-34': '25%', '35-49': '30%', '50-64': '20%', '65+': '10%' (totaling 100%).\n\n"
+                        "Use the descriptions to figure out how to formulate a response unique to this address and user preferences.\n\n"
+                        "Use the guidance schema to determine where to find different data sources and how to use them.\n\n"
+
+                         "RESEARCH:\n"
+                                "- Use the recommended sources first in research. If a decent answer is found, do not continue to search the web for that field\n"
+
+
+                                "FORMATTING:\n"
+                                "- _demographics: caption: percentage (total 100%)\n"
+                                "- _rating: EXACT number out of 10 (e.g., 6.8/10). NEVER use >=, <=, >, or < symbols. Always provide specific numeric ratings.\n\n"
+
+                        "CRITICAL REQUIREMENTS:\n"
+                        "1. Follow all instrucions EXACTLY for ALL fields exactly as in the given guidance - if you don't know a value, research until you find one\n"
+                        "2. Be  critical and honest - expose both good and bad aspects of locations\n"
+                        "3. If no data exists for a field, provide your best educated estimate based on similar areas\n"
+                        "4. All ratings must be EXACT numbers out of 10 (e.g., 7.2/10, 8.5/10). NEVER use comparison operators like >=, <=, >, or <. Always provide a specific numeric rating.\n"
+                        "5. You MUST respond with ONLY valid JSON (no markdown, no explanation). Do not wrap your response in ``` or any code fences.\n"
+                        "6. Use the recommended sources first in research. If a decent answer is found, do not continue to search the web for that field\n"
+                        "7. Do not include citations in the response\n"
+                        "8. MANDATORY: You MUST provide ALL required fields in the schema. NEVER return null or omit any field. Every field must have a meaningful value.\n"
+                        "9. MANDATORY: If you cannot find specific data for a field, provide a reasonable estimate or placeholder value instead of null.\n"
+                    )
+                }, {"role": "user", "content": f"Sell me the property at {address}"}
+            ],
+            "search_mode": "web",
+            "reasoning_effort": "medium",
+            "temperature": 0.1,
+            "max_tokens": 20000,
+            "stream": False,
+            "return_images": False,
+            "return_citations": False,
+            "response_format": {
+                "type": "json_schema",
+                "json_schema": {
+                    "schema": schema 
+                }
+            }
+        }
+            payloads.append(payload)
+        elif comparison_address is None or comparison_address == "":
             # Fix: Iterate over schema values, not keys
             for section_name, section_schema in schemas.items():
                 logger.debug(f"🔧 Creating payload for section: {section_name}")
@@ -1210,7 +1263,7 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
             "response_format": {
                 "type": "json_schema",
                 "json_schema": {
-                    "schema": section_schema  # Fix: Use section_schema (dict) instead of schema (string)
+                    "schema": section_schema 
                 }
             }
         }
@@ -1289,19 +1342,7 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                     }
                 }
                 
-                # DEBUG: Log full payload structure
-                logger.info(f"📦 PAYLOAD DEBUG for section '{section_name}':")
-                logger.info(f"   🤖 Model: {payload['model']}")
-                logger.info(f"   💬 Messages count: {len(payload['messages'])}")
-                logger.info(f"   🔧 Temperature: {payload['temperature']}")
-                logger.info(f"   📏 Max tokens: {payload['max_tokens']}")
-                logger.info(f"   📋 Schema title: {payload['response_format']['json_schema']['schema'].get('title')}")
-                logger.info(f"   🏗️ Schema properties: {list(payload['response_format']['json_schema']['schema'].get('properties', {}).keys())}")
-                logger.debug(f"   📝 Full payload JSON:")
-                logger.debug(json.dumps(payload, indent=2))
-                
                 payloads.append(payload)
-                logger.info(f"✅ Payload {len(payloads)} appended for section '{section_name}'")
 
         # Concurrent execution with partial failure handling
         import concurrent.futures
