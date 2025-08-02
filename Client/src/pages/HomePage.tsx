@@ -138,10 +138,10 @@ export default function HomePage() {
         <div className="relative z-10 max-w-3xl text-center w-full">
           <div className="bg-white p-4 sm:p-6 rounded-lg shadow-lg">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-black font-bold mb-4">
-              Discover Something New
+              Discover a New Way to Buy
             </h2>
             <p className="text-gray-600 mb-6 sm:mb-8 text-base sm:text-lg">
-              Find the key to your next travel destination, home, or investment with SilverKey.
+              Find the perfect home for you, based on your preferences with SilverKey
             </p>
 
             {/* Search */}
@@ -207,19 +207,19 @@ export default function HomePage() {
             {
               title: "Find Properties",
               description:
-                "Search any US address to get started with your investment analysis.",
+                "Let us do the heavy lifting for you, with AI analysis of any address tailored to fit your needs.",
               icon: <Building2 className="h-8 w-8 text-gray-500" />,
             },
             {
-              title: "Analyze Data",
+              title: "Connect With Agents",
               description:
-                "Get comprehensive reports on property values, rental income, and more.",
+                "Connect with your agent, and allow them to grant you the easiest home buying process you'll ever have.",
               icon: <BarChart2 className="h-8 w-8 text-gray-500" />,
             },
             {
               title: "Make Decisions",
               description:
-                "Use our insights to make informed real estate investment choices.",
+                "Use our insights, detailed reports, comaprison tables, and chatbot to make the best choice possible.",
               icon: <Lightbulb className="h-8 w-8 text-gray-500" />,
             },
           ].map((f, i) => (

@@ -10,6 +10,10 @@ def generate_report_schema(report_customization: Dict[str, Any], user_preference
     try:
         section_keys = report_customization.get("report_section_priorities", [])
         if compare and 'comparison_summary' not in section_keys: section_keys.insert(0, 'comparison_summary')  # Ensure comparison_summary is always first
+        
+        # Note: Demographic sections (age_distribution, lifestyle_dna) are auto-included
+        # in report_generator.py with proper positioning after neighborhood_overview
+        
         logger.info(f"🔧 Schema generation started with sections: {section_keys}")
         logger.info(f"🔧 User preferences provided: {user_preferences is not None}")
 
@@ -36,15 +40,10 @@ def generate_report_schema(report_customization: Dict[str, Any], user_preference
         
         # Step 3.1: Manually add missing nested model definitions that Pydantic doesn't include automatically
         from app.models.report_models import (
-            GenderDistribution, RacialDistribution, AgeDistribution, LifestyleDNA,
             AppsPopularity, SchoolInfo, Restaurant, Activity, Park, UtilityCosts
         )
         
         missing_models = {
-            'GenderDistribution': GenderDistribution,
-            'RacialDistribution': RacialDistribution, 
-            'AgeDistribution': AgeDistribution,
-            'LifestyleDNA': LifestyleDNA,
             'AppsPopularity': AppsPopularity,
             'SchoolInfo': SchoolInfo,
             'Restaurant': Restaurant,
@@ -89,41 +88,76 @@ def generate_report_schema(report_customization: Dict[str, Any], user_preference
             # Only add personalization for main section models that are selected
             section_key = _get_section_key_from_def_name(def_name)
             if section_key and section_key in section_keys:
-                # Inject personalized examples
+                # Inject personalized examples - use direct model mapping
                 try:
-                    # Get the model class for this section
-                    section_type = None
-                    if hasattr(FullReport, '__fields__') and section_key in FullReport.__fields__:
-                        field_descriptor = FullReport.__fields__[section_key]
+                    # Direct mapping of section keys to model classes
+                    section_model_map = {
+                        'neighborhood_overview': 'NeighborhoodOverview',
+                        'safety': 'Safety', 
+                        'culture_and_events': 'CultureAndEvents',
+                        'social_character': 'SocialCharacter',
+                        'local_amenities': 'LocalAmenities',
+                        'commute': 'Commute',
+                        'family_friendly': 'FamilyFriendly',
+                        'nightlife_and_dating': 'NightlifeAndDating',
+                        'development': 'Development',
+                        'environment_utilities': 'EnvironmentUtilities',
+                        'financial_information': 'FinancialInformation',
+                        'schools': 'Schools',
+                        'extra_tips': 'ExtraTips'
+                    }
                     
-                    if field_descriptor and hasattr(field_descriptor, 'type_'):
-                        section_type = field_descriptor.type_
-                        # Handle Union types (Optional fields) - extract the actual model class
-                        if hasattr(section_type, '__args__') and section_type.__args__:
-                            for arg in section_type.__args__:
-                                if arg is not type(None) and hasattr(arg, 'get_example'):
-                                    section_type = arg
-                                    break
-                    
-                    if section_type and hasattr(section_type, 'get_example'):
-                        logger.info(f"🎯 Using dynamic example for {section_key}")
-                        example = section_type.get_example(user_preferences)
-                        enhanced_defs[def_name]["example"] = example
-                        logger.info(f"✅ Injected example for {def_name} (section: {section_key})")
+                    model_class_name = section_model_map.get(section_key)
+                    if model_class_name:
+                        # Import and get the actual model class
+                        from app.models.report_models import (
+                            NeighborhoodOverview, Safety, CultureAndEvents, SocialCharacter,
+                            LocalAmenities, Commute, FamilyFriendly, NightlifeAndDating,
+                            Development, EnvironmentUtilities, FinancialInformation,
+                            Schools, ExtraTips
+                        )
+                        
+                        model_classes = {
+                            'NeighborhoodOverview': NeighborhoodOverview,
+                            'Safety': Safety,
+                            'CultureAndEvents': CultureAndEvents,
+                            'SocialCharacter': SocialCharacter,
+                            'LocalAmenities': LocalAmenities,
+                            'Commute': Commute,
+                            'FamilyFriendly': FamilyFriendly,
+                            'NightlifeAndDating': NightlifeAndDating,
+                            'Development': Development,
+                            'EnvironmentUtilities': EnvironmentUtilities,
+                            'FinancialInformation': FinancialInformation,
+                            'Schools': Schools,
+                            'ExtraTips': ExtraTips
+                        }
+                        
+                        model_class = model_classes.get(model_class_name)
+                        if model_class and hasattr(model_class, 'get_example'):
+                            logger.info(f"🎯 Using dynamic example for {section_key} -> {model_class_name}")
+                            example = model_class.get_example(user_preferences)
+                            enhanced_defs[def_name]["example"] = example
+                            logger.info(f"✅ Injected example for {def_name} (section: {section_key})")
+                        else:
+                            logger.warning(f"📝 No get_example() method found for {section_key} -> {model_class_name}")
                     else:
-                        logger.debug(f"📝 No get_example() method found for {section_key}")
+                        logger.warning(f"📝 No model mapping found for section: {section_key}")
                 except Exception as e:
                     logger.warning(f"❌ Failed to get example for '{def_name}': {e}")
                 
-                # Inject personalized field descriptions
+                # Inject personalized field descriptions using the same direct mapping
                 try:
-                    if section_type and hasattr(section_type, 'get_description'):
-                        field_descriptions = section_type.get_description(user_preferences)
-                        if "properties" in enhanced_defs[def_name]:
-                            for field_name, desc in field_descriptions.items():
-                                if field_name in enhanced_defs[def_name]["properties"]:
-                                    enhanced_defs[def_name]["properties"][field_name]["description"] = desc
-                        logger.info(f"✅ Injected descriptions for {def_name} (section: {section_key})")
+                    model_class_name = section_model_map.get(section_key)
+                    if model_class_name:
+                        model_class = model_classes.get(model_class_name)
+                        if model_class and hasattr(model_class, 'get_description'):
+                            field_descriptions = model_class.get_description(user_preferences)
+                            if "properties" in enhanced_defs[def_name]:
+                                for field_name, desc in field_descriptions.items():
+                                    if field_name in enhanced_defs[def_name]["properties"]:
+                                        enhanced_defs[def_name]["properties"][field_name]["description"] = desc
+                            logger.info(f"✅ Injected descriptions for {def_name} (section: {section_key})")
                 except Exception as e:
                     logger.warning(f"❌ Failed to get descriptions for '{def_name}': {e}")
 
@@ -147,7 +181,7 @@ def generate_report_schema(report_customization: Dict[str, Any], user_preference
         logger.info(f"🔍 DEBUG: Original $defs keys: {list(original_defs.keys())}")
         logger.info(f"🔍 DEBUG: Enhanced $defs keys: {list(enhanced_defs.keys())}")
         
-        # Step 6: Validate and clean $defs to prevent unconstrained fields
+        # Step 7: Validate and clean $defs to prevent unconstrained fields
         _validate_and_clean_schema_defs(schema)
         
         # Step 7: Final validation - log what's in the final schema

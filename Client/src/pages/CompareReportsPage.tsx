@@ -58,8 +58,6 @@ const ALL_METRIC_KEYS: string[] = [
   "LGBTQ Representation",
 
   // Demographics
-  "Gender Distribution",
-  "Racial Distribution",
   "Age Distribution",
   "Lifestyle DNA",
 
@@ -136,7 +134,6 @@ const ALL_METRIC_KEYS: string[] = [
   "Best Spots",
   "Dating Scene",
   "Tinder Popularity",
-  "Bumble Popularity",
   "Hinge Popularity",
 
   // Development
@@ -164,37 +161,13 @@ const ALL_METRIC_KEYS: string[] = [
   "Financial Rating",
 
   // Schools (Elementary)
-  "Elementary School Level",
-  "Elementary Walking Distance",
-  "Elementary School Rating",
-  "Elementary Teacher Quality",
   "Elementary Known For",
-  "Elementary GPA Average",
-  "Elementary SAT Average",
-  "Elementary Graduation Rate",
-  "Elementary Top Colleges",
 
   // Schools (Middle)
-  "Middle School Level",
-  "Middle Walking Distance",
-  "Middle School Rating",
-  "Middle Teacher Quality",
   "Middle Known For",
-  "Middle GPA Average",
-  "Middle SAT Average",
-  "Middle Graduation Rate",
-  "Middle Top Colleges",
 
   // Schools (High)
-  "High School Level",
-  "High Walking Distance",
-  "High School Rating",
-  "High Teacher Quality",
   "High Known For",
-  "High GPA Average",
-  "High SAT Average",
-  "High Graduation Rate",
-  "High Top Colleges",
 
   // Extra Tips
   "Parking",

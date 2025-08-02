@@ -1,77 +1,44 @@
 from pydantic import BaseModel, Field, Extra, model_validator, PrivateAttr
-from typing import List, Dict, Optional, Any, Union
+from typing import List, Dict, Optional, Any, Union, TypedDict
 from collections import OrderedDict
 import logging
 
 logger = logging.getLogger(__name__)
 
-
-class GenderDistribution(BaseModel):
-    Male: str = Field(..., description="Percentage of male population")
-    Female: str = Field(..., description="Percentage of female population")
-    
-    class Config:
-        extra = "forbid"
-
-class RacialDistribution(BaseModel):
-    White: str = Field(..., description="Percentage of White population")
-    Latino: str = Field(..., description="Percentage of Latino population")
-    Asian: str = Field(..., description="Percentage of Asian population")
-    Black: str = Field(..., description="Percentage of Black population")
-    Other: str = Field(..., description="Percentage of other racial groups")
-    
-    class Config:
-        extra = "forbid"
-
 class AgeDistribution(BaseModel):
-    age_18_24: str = Field(..., alias="18-24", description="Percentage of population aged 18-24")
-    age_25_34: str = Field(..., alias="25-34", description="Percentage of population aged 25-34")
-    age_35_49: str = Field(..., alias="35-49", description="Percentage of population aged 35-49")
-    age_50_64: str = Field(..., alias="50-64", description="Percentage of population aged 50-64")
-    age_65_plus: str = Field(..., alias="65+", description="Percentage of population aged 65+")
-    
+    age_18_24: int = Field(..., alias="18-24", description="EXACT Percentage of population aged 18-24 in the area around {address} NO DECIMALS")
+    age_25_34: int = Field(..., alias="25-34", description="EXACT Percentage of population aged 25-34 in the area around {address} NO DECIMALS")
+    age_35_49: int = Field(..., alias="35-49", description="EXACT Percentage of population aged 35-49 in the area around {address} NO DECIMALS")
+    age_50_64: int = Field(..., alias="50-64", description="EXACT Percentage of population aged 50-64 in the area around {address} NO DECIMALS")
+    age_65_plus: int = Field(..., alias="65+", description="EXACT Percentage of population aged 65+ in the area around {address} NO DECIMALS")
+
     class Config:
         extra = "forbid"
         allow_population_by_field_name = True
+        populate_by_name = True
+
+    def with_percent(self) -> dict:
+        return {k.replace("age_", "").replace("_plus", "+").replace("_", "-"): f"{v}%" for k, v in self.model_dump(by_alias=True).items()}
+
 
 class LifestyleDNA(BaseModel):
-    # Common lifestyle categories - can be extended but these are the main ones
-    Artistic: Optional[str] = Field(None, description="Percentage of artistic lifestyle")
-    Professional: Optional[str] = Field(None, description="Percentage of professional lifestyle")
-    Family_Oriented: Optional[str] = Field(None, description="Percentage of family-oriented lifestyle")
-    Active_Outdoor: Optional[str] = Field(None, description="Percentage of active/outdoor lifestyle")
-    Tech_Remote: Optional[str] = Field(None, description="Percentage of tech/remote worker lifestyle")
-    Retiree: Optional[str] = Field(None, description="Percentage of retiree lifestyle")
-    Student: Optional[str] = Field(None, description="Percentage of student lifestyle")
-    Suburban: Optional[str] = Field(None, description="Percentage of suburban lifestyle")
-    Urban: Optional[str] = Field(None, description="Percentage of urban lifestyle")
-    
+    Artistic: Optional[int] = Field(0, description="Percentage of artistic lifestyle in the area around {address} NO DECIMALS")
+    Professional: Optional[int] = Field(0, description="Percentage of professional lifestyle in the area around {address} NO DECIMALS")
+    Family_Oriented: Optional[int] = Field(0, description="Percentage of family-oriented lifestyle in the area around {address} NO DECIMALS")
+    Active_Outdoor: Optional[int] = Field(0, description="Percentage of active/outdoor lifestyle in the area around {address} NO DECIMALS")
+    Tech_Remote: Optional[int] = Field(0, description="Percentage of tech/remote worker lifestyle in the area around {address} NO DECIMALS")
+    Retiree: Optional[int] = Field(0, description="Percentage of retiree lifestyle in the area around {address} NO DECIMALS")
+    Student: Optional[int] = Field(0, description="Percentage of student lifestyle in the area around {address} NO DECIMALS")
+    Suburban: Optional[int] = Field(0, description="Percentage of suburban lifestyle in the area around {address} NO DECIMALS")
+    Urban: Optional[int] = Field(0, description="Percentage of urban lifestyle in the area around {address} NO DECIMALS")
+
     class Config:
         extra = "forbid"
+        allow_population_by_field_name = True
+        populate_by_name = True
 
-class Demographics(BaseModel):
-    gender_distribution: GenderDistribution = Field(..., description="REQUIRED: Gender distribution with percentage values that add to 100%")
-    racial_distribution: RacialDistribution = Field(..., description="REQUIRED: Racial/ethnic distribution with percentage values that add to 100%")
-    age_distribution: AgeDistribution = Field(..., description="REQUIRED: Age distribution with percentage values that add to 100%")
-    lifestyle_dna: LifestyleDNA = Field(..., description="REQUIRED: Lifestyle characteristics with percentage values that add to 100%")
-    
-    class Config:
-        extra = "forbid"
-    
-    @classmethod
-    def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
-        """Generate personalized example based on user preferences"""
-        gender = user_preferences.get("gender", "Female") if user_preferences else "Female"
-        age = user_preferences.get('age', 30) if user_preferences else 30
-        lifestyle = user_preferences.get("lifestyle_type", "laid-back") if user_preferences else "laid-back"
-        
-        return {
-            "gender_distribution": {"Male": "49%", "Female": "51%"},
-            "racial_distribution": {"White": "70%", "Latino": "15%", "Asian": "10%", "Black": "3%", "Other": "2%"},
-            "age_distribution": {"18-24": "10%", "25-34": "30%", "35-49": "25%", "50-64": "20%", "65+": "15%"},
-            "lifestyle_dna": {"Artistic": "50%", "Active_Outdoor": "20%", "Tech_Remote": "30%"}
-        }
-
+    def with_percent(self) -> dict:
+        return {k: f"{v}%" for k, v in self.model_dump().items()}
 
 class NeighborhoodOverview(BaseModel):
     local_culture: str = Field(...)
@@ -84,62 +51,28 @@ class NeighborhoodOverview(BaseModel):
     neighborhood_rating: str = Field(...)
     LGBTQ_representation: str = Field(...)
     image_prompt: str = Field(...)
-    demographics: Demographics = Field(...)
-    
+    image_prompt_2: str = Field(...)
+
     class Config:
         extra = "forbid"
+        allow_population_by_field_name = True
 
-    @model_validator(mode="before")
-    @classmethod
-    def delete_flat_demographics(cls, values):
-        if not isinstance(values, dict):
-            return values
-
-        demographic_fields_to_delete = [
-            "gender_distribution",
-            "racial_distribution",
-            "age_distribution",
-            "lifestyle_dna",
-        ]
-
-        for field in demographic_fields_to_delete:
-            if field in values:
-                del values[field]
-
-        return values
-    
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
         """Generate personalized example based on user preferences"""
         lifestyle = user_preferences.get("lifestyle_type", "laid-back") if user_preferences else "laid-back"
         return {
-            "local_culture": f"Artistic and laid-back coastal community with a focus on marine activities (aligns with user lifestyle: {lifestyle})",
+            "local_culture": f"Artistic and laid-back coastal community with a focus on marine activities. This aligns with the user lifestyle: {lifestyle}.",
             "vibe": "Creative, beachy, relaxed",
-            "known_for": "Beautiful beaches, surfing, whale watching, and Dana Point Harbor",
-            "community_events": "Weekly farmers market, summer concerts, Festival of Whales, harbor festivals",
-            "what_people_love": "Walkability, coastal charm, friendly community, outdoor activities",
-            "things_to_watch_out_for": "Tourist crowds in summer, parking challenges after 6pm, weekend traffic",
-            "population_total": "12,500",
+            "known_for": "Beaches, surfing, whale watching, and Dana Point Harbor",
+            "community_events": "Weekly farmers market, summer concerts, Festival of Whales",
+            "what_people_love": "Walkability, coastal charm, outdoor activities",
+            "things_to_watch_out_for": "Crowds in summer, limited parking, weekend traffic",
+            "population_total": "12500",
             "neighborhood_rating": "8.3/10",
-            "LGBTQ_representation": "High representation (~15%) with several LGBTQ-friendly businesses and events",
-            "image_prompt": "Aerial view of a lively beach neighborhood with colorful homes and palm trees",
-        }
-
-    @classmethod
-    def get_description(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, str]:
-        """Generate personalized field descriptions based on user preferences"""
-        return {
-            "local_culture": "Describe cultural texture — e.g. 'hipster', 'corporate', 'family-centered'. Use Google Maps Local Guide reviews, Niche, or Yelp for vibe clues. Example: Dana Point embodies coastal Southern California living with a focus on marine activities, beach culture, and outdoor recreation. The community centers around Dana Point Harbor, which serves as a hub for boating, whale watching, and waterfront dining. The area maintains a relaxed yet upscale vibe, balancing tourist attractions with residential tranquility.",
-            "vibe": "Concise summary in 2–5 words, e.g., 'Quiet, green, upscale'. Pull phrasing from AreaVibes or Walk Score if available. Example: Weekly farmers market at La Plaza Park, summer Concerts in the Park series, Festival of Whales, and Holidays at the Harbor with extensive light displays. Harbor-centric events include sailing regattas and tall ship festivals.",
-            "known_for": "Highlight actual attractions, industries, or features. Search Google or Redfin Neighborhood pages. Example: Dana Point is known for its beautiful beaches, surfing, and whale watching.",
-            "community_events": "Real events or typical examples. Use Eventbrite, City-Data Forums, or local news. Example: Weekly farmers market at La Plaza Park, summer Concerts in the Park series, Festival of Whales, and Holidays at the Harbor with extensive light displays. Harbor-centric events include sailing regattas and tall ship festivals.",
-            "what_people_love": "Use friendly, relatable phrases ('parking sucks after 6pm'). Source from Niche.com, Yelp, or Livability.",
-            "things_to_watch_out_for": "Use friendly, relatable phrases about potential drawbacks ('parking sucks after 6pm'). Source from Niche.com, Yelp, or Livability.",
-            "population_total": "Census data, give exact number. Niche or BestPlaces.net typically show this in sidebars.",
-            "neighborhood_rating": "1–10 score. Use the full scale. Base this on livability data from AreaVibes, BestPlaces, or Niche.",
-            "LGBTQ_representation": "Estimate percentage of LGBTQ population and some examples of LGBTQ-friendly amenities.",
-            "image_prompt": "Descriptive prompt for generating a representative image of the neighborhood.",
-            "demographics": "Gender, Race: Estimate distribution for gender, race, age, LGBTQ, and lifestyle DNA. Must total ~100%. Use Niche and City-Data for good snapshots. THESE MUST BE PERCENTAGES I.E. 34.1%, NOTHING ELSE IS ACCEPTABLE. Age distribution: Children (0–9 years), Adolescents (10–19 years), Young Adults (20–29 years), Early Career Adults (30–39 years), Middle-Aged Adults (40–49 years), Older Adults (50–64 years), Seniors (65+ years). Must total ~100%. Lifestyle DNA: Give distribution of lifestyle DNA, take into account all parts of the neighborhood overview. Must total ~100%. THESE MUST ALL BE A BRIEF EXPLANATION : PERCENTAGE I.E. Suburban: 25%, NOTHING ELSE IS ACCEPTABLE."
+            "LGBTQ_representation": "15%",
+            "image_prompt": "Aerial satellite view of the specific neighborhood around the address, showing the actual street layout, housing density, parks, and local landmarks that define this area",
+            "image_prompt_2": "Street-level photo of the main residential streets and community character around the address, showing typical homes, sidewalks, landscaping, and neighborhood atmosphere",
         }
 
 class Safety(BaseModel):
@@ -161,11 +94,30 @@ class Safety(BaseModel):
     )
     image_prompt: str = Field(
         ...,
-        example="Well-lit residential street with sidewalks, street lamps, and visible security features"
+        example="Crime map of the city showing safety statistics and incident reports for this specific neighborhood around the address"
+    )
+    image_prompt_2: str = Field(
+        ...,
+        example="Street-level photo of safety infrastructure in this neighborhood: well-lit streets, security cameras, police patrol presence, and neighborhood watch signs around {address}"
     )
     
     class Config:
         extra = "forbid"
+    
+    @classmethod
+    def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
+        """Generate personalized example based on user preferences"""
+        children_count = user_preferences.get('children_count', 0) if user_preferences else 0
+        safety_focus = "family-friendly areas with good lighting and school zones" if children_count > 0 else "well-lit streets and secure areas"
+        
+        return {
+            "crime_rating": "Low",
+            "places_to_watch_out_for": "Main St after 10pm, parking lots near the train station, avoid the alley behind 5th Ave",
+            "police_presence": "Regular patrol cars, community policing program, quick response times",
+            "safety_rating": "7.8/10",
+            "image_prompt": "Well-lit residential streets around the address showing sidewalks, street lamps, and visible security features in this specific neighborhood",
+            "image_prompt_2": "Safety infrastructure around the address: security cameras, emergency call boxes, neighborhood watch signs, and police patrol presence in this specific area"
+        }
     
     @classmethod
     def get_description(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, str]:
@@ -179,7 +131,8 @@ class Safety(BaseModel):
             "places_to_watch_out_for": "Specific areas, intersections, or locations with higher risk or safety concerns. Include times of day when relevant. Use local knowledge from City-Data forums, Nextdoor, or police reports. Be specific with street names and locations. Prioritize areas relevant to user's daily routines and family needs.",
             "police_presence": "Describe frequency and visibility of police patrols, community policing programs, and response times. Source from local police department websites, community meetings, or resident feedback on Nextdoor/City-Data. Emphasize community policing and response times.",
             "safety_rating": "Overall safety score out of 10 based on crime data, community perception, and safety infrastructure. Use data from AreaVibes, Neighborhood Scout, or local crime statistics. Format as 'X.X/10'. Weight factors based on user's safety priorities.",
-            "image_prompt": f"Descriptive prompt for generating an image that represents neighborhood safety features like well-lit streets, security measures, or safe community spaces (emphasizing {safety_focus})."
+            "image_prompt": f"Crime map of the city showing safety statistics, incident reports, and crime density for this specific neighborhood around the address (emphasizing {safety_focus} safety concerns).",
+            "image_prompt_2": f"Street-level photo of safety infrastructure in this neighborhood: well-lit streets, security cameras, police patrol presence, and neighborhood watch signs around the address (focusing on {safety_focus} safety features)."
         }
 
 class CultureAndEvents(BaseModel):
@@ -188,6 +141,7 @@ class CultureAndEvents(BaseModel):
     community_engagement: str = Field(...)
     culture_rating: str = Field(...)
     image_prompt: str = Field(...)
+    image_prompt_2: str = Field(...)
     
     class Config:
         extra = "forbid"
@@ -203,7 +157,8 @@ class CultureAndEvents(BaseModel):
             "seasonal_trends": "Busy summers with beach events, quieter winters with indoor cultural activities",
             "community_engagement": "Active neighborhood watch, volunteer cleanup days, high voter turnout",
             "culture_rating": "8.5/10",
-            "image_prompt": "Vibrant street festival with food vendors, live music, and families enjoying community activities"
+            "image_prompt": "Photo of actual cultural events and festivals happening in the city near the address, showing local community gatherings, street fairs, or seasonal celebrations specific to this neighborhood",
+            "image_prompt_2": "Photo of cultural venues and event spaces in the city around the address: local theaters, art galleries, community centers, or performance venues that serve this neighborhood"
         }
     
     @classmethod
@@ -217,7 +172,8 @@ class CultureAndEvents(BaseModel):
             "seasonal_trends": "How activity changes throughout the year, e.g., 'Busy in summer, quieter winters'. Check Nomad List or blog search results for seasonal patterns. Consider how seasons affect the user's preferred activities and lifestyle.",
             "community_engagement": "Civic participation level (e.g., cleanup days, local watch groups). Mention if visible on Meetup or community forums. Assess opportunities for user involvement based on their community involvement preferences.",
             "culture_rating": "Score should reflect vibrancy and access. Weigh frequency and diversity of events, Eventbrite density is a clue for cultural activity. Rate based on cultural factors that matter most to the user's interests and lifestyle.",
-            "image_prompt": "Descriptive prompt for generating an image of local culture and events that reflects the community's cultural character."
+            "image_prompt": "Photo of actual cultural venues, event spaces, or community gathering places in the city around the address, showing the specific locations where local events and activities take place.",
+            "image_prompt_2": "Photo of local cultural infrastructure in the city near the address: art galleries, theaters, community centers, libraries, or performance venues that serve this neighborhood."
         }
 
 class SocialCharacter(BaseModel):
@@ -226,6 +182,7 @@ class SocialCharacter(BaseModel):
     cultural_tone: str = Field(...)
     social_rating: str = Field(...)
     image_prompt: str = Field(...)
+    image_prompt_2: str = Field(...)
     
     class Config:
         extra = "forbid"
@@ -240,7 +197,8 @@ class SocialCharacter(BaseModel):
             "religiosity": "Moderate - several churches and temples, but not overly conservative",
             "cultural_tone": "Laid-back but proud, environmentally conscious, welcoming to newcomers",
             "social_rating": "8.2/10",
-            "image_prompt": "Diverse group of neighbors chatting at a community gathering, showing friendly social interaction"
+            "image_prompt": "Photo of local community spaces and social gathering areas in the city around the address, showing where residents interact and socialize in this specific neighborhood",
+            "image_prompt_2": "Photo of religious buildings, community centers, local coffee shops, or social venues in the city near the address that reflect the neighborhood's social and cultural character"
         }
     
     @classmethod
@@ -255,7 +213,8 @@ class SocialCharacter(BaseModel):
             "religiosity": "Low / Moderate / High — explain the tone. Use BestPlaces religion % or Niche. Assess compatibility with user's spiritual preferences and tolerance for religious influence.",
             "cultural_tone": "Summary of vibe ('laid-back but proud'). Pull from Google Maps reviews or Niche user feedback. Focus on cultural aspects that match user's social preferences and values.",
             "social_rating": "Reflects inclusivity, education, worldview. Niche 'diversity' and 'community' scores are good proxies. Weight factors based on user's social priorities and community involvement preferences.",
-            "image_prompt": "Descriptive prompt for generating an image representing the social character that appeals to user's community preferences."
+            "image_prompt": "Photo of community spaces, local businesses, and neighborhood gathering areas in the city around the address that reflect the social character and daily life of this specific area.",
+            "image_prompt_2": "Photo of religious institutions, community centers, local cafes, or social venues in the city near the address that demonstrate the neighborhood's cultural and social diversity."
         }
 
 class Restaurant(BaseModel):
@@ -411,19 +370,16 @@ class Amenity(BaseModel):
         if income in ['high', 'very_high']:
             return {
                 "name": "Whole Foods Market",
-                "type": "Grocery Store",
                 "vibe": "Upscale organic grocery with prepared foods, wine bar, and artisanal products"
             }
         elif lifestyle == 'family':
             return {
                 "name": "Target Supercenter",
-                "type": "Department Store",
                 "vibe": "Family-friendly one-stop shopping with groceries, clothing, and household essentials"
             }
         else:
             return {
                 "name": "Corner Market & Deli",
-                "type": "Convenience Store",
                 "vibe": "Local neighborhood market with fresh sandwiches and daily essentials"
             }
     
@@ -469,36 +425,30 @@ class LocalAmenities(BaseModel):
         if income in ['high', 'very_high']:
             grocery_example = {
                 "name": "Whole Foods Market",
-                "type": "Grocery Store",
                 "vibe": "Upscale organic grocery with prepared foods and wine bar"
             }
             thrift_example = {
                 "name": "Vintage Boutique",
-                "type": "Vintage Store",
                 "vibe": "Curated vintage designer pieces and unique finds"
             }
         else:
             grocery_example = {
                 "name": "Neighborhood Market",
-                "type": "Grocery Store",
                 "vibe": "Local grocery with fresh produce and competitive prices"
             }
             thrift_example = {
                 "name": "Coastal Treasures",
-                "type": "Thrift Store",
                 "vibe": "Eclectic vintage finds with local character"
             }
         
         if lifestyle == 'nightlife':
             late_night_example = {
                 "name": "Midnight Kitchen",
-                "type": "Late Night Dining",
                 "vibe": "Trendy late-night spot with craft cocktails and small plates"
             }
         else:
             late_night_example = {
                 "name": "24/7 Diner",
-                "type": "Late Night Dining",
                 "vibe": "Classic American diner with comfort food"
             }
         
@@ -627,20 +577,16 @@ class FamilyFriendly(BaseModel):
 class AppsPopularity(BaseModel):
     Tinder: str = Field(..., description="Popularity rating/percentage for Tinder")
     Hinge: str = Field(..., description="Popularity rating/percentage for Hinge")
-    Bumble: str = Field(..., description="Popularity rating/percentage for Bumble")
-    Coffee_Meets_Bagel: Optional[str] = Field(None, description="Popularity rating/percentage for Coffee Meets Bagel")
-    Match: Optional[str] = Field(None, description="Popularity rating/percentage for Match")
-    OkCupid: Optional[str] = Field(None, description="Popularity rating/percentage for OkCupid")
     
     class Config:
         extra = "forbid"
 class NightlifeAndDating(BaseModel):
     nightlife_rating: str = Field(...)
-    nightlife_score: float = Field(...)
     best_spots: str = Field(...)
     dating_scene: str = Field(...)
     apps_popularity: AppsPopularity = Field(..., description="Dating app popularity in the area")
     image_prompt: str = Field(...)
+    image_prompt_2: str = Field(...)
     
     class Config:
         extra = "forbid"
@@ -655,29 +601,29 @@ class NightlifeAndDating(BaseModel):
         if lifestyle == 'nightlife' and age < 35:
             return {
                 "nightlife_rating": "9.2/10",
-                "nightlife_score": 9.2,
                 "best_spots": "Sky Lounge rooftop bar, Underground dance club, Craft cocktail speakeasy, Late-night food trucks",
                 "dating_scene": "Vibrant young professional scene, trendy bar meetups, rooftop parties, active social media presence",
-                "apps_popularity": {"Bumble": "Very Popular", "Hinge": "Very Popular", "Tinder": "Popular"},
-                "image_prompt": "Energetic nightlife scene with young professionals at trendy rooftop bars and dance venues"
+                "apps_popularity": {"Hinge": "Very Popular", "Tinder": "Popular"},
+                "image_prompt": "Photo of nightlife and entertainment venues in the city around the address, showing actual bars, clubs, and late-night spots where young professionals gather",
+                "image_prompt_2": "Photo of dating-friendly venues in the city near the address: trendy restaurants, wine bars, coffee shops, or social spaces where singles meet and socialize"
             }
         elif marital_status in ['married', 'partnered'] or age > 40:
             return {
                 "nightlife_rating": "6.8/10",
-                "nightlife_score": 6.8,
                 "best_spots": "Wine bars, upscale restaurants with live music, theater district, cultural events",
                 "dating_scene": "Mature social scene, wine tastings, cultural events, established professional networks",
-                "apps_popularity": {"Bumble": "Moderate", "Hinge": "Popular", "Match": "Popular"},
-                "image_prompt": "Sophisticated evening atmosphere with wine bars and cultural venues for mature adults"
+                "apps_popularity": {"Hinge": "Popular", "Match": "Popular"},
+                "image_prompt": "Photo of upscale evening entertainment venues in the city around the address, showing sophisticated restaurants, wine bars, and cultural spaces for mature professionals",
+                "image_prompt_2": "Photo of date-night venues in the city near the address: fine dining restaurants, wine lounges, theater venues, or cultural spaces that cater to established couples"
             }
         else:
             return {
                 "nightlife_rating": "7.5/10",
-                "nightlife_score": 7.5,
                 "best_spots": "The Rooftop Lounge, Coastal Brewery, Live music at The Pier, wine bars on Main St",
                 "dating_scene": "Active young professional scene, beach volleyball meetups, wine tastings, farmers market socializing",
-                "apps_popularity": {"Bumble": "Very Popular", "Hinge": "Popular", "Tinder": "Moderate"},
-                "image_prompt": "Vibrant evening scene with people enjoying rooftop dining and coastal nightlife"
+                "apps_popularity": {"Hinge": "Popular", "Tinder": "Moderate"},
+                "image_prompt": "Photo of evening dining and entertainment venues in the city around the address, showing local restaurants, bars, and social spaces for casual dining and nightlife",
+                "image_prompt_2": "Photo of casual social venues in the city near the address: local bars, breweries, coffee shops, or community spaces where residents socialize and meet"
             }
     
     @classmethod
@@ -688,12 +634,12 @@ class NightlifeAndDating(BaseModel):
         
         return {
             "nightlife_rating": "Rate vibrancy of bars, music, and scenes. Use Yelp, Google Maps, or City-Data forum nightlife threads. Consider what appeals to the user's demographic and lifestyle.",
-            "nightlife_score": "Rate vibrancy of bars, music, and scenes. Use Yelp, Google Maps, or City-Data forum nightlife threads. Weight based on user's social preferences and age group.",
             "best_spots": "Popular bars, clubs, and entertainment venues. Use Yelp, Google Maps, or City-Data forum nightlife threads. Focus on venues that match the user's social style and interests.",
             "dating_scene": f"Describe energy and dating pool. Search 'dating in [city] Reddit' or Nomad List for vibe. Tailor to user's marital status ({marital_status}) and age ({age}) - focus on relevant social opportunities.",
             "average_attractiveness_rating": "Be playful but grounded. Use cultural tone and tongue-in-cheek phrasing.",
             "apps_popularity": "Break down by app, score relative to national averages. Check Reddit threads or blog posts comparing app usage. Emphasize apps most relevant to user's age group and relationship goals.",
-            "image_prompt": "Descriptive prompt for generating an image of local nightlife that reflects the user's preferred social atmosphere."
+            "image_prompt": "Photo of nightlife and entertainment venues in the city around the address that reflect the local social atmosphere and evening entertainment options.",
+            "image_prompt_2": "Photo of dating-friendly venues in the city near the address: cafes, wine bars, restaurants, or social spaces where people meet and socialize in this neighborhood."
         }
 
 
@@ -703,6 +649,7 @@ class Development(BaseModel):
     gentrification_signs: str = Field(...)
     vacancy_or_decay: str = Field(...)
     image_prompt: str = Field(...)
+    image_prompt_2: str = Field(...)
     
     class Config:
         extra = "forbid"
@@ -720,7 +667,8 @@ class Development(BaseModel):
                 "zoning_or_construction": "High-end mixed-use towers under construction, zoning allows luxury residential, architectural design standards enforced",
                 "gentrification_signs": "Rapid property value increases, artisanal coffee shops and boutiques opening, longtime businesses being replaced",
                 "vacancy_or_decay": "Very low vacancy rates, premium property maintenance, no signs of urban decay",
-                "image_prompt": "Modern glass towers and upscale development transforming an established urban neighborhood"
+                "image_prompt": "Photo of development and construction activity in the city around the address, showing actual building sites, new developments, and infrastructure projects in this specific neighborhood",
+                "image_prompt_2": "Photo of luxury developments and upscale construction projects in the city near the address, showing premium architectural features and high-end residential or commercial developments"
             }
         elif age < 30 and lifestyle in ['nightlife', 'urban']:
             return {
@@ -728,7 +676,8 @@ class Development(BaseModel):
                 "zoning_or_construction": "Mixed-use development with ground-floor retail, zoning allows live-work spaces, height restrictions relaxed",
                 "gentrification_signs": "Young professionals moving in, trendy restaurants opening, rent increases in older buildings",
                 "vacancy_or_decay": "Low vacancy rates, building renovations common, minimal decay",
-                "image_prompt": "Construction activity and new development bringing modern amenities to a transitioning neighborhood"
+                "image_prompt": "Photo of construction sites and new development projects in the city around the address, showing active building sites and modern developments in this specific neighborhood",
+                "image_prompt_2": "Photo of trendy new developments in the city near the address: co-working spaces, modern residential projects, or contemporary commercial buildings that attract young professionals"
             }
         else:
             return {
@@ -736,7 +685,8 @@ class Development(BaseModel):
                 "zoning_or_construction": "Mixed-use development under construction, residential zoning allows ADUs, height limits preserved",
                 "gentrification_signs": "Rising property values, new upscale businesses, longtime residents being displaced",
                 "vacancy_or_decay": "Low vacancy rates, well-maintained properties, minimal urban decay",
-                "image_prompt": "Construction cranes and new development alongside established neighborhood character"
+                "image_prompt": "Photo of development activity and neighborhood character around the specific address, showing current construction, infrastructure improvements, and community development projects in this area",
+                "image_prompt_2": "Photo of neighborhood infrastructure near the address: transit developments, road improvements, utility upgrades, or community projects that impact this specific area"
             }
     
     @classmethod
@@ -750,7 +700,8 @@ class Development(BaseModel):
             "zoning_or_construction": "Check city zoning maps, building permits, or construction notices. Use Google Maps satellite view to spot active construction sites.",
             "gentrification_signs": "Look for rising rents, new upscale businesses, demographic shifts. Search '[neighborhood] gentrification' or check local forums for resident discussions.",
             "vacancy_or_decay": "Use Google Street View to assess building conditions, vacant lots, or boarded storefronts. Check local crime or economic indicators.",
-            "image_prompt": "Descriptive prompt for generating an image that reflects the neighborhood's development character and future trajectory."
+            "image_prompt": "Photo of development activity, construction sites, and neighborhood character in the city around the address, showing current building projects and infrastructure changes in this specific area.",
+            "image_prompt_2": "Photo of future development sites and planned construction areas in the city near the address, showing infrastructure improvements, zoning changes, or major projects that will impact this neighborhood."
         }
 
 
@@ -766,6 +717,9 @@ class UtilityCosts(BaseModel):
         extra = "forbid"
 
 class EnvironmentUtilities(BaseModel):
+    class Config:
+        extra = "forbid"  # Explicitly forbid additional properties
+        
     air_quality: str = Field(...)
     noise_pollution: str = Field(...)
     light_pollution: str = Field(...)
@@ -885,15 +839,7 @@ class FinancialInformation(BaseModel):
 
 class SchoolInfo(BaseModel):
     name: str = Field(..., description="Name of the school")
-    level: str = Field(...)
-    walking_distance: bool = Field(...)
-    school_rating: str = Field(...)
-    teacher_quality: str = Field(...)
     known_for: str = Field(...)
-    gpa_avg: Optional[float] = Field(None)
-    sat_avg: Optional[int] = Field(None)
-    grad_rate: Optional[float] = Field(None)
-    top_colleges: Optional[str] = Field(None)
     
     class Config:
         extra = "forbid"
@@ -906,42 +852,15 @@ class SchoolInfo(BaseModel):
         
         if children_count > 0 and income in ['high', 'very_high']:
             return {
-                "name": "Prestigious Academy Elementary",
-                "level": "Elementary",
-                "walking_distance": True,
-                "school_rating": "9.8/10",
-                "teacher_quality": "Outstanding - 95% have advanced degrees, National Blue Ribbon recognition, innovative teaching methods",
-                "known_for": "Advanced STEM programs, Mandarin immersion, gifted and talented programs, arts excellence",
-                "gpa_avg": None,
-                "sat_avg": None,
-                "grad_rate": None,
-                "top_colleges": None
+                "known_for": "**Specialized Programs:** Advanced STEM curriculum, Mandarin immersion program, gifted and talented tracks, award-winning arts program with dedicated music and art studios",
             }
         elif children_count > 2:
             return {
-                "name": "Family-Friendly Elementary",
-                "level": "Elementary",
-                "walking_distance": True,
-                "school_rating": "9.4/10",
-                "teacher_quality": "Excellent - 90% have advanced degrees, strong parent involvement, dedicated staff",
-                "known_for": "Strong reading programs, inclusive education, after-school activities, family engagement",
-                "gpa_avg": None,
-                "sat_avg": None,
-                "grad_rate": None,
-                "top_colleges": None
+                "known_for": "**Community Focus:** Strong reading intervention programs, inclusive special education, extensive after-school activities, high family engagement with active PTA",
             }
         else:
             return {
-                "name": "Seaside Elementary",
-                "level": "Elementary",
-                "walking_distance": True,
-                "school_rating": "9.2/10",
-                "teacher_quality": "Excellent - 85% have advanced degrees, low turnover, award-winning programs",
-                "known_for": "STEM programs, arts integration, dual language immersion",
-                "gpa_avg": 3.7,
-                "sat_avg": 1340,
-                "grad_rate": 96.5,
-                "top_colleges": "UC Berkeley, Stanford, UCLA, USC, Cal Poly"
+                "known_for": "**Community Focus:** Strong reading intervention programs, inclusive special education, extensive after-school activities, high family engagement with active PTA",
             }
     
     @classmethod
@@ -950,15 +869,7 @@ class SchoolInfo(BaseModel):
         children_count = user_preferences.get('children_count', 0) if user_preferences else 0
         
         return {
-            "level": "Elementary, Middle, or High School designation. Use GreatSchools.org or Niche for school level information.",
-            "walking_distance": "Whether school is within walking distance (typically under 0.5 miles). Use Google Maps to measure distance from property.",
-            "school_rating": "GreatSchools rating out of 10 or similar metric. Use GreatSchools.org, Niche, or state education department ratings.",
-            "teacher_quality": "Teacher qualifications, experience, and student-teacher ratios. Check school websites or education department data.",
             "known_for": "Special programs, academic strengths, or unique offerings. Research school websites, awards, and community reputation.",
-            "gpa_avg": "Average GPA if available for high schools. Check school report cards or state education data.",
-            "sat_avg": "Average SAT scores for high schools. Use school websites or state/district report cards.",
-            "grad_rate": "Graduation rate percentage. Available from state education departments or school report cards.",
-            "top_colleges": "Common college destinations for graduates. Check school websites or guidance counselor information."
         }
 
 class Schools(BaseModel):
@@ -980,15 +891,18 @@ class Schools(BaseModel):
             return {
                 "schools": [
                     {
-                        **school_example,
-                        "name": "Prestigious Academy Elementary"
+                        "name": "## Prestigious Academy Elementary\n\n**Level:** Elementary School\n**Walking Distance:** Yes (0.3 miles)\n**Overall Rating:** 9.8/10",
+                        "level": "Elementary",
+                        "walking_distance": True,
+                        "school_rating": "9.8/10",
+                        "known_for": "**Specialized Programs:** Advanced STEM curriculum, Mandarin immersion program, gifted and talented tracks, award-winning arts program"
                     },
                     {
-                        **school_example,
-                        "name": "Excellence Prep Middle School",
+                        "name": "## Excellence Prep Middle School\n\n**Level:** Middle School\n**Walking Distance:** No (0.8 miles)\n**Overall Rating:** 9.9/10",
                         "level": "Middle School",
+                        "walking_distance": False,
                         "school_rating": "9.9/10",
-                        "known_for": "Advanced placement programs, robotics team, debate championship"
+                        "known_for": "**Advanced Programs:** Pre-AP courses, competitive robotics team, championship debate program, leadership academy"
                     }
                 ]
             }
@@ -996,15 +910,18 @@ class Schools(BaseModel):
             return {
                 "schools": [
                     {
-                        **school_example,
-                        "name": "Family-Friendly Elementary"
+                        "name": "## Family-Friendly Elementary\n\n**Level:** Elementary School\n**Walking Distance:** Yes (0.4 miles)\n**Overall Rating:** 9.4/10",
+                        "level": "Elementary",
+                        "walking_distance": True,
+                        "school_rating": "9.4/10",
+                        "known_for": "**Community Focus:** Strong reading intervention programs, inclusive special education, extensive after-school activities, high family engagement with active PTA"
                     },
                     {
-                        **school_example,
-                        "name": "Community Middle School",
+                        "name": "## Community Middle School\n\n**Level:** Middle School\n**Walking Distance:** No (0.7 miles)\n**Overall Rating:** 9.0/10",
                         "level": "Middle School",
+                        "walking_distance": False,
                         "school_rating": "9.0/10",
-                        "known_for": "Strong community involvement, diverse programs, inclusive environment"
+                        "known_for": "**Inclusive Excellence:** Strong community involvement, diverse academic programs, inclusive environment with support for all learners"
                     }
                 ]
             }
@@ -1012,12 +929,11 @@ class Schools(BaseModel):
             return {
                 "schools": [
                     {
-                        "name": "Seaside Elementary",
+                        "name": "## Seaside Elementary\n\n**Level:** Elementary School\n**Walking Distance:** Yes (0.5 miles)\n**Overall Rating:** 9.2/10",
                         "level": "Elementary",
                         "walking_distance": True,
                         "school_rating": "9.2/10",
-                        "teacher_quality": "Excellent",
-                        "known_for": "STEM programs"
+                        "known_for": "**STEM Excellence:** Strong STEM programs with hands-on learning, technology integration, science fair champions"
                     }
                 ]
             }
@@ -1083,8 +999,14 @@ class ExtraTips(BaseModel):
         }
 
 class FullReport(BaseModel):
-    # === All your sections ===
+    # === Main sections ===
     neighborhood_overview: Optional[NeighborhoodOverview] = None
+    
+    # === Demographic data (appears directly after neighborhood_overview without section titles) ===
+    age_distribution: Optional[AgeDistribution] = None
+    lifestyle_dna: Optional[LifestyleDNA] = None
+    
+    # === Other report sections ===
     safety: Optional[Safety] = None
     culture_and_events: Optional[CultureAndEvents] = None
     social_character: Optional[SocialCharacter] = None
@@ -1129,8 +1051,14 @@ class FullReport(BaseModel):
                 continue
             
             # Include the key regardless of whether it's None or has a value
-            print(f"  ✅ Including '{key}' (value: {'None' if base_dict[key] is None else 'populated'})")
             final_dict[key] = base_dict[key]
+        
+        # Auto-include demographic sections if they have values (even if not in prioritized fields)
+        demographic_sections = ['age_distribution', 'lifestyle_dna']
+        for demo_key in demographic_sections:
+            if demo_key in base_dict and base_dict[demo_key] is not None and demo_key not in final_dict:
+                print(f"  🧬 Auto-including demographic section '{demo_key}' (has value)")
+                final_dict[demo_key] = base_dict[demo_key]
 
         print("\n✅ Final filtered dict keys:")
         print(f"  {list(final_dict.keys())}\n")

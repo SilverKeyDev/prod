@@ -443,8 +443,9 @@ export default function PersonalizationPage() {
       );
       updateFormData("report_section_priorities", newPriorities);
     } else {
-      // Add to priorities when checked (if not already there)
+      // Add to last priority (bottom of list) when checked (if not already there)
       if (!currentPriorities.includes(sectionKey)) {
+        // Add to the end of the list (last priority)
         updateFormData("report_section_priorities", [
           ...currentPriorities,
           sectionKey,
@@ -579,10 +580,12 @@ export default function PersonalizationPage() {
           // Emotional Signals
           ...userPreferences.emotional_signals,
 
-          // Report Customization
-          ...userPreferences.report_customization,
-          report_section_priorities: userPreferences.report_customization
-            ?.report_section_priorities
+          // Report Customization - handle both nested and flat structures
+          report_section_priorities: userPreferences.report_section_priorities
+            ? userPreferences.report_section_priorities.filter(
+                (key: string) => VALID_REPORT_SECTIONS.includes(key)
+              )
+            : userPreferences.report_customization?.report_section_priorities
             ? userPreferences.report_customization.report_section_priorities.filter(
                 (key: string) => VALID_REPORT_SECTIONS.includes(key)
               )

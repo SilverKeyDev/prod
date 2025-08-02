@@ -15,10 +15,6 @@ class ComparisonField(BaseModel):
     reason: str = Field(..., description="Human-readable justification for why this location wins BASED ON THIS DIMENSION")
     
     # New fields for deeper traceability
-    criteria: Optional[List[str]] = Field(
-        default=None,
-        description="List of criteria used to evaluate this field (e.g. 'safety', 'walkability', etc.) BASED ON THIS DIMENSION"
-    )
     user_preference_tags: Optional[List[str]] = Field(
         default=None,
         description="Which user preferences this comparison directly maps to BASED ON THIS DIMENSION"
@@ -51,7 +47,7 @@ class ComparisonSummary(BaseModel):
                 "location_b": "Downtown LA - Urban professional environment",
                 "winner": "location_a",
                 "reason": f"Better matches user's lifestyle: {lifestyle} and family needs with {children_count} children",
-                "criteria": ["lifestyle_alignment", "family_amenities", "cost_of_living"],
+
                 "user_preference_tags": lifestyle_tags + family_tags + ["overall_priorities"]
             },
             "priority_based_analysis": {
@@ -59,7 +55,7 @@ class ComparisonSummary(BaseModel):
                 "location_b": "6.1/10 - Limited family amenities, busy urban environment",
                 "winner": "location_a",
                 "reason": f"Significantly better for families with {children_count} children" if children_count > 0 else "Better overall quality of life metrics",
-                "criteria": ["school_quality", "family_density", "safety_rating", "community_feel"],
+
                 "user_preference_tags": family_tags + ["safety_priorities", "education_priorities"]
             },
             "lifestyle_match_score": {
@@ -67,7 +63,7 @@ class ComparisonSummary(BaseModel):
                 "location_b": "62% match - Good for career growth but lacks family amenities",
                 "winner": "location_a",
                 "reason": f"Better overall alignment with user profile: {lifestyle}, income {income_range}, {children_count} children",
-                "criteria": ["lifestyle_compatibility", "income_alignment", "life_stage_match"],
+
                 "user_preference_tags": lifestyle_tags + income_tags + family_tags
             },
             "key_tradeoffs": {
@@ -75,7 +71,7 @@ class ComparisonSummary(BaseModel):
                 "location_b": "Advantages: Career growth, nightlife, cultural events, transit access. Disadvantages: Higher cost, less family-friendly, traffic congestion",
                 "winner": "location_a",
                 "reason": "Choose A if family life is priority, B if career advancement is key",
-                "criteria": ["career_opportunities", "family_amenities", "cost_analysis", "lifestyle_options"],
+
                 "user_preference_tags": ["career_priorities", "family_priorities", "budget_considerations"]
             },
             "personalized_advice": {
@@ -83,7 +79,7 @@ class ComparisonSummary(BaseModel):
                 "location_b": "Better for career growth but challenging for families. Higher costs may strain budget.",
                 "winner": "location_a",
                 "reason": "Given your family priorities and moderate income, Location A offers better value and family amenities",
-                "criteria": ["financial_fit", "family_suitability", "long_term_value"],
+
                 "user_preference_tags": family_tags + income_tags + ["long_term_goals"]
             },
             "deal_breaker_analysis": {
@@ -91,7 +87,7 @@ class ComparisonSummary(BaseModel):
                 "location_b": "High traffic matches your deal breaker: heavy commute",
                 "winner": "location_a",
                 "reason": "Location B has deal breaker issues that conflict with your requirements",
-                "criteria": ["deal_breaker_assessment", "requirement_compliance"],
+
                 "user_preference_tags": ["deal_breakers", "non_negotiables"]
             }
         }
@@ -124,42 +120,96 @@ class NeighborhoodOverview(BaseModel):
     population_total: ComparisonField = Field(...)
     neighborhood_rating: ComparisonField = Field(...)
     LGBTQ_representation: ComparisonField = Field(...)
-    image_prompt: ComparisonField = Field(...)
+    image_prompt: str = Field(...)
+    image_prompt_2: str = Field(...)
 
-    @model_validator(mode="before")
-    @classmethod
-    def delete_flat_demographics(cls, values):
-        if not isinstance(values, dict):
-            return values
 
-        demographic_fields_to_delete = [
-            "gender_distribution",
-            "racial_distribution",
-            "age_distribution",
-            "lifestyle_dna",
-        ]
-
-        for field in demographic_fields_to_delete:
-            if field in values:
-                del values[field]
-
-        return values
     
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
         """Generate personalized example based on user preferences"""
         lifestyle = user_preferences.get("lifestyle_type", "laid-back") if user_preferences else "laid-back"
+        children_count = user_preferences.get('children_count', 0) if user_preferences else 0
+        
+        # Determine user preference tags based on profile
+        family_tags = ["children_count", "family_friendly"] if children_count > 0 else []
+        lifestyle_tags = ["lifestyle_type"]
+        
         return {
-            "local_culture": f"Artistic and laid-back coastal community with a focus on marine activities (aligns with user lifestyle: {lifestyle})",
-            "vibe": "Creative, beachy, relaxed",
-            "known_for": "Beautiful beaches, surfing, whale watching, and Dana Point Harbor",
-            "community_events": "Weekly farmers market, summer concerts, Festival of Whales, harbor festivals",
-            "what_people_love": "Walkability, coastal charm, friendly community, outdoor activities",
-            "things_to_watch_out_for": "Tourist crowds in summer, parking challenges after 6pm, weekend traffic",
-            "population_total": "12,500",
-            "neighborhood_rating": "8.3/10",
-            "LGBTQ_representation": "High representation (~15%) with several LGBTQ-friendly businesses and events",
-            "image_prompt": "Aerial view of a lively beach neighborhood with colorful homes and palm trees",
+            "local_culture": {
+                "location_a": f"Artistic and laid-back coastal community with a focus on marine activities (aligns with user lifestyle: {lifestyle})",
+                "location_b": "Urban professional community with tech startups and modern amenities",
+                "winner": "location_a",
+                "reason": f"Better cultural match for {lifestyle} lifestyle preference",
+
+                "user_preference_tags": lifestyle_tags
+            },
+            "vibe": {
+                "location_a": "Creative, beachy, relaxed",
+                "location_b": "Fast-paced, competitive, urban",
+                "winner": "location_a",
+                "reason": "More aligned with user's preferred pace of life",
+
+                "user_preference_tags": lifestyle_tags
+            },
+            "known_for": {
+                "location_a": "Beautiful beaches, surfing, whale watching, and Dana Point Harbor",
+                "location_b": "Tech companies, shopping centers, business districts, and nightlife",
+                "winner": "location_a",
+                "reason": "Natural attractions align better with outdoor lifestyle preferences",
+
+                "user_preference_tags": ["hobbies_interests", "lifestyle_type"]
+            },
+            "community_events": {
+                "location_a": "Weekly farmers market, summer concerts, Festival of Whales, harbor festivals",
+                "location_b": "Tech meetups, networking events, art gallery openings, food truck festivals",
+                "winner": "location_a" if lifestyle in ["laid-back", "family-oriented"] else "location_b",
+                "reason": "Events better match user's social and family preferences",
+
+                "user_preference_tags": family_tags + lifestyle_tags
+            },
+            "what_people_love": {
+                "location_a": "Walkability, coastal charm, friendly community, outdoor activities",
+                "location_b": "Career opportunities, modern amenities, diverse dining, cultural venues",
+                "winner": "location_a",
+                "reason": "Community values align with user's lifestyle priorities",
+
+                "user_preference_tags": lifestyle_tags
+            },
+            "things_to_watch_out_for": {
+                "location_a": "Tourist crowds in summer, parking challenges after 6pm, weekend traffic",
+                "location_b": "High cost of living, traffic congestion, competitive housing market",
+                "winner": "location_a",
+                "reason": "Seasonal issues are more manageable than year-round urban challenges",
+
+                "user_preference_tags": ["budget_considerations"]
+            },
+            "population_total": {
+                "location_a": "12,500",
+                "location_b": "85,000",
+                "winner": "location_a" if lifestyle in ["laid-back", "quiet"] else "location_b",
+                "reason": "Population size matches user's preferred community scale",
+
+                "user_preference_tags": lifestyle_tags
+            },
+            "neighborhood_rating": {
+                "location_a": "8.3/10",
+                "location_b": "7.9/10",
+                "winner": "location_a",
+                "reason": "Higher overall livability rating",
+
+                "user_preference_tags": ["quality_of_life"]
+            },
+            "LGBTQ_representation": {
+                "location_a": "High representation (~15%) with several LGBTQ-friendly businesses and events",
+                "location_b": "Moderate representation (~8%) with some inclusive venues and annual pride event",
+                "winner": "location_a",
+                "reason": "Stronger LGBTQ+ community presence and inclusivity",
+
+                "user_preference_tags": ["social_values"]
+            },
+            "image_prompt": "Aerial satellite view comparing the specific neighborhoods around each address, showing actual street layout, housing density, parks, and local landmarks that define each area",
+            "image_prompt_2": "Street-level comparison of the main residential streets and community character around each address, showing typical homes, sidewalks, landscaping, and neighborhood atmosphere"
         }
     
     @classmethod
@@ -178,7 +228,7 @@ class NeighborhoodOverview(BaseModel):
             "population_total": "Total population from Census data or city demographic reports. Consider if the community size matches user's preferences.",
             "neighborhood_rating": "Overall livability rating using Niche, AreaVibes, or similar platforms. Weight factors based on user's priorities and life stage.",
             "LGBTQ_representation": "LGBTQ population and community friendliness using Census data, local LGBTQ organizations, or community resources. Include inclusivity indicators.",
-            "image_prompt": "Descriptive prompt for generating a representative image of the neighborhood that captures its appeal to the user.",
+            "image_prompt": "Photo comparing the actual neighborhoods around each address, showing the real streets, homes, and local landmarks that represent each area's character.",
         }
 
 class Safety(BaseModel):
@@ -186,7 +236,8 @@ class Safety(BaseModel):
     places_to_watch_out_for: ComparisonField = Field(...)
     police_presence: ComparisonField = Field(...)
     safety_rating: ComparisonField = Field(...)
-    image_prompt: ComparisonField = Field(...)
+    image_prompt: str = Field(...)
+    image_prompt_2: str = Field(...)
     
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -208,7 +259,7 @@ class Safety(BaseModel):
                 "location_b": "Moderate - Some break-ins, occasional street crime",
                 "winner": "location_a",
                 "reason": f"Lower crime rates align better with {safety_focus} priorities" if children_count > 0 else "Significantly lower crime rates provide better security",
-                "criteria": ["crime_rate", "violent_incidents", "property_crime"],
+
                 "user_preference_tags": safety_tags
             },
             "places_to_watch_out_for": {
@@ -216,7 +267,7 @@ class Safety(BaseModel):
                 "location_b": "Multiple areas: downtown core, several intersections, park after dark",
                 "winner": "location_a",
                 "reason": "Fewer problematic areas, easier to avoid risk zones" + (" - important for family navigation" if children_count > 0 else ""),
-                "criteria": ["risk_areas", "avoidability", "area_safety"],
+
                 "user_preference_tags": safety_tags + (["navigation_safety"] if children_count > 0 else [])
             },
             "police_presence": {
@@ -224,7 +275,7 @@ class Safety(BaseModel):
                 "location_b": "Limited patrols, slower response times, understaffed",
                 "winner": "location_a",
                 "reason": "Superior police presence and community engagement" + (" provides peace of mind for families" if children_count > 0 else ""),
-                "criteria": ["patrol_frequency", "response_time", "community_policing"],
+
                 "user_preference_tags": safety_tags + (["emergency_response"] if children_count > 0 else [])
             },
             "safety_rating": {
@@ -232,17 +283,11 @@ class Safety(BaseModel):
                 "location_b": "5.2/10",
                 "winner": "location_a",
                 "reason": "Significantly higher safety rating" + (" meets family safety standards" if children_count > 0 else ""),
-                "criteria": ["overall_safety", "safety_metrics", "community_safety"],
+
                 "user_preference_tags": safety_tags
             },
-            "image_prompt": {
-                "location_a": f"Well-lit residential street with sidewalks, street lamps, and visible security features (emphasizing {safety_focus})",
-                "location_b": f"Dimly lit urban street with fewer safety features (contrasting {safety_focus} concerns)",
-                "winner": "location_a",
-                "reason": "Better visual representation of safety features that matter to user",
-                "criteria": ["lighting", "visibility", "security_features"],
-                "user_preference_tags": safety_tags + ["visual_safety"]
-            }
+            "image_prompt": f"Photo comparing safety features around each address including street lighting, sidewalks, and security measures in both neighborhoods (emphasizing {safety_focus} safety concerns)",
+            "image_prompt_2": f"Photo comparing police presence, emergency services, or security infrastructure visible around each address in both areas (emphasizing {safety_focus} safety features)"
         }
     
     @classmethod
@@ -256,7 +301,7 @@ class Safety(BaseModel):
             "places_to_watch_out_for": "Specific areas using crime maps, police reports, or resident forums. Prioritize areas relevant to user's daily routines and family needs. Check City-Data forums or Nextdoor for local insights.",
             "police_presence": "Police patrol frequency using local police department data or community reports. Emphasize community policing and response times from official sources.",
             "safety_rating": "Overall safety score using AreaVibes, Neighborhood Scout, or Niche safety ratings. Weight factors based on user's safety priorities and family situation.",
-            "image_prompt": f"Descriptive prompt for generating an image representing neighborhood safety (emphasizing {safety_focus})."
+            "image_prompt": f"Photo comparing safety features visible around each address including lighting, sidewalks, and security measures in both neighborhoods (emphasizing {safety_focus} safety concerns)."
         }
 
 class CultureAndEvents(BaseModel):
@@ -264,7 +309,8 @@ class CultureAndEvents(BaseModel):
     seasonal_trends: ComparisonField = Field(...)
     community_engagement: ComparisonField = Field(...)
     culture_rating: ComparisonField = Field(...)
-    image_prompt: ComparisonField = Field(...)
+    image_prompt: str = Field(...)
+    image_prompt_2: str = Field(...)
     
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -296,12 +342,8 @@ class CultureAndEvents(BaseModel):
                 "winner": "location_a",
                 "reason": "Higher cultural vibrancy and community activities"
             },
-            "image_prompt": {
-                "location_a": "Vibrant street festival with food vendors, live music, and families enjoying community activities",
-                "location_b": "Business district with corporate events and professional networking gatherings",
-                "winner": "location_a",
-                "reason": "More appealing and inclusive community atmosphere"
-            }
+            "image_prompt": "Photo comparing cultural events and festivals happening in each city near the addresses, showing local community gatherings, street fairs, or seasonal celebrations specific to each neighborhood",
+            "image_prompt_2": "Photo comparing cultural venues and event spaces in each city around the addresses: local theaters, art galleries, community centers, or performance venues that serve each neighborhood"
         }
     
     @classmethod
@@ -314,7 +356,7 @@ class CultureAndEvents(BaseModel):
             "seasonal_trends": "Seasonal activity changes using Nomad List seasonal data, local blogs, or tourism websites. Consider user's preferences for seasonal variety and activity levels.",
             "community_engagement": "Civic participation using city council meeting attendance, volunteer organization activity, or community board involvement. Check local government websites or community organizations.",
             "culture_rating": "Cultural vibrancy score using Niche culture ratings, AreaVibes lifestyle scores, or local arts organization data. Weight factors based on user's cultural priorities.",
-            "image_prompt": "Descriptive prompt for generating an image of local culture and events that captures the community spirit appealing to the user."
+            "image_prompt": "Photo comparing cultural venues, event spaces, or community gathering places visible in each neighborhood around the addresses, showing the specific locations where local events and activities take place."
         }
 
 class SocialCharacter(BaseModel):
@@ -322,7 +364,8 @@ class SocialCharacter(BaseModel):
     religiosity: ComparisonField = Field(...)
     cultural_tone: ComparisonField = Field(...)
     social_rating: ComparisonField = Field(...)
-    image_prompt: ComparisonField = Field(...)
+    image_prompt: str = Field(...)
+    image_prompt_2: str = Field(...)
     
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -354,12 +397,8 @@ class SocialCharacter(BaseModel):
                 "winner": "location_a",
                 "reason": "Higher community inclusivity and social cohesion"
             },
-            "image_prompt": {
-                "location_a": "Diverse group of neighbors chatting at a community gathering, showing friendly social interaction",
-                "location_b": "Well-dressed professionals at an upscale networking event with formal atmosphere",
-                "winner": "location_a",
-                "reason": "More welcoming and accessible community vibe"
-            }
+            "image_prompt": "Photo comparing local community spaces and social gathering areas in each city around the addresses, showing where residents interact and socialize in each specific neighborhood",
+            "image_prompt_2": "Photo comparing religious buildings, community centers, local coffee shops, or social venues in each city near the addresses that reflect each neighborhood's social and cultural character"
         }
     
     @classmethod
@@ -372,7 +411,7 @@ class SocialCharacter(BaseModel):
             "religiosity": "Religious activity using Census religious affiliation data, local religious organization directories, or community surveys. Assess compatibility with user's spiritual preferences.",
             "cultural_tone": "Social atmosphere using Google Maps reviews, Niche community insights, or political voting data. Focus on cultural aspects that match user's social preferences and values.",
             "social_rating": "Community inclusivity using Niche community ratings, AreaVibes social scores, or local diversity metrics. Weight factors based on user's social priorities and community involvement preferences.",
-            "image_prompt": "Descriptive prompt for generating an image representing the social character that appeals to user's community preferences."
+            "image_prompt": "Photo comparing community spaces, local businesses, and neighborhood gathering areas in each city around the addresses that reflect the social character and daily life of each specific area."
         }
 
 class Restaurant(BaseModel):
@@ -392,127 +431,6 @@ class Amenity(BaseModel):
     name: str = Field(...)
     type: str = Field(...)
     vibe: Optional[str] = Field(None)
-
-class LocalAmenities(BaseModel):
-    restaurants: ComparisonField = Field(...)
-    activities: ComparisonField = Field(...)
-    parks: ComparisonField = Field(...)
-    thrift_store: ComparisonField = Field(...)
-    grocery_store: ComparisonField = Field(...)
-    late_night_restaurant: ComparisonField = Field(...)
-    
-    @classmethod
-    def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
-        """Generate personalized example based on user preferences"""
-        dining_prefs = user_preferences.get('dining_preferences', ['casual dining']) if user_preferences else ['casual dining']
-        hobbies = user_preferences.get('hobbies_interests', ['outdoor activities']) if user_preferences else ['outdoor activities']
-        
-        # Format preferences for display
-        dining_str = ', '.join(dining_prefs) if isinstance(dining_prefs, list) else str(dining_prefs)
-        hobbies_str = ', '.join(hobbies) if isinstance(hobbies, list) else str(hobbies)
-        
-        return {
-            "restaurants": {
-                "location_a": [{
-                    "name": "The Coastal Kitchen",
-                    "vibe": "Casual beachside dining with ocean views",
-                    "what_to_try": f"Fish tacos, clam chowder, sunset cocktails (matches user dining preferences: {dining_str})"
-                }],
-                "location_b": [{
-                    "name": "Urban Bistro",
-                    "vibe": "Upscale downtown dining with city views",
-                    "what_to_try": "Craft cocktails, artisan pizza, weekend brunch"
-                }],
-                "winner": "location_a",
-                "reason": f"Better matches user's dining preferences: {dining_str}"
-            },
-            "activities": {
-                "location_a": [{
-                    "name": "Sunset Beach Volleyball",
-                    "description": f"Popular evening volleyball games on the main beach (aligns with user interests: {hobbies_str})"
-                }],
-                "location_b": [{
-                    "name": "Downtown Art Walk",
-                    "description": "Monthly art gallery tours and street performances"
-                }],
-                "winner": "location_a",
-                "reason": f"Activities better match user's hobbies: {hobbies_str}"
-            },
-            "parks": {
-                "location_a": [{
-                    "name": "Seaside Community Park",
-                    "features": "Playground, walking trails, picnic areas, dog park, ocean views"
-                }],
-                "location_b": [{
-                    "name": "Central City Park",
-                    "features": "Urban green space, fitness equipment, food trucks"
-                }],
-                "winner": "location_a",
-                "reason": "More family-friendly features and natural setting"
-            },
-            "thrift_store": {
-                "location_a": {
-                    "name": "Coastal Treasures",
-                    "type": "Thrift Store",
-                    "vibe": "Eclectic vintage finds with local character"
-                },
-                "location_b": {
-                    "name": "City Consignment",
-                    "type": "Thrift Store",
-                    "vibe": "Designer consignment with curated selection"
-                },
-                "winner": "location_a",
-                "reason": "More unique and affordable vintage options"
-            },
-            "grocery_store": {
-                "location_a": {
-                    "name": "Whole Foods Market",
-                    "type": "Grocery Store",
-                    "vibe": "Upscale organic grocery with prepared foods and wine bar"
-                },
-                "location_b": {
-                    "name": "Metro Market",
-                    "type": "Grocery Store",
-                    "vibe": "Large chain supermarket with competitive prices"
-                },
-                "winner": "location_a",
-                "reason": "Higher quality organic options and prepared foods"
-            },
-            "late_night_restaurant": {
-                "location_a": {
-                    "name": "24/7 Diner",
-                    "type": "Late Night Dining",
-                    "vibe": "Classic American diner with comfort food"
-                },
-                "location_b": {
-                    "name": "Night Owl Cafe",
-                    "type": "Late Night Dining",
-                    "vibe": "Modern cafe with late-night coffee and light bites"
-                },
-                "winner": "location_a",
-                "reason": "Full menu available 24/7 vs limited late-night options"
-            }
-        }
-    
-    @classmethod
-    def get_description(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, str]:
-        """Generate personalized field descriptions based on user preferences"""
-        dining_prefs = user_preferences.get('dining_preferences', ['casual dining']) if user_preferences else ['casual dining']
-        hobbies = user_preferences.get('hobbies_interests', ['outdoor activities']) if user_preferences else ['outdoor activities']
-        
-        # Format preferences for display
-        dining_str = ', '.join(dining_prefs) if isinstance(dining_prefs, list) else str(dining_prefs)
-        hobbies_str = ', '.join(hobbies) if isinstance(hobbies, list) else str(hobbies)
-        
-        return {
-            "restaurants": f"Local dining establishments using Google Maps and Yelp. Focus on options that match user's dining preferences: {dining_str}. Include real names, vibes, and features.",
-            "activities": f"Recreational activities using Google Maps and Yelp. Prioritize activities that align with user's interests: {hobbies_str}. Include real names and features.",
-            "parks": "Green spaces using Google Maps and park websites. Consider accessibility, safety, and amenities. Include real names and specific features.",
-            "thrift_store": "Thrift shopping using Google Maps and Yelp reviews. Assess quality, selection, and community character. Include real store names if available.",
-            "grocery_store": "Grocery options using Google Maps and store websites. Consider quality, price range, and specialty offerings. Include real store names and chains.",
-            "late_night_restaurant": "Late-night dining using Google Maps hours and Yelp reviews. Focus on convenience and lifestyle needs. Include real establishment names."
-        }
-
 
 class Commute(BaseModel):
     commute_times: ComparisonField = Field(...)
@@ -610,11 +528,11 @@ class FamilyFriendly(BaseModel):
 
 class NightlifeAndDating(BaseModel):
     nightlife_rating: ComparisonField = Field(...)
-    nightlife_score: ComparisonField = Field(...)
     best_spots: ComparisonField = Field(...)
     dating_scene: ComparisonField = Field(...)
     apps_popularity: ComparisonField = Field(...)
-    image_prompt: ComparisonField = Field(...)
+    image_prompt: str = Field(...)
+    image_prompt_2: str = Field(...)
     
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -629,12 +547,6 @@ class NightlifeAndDating(BaseModel):
                 "winner": "location_b",
                 "reason": "Higher nightlife rating for active social life"
             },
-            "nightlife_score": {
-                "location_a": 7.5,
-                "location_b": 9.2,
-                "winner": "location_b",
-                "reason": "Significantly higher nightlife score"
-            },
             "best_spots": {
                 "location_a": "Rooftop Lounge, Coastal Brewery, live music at The Pier",
                 "location_b": "Trendy nightclubs, rooftop bars, late-night dining scene",
@@ -648,12 +560,13 @@ class NightlifeAndDating(BaseModel):
                 "reason": f"Better matches user profile: {marital_status}, age {age}, active lifestyle"
             },
             "apps_popularity": {
-                "location_a": {"Bumble": "Popular", "Hinge": "Moderate", "Tinder": "Low"},
-                "location_b": {"Bumble": "Very Popular", "Hinge": "Very Popular", "Tinder": "Popular"},
+                "location_a": {"Hinge": "Moderate", "Tinder": "Low"},
+                "location_b": {"Hinge": "Very Popular", "Tinder": "Popular"},
                 "winner": "location_b",
                 "reason": "Higher dating app activity indicates more active dating scene"
             },
-            "image_prompt": "Vibrant evening scene with people enjoying rooftop dining and coastal nightlife"
+            "image_prompt": "Photo comparing nightlife and entertainment venues in each city around the addresses, showing actual bars, clubs, and late-night spots where residents gather",
+            "image_prompt_2": "Photo comparing dating-friendly venues in each city near the addresses: trendy restaurants, wine bars, coffee shops, or social spaces where singles meet and socialize"
         }
     
     @classmethod
@@ -664,11 +577,10 @@ class NightlifeAndDating(BaseModel):
         
         return {
             "nightlife_rating": "Rate vibrancy of bars, music, and scenes using Yelp, Google Maps, or City-Data forum nightlife threads. Consider what appeals to the user's demographic and lifestyle.",
-            "nightlife_score": "Numerical nightlife score using Yelp, Google Maps, or City-Data forum nightlife threads. Weight based on user's social preferences and age group.",
             "best_spots": "Popular bars, clubs, and entertainment venues using Yelp, Google Maps, or City-Data forum nightlife threads. Focus on venues that match the user's social style and interests.",
             "dating_scene": f"Describe energy and dating pool. Search 'dating in [city] Reddit' or Nomad List for vibe. Tailor to user's marital status ({marital_status}) and age ({age}) - focus on relevant social opportunities.",
             "apps_popularity": "Break down by app, score relative to national averages. Check Reddit threads or blog posts comparing app usage. Emphasize apps most relevant to user's age group and relationship goals.",
-            "image_prompt": "Descriptive prompt for generating an image of local nightlife that reflects the user's preferred social atmosphere."
+            "image_prompt": "Photo comparing nightlife and entertainment venues in each neighborhood around the addresses that reflect the local social atmosphere and evening entertainment options."
         }
 
 class Development(BaseModel):
@@ -676,7 +588,8 @@ class Development(BaseModel):
     zoning_or_construction: ComparisonField = Field(...)
     gentrification_signs: ComparisonField = Field(...)
     vacancy_or_decay: ComparisonField = Field(...)
-    image_prompt: ComparisonField = Field(...)
+    image_prompt: str = Field(...)
+    image_prompt_2: str = Field(...)
     
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -707,8 +620,8 @@ class Development(BaseModel):
                 "reason": "Better maintained neighborhood with economic stability"
             },
             "image_prompt": {
-                "location_a": "Construction cranes and new development alongside established neighborhood character",
-                "location_b": "Mix of vacant lots and overdevelopment creating inconsistent neighborhood feel",
+                "location_a": "Photo of development and construction activity in the city around the first address, showing actual building sites, new developments, and infrastructure projects in this specific neighborhood",
+                "location_b": "Photo of development and construction activity in the city around the second address, showing actual building sites, new developments, and infrastructure projects in this specific neighborhood",
                 "winner": "location_a",
                 "reason": "More thoughtful development that respects existing community"
             }
@@ -722,10 +635,12 @@ class Development(BaseModel):
             "zoning_or_construction": "Check city zoning maps, building permits, or construction notices. Use Google Maps satellite view to spot active construction sites. Assess how ongoing development affects livability and future neighborhood character.",
             "gentrification_signs": "Look for rising rents, new upscale businesses, demographic shifts. Search '[neighborhood] gentrification' or check local forums for resident discussions. Consider both positive improvements and potential displacement concerns.",
             "vacancy_or_decay": "Use Google Street View to assess building conditions, vacant lots, or boarded storefronts. Check local crime or economic indicators. Evaluate neighborhood stability and maintenance standards.",
-            "image_prompt": "Descriptive prompt for generating an image of neighborhood development that reflects the area's growth trajectory."
+            "image_prompt": "Photo comparing development activity, construction sites, and neighborhood character in each city around the addresses, showing current building projects and infrastructure changes in each specific area."
         }
 
 class EnvironmentUtilities(BaseModel):
+    class Config:
+        extra = "forbid"  # Explicitly forbid additional properties
     air_quality: ComparisonField = Field(...)
     noise_pollution: ComparisonField = Field(...)
     light_pollution: ComparisonField = Field(...)
@@ -861,14 +776,7 @@ class FinancialInformation(BaseModel):
 
 class SchoolInfo(BaseModel):
     level: ComparisonField = Field(...)
-    walking_distance: ComparisonField = Field(...)
-    school_rating: ComparisonField = Field(...)
-    teacher_quality: ComparisonField = Field(...)
     known_for: ComparisonField = Field(...)
-    gpa_avg: ComparisonField = Field(...)
-    sat_avg: ComparisonField = Field(...)
-    grad_rate: ComparisonField = Field(...)
-    top_colleges: ComparisonField = Field(...)
     
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -878,13 +786,7 @@ class SchoolInfo(BaseModel):
         return {
             "level": "Elementary",
             "walking_distance": True if children_count > 0 else False,
-            "school_rating": "9.2/10",
-            "teacher_quality": "Excellent - 85% have advanced degrees, low turnover, award-winning programs",
             "known_for": "STEM programs, arts integration, dual language immersion",
-            "gpa_avg": 3.7,
-            "sat_avg": 1340,
-            "grad_rate": 96.5,
-            "top_colleges": "UC Berkeley, Stanford, UCLA, USC, Cal Poly"
         }
     
     @classmethod
@@ -893,15 +795,7 @@ class SchoolInfo(BaseModel):
         children_count = user_preferences.get('children_count', 0) if user_preferences else 0
         
         return {
-            "level": "Elementary, Middle, or High School designation using GreatSchools.org or Niche for school level information. Focus on levels relevant to user's children.",
-            "walking_distance": f"Whether school is within walking distance (typically under 0.5 miles) using Google Maps to measure distance from property. Important for families with {children_count} children for safety and convenience.",
-            "school_rating": "GreatSchools rating out of 10 or similar metric using GreatSchools.org, Niche, or state education department ratings. Weight academic performance and factors most important to the user's educational priorities.",
-            "teacher_quality": "Teacher qualifications, experience, and student-teacher ratios using school websites or education department data. Assess teacher credentials, retention, and program excellence.",
             "known_for": "Special programs, academic strengths, or unique offerings using school websites, awards, and community reputation. Highlight programs that align with user's educational values and children's interests.",
-            "gpa_avg": "Average GPA if available for high schools using school report cards or state education data. Relevant for families with older children planning for college.",
-            "sat_avg": "Average SAT scores for high schools using school websites or state/district report cards. Important for college preparation and academic achievement assessment.",
-            "grad_rate": "Graduation rate percentage from state education departments or school report cards. Indicates school success in supporting students through completion.",
-            "top_colleges": "Common college destinations for graduates using school websites or guidance counselor information. Shows school's track record for college preparation and placement."
         }
 
 class Schools(BaseModel):
@@ -917,38 +811,17 @@ class Schools(BaseModel):
                 "location_a": {
                     "Seaside Elementary": {
                         "level": "Elementary",
-                        "walking_distance": True,
-                        "school_rating": "9.2/10",
-                        "teacher_quality": "Excellent - 85% have advanced degrees, low turnover",
                         "known_for": "STEM programs, arts integration",
-                        "gpa_avg": None,
-                        "sat_avg": None,
-                        "grad_rate": None,
-                        "top_colleges": None
                     },
                     "Coastal High School": {
                         "level": "High School",
-                        "walking_distance": False,
-                        "school_rating": "8.7/10",
-                        "teacher_quality": "Very Good - Strong AP program, experienced staff",
                         "known_for": "College prep, marine science program",
-                        "gpa_avg": 3.7,
-                        "sat_avg": 1340,
-                        "grad_rate": 96.5,
-                        "top_colleges": "UC Berkeley, Stanford, UCLA, USC"
                     }
                 },
                 "location_b": {
                     "Metro Elementary": {
                         "level": "Elementary",
-                        "walking_distance": False,
-                        "school_rating": "7.1/10",
-                        "teacher_quality": "Good - Some turnover, mixed experience levels",
                         "known_for": "Basic curriculum, limited special programs",
-                        "gpa_avg": None,
-                        "sat_avg": None,
-                        "grad_rate": None,
-                        "top_colleges": None
                     }
                 },
                 "winner": "location_a",
@@ -1018,7 +891,6 @@ class ComparisonReport(BaseModel):
     safety: Optional[Safety] = None
     culture_and_events: Optional[CultureAndEvents] = None
     social_character: Optional[SocialCharacter] = None
-    local_amenities: Optional[LocalAmenities] = None
     commute: Optional[Commute] = None
     family_friendly: Optional[FamilyFriendly] = None
     nightlife_and_dating: Optional[NightlifeAndDating] = None
@@ -1030,6 +902,24 @@ class ComparisonReport(BaseModel):
 
     # === Internal field (not part of schema) ===
     _prioritized_fields: List[str] = PrivateAttr(default=[])
+
+    @model_validator(mode="before")
+    @classmethod
+    def delete_flat_demographics(cls, values):
+        if not isinstance(values, dict):
+            return values
+
+        demographic_fields_to_delete = [
+            "age_distribution",
+            "lifestyle_dna",
+        ]
+
+        for field in demographic_fields_to_delete:
+            if field in values:
+                del values[field]
+                print(f"🗑️ Removed demographic field: {field}")
+
+        return values
 
     class Config:
         extra = "allow"
@@ -1043,15 +933,11 @@ class ComparisonReport(BaseModel):
     def dict(self, **kwargs) -> Dict[str, Any]:
         base_dict = super().dict(**kwargs)
 
-        print("\n🔍 DEBUG: base_dict keys and values:")
         for k, v in base_dict.items():
             print(f"  - {k}: {'✅ has value' if v is not None else '❌ None'}")
-
-        print("\n📌 DEBUG: prioritized fields from report customization:")
         print(f"  {self._prioritized_fields}")
 
         final_dict = {}
-        print("\n📦 DEBUG: Filtering prioritized fields...")
 
         for key in self._prioritized_fields:
             if key not in base_dict:
@@ -1059,7 +945,6 @@ class ComparisonReport(BaseModel):
                 continue
             
             # Include the key regardless of whether it's None or has a value
-            print(f"  ✅ Including '{key}' (value: {'None' if base_dict[key] is None else 'populated'})")
             final_dict[key] = base_dict[key]
 
         print("\n✅ Final filtered dict keys:")

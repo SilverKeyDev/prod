@@ -5,6 +5,12 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# Consistent font sizes for all charts
+TITLE_FONTSIZE = 16
+LABEL_FONTSIZE = 12
+TICK_FONTSIZE = 10
+AUTOPCT_FONTSIZE = 10
+
 def generate_vertical_lollipop_chart(data: dict, title: str) -> BytesIO:
     try:
         labels = list(data.keys())
@@ -29,10 +35,11 @@ def generate_vertical_lollipop_chart(data: dict, title: str) -> BytesIO:
         ax.vlines(x=x_pos, ymin=0, ymax=sizes, color='gray', alpha=0.7, linewidth=2)
         ax.plot(x_pos, sizes, 'o', color='#2A9D8F', markersize=10)
         ax.set_xticks(x_pos)
-        ax.set_xticklabels(labels, rotation=45, ha='right')
-        ax.set_ylabel("Value")
-        ax.set_title(title)
+        ax.set_xticklabels(labels, rotation=45, ha='right', fontsize=TICK_FONTSIZE)
+        ax.set_ylabel("Value", fontsize=LABEL_FONTSIZE)
+        ax.set_title(title, fontsize=TITLE_FONTSIZE, fontweight='bold')
         ax.grid(axis='y', linestyle='--', alpha=0.3)
+        ax.tick_params(axis='y', labelsize=TICK_FONTSIZE)
 
         plt.tight_layout()
         img_buffer = BytesIO()
@@ -67,9 +74,10 @@ def generate_horizontal_bar_chart(data: dict, title: str) -> BytesIO:
         fig, ax = plt.subplots(figsize=(6, 0.4 * len(labels) + 1))
         colors = plt.cm.PuBuGn_r(np.linspace(0.3, 0.9, len(sizes)))
         ax.barh(labels, sizes, color=colors)
-        ax.set_xlabel("Value")
-        ax.set_title(title)
+        ax.set_xlabel("Value", fontsize=LABEL_FONTSIZE)
+        ax.set_title(title, fontsize=TITLE_FONTSIZE, fontweight='bold')
         ax.grid(axis='x', linestyle='--', alpha=0.4)
+        ax.tick_params(axis='both', labelsize=TICK_FONTSIZE)
 
         plt.tight_layout()
         img_buffer = BytesIO()
@@ -107,9 +115,14 @@ def generate_donut_chart(data: dict, title: str) -> BytesIO:
         ]
         colors = [pie_colors[i % len(pie_colors)] for i in range(len(sizes))]
         wedges, texts, autotexts = ax.pie(sizes, labels=labels, autopct='%1.1f%%',
-                                          startangle=140, colors=colors, wedgeprops=dict(width=0.4))
+                                          startangle=140, colors=colors, wedgeprops=dict(width=0.4),
+                                          textprops={'fontsize': TICK_FONTSIZE})
+        # Update autopct text size
+        for autotext in autotexts:
+            autotext.set_fontsize(AUTOPCT_FONTSIZE)
+            autotext.set_fontweight('bold')
         ax.axis('equal')
-        plt.title(title)
+        plt.title(title, fontsize=TITLE_FONTSIZE, fontweight='bold')
 
         img_buffer = BytesIO()
         plt.savefig(img_buffer, format="PNG", bbox_inches="tight")
@@ -145,10 +158,11 @@ def generate_lollipop_chart(data: dict, title: str) -> BytesIO:
         ax.hlines(y=y_pos, xmin=0, xmax=sizes, color='gray', alpha=0.7, linewidth=2)
         ax.plot(sizes, y_pos, 'o', color='#2A9D8F', markersize=10)
         ax.set_yticks(y_pos)
-        ax.set_yticklabels(labels)
-        ax.set_xlabel("Value")
-        ax.set_title(title)
+        ax.set_yticklabels(labels, fontsize=TICK_FONTSIZE)
+        ax.set_xlabel("Value", fontsize=LABEL_FONTSIZE)
+        ax.set_title(title, fontsize=TITLE_FONTSIZE, fontweight='bold')
         ax.grid(axis='x', linestyle='--', alpha=0.3)
+        ax.tick_params(axis='x', labelsize=TICK_FONTSIZE)
 
         plt.tight_layout()
         img_buffer = BytesIO()
@@ -186,9 +200,14 @@ def generate_pie_chart(data: dict, title: str) -> BytesIO:
         ]
         colors = [pie_colors[i % len(pie_colors)] for i in range(len(sizes))]
         fig, ax = plt.subplots()
-        ax.pie(sizes, labels=labels, autopct="%1.1f%%", startangle=140, colors=colors)
+        wedges, texts, autotexts = ax.pie(sizes, labels=labels, autopct="%1.1f%%", startangle=140, colors=colors,
+                                         textprops={'fontsize': TICK_FONTSIZE})
+        # Update autopct text size
+        for autotext in autotexts:
+            autotext.set_fontsize(AUTOPCT_FONTSIZE)
+            autotext.set_fontweight('bold')
         ax.axis("equal")
-        plt.title(title)
+        plt.title(title, fontsize=TITLE_FONTSIZE, fontweight='bold')
         img_buffer = BytesIO()
         plt.savefig(img_buffer, format="PNG", bbox_inches="tight")
         plt.close(fig)

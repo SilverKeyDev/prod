@@ -2117,7 +2117,15 @@ export default function OnboardingPage() {
             all fields are optional!
           </p>
         </div>
-        <div className="mt-4 sm:mt-0">
+        <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3 mt-4 sm:mt-0">
+          <button
+            onClick={handleSubmit}
+            disabled={loading}
+            className="flex items-center justify-center px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 disabled:opacity-50 font-medium transition-all duration-200 touch-friendly text-sm"
+          >
+            {loading ? "Saving..." : "Save and Setup Later"}
+            {!loading && <Check className="w-4 h-4 ml-2" />}
+          </button>
           <span className="text-sm text-black/60">
             Step {currentStep + 1} of {STEPS.length}
           </span>

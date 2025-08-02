@@ -120,7 +120,7 @@ export default function GenerateReportPage() {
       ? [
           {
             value: "marketing",
-            label: "Marketing Materials: Coming Soon, not yet implemented",
+            label: "Marketing Materials",
           },
         ]
       : []),
@@ -361,9 +361,6 @@ export default function GenerateReportPage() {
     try {
       // Try to call the polling function from PastReports
       if ((window as any).pollForReportCompletion) {
-        console.log(
-          `[GenerateReport] ✅ Found PastReports polling function, starting polling immediately`
-        );
         try {
           (window as any).pollForReportCompletion(documentId);
           console.log(
@@ -564,8 +561,9 @@ export default function GenerateReportPage() {
   const isButtonDisabled =
     isGenerating ||
     !address.trim() ||
+    !hasSelected ||
     !!loadError ||
-    (reportType === "comparison" && !comparisonAddress.trim()) ||
+    (reportType === "comparison" && (!comparisonAddress.trim() || !hasSelectedComparison)) ||
     (userProfile?.is_agent && !selectedClientId);
 
   return (

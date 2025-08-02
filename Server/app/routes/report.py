@@ -372,8 +372,6 @@ def poll_report_status(document_id):
             'address': os.path.splitext(os.path.basename(report.filename))[0],
             's3Key': report.file_path
         }
-
-        logger.info(f"Polling report {document_id}: status={report.status} (mapped to {status})")
         
         return jsonify({
             'success': True,

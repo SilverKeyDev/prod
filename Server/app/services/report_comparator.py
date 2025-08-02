@@ -67,8 +67,6 @@ def _extract_summary(data: Dict) -> Dict[str, str]:
         "LGBTQ Representation": "neighborhood_overview.LGBTQ_representation",
         
         # Demographics
-        "Gender Distribution": "neighborhood_overview.demographics.gender_distribution",
-        "Racial Distribution": "neighborhood_overview.demographics.racial_distribution",
         "Age Distribution": "neighborhood_overview.demographics.age_distribution",
         "Lifestyle DNA": "neighborhood_overview.demographics.lifestyle_dna",
         
@@ -141,11 +139,9 @@ def _extract_summary(data: Dict) -> Dict[str, str]:
         
         # Nightlife and Dating
         "Nightlife Rating": "nightlife_and_dating.nightlife_rating",
-        "Nightlife Score": "nightlife_and_dating.nightlife_score",
         "Best Spots": "nightlife_and_dating.best_spots",
         "Dating Scene": "nightlife_and_dating.dating_scene",
         "Tinder Popularity": "nightlife_and_dating.apps_popularity.tinder",
-        "Bumble Popularity": "nightlife_and_dating.apps_popularity.bumble",
         "Hinge Popularity": "nightlife_and_dating.apps_popularity.hinge",
       
         # Development
@@ -173,24 +169,15 @@ def _extract_summary(data: Dict) -> Dict[str, str]:
         "Financial Rating": "financial_information.financial_rating",
         
         # Schools (Elementary)
-        "Elementary School Level": "schools.schools.elementary.level",
         "Elementary Walking Distance": "schools.schools.elementary.walking_distance",
-        "Elementary School Rating": "schools.schools.elementary.school_rating",
-        "Elementary Teacher Quality": "schools.schools.elementary.teacher_quality",
         "Elementary Known For": "schools.schools.elementary.known_for",
         
         # Schools (Middle)
-        "Middle School Level": "schools.schools.middle.level",
         "Middle Walking Distance": "schools.schools.middle.walking_distance",
-        "Middle School Rating": "schools.schools.middle.school_rating",
-        "Middle Teacher Quality": "schools.schools.middle.teacher_quality",
         "Middle Known For": "schools.schools.middle.known_for",
         
         # Schools (High)
-        "High School Level": "schools.schools.high.level",
         "High Walking Distance": "schools.schools.high.walking_distance",
-        "High School Rating": "schools.schools.high.school_rating",
-        "High Teacher Quality": "schools.schools.high.teacher_quality",
         "High Known For": "schools.schools.high.known_for",
         "High GPA Average": "schools.schools.high.gpa_avg",
         "High SAT Average": "schools.schools.high.sat_avg",

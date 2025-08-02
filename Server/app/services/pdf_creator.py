@@ -25,21 +25,52 @@ import matplotlib.pyplot as plt
 from .s3_service import s3_service
 from urllib.parse import quote_plus
 from .graphic_generation import generate_pie_chart, generate_horizontal_bar_chart, generate_donut_chart, generate_vertical_lollipop_chart
-from PIL import Image as PILImage
+from PIL import Image as PILImage, ImageEnhance
 
 SERP_API_KEY = os.getenv("SERP_API")
 SERP_API_ENDPOINT = "https://serpapi.com/search.json"
 
 logger = logging.getLogger(__name__)
 
-def _create_pdf(report: dict, address: str, filename: str) -> str:
+def _desaturate_image(img: PILImage.Image, saturation=0.8) -> PILImage.Image:
+    """
+    Desaturate image for a more elegant, muted appearance.
+    saturation=1.0 is original, 0.0 is grayscale, 0.8 is slightly desaturated.
+    """
+    enhancer = ImageEnhance.Color(img)
+    return enhancer.enhance(saturation)
+
+def _adjust_contrast_and_brightness(img: PILImage.Image, contrast=0.95, brightness=0.95) -> PILImage.Image:
+    """
+    Lower brightness and contrast slightly for moody/elegant feel.
+    Values < 1.0 reduce the effect, values > 1.0 increase it.
+    """
+    img = ImageEnhance.Contrast(img).enhance(contrast)
+    img = ImageEnhance.Brightness(img).enhance(brightness)
+    return img
+
+def _enhance_image_for_pdf(pil_img: PILImage.Image) -> PILImage.Image:
+    """
+    Apply the complete image enhancement pipeline for elegant PDF appearance.
+    This makes images softer, more integrated, and less flashy while still attractive.
+    """
+    # Apply desaturation first
+    pil_img = _desaturate_image(pil_img, 0.8)
+    # Then adjust contrast and brightness
+    pil_img = _adjust_contrast_and_brightness(pil_img, contrast=0.96, brightness=0.96)
+    return pil_img
+
+def _create_pdf(report: dict, address: str, filename: str, comparison_address: str = None) -> str:
     if not report:
         logger.error("No report data provided")
         raise ValueError("Report data is required")
     if not address:
         logger.error("No address provided")
         raise ValueError("Address is required")
-    logger.debug(f"report: {report}")
+    
+    logger.info(f"📄 Starting PDF creation for address: {address}")
+    logger.info(f"📊 Report sections available: {list(report.keys())}")
+    logger.debug(f"🔍 Full report data: {report}")
 
     try:
         pdf_buffer = BytesIO()
@@ -64,24 +95,149 @@ def _create_pdf(report: dict, address: str, filename: str) -> str:
 
         elements = []
 
-        # Add main title with address
-        elements.append(Paragraph(address, styles["MainTitle"]))
+        # Add main title with address (different for comparison reports)
+        if comparison_address and comparison_address.strip():
+            title = f"Property Comparison: {address} vs {comparison_address}"
+            logger.info(f"📊 Creating comparison report title: {title}")
+        else:
+            title = address
+            logger.info(f"📊 Creating regular report title: {title}")
+        
+        elements.append(Paragraph(title, styles["MainTitle"]))
         elements.append(Spacer(1, 1))
         elements.append(HRFlowable(width="100%", thickness=1.2, color="#D8CAB8"))
         elements.append(Spacer(1, 20))
 
+        # Cache chart tables for side-by-side rendering
+        chart_tables = {}  # e.g., {"age_distribution": table1, "lifestyle_dna": table2}
+        
         for i, (section, section_data) in enumerate(report.items()):
-            if i!= 0:
+            logger.info(f"🔄 Processing section {i+1}/{len(report)}: '{section}'")
+            logger.debug(f"📋 Section data type: {type(section_data)}")
+            logger.debug(f"📋 Section data: {section_data}")
+            
+            # Skip titles for chart sections (age_distribution and lifestyle_dna)
+            if i!= 0 and section.lower() not in ["age_distribution", "lifestyle_dna"]:
                 title_style = styles["SectionHeader"]
                 elements.append(Paragraph(section.replace("_", " ").title(), title_style))
                 elements.append(HRFlowable(width="100%", thickness=0.5, color="#AAAAAA"))
                 elements.append(Spacer(1, 1))
 
+            # Handle top-level age_distribution and lifestyle_dna charts (skip for comparison reports)
+            if section.lower() in ["age_distribution", "lifestyle_dna"] and isinstance(section_data, dict) and not (comparison_address and comparison_address.strip()):
+                logger.info(f"📊 Detected chart section: {section}")
+                chart_buffer = None
+                chart_type = ""
+                chart_data = None
+                key = section.replace("_", " ").title()
+                
+                logger.debug(f"🔍 Chart key: {key}")
+                logger.debug(f"🔍 Has with_percent method: {hasattr(section_data, 'with_percent')}")
+                
+                # Handle top-level Pydantic model objects (if they come through as objects)
+                if hasattr(section_data, 'with_percent') and callable(getattr(section_data, 'with_percent')):
+                    logger.info(f"📈 Processing Pydantic object for {section}")
+                    chart_data = section_data.with_percent()
+                    logger.debug(f"📊 Pydantic chart_data: {chart_data}")
+                    if section.lower() == "lifestyle_dna":
+                        logger.info(f"🎯 Generating horizontal bar chart for lifestyle_dna")
+                        chart_buffer = generate_horizontal_bar_chart(chart_data, key)
+                        chart_type = "Lifestyle DNA Bar Chart"
+                        logger.info(f"✅ Generated lifestyle_dna chart: {chart_buffer is not None}")
+                    elif section.lower() == "age_distribution":
+                        logger.info(f"🎯 Generating vertical lollipop chart for age_distribution")
+                        chart_buffer = generate_vertical_lollipop_chart(chart_data, key)
+                        chart_type = "Age Distribution Chart"
+                        logger.info(f"✅ Generated age_distribution chart: {chart_buffer is not None}")
+                # Handle dictionary format (current format from JSON)
+                else:
+                    logger.info(f"📈 Processing dictionary format for {section}")
+                    if section.lower() == "lifestyle_dna":
+                        logger.info(f"🎯 Processing lifestyle_dna dictionary")
+                        # Convert raw field names to display format with percentages
+                        chart_data = {field_name: f"{value}%" for field_name, value in section_data.items()}
+                        logger.debug(f"📊 Lifestyle DNA chart_data: {chart_data}")
+                        logger.info(f"🎯 Generating horizontal bar chart for lifestyle_dna dictionary")
+                        chart_buffer = generate_horizontal_bar_chart(chart_data, key)
+                        chart_type = "Lifestyle DNA Bar Chart"
+                        logger.info(f"✅ Generated lifestyle_dna chart: {chart_buffer is not None}")
+                    elif section.lower() == "age_distribution":
+                        logger.info(f"🎯 Processing age_distribution dictionary")
+                        # Convert age field names (age_18_24 -> 18-24) and add percentages
+                        chart_data = {}
+                        logger.debug(f"📊 Raw age_distribution data: {section_data}")
+                        for field_name, value in section_data.items():
+                            if field_name.startswith('age_'):
+                                # Convert age_18_24 -> 18-24, age_65_plus -> 65+
+                                display_name = field_name.replace('age_', '').replace('_plus', '+').replace('_', '-')
+                                chart_data[display_name] = f"{value}%"
+                                logger.debug(f"🔄 Converted {field_name} -> {display_name}: {value}%")
+                            else:
+                                chart_data[field_name] = f"{value}%"
+                                logger.debug(f"🔄 Direct mapping {field_name}: {value}%")
+                        logger.debug(f"📊 Age distribution chart_data: {chart_data}")
+                        logger.info(f"🎯 Generating vertical lollipop chart for age_distribution dictionary")
+                        chart_buffer = generate_vertical_lollipop_chart(chart_data, key)
+                        chart_type = "Age Distribution Chart"
+                        logger.info(f"✅ Generated age_distribution chart: {chart_buffer is not None}")
+                
+                # Generate the chart if we have chart data
+                logger.info(f"🔍 Chart generation check - buffer: {chart_buffer is not None}, data: {chart_data is not None}")
+                if chart_buffer and chart_data:
+                    logger.info(f"✅ Adding chart to PDF for {section}")
+                    
+                    # Only add the chart image, no percentage data
+                    img = _resize_image_to_fit(chart_buffer, is_chart=True)
+                    table_data = [[img]]
+                    table = Table(table_data, colWidths=[3.6 * inch])
+                    table.setStyle(TableStyle([
+                        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                        ("LEFTPADDING", (0, 0), (-1, -1), 10),
+                        ("RIGHTPADDING", (0, 0), (-1, -1), 10),
+                        ("TOPPADDING", (0, 0), (-1, -1), 10),
+                        ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
+                    ]))
+                    
+                    # Cache chart table for side-by-side rendering
+                    chart_tables[section.lower()] = table
+                    logger.info(f"✅ Cached {chart_type} for side-by-side rendering")
+                    # Render cached chart tables side-by-side if both exist (no section title)
+                    if "age_distribution" in chart_tables and "lifestyle_dna" in chart_tables:
+                        logger.info(f"📊 Rendering age_distribution and lifestyle_dna charts side-by-side (no title)")
+                        
+                        # Create side-by-side table with both charts
+                        side_by_side_table = Table(
+                            [[chart_tables["age_distribution"], chart_tables["lifestyle_dna"]]],
+                            colWidths=[3.6 * inch, 3.6 * inch],  # match resized chart
+                            hAlign='CENTER'
+                        )
+                        side_by_side_table.setStyle(TableStyle([
+                            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                            ("LEFTPADDING", (0, 0), (-1, -1), 10),
+                            ("RIGHTPADDING", (0, 0), (-1, -1), 10),
+                            ("TOPPADDING", (0, 0), (-1, -1), 6),
+                            ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+                        ]))
+                        
+                        # Add charts directly without section title (appears after neighborhood overview)
+                        elements.append(Spacer(1, 10))
+                        elements.append(side_by_side_table)
+                        elements.append(Spacer(1, 20))
+                        logger.info(f"✅ Successfully added side-by-side charts to PDF (no title)")
+
+                    continue  # Skip the normal processing for these sections
+                else:
+                    logger.warning(f"⚠️ Skipping chart generation for {section} - buffer: {chart_buffer is not None}, data: {chart_data is not None}")
+
             if isinstance(section_data, dict):
+                logger.info(f"📝 Processing {section} as nested dictionary")
                 elements.append(Indenter(left=1))
                 _add_section(elements, section_data, styles)
                 elements.append(Indenter(left=-1))
             elif isinstance(section_data, list):
+                logger.info(f"📝 Processing {section} as list with {len(section_data)} items")
                 for item in section_data:
                     elements.append(Indenter(left=1))
                     if isinstance(item, dict):
@@ -90,12 +246,14 @@ def _create_pdf(report: dict, address: str, filename: str) -> str:
                         elements.append(Paragraph(f"- {item}", styles["Body"]))
                     elements.append(Indenter(left=-1))
             else:
+                logger.info(f"📝 Processing {section} as simple text: {str(section_data)[:100]}...")
                 elements.append(Paragraph(str(section_data), styles["Body"]))
 
-
+        logger.info(f"📄 Building PDF document with {len(elements)} elements")
         doc.build(elements)
         pdf_data = pdf_buffer.getvalue()
         pdf_buffer.close()
+        logger.info(f"✅ PDF creation completed - size: {len(pdf_data)} bytes")
 
         s3_key = s3_service.upload_pdf(pdf_data, filename, 'application/pdf')
 
@@ -124,12 +282,81 @@ def _fetch_image_from_serp(prompt: str) -> str:
         logger.warning("SERP_API_KEY not set; cannot fetch images.")
         return ""
 
+    BAD_IMAGE_DOMAINS = [
+        # Social Media & CDN variants
+        "facebook.com",
+        "lookaside.fbsbx.com",
+        "instagram.com",
+        "lookaside.instagram.com",
+        "cdninstagram.com",
+        "twitter.com",
+        "twimg.com",
+        "linkedin.com",
+        "licdn.com",
+        "pinterest.com",
+        "pinimg.com",
+        "tumblr.com",
+        "tiktokcdn.com",
+        "tiktok.com",
+        "reddit.com",
+        "redd.it",
+
+        # Stock & Watermarked Image Sites
+        "shutterstock.com",
+        "shutterstock.com/image",
+        "shutterstock.com/thumb",
+        "dreamstime.com",
+        "istockphoto.com",
+        "gettyimages.com",
+        "alamy.com",
+        "123rf.com",
+        "depositphotos.com",
+        "bigstockphoto.com",
+        "adobe.com/stock",
+        "canstockphoto.com",
+        "fotolia.com",
+
+        # E-commerce / Shopping platforms
+        "amazon.com",
+        "ebay.com",
+        "etsy.com",
+        "walmart.com",
+        "shopify.com",
+        "target.com",
+
+        # Aggregators / Non-direct hosts
+        "imdb.com",
+        "flickr.com",
+        "slideshare.net",
+        "quora.com",
+        "yelp.com",
+        "tripadvisor.com",
+        "zillow.com",
+        "realtor.com",
+
+        # Miscellaneous / low-quality / license-ambiguous
+        "freepik.com",
+        "pexels.com",
+        "unsplash.com",  # Optional: often high quality, but licensing can vary
+        "pixabay.com",
+        "picclick.com",
+        "publicdomainpictures.net",
+        "wallpaperflare.com",
+        "wallpapercave.com",
+        "wallhaven.cc",
+        "deviantart.net",
+        "artstation.com",
+        "media-amazon.com",
+        "blogspot.com",
+        "wordpress.com",
+    ]
+
     try:
         params = {
             "engine": "google",
             "q": prompt,
             "tbm": "isch",
-            "num": "5",  # get up to 5 options to improve chances
+            "num": "5",
             "api_key": SERP_API_KEY,
         }
         query_str = "&".join(f"{k}={quote_plus(str(v))}" for k, v in params.items())
@@ -142,15 +369,7 @@ def _fetch_image_from_serp(prompt: str) -> str:
                 candidate = result.get("original") or result.get("thumbnail") or ""
                 if not candidate:
                     continue
-                if any(domain in candidate for domain in [
-                    "facebook.com",
-                    "lookaside.fbsbx.com",
-                    "shutterstock.com/thumb",
-                    "dreamstime.com",
-                    "alamy.com/comp",
-                    "123rf.com",
-                    "depositphotos.com"
-                ]):
+                if any(domain in candidate for domain in BAD_IMAGE_DOMAINS):
                     logger.debug(f"[SERP FILTER] Skipping bad image domain: {candidate}")
                     continue
                 logger.debug(f"[SERP] Using image URL: {candidate}")
@@ -163,18 +382,113 @@ def _fetch_image_from_serp(prompt: str) -> str:
     return ""
 
 
-def _resize_image_to_fit(img_data: BytesIO, max_width: float = 3 * inch, max_height: float = 2.25 * inch) -> Image:
+
+
+
+def _resize_image_to_fit(img_data: BytesIO, target_width: float = 3.6 * inch, target_height: float = 2.8 * inch, is_chart: bool = False) -> Image:
     pil_img = PILImage.open(img_data)
+    
+    # Apply image enhancement pipeline to all images except charts/graphs
+    if not is_chart:
+        pil_img = _enhance_image_for_pdf(pil_img)
+    
     width, height = pil_img.size
     aspect_ratio = width / height
-    if aspect_ratio >= 1:
-        display_width = min(max_width, width)
-        display_height = display_width / aspect_ratio
+
+    # Fit into box with consistent size
+    if aspect_ratio > 1:
+        display_width = target_width
+        display_height = target_width / aspect_ratio
     else:
-        display_height = min(max_height, height)
+        display_height = target_height
+        display_width = target_height * aspect_ratio
+
+    # Avoid tiny charts
+    min_width = 3.2 * inch
+    min_height = 2.4 * inch
+    display_width = max(display_width, min_width)
+    display_height = max(display_height, min_height)
+    
+    # Limit height to prevent layout-breaking charts
+    if is_chart:
+        aspect_ratio = display_width / display_height
+        display_height = 2.3 * inch
         display_width = display_height * aspect_ratio
-    img_data.seek(0)
-    return Image(img_data, width=display_width, height=display_height)
+
+    # Convert enhanced PIL image back to BytesIO for ReportLab
+    enhanced_img_data = BytesIO()
+    pil_img.save(enhanced_img_data, format='PNG')
+    enhanced_img_data.seek(0)
+    
+    return Image(enhanced_img_data, width=display_width, height=display_height)
+
+def _resize_image_for_side_by_side(img_data: BytesIO, target_width: float = 2.5 * inch, target_height: float = 2.0 * inch, is_chart: bool = False) -> Image:
+    """
+    Resize image for side-by-side display (smaller than single centered image).
+    """
+    pil_img = PILImage.open(img_data)
+    
+    # Apply image enhancement pipeline to all images except charts/graphs
+    if not is_chart:
+        pil_img = _enhance_image_for_pdf(pil_img)
+    
+    width, height = pil_img.size
+    aspect_ratio = width / height
+
+    # Fit into smaller box for side-by-side display
+    if aspect_ratio > 1:
+        display_width = target_width
+        display_height = target_width / aspect_ratio
+    else:
+        display_height = target_height
+        display_width = target_height * aspect_ratio
+
+    # Minimum sizes for side-by-side images
+    min_width = 2.0 * inch
+    min_height = 1.5 * inch
+    display_width = max(display_width, min_width)
+    display_height = max(display_height, min_height)
+
+    # Convert enhanced PIL image back to BytesIO for ReportLab
+    enhanced_img_data = BytesIO()
+    pil_img.save(enhanced_img_data, format='PNG')
+    enhanced_img_data.seek(0)
+    
+    return Image(enhanced_img_data, width=display_width, height=display_height)
+
+
+def _resize_image_for_home_hero(img_data: BytesIO, target_width: float = 5.0 * inch, target_height: float = 3.5 * inch) -> Image:
+    """
+    Resize image for large home hero display (bigger and more prominent than regular images).
+    """
+    pil_img = PILImage.open(img_data)
+    
+    # Apply image enhancement pipeline for home images
+    pil_img = _enhance_image_for_pdf(pil_img)
+    
+    width, height = pil_img.size
+    aspect_ratio = width / height
+
+    # Fit into larger box for hero home image display
+    if aspect_ratio > 1:
+        display_width = target_width
+        display_height = target_width / aspect_ratio
+    else:
+        display_height = target_height
+        display_width = target_height * aspect_ratio
+
+    # Minimum sizes for home hero images (larger than regular images)
+    min_width = 4.0 * inch
+    min_height = 2.5 * inch
+    display_width = max(display_width, min_width)
+    display_height = max(display_height, min_height)
+
+    # Convert enhanced PIL image back to BytesIO for ReportLab
+    enhanced_img_data = BytesIO()
+    pil_img.save(enhanced_img_data, format='PNG')
+    enhanced_img_data.seek(0)
+    
+    return Image(enhanced_img_data, width=display_width, height=display_height)
 
 
 def _add_section(elements, data, styles, level=0):
@@ -184,46 +498,118 @@ def _add_section(elements, data, styles, level=0):
     for k, v in data.items():
         key = k.replace("_", " ").title()
 
-        # CHARTS - Only generate if data is a dictionary
+        # CHARTS - Handle both dict and Pydantic model objects
         chart_buffer = None
         chart_type = ""
+        chart_data = None
         
-        if isinstance(v, dict):
+        # Handle top-level Pydantic model objects (new structure)
+        if hasattr(v, 'with_percent') and callable(getattr(v, 'with_percent')):
+            # This is a Pydantic model with with_percent method (AgeDistribution or LifestyleDNA)
+            chart_data = v.with_percent()
             if k.lower() == "lifestyle_dna":
-                chart_buffer = generate_horizontal_bar_chart(v, key)
+                chart_buffer = generate_horizontal_bar_chart(chart_data, key)
                 chart_type = "Lifestyle DNA Bar Chart"
-            elif k.lower() in ["gender_distribution"]:
-                chart_buffer = generate_donut_chart(v, key)
-                chart_type = "Gender Distribution Donut Chart"
-            elif k.lower() in ["racial_distribution"]:
-                chart_buffer = generate_pie_chart(v, key)
-                chart_type = "Racial Distribution Pie Chart"
             elif k.lower() == "age_distribution":
-                chart_buffer = generate_vertical_lollipop_chart(v, key)
-                chart_type = "Age Distribution Bar Chart"
+                chart_buffer = generate_vertical_lollipop_chart(chart_data, key)
+                chart_type = "Age Distribution Chart"
+        # Handle dictionary structure (both legacy and current formats)
+        elif isinstance(v, dict):
+            # Check if this is age_distribution or lifestyle_dna dictionary
+            if k.lower() == "lifestyle_dna":
+                # Convert raw field names to display format with percentages
+                chart_data = {field_name: f"{value}%" for field_name, value in v.items()}
+                chart_buffer = generate_horizontal_bar_chart(chart_data, key)
+                chart_type = "Lifestyle DNA Bar Chart"
+            elif k.lower() == "age_distribution":
+                # Convert age field names (age_18_24 -> 18-24) and add percentages
+                chart_data = {}
+                for field_name, value in v.items():
+                    if field_name.startswith('age_'):
+                        # Convert age_18_24 -> 18-24, age_65_plus -> 65+
+                        display_name = field_name.replace('age_', '').replace('_plus', '+').replace('_', '-')
+                        chart_data[display_name] = f"{value}%"
+                    else:
+                        chart_data[field_name] = f"{value}%"
+                chart_buffer = generate_vertical_lollipop_chart(chart_data, key)
+                chart_type = "Age Distribution Chart"
             else:
-                chart_buffer = generate_horizontal_bar_chart(v, key)
-                chart_type = "Lifestyle Chart"
+                # Only create charts for specific numeric/percentage fields
+                chartable_fields = {
+                    'demographics', 'income_distribution', 'education_levels', 'employment_stats',
+                    'safety_metrics', 'transportation_usage'
+                }
+                
+                # Check if this field should be charted based on field name and data type
+                should_chart = False
+                if k.lower() in chartable_fields:
+                    # Check if the dictionary contains chartable numeric or percentage data
+                    chartable_values = 0
+                    total_values = len(v)
+                    
+                    for val in v.values():
+                        if val is None:
+                            continue
+                            
+                        # Direct numeric values are always chartable
+                        if isinstance(val, (int, float)):
+                            chartable_values += 1
+                            continue
+                            
+                        # For strings, check if they're chartable formats
+                        if isinstance(val, str):
+                            val_stripped = val.strip()
+                            
+                            # Skip empty strings
+                            if not val_stripped:
+                                continue
+                                
+                            # Simple percentage (e.g., "25%", "High", "Moderate")
+                            if val_stripped.endswith('%') and val_stripped[:-1].replace('.', '').isdigit():
+                                chartable_values += 1
+                                continue
+                                
+                            # Rating format (e.g., "8.5/10")
+                            if '/' in val_stripped and val_stripped.split('/')[0].replace('.', '').isdigit():
+                                chartable_values += 1
+                                continue
+                                
+                            # Simple categorical values (High, Medium, Low, etc.)
+                            if val_stripped.lower() in ['high', 'medium', 'low', 'very high', 'very low', 'moderate', 'popular', 'very popular', 'unpopular']:
+                                chartable_values += 1
+                                continue
+                                
+                            # Skip complex strings like price ranges, addresses, descriptions
+                            if any(char in val_stripped for char in ['$', '-', '/', ' to ', ' and ', 'month', 'year', 'per']):
+                                logger.debug(f"📝 Skipping non-chartable value: '{val_stripped}' (contains price/range indicators)")
+                                continue
+                    
+                    # Only chart if most values are chartable (at least 50%)
+                    if total_values > 0 and chartable_values >= (total_values * 0.5):
+                        should_chart = True
+                        logger.debug(f"📊 Will chart '{k}': {chartable_values}/{total_values} values are chartable")
+                    else:
+                        logger.debug(f"📝 Skipping chart for '{k}': only {chartable_values}/{total_values} values are chartable")
+                
+                if should_chart:
+                    chart_data = v
+                    chart_buffer = generate_horizontal_bar_chart(chart_data, key)
+                    chart_type = "Data Chart"
+                else:
+                    # Skip chart generation for text-based fields
+                    logger.debug(f"📝 Skipping chart for text-based field: {k}")
 
         if chart_buffer:
             label = Paragraph(f"<b>{key}:</b>", styles["SubHeader"])
             
-            value_lines = []
-            if isinstance(v, dict):
-                for subk, subv in v.items():
-                    subk_formatted = subk.replace("_", " ").title()
-                    value_lines.append(f"<b>{subk_formatted}:</b> {subv}")
-            else:
-                # Fallback for string data
-                value_lines.append(str(v))
-            value_paragraph = Paragraph("<br/>".join(value_lines), styles["Body"])
-
-            img = _resize_image_to_fit(chart_buffer)
-            table_data = [[img, value_paragraph]]
-            table = Table(table_data, colWidths=[3 * inch, 3.5 * inch])
+            # Only add the chart image, no percentage data
+            img = _resize_image_to_fit(chart_buffer, is_chart=True)
+            table_data = [[img]]
+            table = Table(table_data, colWidths=[6 * inch])
             table.setStyle(TableStyle([
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                ("LEFTPADDING", (0, 0), (-1, -1), 60),
+                ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 30),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 30),
                 ("TOPPADDING", (0, 0), (-1, -1), 15),
                 ("BOTTOMPADDING", (0, 0), (-1, -1), 15),
@@ -236,24 +622,211 @@ def _add_section(elements, data, styles, level=0):
             elements.append(Spacer(1, 0.2 * inch))   # More spacing before next section
             continue
 
-        # IMAGE PROMPT (inline in dict)
-        if k.lower() == "image_prompt" and isinstance(v, str):
-            elements.append(Spacer(1, 15))
-            logger.debug(f"{indent}[IMAGE PROMPT] key '{k}', prompt: {v}")
+        # HOME IMAGE PROMPT - Special handling for large hero home image
+        if k.lower() == "home_image_prompt" and isinstance(v, str):
+            elements.append(Spacer(1, 20))
+            logger.debug(f"{indent}[HOME IMAGE PROMPT] key '{k}', prompt: {v}")
+            
+            # Fetch home image
             image_url = _fetch_image_from_serp(v)
-            logger.debug(f"{indent}[IMAGE PROMPT] Got image URL: {image_url}")
+            logger.debug(f"{indent}[HOME IMAGE PROMPT] Got image URL: {image_url}")
+            
             if image_url:
                 try:
                     response = requests.get(image_url, timeout=30)
                     if response.status_code == 200:
                         img_data = BytesIO(response.content)
-                        img = _resize_image_to_fit(img_data)
-                        elements.append(Spacer(1, 6))
-                        elements.append(img)
-                        elements.append(Paragraph(key.replace(" Prompt", ""), styles["Caption"]))
-                        elements.append(Spacer(1, 3))
+                        home_img = _resize_image_for_home_hero(img_data)
+                        
+                        # Display large centered home image with special styling
+                        elements.append(Spacer(1, 10))
+                        table_data = [[home_img]]
+                        table = Table(table_data, colWidths=[6.5 * inch])
+                        table.setStyle(TableStyle([
+                            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                            ("LEFTPADDING", (0, 0), (-1, -1), 20),
+                            ("RIGHTPADDING", (0, 0), (-1, -1), 20),
+                            ("TOPPADDING", (0, 0), (-1, -1), 20),
+                            ("BOTTOMPADDING", (0, 0), (-1, -1), 20),
+                            ("BOX", (0, 0), (-1, -1), 1.0, colors.darkgrey),
+                            ("INNERPADDING", (0, 0), (-1, -1), 10),
+                        ]))
+                        elements.append(table)
+                        elements.append(Spacer(1, 15))
+                        logger.debug(f"{indent}[HOME IMAGE PROMPT] Successfully added large home image")
+                    else:
+                        logger.warning(f"Failed to fetch home image, status code: {response.status_code}")
                 except Exception as e:
-                    logger.warning(f"Failed to fetch image from URL {image_url}: {e}")
+                    logger.warning(f"Failed to fetch home image from URL {image_url}: {e}")
+            else:
+                logger.warning(f"No image URL returned for home image prompt: {v}")
+            continue
+
+        # COMMUNITY IMAGE 1 & 2 - Skip text content (handled together with community_image_1)
+        if k.lower() == "community_image_2" and isinstance(v, str):
+            continue
+
+        # COMMUNITY IMAGE 1 (inline in dict) - Now handles dual community images side by side
+        if k.lower() == "community_image_1" and isinstance(v, str):
+            elements.append(Spacer(1, 15))
+            logger.debug(f"{indent}[COMMUNITY IMAGE 1] key '{k}', prompt: {v}")
+            
+            # Check if there's also a community_image_2 in the same data dict
+            second_prompt = None
+            if isinstance(data, dict) and "community_image_2" in data:
+                second_prompt = data["community_image_2"]
+                logger.debug(f"{indent}[COMMUNITY IMAGE 2] found: {second_prompt}")
+            
+            # Fetch both community images
+            image_url_1 = _fetch_image_from_serp(v)
+            image_url_2 = _fetch_image_from_serp(second_prompt)
+            
+            logger.debug(f"{indent}[COMMUNITY IMAGES] Got image URLs: {image_url_1}, {image_url_2}")
+            
+            images = []
+            
+            # Try to fetch first community image
+            if image_url_1:
+                try:
+                    response = requests.get(image_url_1, timeout=30)
+                    if response.status_code == 200:
+                        img_data = BytesIO(response.content)
+                        img1 = _resize_image_for_side_by_side(img_data, is_chart=False)
+                        images.append(img1)
+                except Exception as e:
+                    logger.warning(f"Failed to fetch first community image from URL {image_url_1}: {e}")
+            
+            # Try to fetch second community image
+            if image_url_2:
+                try:
+                    response = requests.get(image_url_2, timeout=30)
+                    if response.status_code == 200:
+                        img_data = BytesIO(response.content)
+                        img2 = _resize_image_for_side_by_side(img_data, is_chart=False)
+                        images.append(img2)
+                except Exception as e:
+                    logger.warning(f"Failed to fetch second community image from URL {image_url_2}: {e}")
+            
+            # Display community images side by side if we have at least one
+            if images:
+                elements.append(Spacer(1, 6))
+                
+                if len(images) == 2:
+                    # Two community images side by side
+                    table_data = [[images[0], images[1]]]
+                    table = Table(table_data, colWidths=[3 * inch, 3 * inch])
+                    table.setStyle(TableStyle([
+                        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                        ("LEFTPADDING", (0, 0), (-1, -1), 10),
+                        ("RIGHTPADDING", (0, 0), (-1, -1), 10),
+                        ("TOPPADDING", (0, 0), (-1, -1), 10),
+                        ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
+                        ("BOX", (0, 0), (-1, -1), 0.25, colors.lightgrey),
+                        ("INNERPADDING", (0, 0), (-1, -1), 6),
+                    ]))
+                elif len(images) == 1:
+                    # Single community image centered
+                    table_data = [[images[0]]]
+                    table = Table(table_data, colWidths=[6 * inch])
+                    table.setStyle(TableStyle([
+                        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                        ("LEFTPADDING", (0, 0), (-1, -1), 30),
+                        ("RIGHTPADDING", (0, 0), (-1, -1), 30),
+                        ("TOPPADDING", (0, 0), (-1, -1), 15),
+                        ("BOTTOMPADDING", (0, 0), (-1, -1), 15),
+                        ("BOX", (0, 0), (-1, -1), 0.25, colors.lightgrey),
+                        ("INNERPADDING", (0, 0), (-1, -1), 6),
+                    ]))
+                
+                elements.append(table)
+                elements.append(Spacer(1, 10))
+                logger.debug(f"{indent}[COMMUNITY IMAGES] Successfully added {len(images)} community image(s)")
+            continue
+
+        # IMAGE PROMPT_2 - Skip text content (handled together with image_prompt)
+        if k.lower() == "image_prompt_2" and isinstance(v, str):
+            continue
+
+        # IMAGE PROMPT (inline in dict) - Now handles dual images side by side
+        if k.lower() == "image_prompt" and isinstance(v, str):
+            elements.append(Spacer(1, 15))
+            logger.debug(f"{indent}[IMAGE PROMPT] key '{k}', prompt: {v}")
+            
+            # Check if there's also an image_prompt_2 in the same data dict
+            second_prompt = None
+            if isinstance(data, dict) and "image_prompt_2" in data:
+                second_prompt = data["image_prompt_2"]
+                logger.debug(f"{indent}[IMAGE PROMPT 2] found: {second_prompt}")
+            
+            # Fetch both images
+            image_url_1 = _fetch_image_from_serp(v)
+            image_url_2 = _fetch_image_from_serp(second_prompt)
+            
+            logger.debug(f"{indent}[IMAGE PROMPT] Got image URLs: {image_url_1}, {image_url_2}")
+            
+            images = []
+            
+            # Try to fetch first image
+            if image_url_1:
+                try:
+                    response = requests.get(image_url_1, timeout=30)
+                    if response.status_code == 200:
+                        img_data = BytesIO(response.content)
+                        img1 = _resize_image_for_side_by_side(img_data, is_chart=False)
+                        images.append(img1)
+                except Exception as e:
+                    logger.warning(f"Failed to fetch first image from URL {image_url_1}: {e}")
+            
+            # Try to fetch second image
+            if image_url_2:
+                try:
+                    response = requests.get(image_url_2, timeout=30)
+                    if response.status_code == 200:
+                        img_data = BytesIO(response.content)
+                        img2 = _resize_image_for_side_by_side(img_data, is_chart=False)
+                        images.append(img2)
+                except Exception as e:
+                    logger.warning(f"Failed to fetch second image from URL {image_url_2}: {e}")
+            
+            # Display images side by side if we have at least one
+            if images:
+                elements.append(Spacer(1, 6))
+                
+                if len(images) == 2:
+                    # Two images side by side
+                    table_data = [[images[0], images[1]]]
+                    table = Table(table_data, colWidths=[3 * inch, 3 * inch])
+                    table.setStyle(TableStyle([
+                        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                        ("LEFTPADDING", (0, 0), (-1, -1), 10),
+                        ("RIGHTPADDING", (0, 0), (-1, -1), 10),
+                        ("TOPPADDING", (0, 0), (-1, -1), 10),
+                        ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
+                        ("BOX", (0, 0), (-1, -1), 0.25, colors.lightgrey),
+                        ("INNERPADDING", (0, 0), (-1, -1), 6),
+                    ]))
+                elif len(images) == 1:
+                    # Single image centered
+                    table_data = [[images[0]]]
+                    table = Table(table_data, colWidths=[6 * inch])
+                    table.setStyle(TableStyle([
+                        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                        ("LEFTPADDING", (0, 0), (-1, -1), 30),
+                        ("RIGHTPADDING", (0, 0), (-1, -1), 30),
+                        ("TOPPADDING", (0, 0), (-1, -1), 15),
+                        ("BOTTOMPADDING", (0, 0), (-1, -1), 15),
+                        ("BOX", (0, 0), (-1, -1), 0.25, colors.lightgrey),
+                        ("INNERPADDING", (0, 0), (-1, -1), 6),
+                    ]))
+                
+                elements.append(table)
+                elements.append(Paragraph(key.replace(" Prompt", ""), styles["Caption"]))
+                elements.append(Spacer(1, 3))
             continue
 
         # NESTED DICTS
