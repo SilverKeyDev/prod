@@ -36,6 +36,33 @@ export default function AIAssistant() {
   const [loadingPdf, setLoadingPdf] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Load AI assistant state from localStorage on mount
+  useEffect(() => {
+    const savedState = localStorage.getItem("aiAssistantState");
+    if (savedState) {
+      try {
+        const parsed = JSON.parse(savedState);
+        if (parsed.activeChatId) {
+          setActiveChatId(parsed.activeChatId);
+        }
+        if (parsed.message) {
+          setMessage(parsed.message);
+        }
+      } catch (e) {
+        console.warn("Invalid AI assistant state data");
+      }
+    }
+  }, []);
+
+  // Save AI assistant state to localStorage when it changes
+  useEffect(() => {
+    const stateToSave = {
+      activeChatId,
+      message,
+    };
+    localStorage.setItem("aiAssistantState", JSON.stringify(stateToSave));
+  }, [activeChatId, message]);
+
   const activeChat = localChats.find((chat) => chat.id === activeChatId);
 
   const scrollToBottom = () => {

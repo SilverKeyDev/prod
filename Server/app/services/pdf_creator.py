@@ -409,12 +409,6 @@ def _resize_image_to_fit(img_data: BytesIO, target_width: float = 3.6 * inch, ta
     display_width = max(display_width, min_width)
     display_height = max(display_height, min_height)
     
-    # Limit height to prevent layout-breaking charts
-    if is_chart:
-        aspect_ratio = display_width / display_height
-        display_height = 2.3 * inch
-        display_width = display_height * aspect_ratio
-
     # Convert enhanced PIL image back to BytesIO for ReportLab
     enhanced_img_data = BytesIO()
     pil_img.save(enhanced_img_data, format='PNG')

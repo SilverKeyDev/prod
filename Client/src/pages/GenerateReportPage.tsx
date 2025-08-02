@@ -113,6 +113,43 @@ export default function GenerateReportPage() {
   const [clientsLoading, setClientsLoading] = useState(false);
   const [isClientDropdownOpen, setIsClientDropdownOpen] = useState(false);
 
+  // Load generate report state from localStorage on mount
+  useEffect(() => {
+    const savedState = localStorage.getItem("generateReportState");
+    if (savedState) {
+      try {
+        const parsed = JSON.parse(savedState);
+        if (parsed.address) {
+          setAddress(parsed.address);
+          setHasSelected(true);
+        }
+        if (parsed.comparisonAddress) {
+          setComparisonAddress(parsed.comparisonAddress);
+          setHasSelectedComparison(true);
+        }
+        if (parsed.reportType) {
+          setReportType(parsed.reportType);
+        }
+        if (parsed.selectedClientId) {
+          setSelectedClientId(parsed.selectedClientId);
+        }
+      } catch (e) {
+        console.warn("Invalid generate report state data");
+      }
+    }
+  }, []);
+
+  // Save generate report state to localStorage when it changes
+  useEffect(() => {
+    const stateToSave = {
+      address,
+      comparisonAddress,
+      reportType,
+      selectedClientId,
+    };
+    localStorage.setItem("generateReportState", JSON.stringify(stateToSave));
+  }, [address, comparisonAddress, reportType, selectedClientId]);
+
   const reportTypeOptions = [
     { value: "detailed", label: "Detailed Report" },
     { value: "comparison", label: "Comparison Report" },

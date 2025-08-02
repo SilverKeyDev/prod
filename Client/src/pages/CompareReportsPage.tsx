@@ -199,6 +199,37 @@ export default function CompareReportsPage() {
   const [omittedRows, setOmittedRows] = useState<Set<string>>(new Set());
   const [manuallyEnabledRows, setManuallyEnabledRows] = useState<Set<string>>(new Set());
 
+  // Load comparison state from localStorage on mount
+  useEffect(() => {
+    const savedState = localStorage.getItem("compareReportsState");
+    if (savedState) {
+      try {
+        const parsed = JSON.parse(savedState);
+        if (parsed.selectedReports) {
+          setSelectedReports(parsed.selectedReports);
+        }
+        if (parsed.omittedRows) {
+          setOmittedRows(new Set(parsed.omittedRows));
+        }
+        if (parsed.manuallyEnabledRows) {
+          setManuallyEnabledRows(new Set(parsed.manuallyEnabledRows));
+        }
+      } catch (e) {
+        console.warn("Invalid compare reports state data");
+      }
+    }
+  }, []);
+
+  // Save comparison state to localStorage when it changes
+  useEffect(() => {
+    const stateToSave = {
+      selectedReports,
+      omittedRows: Array.from(omittedRows),
+      manuallyEnabledRows: Array.from(manuallyEnabledRows),
+    };
+    localStorage.setItem("compareReportsState", JSON.stringify(stateToSave));
+  }, [selectedReports, omittedRows, manuallyEnabledRows]);
+
   // Helper function to check if a row has any data for selected properties
   const hasDataForAnyProperty = (metric: string) => {
     if (selectedReports.length === 0 || comparisonTable.length === 0) {
