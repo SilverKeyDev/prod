@@ -31,7 +31,7 @@ const MiniLogo: React.FC<MiniLogoProps> = ({
   return (
     <div className={`flex items-center ${className}`}>
       <img 
-        src="/public/minilogo.png" 
+        src="/minilogo.png" 
         alt="SilverKey Mini Logo" 
         className={`${currentSize.logo} object-contain ${logoClassName}`}
       />
