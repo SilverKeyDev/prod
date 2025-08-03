@@ -1355,134 +1355,188 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
         # Concurrent execution with partial failure handling
         import concurrent.futures
         
-        def process_single_payload(payload_info):
-            """Process a single payload and return result with section info"""
+        def process_single_payload_with_retry(payload_info, max_retries=2):
+            """Process a single payload with retry logic for timeouts and null responses"""
             payload, section_name = payload_info
             
-            try:
-                # Debug: Check payload type first
-                logger.debug(f"🔍 Section {section_name}: Payload type check: {type(payload)}")
+            for attempt in range(max_retries + 1):  # 0, 1, 2 (total 3 attempts)
+                attempt_num = attempt + 1
+                logger.info(f"🔄 Section {section_name}: Attempt {attempt_num}/{max_retries + 1}")
                 
-                # Validate payload is a dictionary
-                if not isinstance(payload, dict):
-                    error_msg = f"Invalid payload type: expected dict, got {type(payload)}"
-                    logger.error(f"❌ Section {section_name}: {error_msg}")
-                    logger.error(f"🔍 Section {section_name}: Payload content: {str(payload)[:200]}")
-                    return {"section": section_name, "success": False, "error": error_msg}
-                
-                # Configure session for this thread
-                session = requests.Session()
-                retries = Retry(
-                    total=1,
-                    backoff_factor=0.5,
-                    status_forcelist=[429, 500, 502, 503, 504],
-                    raise_on_status=False
-                )
-                session.mount("https://", HTTPAdapter(max_retries=retries))
-                
-                logger.info(f"📨 Starting concurrent request for section: {section_name}")
-                
-                # Debug: Log payload structure for 400 error diagnosis
-                logger.debug(f"🔍 Section {section_name}: Payload structure:")
-                logger.debug(f"   - Model: {payload.get('model')}")
-                logger.debug(f"   - Messages count: {len(payload.get('messages', []))}")
-                logger.debug(f"   - Response format type: {payload.get('response_format', {}).get('type')}")
-                                
-                start_time = time.perf_counter()
-                response = session.post(
-                    "https://api.perplexity.ai/chat/completions",
-                    headers=HEADERS,
-                    json=payload,
-                    timeout=600  # 5 minute timeout per section
-                )
-                
-                duration = time.perf_counter() - start_time
-                logger.info(f"📊 Section {section_name} completed in {duration:.2f}s → status {response.status_code}")
-                
-                # Handle successful response
-                if response.status_code == 200:
-                    try:
-                        content = response.json()
-                        
-                        # Validate response structure
-                        if "choices" not in content or not content["choices"]:
-                            logger.error(f"❌ Section {section_name}: Missing 'choices' in response")
-                            return {"section": section_name, "success": False, "error": "Malformed API response"}
-                        
-                        # Extract and parse the response
-                        raw_json_text = content["choices"][0]["message"]["content"]
-                        logger.info(f"📝 Section {section_name}: Received {len(raw_json_text)} characters")
-                        
-                        # Parse the JSON response
-                        try:
-                            report = _safe_parse_json(raw_json_text, report_customization)
-                            
-                            # Extract only the requested section from the full report
-                            if section_name in report and report[section_name] is not None:
-                                section_data = {section_name: report[section_name]}
-                                logger.info(f"✅ Section {section_name}: Successfully parsed and extracted")
-                                return {"section": section_name, "success": True, "data": section_data}
-                            else:
-                                logger.warning(f"⚠️ Section {section_name}: Requested section not found or null in response")
-                                logger.debug(f"🔍 Available sections in response: {list(report.keys())}")
-                                # Return empty section data to maintain structure
-                                section_data = {section_name: None}
-                                return {"section": section_name, "success": True, "data": section_data}
-                        except Exception as pe:
-                            logger.error(f"❌ Section {section_name}: Parse error: {str(pe)}")
-                            return {"section": section_name, "success": False, "error": f"Parse error: {str(pe)}"}
-                            
-                    except json.JSONDecodeError as je:
-                        logger.error(f"❌ Section {section_name}: JSON decode error: {str(je)}")
-                        return {"section": section_name, "success": False, "error": f"JSON decode error: {str(je)}"}
-                
-                # Handle API errors
-                else:
-                    error_msg = f"API error {response.status_code}"
-                    full_error_details = ""
+                try:
+                    # Debug: Check payload type first
+                    logger.debug(f"🔍 Section {section_name}: Payload type check: {type(payload)}")
                     
-                    try:
-                        error_data = response.json()
-                        if isinstance(error_data, dict):
-                            # Log the complete error response for debugging
-                            full_error_details = json.dumps(error_data, indent=2)
-                            logger.error(f"🔍 Section {section_name}: Full API error response:")
-                            logger.error(full_error_details)
-                            
-                            # Extract request ID if available
-                            request_id = error_data.get('request_id') or error_data.get('error', {}).get('request_id')
-                            if request_id:
-                                error_msg += f" (Request ID: {request_id})"
-                            
-                            # Extract error message if available
-                            error_message = error_data.get('error', {}).get('message') or error_data.get('message')
-                            if error_message:
-                                error_msg += f" - {error_message}"
+                    # Validate payload is a dictionary
+                    if not isinstance(payload, dict):
+                        error_msg = f"Invalid payload type: expected dict, got {type(payload)}"
+                        logger.error(f"❌ Section {section_name}: {error_msg}")
+                        logger.error(f"🔍 Section {section_name}: Payload content: {str(payload)[:200]}")
+                        return {"section": section_name, "success": False, "error": error_msg}
+                    
+                    # Configure session for this thread
+                    session = requests.Session()
+                    retries = Retry(
+                        total=1,
+                        backoff_factor=0.5,
+                        status_forcelist=[429, 500, 502, 503, 504],
+                        raise_on_status=False
+                    )
+                    session.mount("https://", HTTPAdapter(max_retries=retries))
+                    
+                    logger.info(f"📨 Starting request for section: {section_name} (attempt {attempt_num})")
+                    
+                    # Debug: Log payload structure for 400 error diagnosis
+                    logger.debug(f"🔍 Section {section_name}: Payload structure:")
+                    logger.debug(f"   - Model: {payload.get('model')}")
+                    logger.debug(f"   - Messages count: {len(payload.get('messages', []))}")
+                    logger.debug(f"   - Response format type: {payload.get('response_format', {}).get('type')}")
+                                    
+                    start_time = time.perf_counter()
+                    response = session.post(
+                        "https://api.perplexity.ai/chat/completions",
+                        headers=HEADERS,
+                        json=payload,
+                        timeout=300  # 5 minute timeout per section
+                    )
+                    
+                    duration = time.perf_counter() - start_time
+                    logger.info(f"📊 Section {section_name} attempt {attempt_num} completed in {duration:.2f}s → status {response.status_code}")
+                    
+                    # Check if request took longer than 5 minutes (300 seconds)
+                    if duration > 300:
+                        logger.warning(f"⏰ Section {section_name}: Request took {duration:.2f}s (>5min) on attempt {attempt_num}")
+                        if attempt < max_retries:
+                            logger.info(f"🔄 Section {section_name}: Retrying due to timeout (attempt {attempt_num + 1}/{max_retries + 1})")
+                            continue
                         else:
-                            logger.error(f"🔍 Section {section_name}: Non-dict error response: {error_data}")
-                    except json.JSONDecodeError:
-                        # If response is not JSON, log the raw text
+                            logger.error(f"❌ Section {section_name}: Max retries reached after timeout")
+                            return {"section": section_name, "success": False, "error": f"Request timeout after {max_retries + 1} attempts"}
+                    
+                    # Handle successful response
+                    if response.status_code == 200:
                         try:
-                            raw_error = response.text[:1000]  # Limit to first 1000 chars
-                            logger.error(f"🔍 Section {section_name}: Raw error response: {raw_error}")
-                            full_error_details = raw_error
-                        except:
-                            logger.error(f"🔍 Section {section_name}: Could not decode error response")
-                    except Exception as e:
-                        logger.error(f"🔍 Section {section_name}: Error parsing error response: {str(e)}")
+                            content = response.json()
+                            
+                            # Validate response structure
+                            if "choices" not in content or not content["choices"]:
+                                logger.error(f"❌ Section {section_name}: Missing 'choices' in response on attempt {attempt_num}")
+                                if attempt < max_retries:
+                                    logger.info(f"🔄 Section {section_name}: Retrying due to malformed response")
+                                    continue
+                                return {"section": section_name, "success": False, "error": "Malformed API response after all retries"}
+                            
+                            # Extract and parse the response
+                            raw_json_text = content["choices"][0]["message"]["content"]
+                            logger.info(f"📝 Section {section_name}: Received {len(raw_json_text)} characters on attempt {attempt_num}")
+                            
+                            # Parse the JSON response
+                            try:
+                                report = _safe_parse_json(raw_json_text, report_customization)
+                                
+                                # Check if the requested section exists and is not null
+                                if section_name in report and report[section_name] is not None:
+                                    section_data = {section_name: report[section_name]}
+                                    logger.info(f"✅ Section {section_name}: Successfully parsed and extracted on attempt {attempt_num}")
+                                    return {"section": section_name, "success": True, "data": section_data}
+                                else:
+                                    logger.warning(f"⚠️ Section {section_name}: Requested section not found or null in response on attempt {attempt_num}")
+                                    logger.debug(f"🔍 Available sections in response: {list(report.keys())}")
+                                    
+                                    # Retry if we got null data and have retries left
+                                    if attempt < max_retries:
+                                        logger.info(f"🔄 Section {section_name}: Retrying due to null/missing data (attempt {attempt_num + 1}/{max_retries + 1})")
+                                        continue
+                                    else:
+                                        logger.error(f"❌ Section {section_name}: Still null/missing after {max_retries + 1} attempts")
+                                        # Return empty section data to maintain structure
+                                        section_data = {section_name: None}
+                                        return {"section": section_name, "success": True, "data": section_data}
+                                        
+                            except Exception as pe:
+                                logger.error(f"❌ Section {section_name}: Parse error on attempt {attempt_num}: {str(pe)}")
+                                if attempt < max_retries:
+                                    logger.info(f"🔄 Section {section_name}: Retrying due to parse error")
+                                    continue
+                                return {"section": section_name, "success": False, "error": f"Parse error after all retries: {str(pe)}"}
+                                
+                        except json.JSONDecodeError as je:
+                            logger.error(f"❌ Section {section_name}: JSON decode error on attempt {attempt_num}: {str(je)}")
+                            if attempt < max_retries:
+                                logger.info(f"🔄 Section {section_name}: Retrying due to JSON decode error")
+                                continue
+                            return {"section": section_name, "success": False, "error": f"JSON decode error after all retries: {str(je)}"}
                     
-                    logger.error(f"❌ Section {section_name}: {error_msg}")
-                    return {"section": section_name, "success": False, "error": error_msg, "full_error": full_error_details}
-                    
-            except requests.exceptions.Timeout:
-                logger.error(f"❌ Section {section_name}: Request timeout")
-                return {"section": section_name, "success": False, "error": "Request timeout"}
-            except requests.exceptions.ConnectionError as ce:
-                logger.error(f"❌ Section {section_name}: Connection error: {str(ce)}")
-                return {"section": section_name, "success": False, "error": f"Connection error: {str(ce)}"}
-            except Exception as e:
-                logger.error(f"❌ Section {section_name}: Unexpected error: {str(e)}")
-                return {"section": section_name, "success": False, "error": f"Unexpected error: {str(e)}"}
+                    # Handle API errors
+                    else:
+                        error_msg = f"API error {response.status_code} on attempt {attempt_num}"
+                        full_error_details = ""
+                        
+                        try:
+                            error_data = response.json()
+                            if isinstance(error_data, dict):
+                                # Log the complete error response for debugging
+                                full_error_details = json.dumps(error_data, indent=2)
+                                logger.error(f"🔍 Section {section_name}: Full API error response (attempt {attempt_num}):")
+                                logger.error(full_error_details)
+                                
+                                # Extract request ID if available
+                                request_id = error_data.get('request_id') or error_data.get('error', {}).get('request_id')
+                                if request_id:
+                                    error_msg += f" (Request ID: {request_id})"
+                                
+                                # Extract error message if available
+                                error_message = error_data.get('error', {}).get('message') or error_data.get('message')
+                                if error_message:
+                                    error_msg += f" - {error_message}"
+                            else:
+                                logger.error(f"🔍 Section {section_name}: Non-dict error response: {error_data}")
+                        except json.JSONDecodeError:
+                            # If response is not JSON, log the raw text
+                            try:
+                                raw_error = response.text[:1000]  # Limit to first 1000 chars
+                                logger.error(f"🔍 Section {section_name}: Raw error response: {raw_error}")
+                                full_error_details = raw_error
+                            except:
+                                logger.error(f"🔍 Section {section_name}: Could not decode error response")
+                        except Exception as e:
+                            logger.error(f"🔍 Section {section_name}: Error parsing error response: {str(e)}")
+                        
+                        logger.error(f"❌ Section {section_name}: {error_msg}")
+                        
+                        # Retry on certain error codes
+                        if response.status_code in [429, 500, 502, 503, 504] and attempt < max_retries:
+                            logger.info(f"🔄 Section {section_name}: Retrying due to {response.status_code} error")
+                            time.sleep(2 ** attempt)  # Exponential backoff
+                            continue
+                        
+                        return {"section": section_name, "success": False, "error": error_msg, "full_error": full_error_details}
+                        
+                except requests.exceptions.Timeout:
+                    logger.error(f"❌ Section {section_name}: Request timeout on attempt {attempt_num}")
+                    if attempt < max_retries:
+                        logger.info(f"🔄 Section {section_name}: Retrying due to timeout")
+                        continue
+                    return {"section": section_name, "success": False, "error": "Request timeout after all retries"}
+                except requests.exceptions.ConnectionError as ce:
+                    logger.error(f"❌ Section {section_name}: Connection error on attempt {attempt_num}: {str(ce)}")
+                    if attempt < max_retries:
+                        logger.info(f"🔄 Section {section_name}: Retrying due to connection error")
+                        time.sleep(2 ** attempt)  # Exponential backoff
+                        continue
+                    return {"section": section_name, "success": False, "error": f"Connection error after all retries: {str(ce)}"}
+                except Exception as e:
+                    logger.error(f"❌ Section {section_name}: Unexpected error on attempt {attempt_num}: {str(e)}")
+                    if attempt < max_retries:
+                        logger.info(f"🔄 Section {section_name}: Retrying due to unexpected error")
+                        continue
+                    return {"section": section_name, "success": False, "error": f"Unexpected error after all retries: {str(e)}"}
+            
+            # This should never be reached, but just in case
+            return {"section": section_name, "success": False, "error": "Max retries exceeded"}
+        
+        # Alias for backward compatibility
+        process_single_payload = process_single_payload_with_retry
         
         # Prepare payload info with section names
         payload_infos = []
