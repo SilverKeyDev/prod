@@ -39,7 +39,7 @@ const KeyLogo: React.FC<KeyLogoProps> = ({
   return (
     <div className={`flex items-center ${currentSize.container} ${className}`}>
       <img 
-        src="/images/logo.png" 
+        src="/public/logo.png" 
         alt="SilverKey Logo" 
         className={`${currentSize.logo} object-contain ${logoClassName}`}
       />

@@ -12,6 +12,8 @@ import {
   CheckCircle,
   AlertCircle,
   Settings,
+  User,
+  Activity,
 } from "lucide-react";
 import { useStripePayment, useStripePortal } from "../hooks/useStripePayment";
 import ErrorToast from "../components/ErrorToast";
@@ -157,7 +159,7 @@ export default function Subscription() {
       {cancelled && (
         <ErrorToast
           message="Your payment was cancelled. No charges have been made to your account."
-          onClose={() => {}} // showError state was unused
+          onClose={() => {}}
           duration={5000}
         />
       )}
@@ -185,92 +187,117 @@ export default function Subscription() {
       {/* Billing & Usage Summary */}
       <div className="card mb-4 lg:mb-6">
         {/* Mobile Layout */}
-        <div className="block sm:hidden mb-3">
-          <div className="flex items-center justify-between mb-2">
-            <h2 className="text-sm font-medium text-black">Your Plan</h2>
-            {billingInfo?.subscription?.plan_id && (
-              <p className="text-black/60 font-medium text-xs">
-                {(() => {
-                  const plan = plans.find(
-                    (p) => p.id === billingInfo.subscription?.plan_id
-                  );
-                  return plan ? plan.name : "No active plan";
-                })()}
-              </p>
-            )}
-          </div>
-          {/* Mobile Subscription Status */}
-          {billingInfo?.subscription && (
-            <div className="flex items-center justify-center space-x-2 mt-2">
-              <span
-                className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  billingInfo.subscription.status === "active"
-                    ? "bg-green-100 text-green-800"
-                    : "bg-yellow-100 text-yellow-800"
-                }`}
-              >
-                {billingInfo.subscription.status === "active" ? (
-                  <span className="flex items-center">
-                    <CheckCircle className="h-4 w-4 mr-1" /> Active
-                  </span>
-                ) : (
-                  <span className="flex items-center">
-                    <Clock className="h-4 w-4 mr-1" /> Inactive
-                  </span>
-                )}
-              </span>
-              {billingInfo.subscription.cancel_at_period_end && (
-                <span className="px-3 py-1 bg-red-100 text-red-800 text-sm font-medium rounded-full">
-                  Cancels at period end
-                </span>
+        <div className="sm:hidden mb-3 lg:mb-4">
+          <div className="grid grid-cols-1 gap-3">
+            {/* Your Plan - Mobile */}
+            <div className="flex flex-col items-center text-center">
+              <h2 className="text-sm sm:text-base lg:text-lg font-medium text-black">
+                Your Plan
+              </h2>
+              {billingInfo?.subscription?.plan_id && (
+                <p className="text-black/60 text-sm">
+                  {(() => {
+                    const plan = plans.find(
+                      (p) => p.id === billingInfo.subscription?.plan_id
+                    );
+                    return plan ? plan.name : "No active plan";
+                  })()}
+                </p>
               )}
             </div>
-          )}
+            
+            {/* Status - Mobile */}
+            {billingInfo?.subscription && (
+              <div className="flex items-center justify-center space-x-2">
+                <span
+                  className={`px-3 py-1 rounded-full text-sm font-medium ${
+                    billingInfo.subscription.status === "active"
+                      ? "bg-green-100 text-green-800"
+                      : "bg-yellow-100 text-yellow-800"
+                  }`}
+                >
+                  {billingInfo.subscription.status === "active" ? (
+                    <span className="flex items-center">
+                      <CheckCircle className="h-4 w-4 mr-1" /> Active
+                    </span>
+                  ) : (
+                    <span className="flex items-center">
+                      <Clock className="h-4 w-4 mr-1" /> Inactive
+                    </span>
+                  )}
+                </span>
+                {billingInfo.subscription.cancel_at_period_end && (
+                  <span className="px-3 py-1 bg-red-100 text-red-800 text-sm font-medium rounded-full">
+                    Cancels at period end
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Desktop Layout */}
-        <div className="hidden sm:flex items-center justify-between mb-3 lg:mb-4">
-          <div>
-            <h2 className="text-sm sm:text-base lg:text-lg font-medium text-black">
-              Your Plan
-            </h2>
-            {billingInfo?.subscription?.plan_id && (
-              <p className="text-black/60 text-sm">
-                {(() => {
-                  const plan = plans.find(
-                    (p) => p.id === billingInfo.subscription?.plan_id
-                  );
-                  return plan ? plan.name : "No active plan";
-                })()}
-              </p>
+        {/* Systematic Grid Layout - Desktop (matches Plan Details and Pricing below) */}
+        <div className="hidden sm:grid sm:grid-cols-1 md:grid-cols-2 gap-3 lg:gap-4 mb-3 lg:mb-4">
+          {/* Your Plan - Desktop */}
+          <div className="p-4 rounded-xl flex flex-col items-center justify-center text-center">
+            {billingInfo?.subscription?.plan_id ? (
+              <div className="space-y-2 w-full">
+                <div>
+                  <p className="text-xs text-black/60">Current Plan</p>
+                  <p className="font-medium text-sm">
+                    {(() => {
+                      const plan = plans.find(
+                        (p) => p.id === billingInfo.subscription?.plan_id
+                      );
+                      return plan ? plan.name : "No active plan";
+                    })()}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center">
+                <p className="text-black/60 text-xs">No active plan</p>
+              </div>
             )}
           </div>
-          {billingInfo?.subscription && (
-            <div className="flex items-center space-x-2">
-              <span
-                className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  billingInfo.subscription.status === "active"
-                    ? "bg-green-100 text-green-800"
-                    : "bg-yellow-100 text-yellow-800"
-                }`}
-              >
-                {billingInfo.subscription.status === "active" ? (
-                  <span className="flex items-center">
-                    <CheckCircle className="h-4 w-4 mr-1" /> Active
+          
+          {/* Status - Desktop */}
+          <div className="p-4 rounded-xl flex flex-col items-center justify-center text-center">
+            {billingInfo?.subscription ? (
+              <div className="space-y-2 w-full">
+                <div className="flex items-center justify-center space-x-2">
+                  <span
+                    className={`px-3 py-1 rounded-full text-sm font-medium ${
+                      billingInfo.subscription.status === "active"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-yellow-100 text-yellow-800"
+                    }`}
+                  >
+                    {billingInfo.subscription.status === "active" ? (
+                      <span className="flex items-center">
+                        <CheckCircle className="h-4 w-4 mr-1" /> Active
+                      </span>
+                    ) : (
+                      <span className="flex items-center">
+                        <Clock className="h-4 w-4 mr-1" /> Inactive
+                      </span>
+                    )}
                   </span>
-                ) : (
-                  <span className="flex items-center">
-                    <Clock className="h-4 w-4 mr-1" /> Inactive
-                  </span>
+                </div>
+                {billingInfo.subscription.cancel_at_period_end && (
+                  <div className="flex justify-center">
+                    <span className="px-3 py-1 bg-red-100 text-red-800 text-sm font-medium rounded-full">
+                      Cancels at period end
+                    </span>
+                  </div>
                 )}
-              </span>
-              {billingInfo.subscription.cancel_at_period_end && (
-                <span className="px-3 py-1 bg-red-100 text-red-800 text-sm font-medium rounded-full">
-                  Cancels at period end
-                </span>
-              )}
-            </div>
-          )}
+              </div>
+            ) : (
+              <div className="text-center">
+                <p className="text-black/60 text-xs">No subscription</p>
+              </div>
+            )}
+          </div>
         </div>
 
         {isLoading ? (
