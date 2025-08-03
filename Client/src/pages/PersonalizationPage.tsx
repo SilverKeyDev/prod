@@ -36,6 +36,8 @@ import { CSS } from "@dnd-kit/utilities";
 import { apiRequest } from "../lib/api";
 import { useData } from "../contexts/DataContext";
 import ImportantLocationsInput from "../components/ImportantLocationsInput";
+import Loading from "../components/Loading";
+import MiniLogo from "../components/MiniLogo";
 
 // Extend window interface for Google Maps
 declare global {
@@ -415,8 +417,6 @@ export default function PersonalizationPage() {
     }
   };
 
- 
-
   // Handle drag end for reordering
   const handleDragEnd = (event: DragEndEvent) => {
     try {
@@ -629,8 +629,8 @@ export default function PersonalizationPage() {
 
           // Report Customization - handle both nested and flat structures
           report_section_priorities: userPreferences.report_section_priorities
-            ? userPreferences.report_section_priorities.filter(
-                (key: string) => VALID_REPORT_SECTIONS.includes(key)
+            ? userPreferences.report_section_priorities.filter((key: string) =>
+                VALID_REPORT_SECTIONS.includes(key)
               )
             : userPreferences.report_customization?.report_section_priorities
             ? userPreferences.report_customization.report_section_priorities.filter(
@@ -998,10 +998,7 @@ export default function PersonalizationPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-off-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading your preferences...</p>
-        </div>
+        <Loading message="Loading your preferences..." />
       </div>
     );
   }
@@ -1844,11 +1841,14 @@ export default function PersonalizationPage() {
                 Important Locations
               </label>
               <p className="text-xs text-black/60 mb-4">
-                Add locations that are important for your commute (e.g., workplace, family home, gym)
+                Add locations that are important for your commute (e.g.,
+                workplace, family home, gym)
               </p>
               <ImportantLocationsInput
                 locations={formData.important_locations || []}
-                onChange={(locations) => updateFormData("important_locations", locations)}
+                onChange={(locations) =>
+                  updateFormData("important_locations", locations)
+                }
                 scriptsReady={scriptsReady}
                 isEditMode={isEditMode}
               />
@@ -2299,7 +2299,6 @@ export default function PersonalizationPage() {
                 )}
               </div>
             </div>
-
           </div>
         );
 
@@ -2371,9 +2370,7 @@ export default function PersonalizationPage() {
               <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
                 Report Customization
               </h2>
-              <p className="text-gray-600">
-                Loading report customization options...
-              </p>
+              <Loading message="Loading report customization options..." />
             </div>
           );
         }
@@ -2386,9 +2383,7 @@ export default function PersonalizationPage() {
               <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
                 Report Customization
               </h2>
-              <p className="text-gray-600">
-                Loading report customization options...
-              </p>
+              <Loading message="Loading report customization options..." />
             </div>
           );
         }
@@ -2529,7 +2524,8 @@ export default function PersonalizationPage() {
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-serif text-black">
+            <h1 className="text-2xl sm:text-3xl font-serif text-black flex items-center gap-2">
+              <MiniLogo size="md" />
               Personalization
             </h1>
             <p className="text-gray-600 mt-2">
@@ -2567,7 +2563,6 @@ export default function PersonalizationPage() {
             )}
           </div>
         </div>
-
 
         {/* Sidebar and Content Layout */}
         <div className="flex gap-8">
@@ -2706,6 +2701,6 @@ export default function PersonalizationPage() {
           </div>,
           document.body
         )}
-      </div>
-    );
+    </div>
+  );
 }

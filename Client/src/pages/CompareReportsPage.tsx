@@ -4,6 +4,7 @@ import { Check, Loader2, BarChart2, RefreshCw, Share, Settings, X, Download } fr
 import ErrorToast from "../components/ErrorToast";
 import SuccessToast from "../components/SuccessToast";
 import { useData } from "../contexts/DataContext";
+import MiniLogo from "../components/MiniLogo";
 
 // Custom scrollbar styles
 const scrollbarStyles = `
@@ -466,7 +467,8 @@ export default function CompareReportsPage() {
       <div className="max-w-7xl mx-auto mobile-padding py-6 sm:py-8">
         {/* Header */}
         <div className="text-center mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl font-serif text-black mb-3 sm:mb-4 px-2">
+          <h1 className="text-2xl sm:text-3xl font-serif text-black mb-3 sm:mb-4 px-2 flex items-center justify-center gap-2">
+            <MiniLogo size="md" />
             Compare Properties
           </h1>
           <p className="text-base sm:text-lg text-black/60 max-w-3xl mx-auto px-2">

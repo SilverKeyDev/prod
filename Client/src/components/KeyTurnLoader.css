@@ -1,0 +1,33 @@
+.key-loader-container {
+  display: inline-flex;
+  align-items: center;
+  gap: 15px;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.key {
+  animation: turnKey 1.6s infinite ease-in-out;
+  transform-origin: 20px 32px; /* pivot at center of key head */
+}
+
+.key-loader-text {
+  font-size: 0.875rem;
+  color: #6C584C;
+  font-family: inherit;
+  opacity: 0.9;
+  white-space: nowrap;
+}
+
+/* Key turning animation */
+@keyframes turnKey {
+  0% { transform: rotate(0deg); }
+  25% { transform: rotate(20deg); }
+  50% { transform: rotate(0deg); }
+  75% { transform: rotate(-20deg); }
+  100% { transform: rotate(0deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}

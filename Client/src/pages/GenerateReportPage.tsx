@@ -4,6 +4,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapPin, Loader2, AlertCircle, ChevronDown } from "lucide-react";
 import { useData } from "../contexts/DataContext";
+import MiniLogo from "../components/MiniLogo";
+import KeyTurnLoader from "../components/KeyTurnLoader";
 
 declare global {
   interface Window {
@@ -170,38 +172,54 @@ export default function GenerateReportPage() {
         console.log("👤 FRONTEND: User is not an agent, skipping client fetch");
         return;
       }
-      
-      console.log("🔄 FRONTEND: Agent detected, fetching client list for user:", userProfile.id);
+
+      console.log(
+        "🔄 FRONTEND: Agent detected, fetching client list for user:",
+        userProfile.id
+      );
       setClientsLoading(true);
       try {
         const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
         const idToken = localStorage.getItem("id_token");
-        
+
         console.log("📡 FRONTEND: Making API call to fetch clients");
-        const response = await fetch(`${apiBaseUrl}/api/v1/preferences/clients`, {
-          method: "GET",
-          headers: {
-            "Authorization": `Bearer ${idToken}`,
-            "Content-Type": "application/json",
-          },
-        });
-        
+        const response = await fetch(
+          `${apiBaseUrl}/api/v1/preferences/clients`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${idToken}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
         if (response.ok) {
           const data = await response.json();
           console.log("✅ FRONTEND: Client fetch response:", data);
           if (data.success && data.user_information) {
-            const clientList: ClientInfo[] = data.user_information.map((user: any) => ({
-              id: user.id,
-              name: user.name || user.email,
-              email: user.email,
-            }));
-            console.log("📋 FRONTEND: Processed client list:", clientList.map(c => ({ id: c.id, name: c.name })));
+            const clientList: ClientInfo[] = data.user_information.map(
+              (user: any) => ({
+                id: user.id,
+                name: user.name || user.email,
+                email: user.email,
+              })
+            );
+            console.log(
+              "📋 FRONTEND: Processed client list:",
+              clientList.map((c) => ({ id: c.id, name: c.name }))
+            );
             setClients(clientList);
           } else {
-            console.warn("⚠️ FRONTEND: API response missing expected data structure");
+            console.warn(
+              "⚠️ FRONTEND: API response missing expected data structure"
+            );
           }
         } else {
-          console.error("❌ FRONTEND: Failed to fetch clients:", response.statusText);
+          console.error(
+            "❌ FRONTEND: Failed to fetch clients:",
+            response.statusText
+          );
         }
       } catch (error) {
         console.error("💥 FRONTEND: Error fetching clients:", error);
@@ -210,17 +228,23 @@ export default function GenerateReportPage() {
         console.log("🏁 FRONTEND: Client fetch process completed");
       }
     };
-    
+
     fetchClients();
   }, [userProfile?.is_agent]);
 
   // Set default client selection to agent themselves
   useEffect(() => {
     if (userProfile?.is_agent && userProfile.id && !selectedClientId) {
-      console.log("🎯 FRONTEND: Setting default selectedClientId to agent's own ID:", userProfile.id);
+      console.log(
+        "🎯 FRONTEND: Setting default selectedClientId to agent's own ID:",
+        userProfile.id
+      );
       setSelectedClientId(userProfile.id);
     } else if (userProfile?.is_agent && selectedClientId) {
-      console.log("📌 FRONTEND: selectedClientId already set to:", selectedClientId);
+      console.log(
+        "📌 FRONTEND: selectedClientId already set to:",
+        selectedClientId
+      );
     } else if (!userProfile?.is_agent) {
       console.log("👤 FRONTEND: Non-agent user, no client selection needed");
     }
@@ -498,21 +522,40 @@ export default function GenerateReportPage() {
 
     // Prepare request body
     console.log("🔧 FRONTEND: Preparing request body...");
-    console.log("📊 FRONTEND: Current state - userProfile.is_agent:", userProfile?.is_agent);
-    console.log("📊 FRONTEND: Current state - selectedClientId:", selectedClientId);
-    console.log("📊 FRONTEND: Current state - userProfile.id:", userProfile?.id);
-    
-    const willSendUserId = userProfile?.is_agent && selectedClientId && selectedClientId !== userProfile?.id;
+    console.log(
+      "📊 FRONTEND: Current state - userProfile.is_agent:",
+      userProfile?.is_agent
+    );
+    console.log(
+      "📊 FRONTEND: Current state - selectedClientId:",
+      selectedClientId
+    );
+    console.log(
+      "📊 FRONTEND: Current state - userProfile.id:",
+      userProfile?.id
+    );
+
+    const willSendUserId =
+      userProfile?.is_agent &&
+      selectedClientId &&
+      selectedClientId !== userProfile?.id;
     console.log("🎯 FRONTEND: Will send user_id parameter:", willSendUserId);
-    
+
     if (willSendUserId) {
-      console.log("🔄 FRONTEND: Agent generating report for client:", selectedClientId);
+      console.log(
+        "🔄 FRONTEND: Agent generating report for client:",
+        selectedClientId
+      );
     } else if (userProfile?.is_agent) {
-      console.log("👤 FRONTEND: Agent generating report for themselves (no user_id sent)");
+      console.log(
+        "👤 FRONTEND: Agent generating report for themselves (no user_id sent)"
+      );
     } else {
-      console.log("👤 FRONTEND: Regular user generating report (no user_id sent)");
+      console.log(
+        "👤 FRONTEND: Regular user generating report (no user_id sent)"
+      );
     }
-    
+
     const requestBody = {
       address: trimmed,
       ...(reportType === "comparison" && {
@@ -525,7 +568,7 @@ export default function GenerateReportPage() {
         marketing_model: true,
       }),
     };
-    
+
     console.log("📤 FRONTEND: Final request body:", requestBody);
 
     console.log(`[GenerateReport] 📤 Request body:`, requestBody);
@@ -600,14 +643,17 @@ export default function GenerateReportPage() {
     !address.trim() ||
     !hasSelected ||
     !!loadError ||
-    (reportType === "comparison" && (!comparisonAddress.trim() || !hasSelectedComparison)) ||
+    (reportType === "comparison" &&
+      (!comparisonAddress.trim() || !hasSelectedComparison)) ||
     (userProfile?.is_agent && !selectedClientId);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-off-white to-white mobile-padding py-6 sm:py-8">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8 sm:mb-12">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-serif text-black mb-3 sm:mb-4 px-2">
+
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-serif text-black mb-3 sm:mb-4 px-2 flex items-center justify-center gap-2">
+            <MiniLogo size="md" />
             Generate Report
           </h1>
           <p className="text-base sm:text-lg text-black/60 font-light max-w-2xl mx-auto px-2">
@@ -645,8 +691,7 @@ export default function GenerateReportPage() {
               </label>
               {clientsLoading ? (
                 <div className="mobile-input text-sm flex items-center justify-center">
-                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                  Loading clients...
+                  <KeyTurnLoader message="Loading clients..." />
                 </div>
               ) : (
                 <CustomDropdown
@@ -659,14 +704,16 @@ export default function GenerateReportPage() {
                       label: `${userProfile?.name || userProfile?.email} (You)`,
                     },
                     // Then all clients
-                    ...clients.map(client => ({
+                    ...clients.map((client) => ({
                       value: client.id,
                       label: `${client.name} (${client.email})`,
-                    }))
+                    })),
                   ]}
                   placeholder="Select a client"
                   isOpen={isClientDropdownOpen}
-                  onToggle={() => setIsClientDropdownOpen(!isClientDropdownOpen)}
+                  onToggle={() =>
+                    setIsClientDropdownOpen(!isClientDropdownOpen)
+                  }
                   dropdownRef={clientDropdownRef}
                 />
               )}
@@ -728,8 +775,8 @@ export default function GenerateReportPage() {
                     insights into demographics, safety, amenities, schools,
                     transportation, and lifestyle factors. This personalized
                     report is tailored to your specific preferences and
-                    priorities, providing in-depth information to help you
-                    make an informed decision about the property and area.
+                    priorities, providing in-depth information to help you make
+                    an informed decision about the property and area.
                   </p>
                 </div>
               </div>
@@ -841,12 +888,7 @@ export default function GenerateReportPage() {
             }`}
           >
             {isGenerating ? (
-              <div className="flex items-center justify-center">
-                <Loader2 className="animate-spin h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-                <span className="text-sm sm:text-base">
-                  Generating Report...
-                </span>
-              </div>
+              <KeyTurnLoader message="Generating Report..." />
             ) : (
               <span className="text-sm sm:text-base">
                 {reportType === "comparison"

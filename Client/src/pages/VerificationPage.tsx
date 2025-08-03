@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Mail, ArrowLeft, RefreshCw } from "lucide-react";
 import { authApi } from "../lib/api";
+import MiniLogo from "../components/MiniLogo";
 
 interface LocationState {
   email?: string;
@@ -276,7 +277,8 @@ export default function VerificationPage() {
 
         {/* Header */}
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-serif text-black mb-2">
+          <h2 className="text-3xl font-serif text-black mb-2 flex items-center justify-center gap-2">
+            <MiniLogo size="md" />
             {activeStep === "email"
               ? "Verify your email"
               : "Enter verification code"}

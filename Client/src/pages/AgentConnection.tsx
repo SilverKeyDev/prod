@@ -1,10 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import {
-  X,
-  Search,
-  UserPlus,
-} from "lucide-react";
+import { X, Search, UserPlus } from "lucide-react";
 import { useData } from "../contexts/DataContext";
 
 interface Agent {
@@ -14,10 +10,6 @@ interface Agent {
   phone?: string;
   created_at?: string;
 }
-
-
-
-
 
 export default function PersonalizationPage() {
   const { userPreferences, refreshUserPreferences, userProfile } = useData();
@@ -35,7 +27,6 @@ export default function PersonalizationPage() {
   // Confirmation modal state
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [agentToRemove, setAgentToRemove] = useState<Agent | null>(null);
-
 
   // Fetch user's assigned agents
   const fetchUserAgents = async () => {
@@ -208,12 +199,10 @@ export default function PersonalizationPage() {
     setAgentToRemove(null);
   };
 
-
   // Refs for dropdown management
   const dropdownRefs = useRef<{
     [key: string]: React.RefObject<HTMLDivElement>;
   }>({});
-
 
   // Close all dropdowns when clicking outside
   useEffect(() => {
@@ -245,8 +234,6 @@ export default function PersonalizationPage() {
     fetchUserAgents();
   }, [refreshUserPreferences]);
 
-
-
   return (
     <div className="min-h-screen bg-off-white">
       <div className="max-w-7xl mx-auto mobile-padding">
@@ -256,9 +243,7 @@ export default function PersonalizationPage() {
             <h1 className="text-2xl sm:text-3xl font-serif text-black">
               Agent Connection
             </h1>
-            <p className="text-gray-600 mt-2">
-              Connect with your agent
-            </p>
+            <p className="text-gray-600 mt-2">Connect with your agent</p>
           </div>
         </div>
 
@@ -372,7 +357,6 @@ export default function PersonalizationPage() {
             </div>
           </div>
         )}
-
       </div>
 
       {/* Success Dialog */}

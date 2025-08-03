@@ -13,6 +13,8 @@ import {
   Target,
 } from "lucide-react";
 import { useData } from "../contexts/DataContext";
+import Loading from "../components/Loading";
+import MiniLogo from "../components/MiniLogo";
 
 // Custom scrollbar styles matching CompareReportsPage
 const scrollbarStyles = `
@@ -280,6 +282,7 @@ const ClientIntelPage: React.FC = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   // Share user preferences CSV
@@ -400,10 +403,7 @@ const ClientIntelPage: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-cream flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading client data...</p>
-        </div>
+        <Loading message="Loading client data..." />
       </div>
     );
   }
@@ -434,8 +434,8 @@ const ClientIntelPage: React.FC = () => {
           <div className="mb-8">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-serif text-black mb-3 sm:mb-4 flex items-center">
-                  <Users className="h-8 w-8 text-gold mr-3" />
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-serif text-black mb-3 sm:mb-4 flex items-center gap-2">
+                  <MiniLogo size="md" />
                   Client Intel
                 </h1>
                 <p className="mt-2 text-gray-600">
@@ -685,13 +685,7 @@ const ClientIntelPage: React.FC = () => {
             <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)] custom-scrollbar">
               {actionPlanLoading ? (
                 <div className="text-center py-12">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-olive mx-auto mb-4"></div>
-                  <h3 className="text-lg font-medium text-black mb-2">
-                    Generating Action Plan
-                  </h3>
-                  <p className="text-gray-600">
-                    AI is analyzing client preferences and creating a personalized plan...
-                  </p>
+                  <Loading message="Generating action plan..." />
                 </div>
               ) : actionPlanData ? (
                 <div className="space-y-6">

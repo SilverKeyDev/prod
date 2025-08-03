@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Mail, Lock, ArrowLeft } from "lucide-react";
 import { authApi } from "../lib/api";
+import Loading from "../components/Loading";
+import MiniLogo from "../components/MiniLogo";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -65,7 +67,10 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8 sm:mb-12">
-          <h2 className="text-2xl sm:text-3xl font-serif text-black mb-2">Welcome back</h2>
+          <h2 className="text-2xl sm:text-3xl font-serif text-black mb-2 flex items-center justify-center gap-2">
+            <MiniLogo size="md" />
+            Welcome back
+          </h2>
           <p className="text-black/60 font-light text-sm sm:text-base">
             Generate premium property reports with AI
           </p>

@@ -36,6 +36,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { apiRequest } from "../lib/api";
 import ImportantLocationsInput from "../components/ImportantLocationsInput";
+import KeyLogo from "../components/KeyLogo";
 
 // Extend window interface for Google Maps
 declare global {
@@ -2175,15 +2176,9 @@ export default function OnboardingPage() {
   return (
     <div className="max-w-7xl mx-auto mobile-padding">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-serif text-black mb-2">
-            Welcome to SilverKey
-          </h1>
-          <p className="text-sm sm:text-base text-black/60">
-            Information you give helps your agent and SilverKey serve you, but
-            all fields are optional!
-          </p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-4 sm:mt-6 mb-3 sm:mb-4">
+        <div className="flex items-center gap-3">
+          <KeyLogo size="sm" />
         </div>
         <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3 mt-4 sm:mt-0">
           <button
@@ -2198,6 +2193,14 @@ export default function OnboardingPage() {
             Step {currentStep + 1} of {STEPS.length}
           </span>
         </div>
+      </div>
+      
+      {/* Description */}
+      <div className="mb-4">
+        <p className="text-sm sm:text-base text-black/60">
+          Information you give helps your agent and SilverKey serve you, but
+          all fields are optional!
+        </p>
       </div>
 
       {/* Progress Bar */}

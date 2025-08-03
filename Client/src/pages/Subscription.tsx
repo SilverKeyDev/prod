@@ -17,6 +17,8 @@ import { useStripePayment, useStripePortal } from "../hooks/useStripePayment";
 import ErrorToast from "../components/ErrorToast";
 import SuccessToast from "../components/SuccessToast";
 import { useData } from "../contexts/DataContext";
+import Loading from "../components/Loading";
+import MiniLogo from "../components/MiniLogo";
 
 interface Plan {
   id: string;
@@ -171,7 +173,8 @@ export default function Subscription() {
 
       {/* Header */}
       <div className="text-center mb-4 lg:mb-6">
-        <h1 className="text-lg sm:text-xl lg:text-2xl font-serif text-black mb-2 lg:mb-3">
+        <h1 className="text-lg sm:text-xl lg:text-2xl font-serif text-black mb-2 lg:mb-3 flex items-center justify-center gap-2">
+          <MiniLogo size="md" />
           Subscription & Billing
         </h1>
         <p className="text-xs sm:text-sm lg:text-base text-black/60 max-w-2xl mx-auto">
@@ -272,7 +275,7 @@ export default function Subscription() {
 
         {isLoading ? (
           <div className="flex justify-center items-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-black" />
+            <Loading message="Loading billing information..." />
           </div>
         ) : billingError ? (
           <div className="bg-red-50 p-4 rounded-lg flex items-start">

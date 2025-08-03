@@ -8,6 +8,8 @@ import {
   X,
 } from "lucide-react";
 import { useData } from "../contexts/DataContext";
+import Loading from "../components/Loading";
+import MiniLogo from "../components/MiniLogo";
 
 interface ChatMessage {
   id: string;
@@ -428,7 +430,10 @@ export default function AIAssistant() {
           {/* Fixed Header */}
           <div className="p-4 border-b border-beige bg-white flex-shrink-0">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-medium text-black">AI Assistant</h2>
+              <h2 className="text-lg font-medium text-black flex items-center gap-2">
+                <MiniLogo size="sm" />
+                AI Assistant
+              </h2>
             </div>
             <p className="text-sm text-black/60">
               Ask questions about your future home
@@ -649,10 +654,7 @@ export default function AIAssistant() {
             <div className="flex-1 relative">
               {loadingPdf ? (
                 <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
-                  <div className="text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brown mx-auto mb-2"></div>
-                    <p className="text-sm text-gray-600">Loading PDF...</p>
-                  </div>
+                  <Loading message="Loading PDF..." />
                 </div>
               ) : (
                 <iframe

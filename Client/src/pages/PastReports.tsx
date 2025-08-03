@@ -13,6 +13,8 @@ import {
 import ErrorToast from "../components/ErrorToast";
 import SuccessToast from "../components/SuccessToast";
 import { useData } from "../contexts/DataContext";
+import Loading from "../components/Loading";
+import MiniLogo from "../components/MiniLogo";
 
 interface Report {
   id: string;
@@ -165,7 +167,7 @@ export default function PastReports() {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Use preloaded data from context
-  const { reports, refreshReports } = useData();
+  const { reports, reportsLoading, refreshReports } = useData();
 
   // Refresh data when page loads to ensure latest updates
   useEffect(() => {
@@ -612,10 +614,13 @@ export default function PastReports() {
         }
 
         const initialData = await initialResponse.json();
-        
+
         // LOG EVERY DETAIL OF INITIAL POLL RESPONSE
         console.log(`[PastReports] 📥 === INITIAL POLL RESPONSE DETAILS ===`);
-        console.log(`[PastReports] 📥 Raw JSON:`, JSON.stringify(initialData, null, 2));
+        console.log(
+          `[PastReports] 📥 Raw JSON:`,
+          JSON.stringify(initialData, null, 2)
+        );
         console.log(`[PastReports] 📥 === END INITIAL POLL RESPONSE ===`);
 
         if (initialData.success && initialData.report) {
@@ -699,7 +704,10 @@ export default function PastReports() {
           consecutiveErrors = 0; // Reset error counter on success
 
           // LOG EVERY DETAIL OF POLL RESPONSE
-          console.log(`[PastReports] 📥 Raw JSON:`, JSON.stringify(data, null, 2));
+          console.log(
+            `[PastReports] 📥 Raw JSON:`,
+            JSON.stringify(data, null, 2)
+          );
 
           if (!data.success) {
             console.error(`[PastReports] ❌ Poll API error:`, data.error);
@@ -885,6 +893,15 @@ export default function PastReports() {
     };
   }, []);
 
+  // Show loading state when reports are being loaded initially
+  if (reportsLoading) {
+    return (
+      <div className="min-h-screen bg-off-white flex items-center justify-center">
+        <Loading message="Loading your reports..." />
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-7xl mx-auto mobile-padding">
       {currentPdf && (
@@ -956,7 +973,8 @@ export default function PastReports() {
       )}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-serif text-black mb-2">
+          <h1 className="text-2xl sm:text-3xl font-serif text-black mb-2 flex items-center gap-2">
+            <MiniLogo size="md" />
             Past Reports
           </h1>
           <p className="text-sm sm:text-base text-black/60">

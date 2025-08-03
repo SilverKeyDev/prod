@@ -3,6 +3,7 @@ import { MapPin, Lock, X, Building2, BarChart2, Lightbulb, Loader2 } from "lucid
 import { Link } from "react-router-dom";
 import RippleBackground from "../components/RippleBackground";
 import RippleBackgroundMobile from "../components/RippleBackgroundMobile";
+import KeyLogo from "../components/KeyLogo";
 
 interface Suggestion {
   description: string;
@@ -116,7 +117,7 @@ export default function HomePage() {
       </div>
       {/* Header */}
       <header className="w-full flex justify-between items-center p-4 border-b border-gray-200 bg-white relative z-10 shadow-lg">
-        <h1 className="text-xl sm:text-2xl font-bold text-navy">SilverKey</h1>
+        <KeyLogo size="sm" />
         <div className="flex space-x-2 sm:space-x-4 text-sm font-medium">
           <Link to="/login" className="hover:underline px-2 py-1">
             Login

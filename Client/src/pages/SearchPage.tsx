@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Search, Filter, Heart, Bookmark } from "lucide-react";
 import mapStyles from "../hooks/mapStyling";
+import Loading from "../components/Loading";
+import MiniLogo from "../components/MiniLogo";
 
 interface SearchResult {
   id: string;
@@ -909,7 +911,7 @@ export default function SearchPage() {
         <div className="flex-1 flex flex-col">
           {/* Search Bar */}
           <div className="mobile-card mb-6 flex-shrink-0">
-            <h1>NOT YET IMPLEMENTED ONLY A DEMO</h1>
+            <p className="text-center text-sm text-red-600 mb-4">NOT YET IMPLEMENTED ONLY A DEMO</p>
           </div>
           <div className="mobile-card mb-6 flex-shrink-0">
             <div className="flex flex-col sm:flex-row gap-4">

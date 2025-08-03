@@ -5,6 +5,8 @@ import { authApi } from "../lib/api";
 import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 import { PasswordValidation, usePasswordValidation } from "../components/PasswordValidation";
+import Loading from "../components/Loading";
+import MiniLogo from "../components/MiniLogo";
 
 interface SignupPageProps {}
 
@@ -74,7 +76,8 @@ export default function SignupPage({}: SignupPageProps) {
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-6 sm:mb-8">
-          <h2 className="text-2xl sm:text-3xl font-serif text-black mb-2">
+          <h2 className="text-2xl sm:text-3xl font-serif text-black mb-2 flex items-center justify-center gap-2">
+            <MiniLogo size="md" />
             Create your account
           </h2>
         </div>
