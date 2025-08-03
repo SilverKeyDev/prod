@@ -7,7 +7,6 @@ import {
   Phone,
   Mail,
   User,
-  FileText,
   AlertCircle,
   X,
   Check,
@@ -442,49 +441,6 @@ const ClientIntelPage: React.FC = () => {
                 <p className="mt-2 text-gray-600">
                   Manage and analyze your clients' preferences and data
                 </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 max-w-4xl mx-auto">
-            <div className="card">
-              <div className="flex items-center">
-                <Users className="h-8 w-8 text-blue-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">
-                    Total Clients
-                  </p>
-                  <p className="text-2xl font-bold text-black">
-                    {clientData.length}
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="card">
-              <div className="flex items-center">
-                <FileText className="h-8 w-8 text-green-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">
-                    With Preferences
-                  </p>
-                  <p className="text-2xl font-bold text-black">
-                    {clientData.filter((c) => c.has_preferences).length}
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="card">
-              <div className="flex items-center">
-                <AlertCircle className="h-8 w-8 text-amber-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">
-                    Needs Setup
-                  </p>
-                  <p className="text-2xl font-bold text-black">
-                    {clientData.filter((c) => !c.has_preferences).length}
-                  </p>
-                </div>
               </div>
             </div>
           </div>

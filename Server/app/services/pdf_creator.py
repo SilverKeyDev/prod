@@ -24,7 +24,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from .s3_service import s3_service
 from urllib.parse import quote_plus
-from .graphic_generation import generate_pie_chart, generate_horizontal_bar_chart, generate_donut_chart, generate_vertical_lollipop_chart
+from .graphic_generation import generate_horizontal_bar_chart, generate_vertical_lollipop_chart, generate_commute_map
 from PIL import Image as PILImage, ImageEnhance
 
 SERP_API_KEY = os.getenv("SERP_API")
@@ -60,7 +60,7 @@ def _enhance_image_for_pdf(pil_img: PILImage.Image) -> PILImage.Image:
     pil_img = _adjust_contrast_and_brightness(pil_img, contrast=0.96, brightness=0.96)
     return pil_img
 
-def _create_pdf(report: dict, address: str, filename: str, comparison_address: str = None) -> str:
+def _create_pdf(report: dict, address: str, filename: str, comparison_address: str = None, user_preferences: dict = None) -> str:
     if not report:
         logger.error("No report data provided")
         raise ValueError("Report data is required")
@@ -233,6 +233,78 @@ def _create_pdf(report: dict, address: str, filename: str, comparison_address: s
 
             if isinstance(section_data, dict):
                 logger.info(f"📝 Processing {section} as nested dictionary")
+                
+                # Generate commute map for commute section
+                if section.lower() == "commute":
+                    logger.info("🗺️ Generating commute map for PDF...")
+                    try:
+                        # Get Google Maps API key from environment
+                        google_maps_api_key = os.getenv('GOOGLE_MAPS_API_KEY')
+                        if google_maps_api_key and user_preferences:
+                            # Debug: Log user preferences structure
+                            logger.info(f"🔍 Debug: user_preferences type: {type(user_preferences)}")
+                            logger.info(f"🔍 Debug: user_preferences content: {user_preferences}")
+                            if hasattr(user_preferences, 'important_locations'):
+                                logger.info(f"🔍 Debug: important_locations attribute: {user_preferences.important_locations}")
+                            elif isinstance(user_preferences, dict) and 'important_locations' in user_preferences:
+                                logger.info(f"🔍 Debug: important_locations key: {user_preferences['important_locations']}")
+                            else:
+                                logger.info(f"🔍 Debug: No important_locations found in user_preferences")
+                            
+                            # Generate commute map using primary address and important locations
+                            commute_map_result = generate_commute_map(address, user_preferences, google_maps_api_key)
+                            if commute_map_result:
+                                # Handle new return format with map buffer and travel times
+                                if isinstance(commute_map_result, dict):
+                                    map_buffer = commute_map_result.get('map_buffer')
+                                    travel_times = commute_map_result.get('travel_times', [])
+                                else:
+                                    # Backward compatibility - assume it's just the buffer
+                                    map_buffer = commute_map_result
+                                    travel_times = []
+                                
+                                # Add map image to PDF
+                                if map_buffer:
+                                    try:
+                                        map_image = _resize_image_to_fit(map_buffer, target_width=5.0 * inch, target_height=3.5 * inch)
+                                        if map_image:
+                                            elements.append(map_image)
+                                            elements.append(Paragraph("Commute Routes to Important Locations", styles["Caption"]))
+                                            elements.append(Spacer(1, 6))
+                                            logger.info("✅ Commute map added to PDF successfully")
+                                        else:
+                                            logger.warning("⚠️ Failed to resize commute map image")
+                                    except Exception as resize_error:
+                                        logger.error(f"❌ Error resizing commute map: {str(resize_error)}")
+                                
+                                # Add travel times as bulleted list
+                                if travel_times:
+                                    logger.info(f"📝 Adding {len(travel_times)} travel times to PDF as bulleted list")
+                                    elements.append(Paragraph("Travel Times by Car", styles["SectionSubHeader"]))
+                                    elements.append(Spacer(1, 4))
+                                    
+                                    # Create indented bulleted list
+                                    elements.append(Indenter(left=20))  # Indent the list
+                                    
+                                    for location in travel_times:
+                                        # Use HTML bullet point for proper rendering
+                                        travel_text = f"&bull; {location['name']} – {location['travel_time']}"
+                                        elements.append(Paragraph(travel_text, styles["Normal"]))
+                                        logger.info(f"📝 Added bulleted travel time: {travel_text}")
+                                    
+                                    elements.append(Spacer(1, 10))
+                                else:
+                                    logger.info("📝 No travel times to display")
+                            else:
+                                logger.warning("⚠️ Commute map generation returned None (no important locations or API error)")
+                        elif not google_maps_api_key:
+                            logger.warning("⚠️ GOOGLE_MAPS_API_KEY not found - skipping commute map generation")
+                        elif not user_preferences:
+                            logger.warning("⚠️ User preferences not provided - skipping commute map generation")
+                    except Exception as map_error:
+                        logger.error(f"❌ Error generating commute map: {str(map_error)}")
+                        # Don't fail the entire PDF if map generation fails
+                
                 elements.append(Indenter(left=1))
                 _add_section(elements, section_data, styles)
                 elements.append(Indenter(left=-1))
@@ -387,6 +459,11 @@ def _fetch_image_from_serp(prompt: str) -> str:
 
 def _resize_image_to_fit(img_data: BytesIO, target_width: float = 3.6 * inch, target_height: float = 2.8 * inch, is_chart: bool = False) -> Image:
     pil_img = PILImage.open(img_data)
+    
+    # Convert to RGB if in P or RGBA mode to prevent format issues
+    if pil_img.mode not in ("RGB", "L"):
+        logger.info(f"🖼️ Converting image from {pil_img.mode} mode to RGB")
+        pil_img = pil_img.convert("RGB")
     
     # Apply image enhancement pipeline to all images except charts/graphs
     if not is_chart:

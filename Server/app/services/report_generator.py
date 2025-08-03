@@ -1194,8 +1194,11 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                         "7. Do not include citations in the response\n"
                         "8. MANDATORY: You MUST provide ALL required fields in the schema. NEVER return null or omit any field. Every field must have a meaningful value.\n"
                         "9. MANDATORY: If you cannot find specific data for a field, provide a reasonable estimate or placeholder value instead of null.\n"
+                    
+                        "CRITICAL: Never return 'N/A' for any fields. Always provide a concrete answer, estimate, or remove the field entirely if unknown.\n"
+
                     )
-                }, {"role": "user", "content": f"Sell me the property at {address}"}
+                }, {"role": "user", "content": f"Sell me the property at {address} CRITICAL: Never return 'N/A' for any fields. Always provide a concrete answer, estimate, or remove the field entirely if unknown.\n"}
             ],
             "search_mode": "web",
             "reasoning_effort": "medium",
@@ -1250,8 +1253,11 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                         "7. Do not include citations in the response\n"
                         "8. MANDATORY: You MUST provide ALL required fields in the schema. NEVER return null or omit any field. Every field must have a meaningful value.\n"
                         "9. MANDATORY: If you cannot find specific data for a field, provide a reasonable estimate or placeholder value instead of null.\n"
+                    
+                        "CRITICAL: Never return 'N/A' for any fields. Always provide a concrete answer, estimate, or remove the field entirely if unknown.\n"
+
                     )
-                }, {"role": "user", "content": f"Sell me the property at {address}"}
+                }, {"role": "user", "content": f"Sell me the property at {address} CRITICAL: Never return 'N/A' for any fields. Always provide a concrete answer, estimate, or remove the field entirely if unknown.\n"}
             ],
             "search_mode": "web",
             "reasoning_effort": "medium",
@@ -1315,7 +1321,8 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                                 "FORMATTING:\n"
                                 "- _demographics: caption: percentage (total 100%)\n"
                                 "- _rating: EXACT number out of 10 (e.g., 6.8/10). NEVER use >=, <=, >, or < symbols. Always provide specific numeric ratings.\n\n"
-
+                                
+                                "CRITICAL: Never return 'N/A' for any fields. Always provide a concrete answer, estimate, or remove the field entirely if unknown.\n"
                             )
                         },
                         {
@@ -1324,6 +1331,7 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                                 f"Based on my priorities and user preferences, for each field, tell me which porperty is better, worse, or the same FOR ME:\n\n"
                                 f"Property A ({address}):\n{json.dumps(primary_report_json, indent=2)}\n\n"
                                 f"Property B ({comparison_address}):\n{json.dumps(comparison_report_json, indent=2)}"
+                                "CRITICAL: Never return 'N/A' for any fields. Always provide a concrete answer, estimate, or remove the field entirely if unknown.\n"
                             )
                         }
                     ],
@@ -1587,7 +1595,7 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
         # Generate PDF using the combined report (raw JSON sections only)
         logger.debug("🖨️ Calling PDF generation helper...")
         try:
-            _create_pdf(combined_report, address, filename, comparison_address)
+            _create_pdf(combined_report, address, filename, comparison_address, user_preferences)
             logger.info(f"✅ Report generation completed successfully for task {task_id}")
             return combined_report  # Return only the raw JSON sections
         except Exception as pdf_error:
