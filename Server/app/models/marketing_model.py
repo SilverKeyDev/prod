@@ -23,14 +23,12 @@ class Marketing(BaseModel):
     image_prompt_2: str = Field(...)
     
     model_config = {
-    "title": "SectionName",  # optional, improves clarity in schema
-    "populate_by_name": True,  # ensures alias fields can be populated
-    "extra": "ignore",  # Perplexity may return extra fields
-    "json_schema_extra": {
-        "$id": "section_name",  # optional but helpful for tracing
-        "description": "Structured output for the SectionName of the real estate report."
+        "populate_by_name": True,
+        "extra": "ignore",
+        "json_schema_extra": {
+            "description": "Compare nightlife and social scene quality. Analyze nightlife vibrancy, identify best entertainment venues, and assess dating opportunities. Winner based on social activity richness and venue quality."
+        }
     }
-}
 
 
     @model_validator(mode="before")

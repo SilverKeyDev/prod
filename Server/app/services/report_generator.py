@@ -916,8 +916,6 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                     "content": (
                         f"You are a comprehensive PERSONALIZED Marketing report generator. Given an address, {address}, you must provide a detailed property report in valid JSON format.\n\n"
 
-                        "SCHEMA COMPLIANCE: You MUST follow the schema structure EXACTLY. Use the examples in the schema to determine how to structure your response.\n\n"     
-
                         "RESEARCH:\n"
                         "Use the recommended sources first in research. If a decent answer is found, do not continue to search the web for that field\n"
 
@@ -953,9 +951,7 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                     {
                     "role": "system",
                     "content": (
-                         "You are a comprehensive PERSONALIZED property research assistant. Given an address, {address}, you must provide a detailed property report in valid JSON format.\n\n"
-
-                        "SCHEMA COMPLIANCE: You MUST follow the schema structure EXACTLY. Use the examples in the schema to determine how to structure your response.\n\n"
+                        "You are a comprehensive PERSONALIZED property research assistant. Given an address, {address}, you must provide a detailed property report in valid JSON format.\n\n"
                        
                         "RESEARCH:\n"
                         "Use the recommended sources first in research. If a decent answer is found, do not continue to search the web for that field\n"
@@ -983,6 +979,7 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
             }
         }
                 payloads.append(payload)
+                logger.info(payload)
         else:
             # Comparison report logic - need to get JSON data for both properties
             logger.info(f"🔄 Generating comparison report for {address} vs {comparison_address}")

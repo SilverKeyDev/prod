@@ -29,6 +29,14 @@ class ComparisonSummary(BaseModel):
     personalized_advice: ComparisonField = Field(...)
     deal_breaker_analysis: ComparisonField = Field(...)
     
+    model_config = {
+        "populate_by_name": True,
+        "extra": "ignore",
+        "json_schema_extra": {
+            "description": "Executive summary comparing two properties. Provide overall recommendation, analyze based on user priorities, score lifestyle fit, identify key tradeoffs, give personalized advice, and flag potential deal breakers."
+        }
+    }
+    
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
         """Generate personalized example based on user preferences"""
@@ -120,7 +128,13 @@ class NeighborhoodOverview(BaseModel):
     image_prompt: str = Field(...)
     image_prompt_2: str = Field(...)
 
-
+    model_config = {
+        "populate_by_name": True,
+        "extra": "ignore",
+        "json_schema_extra": {
+            "description": "Compare neighborhood character and culture. Analyze local culture, overall vibe, what each area is known for, community events, resident favorites, and potential concerns. Declare winner for each aspect."
+        }
+    }
     
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -210,6 +224,14 @@ class Safety(BaseModel):
     image_prompt: str = Field(...)
     image_prompt_2: str = Field(...)
     
+    model_config = {
+        "populate_by_name": True,
+        "extra": "ignore",
+        "json_schema_extra": {
+            "description": "Compare safety and security between two locations. Analyze crime ratings, identify areas of concern, assess police presence, and provide overall safety ratings. Winner should be based on objective safety data."
+        }
+    }
+    
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
         """Generate personalized example based on user preferences"""
@@ -283,6 +305,14 @@ class CultureAndEvents(BaseModel):
     image_prompt: str = Field(...)
     image_prompt_2: str = Field(...)
     
+    model_config = {
+        "populate_by_name": True,
+        "extra": "ignore",
+        "json_schema_extra": {
+            "description": "Compare cultural offerings and community events. Analyze local events calendar, seasonal activities, community engagement levels, and overall cultural vibrancy. Winner based on cultural richness and event variety."
+        }
+    }
+    
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
         """Generate personalized example based on user preferences"""
@@ -337,6 +367,14 @@ class SocialCharacter(BaseModel):
     social_rating: ComparisonField = Field(...)
     image_prompt: str = Field(...)
     image_prompt_2: str = Field(...)
+    
+    model_config = {
+        "populate_by_name": True,
+        "extra": "ignore",
+        "json_schema_extra": {
+            "description": "Compare social demographics and community character. Analyze income levels, religious diversity, cultural attitudes, and overall social atmosphere. Winner based on alignment with user's social preferences."
+        }
+    }
     
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -409,6 +447,14 @@ class Commute(BaseModel):
     traffic: ComparisonField = Field(...)
     walkability: ComparisonField = Field(...)
     
+    model_config = {
+        "populate_by_name": True,
+        "extra": "ignore",
+        "json_schema_extra": {
+            "description": "Compare transportation and commute options. Analyze commute times to key destinations, public transit availability, traffic patterns, and walkability scores. Winner based on transportation convenience."
+        }
+    }
+    
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
         """Generate personalized example based on user preferences"""
@@ -460,6 +506,14 @@ class FamilyFriendly(BaseModel):
     great_for_families: ComparisonField = Field(...)
     family_rating: ComparisonField = Field(...)
     
+    model_config = {
+        "populate_by_name": True,
+        "extra": "ignore",
+        "json_schema_extra": {
+            "description": "Compare family-friendliness between locations. Analyze child population density, family amenities availability, and overall family suitability. Winner based on family needs and child-friendly features."
+        }
+    }
+    
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
         """Generate personalized example based on user preferences"""
@@ -503,6 +557,14 @@ class NightlifeAndDating(BaseModel):
     dating_scene: ComparisonField = Field(...)
     image_prompt: str = Field(...)
     image_prompt_2: str = Field(...)
+    
+    model_config = {
+        "populate_by_name": True,
+        "extra": "ignore",
+        "json_schema_extra": {
+            "description": "Compare nightlife and social scene quality. Analyze nightlife vibrancy, identify best entertainment venues, and assess dating opportunities. Winner based on social activity richness and venue quality."
+        }
+    }
     
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -554,6 +616,14 @@ class Development(BaseModel):
     vacancy_or_decay: ComparisonField = Field(...)
     image_prompt: str = Field(...)
     image_prompt_2: str = Field(...)
+    
+    model_config = {
+        "populate_by_name": True,
+        "extra": "ignore",
+        "json_schema_extra": {
+            "description": "Compare development trends and future changes. Analyze planned developments, construction activity, gentrification indicators, and area stability. Winner based on positive development trajectory."
+        }
+    }
     
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -612,14 +682,12 @@ class EnvironmentUtilities(BaseModel):
     environmental_rating: ComparisonField = Field(...)
 
     model_config = {
-    "title": "SectionName",  # optional, improves clarity in schema
-    "populate_by_name": True,  # ensures alias fields can be populated
-    "extra": "ignore",  # Perplexity may return extra fields
-    "json_schema_extra": {
-        "$id": "section_name",  # optional but helpful for tracing
-        "description": "Structured output for the SectionName of the real estate report."
+        "populate_by_name": True,
+        "extra": "ignore",
+        "json_schema_extra": {
+            "description": "Compare two properties across all comparison dimensions. For each field, analyze location_a vs location_b, declare a winner, and provide specific reasoning based on the comparison criteria."
+        }
     }
-}
 
     
     @classmethod
@@ -693,6 +761,14 @@ class FinancialInformation(BaseModel):
     value_assessment: ComparisonField = Field(...)
     investment_potential: ComparisonField = Field(...)
     financial_rating: ComparisonField = Field(...)
+
+    model_config = {
+        "populate_by_name": True,
+        "extra": "ignore",
+        "json_schema_extra": {
+            "description": "Compare nightlife and social scene quality. Analyze nightlife vibrancy, identify best entertainment venues, and assess dating opportunities. Winner based on social activity richness and venue quality."
+        }
+    }
     
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -816,6 +892,14 @@ class ExtraTips(BaseModel):
     pet_friendly: ComparisonField = Field(...)
     cell_service_quality: ComparisonField = Field(...)
     other_notable_tips: ComparisonField = Field(...)
+
+    model_config = {
+        "populate_by_name": True,
+        "extra": "ignore",
+        "json_schema_extra": {
+            "description": "Compare nightlife and social scene quality. Analyze nightlife vibrancy, identify best entertainment venues, and assess dating opportunities. Winner based on social activity richness and venue quality."
+        }
+    }
     
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -895,14 +979,12 @@ class ComparisonReport(BaseModel):
         return values
 
     model_config = {
-    "title": "SectionName",  # optional, improves clarity in schema
-    "populate_by_name": True,  # ensures alias fields can be populated
-    "extra": "ignore",  # Perplexity may return extra fields
-    "json_schema_extra": {
-        "$id": "section_name",  # optional but helpful for tracing
-        "description": "Structured output for the SectionName of the real estate report."
+        "populate_by_name": True,
+        "extra": "ignore",
+        "json_schema_extra": {
+            "description": "Compare two properties across all comparison dimensions. For each field, analyze location_a vs location_b, declare a winner, and provide specific reasoning based on the comparison criteria."
+        }
     }
-}
 
 
     # ✅ Modern init with PrivateAttr

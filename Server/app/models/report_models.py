@@ -7,28 +7,10 @@ logger = logging.getLogger(__name__)
 
 
 class LifestyleDNA(BaseModel):
-    """
-    The LifestyleDNA model scores how strongly a neighborhood supports or reflects various lifestyle archetypes.
-    
-    Each value is an **independent score from 0 to 100**, not a percentage or composition. 
-
-    Use the **entire range**:
-    - `100` = Extremely aligned with this lifestyle (this lifestyle defines the area)
-    - `0` = Not at all aligned (the lifestyle is essentially absent)
-
-    These scores should be bold and decisive — do **not** rate everything as “moderate.” 
-    Most neighborhoods excel in some lifestyles and completely lack others. Reflect that contrast clearly.
-    """
-
     model_config = {
-    "title": "SectionName",  # optional, improves clarity in schema
-    "populate_by_name": True,  # ensures alias fields can be populated
-    "extra": "ignore",  # Perplexity may return extra fields
-    "json_schema_extra": {
-        "$id": "section_name",  # optional but helpful for tracing
-        "description": "Structured output for the SectionName of the real estate report."
+        "populate_by_name": True,  # ensures alias fields can be populated
+        "extra": "ignore",  # Perplexity may return extra fields
     }
-}
 
     Artistic: int = Field(
         ge=0, le=100,
@@ -138,14 +120,9 @@ class NeighborhoodOverview(BaseModel):
     image_prompt_2: str = Field(...)
 
     model_config = {
-    "title": "SectionName",  # optional, improves clarity in schema
-    "populate_by_name": True,  # ensures alias fields can be populated
-    "extra": "ignore",  # Perplexity may return extra fields
-    "json_schema_extra": {
-        "$id": "section_name",  # optional but helpful for tracing
-        "description": "Structured output for the SectionName of the real estate report."
+        "populate_by_name": True,  # ensures alias fields can be populated
+        "extra": "ignore",  # Perplexity may return extra fields
     }
-}
 
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -189,14 +166,9 @@ class Safety(BaseModel):
     )
 
     model_config = {
-    "title": "SectionName",  # optional, improves clarity in schema
-    "populate_by_name": True,  # ensures alias fields can be populated
-    "extra": "ignore",  # Perplexity may return extra fields
-    "json_schema_extra": {
-        "$id": "section_name",  # optional but helpful for tracing
-        "description": "Structured output for the SectionName of the real estate report."
+        "populate_by_name": True,  # ensures alias fields can be populated
+        "extra": "ignore",  # Perplexity may return extra fields
     }
-}
     
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -238,14 +210,9 @@ class CultureAndEvents(BaseModel):
     image_prompt_2: str = Field(...)
     
     model_config = {
-    "title": "SectionName",  # optional, improves clarity in schema
-    "populate_by_name": True,  # ensures alias fields can be populated
-    "extra": "ignore",  # Perplexity may return extra fields
-    "json_schema_extra": {
-        "$id": "section_name",  # optional but helpful for tracing
-        "description": "Structured output for the SectionName of the real estate report."
+        "populate_by_name": True,  # ensures alias fields can be populated
+        "extra": "ignore",  # Perplexity may return extra fields
     }
-}
     
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -286,14 +253,9 @@ class SocialCharacter(BaseModel):
     image_prompt_2: str = Field(...)
     
     model_config = {
-    "title": "SectionName",  # optional, improves clarity in schema
-    "populate_by_name": True,  # ensures alias fields can be populated
-    "extra": "ignore",  # Perplexity may return extra fields
-    "json_schema_extra": {
-        "$id": "section_name",  # optional but helpful for tracing
-        "description": "Structured output for the SectionName of the real estate report."
+        "populate_by_name": True,  # ensures alias fields can be populated
+        "extra": "ignore",  # Perplexity may return extra fields
     }
-}
     
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -331,14 +293,9 @@ class Restaurant(BaseModel):
     what_to_try: Optional[str] = Field(None)
     
     model_config = {
-    "title": "SectionName",  # optional, improves clarity in schema
-    "populate_by_name": True,  # ensures alias fields can be populated
-    "extra": "ignore",  # Perplexity may return extra fields
-    "json_schema_extra": {
-        "$id": "section_name",  # optional but helpful for tracing
-        "description": "Structured output for the SectionName of the real estate report."
+        "populate_by_name": True,  # ensures alias fields can be populated
+        "extra": "ignore",  # Perplexity may return extra fields
     }
-}
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any]) -> Dict[str, Any]:
         """Generate example Restaurant data based on user preferences."""
@@ -383,14 +340,9 @@ class Activity(BaseModel):
     description: str = Field(...)
     
     model_config = {
-    "title": "SectionName",  # optional, improves clarity in schema
-    "populate_by_name": True,  # ensures alias fields can be populated
-    "extra": "ignore",  # Perplexity may return extra fields
-    "json_schema_extra": {
-        "$id": "section_name",  # optional but helpful for tracing
-        "description": "Structured output for the SectionName of the real estate report."
+        "populate_by_name": True,  # ensures alias fields can be populated
+        "extra": "ignore",  # Perplexity may return extra fields
     }
-}
 
     
     @classmethod
@@ -436,14 +388,9 @@ class Park(BaseModel):
     features: str = Field(...)
     
     model_config = {
-    "title": "SectionName",  # optional, improves clarity in schema
-    "populate_by_name": True,  # ensures alias fields can be populated
-    "extra": "ignore",  # Perplexity may return extra fields
-    "json_schema_extra": {
-        "$id": "section_name",  # optional but helpful for tracing
-        "description": "Structured output for the SectionName of the real estate report."
+        "populate_by_name": True,  # ensures alias fields can be populated
+        "extra": "ignore",  # Perplexity may return extra fields
     }
-}
 
     
     @classmethod
@@ -488,14 +435,9 @@ class Amenity(BaseModel):
     vibe: Optional[str] = Field(None)
     
     model_config = {
-    "title": "SectionName",  # optional, improves clarity in schema
-    "populate_by_name": True,  # ensures alias fields can be populated
-    "extra": "ignore",  # Perplexity may return extra fields
-    "json_schema_extra": {
-        "$id": "section_name",  # optional but helpful for tracing
-        "description": "Structured output for the SectionName of the real estate report."
+        "populate_by_name": True,  # ensures alias fields can be populated
+        "extra": "ignore",  # Perplexity may return extra fields
     }
-}
 
     
     @classmethod
@@ -542,14 +484,9 @@ class LocalAmenities(BaseModel):
     grocery_store: Amenity = Field(...)
     
     model_config = {
-    "title": "SectionName",  # optional, improves clarity in schema
-    "populate_by_name": True,  # ensures alias fields can be populated
-    "extra": "ignore",  # Perplexity may return extra fields
-    "json_schema_extra": {
-        "$id": "section_name",  # optional but helpful for tracing
-        "description": "Structured output for the SectionName of the real estate report."
+        "populate_by_name": True,  # ensures alias fields can be populated
+        "extra": "ignore",  # Perplexity may return extra fields
     }
-}
 
     
     @classmethod
@@ -620,14 +557,9 @@ class Commute(BaseModel):
     walkability: str = Field(...)
     
     model_config = {
-    "title": "SectionName",  # optional, improves clarity in schema
-    "populate_by_name": True,  # ensures alias fields can be populated
-    "extra": "ignore",  # Perplexity may return extra fields
-    "json_schema_extra": {
-        "$id": "section_name",  # optional but helpful for tracing
-        "description": "Structured output for the SectionName of the real estate report."
+        "populate_by_name": True,  # ensures alias fields can be populated
+        "extra": "ignore",  # Perplexity may return extra fields
     }
-}
 
     
     @classmethod
@@ -677,14 +609,9 @@ class FamilyFriendly(BaseModel):
     family_rating: str = Field(...)
     
     model_config = {
-    "title": "SectionName",  # optional, improves clarity in schema
-    "populate_by_name": True,  # ensures alias fields can be populated
-    "extra": "ignore",  # Perplexity may return extra fields
-    "json_schema_extra": {
-        "$id": "section_name",  # optional but helpful for tracing
-        "description": "Structured output for the SectionName of the real estate report."
+        "populate_by_name": True,  # ensures alias fields can be populated
+        "extra": "ignore",  # Perplexity may return extra fields
     }
-}
 
     
     @classmethod
@@ -731,14 +658,9 @@ class NightlifeAndDating(BaseModel):
     image_prompt_2: str = Field(...)
     
     model_config = {
-    "title": "SectionName",  # optional, improves clarity in schema
-    "populate_by_name": True,  # ensures alias fields can be populated
-    "extra": "ignore",  # Perplexity may return extra fields
-    "json_schema_extra": {
-        "$id": "section_name",  # optional but helpful for tracing
-        "description": "Structured output for the SectionName of the real estate report."
+        "populate_by_name": True,  # ensures alias fields can be populated
+        "extra": "ignore",  # Perplexity may return extra fields
     }
-}
 
     
     @classmethod
@@ -798,14 +720,9 @@ class Development(BaseModel):
     image_prompt_2: str = Field(...)
     
     model_config = {
-    "title": "SectionName",  # optional, improves clarity in schema
-    "populate_by_name": True,  # ensures alias fields can be populated
-    "extra": "ignore",  # Perplexity may return extra fields
-    "json_schema_extra": {
-        "$id": "section_name",  # optional but helpful for tracing
-        "description": "Structured output for the SectionName of the real estate report."
+        "populate_by_name": True,  # ensures alias fields can be populated
+        "extra": "ignore",  # Perplexity may return extra fields
     }
-}
 
     
     @classmethod
@@ -868,26 +785,16 @@ class UtilityCosts(BaseModel):
     trash: Optional[str] = Field(None, description="Average monthly trash/recycling cost")
     
     model_config = {
-    "title": "SectionName",  # optional, improves clarity in schema
-    "populate_by_name": True,  # ensures alias fields can be populated
-    "extra": "ignore",  # Perplexity may return extra fields
-    "json_schema_extra": {
-        "$id": "section_name",  # optional but helpful for tracing
-        "description": "Structured output for the SectionName of the real estate report."
+        "populate_by_name": True,  # ensures alias fields can be populated
+        "extra": "ignore",  # Perplexity may return extra fields
     }
-}
 
 
 class EnvironmentUtilities(BaseModel):
     model_config = {
-    "title": "SectionName",  # optional, improves clarity in schema
-    "populate_by_name": True,  # ensures alias fields can be populated
-    "extra": "ignore",  # Perplexity may return extra fields
-    "json_schema_extra": {
-        "$id": "section_name",  # optional but helpful for tracing
-        "description": "Structured output for the SectionName of the real estate report."
+        "populate_by_name": True,  # ensures alias fields can be populated
+        "extra": "ignore",  # Perplexity may return extra fields
     }
-}
 
         
     air_quality: str = Field(...)
@@ -960,14 +867,9 @@ class FinancialInformation(BaseModel):
     financial_rating: str = Field(...)
     
     model_config = {
-    "title": "SectionName",  # optional, improves clarity in schema
-    "populate_by_name": True,  # ensures alias fields can be populated
-    "extra": "ignore",  # Perplexity may return extra fields
-    "json_schema_extra": {
-        "$id": "section_name",  # optional but helpful for tracing
-        "description": "Structured output for the SectionName of the real estate report."
+        "populate_by_name": True,  # ensures alias fields can be populated
+        "extra": "ignore",  # Perplexity may return extra fields
     }
-}
 
     
     @classmethod
@@ -1020,14 +922,9 @@ class SchoolInfo(BaseModel):
     known_for: str = Field(...)
     
     model_config = {
-    "title": "SectionName",  # optional, improves clarity in schema
-    "populate_by_name": True,  # ensures alias fields can be populated
-    "extra": "ignore",  # Perplexity may return extra fields
-    "json_schema_extra": {
-        "$id": "section_name",  # optional but helpful for tracing
-        "description": "Structured output for the SectionName of the real estate report."
+        "populate_by_name": True,  # ensures alias fields can be populated
+        "extra": "ignore",  # Perplexity may return extra fields
     }
-}
 
     
     @classmethod
@@ -1062,14 +959,9 @@ class Schools(BaseModel):
     schools: List[SchoolInfo] = Field(..., description="List of schools in the area")
     
     model_config = {
-    "title": "SectionName",  # optional, improves clarity in schema
-    "populate_by_name": True,  # ensures alias fields can be populated
-    "extra": "ignore",  # Perplexity may return extra fields
-    "json_schema_extra": {
-        "$id": "section_name",  # optional but helpful for tracing
-        "description": "Structured output for the SectionName of the real estate report."
+        "populate_by_name": True,  # ensures alias fields can be populated
+        "extra": "ignore",  # Perplexity may return extra fields
     }
-}
 
     
     @classmethod
@@ -1148,14 +1040,9 @@ class ExtraTips(BaseModel):
     other_notable_tips: str = Field(...)
     
     model_config = {
-    "title": "SectionName",  # optional, improves clarity in schema
-    "populate_by_name": True,  # ensures alias fields can be populated
-    "extra": "ignore",  # Perplexity may return extra fields
-    "json_schema_extra": {
-        "$id": "section_name",  # optional but helpful for tracing
-        "description": "Structured output for the SectionName of the real estate report."
+        "populate_by_name": True,  # ensures alias fields can be populated
+        "extra": "ignore",  # Perplexity may return extra fields
     }
-}
 
     
     @classmethod
