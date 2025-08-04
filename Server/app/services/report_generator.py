@@ -1067,7 +1067,7 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                 
                 try:
                     # Debug: Check payload type first
-                    logger.debug(f"🔍 Section {section_name}: Payload: {payload}")
+                    logger.debug(payload)
                     
                     # Validate payload is a dictionary
                     if not isinstance(payload, dict):

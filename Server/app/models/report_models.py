@@ -20,6 +20,16 @@ class LifestyleDNA(BaseModel):
     Most neighborhoods excel in some lifestyles and completely lack others. Reflect that contrast clearly.
     """
 
+    model_config = {
+    "title": "SectionName",  # optional, improves clarity in schema
+    "populate_by_name": True,  # ensures alias fields can be populated
+    "extra": "ignore",  # Perplexity may return extra fields
+    "json_schema_extra": {
+        "$id": "section_name",  # optional but helpful for tracing
+        "description": "Structured output for the SectionName of the real estate report."
+    }
+}
+
     Artistic: int = Field(
         ge=0, le=100,
         description="How emblematic the area is of an artistic or creative lifestyle. "
@@ -74,16 +84,6 @@ class LifestyleDNA(BaseModel):
                     "Score high for density, walkability, transit, and city energy. "
                     "Score 0 if it's rural, spread out, or car-centric."
     )
-
-    model_config = {
-    "title": "SectionName",  # optional, improves clarity in schema
-    "populate_by_name": True,  # ensures alias fields can be populated
-    "extra": "ignore",  # Perplexity may return extra fields
-    "json_schema_extra": {
-        "$id": "section_name",  # optional but helpful for tracing
-        "description": "Structured output for the SectionName of the real estate report."
-    }
-}
 
     @classmethod
     def sanitize_and_validate(cls, data: dict[str, Any]) -> "LifestyleDNA":
@@ -187,7 +187,7 @@ class Safety(BaseModel):
         ...,
         example="Street-level photo of safety infrastructure in this neighborhood: well-lit streets, security cameras, police patrol presence, and neighborhood watch signs around {address}"
     )
-    
+
     model_config = {
     "title": "SectionName",  # optional, improves clarity in schema
     "populate_by_name": True,  # ensures alias fields can be populated
@@ -1226,13 +1226,8 @@ class FullReport(BaseModel):
     _prioritized_fields: List[str] = PrivateAttr(default=[])
 
     model_config = {
-    "title": "SectionName",  # optional, improves clarity in schema
     "populate_by_name": True,  # ensures alias fields can be populated
     "extra": "ignore",  # Perplexity may return extra fields
-    "json_schema_extra": {
-        "$id": "section_name",  # optional but helpful for tracing
-        "description": "Structured output for the SectionName of the real estate report."
-    }
 }
 
 
