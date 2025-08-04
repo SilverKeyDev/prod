@@ -16,7 +16,6 @@ class Marketing(BaseModel):
     known_for: str = Field(...)
     community_events: str = Field(...)
     what_people_love: str = Field(...)
-    neighborhood_rating: str = Field(...)
     seasonal_trends: str = Field(...)
     
     # Secondary community images
@@ -91,7 +90,6 @@ class Marketing(BaseModel):
             "known_for": "Award-winning local restaurants, beautiful tree-lined streets, strong sense of community, and that perfect balance of convenience and charm that makes you never want to leave",
             "community_events": events_focus,
             "what_people_love": f"{love_reasons}, plus the genuine sense of belonging and community pride that's rare to find in today's world",
-            "neighborhood_rating": "9.2/10",
             "seasonal_trends": seasonal_focus,
             "community_image_1": f"Vibrant community gathering showing residents enjoying {events_focus.split(',')[0].strip().lower()}, capturing the {vibe_words.lower()} atmosphere and genuine community connections",
             "community_image_2": f"Scenic view of the neighborhood's most beloved local amenities and gathering spaces, showcasing the {culture_focus.split(' with ')[0]} that makes this area so special"
@@ -131,7 +129,6 @@ class Marketing(BaseModel):
             "known_for": "Highlight the neighborhood's unique selling propositions and 'claim to fame.' Lead with the most marketable features that create buyer excitement and differentiate this area from competitors. Focus on what makes people choose this neighborhood over others.",
             "community_events": f"Showcase events and activities that demonstrate the lifestyle buyers want. Emphasize {event_focus} that show community vibrancy and help buyers imagine their social life and engagement in this neighborhood.",
             "what_people_love": f"Create emotional selling points that generate desire and urgency. Use language that helps buyers imagine themselves enjoying these benefits and feeling like they've found their perfect community. Focus on {lifestyle_focus} benefits.",
-            "neighborhood_rating": "Provide a confidence-building score (X.X/10) that validates the buyer's choice. Use reputable sources and weight factors that matter most to your target buyer profile. This score should make them feel smart about their decision.",
             "seasonal_trends": f"Paint a picture of year-round enjoyment and community engagement. Show how the neighborhood stays vibrant across all seasons with activities that appeal to buyers interested in {lifestyle_focus}. Make every season sound exciting and fulfilling.",
             "community_image_1": f"Generate an engaging photo of community life that showcases {event_focus}. Capture the authentic neighborhood atmosphere and the type of social connections buyers can expect. Show real community engagement and belonging.",
             "community_image_2": f"Create a scenic image of the neighborhood's most beloved amenities and spaces. Highlight features that support {lifestyle_focus} and demonstrate why residents love living here. Show the quality of life this neighborhood offers."

@@ -113,3 +113,28 @@ def get_age_distribution(address: str) -> dict:
         print(f"\n❌ Failed to get age distribution for: {address}")
         print(f"🛠️ Reason: {e}")
         return {"error": str(e), "address": address}
+
+def get_population_total(address: str) -> dict:
+    """Returns the total population for a given address using Census ZIP data."""
+    try:
+        print("\n🌟 Starting Total Population Lookup 🌟\n")
+        print(f"🏠 Address: {address}\n")
+
+        zip_code = get_zip_from_address(address)
+        raw_data = fetch_age_table_by_zip(zip_code)
+
+        header = raw_data[0]
+        row = raw_data[1]
+        row_dict = dict(zip(header, row))
+        total_population = int(float(row_dict["S0101_C01_001E"]))
+
+        print(f"👥 Total Population in ZIP {zip_code}: {total_population}")
+
+        return {
+            "total_population": total_population
+        }
+
+    except Exception as e:
+        print(f"\n❌ Failed to get population for: {address}")
+        print(f"🛠️ Reason: {e}")
+        return {"error": str(e), "address": address}

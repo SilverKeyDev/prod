@@ -9,6 +9,7 @@ import {
   ChevronDown,
   Share,
   RefreshCw,
+  X,
 } from "lucide-react";
 import ErrorToast from "../components/ErrorToast";
 import SuccessToast from "../components/SuccessToast";
@@ -85,9 +86,16 @@ const ProgressBar: React.FC<ProgressBarProps> = ({ startTime }) => {
 interface PdfModalProps {
   currentPdf: string | null;
   onClose: () => void;
+  onShare?: () => void;
+  reports: Report[];
 }
 
-const PdfModal: React.FC<PdfModalProps> = ({ currentPdf, onClose }) => {
+const PdfModal: React.FC<PdfModalProps> = ({
+  currentPdf,
+  onClose,
+  onShare,
+  reports,
+}) => {
   const modalRef = useRef<HTMLDivElement>(null);
 
   // Log mount/unmount of the component
@@ -118,20 +126,111 @@ const PdfModal: React.FC<PdfModalProps> = ({ currentPdf, onClose }) => {
     };
   }, [onClose]);
 
+  // Get report title from the current PDF URL
+  const getReportTitle = () => {
+    if (!currentPdf) return "Property Report";
+
+    // Find the report that matches the current PDF URL
+    const matchingReport = reports.find(
+      (report) =>
+        report.pdfUrl === currentPdf ||
+        (report.s3Key && currentPdf.includes(report.s3Key))
+    );
+
+    if (matchingReport) {
+      // Use the same formatting method as report cards
+      const formattedAddress = matchingReport.address.replace(/_/g, " ");
+      return formattedAddress
+        .substring(0, formattedAddress.length - 18)
+        .trim();
+    }
+
+    // Fallback: extract address from URL if possible
+    try {
+      const urlParts = currentPdf.split("/");
+      const filename = urlParts[urlParts.length - 1];
+      if (filename.includes(".pdf")) {
+        // Use the same formatting method as report cards
+        const formattedAddress = filename.replace(".pdf", "").replace(/_/g, " ");
+        return formattedAddress
+          .substring(0, formattedAddress.length - 18)
+          .trim();
+      }
+    } catch (e) {
+      console.warn("Could not extract title from PDF URL");
+    }
+
+    return "Property Report";
+  };
+
+  const handleDownload = () => {
+    if (currentPdf) {
+      const link = document.createElement("a");
+      link.href = currentPdf;
+      link.download = `${getReportTitle()}.pdf`;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
   if (!currentPdf) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-2 sm:p-4">
       <div
         ref={modalRef}
-        className="bg-white rounded-lg w-full max-w-4xl h-[95vh] sm:h-[90vh] flex flex-col"
+        className="bg-white rounded-lg w-full max-w-5xl h-[95vh] sm:h-[90vh] flex flex-col shadow-2xl border border-brown/20"
         role="dialog"
         aria-modal="true"
       >
-        <div className="flex-1 overflow-hidden">
+        {/* Gold Header with Address and Actions */}
+        <div className="bg-gradient-to-r from-brown to-brown/90 px-4 py-3 rounded-t-lg flex items-center justify-between">
+          {/* Address Title */}
+          <h2 className="text-white font-semibold text-lg truncate">
+            {getReportTitle()}
+          </h2>
+
+          {/* Action Buttons */}
+          <div className="flex items-center space-x-2">
+            {/* Download Button */}
+            <button
+              onClick={handleDownload}
+              className="p-2 hover:bg-white/10 rounded-lg transition-colors duration-200 group"
+              title="Download PDF"
+            >
+              <Download className="w-5 h-5 text-white group-hover:scale-110 transition-transform duration-200" />
+            </button>
+
+            {/* Share Button */}
+            {onShare && (
+              <button
+                onClick={onShare}
+                className="p-2 hover:bg-white/10 rounded-lg transition-colors duration-200 group"
+                title="Share Report"
+              >
+                <Share className="w-5 h-5 text-white group-hover:scale-110 transition-transform duration-200" />
+              </button>
+            )}
+
+            {/* Close Button */}
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-white/10 rounded-lg transition-colors duration-200 group"
+              title="Close"
+            >
+              <X className="w-5 h-5 text-white group-hover:scale-110 transition-transform duration-200" />
+            </button>
+          </div>
+        </div>
+
+        {/* PDF Content */}
+        <div className="flex-1 overflow-hidden bg-beige/5">
           <iframe
-            src={`${currentPdf}#toolbar=1&navpanes=1&view=FitH`}
-            className="w-full h-full border-0"
+            src={`${currentPdf}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
+            className="w-full h-full border-0 rounded-b-lg"
             title="PDF Viewer"
             onLoad={() => {
               console.log(
@@ -144,11 +243,19 @@ const PdfModal: React.FC<PdfModalProps> = ({ currentPdf, onClose }) => {
               const iframe = e.target as HTMLIFrameElement;
               if (iframe?.contentDocument?.body) {
                 iframe.contentDocument.body.innerHTML = `
-                <div style="padding: 20px; text-align: center;">
-                  <p>Unable to load PDF preview.</p>
-                  <a href="${currentPdf}" download class="text-blue-600 underline">
-                    Click here to download the PDF
-                  </a>
+                <div style="padding: 40px; text-align: center; font-family: system-ui, -apple-system, sans-serif; background: #faf9f7;">
+                  <div style="max-width: 400px; margin: 0 auto; padding: 30px; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(164, 117, 81, 0.1); border: 1px solid #D4AF7F;">
+                    <div style="width: 60px; height: 60px; background: #A47551; border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center;">
+                      <svg width="24" height="24" fill="white" viewBox="0 0 24 24">
+                        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" />
+                      </svg>
+                    </div>
+                    <h3 style="color: #A47551; margin: 0 0 12px 0; font-size: 18px; font-weight: 600;">Unable to load PDF preview</h3>
+                    <p style="color: #666; margin: 0 0 20px 0; line-height: 1.5;">The PDF couldn't be displayed in the browser. You can download it directly instead.</p>
+                    <a href="${currentPdf}" download style="display: inline-block; background: #A47551; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 500; transition: background 0.2s;" onmouseover="this.style.background='#8B5A3C'" onmouseout="this.style.background='#A47551'">
+                      Download PDF
+                    </a>
+                  </div>
                 </div>
               `;
               }
@@ -893,6 +1000,22 @@ export default function PastReports() {
     };
   }, []);
 
+  // Handler for sharing the current PDF from modal - must be before early return
+  const handleShareCurrentPdf = useCallback(() => {
+    if (!currentPdf) return;
+
+    // Find the report that matches the current PDF URL
+    const matchingReport = reports.find(
+      (report) =>
+        report.pdfUrl === currentPdf ||
+        (report.s3Key && currentPdf.includes(report.s3Key))
+    );
+
+    if (matchingReport) {
+      handleShareReport(matchingReport);
+    }
+  }, [currentPdf, reports, handleShareReport]);
+
   // Show loading state when reports are being loaded initially
   if (reportsLoading) {
     return (
@@ -905,7 +1028,12 @@ export default function PastReports() {
   return (
     <div className="max-w-7xl mx-auto mobile-padding">
       {currentPdf && (
-        <PdfModal currentPdf={currentPdf} onClose={closePdfModal} />
+        <PdfModal
+          currentPdf={currentPdf}
+          onClose={closePdfModal}
+          onShare={handleShareCurrentPdf}
+          reports={reports}
+        />
       )}
       {/* Delete Confirmation Modal */}
       {deleteModalOpen && (

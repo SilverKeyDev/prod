@@ -63,8 +63,6 @@ def _extract_summary(data: Dict) -> Dict[str, str]:
         "What People Love": "neighborhood_overview.what_people_love",
         "Things to Watch Out For": "neighborhood_overview.things_to_watch_out_for",
         "Population Total": "neighborhood_overview.population_total",
-        "Neighborhood Rating": "neighborhood_overview.neighborhood_rating",
-        "LGBTQ Representation": "neighborhood_overview.LGBTQ_representation",
         
         # Safety
         "Crime Rating": "safety.crime_rating",
@@ -98,26 +96,14 @@ def _extract_summary(data: Dict) -> Dict[str, str]:
         # Local Amenities - Activities
         "Activity 1 Name": "local_amenities.activities.0.name",
         "Activity 1 Description": "local_amenities.activities.0.description",
-        "Activity 2 Name": "local_amenities.activities.1.name",
-        "Activity 2 Description": "local_amenities.activities.1.description",
-        "Activity 3 Name": "local_amenities.activities.2.name",
-        "Activity 3 Description": "local_amenities.activities.2.description",
         
         # Local Amenities - Parks
         "Park 1 Name": "local_amenities.parks.0.name",
         "Park 1 Features": "local_amenities.parks.0.features",
-        "Park 2 Name": "local_amenities.parks.1.name",
-        "Park 2 Features": "local_amenities.parks.1.features",
-        "Park 3 Name": "local_amenities.parks.2.name",
-        "Park 3 Features": "local_amenities.parks.2.features",
         
         # Local Amenities - Stores
-        "Thrift Store Name": "local_amenities.thrift_store.name",
-        "Thrift Store Vibe": "local_amenities.thrift_store.vibe",
         "Grocery Store Name": "local_amenities.grocery_store.name",
         "Grocery Store Vibe": "local_amenities.grocery_store.vibe",
-        "Late Night Restaurant Name": "local_amenities.late_night_restaurant.name",
-        "Late Night Restaurant Vibe": "local_amenities.late_night_restaurant.vibe",
         
         # Commute
         "Public Transport": "commute.public_transport",

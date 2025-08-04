@@ -75,14 +75,37 @@ class LifestyleDNA(BaseModel):
                     "Score 0 if it's rural, spread out, or car-centric."
     )
 
-    class Config:
-        extra = "forbid"
-        allow_population_by_field_name = True
-        populate_by_name = True
+    model_config = {
+        "extra": "forbid",
+        "populate_by_name": True
+    }
 
-    def with_percent(self) -> dict:
-        """Return values formatted as percent strings (e.g., '85%')"""
-        return {k: f"{v}%" for k, v in self.model_dump().items()}
+    @classmethod
+    def sanitize_and_validate(cls, data: dict[str, Any]) -> "LifestyleDNA":
+        """
+        Gracefully handle messy inputs:
+        - Extracts the first number found in strings (e.g., "about 85%", "score: 110")
+        - Clamps values between 0 and 100
+        - Defaults to 0 if value is invalid or missing
+        """
+        cleaned = {}
+
+        for field in cls.model_fields:
+            raw = data.get(field)
+
+            # Try to extract a number from a string
+            if isinstance(raw, str):
+                match = re.search(r"-?\d+(\.\d+)?", raw)
+                raw = match.group() if match else None
+
+            try:
+                val = int(float(raw))
+                val = max(0, min(val, 100))  # Clamp to [0, 100]
+                cleaned[field] = val
+            except (ValueError, TypeError):
+                cleaned[field] = 0  # Fallback default
+
+        return cls(**cleaned) 
 
     @classmethod
     def get_example(cls) -> dict:
@@ -106,9 +129,6 @@ class NeighborhoodOverview(BaseModel):
     community_events: str = Field(...)
     what_people_love: str = Field(...)
     things_to_watch_out_for: str = Field(...)
-    population_total: str = Field(...)
-    neighborhood_rating: str = Field(...)
-    LGBTQ_representation: str = Field(...)
     image_prompt: str = Field(...)
     image_prompt_2: str = Field(...)
 
@@ -128,9 +148,6 @@ class NeighborhoodOverview(BaseModel):
             "community_events": "Weekly farmers market, summer concerts, Festival of Whales",
             "what_people_love": "Walkability, coastal charm, outdoor activities",
             "things_to_watch_out_for": "Crowds in summer, limited parking, weekend traffic",
-            "population_total": "12500",
-            "neighborhood_rating": "8.3/10",
-            "LGBTQ_representation": "15%",
             "image_prompt": "Aerial satellite view of the specific neighborhood around the address, showing the actual street layout, housing density, parks, and local landmarks that define this area",
             "image_prompt_2": "Street-level photo of the main residential streets and community character around the address, showing typical homes, sidewalks, landscaping, and neighborhood atmosphere",
         }

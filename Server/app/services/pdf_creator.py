@@ -214,8 +214,13 @@ def _create_pdf(report: dict, address: str, filename: str, comparison_address: s
                     # Cache chart table for side-by-side rendering
                     chart_tables[section.lower()] = table
                     logger.info(f"✅ Cached {chart_type} for side-by-side rendering")
-                    # Render cached chart tables side-by-side if both exist (no section title)
-                    if "age_distribution" in chart_tables and "lifestyle_dna" in chart_tables:
+                    
+                    # Check if we have both charts for side-by-side rendering
+                    has_age_dist = "age_distribution" in chart_tables
+                    has_lifestyle = "lifestyle_dna" in chart_tables
+                    
+                    # Render charts based on what's available
+                    if has_age_dist and has_lifestyle:
                         logger.info(f"📊 Rendering age_distribution and lifestyle_dna charts side-by-side (no title)")
                         
                         # Create side-by-side table with both charts
@@ -238,6 +243,29 @@ def _create_pdf(report: dict, address: str, filename: str, comparison_address: s
                         elements.append(side_by_side_table)
                         elements.append(Spacer(1, 20))
                         logger.info(f"✅ Successfully added side-by-side charts to PDF (no title)")
+                        
+                        # Clear both charts from cache since we've rendered them
+                        chart_tables.pop("age_distribution", None)
+                        chart_tables.pop("lifestyle_dna", None)
+                        
+                    elif section.lower() in ["age_distribution", "lifestyle_dna"] and len(chart_tables) == 1:
+                        # If we only have one chart and it's the second one being processed,
+                        # render whatever charts we have (fallback for when one fails)
+                        logger.info(f"📊 Fallback: Rendering available chart(s) individually")
+                        
+                        if has_age_dist:
+                            logger.info(f"📊 Adding age_distribution chart individually (lifestyle_dna failed)")
+                            elements.append(Spacer(1, 10))
+                            elements.append(chart_tables["age_distribution"])
+                            elements.append(Spacer(1, 20))
+                            chart_tables.pop("age_distribution", None)
+                            
+                        if has_lifestyle:
+                            logger.info(f"📊 Adding lifestyle_dna chart individually (age_distribution failed)")
+                            elements.append(Spacer(1, 10))
+                            elements.append(chart_tables["lifestyle_dna"])
+                            elements.append(Spacer(1, 20))
+                            chart_tables.pop("lifestyle_dna", None)
 
                     continue  # Skip the normal processing for these sections
                 else:

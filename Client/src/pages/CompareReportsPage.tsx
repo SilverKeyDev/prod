@@ -55,8 +55,6 @@ const ALL_METRIC_KEYS: string[] = [
   "What People Love",
   "Things to Watch Out For",
   "Population Total",
-  "Neighborhood Rating",
-  "LGBTQ Representation",
 
   // Demographics
   "Age Distribution",

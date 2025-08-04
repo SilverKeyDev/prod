@@ -19,7 +19,7 @@ from ..models.user_preferences import UserPreferences
 from ..services.s3_service import s3_service
 from flask import current_app
 from app import db
-from ..scrapers.age_data import get_age_distribution
+from ..scrapers.age_data import get_age_distribution, get_population_total
 
 # Configure verbose logging
 logging.basicConfig(level=logging.DEBUG)
@@ -346,6 +346,74 @@ def inject_real_age_distribution(combined_report: dict, address: str) -> dict:
 
     except Exception as e:
         logger.error(f"❌ Error injecting real age distribution data: {str(e)}")
+        logger.error(f"🔍 Traceback: {traceback.format_exc()}")
+        logger.warning("⚠️ Continuing with original report data")
+        return combined_report
+
+
+def inject_real_population_total(combined_report: dict, address: str) -> dict:
+    """
+    Inject real Census population total data into the top-level of the report,
+    immediately after the 'things_to_watch_out_for' field in 'neighborhood_overview'.
+
+    Args:
+        combined_report: The combined report dictionary
+        address: The property address to get population data for
+
+    Returns:
+        Updated combined_report with real population total data at top level
+    """
+    logger.info(f"👥 Injecting real population total data for address: {address}")
+    
+    try:
+        # Check if neighborhood_overview exists
+        if 'neighborhood_overview' not in combined_report:
+            logger.warning("⚠️ No neighborhood_overview section found - skipping population total injection")
+            return combined_report
+
+        neighborhood_section = combined_report['neighborhood_overview']
+        if not isinstance(neighborhood_section, dict):
+            logger.warning("⚠️ neighborhood_overview is not a dictionary - skipping population total injection")
+            return combined_report
+
+        # Check if things_to_watch_out_for exists (our insertion point)
+        if 'things_to_watch_out_for' not in neighborhood_section:
+            logger.warning("⚠️ No things_to_watch_out_for field found in neighborhood_overview - skipping population total injection")
+            return combined_report
+
+        # Fetch real population total data from Census API
+        logger.info("📊 Fetching real population total data from Census API...")
+        real_population_data = get_population_total(address)
+
+        if not real_population_data or 'error' in real_population_data:
+            logger.warning("⚠️ Failed to get real population total data - skipping")
+            return combined_report
+
+        # Format real population data for output
+        population_total = real_population_data.get('total_population', 0)
+        
+        # Insert population_total at top-level after things_to_watch_out_for
+        logger.info("📦 Inserting population_total at top-level after things_to_watch_out_for")
+        new_combined_report = OrderedDict()
+        
+        for key, value in combined_report.items():
+            if key == 'neighborhood_overview':
+                # Reconstruct neighborhood_overview with population_total after things_to_watch_out_for
+                new_neighborhood = OrderedDict()
+                for nkey, nvalue in value.items():
+                    new_neighborhood[nkey] = nvalue
+                    if nkey == 'things_to_watch_out_for':
+                        new_neighborhood['population_total'] = f"{population_total:,} residents"
+                        logger.info(f"✅ Inserted population_total: {population_total:,} residents")
+                new_combined_report[key] = new_neighborhood
+            else:
+                new_combined_report[key] = value
+
+        logger.info("🎉 Successfully injected real population total data from Census API")
+        return dict(new_combined_report)
+
+    except Exception as e:
+        logger.error(f"❌ Error injecting real population total data: {str(e)}")
         logger.error(f"🔍 Traceback: {traceback.format_exc()}")
         logger.warning("⚠️ Continuing with original report data")
         return combined_report
@@ -1262,6 +1330,10 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
         # Inject real age distribution data from Census API if neighborhood_overview exists
         logger.info("🔄 Checking for age distribution injection...")
         combined_report = inject_real_age_distribution(combined_report, address)
+        
+        # Inject real population total data from Census API after things_to_watch_out_for
+        logger.info("🔄 Checking for population total injection...")
+        combined_report = inject_real_population_total(combined_report, address)
         
         # Log metadata for debugging (but don't include in return value)
         metadata = {

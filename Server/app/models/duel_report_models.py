@@ -117,9 +117,6 @@ class NeighborhoodOverview(BaseModel):
     community_events: ComparisonField = Field(...)
     what_people_love: ComparisonField = Field(...)
     things_to_watch_out_for: ComparisonField = Field(...)
-    population_total: ComparisonField = Field(...)
-    neighborhood_rating: ComparisonField = Field(...)
-    LGBTQ_representation: ComparisonField = Field(...)
     image_prompt: str = Field(...)
     image_prompt_2: str = Field(...)
 
@@ -184,30 +181,6 @@ class NeighborhoodOverview(BaseModel):
 
                 "user_preference_tags": ["budget_considerations"]
             },
-            "population_total": {
-                "location_a": "12,500",
-                "location_b": "85,000",
-                "winner": "location_a" if lifestyle in ["laid-back", "quiet"] else "location_b",
-                "reason": "Population size matches user's preferred community scale",
-
-                "user_preference_tags": lifestyle_tags
-            },
-            "neighborhood_rating": {
-                "location_a": "8.3/10",
-                "location_b": "7.9/10",
-                "winner": "location_a",
-                "reason": "Higher overall livability rating",
-
-                "user_preference_tags": ["quality_of_life"]
-            },
-            "LGBTQ_representation": {
-                "location_a": "High representation (~15%) with several LGBTQ-friendly businesses and events",
-                "location_b": "Moderate representation (~8%) with some inclusive venues and annual pride event",
-                "winner": "location_a",
-                "reason": "Stronger LGBTQ+ community presence and inclusivity",
-
-                "user_preference_tags": ["social_values"]
-            },
             "image_prompt": "Aerial satellite view comparing the specific neighborhoods around each address, showing actual street layout, housing density, parks, and local landmarks that define each area",
             "image_prompt_2": "Street-level comparison of the main residential streets and community character around each address, showing typical homes, sidewalks, landscaping, and neighborhood atmosphere"
         }
@@ -226,8 +199,6 @@ class NeighborhoodOverview(BaseModel):
             "what_people_love": "Positive aspects from Google Maps reviews, Yelp, City-Data forums, or Nextdoor. Focus on benefits that align with user's priorities and lifestyle.",
             "things_to_watch_out_for": "Potential drawbacks from resident reviews, City-Data forums, or local news. Include issues particularly relevant to user's situation.",
             "population_total": "Total population from Census data or city demographic reports. Consider if the community size matches user's preferences.",
-            "neighborhood_rating": "Overall livability rating using Niche, AreaVibes, or similar platforms. Weight factors based on user's priorities and life stage.",
-            "LGBTQ_representation": "LGBTQ population and community friendliness using Census data, local LGBTQ organizations, or community resources. Include inclusivity indicators.",
             "image_prompt": "Photo comparing the actual neighborhoods around each address, showing the real streets, homes, and local landmarks that represent each area's character.",
         }
 
