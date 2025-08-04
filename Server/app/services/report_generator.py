@@ -12,7 +12,7 @@ from flask import jsonify
 import traceback
 from .pdf_creator import _create_pdf
 from io import BytesIO
-from .schema_generator import generate_report_schema
+from .schema_generator import get_individual_section_schema
 from ..models.report_models import FullReport
 from ..models.marketing_model import MarketingReport
 from ..models.user_preferences import UserPreferences
@@ -472,7 +472,6 @@ def break_schema_into_sections(schema: Dict[str, Any]) -> Dict[str, Dict[str, An
                 section_name: section_property
             },
             "required": [section_name],
-            "additionalProperties": False
         }
         
         # Include relevant $defs for this section
@@ -519,33 +518,31 @@ def break_schema_into_sections(schema: Dict[str, Any]) -> Dict[str, Dict[str, An
     logger.info(f"📋 Successfully broke schema into {len(sections)} sections: {list(sections.keys())}")
     return sections
 
-def response_sort(report_responses: list, schemas: Dict[str, Dict[str, Any]]) -> list:
+def response_sort(report_responses: list, section_names: list) -> list:
     """
-    Sort report responses to match the order of schemas with comprehensive error handling.
+    Sort report responses to match the order of section_names with comprehensive error handling.
     
     Args:
         report_responses: List of parsed report response dictionaries
-        schemas: Dictionary mapping section names to their schemas (ordered)
+        section_names: List of section names in the desired order
         
     Returns:
-        List of report responses sorted to match schema order
+        List of report responses sorted to match section_names order
         
     Raises:
         ValueError: If critical mismatches are detected that could indicate data corruption
     """
-    logger.info(f"🔄 Starting response sorting: {len(report_responses)} responses, {len(schemas)} expected sections")
+    logger.info(f"🔄 Starting response sorting: {len(report_responses)} responses, {len(section_names)} expected sections")
     
     if not report_responses:
         logger.error("❌ No report responses provided to response_sort")
         raise ValueError("Cannot sort empty response list")
     
-    if not schemas:
-        logger.error("❌ No schemas provided to response_sort")
-        raise ValueError("Cannot sort without schema reference")
+    if not section_names:
+        logger.error("❌ No section names provided to response_sort")
+        raise ValueError("Cannot sort without section names reference")
     
-    # Get the ordered list of schema section names
-    schema_order = list(schemas.keys())
-    logger.info(f"📋 Expected schema sections: {schema_order}")
+    logger.info(f"📋 Expected sections: {section_names}")
     
     # Track all response sections for comprehensive analysis
     all_response_sections = set()
@@ -564,10 +561,10 @@ def response_sort(report_responses: list, schemas: Dict[str, Dict[str, Any]]) ->
         all_response_sections.update(response_sections)
         logger.debug(f"📝 Response {i} contains sections: {response_sections}")
         
-        # Try to match this response to a schema section
+        # Try to match this response to a section name
         matched = False
         for section_name in response_sections:
-            if section_name in schema_order:
+            if section_name in section_names:
                 if section_name in response_map:
                     logger.warning(f"⚠️ Duplicate response for section '{section_name}' - keeping first occurrence")
                 else:
@@ -581,7 +578,7 @@ def response_sort(report_responses: list, schemas: Dict[str, Dict[str, Any]]) ->
             unmatched_responses.append({"index": i, "sections": response_sections, "response": response})
     
     # Comprehensive analysis and error reporting
-    expected_sections = set(schema_order)
+    expected_sections = set(section_names)
     found_sections = set(response_map.keys())
     missing_sections = expected_sections - found_sections
     unexpected_sections = all_response_sections - expected_sections
@@ -611,8 +608,8 @@ def response_sort(report_responses: list, schemas: Dict[str, Dict[str, Any]]) ->
     # Build sorted response list
     sorted_responses = []
     
-    # Add responses in schema order
-    for section_name in schema_order:
+    # Add responses in section_names order
+    for section_name in section_names:
         if section_name in response_map:
             sorted_responses.append(response_map[section_name])
             logger.debug(f"✅ Added response for section: {section_name}")
@@ -789,11 +786,6 @@ def _get_or_generate_report_json(address: str, user_id: int, filename: str) -> D
         # Wait for the report to complete and return JSON
         return _wait_for_report_completion(pdf_doc, address)
 
-        # This code should never be reached due to the logic above
-        logger.error(f"❌ Unexpected code path in _get_or_generate_report_json for {address}")
-        raise Exception(f"Unexpected error in report generation for {address}")
-                
-            
     except Exception as e:
         logger.error(f"❌ Failed to get or generate report JSON for {address}: {str(e)}")
         logger.error(f"Traceback: {traceback.format_exc()}")
@@ -820,7 +812,7 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
     else:
         logger.error(f"❌ REPORT_GEN: No preferences found for user_id {user_id} - this will cause report generation to fail")
     
-    # Handle report customization preferences
+    report_customization = None
     if user_preferences and 'report_customization' in user_preferences:
         report_customization = user_preferences['report_customization']
         logger.info(f"✅ REPORT_GEN: Using report_customization from user_id {user_id}")
@@ -834,82 +826,35 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
             logger.error(f"❌ REPORT_GEN: user_preferences is None for user_id {user_id}")
         raise Exception(f"No report customization found for user_id {user_id}")
 
-    # Create schema with error handling - use MarketingReport if marketing_model is True
-    try:
-        # Use the dedicated schema generator for clean, maintainable code
-        # Pass user preferences for interpolation in example fields
-        # Note: user_preferences is already a dict from get_preferences()
-        if marketing_model:
-            logger.info(f"🎯 REPORT_GEN: Using MarketingReport schema for marketing model")
-            # Use MarketingReport schema directly
-            marketing_report = MarketingReport()
-            schema = marketing_report.schema(report_customization=report_customization)
-            # Add schema metadata
-            schema["$schema"] = "https://json-schema.org/draft/2020-12/schema"
-            schema["title"] = "Marketing Report Schema"
-            schema["description"] = "Structured schema for generating personalized marketing reports"
-        elif comparison_address is not None and comparison_address != "":
-            logger.info(f"🔄 REPORT_GEN: Using comparison report schema")
-            schema = generate_report_schema(report_customization, user_preferences, compare=True)
-        else:
-            logger.info(f"📋 REPORT_GEN: Using standard FullReport schema")
-            schema = generate_report_schema(report_customization, user_preferences)
 
-    except Exception as e:
-        logger.error(f"❌ Failed to create FullReport schema: {str(e)}")
-        logger.exception("FullReport schema creation error details:")
-        raise Exception(f"FullReport schema creation failed: {str(e)}")
-    payloads = []
-    schemas = break_schema_into_sections(schema)
+    # Extract report_section_priorities from report_customization
+    section_names = []
+    if 'report_section_priorities' in user_preferences['report_customization']:
+        section_names = user_preferences['report_customization']['report_section_priorities']
+        logger.info(f"🎯 REPORT_GEN: Using section priorities: {{'report_section_priorities': {section_names}}}")
     
-    # Auto-include demographic sections when neighborhood_overview is present
+    # Import required modules for schema handling
     from collections import OrderedDict
     from ..models.report_models import LifestyleDNA
-
+    
     # Only auto-include demographics if neighborhood_overview exists and not comparing
-    if 'neighborhood_overview' in schemas and not comparison_address or comparison_address == "":
+    if 'neighborhood_overview' in section_names and (not comparison_address or comparison_address == ""):
         logger.info("🏘️ neighborhood_overview detected and no comparison_address - auto-including demographic sections")
 
-        new_schemas = OrderedDict()
-        inserted = False
+        if 'lifestyle_dna' not in section_names:
+            section_names.insert(section_names.index('neighborhood_overview') + 1, 'lifestyle_dna')
+            logger.info("✅ Inserted 'lifestyle_dna' into section_names after 'neighborhood_overview'")
 
-        for key, schema in schemas.items():
-            new_schemas[key] = schema
-
-            if key == 'neighborhood_overview':
-                # Insert lifestyle_dna if missing
-                if 'lifestyle_dna' not in schemas:
-                    lifestyle_schema = {
-                        "$schema": "https://json-schema.org/draft/2020-12/schema",
-                        "$id": "#lifestyle_dna",
-                        "title": "Lifestyle DNA Section Schema",
-                        "description": "Schema for the lifestyle_dna section",
-                        "type": "object",
-                        "properties": {
-                            "lifestyle_dna": LifestyleDNA.model_json_schema()
-                        },
-                        "required": ["lifestyle_dna"],
-                        "additionalProperties": False
-                    }
-                    new_schemas['lifestyle_dna'] = lifestyle_schema
-                    logger.info("✅ Inserted lifestyle_dna after neighborhood_overview")
-
-                inserted = True
-
-        if inserted:
-            schemas.clear()
-            schemas.update(new_schemas)
-
-    logger.info(f"📋 Final ordered sections to process: {list(schemas.keys())}")
-
+    payloads = []
     try:
         # Validate address
         if not validate_address(address):
             logger.error("🚫 Address validation failed")
             raise ValueError("Invalid address format")
         elif marketing_model:
+            section_schema = get_individual_section_schema(["marketing"], user_preferences, mode="report")
             payload = {
-                "model": "sonar-deep-research",
+                "model": "sonar-reasoning",
                 "messages": [
                     {
                         "role": "system",
@@ -936,22 +881,24 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
             "response_format": {
                 "type": "json_schema",
                 "json_schema": {
-                    "schema": schema 
-                }
+                    "schema": section_schema
+                } 
             }
         }
+            logger.info(payload)
             payloads.append(payload)
         elif comparison_address is None or comparison_address == "":
-            # Fix: Iterate over schema values, not keys
-            for section_name, section_schema in schemas.items():
+            # Fix: Iterate over section_names which contains the list of sections to process
+            for section_name in section_names:
+                section_schema = get_individual_section_schema(section_name, user_preferences, mode="report")
                 logger.debug(f"🔧 Creating payload for section: {section_name}")
                 payload = {
-                "model": "sonar-deep-research",
+                "model": "sonar-reasoning",
                 "messages": [
                     {
                     "role": "system",
                     "content": (
-                        "You are a comprehensive PERSONALIZED property research assistant. Given an address, {address}, you must provide a detailed property report in valid JSON format.\n\n"
+                        f"You are a comprehensive PERSONALIZED property research assistant. Given an address, {address}, you must provide a detailed property report in valid JSON format.\n\n"
                        
                         "RESEARCH:\n"
                         "Use the recommended sources first in research. If a decent answer is found, do not continue to search the web for that field\n"
@@ -962,7 +909,7 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                         "CRITICAL: Always provide a concrete answer, estimate, or educated guess.\n"
 
                     )
-                }, {"role": "user", "content": f"Sell me the property at {address} CRITICAL: Never return 'N/A' for any fields. Always provide a concrete answer, estimate, or remove the field entirely if unknown.\n"}
+                }, {"role": "user", "content": f"Sell me the property at {address} CRITICAL: Always provide a concrete answer, estimate, or just give your best guess\n"}
             ],
             "search_mode": "web",
             "reasoning_effort": "medium",
@@ -971,15 +918,9 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
             "stream": False,
             "return_images": False,
             "return_citations": False,
-            "response_format": {
-                "type": "json_schema",
-                "json_schema": {
-                    "schema": section_schema 
-                }
+            "response_format": section_schema
             }
-        }
                 payloads.append(payload)
-                logger.info(payload)
         else:
             # Comparison report logic - need to get JSON data for both properties
             logger.info(f"🔄 Generating comparison report for {address} vs {comparison_address}")
@@ -1001,10 +942,11 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
             logger.info(f"🎯 Both individual reports are now ready - proceeding with comparison generation")
             
             # Fix: Iterate over schema values, not keys (same fix as above)
-            for section_name, section_schema in schemas.items():
+            for section_name in section_names:
+                section_schema = get_individual_section_schema(section_name, user_preferences, mode="comparison")
                 logger.debug(f"🔧 Creating comparison payload for section: {section_name}")
                 payload = {
-                    "model": "sonar-deep-research",
+                    "model": "sonar-reasoning",
                     "messages": [
                         {
                             "role": "system",
@@ -1030,7 +972,7 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                                 f"Based on my priorities and user preferences, for each field, tell me which porperty is better, worse, or the same FOR ME:\n\n"
                                 f"Property A ({address}):\n{json.dumps(primary_report_json, indent=2)}\n\n"
                                 f"Property B ({comparison_address}):\n{json.dumps(comparison_report_json, indent=2)}"
-                                "CRITICAL: Never return 'N/A' for any fields. Always provide a concrete answer, estimate, or remove the field entirely if unknown.\n"
+                                "CRITICAL: Always provide a concrete answer, estimate, or just give your best guess.\n"
                             )
                         }
                     ],
@@ -1048,7 +990,7 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                         }
                     }
                 }
-                
+                logger.info(payload)
                 payloads.append(payload)
 
         # Concurrent execution with partial failure handling
@@ -1132,6 +1074,12 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                                 if section_name in report and report[section_name] is not None:
                                     section_data = {section_name: report[section_name]}
                                     logger.info(f"✅ Section {section_name}: Successfully parsed and extracted on attempt {attempt_num}")
+                                    return {"section": section_name, "success": True, "data": section_data}
+                                # If section not found but we have data, wrap the entire response in the section name
+                                elif report and len(report) > 0:
+                                    # Wrap the entire response in the section name
+                                    section_data = {section_name: report}
+                                    logger.info(f"✅ Section {section_name}: Wrapped entire response in section name on attempt {attempt_num}")
                                     return {"section": section_name, "success": True, "data": section_data}
                                 else:
                                     logger.warning(f"⚠️ Section {section_name}: Requested section not found or null in response on attempt {attempt_num}")
@@ -1233,19 +1181,18 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
         
         # Prepare payload info with section names
         payload_infos = []
-        schema_names = list(schemas.keys())
         
         # Critical: Assert exact match between payloads and schema sections
-        if len(payloads) != len(schema_names):
-            error_msg = f"CRITICAL MISMATCH: {len(payloads)} payloads vs {len(schema_names)} schema sections"
+        if len(payloads) != len(section_names):
+            error_msg = f"CRITICAL MISMATCH: {len(payloads)} payloads vs {len(section_names)} schema sections"
             logger.error(f"❌ {error_msg}")
             logger.error(f"🔍 Payloads count: {len(payloads)}")
-            logger.error(f"🔍 Schema sections: {schema_names}")
+            logger.error(f"🔍 Schema sections: {section_names}")
             raise ValueError(error_msg)
         
         # Build payload_infos with exact 1:1 mapping
         for i, payload in enumerate(payloads):
-            section_name = schema_names[i]
+            section_name = section_names[i]
             logger.debug(f"🔗 Mapping payload {i} → section '{section_name}'")
             payload_infos.append((payload, section_name))
         
@@ -1316,7 +1263,7 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
             raise Exception(f"All {len(payload_infos)} sections failed to generate. No report data available.")
         
         # Sort responses to match schema order and combine them
-        sorted_responses = response_sort(report_responses, schemas)
+        sorted_responses = response_sort(report_responses, section_names)
         
         # Combine all section responses into a single report with metadata
         combined_report = {}
@@ -1334,7 +1281,7 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
         
         # Log metadata for debugging (but don't include in return value)
         metadata = {
-            "total_sections_requested": len(schemas),
+            "total_sections_requested": len(section_names),
             "successful_sections": len(successful_responses),
             "failed_sections": len(failed_sections),
             "generation_timestamp": time.time()
@@ -1364,5 +1311,3 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
         logger.error(f"Exception type: {type(e).__name__}")
         logger.error(f"Traceback:\n{traceback.format_exc()}")
         raise
-
-

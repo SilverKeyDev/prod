@@ -2,9 +2,26 @@ from pydantic import BaseModel, Field, Extra, model_validator, PrivateAttr
 from typing import List, Dict, Optional, Any, Union, TypedDict
 from collections import OrderedDict
 import logging
+import re
+
 
 logger = logging.getLogger(__name__)
 
+
+
+RATING_MAP = {
+    "none": 0,
+    "very low": 10,
+    "low": 25,
+    "somewhat low": 35,
+    "moderate": 50,
+    "medium": 50,
+    "somewhat high": 65,
+    "high": 75,
+    "strong": 85,
+    "very high": 95,
+    "extremely high": 100,
+}
 
 class LifestyleDNA(BaseModel):
     model_config = {
@@ -12,55 +29,55 @@ class LifestyleDNA(BaseModel):
         "extra": "ignore",  # Perplexity may return extra fields
     }
 
-    Artistic: int = Field(
+    artistic: int = Field(
         ge=0, le=100,
         description="How emblematic the area is of an artistic or creative lifestyle. "
                     "Score high (80–100) for vibrant art, music, studios, and cultural events. "
                     "Score 0–20 if there's no visible creative or indie scene."
     )
-    Professional: int = Field(
+    professional: int = Field(
         ge=0, le=100,
         description="How aligned the area is with white-collar, business-focused lifestyles. "
                     "Score 100 for financial districts and business culture. "
                     "Score 0 if the area has no professional presence or appeal."
     )
-    Family_Oriented: int = Field(
+    family_oriented: int = Field(
         ge=0, le=100,
         description="How well the area supports families. "
                     "Score high for schools, parks, low crime, and spacious homes. "
                     "Score 0 if it's nightlife-heavy, cramped, or transient."
     )
-    Active_Outdoor: int = Field(
+    active_outdoor: int = Field(
         ge=0, le=100,
         description="How well the area supports fitness and outdoor lifestyles. "
                     "Score 100 for hiking, biking, surfing, gym culture, and green space. "
                     "Score low if it's concrete, flat, or inactive."
     )
-    Tech_Remote: int = Field(
+    tech_remote: int = Field(
         ge=0, le=100,
         description="How well-suited the area is for remote tech professionals. "
                     "Score high for coworking, startups, cafes, modern apartments, fast Wi-Fi. "
                     "Score 0 if it lacks digital infrastructure or a tech scene."
     )
-    Retiree: int = Field(
+    retiree: int = Field(
         ge=0, le=100,
         description="How ideal the area is for retirees. "
                     "Score high for peace, slow pace, nature, and medical access. "
                     "Score low if it's noisy, chaotic, or youthful."
     )
-    Student: int = Field(
+    student: int = Field(
         ge=0, le=100,
         description="How strong the student presence is. "
                     "Score high near colleges, dorms, bars, and cheap eats. "
                     "Score 0 if there's no academic or youth culture nearby."
     )
-    Suburban: int = Field(
+    suburban: int = Field(
         ge=0, le=100,
         description="How suburban the layout and feel is. "
                     "Score 100 for detached homes, cul-de-sacs, big yards. "
                     "Score 0 for dense, walkable, or urban areas."
     )
-    Urban: int = Field(
+    urban: int = Field(
         ge=0, le=100,
         description="How urban the area feels. "
                     "Score high for density, walkability, transit, and city energy. "
@@ -68,44 +85,58 @@ class LifestyleDNA(BaseModel):
     )
 
     @classmethod
-    def sanitize_and_validate(cls, data: dict[str, Any]) -> "LifestyleDNA":
+    def sanitize_and_validate(cls, data: Dict[str, Any]) -> "LifestyleDNA":
         """
         Gracefully handle messy inputs:
-        - Extracts the first number found in strings (e.g., "about 85%", "score: 110")
-        - Clamps values between 0 and 100
-        - Defaults to 0 if value is invalid or missing
+        - Maps labels like "high", "moderate", etc. to numeric scores
+        - Extracts first number from strings like "85%" or "score: 70"
+        - Ensures all final values are integers in [0, 100]
+        - Defaults to 0 with logging if invalid
         """
         cleaned = {}
 
         for field in cls.model_fields:
             raw = data.get(field)
+            val = 0  # default fallback
 
-            # Try to extract a number from a string
             if isinstance(raw, str):
-                match = re.search(r"-?\d+(\.\d+)?", raw)
-                raw = match.group() if match else None
+                raw_lower = raw.strip().lower()
 
-            try:
-                val = int(float(raw))
-                val = max(0, min(val, 100))  # Clamp to [0, 100]
-                cleaned[field] = val
-            except (ValueError, TypeError):
-                cleaned[field] = 0  # Fallback default
+                # Map qualitative labels
+                if raw_lower in RATING_MAP:
+                    val = RATING_MAP[raw_lower]
+                else:
+                    # Try to extract number from string
+                    match = re.search(r"-?\d+(\.\d+)?", raw_lower)
+                    if match:
+                        try:
+                            val = int(float(match.group()))
+                        except ValueError:
+                            val = 0
+            elif isinstance(raw, (int, float)):
+                val = int(raw)
 
-        return cls(**cleaned) 
+            # Final clamp and safety
+            if not isinstance(val, int):
+                val = 0
+            val = max(0, min(val, 100))
+
+            cleaned[field] = val
+
+        return cls(**cleaned)
 
     @classmethod
-    def get_example(cls) -> dict:
+    def get_example(cls, user_preferences: Dict[str, Any] = None) -> dict:
         return {
-            "Artistic": 85,
-            "Professional": 95,
-            "Family_Oriented": 20,
-            "Active_Outdoor": 75,
-            "Tech_Remote": 100,
-            "Retiree": 5,
-            "Student": 10,
-            "Suburban": 15,
-            "Urban": 95
+            "artistic": 85,
+            "professional": 95,
+            "family_oriented": 20,
+            "active_outdoor": 75,
+            "tech_remote": 100,
+            "retiree": 5,
+            "student": 10,
+            "suburban": 15,
+            "urban": 95
         }
 
 
@@ -289,8 +320,8 @@ class SocialCharacter(BaseModel):
 
 class Restaurant(BaseModel):
     name: str = Field(...)
-    vibe: Optional[str] = Field(None)
-    what_to_try: Optional[str] = Field(None)
+    vibe: str = Field(...)
+    what_to_try: str = Field(...)
     
     model_config = {
         "populate_by_name": True,  # ensures alias fields can be populated
@@ -430,125 +461,38 @@ class Park(BaseModel):
         else:
             return f"Include real or believable names, vibes, and features. Use Google Maps and Yelp as top sources. Highlight key amenities and recreational features for residents. Consider user's fitness interests: {fitness_str}."
 
-class Amenity(BaseModel):
-    name: str = Field(...)
-    vibe: Optional[str] = Field(None)
-    
-    model_config = {
-        "populate_by_name": True,  # ensures alias fields can be populated
-        "extra": "ignore",  # Perplexity may return extra fields
-    }
-
-    
-    @classmethod
-    def get_example(cls, user_preferences: Dict[str, Any]) -> Dict[str, Any]:
-        """Generate example Amenity data based on user preferences."""
-        lifestyle = user_preferences.get('lifestyle_type', 'balanced')
-        income = user_preferences.get('income_range', 'middle')
-        
-        if income in ['high', 'very_high']:
-            return {
-                "name": "Whole Foods Market",
-                "vibe": "Upscale organic grocery with prepared foods, wine bar, and artisanal products"
-            }
-        elif lifestyle == 'family':
-            return {
-                "name": "Target Supercenter",
-                "vibe": "Family-friendly one-stop shopping with groceries, clothing, and household essentials"
-            }
-        else:
-            return {
-                "name": "Corner Market & Deli",
-                "vibe": "Local neighborhood market with fresh sandwiches and daily essentials"
-            }
-    
-    @classmethod
-    def get_description(cls, user_preferences: Dict[str, Any] = None) -> str:
-        """Generate field descriptions for Amenity based on user preferences."""
-        lifestyle = user_preferences.get('lifestyle_type', 'balanced') if user_preferences else 'balanced'
-        income = user_preferences.get('income_range', 'middle') if user_preferences else 'middle'
-        
-        if income in ['high', 'very_high']:
-            return "Include types and unique value. Use Walk Score or Google Maps search with review snippets. Focus on upscale shopping, premium services, and high-quality retail options that match your lifestyle preferences."
-        elif lifestyle == 'family':
-            return "Include types and unique value. Use Walk Score or Google Maps search with review snippets. Focus on family-friendly establishments, convenient shopping options, and services that cater to household and family needs."
-        else:
-            return "Local amenities and establishments available in the neighborhood, including shopping, services, and convenience options for daily needs."
-
-
+from pydantic import BaseModel, Field
+from typing import Optional, Dict, Any
 
 class LocalAmenities(BaseModel):
-    restaurants: Restaurant = Field(...)
-    activities: Activity = Field(...)
-    parks: Park = Field(...)
-    grocery_store: Amenity = Field(...)
-    
+    """
+    A flattened description of notable local amenities near the property,
+    including restaurants, activities, parks, and grocery options.
+    """
+
+    # Restaurant fields
+    restaurant_name: Optional[str] = Field(default="", description="Name of a notable restaurant in the area.")
+    restaurant_vibe: Optional[str] = Field(default="", description="Atmosphere and style of the restaurant.")
+    restaurant_what_to_try: Optional[str] = Field(default="", description="Recommended dishes or specialties.")
+
+    # Activity fields
+    activity_name: Optional[str] = Field(default="", description="Name of a popular activity or attraction nearby.")
+    activity_description: Optional[str] = Field(default="", description="Description of what makes this activity special.")
+
+    # Park fields
+    park_name: Optional[str] = Field(default="", description="Name of a notable park or green space.")
+    park_features: Optional[str] = Field(default="", description="Special features or amenities of this park.")
+
+    # Grocery Store fields
+    grocery_store_name: Optional[str] = Field(default="", description="Name of the main grocery store used by locals.")
+    grocery_store_vibe: Optional[str] = Field(default="", description="Type and quality of the grocery store.")
+
     model_config = {
-        "populate_by_name": True,  # ensures alias fields can be populated
-        "extra": "ignore",  # Perplexity may return extra fields
+        "populate_by_name": True,
+        "extra": "ignore"  # This will drop any unknown fields returned by Perplexity
     }
 
-    
-    @classmethod
-    def get_example(cls, user_preferences: Dict[str, Any]) -> Dict[str, Any]:
-        """Generate example LocalAmenities data based on user preferences."""
-        lifestyle = user_preferences.get('lifestyle_type', 'balanced')
-        income = user_preferences.get('income_range', 'middle')
-        children = user_preferences.get('children_count', 0)
-        
-        # Generate examples using nested class methods
-        restaurant_example = Restaurant.get_example(user_preferences)
-        activity_example = Activity.get_example(user_preferences)
-        park_example = Park.get_example(user_preferences)
-        
-        # Customize amenity examples based on preferences
-        if income in ['high', 'very_high']:
-            grocery_example = {
-                "name": "Whole Foods Market",
-                "vibe": "Upscale organic grocery with prepared foods and wine bar"
-            }
-        else:
-            grocery_example = {
-                "name": "Neighborhood Market",
-                "vibe": "Local grocery with fresh produce and competitive prices"
-            }
-        
-        if lifestyle == 'nightlife':
-            late_night_example = {
-                "name": "Midnight Kitchen",
-                "vibe": "Trendy late-night spot with craft cocktails and small plates"
-            }
-        else:
-            late_night_example = {
-                "name": "24/7 Diner",
-                "vibe": "Classic American diner with comfort food"
-            }
-        
-        return {
-            "restaurants": restaurant_example,
-            "activities": activity_example,
-            "parks": park_example,
-            "grocery_store": grocery_example,
-        }
-    
-    @classmethod
-    def get_description(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, str]:
-        """Generate personalized field descriptions based on user preferences"""
-        dining_prefs = user_preferences.get('dining_preferences', ['casual dining']) if user_preferences else ['casual dining']
-        hobbies = user_preferences.get('hobbies_interests', ['outdoor activities']) if user_preferences else ['outdoor activities']
-        
-        # Format preferences for display
-        dining_str = ', '.join(dining_prefs) if isinstance(dining_prefs, list) else str(dining_prefs)
-        hobbies_str = ', '.join(hobbies) if isinstance(hobbies, list) else str(hobbies)
-        
-        return {
-            "restaurants": f"Include real or believable names, vibes, and features. Use Google Maps and Yelp as top sources. Focus on restaurants that match user's dining preferences: {dining_str}.",
-            "activities": f"Include real or believable names, vibes, and features. Use Google Maps and Yelp as top sources. Emphasize activities that align with user's hobbies and interests: {hobbies_str}.",
-            "parks": "Include real or believable names, vibes, and features. Use Google Maps and Yelp as top sources. Highlight features that match user's outdoor activity preferences.",
-            "thrift_store": "Include types and unique value. Use Walk Score or Google Maps search with review snippets. Include unique character and shopping experience details.",
-            "grocery_store": "Include types and unique value. Use Walk Score or Google Maps search with review snippets. Focus on quality, selection, and convenience factors.",
-            "late_night_restaurant": "Include types and unique value. Use Walk Score or Google Maps search with review snippets. Consider user's lifestyle and dining schedule preferences."
-        }
+
 
 class Commute(BaseModel):
     commute_times: str = Field(...)
@@ -777,33 +721,25 @@ class Development(BaseModel):
 
 
 
-class UtilityCosts(BaseModel):
-    electricity: str = Field(..., description="Average monthly electricity cost")
-    gas: str = Field(..., description="Average monthly gas cost")
-    water: str = Field(..., description="Average monthly water cost")
-    internet: str = Field(..., description="Average monthly internet cost")
-    trash: Optional[str] = Field(None, description="Average monthly trash/recycling cost")
-    
-    model_config = {
-        "populate_by_name": True,  # ensures alias fields can be populated
-        "extra": "ignore",  # Perplexity may return extra fields
-    }
-
-
 class EnvironmentUtilities(BaseModel):
     model_config = {
         "populate_by_name": True,  # ensures alias fields can be populated
         "extra": "ignore",  # Perplexity may return extra fields
     }
-
         
     air_quality: str = Field(...)
     noise_pollution: str = Field(...)
     light_pollution: str = Field(...)
     water_quality: str = Field(...)
-    avg_utility_costs: UtilityCosts = Field(..., description="Average monthly utility costs breakdown")
     internet_speed: str = Field(...)
     environmental_rating: str = Field(...)
+    
+    # Flattened UtilityCosts fields
+    utility_electricity: str = Field(..., description="Average monthly electricity cost")
+    utility_gas: str = Field(..., description="Average monthly gas cost")
+    utility_water: str = Field(..., description="Average monthly water cost")
+    utility_internet: str = Field(..., description="Average monthly internet cost")
+    utility_trash: Optional[str] = Field(None, description="Average monthly trash/recycling cost")
     
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any]) -> Dict[str, Any]:
@@ -818,7 +754,11 @@ class EnvironmentUtilities(BaseModel):
                 "noise_pollution": "Low - Quiet residential area, minimal traffic, sound barriers on major roads",
                 "light_pollution": "Low - Excellent night sky visibility, thoughtful lighting design",
                 "water_quality": "Premium - Exceeds EPA standards, filtered municipal supply, excellent taste",
-                "avg_utility_costs": {"electricity": "$180", "gas": "$65", "water": "$45", "internet": "$95", "trash": "$25"},
+                "utility_electricity": "$180",
+                "utility_gas": "$65",
+                "utility_water": "$45",
+                "utility_internet": "$95",
+                "utility_trash": "$25",
                 "internet_speed": "Fiber available up to 2Gbps, premium service providers, 99.9% uptime",
                 "environmental_rating": "9.2/10"
             }
@@ -828,7 +768,11 @@ class EnvironmentUtilities(BaseModel):
                 "noise_pollution": "Low to moderate - Quiet during work hours, some evening activity",
                 "light_pollution": "Moderate - Some night sky visibility, residential lighting",
                 "water_quality": "Excellent - Meets all EPA standards, good taste, reliable supply",
-                "avg_utility_costs": {"electricity": "$140", "gas": "$50", "water": "$40", "internet": "$85", "trash": "$25"},
+                "utility_electricity": "$140",
+                "utility_gas": "$50",
+                "utility_water": "$40",
+                "utility_internet": "$85",
+                "utility_trash": "$25",
                 "internet_speed": "Fiber available up to 1Gbps, multiple high-speed options, reliable for remote work",
                 "environmental_rating": "8.8/10"
             }
@@ -838,7 +782,11 @@ class EnvironmentUtilities(BaseModel):
                 "noise_pollution": "Moderate - Some traffic noise on main roads, generally quiet residential streets",
                 "light_pollution": "Low to moderate - Can see some stars, street lighting present but not excessive",
                 "water_quality": "Excellent - Meets all EPA standards, tastes good, no boil advisories in recent years",
-                "avg_utility_costs": {"electricity": "$120", "gas": "$45", "water": "$35", "internet": "$65", "trash": "$20"},
+                "utility_electricity": "$120",
+                "utility_gas": "$45",
+                "utility_water": "$35",
+                "utility_internet": "$65",
+                "utility_trash": "$20",
                 "internet_speed": "Fiber available up to 1Gbps, cable up to 500Mbps, multiple provider options",
                 "environmental_rating": "8.4/10"
             }
@@ -854,7 +802,11 @@ class EnvironmentUtilities(BaseModel):
             "noise_pollution": "Use Google Street View to assess traffic volume, proximity to airports/highways. Check local noise ordinances or community complaints.",
             "light_pollution": "Use Dark Site Finder or Light Pollution Map. Consider street lighting, commercial areas, and night sky visibility.",
             "water_quality": "Check EPA Safe Drinking Water database or local water utility reports. Look for recent violations or boil advisories.",
-            "avg_utility_costs": "Search '[city] average utility costs' or check local utility company websites. Include electricity, gas, water, internet costs.",
+            "utility_electricity": "Average monthly electricity cost for homes in this area. Search '[city] average utility costs' or check local utility company websites.",
+            "utility_gas": "Average monthly gas/heating cost for homes in this area. May vary significantly by season in some regions.",
+            "utility_water": "Average monthly water cost for homes in this area. May include sewage and stormwater fees in some municipalities.",
+            "utility_internet": "Average monthly internet service cost in this area. Important for remote work and modern connectivity needs.",
+            "utility_trash": "Average monthly trash/recycling collection cost if not included in property taxes or HOA fees.",
             "internet_speed": "Use Speedtest.net coverage maps or check ISP availability. Important for remote work and modern connectivity needs.",
             "environmental_rating": "Overall environmental quality score out of 10. Weight factors based on user's work-from-home needs and lifestyle preferences."
         }
@@ -917,121 +869,99 @@ class FinancialInformation(BaseModel):
             "financial_rating": "Overall financial attractiveness score out of 10. Weight factors based on user's financial priorities and constraints."
         }
 
-class SchoolInfo(BaseModel):
-    name: str = Field(..., description="Name of the school")
-    known_for: str = Field(...)
-    
-    model_config = {
-        "populate_by_name": True,  # ensures alias fields can be populated
-        "extra": "ignore",  # Perplexity may return extra fields
-    }
-
-    
-    @classmethod
-    def get_example(cls, user_preferences: Dict[str, Any]) -> Dict[str, Any]:
-        """Generate example SchoolInfo data based on user preferences."""
-        children_count = user_preferences.get('children_count', 0)
-        income = user_preferences.get('income_range', 'middle')
-        
-        if children_count > 0 and income in ['high', 'very_high']:
-            return {
-                "known_for": "**Specialized Programs:** Advanced STEM curriculum, Mandarin immersion program, gifted and talented tracks, award-winning arts program with dedicated music and art studios",
-            }
-        elif children_count > 2:
-            return {
-                "known_for": "**Community Focus:** Strong reading intervention programs, inclusive special education, extensive after-school activities, high family engagement with active PTA",
-            }
-        else:
-            return {
-                "known_for": "**Community Focus:** Strong reading intervention programs, inclusive special education, extensive after-school activities, high family engagement with active PTA",
-            }
-    
-    @classmethod
-    def get_description(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, str]:
-        """Generate field descriptions for SchoolInfo based on user preferences."""
-        children_count = user_preferences.get('children_count', 0) if user_preferences else 0
-        
-        return {
-            "known_for": "Special programs, academic strengths, or unique offerings. Research school websites, awards, and community reputation.",
-        }
-
 class Schools(BaseModel):
-    schools: List[SchoolInfo] = Field(..., description="List of schools in the area")
-    
+    preschool_name: Optional[str] = Field(None, description="Name of the nearest preschool")
+    preschool_known_for: Optional[str] = Field(None, description="Unique strengths, curriculum, or values of the preschool")
+    preschool_rating: Optional[str] = Field(None, description="Letter grade rating of the preschool (e.g., A+, B-, etc.)")
+
+    elementary_name: Optional[str] = Field(None, description="Name of the elementary school")
+    elementary_known_for: Optional[str] = Field(None, description="Special programs or standout features of the elementary school")
+    elementary_rating: Optional[str] = Field(None, description="Letter grade rating of the elementary school (e.g., A, B+, etc.)")
+
+    middle_name: Optional[str] = Field(None, description="Name of the middle school")
+    middle_known_for: Optional[str] = Field(None, description="Special programs or standout features of the middle school")
+    middle_rating: Optional[str] = Field(None, description="Letter grade rating of the middle school (e.g., A, B, etc.)")
+
+    high_name: Optional[str] = Field(None, description="Name of the high school")
+    high_known_for: Optional[str] = Field(None, description="Special programs or standout features of the high school")
+    high_rating: Optional[str] = Field(None, description="Letter grade rating of the high school (e.g., A+, B-, etc.)")
+
     model_config = {
-        "populate_by_name": True,  # ensures alias fields can be populated
-        "extra": "ignore",  # Perplexity may return extra fields
+        "populate_by_name": True,
+        "extra": "ignore"
     }
 
-    
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any]) -> Dict[str, Any]:
-        """Generate example Schools data based on user preferences."""
-        children_count = user_preferences.get('children_count', 0)
-        income = user_preferences.get('income_range', 'middle')
-        
-        # Generate school example using SchoolInfo class method
-        school_example = SchoolInfo.get_example(user_preferences)
-        
-        if children_count > 0 and income in ['high', 'very_high']:
+        children_count = user_preferences.get("children_count", 0)
+        income = user_preferences.get("income_range", "middle")
+
+        if children_count > 0:
             return {
-                "schools": [
-                    {
-                        "name": "## Prestigious Academy Elementary\n\n**Level:** Elementary School\n**Walking Distance:** Yes (0.3 miles)\n**Overall Rating:** 9.8/10",
-                        "level": "Elementary",
-                        "walking_distance": True,
-                        "school_rating": "9.8/10",
-                        "known_for": "**Specialized Programs:** Advanced STEM curriculum, Mandarin immersion program, gifted and talented tracks, award-winning arts program"
-                    },
-                    {
-                        "name": "## Excellence Prep Middle School\n\n**Level:** Middle School\n**Walking Distance:** No (0.8 miles)\n**Overall Rating:** 9.9/10",
-                        "level": "Middle School",
-                        "walking_distance": False,
-                        "school_rating": "9.9/10",
-                        "known_for": "**Advanced Programs:** Pre-AP courses, competitive robotics team, championship debate program, leadership academy"
-                    }
-                ]
-            }
-        elif children_count > 2:
-            return {
-                "schools": [
-                    {
-                        "name": "## Family-Friendly Elementary\n\n**Level:** Elementary School\n**Walking Distance:** Yes (0.4 miles)\n**Overall Rating:** 9.4/10",
-                        "level": "Elementary",
-                        "walking_distance": True,
-                        "school_rating": "9.4/10",
-                        "known_for": "**Community Focus:** Strong reading intervention programs, inclusive special education, extensive after-school activities, high family engagement with active PTA"
-                    },
-                    {
-                        "name": "## Community Middle School\n\n**Level:** Middle School\n**Walking Distance:** No (0.7 miles)\n**Overall Rating:** 9.0/10",
-                        "level": "Middle School",
-                        "walking_distance": False,
-                        "school_rating": "9.0/10",
-                        "known_for": "**Inclusive Excellence:** Strong community involvement, diverse academic programs, inclusive environment with support for all learners"
-                    }
-                ]
+                "preschool_name": "Bright Start Preschool",
+                "preschool_known_for": "Montessori-inspired curriculum, nurturing staff, strong parent community",
+                "preschool_rating": "A",
+
+                "elementary_name": "Prestigious Academy Elementary",
+                "elementary_known_for": "Mandarin immersion, STEM labs, gifted & talented program",
+                "elementary_rating": "A+",
+
+                "middle_name": "Excellence Prep Middle School",
+                "middle_known_for": "Pre-AP tracks, robotics team, leadership workshops",
+                "middle_rating": "A",
+
+                "high_name": "Summit High School",
+                "high_known_for": "IB diploma program, championship sports, diverse electives",
+                "high_rating": "A-"
             }
         else:
             return {
-                "schools": [
-                    {
-                        "name": "## Seaside Elementary\n\n**Level:** Elementary School\n**Walking Distance:** Yes (0.5 miles)\n**Overall Rating:** 9.2/10",
-                        "level": "Elementary",
-                        "walking_distance": True,
-                        "school_rating": "9.2/10",
-                        "known_for": "**STEM Excellence:** Strong STEM programs with hands-on learning, technology integration, science fair champions"
-                    }
-                ]
+                "preschool_name": None,
+                "preschool_known_for": None,
+                "preschool_rating": None,
+
+                "elementary_name": "Seaside Elementary",
+                "elementary_known_for": "Hands-on science, arts enrichment, strong PTA",
+                "elementary_rating": "A",
+
+                "middle_name": "Maple Grove Middle",
+                "middle_known_for": "Supportive environment, wide extracurriculars",
+                "middle_rating": "B+",
+
+                "high_name": None,
+                "high_known_for": None,
+                "high_rating": None
             }
-    
+
     @classmethod
     def get_description(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, str]:
-        """Generate field descriptions for Schools based on user preferences."""
-        children_count = user_preferences.get('children_count', 0) if user_preferences else 0
-        
-        return {
-            "schools": "Dictionary of local schools with comprehensive information. Use GreatSchools.org, Niche, or state education department data for accurate school ratings, programs, and performance metrics. Focus on schools within reasonable distance of the property."
+        children_count = user_preferences.get("children_count", 0) if user_preferences else 0
+
+        base = {
+            "preschool_name": "Name of the nearest preschool. Prioritize proximity and reputation for early childhood development.",
+            "preschool_known_for": "Key strengths, values, or curriculum style (e.g., Montessori, bilingual).",
+            "preschool_rating": "Overall letter grade rating (e.g., A+, B-, etc.), based on reviews or GreatSchools data.",
+
+            "elementary_name": "Name of the elementary school serving the address. Include notable characteristics.",
+            "elementary_known_for": "Academic programs, after-school activities, or community reputation.",
+            "elementary_rating": "Letter grade rating (e.g., A, B, C+). Reflect overall quality or performance.",
+
+            "middle_name": "Name of the middle school in the area. Note proximity and reputation.",
+            "middle_known_for": "Programs like STEM, arts, debate, or language immersion.",
+            "middle_rating": "Letter grade rating based on academic reputation or reviews.",
+
+            "high_name": "Name of the high school zoned for the address.",
+            "high_known_for": "College prep, athletics, AP/IB programs, or other standout features.",
+            "high_rating": "Letter grade rating representing overall perceived quality."
         }
+
+        if children_count == 0:
+            # Soften descriptions for buyers without school-aged children
+            base["elementary_known_for"] += " Focus on general neighborhood perception."
+            base["middle_known_for"] += " Focus on safety and extracurricular balance."
+            base["high_known_for"] += " Consider college readiness and neighborhood pride."
+
+        return base
 
 class ExtraTips(BaseModel):
     parking: str = Field(...)
@@ -1092,7 +1022,6 @@ class FullReport(BaseModel):
     neighborhood_overview: Optional[NeighborhoodOverview] = None
     
     # === Demographic data (appears directly after neighborhood_overview without section titles) ===
-    # age_distribution: Now injected directly from Census API - no model field needed
     lifestyle_dna: Optional[LifestyleDNA] = None
     
     # === Other report sections ===
@@ -1144,158 +1073,5 @@ class FullReport(BaseModel):
             
             # Include the key regardless of whether it's None or has a value
             final_dict[key] = base_dict[key]
-        
-        # Auto-include demographic sections if they have values (even if not in prioritized fields)
-        demographic_sections = ['lifestyle_dna']  # age_distribution now injected directly from Census API
-        for demo_key in demographic_sections:
-            if demo_key in base_dict and base_dict[demo_key] is not None and demo_key not in final_dict:
-                print(f"  🧬 Auto-including demographic section '{demo_key}' (has value)")
-                final_dict[demo_key] = base_dict[demo_key]
-
-        print("\n✅ Final filtered dict keys:")
-        print(f"  {list(final_dict.keys())}\n")
 
         return final_dict
-
-    @classmethod
-    def schema(cls, report_customization: Dict[str, Any] = None, **kwargs):
-        base = super().schema(**kwargs)
-        
-        # Get the prioritized fields from report customization
-        prioritized_fields = []
-        if report_customization:
-            prioritized_fields = report_customization.get("report_section_priorities", [])
-            logger.info(f"🎯 Filtering schema for prioritized fields: {prioritized_fields}")
-        
-        # If no prioritized fields specified, include all fields (backward compatibility)
-        if not prioritized_fields:
-            prioritized_fields = list(cls.__fields__.keys())
-            logger.info(f"📋 No prioritized fields specified, including all: {prioritized_fields}")
-        
-        # Filter properties to only include prioritized fields and remove nullable anyOf patterns
-        if "properties" in base:
-            filtered_properties = {}
-            for field_name in prioritized_fields:
-                if field_name in base["properties"]:
-                    prop = base["properties"][field_name]
-                    
-                    # Remove nullable anyOf patterns to make fields required
-                    if isinstance(prop, dict) and "anyOf" in prop:
-                        # Find the non-null reference
-                        non_null_refs = [item for item in prop["anyOf"] if item.get("type") != "null"]
-                        if len(non_null_refs) == 1 and "$ref" in non_null_refs[0]:
-                            # Replace anyOf with direct $ref to make field required
-                            filtered_properties[field_name] = non_null_refs[0]
-                            logger.info(f"🔧 Removed nullable anyOf for {field_name}, now required")
-                        else:
-                            filtered_properties[field_name] = prop
-                    else:
-                        filtered_properties[field_name] = prop
-            base["properties"] = filtered_properties
-            logger.info(f"✂️ Filtered properties to: {list(filtered_properties.keys())}")
-        
-        # Collect model classes that are actually used (including nested dependencies)
-        used_model_classes = set()
-        
-        def collect_model_dependencies(model_name, visited=None):
-            """Recursively collect all model dependencies from $defs"""
-            if visited is None:
-                visited = set()
-            
-            if model_name in visited or model_name not in base.get("$defs", {}):
-                return
-            
-            visited.add(model_name)
-            used_model_classes.add(model_name)
-            
-            # Check for $ref dependencies in this model's properties
-            model_def = base["$defs"][model_name]
-            if "properties" in model_def:
-                for prop_name, prop_def in model_def["properties"].items():
-                    # Look for direct $ref
-                    if isinstance(prop_def, dict) and "$ref" in prop_def:
-                        ref_model = prop_def["$ref"].split("/")[-1]
-                        collect_model_dependencies(ref_model, visited)
-                    # Look for $ref in anyOf (for Optional fields)
-                    elif isinstance(prop_def, dict) and "anyOf" in prop_def:
-                        for any_of_item in prop_def["anyOf"]:
-                            if isinstance(any_of_item, dict) and "$ref" in any_of_item:
-                                ref_model = any_of_item["$ref"].split("/")[-1]
-                                collect_model_dependencies(ref_model, visited)
-        
-        # Start with direct field models
-        for field_name in prioritized_fields:
-            if field_name in cls.__fields__:
-                field = cls.__fields__[field_name]
-                model = field.annotation
-                if hasattr(model, '__args__'):  # Handle Optional[Model]
-                    model = next((arg for arg in model.__args__ if arg is not type(None)), model)
-                if hasattr(model, '__name__'):
-                    collect_model_dependencies(model.__name__)
-        
-        # Filter $defs to only include used model classes and their dependencies
-        if "$defs" in base:
-            filtered_defs = {}
-            for def_name in used_model_classes:
-                if def_name in base["$defs"]:
-                    filtered_defs[def_name] = base["$defs"][def_name]
-            base["$defs"] = filtered_defs
-            logger.info(f"✂️ Filtered $defs to: {list(filtered_defs.keys())}")
-            
-            # Remove nullable anyOf patterns from $defs properties
-            for def_name, def_content in base["$defs"].items():
-                if "properties" in def_content:
-                    for prop_name, prop_def in def_content["properties"].items():
-                        if isinstance(prop_def, dict) and "anyOf" in prop_def:
-                            # Find the non-null references
-                            non_null_refs = [item for item in prop_def["anyOf"] if item.get("type") != "null"]
-                            if len(non_null_refs) >= 1:
-                                if len(non_null_refs) == 1:
-                                    # Single non-null type: replace with direct reference
-                                    base["$defs"][def_name]["properties"][prop_name] = non_null_refs[0]
-                                    logger.info(f"🔧 Removed nullable anyOf for {def_name}.{prop_name}, now required (single type)")
-                                else:
-                                    # Multiple non-null types: keep anyOf but remove null option
-                                    base["$defs"][def_name]["properties"][prop_name] = {"anyOf": non_null_refs}
-                                    logger.info(f"🔧 Removed null option from anyOf for {def_name}.{prop_name}, now required (multiple types)")
-
-        # Inject personalized examples and descriptions for used fields only
-        for field_name in prioritized_fields:
-            if field_name not in cls.__fields__:
-                continue
-                
-            field = cls.__fields__[field_name]
-            model = field.annotation
-            if hasattr(model, '__args__'):  # Handle Optional[Model]
-                model = next((arg for arg in model.__args__ if arg is not type(None)), model)
-
-            if hasattr(model, 'get_example'):
-                try:
-                    logger.info(f"🔧 Injecting example for {field_name}")
-                    example = model.get_example({})
-                    if "properties" in base and field_name in base["properties"]:
-                        base["properties"][field_name]["example"] = example
-                except Exception as e:
-                    logger.warning(f"⚠️ Failed to inject example for {field_name}: {e}")
-
-            if hasattr(model, 'get_description'):
-                try:
-                    logger.info(f"📝 Injecting field descriptions for {field_name}")
-                    field_descriptions = model.get_description({})
-
-                    # Handle both string or dict return types
-                    if isinstance(field_descriptions, str):
-                        # Apply string to the overall model description
-                        if model.__name__ in base.get("$defs", {}):
-                            base["$defs"][model.__name__]["description"] = field_descriptions
-
-                    elif isinstance(field_descriptions, dict):
-                        if "properties" in base.get("$defs", {}).get(model.__name__, {}):
-                            for sub_field, desc in field_descriptions.items():
-                                if sub_field in base["$defs"][model.__name__]["properties"]:
-                                    base["$defs"][model.__name__]["properties"][sub_field]["description"] = desc
-
-                except Exception as e:
-                    logger.warning(f"⚠️ Failed to inject descriptions for {field_name}: {e}")
-
-        return base

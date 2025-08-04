@@ -614,11 +614,101 @@ def _resize_image_for_home_hero(img_data: BytesIO, target_width: float = 5.0 * i
     return Image(enhanced_img_data, width=display_width, height=display_height)
 
 
+# Dictionary of field patterns that should be treated as subheaders
+# These are fields that were previously nested models but have been flattened
+FLATTENED_FIELD_PATTERNS = {
+    # Schools fields
+    "preschool_": "Preschool",
+    "elementary_": "Elementary School",
+    "middle_": "Middle School",
+    "high_": "High School",
+    # LocalAmenities fields
+    "restaurant_": "Restaurant",
+    "activity_": "Activity",
+    "park_": "Park",
+    "grocery_store_": "Grocery Store",
+    # UtilityCosts fields (now in EnvironmentUtilities)
+    "utility_": "Utility Costs"
+}
+
 def _add_section(elements, data, styles, level=0):
     indent = "  " * level
     logger.debug(f"[SECTION KEYS] Level {level}, keys: {[k for k in data.keys()]}")
-
+    
+    # Group flattened fields by their pattern prefix
+    flattened_groups = {}
+    regular_fields = {}
+    
+    # First pass: identify and group flattened fields
     for k, v in data.items():
+        is_flattened = False
+        for pattern, title in FLATTENED_FIELD_PATTERNS.items():
+            if k.startswith(pattern):
+                if pattern not in flattened_groups:
+                    flattened_groups[pattern] = {"title": title, "fields": {}}
+                flattened_groups[pattern]["fields"][k] = v
+                is_flattened = True
+                break
+        
+        if not is_flattened:
+            regular_fields[k] = v
+    
+    # Process flattened field groups first
+    for pattern, group in flattened_groups.items():
+        # Special handling for school fields vs other fields
+        is_school_field = pattern in ["preschool_", "elementary_", "middle_", "high_"]
+        
+        # For non-school fields, add a group header
+        if not is_school_field:
+            if level == 0:
+                elements.append(Spacer(1, 12))
+                elements.append(Paragraph(f"<b>{group['title']}:</b>", styles["SectionSubHeader"]))
+                elements.append(HRFlowable(width="30%", thickness=0.5, color="#AAAAAA", hAlign='LEFT'))
+            elif level == 1:
+                elements.append(Spacer(1, 6))
+                elements.append(Paragraph(f"<b>{group['title']}:</b>", styles["SubHeader"]))
+        
+        # Process fields within this group
+        for k, v in group["fields"].items():
+            # Format the field name without the prefix
+            field_name = k.replace(pattern, "").replace("_", " ").title()
+            
+            # For school fields, if it's a name field, make it a subheader
+            if is_school_field and field_name.lower() == "name" and v is not None:
+                if level == 0:
+                    elements.append(Spacer(1, 12))
+                    elements.append(Paragraph(f"<b>{v}:</b>", styles["SectionSubHeader"]))
+                    elements.append(HRFlowable(width="30%", thickness=0.5, color="#AAAAAA", hAlign='LEFT'))
+                elif level == 1:
+                    elements.append(Spacer(1, 6))
+                    elements.append(Paragraph(f"<b>{v}:</b>", styles["SubHeader"]))
+                continue  # Skip the normal field processing for school names
+            
+            # Process the field value
+            if isinstance(v, dict):
+                elements.append(Paragraph(f"<b>{field_name}:</b>", styles["Body"]))
+                _add_section(elements, v, styles, level + 2)
+            elif isinstance(v, list):
+                elements.append(Paragraph(f"<b>{field_name}:</b>", styles["Body"]))
+                for item in v:
+                    if isinstance(item, dict):
+                        _add_section(elements, item, styles, level + 2)
+                    else:
+                        elements.append(Paragraph(f"- {item}", styles["Body"]))
+            elif v is not None:  # Skip None values
+                value = Paragraph(str(v), styles["Body"])
+                table = Table([[Paragraph(f"<b>{field_name}:</b>", styles["Body"]), value]], colWidths=[1.5 * inch, 4.5 * inch])
+                table.setStyle(TableStyle([
+                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
+                    ("TOPPADDING", (0, 0), (-1, -1), 2),
+                ]))
+                elements.append(table)
+    
+    # Now process regular fields
+    for k, v in regular_fields.items():
         key = k.replace("_", " ").title()
 
         # CHARTS - Handle both dict and Pydantic model objects
