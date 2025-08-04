@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Search, Filter, Heart, Bookmark } from "lucide-react";
 import mapStyles from "../hooks/mapStyling";
-import Loading from "../components/Loading";
-import MiniLogo from "../components/MiniLogo";
+
 
 interface SearchResult {
   id: string;

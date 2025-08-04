@@ -27,3 +27,6 @@ celery==5.3.4
 redis==5.0.1
 pydantic==2.5.0
 openai==1.51.0
+requests>=2.31.0,<3.0.0
+usaddress>=0.5.10,<0.6.0
+uszipcode>=0.2.6,<0.3.0

@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface KeyLogoProps {
-  size?: 'sm' | 'md' | 'lg' | 'xl';
+  size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl';
   showText?: boolean;
   className?: string;
   textClassName?: string;
@@ -31,6 +31,18 @@ const KeyLogo: React.FC<KeyLogoProps> = ({
     xl: {
       logo: 'h-24 w-auto',
       container: 'gap-4'
+    },
+    '2xl': {
+      logo: 'h-32 w-auto',
+      container: 'gap-5'
+    },
+    '3xl': {
+      logo: 'h-40 w-auto',
+      container: 'gap-6'
+    },
+    '4xl': {
+      logo: 'h-48 w-auto',
+      container: 'gap-8'
     }
   };
 

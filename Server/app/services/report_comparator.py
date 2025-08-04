@@ -66,10 +66,6 @@ def _extract_summary(data: Dict) -> Dict[str, str]:
         "Neighborhood Rating": "neighborhood_overview.neighborhood_rating",
         "LGBTQ Representation": "neighborhood_overview.LGBTQ_representation",
         
-        # Demographics
-        "Age Distribution": "neighborhood_overview.demographics.age_distribution",
-        "Lifestyle DNA": "neighborhood_overview.demographics.lifestyle_dna",
-        
         # Safety
         "Crime Rating": "safety.crime_rating",
         "Places to Watch Out For": "safety.places_to_watch_out_for",
@@ -117,17 +113,13 @@ def _extract_summary(data: Dict) -> Dict[str, str]:
         
         # Local Amenities - Stores
         "Thrift Store Name": "local_amenities.thrift_store.name",
-        "Thrift Store Type": "local_amenities.thrift_store.type",
         "Thrift Store Vibe": "local_amenities.thrift_store.vibe",
         "Grocery Store Name": "local_amenities.grocery_store.name",
-        "Grocery Store Type": "local_amenities.grocery_store.type",
         "Grocery Store Vibe": "local_amenities.grocery_store.vibe",
         "Late Night Restaurant Name": "local_amenities.late_night_restaurant.name",
-        "Late Night Restaurant Type": "local_amenities.late_night_restaurant.type",
         "Late Night Restaurant Vibe": "local_amenities.late_night_restaurant.vibe",
         
         # Commute
-        "Commute Times": "commute.commute_times",
         "Public Transport": "commute.public_transport",
         "Traffic": "commute.traffic",
         "Walkability": "commute.walkability",
@@ -141,8 +133,6 @@ def _extract_summary(data: Dict) -> Dict[str, str]:
         "Nightlife Rating": "nightlife_and_dating.nightlife_rating",
         "Best Spots": "nightlife_and_dating.best_spots",
         "Dating Scene": "nightlife_and_dating.dating_scene",
-        "Tinder Popularity": "nightlife_and_dating.apps_popularity.tinder",
-        "Hinge Popularity": "nightlife_and_dating.apps_popularity.hinge",
       
         # Development
         "Upcoming Changes": "development.upcoming_changes",

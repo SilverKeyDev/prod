@@ -119,7 +119,6 @@ const ALL_METRIC_KEYS: string[] = [
   "Late Night Restaurant Vibe",
 
   // Commute
-  "Commute Times",
   "Public Transport",
   "Traffic",
   "Walkability",

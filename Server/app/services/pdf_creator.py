@@ -16,7 +16,6 @@ from reportlab.lib.enums import TA_CENTER
 import os
 import requests
 from io import BytesIO
-import uuid
 import logging
 import traceback
 import matplotlib
@@ -85,7 +84,8 @@ def _create_pdf(report: dict, address: str, filename: str, comparison_address: s
         )
 
         styles = getSampleStyleSheet()
-        styles.add(ParagraphStyle(name="MainTitle", fontSize=24, leading=30, fontName="Helvetica", textColor=colors.black, alignment=TA_CENTER))
+        styles.add(ParagraphStyle(name="MainTitleComparison", fontSize=18, leading=30, fontName="Helvetica", textColor=colors.black, alignment=TA_CENTER, wordWrap='LTR', splitLongWords=False))
+        styles.add(ParagraphStyle(name="MainTitle", fontSize=22, leading=30, fontName="Helvetica", textColor=colors.black, alignment=TA_CENTER, wordWrap='LTR', splitLongWords=False))
         styles.add(ParagraphStyle(name="SectionHeader", fontSize=18, leading=22, textColor=colors.black, fontName="Helvetica", spaceAfter=8))
         styles.add(ParagraphStyle(name="SectionSubHeader", fontSize=16, leading=20, textColor="#D8CAB8", fontName="Helvetica-Bold", spaceAfter=8))
         styles.add(ParagraphStyle(name="SubHeader", fontSize=11, leading=14, textColor="#6A7B52", fontName="Helvetica-Oblique", spaceAfter=6))
@@ -97,13 +97,17 @@ def _create_pdf(report: dict, address: str, filename: str, comparison_address: s
 
         # Add main title with address (different for comparison reports)
         if comparison_address and comparison_address.strip():
-            title = f"Property Comparison: {address} vs {comparison_address}"
+            title = f"{address} vs"
             logger.info(f"📊 Creating comparison report title: {title}")
+            elements.append(Paragraph(title, styles["MainTitleComparison"]))
+            elements.append(Spacer(1, 1))
+            elements.append(Paragraph(comparison_address, styles["MainTitleComparison"]))
         else:
             title = address
             logger.info(f"📊 Creating regular report title: {title}")
+            elements.append(Paragraph(title, styles["MainTitle"]))
+
         
-        elements.append(Paragraph(title, styles["MainTitle"]))
         elements.append(Spacer(1, 1))
         elements.append(HRFlowable(width="100%", thickness=1.2, color="#D8CAB8"))
         elements.append(Spacer(1, 20))
@@ -186,8 +190,16 @@ def _create_pdf(report: dict, address: str, filename: str, comparison_address: s
                 if chart_buffer and chart_data:
                     logger.info(f"✅ Adding chart to PDF for {section}")
                     
-                    # Only add the chart image, no percentage data
-                    img = _resize_image_to_fit(chart_buffer, is_chart=True)
+                    # Chart-specific sizing: age_distribution shorter, lifestyle_dna normal height
+                    if section.lower() == "age_distribution":
+                        # Make age distribution charts shorter (1.4 inch height)
+                        img = _resize_image_to_fit(chart_buffer, target_width=3.2 * inch, target_height=2 * inch, is_chart=True)
+                        logger.info(f"📊 Resized age_distribution chart to shorter height (1.4 inch)")
+                    else:
+                        # Keep lifestyle_dna and other charts at normal height (2.8 inch)
+                        img = _resize_image_to_fit(chart_buffer, target_width=3.6 * inch, target_height=2.8 * inch, is_chart=True)
+                        logger.info(f"📊 Resized {section} chart to normal height (2.8 inch)")
+                    
                     table_data = [[img]]
                     table = Table(table_data, colWidths=[3.6 * inch])
                     table.setStyle(TableStyle([
@@ -195,7 +207,7 @@ def _create_pdf(report: dict, address: str, filename: str, comparison_address: s
                         ("ALIGN", (0, 0), (-1, -1), "CENTER"),
                         ("LEFTPADDING", (0, 0), (-1, -1), 10),
                         ("RIGHTPADDING", (0, 0), (-1, -1), 10),
-                        ("TOPPADDING", (0, 0), (-1, -1), 10),
+                        ("TOPPADDING", (0, 0), (-1, -1), 1),
                         ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
                     ]))
                     
@@ -268,6 +280,7 @@ def _create_pdf(report: dict, address: str, filename: str, comparison_address: s
                                     try:
                                         map_image = _resize_image_to_fit(map_buffer, target_width=5.0 * inch, target_height=3.5 * inch)
                                         if map_image:
+                                            elements.append(Spacer(1, 10))
                                             elements.append(map_image)
                                             elements.append(Paragraph("Commute Routes to Important Locations", styles["Caption"]))
                                             elements.append(Spacer(1, 6))
@@ -281,7 +294,10 @@ def _create_pdf(report: dict, address: str, filename: str, comparison_address: s
                                 if travel_times:
                                     logger.info(f"📝 Adding {len(travel_times)} travel times to PDF as bulleted list")
                                     elements.append(Paragraph("Travel Times by Car", styles["SectionSubHeader"]))
+                                    elements.append(Spacer(1, 1))
+                                    elements.append(HRFlowable(width="100%", thickness=1.2, color="#D8CAB8"))
                                     elements.append(Spacer(1, 4))
+
                                     
                                     # Create indented bulleted list
                                     elements.append(Indenter(left=20))  # Indent the list
@@ -457,7 +473,7 @@ def _fetch_image_from_serp(prompt: str) -> str:
 
 
 
-def _resize_image_to_fit(img_data: BytesIO, target_width: float = 3.6 * inch, target_height: float = 2.8 * inch, is_chart: bool = False) -> Image:
+def _resize_image_to_fit(img_data: BytesIO, target_width: float = 3.6 * inch, target_height: float = 2.0 * inch, is_chart: bool = False) -> Image:
     pil_img = PILImage.open(img_data)
     
     # Convert to RGB if in P or RGBA mode to prevent format issues
@@ -472,19 +488,29 @@ def _resize_image_to_fit(img_data: BytesIO, target_width: float = 3.6 * inch, ta
     width, height = pil_img.size
     aspect_ratio = width / height
 
-    # Fit into box with consistent size
+    # Fit into box with consistent size while maintaining aspect ratio
     if aspect_ratio > 1:
+        # Wide image: fit to width, scale height proportionally
         display_width = target_width
         display_height = target_width / aspect_ratio
     else:
+        # Tall image: fit to height, scale width proportionally
         display_height = target_height
         display_width = target_height * aspect_ratio
 
-    # Avoid tiny charts
-    min_width = 3.2 * inch
-    min_height = 2.4 * inch
-    display_width = max(display_width, min_width)
-    display_height = max(display_height, min_height)
+    # Apply minimum size constraints only for non-chart images
+    # Charts should respect their target dimensions for specific sizing
+    if not is_chart:
+        min_width = 3.2 * inch
+        min_height = 1.6 * inch
+        display_width = max(display_width, min_width)
+        display_height = max(display_height, min_height)
+    else:
+        # For charts, ensure they don't get too small but respect target dimensions
+        min_chart_width = 2.5 * inch
+        min_chart_height = 1.0 * inch
+        display_width = max(display_width, min_chart_width)
+        display_height = max(display_height, min_chart_height)
     
     # Convert enhanced PIL image back to BytesIO for ReportLab
     enhanced_img_data = BytesIO()

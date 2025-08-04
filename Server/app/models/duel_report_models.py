@@ -530,7 +530,6 @@ class NightlifeAndDating(BaseModel):
     nightlife_rating: ComparisonField = Field(...)
     best_spots: ComparisonField = Field(...)
     dating_scene: ComparisonField = Field(...)
-    apps_popularity: ComparisonField = Field(...)
     image_prompt: str = Field(...)
     image_prompt_2: str = Field(...)
     
@@ -559,12 +558,7 @@ class NightlifeAndDating(BaseModel):
                 "winner": "location_b",
                 "reason": f"Better matches user profile: {marital_status}, age {age}, active lifestyle"
             },
-            "apps_popularity": {
-                "location_a": {"Hinge": "Moderate", "Tinder": "Low"},
-                "location_b": {"Hinge": "Very Popular", "Tinder": "Popular"},
-                "winner": "location_b",
-                "reason": "Higher dating app activity indicates more active dating scene"
-            },
+          
             "image_prompt": "Photo comparing nightlife and entertainment venues in each city around the addresses, showing actual bars, clubs, and late-night spots where residents gather",
             "image_prompt_2": "Photo comparing dating-friendly venues in each city near the addresses: trendy restaurants, wine bars, coffee shops, or social spaces where singles meet and socialize"
         }
@@ -579,7 +573,6 @@ class NightlifeAndDating(BaseModel):
             "nightlife_rating": "Rate vibrancy of bars, music, and scenes using Yelp, Google Maps, or City-Data forum nightlife threads. Consider what appeals to the user's demographic and lifestyle.",
             "best_spots": "Popular bars, clubs, and entertainment venues using Yelp, Google Maps, or City-Data forum nightlife threads. Focus on venues that match the user's social style and interests.",
             "dating_scene": f"Describe energy and dating pool. Search 'dating in [city] Reddit' or Nomad List for vibe. Tailor to user's marital status ({marital_status}) and age ({age}) - focus on relevant social opportunities.",
-            "apps_popularity": "Break down by app, score relative to national averages. Check Reddit threads or blog posts comparing app usage. Emphasize apps most relevant to user's age group and relationship goals.",
             "image_prompt": "Photo comparing nightlife and entertainment venues in each neighborhood around the addresses that reflect the local social atmosphere and evening entertainment options."
         }
 
@@ -933,9 +926,6 @@ class ComparisonReport(BaseModel):
     def dict(self, **kwargs) -> Dict[str, Any]:
         base_dict = super().dict(**kwargs)
 
-        for k, v in base_dict.items():
-            print(f"  - {k}: {'✅ has value' if v is not None else '❌ None'}")
-        print(f"  {self._prioritized_fields}")
 
         final_dict = {}
 

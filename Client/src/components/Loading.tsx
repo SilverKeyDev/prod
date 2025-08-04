@@ -4,7 +4,7 @@ const PARTICLE_COUNT = 9;
 const SIZE = 80;
 const CENTER = SIZE / 2;
 const RADIUS = 25;
-const BOUNCE_RADIUS = 1.5;
+const BOUNCE_RADIUS = 0;
 const QUICK_ANIMATION_STEPS = 6;
 
 type Particle = {

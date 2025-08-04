@@ -40,11 +40,10 @@ def generate_report_schema(report_customization: Dict[str, Any], user_preference
         
         # Step 3.1: Manually add missing nested model definitions that Pydantic doesn't include automatically
         from app.models.report_models import (
-            AppsPopularity, SchoolInfo, Restaurant, Activity, Park, UtilityCosts
+            SchoolInfo, Restaurant, Activity, Park, UtilityCosts
         )
         
         missing_models = {
-            'AppsPopularity': AppsPopularity,
             'SchoolInfo': SchoolInfo,
             'Restaurant': Restaurant,
             'Activity': Activity,

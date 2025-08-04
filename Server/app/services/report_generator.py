@@ -19,6 +19,7 @@ from ..models.user_preferences import UserPreferences
 from ..services.s3_service import s3_service
 from flask import current_app
 from app import db
+from ..scrapers.age_data import get_age_distribution
 
 # Configure verbose logging
 logging.basicConfig(level=logging.DEBUG)
@@ -251,405 +252,104 @@ def _safe_parse_json(text: str, report_customization: dict = None) -> dict:
 
         # Strip any non-JSON hallucinated wrappers just in case
         cleaned = re.sub(r'(<think>.*?</think>|&lt;think&gt;.*?&lt;/think&gt;)', '', text, flags=re.DOTALL | re.IGNORECASE).strip()
-
+        cleaned = cleaned.replace("“", '"').replace("”", '"').replace("’", "'")
+        cleaned = re.sub(r',(\s*[}\]])', r'\1', cleaned)
         # Try multiple parsing strategies for common Perplexity issues
         parsed = None
-        parse_method = "unknown"
         
         try:
             # Strategy 1: Direct JSON parsing
             parsed = json.loads(cleaned)
-            parse_method = "json.loads"
         except json.JSONDecodeError as e:
-            logger.warning(f"⚠️ json.loads failed: {e}")
-            
-            try:
-                # Strategy 2: Strip markdown code blocks (```json...```)
-                if cleaned.startswith('```') and cleaned.endswith('```'):
-                    # Remove ```json and ``` wrappers
-                    stripped = re.sub(r'^```(?:json)?\s*|\s*```$', '', cleaned, flags=re.MULTILINE).strip()
-                    parsed = json.loads(stripped)
-                    parse_method = "markdown-stripped"
-                    logger.info("✅ Parsed after stripping markdown code blocks")
-                else:
-                    raise json.JSONDecodeError("Not markdown wrapped", cleaned, 0)
-                    
-            except json.JSONDecodeError:
-                try:
-                    # Strategy 3: Remove trailing commas (common AI mistake)
-                    comma_fixed = re.sub(r',\s*([}\]])', r'\1', cleaned)
-                    parsed = json.loads(comma_fixed)
-                    parse_method = "comma-fixed"
-                    logger.info("✅ Parsed after fixing trailing commas")
-                    
-                except json.JSONDecodeError:
-                    try:
-                        # Strategy 4: Fix unterminated strings and malformed JSON
-                        string_fixed = cleaned
-                        
-                        # Fix unterminated strings by adding closing quotes before } or ]
-                        string_fixed = re.sub(r'"([^"]*?)"\s*([,}\]])', r'"\1"\2', string_fixed)
-                        
-                        # Fix cases where quotes are missing after colons
-                        string_fixed = re.sub(r':\s*([^"\{\[\d][^,}\]]*?)\s*([,}\]])', r': "\1"\2', string_fixed)
-                        
-                        # Fix unterminated strings at end of values
-                        string_fixed = re.sub(r'"([^"]*?)\s*([,}\]])', r'"\1"\2', string_fixed)
-                        
-                        # Remove any duplicate quotes
-                        string_fixed = re.sub(r'""', r'"', string_fixed)
-                        
-                        parsed = json.loads(string_fixed)
-                        parse_method = "string-repaired"
-                        logger.info("✅ Parsed after repairing malformed strings")
-                        
-                    except json.JSONDecodeError:
-                        try:
-                            # Strategy 5: Try to extract JSON from HTML/mixed content
-                            json_match = re.search(r'\{.*\}', cleaned, re.DOTALL)
-                            if json_match:
-                                extracted = json_match.group(0)
-                                parsed = json.loads(extracted)
-                                parse_method = "extracted-from-html"
-                                logger.info("✅ Parsed after extracting JSON from mixed content")
-                            else:
-                                raise json.JSONDecodeError("No JSON found in content", cleaned, 0)
-                                
-                        except json.JSONDecodeError as final_error:
-                            logger.error(f"❌ All parsing strategies failed. Final error: {final_error}")
-                            logger.error(f"🔍 Content preview (first 200 chars): {cleaned[:200]}")
-                            raise ValueError(f"Failed to parse JSON with all strategies: {final_error}") from final_error
-        
-        logger.debug(f"✅ Parsed with strategy: {parse_method}")
-        logger.info(f"📊 Parsed JSON keys: {list(parsed.keys()) if isinstance(parsed, dict) else 'Not a dict'}")
+           logger.error(f"🛑 Failed to parse structured JSON: {e}")
+           logger.error(f"🧵 Traceback:\n{traceback.format_exc()}")
+           raise ValueError("Failed to parse structured JSON from model output") from e
 
-        # Normalize field names to match schema requirements
-        if isinstance(parsed, dict):
-            logger.info("🔧 NORMALIZE: Starting field name normalization...")
-            normalized_parsed = normalize_field_names(parsed)
-            logger.info(f"✅ NORMALIZE: Field normalization completed")
-            parsed = normalized_parsed
-        else:
-            logger.warning("⚠️ NORMALIZE: Skipping normalization - parsed data is not a dictionary")
 
         # Remove empty fields (empty strings, null, empty arrays)
         logger.info("🧹 CLEANUP: Removing empty fields...")
-        original_keys = list(parsed.keys()) if isinstance(parsed, dict) else []
-        cleaned_parsed = _remove_empty_fields(parsed)
-        cleaned_keys = list(cleaned_parsed.keys()) if isinstance(cleaned_parsed, dict) else []
+        parsed = _remove_empty_fields(parsed)
         
-        removed_keys = set(original_keys) - set(cleaned_keys)
-        if removed_keys:
-            logger.info(f"🗑️ CLEANUP: Removed empty fields: {sorted(removed_keys)}")
-        else:
-            logger.info("✅ CLEANUP: No empty fields found to remove")
-        
-        parsed = cleaned_parsed
-
-        # Normalize rating fields to X.X/10 format
-        logger.info("📊 RATING: Normalizing rating fields...")
-        rating_normalized_parsed = _normalize_ratings(parsed)
-        logger.info("✅ RATING: Rating normalization completed")
-        parsed = rating_normalized_parsed
-
-        # Validate with FullReport schema
-        try:
-            logger.info("🏗️ Instantiating FullReport with report_customization...")
-            validated = FullReport(report_customization=report_customization, **parsed)
-            logger.info("🎯 FullReport validation with Pydantic successful")
-            
-            # Log the final validated report structure using custom dict() method
-            validated_dict = validated.dict()  # Use custom dict() method that filters by priorities
-            logger.info(f"📋 Final FullReport sections: {list(validated_dict.keys())}")
-            logger.debug(f"📋 Full validated FullReport JSON:\n{json.dumps(validated_dict, indent=2)}")
-       
-            return validated_dict
-        except Exception as ve:
-            logger.error(f"❌ FullReport validation failed: {ve}")
-            logger.error(f"❌ Validation error type: {type(ve).__name__}")
-            logger.error(f"❌ Full traceback:\n{traceback.format_exc()}")
-            logger.warning("📋 Returning unvalidated parsed JSON")
-            
-            return parsed
+        # Return the successfully parsed and cleaned JSON
+        logger.info(f"✅ Successfully parsed and cleaned JSON with {len(parsed) if isinstance(parsed, dict) else 'non-dict'} keys")
+        return parsed
 
     except Exception as e:
         logger.error(f"🛑 Failed to parse structured JSON: {e}")
         logger.error(f"🧵 Traceback:\n{traceback.format_exc()}")
         raise ValueError("Failed to parse structured JSON from model output") from e
 
-# -------------------- FIELD NORMALIZATION --------------------
-
-def normalize_field_names(data: dict) -> dict:
-    """
-    Normalize AI-generated field names to match schema requirements.
-    
-    This function fixes common issues where the AI generates incorrect field names
-    for age_distribution and lifestyle_dna sections.
-    """
-    if not isinstance(data, dict):
-        return data
-    
-    normalized_data = {}
-    
-    for section_key, section_value in data.items():
-        if section_key == "age_distribution" and isinstance(section_value, dict):
-            logger.info(f"🔧 NORMALIZE: Processing age_distribution section")
-            normalized_age = normalize_age_distribution(section_value)
-            normalized_data[section_key] = normalized_age
-            logger.info(f"✅ NORMALIZE: age_distribution normalized from {list(section_value.keys())} to {list(normalized_age.keys())}")
-            
-        elif section_key == "lifestyle_dna" and isinstance(section_value, dict):
-            logger.info(f"🔧 NORMALIZE: Processing lifestyle_dna section")
-            normalized_lifestyle = normalize_lifestyle_dna(section_value)
-            normalized_data[section_key] = normalized_lifestyle
-            logger.info(f"✅ NORMALIZE: lifestyle_dna normalized from {list(section_value.keys())} to {list(normalized_lifestyle.keys())}")
-            
-        else:
-            # For other sections, recursively normalize if they contain nested dicts
-            if isinstance(section_value, dict):
-                normalized_data[section_key] = normalize_field_names(section_value)
-            else:
-                normalized_data[section_key] = section_value
-    
-    return normalized_data
-
-def normalize_age_distribution(age_data: dict) -> dict:
-    """
-    Normalize age distribution field names to match schema requirements.
-    Required fields: "18-24", "25-34", "35-49", "50-64", "65+"
-    """
-    # Define the mapping from various AI-generated names to schema names
-    age_mappings = {
-        # Standard variations
-        "18-24": "18-24",
-        "25-34": "25-34", 
-        "35-49": "35-49",
-        "50-64": "50-64",
-        "65+": "65+",
-        
-        # AI-generated variations (from logs)
-        "age_18_24": "18-24",
-        "age_25_34": "25-34",
-        "age_35_49": "35-49",
-        "age_50_64": "50-64",
-        "age_65_plus": "65+",
-        
-        # Other common variations
-        "18_24": "18-24",
-        "25_34": "25-34",
-        "35_49": "35-49",
-        "50_64": "50-64",
-        "65_plus": "65+",
-        "65plus": "65+",
-        
-        # Underscore variations
-        "under_25": "18-24",
-        "young_adult": "18-24",
-        "adult": "25-34",
-        "middle_aged": "35-49",
-        "older_adult": "50-64",
-        "senior": "65+",
-        "elderly": "65+"
-    }
-    
-    normalized = {}
-    required_fields = ["18-24", "25-34", "35-49", "50-64", "65+"]
-    
-    # Map existing fields
-    for ai_field, value in age_data.items():
-        if ai_field in age_mappings:
-            schema_field = age_mappings[ai_field]
-            normalized[schema_field] = value
-            logger.debug(f"🔄 NORMALIZE: Mapped '{ai_field}' -> '{schema_field}' = '{value}'")
-        else:
-            logger.warning(f"⚠️ NORMALIZE: Unknown age field '{ai_field}' with value '{value}'")
-    
-    # Ensure all required fields are present
-    for required_field in required_fields:
-        if required_field not in normalized:
-            normalized[required_field] = "0%"
-            logger.debug(f"➕ NORMALIZE: Added missing age field '{required_field}' = '0%'")
-    
-    # Normalize percentages to sum to 100%
-    normalized = normalize_percentages_to_100(normalized, "age_distribution")
-    
-    return normalized
-
-def normalize_lifestyle_dna(lifestyle_data: dict) -> dict:
-    """
-    Normalize lifestyle DNA field names to match schema requirements.
-    Required fields: "Artistic", "Professional", "Family_Oriented", "Active_Outdoor", 
-                    "Tech_Remote", "Retiree", "Student", "Suburban", "Urban"
-    """
-    # Define the mapping from various AI-generated names to schema names
-    lifestyle_mappings = {
-        # Exact schema matches
-        "Artistic": "Artistic",
-        "Professional": "Professional",
-        "Family_Oriented": "Family_Oriented",
-        "Active_Outdoor": "Active_Outdoor",
-        "Tech_Remote": "Tech_Remote",
-        "Retiree": "Retiree",
-        "Student": "Student",
-        "Suburban": "Suburban",
-        "Urban": "Urban",
-        
-        # Common variations
-        "artistic": "Artistic",
-        "professional": "Professional",
-        "family_oriented": "Family_Oriented",
-        "family-oriented": "Family_Oriented",
-        "families": "Family_Oriented",
-        "active_outdoor": "Active_Outdoor",
-        "active-outdoor": "Active_Outdoor",
-        "outdoor_enthusiasts": "Active_Outdoor",
-        "outdoor": "Active_Outdoor",
-        "tech_remote": "Tech_Remote",
-        "tech-remote": "Tech_Remote",
-        "remote_workers": "Tech_Remote",
-        "tech_workers": "Tech_Remote",
-        "retiree": "Retiree",
-        "retirees": "Retiree",
-        "retired": "Retiree",
-        "student": "Student",
-        "students": "Student",
-        "suburban": "Suburban",
-        "urban": "Urban",
-        
-        # Additional lifestyle categories that might be generated
-        "creative": "Artistic",
-        "artist": "Artistic",
-        "business": "Professional",
-        "corporate": "Professional",
-        "family": "Family_Oriented",
-        "parents": "Family_Oriented",
-        "active": "Active_Outdoor",
-        "fitness": "Active_Outdoor",
-        "tech": "Tech_Remote",
-        "remote": "Tech_Remote",
-        "senior": "Retiree",
-        "college": "Student",
-        "university": "Student"
-    }
-    
-    normalized = {}
-    required_fields = ["Artistic", "Professional", "Family_Oriented", "Active_Outdoor", 
-                      "Tech_Remote", "Retiree", "Student", "Suburban", "Urban"]
-    
-    # Map existing fields
-    for ai_field, value in lifestyle_data.items():
-        if ai_field in lifestyle_mappings:
-            schema_field = lifestyle_mappings[ai_field]
-            # If the field already exists, combine the values (take the higher percentage)
-            if schema_field in normalized:
-                existing_val = normalized[schema_field].rstrip('%')
-                new_val = str(value).rstrip('%')
-                try:
-                    existing_num = float(existing_val) if existing_val != '0' else 0
-                    new_num = float(new_val) if new_val != '0' else 0
-                    combined_val = max(existing_num, new_num)
-                    normalized[schema_field] = f"{combined_val}%"
-                    logger.debug(f"🔄 NORMALIZE: Combined '{ai_field}' -> '{schema_field}' = '{normalized[schema_field]}' (was '{existing_val}%', new '{new_val}%')")
-                except (ValueError, TypeError):
-                    normalized[schema_field] = str(value)
-                    logger.debug(f"🔄 NORMALIZE: Non-numeric combine '{ai_field}' -> '{schema_field}' = '{value}'")
-            else:
-                normalized[schema_field] = str(value)
-                logger.debug(f"🔄 NORMALIZE: Mapped '{ai_field}' -> '{schema_field}' = '{value}'")
-        else:
-            logger.warning(f"⚠️ NORMALIZE: Unknown lifestyle field '{ai_field}' with value '{value}'")
-    
-    # Ensure all required fields are present
-    for required_field in required_fields:
-        if required_field not in normalized:
-            normalized[required_field] = "0%"
-            logger.debug(f"➕ NORMALIZE: Added missing lifestyle field '{required_field}' = '0%'")
-    
-    # Normalize percentages to sum to 100%
-    normalized = normalize_percentages_to_100(normalized, "lifestyle_dna")
-    
-    # Keep all fields including those with 0% values since Pydantic model requires all fields
-    logger.info(f"✅ NORMALIZE: Keeping all lifestyle DNA fields including 0% values for Pydantic validation")
-    
-    return normalized
-
-def normalize_percentages_to_100(data: dict, section_name: str) -> dict:
-    """
-    Normalize percentage values to sum to exactly 100%.
-    
-    This function takes a dictionary of percentage values (like "25%", "30%", etc.)
-    and redistributes them proportionally so they sum to exactly 100%.
-    """
-    if not isinstance(data, dict):
-        return data
-    
-    # Extract numeric values from percentage strings
-    numeric_values = {}
-    total_sum = 0
-    
-    for key, value in data.items():
-        try:
-            # Handle both string percentages ("25%") and numeric values (25)
-            if isinstance(value, str):
-                numeric_val = float(value.rstrip('%'))
-            else:
-                numeric_val = float(value)
-            
-            numeric_values[key] = numeric_val
-            total_sum += numeric_val
-            
-        except (ValueError, TypeError):
-            logger.warning(f"⚠️ NORMALIZE: Could not parse percentage value '{value}' for field '{key}' in {section_name}")
-            numeric_values[key] = 0.0
-    
-    logger.debug(f"🔢 NORMALIZE: {section_name} original sum: {total_sum}%")
-    
-    # If total is 0, distribute equally
-    if total_sum == 0:
-        equal_share = 100.0 / len(numeric_values)
-        # Return integers for Pydantic validation
-        normalized_data = {key: int(round(equal_share)) for key in numeric_values.keys()}
-        logger.info(f"📊 NORMALIZE: {section_name} had zero sum, distributed equally: {equal_share:.1f}% each")
-        return normalized_data
-    
-    # If total is already 100, return as-is (with integer formatting)
-    if abs(total_sum - 100.0) < 0.1:
-        # Return integers for Pydantic validation
-        normalized_data = {key: int(round(val)) for key, val in numeric_values.items()}
-        logger.debug(f"✅ NORMALIZE: {section_name} already sums to ~100%, keeping values")
-        return normalized_data
-    
-    # Normalize proportionally to sum to 100%
-    normalized_data = {}
-    running_total = 0.0
-    keys_list = list(numeric_values.keys())
-    
-    # Normalize all but the last value proportionally
-    for i, key in enumerate(keys_list[:-1]):
-        normalized_val = (numeric_values[key] / total_sum) * 100.0
-        # Store as integer for Pydantic validation
-        normalized_data[key] = int(round(normalized_val))
-        running_total += normalized_val
-    
-    # Set the last value to make the total exactly 100%
-    last_key = keys_list[-1]
-    last_val = 100.0 - running_total
-    # Store as integer for Pydantic validation
-    normalized_data[last_key] = int(round(last_val))
-    
-    # Verify the sum (now working with integers)
-    verification_sum = sum(normalized_data.values())
-    logger.info(f"📊 NORMALIZE: {section_name} normalized from {total_sum:.1f}% to {verification_sum}%")
-    
-    # Log the transformation
-    for key in numeric_values.keys():
-        old_val = numeric_values[key]
-        new_val = normalized_data[key]
-        logger.debug(f"🔄 NORMALIZE: {section_name}.{key}: {old_val:.1f}% → {new_val}%")
-    
-    return normalized_data
-
 # -------------------- HELPER FUNCTIONS --------------------
+
+from collections import OrderedDict
+import traceback
+
+def inject_real_age_distribution(combined_report: dict, address: str) -> dict:
+    """
+    Inject real Census age distribution data into the top-level of the report,
+    immediately after the 'neighborhood_overview' section. Removes any nested 
+    'age_distribution' inside 'neighborhood_overview'.
+
+    Args:
+        combined_report: The combined report dictionary
+        address: The property address to get age data for
+
+    Returns:
+        Updated combined_report with real age distribution data at top level
+    """
+    logger.info(f"🏘️ Injecting real age distribution data for address: {address}")
+    
+    try:
+        # Check if neighborhood_overview exists
+        if 'neighborhood_overview' not in combined_report:
+            logger.warning("⚠️ No neighborhood_overview section found - skipping age distribution injection")
+            return combined_report
+
+        neighborhood_section = combined_report['neighborhood_overview']
+        if not isinstance(neighborhood_section, dict):
+            logger.warning("⚠️ neighborhood_overview is not a dictionary - skipping age distribution injection")
+            return combined_report
+
+        # Remove any nested age_distribution if it exists
+        if 'age_distribution' in neighborhood_section:
+            logger.info("🗑️ Removing nested age_distribution from neighborhood_overview")
+            neighborhood_section.pop('age_distribution')
+
+        # Fetch real age distribution data from Census API
+        logger.info("📊 Fetching real age distribution data from Census API...")
+        real_age_data = get_age_distribution(address)
+
+        if not real_age_data:
+            logger.warning("⚠️ Failed to get real age distribution data - skipping")
+            return combined_report
+
+        # Format real age data for output
+        age_distribution = {
+            "0-19": f"{real_age_data.get('0-19', 0)}%",
+            "20-34": f"{real_age_data.get('20-34', 0)}%",
+            "35-49": f"{real_age_data.get('35-49', 0)}%",
+            "50-64": f"{real_age_data.get('50-64', 0)}%",
+            "65+": f"{real_age_data.get('65+', 0)}%"
+        }
+
+        # Insert age_distribution at top-level after neighborhood_overview
+        logger.info("📦 Inserting age_distribution at top-level after neighborhood_overview")
+        new_combined_report = OrderedDict()
+        for key, value in combined_report.items():
+            new_combined_report[key] = value
+            if key == 'neighborhood_overview':
+                new_combined_report['age_distribution'] = age_distribution
+                logger.info("✅ Inserted real age distribution at top level")
+
+        logger.info("🎉 Successfully injected real age distribution data from Census API")
+        return dict(new_combined_report)
+
+    except Exception as e:
+        logger.error(f"❌ Error injecting real age distribution data: {str(e)}")
+        logger.error(f"🔍 Traceback: {traceback.format_exc()}")
+        logger.warning("⚠️ Continuing with original report data")
+        return combined_report
+
 
 def get_preferences(user_id: str) -> Dict:
     """Get user preferences by user_id"""
@@ -818,7 +518,6 @@ def response_sort(report_responses: list, schemas: Dict[str, Dict[str, Any]]) ->
     missing_sections = expected_sections - found_sections
     unexpected_sections = all_response_sections - expected_sections
     
-    logger.info(f"📊 Response analysis:")
     logger.info(f"   ❌ Missing sections: {len(missing_sections)}")
     logger.info(f"   ⚠️ Unexpected sections: {len(unexpected_sections)}")
     logger.info(f"   🚫 Invalid responses: {len(invalid_responses)}")
@@ -875,8 +574,6 @@ def response_sort(report_responses: list, schemas: Dict[str, Dict[str, Any]]) ->
     
     logger.info(f"✅ Response sorting completed: {len(sorted_responses)} responses sorted")
     return sorted_responses
-
-# -------------------- HELPER FUNCTIONS --------------------
 
 def _download_json_from_s3(file_path: str, address: str) -> Dict:
     """Download JSON report from S3"""
@@ -1099,7 +796,7 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
     
     # Auto-include demographic sections when neighborhood_overview is present
     from collections import OrderedDict
-    from ..models.report_models import AgeDistribution, LifestyleDNA
+    from ..models.report_models import LifestyleDNA
 
     # Only auto-include demographics if neighborhood_overview exists and not comparing
     if 'neighborhood_overview' in schemas and not comparison_address or comparison_address == "":
@@ -1112,23 +809,6 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
             new_schemas[key] = schema
 
             if key == 'neighborhood_overview':
-                # Insert age_distribution if missing
-                if 'age_distribution' not in schemas:
-                    age_dist_schema = {
-                        "$schema": "https://json-schema.org/draft/2020-12/schema",
-                        "$id": "#age_distribution",
-                        "title": "Age Distribution Section Schema",
-                        "description": "Schema for the age_distribution section",
-                        "type": "object",
-                        "properties": {
-                            "age_distribution": AgeDistribution.model_json_schema()
-                        },
-                        "required": ["age_distribution"],
-                        "additionalProperties": False
-                    }
-                    new_schemas['age_distribution'] = age_dist_schema
-                    logger.info("✅ Inserted age_distribution after neighborhood_overview")
-
                 # Insert lifestyle_dna if missing
                 if 'lifestyle_dna' not in schemas:
                     lifestyle_schema = {
@@ -1166,39 +846,19 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                     {
                         "role": "system",
                     "content": (
-                        f"You are a comprehensive PERSONALIZED property research assistant. Given an address, {address}, you must provide a detailed property report in valid JSON format.\n\n"
+                        f"You are a comprehensive PERSONALIZED Marketing report generator. Given an address, {address}, you must provide a detailed property report in valid JSON format.\n\n"
 
-                        "SCHEMA COMPLIANCE: You MUST follow the schema structure EXACTLY. Use the examples in the schema to determine how to structure your response.\n\n"
-                        "FIELD NAMES: For dictionary fields (like age_distribution, lifestyle_dna), you MUST use the EXACT field names specified in the schema descriptions. Do NOT create your own field names.\n\n"
-                        "LIFESTYLE DNA REQUIREMENTS: Return ALL keys in lifestyle_dna (Artistic, Professional, Family_Oriented, Active_Outdoor, Tech_Remote, Retiree, Student, Suburban, Urban). The percentages MUST sum to exactly 100%. Distribute percentages realistically based on the neighborhood demographics. Do NOT omit or return null for any key.\n\n"
-                        "AGE DISTRIBUTION REQUIREMENTS: Return ALL keys in age_distribution (18-24, 25-34, 35-49, 50-64, 65+). The percentages MUST sum to exactly 100%. Distribute percentages realistically based on census data or neighborhood demographics. Do NOT omit or return null for any key.\n\n"
-                        "PERCENTAGE NORMALIZATION: For both age_distribution and lifestyle_dna, ensure all percentage values are realistic and sum to exactly 100%. Use actual demographic data when available, or make educated estimates based on similar neighborhoods. Example: age_distribution might be '18-24': '15%', '25-34': '25%', '35-49': '30%', '50-64': '20%', '65+': '10%' (totaling 100%).\n\n"
-                        "Use the descriptions to figure out how to formulate a response unique to this address and user preferences.\n\n"
-                        "Use the guidance schema to determine where to find different data sources and how to use them.\n\n"
+                        "SCHEMA COMPLIANCE: You MUST follow the schema structure EXACTLY. Use the examples in the schema to determine how to structure your response.\n\n"     
 
-                         "RESEARCH:\n"
-                                "- Use the recommended sources first in research. If a decent answer is found, do not continue to search the web for that field\n"
+                        "RESEARCH:\n"
+                        "Use the recommended sources first in research. If a decent answer is found, do not continue to search the web for that field\n"
 
-
-                                "FORMATTING:\n"
-                                "- _demographics: caption: percentage (total 100%)\n"
-                                "- _rating: EXACT number out of 10 (e.g., 6.8/10). NEVER use >=, <=, >, or < symbols. Always provide specific numeric ratings.\n\n"
-
-                        "CRITICAL REQUIREMENTS:\n"
-                        "1. Follow all instrucions EXACTLY for ALL fields exactly as in the given guidance - if you don't know a value, research until you find one\n"
-                        "2. Be  critical and honest - expose both good and bad aspects of locations\n"
-                        "3. If no data exists for a field, provide your best educated estimate based on similar areas\n"
-                        "4. All ratings must be EXACT numbers out of 10 (e.g., 7.2/10, 8.5/10). NEVER use comparison operators like >=, <=, >, or <. Always provide a specific numeric rating.\n"
-                        "5. You MUST respond with ONLY valid JSON (no markdown, no explanation). Do not wrap your response in ``` or any code fences.\n"
-                        "6. Use the recommended sources first in research. If a decent answer is found, do not continue to search the web for that field\n"
-                        "7. Do not include citations in the response\n"
-                        "8. MANDATORY: You MUST provide ALL required fields in the schema. NEVER return null or omit any field. Every field must have a meaningful value.\n"
-                        "9. MANDATORY: If you cannot find specific data for a field, provide a reasonable estimate or placeholder value instead of null.\n"
-                    
-                        "CRITICAL: Never return 'N/A' for any fields. Always provide a concrete answer, estimate, or remove the field entirely if unknown.\n"
-
+                        "CITATIONS:\n"
+                        "Do not include citations in the response\n"
+                
+                        "CRITICAL: Always provide a concrete answer, estimate, or educated guess.\n"
                     )
-                }, {"role": "user", "content": f"Sell me the property at {address} CRITICAL: Never return 'N/A' for any fields. Always provide a concrete answer, estimate, or remove the field entirely if unknown.\n"}
+                }, {"role": "user", "content": f"Sell me the property at {address} CRITICAL: Never return 'N/A' for any fields. Always provide a concrete answer, estimate, or educated guess.\n"}
             ],
             "search_mode": "web",
             "reasoning_effort": "medium",
@@ -1223,38 +883,19 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                 "model": "sonar-deep-research",
                 "messages": [
                     {
-                        "role": "system",
+                    "role": "system",
                     "content": (
-                        f"You are a comprehensive PERSONALIZED property research assistant. Given an address, {address}, you must provide a detailed property report in valid JSON format.\n\n"
+                         "You are a comprehensive PERSONALIZED property research assistant. Given an address, {address}, you must provide a detailed property report in valid JSON format.\n\n"
 
                         "SCHEMA COMPLIANCE: You MUST follow the schema structure EXACTLY. Use the examples in the schema to determine how to structure your response.\n\n"
-                        "FIELD NAMES: For dictionary fields (like age_distribution, lifestyle_dna), you MUST use the EXACT field names specified in the schema descriptions. Do NOT create your own field names.\n\n"
-                        "LIFESTYLE DNA REQUIREMENTS: Return ALL keys in lifestyle_dna (Artistic, Professional, Family_Oriented, Active_Outdoor, Tech_Remote, Retiree, Student, Suburban, Urban). The percentages MUST sum to exactly 100%. Distribute percentages realistically based on the neighborhood demographics. Do NOT omit or return null for any key.\n\n"
-                        "AGE DISTRIBUTION REQUIREMENTS: Return ALL keys in age_distribution (18-24, 25-34, 35-49, 50-64, 65+). The percentages MUST sum to exactly 100%. Distribute percentages realistically based on census data or neighborhood demographics. Do NOT omit or return null for any key.\n\n"
-                        "PERCENTAGE NORMALIZATION: For both age_distribution and lifestyle_dna, ensure all percentage values are realistic and sum to exactly 100%. Use actual demographic data when available, or make educated estimates based on similar neighborhoods. Example: age_distribution might be '18-24': '15%', '25-34': '25%', '35-49': '30%', '50-64': '20%', '65+': '10%' (totaling 100%).\n\n"
-                        "Use the descriptions to figure out how to formulate a response unique to this address and user preferences.\n\n"
-                        "Use the guidance schema to determine where to find different data sources and how to use them.\n\n"
+                       
+                        "RESEARCH:\n"
+                        "Use the recommended sources first in research. If a decent answer is found, do not continue to search the web for that field\n"
 
-                         "RESEARCH:\n"
-                                "- Use the recommended sources first in research. If a decent answer is found, do not continue to search the web for that field\n"
-
-
-                                "FORMATTING:\n"
-                                "- _demographics: caption: percentage (total 100%)\n"
-                                "- _rating: EXACT number out of 10 (e.g., 6.8/10). NEVER use >=, <=, >, or < symbols. Always provide specific numeric ratings.\n\n"
-
-                        "CRITICAL REQUIREMENTS:\n"
-                        "1. Follow all instrucions EXACTLY for ALL fields exactly as in the given guidance - if you don't know a value, research until you find one\n"
-                        "2. Be  critical and honest - expose both good and bad aspects of locations\n"
-                        "3. If no data exists for a field, provide your best educated estimate based on similar areas\n"
-                        "4. All ratings must be EXACT numbers out of 10 (e.g., 7.2/10, 8.5/10). NEVER use comparison operators like >=, <=, >, or <. Always provide a specific numeric rating.\n"
-                        "5. You MUST respond with ONLY valid JSON (no markdown, no explanation). Do not wrap your response in ``` or any code fences.\n"
-                        "6. Use the recommended sources first in research. If a decent answer is found, do not continue to search the web for that field\n"
-                        "7. Do not include citations in the response\n"
-                        "8. MANDATORY: You MUST provide ALL required fields in the schema. NEVER return null or omit any field. Every field must have a meaningful value.\n"
-                        "9. MANDATORY: If you cannot find specific data for a field, provide a reasonable estimate or placeholder value instead of null.\n"
+                        "CITATIONS:\n"
+                        "Do not include citations in the response\n"
                     
-                        "CRITICAL: Never return 'N/A' for any fields. Always provide a concrete answer, estimate, or remove the field entirely if unknown.\n"
+                        "CRITICAL: Always provide a concrete answer, estimate, or educated guess.\n"
 
                     )
                 }, {"role": "user", "content": f"Sell me the property at {address} CRITICAL: Never return 'N/A' for any fields. Always provide a concrete answer, estimate, or remove the field entirely if unknown.\n"}
@@ -1303,26 +944,19 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                         {
                             "role": "system",
                             "content": (
-                                f"You are a critical, strategic, and personalized PROPERTY COMPARISON EXPERT. "
-                                f"Help me make a decision on which property to move in to based on my priorities and user preferences.\n\n"
+                                "You are a critical, strategic, and personalized PROPERTY COMPARISON EXPERT. "
 
-                                "Use the examples in the schema to determine how to structure your response.\n\n"
-                                "Use the descriptions to figure out how to formulate a response unique to this address and user preferences.\n\n"
-                                "Use the guidance schema to determine where to find different data sources and how to use them.\n\n"
+                               "You are a comprehensive PERSONALIZED property research assistant. Given an address, {address}, you must provide a detailed property report in valid JSON format.\n\n"
 
-                                "CRITICAL OBJECTIVES:\n"
-                                "You are filling out a structured JSON response using the provided schema. Each field represents a distinct dimension (e.g., crime_rating, police_presence, etc.). When completing each field, you must only consider the named dimension and avoid referencing unrelated factors.\n\n"
-                                "For every ComparisonField, you must:\n"
-                                "- Provide only dimension-specific analysis in location_a and location_b.\n"
-                                "- Select the winner solely based on that dimension.\n"
-                                "- Explain the reason as if you are arguing why the winner is better for this specific dimension.\n"
-                                "- Use the criteria and user_preference_tags fields to justify the decision traceably.\n\n"
+                                "SCHEMA COMPLIANCE: You MUST follow the schema structure EXACTLY. Use the examples in the schema to determine how to structure your response.\n\n"
                             
-                                "FORMATTING:\n"
-                                "- _demographics: caption: percentage (total 100%)\n"
-                                "- _rating: EXACT number out of 10 (e.g., 6.8/10). NEVER use >=, <=, >, or < symbols. Always provide specific numeric ratings.\n\n"
-                                
-                                "CRITICAL: Never return 'N/A' for any fields. Always provide a concrete answer, estimate, or remove the field entirely if unknown.\n"
+                                "RESEARCH:\n"
+                                    "- Use the recommended sources first in research. If a decent answer is found, do not continue to search the web for that field\n"
+                               
+                                "CITATIONS:\n"
+                                "Do not include citations in the response\n"
+                            
+                                "CRITICAL: Always provide a concrete answer, estimate, or educated guess.\n"
                             )
                         },
                         {
@@ -1345,7 +979,7 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                     "response_format": {
                         "type": "json_schema",
                         "json_schema": {
-                            "schema": section_schema  # Fix: Use section_schema (dict) instead of comparison_schema
+                            "schema": section_schema  
                         }
                     }
                 }
@@ -1355,7 +989,7 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
         # Concurrent execution with partial failure handling
         import concurrent.futures
         
-        def process_single_payload_with_retry(payload_info, max_retries=2):
+        def process_single_payload_with_retry(payload_info, max_retries=1):
             """Process a single payload with retry logic for timeouts and null responses"""
             payload, section_name = payload_info
             
@@ -1365,12 +999,12 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                 
                 try:
                     # Debug: Check payload type first
-                    logger.debug(f"🔍 Section {section_name}: Payload type check: {type(payload)}")
+                    logger.debug(f"🔍 Section {section_name}: Payload: {payload}")
                     
                     # Validate payload is a dictionary
                     if not isinstance(payload, dict):
                         error_msg = f"Invalid payload type: expected dict, got {type(payload)}"
-                        logger.error(f"❌ Section {section_name}: {error_msg}")
+                        logger.error(f"❌ Section {section_name}: {error_safe_parse_json_msg}")
                         logger.error(f"🔍 Section {section_name}: Payload content: {str(payload)[:200]}")
                         return {"section": section_name, "success": False, "error": error_msg}
                     
@@ -1385,12 +1019,6 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                     session.mount("https://", HTTPAdapter(max_retries=retries))
                     
                     logger.info(f"📨 Starting request for section: {section_name} (attempt {attempt_num})")
-                    
-                    # Debug: Log payload structure for 400 error diagnosis
-                    logger.debug(f"🔍 Section {section_name}: Payload structure:")
-                    logger.debug(f"   - Model: {payload.get('model')}")
-                    logger.debug(f"   - Messages count: {len(payload.get('messages', []))}")
-                    logger.debug(f"   - Response format type: {payload.get('response_format', {}).get('type')}")
                                     
                     start_time = time.perf_counter()
                     response = session.post(
@@ -1417,6 +1045,7 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                     if response.status_code == 200:
                         try:
                             content = response.json()
+                            logger.info(content)
                             
                             # Validate response structure
                             if "choices" not in content or not content["choices"]:
@@ -1433,7 +1062,7 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                             # Parse the JSON response
                             try:
                                 report = _safe_parse_json(raw_json_text, report_customization)
-                                
+                                logger.info(report)
                                 # Check if the requested section exists and is not null
                                 if section_name in report and report[section_name] is not None:
                                     section_data = {section_name: report[section_name]}
@@ -1450,8 +1079,7 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                                     else:
                                         logger.error(f"❌ Section {section_name}: Still null/missing after {max_retries + 1} attempts")
                                         # Return empty section data to maintain structure
-                                        section_data = {section_name: None}
-                                        return {"section": section_name, "success": True, "data": section_data}
+                                        
                                         
                             except Exception as pe:
                                 logger.error(f"❌ Section {section_name}: Parse error on attempt {attempt_num}: {str(pe)}")
@@ -1630,6 +1258,10 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
         for response in sorted_responses:
             if isinstance(response, dict):
                 combined_report.update(response)
+        
+        # Inject real age distribution data from Census API if neighborhood_overview exists
+        logger.info("🔄 Checking for age distribution injection...")
+        combined_report = inject_real_age_distribution(combined_report, address)
         
         # Log metadata for debugging (but don't include in return value)
         metadata = {

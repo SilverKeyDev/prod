@@ -159,6 +159,7 @@ jobs:
               -e STRIPE_UNLIMITED_YEARLY="${{ secrets.STRIPE_UNLIMITED_YEARLY }}" \
               -e SERP_API="${{ secrets.SERP_API }}" \
               -e OPENAI_KEY="${{ secrets.OPENAI_KEY }}" \
+              -e CENSUS_API_KEY="${{ secrets.CENSUS_API_KEY }}" \
               "$IMAGE"
             
             
@@ -182,6 +183,7 @@ jobs:
               -e PERPLEXITY_API_KEY="${{ secrets.PERPLEXITY_API_KEY }}" \
               -e SERP_API="${{ secrets.SERP_API }}" \
               -e OPENAI_KEY="${{ secrets.OPENAI_KEY }}" \
+              -e CENSUS_API_KEY="${{ secrets.CENSUS_API_KEY }}" \
               "$IMAGE" \
               celery -A app.celery.celery_worker worker --loglevel=info
 

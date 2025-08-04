@@ -5,32 +5,75 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-class AgeDistribution(BaseModel):
-    age_18_24: int = Field(..., alias="18-24", description="EXACT Percentage of population aged 18-24 in the area around {address} NO DECIMALS")
-    age_25_34: int = Field(..., alias="25-34", description="EXACT Percentage of population aged 25-34 in the area around {address} NO DECIMALS")
-    age_35_49: int = Field(..., alias="35-49", description="EXACT Percentage of population aged 35-49 in the area around {address} NO DECIMALS")
-    age_50_64: int = Field(..., alias="50-64", description="EXACT Percentage of population aged 50-64 in the area around {address} NO DECIMALS")
-    age_65_plus: int = Field(..., alias="65+", description="EXACT Percentage of population aged 65+ in the area around {address} NO DECIMALS")
-
-    class Config:
-        extra = "forbid"
-        allow_population_by_field_name = True
-        populate_by_name = True
-
-    def with_percent(self) -> dict:
-        return {k.replace("age_", "").replace("_plus", "+").replace("_", "-"): f"{v}%" for k, v in self.model_dump(by_alias=True).items()}
-
 
 class LifestyleDNA(BaseModel):
-    Artistic: Optional[int] = Field(0, description="Percentage of artistic lifestyle in the area around {address} NO DECIMALS")
-    Professional: Optional[int] = Field(0, description="Percentage of professional lifestyle in the area around {address} NO DECIMALS")
-    Family_Oriented: Optional[int] = Field(0, description="Percentage of family-oriented lifestyle in the area around {address} NO DECIMALS")
-    Active_Outdoor: Optional[int] = Field(0, description="Percentage of active/outdoor lifestyle in the area around {address} NO DECIMALS")
-    Tech_Remote: Optional[int] = Field(0, description="Percentage of tech/remote worker lifestyle in the area around {address} NO DECIMALS")
-    Retiree: Optional[int] = Field(0, description="Percentage of retiree lifestyle in the area around {address} NO DECIMALS")
-    Student: Optional[int] = Field(0, description="Percentage of student lifestyle in the area around {address} NO DECIMALS")
-    Suburban: Optional[int] = Field(0, description="Percentage of suburban lifestyle in the area around {address} NO DECIMALS")
-    Urban: Optional[int] = Field(0, description="Percentage of urban lifestyle in the area around {address} NO DECIMALS")
+    """
+    The LifestyleDNA model scores how strongly a neighborhood supports or reflects various lifestyle archetypes.
+    
+    Each value is an **independent score from 0 to 100**, not a percentage or composition. 
+
+    Use the **entire range**:
+    - `100` = Extremely aligned with this lifestyle (this lifestyle defines the area)
+    - `0` = Not at all aligned (the lifestyle is essentially absent)
+
+    These scores should be bold and decisive — do **not** rate everything as “moderate.” 
+    Most neighborhoods excel in some lifestyles and completely lack others. Reflect that contrast clearly.
+    """
+
+    Artistic: int = Field(
+        ge=0, le=100,
+        description="How emblematic the area is of an artistic or creative lifestyle. "
+                    "Score high (80–100) for vibrant art, music, studios, and cultural events. "
+                    "Score 0–20 if there's no visible creative or indie scene."
+    )
+    Professional: int = Field(
+        ge=0, le=100,
+        description="How aligned the area is with white-collar, business-focused lifestyles. "
+                    "Score 100 for financial districts and business culture. "
+                    "Score 0 if the area has no professional presence or appeal."
+    )
+    Family_Oriented: int = Field(
+        ge=0, le=100,
+        description="How well the area supports families. "
+                    "Score high for schools, parks, low crime, and spacious homes. "
+                    "Score 0 if it's nightlife-heavy, cramped, or transient."
+    )
+    Active_Outdoor: int = Field(
+        ge=0, le=100,
+        description="How well the area supports fitness and outdoor lifestyles. "
+                    "Score 100 for hiking, biking, surfing, gym culture, and green space. "
+                    "Score low if it's concrete, flat, or inactive."
+    )
+    Tech_Remote: int = Field(
+        ge=0, le=100,
+        description="How well-suited the area is for remote tech professionals. "
+                    "Score high for coworking, startups, cafes, modern apartments, fast Wi-Fi. "
+                    "Score 0 if it lacks digital infrastructure or a tech scene."
+    )
+    Retiree: int = Field(
+        ge=0, le=100,
+        description="How ideal the area is for retirees. "
+                    "Score high for peace, slow pace, nature, and medical access. "
+                    "Score low if it's noisy, chaotic, or youthful."
+    )
+    Student: int = Field(
+        ge=0, le=100,
+        description="How strong the student presence is. "
+                    "Score high near colleges, dorms, bars, and cheap eats. "
+                    "Score 0 if there's no academic or youth culture nearby."
+    )
+    Suburban: int = Field(
+        ge=0, le=100,
+        description="How suburban the layout and feel is. "
+                    "Score 100 for detached homes, cul-de-sacs, big yards. "
+                    "Score 0 for dense, walkable, or urban areas."
+    )
+    Urban: int = Field(
+        ge=0, le=100,
+        description="How urban the area feels. "
+                    "Score high for density, walkability, transit, and city energy. "
+                    "Score 0 if it's rural, spread out, or car-centric."
+    )
 
     class Config:
         extra = "forbid"
@@ -38,7 +81,23 @@ class LifestyleDNA(BaseModel):
         populate_by_name = True
 
     def with_percent(self) -> dict:
+        """Return values formatted as percent strings (e.g., '85%')"""
         return {k: f"{v}%" for k, v in self.model_dump().items()}
+
+    @classmethod
+    def get_example(cls) -> dict:
+        return {
+            "Artistic": 85,
+            "Professional": 95,
+            "Family_Oriented": 20,
+            "Active_Outdoor": 75,
+            "Tech_Remote": 100,
+            "Retiree": 5,
+            "Student": 10,
+            "Suburban": 15,
+            "Urban": 95
+        }
+
 
 class NeighborhoodOverview(BaseModel):
     local_culture: str = Field(...)
@@ -53,9 +112,10 @@ class NeighborhoodOverview(BaseModel):
     image_prompt: str = Field(...)
     image_prompt_2: str = Field(...)
 
-    class Config:
-        extra = "forbid"
-        allow_population_by_field_name = True
+    model_config = {
+        "populate_by_name": True,
+        "extra": "forbid"
+    }
 
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -101,8 +161,10 @@ class Safety(BaseModel):
         example="Street-level photo of safety infrastructure in this neighborhood: well-lit streets, security cameras, police patrol presence, and neighborhood watch signs around {address}"
     )
     
-    class Config:
-        extra = "forbid"
+    model_config = {
+        "populate_by_name": False,
+        "extra": "forbid"
+    }
     
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -355,7 +417,6 @@ class Park(BaseModel):
 
 class Amenity(BaseModel):
     name: str = Field(...)
-    type: str = Field(...)
     vibe: Optional[str] = Field(None)
     
     class Config:
@@ -399,12 +460,10 @@ class Amenity(BaseModel):
 
 
 class LocalAmenities(BaseModel):
-    restaurants: List[Restaurant] = Field(...)
-    activities: List[Activity] = Field(...)
-    parks: List[Park] = Field(...)
-    thrift_store: Amenity = Field(...)
+    restaurants: Restaurant = Field(...)
+    activities: Activity = Field(...)
+    parks: Park = Field(...)
     grocery_store: Amenity = Field(...)
-    late_night_restaurant: Amenity = Field(...)
     
     class Config:
         extra = "forbid"
@@ -427,18 +486,10 @@ class LocalAmenities(BaseModel):
                 "name": "Whole Foods Market",
                 "vibe": "Upscale organic grocery with prepared foods and wine bar"
             }
-            thrift_example = {
-                "name": "Vintage Boutique",
-                "vibe": "Curated vintage designer pieces and unique finds"
-            }
         else:
             grocery_example = {
                 "name": "Neighborhood Market",
                 "vibe": "Local grocery with fresh produce and competitive prices"
-            }
-            thrift_example = {
-                "name": "Coastal Treasures",
-                "vibe": "Eclectic vintage finds with local character"
             }
         
         if lifestyle == 'nightlife':
@@ -453,12 +504,10 @@ class LocalAmenities(BaseModel):
             }
         
         return {
-            "restaurants": [restaurant_example],
-            "activities": [activity_example],
-            "parks": [park_example],
-            "thrift_store": thrift_example,
+            "restaurants": restaurant_example,
+            "activities": activity_example,
+            "parks": park_example,
             "grocery_store": grocery_example,
-            "late_night_restaurant": late_night_example
         }
     
     @classmethod
@@ -574,17 +623,10 @@ class FamilyFriendly(BaseModel):
             "family_rating": "Honest reflection. Niche 'family grade' is a strong proxy. Weight factors based on user's family situation and child-related needs."
         }
 
-class AppsPopularity(BaseModel):
-    Tinder: str = Field(..., description="Popularity rating/percentage for Tinder")
-    Hinge: str = Field(..., description="Popularity rating/percentage for Hinge")
-    
-    class Config:
-        extra = "forbid"
 class NightlifeAndDating(BaseModel):
     nightlife_rating: str = Field(...)
     best_spots: str = Field(...)
     dating_scene: str = Field(...)
-    apps_popularity: AppsPopularity = Field(..., description="Dating app popularity in the area")
     image_prompt: str = Field(...)
     image_prompt_2: str = Field(...)
     
@@ -603,7 +645,6 @@ class NightlifeAndDating(BaseModel):
                 "nightlife_rating": "9.2/10",
                 "best_spots": "Sky Lounge rooftop bar, Underground dance club, Craft cocktail speakeasy, Late-night food trucks",
                 "dating_scene": "Vibrant young professional scene, trendy bar meetups, rooftop parties, active social media presence",
-                "apps_popularity": {"Hinge": "Very Popular", "Tinder": "Popular"},
                 "image_prompt": "Photo of nightlife and entertainment venues in the city around the address, showing actual bars, clubs, and late-night spots where young professionals gather",
                 "image_prompt_2": "Photo of dating-friendly venues in the city near the address: trendy restaurants, wine bars, coffee shops, or social spaces where singles meet and socialize"
             }
@@ -612,7 +653,6 @@ class NightlifeAndDating(BaseModel):
                 "nightlife_rating": "6.8/10",
                 "best_spots": "Wine bars, upscale restaurants with live music, theater district, cultural events",
                 "dating_scene": "Mature social scene, wine tastings, cultural events, established professional networks",
-                "apps_popularity": {"Hinge": "Popular", "Match": "Popular"},
                 "image_prompt": "Photo of upscale evening entertainment venues in the city around the address, showing sophisticated restaurants, wine bars, and cultural spaces for mature professionals",
                 "image_prompt_2": "Photo of date-night venues in the city near the address: fine dining restaurants, wine lounges, theater venues, or cultural spaces that cater to established couples"
             }
@@ -621,7 +661,6 @@ class NightlifeAndDating(BaseModel):
                 "nightlife_rating": "7.5/10",
                 "best_spots": "The Rooftop Lounge, Coastal Brewery, Live music at The Pier, wine bars on Main St",
                 "dating_scene": "Active young professional scene, beach volleyball meetups, wine tastings, farmers market socializing",
-                "apps_popularity": {"Hinge": "Popular", "Tinder": "Moderate"},
                 "image_prompt": "Photo of evening dining and entertainment venues in the city around the address, showing local restaurants, bars, and social spaces for casual dining and nightlife",
                 "image_prompt_2": "Photo of casual social venues in the city near the address: local bars, breweries, coffee shops, or community spaces where residents socialize and meet"
             }
@@ -637,7 +676,6 @@ class NightlifeAndDating(BaseModel):
             "best_spots": "Popular bars, clubs, and entertainment venues. Use Yelp, Google Maps, or City-Data forum nightlife threads. Focus on venues that match the user's social style and interests.",
             "dating_scene": f"Describe energy and dating pool. Search 'dating in [city] Reddit' or Nomad List for vibe. Tailor to user's marital status ({marital_status}) and age ({age}) - focus on relevant social opportunities.",
             "average_attractiveness_rating": "Be playful but grounded. Use cultural tone and tongue-in-cheek phrasing.",
-            "apps_popularity": "Break down by app, score relative to national averages. Check Reddit threads or blog posts comparing app usage. Emphasize apps most relevant to user's age group and relationship goals.",
             "image_prompt": "Photo of nightlife and entertainment venues in the city around the address that reflect the local social atmosphere and evening entertainment options.",
             "image_prompt_2": "Photo of dating-friendly venues in the city near the address: cafes, wine bars, restaurants, or social spaces where people meet and socialize in this neighborhood."
         }
@@ -1003,7 +1041,7 @@ class FullReport(BaseModel):
     neighborhood_overview: Optional[NeighborhoodOverview] = None
     
     # === Demographic data (appears directly after neighborhood_overview without section titles) ===
-    age_distribution: Optional[AgeDistribution] = None
+    # age_distribution: Now injected directly from Census API - no model field needed
     lifestyle_dna: Optional[LifestyleDNA] = None
     
     # === Other report sections ===
@@ -1054,7 +1092,7 @@ class FullReport(BaseModel):
             final_dict[key] = base_dict[key]
         
         # Auto-include demographic sections if they have values (even if not in prioritized fields)
-        demographic_sections = ['age_distribution', 'lifestyle_dna']
+        demographic_sections = ['lifestyle_dna']  # age_distribution now injected directly from Census API
         for demo_key in demographic_sections:
             if demo_key in base_dict and base_dict[demo_key] is not None and demo_key not in final_dict:
                 print(f"  🧬 Auto-including demographic section '{demo_key}' (has value)")
