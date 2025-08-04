@@ -22,8 +22,16 @@ class Marketing(BaseModel):
     image_prompt: str = Field(...)
     image_prompt_2: str = Field(...)
     
-    class Config:
-        extra = "forbid"
+    model_config = {
+    "title": "SectionName",  # optional, improves clarity in schema
+    "populate_by_name": True,  # ensures alias fields can be populated
+    "extra": "ignore",  # Perplexity may return extra fields
+    "json_schema_extra": {
+        "$id": "section_name",  # optional but helpful for tracing
+        "description": "Structured output for the SectionName of the real estate report."
+    }
+}
+
 
     @model_validator(mode="before")
     @classmethod
@@ -139,8 +147,16 @@ class MarketingReport(BaseModel):
     # === Single marketing section ===
     marketing: Optional[Marketing] = None
 
-    class Config:
-        extra = "forbid"
+    model_config = {
+    "title": "SectionName",  # optional, improves clarity in schema
+    "populate_by_name": True,  # ensures alias fields can be populated
+    "extra": "ignore",  # Perplexity may return extra fields
+    "json_schema_extra": {
+        "$id": "section_name",  # optional but helpful for tracing
+        "description": "Structured output for the SectionName of the real estate report."
+    }
+}
+
         
     def dict(self, **kwargs) -> Dict[str, Any]:
         """Return the marketing report data - simplified since we only have one section"""

@@ -603,8 +603,6 @@ class Development(BaseModel):
         }
 
 class EnvironmentUtilities(BaseModel):
-    class Config:
-        extra = "forbid"  # Explicitly forbid additional properties
     air_quality: ComparisonField = Field(...)
     noise_pollution: ComparisonField = Field(...)
     light_pollution: ComparisonField = Field(...)
@@ -612,6 +610,17 @@ class EnvironmentUtilities(BaseModel):
     avg_utility_costs: ComparisonField = Field(...)
     internet_speed: ComparisonField = Field(...)
     environmental_rating: ComparisonField = Field(...)
+
+    model_config = {
+    "title": "SectionName",  # optional, improves clarity in schema
+    "populate_by_name": True,  # ensures alias fields can be populated
+    "extra": "ignore",  # Perplexity may return extra fields
+    "json_schema_extra": {
+        "$id": "section_name",  # optional but helpful for tracing
+        "description": "Structured output for the SectionName of the real estate report."
+    }
+}
+
     
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -885,8 +894,16 @@ class ComparisonReport(BaseModel):
 
         return values
 
-    class Config:
-        extra = "allow"
+    model_config = {
+    "title": "SectionName",  # optional, improves clarity in schema
+    "populate_by_name": True,  # ensures alias fields can be populated
+    "extra": "ignore",  # Perplexity may return extra fields
+    "json_schema_extra": {
+        "$id": "section_name",  # optional but helpful for tracing
+        "description": "Structured output for the SectionName of the real estate report."
+    }
+}
+
 
     # ✅ Modern init with PrivateAttr
     def __init__(self, report_customization: Dict[str, Any], **data):

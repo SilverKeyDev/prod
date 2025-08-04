@@ -182,16 +182,28 @@ const PdfModal: React.FC<PdfModalProps> = ({
     <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-2 sm:p-4">
       <div
         ref={modalRef}
-        className="bg-white rounded-lg w-full max-w-5xl h-[95vh] sm:h-[90vh] flex flex-col shadow-2xl border border-brown/20"
+        className="viewer-container w-full max-w-5xl h-[95vh] sm:h-[90vh] flex flex-col"
         role="dialog"
         aria-modal="true"
+        style={{
+          borderRadius: '24px 24px 0 0',
+          boxShadow: '0 10px 30px rgba(0, 0, 0, 0.15)',
+          backdropFilter: 'blur(12px)',
+          background: 'rgba(255, 255, 255, 0.1)',
+          overflow: 'hidden'
+        }}
       >
         {/* Gold Header with Address and Actions */}
-        <div className="bg-gradient-to-r from-brown to-brown/90 px-4 py-3 rounded-t-lg flex items-center justify-between">
-          {/* Address Title */}
-          <h2 className="text-white font-semibold text-lg truncate">
-            {getReportTitle()}
-          </h2>
+        <div className="bg-gradient-to-r from-brown to-brown/90 px-4 py-3 flex items-center justify-between" style={{ borderRadius: '24px 24px 0 0' }}>
+          {/* Logo and Address Title */}
+          <div className="flex items-center space-x-3">
+            <div className="text-white" style={{ filter: 'brightness(0) invert(1)' }}>
+              <MiniLogo className="w-6 h-6" />
+            </div>
+            <h2 className="text-white font-semibold text-lg truncate">
+              {getReportTitle()}
+            </h2>
+          </div>
 
           {/* Action Buttons */}
           <div className="flex items-center space-x-2">
@@ -227,11 +239,12 @@ const PdfModal: React.FC<PdfModalProps> = ({
         </div>
 
         {/* PDF Content */}
-        <div className="flex-1 overflow-hidden bg-beige/5">
+        <div className="flex-1 overflow-hidden" style={{ background: 'rgba(250, 249, 247, 0.3)' }}>
           <iframe
             src={`${currentPdf}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
-            className="w-full h-full border-0 rounded-b-lg"
+            className="w-full h-full border-0"
             title="PDF Viewer"
+
             onLoad={() => {
               console.log(
                 "[PdfModal] iframe onLoad event fired for:",
