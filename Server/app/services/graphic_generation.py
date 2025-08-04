@@ -19,9 +19,20 @@ LABEL_FONTSIZE = 12
 TICK_FONTSIZE = 10
 AUTOPCT_FONTSIZE = 10
 
+def format_label(label: str) -> str:
+    """Format label by capitalizing and replacing underscores with spaces.
+    
+    Args:
+        label: Raw label string (e.g., 'example_text')
+        
+    Returns:
+        Formatted label string (e.g., 'Example Text')
+    """
+    return label.replace('_', ' ').title()
+
 def generate_vertical_lollipop_chart(data: dict, title: str) -> BytesIO:
     try:
-        labels = list(data.keys())
+        labels = [format_label(key) for key in data.keys()]
         sizes = []
         for val in data.values():
             try:
@@ -62,7 +73,7 @@ def generate_vertical_lollipop_chart(data: dict, title: str) -> BytesIO:
 
 def generate_horizontal_bar_chart(data: dict, title: str) -> BytesIO:
     try:
-        labels = list(data.keys())
+        labels = [format_label(key) for key in data.keys()]
         sizes = []
         for val in data.values():
             try:
@@ -99,7 +110,7 @@ def generate_horizontal_bar_chart(data: dict, title: str) -> BytesIO:
 
 def generate_donut_chart(data: dict, title: str) -> BytesIO:
     try:
-        labels = list(data.keys())
+        labels = [format_label(key) for key in data.keys()]
         sizes = []
         for val in data.values():
             try:
@@ -143,7 +154,7 @@ def generate_donut_chart(data: dict, title: str) -> BytesIO:
 
 def generate_lollipop_chart(data: dict, title: str) -> BytesIO:
     try:
-        labels = list(data.keys())
+        labels = [format_label(key) for key in data.keys()]
         sizes = []
         for val in data.values():
             try:
@@ -185,7 +196,7 @@ def generate_lollipop_chart(data: dict, title: str) -> BytesIO:
 
 def generate_pie_chart(data: dict, title: str) -> BytesIO:
     try:
-        labels = list(data.keys())
+        labels = [format_label(key) for key in data.keys()]
         sizes = []
         for val in data.values():
             try:

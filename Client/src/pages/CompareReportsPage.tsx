@@ -84,39 +84,22 @@ const ALL_METRIC_KEYS: string[] = [
   "Restaurant 1 Name",
   "Restaurant 1 Vibe",
   "Restaurant 1 What to Try",
-  "Restaurant 2 Name",
-  "Restaurant 2 Vibe",
-  "Restaurant 2 What to Try",
-  "Restaurant 3 Name",
-  "Restaurant 3 Vibe",
-  "Restaurant 3 What to Try",
+
 
   // Local Amenities - Activities
   "Activity 1 Name",
   "Activity 1 Description",
-  "Activity 2 Name",
-  "Activity 2 Description",
-  "Activity 3 Name",
-  "Activity 3 Description",
 
   // Local Amenities - Parks
   "Park 1 Name",
   "Park 1 Features",
-  "Park 2 Name",
-  "Park 2 Features",
-  "Park 3 Name",
-  "Park 3 Features",
+
 
   // Local Amenities - Stores
   "Thrift Store Name",
-  "Thrift Store Type",
   "Thrift Store Vibe",
   "Grocery Store Name",
-  "Grocery Store Type",
   "Grocery Store Vibe",
-  "Late Night Restaurant Name",
-  "Late Night Restaurant Type",
-  "Late Night Restaurant Vibe",
 
   // Commute
   "Public Transport",
@@ -161,12 +144,15 @@ const ALL_METRIC_KEYS: string[] = [
   "Financial Rating",
 
   // Schools (Elementary)
+  "Elementary Name",
   "Elementary Known For",
 
   // Schools (Middle)
+  "Middle Name",
   "Middle Known For",
 
   // Schools (High)
+  "High Name",
   "High Known For",
 
   // Extra Tips
