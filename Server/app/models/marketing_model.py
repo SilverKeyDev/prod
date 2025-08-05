@@ -55,50 +55,49 @@ class Marketing(BaseModel):
         age = user_preferences.get("age", 35) if user_preferences else 35
         children_count = user_preferences.get("children_count", 0) if user_preferences else 0
         hobbies = user_preferences.get("hobbies_interests", ["outdoor activities"]) if user_preferences else ["outdoor activities"]
-        income_range = user_preferences.get("income_range", "middle") if user_preferences else "middle"
         
         # Customize based on user profile
         if children_count > 0:
-            culture_focus = "family-oriented community with excellent schools and safe neighborhoods"
-            vibe_words = "Family-friendly, safe, welcoming"
-            events_focus = "Family festivals, school events, youth sports leagues, community picnics"
-            love_reasons = "Top-rated schools, safe playgrounds, family-oriented neighbors"
+            culture_focus = "family-oriented community"
+            vibe_words = "Family-friendly, safe"
+            events_focus = "Family festivals, school events"
+            love_reasons = "Schools, playgrounds"
         elif age < 30:
-            culture_focus = "vibrant young professional scene with trendy cafes and nightlife"
-            vibe_words = "Energetic, trendy, social"
-            events_focus = "Food truck festivals, live music venues, networking events, art walks"
-            love_reasons = "Walkable nightlife, co-working spaces, young professional community"
+            culture_focus = "young professional scene"
+            vibe_words = "Energetic, trendy"
+            events_focus = "Food trucks, live music"
+            love_reasons = "Nightlife, co-working spaces"
         elif "outdoor" in str(hobbies).lower() or "fitness" in str(hobbies).lower():
-            culture_focus = "active outdoor lifestyle with hiking trails and fitness-focused community"
-            vibe_words = "Active, healthy, outdoorsy"
-            events_focus = "Farmers markets, outdoor concerts, hiking groups, cycling events"
-            love_reasons = "Miles of trails, outdoor fitness classes, health-conscious community"
+            culture_focus = "active outdoor lifestyle"
+            vibe_words = "Active, healthy"
+            events_focus = "Farmers markets, hiking groups"
+            love_reasons = "Trails, fitness classes"
         else:
-            culture_focus = "welcoming community with diverse amenities and cultural offerings"
-            vibe_words = "Relaxed, diverse, welcoming"
-            events_focus = "Community festivals, cultural events, local markets"
-            love_reasons = "Friendly neighbors, local charm, convenient amenities"
+            culture_focus = "welcoming community"
+            vibe_words = "Relaxed, diverse"
+            events_focus = "Community festivals, markets"
+            love_reasons = "Friendly neighbors, amenities"
         
         # Generate personalized seasonal trends
         if children_count > 0:
-            seasonal_focus = "Year-round family activities - summer outdoor festivals with kids' zones, fall harvest events, winter holiday celebrations with Santa visits, and spring youth sports leagues"
+            seasonal_focus = "Family activities year-round"
         elif age < 30:
-            seasonal_focus = "Dynamic seasonal scene - summer rooftop parties and outdoor concerts, fall craft beer festivals, cozy winter pop-ups and holiday markets, spring food truck rallies"
+            seasonal_focus = "Seasonal events for young professionals"
         elif "outdoor" in str(hobbies).lower():
-            seasonal_focus = "Outdoor enthusiast paradise - summer hiking and cycling events, fall foliage tours, winter fitness challenges, spring farmers markets and garden tours"
+            seasonal_focus = "Outdoor activities every season"
         else:
-            seasonal_focus = "Something special every season - summer community concerts, fall arts festivals, winter cultural events, spring neighborhood clean-up and garden parties"
+            seasonal_focus = "Community events throughout the year"
         
         return {
-            "home_image_prompt": f"Professional exterior photo of the exact address",
-            "local_culture": f"Thriving {culture_focus} that perfectly balances urban convenience with neighborhood charm, where residents genuinely know their neighbors and take pride in their community",
+            "home_image_prompt": "Exterior photo of address",
+            "image_prompt": "Community gathering near address",
+            "image_prompt_2": "Local amenities near address",
+            "local_culture": f"Thriving {culture_focus}",
             "vibe": vibe_words,
-            "known_for": "Award-winning local restaurants, beautiful tree-lined streets, strong sense of community, and that perfect balance of convenience and charm that makes you never want to leave",
+            "known_for": "Great restaurants, community feel",
             "community_events": events_focus,
-            "what_people_love": f"{love_reasons}, plus the genuine sense of belonging and community pride that's rare to find in today's world",
+            "what_people_love": love_reasons,
             "seasonal_trends": seasonal_focus,
-            "image_prompt": f"Community gathering near the address showing residents enjoying local events",
-            "image_prompt_2": f"Local amenities and gathering spaces near the address showcasing neighborhood character"
         }
 
     @classmethod
@@ -106,37 +105,31 @@ class Marketing(BaseModel):
         # Extract detailed user preferences for enhanced personalization
         children_count = user_preferences.get("children_count", 0) if user_preferences else 0
         age = user_preferences.get("age", 35) if user_preferences else 35
-        income_range = user_preferences.get("income_range", "middle") if user_preferences else "middle"
-        lifestyle = user_preferences.get("lifestyle_type", "balanced") if user_preferences else "balanced"
         hobbies = user_preferences.get("hobbies_interests", ["outdoor activities"]) if user_preferences else ["outdoor activities"]
         
         # Determine focus areas based on user profile
         if children_count > 0:
-            culture_focus = "family safety, school quality, and child-friendly amenities"
-            event_focus = "family-oriented activities and educational opportunities"
-            lifestyle_focus = "family life and child development"
+            event_focus = "family activities"
+            lifestyle_focus = "family life"
         elif age < 30:
-            culture_focus = "social opportunities, career networking, and entertainment"
-            event_focus = "social events, nightlife, and professional networking"
-            lifestyle_focus = "career growth and social connections"
+            event_focus = "social events"
+            lifestyle_focus = "career and social"
         elif "outdoor" in str(hobbies).lower() or "fitness" in str(hobbies).lower():
-            culture_focus = "outdoor recreation, fitness facilities, and active lifestyle"
-            event_focus = "outdoor activities, fitness events, and wellness programs"
-            lifestyle_focus = "health, wellness, and outdoor adventure"
+            event_focus = "outdoor activities"
+            lifestyle_focus = "health and wellness"
         else:
-            culture_focus = "community character, convenience, and quality of life"
-            event_focus = "cultural activities and community engagement"
-            lifestyle_focus = "comfort, convenience, and community belonging"
+            event_focus = "community events"
+            lifestyle_focus = "community living"
         
         return {
-            "home_image_prompt": f"Exterior photo of a home at the address",
-            "vibe": "Choose 3-5 powerful, marketable adjectives that instantly communicate the neighborhood's personality and appeal. These words should resonate with your target buyer and be perfect for marketing headlines, social media, and elevator pitches.",
-            "known_for": "Highlight the neighborhood's unique selling propositions and 'claim to fame.' Lead with the most marketable features that create buyer excitement and differentiate this area from competitors. Focus on what makes people choose this neighborhood over others.",
-            "community_events": f"Showcase events and activities that demonstrate the lifestyle buyers want. Emphasize {event_focus} that show community vibrancy and help buyers imagine their social life and engagement in this neighborhood.",
-            "what_people_love": f"Create emotional selling points that generate desire and urgency. Use language that helps buyers imagine themselves enjoying these benefits and feeling like they've found their perfect community. Focus on {lifestyle_focus} benefits.",
-            "seasonal_trends": f"Paint a picture of year-round enjoyment and community engagement. Show how the neighborhood stays vibrant across all seasons with activities that appeal to buyers interested in {lifestyle_focus}. Make every season sound exciting and fulfilling.",
-            "image_prompt": f"Community life near the address showcasing {event_focus}",
-            "image_prompt_2": f"Amenities and spaces near the address supporting {lifestyle_focus}"
+            "home_image_prompt": "Exterior photo of address",
+            "image_prompt": f"Community life showing {event_focus}",
+            "image_prompt_2": f"Local amenities supporting {lifestyle_focus}",
+            "vibe": "List 3-5 adjectives that describe the neighborhood's personality.",
+            "known_for": "List key neighborhood features that attract buyers.",
+            "community_events": f"List popular {event_focus} in the area.",
+            "what_people_love": f"List top {lifestyle_focus} benefits residents enjoy.",
+            "seasonal_trends": f"Briefly describe activities for each season related to {lifestyle_focus}.",
         }
 
 

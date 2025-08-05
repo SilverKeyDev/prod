@@ -770,11 +770,10 @@ def _add_section(elements, data, styles, level=0):
                         table.setStyle(TableStyle([
                             ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
                             ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-                            ("LEFTPADDING", (0, 0), (-1, -1), 20),
-                            ("RIGHTPADDING", (0, 0), (-1, -1), 20),
-                            ("TOPPADDING", (0, 0), (-1, -1), 20),
-                            ("BOTTOMPADDING", (0, 0), (-1, -1), 20),
-                            ("BOX", (0, 0), (-1, -1), 1.0, colors.darkgrey),
+                            ("LEFTPADDING", (0, 0), (-1, -1), 10),
+                            ("RIGHTPADDING", (0, 0), (-1, -1), 10),
+                            ("TOPPADDING", (0, 0), (-1, -1), 10),
+                            ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
                             ("INNERPADDING", (0, 0), (-1, -1), 10),
                         ]))
                         elements.append(table)

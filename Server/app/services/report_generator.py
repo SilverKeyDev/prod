@@ -833,12 +833,12 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
         section_names = user_preferences['report_customization']['report_section_priorities']
         logger.info(f"🎯 REPORT_GEN: Using section priorities: {{'report_section_priorities': {section_names}}}")
     
-    # Import required modules for schema handling
-    from collections import OrderedDict
-    from ..models.report_models import LifestyleDNA
-    
+    # Override section_names for marketing model
+    if marketing_model:
+        section_names = ["marketing"]
+        logger.info(f"🎯 REPORT_GEN: Using marketing model - overriding section_names to: {section_names}")
     # Only auto-include demographics if neighborhood_overview exists and not comparing
-    if 'neighborhood_overview' in section_names and (not comparison_address or comparison_address == ""):
+    elif 'neighborhood_overview' in section_names and (not comparison_address or comparison_address == ""):
         logger.info("🏘️ neighborhood_overview detected and no comparison_address - auto-including demographic sections")
 
         if 'lifestyle_dna' not in section_names:
@@ -852,7 +852,7 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
             logger.error("🚫 Address validation failed")
             raise ValueError("Invalid address format")
         elif marketing_model:
-            section_schema = get_individual_section_schema(["marketing"], user_preferences, mode="report")
+            section_schema = get_individual_section_schema("marketing", user_preferences, mode="marketing")
             payload = {
                 "model": "sonar-pro",
                 "messages": [
