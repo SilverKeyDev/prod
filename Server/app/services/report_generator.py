@@ -854,7 +854,7 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
         elif marketing_model:
             section_schema = get_individual_section_schema(["marketing"], user_preferences, mode="report")
             payload = {
-                "model": "sonar-reasoning",
+                "model": "sonar-pro",
                 "messages": [
                     {
                         "role": "system",
@@ -874,16 +874,11 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
             "search_mode": "web",
             "reasoning_effort": "medium",
             "temperature": 0.1,
-            "max_tokens": 20000,
+            "max_tokens": 4000,
             "stream": False,
             "return_images": False,
             "return_citations": False,
-            "response_format": {
-                "type": "json_schema",
-                "json_schema": {
-                    "schema": section_schema
-                } 
-            }
+            "response_format": section_schema
         }
             logger.info(payload)
             payloads.append(payload)
@@ -893,7 +888,7 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                 section_schema = get_individual_section_schema(section_name, user_preferences, mode="report")
                 logger.debug(f"🔧 Creating payload for section: {section_name}")
                 payload = {
-                "model": "sonar-reasoning",
+                "model": "sonar-pro",
                 "messages": [
                     {
                     "role": "system",
@@ -914,7 +909,7 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
             "search_mode": "web",
             "reasoning_effort": "medium",
             "temperature": 0.1,
-            "max_tokens": 20000,
+            "max_tokens": 2500,
             "stream": False,
             "return_images": False,
             "return_citations": False,
@@ -924,11 +919,6 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
         else:
             # Comparison report logic - need to get JSON data for both properties
             logger.info(f"🔄 Generating comparison report for {address} vs {comparison_address}")
-            
-            # Generate ComparisonReport schema with user preference interpolation
-            from ..models.duel_report_models import ComparisonReport
-            comparison_report = ComparisonReport(report_customization=report_customization)
-            comparison_schema = comparison_report.schema(report_customization=report_customization)
             
             # Get or generate JSON reports for both addresses - these calls will block until reports are ready
             logger.info(f"📋 Ensuring primary report is ready for {address}...")
@@ -946,23 +936,23 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                 section_schema = get_individual_section_schema(section_name, user_preferences, mode="comparison")
                 logger.debug(f"🔧 Creating comparison payload for section: {section_name}")
                 payload = {
-                    "model": "sonar-reasoning",
+                    "model": "sonar-pro",
                     "messages": [
                         {
                             "role": "system",
                             "content": (
                                 "You are a critical, strategic, and personalized PROPERTY COMPARISON EXPERT. "
 
-                               "You are a comprehensive PERSONALIZED property research assistant. Given an address, {address}, you must provide a detailed property report in valid JSON format.\n\n"
-
                                 "SCHEMA COMPLIANCE: You MUST follow the schema structure EXACTLY. Use the examples in the schema to determine how to structure your response.\n\n"
                             
                                 "RESEARCH:\n"
-                                    "- Use the recommended sources first in research. If a decent answer is found, do not continue to search the web for that field\n"
+                                "Use the provided address information for your deisions\n"
                                
                                 "CITATIONS:\n"
                                 "Do not include citations in the response\n"
                             
+                                "CRITICAL: Do NOT explain your reasoning. Do NOT include any "<think>" or descriptive commentary. Return ONLY a valid JSON object, starting with '{' and ending with '}'.\n"
+
                                 "CRITICAL: Always provide a concrete answer, estimate, or educated guess.\n"
                             )
                         },
@@ -979,16 +969,11 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                     "search_mode": "web",
                     "reasoning_effort": "medium",
                     "temperature": 0.1,
-                    "max_tokens": 25000,
+                    "max_tokens": 800,
                     "stream": False,
                     "return_images": False,
                     "return_citations": False,
-                    "response_format": {
-                        "type": "json_schema",
-                        "json_schema": {
-                            "schema": section_schema  
-                        }
-                    }
+                    "response_format": section_schema
                 }
                 logger.info(payload)
                 payloads.append(payload)
@@ -1216,7 +1201,7 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                 # Submit tasks with tiny randomized delays to avoid burst signatures
                 for payload_info in payload_infos:
                     # Tiny randomized delay (5–50ms) between submissions
-                    delay = random.uniform(10, 15)
+                    delay = random.uniform(8, 12)
                     time.sleep(delay)
                     
                     section_name = payload_info[1]

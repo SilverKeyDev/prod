@@ -33,55 +33,73 @@ class LifestyleDNA(BaseModel):
         ge=0, le=100,
         description="How emblematic the area is of an artistic or creative lifestyle. "
                     "Score high (80–100) for vibrant art, music, studios, and cultural events. "
-                    "Score 0–20 if there's no visible creative or indie scene."
+                    "Score 0–20 if there's no visible creative or indie scene. "
+                    "IMPORTANT TONE INSTRUCTION: Be EXTREMELY HARSH for low scores and EXTREMELY POSITIVE for high scores. "
+                    "Do not be neutral or balanced. Use vivid language, specific examples, and memorable comparisons."
     )
     professional: int = Field(
         ge=0, le=100,
         description="How aligned the area is with white-collar, business-focused lifestyles. "
                     "Score 100 for financial districts and business culture. "
-                    "Score 0 if the area has no professional presence or appeal."
+                    "Score 0 if the area has no professional presence or appeal. "
+                    "IMPORTANT TONE INSTRUCTION: Be EXTREMELY HARSH for low scores and EXTREMELY POSITIVE for high scores. "
+                    "Do not be neutral or balanced. Use vivid language, specific examples, and memorable comparisons."
     )
     family_oriented: int = Field(
         ge=0, le=100,
         description="How well the area supports families. "
                     "Score high for schools, parks, low crime, and spacious homes. "
-                    "Score 0 if it's nightlife-heavy, cramped, or transient."
+                    "Score 0 if it's nightlife-heavy, cramped, or transient. "
+                    "IMPORTANT TONE INSTRUCTION: Be EXTREMELY HARSH for low scores and EXTREMELY POSITIVE for high scores. "
+                    "Do not be neutral or balanced. Use vivid language, specific examples, and memorable comparisons."
     )
     active_outdoor: int = Field(
         ge=0, le=100,
         description="How well the area supports fitness and outdoor lifestyles. "
                     "Score 100 for hiking, biking, surfing, gym culture, and green space. "
-                    "Score low if it's concrete, flat, or inactive."
+                    "Score low if it's concrete, flat, or inactive. "
+                    "IMPORTANT TONE INSTRUCTION: Be EXTREMELY HARSH for low scores and EXTREMELY POSITIVE for high scores. "
+                    "Do not be neutral or balanced. Use vivid language, specific examples, and memorable comparisons."
     )
     tech_remote: int = Field(
         ge=0, le=100,
         description="How well-suited the area is for remote tech professionals. "
                     "Score high for coworking, startups, cafes, modern apartments, fast Wi-Fi. "
-                    "Score 0 if it lacks digital infrastructure or a tech scene."
+                    "Score 0 if it lacks digital infrastructure or a tech scene. "
+                    "IMPORTANT TONE INSTRUCTION: Be EXTREMELY HARSH for low scores and EXTREMELY POSITIVE for high scores. "
+                    "Do not be neutral or balanced. Use vivid language, specific examples, and memorable comparisons."
     )
     retiree: int = Field(
         ge=0, le=100,
         description="How ideal the area is for retirees. "
                     "Score high for peace, slow pace, nature, and medical access. "
-                    "Score low if it's noisy, chaotic, or youthful."
+                    "Score low if it's noisy, chaotic, or youthful. "
+                    "IMPORTANT TONE INSTRUCTION: Be EXTREMELY HARSH for low scores and EXTREMELY POSITIVE for high scores. "
+                    "Do not be neutral or balanced. Use vivid language, specific examples, and memorable comparisons."
     )
     student: int = Field(
         ge=0, le=100,
         description="How strong the student presence is. "
                     "Score high near colleges, dorms, bars, and cheap eats. "
-                    "Score 0 if there's no academic or youth culture nearby."
+                    "Score 0 if there's no academic or youth culture nearby. "
+                    "IMPORTANT TONE INSTRUCTION: Be EXTREMELY HARSH for low scores and EXTREMELY POSITIVE for high scores. "
+                    "Do not be neutral or balanced. Use vivid language, specific examples, and memorable comparisons."
     )
     suburban: int = Field(
         ge=0, le=100,
         description="How suburban the layout and feel is. "
                     "Score 100 for detached homes, cul-de-sacs, big yards. "
-                    "Score 0 for dense, walkable, or urban areas."
+                    "Score 0 for dense, walkable, or urban areas. "
+                    "IMPORTANT TONE INSTRUCTION: Be EXTREMELY HARSH for low scores and EXTREMELY POSITIVE for high scores. "
+                    "Do not be neutral or balanced. Use vivid language, specific examples, and memorable comparisons."
     )
     urban: int = Field(
         ge=0, le=100,
         description="How urban the area feels. "
                     "Score high for density, walkability, transit, and city energy. "
-                    "Score 0 if it's rural, spread out, or car-centric."
+                    "Score 0 if it's rural, spread out, or car-centric. "
+                    "IMPORTANT TONE INSTRUCTION: Be EXTREMELY HARSH for low scores and EXTREMELY POSITIVE for high scores. "
+                    "Do not be neutral or balanced. Use vivid language, specific examples, and memorable comparisons."
     )
 
     @classmethod
@@ -138,7 +156,7 @@ class LifestyleDNA(BaseModel):
             "suburban": 15,
             "urban": 95
         }
-
+        
 
 class NeighborhoodOverview(BaseModel):
     local_culture: str = Field(...)
@@ -166,8 +184,8 @@ class NeighborhoodOverview(BaseModel):
             "community_events": "Weekly farmers market, summer concerts, Festival of Whales",
             "what_people_love": "Walkability, coastal charm, outdoor activities",
             "things_to_watch_out_for": "Crowds in summer, limited parking, weekend traffic",
-            "image_prompt": "Aerial satellite view of the specific neighborhood around the address, showing the actual street layout, housing density, parks, and local landmarks that define this area",
-            "image_prompt_2": "Street-level photo of the main residential streets and community character around the address, showing typical homes, sidewalks, landscaping, and neighborhood atmosphere",
+            "image_prompt": "Aerial view of the neighborhood around the address showing streets, housing, and nearby landmarks",
+            "image_prompt_2": "Street-level view of residential streets near the address showing typical homes and landscaping",
         }
 
 class Safety(BaseModel):
@@ -212,8 +230,8 @@ class Safety(BaseModel):
             "places_to_watch_out_for": "Main St after 10pm, parking lots near the train station, avoid the alley behind 5th Ave",
             "police_presence": "Regular patrol cars, community policing program, quick response times",
             "safety_rating": "7.8/10",
-            "image_prompt": "Well-lit residential streets around the address showing sidewalks, street lamps, and visible security features in this specific neighborhood",
-            "image_prompt_2": "Safety infrastructure around the address: security cameras, emergency call boxes, neighborhood watch signs, and police patrol presence in this specific area"
+            "image_prompt": "Well-lit streets near the address showing safety features and street lamps",
+            "image_prompt_2": "Safety infrastructure in the neighborhood: security cameras and neighborhood watch signs"
         }
     
     @classmethod
@@ -228,8 +246,8 @@ class Safety(BaseModel):
             "places_to_watch_out_for": "Specific areas, intersections, or locations with higher risk or safety concerns. Include times of day when relevant. Use local knowledge from City-Data forums, Nextdoor, or police reports. Be specific with street names and locations. Prioritize areas relevant to user's daily routines and family needs.",
             "police_presence": "Describe frequency and visibility of police patrols, community policing programs, and response times. Source from local police department websites, community meetings, or resident feedback on Nextdoor/City-Data. Emphasize community policing and response times.",
             "safety_rating": "Overall safety score out of 10 based on crime data, community perception, and safety infrastructure. Use data from AreaVibes, Neighborhood Scout, or local crime statistics. Format as 'X.X/10'. Weight factors based on user's safety priorities.",
-            "image_prompt": f"Crime map of the city showing safety statistics, incident reports, and crime density for this specific neighborhood around the address (emphasizing {safety_focus} safety concerns).",
-            "image_prompt_2": f"Street-level photo of safety infrastructure in this neighborhood: well-lit streets, security cameras, police patrol presence, and neighborhood watch signs around the address (focusing on {safety_focus} safety features)."
+            "image_prompt": f"Safety map of the neighborhood around the address (emphasizing {safety_focus})",
+            "image_prompt_2": f"Street-level view of safety features near the address (focusing on {safety_focus})"
         }
 
 class CultureAndEvents(BaseModel):
@@ -256,8 +274,8 @@ class CultureAndEvents(BaseModel):
             "seasonal_trends": "Busy summers with beach events, quieter winters with indoor cultural activities",
             "community_engagement": "Active neighborhood watch, volunteer cleanup days, high voter turnout",
             "culture_rating": "8.5/10",
-            "image_prompt": "Photo of actual cultural events and festivals happening in the city near the address, showing local community gatherings, street fairs, or seasonal celebrations specific to this neighborhood",
-            "image_prompt_2": "Photo of cultural venues and event spaces in the city around the address: local theaters, art galleries, community centers, or performance venues that serve this neighborhood"
+            "image_prompt": "Local cultural events and festivals near the address showing community gatherings",
+            "image_prompt_2": "Cultural venues near the address: theaters, galleries, and community centers"
         }
     
     @classmethod
@@ -271,8 +289,8 @@ class CultureAndEvents(BaseModel):
             "seasonal_trends": "How activity changes throughout the year, e.g., 'Busy in summer, quieter winters'. Check Nomad List or blog search results for seasonal patterns. Consider how seasons affect the user's preferred activities and lifestyle.",
             "community_engagement": "Civic participation level (e.g., cleanup days, local watch groups). Mention if visible on Meetup or community forums. Assess opportunities for user involvement based on their community involvement preferences.",
             "culture_rating": "Score should reflect vibrancy and access. Weigh frequency and diversity of events, Eventbrite density is a clue for cultural activity. Rate based on cultural factors that matter most to the user's interests and lifestyle.",
-            "image_prompt": "Photo of actual cultural venues, event spaces, or community gathering places in the city around the address, showing the specific locations where local events and activities take place.",
-            "image_prompt_2": "Photo of local cultural infrastructure in the city near the address: art galleries, theaters, community centers, libraries, or performance venues that serve this neighborhood."
+            "image_prompt": "Cultural venues and event spaces near the address where local events take place",
+            "image_prompt_2": "Art galleries, theaters, and community centers near the address"
         }
 
 class SocialCharacter(BaseModel):
@@ -298,8 +316,8 @@ class SocialCharacter(BaseModel):
             "religiosity": "Moderate - several churches and temples, but not overly conservative",
             "cultural_tone": "Laid-back but proud, environmentally conscious, welcoming to newcomers",
             "social_rating": "8.2/10",
-            "image_prompt": "Photo of local community spaces and social gathering areas in the city around the address, showing where residents interact and socialize in this specific neighborhood",
-            "image_prompt_2": "Photo of religious buildings, community centers, local coffee shops, or social venues in the city near the address that reflect the neighborhood's social and cultural character"
+            "image_prompt": "Community spaces and gathering areas near the address where residents socialize",
+            "image_prompt_2": "Local coffee shops and social venues near the address reflecting neighborhood character"
         }
     
     @classmethod
@@ -314,8 +332,8 @@ class SocialCharacter(BaseModel):
             "religiosity": "Low / Moderate / High — explain the tone. Use BestPlaces religion % or Niche. Assess compatibility with user's spiritual preferences and tolerance for religious influence.",
             "cultural_tone": "Summary of vibe ('laid-back but proud'). Pull from Google Maps reviews or Niche user feedback. Focus on cultural aspects that match user's social preferences and values.",
             "social_rating": "Reflects inclusivity, education, worldview. Niche 'diversity' and 'community' scores are good proxies. Weight factors based on user's social priorities and community involvement preferences.",
-            "image_prompt": "Photo of community spaces, local businesses, and neighborhood gathering areas in the city around the address that reflect the social character and daily life of this specific area.",
-            "image_prompt_2": "Photo of religious institutions, community centers, local cafes, or social venues in the city near the address that demonstrate the neighborhood's cultural and social diversity."
+            "image_prompt": "Community spaces and local businesses near the address reflecting daily life",
+            "image_prompt_2": "Religious institutions and cafes near the address showing cultural diversity"
         }
 
 class Restaurant(BaseModel):
@@ -619,24 +637,24 @@ class NightlifeAndDating(BaseModel):
                 "nightlife_rating": "9.2/10",
                 "best_spots": "Sky Lounge rooftop bar, Underground dance club, Craft cocktail speakeasy, Late-night food trucks",
                 "dating_scene": "Vibrant young professional scene, trendy bar meetups, rooftop parties, active social media presence",
-                "image_prompt": "Photo of nightlife and entertainment venues in the city around the address, showing actual bars, clubs, and late-night spots where young professionals gather",
-                "image_prompt_2": "Photo of dating-friendly venues in the city near the address: trendy restaurants, wine bars, coffee shops, or social spaces where singles meet and socialize"
+                "image_prompt": "Nightlife venues near the address showing bars and clubs for young professionals",
+                "image_prompt_2": "Dating-friendly venues near the address: trendy restaurants and social spaces"
             }
         elif marital_status in ['married', 'partnered'] or age > 40:
             return {
                 "nightlife_rating": "6.8/10",
                 "best_spots": "Wine bars, upscale restaurants with live music, theater district, cultural events",
                 "dating_scene": "Mature social scene, wine tastings, cultural events, established professional networks",
-                "image_prompt": "Photo of upscale evening entertainment venues in the city around the address, showing sophisticated restaurants, wine bars, and cultural spaces for mature professionals",
-                "image_prompt_2": "Photo of date-night venues in the city near the address: fine dining restaurants, wine lounges, theater venues, or cultural spaces that cater to established couples"
+                "image_prompt": "Upscale entertainment venues near the address for mature professionals",
+                "image_prompt_2": "Date-night venues near the address: fine dining restaurants and wine lounges"
             }
         else:
             return {
                 "nightlife_rating": "7.5/10",
                 "best_spots": "The Rooftop Lounge, Coastal Brewery, Live music at The Pier, wine bars on Main St",
                 "dating_scene": "Active young professional scene, beach volleyball meetups, wine tastings, farmers market socializing",
-                "image_prompt": "Photo of evening dining and entertainment venues in the city around the address, showing local restaurants, bars, and social spaces for casual dining and nightlife",
-                "image_prompt_2": "Photo of casual social venues in the city near the address: local bars, breweries, coffee shops, or community spaces where residents socialize and meet"
+                "image_prompt": "Evening dining and entertainment venues near the address for casual nightlife",
+                "image_prompt_2": "Casual social venues near the address: local bars and coffee shops"
             }
     
     @classmethod
@@ -650,8 +668,8 @@ class NightlifeAndDating(BaseModel):
             "best_spots": "Popular bars, clubs, and entertainment venues. Use Yelp, Google Maps, or City-Data forum nightlife threads. Focus on venues that match the user's social style and interests.",
             "dating_scene": f"Describe energy and dating pool. Search 'dating in [city] Reddit' or Nomad List for vibe. Tailor to user's marital status ({marital_status}) and age ({age}) - focus on relevant social opportunities.",
             "average_attractiveness_rating": "Be playful but grounded. Use cultural tone and tongue-in-cheek phrasing.",
-            "image_prompt": "Photo of nightlife and entertainment venues in the city around the address that reflect the local social atmosphere and evening entertainment options.",
-            "image_prompt_2": "Photo of dating-friendly venues in the city near the address: cafes, wine bars, restaurants, or social spaces where people meet and socialize in this neighborhood."
+            "image_prompt": "Nightlife venues near the address reflecting local social atmosphere",
+            "image_prompt_2": "Dating-friendly venues near the address where people socialize"
         }
 
 
@@ -682,8 +700,8 @@ class Development(BaseModel):
                 "zoning_or_construction": "High-end mixed-use towers under construction, zoning allows luxury residential, architectural design standards enforced",
                 "gentrification_signs": "Rapid property value increases, artisanal coffee shops and boutiques opening, longtime businesses being replaced",
                 "vacancy_or_decay": "Very low vacancy rates, premium property maintenance, no signs of urban decay",
-                "image_prompt": "Photo of development and construction activity in the city around the address, showing actual building sites, new developments, and infrastructure projects in this specific neighborhood",
-                "image_prompt_2": "Photo of luxury developments and upscale construction projects in the city near the address, showing premium architectural features and high-end residential or commercial developments"
+                "image_prompt": "Development and construction activity near the address showing new projects",
+                "image_prompt_2": "Luxury developments near the address with premium architectural features"
             }
         elif age < 30 and lifestyle in ['nightlife', 'urban']:
             return {
@@ -691,8 +709,8 @@ class Development(BaseModel):
                 "zoning_or_construction": "Mixed-use development with ground-floor retail, zoning allows live-work spaces, height restrictions relaxed",
                 "gentrification_signs": "Young professionals moving in, trendy restaurants opening, rent increases in older buildings",
                 "vacancy_or_decay": "Low vacancy rates, building renovations common, minimal decay",
-                "image_prompt": "Photo of construction sites and new development projects in the city around the address, showing active building sites and modern developments in this specific neighborhood",
-                "image_prompt_2": "Photo of trendy new developments in the city near the address: co-working spaces, modern residential projects, or contemporary commercial buildings that attract young professionals"
+                "image_prompt": "Construction sites and new projects near the address showing modern developments",
+                "image_prompt_2": "Trendy new developments near the address attracting young professionals"
             }
         else:
             return {
@@ -700,8 +718,8 @@ class Development(BaseModel):
                 "zoning_or_construction": "Mixed-use development under construction, residential zoning allows ADUs, height limits preserved",
                 "gentrification_signs": "Rising property values, new upscale businesses, longtime residents being displaced",
                 "vacancy_or_decay": "Low vacancy rates, well-maintained properties, minimal urban decay",
-                "image_prompt": "Photo of development activity and neighborhood character around the specific address, showing current construction, infrastructure improvements, and community development projects in this area",
-                "image_prompt_2": "Photo of neighborhood infrastructure near the address: transit developments, road improvements, utility upgrades, or community projects that impact this specific area"
+                "image_prompt": "Development activity near the address showing current construction projects",
+                "image_prompt_2": "Neighborhood infrastructure near the address: transit and road improvements"
             }
     
     @classmethod
@@ -715,8 +733,8 @@ class Development(BaseModel):
             "zoning_or_construction": "Check city zoning maps, building permits, or construction notices. Use Google Maps satellite view to spot active construction sites.",
             "gentrification_signs": "Look for rising rents, new upscale businesses, demographic shifts. Search '[neighborhood] gentrification' or check local forums for resident discussions.",
             "vacancy_or_decay": "Use Google Street View to assess building conditions, vacant lots, or boarded storefronts. Check local crime or economic indicators.",
-            "image_prompt": "Photo of development activity, construction sites, and neighborhood character in the city around the address, showing current building projects and infrastructure changes in this specific area.",
-            "image_prompt_2": "Photo of future development sites and planned construction areas in the city near the address, showing infrastructure improvements, zoning changes, or major projects that will impact this neighborhood."
+            "image_prompt": "Development activity and construction sites near the address",
+            "image_prompt_2": "Future development sites near the address showing planned improvements"
         }
 
 

@@ -113,95 +113,64 @@ def _create_pdf(report: dict, address: str, filename: str, comparison_address: s
         elements.append(Spacer(1, 20))
 
         # Cache chart tables for side-by-side rendering
-        chart_tables = {}  # e.g., {"age_distribution": table1, "lifestyle_dna": table2}
-        
+        chart_tables = {}  # Cache for deferred rendering
+
         for i, (section, section_data) in enumerate(report.items()):
+                     # Render side-by-side once both charts are cached
+            if "age_distribution" in chart_tables and "lifestyle_dna" in chart_tables:
+                logger.info("📊 Rendering side-by-side charts...")
+                side_by_side = Table(
+                    [[chart_tables["age_distribution"], chart_tables["lifestyle_dna"]]],
+                    colWidths=[3.6 * inch, 3.6 * inch],
+                    hAlign='CENTER'
+                )
+                side_by_side.setStyle(TableStyle([
+                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                    ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 10),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 10),
+                    ("TOPPADDING", (0, 0), (-1, -1), 6),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+                ]))
+                elements.append(Spacer(1, 10))
+                elements.append(side_by_side)
+                elements.append(Spacer(1, 20))
+
+                # Prevent duplicate rendering
+                chart_tables.pop("age_distribution")
+                chart_tables.pop("lifestyle_dna")
+
+
             logger.info(f"🔄 Processing section {i+1}/{len(report)}: '{section}'")
-            logger.debug(f"📋 Section data type: {type(section_data)}")
-            logger.debug(f"📋 Section data: {section_data}")
-            
-            # Skip titles for chart sections (age_distribution and lifestyle_dna)
-            if i!= 0 and section.lower() not in ["age_distribution", "lifestyle_dna"]:
-                title_style = styles["SectionHeader"]
-                elements.append(Paragraph(section.replace("_", " ").title(), title_style))
+            key = section.replace("_", " ").title()
+
+            # Skip title for chart sections
+            if i != 0 and section.lower() not in ["age_distribution", "lifestyle_dna"]:
+                elements.append(Paragraph(key, styles["SectionHeader"]))
                 elements.append(HRFlowable(width="100%", thickness=0.5, color="#AAAAAA"))
                 elements.append(Spacer(1, 1))
 
-            # Handle top-level age_distribution and lifestyle_dna charts (skip for comparison reports)
-            if section.lower() in ["age_distribution", "lifestyle_dna"] and isinstance(section_data, dict) and not (comparison_address and comparison_address.strip()):
-                logger.info(f"📊 Detected chart section: {section}")
-                chart_buffer = None
-                chart_type = ""
-                chart_data = None
-                key = section.replace("_", " ").title()
-                
-                logger.debug(f"🔍 Chart key: {key}")
-                logger.debug(f"🔍 Has with_percent method: {hasattr(section_data, 'with_percent')}")
-                
-                # Handle top-level Pydantic model objects (if they come through as objects)
-                if hasattr(section_data, 'with_percent') and callable(getattr(section_data, 'with_percent')):
-                    logger.info(f"📈 Processing Pydantic object for {section}")
-                    chart_data = section_data.with_percent()
-                    logger.debug(f"📊 Pydantic chart_data: {chart_data}")
-                    if section.lower() == "lifestyle_dna":
-                        logger.info(f"🎯 Generating horizontal bar chart for lifestyle_dna")
-                        chart_buffer = generate_horizontal_bar_chart(chart_data, key)
-                        chart_type = "Lifestyle DNA Bar Chart"
-                        logger.info(f"✅ Generated lifestyle_dna chart: {chart_buffer is not None}")
-                    elif section.lower() == "age_distribution":
-                        logger.info(f"🎯 Generating vertical lollipop chart for age_distribution")
-                        chart_buffer = generate_vertical_lollipop_chart(chart_data, key)
-                        chart_type = "Age Distribution Chart"
-                        logger.info(f"✅ Generated age_distribution chart: {chart_buffer is not None}")
-                # Handle dictionary format (current format from JSON)
-                else:
-                    logger.info(f"📈 Processing dictionary format for {section}")
-                    if section.lower() == "lifestyle_dna":
-                        logger.info(f"🎯 Processing lifestyle_dna dictionary")
-                        # Convert raw field names to display format with percentages
-                        chart_data = {field_name: f"{value}%" for field_name, value in section_data.items()}
-                        logger.debug(f"📊 Lifestyle DNA chart_data: {chart_data}")
-                        logger.info(f"🎯 Generating horizontal bar chart for lifestyle_dna dictionary")
-                        chart_buffer = generate_horizontal_bar_chart(chart_data, key)
-                        chart_type = "Lifestyle DNA Bar Chart"
-                        logger.info(f"✅ Generated lifestyle_dna chart: {chart_buffer is not None}")
-                    elif section.lower() == "age_distribution":
-                        logger.info(f"🎯 Processing age_distribution dictionary")
-                        # Convert age field names (age_18_24 -> 18-24) and add percentages
-                        chart_data = {}
-                        logger.debug(f"📊 Raw age_distribution data: {section_data}")
-                        for field_name, value in section_data.items():
-                            if field_name.startswith('age_'):
-                                # Convert age_18_24 -> 18-24, age_65_plus -> 65+
-                                display_name = field_name.replace('age_', '').replace('_plus', '+').replace('_', '-')
-                                chart_data[display_name] = f"{value}%"
-                                logger.debug(f"🔄 Converted {field_name} -> {display_name}: {value}%")
-                            else:
-                                chart_data[field_name] = f"{value}%"
-                                logger.debug(f"🔄 Direct mapping {field_name}: {value}%")
-                        logger.debug(f"📊 Age distribution chart_data: {chart_data}")
-                        logger.info(f"🎯 Generating vertical lollipop chart for age_distribution dictionary")
-                        chart_buffer = generate_vertical_lollipop_chart(chart_data, key)
-                        chart_type = "Age Distribution Chart"
-                        logger.info(f"✅ Generated age_distribution chart: {chart_buffer is not None}")
-                
-                # Generate the chart if we have chart data
-                logger.info(f"🔍 Chart generation check - buffer: {chart_buffer is not None}, data: {chart_data is not None}")
-                if chart_buffer and chart_data:
-                    logger.info(f"✅ Adding chart to PDF for {section}")
-                    
-                    # Chart-specific sizing: age_distribution shorter, lifestyle_dna normal height
-                    if section.lower() == "age_distribution":
-                        # Make age distribution charts shorter (1.4 inch height)
-                        img = _resize_image_to_fit(chart_buffer, target_width=3.2 * inch, target_height=2 * inch, is_chart=True)
-                        logger.info(f"📊 Resized age_distribution chart to shorter height (1.4 inch)")
-                    else:
-                        # Keep lifestyle_dna and other charts at normal height (2.8 inch)
-                        img = _resize_image_to_fit(chart_buffer, target_width=3.6 * inch, target_height=2.8 * inch, is_chart=True)
-                        logger.info(f"📊 Resized {section} chart to normal height (2.8 inch)")
-                    
-                    table_data = [[img]]
-                    table = Table(table_data, colWidths=[3.6 * inch])
+            # CHART SECTION: Generate and defer layout
+            if section.lower() in ["age_distribution", "lifestyle_dna"] and isinstance(section_data, dict):
+                chart_data = {}
+
+                if section.lower() == "lifestyle_dna":
+                    chart_data = {k: f"{v}%" for k, v in section_data.items()}
+                    chart_buffer = generate_horizontal_bar_chart(chart_data, key)
+
+                elif section.lower() == "age_distribution":
+                    for field_name, value in section_data.items():
+                        if field_name.startswith("age_"):
+                            display_name = field_name.replace("age_", "").replace("_plus", "+").replace("_", "-")
+                        else:
+                            display_name = field_name
+                        chart_data[display_name] = f"{value}%"
+                    chart_buffer = generate_vertical_lollipop_chart(chart_data, key)
+
+                # Only cache if chart rendered
+                if chart_buffer:
+                    img = _resize_image_to_fit(chart_buffer, target_width=3.6 * inch, target_height=2.8 * inch, is_chart=True)
+                    table = Table([[img]], colWidths=[3.6 * inch])
                     table.setStyle(TableStyle([
                         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
                         ("ALIGN", (0, 0), (-1, -1), "CENTER"),
@@ -210,66 +179,9 @@ def _create_pdf(report: dict, address: str, filename: str, comparison_address: s
                         ("TOPPADDING", (0, 0), (-1, -1), 1),
                         ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
                     ]))
-                    
-                    # Cache chart table for side-by-side rendering
                     chart_tables[section.lower()] = table
-                    logger.info(f"✅ Cached {chart_type} for side-by-side rendering")
-                    
-                    # Check if we have both charts for side-by-side rendering
-                    has_age_dist = "age_distribution" in chart_tables
-                    has_lifestyle = "lifestyle_dna" in chart_tables
-                    
-                    # Render charts based on what's available
-                    if has_age_dist and has_lifestyle:
-                        logger.info(f"📊 Rendering age_distribution and lifestyle_dna charts side-by-side (no title)")
-                        
-                        # Create side-by-side table with both charts
-                        side_by_side_table = Table(
-                            [[chart_tables["age_distribution"], chart_tables["lifestyle_dna"]]],
-                            colWidths=[3.6 * inch, 3.6 * inch],  # match resized chart
-                            hAlign='CENTER'
-                        )
-                        side_by_side_table.setStyle(TableStyle([
-                            ("VALIGN", (0, 0), (-1, -1), "TOP"),
-                            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-                            ("LEFTPADDING", (0, 0), (-1, -1), 10),
-                            ("RIGHTPADDING", (0, 0), (-1, -1), 10),
-                            ("TOPPADDING", (0, 0), (-1, -1), 6),
-                            ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
-                        ]))
-                        
-                        # Add charts directly without section title (appears after neighborhood overview)
-                        elements.append(Spacer(1, 10))
-                        elements.append(side_by_side_table)
-                        elements.append(Spacer(1, 20))
-                        logger.info(f"✅ Successfully added side-by-side charts to PDF (no title)")
-                        
-                        # Clear both charts from cache since we've rendered them
-                        chart_tables.pop("age_distribution", None)
-                        chart_tables.pop("lifestyle_dna", None)
-                        
-                    elif section.lower() in ["age_distribution", "lifestyle_dna"] and len(chart_tables) == 1:
-                        # If we only have one chart and it's the second one being processed,
-                        # render whatever charts we have (fallback for when one fails)
-                        logger.info(f"📊 Fallback: Rendering available chart(s) individually")
-                        
-                        if has_age_dist:
-                            logger.info(f"📊 Adding age_distribution chart individually (lifestyle_dna failed)")
-                            elements.append(Spacer(1, 10))
-                            elements.append(chart_tables["age_distribution"])
-                            elements.append(Spacer(1, 20))
-                            chart_tables.pop("age_distribution", None)
-                            
-                        if has_lifestyle:
-                            logger.info(f"📊 Adding lifestyle_dna chart individually (age_distribution failed)")
-                            elements.append(Spacer(1, 10))
-                            elements.append(chart_tables["lifestyle_dna"])
-                            elements.append(Spacer(1, 20))
-                            chart_tables.pop("lifestyle_dna", None)
 
-                    continue  # Skip the normal processing for these sections
-                else:
-                    logger.warning(f"⚠️ Skipping chart generation for {section} - buffer: {chart_buffer is not None}, data: {chart_data is not None}")
+                continue  # Skip rest of loop for chart sections
 
             if isinstance(section_data, dict):
                 logger.info(f"📝 Processing {section} as nested dictionary")
@@ -364,7 +276,7 @@ def _create_pdf(report: dict, address: str, filename: str, comparison_address: s
             else:
                 logger.info(f"📝 Processing {section} as simple text: {str(section_data)[:100]}...")
                 elements.append(Paragraph(str(section_data), styles["Body"]))
-
+            
         logger.info(f"📄 Building PDF document with {len(elements)} elements")
         doc.build(elements)
         pdf_data = pdf_buffer.getvalue()

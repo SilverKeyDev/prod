@@ -195,8 +195,8 @@ class NeighborhoodOverview(BaseModel):
 
                 "user_preference_tags": ["budget_considerations"]
             },
-            "image_prompt": "Aerial satellite view comparing the specific neighborhoods around each address, showing actual street layout, housing density, parks, and local landmarks that define each area",
-            "image_prompt_2": "Street-level comparison of the main residential streets and community character around each address, showing typical homes, sidewalks, landscaping, and neighborhood atmosphere"
+            "image_prompt": "Aerial view comparing neighborhoods around each address showing streets, housing, and nearby landmarks",
+            "image_prompt_2": "Street-level view comparing residential streets near each address showing typical homes and landscaping"
         }
     
     @classmethod
@@ -279,8 +279,8 @@ class Safety(BaseModel):
 
                 "user_preference_tags": safety_tags
             },
-            "image_prompt": f"Photo comparing safety features around each address including street lighting, sidewalks, and security measures in both neighborhoods (emphasizing {safety_focus} safety concerns)",
-            "image_prompt_2": f"Photo comparing police presence, emergency services, or security infrastructure visible around each address in both areas (emphasizing {safety_focus} safety features)"
+            "image_prompt": f"Safety features near each address showing street lighting and security measures (emphasizing {safety_focus})",
+            "image_prompt_2": f"Security infrastructure near each address showing police presence and emergency services (emphasizing {safety_focus})"
         }
     
     @classmethod
@@ -343,8 +343,8 @@ class CultureAndEvents(BaseModel):
                 "winner": "location_a",
                 "reason": "Higher cultural vibrancy and community activities"
             },
-            "image_prompt": "Photo comparing cultural events and festivals happening in each city near the addresses, showing local community gatherings, street fairs, or seasonal celebrations specific to each neighborhood",
-            "image_prompt_2": "Photo comparing cultural venues and event spaces in each city around the addresses: local theaters, art galleries, community centers, or performance venues that serve each neighborhood"
+            "image_prompt": "Cultural events and festivals near each address showing local community gatherings",
+            "image_prompt_2": "Cultural venues near each address: theaters, galleries, and community centers"
         }
     
     @classmethod
@@ -406,8 +406,8 @@ class SocialCharacter(BaseModel):
                 "winner": "location_a",
                 "reason": "Higher community inclusivity and social cohesion"
             },
-            "image_prompt": "Photo comparing local community spaces and social gathering areas in each city around the addresses, showing where residents interact and socialize in each specific neighborhood",
-            "image_prompt_2": "Photo comparing religious buildings, community centers, local coffee shops, or social venues in each city near the addresses that reflect each neighborhood's social and cultural character"
+            "image_prompt": "Community spaces and gathering areas near each address where residents socialize",
+            "image_prompt_2": "Local coffee shops and social venues near each address reflecting neighborhood character"
         }
     
     @classmethod
@@ -592,8 +592,8 @@ class NightlifeAndDating(BaseModel):
                 "reason": f"Better matches user profile: {marital_status}, age {age}, active lifestyle"
             },
           
-            "image_prompt": "Photo comparing nightlife and entertainment venues in each city around the addresses, showing actual bars, clubs, and late-night spots where residents gather",
-            "image_prompt_2": "Photo comparing dating-friendly venues in each city near the addresses: trendy restaurants, wine bars, coffee shops, or social spaces where singles meet and socialize"
+            "image_prompt": "Nightlife venues near each address showing bars and clubs where residents gather",
+            "image_prompt_2": "Dating-friendly venues near each address: restaurants and social spaces"
         }
     
     @classmethod
@@ -606,7 +606,7 @@ class NightlifeAndDating(BaseModel):
             "nightlife_rating": "Rate vibrancy of bars, music, and scenes using Yelp, Google Maps, or City-Data forum nightlife threads. Consider what appeals to the user's demographic and lifestyle.",
             "best_spots": "Popular bars, clubs, and entertainment venues using Yelp, Google Maps, or City-Data forum nightlife threads. Focus on venues that match the user's social style and interests.",
             "dating_scene": f"Describe energy and dating pool. Search 'dating in [city] Reddit' or Nomad List for vibe. Tailor to user's marital status ({marital_status}) and age ({age}) - focus on relevant social opportunities.",
-            "image_prompt": "Photo comparing nightlife and entertainment venues in each neighborhood around the addresses that reflect the local social atmosphere and evening entertainment options."
+            "image_prompt": "Nightlife venues near each address reflecting local social atmosphere"
         }
 
 class Development(BaseModel):
@@ -653,12 +653,8 @@ class Development(BaseModel):
                 "winner": "location_a",
                 "reason": "Better maintained neighborhood with economic stability"
             },
-            "image_prompt": {
-                "location_a": "Photo of development and construction activity in the city around the first address, showing actual building sites, new developments, and infrastructure projects in this specific neighborhood",
-                "location_b": "Photo of development and construction activity in the city around the second address, showing actual building sites, new developments, and infrastructure projects in this specific neighborhood",
-                "winner": "location_a",
-                "reason": "More thoughtful development that respects existing community"
-            }
+            "image_prompt": "Development and construction activity near each address showing new projects",
+            "image_prompt_2": "Future development sites near each address showing planned improvements"
         }
     
     @classmethod
@@ -669,7 +665,8 @@ class Development(BaseModel):
             "zoning_or_construction": "Check city zoning maps, building permits, or construction notices. Use Google Maps satellite view to spot active construction sites. Assess how ongoing development affects livability and future neighborhood character.",
             "gentrification_signs": "Look for rising rents, new upscale businesses, demographic shifts. Search '[neighborhood] gentrification' or check local forums for resident discussions. Consider both positive improvements and potential displacement concerns.",
             "vacancy_or_decay": "Use Google Street View to assess building conditions, vacant lots, or boarded storefronts. Check local crime or economic indicators. Evaluate neighborhood stability and maintenance standards.",
-            "image_prompt": "Photo comparing development activity, construction sites, and neighborhood character in each city around the addresses, showing current building projects and infrastructure changes in each specific area."
+            "image_prompt": "Development activity and construction sites near each address",
+            "image_prompt_2": "Future development sites near each address showing planned improvements"
         }
 
 class EnvironmentUtilities(BaseModel):
