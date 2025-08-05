@@ -102,15 +102,32 @@ def _create_pdf(report: dict, address: str, filename: str, comparison_address: s
             elements.append(Paragraph(title, styles["MainTitleComparison"]))
             elements.append(Spacer(1, 1))
             elements.append(Paragraph(comparison_address, styles["MainTitleComparison"]))
+            elements.append(Spacer(1, 1))
+            elements.append(HRFlowable(width="100%", thickness=1.2, color="#D8CAB8"))
+            elements.append(Spacer(1, 20))
+            
+            # Add property headers for comparison
+            property_table = Table([[
+                Paragraph(f"Property A: <font color='black'>{address}</font>", styles["SubHeader"]),
+                Paragraph(f"Property B: <font color='black'>{comparison_address}</font>", styles["SubHeader"])
+            ]], colWidths=[doc.width/2.0-15, doc.width/2.0-15])
+            property_table.setStyle(TableStyle([
+                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
+            ]))
+            elements.append(property_table)
+            elements.append(Spacer(1, 10))
         else:
             title = address
             logger.info(f"📊 Creating regular report title: {title}")
             elements.append(Paragraph(title, styles["MainTitle"]))
+            elements.append(Spacer(1, 1))
+            elements.append(HRFlowable(width="100%", thickness=1.2, color="#D8CAB8"))
+            elements.append(Spacer(1, 20))
 
         
-        elements.append(Spacer(1, 1))
-        elements.append(HRFlowable(width="100%", thickness=1.2, color="#D8CAB8"))
-        elements.append(Spacer(1, 20))
+       
 
         # Cache chart tables for side-by-side rendering
         chart_tables = {}  # Cache for deferred rendering

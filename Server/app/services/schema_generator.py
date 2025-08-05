@@ -215,7 +215,7 @@ def get_individual_section_schema(section_name: str, user_preferences: Dict[str,
         from app.models.duel_report_models import (
             ComparisonSummary, NeighborhoodOverview, Safety, CultureAndEvents, SocialCharacter,
             Commute, FamilyFriendly, NightlifeAndDating, Development, EnvironmentUtilities,
-            FinancialInformation, Schools, ExtraTips
+            FinancialInformation, Schools, ExtraTips, ComparisonField
         )
         
         section_model_map = {
@@ -261,12 +261,12 @@ def get_individual_section_schema(section_name: str, user_preferences: Dict[str,
         
         # Sanitize recursively
         schema = sanitize_schema_for_llm(schema)
-        
+
         # Ensure every property has a "type"
         for prop_name, prop_schema in schema.get("properties", {}).items():
             if isinstance(prop_schema, dict) and "type" not in prop_schema:
-                prop_schema["type"] = "string"
-                logger.info(f"✅ Added missing type 'string' to property {prop_name}")
+                prop_schema["type"] = "object"  # Use string instead of class reference
+                logger.info(f"✅ Added missing type 'ComparisonField' to property {prop_name}")
         
         # Trim required list to only valid props
         schema["required"] = [r for r in schema.get("required", []) if r in schema["properties"]]

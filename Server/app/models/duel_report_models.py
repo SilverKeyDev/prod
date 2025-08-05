@@ -14,11 +14,15 @@ class ComparisonField(BaseModel):
     winner: str = Field(..., description="Winner: 'location_a', 'location_b', or 'same', based solely on the specific comparison dimension this field represents (e.g., safety, lifestyle, cost). Do NOT base on overall factors.")
     reason: str = Field(..., description="Human-readable justification for why this location wins BASED ON THIS DIMENSION")
     
-    # New fields for deeper traceability
-    user_preference_tags: Optional[List[str]] = Field(
-        default=None,
-        description="Which user preferences this comparison directly maps to BASED ON THIS DIMENSION"
-    )
+    class Config:
+        schema_extra = {
+            "example": {
+                "location_a": "Property A's facts for this dimension",
+                "location_b": "Property B's facts for this dimension",
+                "winner": "location_a",
+                "reason": "Specific reason why this location wins for this dimension"
+            }
+        }
 
 
 class ComparisonSummary(BaseModel):

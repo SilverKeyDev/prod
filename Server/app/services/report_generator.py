@@ -951,8 +951,6 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                                 "CITATIONS:\n"
                                 "Do not include citations in the response\n"
                             
-                                "CRITICAL: Do NOT explain your reasoning. Do NOT include any "<think>" or descriptive commentary. Return ONLY a valid JSON object, starting with '{' and ending with '}'.\n"
-
                                 "CRITICAL: Always provide a concrete answer, estimate, or educated guess.\n"
                             )
                         },
@@ -1262,7 +1260,8 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
         
         # Inject real population total data from Census API after things_to_watch_out_for
         logger.info("🔄 Checking for population total injection...")
-        combined_report = inject_real_population_total(combined_report, address)
+        if comparison_address == None or comparison_address == "":
+            combined_report = inject_real_population_total(combined_report, address)
         
         # Log metadata for debugging (but don't include in return value)
         metadata = {

@@ -86,12 +86,6 @@ def _extract_summary(data: Dict) -> Dict[str, str]:
         "Restaurant 1 Name": "local_amenities.restaurants.0.name",
         "Restaurant 1 Vibe": "local_amenities.restaurants.0.vibe",
         "Restaurant 1 What to Try": "local_amenities.restaurants.0.what_to_try",
-        "Restaurant 2 Name": "local_amenities.restaurants.1.name",
-        "Restaurant 2 Vibe": "local_amenities.restaurants.1.vibe",
-        "Restaurant 2 What to Try": "local_amenities.restaurants.1.what_to_try",
-        "Restaurant 3 Name": "local_amenities.restaurants.2.name",
-        "Restaurant 3 Vibe": "local_amenities.restaurants.2.vibe",
-        "Restaurant 3 What to Try": "local_amenities.restaurants.2.what_to_try",
         
         # Local Amenities - Activities
         "Activity 1 Name": "local_amenities.activities.0.name",
