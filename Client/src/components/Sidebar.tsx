@@ -9,13 +9,19 @@ import {
   MessageCircle,
   Users,
   Search,
+  ChevronDown,
+  ChevronRight,
+  Briefcase,
+  Handshake,
+  Key,
+  Settings,
 } from "lucide-react";
 import { User } from "../types/index.ts";
 import { useEffect, useState } from "react";
 import ConfirmationDialog from "./ConfirmationDialog";
 import { apiRequest } from "../lib/api";
 import { useData } from "../contexts/DataContext";
-
+import KeyLogo from "./KeyLogo";
 interface SidebarProps {
   user?: User; // make user optional to prevent crash
   onLogout: () => void;
@@ -24,43 +30,98 @@ interface SidebarProps {
   isMobile?: boolean;
 }
 
-// Base navigation items that are common to all users
-const baseNavigation = [
-  { name: "Generate Report", href: "/dashboard", icon: Home },
-  { name: "Past Reports", href: "/dashboard/reports", icon: FileText },
-  {
-    name: "Compare Reports",
-    href: "/dashboard/compare-reports",
-    icon: BarChart2,
+// Define types for navigation items and structure
+interface NavItem {
+  name: string;
+  href: string;
+  icon: React.FC<{ className?: string }>;
+}
+
+interface NavCategory {
+  name: string;
+  icon: React.FC<{ className?: string }>;
+  items: NavItem[];
+}
+
+type NavigationStructure = Record<string, NavCategory>;
+
+// Navigation structure with categories and dropdown items
+const navigationStructure: NavigationStructure = {
+  onboard: {
+    name: "Onboard",
+    icon: Settings,
+    items: [
+      { name: "Personalization", href: "/dashboard/personalization", icon: UserIcon },
+      { name: "Subscription", href: "/dashboard/subscription", icon: CreditCard },
+    ],
   },
-  {
-    name: "Property Search",
-    href: "/dashboard/search",
+  search: {
+    name: "Search",
     icon: Search,
+    items: [
+      { name: "Property Search", href: "/dashboard/search", icon: Search },
+    ],
   },
-  {
-    name: "AI Assistant",
-    href: "/dashboard/ai-assistant",
-    icon: MessageCircle,
+  decide: {
+    name: "Decide",
+    icon: Briefcase,
+    items: [
+      { name: "Generate Report", href: "/dashboard", icon: Home },
+      { name: "Past Reports", href: "/dashboard/reports", icon: FileText },
+      { name: "Compare Reports", href: "/dashboard/compare-reports", icon: BarChart2 },
+      { name: "AI Assistant", href: "/dashboard/ai-assistant", icon: MessageCircle },
+    ],
   },
-  {
-    name: "Personalization",
-    href: "/dashboard/personalization",
-    icon: UserIcon,
+  negotiate: {
+    name: "Negotiate",
+    icon: Handshake,
+    items: [],
   },
-  { name: "Subscription", href: "/dashboard/subscription", icon: CreditCard },
-];
+  close: {
+    name: "Close",
+    icon: Key,
+    items: [],
+  },
+};
 
 // Function to generate navigation array based on user type
-const getNavigation = (isAgent?: boolean) => {
-  const navigation = [...baseNavigation];
+const getNavigation = (isAgent?: boolean): NavigationStructure => {
+  // Create a proper copy of the navigation structure
+  const navigation: NavigationStructure = {
+    onboard: {
+      name: navigationStructure.onboard.name,
+      icon: navigationStructure.onboard.icon,
+      items: [...navigationStructure.onboard.items]
+    },
+    search: {
+      name: navigationStructure.search.name,
+      icon: navigationStructure.search.icon,
+      items: [...navigationStructure.search.items]
+    },
+    decide: {
+      name: navigationStructure.decide.name,
+      icon: navigationStructure.decide.icon,
+      items: [...navigationStructure.decide.items]
+    },
+    negotiate: {
+      name: navigationStructure.negotiate.name,
+      icon: navigationStructure.negotiate.icon,
+      items: [...navigationStructure.negotiate.items]
+    },
+    close: {
+      name: navigationStructure.close.name,
+      icon: navigationStructure.close.icon,
+      items: [...navigationStructure.close.items]
+    }
+  };
   
+  // Add user-specific items
   if (isAgent) {
     // For agents, show "Client Information"
-    navigation.push({ name: "Client Information", href: "/dashboard/client-information", icon: Users });
+    navigation.onboard.items.push({ name: "Client Information", href: "/dashboard/client-information", icon: Users });
   } else {
     // For regular users, show "Agent Connection"
-    navigation.push({ name: "Agent Connection", href: "/dashboard/agent-connection", icon: Users });
+    navigation.onboard.items.push({ name: "Agent Connection", href: "/dashboard/agent-connection", icon: Users });
   }
   
   return navigation;
@@ -75,6 +136,13 @@ export default function Sidebar({
   const [user, setUser] = useState<User | null>(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({
+    onboard: false,
+    search: false,
+    decide: true, // Open by default since it contains the main pages
+    negotiate: false,
+    close: false,
+  });
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -130,6 +198,17 @@ export default function Sidebar({
 
   const isActive = (href: string) =>
     location.pathname === href || location.pathname.endsWith(href);
+    
+  const toggleCategory = (category: string) => {
+    setOpenCategories(prev => ({
+      ...prev,
+      [category]: !prev[category]
+    }));
+  };
+  
+  const isCategoryActive = (items: NavItem[]) => {
+    return items.some(item => isActive(item.href));
+  };
 
   return (
     <>
@@ -159,12 +238,16 @@ export default function Sidebar({
             maxHeight: isMobile ? "100vh" : "100%",
           }}
         >
-          {/* Toggle Button */}
+          {/* Header with Logo and Toggle Button */}
           <div className="flex-shrink-0 p-2 border-b border-brown-light flex justify-between items-center">
-            {/* Logo/Title for mobile */}
-            {isMobile && expanded && (
-              <span className="text-white font-bold text-lg">SilverKey</span>
-            )}
+            {/* Logo */}
+            <div className="text-white flex items-center" style={{ filter: 'brightness(0) invert(1)' }}>
+              {expanded && (
+                <KeyLogo size="sm"/>
+              )}
+            </div>
+            
+            {/* Toggle Button */}
             <button
               onClick={onToggleExpanded}
               className="p-2 text-white hover:text-white ml-auto touch-friendly"
@@ -232,25 +315,58 @@ export default function Sidebar({
           {/* Navigation - Scrollable middle section */}
           <div className="flex-1 overflow-y-auto min-h-0">
             <nav className="mt-4 pb-4">
-              {getNavigation(userProfile?.is_agent).map((item) => (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={`flex items-center px-4 py-3 transition-colors font-medium text-white touch-friendly ${
-                    isActive(item.href)
-                      ? "bg-brown-light text-white font-semibold"
-                      : "text-white/50 hover:bg-brown-light/50 hover:text-white active:bg-brown-light/30"
-                  }`}
-                >
-                  <item.icon
-                    className={`${
-                      isActive(item.href) ? "w-8 h-8" : "w-6 h-6"
-                    } transition-all duration-200 ${expanded ? "mr-4" : ""}`}
-                  />
-                  <span className={expanded ? "block" : "hidden"}>
-                    {item.name}
-                  </span>
-                </Link>
+              {Object.entries(getNavigation(userProfile?.is_agent)).map(([categoryKey, category]: [string, NavCategory]) => (
+                <div key={categoryKey}>
+                  {/* Category Header */}
+                  <button
+                    onClick={() => toggleCategory(categoryKey)}
+                    className={`w-full flex items-center justify-between px-4 py-3 transition-colors font-medium text-white touch-friendly ${
+                      isCategoryActive(category.items) 
+                        ? "bg-brown-light/70 text-white font-semibold" 
+                        : "text-white/70 hover:bg-brown-light/30 hover:text-white active:bg-brown-light/20"
+                    }`}
+                  >
+                    <div className="flex items-center">
+                      <category.icon 
+                        className={`w-6 h-6 transition-all duration-200 ${expanded ? "mr-4" : ""}`} 
+                      />
+                      <span className={expanded ? "block" : "hidden"}>
+                        {category.name}
+                      </span>
+                    </div>
+                    {expanded && (
+                      openCategories[categoryKey] ? 
+                        <ChevronDown className="w-5 h-5" /> : 
+                        <ChevronRight className="w-5 h-5" />
+                    )}
+                  </button>
+                  
+                  {/* Category Items */}
+                  {openCategories[categoryKey] && (
+                    <div className={`${expanded ? "ml-4" : ""}`}>
+                      {category.items.map((item) => (
+                        <Link
+                          key={item.name}
+                          to={item.href}
+                          className={`flex items-center px-4 py-2 transition-colors font-medium text-white touch-friendly ${
+                            isActive(item.href)
+                              ? "bg-brown-light text-white font-semibold"
+                              : "text-white/50 hover:bg-brown-light/50 hover:text-white active:bg-brown-light/30"
+                          }`}
+                        >
+                          <item.icon
+                            className={`${
+                              isActive(item.href) ? "w-6 h-6" : "w-5 h-5"
+                            } transition-all duration-200 ${expanded ? "mr-3" : ""}`}
+                          />
+                          <span className={expanded ? "block text-sm" : "hidden"}>
+                            {item.name}
+                          </span>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
               ))}
             </nav>
           </div>
