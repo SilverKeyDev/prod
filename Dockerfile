@@ -27,7 +27,7 @@ RUN test -d dist/assets && [ "$(ls -A dist/assets)" ] || (echo "❌ dist/assets 
 # ----------------------------
 # Stage 2: Build Flask backend
 # ----------------------------
-FROM python:3.11-slim AS backend
+FROM python:3.11 AS backend
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
@@ -44,7 +44,8 @@ RUN apt-get update && apt-get install -y \
 
 # install Python dependencies
 COPY Server/requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --upgrade pip setuptools wheel
+RUN pip install --no-cache-dir --prefer-binary -r requirements.txt
 
 # copy backend code
 COPY Server/ .

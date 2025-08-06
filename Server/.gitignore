@@ -196,3 +196,11 @@ cython_debug/
 
 /static/reports/*
 .env
+
+
+/tests
+tests/
+tests/*
+
+migrations/*
+migrations/*/*

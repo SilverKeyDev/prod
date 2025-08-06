@@ -71,6 +71,8 @@ jobs:
 
             echo "🧹 Pruning old Docker images..."
             sudo docker system prune -af || true
+            sudo docker system prune -af --volumes
+            sudo rm -rf /var/lib/docker/tmp/*
 
             if ! aws --version | grep -q aws-cli; then
               echo "⬇️ Installing AWS CLI..."
