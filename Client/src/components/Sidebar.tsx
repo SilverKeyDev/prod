@@ -21,6 +21,7 @@ import {
   Building2,
   KeyRound,
   BadgeCheck,
+  Bookmark,
   ClipboardList
 } from "lucide-react";
 import { User } from "../types/index.ts";
@@ -72,7 +73,10 @@ const navigationStructure: NavigationStructure = {
   search: {
     name: "Search",
     icon: Search,
-    items: [],
+    items: [
+      { name: "Search", href: "/search", icon: Search },
+      { name: "Saved Homes", href: "/saved", icon: Bookmark },
+    ],
   },
   decide: {
     name: "Decide",
@@ -298,9 +302,9 @@ export default function Sidebar({
               {Object.entries(getNavigation(userProfile?.is_agent)).map(([categoryKey, category]: [string, NavCategory]) => (
                 <div key={categoryKey}>
                   {/* Render certain categories as direct links (search, dashboard) */}
-                  {categoryKey === 'search' || categoryKey === 'dashboard' ? (
+                  {categoryKey === 'dashboard' ? (
                     <Link
-                      to={categoryKey === 'search' ? "/dashboard/search" : (category.items[0]?.href || "/dashboard") }
+                      to={category.items[0]?.href || "/dashboard"}
                       className={`w-full flex items-center px-4 py-3 transition-colors font-medium text-white touch-friendly ${
                         isActive('/dashboard/search') 
                           ? "bg-brown-light/70 text-white font-semibold" 

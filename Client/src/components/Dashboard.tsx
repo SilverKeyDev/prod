@@ -19,6 +19,7 @@ import ClosingMovingIn from "../pages/ClosingMovingIn";
 import UserDashboardPage from "../pages/UserDashboard.tsx";
 import { User } from "../types/index.ts";
 import GetPreApproved from "../pages/GetPreApproved";
+import SavedHomes from "../pages/SavedHomes";
 
 interface DashboardProps {
   user: User;
@@ -84,6 +85,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
             <Route path="closing-moving-in" element={<ClosingMovingIn />} />
             <Route path="/" element={<UserDashboardPage />} />
             <Route path="get-preapproved" element={<GetPreApproved />} />
+            <Route path="saved" element={<SavedHomes />} />
           </Routes>
         </div>
       </main>
