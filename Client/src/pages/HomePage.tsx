@@ -108,7 +108,7 @@ export default function HomePage() {
   }, [address, scriptsReady, hasSelected]);
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-white flex flex-col hide-scrollbar">
       <div className="block sm:hidden">
         <RippleBackgroundMobile />
       </div>
@@ -117,7 +117,7 @@ export default function HomePage() {
       </div>
       {/* Header */}
       <header className="w-full flex justify-between items-center p-4 border-b border-gray-200 bg-white relative z-10 shadow-lg">
-        <KeyLogo size="sm" />
+        <KeyLogo size="xs" />
         <div className="flex space-x-2 sm:space-x-4 text-sm font-medium">
           <Link to="/login" className="hover:underline px-2 py-1">
             Login
@@ -142,7 +142,7 @@ export default function HomePage() {
               Discover a New Way to Buy
             </h2>
             <p className="text-gray-600 mb-6 sm:mb-8 text-base sm:text-lg">
-              Find the perfect home for you, based on your preferences with SilverKey
+              Onboard, Search, Decide, Negotiate, Close
             </p>
 
             {/* Search */}
@@ -196,31 +196,37 @@ export default function HomePage() {
                 onClick={() => setShowAuthModal(true)}
                 className="bg-olive text-white rounded-lg py-3 px-6 sm:px-8 font-semibold hover:bg-olive-light transition text-sm sm:text-base w-full sm:w-auto"
               >
-                Generate Report
+                Start Now
               </button>
             </div>
           </div>
         </div>
 
         {/* Feature Cards */}
-        <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-6 mt-20 max-w-5xl">
+        <div className="relative z-12 grid grid-cols-1 md:grid-cols-4 gap-6 mt-20 max-w-6xl">
           {[
             {
               title: "Find Properties",
               description:
-                "Let us do the heavy lifting for you, with AI analysis of any address tailored to fit your needs.",
+                "Select your preferences and let our AI find the best homes for you",
               icon: <Building2 className="h-8 w-8 text-gray-500" />,
             },
             {
-              title: "Connect With Agents",
+              title: "Decide on a Home",
               description:
-                "Connect with your agent, and allow them to grant you the easiest home buying process you'll ever have.",
+                "Input the facts of homes into spreadsheets or reports and get detailed analysis of the neighborhood.",
               icon: <BarChart2 className="h-8 w-8 text-gray-500" />,
             },
             {
-              title: "Make Decisions",
+              title: "Negotiate",
               description:
-                "Use our insights, detailed reports, comaprison tables, and chatbot to make the best choice possible.",
+                "Analyze the market and home to draft a competitive offer and automate the associated paperwork.",
+              icon: <Lightbulb className="h-8 w-8 text-gray-500" />,
+            },
+            {
+              title: "Buy the Property",
+              description:
+                "Use our timelines and paperwork to find and submit the appropriate paperwork, disclosures, etc, without paying legal fees.",
               icon: <Lightbulb className="h-8 w-8 text-gray-500" />,
             },
           ].map((f, i) => (
@@ -238,7 +244,7 @@ export default function HomePage() {
         </div>
         
         {/* Footer Links */}
-        <div className="relative z-10 mt-16 flex flex-wrap justify-center items-center gap-4 sm:gap-8 text-sm text-center">
+        <div className="relative mt-10 flex flex-wrap justify-center items-center gap-4 sm:gap-8 text-sm text-center">
           <Link to="/privacy" className="bg-white text-black px-4 py-2 rounded-lg shadow hover:shadow-md transition-colors duration-200">
             Privacy Policy
           </Link>
