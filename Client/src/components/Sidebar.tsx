@@ -1,4 +1,4 @@
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
   FileText,
   BarChart2,
@@ -13,8 +13,15 @@ import {
   CreditCard,
   MessageCircle,
   Users,
+  Brain,
   Handshake,
-  FileEdit,
+  Home,
+  FilePlus,
+  Scale,
+  ShieldCheck,
+  Building2,
+  KeyRound,
+  BadgeCheck,
 } from "lucide-react";
 import { User } from "../types/index.ts";
 import { useState } from "react";
@@ -47,12 +54,19 @@ type NavigationStructure = Record<string, NavCategory>;
 
 // Navigation structure with categories and dropdown items
 const navigationStructure: NavigationStructure = {
+  dashboard: {
+    name: "Dashboard",
+    icon: Home,
+    items: [      { name: "User Dashboard", href: "/dashboard/user-dashboard", icon: UserIcon }
+    ],
+  },
   onboard: {
     name: "Onboard",
     icon: Settings,
     items: [
       { name: "Personalization", href: "/dashboard/personalization", icon: UserIcon },
       { name: "Subscription", href: "/dashboard/subscription", icon: CreditCard },
+      { name: "Get PreApproved", href: "/dashboard/get-preapproved", icon: BadgeCheck },
     ],
   },
   search: {
@@ -64,7 +78,7 @@ const navigationStructure: NavigationStructure = {
     name: "Decide",
     icon: Crosshair,
     items: [
-      { name: "Generate Report", href: "/dashboard", icon: FileEdit },
+      { name: "Generate Report", href: "/dashboard", icon: FilePlus },
       { name: "Past Reports", href: "/dashboard/reports", icon: FileText },
       { name: "Compare Reports", href: "/dashboard/compare-reports", icon: BarChart2 },
       { name: "AI Assistant", href: "/dashboard/ai-assistant", icon: MessageCircle },
@@ -73,12 +87,20 @@ const navigationStructure: NavigationStructure = {
   negotiate: {
     name: "Negotiate",
     icon: Handshake,
-    items: [],
+    items: [
+      { name: "Negotiation Strategy", href: "/dashboard/negotiation-strategy", icon: Brain },
+      { name: "Draft Offer", href: "/dashboard/draft-offer", icon: FileText },
+    ],
   },
   close: {
     name: "Close",
     icon: Key,
-    items: [],
+    items: [
+      { name: "Escrow & Legal", href: "/dashboard/escrow-legal-logistics", icon: Scale }, // represents legal/balance
+      { name: "Inspections & Due Diligence", href: "/dashboard/inspections-due-diligence", icon: ShieldCheck }, // safety/verification
+      { name: "Financing & Insurance", href: "/dashboard/financing-insurance", icon: Building2 }, // financial institution
+      { name: "Closing & Move-In", href: "/dashboard/closing-moving-in", icon: KeyRound }, // handing over the key
+    ],
   },
 };
 
@@ -86,6 +108,11 @@ const navigationStructure: NavigationStructure = {
 const getNavigation = (isAgent?: boolean): NavigationStructure => {
   // Create a proper copy of the navigation structure
   const navigation: NavigationStructure = {
+    dashboard: {
+      name: navigationStructure.dashboard.name,
+      icon: navigationStructure.dashboard.icon,
+      items: [...navigationStructure.dashboard.items]
+    },
     onboard: {
       name: navigationStructure.onboard.name,
       icon: navigationStructure.onboard.icon,
@@ -234,11 +261,6 @@ export default function Sidebar({
                         <p className="text-xs text-white/80 line-clamp-1">
                           {userProfile?.email ?? "No email"}
                         </p>
-                        {userProfile?.agency_name && (
-                          <p className="text-xs text-white/60 line-clamp-1">
-                            {userProfile.agency_name}
-                          </p>
-                        )}
                       </div>
                     </div>
                   )}
@@ -275,10 +297,10 @@ export default function Sidebar({
             <nav className="mt-4 pb-4">
               {Object.entries(getNavigation(userProfile?.is_agent)).map(([categoryKey, category]: [string, NavCategory]) => (
                 <div key={categoryKey}>
-                  {/* If it's the search category with no items, make it a direct link */}
-                  {categoryKey === 'search' ? (
+                  {/* Render certain categories as direct links (search, dashboard) */}
+                  {categoryKey === 'search' || categoryKey === 'dashboard' ? (
                     <Link
-                      to="/dashboard/search"
+                      to={categoryKey === 'search' ? "/dashboard/search" : (category.items[0]?.href || "/dashboard") }
                       className={`w-full flex items-center px-4 py-3 transition-colors font-medium text-white touch-friendly ${
                         isActive('/dashboard/search') 
                           ? "bg-brown-light/70 text-white font-semibold" 

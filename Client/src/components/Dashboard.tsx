@@ -10,7 +10,15 @@ import Subscription from "../pages/Subscription.tsx";
 import AIAssistant from "../pages/AIAssistant.tsx";
 import ClientIntelPage from "../pages/ClientIntelPage.tsx";
 import AgentConnection from "../pages/AgentConnection.tsx";
+import OfferDraftPage from "../pages/OfferDraftPage.tsx";
+import NegotiationStrategy from "../pages/NegotiationStrategy.tsx";
+import EscrowLegalLogistics from "../pages/EscrowLegalLogistics";
+import InspectionsDueDiligence from "../pages/InspectionsDueDiligence";
+import FinancingInsurance from "../pages/FinancingInsurance";
+import ClosingMovingIn from "../pages/ClosingMovingIn";
+import UserDashboardPage from "../pages/UserDashboard.tsx";
 import { User } from "../types/index.ts";
+import GetPreApproved from "../pages/GetPreApproved";
 
 interface DashboardProps {
   user: User;
@@ -68,6 +76,14 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
             <Route path="subscription" element={<Subscription />} />
             <Route path="client-information" element={<ClientIntelPage />} />
             <Route path="agent-connection" element={<AgentConnection />} />
+            <Route path="draft-offer" element={<OfferDraftPage />} />
+            <Route path="negotiation-strategy" element={<NegotiationStrategy />} />
+            <Route path="escrow-legal-logistics" element={<EscrowLegalLogistics />} />
+            <Route path="inspections-due-diligence" element={<InspectionsDueDiligence />} />
+            <Route path="financing-insurance" element={<FinancingInsurance />} />
+            <Route path="closing-moving-in" element={<ClosingMovingIn />} />
+            <Route path="user-dashboard" element={<UserDashboardPage />} />
+            <Route path="get-preapproved" element={<GetPreApproved />} />
           </Routes>
         </div>
       </main>
