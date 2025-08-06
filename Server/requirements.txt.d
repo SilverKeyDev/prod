@@ -14,6 +14,7 @@ flask_jwt_extended==4.5.2
 numpy==1.26.4
 pandas==1.5.3
 matplotlib==3.7.2
+seaborn==0.13.2
 scikit-learn==1.4.2
 scipy==1.13.1
 xgboost==2.0.3
@@ -27,6 +28,10 @@ tensorflow==2.18.0
 jax==0.4.35
 jaxlib==0.4.35
 chex==0.1.87
+
+# --- Plotting & Utils ---
+plotly==5.22.0
+tqdm==4.66.4
 
 # --- PDF, API, and Web ---
 reportlab==4.0.4
@@ -51,3 +56,15 @@ json5==0.9.14
 # --- Background Tasks ---
 celery==5.3.4
 redis==5.0.1
+
+# --- Jupyter & Testing ---
+jupyterlab==4.2.1
+jupyter==1.0.0
+ipywidgets==8.1.2
+jupyter-client==7.4.9
+pytest==8.3.3
+pytest-cov==5.0.0
+
+# --- Monitoring ---
+psutil==5.9.8
+memory-profiler==0.61.0

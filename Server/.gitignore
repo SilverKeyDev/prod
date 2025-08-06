@@ -198,9 +198,18 @@ cython_debug/
 .env
 
 
-/tests
+# Test files and directories
 tests/
-tests/*
+*/tests/
+**/*test*.py
+**/*_test.py
+test_*.py
+*_test.py
+pytest.ini
+.pytest_cache/
 
-migrations/*
-migrations/*/*
+# Database migrations
+migrations/
+*/migrations/
+alembic/versions/
+**/*migration*.py

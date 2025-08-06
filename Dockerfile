@@ -1,7 +1,7 @@
 # ----------------------------
 # Stage 1: Build Vite frontend
 # ----------------------------
-FROM node:22 AS frontend
+FROM node:22-slim AS frontend
 
 WORKDIR /app/client
 
@@ -27,7 +27,7 @@ RUN test -d dist/assets && [ "$(ls -A dist/assets)" ] || (echo "❌ dist/assets 
 # ----------------------------
 # Stage 2: Build Flask backend
 # ----------------------------
-FROM python:3.11 AS backend
+FROM python:3.11-slim AS backend
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
