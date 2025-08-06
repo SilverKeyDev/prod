@@ -1,22 +1,16 @@
 from celery import Celery
-from app import create_app
 from celery.signals import worker_process_init, worker_process_shutdown
 import socket
+import os
 
-# Initialize Flask app
-flask_app = create_app()
+# Create Celery instance with basic configuration
+# Flask app will be initialized lazily to avoid circular imports
+celery = Celery('silverkey')
 
-# Manually extract and map CELERY_* config to lowercase
-celery = Celery(
-    flask_app.import_name,
-    broker=flask_app.config["CELERY_BROKER_URL"],
-    backend=flask_app.config["CELERY_RESULT_BACKEND"],
-)
-
-# Convert necessary config keys to lowercase expected by Celery
+# Configure Celery with environment variables directly
 celery.conf.update({
-    "broker_url": flask_app.config["CELERY_BROKER_URL"],
-    "result_backend": flask_app.config["CELERY_RESULT_BACKEND"],
+    "broker_url": os.getenv('CELERY_BROKER_URL', 'redis://localhost:6379/0'),
+    "result_backend": os.getenv('CELERY_RESULT_BACKEND', 'redis://localhost:6379/0'),
     "task_acks_late": True,
     "worker_prefetch_multiplier": 1,
     "task_reject_on_worker_lost": True,
@@ -28,10 +22,13 @@ celery.conf.update({
 # Context-aware Celery task base with robust database handling
 class ContextTask(celery.Task):
     def __call__(self, *args, **kwargs):
-        from app import db
+        # Lazy import to avoid circular dependency
+        from app import create_app, db
         from sqlalchemy.exc import OperationalError, DisconnectionError
         import time
         
+        # Create Flask app context lazily
+        flask_app = create_app()
         with flask_app.app_context():
             max_retries = 3
             retry_delay = 1  # Start with 1 second delay
