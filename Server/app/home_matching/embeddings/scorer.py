@@ -19,6 +19,32 @@ class EmbeddingScorer:
         self.user_encoder = UserEncoder(embedding_provider, model)
         self.home_encoder = HomeEncoder(embedding_provider, model)
         self.similarity_calculator = SimilarityCalculator(default_method="cosine")
+        
+        # Validate dimension consistency
+        self._validate_dimensions()
+    
+    def _validate_dimensions(self):
+        """Validate that user and home encoders produce compatible embeddings."""
+        try:
+            from .feature_config import FeatureConfig
+            dimensions = FeatureConfig.get_embedding_dimension()
+            
+            user_dim = dimensions['user_total_dimension']
+            home_dim = dimensions['home_total_dimension']
+            
+            logger.info(f"Embedding dimensions - User: {user_dim}, Home: {home_dim}")
+            logger.info(f"Text dimension: {dimensions['text_dimension']}")
+            logger.info(f"User structured features: {dimensions['user_structured_dimension']}")
+            logger.info(f"Home structured features: {dimensions['home_structured_dimension']}")
+            
+            if user_dim != home_dim:
+                logger.warning(f"Dimension mismatch detected! User: {user_dim}, Home: {home_dim}")
+                logger.warning("This will cause cosine similarity calculation errors.")
+            else:
+                logger.info(f"✅ Dimension consistency validated: {user_dim} dimensions")
+                
+        except Exception as e:
+            logger.error(f"Error validating dimensions: {e}")
     
     def get_user_home_similarity(self, user_data: Dict[str, Any], home_data: Dict[str, Any]) -> float:
         """Calculate similarity score between a user and a home."""
@@ -26,6 +52,11 @@ class EmbeddingScorer:
             # Encode user and home
             user_embedding = self.user_encoder.encode_user(user_data)
             home_embedding = self.home_encoder.encode_home(home_data)
+            
+            # Validate dimensions before similarity calculation
+            if user_embedding.shape != home_embedding.shape:
+                logger.error(f"Dimension mismatch: User embedding {user_embedding.shape} vs Home embedding {home_embedding.shape}")
+                return 0.0
             
             # Calculate similarity
             similarity = self.similarity_calculator.calculate(user_embedding, home_embedding)

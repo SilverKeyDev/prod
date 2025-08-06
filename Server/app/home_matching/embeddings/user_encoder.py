@@ -69,39 +69,9 @@ class UserEncoder:
         return ' '.join(text_parts)
     
     def _extract_structured_features(self, user_data: Dict[str, Any]) -> np.ndarray:
-        """Extract structured numerical features from user data."""
-        preferences = user_data.get('preferences', {})
-        
-        features = []
-        
-        # Budget features (normalized)
-        budget_min = preferences.get('budget_min', 0)
-        budget_max = preferences.get('budget_max', 0)
-        budget_range = budget_max - budget_min if budget_max > budget_min else 0
-        
-        features.extend([
-            budget_min / 1000000,  # Normalize to millions
-            budget_max / 1000000,
-            budget_range / 1000000
-        ])
-        
-        # Size preferences
-        features.extend([
-            preferences.get('preferred_bedrooms', 0) / 10,  # Normalize
-            preferences.get('preferred_bathrooms', 0) / 10,
-            preferences.get('min_sqft', 0) / 10000  # Normalize to 10k sqft
-        ])
-        
-        # Commute preference (if numeric)
-        max_commute = preferences.get('max_commute_minutes', 0)
-        features.append(max_commute / 120)  # Normalize to 2 hours
-        
-        # Binary preferences
-        features.append(1.0 if preferences.get('pet_friendly', False) else 0.0)
-        features.append(1.0 if preferences.get('parking_required', False) else 0.0)
-        features.append(1.0 if preferences.get('outdoor_space_required', False) else 0.0)
-        
-        return np.array(features)
+        """Extract structured numerical features from user data using shared config."""
+        from .feature_config import FeatureConfig
+        return FeatureConfig.extract_user_structured_features(user_data)
     
     def encode_user(self, user_data: Dict[str, Any]) -> np.ndarray:
         """Encode user data into embedding."""
@@ -208,13 +178,10 @@ class UserEncoder:
     def get_embedding_dimension(self) -> int:
         """Get the dimension of the combined embedding."""
         try:
-            model_info = model_loader.get_model_info(self.embedding_provider, self.model)
-            text_dim = model_info.get('dimension', 384)
-            
-            # Add structured features dimension (from _extract_structured_features)
-            structured_dim = 10  # Based on the features we extract
-            
-            return text_dim + structured_dim
+            from .feature_config import FeatureConfig
+            dimensions = FeatureConfig.get_embedding_dimension(self.embedding_provider, self.model)
+            return dimensions['user_total_dimension']
         except Exception as e:
             logger.error(f"Error getting embedding dimension: {e}")
+            return 394  # Fallback dimension
             return 384 + 10  # Default fallback

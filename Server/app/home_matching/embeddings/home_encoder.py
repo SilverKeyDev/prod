@@ -97,48 +97,9 @@ class HomeEncoder:
         return ' '.join(text_parts)
     
     def _extract_structured_features(self, home_data: Dict[str, Any]) -> np.ndarray:
-        """Extract structured numerical features from home data."""
-        features = []
-        
-        # Price features (normalized)
-        price = home_data.get('price', 0)
-        features.append(price / 1000000)  # Normalize to millions
-        
-        # Size features
-        features.extend([
-            home_data.get('bedrooms', 0) / 10,  # Normalize
-            home_data.get('bathrooms', 0) / 10,
-            home_data.get('sqft', 0) / 10000,  # Normalize to 10k sqft
-            home_data.get('lot_size', 0) / 50000  # Normalize to 50k sqft
-        ])
-        
-        # Age and condition
-        year_built = home_data.get('year_built', 2000)
-        current_year = 2024
-        age = max(0, current_year - year_built)
-        features.append(age / 100)  # Normalize to century
-        
-        # Location scores
-        features.extend([
-            home_data.get('walkability_score', 50) / 100,  # Normalize to [0,1]
-            home_data.get('transit_score', 50) / 100,
-            home_data.get('bike_score', 50) / 100
-        ])
-        
-        # Commute time (if available)
-        commute_minutes = home_data.get('commute_minutes', 30)
-        features.append(commute_minutes / 120)  # Normalize to 2 hours
-        
-        # Property characteristics (binary)
-        features.extend([
-            1.0 if home_data.get('has_garage', False) else 0.0,
-            1.0 if home_data.get('has_yard', False) else 0.0,
-            1.0 if home_data.get('has_pool', False) else 0.0,
-            1.0 if home_data.get('pet_friendly', False) else 0.0,
-            1.0 if home_data.get('recently_renovated', False) else 0.0
-        ])
-        
-        return np.array(features)
+        """Extract structured numerical features from home data using shared config."""
+        from .feature_config import FeatureConfig
+        return FeatureConfig.extract_home_structured_features(home_data)
     
     def encode_home(self, home_data: Dict[str, Any]) -> np.ndarray:
         """Encode home data into embedding."""
@@ -228,13 +189,10 @@ class HomeEncoder:
     def get_embedding_dimension(self) -> int:
         """Get the dimension of the combined embedding."""
         try:
-            model_info = model_loader.get_model_info(self.embedding_provider, self.model)
-            text_dim = model_info.get('dimension', 384)
-            
-            # Add structured features dimension (from _extract_structured_features)
-            structured_dim = 14  # Based on the features we extract
-            
-            return text_dim + structured_dim
+            from .feature_config import FeatureConfig
+            dimensions = FeatureConfig.get_embedding_dimension(self.embedding_provider, self.model)
+            return dimensions['home_total_dimension']
         except Exception as e:
             logger.error(f"Error getting embedding dimension: {e}")
+            return 399  # Fallback dimension
             return 384 + 14  # Default fallback
