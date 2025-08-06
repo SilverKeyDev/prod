@@ -6,6 +6,8 @@ from app.models.user_preferences import UserPreferences
 from app import db
 import traceback
 import json
+import time
+from sqlalchemy.exc import OperationalError, DisconnectionError
 
 
 @celery.task(name="tasks.generate_report_async")
@@ -54,11 +56,54 @@ def generate_report_async(address, comparison_address, filename, document_id, us
                     else:
                         current_app.logger.warning(f"⚠️ CELERY TASK: No user preferences found for user_id {user_id}")
 
-                    # Commit everything
-                    db.session.commit()
-                    current_app.logger.info(
-                        f"✅ Successfully updated PDF document status to 'processed' for document_id: {document_id}"
-                    )
+                    # Dispose engine before database operations for better reliability
+                    try:
+                        db.engine.dispose()
+                        current_app.logger.debug("🔄 Disposed database engine before Celery task commit")
+                    except Exception as e:
+                        current_app.logger.warning(f"⚠️ Failed to dispose engine in Celery task: {str(e)}")
+                    
+                    # Commit everything with retry logic
+                    max_retries = 3
+                    retry_delay = 1
+                    
+                    for attempt in range(max_retries):
+                        try:
+                            db.session.commit()
+                            current_app.logger.info(
+                                f"✅ Successfully updated PDF document status to 'processed' for document_id: {document_id}"
+                            )
+                            break  # Success, exit retry loop
+                        except (OperationalError, DisconnectionError) as e:
+                            current_app.logger.warning(f"🔄 Celery DB commit error on attempt {attempt + 1}/{max_retries}: {str(e)}")
+                            
+                            # Clean up session
+                            try:
+                                db.session.rollback()
+                                db.session.remove()
+                            except Exception:
+                                pass
+                            
+                            # Dispose engine to force reconnection
+                            try:
+                                db.engine.dispose()
+                            except Exception:
+                                pass
+                            
+                            if attempt < max_retries - 1:
+                                current_app.logger.debug(f"⏳ Retrying Celery DB commit in {retry_delay} seconds...")
+                                time.sleep(retry_delay)
+                                retry_delay *= 2  # Exponential backoff
+                            else:
+                                current_app.logger.error(f"❌ Max retries exceeded for Celery DB commit")
+                                raise
+                        except Exception as e:
+                            current_app.logger.error(f"❌ Non-connection error in Celery DB commit: {str(e)}")
+                            try:
+                                db.session.rollback()
+                            except Exception:
+                                pass
+                            raise
                     current_app.logger.info(f"🔍 Raw JSON response:\n{json.dumps(result_data, indent=2)}")
 
             except Exception as db_error:
@@ -76,17 +121,65 @@ def generate_report_async(address, comparison_address, filename, document_id, us
         current_app.logger.error(f"❌ Celery task failed: {str(e)}")
         current_app.logger.error(traceback.format_exc())
 
-        # Attempt best-effort recovery update to DB
+        # Attempt best-effort recovery update to DB with reliability improvements
         try:
             with current_app.app_context():
+                # Dispose engine before error recovery operation
+                try:
+                    db.engine.dispose()
+                    current_app.logger.debug("🔄 Disposed database engine before error recovery")
+                except Exception as e:
+                    current_app.logger.warning(f"⚠️ Failed to dispose engine in error recovery: {str(e)}")
+                
                 pdf_doc = db.session.get(PDFDocument, document_id)
                 if pdf_doc:
                     pdf_doc.status = 'error'
-                    db.session.commit()
-                    current_app.logger.info(f"📝 Updated status to 'error' for document_id: {document_id}")
+                    
+                    # Error recovery commit with retry logic
+                    max_retries = 3
+                    retry_delay = 1
+                    
+                    for attempt in range(max_retries):
+                        try:
+                            db.session.commit()
+                            current_app.logger.info(f"📝 Updated status to 'error' for document_id: {document_id}")
+                            break  # Success, exit retry loop
+                        except (OperationalError, DisconnectionError) as e:
+                            current_app.logger.warning(f"🔄 Error recovery DB commit error on attempt {attempt + 1}/{max_retries}: {str(e)}")
+                            
+                            # Clean up session
+                            try:
+                                db.session.rollback()
+                                db.session.remove()
+                            except Exception:
+                                pass
+                            
+                            # Dispose engine to force reconnection
+                            try:
+                                db.engine.dispose()
+                            except Exception:
+                                pass
+                            
+                            if attempt < max_retries - 1:
+                                current_app.logger.debug(f"⏳ Retrying error recovery DB commit in {retry_delay} seconds...")
+                                time.sleep(retry_delay)
+                                retry_delay *= 2  # Exponential backoff
+                            else:
+                                current_app.logger.error(f"❌ Max retries exceeded for error recovery DB commit")
+                                raise
+                        except Exception as e:
+                            current_app.logger.error(f"❌ Non-connection error in error recovery DB commit: {str(e)}")
+                            try:
+                                db.session.rollback()
+                            except Exception:
+                                pass
+                            raise
         except Exception as fail_update_error:
             current_app.logger.error(f"❌ Failed to update error status: {str(fail_update_error)}")
-            db.session.rollback()
+            try:
+                db.session.rollback()
+            except Exception:
+                pass
         finally:
             db.session.remove()
 

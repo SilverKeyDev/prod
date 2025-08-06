@@ -12,7 +12,7 @@ import {
   Check,
   Target,
 } from "lucide-react";
-import { useData } from "../contexts/DataContext";
+
 import Loading from "../components/Loading";
 import MiniLogo from "../components/MiniLogo";
 
@@ -56,12 +56,11 @@ interface ClientIntelResponse {
 }
 
 const ClientIntelPage: React.FC = () => {
-  const { userProfile } = useData();
   const [clientData, setClientData] = useState<ClientData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterBy, setFilterBy] = useState<
+  const [filterBy] = useState<
     "all" | "with_preferences" | "without_preferences"
   >("all");
   const [selectedClient, setSelectedClient] = useState<ClientData | null>(null);
@@ -285,120 +284,7 @@ const ClientIntelPage: React.FC = () => {
     URL.revokeObjectURL(url);
   };
 
-  // Share user preferences CSV
-  const sharePreferencesCSV = async () => {
-    if (!selectedClient || !selectedClient.preferences) {
-      return;
-    }
 
-    const preferences = selectedClient.preferences;
-    const rows: string[][] = [];
-
-    // Add header
-    rows.push(["Section", "Field", "Value"]);
-
-    // Process each section (same logic as export)
-    Object.entries(preferences).forEach(([sectionKey, sectionData]) => {
-      if (
-        sectionData &&
-        typeof sectionData === "object" &&
-        !Array.isArray(sectionData)
-      ) {
-        Object.entries(sectionData).forEach(([fieldKey, fieldValue]) => {
-          if (
-            fieldValue !== null &&
-            fieldValue !== undefined &&
-            fieldValue !== ""
-          ) {
-            const sectionName = sectionKey
-              .replace(/_/g, " ")
-              .replace(/\b\w/g, (l) => l.toUpperCase());
-            const fieldName = fieldKey
-              .replace(/_/g, " ")
-              .replace(/\b\w/g, (l) => l.toUpperCase());
-
-            let value = "";
-            if (Array.isArray(fieldValue)) {
-              value =
-                fieldValue.length > 0 ? fieldValue.join(", ") : "Not specified";
-            } else if (typeof fieldValue === "object") {
-              value = JSON.stringify(fieldValue);
-            } else if (typeof fieldValue === "boolean") {
-              value = fieldValue ? "Yes" : "No";
-            } else {
-              const rangeFields = [
-                "savings_amount_range",
-                "income_range",
-                "preferred_home_price_range",
-              ];
-              if (rangeFields.includes(fieldKey)) {
-                value = String(fieldValue).replace(/_/g, "-");
-              } else {
-                value = String(fieldValue).replace(/_/g, " ");
-              }
-            }
-
-            rows.push([sectionName, fieldName, value]);
-          }
-        });
-      }
-    });
-
-    // Convert to CSV
-    const csvContent = rows
-      .map((row) =>
-        row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",")
-      )
-      .join("\n");
-
-    if (navigator.share) {
-      try {
-        const blob = new Blob([csvContent], {
-          type: "text/csv;charset=utf-8;",
-        });
-        const file = new File(
-          [blob],
-          `${selectedClient.name.replace(/\s+/g, "_")}_preferences.csv`,
-          {
-            type: "text/csv",
-          }
-        );
-        await navigator.share({
-          title: `${selectedClient.name} - User Preferences`,
-          text: `User preferences for ${selectedClient.name}`,
-          files: [file],
-        });
-      } catch (error) {
-        if ((error as Error).name !== "AbortError") {
-          console.error("Error sharing CSV:", error);
-          // Fallback to copy link
-          fallbackSharePreferencesCSV(csvContent);
-        }
-      }
-    } else {
-      // Fallback for browsers without Web Share API
-      fallbackSharePreferencesCSV(csvContent);
-    }
-  };
-
-  const fallbackSharePreferencesCSV = (csvContent: string) => {
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const shareText = `${selectedClient?.name} User Preferences: ${url}`;
-
-    if (navigator.clipboard) {
-      navigator.clipboard
-        .writeText(shareText)
-        .then(() => {
-          console.log("Share link copied to clipboard");
-        })
-        .catch(() => {
-          console.error("Unable to share CSV. Please use Export instead.");
-        });
-    } else {
-      console.error("Sharing not supported. Please use Export instead.");
-    }
-  };
 
   if (loading) {
     return (
@@ -750,22 +636,45 @@ const UserPreferencesTable: React.FC<UserPreferencesTableProps> = ({
   // Debug logging for preferences data
   console.log("[DEBUG] Full preferences object:", preferences);
   console.log("[DEBUG] Preferences keys:", Object.keys(preferences || {}));
-  console.log("[DEBUG] Report customization data:", preferences?.report_customization);
+  console.log("[DEBUG] Report customization data:", preferences?.report_section_priorities);
   const formatValue = (value: any, fieldKey?: string): string => {
     if (value === null || value === undefined) {
       return "Not specified";
     }
+    
+    // Special handling for location arrays (important_locations, preferred_regions)
     if (Array.isArray(value)) {
-      return value.length > 0 ? value.join(", ") : "Not specified";
+      if (value.length === 0) {
+        return "Not specified";
+      }
+      
+      // Check if it's an array of location objects with name and address
+      if (value[0] && typeof value[0] === 'object' && (value[0].name || value[0].address)) {
+        return value.map((item: any) => {
+          if (item.name && item.address) {
+            return `${item.name} (${item.address})`;
+          } else if (item.name) {
+            return item.name;
+          } else if (item.address) {
+            return item.address;
+          }
+          return JSON.stringify(item);
+        }).join(", ");
+      }
+      
+      // Regular array handling
+      return value.join(", ");
     }
+    
     if (typeof value === "object") {
       return JSON.stringify(value, null, 2);
     }
+    
     if (typeof value === "boolean") {
       return value ? "Yes" : "No";
     }
 
-    let stringValue = String(value);
+    const stringValue = String(value);
 
     // Special handling for range fields - use hyphens instead of spaces
     const rangeFields = [
@@ -944,7 +853,7 @@ const UserPreferencesTable: React.FC<UserPreferencesTableProps> = ({
           <table className="min-w-full">
             <tbody className="divide-y divide-gray-100">
               {sortedEntries.map(([key, value]) => {
-                let displayName = formatFieldName(key);
+                const displayName = formatFieldName(key);
 
                 return (
                   <tr key={key} className="hover:bg-gray-50">
@@ -966,27 +875,61 @@ const UserPreferencesTable: React.FC<UserPreferencesTableProps> = ({
     );
   };
 
+  // Organize preferences into logical sections based on the new flat structure
+  const demographicsData = {
+    age: preferences.age,
+    gender: preferences.gender,
+    occupation: preferences.occupation,
+    pets: preferences.pets,
+  };
+
+  const financialData = {
+    gross_income: preferences.gross_income,
+    home_budget: preferences.home_budget,
+    credit_score_range: preferences.credit_score_range,
+    down_payment: preferences.down_payment,
+    ideal_zip_code: preferences.ideal_zip_code,
+  };
+
+  const housingData = {
+    preferred_housing_type: preferences.preferred_housing_type,
+    preferred_bathrooms: preferences.preferred_bathrooms,
+    preferred_bedrooms: preferences.preferred_bedrooms,
+    preferred_lot_size: preferences.preferred_lot_size,
+    preferred_home_age: preferences.preferred_home_age,
+    preferred_architectural_style: preferences.preferred_architectural_style,
+    renovation_preference: preferences.renovation_preference,
+    intended_property_use: preferences.intended_property_use,
+    preferred_home_features: preferences.preferred_home_features,
+    deal_breakers: preferences.deal_breakers,
+  };
+
+  const locationData = {
+    preferred_regions: preferences.preferred_regions,
+    important_locations: preferences.important_locations,
+    commute_tolerance: preferences.commute_tolerance,
+    walkability_importance: preferences.walkability_importance,
+  };
+
+  const communicationData = {
+    communication_frequency: preferences.communication_frequency,
+    information_detail_level: preferences.information_detail_level,
+    has_buyers_agent: preferences.has_buyers_agent,
+    looking_for_buyers_agent: preferences.looking_for_buyers_agent,
+  };
+
+  const reportCustomizationData = {
+    report_section_priorities: preferences.report_section_priorities,
+  };
+
   return (
     <div className="space-y-6">
-      {renderSection("Demographics", preferences.demographics)}
-      {renderSection("Financial Profile", preferences.financial_profile)}
-      {renderSection("Housing Preferences", preferences.housing_preferences)}
-      {renderSection("Location Preferences", preferences.location_preferences)}
-      {renderSection(
-        "Lifestyle Preferences",
-        preferences.lifestyle_preferences
-      )}
-      {renderSection("Behavioral Patterns", preferences.behavioral_patterns)}
-      {renderSection("Values", preferences.values)}
-      {renderSection("Real Estate", preferences.real_estate)}
-      {renderSection("Agent Preferences", preferences.agent_preferences)}
-      {renderSection(
-        "Personalization Insights",
-        preferences.personalization_insights
-      )}
-      {renderSection("Emotional Signals", preferences.emotional_signals)}
-      {renderSection("Report Customization", preferences.report_customization)}
-      {renderSection("Metadata", preferences.metadata)}
+      {renderSection("Demographics", demographicsData)}
+      {renderSection("Financial Profile", financialData)}
+      {renderSection("Housing Preferences", housingData)}
+      {renderSection("Location Preferences", locationData)}
+      {renderSection("Communication Preferences", communicationData)}
+      {renderSection("Report Customization", reportCustomizationData)}
     </div>
   );
 };

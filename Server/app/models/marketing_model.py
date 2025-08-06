@@ -50,28 +50,31 @@ class Marketing(BaseModel):
             
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
-        # Extract user preferences for personalization
-        lifestyle = user_preferences.get("lifestyle_type", "balanced") if user_preferences else "balanced"
+        # Extract user preferences for personalization using actual UserPreferences fields
+        # Using actual available fields: occupation, age, pets, housing_type, etc.
+        occupation = user_preferences.get("occupation", "professional") if user_preferences else "professional"
         age = user_preferences.get("age", 35) if user_preferences else 35
-        children_count = user_preferences.get("children_count", 0) if user_preferences else 0
-        hobbies = user_preferences.get("hobbies_interests", ["outdoor activities"]) if user_preferences else ["outdoor activities"]
+        pets = user_preferences.get("pets", "none") if user_preferences else "none"
+        housing_type = user_preferences.get("housing_type", "house") if user_preferences else "house"
+        home_budget = user_preferences.get("home_budget", 500000) if user_preferences else 500000
         
-        # Customize based on user profile
-        if children_count > 0:
-            culture_focus = "family-oriented community"
-            vibe_words = "Family-friendly, safe"
-            events_focus = "Family festivals, school events"
-            love_reasons = "Schools, playgrounds"
+        # Customize based on actual user profile
+        has_pets = pets and pets.lower() not in ["none", "no pets", ""]
+        if has_pets:
+            culture_focus = "pet-friendly community"
+            vibe_words = "Pet-friendly, welcoming"
+            events_focus = "Dog parks, pet events"
+            love_reasons = "Pet amenities, walking trails"
         elif age < 30:
             culture_focus = "young professional scene"
             vibe_words = "Energetic, trendy"
             events_focus = "Food trucks, live music"
             love_reasons = "Nightlife, co-working spaces"
-        elif "outdoor" in str(hobbies).lower() or "fitness" in str(hobbies).lower():
-            culture_focus = "active outdoor lifestyle"
-            vibe_words = "Active, healthy"
-            events_focus = "Farmers markets, hiking groups"
-            love_reasons = "Trails, fitness classes"
+        elif occupation and "teacher" in occupation.lower():
+            culture_focus = "family-oriented community"
+            vibe_words = "Family-friendly, safe"
+            events_focus = "School events, community programs"
+            love_reasons = "Schools, educational resources"
         else:
             culture_focus = "welcoming community"
             vibe_words = "Relaxed, diverse"
@@ -79,12 +82,12 @@ class Marketing(BaseModel):
             love_reasons = "Friendly neighbors, amenities"
         
         # Generate personalized seasonal trends
-        if children_count > 0:
-            seasonal_focus = "Family activities year-round"
+        if pets and pets.lower() in ["dog", "dogs"]:
+            seasonal_focus = "Pet-friendly activities year-round"
         elif age < 30:
             seasonal_focus = "Seasonal events for young professionals"
-        elif "outdoor" in str(hobbies).lower():
-            seasonal_focus = "Outdoor activities every season"
+        elif housing_type and housing_type.lower() in ["condo", "apartment"]:
+            seasonal_focus = "Urban seasonal activities"
         else:
             seasonal_focus = "Community events throughout the year"
         
@@ -103,18 +106,21 @@ class Marketing(BaseModel):
     @classmethod
     def get_description(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, str]:
         # Extract detailed user preferences for enhanced personalization
-        children_count = user_preferences.get("children_count", 0) if user_preferences else 0
+        # Using actual UserPreferences fields
         age = user_preferences.get("age", 35) if user_preferences else 35
-        hobbies = user_preferences.get("hobbies_interests", ["outdoor activities"]) if user_preferences else ["outdoor activities"]
+        occupation = user_preferences.get("occupation", "professional") if user_preferences else "professional"
+        pets = user_preferences.get("pets", "none") if user_preferences else "none"
+        housing_type = user_preferences.get("housing_type", "house") if user_preferences else "house"
         
-        # Determine focus areas based on user profile
-        if children_count > 0:
+        # Determine focus areas based on actual user profile
+        has_pets = pets and pets.lower() not in ["none", "no pets", ""]
+        if has_pets:
             event_focus = "family activities"
             lifestyle_focus = "family life"
         elif age < 30:
             event_focus = "social events"
             lifestyle_focus = "career and social"
-        elif "outdoor" in str(hobbies).lower() or "fitness" in str(hobbies).lower():
+        elif occupation and ("outdoor" in occupation.lower() or "fitness" in occupation.lower()):
             event_focus = "outdoor activities"
             lifestyle_focus = "health and wellness"
         else:
@@ -153,6 +159,6 @@ class MarketingReport(BaseModel):
         return super().dict(**kwargs)
 
     @classmethod
-    def schema(cls, report_customization: Dict[str, Any] = None, **kwargs):
+    def schema(cls, report_section_priorities: Dict[str, Any] = None, **kwargs):
         """Generate schema for marketing report - simplified since we only have neighborhood_overview"""
         return super().schema(**kwargs)

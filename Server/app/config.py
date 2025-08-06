@@ -34,7 +34,16 @@ class Config:
     
 
     SECRET_KEY = os.getenv('SECRET_KEY', 'dev-key-change-in-production')
-    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', f'sqlite:///{os.path.join(instance_dir, "silverkey.db")}')
+    
+    # Database Configuration with SSL support
+    database_url = os.getenv('DATABASE_URL', f'sqlite:///{os.path.join(instance_dir, "silverkey.db")}')
+    # Add SSL mode for PostgreSQL connections if not already present
+    if database_url.startswith('postgresql://') or database_url.startswith('postgres://'):
+        if '?sslmode=' not in database_url:
+            separator = '&' if '?' in database_url else '?'
+            database_url += f'{separator}sslmode=prefer'
+    
+    SQLALCHEMY_DATABASE_URI = database_url
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # JWT Settings

@@ -169,49 +169,71 @@ def create_or_update_preferences():
         return jsonify({'success': False, 'error': 'Database access error'}), 500
 
     try:
-        # JSON-encoded field list (all Text fields that store JSON in UserPreferences model)
+        # List of all JSON/text fields (array/object fields in model)
         json_fields = {
             'children_ages', 'preferred_home_features', 'preferred_regions',
             'hobbies_interests', 'dining_preferences', 'fitness_activities',
-            'property_features_priority', 'deal_breakers', 'content_feedback_log',
+            'deal_breakers', 'content_feedback_log',
             'agent_interaction_history', 'personality_insights', 'quote_bubbles',
-            'deal_makers', 'concerns_or_fears', 'solo_reports_addresses',
+            'deal_makers', 'solo_reports_addresses',
             'group_reports_addresses', 'chat_sessions', 'data_sources',
-            'report_section_priorities', 'important_locations'
+            'report_section_priorities', 'important_locations',
+            'property_features_priority'
         }
 
         updated_fields = []
         skipped_fields = []
         json_encoded_fields = []
 
+        # Get all model columns to ensure only valid fields are set
+        model_columns = set(c.name for c in UserPreferences.__table__.columns)
+
         logger.info(f"🔍 Processing {len(data)} incoming fields...")
-        
         for field, value in data.items():
             logger.debug(f"🌾 Processing field: '{field}' with type: {type(value).__name__} and value: {value}")
-            
-            if hasattr(preferences, field):
+            model_field = field
+            # Alias handling for frontend/backend mismatches
+            if field == 'preferred_housing_type':
+                model_field = 'housing_type'
+            if field == 'preferred_bathrooms':
+                model_field = 'preferred_bathrooms'
+            if field == 'preferred_bedrooms':
+                model_field = 'preferred_bedrooms'
+            if field == 'preferred_lot_size':
+                model_field = 'preferred_lot_size'
+            if field == 'preferred_home_age':
+                model_field = 'preferred_home_age'
+            if field == 'preferred_architectural_style':
+                model_field = 'preferred_architectural_style'
+            if field == 'renovation_willingness':
+                model_field = 'renovation_preference'
+            if field == 'architectural_style_preference':
+                model_field = 'architectural_style_preference'
+            if field == 'intended_property_use':
+                model_field = 'intended_property_use'
+            if field == 'property_features_priority':
+                model_field = 'property_features_priority'
+            # Add more aliases as needed for new fields
+
+            if model_field in model_columns or model_field in json_fields:
                 try:
-                    # Check if this field should be JSON-encoded
-                    if field in json_fields:
+                    # JSON/text fields
+                    if model_field in json_fields:
                         if isinstance(value, (list, dict)):
                             json_value = json.dumps(value)
-                            setattr(preferences, field, json_value)
-                            json_encoded_fields.append(field)
-                            logger.debug(f"📝 JSON-encoded field '{field}': {json_value[:100]}...")
+                            setattr(preferences, model_field, json_value)
+                            json_encoded_fields.append(model_field)
+                            logger.debug(f"📝 JSON-encoded field '{model_field}': {json_value[:100]}...")
                         else:
-                            # Value is already a string (maybe pre-encoded JSON)
-                            setattr(preferences, field, value)
-                            logger.debug(f"📝 Set field '{field}' as-is (string): {str(value)[:100]}...")
+                            setattr(preferences, model_field, value)
+                            logger.debug(f"📝 Set field '{model_field}' as-is (string): {str(value)[:100]}...")
                     else:
-                        # Regular field, set directly
-                        setattr(preferences, field, value)
-                        logger.debug(f"📝 Set regular field '{field}': {value}")
-                    
-                    updated_fields.append(field)
-                    
+                        setattr(preferences, model_field, value)
+                        logger.debug(f"📝 Set regular field '{model_field}': {value}")
+                    updated_fields.append(model_field)
                 except Exception as field_error:
-                    logger.error(f"🔥 Failed to set field '{field}': {field_error}", exc_info=True)
-                    skipped_fields.append(f"{field} (error: {field_error})")
+                    logger.error(f"🔥 Failed to set field '{model_field}': {field_error}", exc_info=True)
+                    skipped_fields.append(f"{model_field} (error: {field_error})")
             else:
                 logger.warning(f"❓ Field '{field}' not found on UserPreferences model — skipping")
                 skipped_fields.append(f"{field} (not found)")
@@ -228,7 +250,6 @@ def create_or_update_preferences():
 
         # Log what we're about to commit
         logger.debug(f"💾 About to commit preferences for user {user.id}")
-        
         db.session.commit()
         logger.info(f"✅ Database commit succeeded - preferences {'updated' if preferences else 'created'} for user {user.id}")
 
@@ -241,7 +262,7 @@ def create_or_update_preferences():
     except Exception as e:
         db.session.rollback()
         logger.error(f"🔥 Exception during preference save: {str(e)}", exc_info=True)
-        return jsonify({'success': False, 'error': 'Failed to save preferences'}), 500
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 
 @preferences_bp.route('', methods=['GET'])

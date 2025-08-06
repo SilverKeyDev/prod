@@ -84,7 +84,7 @@ interface UserPreferences {
   agent_preferences?: any;
   values?: any;
   emotional_signals?: any;
-  report_customization?: any;
+  report_section_priorities?: any;
   [key: string]: any;
 }
 

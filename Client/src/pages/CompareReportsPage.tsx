@@ -170,8 +170,11 @@ export default function CompareReportsPage() {
     refreshCompareReports();
   }, [refreshCompareReports]);
 
-  // Alias for compatibility with existing code
-  const reports = compareReports;
+  // Filter out reports with "comparison" or "marketing" in their names
+  const reports = compareReports?.filter(report => {
+    const address = report.address?.toLowerCase() || '';
+    return !address.includes('comparison') && !address.includes('marketing');
+  }) || [];
 
   const [selectedReports, setSelectedReports] = useState<Report[]>([]);
   const [isLoading, setIsLoading] = useState(false); // Only for comparison loading
@@ -591,7 +594,7 @@ export default function CompareReportsPage() {
                             style={{
                               display: "-webkit-box",
                               WebkitLineClamp: 2,
-                              WebkitBoxOrient: "vertical" as "vertical",
+                              WebkitBoxOrient: "vertical" as const,
                               wordBreak: "break-word",
                               hyphens: "auto",
                             }}

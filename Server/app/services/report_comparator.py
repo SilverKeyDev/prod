@@ -149,8 +149,6 @@ def _extract_summary(data: Dict) -> Dict[str, str]:
         # Schools (High)
         "High Walking Distance": "schools.schools.high.walking_distance",
         "High Known For": "schools.schools.high.known_for",
-        "High GPA Average": "schools.schools.high.gpa_avg",
-        "High SAT Average": "schools.schools.high.sat_avg",
         "High Graduation Rate": "schools.schools.high.grad_rate",
         "High Top Colleges": "schools.schools.high.top_colleges",
         

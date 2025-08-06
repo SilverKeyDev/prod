@@ -8,10 +8,7 @@ import {
   Building,
   Home,
   MapPin,
-  Heart,
-  Brain,
   MessageSquare,
-  Lightbulb,
   ChevronDown,
   Plus,
   GripVertical,
@@ -38,6 +35,9 @@ import { useData } from "../contexts/DataContext";
 import ImportantLocationsInput from "../components/ImportantLocationsInput";
 import Loading from "../components/Loading";
 import MiniLogo from "../components/MiniLogo";
+import PreferredRegionsInput from "../components/PreferredRegionsInput";
+import PriceRangeSlider from "../components/PriceRangeSlider";
+import { estimateAffordableHomePrice } from "../hooks/getHomePrice";
 
 // Extend window interface for Google Maps
 declare global {
@@ -47,92 +47,55 @@ declare global {
 }
 
 interface OnboardingData {
+  // Demographics
+  pets?: string;
   age?: number;
   gender?: string;
-  marital_status?: string;
-  household_size?: number;
-  children_count?: number;
-  children_ages?: number[];
-  education_level?: string;
   occupation?: string;
-  industry?: string;
-  employment_status?: string;
-  income_range?: string;
-  preferred_home_price_range?: string;
+
+  // Financial
+  gross_income?: number;
+  home_budget?: number;
   credit_score_range?: string;
-  savings_amount_range?: string;
-  investment_experience?: string;
-  risk_tolerance?: string;
-  desired_housing_type?: string;
+  down_payment?: number;
+  ideal_zip_code?: string;
+
+  // Home Buying Process
+  preferred_housing_type?: string;
   preferred_bathrooms?: number;
   preferred_bedrooms?: number;
   preferred_lot_size?: string;
   preferred_home_age?: string;
   preferred_architectural_style?: string;
   preferred_home_features?: string[];
-  preferred_regions?: string[];
-  preferred_climate?: string;
-  urban_rural_preference?: string;
-  commute_tolerance?: number;
-  proximity_to_family?: string;
-  walkability_importance?: string;
-  important_locations?: { name: string; address: string }[];
-  lifestyle_type?: string;
-  hobbies_interests?: string[];
-  dining_preferences?: string[];
-  fitness_activities?: string[];
-  social_preferences?: string;
-  entertainment_preferences?: string;
-  shopping_preferences?: string;
-  outdoor_activity_level?: string;
-  travel_frequency?: string;
-  pet_ownership?: string;
-  health_wellness_priorities?: string;
-  technology_adoption?: string;
-  environmental_consciousness?: string;
-  community_involvement?: string;
-  work_life_balance?: string;
-  future_family_plans?: string;
-  retirement_timeline?: string;
-  relocation_flexibility?: string;
-  decision_making_style?: string;
-  information_sources?: string;
+  renovation_preference?: string;
+  intended_property_use?: string;
+  architectural_style_preference?: string;
   deal_breakers?: string[];
-  must_have_features?: string;
-  renovation_willingness?: string;
-  move_in_timeline?: string;
-  selling_current_home?: string;
-  first_time_buyer?: string;
-  previous_home_experience?: string;
-  property_search_stage?: string;
-  home_buying_experience?: string;
-  financing_preference?: string;
-  communication_preference?: string;
-  preferred_support_channel?: string;
+
+  // Location & Housing
+  preferred_regions?: { name: string; address: string }[];
+  important_locations?: { name: string; address: string }[];
+  commute_tolerance?: number;
+  walkability_importance?: string;
+  
+  // Communication
+  communication_frequency?: string;
   information_detail_level?: string;
-  meeting_preference?: string;
-  meeting_availability?: string;
-  response_time_expectation?: string;
-  agent_experience_preference?: string;
-  quote_bubbles?: string[];
-  deal_makers?: string[];
-  concerns_or_fears?: string[];
-  additional_context?: string;
+  has_buyers_agent?: string; // 'yes' | 'no'
+  looking_for_buyers_agent?: boolean;
+
   // Report Customization
   report_section_priorities?: string[];
 }
 
 const STEPS = [
   { id: "reportcustomization", title: "Report Customization", icon: Building },
-  { id: "behavior", title: "Behavior & Preferences", icon: Brain },
   { id: "demographics", title: "About You", icon: User },
   { id: "financial", title: "Financial Profile", icon: Building },
   { id: "housing", title: "Housing Preferences", icon: Home },
   { id: "location", title: "Location Preferences", icon: MapPin },
-  { id: "lifestyle", title: "Lifestyle", icon: Heart },
-  { id: "realestate", title: "Real Estate Experience", icon: Building },
   { id: "communication", title: "Communication", icon: MessageSquare },
-  { id: "insights", title: "Personal Insights", icon: Lightbulb },
 ];
 
 // Custom dropdown component matching PastReports implementation
@@ -144,6 +107,7 @@ interface CustomDropdownProps {
   isOpen: boolean;
   onToggle: () => void;
   dropdownRef: React.RefObject<HTMLDivElement>;
+  disabled?: boolean;
 }
 
 const CustomDropdown: React.FC<CustomDropdownProps> = ({
@@ -154,14 +118,18 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
   isOpen,
   onToggle,
   dropdownRef,
+  disabled = false,
 }) => {
   const selectedOption = options.find((opt) => opt.value === value);
 
   return (
     <div className="relative" ref={dropdownRef}>
       <button
-        onClick={onToggle}
-        className="mobile-input text-sm flex items-center justify-between cursor-pointer hover:border-brown focus:border-brown focus:ring-brown/20 w-full"
+        onClick={disabled ? undefined : onToggle}
+        className={`mobile-input text-sm flex items-center justify-between w-full ${disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:border-brown focus:border-brown focus:ring-brown/20'}`}
+        disabled={disabled}
+        tabIndex={disabled ? -1 : 0}
+        aria-disabled={disabled}
       >
         <span className="text-left">
           {selectedOption ? selectedOption.label : placeholder}
@@ -173,22 +141,27 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
         />
       </button>
 
-      {isOpen && (
+      {isOpen && !disabled && (
         <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-beige rounded-lg shadow-lg z-50">
           {options.map((option, index) => (
             <button
               key={option.value}
               onClick={() => {
-                onChange(option.value);
-                onToggle();
+                if (!disabled) {
+                  onChange(option.value);
+                  onToggle();
+                }
               }}
-              className={`w-full px-3 py-2 text-left text-sm hover:bg-brown/5 transition-colors duration-150 ${
+              disabled={disabled}
+              tabIndex={disabled ? -1 : 0}
+              aria-disabled={disabled}
+              className={`w-full px-3 py-2 text-left text-sm transition-colors duration-150 ${
                 index === 0 ? "first:rounded-t-lg" : ""
               } ${index === options.length - 1 ? "last:rounded-b-lg" : ""} ${
                 value === option.value
                   ? "bg-brown/10 text-brown font-medium"
                   : "text-black"
-              }`}
+              } ${disabled ? 'opacity-60 cursor-not-allowed' : 'hover:bg-brown/5'}`}
             >
               {option.label}
             </button>
@@ -315,6 +288,8 @@ const SortableReportSection: React.FC<SortableReportSectionProps> = ({
   );
 };
 
+
+
 export default function PersonalizationPage() {
   const { userPreferences, refreshUserPreferences, userProfile } = useData();
   const [formData, setFormData] = useState<OnboardingData>({});
@@ -329,6 +304,104 @@ export default function PersonalizationPage() {
   }>({});
   const [scriptsReady, setScriptsReady] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [homePriceResult, setHomePriceResult] = useState<any>(null);
+  const [homePriceLoading, setHomePriceLoading] = useState(false);
+  const [homePriceError, setHomePriceError] = useState<string | null>(null);
+
+   // Generate explanation text for the home price calculation
+   const generateExplanation = (result: any, data: OnboardingData) => {
+    // Calculate down payment percent for display
+    const downPaymentPercent =
+      result.maxHomePrice > 0
+        ? ((result.downPayment / result.maxHomePrice) * 100).toFixed(1)
+        : "-";
+
+    return `Based on your gross annual income of $${data.gross_income?.toLocaleString()}, credit score range, and a down payment of $${data.down_payment?.toLocaleString()} (${downPaymentPercent}% of home price), we estimate you can afford a home up to $${result.maxHomePrice.toLocaleString()}.
+
+This estimate is calculated using a debt-to-income (DTI) approach: your maximum allowable monthly housing cost is determined as a percentage of your gross monthly income, in line with common DTI limits. We then backsolve for the highest home price you can afford, factoring in principal, interest, property taxes, homeowner's insurance, and any required PMI.
+
+Key assumptions used:
+- **Interest Rate:** ${
+      typeof result.interestRate === "number"
+        ? (result.interestRate * 100).toFixed(2)
+        : "-"
+    }%
+- **Property Tax Rate:** ${
+      typeof result.propertyTaxRate === "number"
+        ? result.propertyTaxRate.toFixed(2)
+        : "-"
+    }%
+- **DTI Used:** ${
+      typeof result.dtiUsed === "number"
+        ? (result.dtiUsed * 100).toFixed(0)
+        : "-"
+    }%
+
+Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleString()} includes principal, interest, property taxes, homeowner's insurance, and PMI (if applicable). This approach gives you a realistic maximum home price based on your income and debts—not just a budget cap.`;
+  };
+
+
+  const calculateHomePrice = async () => {
+    // Check if we have all required data
+    if (!formData.gross_income || !formData.ideal_zip_code) {
+      return;
+    }
+
+    try {
+      setHomePriceLoading(true);
+      setHomePriceError(null);
+
+      // Map credit score range to a numeric value
+      let creditScore = 700; // Default to good credit
+      switch (formData.credit_score_range) {
+        case "poor":
+          creditScore = 550;
+          break;
+        case "fair":
+          creditScore = 630;
+          break;
+        case "good":
+          creditScore = 700;
+          break;
+        case "very_good":
+          creditScore = 770;
+          break;
+        case "excellent":
+          creditScore = 800;
+          break;
+      }
+
+      // Calculate down payment percentage based on savings
+      const downPaymentAmount = formData.down_payment || 50000;
+
+      const result = await estimateAffordableHomePrice({
+        grossAnnualIncome: formData.gross_income || 0,
+        creditScore,
+        zipCode: formData.ideal_zip_code || "",
+        downPayment: downPaymentAmount,
+      });
+
+      if ("error" in result) {
+        setHomePriceError(result.error);
+        setHomePriceResult(null);
+      } else {
+        setHomePriceResult({
+          ...result,
+          explanation: generateExplanation(result, formData),
+        });
+      }
+    } catch (error) {
+      setHomePriceError(
+        error instanceof Error
+          ? error.message
+          : "Failed to calculate home price"
+      );
+      setHomePriceResult(null);
+    } finally {
+      setHomePriceLoading(false);
+    }
+  };
+
 
   // Drag and drop sensors
   const sensors = useSensors(
@@ -342,22 +415,6 @@ export default function PersonalizationPage() {
     })
   );
 
-  // Valid report sections that exactly match backend models
-  const VALID_REPORT_SECTIONS = [
-    "neighborhood_overview",
-    "safety",
-    "culture_and_events",
-    "social_character",
-    "local_amenities",
-    "commute",
-    "family_friendly",
-    "nightlife_and_dating",
-    "development",
-    "environment_utilities",
-    "financial_information",
-    "schools",
-    "extra_tips",
-  ];
 
   // Default report sections with their labels
   const defaultReportSections = [
@@ -417,7 +474,24 @@ export default function PersonalizationPage() {
     }
   };
 
-  // Handle drag end for reordering
+  // Trigger home price calculation when relevant form data changes
+  useEffect(() => {
+    // Only calculate if we're on the financial section
+    if (activeSection !== "financial") return;
+
+    // Only calculate if we have the minimum required data
+    if (formData.gross_income && formData.ideal_zip_code) {
+      calculateHomePrice();
+    }
+  }, [
+    formData.gross_income,
+    formData.credit_score_range,
+    formData.ideal_zip_code,
+    formData.down_payment,
+    activeSection,
+  ]);
+
+// Handle drag end for reordering
   const handleDragEnd = (event: DragEndEvent) => {
     try {
       const { active, over } = event;
@@ -433,8 +507,13 @@ export default function PersonalizationPage() {
 
       if (oldIndex === -1 || newIndex === -1) return;
 
+      const currentPriorities = formData.report_section_priorities || [];
       const reorderedSections = arrayMove(sections, oldIndex, newIndex);
-      const newPriorities = reorderedSections.map((section) => section.key);
+      
+      // Only include sections that were previously selected (in priorities)
+      const newPriorities = reorderedSections
+        .filter((section) => currentPriorities.includes(section.key))
+        .map((section) => section.key);
 
       updateFormData("report_section_priorities", newPriorities);
     } catch (error) {
@@ -518,6 +597,10 @@ export default function PersonalizationPage() {
   useEffect(() => {
     if (userPreferences) {
       loadUserPreferencesFromContext();
+    } else {
+      setFormData({});
+      setOriginalData({});
+      setIsLoading(false);
     }
   }, [userPreferences]);
 
@@ -587,88 +670,12 @@ export default function PersonalizationPage() {
       );
       console.log(
         "🔍 Report customization from context:",
-        userPreferences?.report_customization
-      );
-      console.log(
-        "🔍 Report section priorities from context:",
-        userPreferences?.report_customization?.report_section_priorities
+        userPreferences?.report_section_priorities
       );
 
       if (userPreferences) {
-        // Flatten the nested structure to match OnboardingData interface
-        const flattenedData: OnboardingData = {
-          // Demographics
-          ...userPreferences.demographics,
-
-          // Financial Profile
-          ...userPreferences.financial_profile,
-
-          // Housing Preferences
-          ...userPreferences.housing_preferences,
-
-          // Location Preferences
-          ...userPreferences.location_preferences,
-
-          // Lifestyle Preferences
-          ...userPreferences.lifestyle_preferences,
-
-          // Behavioral Patterns
-          ...userPreferences.behavioral_patterns,
-
-          // Real Estate
-          ...userPreferences.real_estate,
-
-          // Agent Preferences (Communication)
-          ...userPreferences.agent_preferences,
-
-          // Values
-          ...userPreferences.values,
-
-          // Emotional Signals
-          ...userPreferences.emotional_signals,
-
-          // Report Customization - handle both nested and flat structures
-          report_section_priorities: userPreferences.report_section_priorities
-            ? userPreferences.report_section_priorities.filter((key: string) =>
-                VALID_REPORT_SECTIONS.includes(key)
-              )
-            : userPreferences.report_customization?.report_section_priorities
-            ? userPreferences.report_customization.report_section_priorities.filter(
-                (key: string) => VALID_REPORT_SECTIONS.includes(key)
-              )
-            : [...VALID_REPORT_SECTIONS],
-          // Ensure specific fields are mapped correctly
-          communication_preference:
-            userPreferences.agent_preferences?.communication_preference ||
-            userPreferences.communication_preference,
-          previous_home_experience:
-            userPreferences.real_estate?.previous_home_experience ||
-            userPreferences.previous_home_experience,
-          first_time_buyer:
-            userPreferences.real_estate?.first_time_buyer ||
-            userPreferences.first_time_buyer,
-          response_time_expectation:
-            userPreferences.agent_preferences?.response_time_expectation ||
-            userPreferences.response_time_expectation,
-          meeting_availability:
-            userPreferences.agent_preferences?.meeting_availability ||
-            userPreferences.meeting_availability,
-          additional_context:
-            userPreferences.personalization_insights?.additional_context ||
-            userPreferences.additional_context,
-        };
-
-        console.log("✅ Flattened data:", flattenedData);
-        console.log(
-          "✅ Report section priorities in flattened data:",
-          flattenedData.report_section_priorities
-        );
-        console.log(
-          "🔍 Report customization data:",
-          userPreferences.report_customization
-        );
-        setFormData(flattenedData);
-        setOriginalData(flattenedData);
+        setFormData(userPreferences as OnboardingData);
+        setOriginalData(userPreferences as OnboardingData);
       } else {
         console.log("❌ No preferences found in context");
       }
@@ -693,15 +700,6 @@ export default function PersonalizationPage() {
         "💾 Report section priorities being saved:",
         formData.report_section_priorities
       );
-      console.log("💾 Specific fields being saved:", {
-        communication_preference: formData.communication_preference,
-        previous_home_experience: formData.previous_home_experience,
-        first_time_buyer: formData.first_time_buyer,
-        response_time_expectation: formData.response_time_expectation,
-        meeting_availability: formData.meeting_availability,
-        additional_context: formData.additional_context,
-        report_section_priorities: formData.report_section_priorities,
-      });
 
       await apiRequest("/api/v1/preferences", {
         method: "POST",
@@ -733,33 +731,6 @@ export default function PersonalizationPage() {
     if (element) {
       element.scrollIntoView({ behavior: "smooth", block: "start" });
     }
-  };
-
-  // Utility function to format display values
-  const formatDisplayValue = (value: string | number | undefined): string => {
-    if (!value) return "";
-
-    let formatted = String(value);
-
-    // Handle ranges (keep hyphens for ranges like "100k-150k", "30-45")
-    if (
-      /\d+[kK]?[-–]\d+[kK]?/.test(formatted) ||
-      /\d+[-–]\d+/.test(formatted)
-    ) {
-      // This is a range, keep the hyphen but ensure proper formatting
-      formatted = formatted.replace(/[-–]/g, "-");
-    } else {
-      // Replace underscores and hyphens with spaces
-      formatted = formatted.replace(/[_-]/g, " ");
-    }
-
-    // Capitalize each word
-    formatted = formatted
-      .split(" ")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-      .join(" ");
-
-    return formatted;
   };
 
   const TagInput = ({
@@ -888,113 +859,6 @@ export default function PersonalizationPage() {
     );
   };
 
-  const NumberTagInput = ({
-    field,
-    label,
-    placeholder,
-  }: {
-    field: keyof OnboardingData;
-    label: string;
-    placeholder: string;
-  }) => {
-    const [draftValue, setDraftValue] = useState("");
-    const currentTags = (formData[field] as number[]) || [];
-
-    const handleAddNumberTag = (value: string) => {
-      const numValue = parseInt(value.trim());
-      if (isNaN(numValue)) return;
-      const currentArray = (formData[field] as number[]) || [];
-      if (!currentArray.includes(numValue)) {
-        updateFormData(field, [...currentArray, numValue]);
-      }
-      setDraftValue("");
-    };
-
-    const handleRemoveNumberTag = (valueToRemove: number) => {
-      const currentArray = (formData[field] as number[]) || [];
-      updateFormData(
-        field,
-        currentArray.filter((item) => item !== valueToRemove)
-      );
-    };
-
-    const handleKeyPress = (e: React.KeyboardEvent) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        handleAddNumberTag(draftValue);
-      }
-    };
-
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      setDraftValue(e.target.value);
-    };
-
-    return (
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-black mb-2">
-          {label}
-        </label>
-        {isEditMode ? (
-          <>
-            <div className="flex space-x-2 mb-3">
-              <input
-                type="number"
-                value={draftValue}
-                onChange={handleInputChange}
-                onKeyPress={handleKeyPress}
-                className="mobile-input flex-1"
-                placeholder={placeholder}
-              />
-              <button
-                type="button"
-                onClick={() => handleAddNumberTag(draftValue)}
-                className="px-4 py-2 bg-brown text-white rounded-lg hover:bg-brown/80 transition-colors touch-friendly flex items-center"
-              >
-                <Plus className="w-4 h-4" />
-              </button>
-            </div>
-            {currentTags.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {currentTags.map((tag, index) => (
-                  <span
-                    key={index}
-                    className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-beige text-black"
-                  >
-                    {tag}
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveNumberTag(tag)}
-                      className="ml-2 text-black/60 hover:text-black"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </span>
-                ))}
-              </div>
-            )}
-          </>
-        ) : (
-          <div className="p-3 min-h-[48px]">
-            {currentTags.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {currentTags.map((tag, index) => (
-                  <span
-                    key={index}
-                    className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-beige text-black"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            ) : (
-              <span className="text-gray-500">Not specified</span>
-            )}
-          </div>
-        )}
-      </div>
-    );
-  };
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-off-white flex items-center justify-center">
@@ -1010,9 +874,9 @@ export default function PersonalizationPage() {
         return (
           <div className="space-y-6">
             <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
-              Personal Information
+              Tell us about yourself
             </h2>
-
+  
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
@@ -1023,18 +887,14 @@ export default function PersonalizationPage() {
                     type="number"
                     value={formData.age || ""}
                     onChange={(e) =>
-                      updateFormData(
-                        "age",
-                        parseInt(e.target.value) || undefined
-                      )
+                      updateFormData("age", parseInt(e.target.value) || undefined)
                     }
-                    className="mobile-input hover:border-brown focus:border-brown focus:ring-brown/20 cursor-pointer"
+                    className="mobile-input"
+                    placeholder="Enter your age"
                   />
                 ) : (
-                  <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.age) || (
-                      <span className="text-gray-500">Not specified</span>
-                    )}
+                  <div className="mobile-input bg-gray-50">
+                    {formData.age || "Not specified"}
                   </div>
                 )}
               </div>
@@ -1051,147 +911,54 @@ export default function PersonalizationPage() {
                       { value: "male", label: "Male" },
                       { value: "female", label: "Female" },
                       { value: "non-binary", label: "Non-binary" },
-                      {
-                        value: "prefer-not-to-say",
-                        label: "Prefer not to say",
-                      },
+                      { value: "prefer_not_to_say", label: "Prefer not to say" },
                     ]}
-                    placeholder="Select gender"
+                    placeholder="Select..."
                     isOpen={openDropdowns.gender || false}
                     onToggle={() => toggleDropdown("gender")}
                     dropdownRef={getDropdownRef("gender")}
                   />
                 ) : (
-                  <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.gender) || (
-                      <span className="text-gray-500">Not specified</span>
-                    )}
+                  <div className="mobile-input bg-gray-50">
+                    {formData.gender
+                      ? [
+                          { value: "male", label: "Male" },
+                          { value: "female", label: "Female" },
+                          { value: "non-binary", label: "Non-binary" },
+                          { value: "prefer_not_to_say", label: "Prefer not to say" },
+                        ].find(opt => opt.value === formData.gender)?.label
+                      : "Not specified"}
                   </div>
                 )}
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
-                  Marital Status
+                  Do you have pets?
                 </label>
                 {isEditMode ? (
                   <CustomDropdown
-                    value={formData.marital_status || ""}
-                    onChange={(value) =>
-                      updateFormData("marital_status", value)
-                    }
+                    value={formData.pets || ""}
+                    onChange={(value) => updateFormData("pets", value)}
                     options={[
-                      { value: "single", label: "Single" },
-                      { value: "married", label: "Married" },
-                      { value: "divorced", label: "Divorced" },
-                      { value: "widowed", label: "Widowed" },
-                      {
-                        value: "domestic-partnership",
-                        label: "Domestic Partnership",
-                      },
+                      { value: "yes", label: "Yes" },
+                      { value: "no", label: "No" },
+                      { value: "prefer_not_to_say", label: "Prefer not to say" },
                     ]}
-                    placeholder="Select status"
-                    isOpen={openDropdowns.marital_status || false}
-                    onToggle={() => toggleDropdown("marital_status")}
-                    dropdownRef={getDropdownRef("marital_status")}
+                    placeholder="Select..."
+                    isOpen={openDropdowns.pets || false}
+                    onToggle={() => toggleDropdown("pets")}
+                    dropdownRef={getDropdownRef("pets")}
                   />
                 ) : (
-                  <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.marital_status) || (
-                      <span className="text-gray-500">Not specified</span>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Household Size
-                </label>
-                {isEditMode ? (
-                  <input
-                    type="number"
-                    value={formData.household_size || ""}
-                    onChange={(e) =>
-                      updateFormData(
-                        "household_size",
-                        parseInt(e.target.value) || undefined
-                      )
-                    }
-                    className="mobile-input hover:border-brown focus:border-brown focus:ring-brown/20 cursor-pointer"
-                  />
-                ) : (
-                  <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.household_size) || (
-                      <span className="text-gray-500">Not specified</span>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Number of Children
-                </label>
-                {isEditMode ? (
-                  <input
-                    type="number"
-                    value={formData.children_count || ""}
-                    onChange={(e) =>
-                      updateFormData(
-                        "children_count",
-                        parseInt(e.target.value) || undefined
-                      )
-                    }
-                    className="mobile-input hover:border-brown focus:border-brown focus:ring-brown/20 cursor-pointer"
-                  />
-                ) : (
-                  <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.children_count) || (
-                      <span className="text-gray-500">Not specified</span>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              <NumberTagInput
-                field="children_ages"
-                label="Children's Ages"
-                placeholder="Enter age and press Enter"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Education Level
-                </label>
-                {isEditMode ? (
-                  <CustomDropdown
-                    value={formData.education_level || ""}
-                    onChange={(value) =>
-                      updateFormData("education_level", value)
-                    }
-                    options={[
-                      { value: "high-school", label: "High School" },
-                      { value: "some-college", label: "Some College" },
-                      { value: "bachelors", label: "Bachelor's Degree" },
-                      { value: "masters", label: "Master's Degree" },
-                      { value: "doctorate", label: "Doctorate" },
-                      { value: "trade-school", label: "Trade School" },
-                    ]}
-                    placeholder="Select education level"
-                    isOpen={openDropdowns.education_level || false}
-                    onToggle={() => toggleDropdown("education_level")}
-                    dropdownRef={getDropdownRef("education_level")}
-                  />
-                ) : (
-                  <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.education_level) || (
-                      <span className="text-gray-500">Not specified</span>
-                    )}
+                  <div className="mobile-input bg-gray-50">
+                    {formData.pets
+                      ? [
+                          { value: "yes", label: "Yes" },
+                          { value: "no", label: "No" },
+                          { value: "prefer_not_to_say", label: "Prefer not to say" },
+                        ].find(opt => opt.value === formData.pets)?.label
+                      : "Not specified"}
                   </div>
                 )}
               </div>
@@ -1204,41 +971,16 @@ export default function PersonalizationPage() {
                   <input
                     type="text"
                     value={formData.occupation || ""}
-                    onChange={(e) =>
-                      updateFormData("occupation", e.target.value)
-                    }
-                    className="mobile-input hover:border-brown focus:border-brown focus:ring-brown/20 cursor-pointer"
-                    placeholder="Your occupation"
+                    onChange={(e) => updateFormData("occupation", e.target.value)}
+                    className="mobile-input"
+                    placeholder="Your job title"
                   />
                 ) : (
-                  <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.occupation) || (
-                      <span className="text-gray-500">Not specified</span>
-                    )}
+                  <div className="mobile-input bg-gray-50">
+                    {formData.occupation || "Not specified"}
                   </div>
                 )}
               </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-black mb-2">
-                Industry
-              </label>
-              {isEditMode ? (
-                <input
-                  type="text"
-                  value={formData.industry || ""}
-                  onChange={(e) => updateFormData("industry", e.target.value)}
-                  className="mobile-input hover:border-brown focus:border-brown focus:ring-brown/20"
-                  placeholder="Your industry"
-                />
-              ) : (
-                <div className="p-3 bg-white rounded-md border border-gray-300">
-                  {formatDisplayValue(formData.industry) || (
-                    <span className="text-gray-500">Not specified</span>
-                  )}
-                </div>
-              )}
             </div>
           </div>
         );
@@ -1247,103 +989,83 @@ export default function PersonalizationPage() {
         return (
           <div className="space-y-6">
             <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
-              Financial Profile
+              Financial Information
             </h2>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Employment Status
+              <div className="w-4/5 mx-auto">
+                <label className="block text-xs font-normal text-black mb-1 text-center w-full">
+                  Gross Household Income (after annual debts)
                 </label>
                 {isEditMode ? (
-                  <CustomDropdown
-                    value={formData.employment_status || ""}
-                    onChange={(value) =>
-                      updateFormData("employment_status", value)
-                    }
-                    options={[
-                      { value: "full-time", label: "Full-time" },
-                      { value: "part-time", label: "Part-time" },
-                      { value: "self-employed", label: "Self-employed" },
-                      { value: "unemployed", label: "Unemployed" },
-                      { value: "retired", label: "Retired" },
-                      { value: "student", label: "Student" },
+                  <PriceRangeSlider
+                    tickValues={[
+                      50000, 100000, 200000, 300000, 500000, 750000, 1000000,
                     ]}
-                    placeholder="Select employment status"
-                    isOpen={openDropdowns.employment_status || false}
-                    onToggle={() => toggleDropdown("employment_status")}
-                    dropdownRef={getDropdownRef("employment_status")}
+                    value={formData.gross_income || 100000}
+                    onChange={(value) => {
+                      // Round to nearest $5,000 increment
+                      const roundedValue = Math.round(value / 5000) * 5000;
+                      updateFormData("gross_income", roundedValue);
+                    }}
+                    formatPrefix="$"
+                    className="mt-2"
                   />
                 ) : (
-                  <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.employment_status) || (
-                      <span className="text-gray-500">Not specified</span>
-                    )}
+                  <div className="mobile-input bg-gray-50 text-center mt-2">
+                    ${(formData.gross_income || 0).toLocaleString()}
                   </div>
                 )}
               </div>
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Income Range
+
+              <div className="w-4/5 mx-auto">
+                <label className="block text-xs font-normal text-black mb-1 text-center w-full">
+                  Down Payment
                 </label>
                 {isEditMode ? (
-                  <CustomDropdown
-                    value={formData.income_range || ""}
-                    onChange={(value) => updateFormData("income_range", value)}
-                    options={[
-                      { value: "under_50k", label: "Under $50,000" },
-                      { value: "50k_100k", label: "$50,000 - $100,000" },
-                      { value: "100k_150k", label: "$100,000 - $150,000" },
-                      { value: "150k_250k", label: "$150,000 - $250,000" },
-                      { value: "250k_plus", label: "$250,000+" },
+                  <PriceRangeSlider
+                    tickValues={[
+                      50000, 100000, 200000, 300000, 500000, 750000, 1000000,
                     ]}
-                    placeholder="Select income range"
-                    isOpen={openDropdowns.income_range || false}
-                    onToggle={() => toggleDropdown("income_range")}
-                    dropdownRef={getDropdownRef("income_range")}
+                    value={formData.down_payment || 100000}
+                    onChange={(value) => {
+                      // Round to nearest $5,000 increment
+                      const roundedValue = Math.round(value / 5000) * 5000;
+                      updateFormData("down_payment", roundedValue);
+                    }}
+                    formatPrefix="$"
+                    className="mt-2"
                   />
                 ) : (
-                  <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.income_range) || (
-                      <span className="text-gray-500">Not specified</span>
-                    )}
+                  <div className="mobile-input bg-gray-50 text-center mt-2">
+                    ${(formData.down_payment || 0).toLocaleString()}
                   </div>
                 )}
               </div>
+
               <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Preferred Home Price Range
+                <label className="block text-sm font-medium text-black mb-2 text-center">
+                  Ideal Zip Code
                 </label>
                 {isEditMode ? (
-                  <CustomDropdown
-                    value={formData.preferred_home_price_range || ""}
-                    onChange={(value) =>
-                      updateFormData("preferred_home_price_range", value)
+                  <input
+                    type="text"
+                    value={formData.ideal_zip_code || ""}
+                    onChange={(e) =>
+                      updateFormData("ideal_zip_code", e.target.value)
                     }
-                    options={[
-                      { value: "under_200k", label: "Under $200,000" },
-                      { value: "200k_400k", label: "$200,000 - $400,000" },
-                      { value: "400k_600k", label: "$400,000 - $600,000" },
-                      { value: "600k_800k", label: "$600,000 - $800,000" },
-                      { value: "800k_1m", label: "$800,000 - $1,000,000" },
-                      { value: "1m_plus", label: "$1,000,000+" },
-                    ]}
-                    placeholder="Select price range"
-                    isOpen={openDropdowns.preferred_home_price_range || false}
-                    onToggle={() =>
-                      toggleDropdown("preferred_home_price_range")
-                    }
-                    dropdownRef={getDropdownRef("preferred_home_price_range")}
+                    className="mobile-input"
+                    placeholder="Enter zip code"
                   />
                 ) : (
-                  <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(
-                      formData.preferred_home_price_range
-                    ) || <span className="text-gray-500">Not specified</span>}
+                  <div className="mobile-input bg-gray-50 text-center">
+                    {formData.ideal_zip_code || "Not specified"}
                   </div>
                 )}
               </div>
+
               <div>
-                <label className="block text-sm font-medium text-black mb-2">
+                <label className="block text-sm font-medium text-black mb-2 text-center">
                   Credit Score Range
                 </label>
                 {isEditMode ? (
@@ -1357,104 +1079,254 @@ export default function PersonalizationPage() {
                       { value: "fair", label: "Fair (580-669)" },
                       { value: "good", label: "Good (670-739)" },
                       { value: "very_good", label: "Very Good (740-799)" },
-                      { value: "excellent", label: "Excellent (800+)" },
+                      { value: "excellent", label: "Excellent (800-850)" },
                     ]}
-                    placeholder="Select credit score range"
+                    placeholder="Select..."
                     isOpen={openDropdowns.credit_score_range || false}
                     onToggle={() => toggleDropdown("credit_score_range")}
                     dropdownRef={getDropdownRef("credit_score_range")}
                   />
                 ) : (
-                  <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.credit_score_range) || (
-                      <span className="text-gray-500">Not specified</span>
-                    )}
+                  <div className="mobile-input bg-gray-50 text-center">
+                    {formData.credit_score_range
+                      ? [
+                          { value: "poor", label: "Poor (300-579)" },
+                          { value: "fair", label: "Fair (580-669)" },
+                          { value: "good", label: "Good (670-739)" },
+                          { value: "very_good", label: "Very Good (740-799)" },
+                          { value: "excellent", label: "Excellent (800-850)" },
+                        ].find(opt => opt.value === formData.credit_score_range)?.label
+                      : "Not specified"}
                   </div>
                 )}
               </div>
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Savings Amount Range
+
+              <div className="col-span-1 md:col-span-2 flex flex-col items-center">
+                <label className="block text-2xl font-bold text-black mb-2 text-center w-full">
+                  Home Budget
                 </label>
                 {isEditMode ? (
-                  <CustomDropdown
-                    value={formData.savings_amount_range || ""}
-                    onChange={(value) =>
-                      updateFormData("savings_amount_range", value)
-                    }
-                    options={[
-                      { value: "under_10k", label: "Under $10,000" },
-                      { value: "10k_50k", label: "$10,000 - $50,000" },
-                      { value: "50k_100k", label: "$50,000 - $100,000" },
-                      { value: "100k_plus", label: "$100,000+" },
+                  <PriceRangeSlider
+                    tickValues={[
+                      200000, 500000, 1000000, 2000000, 5000000, 10000000,
                     ]}
-                    placeholder="Select savings range"
-                    isOpen={openDropdowns.savings_amount_range || false}
-                    onToggle={() => toggleDropdown("savings_amount_range")}
-                    dropdownRef={getDropdownRef("savings_amount_range")}
+                    value={formData.home_budget || 500000}
+                    onChange={(value) => {
+                      // Round to nearest $25,000 increment
+                      const roundedValue = Math.round(value / 25000) * 25000;
+                      updateFormData("home_budget", roundedValue);
+                    }}
+                    formatPrefix="$"
+                    className="mt-2"
                   />
                 ) : (
-                  <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.savings_amount_range) || (
-                      <span className="text-gray-500">Not specified</span>
-                    )}
+                  <div className="mobile-input bg-gray-50 text-center mt-2 text-2xl font-bold">
+                    ${(formData.home_budget || 0).toLocaleString()}
                   </div>
                 )}
               </div>
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Investment Experience
-                </label>
-                {isEditMode ? (
-                  <CustomDropdown
-                    value={formData.investment_experience || ""}
-                    onChange={(value) =>
-                      updateFormData("investment_experience", value)
-                    }
-                    options={[
-                      { value: "none", label: "No experience" },
-                      { value: "beginner", label: "Beginner" },
-                      { value: "intermediate", label: "Intermediate" },
-                      { value: "advanced", label: "Advanced" },
-                    ]}
-                    placeholder="Select experience level"
-                    isOpen={openDropdowns.investment_experience || false}
-                    onToggle={() => toggleDropdown("investment_experience")}
-                    dropdownRef={getDropdownRef("investment_experience")}
-                  />
-                ) : (
-                  <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.investment_experience) || (
-                      <span className="text-gray-500">Not specified</span>
+
+              {/* Home Price Calculation Results */}
+              <div className="col-span-1 md:col-span-2 mt-6 p-4 bg-white rounded-lg border border-olive">
+                <h3 className="text-lg font-medium text-olive mb-2">
+                  Estimated Home Affordability
+                </h3>
+
+                {homePriceLoading ? (
+                  <div className="flex items-center justify-center py-4">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-olive"></div>
+                    <span className="ml-2 text-sm text-black">
+                      Calculating affordability...
+                    </span>
+                  </div>
+                ) : homePriceError ? (
+                  <div className="text-black text-sm py-2">
+                    <p className="font-medium">
+                      Unable to calculate affordability:
+                    </p>
+                    <p>{homePriceError}</p>
+                    <p className="mt-2">
+                      Please ensure you've entered your income, zip code, and
+                      other financial details.
+                    </p>
+                  </div>
+                ) : homePriceResult ? (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-black">Maximum Home Price</p>
+                        <p className="text-xl font-bold text-olive">
+                          ${homePriceResult.maxHomePrice.toLocaleString()}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-black">Monthly Payment</p>
+                        <p className="text-xl font-bold text-olive">
+                          $
+                          {homePriceResult.totalMonthlyHousingCost.toLocaleString()}
+                          /mo
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="text-sm text-black bg-white p-3 rounded border border-olive/30">
+                      <p className="font-medium mb-2">
+                        How We Calculated This:
+                      </p>
+                      <div className="bg-[#EAD9B3] bg-opacity-20 p-3 rounded font-mono text-black space-y-1">
+                        <p>
+                          1. <strong>Monthly Income</strong> = Gross Annual
+                          Income ÷ 12
+                        </p>
+                        <p className="ml-4">
+                          = ${homePriceResult.netAnnualIncome.toLocaleString()}{" "}
+                          ÷ 12 ={" "}
+                          <strong>
+                            $
+                            {(
+                              homePriceResult.netAnnualIncome / 12
+                            ).toLocaleString(undefined, {
+                              maximumFractionDigits: 0,
+                            })}
+                          </strong>
+                        </p>
+
+                        <p>
+                          2. <strong>Max Monthly Housing Cost</strong> = Monthly
+                          Income × DTI Ratio
+                        </p>
+                        <p className="ml-4">
+                          = $
+                          {(
+                            homePriceResult.netAnnualIncome / 12
+                          ).toLocaleString()}{" "}
+                          × {(homePriceResult.dtiUsed / 100).toFixed(2)} ={" "}
+                          <strong>
+                            $
+                            {Math.round(
+                              (homePriceResult.netAnnualIncome / 12) *
+                                (homePriceResult.dtiUsed / 100)
+                            ).toLocaleString()}
+                          </strong>
+                        </p>
+
+                        <p>
+                          3. <strong>Mortgage Payment</strong> = P × r × (1 + r)
+                          <sup>n</sup> ÷ ((1 + r)<sup>n</sup> - 1)
+                        </p>
+                        <p className="ml-4">Where:</p>
+                        <p className="ml-8">
+                          P = $
+                          {Math.round(
+                            homePriceResult.loanAmount
+                          ).toLocaleString()}
+                        </p>
+                        <p className="ml-8">
+                          r ={" "}
+                          {(homePriceResult.interestRate / 100 / 12).toFixed(4)}{" "}
+                          (monthly interest)
+                        </p>
+                        <p className="ml-8">
+                          n = {30 * 12} months (30-year loan)
+                        </p>
+                        <p className="ml-4">
+                          →{" "}
+                          <strong>
+                            Monthly Mortgage = $
+                            {homePriceResult.monthlyMortgage.toLocaleString()}
+                          </strong>
+                        </p>
+
+                        <p>
+                          4. <strong>Property Tax</strong> = Home Price × Tax
+                          Rate ÷ 12
+                        </p>
+                        <p className="ml-4">
+                          = ${homePriceResult.maxHomePrice.toLocaleString()} ×{" "}
+                          {(homePriceResult.propertyTaxRate * 100).toFixed(2)}%
+                          ÷ 12
+                        </p>
+
+                        <p>
+                          5. <strong>Home Insurance</strong> = Home Price ×
+                          0.50% ÷ 12
+                        </p>
+                        <p className="ml-4">
+                          = ${homePriceResult.maxHomePrice.toLocaleString()} ×
+                          0.005 ÷ 12
+                        </p>
+
+                        {homePriceResult.monthlyPMI > 0 && (
+                          <>
+                            <p>
+                              6.{" "}
+                              <strong>PMI (Private Mortgage Insurance)</strong>{" "}
+                              = Loan × PMI Rate ÷ 12
+                            </p>
+                            <p className="ml-4">
+                              PMI Rate ≈{" "}
+                              {(
+                                ((homePriceResult.monthlyPMI * 12) /
+                                  homePriceResult.loanAmount) *
+                                100
+                              ).toFixed(2)}
+                              %
+                            </p>
+                            <p className="ml-4">
+                              →{" "}
+                              <strong>
+                                Monthly PMI = $
+                                {homePriceResult.monthlyPMI.toLocaleString()}
+                              </strong>
+                            </p>
+                          </>
+                        )}
+                      </div>
+
+                      <p className="mt-4 font-medium">
+                        Why This Formula Matters:
+                      </p>
+                      <p>
+                        This estimate uses a{" "}
+                        <strong>Debt-to-Income (DTI)</strong> ratio of{" "}
+                        <strong>{homePriceResult.dtiUsed.toFixed(1)}%</strong>,
+                        which reflects current lending guidelines. It ensures
+                        your total monthly housing cost—including mortgage,
+                        taxes, insurance, and PMI—stays within what lenders
+                        generally approve based on your income and debt load.
+                      </p>
+                      <p>
+                        We include estimated <strong>property taxes</strong>{" "}
+                        (based on ZIP code{" "}
+                        <strong>{formData.ideal_zip_code}</strong>),{" "}
+                        <strong>insurance</strong> costs, and{" "}
+                        <strong>PMI</strong> if your down payment is under 20%.
+                        These are factored into your maximum affordable home
+                        price using smart search logic.
+                      </p>
+                    </div>
+
+                    {homePriceResult.warnings?.length > 0 && (
+                      <div className="mt-2">
+                        <p className="text-sm font-medium text-olive mt-2">
+                          Important Considerations:
+                        </p>
+                        <ul className="list-disc list-inside text-sm text-black pl-2">
+                          {homePriceResult.warnings.map(
+                            (warning: string, i: number) => (
+                              <li key={i}>{warning}</li>
+                            )
+                          )}
+                        </ul>
+                      </div>
                     )}
                   </div>
-                )}
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Risk Tolerance
-                </label>
-                {isEditMode ? (
-                  <CustomDropdown
-                    value={formData.risk_tolerance || ""}
-                    onChange={(value) =>
-                      updateFormData("risk_tolerance", value)
-                    }
-                    options={[
-                      { value: "conservative", label: "Conservative" },
-                      { value: "moderate", label: "Moderate" },
-                      { value: "aggressive", label: "Aggressive" },
-                    ]}
-                    placeholder="Select risk tolerance"
-                    isOpen={openDropdowns.risk_tolerance || false}
-                    onToggle={() => toggleDropdown("risk_tolerance")}
-                    dropdownRef={getDropdownRef("risk_tolerance")}
-                  />
                 ) : (
-                  <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.risk_tolerance) || (
-                      <span className="text-gray-500">Not specified</span>
-                    )}
+                  <div className="text-sm text-black py-2">
+                    <p>
+                      Enter your income, zip code, and other financial details
+                      to see your estimated home affordability.
+                    </p>
                   </div>
                 )}
               </div>
@@ -1468,6 +1340,7 @@ export default function PersonalizationPage() {
             <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
               Housing Preferences
             </h2>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
@@ -1475,29 +1348,37 @@ export default function PersonalizationPage() {
                 </label>
                 {isEditMode ? (
                   <CustomDropdown
-                    value={formData.desired_housing_type || ""}
+                    value={formData.preferred_housing_type || ""}
                     onChange={(value) =>
-                      updateFormData("desired_housing_type", value)
+                      updateFormData("preferred_housing_type", value)
                     }
                     options={[
-                      { value: "house", label: "House" },
-                      { value: "condo", label: "Condo" },
+                      { value: "single_family", label: "Single Family Home" },
+                      { value: "condo", label: "Condominium" },
                       { value: "townhouse", label: "Townhouse" },
                       { value: "apartment", label: "Apartment" },
+                      { value: "duplex", label: "Duplex" },
                     ]}
-                    placeholder="Select property type"
+                    placeholder="Select..."
                     isOpen={openDropdowns.desired_housing_type || false}
                     onToggle={() => toggleDropdown("desired_housing_type")}
                     dropdownRef={getDropdownRef("desired_housing_type")}
                   />
                 ) : (
-                  <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.desired_housing_type) || (
-                      <span className="text-gray-500">Not specified</span>
-                    )}
+                  <div className="mobile-input bg-gray-50">
+                    {formData.preferred_housing_type
+                      ? [
+                          { value: "single_family", label: "Single Family Home" },
+                          { value: "condo", label: "Condominium" },
+                          { value: "townhouse", label: "Townhouse" },
+                          { value: "apartment", label: "Apartment" },
+                          { value: "duplex", label: "Duplex" },
+                        ].find(opt => opt.value === formData.preferred_housing_type)?.label
+                      : "Not specified"}
                   </div>
                 )}
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
                   Preferred Bedrooms
@@ -1509,20 +1390,21 @@ export default function PersonalizationPage() {
                     onChange={(e) =>
                       updateFormData(
                         "preferred_bedrooms",
-                        parseInt(e.target.value) || 0
+                        parseInt(e.target.value) || undefined
                       )
                     }
-                    className="mobile-input hover:border-brown focus:border-brown focus:ring-brown/20 cursor-pointer"
+                    className="mobile-input"
                     min="1"
+                    max="10"
+                    placeholder="Number of bedrooms"
                   />
                 ) : (
-                  <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.preferred_bedrooms) || (
-                      <span className="text-gray-500">Not specified</span>
-                    )}
+                  <div className="mobile-input bg-gray-50">
+                    {formData.preferred_bedrooms || "Not specified"}
                   </div>
                 )}
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
                   Preferred Bathrooms
@@ -1534,21 +1416,22 @@ export default function PersonalizationPage() {
                     onChange={(e) =>
                       updateFormData(
                         "preferred_bathrooms",
-                        parseInt(e.target.value) || 0
+                        parseInt(e.target.value) || undefined
                       )
                     }
-                    className="mobile-input hover:border-brown focus:border-brown focus:ring-brown/20 cursor-pointer"
+                    className="mobile-input"
                     min="1"
+                    max="10"
                     step="0.5"
+                    placeholder="Number of bathrooms"
                   />
                 ) : (
-                  <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.preferred_bathrooms) || (
-                      <span className="text-gray-500">Not specified</span>
-                    )}
+                  <div className="mobile-input bg-gray-50">
+                    {formData.preferred_bathrooms || "Not specified"}
                   </div>
                 )}
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
                   Preferred Lot Size
@@ -1563,21 +1446,27 @@ export default function PersonalizationPage() {
                       { value: "small", label: "Small (under 0.25 acres)" },
                       { value: "medium", label: "Medium (0.25 - 0.5 acres)" },
                       { value: "large", label: "Large (0.5 - 1 acre)" },
-                      { value: "extra_large", label: "Extra Large (1+ acres)" },
+                      { value: "very_large", label: "Very Large (1+ acres)" },
                     ]}
-                    placeholder="Select lot size"
+                    placeholder="Select..."
                     isOpen={openDropdowns.preferred_lot_size || false}
                     onToggle={() => toggleDropdown("preferred_lot_size")}
                     dropdownRef={getDropdownRef("preferred_lot_size")}
                   />
                 ) : (
-                  <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.preferred_lot_size) || (
-                      <span className="text-gray-500">Not specified</span>
-                    )}
+                  <div className="mobile-input bg-gray-50">
+                    {formData.preferred_lot_size
+                      ? [
+                          { value: "small", label: "Small (under 0.25 acres)" },
+                          { value: "medium", label: "Medium (0.25 - 0.5 acres)" },
+                          { value: "large", label: "Large (0.5 - 1 acre)" },
+                          { value: "very_large", label: "Very Large (1+ acres)" },
+                        ].find(opt => opt.value === formData.preferred_lot_size)?.label
+                      : "Not specified"}
                   </div>
                 )}
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
                   Preferred Home Age
@@ -1589,28 +1478,38 @@ export default function PersonalizationPage() {
                       updateFormData("preferred_home_age", value)
                     }
                     options={[
-                      { value: "new", label: "New Construction (0-5 years)" },
+                      { value: "new", label: "New (0-5 years)" },
                       { value: "recent", label: "Recent (5-15 years)" },
                       {
                         value: "established",
                         label: "Established (15-30 years)",
                       },
-                      { value: "mature", label: "Mature (30+ years)" },
+                      { value: "mature", label: "Mature (30-50 years)" },
                       { value: "historic", label: "Historic (50+ years)" },
                     ]}
-                    placeholder="Select home age preference"
+                    placeholder="Select..."
                     isOpen={openDropdowns.preferred_home_age || false}
                     onToggle={() => toggleDropdown("preferred_home_age")}
                     dropdownRef={getDropdownRef("preferred_home_age")}
                   />
                 ) : (
-                  <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.preferred_home_age) || (
-                      <span className="text-gray-500">Not specified</span>
-                    )}
+                  <div className="mobile-input bg-gray-50">
+                    {formData.preferred_home_age
+                      ? [
+                          { value: "new", label: "New (0-5 years)" },
+                          { value: "recent", label: "Recent (5-15 years)" },
+                          {
+                            value: "established",
+                            label: "Established (15-30 years)",
+                          },
+                          { value: "mature", label: "Mature (30-50 years)" },
+                          { value: "historic", label: "Historic (50+ years)" },
+                        ].find(opt => opt.value === formData.preferred_home_age)?.label
+                      : "Not specified"}
                   </div>
                 )}
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
                   Preferred Architectural Style
@@ -1631,35 +1530,119 @@ export default function PersonalizationPage() {
                       { value: "mediterranean", label: "Mediterranean" },
                       { value: "contemporary", label: "Contemporary" },
                     ]}
-                    placeholder="Select architectural style"
-                    isOpen={
-                      openDropdowns.preferred_architectural_style || false
-                    }
+                    placeholder="Select..."
+                    isOpen={openDropdowns.preferred_architectural_style || false}
                     onToggle={() =>
                       toggleDropdown("preferred_architectural_style")
                     }
-                    dropdownRef={getDropdownRef(
-                      "preferred_architectural_style"
-                    )}
+                    dropdownRef={getDropdownRef("preferred_architectural_style")}
                   />
                 ) : (
-                  <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(
-                      formData.preferred_architectural_style
-                    ) || <span className="text-gray-500">Not specified</span>}
+                  <div className="mobile-input bg-gray-50">
+                    {formData.preferred_architectural_style
+                      ? [
+                          { value: "modern", label: "Modern" },
+                          { value: "traditional", label: "Traditional" },
+                          { value: "colonial", label: "Colonial" },
+                          { value: "ranch", label: "Ranch" },
+                          { value: "craftsman", label: "Craftsman" },
+                          { value: "victorian", label: "Victorian" },
+                          { value: "mediterranean", label: "Mediterranean" },
+                          { value: "contemporary", label: "Contemporary" },
+                        ].find(opt => opt.value === formData.preferred_architectural_style)?.label
+                      : "Not specified"}
                   </div>
                 )}
               </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-black mb-2">
-                Preferred Home Features
-              </label>
-              <TagInput
-                field="preferred_home_features"
-                label=""
-                placeholder="Add features like 'garage', 'pool', 'garden'..."
-              />
+
+              <div>
+                <label className="block text-sm font-medium text-black mb-2">
+                  Renovation Willingness
+                </label>
+                {isEditMode ? (
+                  <CustomDropdown
+                    value={formData.renovation_preference || ""}
+                    onChange={(value) =>
+                      updateFormData("renovation_preference", value)
+                    }
+                    options={[
+                      { value: "none", label: "None - Move-in Ready" },
+                      { value: "minor", label: "Minor Cosmetic Updates" },
+                      { value: "major", label: "Major Renovations" },
+                      { value: "complete", label: "Complete Renovation" },
+                    ]}
+                    placeholder="Select..."
+                    isOpen={openDropdowns.renovation_preference || false}
+                    onToggle={() => toggleDropdown("renovation_preference")}
+                    dropdownRef={getDropdownRef("renovation_preference")}
+                  />
+                ) : (
+                  <div className="mobile-input bg-gray-50">
+                    {formData.renovation_preference
+                      ? [
+                          { value: "none", label: "None - Move-in Ready" },
+                          { value: "minor", label: "Minor Cosmetic Updates" },
+                          { value: "major", label: "Major Renovations" },
+                          { value: "complete", label: "Complete Renovation" },
+                        ].find(opt => opt.value === formData.renovation_preference)?.label
+                      : "Not specified"}
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-black mb-2">
+                  Intended Property Use
+                </label>
+                {isEditMode ? (
+                  <CustomDropdown
+                    value={formData.intended_property_use || ""}
+                    onChange={(value) =>
+                      updateFormData("intended_property_use", value)
+                    }
+                    options={[
+                      { value: "primary", label: "Primary Residence" },
+                      { value: "investment", label: "Investment Property" },
+                      { value: "vacation", label: "Vacation Home" },
+                      { value: "rental", label: "Rental Property" },
+                    ]}
+                    placeholder="Select..."
+                    isOpen={openDropdowns.intended_property_use || false}
+                    onToggle={() => toggleDropdown("intended_property_use")}
+                    dropdownRef={getDropdownRef("intended_property_use")}
+                  />
+                ) : (
+                  <div className="mobile-input bg-gray-50">
+                    {formData.intended_property_use
+                      ? [
+                          { value: "primary", label: "Primary Residence" },
+                          { value: "investment", label: "Investment Property" },
+                          { value: "vacation", label: "Vacation Home" },
+                          { value: "rental", label: "Rental Property" },
+                        ].find(opt => opt.value === formData.intended_property_use)?.label
+                      : "Not specified"}
+                  </div>
+                )}
+              </div>
+
+              <div className="md:col-span-2">
+                <div className="mb-[5px]">
+                  <TagInput
+                    key="preferred_home_features"
+                    field="preferred_home_features"
+                    label="Preferred Home Features"
+                    placeholder="Enter feature and click + to add (e.g., garage, pool, fireplace)"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <TagInput
+                    key="deal_breakers"
+                    field="deal_breakers"
+                    label="Deal Breakers"
+                    placeholder="Add deal breakers (e.g., No parking, Busy road, Old plumbing)"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         );
@@ -1670,128 +1653,34 @@ export default function PersonalizationPage() {
             <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
               Location Preferences
             </h2>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
-                  Preferred Climate
+                  Commute Tolerance (minutes)
                 </label>
                 {isEditMode ? (
-                  <CustomDropdown
-                    value={formData.preferred_climate || ""}
-                    onChange={(value) =>
-                      updateFormData("preferred_climate", value)
+                  <input
+                    type="number"
+                    value={formData.commute_tolerance || ""}
+                    onChange={(e) =>
+                      updateFormData(
+                        "commute_tolerance",
+                        parseInt(e.target.value) || undefined
+                      )
                     }
-                    options={[
-                      { value: "tropical", label: "Tropical" },
-                      { value: "subtropical", label: "Subtropical" },
-                      { value: "temperate", label: "Temperate" },
-                      { value: "continental", label: "Continental" },
-                      { value: "arid", label: "Arid/Desert" },
-                      { value: "mediterranean", label: "Mediterranean" },
-                    ]}
-                    placeholder="Select climate preference"
-                    isOpen={openDropdowns.preferred_climate || false}
-                    onToggle={() => toggleDropdown("preferred_climate")}
-                    dropdownRef={getDropdownRef("preferred_climate")}
+                    className="mobile-input"
+                    min="0"
+                    max="180"
+                    placeholder="Maximum commute time"
                   />
                 ) : (
-                  <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.preferred_climate) || (
-                      <span className="text-gray-500">Not specified</span>
-                    )}
+                  <div className="mobile-input bg-gray-50">
+                    {formData.commute_tolerance ? `${formData.commute_tolerance} minutes` : "Not specified"}
                   </div>
                 )}
               </div>
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Urban/Rural Preference
-                </label>
-                {isEditMode ? (
-                  <CustomDropdown
-                    value={formData.urban_rural_preference || ""}
-                    onChange={(value) =>
-                      updateFormData("urban_rural_preference", value)
-                    }
-                    options={[
-                      { value: "urban", label: "Urban" },
-                      { value: "suburban", label: "Suburban" },
-                      { value: "rural", label: "Rural" },
-                      { value: "mixed", label: "Mixed/Flexible" },
-                    ]}
-                    placeholder="Select preference"
-                    isOpen={openDropdowns.urban_rural_preference || false}
-                    onToggle={() => toggleDropdown("urban_rural_preference")}
-                    dropdownRef={getDropdownRef("urban_rural_preference")}
-                  />
-                ) : (
-                  <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.urban_rural_preference) || (
-                      <span className="text-gray-500">Not specified</span>
-                    )}
-                  </div>
-                )}
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Commute Tolerance
-                </label>
-                {isEditMode ? (
-                  <CustomDropdown
-                    value={formData.commute_tolerance?.toString() || ""}
-                    onChange={(value) =>
-                      updateFormData("commute_tolerance", value)
-                    }
-                    options={[
-                      { value: "under_15", label: "Under 15 minutes" },
-                      { value: "15_30", label: "15-30 minutes" },
-                      { value: "30_45", label: "30-45 minutes" },
-                      { value: "45_60", label: "45-60 minutes" },
-                      { value: "over_60", label: "Over 60 minutes" },
-                    ]}
-                    placeholder="Select commute tolerance"
-                    isOpen={openDropdowns.commute_tolerance || false}
-                    onToggle={() => toggleDropdown("commute_tolerance")}
-                    dropdownRef={getDropdownRef("commute_tolerance")}
-                  />
-                ) : (
-                  <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.commute_tolerance) || (
-                      <span className="text-gray-500">Not specified</span>
-                    )}
-                  </div>
-                )}
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Proximity to Family
-                </label>
-                {isEditMode ? (
-                  <CustomDropdown
-                    value={formData.proximity_to_family || ""}
-                    onChange={(value) =>
-                      updateFormData("proximity_to_family", value)
-                    }
-                    options={[
-                      { value: "very_important", label: "Very Important" },
-                      {
-                        value: "somewhat_important",
-                        label: "Somewhat Important",
-                      },
-                      { value: "not_important", label: "Not Important" },
-                    ]}
-                    placeholder="Select importance"
-                    isOpen={openDropdowns.proximity_to_family || false}
-                    onToggle={() => toggleDropdown("proximity_to_family")}
-                    dropdownRef={getDropdownRef("proximity_to_family")}
-                  />
-                ) : (
-                  <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.proximity_to_family) || (
-                      <span className="text-gray-500">Not specified</span>
-                    )}
-                  </div>
-                )}
-              </div>
+
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
                   Walkability Importance
@@ -1810,335 +1699,67 @@ export default function PersonalizationPage() {
                       },
                       { value: "not_important", label: "Not Important" },
                     ]}
-                    placeholder="Select importance"
+                    placeholder="Select..."
                     isOpen={openDropdowns.walkability_importance || false}
                     onToggle={() => toggleDropdown("walkability_importance")}
                     dropdownRef={getDropdownRef("walkability_importance")}
                   />
                 ) : (
-                  <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.walkability_importance) || (
-                      <span className="text-gray-500">Not specified</span>
-                    )}
+                  <div className="mobile-input bg-gray-50">
+                    {formData.walkability_importance
+                      ? [
+                          { value: "very_important", label: "Very Important" },
+                          {
+                            value: "somewhat_important",
+                            label: "Somewhat Important",
+                          },
+                          { value: "not_important", label: "Not Important" },
+                        ].find(opt => opt.value === formData.walkability_importance)?.label
+                      : "Not specified"}
                   </div>
                 )}
               </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-black mb-2">
-                Preferred Regions
-              </label>
-              <TagInput
-                field="preferred_regions"
-                label=""
-                placeholder="Add regions or neighborhoods..."
-              />
             </div>
 
             {/* Important Locations for Commute */}
-            <div>
-              <label className="block text-sm font-medium text-black mb-2">
-                Important Locations
-              </label>
-              <p className="text-xs text-black/60 mb-4">
-                Add locations that are important for your commute (e.g.,
-                workplace, family home, gym)
-              </p>
-              <ImportantLocationsInput
-                locations={formData.important_locations || []}
-                onChange={(locations) =>
-                  updateFormData("important_locations", locations)
-                }
-                scriptsReady={scriptsReady}
-                isEditMode={isEditMode}
-              />
-              {loadError && (
-                <p className="text-red-500 text-xs mt-2">{loadError}</p>
-              )}
-            </div>
-          </div>
-        );
-
-      case "lifestyle":
-        return (
-          <div className="space-y-6">
-            <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
-              Lifestyle
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
+            <div className="flex flex-col md:flex-row gap-6 w-full">
+              <div className="flex-1">
                 <label className="block text-sm font-medium text-black mb-2">
-                  Lifestyle Type
+                  Important Locations
                 </label>
-                {isEditMode ? (
-                  <CustomDropdown
-                    value={formData.lifestyle_type || ""}
-                    onChange={(value) =>
-                      updateFormData("lifestyle_type", value)
-                    }
-                    options={[
-                      { value: "active", label: "Active/Outdoorsy" },
-                      { value: "social", label: "Social/Entertaining" },
-                      { value: "quiet", label: "Quiet/Private" },
-                      { value: "family_oriented", label: "Family-Oriented" },
-                      { value: "career_focused", label: "Career-Focused" },
-                      { value: "creative", label: "Creative/Artistic" },
-                      { value: "minimalist", label: "Minimalist" },
-                    ]}
-                    placeholder="Select lifestyle type"
-                    isOpen={openDropdowns.lifestyle_type || false}
-                    onToggle={() => toggleDropdown("lifestyle_type")}
-                    dropdownRef={getDropdownRef("lifestyle_type")}
-                  />
-                ) : (
-                  <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.lifestyle_type) || (
-                      <span className="text-gray-500">Not specified</span>
-                    )}
-                  </div>
+                <p className="text-xs text-black/60 mb-4">
+                  Add relevant locations to your commute (e.g., workplace,
+                  family home)
+                </p>
+                <ImportantLocationsInput
+                  locations={formData.important_locations || []}
+                  onChange={(locations) =>
+                    updateFormData("important_locations", locations)
+                  }
+                  scriptsReady={scriptsReady}
+                  isEditMode={isEditMode}
+                />
+                {loadError && (
+                  <p className="text-red-500 text-xs mt-2">{loadError}</p>
                 )}
               </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-black mb-2">
-                Hobbies & Interests
-              </label>
-              <TagInput
-                field="hobbies_interests"
-                label=""
-                placeholder="Add hobbies and interests..."
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-black mb-2">
-                Dining Preferences
-              </label>
-              <TagInput
-                field="dining_preferences"
-                label=""
-                placeholder="Add cuisine types, dietary restrictions..."
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-black mb-2">
-                Fitness Activities
-              </label>
-              <TagInput
-                field="fitness_activities"
-                label=""
-                placeholder="Add fitness activities and sports..."
-              />
-            </div>
-          </div>
-        );
-
-      case "behavior":
-        return (
-          <div className="space-y-6">
-            <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
-              Behavior & Preferences
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
+              <div className="flex-1">
                 <label className="block text-sm font-medium text-black mb-2">
-                  Decision Making Style
+                  Preferred Regions
                 </label>
-                {isEditMode ? (
-                  <CustomDropdown
-                    value={formData.decision_making_style || ""}
-                    onChange={(value) =>
-                      updateFormData("decision_making_style", value)
-                    }
-                    options={[
-                      { value: "quick", label: "Quick decision maker" },
-                      { value: "thorough", label: "Thorough researcher" },
-                      { value: "collaborative", label: "Collaborative" },
-                    ]}
-                    placeholder="Select style"
-                    isOpen={openDropdowns.decision_making_style || false}
-                    onToggle={() => toggleDropdown("decision_making_style")}
-                    dropdownRef={getDropdownRef("decision_making_style")}
-                  />
-                ) : (
-                  <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.decision_making_style) || (
-                      <span className="text-gray-500">Not specified</span>
-                    )}
-                  </div>
-                )}
+                <p className="text-xs text-gray-500 mb-4">
+                  Add regions where you'd like to live (e.g. 
+                  Midtown Atlanta, L.A, etc.)
+                </p>
+                <PreferredRegionsInput
+                  regions={formData.preferred_regions || []}
+                  onChange={(regions) =>
+                    updateFormData("preferred_regions", regions)
+                  }
+                  scriptsReady={scriptsReady}
+                  isEditMode={isEditMode}
+                />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Communication Preference
-                </label>
-                {isEditMode ? (
-                  <CustomDropdown
-                    value={formData.communication_preference || ""}
-                    onChange={(value) =>
-                      updateFormData("communication_preference", value)
-                    }
-                    options={[
-                      { value: "frequent", label: "Frequent updates" },
-                      { value: "milestone", label: "Milestone updates" },
-                      { value: "minimal", label: "Minimal contact" },
-                    ]}
-                    placeholder="Select style"
-                    isOpen={openDropdowns.communication_preference || false}
-                    onToggle={() => toggleDropdown("communication_preference")}
-                    dropdownRef={getDropdownRef("communication_preference")}
-                  />
-                ) : (
-                  <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.communication_preference) || (
-                      <span className="text-gray-500">Not specified</span>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        );
-
-      case "realestate":
-        return (
-          <div className="space-y-6">
-            <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
-              Real Estate Experience
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Property Search Stage
-                </label>
-                {isEditMode ? (
-                  <CustomDropdown
-                    value={formData.property_search_stage || ""}
-                    onChange={(value) =>
-                      updateFormData("property_search_stage", value)
-                    }
-                    options={[
-                      { value: "just_looking", label: "Just Looking" },
-                      {
-                        value: "actively_searching",
-                        label: "Actively Searching",
-                      },
-                      { value: "ready_to_buy", label: "Ready to Buy" },
-                      { value: "under_contract", label: "Under Contract" },
-                    ]}
-                    placeholder="Select stage"
-                    isOpen={openDropdowns.property_search_stage || false}
-                    onToggle={() => toggleDropdown("property_search_stage")}
-                    dropdownRef={getDropdownRef("property_search_stage")}
-                  />
-                ) : (
-                  <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.property_search_stage) || (
-                      <span className="text-gray-500">Not specified</span>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Home Buying Experience
-                </label>
-                {isEditMode ? (
-                  <CustomDropdown
-                    value={formData.home_buying_experience || ""}
-                    onChange={(value) =>
-                      updateFormData("home_buying_experience", value)
-                    }
-                    options={[
-                      { value: "first_time", label: "First Time Buyer" },
-                      { value: "experienced", label: "Experienced Buyer" },
-                      { value: "investor", label: "Real Estate Investor" },
-                    ]}
-                    placeholder="Select experience"
-                    isOpen={openDropdowns.home_buying_experience || false}
-                    onToggle={() => toggleDropdown("home_buying_experience")}
-                    dropdownRef={getDropdownRef("home_buying_experience")}
-                  />
-                ) : (
-                  <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.home_buying_experience) || (
-                      <span className="text-gray-500">Not specified</span>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Financing Preference
-                </label>
-                {isEditMode ? (
-                  <CustomDropdown
-                    value={formData.financing_preference || ""}
-                    onChange={(value) =>
-                      updateFormData("financing_preference", value)
-                    }
-                    options={[
-                      { value: "cash", label: "Cash" },
-                      { value: "conventional", label: "Conventional Loan" },
-                      { value: "fha", label: "FHA Loan" },
-                      { value: "va", label: "VA Loan" },
-                      { value: "usda", label: "USDA Loan" },
-                      { value: "jumbo", label: "Jumbo Loan" },
-                    ]}
-                    placeholder="Select financing"
-                    isOpen={openDropdowns.financing_preference || false}
-                    onToggle={() => toggleDropdown("financing_preference")}
-                    dropdownRef={getDropdownRef("financing_preference")}
-                  />
-                ) : (
-                  <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.financing_preference) || (
-                      <span className="text-gray-500">Not specified</span>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Renovation Willingness
-                </label>
-                {isEditMode ? (
-                  <CustomDropdown
-                    value={formData.renovation_willingness || ""}
-                    onChange={(value) =>
-                      updateFormData("renovation_willingness", value)
-                    }
-                    options={[
-                      { value: "none", label: "None - Move-in Ready" },
-                      { value: "minor", label: "Minor Cosmetic Updates" },
-                      { value: "major", label: "Major Renovations" },
-                      { value: "complete", label: "Complete Renovation" },
-                    ]}
-                    placeholder="Select willingness"
-                    isOpen={openDropdowns.renovation_willingness || false}
-                    onToggle={() => toggleDropdown("renovation_willingness")}
-                    dropdownRef={getDropdownRef("renovation_willingness")}
-                  />
-                ) : (
-                  <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.renovation_willingness) || (
-                      <span className="text-gray-500">Not specified</span>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-black mb-2">
-                Deal Breakers
-              </label>
-              <TagInput
-                field="deal_breakers"
-                label=""
-                placeholder="Add deal breakers..."
-              />
             </div>
           </div>
         );
@@ -2149,214 +1770,139 @@ export default function PersonalizationPage() {
             <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
               Communication Preferences
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Meeting Availability
-                </label>
-                {isEditMode ? (
-                  <CustomDropdown
-                    value={formData.meeting_availability || ""}
-                    onChange={(value) =>
-                      updateFormData("meeting_availability", value)
-                    }
-                    options={[
-                      { value: "weekdays", label: "Weekdays" },
-                      { value: "weekends", label: "Weekends" },
-                      { value: "evenings", label: "Evenings" },
-                      { value: "flexible", label: "Flexible" },
-                    ]}
-                    placeholder="Select method"
-                    isOpen={openDropdowns.meeting_availability || false}
-                    onToggle={() => toggleDropdown("meeting_availability")}
-                    dropdownRef={getDropdownRef("meeting_availability")}
-                  />
-                ) : (
-                  <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.meeting_availability) || (
-                      <span className="text-gray-500">Not specified</span>
-                    )}
-                  </div>
-                )}
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Response Time Expectation
-                </label>
-                {isEditMode ? (
-                  <CustomDropdown
-                    value={formData.response_time_expectation || ""}
-                    onChange={(value) =>
-                      updateFormData("response_time_expectation", value)
-                    }
-                    options={[
-                      { value: "immediate", label: "Immediate (within hours)" },
-                      { value: "same_day", label: "Same day" },
-                      { value: "next_day", label: "Next business day" },
-                      { value: "flexible", label: "Flexible" },
-                    ]}
-                    placeholder="Select expectation"
-                    isOpen={openDropdowns.response_time_expectation || false}
-                    onToggle={() => toggleDropdown("response_time_expectation")}
-                    dropdownRef={getDropdownRef("response_time_expectation")}
-                  />
-                ) : (
-                  <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.response_time_expectation) || (
-                      <span className="text-gray-500">Not specified</span>
-                    )}
-                  </div>
-                )}
-              </div>
 
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Preferred Support Channel
-                </label>
-                {isEditMode ? (
-                  <CustomDropdown
-                    value={formData.preferred_support_channel || ""}
-                    onChange={(value) =>
-                      updateFormData("preferred_support_channel", value)
-                    }
-                    options={[
-                      { value: "phone", label: "Phone" },
-                      { value: "email", label: "Email" },
-                      { value: "text", label: "Text/SMS" },
-                      { value: "app", label: "Mobile App" },
-                    ]}
-                    placeholder="Select channel"
-                    isOpen={openDropdowns.preferred_support_channel || false}
-                    onToggle={() => toggleDropdown("preferred_support_channel")}
-                    dropdownRef={getDropdownRef("preferred_support_channel")}
-                  />
-                ) : (
-                  <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.preferred_support_channel) || (
-                      <span className="text-gray-500">Not specified</span>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Information Detail Level
-                </label>
-                {isEditMode ? (
-                  <CustomDropdown
-                    value={formData.information_detail_level || ""}
-                    onChange={(value) =>
-                      updateFormData("information_detail_level", value)
-                    }
-                    options={[
-                      { value: "brief", label: "Brief" },
-                      { value: "moderate", label: "Moderate" },
-                      { value: "detailed", label: "Detailed" },
-                      { value: "comprehensive", label: "Comprehensive" },
-                    ]}
-                    placeholder="Select detail level"
-                    isOpen={openDropdowns.information_detail_level || false}
-                    onToggle={() => toggleDropdown("information_detail_level")}
-                    dropdownRef={getDropdownRef("information_detail_level")}
-                  />
-                ) : (
-                  <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.information_detail_level) || (
-                      <span className="text-gray-500">Not specified</span>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Meeting Preference
-                </label>
-                {isEditMode ? (
-                  <CustomDropdown
-                    value={formData.meeting_preference || ""}
-                    onChange={(value) =>
-                      updateFormData("meeting_preference", value)
-                    }
-                    options={[
-                      { value: "in_person", label: "In Person" },
-                      { value: "virtual", label: "Virtual" },
-                      { value: "phone", label: "Phone" },
-                      { value: "email", label: "Email" },
-                    ]}
-                    placeholder="Select preference"
-                    isOpen={openDropdowns.meeting_preference || false}
-                    onToggle={() => toggleDropdown("meeting_preference")}
-                    dropdownRef={getDropdownRef("meeting_preference")}
-                  />
-                ) : (
-                  <div className="p-3 bg-white rounded-md border border-gray-300">
-                    {formatDisplayValue(formData.meeting_preference) || (
-                      <span className="text-gray-500">Not specified</span>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        );
-
-      case "insights":
-        return (
-          <div className="space-y-6">
-            <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
-              Personal Insights
-            </h2>
+            {/* Communication Preference */}
             <div>
               <label className="block text-sm font-medium text-black mb-2">
-                Quote Bubbles
-              </label>
-              <TagInput
-                field="quote_bubbles"
-                label=""
-                placeholder="Add meaningful quotes or phrases..."
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-black mb-2">
-                Deal Makers
-              </label>
-              <TagInput
-                field="deal_makers"
-                label=""
-                placeholder="Add what would make a deal perfect..."
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-black mb-2">
-                Concerns or Fears
-              </label>
-              <TagInput
-                field="concerns_or_fears"
-                label=""
-                placeholder="Add any concerns about the process..."
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-black mb-2">
-                Additional Context
+                Communication Frequency
               </label>
               {isEditMode ? (
-                <textarea
-                  value={formData.additional_context || ""}
-                  onChange={(e) =>
-                    updateFormData("additional_context", e.target.value)
+                <CustomDropdown
+                  value={formData.communication_frequency || ""}
+                  onChange={(value) =>
+                    updateFormData("communication_frequency", value)
                   }
-                  className="mobile-input hover:border-brown focus:border-brown focus:ring-brown/20"
-                  rows={4}
-                  placeholder="Any additional information you'd like to share..."
+                  options={[
+                    { value: "frequent", label: "Frequent updates" },
+                    { value: "milestone", label: "Milestone updates" },
+                    { value: "minimal", label: "Minimal contact" },
+                  ]}
+                  placeholder="Select..."
+                  isOpen={openDropdowns.communication_frequency || false}
+                  onToggle={() => toggleDropdown("communication_frequency")}
+                  dropdownRef={getDropdownRef("communication_frequency")}
                 />
               ) : (
-                <div className="p-3 bg-white rounded-md border border-gray-300 min-h-[100px]">
-                  {formatDisplayValue(formData.additional_context) || (
-                    <span className="text-gray-500">Not specified</span>
-                  )}
+                <div className="mobile-input bg-gray-50">
+                  {formData.communication_frequency
+                    ? [
+                        { value: "frequent", label: "Frequent updates" },
+                        { value: "milestone", label: "Milestone updates" },
+                        { value: "minimal", label: "Minimal contact" },
+                      ].find(opt => opt.value === formData.communication_frequency)?.label
+                    : "Not specified"}
+                </div>
+              )}
+            </div>
+
+            {/* Information Detail Level */}
+            <div>
+              <label className="block text-sm font-medium text-black mb-2">
+                Information Detail Level
+              </label>
+              {isEditMode ? (
+                <CustomDropdown
+                  value={formData.information_detail_level || ""}
+                  onChange={(value) =>
+                    updateFormData("information_detail_level", value)
+                  }
+                  options={[
+                    { value: "brief", label: "Brief" },
+                    { value: "moderate", label: "Moderate" },
+                    { value: "detailed", label: "Detailed" },
+                    { value: "comprehensive", label: "Comprehensive" },
+                  ]}
+                  placeholder="Select..."
+                  isOpen={openDropdowns.information_detail_level || false}
+                  onToggle={() => toggleDropdown("information_detail_level")}
+                  dropdownRef={getDropdownRef("information_detail_level")}
+                />
+              ) : (
+                <div className="mobile-input bg-gray-50">
+                  {formData.information_detail_level
+                    ? [
+                        { value: "brief", label: "Brief" },
+                        { value: "moderate", label: "Moderate" },
+                        { value: "detailed", label: "Detailed" },
+                        { value: "comprehensive", label: "Comprehensive" },
+                      ].find(opt => opt.value === formData.information_detail_level)?.label
+                    : "Not specified"}
+                </div>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Buyer's Agent Dropdown */}
+              <div>
+                <label className="block text-sm font-medium text-black mb-2">
+                  Do you currently have a buyer's agent?
+                </label>
+                {isEditMode ? (
+                  <CustomDropdown
+                    value={formData.has_buyers_agent ?? ""}
+                    onChange={(value) =>
+                      updateFormData("has_buyers_agent", value)
+                    }
+                    options={[
+                      { value: "yes", label: "Yes" },
+                      { value: "no", label: "No" },
+                    ]}
+                    placeholder="Select..."
+                    isOpen={openDropdowns.has_buyers_agent || false}
+                    onToggle={() => toggleDropdown("has_buyers_agent")}
+                    dropdownRef={getDropdownRef("has_buyers_agent")}
+                  />
+                ) : (
+                  <div className="mobile-input bg-gray-50">
+                    {formData.has_buyers_agent
+                      ? [
+                          { value: "yes", label: "Yes" },
+                          { value: "no", label: "No" },
+                        ].find(opt => opt.value === formData.has_buyers_agent)?.label
+                      : "Not specified"}
+                  </div>
+                )}
+              </div>
+
+              {/* Show checkbox if user does NOT have a buyer's agent */}
+              {formData.has_buyers_agent === "no" && (
+                <div className="flex flex-col justify-center items-center h-full w-full md:mt-2">
+                  <label className="flex items-center gap-3 text-sm font-medium text-black">
+                    {isEditMode ? (
+                      <input
+                        type="checkbox"
+                        className="form-checkbox h-6 w-6 rounded border-2 border-brown text-brown focus:ring-2 focus:ring-brown focus:ring-offset-2 transition-all duration-150"
+                        checked={!!formData.looking_for_buyers_agent}
+                        onChange={(e) =>
+                          updateFormData(
+                            "looking_for_buyers_agent",
+                            e.target.checked
+                          )
+                        }
+                      />
+                    ) : (
+                      <div className="h-6 w-6 rounded border-2 border-gray-300 bg-gray-50 flex items-center justify-center">
+                        {formData.looking_for_buyers_agent && (
+                          <svg className="w-4 h-4 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        )}
+                      </div>
+                    )}
+                    <span className="select-none">
+                      I am looking for a buyer's agent
+                    </span>
+                  </label>
                 </div>
               )}
             </div>
@@ -2418,20 +1964,10 @@ export default function PersonalizationPage() {
                       if (!section || !section.key || !section.label)
                         return null;
 
-                      // Get the actual boolean field value (section.key already has include_ prefix)
-                      const booleanFieldName =
-                        section.key as keyof OnboardingData;
-                      const fieldValue = formData[booleanFieldName];
-                      const priorities =
-                        formData.report_section_priorities || [];
+                      const priorities = formData.report_section_priorities || [];
                       const priorityIndex = priorities.indexOf(section.key);
-                      // Only checked if both boolean field is true AND section is in priorities array
-                      const isChecked =
-                        (typeof fieldValue === "boolean" ? fieldValue : true) &&
-                        priorityIndex !== -1;
-                      const priority = isChecked
-                        ? priorityIndex + 1
-                        : undefined;
+                      const isChecked = priorityIndex !== -1;
+                      const priority = isChecked ? priorityIndex + 1 : undefined;
 
                       return (
                         <SortableReportSection
@@ -2440,9 +1976,6 @@ export default function PersonalizationPage() {
                           label={section.label}
                           checked={isChecked}
                           onToggle={(checked) => {
-                            // Update the boolean field directly
-                            updateFormData(booleanFieldName, checked);
-                            // Also update priorities array
                             handleReportSectionToggle(section.key, checked);
                           }}
                           priority={priority}
@@ -2457,14 +1990,9 @@ export default function PersonalizationPage() {
                 {orderedSections?.map((section) => {
                   if (!section || !section.key || !section.label) return null;
 
-                  const booleanFieldName = section.key as keyof OnboardingData;
-                  const fieldValue = formData[booleanFieldName];
                   const priorities = formData.report_section_priorities || [];
                   const priorityIndex = priorities.indexOf(section.key);
-                  // Only checked if both boolean field is true AND section is in priorities array
-                  const isChecked =
-                    (typeof fieldValue === "boolean" ? fieldValue : true) &&
-                    priorityIndex !== -1;
+                  const isChecked = priorityIndex !== -1;
                   const priority = isChecked ? priorityIndex + 1 : undefined;
 
                   return (

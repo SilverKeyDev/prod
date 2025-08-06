@@ -10,6 +10,7 @@ import uuid
 import time
 from flask import jsonify
 import traceback
+from sqlalchemy.exc import OperationalError, DisconnectionError
 from .pdf_creator import _create_pdf
 from io import BytesIO
 from .schema_generator import get_individual_section_schema
@@ -428,10 +429,10 @@ def get_preferences(user_id: str) -> Dict:
             logger.info(f"✅ PREFERENCES: Found preferences for user_id {user_id}")
             prefs_dict = preferences.to_dict()
             logger.info(f"📊 PREFERENCES: Preferences keys: {list(prefs_dict.keys()) if prefs_dict else 'None'}")
-            if prefs_dict and 'report_customization' in prefs_dict:
-                logger.info(f"🎯 PREFERENCES: report_customization found with keys: {list(prefs_dict['report_customization'].keys()) if prefs_dict['report_customization'] else 'None'}")
+            if prefs_dict and 'report_section_priorities' in prefs_dict:
+                logger.info(f"🎯 PREFERENCES: report_section_priorities found: {prefs_dict['report_section_priorities']}")
             else:
-                logger.warning(f"⚠️ PREFERENCES: No report_customization found in preferences for user_id {user_id}")
+                logger.warning(f"⚠️ PREFERENCES: No report_section_priorities found in preferences for user_id {user_id}")
             return prefs_dict
         else:
             logger.warning(f"⚠️ PREFERENCES: No preferences record found for user_id {user_id}")
@@ -676,13 +677,53 @@ def _wait_for_report_completion(pdf_doc, address: str, max_wait_time: int = 600)
     """Wait for a report to complete generation and return the JSON data"""
     import time
     from app.models.pdf_document import PDFDocument
+    from sqlalchemy.exc import OperationalError, DisconnectionError
     
     logger.info(f"⏳ Waiting for report completion: {pdf_doc.id} for address {address}")
     start_time = time.time()
     
+    # Dispose engine before long-running DB operations
+    try:
+        db.engine.dispose()
+        logger.debug("🔄 Disposed database engine before long polling operation")
+    except Exception as e:
+        logger.warning(f"⚠️ Failed to dispose engine: {str(e)}")
+    
     while time.time() - start_time < max_wait_time:
-        # Refresh the PDF document from database
-        db.session.refresh(pdf_doc)
+        # Refresh the PDF document from database with retry logic
+        max_retries = 3
+        retry_delay = 1
+        
+        for attempt in range(max_retries):
+            try:
+                db.session.refresh(pdf_doc)
+                break  # Success, exit retry loop
+            except (OperationalError, DisconnectionError) as e:
+                logger.warning(f"🔄 DB refresh error on attempt {attempt + 1}/{max_retries}: {str(e)}")
+                
+                # Clean up session
+                try:
+                    db.session.rollback()
+                    db.session.remove()
+                except Exception:
+                    pass
+                
+                # Dispose engine to force reconnection
+                try:
+                    db.engine.dispose()
+                except Exception:
+                    pass
+                
+                if attempt < max_retries - 1:
+                    logger.debug(f"⏳ Retrying DB refresh in {retry_delay} seconds...")
+                    time.sleep(retry_delay)
+                    retry_delay *= 2  # Exponential backoff
+                else:
+                    logger.error(f"❌ Max retries exceeded for DB refresh")
+                    raise
+            except Exception as e:
+                logger.error(f"❌ Non-connection error during DB refresh: {str(e)}")
+                raise
         
         if pdf_doc.status in ['completed', 'processed']:
             logger.info(f"✅ Report completed for {address}, downloading JSON")
@@ -766,17 +807,56 @@ def _get_or_generate_report_json(address: str, user_id: int, filename: str) -> D
             report_type='detailed',
         )
         
+        # Dispose engine before database operations for better reliability
         try:
-            db.session.add(pdf_doc)
-            # Decrement reports_available for non-subscription users
-            user.reports_available -= 1
-            db.session.commit()
-            logger.info(f"✅ Created PDF document record: {pdf_doc.id}")
-            logger.info(f"✅ Decremented reports_available for user {user.id}: {user.reports_available}")
+            db.engine.dispose()
+            logger.debug("🔄 Disposed database engine before PDF document creation")
         except Exception as e:
-            logger.error(f"❌ Database error when creating PDF document: {str(e)}")
-            db.session.rollback()
-            raise e
+            logger.warning(f"⚠️ Failed to dispose engine: {str(e)}")
+        
+        # Database operations with retry logic
+        max_retries = 3
+        retry_delay = 1
+        
+        for attempt in range(max_retries):
+            try:
+                db.session.add(pdf_doc)
+                # Decrement reports_available for non-subscription users
+                user.reports_available -= 1
+                db.session.commit()
+                logger.info(f"✅ Created PDF document record: {pdf_doc.id}")
+                logger.info(f"✅ Decremented reports_available for user {user.id}: {user.reports_available}")
+                break  # Success, exit retry loop
+            except (OperationalError, DisconnectionError) as e:
+                logger.warning(f"🔄 DB commit error on attempt {attempt + 1}/{max_retries}: {str(e)}")
+                
+                # Clean up session
+                try:
+                    db.session.rollback()
+                    db.session.remove()
+                except Exception:
+                    pass
+                
+                # Dispose engine to force reconnection
+                try:
+                    db.engine.dispose()
+                except Exception:
+                    pass
+                
+                if attempt < max_retries - 1:
+                    logger.debug(f"⏳ Retrying DB commit in {retry_delay} seconds...")
+                    time.sleep(retry_delay)
+                    retry_delay *= 2  # Exponential backoff
+                else:
+                    logger.error(f"❌ Max retries exceeded for DB commit")
+                    raise
+            except Exception as e:
+                logger.error(f"❌ Database error when creating PDF document: {str(e)}")
+                try:
+                    db.session.rollback()
+                except Exception:
+                    pass
+                raise e
         
         # Start async task and wait for completion
         from app.celery.tasks import generate_report_async
@@ -812,26 +892,25 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
     else:
         logger.error(f"❌ REPORT_GEN: No preferences found for user_id {user_id} - this will cause report generation to fail")
     
-    report_customization = None
-    if user_preferences and 'report_customization' in user_preferences:
-        report_customization = user_preferences['report_customization']
-        logger.info(f"✅ REPORT_GEN: Using report_customization from user_id {user_id}")
-        logger.info(f"🎯 REPORT_GEN: Customization options: {list(report_customization.keys()) if report_customization else 'None'}")
+    # Extract report_section_priorities directly from user_preferences
+    section_names = []
+    if user_preferences and 'report_section_priorities' in user_preferences:
+        section_names = user_preferences['report_section_priorities']
+        logger.info(f"✅ REPORT_GEN: Using report_section_priorities from user_id {user_id}")
+        logger.info(f"🎯 REPORT_GEN: Section priorities: {section_names}")
     else:
-        # Default all to True if no preferences found
-        logger.error(f"❌ REPORT_GEN: No report_customization found for user_id {user_id}")
+        # Default to all sections if no preferences found
+        logger.error(f"❌ REPORT_GEN: No report_section_priorities found for user_id {user_id}")
         if user_preferences:
             logger.error(f"❌ REPORT_GEN: Available preference keys: {list(user_preferences.keys())}")
         else:
             logger.error(f"❌ REPORT_GEN: user_preferences is None for user_id {user_id}")
-        raise Exception(f"No report customization found for user_id {user_id}")
-
-
-    # Extract report_section_priorities from report_customization
-    section_names = []
-    if 'report_section_priorities' in user_preferences['report_customization']:
-        section_names = user_preferences['report_customization']['report_section_priorities']
-        logger.info(f"🎯 REPORT_GEN: Using section priorities: {{'report_section_priorities': {section_names}}}")
+        raise Exception(f"No report_section_priorities found for user_id {user_id}")
+    
+    # Create report_customization dict for backward compatibility with existing code
+    report_customization = {
+        "report_section_priorities": section_names
+    } if section_names else None
     
     # Override section_names for marketing model
     if marketing_model:

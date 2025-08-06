@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Mail, Lock, ArrowLeft } from "lucide-react";
 import { authApi } from "../lib/api";
-import Loading from "../components/Loading";
 import MiniLogo from "../components/MiniLogo";
 
 export default function LoginPage() {
@@ -52,7 +51,7 @@ export default function LoginPage() {
       window.dispatchEvent(new Event('authChange'));
 
       // Hard refresh to ensure clean app state
-      window.location.href = "/dashboard";
+      window.location.href = "/dashboard/search";
     } catch (error: unknown) {
       console.error('Login error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Login failed. Please try again.';

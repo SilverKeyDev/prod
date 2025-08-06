@@ -388,7 +388,7 @@ export default function PastReports() {
   };
 
   const handleViewPdf = async (report: Report) => {
-    let pdfUrl = await getFreshViewUrl(report.id);
+    const pdfUrl = await getFreshViewUrl(report.id);
 
     if (pdfUrl) {
       openPdfModal(pdfUrl);
@@ -1298,7 +1298,7 @@ export default function PastReports() {
                           style={{
                             display: "-webkit-box",
                             WebkitLineClamp: 2,
-                            WebkitBoxOrient: "vertical" as "vertical",
+                            WebkitBoxOrient: "vertical" as const,
                             wordBreak: "break-word",
                             hyphens: "auto",
                           }}
@@ -1426,7 +1426,7 @@ export default function PastReports() {
                         maxWidth: "calc(100% - 10rem)",
                         display: "-webkit-box",
                         WebkitLineClamp: 2,
-                        WebkitBoxOrient: "vertical" as "vertical",
+                        WebkitBoxOrient: "vertical" as const,
                         wordBreak: "break-word",
                         hyphens: "auto",
                       }}

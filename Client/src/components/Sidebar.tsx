@@ -1,27 +1,27 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
-  Home,
   FileText,
   BarChart2,
-  LogOut,
-  CreditCard,
-  User as UserIcon,
-  MessageCircle,
-  Users,
+  Settings,
   Search,
+  Crosshair,
+  Key,
   ChevronDown,
   ChevronRight,
-  Briefcase,
+  LogOut,
+  User as UserIcon,
+  CreditCard,
+  MessageCircle,
+  Users,
   Handshake,
-  Key,
-  Settings,
+  FileEdit,
 } from "lucide-react";
 import { User } from "../types/index.ts";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import ConfirmationDialog from "./ConfirmationDialog";
-import { apiRequest } from "../lib/api";
+
 import { useData } from "../contexts/DataContext";
-import KeyLogo from "./KeyLogo";
+import MiniLogo from "./MiniLogo";
 interface SidebarProps {
   user?: User; // make user optional to prevent crash
   onLogout: () => void;
@@ -58,15 +58,13 @@ const navigationStructure: NavigationStructure = {
   search: {
     name: "Search",
     icon: Search,
-    items: [
-      { name: "Property Search", href: "/dashboard/search", icon: Search },
-    ],
+    items: [],
   },
   decide: {
     name: "Decide",
-    icon: Briefcase,
+    icon: Crosshair,
     items: [
-      { name: "Generate Report", href: "/dashboard", icon: Home },
+      { name: "Generate Report", href: "/dashboard", icon: FileEdit },
       { name: "Past Reports", href: "/dashboard/reports", icon: FileText },
       { name: "Compare Reports", href: "/dashboard/compare-reports", icon: BarChart2 },
       { name: "AI Assistant", href: "/dashboard/ai-assistant", icon: MessageCircle },
@@ -133,21 +131,21 @@ export default function Sidebar({
   onToggleExpanded,
   isMobile = false,
 }: SidebarProps) {
-  const [user, setUser] = useState<User | null>(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  // Use userProfile from DataContext for all user info
+  const { userProfile, userProfileLoading } = useData();
+  const isLoading = userProfileLoading;
   const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({
     onboard: false,
     search: false,
-    decide: true, // Open by default since it contains the main pages
+    decide: false,
     negotiate: false,
     close: false,
   });
   const location = useLocation();
-  const navigate = useNavigate();
 
   // Get userProfile from DataContext for agent check
-  const { userProfile } = useData();
+  // Already destructured above.
 
   const handleLogoutClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -163,38 +161,7 @@ export default function Sidebar({
     setShowLogoutConfirm(false);
   };
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        setIsLoading(true);
-        const response = await apiRequest<User>("/api/v1/user/profile", {
-          method: "GET",
-        });
-
-        if (response.success && response.data) {
-          // The response.data contains the user object
-          setUser(response.data);
-        } else {
-          throw new Error(response.message || "Failed to load user data");
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-
-        if (error instanceof Error) {
-          if (error.message.includes("401") || error.message.includes("403")) {
-            console.log("Redirecting to login due to auth error");
-            navigate("/login");
-          } else if (error.message.includes("Failed to fetch")) {
-            console.error("Network error - check if the server is running");
-          }
-        }
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchUserData();
-  }, [navigate]);
+  // No local fetchUserData; userProfile is loaded by DataContext on login/app load.
 
   const isActive = (href: string) =>
     location.pathname === href || location.pathname.endsWith(href);
@@ -224,26 +191,58 @@ export default function Sidebar({
         className={`fixed top-0 bottom-0 left-0 z-50 bg-brown transition-all duration-200 ${
           isMobile
             ? expanded
-              ? "w-72 translate-x-0"
-              : "w-12 translate-x-0" // Always show collapsed sidebar on mobile
+              ? "w-67 translate-x-0"
+              : "w-16 translate-x-0" // Always show collapsed sidebar on mobile
             : expanded
-            ? "w-72"
-            : "w-16"
+            ? "w-67"
+              : "w-16"
         }`}
       >
         <div
-          className="h-full flex flex-col overflow-hidden"
+          className="h-full flex flex-col overflow-hidden line-clamp-1"
           style={{
             height: isMobile ? "100vh" : "100%",
             maxHeight: isMobile ? "100vh" : "100%",
           }}
         >
           {/* Header with Logo and Toggle Button */}
-          <div className="flex-shrink-0 p-2 border-b border-brown-light flex justify-between items-center">
+          <div className="flex-shrink-0 p-2 flex justify-between items-center">
             {/* Logo */}
             <div className="text-white flex items-center" style={{ filter: 'brightness(0) invert(1)' }}>
+              {/* User Info (only when expanded) */}
               {expanded && (
-                <KeyLogo size="sm"/>
+                <div className="flex-shrink-0 p-4">
+                  {isLoading ? (
+                    <div className="animate-pulse space-y-3">
+                      <div className="flex items-center space-x-4">
+                        <div className="w-6 h-6 bg-brown-light rounded-full"></div>
+                        <div className="flex-1 space-y-2">
+                          <div className="h-4 bg-brown-light rounded w-3/4"></div>
+                          <div className="h-3 bg-brown-light rounded w-1/2"></div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center">
+                      <div style={{ filter: 'brightness(0) invert(1)' }}>
+                        <MiniLogo className="w-6 h-6" />
+                      </div>
+                      <div className="ml-4">
+                        <p className="text-sm font-medium text-white line-clamp-1">
+                          {userProfile?.name ?? "Unknown User"}
+                        </p>
+                        <p className="text-xs text-white/80 line-clamp-1">
+                          {userProfile?.email ?? "No email"}
+                        </p>
+                        {userProfile?.agency_name && (
+                          <p className="text-xs text-white/60 line-clamp-1">
+                            {userProfile.agency_name}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
             
@@ -271,100 +270,80 @@ export default function Sidebar({
             </button>
           </div>
 
-          {/* User Info (only when expanded) */}
-          {expanded && (
-            <div className="flex-shrink-0 p-4 border-b border-brown-light">
-              {isLoading ? (
-                <div className="animate-pulse space-y-3">
-                  <div className="flex items-center space-x-4">
-                    <div className="w-6 h-6 bg-brown-light rounded-full"></div>
-                    <div className="flex-1 space-y-2">
-                      <div className="h-4 bg-brown-light rounded w-3/4"></div>
-                      <div className="h-3 bg-brown-light rounded w-1/2"></div>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex items-center">
-                  <div className="w-9 h-9 bg-gold rounded-full flex items-center justify-center">
-                    <span
-                      className="text-black font-semibold"
-                      style={{ fontSize: "16px" }}
-                    >
-                      {user?.name?.charAt(0).toUpperCase() ?? "?"}
-                    </span>
-                  </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-white line-clamp-1">
-                      {user?.name ?? "Unknown User"}
-                    </p>
-                    <p className="text-xs text-white/80 line-clamp-1">
-                      {user?.email ?? "No email"}
-                    </p>
-                    {user?.agencyName && (
-                      <p className="text-xs text-white/60 line-clamp-1">
-                        {user.agencyName}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
           {/* Navigation - Scrollable middle section */}
           <div className="flex-1 overflow-y-auto min-h-0">
             <nav className="mt-4 pb-4">
               {Object.entries(getNavigation(userProfile?.is_agent)).map(([categoryKey, category]: [string, NavCategory]) => (
                 <div key={categoryKey}>
-                  {/* Category Header */}
-                  <button
-                    onClick={() => toggleCategory(categoryKey)}
-                    className={`w-full flex items-center justify-between px-4 py-3 transition-colors font-medium text-white touch-friendly ${
-                      isCategoryActive(category.items) 
-                        ? "bg-brown-light/70 text-white font-semibold" 
-                        : "text-white/70 hover:bg-brown-light/30 hover:text-white active:bg-brown-light/20"
-                    }`}
-                  >
-                    <div className="flex items-center">
+                  {/* If it's the search category with no items, make it a direct link */}
+                  {categoryKey === 'search' ? (
+                    <Link
+                      to="/dashboard/search"
+                      className={`w-full flex items-center px-4 py-3 transition-colors font-medium text-white touch-friendly ${
+                        isActive('/dashboard/search') 
+                          ? "bg-brown-light/70 text-white font-semibold" 
+                          : "text-white/70 hover:bg-brown-light/30 hover:text-white active:bg-brown-light/20"
+                      }`}
+                    >
                       <category.icon 
                         className={`w-6 h-6 transition-all duration-200 ${expanded ? "mr-4" : ""}`} 
                       />
                       <span className={expanded ? "block" : "hidden"}>
                         {category.name}
                       </span>
-                    </div>
-                    {expanded && (
-                      openCategories[categoryKey] ? 
-                        <ChevronDown className="w-5 h-5" /> : 
-                        <ChevronRight className="w-5 h-5" />
-                    )}
-                  </button>
-                  
-                  {/* Category Items */}
-                  {openCategories[categoryKey] && (
-                    <div className={`${expanded ? "ml-4" : ""}`}>
-                      {category.items.map((item) => (
-                        <Link
-                          key={item.name}
-                          to={item.href}
-                          className={`flex items-center px-4 py-2 transition-colors font-medium text-white touch-friendly ${
-                            isActive(item.href)
-                              ? "bg-brown-light text-white font-semibold"
-                              : "text-white/50 hover:bg-brown-light/50 hover:text-white active:bg-brown-light/30"
-                          }`}
-                        >
-                          <item.icon
-                            className={`${
-                              isActive(item.href) ? "w-6 h-6" : "w-5 h-5"
-                            } transition-all duration-200 ${expanded ? "mr-3" : ""}`}
+                    </Link>
+                  ) : (
+                    <>
+                      {/* Category Header */}
+                      <button
+                        onClick={() => toggleCategory(categoryKey)}
+                        className={`w-full flex items-center justify-between px-4 py-3 transition-colors font-medium text-white touch-friendly ${
+                          isCategoryActive(category.items) 
+                            ? "bg-brown-light/70 text-white font-semibold" 
+                            : "text-white/70 hover:bg-brown-light/30 hover:text-white active:bg-brown-light/20"
+                        }`}
+                      >
+                        <div className="flex items-center">
+                          <category.icon 
+                            className={`w-6 h-6 transition-all duration-200 ${expanded ? "mr-4" : ""}`} 
                           />
-                          <span className={expanded ? "block text-sm" : "hidden"}>
-                            {item.name}
+                          <span className={expanded ? "block" : "hidden"}>
+                            {category.name}
                           </span>
-                        </Link>
-                      ))}
-                    </div>
+                        </div>
+                        {expanded && (
+                          openCategories[categoryKey] ? 
+                            <ChevronDown className="w-5 h-5" /> : 
+                            <ChevronRight className="w-5 h-5" />
+                        )}
+                      </button>
+                      
+                      {/* Category Items */}
+                      {openCategories[categoryKey] && (
+                        <div className={`${expanded ? "ml-4" : ""}`}>
+                          {category.items.map((item) => (
+                            <Link
+                              key={item.name}
+                              to={item.href}
+                              className={`flex items-center px-4 py-2 transition-colors font-medium text-white touch-friendly ${
+                                isActive(item.href)
+                                  ? "bg-brown-light text-white font-semibold"
+                                  : "text-white/50 hover:bg-brown-light/50 hover:text-white active:bg-brown-light/30"
+                              }`}
+                            >
+                              <item.icon
+                                className={`${
+                                  isActive(item.href) ? "w-6 h-6" : "w-5 h-5"
+                                } transition-all duration-200 ${expanded ? "mr-3" : ""}`}
+                              />
+                              <span className={expanded ? "block text-sm" : "hidden"}>
+                                {item.name}
+                              </span>
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               ))}

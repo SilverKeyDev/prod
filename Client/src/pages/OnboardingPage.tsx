@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { estimateAffordableHomePrice } from "../hooks/getHomePrice";
 import {
   ChevronLeft,
   ChevronRight,
@@ -8,11 +9,8 @@ import {
   User,
   Home,
   MapPin,
-  Heart,
-  Brain,
   Building,
   MessageSquare,
-  Lightbulb,
   Plus,
   X,
   GripVertical,
@@ -34,9 +32,10 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { apiRequest } from "../lib/api";
 import ImportantLocationsInput from "../components/ImportantLocationsInput";
+import PreferredRegionsInput from "../components/PreferredRegionsInput";
 import KeyLogo from "../components/KeyLogo";
+import PriceRangeSlider from "../components/PriceRangeSlider";
 
 // Extend window interface for Google Maps
 declare global {
@@ -46,67 +45,43 @@ declare global {
 }
 
 interface OnboardingData {
+  // Demographics
+  pets?: string;
   age?: number;
   gender?: string;
-  marital_status?: string;
-  household_size?: number;
-  children_count?: number;
-  children_ages?: number[];
-  education_level?: string;
   occupation?: string;
-  industry?: string;
-  employment_status?: string;
-  income_range?: string;
-  preferred_home_price_range?: string;
+
+  // Financial
+  gross_income?: number;
+  home_budget?: number;
   credit_score_range?: string;
-  savings_amount_range?: string;
-  investment_experience?: string;
-  risk_tolerance?: string;
-  desired_housing_type?: string;
+  down_payment?: number;
+  ideal_zip_code?: string;
+
+  // Home Buying Process
+  preferred_housing_type?: string;
   preferred_bathrooms?: number;
   preferred_bedrooms?: number;
   preferred_lot_size?: string;
   preferred_home_age?: string;
   preferred_architectural_style?: string;
-  preferred_home_features?: string[];
-  preferred_regions?: string[];
-  preferred_climate?: string;
-  urban_rural_preference?: string;
-  commute_tolerance?: number;
-  proximity_to_family?: string;
-  walkability_importance?: string;
-  important_locations?: { name: string; address: string }[];
-  lifestyle_type?: string;
-  hobbies_interests?: string[];
-  dining_preferences?: string[];
-  fitness_activities?: string[];
-  decision_making_style?: string;
-  research_behavior?: string;
-  favored_information_style?: string;
-  political_leaning?: string;
-  community_involvement?: string;
-  property_search_stage?: string;
-  home_buying_experience?: string;
-  financing_preference?: string;
-  property_features_priority?: string[];
-  deal_breakers?: string[];
-  renovation_willingness?: string;
+  renovation_preference?: string;
   intended_property_use?: string;
-  timeline_to_purchase?: string;
-  current_home_ownership_status?: string;
-  moving_reason?: string;
-  agent_experience_preference?: string;
-  preferred_support_channel?: string;
-  communication_preference?: string;
+  architectural_style_preference?: string;
+  preferred_home_features?: string[];
+  deal_breakers?: string[];
+
+  // Location & Housing
+  preferred_regions?: { name: string; address: string }[];
+  important_locations?: { name: string; address: string }[];
+  commute_tolerance?: number;
+  walkability_importance?: string;
+  // Communication
   communication_frequency?: string;
   information_detail_level?: string;
-  meeting_preference?: string;
-  meeting_availability?: string;
-  response_time_expectation?: string;
-  quote_bubbles?: string[];
-  deal_makers?: string[];
-  concerns_or_fears?: string[];
-  additional_context?: string;
+  has_buyers_agent?: string; // 'yes' | 'no'
+  looking_for_buyers_agent?: boolean;
+
   // Report Customization
   report_section_priorities?: string[];
 }
@@ -116,29 +91,8 @@ const STEPS = [
   { id: "financial", title: "Financial Profile", icon: Building },
   { id: "housing", title: "Housing Preferences", icon: Home },
   { id: "location", title: "Location Preferences", icon: MapPin },
-  { id: "lifestyle", title: "Lifestyle", icon: Heart },
-  { id: "behavior", title: "Preferences", icon: Brain },
-  { id: "realestate", title: "Real Estate Goals", icon: Building },
   { id: "communication", title: "Communication", icon: MessageSquare },
-  { id: "insights", title: "Personal Insights", icon: Lightbulb },
   { id: "reportcustomization", title: "Report Customization", icon: Check },
-];
-
-// Valid report sections that exactly match backend models
-const VALID_REPORT_SECTIONS = [
-  "neighborhood_overview",
-  "safety",
-  "culture_and_events",
-  "social_character",
-  "local_amenities",
-  "commute",
-  "family_friendly",
-  "nightlife_and_dating",
-  "development",
-  "environment_utilities",
-  "financial_information",
-  "schools",
-  "extra_tips",
 ];
 
 const REPORT_SECTIONS = [
@@ -173,6 +127,22 @@ const SortableReportSection: React.FC<SortableReportSectionProps> = ({
   priority,
   onToggle,
 }) => {
+  // Safety checks for props
+  if (
+    !id ||
+    !label ||
+    typeof checked !== "boolean" ||
+    typeof onToggle !== "function"
+  ) {
+    console.warn("SortableReportSection received invalid props:", {
+      id,
+      label,
+      checked,
+      onToggle,
+    });
+    return null;
+  }
+
   const {
     attributes,
     listeners,
@@ -185,7 +155,6 @@ const SortableReportSection: React.FC<SortableReportSectionProps> = ({
   const style = {
     transform: CSS.Transform.toString(transform),
     transition: isDragging ? "none" : transition,
-    opacity: isDragging ? 0.9 : 1,
     zIndex: isDragging ? 1000 : "auto",
   };
 
@@ -193,53 +162,67 @@ const SortableReportSection: React.FC<SortableReportSectionProps> = ({
     <div
       ref={setNodeRef}
       style={style}
-      className={`flex items-center space-x-3 p-3 bg-white border border-beige rounded-lg hover:border-brown/30 transition-all duration-200 ${
+      className={`flex items-center space-x-3 p-3 border rounded-lg transition-all duration-200 border-beige hover:bg-beige/10 hover:border-brown/30 ${
         !checked ? "opacity-60" : ""
       } ${isDragging ? "shadow-lg bg-white border-brown/50" : ""}`}
     >
       <div
         {...attributes}
         {...listeners}
-        className="cursor-grab active:cursor-grabbing p-1 hover:bg-brown/10 rounded transition-colors"
+        className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 p-1 rounded hover:bg-gray-100 transition-colors"
         title="Drag to reorder"
       >
-        <GripVertical className="w-4 h-4 text-brown/60" />
+        <GripVertical className="w-5 h-5" />
       </div>
 
-      {checked && priority && (
-        <div className="flex-shrink-0 w-6 h-6 bg-gray-100 text-gray-600 text-xs font-medium rounded-full flex items-center justify-center border border-gray-200 decoration-gray-400 decoration-1">
-          {priority}
-        </div>
-      )}
-
-      <label className="flex items-center space-x-3 flex-1 cursor-pointer">
-        <input
-          type="checkbox"
-          checked={checked}
-          onChange={(e) => onToggle(e.target.checked)}
-          className="sr-only"
-        />
-        <div
-          className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all duration-200 ${
-            checked
-              ? "bg-brown border-brown text-white shadow-sm"
-              : "border-beige hover:border-brown/50 bg-white"
-          }`}
-        >
-          {checked && (
-            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fillRule="evenodd"
-                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                clipRule="evenodd"
-              />
-            </svg>
+      <div className="flex items-center space-x-3 flex-1">
+        <div className="flex items-center space-x-2">
+          {priority && (
+            <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">
+              {priority}
+            </span>
           )}
+
+          <label
+            htmlFor={id}
+            className="flex items-center space-x-3 cursor-pointer flex-1"
+          >
+            <div className="relative">
+              <input
+                type="checkbox"
+                id={id}
+                checked={checked}
+                onChange={(e) => onToggle(e.target.checked)}
+                className="sr-only"
+              />
+              <div
+                className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all duration-200 ${
+                  checked
+                    ? "bg-brown border-brown text-white shadow-sm"
+                    : "border-beige hover:border-brown/50 bg-white"
+                }`}
+              >
+                {checked && (
+                  <svg
+                    className="w-3 h-3"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                )}
+              </div>
+            </div>
+            <span className="text-sm font-medium text-gray-700 flex-1">
+              {label}
+            </span>
+          </label>
         </div>
-        <span className="text-sm font-medium text-gray-700 flex-1">
-          {label}
-        </span>
-      </label>
+      </div>
     </div>
   );
 };
@@ -311,13 +294,16 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
 export default function OnboardingPage() {
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<OnboardingData>({
-    // Initialize report customization with all valid sections included by default
-    report_section_priorities: [...VALID_REPORT_SECTIONS],
+    // Initialize report customization with only Neighborhood Overview checked by default
+    report_section_priorities: ["neighborhood_overview"],
     important_locations: [],
   });
   const [loading, setLoading] = useState(false);
   const [scriptsReady, setScriptsReady] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [homePriceResult, setHomePriceResult] = useState<any>(null);
+  const [homePriceLoading, setHomePriceLoading] = useState(false);
+  const [homePriceError, setHomePriceError] = useState<string | null>(null);
   const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>(
     {}
   );
@@ -395,8 +381,13 @@ export default function OnboardingPage() {
 
       if (oldIndex === -1 || newIndex === -1) return;
 
+      const currentPriorities = formData.report_section_priorities || [];
       const reorderedSections = arrayMove(sections, oldIndex, newIndex);
-      const newPriorities = reorderedSections.map((section) => section.key);
+      
+      // Only include sections that were previously selected (in priorities)
+      const newPriorities = reorderedSections
+        .filter((section) => currentPriorities.includes(section.key))
+        .map((section) => section.key);
 
       updateFormData("report_section_priorities", newPriorities);
     } catch (error) {
@@ -415,8 +406,9 @@ export default function OnboardingPage() {
       );
       updateFormData("report_section_priorities", newPriorities);
     } else {
-      // Add to priorities when checked (if not already there)
+      // Add to last priority (bottom of list) when checked (if not already there)
       if (!currentPriorities.includes(sectionKey)) {
+        // Add to the end of the list (last priority)
         updateFormData("report_section_priorities", [
           ...currentPriorities,
           sectionKey,
@@ -443,30 +435,119 @@ export default function OnboardingPage() {
     localStorage.setItem("onboardingDraft", JSON.stringify(formData));
   }, [formData]);
 
-  // Validation method for children count
-  const validateAllowZero = (value: string): number | undefined => {
-    // Allow empty string (not specified)
-    if (value === "") {
-      return undefined;
+  // Trigger home price calculation when relevant form data changes
+  useEffect(() => {
+    // Only calculate if we're on the financial step
+    if (STEPS[currentStep].id !== "financial") return;
+
+    // Only calculate if we have the minimum required data
+    if (formData.gross_income && formData.ideal_zip_code) {
+      calculateHomePrice();
     }
+  }, [
+    formData.gross_income,
+    formData.credit_score_range,
+    formData.ideal_zip_code,
+    currentStep,
+  ]);
 
-    const numValue = parseInt(value, 10);
-
-    // Check if it's a valid number
-    if (isNaN(numValue)) {
-      return undefined;
-    }
-
-    // Must be non-negative integer (0 or greater)
-    if (numValue < 0) {
-      return undefined;
-    }
-
-    return numValue;
-  };
-
+  // Update form data with new value
   const updateFormData = (field: keyof OnboardingData, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  // Calculate home price based on form data
+  const calculateHomePrice = async () => {
+    // Check if we have all required data
+    if (!formData.gross_income || !formData.ideal_zip_code) {
+      return;
+    }
+
+    try {
+      setHomePriceLoading(true);
+      setHomePriceError(null);
+
+      // Map credit score range to a numeric value
+      let creditScore = 700; // Default to good credit
+      switch (formData.credit_score_range) {
+        case "poor":
+          creditScore = 550;
+          break;
+        case "fair":
+          creditScore = 630;
+          break;
+        case "good":
+          creditScore = 700;
+          break;
+        case "very_good":
+          creditScore = 770;
+          break;
+        case "excellent":
+          creditScore = 800;
+          break;
+      }
+
+      // Calculate down payment percentage based on savings
+      const downPaymentAmount = formData.down_payment || 50000;
+
+      const result = await estimateAffordableHomePrice({
+        grossAnnualIncome: formData.gross_income || 0,
+        creditScore,
+        zipCode: formData.ideal_zip_code || "",
+        downPayment: downPaymentAmount,
+      });
+
+      if ("error" in result) {
+        setHomePriceError(result.error);
+        setHomePriceResult(null);
+      } else {
+        setHomePriceResult({
+          ...result,
+          explanation: generateExplanation(result, formData),
+        });
+      }
+    } catch (error) {
+      setHomePriceError(
+        error instanceof Error
+          ? error.message
+          : "Failed to calculate home price"
+      );
+      setHomePriceResult(null);
+    } finally {
+      setHomePriceLoading(false);
+    }
+  };
+
+  // Generate explanation text for the home price calculation
+  const generateExplanation = (result: any, data: OnboardingData) => {
+    // Calculate down payment percent for display
+    const downPaymentPercent =
+      result.maxHomePrice > 0
+        ? ((result.downPayment / result.maxHomePrice) * 100).toFixed(1)
+        : "-";
+
+    return `Based on your gross annual income of $${data.gross_income?.toLocaleString()}, credit score range, and a down payment of $${data.down_payment?.toLocaleString()} (${downPaymentPercent}% of home price), we estimate you can afford a home up to $${result.maxHomePrice.toLocaleString()}.
+
+This estimate is calculated using a debt-to-income (DTI) approach: your maximum allowable monthly housing cost is determined as a percentage of your gross monthly income, in line with common DTI limits. We then backsolve for the highest home price you can afford, factoring in principal, interest, property taxes, homeowner's insurance, and any required PMI.
+
+Key assumptions used:
+- **Interest Rate:** ${
+      typeof result.interestRate === "number"
+        ? (result.interestRate * 100).toFixed(2)
+        : "-"
+    }%
+- **Property Tax Rate:** ${
+      typeof result.propertyTaxRate === "number"
+        ? result.propertyTaxRate.toFixed(2)
+        : "-"
+    }%
+- **DTI Used:** ${
+      typeof result.dtiUsed === "number"
+        ? (result.dtiUsed * 100).toFixed(0)
+        : "-"
+    }%
+
+Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleString()} includes principal, interest, property taxes, homeowner's insurance, and PMI (if applicable). This approach gives you a realistic maximum home price based on your income and debts—not just a budget cap.`;
   };
 
   // Dropdown utility functions
@@ -716,94 +797,20 @@ export default function OnboardingPage() {
 
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
-                  Marital Status
+                  Do you have pets?
                 </label>
                 <CustomDropdown
-                  value={formData.marital_status || ""}
-                  onChange={(value) => updateFormData("marital_status", value)}
+                  value={formData.pets || ""}
+                  onChange={(value) => updateFormData("pets", value)}
                   options={[
-                    { value: "single", label: "Single" },
-                    { value: "married", label: "Married" },
-                    { value: "divorced", label: "Divorced" },
-                    { value: "widowed", label: "Widowed" },
-                    { value: "partnered", label: "Partnered" },
+                    { value: "yes", label: "Yes" },
+                    { value: "no", label: "No" },
+                    { value: "prefer_not_to_say", label: "Prefer not to say" },
                   ]}
                   placeholder="Select..."
-                  isOpen={openDropdowns.marital_status || false}
-                  onToggle={() => toggleDropdown("marital_status")}
-                  dropdownRef={getDropdownRef("marital_status")}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Household Size
-                </label>
-                <input
-                  type="number"
-                  value={formData.household_size || ""}
-                  onChange={(e) =>
-                    updateFormData(
-                      "household_size",
-                      parseInt(e.target.value) || undefined
-                    )
-                  }
-                  className="mobile-input"
-                  placeholder="Number of people in household"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Number of Children
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  max="20"
-                  value={
-                    formData.children_count !== undefined
-                      ? formData.children_count
-                      : ""
-                  }
-                  onChange={(e) =>
-                    updateFormData(
-                      "children_count",
-                      validateAllowZero(e.target.value)
-                    )
-                  }
-                  className="mobile-input"
-                  placeholder="Number of children"
-                />
-              </div>
-
-              <div>
-                <NumberTagInput
-                  field="children_ages"
-                  label="Children's Ages"
-                  placeholder="Enter age and click + to add"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Education Level
-                </label>
-                <CustomDropdown
-                  value={formData.education_level || ""}
-                  onChange={(value) => updateFormData("education_level", value)}
-                  options={[
-                    { value: "high_school", label: "High School" },
-                    { value: "some_college", label: "Some College" },
-                    { value: "bachelors", label: "Bachelor's Degree" },
-                    { value: "masters", label: "Master's Degree" },
-                    { value: "doctorate", label: "Doctorate" },
-                    { value: "other", label: "Other" },
-                  ]}
-                  placeholder="Select..."
-                  isOpen={openDropdowns.education_level || false}
-                  onToggle={() => toggleDropdown("education_level")}
-                  dropdownRef={getDropdownRef("education_level")}
+                  isOpen={openDropdowns.pets || false}
+                  onToggle={() => toggleDropdown("pets")}
+                  dropdownRef={getDropdownRef("pets")}
                 />
               </div>
 
@@ -819,30 +826,6 @@ export default function OnboardingPage() {
                   placeholder="Your job title"
                 />
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Employment Status
-                </label>
-                <CustomDropdown
-                  value={formData.employment_status || ""}
-                  onChange={(value) =>
-                    updateFormData("employment_status", value)
-                  }
-                  options={[
-                    { value: "employed", label: "Employed" },
-                    { value: "unemployed", label: "Unemployed" },
-                    { value: "retired", label: "Retired" },
-                    { value: "student", label: "Student" },
-                    { value: "freelance", label: "Freelance" },
-                    { value: "other", label: "Other" },
-                  ]}
-                  placeholder="Select..."
-                  isOpen={openDropdowns.employment_status || false}
-                  onToggle={() => toggleDropdown("employment_status")}
-                  dropdownRef={getDropdownRef("employment_status")}
-                />
-              </div>
             </div>
           </div>
         );
@@ -855,67 +838,61 @@ export default function OnboardingPage() {
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="w-4/5 mx-auto">
+                <label className="block text-xs font-normal text-black mb-1 text-center w-full">
+                  Gross Household Income (after annual debts)
+                </label>
+                <PriceRangeSlider
+                  tickValues={[
+                    50000, 100000, 200000, 300000, 500000, 750000, 1000000,
+                  ]}
+                  value={formData.gross_income || 100000}
+                  onChange={(value) => {
+                    // Round to nearest $5,000 increment
+                    const roundedValue = Math.round(value / 5000) * 5000;
+                    updateFormData("gross_income", roundedValue);
+                  }}
+                  formatPrefix="$"
+                  className="mt-2"
+                />
+              </div>
+
+              <div className="w-4/5 mx-auto">
+                <label className="block text-xs font-normal text-black mb-1 text-center w-full">
+                  Down Payment
+                </label>
+                <PriceRangeSlider
+                  tickValues={[
+                    50000, 100000, 200000, 300000, 500000, 750000, 1000000,
+                  ]}
+                  value={formData.down_payment || 100000}
+                  onChange={(value) => {
+                    // Round to nearest $5,000 increment
+                    const roundedValue = Math.round(value / 5000) * 5000;
+                    updateFormData("down_payment", roundedValue);
+                  }}
+                  formatPrefix="$"
+                  className="mt-2"
+                />
+              </div>
+
               <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Industry
+                <label className="block text-sm font-medium text-black mb-2 text-center">
+                  Ideal Zip Code
                 </label>
                 <input
                   type="text"
-                  value={formData.industry || ""}
-                  onChange={(e) => updateFormData("industry", e.target.value)}
-                  className="mobile-input"
-                  placeholder="e.g., Technology, Healthcare"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Income Range
-                </label>
-                <CustomDropdown
-                  value={formData.income_range || ""}
-                  onChange={(value) => updateFormData("income_range", value)}
-                  options={[
-                    { value: "under_30k", label: "Under $30,000" },
-                    { value: "30k_50k", label: "$30,000 - $50,000" },
-                    { value: "50k_75k", label: "$50,000 - $75,000" },
-                    { value: "75k_100k", label: "$75,000 - $100,000" },
-                    { value: "100k_150k", label: "$100,000 - $150,000" },
-                    { value: "150k_plus", label: "$150,000+" },
-                  ]}
-                  placeholder="Select..."
-                  isOpen={openDropdowns.income_range || false}
-                  onToggle={() => toggleDropdown("income_range")}
-                  dropdownRef={getDropdownRef("income_range")}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Preferred Home Price Range
-                </label>
-                <CustomDropdown
-                  value={formData.preferred_home_price_range || ""}
-                  onChange={(value) =>
-                    updateFormData("preferred_home_price_range", value)
+                  value={formData.ideal_zip_code || ""}
+                  onChange={(e) =>
+                    updateFormData("ideal_zip_code", e.target.value)
                   }
-                  options={[
-                    { value: "under_200k", label: "Under $200,000" },
-                    { value: "200k_400k", label: "$200,000 - $400,000" },
-                    { value: "400k_600k", label: "$400,000 - $600,000" },
-                    { value: "600k_800k", label: "$600,000 - $800,000" },
-                    { value: "800k_1m", label: "$800,000 - $1,000,000" },
-                    { value: "1m_plus", label: "$1,000,000+" },
-                  ]}
-                  placeholder="Select..."
-                  isOpen={openDropdowns.preferred_home_price_range || false}
-                  onToggle={() => toggleDropdown("preferred_home_price_range")}
-                  dropdownRef={getDropdownRef("preferred_home_price_range")}
+                  className="mobile-input"
+                  placeholder="Enter zip code"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-black mb-2">
+                <label className="block text-sm font-medium text-black mb-2 text-center">
                   Credit Score Range
                 </label>
                 <CustomDropdown
@@ -937,71 +914,228 @@ export default function OnboardingPage() {
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Savings Amount Range
+              <div className="col-span-1 md:col-span-2 flex flex-col items-center">
+                <label className="block text-2xl font-bold text-black mb-2 text-center w-full">
+                  Home Budget
                 </label>
-                <CustomDropdown
-                  value={formData.savings_amount_range || ""}
-                  onChange={(value) =>
-                    updateFormData("savings_amount_range", value)
-                  }
-                  options={[
-                    { value: "under_10k", label: "Under $10,000" },
-                    { value: "10k_25k", label: "$10,000 - $25,000" },
-                    { value: "25k_50k", label: "$25,000 - $50,000" },
-                    { value: "50k_100k", label: "$50,000 - $100,000" },
-                    { value: "100k_plus", label: "$100,000+" },
+                <PriceRangeSlider
+                  tickValues={[
+                    200000, 500000, 1000000, 2000000, 5000000, 10000000,
                   ]}
-                  placeholder="Select..."
-                  isOpen={openDropdowns.savings_amount_range || false}
-                  onToggle={() => toggleDropdown("savings_amount_range")}
-                  dropdownRef={getDropdownRef("savings_amount_range")}
+                  value={formData.home_budget || 500000}
+                  onChange={(value) => {
+                    // Round to nearest $25,000 increment
+                    const roundedValue = Math.round(value / 25000) * 25000;
+                    updateFormData("home_budget", roundedValue);
+                  }}
+                  formatPrefix="$"
+                  className="mt-2"
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Investment Experience
-                </label>
-                <CustomDropdown
-                  value={formData.investment_experience || ""}
-                  onChange={(value) =>
-                    updateFormData("investment_experience", value)
-                  }
-                  options={[
-                    { value: "none", label: "None" },
-                    { value: "beginner", label: "Beginner" },
-                    { value: "intermediate", label: "Intermediate" },
-                    { value: "advanced", label: "Advanced" },
-                    { value: "expert", label: "Expert" },
-                  ]}
-                  placeholder="Select..."
-                  isOpen={openDropdowns.investment_experience || false}
-                  onToggle={() => toggleDropdown("investment_experience")}
-                  dropdownRef={getDropdownRef("investment_experience")}
-                />
-              </div>
+              {/* Home Price Calculation Results */}
+              <div className="col-span-1 md:col-span-2 mt-6 p-4 bg-white rounded-lg border border-olive">
+                <h3 className="text-lg font-medium text-olive mb-2">
+                  Estimated Home Affordability
+                </h3>
 
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Risk Tolerance
-                </label>
-                <CustomDropdown
-                  value={formData.risk_tolerance || ""}
-                  onChange={(value) => updateFormData("risk_tolerance", value)}
-                  options={[
-                    { value: "very_low", label: "Very Low" },
-                    { value: "low", label: "Low" },
-                    { value: "moderate", label: "Moderate" },
-                    { value: "high", label: "High" },
-                    { value: "very_high", label: "Very High" },
-                  ]}
-                  placeholder="Select..."
-                  isOpen={openDropdowns.risk_tolerance || false}
-                  onToggle={() => toggleDropdown("risk_tolerance")}
-                  dropdownRef={getDropdownRef("risk_tolerance")}
-                />
+                {homePriceLoading ? (
+                  <div className="flex items-center justify-center py-4">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-olive"></div>
+                    <span className="ml-2 text-sm text-black">
+                      Calculating affordability...
+                    </span>
+                  </div>
+                ) : homePriceError ? (
+                  <div className="text-black text-sm py-2">
+                    <p className="font-medium">
+                      Unable to calculate affordability:
+                    </p>
+                    <p>{homePriceError}</p>
+                    <p className="mt-2">
+                      Please ensure you've entered your income, zip code, and
+                      other financial details.
+                    </p>
+                  </div>
+                ) : homePriceResult ? (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-black">Maximum Home Price</p>
+                        <p className="text-xl font-bold text-olive">
+                          ${homePriceResult.maxHomePrice.toLocaleString()}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-black">Monthly Payment</p>
+                        <p className="text-xl font-bold text-olive">
+                          $
+                          {homePriceResult.totalMonthlyHousingCost.toLocaleString()}
+                          /mo
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="text-sm text-black bg-white p-3 rounded border border-olive/30">
+                      <p className="font-medium mb-2">
+                        How We Calculated This:
+                      </p>
+                      <div className="bg-[#EAD9B3] bg-opacity-20 p-3 rounded font-mono text-black space-y-1">
+                        <p>
+                          1. <strong>Monthly Income</strong> = Gross Annual
+                          Income ÷ 12
+                        </p>
+                        <p className="ml-4">
+                          = ${homePriceResult.netAnnualIncome.toLocaleString()}{" "}
+                          ÷ 12 ={" "}
+                          <strong>
+                            $
+                            {(
+                              homePriceResult.netAnnualIncome / 12
+                            ).toLocaleString(undefined, {
+                              maximumFractionDigits: 0,
+                            })}
+                          </strong>
+                        </p>
+
+                        <p>
+                          2. <strong>Max Monthly Housing Cost</strong> = Monthly
+                          Income × DTI Ratio
+                        </p>
+                        <p className="ml-4">
+                          = $
+                          {(
+                            homePriceResult.netAnnualIncome / 12
+                          ).toLocaleString()}{" "}
+                          × {(homePriceResult.dtiUsed / 100).toFixed(2)} ={" "}
+                          <strong>
+                            $
+                            {Math.round(
+                              (homePriceResult.netAnnualIncome / 12) *
+                                (homePriceResult.dtiUsed / 100)
+                            ).toLocaleString()}
+                          </strong>
+                        </p>
+
+                        <p>
+                          3. <strong>Mortgage Payment</strong> = P × r × (1 + r)
+                          <sup>n</sup> ÷ ((1 + r)<sup>n</sup> - 1)
+                        </p>
+                        <p className="ml-4">Where:</p>
+                        <p className="ml-8">
+                          P = $
+                          {Math.round(
+                            homePriceResult.loanAmount
+                          ).toLocaleString()}
+                        </p>
+                        <p className="ml-8">
+                          r ={" "}
+                          {(homePriceResult.interestRate / 100 / 12).toFixed(4)}{" "}
+                          (monthly interest)
+                        </p>
+                        <p className="ml-8">
+                          n = {30 * 12} months (30-year loan)
+                        </p>
+                        <p className="ml-4">
+                          →{" "}
+                          <strong>
+                            Monthly Mortgage = $
+                            {homePriceResult.monthlyMortgage.toLocaleString()}
+                          </strong>
+                        </p>
+
+                        <p>
+                          4. <strong>Property Tax</strong> = Home Price × Tax
+                          Rate ÷ 12
+                        </p>
+                        <p className="ml-4">
+                          = ${homePriceResult.maxHomePrice.toLocaleString()} ×{" "}
+                          {(homePriceResult.propertyTaxRate * 100).toFixed(2)}%
+                          ÷ 12
+                        </p>
+
+                        <p>
+                          5. <strong>Home Insurance</strong> = Home Price ×
+                          0.50% ÷ 12
+                        </p>
+                        <p className="ml-4">
+                          = ${homePriceResult.maxHomePrice.toLocaleString()} ×
+                          0.005 ÷ 12
+                        </p>
+
+                        {homePriceResult.monthlyPMI > 0 && (
+                          <>
+                            <p>
+                              6.{" "}
+                              <strong>PMI (Private Mortgage Insurance)</strong>{" "}
+                              = Loan × PMI Rate ÷ 12
+                            </p>
+                            <p className="ml-4">
+                              PMI Rate ≈{" "}
+                              {(
+                                ((homePriceResult.monthlyPMI * 12) /
+                                  homePriceResult.loanAmount) *
+                                100
+                              ).toFixed(2)}
+                              %
+                            </p>
+                            <p className="ml-4">
+                              →{" "}
+                              <strong>
+                                Monthly PMI = $
+                                {homePriceResult.monthlyPMI.toLocaleString()}
+                              </strong>
+                            </p>
+                          </>
+                        )}
+                      </div>
+
+                      <p className="mt-4 font-medium">
+                        Why This Formula Matters:
+                      </p>
+                      <p>
+                        This estimate uses a{" "}
+                        <strong>Debt-to-Income (DTI)</strong> ratio of{" "}
+                        <strong>{homePriceResult.dtiUsed.toFixed(1)}%</strong>,
+                        which reflects current lending guidelines. It ensures
+                        your total monthly housing cost—including mortgage,
+                        taxes, insurance, and PMI—stays within what lenders
+                        generally approve based on your income and debt load.
+                      </p>
+                      <p>
+                        We include estimated <strong>property taxes</strong>{" "}
+                        (based on ZIP code{" "}
+                        <strong>{formData.ideal_zip_code}</strong>),{" "}
+                        <strong>insurance</strong> costs, and{" "}
+                        <strong>PMI</strong> if your down payment is under 20%.
+                        These are factored into your maximum affordable home
+                        price using smart search logic.
+                      </p>
+                    </div>
+
+                    {homePriceResult.warnings?.length > 0 && (
+                      <div className="mt-2">
+                        <p className="text-sm font-medium text-olive mt-2">
+                          Important Considerations:
+                        </p>
+                        <ul className="list-disc list-inside text-sm text-black pl-2">
+                          {homePriceResult.warnings.map(
+                            (warning: string, i: number) => (
+                              <li key={i}>{warning}</li>
+                            )
+                          )}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-sm text-black py-2">
+                    <p>
+                      Enter your income, zip code, and other financial details
+                      to see your estimated home affordability.
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -1020,9 +1154,9 @@ export default function OnboardingPage() {
                   Desired Housing Type
                 </label>
                 <CustomDropdown
-                  value={formData.desired_housing_type || ""}
+                  value={formData.preferred_housing_type || ""}
                   onChange={(value) =>
-                    updateFormData("desired_housing_type", value)
+                    updateFormData("preferred_housing_type", value)
                   }
                   options={[
                     { value: "single_family", label: "Single Family Home" },
@@ -1030,7 +1164,6 @@ export default function OnboardingPage() {
                     { value: "townhouse", label: "Townhouse" },
                     { value: "apartment", label: "Apartment" },
                     { value: "duplex", label: "Duplex" },
-                    { value: "mobile_home", label: "Mobile Home" },
                   ]}
                   placeholder="Select..."
                   isOpen={openDropdowns.desired_housing_type || false}
@@ -1156,6 +1289,50 @@ export default function OnboardingPage() {
                 />
               </div>
 
+              <div>
+                <label className="block text-sm font-medium text-black mb-2">
+                  Renovation Willingness
+                </label>
+                <CustomDropdown
+                  value={formData.renovation_preference || ""}
+                  onChange={(value) =>
+                    updateFormData("renovation_preference", value)
+                  }
+                  options={[
+                    { value: "none", label: "None - Move-in Ready" },
+                    { value: "minor", label: "Minor Cosmetic Updates" },
+                    { value: "major", label: "Major Renovations" },
+                    { value: "complete", label: "Complete Renovation" },
+                  ]}
+                  placeholder="Select..."
+                  isOpen={openDropdowns.renovation_preference || false}
+                  onToggle={() => toggleDropdown("renovation_preference")}
+                  dropdownRef={getDropdownRef("renovation_preference")}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-black mb-2">
+                  Intended Property Use
+                </label>
+                <CustomDropdown
+                  value={formData.intended_property_use || ""}
+                  onChange={(value) =>
+                    updateFormData("intended_property_use", value)
+                  }
+                  options={[
+                    { value: "primary", label: "Primary Residence" },
+                    { value: "investment", label: "Investment Property" },
+                    { value: "vacation", label: "Vacation Home" },
+                    { value: "rental", label: "Rental Property" },
+                  ]}
+                  placeholder="Select..."
+                  isOpen={openDropdowns.intended_property_use || false}
+                  onToggle={() => toggleDropdown("intended_property_use")}
+                  dropdownRef={getDropdownRef("intended_property_use")}
+                />
+              </div>
+
               <div className="md:col-span-2">
                 <TagInput
                   key="preferred_home_features"
@@ -1163,6 +1340,14 @@ export default function OnboardingPage() {
                   label="Preferred Home Features"
                   placeholder="Enter feature and click + to add (e.g., garage, pool, fireplace)"
                 />
+                <div className="md:col-span-2">
+                  <TagInput
+                    key="deal_breakers"
+                    field="deal_breakers"
+                    label="Deal Breakers"
+                    placeholder="Add deal breakers (e.g., No parking, Busy road, Old plumbing)"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -1176,37 +1361,6 @@ export default function OnboardingPage() {
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="md:col-span-2">
-                <TagInput
-                  key="preferred_regions"
-                  field="preferred_regions"
-                  label="Preferred Regions"
-                  placeholder="Enter state or region and click + to add (e.g., California, Texas, Florida)"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Urban/Rural Preference
-                </label>
-                <CustomDropdown
-                  value={formData.urban_rural_preference || ""}
-                  onChange={(value) =>
-                    updateFormData("urban_rural_preference", value)
-                  }
-                  options={[
-                    { value: "urban", label: "Urban" },
-                    { value: "suburban", label: "Suburban" },
-                    { value: "rural", label: "Rural" },
-                    { value: "mixed", label: "Mixed" },
-                  ]}
-                  placeholder="Select..."
-                  isOpen={openDropdowns.urban_rural_preference || false}
-                  onToggle={() => toggleDropdown("urban_rural_preference")}
-                  dropdownRef={getDropdownRef("urban_rural_preference")}
-                />
-              </div>
-
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
                   Commute Tolerance (minutes)
@@ -1224,54 +1378,6 @@ export default function OnboardingPage() {
                   min="0"
                   max="180"
                   placeholder="Maximum commute time"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Preferred Climate
-                </label>
-                <CustomDropdown
-                  value={formData.preferred_climate || ""}
-                  onChange={(value) =>
-                    updateFormData("preferred_climate", value)
-                  }
-                  options={[
-                    { value: "tropical", label: "Tropical" },
-                    { value: "subtropical", label: "Subtropical" },
-                    { value: "temperate", label: "Temperate" },
-                    { value: "continental", label: "Continental" },
-                    { value: "arid", label: "Arid" },
-                    { value: "mediterranean", label: "Mediterranean" },
-                  ]}
-                  placeholder="Select..."
-                  isOpen={openDropdowns.preferred_climate || false}
-                  onToggle={() => toggleDropdown("preferred_climate")}
-                  dropdownRef={getDropdownRef("preferred_climate")}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Proximity to Family
-                </label>
-                <CustomDropdown
-                  value={formData.proximity_to_family || ""}
-                  onChange={(value) =>
-                    updateFormData("proximity_to_family", value)
-                  }
-                  options={[
-                    { value: "very_important", label: "Very Important" },
-                    {
-                      value: "somewhat_important",
-                      label: "Somewhat Important",
-                    },
-                    { value: "not_important", label: "Not Important" },
-                  ]}
-                  placeholder="Select..."
-                  isOpen={openDropdowns.proximity_to_family || false}
-                  onToggle={() => toggleDropdown("proximity_to_family")}
-                  dropdownRef={getDropdownRef("proximity_to_family")}
                 />
               </div>
 
@@ -1301,420 +1407,39 @@ export default function OnboardingPage() {
             </div>
 
             {/* Important Locations for Commute */}
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-black mb-2">
-                Important Locations
-              </label>
-              <p className="text-xs text-black/60 mb-4">
-                Add locations that are important for your commute (e.g., workplace, family home, gym)
-              </p>
-              <ImportantLocationsInput
-                locations={formData.important_locations || []}
-                onChange={(locations) => updateFormData("important_locations", locations)}
-                scriptsReady={scriptsReady}
-              />
-              {loadError && (
-                <p className="text-red-500 text-xs mt-2">{loadError}</p>
-              )}
-            </div>
-          </div>
-        );
-
-      case "lifestyle":
-        return (
-          <div className="space-y-6">
-            <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
-              Lifestyle Preferences
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
+            <div className="flex flex-col md:flex-row gap-6 w-full">
+              <div className="flex-1">
                 <label className="block text-sm font-medium text-black mb-2">
-                  Lifestyle Type
+                  Important Locations
                 </label>
-                <CustomDropdown
-                  value={formData.lifestyle_type || ""}
-                  onChange={(value) => updateFormData("lifestyle_type", value)}
-                  options={[
-                    { value: "active", label: "Active" },
-                    { value: "quiet", label: "Quiet" },
-                    { value: "social", label: "Social" },
-                    { value: "family_oriented", label: "Family Oriented" },
-                    { value: "career_focused", label: "Career Focused" },
-                  ]}
-                  placeholder="Select..."
-                  isOpen={openDropdowns.lifestyle_type || false}
-                  onToggle={() => toggleDropdown("lifestyle_type")}
-                  dropdownRef={getDropdownRef("lifestyle_type")}
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <TagInput
-                  key="hobbies_interests"
-                  field="hobbies_interests"
-                  label="Hobbies & Interests"
-                  placeholder="Enter hobby or interest and click + to add (e.g., hiking, cooking, reading)"
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <TagInput
-                  key="dining_preferences"
-                  field="dining_preferences"
-                  label="Dining Preferences"
-                  placeholder="Enter dining preference and click + to add (e.g., Italian, Vegetarian, Fine dining)"
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <TagInput
-                  key="fitness_activities"
-                  field="fitness_activities"
-                  label="Fitness Activities"
-                  placeholder="Enter fitness activity and click + to add (e.g., Running, Yoga, Swimming)"
-                />
-              </div>
-            </div>
-          </div>
-        );
-
-      case "behavior":
-        return (
-          <div className="space-y-6">
-            <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
-              Your Preferences
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Decision Making Style
-                </label>
-                <CustomDropdown
-                  value={formData.decision_making_style || ""}
-                  onChange={(value) =>
-                    updateFormData("decision_making_style", value)
+                <p className="text-xs text-black/60 mb-4">
+                  Add locations that are important for your commute (e.g.,
+                  workplace, family home, gym)
+                </p>
+                <ImportantLocationsInput
+                  locations={formData.important_locations || []}
+                  onChange={(locations) =>
+                    updateFormData("important_locations", locations)
                   }
-                  options={[
-                    { value: "analytical", label: "Analytical" },
-                    { value: "intuitive", label: "Intuitive" },
-                    { value: "collaborative", label: "Collaborative" },
-                    { value: "quick", label: "Quick" },
-                    { value: "deliberate", label: "Deliberate" },
-                  ]}
-                  placeholder="Select..."
-                  isOpen={openDropdowns.decision_making_style || false}
-                  onToggle={() => toggleDropdown("decision_making_style")}
-                  dropdownRef={getDropdownRef("decision_making_style")}
+                  scriptsReady={scriptsReady}
                 />
+                {loadError && (
+                  <p className="text-red-500 text-xs mt-2">{loadError}</p>
+                )}
               </div>
-
-              <div>
+              <div className="flex-1">
                 <label className="block text-sm font-medium text-black mb-2">
-                  Research Behavior
+                  Preferred Regions
                 </label>
-                <CustomDropdown
-                  value={formData.research_behavior || ""}
-                  onChange={(value) =>
-                    updateFormData("research_behavior", value)
+                <p className="text-xs text-gray-500 mb-2">
+                  Add regions where you'd like to live
+                </p>
+                <PreferredRegionsInput
+                  regions={formData.preferred_regions || []}
+                  onChange={(regions) =>
+                    updateFormData("preferred_regions", regions)
                   }
-                  options={[
-                    { value: "minimal", label: "Minimal" },
-                    { value: "moderate", label: "Moderate" },
-                    { value: "extensive", label: "Extensive" },
-                    { value: "obsessive", label: "Obsessive" },
-                  ]}
-                  placeholder="Select..."
-                  isOpen={openDropdowns.research_behavior || false}
-                  onToggle={() => toggleDropdown("research_behavior")}
-                  dropdownRef={getDropdownRef("research_behavior")}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Favored Information Style
-                </label>
-                <CustomDropdown
-                  value={formData.favored_information_style || ""}
-                  onChange={(value) =>
-                    updateFormData("favored_information_style", value)
-                  }
-                  options={[
-                    { value: "visual", label: "Visual" },
-                    { value: "textual", label: "Textual" },
-                    { value: "detailed", label: "Detailed" },
-                    { value: "summary", label: "Summary" },
-                  ]}
-                  placeholder="Select..."
-                  isOpen={openDropdowns.favored_information_style || false}
-                  onToggle={() => toggleDropdown("favored_information_style")}
-                  dropdownRef={getDropdownRef("favored_information_style")}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Political Leaning
-                </label>
-                <CustomDropdown
-                  value={formData.political_leaning || ""}
-                  onChange={(value) =>
-                    updateFormData("political_leaning", value)
-                  }
-                  options={[
-                    { value: "conservative", label: "Conservative" },
-                    { value: "liberal", label: "Liberal" },
-                    { value: "moderate", label: "Moderate" },
-                    { value: "independent", label: "Independent" },
-                    { value: "prefer_not_to_say", label: "Prefer not to say" },
-                  ]}
-                  placeholder="Select..."
-                  isOpen={openDropdowns.political_leaning || false}
-                  onToggle={() => toggleDropdown("political_leaning")}
-                  dropdownRef={getDropdownRef("political_leaning")}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Community Involvement
-                </label>
-                <CustomDropdown
-                  value={formData.community_involvement || ""}
-                  onChange={(value) =>
-                    updateFormData("community_involvement", value)
-                  }
-                  options={[
-                    { value: "high", label: "High" },
-                    { value: "moderate", label: "Moderate" },
-                    { value: "low", label: "Low" },
-                    { value: "none", label: "None" },
-                  ]}
-                  placeholder="Select..."
-                  isOpen={openDropdowns.community_involvement || false}
-                  onToggle={() => toggleDropdown("community_involvement")}
-                  dropdownRef={getDropdownRef("community_involvement")}
-                />
-              </div>
-            </div>
-          </div>
-        );
-
-      case "realestate":
-        return (
-          <div className="space-y-6">
-            <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
-              Real Estate Goals
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Property Search Stage
-                </label>
-                <CustomDropdown
-                  value={formData.property_search_stage || ""}
-                  onChange={(value) =>
-                    updateFormData("property_search_stage", value)
-                  }
-                  options={[
-                    { value: "not_looking", label: "Not Looking" },
-                    { value: "browsing", label: "Browsing" },
-                    {
-                      value: "actively_searching",
-                      label: "Actively Searching",
-                    },
-                    { value: "ready_to_buy", label: "Ready to Buy" },
-                  ]}
-                  placeholder="Select..."
-                  isOpen={openDropdowns.property_search_stage || false}
-                  onToggle={() => toggleDropdown("property_search_stage")}
-                  dropdownRef={getDropdownRef("property_search_stage")}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Home Buying Experience
-                </label>
-                <CustomDropdown
-                  value={formData.home_buying_experience || ""}
-                  onChange={(value) =>
-                    updateFormData("home_buying_experience", value)
-                  }
-                  options={[
-                    { value: "first_time", label: "First Time" },
-                    { value: "experienced", label: "Experienced" },
-                    { value: "investor", label: "Investor" },
-                    {
-                      value: "multiple_properties",
-                      label: "Multiple Properties",
-                    },
-                  ]}
-                  placeholder="Select..."
-                  isOpen={openDropdowns.home_buying_experience || false}
-                  onToggle={() => toggleDropdown("home_buying_experience")}
-                  dropdownRef={getDropdownRef("home_buying_experience")}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Timeline to Purchase
-                </label>
-                <CustomDropdown
-                  value={formData.timeline_to_purchase || ""}
-                  onChange={(value) =>
-                    updateFormData("timeline_to_purchase", value)
-                  }
-                  options={[
-                    { value: "<3_months", label: "Less than 3 months" },
-                    { value: "3-6_months", label: "3-6 months" },
-                    { value: "6-12_months", label: "6-12 months" },
-                    { value: ">1_year", label: "More than 1 year" },
-                    { value: "not_sure", label: "Not sure" },
-                  ]}
-                  placeholder="Select..."
-                  isOpen={openDropdowns.timeline_to_purchase || false}
-                  onToggle={() => toggleDropdown("timeline_to_purchase")}
-                  dropdownRef={getDropdownRef("timeline_to_purchase")}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Financing Preference
-                </label>
-                <CustomDropdown
-                  value={formData.financing_preference || ""}
-                  onChange={(value) =>
-                    updateFormData("financing_preference", value)
-                  }
-                  options={[
-                    { value: "cash", label: "Cash" },
-                    { value: "conventional", label: "Conventional Loan" },
-                    { value: "fha", label: "FHA Loan" },
-                    { value: "va", label: "VA Loan" },
-                    { value: "usda", label: "USDA Loan" },
-                    { value: "jumbo", label: "Jumbo Loan" },
-                  ]}
-                  placeholder="Select..."
-                  isOpen={openDropdowns.financing_preference || false}
-                  onToggle={() => toggleDropdown("financing_preference")}
-                  dropdownRef={getDropdownRef("financing_preference")}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Renovation Willingness
-                </label>
-                <CustomDropdown
-                  value={formData.renovation_willingness || ""}
-                  onChange={(value) =>
-                    updateFormData("renovation_willingness", value)
-                  }
-                  options={[
-                    { value: "none", label: "None - Move-in Ready" },
-                    { value: "minor", label: "Minor Cosmetic Updates" },
-                    { value: "major", label: "Major Renovations" },
-                    { value: "complete", label: "Complete Renovation" },
-                  ]}
-                  placeholder="Select..."
-                  isOpen={openDropdowns.renovation_willingness || false}
-                  onToggle={() => toggleDropdown("renovation_willingness")}
-                  dropdownRef={getDropdownRef("renovation_willingness")}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Intended Property Use
-                </label>
-                <CustomDropdown
-                  value={formData.intended_property_use || ""}
-                  onChange={(value) =>
-                    updateFormData("intended_property_use", value)
-                  }
-                  options={[
-                    { value: "primary", label: "Primary Residence" },
-                    { value: "investment", label: "Investment Property" },
-                    { value: "vacation", label: "Vacation Home" },
-                    { value: "rental", label: "Rental Property" },
-                  ]}
-                  placeholder="Select..."
-                  isOpen={openDropdowns.intended_property_use || false}
-                  onToggle={() => toggleDropdown("intended_property_use")}
-                  dropdownRef={getDropdownRef("intended_property_use")}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Current Home Ownership Status
-                </label>
-                <CustomDropdown
-                  value={formData.current_home_ownership_status || ""}
-                  onChange={(value) =>
-                    updateFormData("current_home_ownership_status", value)
-                  }
-                  options={[
-                    { value: "own", label: "Own Current Home" },
-                    { value: "rent", label: "Rent Current Home" },
-                    {
-                      value: "living_with_family",
-                      label: "Living with Family",
-                    },
-                    { value: "other", label: "Other" },
-                  ]}
-                  placeholder="Select..."
-                  isOpen={openDropdowns.current_home_ownership_status || false}
-                  onToggle={() =>
-                    toggleDropdown("current_home_ownership_status")
-                  }
-                  dropdownRef={getDropdownRef("current_home_ownership_status")}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Moving Reason
-                </label>
-                <CustomDropdown
-                  value={formData.moving_reason || ""}
-                  onChange={(value) => updateFormData("moving_reason", value)}
-                  options={[
-                    { value: "job", label: "Job/Career Change" },
-                    { value: "family", label: "Family Changes" },
-                    { value: "upgrade", label: "Upgrade Home" },
-                    { value: "downsize", label: "Downsize" },
-                    { value: "investment", label: "Investment Opportunity" },
-                    { value: "lifestyle", label: "Lifestyle Change" },
-                  ]}
-                  placeholder="Select..."
-                  isOpen={openDropdowns.moving_reason || false}
-                  onToggle={() => toggleDropdown("moving_reason")}
-                  dropdownRef={getDropdownRef("moving_reason")}
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <TagInput
-                  key="property_features_priority"
-                  field="property_features_priority"
-                  label="Property Features Priority"
-                  placeholder="Enter prioritized feature and click + to add (e.g., Updated kitchen, Large yard, Good schools)"
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <TagInput
-                  key="deal_breakers"
-                  field="deal_breakers"
-                  label="Deal Breakers"
-                  placeholder="Add deal breakers (e.g., No parking, Busy road, Old plumbing)"
+                  scriptsReady={scriptsReady}
                 />
               </div>
             </div>
@@ -1728,184 +1453,94 @@ export default function OnboardingPage() {
               Communication Preferences
             </h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Preferred Support Channel
-                </label>
-                <CustomDropdown
-                  value={formData.preferred_support_channel || ""}
-                  onChange={(value) =>
-                    updateFormData("preferred_support_channel", value)
-                  }
-                  options={[
-                    { value: "phone", label: "Phone" },
-                    { value: "email", label: "Email" },
-                    { value: "chat", label: "Chat" },
-                    { value: "self_service", label: "Self Service" },
-                  ]}
-                  placeholder="Select..."
-                  isOpen={openDropdowns.preferred_support_channel || false}
-                  onToggle={() => toggleDropdown("preferred_support_channel")}
-                  dropdownRef={getDropdownRef("preferred_support_channel")}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Communication Preference
-                </label>
-                <CustomDropdown
-                  value={formData.communication_preference || ""}
-                  onChange={(value) =>
-                    updateFormData("communication_preference", value)
-                  }
-                  options={[
-                    { value: "frequent", label: "Frequent updates" },
-                    { value: "milestone", label: "Milestone updates" },
-                    { value: "minimal", label: "Minimal contact" },
-                  ]}
-                  placeholder="Select..."
-                  isOpen={openDropdowns.communication_preference || false}
-                  onToggle={() => toggleDropdown("communication_preference")}
-                  dropdownRef={getDropdownRef("communication_preference")}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Information Detail Level
-                </label>
-                <CustomDropdown
-                  value={formData.information_detail_level || ""}
-                  onChange={(value) =>
-                    updateFormData("information_detail_level", value)
-                  }
-                  options={[
-                    { value: "brief", label: "Brief" },
-                    { value: "moderate", label: "Moderate" },
-                    { value: "detailed", label: "Detailed" },
-                    { value: "comprehensive", label: "Comprehensive" },
-                  ]}
-                  placeholder="Select..."
-                  isOpen={openDropdowns.information_detail_level || false}
-                  onToggle={() => toggleDropdown("information_detail_level")}
-                  dropdownRef={getDropdownRef("information_detail_level")}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Meeting Preference
-                </label>
-                <CustomDropdown
-                  value={formData.meeting_preference || ""}
-                  onChange={(value) =>
-                    updateFormData("meeting_preference", value)
-                  }
-                  options={[
-                    { value: "in_person", label: "In Person" },
-                    { value: "virtual", label: "Virtual" },
-                    { value: "phone", label: "Phone" },
-                    { value: "email", label: "Email" },
-                  ]}
-                  placeholder="Select..."
-                  isOpen={openDropdowns.meeting_preference || false}
-                  onToggle={() => toggleDropdown("meeting_preference")}
-                  dropdownRef={getDropdownRef("meeting_preference")}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Meeting Availability
-                </label>
-                <CustomDropdown
-                  value={formData.meeting_availability || ""}
-                  onChange={(value) =>
-                    updateFormData("meeting_availability", value)
-                  }
-                  options={[
-                    { value: "weekdays", label: "Weekdays" },
-                    { value: "evenings", label: "Evenings" },
-                    { value: "weekends", label: "Weekends" },
-                    { value: "flexible", label: "Flexible" },
-                  ]}
-                  placeholder="Select..."
-                  isOpen={openDropdowns.meeting_availability || false}
-                  onToggle={() => toggleDropdown("meeting_availability")}
-                  dropdownRef={getDropdownRef("meeting_availability")}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Response Time Expectation
-                </label>
-                <CustomDropdown
-                  value={formData.response_time_expectation || ""}
-                  onChange={(value) =>
-                    updateFormData("response_time_expectation", value)
-                  }
-                  options={[
-                    { value: "immediate", label: "Immediate" },
-                    { value: "same_day", label: "Same Day" },
-                    { value: "24_hours", label: "Within 24 Hours" },
-                    { value: "flexible", label: "Flexible" },
-                  ]}
-                  placeholder="Select..."
-                  isOpen={openDropdowns.response_time_expectation || false}
-                  onToggle={() => toggleDropdown("response_time_expectation")}
-                  dropdownRef={getDropdownRef("response_time_expectation")}
-                />
-              </div>
+            {/* Communication Preference */}
+            <div>
+              <label className="block text-sm font-medium text-black mb-2">
+                Communication Frequency
+              </label>
+              <CustomDropdown
+                value={formData.communication_frequency || ""}
+                onChange={(value) =>
+                  updateFormData("communication_frequency", value)
+                }
+                options={[
+                  { value: "frequent", label: "Frequent updates" },
+                  { value: "milestone", label: "Milestone updates" },
+                  { value: "minimal", label: "Minimal contact" },
+                ]}
+                placeholder="Select..."
+                isOpen={openDropdowns.communication_frequency || false}
+                onToggle={() => toggleDropdown("communication_frequency")}
+                dropdownRef={getDropdownRef("communication_frequency")}
+              />
             </div>
-          </div>
-        );
 
-      case "insights":
-        return (
-          <div className="space-y-6">
-            <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
-              Personal Insights
-            </h2>
-
-            <div className="space-y-6">
-              <TagInput
-                key="quote_bubbles"
-                field="quote_bubbles"
-                label="What matters most to you in a home?"
-                placeholder="Add important features (e.g., Natural light, Quiet neighborhood, Good schools)"
+            {/* Information Detail Level */}
+            <div>
+              <label className="block text-sm font-medium text-black mb-2">
+                Information Detail Level
+              </label>
+              <CustomDropdown
+                value={formData.information_detail_level || ""}
+                onChange={(value) =>
+                  updateFormData("information_detail_level", value)
+                }
+                options={[
+                  { value: "brief", label: "Brief" },
+                  { value: "moderate", label: "Moderate" },
+                  { value: "detailed", label: "Detailed" },
+                  { value: "comprehensive", label: "Comprehensive" },
+                ]}
+                placeholder="Select..."
+                isOpen={openDropdowns.information_detail_level || false}
+                onToggle={() => toggleDropdown("information_detail_level")}
+                dropdownRef={getDropdownRef("information_detail_level")}
               />
+            </div>
 
-              <TagInput
-                key="deal_makers"
-                field="deal_makers"
-                label="What would seal the deal for you?"
-                placeholder="Add deal makers (e.g., Perfect kitchen, Amazing view, Great price)"
-              />
-
-              <TagInput
-                key="concerns_or_fears"
-                field="concerns_or_fears"
-                label="Any concerns or fears about buying?"
-                placeholder="Add concerns (e.g., Hidden problems, Bad neighbors, Market crash)"
-              />
-
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Buyer's Agent Dropdown */}
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
-                  Additional Context
+                  Do you currently have a buyer's agent?
                 </label>
-                <textarea
-                  value={formData.additional_context || ""}
-                  onChange={(e) =>
-                    updateFormData("additional_context", e.target.value)
+                <CustomDropdown
+                  value={formData.has_buyers_agent ?? ""}
+                  onChange={(value) =>
+                    updateFormData("has_buyers_agent", value)
                   }
-                  className="mobile-input"
-                  rows={4}
-                  placeholder="Share any additional context, special requirements, or important details about your home buying journey..."
+                  options={[
+                    { value: "yes", label: "Yes" },
+                    { value: "no", label: "No" },
+                  ]}
+                  placeholder="Select..."
+                  isOpen={openDropdowns.has_buyers_agent || false}
+                  onToggle={() => toggleDropdown("has_buyers_agent")}
+                  dropdownRef={getDropdownRef("has_buyers_agent")}
                 />
               </div>
+
+              {/* Show checkbox if user does NOT have a buyer's agent */}
+              {formData.has_buyers_agent === "no" && (
+                <div className="flex flex-col justify-center items-center h-full w-full md:mt-2">
+                  <label className="flex items-center gap-3 text-sm font-medium text-black">
+                    <input
+                      type="checkbox"
+                      className="form-checkbox h-6 w-6 rounded border-2 border-brown text-brown focus:ring-2 focus:ring-brown focus:ring-offset-2 transition-all duration-150"
+                      checked={!!formData.looking_for_buyers_agent}
+                      onChange={(e) =>
+                        updateFormData(
+                          "looking_for_buyers_agent",
+                          e.target.checked
+                        )
+                      }
+                    />
+                    <span className="select-none">
+                      I am looking for a buyer's agent
+                    </span>
+                  </label>
+                </div>
+              )}
             </div>
           </div>
         );
@@ -1944,10 +1579,8 @@ export default function OnboardingPage() {
             <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
               Report Customization
             </h2>
-            <p className="text-gray-600 mb-6">
-              Choose which sections to include in your property reports and drag
-              to reorder them by priority. All sections are enabled by default,
-              but you can customize them to focus on what matters most to you.
+            <p className="text-gray-600 mb-4">
+              Choose which sections to include in your property reports. All sections are enabled by default, but you can customize them to focus on what matters most to you.
             </p>
 
             <DndContext
@@ -2086,93 +1719,6 @@ export default function OnboardingPage() {
     }
   );
 
-  // Self-contained NumberTagInput component
-  const NumberTagInput = ({
-    field,
-    label,
-    placeholder,
-  }: {
-    field: keyof OnboardingData;
-    label: string;
-    placeholder: string;
-  }) => {
-    const [draftValue, setDraftValue] = useState("");
-    const currentTags = (formData[field] as number[]) || [];
-
-    const handleAddNumberTag = (value: string) => {
-      const numValue = parseInt(value.trim());
-      if (isNaN(numValue)) return;
-      const currentArray = (formData[field] as number[]) || [];
-      if (!currentArray.includes(numValue)) {
-        updateFormData(field, [...currentArray, numValue]);
-      }
-      setDraftValue("");
-    };
-
-    const handleRemoveNumberTag = (valueToRemove: number) => {
-      const currentArray = (formData[field] as number[]) || [];
-      updateFormData(
-        field,
-        currentArray.filter((item) => item !== valueToRemove)
-      );
-    };
-
-    const handleKeyPress = (e: React.KeyboardEvent) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        handleAddNumberTag(draftValue);
-      }
-    };
-
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      setDraftValue(e.target.value);
-    };
-
-    return (
-      <div>
-        <label className="block text-sm font-medium text-black mb-2">
-          {label}
-        </label>
-        <div className="flex space-x-2 mb-3">
-          <input
-            type="number"
-            value={draftValue}
-            onChange={handleInputChange}
-            onKeyPress={handleKeyPress}
-            className="mobile-input flex-1"
-            placeholder={placeholder}
-          />
-          <button
-            type="button"
-            onClick={() => handleAddNumberTag(draftValue)}
-            className="px-4 py-2 bg-brown text-white rounded-lg hover:bg-brown/80 transition-colors touch-friendly flex items-center"
-          >
-            <Plus className="w-4 h-4" />
-          </button>
-        </div>
-        {currentTags.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {currentTags.map((tag, index) => (
-              <span
-                key={index}
-                className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-beige text-black"
-              >
-                {tag}
-                <button
-                  type="button"
-                  onClick={() => handleRemoveNumberTag(tag)}
-                  className="ml-2 text-black/60 hover:text-black"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              </span>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  };
-
   return (
     <div className="max-w-7xl mx-auto mobile-padding">
       {/* Header */}
@@ -2194,12 +1740,12 @@ export default function OnboardingPage() {
           </span>
         </div>
       </div>
-      
+
       {/* Description */}
       <div className="mb-4">
         <p className="text-sm sm:text-base text-black/60">
-          Information you give helps your agent and SilverKey serve you, but
-          all fields are optional!
+          Information you give helps your agent and SilverKey serve you, but all
+          fields are optional!
         </p>
       </div>
 
@@ -2232,7 +1778,7 @@ export default function OnboardingPage() {
                 </button>
                 {index < STEPS.length - 1 && (
                   <div
-                    className={`ml-4 w-8 sm:w-16 h-1 flex-shrink-0 ${
+                    className={`ml-4 w-16 sm:w-32 h-1 flex-shrink-0 ${
                       isCompleted ? "bg-olive" : "bg-beige"
                     }`}
                   />

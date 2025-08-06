@@ -178,72 +178,88 @@ def generate_action_plan(user_preferences, client_name):
         
         client = OpenAI(api_key=api_key, http_client=httpx.Client())
 
-        # Build context from user preferences
+        # Build context from user preferences (using actual UserPreferences model fields)
         context_parts = []
 
         if user_preferences:
-            # Personal Information
-            personal = getattr(user_preferences, 'personal_information', {})
-            if personal:
-                if personal.get('age_range'):
-                    context_parts.append(f"Age range: {personal['age_range'].replace('_', '-')}")
-                if personal.get('marital_status'):
-                    context_parts.append(f"Marital status: {personal['marital_status'].replace('_', ' ')}")
-                if personal.get('children_count') is not None:
-                    context_parts.append(f"Number of children: {personal['children_count']}")
+            # Demographics (using actual fields)
+            if user_preferences.get('age'):
+                context_parts.append(f"Age: {user_preferences['age']}")
+            if user_preferences.get('gender'):
+                context_parts.append(f"Gender: {user_preferences['gender']}")
+            if user_preferences.get('occupation'):
+                context_parts.append(f"Occupation: {user_preferences['occupation']}")
+            if user_preferences.get('pets'):
+                context_parts.append(f"Pets: {user_preferences['pets']}")
 
-            # Financial Profile
-            financial = getattr(user_preferences, 'financial_profile', {})
-            if financial:
-                if financial.get('income_range'):
-                    context_parts.append(f"Income range: ${financial['income_range'].replace('_', '-')}")
-                if financial.get('preferred_home_price_range'):
-                    context_parts.append(f"Budget: ${financial['preferred_home_price_range'].replace('_', '-')}")
-                if financial.get('employment_status'):
-                    context_parts.append(f"Employment: {financial['employment_status'].replace('_', ' ')}")
+            # Financial (using actual fields)
+            if user_preferences.get('gross_income'):
+                context_parts.append(f"Gross income: ${user_preferences['gross_income']:,.0f}")
+            if user_preferences.get('home_budget'):
+                context_parts.append(f"Home budget: ${user_preferences['home_budget']:,.0f}")
+            if user_preferences.get('credit_score_range'):
+                context_parts.append(f"Credit score range: {user_preferences['credit_score_range']}")
+            if user_preferences.get('down_payment'):
+                context_parts.append(f"Down payment: ${user_preferences['down_payment']:,.0f}")
+            if user_preferences.get('ideal_zip_code'):
+                context_parts.append(f"Ideal zip code: {user_preferences['ideal_zip_code']}")
 
-            # Housing Preferences
-            housing = getattr(user_preferences, 'housing_preferences', {})
-            if housing:
-                if housing.get('preferred_home_type'):
-                    context_parts.append(f"Preferred home type: {housing['preferred_home_type'].replace('_', ' ')}")
-                if housing.get('preferred_bedrooms'):
-                    context_parts.append(f"Bedrooms needed: {housing['preferred_bedrooms']}")
-                if housing.get('preferred_bathrooms'):
-                    context_parts.append(f"Bathrooms needed: {housing['preferred_bathrooms']}")
-                features = housing.get('preferred_home_features', [])
+            # Housing Preferences (using actual fields)
+            if user_preferences.get('housing_type'):
+                context_parts.append(f"Preferred housing type: {user_preferences['housing_type']}")
+            if user_preferences.get('preferred_bedrooms'):
+                context_parts.append(f"Bedrooms needed: {user_preferences['preferred_bedrooms']}")
+            if user_preferences.get('preferred_bathrooms'):
+                context_parts.append(f"Bathrooms needed: {user_preferences['preferred_bathrooms']}")
+            if user_preferences.get('preferred_lot_size'):
+                context_parts.append(f"Lot size preference: {user_preferences['preferred_lot_size']}")
+            if user_preferences.get('preferred_home_age'):
+                context_parts.append(f"Home age preference: {user_preferences['preferred_home_age']}")
+            if user_preferences.get('preferred_architectural_style'):
+                context_parts.append(f"Architectural style: {user_preferences['preferred_architectural_style']}")
+            if user_preferences.get('renovation_preference'):
+                context_parts.append(f"Renovation preference: {user_preferences['renovation_preference']}")
+            if user_preferences.get('intended_property_use'):
+                context_parts.append(f"Property use: {user_preferences['intended_property_use']}")
+            
+            # Handle JSON fields properly
+            if user_preferences.get('preferred_home_features'):
+                features = user_preferences['preferred_home_features']
                 if isinstance(features, list) and features:
                     context_parts.append(f"Desired features: {', '.join(features)}")
+            
+            if user_preferences.get('deal_breakers'):
+                breakers = user_preferences['deal_breakers']
+                if isinstance(breakers, list) and breakers:
+                    context_parts.append(f"Deal breakers: {', '.join(breakers[:3])}")
 
-            # Location Preferences
-            location = getattr(user_preferences, 'location_preferences', {})
-            if location:
-                regions = location.get('preferred_regions', [])
-                if regions:
-                    context_parts.append(f"Preferred regions: {', '.join(regions)}")
-                if location.get('urban_rural_preference'):
-                    context_parts.append(f"Setting preference: {location['urban_rural_preference']}")
-                if location.get('commute_tolerance'):
-                    context_parts.append(f"Commute tolerance: {location['commute_tolerance'].replace('_', ' ')}")
+            # Location Preferences (using actual fields)
+            if user_preferences.get('preferred_regions'):
+                regions = user_preferences['preferred_regions']
+                if isinstance(regions, list) and regions:
+                    region_names = [r.get('name', r) if isinstance(r, dict) else str(r) for r in regions]
+                    context_parts.append(f"Preferred regions: {', '.join(region_names[:3])}")
+            
+            if user_preferences.get('important_locations'):
+                locations = user_preferences['important_locations']
+                if isinstance(locations, list) and locations:
+                    location_names = [l.get('name', l) if isinstance(l, dict) else str(l) for l in locations]
+                    context_parts.append(f"Important locations: {', '.join(location_names[:3])}")
+            
+            if user_preferences.get('commute_tolerance'):
+                context_parts.append(f"Commute tolerance: {user_preferences['commute_tolerance']} minutes")
+            if user_preferences.get('walkability_importance'):
+                context_parts.append(f"Walkability importance: {user_preferences['walkability_importance']}")
 
-            # Lifestyle
-            lifestyle = getattr(user_preferences, 'lifestyle', {})
-            if lifestyle:
-                if lifestyle.get('lifestyle_type'):
-                    context_parts.append(f"Lifestyle: {lifestyle['lifestyle_type'].replace('_', ' ')}")
-                hobbies = lifestyle.get('hobbies_interests', [])
-                if hobbies:
-                    context_parts.append(f"Interests: {', '.join(hobbies[:3])}")
-
-            # Real Estate Experience
-            experience = getattr(user_preferences, 'real_estate_experience', {})
-            if experience:
-                if experience.get('first_time_buyer') is not None:
-                    status = "first-time buyer" if experience['first_time_buyer'] else "experienced buyer"
-                    context_parts.append(f"Buyer status: {status}")
-                breakers = experience.get('deal_breakers', [])
-                if breakers:
-                    context_parts.append(f"Deal breakers: {', '.join(breakers[:2])}")
+            # Communication (using actual fields)
+            if user_preferences.get('communication_frequency'):
+                context_parts.append(f"Communication frequency: {user_preferences['communication_frequency']}")
+            if user_preferences.get('information_detail_level'):
+                context_parts.append(f"Information detail level: {user_preferences['information_detail_level']}")
+            if user_preferences.get('has_buyers_agent'):
+                context_parts.append(f"Has buyer's agent: {user_preferences['has_buyers_agent']}")
+            if user_preferences.get('looking_for_buyers_agent'):
+                context_parts.append(f"Looking for agent: {user_preferences['looking_for_buyers_agent']}")
         
         user_context = "; ".join(context_parts) if context_parts else "No specific preferences provided"
 

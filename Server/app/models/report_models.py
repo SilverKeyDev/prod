@@ -31,7 +31,7 @@ class LifestyleDNA(BaseModel):
 
     artistic: int = Field(
         ge=0, le=100,
-        description="How emblematic the area is of an artistic or creative lifestyle. "
+        description="How emblematic the area is of an artistic or creative occupation. "
                     "Score high (80–100) for vibrant art, music, studios, and cultural events. "
                     "Score 0–20 if there's no visible creative or indie scene. "
                     "IMPORTANT TONE INSTRUCTION: Be EXTREMELY HARSH for low scores and EXTREMELY POSITIVE for high scores. "
@@ -176,9 +176,9 @@ class NeighborhoodOverview(BaseModel):
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
         """Generate personalized example based on user preferences"""
-        lifestyle = user_preferences.get("lifestyle_type", "laid-back") if user_preferences else "laid-back"
+        occupation = user_preferences.get("occupation", "laid-back") if user_preferences else "laid-back"
         return {
-            "local_culture": f"Artistic and laid-back coastal community with a focus on marine activities. This aligns with the user lifestyle: {lifestyle}.",
+            "local_culture": f"Artistic and laid-back coastal community with a focus on marine activities. This aligns with the user occupation: {occupation}.",
             "vibe": "Creative, beachy, relaxed",
             "known_for": "Beaches, surfing, whale watching, and Dana Point Harbor",
             "community_events": "Weekly farmers market, summer concerts, Festival of Whales",
@@ -221,9 +221,15 @@ class Safety(BaseModel):
     
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
-        """Generate personalized example based on user preferences"""
-        children_count = user_preferences.get('children_count', 0) if user_preferences else 0
-        safety_focus = "family-friendly areas with good lighting and school zones" if children_count > 0 else "well-lit streets and secure areas"
+        """Generate personalized example based on user preferences (using actual UserPreferences fields)"""
+        # Use actual UserPreferences fields
+        pets = user_preferences.get("pets", "none") if user_preferences else "none"
+        age = user_preferences.get("age", 35) if user_preferences else 35
+        occupation = user_preferences.get("occupation", "professional") if user_preferences else "professional"
+        
+        # Determine safety focus based on actual user profile
+        has_pets = pets and pets.lower() not in ["none", "no pets", ""]
+        safety_focus = "family-friendly areas with good lighting and school zones" if has_pets or age < 40 else "well-lit streets and secure areas"
         
         return {
             "crime_rating": "Low",
@@ -236,10 +242,14 @@ class Safety(BaseModel):
     
     @classmethod
     def get_description(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, str]:
-        """Generate personalized field descriptions based on user preferences"""
-        # Consider user's safety concerns if they have children
-        children_count = user_preferences.get('children_count', 0) if user_preferences else 0
-        safety_focus = "family safety" if children_count > 0 else "general safety"
+        """Generate personalized field descriptions based on user preferences (using actual UserPreferences fields)"""
+        # Use actual UserPreferences fields
+        pets = user_preferences.get("pets", "none") if user_preferences else "none"
+        age = user_preferences.get("age", 35) if user_preferences else 35
+        
+        # Determine safety focus based on actual user profile
+        has_pets = pets and pets.lower() not in ["none", "no pets", ""]
+        safety_focus = "family safety" if has_pets or age < 40 else "general safety"
         
         return {
             "crime_rating": "Crime level assessment using categories: Nonexistent, Low, Moderate, High, Very High. Base on local crime statistics, police reports, and community safety data. Use sources like local police department crime maps, Neighborhood Scout, or AreaVibes crime data. Focus on safety factors most relevant to user's situation.",
@@ -265,9 +275,14 @@ class CultureAndEvents(BaseModel):
     
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
-        """Generate personalized example based on user preferences"""
-        hobbies = user_preferences.get('hobbies_interests', ['outdoor activities']) if user_preferences else ['outdoor activities']
-        hobbies_str = ', '.join(hobbies) if isinstance(hobbies, list) else str(hobbies)
+        """Generate personalized example based on user preferences (using actual UserPreferences fields)"""
+        # Use actual UserPreferences fields
+        age = user_preferences.get("age", 35) if user_preferences else 35
+        occupation = user_preferences.get("occupation", "professional") if user_preferences else "professional"
+        pets = user_preferences.get("pets", "none") if user_preferences else "none"
+        
+        # Determine cultural interests based on actual profile
+        cultural_focus = "family-friendly events" if pets and pets.lower() not in ["none", "no pets", ""] else "diverse cultural activities"
         
         return {
             "local_events": "Art walks, food truck festivals, outdoor movie nights, farmers markets",
@@ -281,14 +296,14 @@ class CultureAndEvents(BaseModel):
     @classmethod
     def get_description(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, str]:
         """Generate personalized field descriptions based on user preferences"""
-        hobbies = user_preferences.get('hobbies_interests', ['outdoor activities']) if user_preferences else ['outdoor activities']
+        hobbies = [] if user_preferences else ['outdoor activities']
         hobbies_str = ', '.join(hobbies) if isinstance(hobbies, list) else str(hobbies)
         
         return {
             "local_events": f"Events people attend — use names or examples. Search Eventbrite, Meetup, City-Data Forums for specific events. Focus on events that align with user's interests: {hobbies_str}. Include real event names and venues when possible.",
-            "seasonal_trends": "How activity changes throughout the year, e.g., 'Busy in summer, quieter winters'. Check Nomad List or blog search results for seasonal patterns. Consider how seasons affect the user's preferred activities and lifestyle.",
+            "seasonal_trends": "How activity changes throughout the year, e.g., 'Busy in summer, quieter winters'. Check Nomad List or blog search results for seasonal patterns. Consider how seasons affect the user's preferred activities and occupation.",
             "community_engagement": "Civic participation level (e.g., cleanup days, local watch groups). Mention if visible on Meetup or community forums. Assess opportunities for user involvement based on their community involvement preferences.",
-            "culture_rating": "Score should reflect vibrancy and access. Weigh frequency and diversity of events, Eventbrite density is a clue for cultural activity. Rate based on cultural factors that matter most to the user's interests and lifestyle.",
+            "culture_rating": "Score should reflect vibrancy and access. Weigh frequency and diversity of events, Eventbrite density is a clue for cultural activity. Rate based on cultural factors that matter most to the user's interests and occupation.",
             "image_prompt": "Cultural venues and event spaces near the address where local events take place",
             "image_prompt_2": "Art galleries, theaters, and community centers near the address"
         }
@@ -309,7 +324,7 @@ class SocialCharacter(BaseModel):
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
         """Generate personalized example based on user preferences"""
-        income_range = user_preferences.get('income_range', '$50,000-$75,000') if user_preferences else '$50,000-$75,000'
+        gross_income = user_preferences.get("gross_income", '$50,000-$75,000') if user_preferences else '$50,000-$75,000'
         
         return {
             "income_level": "Middle-class professionals and young families, median household income $75,000",
@@ -323,10 +338,10 @@ class SocialCharacter(BaseModel):
     @classmethod
     def get_description(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, str]:
         """Generate personalized field descriptions based on user preferences"""
-        income_range = user_preferences.get('income_range', '$50,000-$75,000') if user_preferences else '$50,000-$75,000'
+        gross_income = user_preferences.get("gross_income", '$50,000-$75,000') if user_preferences else '$50,000-$75,000'
         
         return {
-            "income_level": f"E.g., 'Middle-class professionals'. Use Niche or AreaVibes income distribution. Consider how the income levels align with user's financial situation ({income_range}) and social comfort.",
+            "income_level": f"E.g., 'Middle-class professionals'. Use Niche or AreaVibes income distribution. Consider how the income levels align with user's financial situation ({gross_income}) and social comfort.",
             "political_leaning": "State clearly. Use Niche political maps or Redfin voting overlays if accessible.",
             "language_spoken": "Include major spoken languages beyond English. Niche + City-Data often break this down.",
             "religiosity": "Low / Moderate / High — explain the tone. Use BestPlaces religion % or Niche. Assess compatibility with user's spiritual preferences and tolerance for religious influence.",
@@ -348,16 +363,16 @@ class Restaurant(BaseModel):
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any]) -> Dict[str, Any]:
         """Generate example Restaurant data based on user preferences."""
-        lifestyle = user_preferences.get('lifestyle_type', 'balanced')
-        income = user_preferences.get('income_range', 'middle')
+        occupation = user_preferences.get("occupation", 'balanced')
+        income = user_preferences.get("gross_income", 'middle')
         
-        if lifestyle == 'nightlife' and income in ['high', 'very_high']:
+        if occupation == 'nightlife' and income in ['high', 'very_high']:
             return {
                 "name": "The Rooftop Lounge",
                 "vibe": "Upscale cocktail bar with city skyline views and live DJ sets",
                 "what_to_try": "Craft cocktails, wagyu sliders, truffle fries"
             }
-        elif lifestyle == 'family' or user_preferences.get('children_count', 0) > 0:
+        elif occupation == 'family' or user_preferences.get("pets", 0) > 0:
             return {
                 "name": "Family Garden Bistro",
                 "vibe": "Kid-friendly restaurant with outdoor seating and play area",
@@ -373,13 +388,13 @@ class Restaurant(BaseModel):
     @classmethod
     def get_description(cls, user_preferences: Dict[str, Any] = None) -> str:
         """Generate field descriptions for Restaurant based on user preferences."""
-        lifestyle = user_preferences.get('lifestyle_type', 'balanced') if user_preferences else 'balanced'
-        dining_prefs = user_preferences.get('dining_preferences', []) if user_preferences else []
+        occupation = user_preferences.get("occupation", 'balanced') if user_preferences else 'balanced'
+        dining_prefs = [] if user_preferences else []
         dining_str = ', '.join(dining_prefs) if isinstance(dining_prefs, list) else str(dining_prefs)
         
-        if lifestyle == 'nightlife':
-            return f"Include real or believable names, vibes, and features. Use Google Maps and Yelp as top sources. Focus on trendy spots, late-night dining, and social venues that align with an active nightlife lifestyle. Consider user's dining preferences: {dining_str}."
-        elif lifestyle == 'family':
+        if occupation == 'nightlife':
+            return f"Include real or believable names, vibes, and features. Use Google Maps and Yelp as top sources. Focus on trendy spots, late-night dining, and social venues that align with an active nightlife occupation. Consider user's dining preferences: {dining_str}."
+        elif occupation == 'family':
             return f"Include real or believable names, vibes, and features. Use Google Maps and Yelp as top sources. Focus on family-friendly restaurants with kid-friendly menus, accommodating atmospheres, and convenient locations for families. Consider user's dining preferences: {dining_str}."
         else:
             return f"Include real or believable names, vibes, and features. Use Google Maps and Yelp as top sources. Showcase the local culinary scene and dining options available to residents. Consider user's dining preferences: {dining_str}."
@@ -397,11 +412,11 @@ class Activity(BaseModel):
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any]) -> Dict[str, Any]:
         """Generate example Activity data based on user preferences."""
-        lifestyle = user_preferences.get('lifestyle_type', 'balanced')
+        occupation = user_preferences.get("occupation", 'balanced')
         age = user_preferences.get('age', 30)
-        children = user_preferences.get('children_count', 0)
+        children = user_preferences.get("pets", 0)
         
-        if lifestyle == 'active' or age < 35:
+        if occupation == 'active' or age < 35:
             return {
                 "name": "Morning Beach Volleyball League",
                 "description": "Competitive and recreational volleyball games every weekend morning, welcoming players of all skill levels with organized tournaments"
@@ -420,13 +435,13 @@ class Activity(BaseModel):
     @classmethod
     def get_description(cls, user_preferences: Dict[str, Any] = None) -> str:
         """Generate field descriptions for Activity based on user preferences."""
-        lifestyle = user_preferences.get('lifestyle_type', 'balanced') if user_preferences else 'balanced'
-        children = user_preferences.get('children_count', 0) if user_preferences else 0
-        hobbies = user_preferences.get('hobbies_interests', []) if user_preferences else []
+        occupation = user_preferences.get("occupation", 'balanced') if user_preferences else 'balanced'
+        children = user_preferences.get("pets", 0) if user_preferences else 0
+        hobbies = [] if user_preferences else []
         hobbies_str = ', '.join(hobbies) if isinstance(hobbies, list) else str(hobbies)
         
-        if lifestyle == 'active':
-            return f"Include real or believable names, vibes, and features. Use Google Maps and Yelp as top sources. Focus on activities that promote an active lifestyle, including sports, fitness activities, and outdoor adventures. Consider user's interests: {hobbies_str}."
+        if occupation == 'active':
+            return f"Include real or believable names, vibes, and features. Use Google Maps and Yelp as top sources. Focus on activities that promote an active occupation, including sports, fitness activities, and outdoor adventures. Consider user's interests: {hobbies_str}."
         elif children > 0:
             return f"Include real or believable names, vibes, and features. Use Google Maps and Yelp as top sources. Focus on family-oriented activities and attractions suitable for families with children. Consider user's interests: {hobbies_str}."
         else:
@@ -445,10 +460,10 @@ class Park(BaseModel):
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any]) -> Dict[str, Any]:
         """Generate example Park data based on user preferences."""
-        lifestyle = user_preferences.get('lifestyle_type', 'balanced')
-        children = user_preferences.get('children_count', 0)
+        occupation = user_preferences.get("occupation", 'balanced')
+        children = user_preferences.get("pets", 0)
         
-        if lifestyle == 'active':
+        if occupation == 'active':
             return {
                 "name": "Riverside Athletic Complex",
                 "features": "Running trails, outdoor gym equipment, basketball courts, tennis courts, bike rental station, and scenic river views"
@@ -467,13 +482,13 @@ class Park(BaseModel):
     @classmethod
     def get_description(cls, user_preferences: Dict[str, Any] = None) -> str:
         """Generate field descriptions for Park based on user preferences."""
-        lifestyle = user_preferences.get('lifestyle_type', 'balanced') if user_preferences else 'balanced'
-        children = user_preferences.get('children_count', 0) if user_preferences else 0
-        fitness_activities = user_preferences.get('fitness_activities', []) if user_preferences else []
+        occupation = user_preferences.get("occupation", 'balanced') if user_preferences else 'balanced'
+        children = user_preferences.get("pets", 0) if user_preferences else 0
+        fitness_activities = [] if user_preferences else []
         fitness_str = ', '.join(fitness_activities) if isinstance(fitness_activities, list) else str(fitness_activities)
         
-        if lifestyle == 'active':
-            return f"Include real or believable names, vibes, and features. Use Google Maps and Yelp as top sources. Focus on parks with recreational facilities, fitness amenities, and outdoor activity options that support an active lifestyle. Consider user's fitness interests: {fitness_str}."
+        if occupation == 'active':
+            return f"Include real or believable names, vibes, and features. Use Google Maps and Yelp as top sources. Focus on parks with recreational facilities, fitness amenities, and outdoor activity options that support an active occupation. Consider user's fitness interests: {fitness_str}."
         elif children > 0:
             return f"Include real or believable names, vibes, and features. Use Google Maps and Yelp as top sources. Focus on family-friendly amenities, playgrounds, and facilities designed for children and family activities. Consider user's fitness interests: {fitness_str}."
         else:
@@ -528,7 +543,7 @@ class Commute(BaseModel):
     def get_example(cls, user_preferences: Dict[str, Any]) -> Dict[str, Any]:
         """Generate example Commute data based on user preferences."""
         commute_tolerance = user_preferences.get('commute_tolerance', 'under_30')
-        lifestyle = user_preferences.get('lifestyle_type', 'balanced')
+        occupation = user_preferences.get("occupation", 'balanced')
         
         if commute_tolerance == 'under_15':
             return {
@@ -579,16 +594,16 @@ class FamilyFriendly(BaseModel):
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any]) -> Dict[str, Any]:
         """Generate example FamilyFriendly data based on user preferences."""
-        children_count = user_preferences.get('children_count', 0)
-        lifestyle = user_preferences.get('lifestyle_type', 'balanced')
+        pets = user_preferences.get("pets", 0)
+        occupation = user_preferences.get("occupation", 'balanced')
         
-        if children_count > 2:
+        if pets > 2:
             return {
                 "lots_of_kids": "Very High - Abundant families with multiple children, active school community, kid-friendly events weekly",
                 "great_for_families": "Outstanding schools, safe pedestrian areas, multiple playgrounds, family recreation center, after-school programs",
                 "family_rating": "9.5/10"
             }
-        elif children_count > 0:
+        elif pets and pets.lower() in ["dog", "dogs", "cat", "cats"]:
             return {
                 "lots_of_kids": "High - Many families with young children, playgrounds always busy, school pickup lines",
                 "great_for_families": "Excellent schools, safe streets, family events, parks within walking distance",
@@ -604,10 +619,10 @@ class FamilyFriendly(BaseModel):
     @classmethod
     def get_description(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, str]:
         """Generate personalized field descriptions based on user preferences"""
-        children_count = user_preferences.get('children_count', 0) if user_preferences else 0
+        pets = user_preferences.get("pets", 0) if user_preferences else 0
         
         return {
-            "lots_of_kids": f"'Yes / Some / Few' with reasoning. Use Niche family scores + Livability.com insights. Focus on family density and child-friendly atmosphere (user has {children_count} children).",
+            "lots_of_kids": f"'Yes / Some / Few' with reasoning. Use Niche family scores + Livability.com insights. Focus on family density and child-friendly atmosphere (user has {pets} children).",
             "great_for_families": "Emphasize parks, schools, safety. Search '[neighborhood] with kids' or use Niche. Emphasize amenities and safety features most relevant to families with children.",
             "family_rating": "Honest reflection. Niche 'family grade' is a strong proxy. Weight factors based on user's family situation and child-related needs."
         }
@@ -628,11 +643,11 @@ class NightlifeAndDating(BaseModel):
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any]) -> Dict[str, Any]:
         """Generate example NightlifeAndDating data based on user preferences."""
-        lifestyle = user_preferences.get('lifestyle_type', 'balanced')
+        occupation = user_preferences.get("occupation", 'balanced')
         age = user_preferences.get('age', 30)
-        marital_status = user_preferences.get('marital_status', 'single')
+        gender = user_preferences.get("gender", 'single')
         
-        if lifestyle == 'nightlife' and age < 35:
+        if occupation == 'nightlife' and age < 35:
             return {
                 "nightlife_rating": "9.2/10",
                 "best_spots": "Sky Lounge rooftop bar, Underground dance club, Craft cocktail speakeasy, Late-night food trucks",
@@ -640,7 +655,7 @@ class NightlifeAndDating(BaseModel):
                 "image_prompt": "Nightlife venues near the address showing bars and clubs for young professionals",
                 "image_prompt_2": "Dating-friendly venues near the address: trendy restaurants and social spaces"
             }
-        elif marital_status in ['married', 'partnered'] or age > 40:
+        elif gender in ['married', 'partnered'] or age > 40:
             return {
                 "nightlife_rating": "6.8/10",
                 "best_spots": "Wine bars, upscale restaurants with live music, theater district, cultural events",
@@ -660,13 +675,13 @@ class NightlifeAndDating(BaseModel):
     @classmethod
     def get_description(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, str]:
         """Generate personalized field descriptions based on user preferences"""
-        marital_status = user_preferences.get('marital_status', 'single') if user_preferences else 'single'
+        gender = user_preferences.get("gender", 'single') if user_preferences else 'single'
         age = user_preferences.get('age', 30) if user_preferences else 30
         
         return {
-            "nightlife_rating": "Rate vibrancy of bars, music, and scenes. Use Yelp, Google Maps, or City-Data forum nightlife threads. Consider what appeals to the user's demographic and lifestyle.",
+            "nightlife_rating": "Rate vibrancy of bars, music, and scenes. Use Yelp, Google Maps, or City-Data forum nightlife threads. Consider what appeals to the user's demographic and occupation.",
             "best_spots": "Popular bars, clubs, and entertainment venues. Use Yelp, Google Maps, or City-Data forum nightlife threads. Focus on venues that match the user's social style and interests.",
-            "dating_scene": f"Describe energy and dating pool. Search 'dating in [city] Reddit' or Nomad List for vibe. Tailor to user's marital status ({marital_status}) and age ({age}) - focus on relevant social opportunities.",
+            "dating_scene": f"Describe energy and dating pool. Search 'dating in [city] Reddit' or Nomad List for vibe. Tailor to user's marital status ({gender}) and age ({age}) - focus on relevant social opportunities.",
             "average_attractiveness_rating": "Be playful but grounded. Use cultural tone and tongue-in-cheek phrasing.",
             "image_prompt": "Nightlife venues near the address reflecting local social atmosphere",
             "image_prompt_2": "Dating-friendly venues near the address where people socialize"
@@ -690,11 +705,11 @@ class Development(BaseModel):
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any]) -> Dict[str, Any]:
         """Generate example Development data based on user preferences."""
-        income = user_preferences.get('income_range', 'middle')
-        lifestyle = user_preferences.get('lifestyle_type', 'balanced')
+        income = user_preferences.get("gross_income", 'middle')
+        occupation = user_preferences.get("occupation", 'balanced')
         age = user_preferences.get('age', 30)
         
-        if income in ['high', 'very_high'] and lifestyle == 'urban':
+        if income in ['high', 'very_high'] and occupation == 'urban':
             return {
                 "upcoming_changes": "Luxury high-rise development planned, new upscale shopping district, premium transit connections",
                 "zoning_or_construction": "High-end mixed-use towers under construction, zoning allows luxury residential, architectural design standards enforced",
@@ -703,7 +718,7 @@ class Development(BaseModel):
                 "image_prompt": "Development and construction activity near the address showing new projects",
                 "image_prompt_2": "Luxury developments near the address with premium architectural features"
             }
-        elif age < 30 and lifestyle in ['nightlife', 'urban']:
+        elif age < 30 and occupation in ['nightlife', 'urban']:
             return {
                 "upcoming_changes": "New entertainment district planned, co-working spaces expanding, bike lane infrastructure improvements",
                 "zoning_or_construction": "Mixed-use development with ground-floor retail, zoning allows live-work spaces, height restrictions relaxed",
@@ -725,8 +740,8 @@ class Development(BaseModel):
     @classmethod
     def get_description(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, str]:
         """Generate field descriptions for Development based on user preferences."""
-        income = user_preferences.get('income_range', 'middle') if user_preferences else 'middle'
-        lifestyle = user_preferences.get('lifestyle_type', 'balanced') if user_preferences else 'balanced'
+        income = user_preferences.get("gross_income", 'middle') if user_preferences else 'middle'
+        occupation = user_preferences.get("occupation", 'balanced') if user_preferences else 'balanced'
         
         return {
             "upcoming_changes": "Search city planning sites, '[city] development projects', or local news. Look for major infrastructure, transit, or commercial projects.",
@@ -762,9 +777,9 @@ class EnvironmentUtilities(BaseModel):
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any]) -> Dict[str, Any]:
         """Generate example EnvironmentUtilities data based on user preferences."""
-        income = user_preferences.get('income_range', 'middle')
-        lifestyle = user_preferences.get('lifestyle_type', 'balanced')
-        work_from_home = user_preferences.get('work_from_home', False)
+        income = user_preferences.get("gross_income", 'middle')
+        occupation = user_preferences.get("occupation", 'balanced')
+        work_from_home = False
         
         if income in ['high', 'very_high']:
             return {
@@ -780,7 +795,7 @@ class EnvironmentUtilities(BaseModel):
                 "internet_speed": "Fiber available up to 2Gbps, premium service providers, 99.9% uptime",
                 "environmental_rating": "9.2/10"
             }
-        elif work_from_home or lifestyle == 'remote':
+        elif work_from_home or occupation == 'remote':
             return {
                 "air_quality": "Good - AQI typically 35-50, clean air with minimal industrial pollution",
                 "noise_pollution": "Low to moderate - Quiet during work hours, some evening activity",
@@ -812,8 +827,8 @@ class EnvironmentUtilities(BaseModel):
     @classmethod
     def get_description(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, str]:
         """Generate field descriptions for EnvironmentUtilities based on user preferences."""
-        work_from_home = user_preferences.get('work_from_home', False) if user_preferences else False
-        lifestyle = user_preferences.get('lifestyle_type', 'balanced') if user_preferences else 'balanced'
+        work_from_home = False if user_preferences else False
+        occupation = user_preferences.get("occupation", 'balanced') if user_preferences else 'balanced'
         
         return {
             "air_quality": "Check EPA AirNow or IQAir for AQI data. Look for industrial sources, traffic patterns, or natural factors affecting air quality.",
@@ -826,7 +841,7 @@ class EnvironmentUtilities(BaseModel):
             "utility_internet": "Average monthly internet service cost in this area. Important for remote work and modern connectivity needs.",
             "utility_trash": "Average monthly trash/recycling collection cost if not included in property taxes or HOA fees.",
             "internet_speed": "Use Speedtest.net coverage maps or check ISP availability. Important for remote work and modern connectivity needs.",
-            "environmental_rating": "Overall environmental quality score out of 10. Weight factors based on user's work-from-home needs and lifestyle preferences."
+            "environmental_rating": "Overall environmental quality score out of 10. Weight factors based on user's work-from-home needs and occupation preferences."
         }
 
 class FinancialInformation(BaseModel):
@@ -845,8 +860,8 @@ class FinancialInformation(BaseModel):
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any]) -> Dict[str, Any]:
         """Generate example FinancialInformation data based on user preferences."""
-        income = user_preferences.get('income_range', 'middle')
-        price_range = user_preferences.get('preferred_home_price_range', '$300,000-$500,000')
+        income = user_preferences.get("gross_income", 'middle')
+        price_range = user_preferences.get("home_budget", '$300,000-$500,000')
         
         if income in ['high', 'very_high']:
             return {
@@ -876,11 +891,11 @@ class FinancialInformation(BaseModel):
     @classmethod
     def get_description(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, str]:
         """Generate personalized field descriptions based on user preferences"""
-        income_range = user_preferences.get('income_range', '$50,000-$75,000') if user_preferences else '$50,000-$75,000'
-        preferred_price_range = user_preferences.get('preferred_home_price_range', '$300,000-$500,000') if user_preferences else '$300,000-$500,000'
+        gross_income = user_preferences.get("gross_income", '$50,000-$75,000') if user_preferences else '$50,000-$75,000'
+        home_budget = user_preferences.get("home_budget", '$300,000-$500,000') if user_preferences else '$300,000-$500,000'
         
         return {
-            "monthly_payment": f"Estimated monthly mortgage payment for typical home in the area. Consider user's income range ({income_range}) and preferred price range ({preferred_price_range}) when providing context.",
+            "monthly_payment": f"Estimated monthly mortgage payment for typical home in the area. Consider user's income range ({gross_income}) and preferred price range ({home_budget}) when providing context.",
             "property_taxes": "Annual property tax rates and typical amounts. Relate to user's financial capacity and budget expectations.",
             "value_assessment": "Property value trends and market assessment. Frame in context of user's investment timeline and financial goals.",
             "investment_potential": "Long-term investment outlook and rental potential. Consider user's investment experience and risk tolerance.",
@@ -911,10 +926,10 @@ class Schools(BaseModel):
 
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any]) -> Dict[str, Any]:
-        children_count = user_preferences.get("children_count", 0)
-        income = user_preferences.get("income_range", "middle")
+        pets = user_preferences.get("pets", 0)
+        income = user_preferences.get("gross_income", "middle")
 
-        if children_count > 0:
+        if pets and pets.lower() in ["dog", "dogs", "cat", "cats"]:
             return {
                 "preschool_name": "Bright Start Preschool",
                 "preschool_known_for": "Montessori-inspired curriculum, nurturing staff, strong parent community",
@@ -953,7 +968,7 @@ class Schools(BaseModel):
 
     @classmethod
     def get_description(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, str]:
-        children_count = user_preferences.get("children_count", 0) if user_preferences else 0
+        pets = user_preferences.get("pets", 0) if user_preferences else 0
 
         base = {
             "preschool_name": "Name of the nearest preschool. Prioritize proximity and reputation for early childhood development.",
@@ -973,7 +988,7 @@ class Schools(BaseModel):
             "high_rating": "Letter grade rating representing overall perceived quality."
         }
 
-        if children_count == 0:
+        if pets == 0:
             # Soften descriptions for buyers without school-aged children
             base["elementary_known_for"] += " Focus on general neighborhood perception."
             base["middle_known_for"] += " Focus on safety and extracurricular balance."
@@ -996,9 +1011,9 @@ class ExtraTips(BaseModel):
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any]) -> Dict[str, Any]:
         """Generate example ExtraTips data based on user preferences."""
-        lifestyle = user_preferences.get('lifestyle_type', 'balanced')
+        occupation = user_preferences.get("occupation", 'balanced')
         has_pets = user_preferences.get('has_pets', False)
-        work_from_home = user_preferences.get('work_from_home', False)
+        work_from_home = False
         
         if has_pets:
             pet_info = "Extremely pet-friendly - 5 dog parks within walking distance, off-leash beach area, pet grooming services, dog-friendly cafes and breweries"
@@ -1008,9 +1023,9 @@ class ExtraTips(BaseModel):
         if work_from_home:
             cell_info = "Outstanding connectivity - 5G coverage from all carriers, fiber internet backup options, co-working spaces with reliable WiFi"
             tips = "Best coffee for remote work at Quiet Corner Cafe, library has excellent WiFi, avoid construction noise on Oak St 9-11am"
-        elif lifestyle == 'nightlife':
+        elif occupation == 'nightlife':
             tips = "Best late-night eats at 24/7 Diner, Uber/Lyft readily available, street lighting excellent for safety, noise ordinance until 2am"
-        elif lifestyle == 'family':
+        elif occupation == 'family':
             tips = "Best family coffee at Corner Cafe, avoid Main St during school pickup 3-4pm, farmers market Saturdays 8am-2pm, library story time Wednesdays"
         else:
             tips = "Best coffee at Corner Cafe, avoid Main St during school pickup, farmers market Saturdays 8am-2pm"
@@ -1025,7 +1040,7 @@ class ExtraTips(BaseModel):
     @classmethod
     def get_description(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, str]:
         """Generate field descriptions for ExtraTips based on user preferences."""
-        lifestyle = user_preferences.get('lifestyle_type', 'balanced') if user_preferences else 'balanced'
+        occupation = user_preferences.get("occupation", 'balanced') if user_preferences else 'balanced'
         has_pets = user_preferences.get('has_pets', False) if user_preferences else False
         
         return {
@@ -1066,9 +1081,9 @@ class FullReport(BaseModel):
 
 
     # ✅ Modern init with PrivateAttr
-    def __init__(self, report_customization: Dict[str, Any], **data):
+    def __init__(self, report_section_priorities: Dict[str, Any], **data):
         super().__init__(**data)
-        self._prioritized_fields = report_customization.get("report_section_priorities", [])
+        self._prioritized_fields = report_section_priorities.get("report_section_priorities", [])
 
     # ✅ Dict override to only return prioritized sections
     def dict(self, **kwargs) -> Dict[str, Any]:

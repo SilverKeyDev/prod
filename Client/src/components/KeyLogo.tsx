@@ -10,9 +10,7 @@ interface KeyLogoProps {
 
 const KeyLogo: React.FC<KeyLogoProps> = ({ 
   size = 'md', 
-  showText = true, 
   className = '',
-  textClassName = '',
   logoClassName = ''
 }) => {
   const sizeClasses = {
