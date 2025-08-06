@@ -67,7 +67,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
       >
         <div className={`${isMobile ? "p-4" : "p-8"}`}>
           <Routes>
-            <Route path="/" element={<GenerateReportPage />} />
+            <Route path="/generate-report" element={<GenerateReportPage />} />
             <Route path="reports" element={<PastReports />} />
             <Route path="compare-reports" element={<CompareReportsPage />} />
             <Route path="search" element={<SearchPage />} />
@@ -82,7 +82,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
             <Route path="inspections-due-diligence" element={<InspectionsDueDiligence />} />
             <Route path="financing-insurance" element={<FinancingInsurance />} />
             <Route path="closing-moving-in" element={<ClosingMovingIn />} />
-            <Route path="user-dashboard" element={<UserDashboardPage />} />
+            <Route path="/" element={<UserDashboardPage />} />
             <Route path="get-preapproved" element={<GetPreApproved />} />
           </Routes>
         </div>

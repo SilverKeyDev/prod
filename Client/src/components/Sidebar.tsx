@@ -2,9 +2,8 @@ import { Link, useLocation } from "react-router-dom";
 import {
   FileText,
   BarChart2,
-  Settings,
+  Split,
   Search,
-  Crosshair,
   Key,
   ChevronDown,
   ChevronRight,
@@ -22,6 +21,7 @@ import {
   Building2,
   KeyRound,
   BadgeCheck,
+  ClipboardList
 } from "lucide-react";
 import { User } from "../types/index.ts";
 import { useState } from "react";
@@ -57,12 +57,12 @@ const navigationStructure: NavigationStructure = {
   dashboard: {
     name: "Dashboard",
     icon: Home,
-    items: [      { name: "User Dashboard", href: "/dashboard/user-dashboard", icon: UserIcon }
+    items: [      { name: "User Dashboard", href: "/dashboard", icon: UserIcon }
     ],
   },
   onboard: {
     name: "Onboard",
-    icon: Settings,
+    icon: ClipboardList,
     items: [
       { name: "Personalization", href: "/dashboard/personalization", icon: UserIcon },
       { name: "Subscription", href: "/dashboard/subscription", icon: CreditCard },
@@ -76,9 +76,9 @@ const navigationStructure: NavigationStructure = {
   },
   decide: {
     name: "Decide",
-    icon: Crosshair,
+    icon: Split,
     items: [
-      { name: "Generate Report", href: "/dashboard", icon: FilePlus },
+      { name: "Generate Report", href: "/dashboard/generate-report", icon: FilePlus },
       { name: "Past Reports", href: "/dashboard/reports", icon: FileText },
       { name: "Compare Reports", href: "/dashboard/compare-reports", icon: BarChart2 },
       { name: "AI Assistant", href: "/dashboard/ai-assistant", icon: MessageCircle },
