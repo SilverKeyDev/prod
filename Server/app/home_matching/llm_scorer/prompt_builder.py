@@ -19,7 +19,7 @@ You will be given:
 2. Home details including price, features, location, and neighborhood information
 
 Your response should be a JSON object with:
-- "score": A float between 0.0 and 1.0 (where 1.0 is perfect match)
+- "score": A precise float between 0.0 and 1.0 with exactly 3 decimal places (e.g., 0.726, 0.834, 0.291)
 - "reasoning": Detailed explanation of the score
 - "pros": List of positive aspects of the match
 - "cons": List of potential concerns or mismatches

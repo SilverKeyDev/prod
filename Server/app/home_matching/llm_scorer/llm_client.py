@@ -1,271 +1,260 @@
-"""
-LLM client for handling API calls to OpenAI and other providers.
-"""
-
-import openai
 import json
 import time
-from typing import Dict, List, Any, Optional, Union
+import re
 import logging
+import numpy as np
+from typing import Dict, List, Any, Optional
 
-from ..config.settings import (
-    OPENAI_API_KEY, LLM_MODEL, LLM_TEMPERATURE, LLM_MAX_TOKENS
+from openai import OpenAI, APIError, RateLimitError
+
+from app.home_matching.config.settings import (
+    OPENAI_KEY, LLM_MODEL, LLM_TEMPERATURE, LLM_MAX_TOKENS
 )
 
 logger = logging.getLogger(__name__)
 
+
 class LLMClient:
     """Handles LLM API calls for home matching."""
-    
+
     def __init__(self, provider: str = "openai", model: str = None, api_key: str = None):
+        logger.info(f"🚀 Initializing LLMClient with provider: {provider}, model: {model or LLM_MODEL}")
+        
         self.provider = provider
         self.model = model or LLM_MODEL
-        self.api_key = api_key or OPENAI_API_KEY
+        self.api_key = api_key or OPENAI_KEY
         self.client = None
         
+        # Log configuration (without exposing API key)
+        logger.debug(f"📋 LLMClient config - Provider: {self.provider}, Model: {self.model}, API Key: {'✅ Present' if self.api_key else '❌ Missing'}")
+
         if self.provider == "openai":
             self._init_openai_client()
         else:
-            raise ValueError(f"Unsupported LLM provider: {provider}")
-    
+            error_msg = f"Unsupported LLM provider: {self.provider}"
+            logger.error(f"❌ {error_msg}")
+            raise ValueError(error_msg)
+
     def _init_openai_client(self) -> None:
-        """Initialize OpenAI client."""
+        logger.debug("🔧 Initializing OpenAI client...")
+        
+        if not self.api_key:
+            error_msg = "OpenAI API key not provided"
+            logger.error(f"❌ {error_msg}")
+            raise ValueError(error_msg)
+        
         try:
-            if not self.api_key:
-                raise ValueError("OpenAI API key not provided")
-            
-            self.client = openai.OpenAI(api_key=self.api_key)
-            logger.info(f"Initialized OpenAI client with model: {self.model}")
-            
+            self.client = OpenAI(api_key=self.api_key)
+            logger.info(f"✅ Successfully initialized OpenAI client with model: {self.model}")
         except Exception as e:
-            logger.error(f"Error initializing OpenAI client: {e}")
+            logger.error(f"❌ Failed to initialize OpenAI client: {e}")
             raise
-    
-    def call_llm(
-        self, 
-        system_prompt: str, 
-        user_prompt: str, 
-        temperature: float = None,
-        max_tokens: int = None,
-        response_format: str = "json"
-    ) -> Dict[str, Any]:
-        """Make LLM API call and return response."""
+
+    def call_llm(self, system_prompt: str, user_prompt: str,
+                 temperature: float = None, max_tokens: int = None,
+                 response_format: str = "json") -> Dict[str, Any]:
+        temperature = temperature or LLM_TEMPERATURE
+        max_tokens = max_tokens or LLM_MAX_TOKENS
+        
+        logger.info(f"🤖 Starting LLM call - Model: {self.model}, Temp: {temperature}, Max tokens: {max_tokens}, Format: {response_format}")
+        logger.debug(f"📝 System prompt length: {len(system_prompt)} chars")
+        logger.debug(f"📝 User prompt length: {len(user_prompt)} chars")
+        
+        start_time = time.time()
         try:
-            temperature = temperature or LLM_TEMPERATURE
-            max_tokens = max_tokens or LLM_MAX_TOKENS
+            result = self._call_openai(system_prompt, user_prompt, temperature, max_tokens, response_format)
+            duration = time.time() - start_time
             
-            if self.provider == "openai":
-                return self._call_openai(system_prompt, user_prompt, temperature, max_tokens, response_format)
-            else:
-                raise ValueError(f"Unsupported provider: {self.provider}")
-                
+            # Log successful completion with metrics
+            usage = result.get('usage', {})
+            logger.info(f"✅ LLM call completed in {duration:.2f}s - Tokens: {usage.get('total_tokens', 'unknown')} (prompt: {usage.get('prompt_tokens', 'unknown')}, completion: {usage.get('completion_tokens', 'unknown')})")
+            
+            return result
         except Exception as e:
-            logger.error(f"Error calling LLM: {e}")
+            duration = time.time() - start_time
+            logger.error(f"❌ LLM call failed after {duration:.2f}s: {e}")
             raise
-    
-    def _call_openai(
-        self, 
-        system_prompt: str, 
-        user_prompt: str, 
-        temperature: float,
-        max_tokens: int,
-        response_format: str
-    ) -> Dict[str, Any]:
-        """Call OpenAI API."""
-        try:
-            messages = [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt}
-            ]
-            
-            # Prepare request parameters
-            request_params = {
-                "model": self.model,
-                "messages": messages,
-                "temperature": temperature,
-                "max_tokens": max_tokens
-            }
-            
-            # Add response format if supported by model
-            if response_format == "json" and "gpt-4" in self.model.lower():
-                request_params["response_format"] = {"type": "json_object"}
-            
-            # Make API call with retry logic
-            response = self._make_request_with_retry(request_params)
-            
-            # Extract response content
-            content = response.choices[0].message.content
-            
-            # Parse JSON if expected
-            if response_format == "json":
-                try:
-                    parsed_content = json.loads(content)
-                except json.JSONDecodeError as e:
-                    logger.warning(f"Failed to parse JSON response: {e}")
-                    # Try to extract JSON from response
-                    parsed_content = self._extract_json_from_text(content)
-            else:
-                parsed_content = content
-            
-            return {
-                "content": parsed_content,
-                "raw_content": content,
-                "usage": {
-                    "prompt_tokens": response.usage.prompt_tokens,
-                    "completion_tokens": response.usage.completion_tokens,
-                    "total_tokens": response.usage.total_tokens
-                },
-                "model": response.model,
-                "finish_reason": response.choices[0].finish_reason
-            }
-            
-        except Exception as e:
-            logger.error(f"Error calling OpenAI API: {e}")
-            raise
-    
+
+    def _call_openai(self, system_prompt: str, user_prompt: str,
+                     temperature: float, max_tokens: int, response_format: str) -> Dict[str, Any]:
+        logger.debug("🔄 Preparing OpenAI API request...")
+        
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt}
+        ]
+        
+        request_params = {
+            "model": self.model,
+            "messages": messages,
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+        }
+        
+        # Add JSON response format if supported
+        if response_format == "json" and "gpt-4" in self.model.lower():
+            request_params["response_format"] = {"type": "json_object"}
+            logger.debug("📋 Added JSON response format constraint")
+        
+        logger.debug(f"📤 Sending request to OpenAI API with {len(messages)} messages")
+        response = self._make_request_with_retry(request_params)
+        
+        content = response.choices[0].message.content
+        logger.debug(f"📥 Received response - Length: {len(content)} chars, Finish reason: {response.choices[0].finish_reason}")
+
+        # Parse response based on format
+        if response_format == "json":
+            logger.debug("🔍 Parsing JSON response...")
+            try:
+                parsed_content = json.loads(content)
+                logger.debug("✅ Successfully parsed JSON response")
+            except json.JSONDecodeError as e:
+                logger.warning(f"⚠️ JSON parsing failed: {e}, attempting text extraction...")
+                parsed_content = self._extract_json_from_text(content)
+        else:
+            parsed_content = content
+            logger.debug("📝 Using raw text response")
+
+        # Log token usage
+        usage = response.usage
+        logger.debug(f"📊 Token usage - Prompt: {usage.prompt_tokens}, Completion: {usage.completion_tokens}, Total: {usage.total_tokens}")
+
+        return {
+            "content": parsed_content,
+            "raw_content": content,
+            "usage": {
+                "prompt_tokens": usage.prompt_tokens,
+                "completion_tokens": usage.completion_tokens,
+                "total_tokens": usage.total_tokens
+            },
+            "model": response.model,
+            "finish_reason": response.choices[0].finish_reason
+        }
+
     def _make_request_with_retry(self, request_params: Dict[str, Any], max_retries: int = 3) -> Any:
-        """Make API request with retry logic."""
+        logger.debug(f"🔄 Making API request with retry logic (max {max_retries} attempts)")
+        
         for attempt in range(max_retries):
             try:
+                logger.debug(f"📡 Attempt {attempt + 1}/{max_retries} - Calling OpenAI API...")
                 response = self.client.chat.completions.create(**request_params)
+                logger.debug(f"✅ API call successful on attempt {attempt + 1}")
                 return response
                 
-            except openai.RateLimitError as e:
+            except RateLimitError as e:
+                wait_time = 2 ** attempt
                 if attempt < max_retries - 1:
-                    wait_time = (2 ** attempt) * 1  # Exponential backoff
-                    logger.warning(f"Rate limit hit, waiting {wait_time}s before retry {attempt + 1}")
+                    logger.warning(f"⏳ Rate limit hit on attempt {attempt + 1}, waiting {wait_time}s before retry...")
                     time.sleep(wait_time)
                 else:
+                    logger.error(f"❌ Rate limit exceeded after {max_retries} attempts: {e}")
                     raise e
                     
-            except openai.APIError as e:
+            except APIError as e:
+                wait_time = 2 ** attempt
                 if attempt < max_retries - 1:
-                    wait_time = (2 ** attempt) * 1
-                    logger.warning(f"API error, waiting {wait_time}s before retry {attempt + 1}: {e}")
+                    logger.warning(f"⚠️ API error on attempt {attempt + 1}: {e}, waiting {wait_time}s before retry...")
                     time.sleep(wait_time)
                 else:
+                    logger.error(f"❌ API error after {max_retries} attempts: {e}")
                     raise e
                     
             except Exception as e:
-                logger.error(f"Unexpected error on attempt {attempt + 1}: {e}")
                 if attempt == max_retries - 1:
+                    logger.error(f"❌ Unexpected error after {max_retries} attempts: {e}")
                     raise e
-                time.sleep(1)
-    
+                else:
+                    logger.warning(f"⚠️ Unexpected error on attempt {attempt + 1}: {e}, retrying in 1s...")
+                    time.sleep(1)
+
     def _extract_json_from_text(self, text: str) -> Dict[str, Any]:
-        """Try to extract JSON from text response."""
+        logger.debug(f"🔍 Attempting to extract JSON from text (length: {len(text)} chars)")
+        
         try:
             # Look for JSON-like content between braces
-            import re
             json_match = re.search(r'\{.*\}', text, re.DOTALL)
             if json_match:
                 json_str = json_match.group(0)
-                return json.loads(json_str)
-            else:
-                # Return structured fallback
-                return {
-                    "score": 0.5,
-                    "reasoning": "Could not parse LLM response as JSON",
-                    "pros": ["Response received"],
-                    "cons": ["JSON parsing failed"],
-                    "key_factors": ["parsing_error"],
-                    "raw_response": text
-                }
-        except Exception as e:
-            logger.error(f"Error extracting JSON from text: {e}")
-            return {
-                "score": 0.0,
-                "reasoning": f"JSON extraction failed: {str(e)}",
-                "pros": [],
-                "cons": ["JSON extraction error"],
-                "key_factors": ["extraction_error"],
-                "raw_response": text
-            }
-    
-    def call_llm_batch(
-        self, 
-        system_prompt: str, 
-        user_prompts: List[str],
-        temperature: float = None,
-        max_tokens: int = None,
-        response_format: str = "json"
-    ) -> List[Dict[str, Any]]:
-        """Make batch LLM API calls."""
-        try:
-            results = []
-            
-            for i, user_prompt in enumerate(user_prompts):
-                logger.debug(f"Processing batch item {i + 1}/{len(user_prompts)}")
+                logger.debug(f"📋 Found potential JSON block (length: {len(json_str)} chars)")
                 
-                try:
-                    result = self.call_llm(
-                        system_prompt, 
-                        user_prompt, 
-                        temperature, 
-                        max_tokens, 
-                        response_format
-                    )
-                    results.append(result)
-                    
-                    # Add small delay to avoid rate limits
-                    if i < len(user_prompts) - 1:
-                        time.sleep(0.1)
-                        
-                except Exception as e:
-                    logger.error(f"Error processing batch item {i + 1}: {e}")
-                    # Add error result
-                    results.append({
-                        "content": {
-                            "score": 0.0,
-                            "reasoning": f"API call failed: {str(e)}",
-                            "pros": [],
-                            "cons": ["API error"],
-                            "key_factors": ["api_error"]
-                        },
-                        "error": str(e)
-                    })
-            
-            logger.info(f"Completed batch processing: {len(results)} results")
-            return results
-            
+                parsed = json.loads(json_str)
+                logger.info("✅ Successfully extracted and parsed JSON from text")
+                return parsed
+            else:
+                logger.warning("⚠️ No JSON block found in text")
+                
+        except json.JSONDecodeError as e:
+            logger.warning(f"⚠️ JSON decode error during extraction: {e}")
         except Exception as e:
-            logger.error(f"Error in batch LLM calls: {e}")
-            raise
-    
-    def estimate_tokens(self, text: str) -> int:
-        """Estimate token count for text."""
-        # Rough estimation: 1 token ≈ 4 characters for English text
-        return len(text) // 4
-    
-    def validate_request_size(self, system_prompt: str, user_prompt: str, max_tokens: int = None) -> bool:
-        """Validate that request won't exceed token limits."""
-        max_tokens = max_tokens or LLM_MAX_TOKENS
+            logger.error(f"❌ Unexpected error during JSON extraction: {e}")
         
-        # Estimate input tokens
-        input_tokens = self.estimate_tokens(system_prompt + user_prompt)
-        
-        # Check against model limits (rough estimates)
-        model_limits = {
-            "gpt-3.5-turbo": 4096,
-            "gpt-4": 8192,
-            "gpt-4-turbo": 128000,
-            "gpt-4o": 128000
-        }
-        
-        model_limit = model_limits.get(self.model, 4096)
-        total_needed = input_tokens + max_tokens
-        
-        if total_needed > model_limit:
-            logger.warning(f"Request may exceed token limit: {total_needed} > {model_limit}")
-            return False
-        
-        return True
-    
-    def get_client_info(self) -> Dict[str, Any]:
-        """Get information about the LLM client."""
+        # Return fallback response
+        logger.info("🔄 Returning fallback JSON response")
         return {
-            "provider": self.provider,
-            "model": self.model,
-            "has_api_key": bool(self.api_key),
-            "client_initialized": self.client is not None
+            "score": 0.0,
+            "reasoning": "Failed to parse JSON response",
+            "raw_response": text[:200] + "..." if len(text) > 200 else text
         }
+
+
+# Dummy scorer that uses the LLMClient to return a float score from the LLM
+class Scorer:
+    def __init__(self, llm_client: LLMClient):
+        self.llm_client = llm_client
+
+    def llm_score(self, user: Dict[str, Any], home: Dict[str, Any]) -> float:
+        """Example scoring function that returns a score from the LLM."""
+        system_prompt = "You are a helpful assistant that evaluates home-user fit."
+        user_prompt = f"""
+Evaluate how well this home matches this user's preferences.
+User: {json.dumps(user)}
+Home: {json.dumps(home)}
+Return a JSON with a single field "score" from 0.0 to 1.0.
+"""
+        response = self.llm_client.call_llm(system_prompt, user_prompt)
+        return float(response["content"].get("score", 0.0))
+
+
+# Consistency testing
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
+
+    # Initialize
+    llm_client = LLMClient()
+    scorer = Scorer(llm_client)
+
+    # Sample test data
+    test_users = [{"user_id": "user_123", "age": 30, "budget": 500000, "pets": "yes"}]
+    test_homes = [{"home_id": "home_abc", "price": 480000, "pet_friendly": True}]
+
+    test_user = test_users[0]
+    test_home = test_homes[0]
+    num_consistency_tests = 5
+
+    consistency_scores = []
+    consistency_times = []
+
+    print("🔄 Testing scoring consistency...")
+    print(f"Testing {test_user['user_id']} + {test_home['home_id']} {num_consistency_tests} times:")
+
+    for i in range(num_consistency_tests):
+        try:
+            start_time = time.time()
+            score = scorer.llm_score(test_user, test_home)
+            end_time = time.time()
+            consistency_scores.append(score)
+            consistency_times.append(end_time - start_time)
+            print(f"  Run {i + 1}: {score:.3f} in {end_time - start_time:.2f}s")
+        except Exception as e:
+            print(f"  Run {i + 1}: Error - {str(e)}")
+            consistency_scores.append(0.0)
+            consistency_times.append(0.0)
+
+    if consistency_scores:
+        print(f"\n📊 Consistency Analysis:")
+        print(f"Mean score: {np.mean(consistency_scores):.3f}")
+        print(f"Standard deviation: {np.std(consistency_scores):.3f}")
+        print(f"Score range: {max(consistency_scores) - min(consistency_scores):.3f}")
+        print(f"Coefficient of variation: {np.std(consistency_scores) / np.mean(consistency_scores) * 100:.1f}%")
+    else:
+        print("❌ No successful consistency tests")

@@ -64,11 +64,6 @@ home_matching/
    pip install -r requirements.txt
    ```
 
-3. **Set up environment variables**:
-   ```bash
-   export OPENAI_API_KEY="your-openai-api-key"
-   # Optional: export PERPLEXITY_API_KEY="your-perplexity-api-key"
-   ```
 
 ## Quick Start
 

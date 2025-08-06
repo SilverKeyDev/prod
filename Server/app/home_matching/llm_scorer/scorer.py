@@ -5,9 +5,9 @@ LLM-based scoring pipeline for user-home matching.
 from typing import Dict, List, Any, Tuple, Optional
 import logging
 
-from .prompt_builder import PromptBuilder
-from .llm_client import LLMClient
-from .parser import LLMResponseParser
+from app.home_matching.llm_scorer.prompt_builder import PromptBuilder
+from app.home_matching.llm_scorer.llm_client import LLMClient
+from app.home_matching.llm_scorer.parser import LLMResponseParser
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +37,10 @@ class LLMScorer:
             # Parse response
             parsed = self.parser.parse_scoring_response(response)
             
-            score = parsed.get('score', 0.0)
+            raw_score = parsed.get('score', 0.0)
+            # Ensure precise 3-decimal formatting
+            score = round(float(raw_score), 3)
+            
             logger.debug(f"LLM score: {score:.3f} for user {user_data.get('user_id', 'unknown')} and home {home_data.get('home_id', 'unknown')}")
             
             return score

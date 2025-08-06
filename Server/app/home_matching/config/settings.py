@@ -16,7 +16,7 @@ SAMPLES_DIR = DATA_DIR / "samples"
 TABULAR_MODEL_PATH = BASE_DIR / "tabular_model" / "model.pkl"
 
 # API Keys (from environment variables)
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+OPENAI_KEY = os.getenv("OPENAI_KEY")
 PERPLEXITY_API_KEY = os.getenv("PERPLEXITY_API_KEY")
 
 # Embedding model settings
@@ -28,7 +28,8 @@ TABULAR_MODEL_TYPE = "xgboost"  # or "lightgbm"
 RANDOM_STATE = 42
 
 # LLM settings
-LLM_MODEL = "gpt-3.5-turbo"
+LLM_MODEL = "gpt-4.1-nano"  # Valid OpenAI model
+#CHANGE TO GROK LATER ON
 LLM_TEMPERATURE = 0.1
 LLM_MAX_TOKENS = 1000
 

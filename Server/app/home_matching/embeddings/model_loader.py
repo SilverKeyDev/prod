@@ -10,7 +10,7 @@ from sentence_transformers import SentenceTransformer
 import logging
 
 from ..config.settings import (
-    EMBEDDING_MODEL, OPENAI_API_KEY, PERPLEXITY_API_KEY,
+    EMBEDDING_MODEL, OPENAI_KEY, PERPLEXITY_API_KEY,
     EMBEDDING_DIMENSION
 )
 
@@ -44,11 +44,11 @@ class EmbeddingModelLoader:
     def load_openai_client(self) -> openai.OpenAI:
         """Load OpenAI client."""
         if self.openai_client is None:
-            if not OPENAI_API_KEY:
-                raise ValueError("OPENAI_API_KEY not found in environment variables")
+            if not OPENAI_KEY:
+                raise ValueError("OPENAI_KEY not found in environment variables")
             
             try:
-                self.openai_client = openai.OpenAI(api_key=OPENAI_API_KEY)
+                self.openai_client = openai.OpenAI(api_key=OPENAI_KEY)
                 logger.info("Successfully loaded OpenAI client")
             except Exception as e:
                 logger.error(f"Error loading OpenAI client: {e}")

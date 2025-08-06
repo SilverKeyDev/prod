@@ -27,6 +27,8 @@ tensorflow==2.18.0
 jax==0.4.35
 jaxlib==0.4.35
 chex==0.1.87
+openai==1.56.0
+httpx>=0.24.1
 
 # --- PDF, API, and Web ---
 reportlab==4.0.4
