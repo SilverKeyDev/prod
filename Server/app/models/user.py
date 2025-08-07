@@ -21,6 +21,7 @@ class User(db.Model):
     is_agent = db.Column(db.Boolean, default=False)
     client_ids = db.Column(db.Text)  # array of ids of clients
     agent_id = db.Column(db.Text)  # array of ids of agents
+    favorite_home_ids = db.Column(db.Text)  # array of ids of homes
     
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)
@@ -46,4 +47,5 @@ class User(db.Model):
             'is_agent': self.is_agent,
             'client_ids': self.client_ids,
             'agent_id': self.agent_id,
+            'favorite_home_ids': self.favorite_home_ids,
         }

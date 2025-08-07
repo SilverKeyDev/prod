@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { MapPin, Lock, X, Building2, BarChart2, Lightbulb, Loader2 } from "lucide-react";
+import { MapPin, Lock, X, Building2, BarChart2, Lightbulb, Loader2, FolderLock } from "lucide-react";
 import { Link } from "react-router-dom";
 import RippleBackground from "../components/RippleBackground";
 import RippleBackgroundMobile from "../components/RippleBackgroundMobile";
@@ -224,10 +224,10 @@ export default function HomePage() {
               icon: <Lightbulb className="h-8 w-8 text-gray-500" />,
             },
             {
-              title: "Buy the Property",
+              title: "Purchase",
               description:
                 "Use our timelines and paperwork to find and submit the appropriate paperwork, disclosures, etc, without paying legal fees.",
-              icon: <Lightbulb className="h-8 w-8 text-gray-500" />,
+              icon: <FolderLock className="h-8 w-8 text-gray-500" />,
             },
           ].map((f, i) => (
             <div

@@ -51,7 +51,7 @@ export default function LoginPage() {
       window.dispatchEvent(new Event('authChange'));
 
       // Hard refresh to ensure clean app state
-      window.location.href = "/dashboard/search";
+      window.location.href = "/dashboard";
     } catch (error: unknown) {
       console.error('Login error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Login failed. Please try again.';
