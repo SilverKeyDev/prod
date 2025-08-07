@@ -74,8 +74,8 @@ const navigationStructure: NavigationStructure = {
     name: "Search",
     icon: Search,
     items: [
-      { name: "Search", href: "/search", icon: Search },
-      { name: "Saved Homes", href: "/saved", icon: Bookmark },
+      { name: "Search", href: "/dashboard/search", icon: Search },
+      { name: "Saved Homes", href: "/dashboard/saved", icon: Bookmark },
     ],
   },
   decide: {

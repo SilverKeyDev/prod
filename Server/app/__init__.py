@@ -57,9 +57,9 @@ def create_app(config=None):
 
     # Initialize database within app context
     with app.app_context():
-        db.create_all()
         from .models import User, PDFDocument, Subscription, HomeDescription, Home
         from .models.chat_history import ChatHistory
+        db.create_all()
 
     # CORS Configuration
     CORS(app, resources={
