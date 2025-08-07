@@ -1,14 +1,13 @@
 import { useState, useEffect } from "react";
 import KeyLogo from "../components/KeyLogo";
 import { CheckSquare } from "lucide-react";
+import ChecklistCheckbox from "../components/ChecklistCheckbox";
 
 const sectionBox =
   "bg-white rounded-xl shadow-sm p-6 mb-6 border border-beige/40";
 const sectionTitle =
   "text-lg font-semibold text-navy flex items-center gap-3 mb-4";
 const checkboxContainer = "flex items-start gap-3 mb-5";
-const checkboxInput =
-  "mt-1 h-5 w-5 text-olive border-beige rounded focus:ring-olive";
 const itemLabel = "font-medium text-navy";
 const itemExplanation =
   "text-navy/80 text-sm mt-1 transition-opacity duration-300 ease-in-out";
@@ -32,11 +31,6 @@ export default function InspectionsChecklist() {
 
   const toggle = (id: number) =>
     setChecked((prev) => ({ ...prev, [id]: !prev[id] }));
-
-  const resetChecklist = () => {
-    setChecked({});
-    localStorage.removeItem("inspectionsChecklist");
-  };
 
   useEffect(() => {
     const saved = localStorage.getItem("inspectionsChecklist");
@@ -105,12 +99,7 @@ export default function InspectionsChecklist() {
       id: 8,
       label: "Research property taxes, utilities, and school ratings",
       explanation:
-        "Evaluate the financial and lifestyle aspects of the area before moving forward.",
-      bullets: [
-        "Look up local tax rates via the county assessor",
-        "Estimate average utility costs",
-        "Review nearby school scores on GreatSchools.org or Niche",
-      ],
+        "You can check all of this with a SilverKey Home Report!",
     },
   ];
 
@@ -160,47 +149,15 @@ export default function InspectionsChecklist() {
           <fieldset>
             <legend className="sr-only">Checklist</legend>
             {items.map((item) => (
-              <div key={item.id} className={checkboxContainer}>
-                <input
-                  id={`item-${item.id}`}
-                  type="checkbox"
-                  className={checkboxInput}
-                  checked={!!checked[item.id]}
-                  onChange={() => toggle(item.id)}
-                  aria-label={item.label}
-                />
-                <label htmlFor={`item-${item.id}`} className="flex-1">
-                  <span className={itemLabel}>{item.label}</span>
-                  {!checked[item.id] && (
-                    <div>
-                      <p className={itemExplanation}>{item.explanation}</p>
-                      {item.bullets && (
-                        <ul className="list-disc list-inside text-navy/70 ml-4 mt-2 space-y-1">
-                          {item.bullets.map((b, idx) => (
-                            <li key={idx}>{b}</li>
-                          ))}
-                        </ul>
-                      )}
-                      {item.resource && (
-                        <p className="text-olive text-sm mt-2">
-                          {item.resource.href ? (
-                            <a
-                              href={item.resource.href}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="underline hover:text-olive/80"
-                            >
-                              {item.resource.label}
-                            </a>
-                          ) : (
-                            item.resource.label
-                          )}
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </label>
-              </div>
+              <ChecklistCheckbox
+                key={item.id}
+                item={item}
+                checked={!!checked[item.id]}
+                onToggle={() => toggle(item.id)}
+                itemLabelClass={itemLabel}
+                itemExplanationClass={itemExplanation}
+                checkboxContainerClass={checkboxContainer}
+              />
             ))}
           </fieldset>
         </div>

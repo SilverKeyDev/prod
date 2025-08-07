@@ -35,6 +35,7 @@ import { CSS } from "@dnd-kit/utilities";
 import ImportantLocationsInput from "../components/ImportantLocationsInput";
 import PreferredRegionsInput from "../components/PreferredRegionsInput";
 import KeyLogo from "../components/KeyLogo";
+import OliveCheckbox from "../components/OliveCheckbox";
 import PriceRangeSlider from "../components/PriceRangeSlider";
 
 // Extend window interface for Google Maps
@@ -383,7 +384,7 @@ export default function OnboardingPage() {
 
       const currentPriorities = formData.report_section_priorities || [];
       const reorderedSections = arrayMove(sections, oldIndex, newIndex);
-      
+
       // Only include sections that were previously selected (in priorities)
       const newPriorities = reorderedSections
         .filter((section) => currentPriorities.includes(section.key))
@@ -1523,15 +1524,29 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
               {/* Show checkbox if user does NOT have a buyer's agent */}
               {formData.has_buyers_agent === "no" && (
                 <div className="flex flex-col justify-center items-center h-full w-full md:mt-2">
-                  <label className="flex items-center gap-3 text-sm font-medium text-black">
+                  <label
+                    htmlFor="onboard-looking-buyers-agent"
+                    className="flex items-center gap-3 text-sm font-medium text-black cursor-pointer"
+                  >
                     <input
                       type="checkbox"
-                      className="form-checkbox h-6 w-6 rounded border-2 border-brown text-brown focus:ring-2 focus:ring-brown focus:ring-offset-2 transition-all duration-150"
+                      id="onboard-looking-buyers-agent"
+                      className="sr-only peer"
                       checked={!!formData.looking_for_buyers_agent}
-                      onChange={(e) =>
+                      onChange={() =>
                         updateFormData(
                           "looking_for_buyers_agent",
-                          e.target.checked
+                          !formData.looking_for_buyers_agent
+                        )
+                      }
+                      aria-label="I am looking for a buyer's agent"
+                    />
+                    <OliveCheckbox
+                      checked={!!formData.looking_for_buyers_agent}
+                      onToggle={() =>
+                        updateFormData(
+                          "looking_for_buyers_agent",
+                          !formData.looking_for_buyers_agent
                         )
                       }
                     />
@@ -1580,7 +1595,9 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
               Report Customization
             </h2>
             <p className="text-gray-600 mb-4">
-              Choose which sections to include in your property reports. All sections are enabled by default, but you can customize them to focus on what matters most to you.
+              Choose which sections to include in your property reports. All
+              sections are enabled by default, but you can customize them to
+              focus on what matters most to you.
             </p>
 
             <DndContext

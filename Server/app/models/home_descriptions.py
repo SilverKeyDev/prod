@@ -9,7 +9,10 @@ class HomeDescription(db.Model):
 
     user_id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     home_id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    description = db.Column(db.String(500))
+    user_description = db.Column(db.String(500))
+    positives = db.Column(db.String(500))
+    negatives = db.Column(db.String(500))
+    
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

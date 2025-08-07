@@ -1,14 +1,15 @@
 import { useState, useEffect } from "react";
+import { apiRequest } from "../lib/api";
 import KeyLogo from "../components/KeyLogo";
 import { CheckSquare } from "lucide-react";
+import OliveCheckbox from "../components/OliveCheckbox";
 
 const sectionBox =
   "bg-white rounded-xl shadow-sm p-6 mb-6 border border-beige/40";
 const sectionTitle =
   "text-lg font-semibold text-navy flex items-center gap-3 mb-4";
 const checkboxContainer = "flex items-start gap-3 mb-5";
-const checkboxInput =
-  "mt-1 h-5 w-5 text-olive border-beige rounded focus:ring-olive";
+
 const itemLabel = "font-medium text-navy";
 const itemExplanation =
   "text-navy/80 text-sm mt-1 transition-opacity duration-300 ease-in-out";
@@ -28,30 +29,57 @@ interface ChecklistItem {
 }
 
 export default function ClosingMovingIn() {
-  const [checked, setChecked] = useState<{ [id: number]: boolean }>({});
+    const [checked, setChecked] = useState<{ [id: number]: boolean }>({});
+  const [loading, setLoading] = useState(false);
 
-  const toggle = (id: number) =>
-    setChecked((prev) => ({ ...prev, [id]: !prev[id] }));
+  const idsFromChecked = (state: { [id: number]: boolean }) =>
+    Object.entries(state)
+      .filter(([_, v]) => v)
+      .map(([k]) => Number(k));
 
-  const resetChecklist = () => {
-    setChecked({});
-    localStorage.removeItem("closingChecklist");
+  const fetchChecklist = async () => {
+    console.info("📡 Fetching closing checklist from API...");
+    try {
+      setLoading(true);
+      const res = await apiRequest<number[]>("/api/v1/user/closing");
+      console.debug("✅ API response", res);
+      if (res.success && Array.isArray(res.data)) {
+        const mapping: { [id: number]: boolean } = {};
+        res.data.forEach((id) => (mapping[id] = true));
+        setChecked(mapping);
+      }
+    } catch (err) {
+      console.error("❌ Failed to fetch closing checklist", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  useEffect(() => {
-    const saved = localStorage.getItem("closingChecklist");
-    if (saved) {
-      try {
-        setChecked(JSON.parse(saved));
-      } catch (err) {
-        console.error("Failed to parse saved checklist:", err);
-      }
+  const updateChecklist = async (newState: { [id: number]: boolean }) => {
+    try {
+      const body = idsFromChecked(newState);
+      console.info("🚀 Sending updated checklist to API", body);
+      await apiRequest("/api/v1/user/closing", {
+        method: "PUT",
+        body: JSON.stringify(body),
+      });
+    } catch (err) {
+      console.error("❌ Failed to update closing checklist", err);
     }
-  }, []);
+  };
+
+  const toggle = (id: number) =>
+    setChecked((prev) => {
+      const next = { ...prev, [id]: !prev[id] };
+      // optimistic update
+      updateChecklist(next);
+      return next;
+    });
 
   useEffect(() => {
-    localStorage.setItem("closingChecklist", JSON.stringify(checked));
-  }, [checked]);
+    fetchChecklist();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const items: ChecklistItem[] = [
     {
@@ -130,8 +158,7 @@ export default function ClosingMovingIn() {
     {
       id: 7,
       label: "Transfer utilities",
-      explanation:
-        "Set services up a few days before closing to avoid gaps.",
+      explanation: "Set services up a few days before closing to avoid gaps.",
       bullets: [
         "Electricity, water/sewer, natural gas, trash/recycling, internet & cable.",
       ],
@@ -208,6 +235,14 @@ export default function ClosingMovingIn() {
   const completedCount = Object.values(checked).filter(Boolean).length;
   const total = items.length;
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-off-white text-navy">
+        Loading checklist...
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-off-white">
       {/* Header */}
@@ -220,7 +255,8 @@ export default function ClosingMovingIn() {
                 Closing & Moving In Checklist
               </h1>
               <p className="text-navy/70">
-                Track your progress toward a smooth transition into your new home
+                Track your progress toward a smooth transition into your new
+                home
               </p>
             </div>
           </div>
@@ -255,11 +291,12 @@ export default function ClosingMovingIn() {
                 <input
                   id={`item-${item.id}`}
                   type="checkbox"
-                  className={checkboxInput}
+                  className="sr-only peer"
                   checked={!!checked[item.id]}
                   onChange={() => toggle(item.id)}
                   aria-label={item.label}
                 />
+                <OliveCheckbox checked={!!checked[item.id]} onToggle={() => toggle(item.id)} />
                 <label htmlFor={`item-${item.id}`} className="flex-1">
                   <span className={itemLabel}>{item.label}</span>
                   {!checked[item.id] && (

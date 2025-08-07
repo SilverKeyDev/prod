@@ -35,6 +35,7 @@ import { useData } from "../contexts/DataContext";
 import ImportantLocationsInput from "../components/ImportantLocationsInput";
 import Loading from "../components/Loading";
 import MiniLogo from "../components/MiniLogo";
+import OliveCheckbox from "../components/OliveCheckbox";
 import PreferredRegionsInput from "../components/PreferredRegionsInput";
 import PriceRangeSlider from "../components/PriceRangeSlider";
 import { estimateAffordableHomePrice } from "../hooks/getHomePrice";
@@ -291,7 +292,7 @@ const SortableReportSection: React.FC<SortableReportSectionProps> = ({
 
 
 export default function PersonalizationPage() {
-  const { userPreferences, refreshUserPreferences, userProfile } = useData();
+  const { userPreferences, refreshUserPreferences } = useData();
   const [formData, setFormData] = useState<OnboardingData>({});
   const [originalData, setOriginalData] = useState<OnboardingData>({});
   const [isEditMode, setIsEditMode] = useState(false);
@@ -1877,21 +1878,36 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
               {/* Show checkbox if user does NOT have a buyer's agent */}
               {formData.has_buyers_agent === "no" && (
                 <div className="flex flex-col justify-center items-center h-full w-full md:mt-2">
-                  <label className="flex items-center gap-3 text-sm font-medium text-black">
+                  <label htmlFor="looking-buyers-agent" className="flex items-center gap-3 text-sm font-medium text-black cursor-pointer">
                     {isEditMode ? (
-                      <input
-                        type="checkbox"
-                        className="form-checkbox h-6 w-6 rounded border-2 border-brown text-brown focus:ring-2 focus:ring-brown focus:ring-offset-2 transition-all duration-150"
-                        checked={!!formData.looking_for_buyers_agent}
-                        onChange={(e) =>
-                          updateFormData(
-                            "looking_for_buyers_agent",
-                            e.target.checked
-                          )
-                        }
-                      />
+                      <>
+                        <input
+                          type="checkbox"
+                          id="looking-buyers-agent"
+                          className="sr-only"
+                          checked={!!formData.looking_for_buyers_agent}
+                          onChange={() =>
+                            updateFormData(
+                              "looking_for_buyers_agent",
+                              !formData.looking_for_buyers_agent
+                            )
+                          }
+                          aria-label="I am looking for a buyer's agent"
+                        />
+                        <OliveCheckbox
+                          checked={!!formData.looking_for_buyers_agent}
+                          onToggle={() =>
+                            updateFormData(
+                              "looking_for_buyers_agent",
+                              !formData.looking_for_buyers_agent
+                            )
+                          }
+                        />
+                      </>
                     ) : (
-                      <div className="h-6 w-6 rounded border-2 border-gray-300 bg-gray-50 flex items-center justify-center">
+                      <div
+                       className={`h-5 w-5 rounded border flex items-center justify-center ${formData.looking_for_buyers_agent ? 'bg-olive border-olive' : 'border-gray-300 bg-gray-50'}`}
+                      >
                         {formData.looking_for_buyers_agent && (
                           <svg className="w-4 h-4 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />

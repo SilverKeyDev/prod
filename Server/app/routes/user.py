@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, request, current_app
 from datetime import datetime
 import jwt
 import requests
+import json
 import os
 from jose import jwk, jwt as jose_jwt
 from jose.utils import base64url_decode
@@ -196,3 +197,153 @@ def get_report_usage():
             'error': 'SERVER_ERROR',
             'message': 'Failed to retrieve report usage'
         }), 500
+
+def _parse_checklist(raw_value):
+    """Helper to safely parse a stored checklist string back to Python list."""
+    if not raw_value:
+        return []
+    try:
+        # Expecting JSON-encoded list; fall back to comma-separated values
+        if raw_value.strip().startswith('['):
+            return json.loads(raw_value)
+        return [item.strip() for item in raw_value.split(',') if item.strip()]
+    except Exception as e:
+        current_app.logger.error(f"Failed to parse checklist value: {e}")
+        return []
+
+def _build_response(checklist):
+    return jsonify({
+        'success': True,
+        'data': checklist
+    })
+
+def _get_user():
+    """Wrapper around get_current_user with proper error handling."""
+    try:
+        return get_current_user()
+    except Exception as e:
+        current_app.logger.error(f"Authorization failed in checklists route: {e}")
+        return None
+
+@user_bp.route('/inspections', methods=['GET', 'PUT'])
+def inspections_checklist():
+    current_app.logger.info("🔔 /inspections endpoint invoked", extra={"method": request.method})
+    user = _get_user()
+    if not user:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    if request.method == 'GET':
+        checklist = _parse_checklist(user.inspections_checklist)
+        current_app.logger.debug("Returning inspections checklist", extra={"count": len(checklist)})
+        return _build_response(checklist)
+    # PUT update
+    try:
+        data = request.get_json(force=True)
+        if not isinstance(data, list):
+            return jsonify({'success': False, 'error': 'Expected JSON array'}), 400
+        current_app.logger.debug("Updating inspections checklist", extra={"new_ids": data})
+        user.inspections_checklist = json.dumps(data)
+        from app import db
+        db.session.commit()
+        current_app.logger.info("Inspections checklist updated", extra={"count": len(data)})
+        return _build_response(data)
+    except Exception as e:
+        current_app.logger.error(f"Failed to update inspections checklist: {e}")
+        return jsonify({'success': False, 'error': 'Server error'}), 500
+
+@user_bp.route('/closing', methods=['GET', 'PUT'])
+def closing_checklist():
+    current_app.logger.info("🔔 /closing endpoint invoked", extra={"method": request.method})
+    """GET returns checklist, PUT updates it (expects JSON list)."""
+    user = _get_user()
+    if not user:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    if request.method == 'GET':
+        checklist = _parse_checklist(user.closing_checklist)
+        current_app.logger.debug("Returning closing checklist", extra={"count": len(checklist)})
+        return _build_response(checklist)
+    # PUT - update
+    try:
+        data = request.get_json(force=True)
+        if not isinstance(data, list):
+            return jsonify({'success': False, 'error': 'Expected JSON array'}), 400
+        current_app.logger.debug("Updating closing checklist", extra={"new_ids": data})
+        user.closing_checklist = json.dumps(data)
+        from app import db
+        db.session.commit()
+        current_app.logger.info("Closing checklist updated and saved", extra={"count": len(data)})
+        return _build_response(data)
+    except Exception as e:
+        current_app.logger.error(f"Failed to update closing checklist: {e}")
+        return jsonify({'success': False, 'error': 'Server error'}), 500
+
+@user_bp.route('/timeline', methods=['GET', 'PUT'])
+def timeline_checklist():
+    current_app.logger.info("🔔 /timeline endpoint invoked", extra={"method": request.method})
+    user = _get_user()
+    if not user:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    if request.method == 'GET':
+        checklist = _parse_checklist(user.timeline_checklist)
+        current_app.logger.debug("Returning timeline checklist", extra={"count": len(checklist)})
+        return _build_response(checklist)
+    try:
+        data = request.get_json(force=True)
+        if not isinstance(data, list):
+            return jsonify({'success': False, 'error': 'Expected JSON array'}), 400
+        current_app.logger.debug("Updating timeline checklist", extra={"new_ids": data})
+        user.timeline_checklist = json.dumps(data)
+        from app import db
+        db.session.commit()
+        current_app.logger.info("Timeline checklist updated", extra={"count": len(data)})
+        return _build_response(data)
+    except Exception as e:
+        current_app.logger.error(f"Failed to update timeline checklist: {e}")
+        return jsonify({'success': False, 'error': 'Server error'}), 500
+
+@user_bp.route('/insurance', methods=['GET', 'PUT'])
+def insurance_checklist():
+    current_app.logger.info("🔔 /insurance endpoint invoked", extra={"method": request.method})
+    user = _get_user()
+    if not user:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    if request.method == 'GET':
+        checklist = _parse_checklist(user.insurance_checklist)
+        current_app.logger.debug("Returning insurance checklist", extra={"count": len(checklist)})
+        return _build_response(checklist)
+    try:
+        data = request.get_json(force=True)
+        if not isinstance(data, list):
+            return jsonify({'success': False, 'error': 'Expected JSON array'}), 400
+        current_app.logger.debug("Updating insurance checklist", extra={"new_ids": data})
+        user.insurance_checklist = json.dumps(data)
+        from app import db
+        db.session.commit()
+        current_app.logger.info("Insurance checklist updated", extra={"count": len(data)})
+        return _build_response(data)
+    except Exception as e:
+        current_app.logger.error(f"Failed to update insurance checklist: {e}")
+        return jsonify({'success': False, 'error': 'Server error'}), 500
+
+@user_bp.route('/legal', methods=['GET', 'PUT'])
+def legal_checklist():
+    current_app.logger.info("🔔 /legal endpoint invoked", extra={"method": request.method})
+    user = _get_user()
+    if not user:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    if request.method == 'GET':
+        checklist = _parse_checklist(user.legal_checklist)
+        current_app.logger.debug("Returning legal checklist", extra={"count": len(checklist)})
+        return _build_response(checklist)
+    try:
+        data = request.get_json(force=True)
+        if not isinstance(data, list):
+            return jsonify({'success': False, 'error': 'Expected JSON array'}), 400
+        current_app.logger.debug("Updating legal checklist", extra={"new_ids": data})
+        user.legal_checklist = json.dumps(data)
+        from app import db
+        db.session.commit()
+        current_app.logger.info("Legal checklist updated", extra={"count": len(data)})
+        return _build_response(data)
+    except Exception as e:
+        current_app.logger.error(f"Failed to update legal checklist: {e}")
+        return jsonify({'success': False, 'error': 'Server error'}), 500
