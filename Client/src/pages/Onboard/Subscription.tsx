@@ -12,15 +12,13 @@ import {
   CheckCircle,
   AlertCircle,
   Settings,
-  User,
-  Activity,
 } from "lucide-react";
-import { useStripePayment, useStripePortal } from "../hooks/useStripePayment";
-import ErrorToast from "../components/ErrorToast";
-import SuccessToast from "../components/SuccessToast";
-import { useData } from "../contexts/DataContext";
-import Loading from "../components/Loading";
-import MiniLogo from "../components/MiniLogo";
+import { useStripePayment, useStripePortal } from "../../hooks/useStripePayment";
+import ErrorToast from "../../components/ErrorToast";
+import SuccessToast from "../../components/SuccessToast";
+import { useData } from "../../contexts/DataContext";
+import Loading from "../../components/Loading";
+import MiniLogo from "../../components/MiniLogo";
 
 interface Plan {
   id: string;
@@ -205,7 +203,7 @@ export default function Subscription() {
                 </p>
               )}
             </div>
-            
+
             {/* Status - Mobile */}
             {billingInfo?.subscription && (
               <div className="flex items-center justify-center space-x-2">
@@ -260,7 +258,7 @@ export default function Subscription() {
               </div>
             )}
           </div>
-          
+
           {/* Status - Desktop */}
           <div className="p-4 rounded-xl flex flex-col items-center justify-center text-center">
             {billingInfo?.subscription ? (

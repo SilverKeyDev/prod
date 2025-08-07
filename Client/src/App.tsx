@@ -1,16 +1,16 @@
 import { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import LoginPage from "./pages/LoginPage";
-import SignupPage from "./pages/SignupPage";
-import ResetPasswordPage from "./pages/ResetPasswordPage";
-import HomePage from "./pages/HomePage.tsx";
+import LoginPage from "./pages/HomeAuth/LoginPage";
+import SignupPage from "./pages/HomeAuth/SignupPage";
+import ResetPasswordPage from "./pages/HomeAuth/ResetPasswordPage";
+import HomePage from "./pages/HomeAuth/HomePage.tsx";
 import { User } from "./types/index.ts";
 import Dashboard from "./components/Dashboard.tsx";
-import VerificationPage from "./pages/VerificationPage";
-import OnboardingPage from "./pages/OnboardingPage";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import TermsOfService from "./pages/TermsOfService";
-import ContactUs from "./pages/ContactUs";
+import VerificationPage from "./pages/HomeAuth/VerificationPage";
+import OnboardingPage from "./pages/HomeAuth/OnboardingPage";
+import PrivacyPolicy from "./pages/HomeAuth/PrivacyPolicy.tsx";
+import TermsOfService from "./pages/HomeAuth/TermsOfService.tsx";
+import ContactUs from "./pages/HomeAuth/ContactUs.tsx";
 import { DataProvider } from "./contexts/DataContext";
 
 function App() {

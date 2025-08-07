@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import KeyLogo from "../components/KeyLogo";
+import KeyLogo from "../../components/KeyLogo";
 import {
   FileText,
   CreditCard,
@@ -35,7 +35,7 @@ const button =
 const OfferDraftPage: React.FC = () => {
   // Tab state
   const [activeTab, setActiveTab] = useState(0);
-  
+
   // Refs for scrolling to sections
   const sectionRefs = {
     0: useRef<HTMLDivElement>(null),
@@ -50,26 +50,26 @@ const OfferDraftPage: React.FC = () => {
       id: 0,
       title: "Signed Purchase Offer",
       icon: FileText,
-      shortTitle: "Purchase Agreement"
+      shortTitle: "Purchase Agreement",
     },
     {
       id: 1,
       title: "Mortgage Pre-Approval/ Proof of Funds",
       icon: CreditCard,
-      shortTitle: "Mortgage Pre-Approval / Proof of Funds"
+      shortTitle: "Mortgage Pre-Approval / Proof of Funds",
     },
     {
       id: 2,
       title: "Earnest Money Instructions",
       icon: DollarSign,
-      shortTitle: "Earnest Money"
+      shortTitle: "Earnest Money",
     },
     {
       id: 3,
       title: "Buyer Cover Letter (Optional)",
       icon: Heart,
-      shortTitle: "Cover Letter"
-    }
+      shortTitle: "Cover Letter",
+    },
   ];
 
   // Function to scroll to section and set active tab
@@ -77,10 +77,10 @@ const OfferDraftPage: React.FC = () => {
     setActiveTab(tabId);
     const sectionRef = sectionRefs[tabId as keyof typeof sectionRefs];
     if (sectionRef.current) {
-      sectionRef.current.scrollIntoView({ 
-        behavior: 'smooth', 
-        block: 'start',
-        inline: 'nearest'
+      sectionRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+        inline: "nearest",
       });
     }
   };
@@ -160,8 +160,8 @@ const OfferDraftPage: React.FC = () => {
                   onClick={() => scrollToSection(tab.id)}
                   className={`flex items-center gap-3 px-5 py-4 text-sm font-medium whitespace-nowrap border-b-2 transition-colors duration-200 min-w-fit ${
                     activeTab === tab.id
-                      ? 'border-brown text-brown bg-brown/5'
-                      : 'border-transparent text-navy/70 hover:text-navy hover:border-beige'
+                      ? "border-brown text-brown bg-brown/5"
+                      : "border-transparent text-navy/70 hover:text-navy hover:border-beige"
                   }`}
                 >
                   <IconComponent className="h-4 w-4" />
@@ -298,13 +298,15 @@ const OfferDraftPage: React.FC = () => {
               accept="image/*,application/pdf"
               onChange={(e) => handleFile(e, "signature")}
             />
-            
+
             {/* Section Action Buttons */}
             <div className="flex gap-3 mt-6 pt-4 border-t border-beige/30">
               <button
                 type="button"
                 className="bg-brown text-white px-4 py-2 rounded-lg font-medium hover:bg-brown/90 transition-colors duration-200 flex items-center gap-2"
-                onClick={() => alert("Generate Purchase Agreement functionality")}
+                onClick={() =>
+                  alert("Generate Purchase Agreement functionality")
+                }
               >
                 <FileCheck className="h-4 w-4" />
                 Generate Agreement
@@ -312,7 +314,9 @@ const OfferDraftPage: React.FC = () => {
               <button
                 type="button"
                 className="bg-olive text-white px-4 py-2 rounded-lg font-medium hover:bg-olive-light transition-colors duration-200 flex items-center gap-2"
-                onClick={() => alert("Download Purchase Agreement functionality")}
+                onClick={() =>
+                  alert("Download Purchase Agreement functionality")
+                }
               >
                 <Download className="h-4 w-4" />
                 Download Agreement
@@ -391,13 +395,15 @@ const OfferDraftPage: React.FC = () => {
               accept="application/pdf,image/*"
               onChange={(e) => handleFile(e, "proofOfFunds")}
             />
-            
+
             {/* Section Action Buttons */}
             <div className="flex gap-3 mt-6 pt-4 border-t border-beige/30">
               <button
                 type="button"
                 className="bg-brown text-white px-4 py-2 rounded-lg font-medium hover:bg-brown/90 transition-colors duration-200 flex items-center gap-2"
-                onClick={() => alert("Generate Pre-Approval Letter functionality")}
+                onClick={() =>
+                  alert("Generate Pre-Approval Letter functionality")
+                }
               >
                 <FileCheck className="h-4 w-4" />
                 Generate Pre-Approval
@@ -405,7 +411,9 @@ const OfferDraftPage: React.FC = () => {
               <button
                 type="button"
                 className="bg-olive text-white px-4 py-2 rounded-lg font-medium hover:bg-olive-light transition-colors duration-200 flex items-center gap-2"
-                onClick={() => alert("Download Pre-Approval Letter functionality")}
+                onClick={() =>
+                  alert("Download Pre-Approval Letter functionality")
+                }
               >
                 <Download className="h-4 w-4" />
                 Download Pre-Approval
@@ -496,13 +504,15 @@ const OfferDraftPage: React.FC = () => {
               onChange={(e) => handleChange(e, "earnestInstructions")}
               placeholder="Any special instructions or notes"
             />
-            
+
             {/* Section Action Buttons */}
             <div className="flex gap-3 mt-6 pt-4 border-t border-beige/30">
               <button
                 type="button"
                 className="bg-brown text-white px-4 py-2 rounded-lg font-medium hover:bg-brown/90 transition-colors duration-200 flex items-center gap-2"
-                onClick={() => alert("Generate Earnest Money Instructions functionality")}
+                onClick={() =>
+                  alert("Generate Earnest Money Instructions functionality")
+                }
               >
                 <FileCheck className="h-4 w-4" />
                 Generate Instructions
@@ -510,7 +520,9 @@ const OfferDraftPage: React.FC = () => {
               <button
                 type="button"
                 className="bg-olive text-white px-4 py-2 rounded-lg font-medium hover:bg-olive-light transition-colors duration-200 flex items-center gap-2"
-                onClick={() => alert("Download Earnest Money Instructions functionality")}
+                onClick={() =>
+                  alert("Download Earnest Money Instructions functionality")
+                }
               >
                 <Download className="h-4 w-4" />
                 Download Instructions
@@ -571,7 +583,7 @@ const OfferDraftPage: React.FC = () => {
               onChange={(e) => handleChange(e, "coverLetter")}
               placeholder="Share your story (optional)"
             />
-            
+
             {/* Section Action Buttons */}
             <div className="flex gap-3 mt-6 pt-4 border-t border-beige/30">
               <button
@@ -595,7 +607,9 @@ const OfferDraftPage: React.FC = () => {
 
           {/* Overall Action Buttons */}
           <div className="bg-white rounded-xl shadow-sm p-6 mt-8 border border-beige/40">
-            <h3 className="text-lg font-semibold text-navy mb-4">Complete Offer Package</h3>
+            <h3 className="text-lg font-semibold text-navy mb-4">
+              Complete Offer Package
+            </h3>
             <div className="flex flex-wrap gap-4 justify-center">
               <button
                 type="button"
@@ -605,10 +619,7 @@ const OfferDraftPage: React.FC = () => {
                 <FileCheck className="h-5 w-5" />
                 Generate All Documents
               </button>
-              <button
-                className={button}
-                type="submit"
-              >
+              <button className={button} type="submit">
                 <Download className="h-5 w-5" />
                 Download All Documents
               </button>

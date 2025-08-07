@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { estimateAffordableHomePrice } from "../hooks/getHomePrice";
+import { estimateAffordableHomePrice } from "../../hooks/getHomePrice";
 import {
   ChevronLeft,
   ChevronRight,
@@ -32,11 +32,11 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import ImportantLocationsInput from "../components/ImportantLocationsInput";
-import PreferredRegionsInput from "../components/PreferredRegionsInput";
-import KeyLogo from "../components/KeyLogo";
-import OliveCheckbox from "../components/OliveCheckbox";
-import PriceRangeSlider from "../components/PriceRangeSlider";
+import ImportantLocationsInput from "../../components/ImportantLocationsInput";
+import PreferredRegionsInput from "../../components/PreferredRegionsInput";
+import KeyLogo from "../../components/KeyLogo";
+import OliveCheckbox from "../../components/OliveCheckbox";
+import PriceRangeSlider from "../../components/PriceRangeSlider";
 
 // Extend window interface for Google Maps
 declare global {

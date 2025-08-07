@@ -13,8 +13,8 @@ import {
   Target,
 } from "lucide-react";
 
-import Loading from "../components/Loading";
-import MiniLogo from "../components/MiniLogo";
+import Loading from "../../components/Loading";
+import MiniLogo from "../../components/MiniLogo";
 
 // Custom scrollbar styles matching CompareReportsPage
 const scrollbarStyles = `
@@ -141,7 +141,9 @@ const ClientIntelPage: React.FC = () => {
   // Handler function for action plan
   const handleActionPlan = async (client: ClientData) => {
     if (!client.has_preferences) {
-      alert(`${client.name} needs to complete their preferences setup before generating an action plan.`);
+      alert(
+        `${client.name} needs to complete their preferences setup before generating an action plan.`
+      );
       return;
     }
 
@@ -153,13 +155,16 @@ const ClientIntelPage: React.FC = () => {
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
       const idToken = localStorage.getItem("id_token");
 
-      const response = await fetch(`${apiBaseUrl}/api/v1/preferences/action-plan/${client.id}`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${idToken}`,
-          "Content-Type": "application/json",
-        },
-      });
+      const response = await fetch(
+        `${apiBaseUrl}/api/v1/preferences/action-plan/${client.id}`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       const data = await response.json();
 
@@ -176,7 +181,9 @@ const ClientIntelPage: React.FC = () => {
       }
     } catch (error) {
       console.error("Error generating action plan:", error);
-      alert("Network error occurred while generating action plan. Please try again.");
+      alert(
+        "Network error occurred while generating action plan. Please try again."
+      );
       setShowActionPlanModal(false);
     } finally {
       setActionPlanLoading(false);
@@ -186,16 +193,23 @@ const ClientIntelPage: React.FC = () => {
   const downloadActionPlan = () => {
     if (!actionPlanData) return;
 
-    const content = `ACTION PLAN - ${actionPlanData.client_name}\n` +
-      `Generated on: ${new Date(actionPlanData.generated_at).toLocaleDateString()} at ${new Date(actionPlanData.generated_at).toLocaleTimeString()}\n` +
-      `\n${'='.repeat(60)}\n\n` +
+    const content =
+      `ACTION PLAN - ${actionPlanData.client_name}\n` +
+      `Generated on: ${new Date(
+        actionPlanData.generated_at
+      ).toLocaleDateString()} at ${new Date(
+        actionPlanData.generated_at
+      ).toLocaleTimeString()}\n` +
+      `\n${"=".repeat(60)}\n\n` +
       actionPlanData.action_plan;
 
-    const blob = new Blob([content], { type: 'text/plain' });
+    const blob = new Blob([content], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = url;
-    link.download = `action-plan-${actionPlanData.client_name.replace(/\s+/g, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.txt`;
+    link.download = `action-plan-${actionPlanData.client_name
+      .replace(/\s+/g, "-")
+      .toLowerCase()}-${new Date().toISOString().split("T")[0]}.txt`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -283,8 +297,6 @@ const ClientIntelPage: React.FC = () => {
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
   };
-
-
 
   if (loading) {
     return (
@@ -395,7 +407,8 @@ const ClientIntelPage: React.FC = () => {
                               {client.name}
                             </div>
                             <div className="text-xs text-gray-500">
-                              Joined: {new Date(client.created_at).toLocaleDateString()}
+                              Joined:{" "}
+                              {new Date(client.created_at).toLocaleDateString()}
                             </div>
                           </div>
                         </div>
@@ -540,7 +553,8 @@ const ClientIntelPage: React.FC = () => {
                     )}
                   </h2>
                   <p className="text-sm text-gray-600 mt-1">
-                    AI-generated personalized action plan based on client preferences
+                    AI-generated personalized action plan based on client
+                    preferences
                   </p>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -577,17 +591,17 @@ const ClientIntelPage: React.FC = () => {
                 <div className="space-y-6">
                   {/* Action Plan Content */}
                   <div className="prose max-w-none">
-                    <div 
+                    <div
                       className="text-gray-800 leading-relaxed whitespace-pre-wrap"
                       style={{
-                        fontFamily: 'system-ui, -apple-system, sans-serif',
-                        lineHeight: '1.6'
+                        fontFamily: "system-ui, -apple-system, sans-serif",
+                        lineHeight: "1.6",
                       }}
                     >
                       {actionPlanData.action_plan}
                     </div>
                   </div>
-                  
+
                   {/* Footer with generation info */}
                   <div className="border-t border-gray-200 pt-4 mt-6">
                     <div className="flex items-center justify-between text-sm text-gray-500">
@@ -598,8 +612,14 @@ const ClientIntelPage: React.FC = () => {
                       <div>
                         {actionPlanData.generated_at && (
                           <span>
-                            Generated on {new Date(actionPlanData.generated_at).toLocaleDateString()} at{' '}
-                            {new Date(actionPlanData.generated_at).toLocaleTimeString()}
+                            Generated on{" "}
+                            {new Date(
+                              actionPlanData.generated_at
+                            ).toLocaleDateString()}{" "}
+                            at{" "}
+                            {new Date(
+                              actionPlanData.generated_at
+                            ).toLocaleTimeString()}
                           </span>
                         )}
                       </div>
@@ -613,7 +633,8 @@ const ClientIntelPage: React.FC = () => {
                     Failed to Generate Action Plan
                   </h3>
                   <p className="text-gray-600">
-                    There was an error generating the action plan. Please try again.
+                    There was an error generating the action plan. Please try
+                    again.
                   </p>
                 </div>
               )}
@@ -636,40 +657,49 @@ const UserPreferencesTable: React.FC<UserPreferencesTableProps> = ({
   // Debug logging for preferences data
   console.log("[DEBUG] Full preferences object:", preferences);
   console.log("[DEBUG] Preferences keys:", Object.keys(preferences || {}));
-  console.log("[DEBUG] Report customization data:", preferences?.report_section_priorities);
+  console.log(
+    "[DEBUG] Report customization data:",
+    preferences?.report_section_priorities
+  );
   const formatValue = (value: any, fieldKey?: string): string => {
     if (value === null || value === undefined) {
       return "Not specified";
     }
-    
+
     // Special handling for location arrays (important_locations, preferred_regions)
     if (Array.isArray(value)) {
       if (value.length === 0) {
         return "Not specified";
       }
-      
+
       // Check if it's an array of location objects with name and address
-      if (value[0] && typeof value[0] === 'object' && (value[0].name || value[0].address)) {
-        return value.map((item: any) => {
-          if (item.name && item.address) {
-            return `${item.name} (${item.address})`;
-          } else if (item.name) {
-            return item.name;
-          } else if (item.address) {
-            return item.address;
-          }
-          return JSON.stringify(item);
-        }).join(", ");
+      if (
+        value[0] &&
+        typeof value[0] === "object" &&
+        (value[0].name || value[0].address)
+      ) {
+        return value
+          .map((item: any) => {
+            if (item.name && item.address) {
+              return `${item.name} (${item.address})`;
+            } else if (item.name) {
+              return item.name;
+            } else if (item.address) {
+              return item.address;
+            }
+            return JSON.stringify(item);
+          })
+          .join(", ");
       }
-      
+
       // Regular array handling
       return value.join(", ");
     }
-    
+
     if (typeof value === "object") {
       return JSON.stringify(value, null, 2);
     }
-    
+
     if (typeof value === "boolean") {
       return value ? "Yes" : "No";
     }
@@ -687,7 +717,9 @@ const UserPreferencesTable: React.FC<UserPreferencesTableProps> = ({
     }
 
     // For all other fields, replace underscores with spaces and capitalize each word
-    return stringValue.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+    return stringValue
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (l) => l.toUpperCase());
   };
 
   const formatFieldName = (key: string): string => {
@@ -710,10 +742,6 @@ const UserPreferencesTable: React.FC<UserPreferencesTableProps> = ({
     "schools",
     "extra_tips",
   ];
-
-
-
-
 
   const renderSection = (title: string, data: any) => {
     // Add debugging for Report Customization section
@@ -772,36 +800,42 @@ const UserPreferencesTable: React.FC<UserPreferencesTableProps> = ({
     // Special styling for Report Customization section
     if (isReportCustomization) {
       console.log("[DEBUG] Processing Report Customization section");
-      
+
       // Handle the actual data structure: {report_section_priorities: [array of sections]}
       const prioritizedSections = data.report_section_priorities || [];
       console.log("[DEBUG] Prioritized sections:", prioritizedSections);
-      
+
       // Determine which sections are enabled (in the priorities) vs disabled (not in priorities)
-      const enabledSections = prioritizedSections.map((sectionKey: string, index: number) => {
-        const name = sectionKey.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
-        const displayName = `${index + 1}. ${name}`;
+      const enabledSections = prioritizedSections.map(
+        (sectionKey: string, index: number) => {
+          const name = sectionKey
+            .replace(/_/g, " ")
+            .replace(/\b\w/g, (l) => l.toUpperCase());
+          const displayName = `${index + 1}. ${name}`;
+          return { key: sectionKey, displayName };
+        }
+      );
+
+      // Find disabled sections (sections in VALID_REPORT_SECTIONS but not in priorities)
+      const disabledSections = VALID_REPORT_SECTIONS.filter(
+        (section) => !prioritizedSections.includes(section)
+      ).map((sectionKey) => {
+        const name = sectionKey
+          .replace(/_/g, " ")
+          .replace(/\b\w/g, (l) => l.toUpperCase());
+        const displayName = name; // No numbering for disabled sections
         return { key: sectionKey, displayName };
       });
-      
-      // Find disabled sections (sections in VALID_REPORT_SECTIONS but not in priorities)
-      const disabledSections = VALID_REPORT_SECTIONS
-        .filter(section => !prioritizedSections.includes(section))
-        .map(sectionKey => {
-          const name = sectionKey.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
-          const displayName = name; // No numbering for disabled sections
-          return { key: sectionKey, displayName };
-        });
-      
+
       console.log("[DEBUG] Enabled sections:", enabledSections);
       console.log("[DEBUG] Disabled sections:", disabledSections);
-      
+
       return (
         <div className="mb-8">
           <h3 className="text-lg font-semibold text-black mb-4 pb-2 border-b border-gray-200">
             {title}
           </h3>
-          
+
           {/* Enabled Sections */}
           {enabledSections.length > 0 && (
             <div className="mb-6">
@@ -811,16 +845,27 @@ const UserPreferencesTable: React.FC<UserPreferencesTableProps> = ({
               </h4>
               <div className="border-2 border-olive rounded-lg p-4 bg-green-100">
                 <div className="space-y-2">
-                  {enabledSections.map(({ key, displayName }: { key: string; displayName: string }) => (
-                    <div key={key} className="flex items-center text-sm text-black">
-                      <span className="font-medium">{displayName}</span>
-                    </div>
-                  ))}
+                  {enabledSections.map(
+                    ({
+                      key,
+                      displayName,
+                    }: {
+                      key: string;
+                      displayName: string;
+                    }) => (
+                      <div
+                        key={key}
+                        className="flex items-center text-sm text-black"
+                      >
+                        <span className="font-medium">{displayName}</span>
+                      </div>
+                    )
+                  )}
                 </div>
               </div>
             </div>
           )}
-          
+
           {/* Disabled Sections */}
           {disabledSections.length > 0 && (
             <div className="mb-6">
@@ -830,11 +875,22 @@ const UserPreferencesTable: React.FC<UserPreferencesTableProps> = ({
               </h4>
               <div className="border-2 border-gray-300 rounded-lg p-4 bg-gray-50">
                 <div className="space-y-2">
-                  {disabledSections.map(({ key, displayName }: { key: string; displayName: string }) => (
-                    <div key={key} className="flex items-center text-sm text-gray-500">
-                      <span className="font-medium">{displayName}</span>
-                    </div>
-                  ))}
+                  {disabledSections.map(
+                    ({
+                      key,
+                      displayName,
+                    }: {
+                      key: string;
+                      displayName: string;
+                    }) => (
+                      <div
+                        key={key}
+                        className="flex items-center text-sm text-gray-500"
+                      >
+                        <span className="font-medium">{displayName}</span>
+                      </div>
+                    )
+                  )}
                 </div>
               </div>
             </div>

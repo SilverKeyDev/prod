@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Search, Filter, Heart, Bookmark } from "lucide-react";
-import mapStyles from "../hooks/mapStyling";
+import mapStyles from "../../hooks/mapStyling";
 
 
 interface SearchResult {

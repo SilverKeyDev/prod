@@ -22,6 +22,7 @@ class User(db.Model):
     client_ids = db.Column(db.Text)  # array of ids of clients
     agent_id = db.Column(db.Text)  # array of ids of agents
     favorite_home_ids = db.Column(db.Text)  # array of ids of homes
+    document_ids = db.Column(db.Text)  # array of ids of documents
     inspections_checklist = db.Column(db.Text)  # array of ids of inspections
     closing_checklist = db.Column(db.Text)  # array of ids of closings
     timeline_checklist = db.Column(db.Text)  # array of ids of timelines
@@ -54,6 +55,7 @@ class User(db.Model):
             'client_ids': self.client_ids,
             'agent_id': self.agent_id,
             'favorite_home_ids': self.favorite_home_ids,
+            'document_ids': self.document_ids,
             'inspections_checklist': self.inspections_checklist,
             'closing_checklist': self.closing_checklist,
             'timeline_checklist': self.timeline_checklist,

@@ -1,24 +1,28 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Mail, Lock, ArrowLeft, Key } from "lucide-react";
-import { authApi } from "../lib/api";
-import SuccessDialog from "../components/SuccessDialog";
-import { PasswordValidation, usePasswordValidation } from "../components/PasswordValidation";
+import { authApi } from "../../lib/api";
+import SuccessDialog from "../../components/SuccessDialog";
+import {
+  PasswordValidation,
+  usePasswordValidation,
+} from "../../components/PasswordValidation";
 
 export default function ResetPasswordPage() {
   const [searchParams] = useSearchParams();
-  const [email, setEmail] = useState(searchParams.get('email') || "");
+  const [email, setEmail] = useState(searchParams.get("email") || "");
   const [code, setCode] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [step, setStep] = useState<'request' | 'reset'>('request');
+  const [step, setStep] = useState<"request" | "reset">("request");
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const navigate = useNavigate();
-  
+
   // Password validation
-  const { isValid: isPasswordValid, errors: passwordErrors } = usePasswordValidation(newPassword);
+  const { isValid: isPasswordValid, errors: passwordErrors } =
+    usePasswordValidation(newPassword);
 
   const handleRequestReset = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,13 +33,16 @@ export default function ResetPasswordPage() {
       const { success, error } = await authApi.forgotPassword(email);
 
       if (!success) {
-        throw new Error(error || 'Failed to send reset code');
+        throw new Error(error || "Failed to send reset code");
       }
 
-      setStep('reset');
+      setStep("reset");
     } catch (error: unknown) {
-      console.error('Forgot password error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to send reset code. Please try again.';
+      console.error("Forgot password error:", error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to send reset code. Please try again.";
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -55,22 +62,31 @@ export default function ResetPasswordPage() {
 
     // Validate password using comprehensive validation
     if (!isPasswordValid) {
-      setError(`Password must meet all requirements: ${passwordErrors.join(', ')}`);
+      setError(
+        `Password must meet all requirements: ${passwordErrors.join(", ")}`
+      );
       setLoading(false);
       return;
     }
 
     try {
-      const { success, error } = await authApi.resetPassword(email, code, newPassword);
+      const { success, error } = await authApi.resetPassword(
+        email,
+        code,
+        newPassword
+      );
 
       if (!success) {
-        throw new Error(error || 'Failed to reset password');
+        throw new Error(error || "Failed to reset password");
       }
 
       setShowSuccessDialog(true);
     } catch (error: unknown) {
-      console.error('Reset password error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to reset password. Please try again.';
+      console.error("Reset password error:", error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to reset password. Please try again.";
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -88,13 +104,12 @@ export default function ResetPasswordPage() {
         {/* Header */}
         <div className="text-center mb-8 sm:mb-12">
           <h2 className="text-2xl sm:text-3xl font-serif text-black mb-2">
-            {step === 'request' ? 'Reset your password' : 'Enter new password'}
+            {step === "request" ? "Reset your password" : "Enter new password"}
           </h2>
           <p className="text-black/60 font-light text-sm sm:text-base">
-            {step === 'request' 
-              ? 'Enter your email to receive a reset code'
-              : 'Enter the code sent to your email and your new password'
-            }
+            {step === "request"
+              ? "Enter your email to receive a reset code"
+              : "Enter the code sent to your email and your new password"}
           </p>
         </div>
 
@@ -106,7 +121,12 @@ export default function ResetPasswordPage() {
         )}
 
         {/* Reset Form */}
-        <form onSubmit={step === 'request' ? handleRequestReset : handleResetPassword} className="card space-y-4 sm:space-y-6">
+        <form
+          onSubmit={
+            step === "request" ? handleRequestReset : handleResetPassword
+          }
+          className="card space-y-4 sm:space-y-6"
+        >
           {/* Home Button */}
           <Link
             to="/login"
@@ -116,7 +136,7 @@ export default function ResetPasswordPage() {
             <span className="text-sm font-medium">Back to Login</span>
           </Link>
 
-          {step === 'request' ? (
+          {step === "request" ? (
             // Step 1: Request reset code
             <div>
               <label className="block text-xs font-medium text-black mb-2">
@@ -189,8 +209,8 @@ export default function ResetPasswordPage() {
                     required
                   />
                 </div>
-                <PasswordValidation 
-                  password={newPassword} 
+                <PasswordValidation
+                  password={newPassword}
                   showValidation={newPassword.length > 0}
                 />
               </div>
@@ -222,18 +242,18 @@ export default function ResetPasswordPage() {
           >
             {loading ? (
               <div className="shimmer w-16 h-5 rounded mx-auto"></div>
-            ) : step === 'request' ? (
+            ) : step === "request" ? (
               "Send reset code"
             ) : (
               "Reset password"
             )}
           </button>
 
-          {step === 'reset' && (
+          {step === "reset" && (
             <div className="flex items-center justify-center">
               <button
                 type="button"
-                onClick={() => setStep('request')}
+                onClick={() => setStep("request")}
                 className="text-gray-600 hover:text-gray-800 transition-colors text-sm sm:text-base"
               >
                 Didn't receive code? Send again
@@ -261,20 +281,20 @@ export default function ResetPasswordPage() {
         <div className="mt-4 pt-4 border-t border-gray-100">
           <div className="flex flex-col items-center justify-center gap-4 text-sm text-center">
             <div className="flex flex-wrap items-center justify-center gap-6 text-black/60">
-              <Link 
-                to="/privacy" 
+              <Link
+                to="/privacy"
                 className="hover:text-black transition-colors hover:underline underline-offset-4 decoration-brown/40"
               >
                 Privacy Policy
               </Link>
-              <Link 
-                to="/terms" 
+              <Link
+                to="/terms"
                 className="hover:text-black transition-colors hover:underline underline-offset-4 decoration-brown/40"
               >
                 Terms of Service
               </Link>
-              <Link 
-                to="/contact" 
+              <Link
+                to="/contact"
                 className="hover:text-black transition-colors hover:underline underline-offset-4 decoration-brown/40"
               >
                 Contact Us

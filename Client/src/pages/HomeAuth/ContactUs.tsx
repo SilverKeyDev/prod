@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ChevronLeft, Mail, Phone, MapPin, Clock } from "lucide-react";
+import { ChevronLeft, Mail, Phone} from "lucide-react";
 
 export default function ContactUs() {
   return (

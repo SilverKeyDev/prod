@@ -3,9 +3,9 @@ export {};
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapPin, Loader2, AlertCircle, ChevronDown } from "lucide-react";
-import { useData } from "../contexts/DataContext";
-import MiniLogo from "../components/MiniLogo";
-import KeyTurnLoader from "../components/KeyTurnLoader";
+import { useData } from "../../contexts/DataContext";
+import MiniLogo from "../../components/MiniLogo";
+import KeyTurnLoader from "../../components/KeyTurnLoader";
 
 declare global {
   interface Window {
@@ -651,7 +651,6 @@ export default function GenerateReportPage() {
     <div className="min-h-screen bg-gradient-to-br from-off-white to-white mobile-padding py-6 sm:py-8">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8 sm:mb-12">
-
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-serif text-black mb-3 sm:mb-4 px-2 flex items-center justify-center gap-2">
             <MiniLogo size="md" />
             Generate Report

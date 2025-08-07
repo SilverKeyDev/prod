@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Mail, ArrowLeft, RefreshCw } from "lucide-react";
-import { authApi } from "../lib/api";
-import MiniLogo from "../components/MiniLogo";
+import { authApi } from "../../lib/api";
+import MiniLogo from "../../components/MiniLogo";
 
 interface LocationState {
   email?: string;
@@ -149,7 +149,7 @@ export default function VerificationPage() {
     try {
       const userEmail = email || localStorage.getItem("signupEmail") || "";
       const userPassword = localStorage.getItem("signupPassword") || "";
-      
+
       if (!userPassword) {
         throw new Error("Password not found. Please sign up again.");
       }

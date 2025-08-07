@@ -30,15 +30,15 @@ import {
 } from "@dnd-kit/sortable";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { apiRequest } from "../lib/api";
-import { useData } from "../contexts/DataContext";
-import ImportantLocationsInput from "../components/ImportantLocationsInput";
-import Loading from "../components/Loading";
-import MiniLogo from "../components/MiniLogo";
-import OliveCheckbox from "../components/OliveCheckbox";
-import PreferredRegionsInput from "../components/PreferredRegionsInput";
-import PriceRangeSlider from "../components/PriceRangeSlider";
-import { estimateAffordableHomePrice } from "../hooks/getHomePrice";
+import { apiRequest } from "../../lib/api";
+import { useData } from "../../contexts/DataContext";
+import ImportantLocationsInput from "../../components/ImportantLocationsInput";
+import Loading from "../../components/Loading";
+import MiniLogo from "../../components/MiniLogo";
+import OliveCheckbox from "../../components/OliveCheckbox";
+import PreferredRegionsInput from "../../components/PreferredRegionsInput";
+import PriceRangeSlider from "../../components/PriceRangeSlider";
+import { estimateAffordableHomePrice } from "../../hooks/getHomePrice";
 
 // Extend window interface for Google Maps
 declare global {
@@ -79,7 +79,7 @@ interface OnboardingData {
   important_locations?: { name: string; address: string }[];
   commute_tolerance?: number;
   walkability_importance?: string;
-  
+
   // Communication
   communication_frequency?: string;
   information_detail_level?: string;
@@ -127,7 +127,11 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={disabled ? undefined : onToggle}
-        className={`mobile-input text-sm flex items-center justify-between w-full ${disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:border-brown focus:border-brown focus:ring-brown/20'}`}
+        className={`mobile-input text-sm flex items-center justify-between w-full ${
+          disabled
+            ? "opacity-60 cursor-not-allowed"
+            : "cursor-pointer hover:border-brown focus:border-brown focus:ring-brown/20"
+        }`}
         disabled={disabled}
         tabIndex={disabled ? -1 : 0}
         aria-disabled={disabled}
@@ -162,7 +166,9 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
                 value === option.value
                   ? "bg-brown/10 text-brown font-medium"
                   : "text-black"
-              } ${disabled ? 'opacity-60 cursor-not-allowed' : 'hover:bg-brown/5'}`}
+              } ${
+                disabled ? "opacity-60 cursor-not-allowed" : "hover:bg-brown/5"
+              }`}
             >
               {option.label}
             </button>
@@ -289,8 +295,6 @@ const SortableReportSection: React.FC<SortableReportSectionProps> = ({
   );
 };
 
-
-
 export default function PersonalizationPage() {
   const { userPreferences, refreshUserPreferences } = useData();
   const [formData, setFormData] = useState<OnboardingData>({});
@@ -309,8 +313,8 @@ export default function PersonalizationPage() {
   const [homePriceLoading, setHomePriceLoading] = useState(false);
   const [homePriceError, setHomePriceError] = useState<string | null>(null);
 
-   // Generate explanation text for the home price calculation
-   const generateExplanation = (result: any, data: OnboardingData) => {
+  // Generate explanation text for the home price calculation
+  const generateExplanation = (result: any, data: OnboardingData) => {
     // Calculate down payment percent for display
     const downPaymentPercent =
       result.maxHomePrice > 0
@@ -340,7 +344,6 @@ Key assumptions used:
 
 Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleString()} includes principal, interest, property taxes, homeowner's insurance, and PMI (if applicable). This approach gives you a realistic maximum home price based on your income and debts—not just a budget cap.`;
   };
-
 
   const calculateHomePrice = async () => {
     // Check if we have all required data
@@ -403,7 +406,6 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
     }
   };
 
-
   // Drag and drop sensors
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -415,7 +417,6 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
-
 
   // Default report sections with their labels
   const defaultReportSections = [
@@ -492,7 +493,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
     activeSection,
   ]);
 
-// Handle drag end for reordering
+  // Handle drag end for reordering
   const handleDragEnd = (event: DragEndEvent) => {
     try {
       const { active, over } = event;
@@ -510,7 +511,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
 
       const currentPriorities = formData.report_section_priorities || [];
       const reorderedSections = arrayMove(sections, oldIndex, newIndex);
-      
+
       // Only include sections that were previously selected (in priorities)
       const newPriorities = reorderedSections
         .filter((section) => currentPriorities.includes(section.key))
@@ -877,7 +878,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
             <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
               Tell us about yourself
             </h2>
-  
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
@@ -888,7 +889,10 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                     type="number"
                     value={formData.age || ""}
                     onChange={(e) =>
-                      updateFormData("age", parseInt(e.target.value) || undefined)
+                      updateFormData(
+                        "age",
+                        parseInt(e.target.value) || undefined
+                      )
                     }
                     className="mobile-input"
                     placeholder="Enter your age"
@@ -912,7 +916,10 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                       { value: "male", label: "Male" },
                       { value: "female", label: "Female" },
                       { value: "non-binary", label: "Non-binary" },
-                      { value: "prefer_not_to_say", label: "Prefer not to say" },
+                      {
+                        value: "prefer_not_to_say",
+                        label: "Prefer not to say",
+                      },
                     ]}
                     placeholder="Select..."
                     isOpen={openDropdowns.gender || false}
@@ -926,8 +933,11 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                           { value: "male", label: "Male" },
                           { value: "female", label: "Female" },
                           { value: "non-binary", label: "Non-binary" },
-                          { value: "prefer_not_to_say", label: "Prefer not to say" },
-                        ].find(opt => opt.value === formData.gender)?.label
+                          {
+                            value: "prefer_not_to_say",
+                            label: "Prefer not to say",
+                          },
+                        ].find((opt) => opt.value === formData.gender)?.label
                       : "Not specified"}
                   </div>
                 )}
@@ -944,7 +954,10 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                     options={[
                       { value: "yes", label: "Yes" },
                       { value: "no", label: "No" },
-                      { value: "prefer_not_to_say", label: "Prefer not to say" },
+                      {
+                        value: "prefer_not_to_say",
+                        label: "Prefer not to say",
+                      },
                     ]}
                     placeholder="Select..."
                     isOpen={openDropdowns.pets || false}
@@ -957,8 +970,11 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                       ? [
                           { value: "yes", label: "Yes" },
                           { value: "no", label: "No" },
-                          { value: "prefer_not_to_say", label: "Prefer not to say" },
-                        ].find(opt => opt.value === formData.pets)?.label
+                          {
+                            value: "prefer_not_to_say",
+                            label: "Prefer not to say",
+                          },
+                        ].find((opt) => opt.value === formData.pets)?.label
                       : "Not specified"}
                   </div>
                 )}
@@ -972,7 +988,9 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   <input
                     type="text"
                     value={formData.occupation || ""}
-                    onChange={(e) => updateFormData("occupation", e.target.value)}
+                    onChange={(e) =>
+                      updateFormData("occupation", e.target.value)
+                    }
                     className="mobile-input"
                     placeholder="Your job title"
                   />
@@ -1096,7 +1114,9 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                           { value: "good", label: "Good (670-739)" },
                           { value: "very_good", label: "Very Good (740-799)" },
                           { value: "excellent", label: "Excellent (800-850)" },
-                        ].find(opt => opt.value === formData.credit_score_range)?.label
+                        ].find(
+                          (opt) => opt.value === formData.credit_score_range
+                        )?.label
                       : "Not specified"}
                   </div>
                 )}
@@ -1369,12 +1389,17 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   <div className="mobile-input bg-gray-50">
                     {formData.preferred_housing_type
                       ? [
-                          { value: "single_family", label: "Single Family Home" },
+                          {
+                            value: "single_family",
+                            label: "Single Family Home",
+                          },
                           { value: "condo", label: "Condominium" },
                           { value: "townhouse", label: "Townhouse" },
                           { value: "apartment", label: "Apartment" },
                           { value: "duplex", label: "Duplex" },
-                        ].find(opt => opt.value === formData.preferred_housing_type)?.label
+                        ].find(
+                          (opt) => opt.value === formData.preferred_housing_type
+                        )?.label
                       : "Not specified"}
                   </div>
                 )}
@@ -1459,10 +1484,18 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                     {formData.preferred_lot_size
                       ? [
                           { value: "small", label: "Small (under 0.25 acres)" },
-                          { value: "medium", label: "Medium (0.25 - 0.5 acres)" },
+                          {
+                            value: "medium",
+                            label: "Medium (0.25 - 0.5 acres)",
+                          },
                           { value: "large", label: "Large (0.5 - 1 acre)" },
-                          { value: "very_large", label: "Very Large (1+ acres)" },
-                        ].find(opt => opt.value === formData.preferred_lot_size)?.label
+                          {
+                            value: "very_large",
+                            label: "Very Large (1+ acres)",
+                          },
+                        ].find(
+                          (opt) => opt.value === formData.preferred_lot_size
+                        )?.label
                       : "Not specified"}
                   </div>
                 )}
@@ -1505,7 +1538,9 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                           },
                           { value: "mature", label: "Mature (30-50 years)" },
                           { value: "historic", label: "Historic (50+ years)" },
-                        ].find(opt => opt.value === formData.preferred_home_age)?.label
+                        ].find(
+                          (opt) => opt.value === formData.preferred_home_age
+                        )?.label
                       : "Not specified"}
                   </div>
                 )}
@@ -1532,11 +1567,15 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                       { value: "contemporary", label: "Contemporary" },
                     ]}
                     placeholder="Select..."
-                    isOpen={openDropdowns.preferred_architectural_style || false}
+                    isOpen={
+                      openDropdowns.preferred_architectural_style || false
+                    }
                     onToggle={() =>
                       toggleDropdown("preferred_architectural_style")
                     }
-                    dropdownRef={getDropdownRef("preferred_architectural_style")}
+                    dropdownRef={getDropdownRef(
+                      "preferred_architectural_style"
+                    )}
                   />
                 ) : (
                   <div className="mobile-input bg-gray-50">
@@ -1550,7 +1589,10 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                           { value: "victorian", label: "Victorian" },
                           { value: "mediterranean", label: "Mediterranean" },
                           { value: "contemporary", label: "Contemporary" },
-                        ].find(opt => opt.value === formData.preferred_architectural_style)?.label
+                        ].find(
+                          (opt) =>
+                            opt.value === formData.preferred_architectural_style
+                        )?.label
                       : "Not specified"}
                   </div>
                 )}
@@ -1585,7 +1627,9 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                           { value: "minor", label: "Minor Cosmetic Updates" },
                           { value: "major", label: "Major Renovations" },
                           { value: "complete", label: "Complete Renovation" },
-                        ].find(opt => opt.value === formData.renovation_preference)?.label
+                        ].find(
+                          (opt) => opt.value === formData.renovation_preference
+                        )?.label
                       : "Not specified"}
                   </div>
                 )}
@@ -1620,7 +1664,9 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                           { value: "investment", label: "Investment Property" },
                           { value: "vacation", label: "Vacation Home" },
                           { value: "rental", label: "Rental Property" },
-                        ].find(opt => opt.value === formData.intended_property_use)?.label
+                        ].find(
+                          (opt) => opt.value === formData.intended_property_use
+                        )?.label
                       : "Not specified"}
                   </div>
                 )}
@@ -1677,7 +1723,9 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   />
                 ) : (
                   <div className="mobile-input bg-gray-50">
-                    {formData.commute_tolerance ? `${formData.commute_tolerance} minutes` : "Not specified"}
+                    {formData.commute_tolerance
+                      ? `${formData.commute_tolerance} minutes`
+                      : "Not specified"}
                   </div>
                 )}
               </div>
@@ -1715,7 +1763,9 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                             label: "Somewhat Important",
                           },
                           { value: "not_important", label: "Not Important" },
-                        ].find(opt => opt.value === formData.walkability_importance)?.label
+                        ].find(
+                          (opt) => opt.value === formData.walkability_importance
+                        )?.label
                       : "Not specified"}
                   </div>
                 )}
@@ -1749,8 +1799,8 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   Preferred Regions
                 </label>
                 <p className="text-xs text-gray-500 mb-4">
-                  Add regions where you'd like to live (e.g. 
-                  Midtown Atlanta, L.A, etc.)
+                  Add regions where you'd like to live (e.g. Midtown Atlanta,
+                  L.A, etc.)
                 </p>
                 <PreferredRegionsInput
                   regions={formData.preferred_regions || []}
@@ -1800,7 +1850,9 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                         { value: "frequent", label: "Frequent updates" },
                         { value: "milestone", label: "Milestone updates" },
                         { value: "minimal", label: "Minimal contact" },
-                      ].find(opt => opt.value === formData.communication_frequency)?.label
+                      ].find(
+                        (opt) => opt.value === formData.communication_frequency
+                      )?.label
                     : "Not specified"}
                 </div>
               )}
@@ -1836,7 +1888,9 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                         { value: "moderate", label: "Moderate" },
                         { value: "detailed", label: "Detailed" },
                         { value: "comprehensive", label: "Comprehensive" },
-                      ].find(opt => opt.value === formData.information_detail_level)?.label
+                      ].find(
+                        (opt) => opt.value === formData.information_detail_level
+                      )?.label
                     : "Not specified"}
                 </div>
               )}
@@ -1869,7 +1923,8 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                       ? [
                           { value: "yes", label: "Yes" },
                           { value: "no", label: "No" },
-                        ].find(opt => opt.value === formData.has_buyers_agent)?.label
+                        ].find((opt) => opt.value === formData.has_buyers_agent)
+                          ?.label
                       : "Not specified"}
                   </div>
                 )}
@@ -1878,7 +1933,10 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
               {/* Show checkbox if user does NOT have a buyer's agent */}
               {formData.has_buyers_agent === "no" && (
                 <div className="flex flex-col justify-center items-center h-full w-full md:mt-2">
-                  <label htmlFor="looking-buyers-agent" className="flex items-center gap-3 text-sm font-medium text-black cursor-pointer">
+                  <label
+                    htmlFor="looking-buyers-agent"
+                    className="flex items-center gap-3 text-sm font-medium text-black cursor-pointer"
+                  >
                     {isEditMode ? (
                       <>
                         <input
@@ -1906,11 +1964,23 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                       </>
                     ) : (
                       <div
-                       className={`h-5 w-5 rounded border flex items-center justify-center ${formData.looking_for_buyers_agent ? 'bg-olive border-olive' : 'border-gray-300 bg-gray-50'}`}
+                        className={`h-5 w-5 rounded border flex items-center justify-center ${
+                          formData.looking_for_buyers_agent
+                            ? "bg-olive border-olive"
+                            : "border-gray-300 bg-gray-50"
+                        }`}
                       >
                         {formData.looking_for_buyers_agent && (
-                          <svg className="w-4 h-4 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          <svg
+                            className="w-4 h-4 text-gray-600"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                              clipRule="evenodd"
+                            />
                           </svg>
                         )}
                       </div>
@@ -1980,10 +2050,13 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                       if (!section || !section.key || !section.label)
                         return null;
 
-                      const priorities = formData.report_section_priorities || [];
+                      const priorities =
+                        formData.report_section_priorities || [];
                       const priorityIndex = priorities.indexOf(section.key);
                       const isChecked = priorityIndex !== -1;
-                      const priority = isChecked ? priorityIndex + 1 : undefined;
+                      const priority = isChecked
+                        ? priorityIndex + 1
+                        : undefined;
 
                       return (
                         <SortableReportSection

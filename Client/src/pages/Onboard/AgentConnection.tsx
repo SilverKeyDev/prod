@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { X, Search, UserPlus } from "lucide-react";
-import { useData } from "../contexts/DataContext";
+import { useData } from "../../contexts/DataContext";
 
 interface Agent {
   id: string;
@@ -12,7 +12,7 @@ interface Agent {
 }
 
 export default function PersonalizationPage() {
-  const { userPreferences, refreshUserPreferences, userProfile } = useData();
+  const { refreshUserPreferences, userProfile } = useData();
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [openDropdowns, setOpenDropdowns] = useState<{
     [key: string]: boolean;

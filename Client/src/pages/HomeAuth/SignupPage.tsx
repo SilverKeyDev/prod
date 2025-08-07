@@ -1,12 +1,14 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Mail, Lock, User as UserIcon, Phone, ArrowLeft } from "lucide-react";
-import { authApi } from "../lib/api";
+import { authApi } from "../../lib/api";
 import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
-import { PasswordValidation, usePasswordValidation } from "../components/PasswordValidation";
-import Loading from "../components/Loading";
-import MiniLogo from "../components/MiniLogo";
+import {
+  PasswordValidation,
+  usePasswordValidation,
+} from "../../components/PasswordValidation";
+import MiniLogo from "../../components/MiniLogo";
 
 interface SignupPageProps {}
 
@@ -20,9 +22,10 @@ export default function SignupPage({}: SignupPageProps) {
   const [phoneValue, setPhoneValue] = useState<string | undefined>("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  
+
   // Password validation
-  const { isValid: isPasswordValid, errors: passwordErrors } = usePasswordValidation(formData.password);
+  const { isValid: isPasswordValid, errors: passwordErrors } =
+    usePasswordValidation(formData.password);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,7 +33,9 @@ export default function SignupPage({}: SignupPageProps) {
 
     // Validate password before submission
     if (!isPasswordValid) {
-      alert(`Password must meet all requirements: ${passwordErrors.join(', ')}`);
+      alert(
+        `Password must meet all requirements: ${passwordErrors.join(", ")}`
+      );
       setLoading(false);
       return;
     }
@@ -150,8 +155,8 @@ export default function SignupPage({}: SignupPageProps) {
                 required
               />
             </div>
-            <PasswordValidation 
-              password={formData.password} 
+            <PasswordValidation
+              password={formData.password}
               showValidation={formData.password.length > 0}
             />
           </div>
@@ -223,7 +228,9 @@ export default function SignupPage({}: SignupPageProps) {
           </button>
 
           <div className="text-center text-sm sm:text-base">
-            <span className="text-gray-600 sm:text-black/60">Already have an account? </span>
+            <span className="text-gray-600 sm:text-black/60">
+              Already have an account?{" "}
+            </span>
             <Link
               to="/login"
               className="text-brown hover:text-brown/80 hover:underline underline-offset-4 transition-colors"
@@ -237,20 +244,20 @@ export default function SignupPage({}: SignupPageProps) {
         <div className="mt-4 pt-6 border-t border-gray-100">
           <div className="flex flex-col items-center justify-center gap-4 text-sm text-center">
             <div className="flex flex-wrap items-center justify-center gap-6 text-black/60">
-              <Link 
-                to="/privacy" 
+              <Link
+                to="/privacy"
                 className="hover:text-black transition-colors hover:underline underline-offset-4 decoration-brown/40"
               >
                 Privacy Policy
               </Link>
-              <Link 
-                to="/terms" 
+              <Link
+                to="/terms"
                 className="hover:text-black transition-colors hover:underline underline-offset-4 decoration-brown/40"
               >
                 Terms of Service
               </Link>
-              <Link 
-                to="/contact" 
+              <Link
+                to="/contact"
                 className="hover:text-black transition-colors hover:underline underline-offset-4 decoration-brown/40"
               >
                 Contact Us

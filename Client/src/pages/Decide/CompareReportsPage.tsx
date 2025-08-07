@@ -1,10 +1,19 @@
 import { useState, useEffect } from "react";
 
-import { Check, Loader2, BarChart2, RefreshCw, Share, Settings, X, Download } from "lucide-react";
-import ErrorToast from "../components/ErrorToast";
-import SuccessToast from "../components/SuccessToast";
-import { useData } from "../contexts/DataContext";
-import MiniLogo from "../components/MiniLogo";
+import {
+  Check,
+  Loader2,
+  BarChart2,
+  RefreshCw,
+  Share,
+  Settings,
+  X,
+  Download,
+} from "lucide-react";
+import ErrorToast from "../../components/ErrorToast";
+import SuccessToast from "../../components/SuccessToast";
+import { useData } from "../../contexts/DataContext";
+import MiniLogo from "../../components/MiniLogo";
 
 // Custom scrollbar styles
 const scrollbarStyles = `
@@ -83,7 +92,6 @@ const ALL_METRIC_KEYS: string[] = [
   "Restaurant 1 Vibe",
   "Restaurant 1 What to Try",
 
-
   // Local Amenities - Activities
   "Activity 1 Name",
   "Activity 1 Description",
@@ -91,7 +99,6 @@ const ALL_METRIC_KEYS: string[] = [
   // Local Amenities - Parks
   "Park 1 Name",
   "Park 1 Features",
-
 
   // Local Amenities - Stores
   "Thrift Store Name",
@@ -171,10 +178,11 @@ export default function CompareReportsPage() {
   }, [refreshCompareReports]);
 
   // Filter out reports with "comparison" or "marketing" in their names
-  const reports = compareReports?.filter(report => {
-    const address = report.address?.toLowerCase() || '';
-    return !address.includes('comparison') && !address.includes('marketing');
-  }) || [];
+  const reports =
+    compareReports?.filter((report) => {
+      const address = report.address?.toLowerCase() || "";
+      return !address.includes("comparison") && !address.includes("marketing");
+    }) || [];
 
   const [selectedReports, setSelectedReports] = useState<Report[]>([]);
   const [isLoading, setIsLoading] = useState(false); // Only for comparison loading
@@ -184,7 +192,9 @@ export default function CompareReportsPage() {
   const [showRowModal, setShowRowModal] = useState(false);
   const [comparisonTable, setComparisonTable] = useState<any[]>([]);
   const [omittedRows, setOmittedRows] = useState<Set<string>>(new Set());
-  const [manuallyEnabledRows, setManuallyEnabledRows] = useState<Set<string>>(new Set());
+  const [manuallyEnabledRows, setManuallyEnabledRows] = useState<Set<string>>(
+    new Set()
+  );
 
   // Load comparison state from localStorage on mount
   useEffect(() => {
@@ -222,15 +232,21 @@ export default function CompareReportsPage() {
     if (selectedReports.length === 0 || comparisonTable.length === 0) {
       return false;
     }
-    
+
     return selectedReports.some((report) => {
-      const sanitize = (str: string) => (str || "").toLowerCase().replace(/\s+/g, "_");
+      const sanitize = (str: string) =>
+        (str || "").toLowerCase().replace(/\s+/g, "_");
       const row = comparisonTable.find(
         (item: any) => sanitize(item.Address) === sanitize(report.address)
       );
       const value = row ? (row as any)[metric] : null;
       // Consider a row to have data if it's not null, undefined, empty string, or just "-"
-      return value != null && value !== "" && value !== "-" && String(value).trim() !== "";
+      return (
+        value != null &&
+        value !== "" &&
+        value !== "-" &&
+        String(value).trim() !== ""
+      );
     });
   };
 
@@ -493,10 +509,10 @@ export default function CompareReportsPage() {
             </div>
             <div className="flex items-center space-x-2 sm:space-x-3">
               <button
-                  onClick={() => setSelectedReports([])}
-                  disabled={selectedReports.length === 0}
-                  className="flex items-center px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-black/70 bg-gray-100 border border-gray-300 hover:bg-gray-200 hover:border-gray-400 rounded-lg transition-colors disabled:bg-gray-200 disabled:text-gray-500 disabled:border-transparent disabled:cursor-not-allowed touch-friendly"
-                >
+                onClick={() => setSelectedReports([])}
+                disabled={selectedReports.length === 0}
+                className="flex items-center px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-black/70 bg-gray-100 border border-gray-300 hover:bg-gray-200 hover:border-gray-400 rounded-lg transition-colors disabled:bg-gray-200 disabled:text-gray-500 disabled:border-transparent disabled:cursor-not-allowed touch-friendly"
+              >
                 <X className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                 <span className="hidden sm:inline">Clear</span>
               </button>
@@ -631,7 +647,8 @@ export default function CompareReportsPage() {
                 Customize Comparison
               </h3>
               <p className="text-sm text-black/60">
-                Showing {visibleMetrics.length} of {ALL_METRIC_KEYS.length} metrics
+                Showing {visibleMetrics.length} of {ALL_METRIC_KEYS.length}{" "}
+                metrics
               </p>
             </div>
             <button
@@ -647,68 +664,71 @@ export default function CompareReportsPage() {
         {/* Comparison Table */}
         {selectedReports.length > 0 && (
           <div className="mt-6 sm:mt-10 w-full overflow-x-auto scrollbar-hide border rounded-lg">
-          <table className="min-w-full text-xs border-collapse">
-            <thead className="bg-beige/30">
-              <tr>
-                <th className="px-2 sm:px-4 py-2 sm:py-3 text-left font-semibold text-black sticky left-0 bg-beige/30 text-xs">
-                  Metric
-                </th>
-                {selectedReports.map((r) => {
-                  const colWidth =
-                    selectedReports.length >= 3
-                      ? "min-w-[120px] sm:min-w-[140px]"
-                      : "min-w-[150px] sm:min-w-[180px]";
-                  return (
-                    <th
-                      key={r.id}
-                      className={`px-2 sm:px-4 py-2 sm:py-3 text-left font-semibold text-black text-xs ${colWidth}`}
-                    >
-                      <div className="truncate" title={r.address}>
-                        {(() => {
-                          const formattedAddress = r.address.replace(/_/g, " ");
-                          return formattedAddress
-                            .substring(0, formattedAddress.length - 18)
-                            .trim();
-                        })()}
-                      </div>
-                    </th>
-                  );
-                })}
-              </tr>
-            </thead>
-            <tbody>
-              {visibleMetrics.map((metric: string) => (
-                <tr key={metric} className="even:bg-white odd:bg-beige/10">
-                  <td className="px-2 sm:px-4 py-2 font-medium text-black sticky left-0 bg-white/80 backdrop-blur text-xs">
-                    {metric}
-                  </td>
+            <table className="min-w-full text-xs border-collapse">
+              <thead className="bg-beige/30">
+                <tr>
+                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-left font-semibold text-black sticky left-0 bg-beige/30 text-xs">
+                    Metric
+                  </th>
                   {selectedReports.map((r) => {
-                    const sanitize = (str: string) =>
-                      (str || "").toLowerCase().replace(/\s+/g, "_");
-                    const row = comparisonTable.find(
-                      (item: any) =>
-                        sanitize(item.Address) === sanitize(r.address)
-                    );
-                    const value = row ? (row as any)[metric] ?? "-" : "-";
                     const colWidth =
                       selectedReports.length >= 3
                         ? "min-w-[120px] sm:min-w-[140px]"
                         : "min-w-[150px] sm:min-w-[180px]";
                     return (
-                      <td
-                        key={r.id + metric}
-                        className={`px-2 sm:px-4 py-2 text-black/90 whitespace-pre-wrap text-xs ${colWidth}`}
+                      <th
+                        key={r.id}
+                        className={`px-2 sm:px-4 py-2 sm:py-3 text-left font-semibold text-black text-xs ${colWidth}`}
                       >
-                        <div className="max-w-full overflow-hidden">
-                          {value}
+                        <div className="truncate" title={r.address}>
+                          {(() => {
+                            const formattedAddress = r.address.replace(
+                              /_/g,
+                              " "
+                            );
+                            return formattedAddress
+                              .substring(0, formattedAddress.length - 18)
+                              .trim();
+                          })()}
                         </div>
-                      </td>
+                      </th>
                     );
                   })}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {visibleMetrics.map((metric: string) => (
+                  <tr key={metric} className="even:bg-white odd:bg-beige/10">
+                    <td className="px-2 sm:px-4 py-2 font-medium text-black sticky left-0 bg-white/80 backdrop-blur text-xs">
+                      {metric}
+                    </td>
+                    {selectedReports.map((r) => {
+                      const sanitize = (str: string) =>
+                        (str || "").toLowerCase().replace(/\s+/g, "_");
+                      const row = comparisonTable.find(
+                        (item: any) =>
+                          sanitize(item.Address) === sanitize(r.address)
+                      );
+                      const value = row ? (row as any)[metric] ?? "-" : "-";
+                      const colWidth =
+                        selectedReports.length >= 3
+                          ? "min-w-[120px] sm:min-w-[140px]"
+                          : "min-w-[150px] sm:min-w-[180px]";
+                      return (
+                        <td
+                          key={r.id + metric}
+                          className={`px-2 sm:px-4 py-2 text-black/90 whitespace-pre-wrap text-xs ${colWidth}`}
+                        >
+                          <div className="max-w-full overflow-hidden">
+                            {value}
+                          </div>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
 
@@ -783,7 +803,8 @@ export default function CompareReportsPage() {
                     Auto-Hide Empty
                   </button>
                   <div className="px-4 py-2 text-sm text-black/60 bg-gray-100 rounded-lg">
-                    Showing: {visibleMetrics.length} / {ALL_METRIC_KEYS.length} metrics
+                    Showing: {visibleMetrics.length} / {ALL_METRIC_KEYS.length}{" "}
+                    metrics
                   </div>
                 </div>
 
@@ -792,15 +813,19 @@ export default function CompareReportsPage() {
                   <div className="max-h-96 overflow-y-auto custom-scrollbar">
                     {ALL_METRIC_KEYS.map((metric, index) => {
                       const isManuallyOmitted = omittedRows.has(metric);
-                      const isAutoOmitted = !hasDataForAnyProperty(metric) && !manuallyEnabledRows.has(metric);
+                      const isAutoOmitted =
+                        !hasDataForAnyProperty(metric) &&
+                        !manuallyEnabledRows.has(metric);
                       const isOmitted = isManuallyOmitted || isAutoOmitted;
                       const hasData = hasDataForAnyProperty(metric);
-                      
+
                       return (
                         <label
                           key={metric}
                           className={`flex items-center space-x-3 p-4 cursor-pointer transition-colors hover:bg-beige/20 ${
-                            index !== ALL_METRIC_KEYS.length - 1 ? 'border-b border-gray-100' : ''
+                            index !== ALL_METRIC_KEYS.length - 1
+                              ? "border-b border-gray-100"
+                              : ""
                           }`}
                         >
                           <div className="relative">
@@ -813,10 +838,12 @@ export default function CompareReportsPage() {
                                   const newOmittedRows = new Set(omittedRows);
                                   newOmittedRows.delete(metric);
                                   setOmittedRows(newOmittedRows);
-                                  
+
                                   // If it was auto-omitted, mark as manually enabled
                                   if (!hasData) {
-                                    const newManuallyEnabled = new Set(manuallyEnabledRows);
+                                    const newManuallyEnabled = new Set(
+                                      manuallyEnabledRows
+                                    );
                                     newManuallyEnabled.add(metric);
                                     setManuallyEnabledRows(newManuallyEnabled);
                                   }
@@ -825,20 +852,24 @@ export default function CompareReportsPage() {
                                   const newOmittedRows = new Set(omittedRows);
                                   newOmittedRows.add(metric);
                                   setOmittedRows(newOmittedRows);
-                                  
+
                                   // Remove from manually enabled if it was there
-                                  const newManuallyEnabled = new Set(manuallyEnabledRows);
+                                  const newManuallyEnabled = new Set(
+                                    manuallyEnabledRows
+                                  );
                                   newManuallyEnabled.delete(metric);
                                   setManuallyEnabledRows(newManuallyEnabled);
                                 }
                               }}
                               className="sr-only"
                             />
-                            <div className={`w-5 h-5 rounded border-2 transition-all duration-200 flex items-center justify-center ${
-                              !isOmitted
-                                ? 'bg-brown border-brown text-white shadow-sm'
-                                : 'border-beige hover:border-brown/50 bg-white'
-                            }`}>
+                            <div
+                              className={`w-5 h-5 rounded border-2 transition-all duration-200 flex items-center justify-center ${
+                                !isOmitted
+                                  ? "bg-brown border-brown text-white shadow-sm"
+                                  : "border-beige hover:border-brown/50 bg-white"
+                              }`}
+                            >
                               {!isOmitted && (
                                 <Check className="w-3 h-3 fill-current" />
                               )}
@@ -883,7 +914,9 @@ export default function CompareReportsPage() {
                 <button
                   onClick={() => {
                     setShowRowModal(false);
-                    setToastMessage(`Updated comparison to show ${visibleMetrics.length} metrics`);
+                    setToastMessage(
+                      `Updated comparison to show ${visibleMetrics.length} metrics`
+                    );
                     setShowSuccess(true);
                   }}
                   className="px-4 py-2 text-sm font-medium text-white bg-brown hover:bg-brown/80 rounded-lg transition-colors"

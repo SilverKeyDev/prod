@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Mail, Lock, ArrowLeft } from "lucide-react";
-import { authApi } from "../lib/api";
-import MiniLogo from "../components/MiniLogo";
+import { authApi } from "../../lib/api";
+import MiniLogo from "../../components/MiniLogo";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -10,15 +10,14 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-
   // Clear any existing auth data when login page loads
   useEffect(() => {
     localStorage.removeItem("user");
     localStorage.removeItem("access_token");
     localStorage.removeItem("id_token");
-    
+
     // Dispatch auth change event to update App component state
-    window.dispatchEvent(new Event('authChange'));
+    window.dispatchEvent(new Event("authChange"));
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -30,31 +29,34 @@ export default function LoginPage() {
       const { success, error, data } = await authApi.login(email, password);
 
       if (!success) {
-        throw new Error(error || 'Login failed');
+        throw new Error(error || "Login failed");
       }
 
       // Store user data in local storage
       if (data?.user) {
-        localStorage.setItem('user', JSON.stringify(data.user));
+        localStorage.setItem("user", JSON.stringify(data.user));
       }
-      
+
       // Store access token if available
       if (data?.access_token) {
-        localStorage.setItem('access_token', data.access_token);
+        localStorage.setItem("access_token", data.access_token);
       }
 
       if (data?.id_token) {
-        localStorage.setItem('id_token', data.id_token);
-      }      
+        localStorage.setItem("id_token", data.id_token);
+      }
 
       // Dispatch auth change event to update App component state
-      window.dispatchEvent(new Event('authChange'));
+      window.dispatchEvent(new Event("authChange"));
 
       // Hard refresh to ensure clean app state
       window.location.href = "/dashboard";
     } catch (error: unknown) {
-      console.error('Login error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Login failed. Please try again.';
+      console.error("Login error:", error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Login failed. Please try again.";
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -160,20 +162,20 @@ export default function LoginPage() {
         <div className="mt-4 pt-4 border-t border-gray-100">
           <div className="flex flex-col items-center justify-center gap-4 text-sm text-center">
             <div className="flex flex-wrap items-center justify-center gap-6 text-black/60">
-              <Link 
-                to="/privacy" 
+              <Link
+                to="/privacy"
                 className="hover:text-black transition-colors hover:underline underline-offset-4 decoration-brown/40"
               >
                 Privacy Policy
               </Link>
-              <Link 
-                to="/terms" 
+              <Link
+                to="/terms"
                 className="hover:text-black transition-colors hover:underline underline-offset-4 decoration-brown/40"
               >
                 Terms of Service
               </Link>
-              <Link 
-                to="/contact" 
+              <Link
+                to="/contact"
                 className="hover:text-black transition-colors hover:underline underline-offset-4 decoration-brown/40"
               >
                 Contact Us

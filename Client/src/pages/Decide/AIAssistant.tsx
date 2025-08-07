@@ -7,9 +7,9 @@ import {
   FileText,
   X,
 } from "lucide-react";
-import { useData } from "../contexts/DataContext";
-import Loading from "../components/Loading";
-import MiniLogo from "../components/MiniLogo";
+import { useData } from "../../contexts/DataContext";
+import Loading from "../../components/Loading";
+import MiniLogo from "../../components/MiniLogo";
 
 interface ChatMessage {
   id: string;

@@ -1,9 +1,18 @@
 import React, { useState, useEffect, useRef } from "react";
-import { MapPin, Lock, X, Building2, BarChart2, Lightbulb, Loader2, FolderLock } from "lucide-react";
+import {
+  MapPin,
+  Lock,
+  X,
+  Building2,
+  BarChart2,
+  Lightbulb,
+  Loader2,
+  FolderLock,
+} from "lucide-react";
 import { Link } from "react-router-dom";
-import RippleBackground from "../components/RippleBackground";
-import RippleBackgroundMobile from "../components/RippleBackgroundMobile";
-import KeyLogo from "../components/KeyLogo";
+import RippleBackground from "../../components/RippleBackground";
+import RippleBackgroundMobile from "../../components/RippleBackgroundMobile";
+import KeyLogo from "../../components/KeyLogo";
 
 interface Suggestion {
   description: string;
@@ -62,10 +71,7 @@ export default function HomePage() {
     script.async = true;
     script.defer = true;
     script.onload = () => setScriptsReady(true);
-    script.onerror = () =>
-      setLoadError(
-        "Failed to load Google Maps script. Please check your API key or internet."
-      );
+    script.onerror = () => setLoadError("Save your first home today!");
 
     document.head.appendChild(script);
   }, []);
@@ -122,7 +128,10 @@ export default function HomePage() {
           <Link to="/login" className="hover:underline px-2 py-1">
             Login
           </Link>
-          <Link to="/signup" className="bg-brown text-white px-3 py-1 rounded hover:bg-brown/90 transition-colors">
+          <Link
+            to="/signup"
+            className="bg-brown text-white px-3 py-1 rounded hover:bg-brown/90 transition-colors"
+          >
             Sign Up
           </Link>
         </div>
@@ -154,11 +163,7 @@ export default function HomePage() {
                 type="text"
                 value={address}
                 onChange={handleInputChange}
-                placeholder={
-                  scriptsReady
-                    ? "Search here"
-                    : "Loading..."
-                }
+                placeholder={scriptsReady ? "Search here" : "Loading..."}
                 disabled={!scriptsReady}
                 className="w-full h-12 sm:h-14 pl-10 sm:pl-12 pr-3 sm:pr-4 rounded-lg border border-gray-300 text-xs sm:text-base focus:ring-2 focus:ring-olive focus:border-olive transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed touch-manipulation"
                 autoComplete="off"
@@ -242,16 +247,25 @@ export default function HomePage() {
             </div>
           ))}
         </div>
-        
+
         {/* Footer Links */}
         <div className="relative mt-10 flex flex-wrap justify-center items-center gap-4 sm:gap-8 text-sm text-center">
-          <Link to="/privacy" className="bg-white text-black px-4 py-2 rounded-lg shadow hover:shadow-md transition-colors duration-200">
+          <Link
+            to="/privacy"
+            className="bg-white text-black px-4 py-2 rounded-lg shadow hover:shadow-md transition-colors duration-200"
+          >
             Privacy Policy
           </Link>
-          <Link to="/terms" className="bg-white text-black px-4 py-2 rounded-lg shadow hover:shadow-md transition-colors duration-200">
+          <Link
+            to="/terms"
+            className="bg-white text-black px-4 py-2 rounded-lg shadow hover:shadow-md transition-colors duration-200"
+          >
             Terms of Service
           </Link>
-          <Link to="/contact" className="bg-white text-black px-4 py-2 rounded-lg shadow hover:shadow-md transition-colors duration-200">
+          <Link
+            to="/contact"
+            className="bg-white text-black px-4 py-2 rounded-lg shadow hover:shadow-md transition-colors duration-200"
+          >
             Contact Us
           </Link>
         </div>

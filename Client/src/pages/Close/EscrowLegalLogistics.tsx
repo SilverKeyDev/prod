@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { apiRequest } from "../lib/api";
-import KeyLogo from "../components/KeyLogo";
+import { apiRequest } from "../../lib/api";
+import KeyLogo from "../../components/KeyLogo";
 import { CheckSquare } from "lucide-react";
-import ChecklistCheckbox from "../components/ChecklistCheckbox";
+import ChecklistCheckbox from "../../components/ChecklistCheckbox";
 
 const sectionBox =
   "bg-white rounded-xl shadow-sm p-6 mb-6 border border-beige/40";
@@ -10,7 +10,8 @@ const sectionTitle =
   "text-lg font-semibold text-navy flex items-center gap-3 mb-4";
 const checkboxContainer = "flex items-start gap-3 mb-5";
 const itemLabel = "font-medium text-navy";
-const itemExplanation = "text-navy/80 text-sm mt-1 transition-opacity duration-300 ease-in-out";
+const itemExplanation =
+  "text-navy/80 text-sm mt-1 transition-opacity duration-300 ease-in-out";
 
 interface ResourceLink {
   label: string;
@@ -206,7 +207,7 @@ export default function EscrowLegalLogistics() {
       },
     },
   ];
-  
+
   const completedCount = Object.values(checked).filter(Boolean).length;
   const total = items.length;
 
@@ -217,11 +218,15 @@ export default function EscrowLegalLogistics() {
           <div className="flex items-center gap-4 mb-4">
             <KeyLogo size="sm" />
             <div>
-              <h1 className="text-2xl font-bold text-navy">Escrow & Legal Checklist</h1>
-              <p className="text-navy/70">Stay on top of the escrow and legal process</p>
+              <h1 className="text-2xl font-bold text-navy">
+                Escrow & Legal Checklist
+              </h1>
+              <p className="text-navy/70">
+                Stay on top of the escrow and legal process
+              </p>
             </div>
           </div>
-  
+
           {!loading && (
             <div className="mt-4">
               <p className="text-sm text-navy/70 mb-1">
@@ -237,7 +242,7 @@ export default function EscrowLegalLogistics() {
           )}
         </div>
       </div>
-  
+
       <div className="max-w-3xl mx-auto py-8">
         <div className={sectionBox}>
           <div className={sectionTitle}>

@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { apiRequest } from "../lib/api";
-import KeyLogo from "../components/KeyLogo";
+import { apiRequest } from "../../lib/api";
+import KeyLogo from "../../components/KeyLogo";
 import { CheckSquare } from "lucide-react";
-import ChecklistCheckbox from "../components/ChecklistCheckbox";
+import ChecklistCheckbox from "../../components/ChecklistCheckbox";
 
 const sectionBox =
   "bg-white rounded-xl shadow-sm p-6 mb-6 border border-beige/40";
@@ -28,7 +28,7 @@ interface ChecklistItem {
 }
 
 export default function ClosingMovingIn() {
-    const [checked, setChecked] = useState<{ [id: number]: boolean }>({});
+  const [checked, setChecked] = useState<{ [id: number]: boolean }>({});
   const [loading, setLoading] = useState(false);
 
   const idsFromChecked = (state: { [id: number]: boolean }) =>

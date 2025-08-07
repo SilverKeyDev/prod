@@ -3,6 +3,8 @@ from flask_login import login_required, current_user
 from app.extensions import db
 from app.models import PDFDocument
 import os
+import json
+from app.models.home_descriptions import HomeDescription
 
 dashboard_bp = Blueprint('dashboard', __name__, url_prefix='/api/dashboard')
 
@@ -17,11 +19,23 @@ def dashboard():
         .all()
     )
 
+    try:
+        favorite_ids = json.loads(user.favorite_home_ids) if user.favorite_home_ids else []
+    except (TypeError, ValueError):
+        current_app.logger.warning("dashboard: failed to parse favorite_home_ids", extra={"raw": user.favorite_home_ids})
+        favorite_ids = []
+
+    favorite_homes = []
+    if favorite_ids:
+        favorite_homes = (
+            HomeDescription.query.filter(HomeDescription.home_id.in_(favorite_ids)).all()
+        )
+
     return jsonify(
         {
             "success": True,
             "user": user.to_dict(),
-            "recentDocuments": [doc.to_dict() for doc in recent_documents],
+            "favoriteHomes": [home.to_dict() for home in favorite_homes],
         }
     )
 

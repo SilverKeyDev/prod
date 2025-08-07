@@ -11,11 +11,11 @@ import {
   RefreshCw,
   X,
 } from "lucide-react";
-import ErrorToast from "../components/ErrorToast";
-import SuccessToast from "../components/SuccessToast";
-import { useData } from "../contexts/DataContext";
-import Loading from "../components/Loading";
-import MiniLogo from "../components/MiniLogo";
+import ErrorToast from "../../components/ErrorToast";
+import SuccessToast from "../../components/SuccessToast";
+import { useData } from "../../contexts/DataContext";
+
+import MiniLogo from "../../components/MiniLogo";
 
 interface Report {
   id: string;
@@ -140,9 +140,7 @@ const PdfModal: React.FC<PdfModalProps> = ({
     if (matchingReport) {
       // Use the same formatting method as report cards
       const formattedAddress = matchingReport.address.replace(/_/g, " ");
-      return formattedAddress
-        .substring(0, formattedAddress.length - 18)
-        .trim();
+      return formattedAddress.substring(0, formattedAddress.length - 18).trim();
     }
 
     // Fallback: extract address from URL if possible
@@ -151,7 +149,9 @@ const PdfModal: React.FC<PdfModalProps> = ({
       const filename = urlParts[urlParts.length - 1];
       if (filename.includes(".pdf")) {
         // Use the same formatting method as report cards
-        const formattedAddress = filename.replace(".pdf", "").replace(/_/g, " ");
+        const formattedAddress = filename
+          .replace(".pdf", "")
+          .replace(/_/g, " ");
         return formattedAddress
           .substring(0, formattedAddress.length - 18)
           .trim();
@@ -186,18 +186,24 @@ const PdfModal: React.FC<PdfModalProps> = ({
         role="dialog"
         aria-modal="true"
         style={{
-          borderRadius: '24px 24px 0 0',
-          boxShadow: '0 10px 30px rgba(0, 0, 0, 0.15)',
-          backdropFilter: 'blur(12px)',
-          background: 'rgba(255, 255, 255, 0.1)',
-          overflow: 'hidden'
+          borderRadius: "24px 24px 0 0",
+          boxShadow: "0 10px 30px rgba(0, 0, 0, 0.15)",
+          backdropFilter: "blur(12px)",
+          background: "rgba(255, 255, 255, 0.1)",
+          overflow: "hidden",
         }}
       >
         {/* Gold Header with Address and Actions */}
-        <div className="bg-gradient-to-r from-brown to-brown/90 px-4 py-3 flex items-center justify-between" style={{ borderRadius: '24px 24px 0 0' }}>
+        <div
+          className="bg-gradient-to-r from-brown to-brown/90 px-4 py-3 flex items-center justify-between"
+          style={{ borderRadius: "24px 24px 0 0" }}
+        >
           {/* Logo and Address Title */}
           <div className="flex items-center space-x-3">
-            <div className="text-white" style={{ filter: 'brightness(0) invert(1)' }}>
+            <div
+              className="text-white"
+              style={{ filter: "brightness(0) invert(1)" }}
+            >
               <MiniLogo className="w-6 h-6" />
             </div>
             <h2 className="text-white font-semibold text-lg truncate">
@@ -239,12 +245,14 @@ const PdfModal: React.FC<PdfModalProps> = ({
         </div>
 
         {/* PDF Content */}
-        <div className="flex-1 overflow-hidden" style={{ background: 'rgba(250, 249, 247, 0.3)' }}>
+        <div
+          className="flex-1 overflow-hidden"
+          style={{ background: "rgba(250, 249, 247, 0.3)" }}
+        >
           <iframe
             src={`${currentPdf}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
             className="w-full h-full border-0"
             title="PDF Viewer"
-
             onLoad={() => {
               console.log(
                 "[PdfModal] iframe onLoad event fired for:",
@@ -1029,15 +1037,6 @@ export default function PastReports() {
     }
   }, [currentPdf, reports, handleShareReport]);
 
-  // Show loading state when reports are being loaded initially
-  if (reportsLoading) {
-    return (
-      <div className="min-h-screen bg-off-white flex items-center justify-center">
-        <Loading message="Loading your reports..." />
-      </div>
-    );
-  }
-
   return (
     <div className="max-w-7xl mx-auto mobile-padding">
       {currentPdf && (
@@ -1175,13 +1174,17 @@ export default function PastReports() {
             </div>
             <button
               onClick={handleRefresh}
-              disabled={isRefreshing}
+              disabled={isRefreshing || reportsLoading}
               className={`p-2 rounded touch-friendly flex items-center justify-center transition-colors duration-200 ${
                 isRefreshing
                   ? "bg-gray-300 text-gray-600 cursor-not-allowed"
                   : "bg-gray-300 text-gray-600 hover:bg-gray-500 hover:text-white"
               }`}
-              title={isRefreshing ? "Refreshing..." : "Refresh reports"}
+              title={
+                isRefreshing || reportsLoading
+                  ? "Refreshing..."
+                  : "Refresh reports"
+              }
             >
               <RefreshCw
                 className={`w-3 h-3 sm:w-4 sm:h-4 transition-transform duration-200 ${

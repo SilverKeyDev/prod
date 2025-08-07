@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import KeyLogo from "../components/KeyLogo";
-import { apiRequest } from "../lib/api";
+import KeyLogo from "../../components/KeyLogo";
+import { apiRequest } from "../../lib/api";
 import { CheckSquare } from "lucide-react";
-import ChecklistCheckbox from "../components/ChecklistCheckbox";
+import ChecklistCheckbox from "../../components/ChecklistCheckbox";
 
 const sectionBox =
   "bg-white rounded-xl shadow-sm p-6 mb-6 border border-beige/40";
@@ -10,7 +10,8 @@ const sectionTitle =
   "text-lg font-semibold text-navy flex items-center gap-3 mb-4";
 const checkboxContainer = "flex items-start gap-3 mb-5";
 const itemLabel = "font-medium text-navy";
-const itemExplanation = "text-navy/80 text-sm mt-1 transition-opacity duration-300 ease-in-out";
+const itemExplanation =
+  "text-navy/80 text-sm mt-1 transition-opacity duration-300 ease-in-out";
 
 interface ResourceLink {
   label: string;
@@ -217,8 +218,12 @@ export default function FinancingInsurance() {
           <div className="flex items-center gap-4 mb-4">
             <KeyLogo size="sm" />
             <div>
-              <h1 className="text-2xl font-bold text-navy">Financing & Insurance Checklist</h1>
-              <p className="text-navy/70">Stay on top of your loan and insurance tasks</p>
+              <h1 className="text-2xl font-bold text-navy">
+                Financing & Insurance Checklist
+              </h1>
+              <p className="text-navy/70">
+                Stay on top of your loan and insurance tasks
+              </p>
             </div>
           </div>
 
