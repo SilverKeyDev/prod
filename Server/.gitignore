@@ -162,8 +162,3 @@ cython_debug/
 pytest.ini
 .pytest_cache/
 
-# Database migrations
-migrations/
-*/migrations/
-alembic/versions/
-**/*migration*.py

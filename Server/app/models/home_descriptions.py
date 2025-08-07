@@ -2,10 +2,10 @@ from datetime import datetime
 import uuid
 from app import db
 
-class Home(db.Model):
+class HomeDescription(db.Model):
     """Represents a residential property that can be favourited by users or used elsewhere in the app."""
 
-    __tablename__ = "homes"
+    __tablename__ = "home_descriptions"
 
     user_id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     home_id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
@@ -15,9 +15,7 @@ class Home(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     def __init__(self, **kwargs):
-        super(Home, self).__init__(**kwargs)
-        if not self.id:
-            self.id = str(uuid.uuid4())
+        super(HomeDescription, self).__init__(**kwargs)
 
     def to_dict(self):
         return {
