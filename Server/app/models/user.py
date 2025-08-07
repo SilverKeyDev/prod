@@ -28,8 +28,7 @@ class User(db.Model):
     financing_checklist = db.Column(db.Text)  # array of ids of financings
     escrow_checklist = db.Column(db.Text)  # array of ids of escrows
     insurance_checklist = db.Column(db.Text)  # array of ids of insurance tasks
-    legal_checklist = db.Column(db.Text)  # array of ids of legal tasks
-    
+
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)
         if not self.id:
@@ -58,6 +57,5 @@ class User(db.Model):
             'inspections_checklist': self.inspections_checklist,
             'closing_checklist': self.closing_checklist,
             'timeline_checklist': self.timeline_checklist,
-             'insurance_checklist': getattr(self, 'insurance_checklist', None),
-             'legal_checklist': getattr(self, 'legal_checklist', None),
+            'insurance_checklist': self.insurance_checklist,
         }

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { apiRequest } from "../lib/api";
 import KeyLogo from "../components/KeyLogo";
 import { CheckSquare } from "lucide-react";
 import ChecklistCheckbox from "../components/ChecklistCheckbox";
@@ -28,80 +29,185 @@ interface ChecklistItem {
 
 export default function InspectionsChecklist() {
   const [checked, setChecked] = useState<{ [id: number]: boolean }>({});
+  const [loading, setLoading] = useState(false);
+
+  const idsFromChecked = (state: { [id: number]: boolean }) =>
+    Object.entries(state)
+      .filter(([_, v]) => v)
+      .map(([k]) => Number(k));
+
+  // fetch existing checklist
+  const fetchChecklist = async () => {
+    console.info("📡 Fetching inspections checklist from API...");
+    try {
+      setLoading(true);
+      const res = await apiRequest<number[]>("/api/v1/user/insurance");
+      if (res.success && Array.isArray(res.data)) {
+        const mapping: { [id: number]: boolean } = {};
+        res.data.forEach((id) => (mapping[id] = true));
+        setChecked(mapping);
+      }
+    } catch (err) {
+      console.error("❌ Failed to fetch inspections checklist", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateChecklist = async (newState: { [id: number]: boolean }) => {
+    try {
+      const body = idsFromChecked(newState);
+      await apiRequest("/api/v1/user/insurance", {
+        method: "PUT",
+        body: JSON.stringify(body),
+      });
+    } catch (err) {
+      console.error("❌ Failed to update inspections checklist", err);
+    }
+  };
 
   const toggle = (id: number) =>
-    setChecked((prev) => ({ ...prev, [id]: !prev[id] }));
+    setChecked((prev) => {
+      const next = { ...prev, [id]: !prev[id] };
+      updateChecklist(next);
+      return next;
+    });
 
   useEffect(() => {
-    const saved = localStorage.getItem("inspectionsChecklist");
-    if (saved) {
-      try {
-        setChecked(JSON.parse(saved));
-      } catch (err) {
-        console.error("Failed to parse saved checklist:", err);
-      }
-    }
+    fetchChecklist();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  // placeholder (handled early)
 
-  useEffect(() => {
-    localStorage.setItem("inspectionsChecklist", JSON.stringify(checked));
-  }, [checked]);
+  // toggle handled earlier
+
+
 
   const items: ChecklistItem[] = [
     {
       id: 1,
       label: "Hire a general home inspector",
-      explanation: "Choose a certified inspector to evaluate the overall condition of the home.",
+      explanation:
+        "Choose a certified inspector to evaluate the home's overall condition and identify potential issues.",
+      bullets: [
+        "Ask for referrals or check reviews online.",
+        "Look for licensed inspectors with E&O insurance.",
+      ],
+      resource: {
+        label: "How to Find a Home Inspector (NAR Guide)",
+        href: "https://www.nar.realtor/research-and-statistics/quick-real-estate-statistics/home-inspections",
+      },
     },
     {
       id: 2,
       label: "Schedule specialized inspections as needed",
       explanation:
-        "Based on the general inspector’s findings or property type, consider specialists for further evaluation.",
+        "Depending on the home type, age, or initial findings, consider hiring specialists for further evaluation.",
       bullets: [
         "Roof inspection",
         "Sewer scope",
         "HVAC system",
         "Mold, pest, or termite check",
       ],
+      resource: {
+        label: "Types of Home Inspections",
+        href: "https://www.bankrate.com/real-estate/types-of-home-inspections/",
+      },
     },
     {
       id: 3,
       label: "Review all seller disclosures",
       explanation:
-        "Understand known issues with the property as reported by the seller. These are typically required by law.",
+        "Sellers are legally required to share known issues with the home. Review thoroughly to spot red flags.",
+      bullets: [
+        "Look for signs of past water damage, structural issues, or prior repairs.",
+        "Disclosures vary by state — ask your agent or attorney for guidance.",
+      ],
+      resource: {
+        label: "What Are Seller Disclosures?",
+        href: "https://www.zillow.com/sellers-guide/what-are-seller-disclosures/",
+      },
     },
     {
       id: 4,
       label: "Compare inspection and disclosure findings",
       explanation:
-        "Look for discrepancies or confirmation between what inspectors found and what sellers disclosed.",
+        "Use both sets of information to get a full picture of the home’s condition.",
+      bullets: [
+        "Confirm if disclosed issues were flagged in the inspection.",
+        "Note any discrepancies to raise during negotiation.",
+      ],
+      resource: {
+        label: "Reconciling Disclosures vs. Inspection",
+        href: "https://www.homeadvisor.com/r/home-inspection-vs-seller-disclosure/",
+      },
     },
     {
       id: 5,
       label: "Request credits, repairs, or price reductions if necessary",
       explanation:
-        "Negotiate based on findings. You can ask for repairs to be completed, request credits, or lower the offer price.",
+        "You can negotiate with the seller to address issues discovered during inspections.",
+      bullets: [
+        "Ask for repairs to be completed before closing.",
+        "Negotiate a closing credit or price reduction.",
+        "Prioritize safety or major structural concerns.",
+      ],
+      resource: {
+        label: "Repair Request Template & Strategy",
+        href: "https://www.homelight.com/blog/buyer-home-inspection-repair-requests/",
+      },
     },
     {
       id: 6,
       label: "Decide whether to proceed or cancel under contingency",
       explanation:
-        "Use your inspection contingency period to exit the contract penalty-free if serious issues arise.",
+        "You can cancel the contract penalty-free during the inspection contingency period if issues are too severe.",
+      bullets: [
+        "Consult your agent or attorney before backing out.",
+        "Make your decision before the deadline.",
+      ],
+      resource: {
+        label: "Understanding Inspection Contingencies",
+        href: "https://www.realtor.com/advice/buy/home-inspection-contingency/",
+      },
     },
     {
       id: 7,
       label: "Attend inspections and ask clarifying questions",
       explanation:
-        "Be present if possible — you’ll gain insights that aren’t always in the final report.",
+        "Being present lets you hear the inspector’s commentary and ask questions in real time.",
+      bullets: [
+        "You’ll often gain more insight than what’s written in the report.",
+        "Bring a notepad or record audio with permission.",
+      ],
+      resource: {
+        label: "Why You Should Attend Your Home Inspection",
+        href: "https://www.bankrate.com/real-estate/should-you-attend-home-inspection/",
+      },
     },
     {
       id: 8,
       label: "Research property taxes, utilities, and school ratings",
       explanation:
-        "You can check all of this with a SilverKey Home Report!",
+        "These ongoing costs and community factors can impact long-term affordability and resale value.",
+      bullets: [
+        "Use public records or request a SilverKey Report for one-click answers.",
+        "Check utility averages and verify school ratings.",
+      ],
+      resource: {
+        label: "Check Home Data with SilverKey",
+        href: "https://silverkeyestates.com/",
+      },
     },
   ];
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-off-white text-navy">
+        Loading checklist...
+      </div>
+    );
+  }
 
   const completedCount = Object.values(checked).filter(Boolean).length;
   const total = items.length;

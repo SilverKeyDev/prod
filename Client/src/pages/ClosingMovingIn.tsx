@@ -2,14 +2,13 @@ import { useState, useEffect } from "react";
 import { apiRequest } from "../lib/api";
 import KeyLogo from "../components/KeyLogo";
 import { CheckSquare } from "lucide-react";
-import OliveCheckbox from "../components/OliveCheckbox";
+import ChecklistCheckbox from "../components/ChecklistCheckbox";
 
 const sectionBox =
   "bg-white rounded-xl shadow-sm p-6 mb-6 border border-beige/40";
 const sectionTitle =
   "text-lg font-semibold text-navy flex items-center gap-3 mb-4";
 const checkboxContainer = "flex items-start gap-3 mb-5";
-
 const itemLabel = "font-medium text-navy";
 const itemExplanation =
   "text-navy/80 text-sm mt-1 transition-opacity duration-300 ease-in-out";
@@ -287,49 +286,15 @@ export default function ClosingMovingIn() {
           <fieldset>
             <legend className="sr-only">Checklist</legend>
             {items.map((item) => (
-              <div key={item.id} className={checkboxContainer}>
-                <input
-                  id={`item-${item.id}`}
-                  type="checkbox"
-                  className="sr-only peer"
-                  checked={!!checked[item.id]}
-                  onChange={() => toggle(item.id)}
-                  aria-label={item.label}
-                />
-                <OliveCheckbox checked={!!checked[item.id]} onToggle={() => toggle(item.id)} />
-                <label htmlFor={`item-${item.id}`} className="flex-1">
-                  <span className={itemLabel}>{item.label}</span>
-                  {!checked[item.id] && (
-                    <div>
-                      <p className={itemExplanation}>{item.explanation}</p>
-                      {item.bullets && (
-                        <ul className="list-disc list-inside text-navy/70 ml-4 mt-2 space-y-1">
-                          {item.bullets.map((b, idx) => (
-                            <li key={idx}>{b}</li>
-                          ))}
-                        </ul>
-                      )}
-                      {item.resource && (
-                        <p className="text-olive text-sm mt-2">
-                          {" "}
-                          {item.resource.href ? (
-                            <a
-                              href={item.resource.href}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="underline hover:text-olive/80"
-                            >
-                              {item.resource.label}
-                            </a>
-                          ) : (
-                            item.resource.label
-                          )}
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </label>
-              </div>
+              <ChecklistCheckbox
+                key={item.id}
+                item={item}
+                checked={!!checked[item.id]}
+                onToggle={() => toggle(item.id)}
+                itemLabelClass={itemLabel}
+                itemExplanationClass={itemExplanation}
+                checkboxContainerClass={checkboxContainer}
+              />
             ))}
           </fieldset>
         </div>
