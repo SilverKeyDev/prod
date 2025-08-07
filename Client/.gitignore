@@ -26,3 +26,5 @@ package-lock.json
 vite.config.ts.*
 .env
 package-lock.json
+
+dist

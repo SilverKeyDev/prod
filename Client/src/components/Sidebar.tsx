@@ -24,14 +24,14 @@ import {
   Bookmark,
   ClipboardList,
 } from "lucide-react";
-import { User } from "../types/index.ts";
+import { UserProfile } from "../contexts/DataContext.tsx";
 import { useState } from "react";
 import ConfirmationDialog from "./ConfirmationDialog";
 
 import { useData } from "../contexts/DataContext.tsx";
 import MiniLogo from "./MiniLogo";
 interface SidebarProps {
-  user?: User; // make user optional to prevent crash
+  user?: UserProfile; // make user optional to prevent crash
   onLogout: () => void;
   expanded: boolean;
   onToggleExpanded: () => void;

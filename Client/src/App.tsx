@@ -4,17 +4,16 @@ import LoginPage from "./pages/HomeAuth/LoginPage";
 import SignupPage from "./pages/HomeAuth/SignupPage";
 import ResetPasswordPage from "./pages/HomeAuth/ResetPasswordPage";
 import HomePage from "./pages/HomeAuth/HomePage.tsx";
-import { User } from "./types/index.ts";
 import Dashboard from "./components/Dashboard.tsx";
 import VerificationPage from "./pages/HomeAuth/VerificationPage";
 import OnboardingPage from "./pages/HomeAuth/OnboardingPage";
 import PrivacyPolicy from "./pages/HomeAuth/PrivacyPolicy.tsx";
 import TermsOfService from "./pages/HomeAuth/TermsOfService.tsx";
 import ContactUs from "./pages/HomeAuth/ContactUs.tsx";
-import { DataProvider } from "./contexts/DataContext.tsx";
+import { DataProvider, UserProfile } from "./contexts/DataContext.tsx";
 
 function App() {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

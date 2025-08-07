@@ -17,12 +17,12 @@ import InspectionsDueDiligence from "../pages/Close/InspectionsDueDiligence.tsx"
 import FinancingInsurance from "../pages/Close/FinancingInsurance.tsx";
 import ClosingMovingIn from "../pages/Close/ClosingMovingIn.tsx";
 import UserDashboardPage from "../pages/UserDashboard.tsx";
-import { User } from "../types/index.ts";
+import { UserProfile } from "../contexts/DataContext.tsx";
 import GetPreApproved from "../pages/Onboard/PreApproved.tsx";
 import SavedHomes from "../pages/Search/SavedHomes";
 
 interface DashboardProps {
-  user: User;
+  user?: UserProfile;
   onLogout: () => void;
 }
 

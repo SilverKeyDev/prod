@@ -57,7 +57,7 @@ interface BillingInfo {
   has_active_subscription: boolean;
 }
 
-interface UserProfile {
+export interface UserProfile {
   id: string;
   email: string;
   name: string;
