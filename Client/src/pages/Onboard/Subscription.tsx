@@ -13,7 +13,10 @@ import {
   AlertCircle,
   Settings,
 } from "lucide-react";
-import { useStripePayment, useStripePortal } from "../../hooks/useStripePayment";
+import {
+  useStripePayment,
+  useStripePortal,
+} from "../../hooks/useStripePayment";
 import ErrorToast from "../../components/ErrorToast";
 import SuccessToast from "../../components/SuccessToast";
 import { useData } from "../../contexts/DataContext";

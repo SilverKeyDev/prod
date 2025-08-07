@@ -11,7 +11,7 @@ import OnboardingPage from "./pages/HomeAuth/OnboardingPage";
 import PrivacyPolicy from "./pages/HomeAuth/PrivacyPolicy.tsx";
 import TermsOfService from "./pages/HomeAuth/TermsOfService.tsx";
 import ContactUs from "./pages/HomeAuth/ContactUs.tsx";
-import { DataProvider } from "./contexts/DataContext";
+import { DataProvider } from "./contexts/DataContext.tsx";
 
 function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -35,14 +35,14 @@ function App() {
     };
 
     // Listen for storage changes from other tabs
-    window.addEventListener('storage', handleAuthChange);
-    
+    window.addEventListener("storage", handleAuthChange);
+
     // Listen for custom auth events from same tab
-    window.addEventListener('authChange', handleAuthChange);
+    window.addEventListener("authChange", handleAuthChange);
 
     return () => {
-      window.removeEventListener('storage', handleAuthChange);
-      window.removeEventListener('authChange', handleAuthChange);
+      window.removeEventListener("storage", handleAuthChange);
+      window.removeEventListener("authChange", handleAuthChange);
     };
   }, []);
 
@@ -53,9 +53,9 @@ function App() {
     localStorage.removeItem("access_token");
     localStorage.removeItem("id_token");
     localStorage.removeItem("signupEmail"); // Also clear any leftover signup email
-    
+
     // Dispatch auth change event
-    window.dispatchEvent(new Event('authChange'));
+    window.dispatchEvent(new Event("authChange"));
   };
 
   if (loading) {
@@ -75,14 +75,11 @@ function App() {
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<HomePage />} />
-            <Route
-              path="/signup"
-              element={<SignupPage />}
-            />
+            <Route path="/signup" element={<SignupPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/forgot-password" element={<ResetPasswordPage />} />
             <Route path="/onboarding" element={<OnboardingPage />} />
-            <Route path="/verification" element={<VerificationPage/>} />
+            <Route path="/verification" element={<VerificationPage />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsOfService />} />
             <Route path="/contact" element={<ContactUs />} />
