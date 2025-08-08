@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { apiRequest } from "../lib/api";
 import HomeCard, { HomeDescription } from "../components/HomeCard";
-import DocumentCard from "../components/DocumentCard";
+import DocumentCard, { DocumentData } from "../components/DocumentCard";
 import PriceDropCard from "../components/PriceDropCard";
 import NewMatchCard from "../components/NewMatchCard";
 import TimelineProgress from "../components/TimelineProgress";
-import KeyLogo from "../components/KeyLogo";
+import MiniLogo from "../components/MiniLogo";
+import Carousel from "../components/Carousel";
 
 // Dummy data for recent price drops (will be fetched from backend later)
 const priceDrops = [
@@ -58,8 +59,10 @@ export default function UserDashboard() {
   const [favLoading, setFavLoading] = useState(false);
   const [favError, setFavError] = useState<string | null>(null);
 
-  // State for user documents (placeholder list)
-  const [documents, _setDocuments] = useState<string[]>([]);
+  // State for user documents
+  const [documents, setDocuments] = useState<DocumentData[]>([]);
+  const [docsLoading, setDocsLoading] = useState(false);
+  const [docsError, setDocsError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchFavs = async () => {
@@ -85,25 +88,20 @@ export default function UserDashboard() {
     };
 
     const fetchDocs = async () => {
-      setFavLoading(true);
-      setFavError(null);
-      const res = await apiRequest("/api/v1/user/documents");
+      setDocsLoading(true);
+      setDocsError(null);
+      const res = await apiRequest("/api/v1/report/documents");
       if (res.success) {
         if (res.documents) {
-          setFavoriteHomes(res.favoriteHomes as HomeDescription[]);
-        } else if (Array.isArray(res.data)) {
-          // Endpoint returned array of IDs only; treat as empty for now
-          setFavoriteHomes([]);
-        } else if (res.data?.favoriteHomes) {
-          setFavoriteHomes(res.data.favoriteHomes as HomeDescription[]);
+          setDocuments(res.documents as DocumentData[]);
         } else {
-          // Successful but no homes field -> none saved yet
-          setFavoriteHomes([]);
+          // Successful but no documents field -> none saved yet
+          setDocuments([]);
         }
       } else {
-        setFavError(res.error || "Failed to load favorite homes");
+        setDocsError(res.error || "Failed to load documents");
       }
-      setFavLoading(false);
+      setDocsLoading(false);
     };
 
     fetchFavs();
@@ -114,7 +112,7 @@ export default function UserDashboard() {
     <div className="max-w-6xl mx-auto p-6">
       {/* Dashboard Header */}
       <div className="bg-white rounded-lg shadow p-6 mb-6 flex items-center gap-4">
-        <KeyLogo className="w-50 h-10 shrink-0" />
+        <MiniLogo className="w-50 h-10 shrink-0" />
         <div>
           <h1 className="text-3xl font-semibold">Dashboard</h1>
           <p className="text-gray-600">
@@ -133,62 +131,58 @@ export default function UserDashboard() {
       </div>
 
       {/* Favorite Homes */}
-      <div className="my-8">
-        <h2 className="text-2xl font-semibold mb-4">Your Saved Homes</h2>
-        {favLoading ? (
-          <p>Loading...</p>
-        ) : favError ? (
-          <p className="text-gray-500">Save your first home today</p>
-        ) : favoriteHomes.length === 0 ? (
-          <p className="text-gray-500">Save your first home today</p>
-        ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {favoriteHomes.map((home) => (
-              <HomeCard key={home.home_id} home={home} />
-            ))}
-          </div>
-        )}
-      </div>
+      <Carousel
+        items={favoriteHomes}
+        title="Your Saved Homes"
+        loading={favLoading}
+        error={favError}
+        emptyMessage="Save your first home today"
+        renderItem={(home) => <HomeCard home={home} />}
+        getItemKey={(home) => home.home_id}
+      />
 
       {/* Documents */}
-      <div className="my-8">
-        <h2 className="text-2xl font-semibold mb-4">Your Documents</h2>
-        {favLoading ? (
-          <p>Loading...</p>
-        ) : favError ? (
-          <p className="text-gray-500">Create your first document today</p>
-        ) : documents.length === 0 ? (
-          <p className="text-gray-500">Create your first document today</p>
-        ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {documents.map((doc) => (
-              <DocumentCard key={doc} doc={doc} />
-            ))}
-          </div>
+      <Carousel
+        items={documents}
+        title="Your Documents"
+        loading={docsLoading}
+        error={docsError}
+        emptyMessage="Create your first document today"
+        renderItem={(doc) => (
+          <DocumentCard 
+            doc={doc}
+            onView={(doc) => {
+              // TODO: Implement document viewing
+              console.log('View document:', doc);
+            }}
+            onDownload={(doc) => {
+              // TODO: Implement document download
+              console.log('Download document:', doc);
+            }}
+          />
         )}
-      </div>
+        getItemKey={(doc) => doc.id}
+      />
 
       {/* Notifications */}
       <div className="my-8 space-y-10">
         {/* Price Drops */}
-        <div>
-          <h2 className="text-2xl font-semibold mb-4">Recent Price Drops</h2>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {priceDrops.map((pd) => (
-              <PriceDropCard key={pd.address} item={pd} />
-            ))}
-          </div>
-        </div>
+        <Carousel
+          items={priceDrops}
+          title="Recent Price Drops"
+          emptyMessage="No recent price drops"
+          renderItem={(pd) => <PriceDropCard item={pd} />}
+          getItemKey={(pd) => pd.address}
+        />
 
         {/* New Matches */}
-        <div>
-          <h2 className="text-2xl font-semibold mb-4">New Matches For You</h2>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {newMatches.map((nm) => (
-              <NewMatchCard key={nm.address} item={nm} />
-            ))}
-          </div>
-        </div>
+        <Carousel
+          items={newMatches}
+          title="New Matches For You"
+          emptyMessage="No new matches yet"
+          renderItem={(nm) => <NewMatchCard item={nm} />}
+          getItemKey={(nm) => nm.address}
+        />
       </div>
     </div>
   );

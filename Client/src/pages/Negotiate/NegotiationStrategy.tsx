@@ -1,5 +1,6 @@
 import { useState } from "react";
 import KeyLogo from "../../components/KeyLogo";
+import FavoriteHomesDropdown from "../../components/FavoriteHomesDropdown";
 import {
   Home,
   Lightbulb,
@@ -13,8 +14,6 @@ const sectionBox =
 const sectionTitle =
   "text-lg font-semibold text-navy flex items-center gap-3 mb-4";
 const label = "block text-navy font-medium mb-2";
-const input =
-  "w-full border border-beige rounded-lg px-3 py-2 mb-3 focus:outline-none focus:ring-2 focus:ring-olive focus:border-olive transition-colors";
 const button =
   "bg-olive text-white px-6 py-3 rounded-lg font-semibold hover:bg-olive-light transition-colors duration-200 flex items-center gap-2";
 
@@ -26,18 +25,11 @@ interface Strategy {
 }
 
 export default function NegotiationStrategy() {
-  // Mocked list of homes; replace with API data when backend is ready
-  const sampleHomes = [
-    { id: 1, address: "123 Maple St, Springfield" },
-    { id: 2, address: "456 Oak Ave, Riverdale" },
-    { id: 3, address: "789 Pine Ln, Sunnyvale" },
-  ];
-
-  const [selectedHomeId, setSelectedHomeId] = useState<number | null>(null);
+  const [selectedHome, setSelectedHome] = useState<any>(null);
   const [strategy, setStrategy] = useState<Strategy | null>(null);
 
   const handleGenerate = () => {
-    if (!selectedHomeId) return;
+    if (!selectedHome) return;
     // Mock generation logic – stub until backend/AI endpoint is available
     setStrategy({
       pricing:
@@ -49,6 +41,12 @@ export default function NegotiationStrategy() {
       extras:
         "Include personal cover letter highlighting intent to maintain the home's garden.",
     });
+  };
+
+  // Handle home selection from dropdown
+  const handleHomeSelection = (home: any) => {
+    setSelectedHome(home);
+    setStrategy(null); // Reset strategy when home changes
   };
 
   return (
@@ -78,37 +76,29 @@ export default function NegotiationStrategy() {
             <Home className="h-5 w-5 text-brown" />
             Select a Home
           </div>
-          <label className={label} htmlFor="home">
-            Available Homes
+          <label className={label}>
+            Choose from Your Favorite Homes
           </label>
-          <select
-            id="home"
-            className={input}
-            value={selectedHomeId ?? ""}
-            onChange={(e) => {
-              setSelectedHomeId(Number(e.target.value));
-              setStrategy(null);
-            }}
-          >
-            <option value="" disabled>
-              -- Choose a home --
-            </option>
-            {sampleHomes.map((home) => (
-              <option key={home.id} value={home.id}>
-                {home.address}
-              </option>
-            ))}
-          </select>
+          
+          <div className="mb-6">
+            <FavoriteHomesDropdown
+              selectedHome={selectedHome}
+              onHomeSelect={handleHomeSelection}
+              placeholder="Select a favorite home for strategy generation"
+            />
+          </div>
 
-          <button
-            type="button"
-            className={button}
-            onClick={handleGenerate}
-            disabled={!selectedHomeId}
-          >
-            <Lightbulb className="h-5 w-5" />
-            Generate Strategy
-          </button>
+          <div className="flex justify-center">
+            <button
+              type="button"
+              className={button}
+              onClick={handleGenerate}
+              disabled={!selectedHome}
+            >
+              <Lightbulb className="h-5 w-5" />
+              Generate Strategy
+            </button>
+          </div>
         </div>
 
         {/* Strategy output */}

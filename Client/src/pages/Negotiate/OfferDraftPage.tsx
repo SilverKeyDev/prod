@@ -1,5 +1,6 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import KeyLogo from "../../components/KeyLogo";
+import FavoriteHomesDropdown from "../../components/FavoriteHomesDropdown";
 import {
   FileText,
   CreditCard,
@@ -12,6 +13,7 @@ import {
   Download,
   Mail,
   FileCheck,
+  Loader2,
 } from "lucide-react";
 
 const sectionBox =
@@ -19,9 +21,9 @@ const sectionBox =
 const sectionTitle =
   "text-lg font-semibold text-navy flex items-center gap-3 mb-4";
 const infoBox =
-  "bg-olive/20 border-l-4 border-olive text-navy text-sm p-4 rounded-r mb-4";
+  "bg-olive/10 border border-olive/20 text-navy/70 text-xs p-3 rounded-lg mb-3";
 const warningBox =
-  "bg-yellow-50 border-l-4 border-yellow-200 text-navy text-sm p-4 rounded-r mb-4";
+  "bg-amber-50/50 border border-amber-200/30 text-navy/70 text-xs p-3 rounded-lg mb-3";
 const label = "block text-navy font-medium mb-2";
 const input =
   "w-full border border-beige rounded-lg px-3 py-2 mb-3 focus:outline-none focus:ring-2 focus:ring-olive focus:border-olive transition-colors";
@@ -85,41 +87,621 @@ const OfferDraftPage: React.FC = () => {
     }
   };
 
-  // State for all form fields (simplified for now)
-  const [offer, setOffer] = useState({
-    price: "",
-    contingencies: "",
-    closingDate: "",
-    earnestMoney: "",
-    inclusions: "",
-    exclusions: "",
-    signedAgreement: null as File | null,
-    signature: null as File | null,
-    preApproval: null as File | null,
-    earnestMoneyAmount: "",
-    escrowHolder: "",
-    earnestTimeline: "",
-    earnestInstructions: "",
-    proofOfFunds: null as File | null,
-    coverLetter: "",
+  // localStorage key for draft offer data
+  const DRAFT_OFFER_STORAGE_KEY = "silverkey_draft_offer_data";
+
+  // Initialize state from localStorage or defaults
+  const initializeOfferState = () => {
+    try {
+      const savedData = localStorage.getItem(DRAFT_OFFER_STORAGE_KEY);
+      if (savedData) {
+        const parsed = JSON.parse(savedData);
+        // Only restore text fields, not file uploads for security reasons
+        return {
+          price: parsed.price || "",
+          contingencies: parsed.contingencies || "",
+          closingDate: parsed.closingDate || "",
+          earnestMoney: parsed.earnestMoney || "",
+          inclusions: parsed.inclusions || "",
+          exclusions: parsed.exclusions || "",
+          signedAgreement: null as File | null, // Don't restore files
+          signature: null as File | null,
+          preApproval: null as File | null,
+          earnestMoneyAmount: parsed.earnestMoneyAmount || "",
+          escrowHolder: parsed.escrowHolder || "",
+          earnestTimeline: parsed.earnestTimeline || "",
+          earnestInstructions: parsed.earnestInstructions || "",
+          proofOfFunds: null as File | null, // Don't restore files
+          coverLetter: parsed.coverLetter || "",
+        };
+      }
+    } catch (error) {
+      console.warn("Failed to load draft offer data from localStorage:", error);
+    }
+
+    // Return default state if localStorage is empty or failed
+    return {
+      price: "",
+      contingencies: "",
+      closingDate: "",
+      earnestMoney: "",
+      inclusions: "",
+      exclusions: "",
+      signedAgreement: null as File | null,
+      signature: null as File | null,
+      preApproval: null as File | null,
+      earnestMoneyAmount: "",
+      escrowHolder: "",
+      earnestTimeline: "",
+      earnestInstructions: "",
+      proofOfFunds: null as File | null,
+      coverLetter: "",
+    };
+  };
+
+  // State for all form fields with localStorage initialization
+  const [offer, setOffer] = useState(initializeOfferState);
+
+  // Loading states for document generation
+  const [loadingStates, setLoadingStates] = useState({
+    purchaseAgreement: false,
+    preApprovalLetter: false,
+    earnestMoneyInstructions: false,
+    coverLetter: false,
+    allDocuments: false,
   });
 
-  // File change handler
+  // Generated documents state
+  const [, setGeneratedDocuments] = useState({
+    purchaseAgreement: null as any,
+    preApprovalLetter: null as any,
+    earnestMoneyInstructions: null as any,
+    coverLetter: null as any,
+  });
+
+  // Initialize selected home from localStorage
+  const initializeSelectedHome = () => {
+    try {
+      const savedHome = localStorage.getItem(
+        "silverkey_draft_offer_selected_home"
+      );
+      return savedHome ? JSON.parse(savedHome) : null;
+    } catch (error) {
+      console.warn("Failed to load selected home from localStorage:", error);
+      return null;
+    }
+  };
+
+  // Selected home state
+  const [selectedHome, setSelectedHome] = useState<any>(initializeSelectedHome);
+
+  // Validation state for visual feedback
+  const [sectionValidation, setSectionValidation] = useState<{
+    [key: string]: boolean;
+  }>({
+    purchaseAgreement: false,
+    preApproval: false,
+    earnestMoney: false,
+    coverLetter: false,
+  });
+
+  // Save offer data to localStorage (excluding files for security)
+  const saveToLocalStorage = (offerData: typeof offer) => {
+    try {
+      const dataToSave = {
+        price: offerData.price,
+        contingencies: offerData.contingencies,
+        closingDate: offerData.closingDate,
+        earnestMoney: offerData.earnestMoney,
+        inclusions: offerData.inclusions,
+        exclusions: offerData.exclusions,
+        earnestMoneyAmount: offerData.earnestMoneyAmount,
+        escrowHolder: offerData.escrowHolder,
+        earnestTimeline: offerData.earnestTimeline,
+        earnestInstructions: offerData.earnestInstructions,
+        coverLetter: offerData.coverLetter,
+        // Note: File uploads are not saved for security reasons
+      };
+      localStorage.setItem(DRAFT_OFFER_STORAGE_KEY, JSON.stringify(dataToSave));
+      console.log("📝 Draft offer data saved to localStorage");
+    } catch (error) {
+      console.error("Failed to save draft offer data to localStorage:", error);
+    }
+  };
+
+  // Save selected home to localStorage
+  const saveSelectedHomeToLocalStorage = (home: any) => {
+    try {
+      localStorage.setItem(
+        "silverkey_draft_offer_selected_home",
+        JSON.stringify(home)
+      );
+      console.log("🏠 Selected home saved to localStorage");
+    } catch (error) {
+      console.error("Failed to save selected home to localStorage:", error);
+    }
+  };
+
+  // Clear localStorage data (useful for cleanup)
+  const clearDraftOfferData = () => {
+    try {
+      localStorage.removeItem(DRAFT_OFFER_STORAGE_KEY);
+      localStorage.removeItem("silverkey_draft_offer_selected_home");
+      console.log("🗑️ Draft offer data cleared from localStorage");
+    } catch (error) {
+      console.error(
+        "Failed to clear draft offer data from localStorage:",
+        error
+      );
+    }
+  };
+
+  // Auto-save effect - runs whenever offer state changes
+  useEffect(() => {
+    saveToLocalStorage(offer);
+  }, [offer]);
+
+  // Auto-save selected home whenever it changes
+  useEffect(() => {
+    if (selectedHome) {
+      saveSelectedHomeToLocalStorage(selectedHome);
+    }
+  }, [selectedHome]);
+
+  // File change handler (files are not saved to localStorage for security)
   const handleFile = (
     e: React.ChangeEvent<HTMLInputElement>,
     key: keyof typeof offer
   ) => {
     if (e.target.files && e.target.files[0]) {
       setOffer((prev) => ({ ...prev, [key]: e.target.files![0] }));
+      // Note: Files are not saved to localStorage for security reasons
+      console.log(`📎 File uploaded for ${key}:`, e.target.files[0].name);
+      // Update validation state when form changes
+      setTimeout(updateSectionValidation, 100);
     }
   };
 
-  // Text/number/date change handler
+  // Text/number/date change handler with auto-save
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     key: keyof typeof offer
   ) => {
-    setOffer((prev) => ({ ...prev, [key]: e.target.value }));
+    const newValue = e.target.value;
+    setOffer((prev) => {
+      const updated = { ...prev, [key]: newValue };
+      // Auto-save will be triggered by useEffect
+      return updated;
+    });
+    // Update validation state when form changes
+    setTimeout(updateSectionValidation, 100);
+  };
+
+  // Handle home selection with auto-save
+  const handleHomeSelection = (home: any) => {
+    setSelectedHome(home);
+    // Auto-save will be triggered by useEffect
+    // Update validation state when home selection changes
+    setTimeout(updateSectionValidation, 100);
+  };
+
+  // Validation functions for each section
+  const validatePurchaseAgreementSection = (): {
+    isValid: boolean;
+    errors: string[];
+  } => {
+    const errors: string[] = [];
+
+    if (!selectedHome)
+      errors.push(
+        "Please select a property from your favorites before generating documents"
+      );
+    if (!offer.price || parseFloat(offer.price) <= 0)
+      errors.push("Offer price is required and must be greater than 0");
+    if (!offer.contingencies.trim()) errors.push("Contingencies are required");
+    if (!offer.closingDate) errors.push("Closing date is required");
+    if (!offer.earnestMoney || parseFloat(offer.earnestMoney) <= 0)
+      errors.push(
+        "Earnest money amount is required and must be greater than 0"
+      );
+    if (!offer.signedAgreement)
+      errors.push("Signed agreement document is required");
+
+    return { isValid: errors.length === 0, errors };
+  };
+
+  const validatePreApprovalSection = (): {
+    isValid: boolean;
+    errors: string[];
+  } => {
+    const errors: string[] = [];
+
+    // Property address is required for all document generation
+    if (!selectedHome)
+      errors.push(
+        "Please select a property from your favorites before generating documents"
+      );
+
+    // At least one document is required (pre-approval OR proof of funds)
+    if (!offer.preApproval && !offer.proofOfFunds) {
+      errors.push(
+        "Either a pre-approval letter or proof of funds document is required"
+      );
+    }
+
+    return { isValid: errors.length === 0, errors };
+  };
+
+  const validateEarnestMoneySection = (): {
+    isValid: boolean;
+    errors: string[];
+  } => {
+    const errors: string[] = [];
+
+    // Property address is required for all document generation
+    if (!selectedHome)
+      errors.push(
+        "Please select a property from your favorites before generating documents"
+      );
+
+    if (
+      !offer.earnestMoneyAmount ||
+      parseFloat(offer.earnestMoneyAmount) <= 0
+    ) {
+      errors.push(
+        "Earnest money amount is required and must be greater than 0"
+      );
+    }
+    if (!offer.escrowHolder.trim())
+      errors.push("Escrow holder information is required");
+    if (!offer.earnestTimeline.trim())
+      errors.push("Payment timeline is required");
+
+    return { isValid: errors.length === 0, errors };
+  };
+
+  const validateCoverLetterSection = (): {
+    isValid: boolean;
+    errors: string[];
+  } => {
+    const errors: string[] = [];
+
+    // Property address is required for all document generation
+    if (!selectedHome)
+      errors.push(
+        "Please select a property from your favorites before generating documents"
+      );
+
+    // Cover letter content is required if generating this section
+    if (!offer.coverLetter.trim()) {
+      errors.push("Cover letter content is required");
+    }
+
+    return { isValid: errors.length === 0, errors };
+  };
+
+  // Validate all sections for "Generate All" functionality
+  const validateAllSections = (): { isValid: boolean; errors: string[] } => {
+    const allErrors: string[] = [];
+
+    const purchaseValidation = validatePurchaseAgreementSection();
+    const preApprovalValidation = validatePreApprovalSection();
+    const earnestMoneyValidation = validateEarnestMoneySection();
+    // Note: Cover letter is optional, so we don't validate it for "Generate All"
+
+    if (!purchaseValidation.isValid) {
+      allErrors.push(
+        "Purchase Agreement section:",
+        ...purchaseValidation.errors.map((e) => `  • ${e}`)
+      );
+    }
+    if (!preApprovalValidation.isValid) {
+      allErrors.push(
+        "Pre-Approval section:",
+        ...preApprovalValidation.errors.map((e) => `  • ${e}`)
+      );
+    }
+    if (!earnestMoneyValidation.isValid) {
+      allErrors.push(
+        "Earnest Money section:",
+        ...earnestMoneyValidation.errors.map((e) => `  • ${e}`)
+      );
+    }
+
+    return { isValid: allErrors.length === 0, errors: allErrors };
+  };
+
+  // Show validation errors as alert and update validation state
+  const showValidationErrors = (errors: string[], sectionKey: string) => {
+    const errorMessage =
+      "Please fix the following errors:\n\n" + errors.join("\n");
+    alert(errorMessage);
+
+    // Update validation state for visual feedback
+    setSectionValidation((prev) => ({ ...prev, [sectionKey]: false }));
+  };
+
+  // Update validation state when sections become valid
+  const updateSectionValidation = () => {
+    setSectionValidation({
+      purchaseAgreement: validatePurchaseAgreementSection().isValid,
+      preApproval: validatePreApprovalSection().isValid,
+      earnestMoney: validateEarnestMoneySection().isValid,
+      coverLetter: validateCoverLetterSection().isValid,
+    });
+  };
+
+  // API helper function to get auth token
+  const getAuthToken = () => {
+    return localStorage.getItem("token") || "";
+  };
+
+  // API function to generate purchase agreement
+  const generatePurchaseAgreement = async () => {
+    // Validate section before generating
+    const validation = validatePurchaseAgreementSection();
+    if (!validation.isValid) {
+      showValidationErrors(validation.errors, "purchaseAgreement");
+      return;
+    }
+
+    setLoadingStates((prev) => ({ ...prev, purchaseAgreement: true }));
+
+    try {
+      const response = await fetch("/api/v1/offer/purchase-agreement", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getAuthToken()}`,
+        },
+        body: JSON.stringify({
+          property_address: "123 Main St, City, State 12345", // TODO: Get from form
+          offer_price: parseInt(offer.price) || 0,
+          earnest_money: parseInt(offer.earnestMoney) || 0,
+          closing_date: offer.closingDate,
+          contingencies: offer.contingencies
+            .split(",")
+            .map((c: string) => c.trim())
+            .filter(Boolean),
+          inclusions: offer.inclusions
+            .split(",")
+            .map((i: string) => i.trim())
+            .filter(Boolean),
+          exclusions: offer.exclusions
+            .split(",")
+            .map((e: string) => e.trim())
+            .filter(Boolean),
+          buyer_info: {
+            name: "John Doe", // TODO: Get from user profile
+            email: "john@example.com", // TODO: Get from user profile
+            phone: "555-0123", // TODO: Get from user profile
+          },
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setGeneratedDocuments((prev) => ({ ...prev, purchaseAgreement: data }));
+        alert(
+          `Purchase Agreement generated successfully! Document ID: ${data.document_id}`
+        );
+      } else {
+        alert(`Error: ${data.error}`);
+      }
+    } catch (error) {
+      console.error("Error generating purchase agreement:", error);
+      alert("Failed to generate purchase agreement. Please try again.");
+    } finally {
+      setLoadingStates((prev) => ({ ...prev, purchaseAgreement: false }));
+    }
+  };
+
+  // API function to generate pre-approval letter
+  const generatePreApprovalLetter = async () => {
+    // Validate section before generating
+    const validation = validatePreApprovalSection();
+    if (!validation.isValid) {
+      showValidationErrors(validation.errors, "preApproval");
+      return;
+    }
+
+    setLoadingStates((prev) => ({ ...prev, preApprovalLetter: true }));
+
+    try {
+      const response = await fetch("/api/v1/offer/pre-approval-letter", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getAuthToken()}`,
+        },
+        body: JSON.stringify({
+          document_type: "pre_approval",
+          loan_amount: parseInt(offer.price) * 0.8 || 0, // Assume 20% down payment
+          loan_type: "conventional",
+          interest_rate: 6.5,
+          lender_info: {
+            name: "ABC Mortgage Company",
+            loan_officer: "Jane Smith",
+            phone: "555-0456",
+            email: "jane@abcmortgage.com",
+          },
+          buyer_info: {
+            name: "John Doe", // TODO: Get from user profile
+            income: 80000, // TODO: Get from form
+            credit_score: 750, // TODO: Get from form
+          },
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setGeneratedDocuments((prev) => ({ ...prev, preApprovalLetter: data }));
+        alert(
+          `Pre-Approval Letter generated successfully! Document ID: ${data.document_id}`
+        );
+      } else {
+        alert(`Error: ${data.error}`);
+      }
+    } catch (error) {
+      console.error("Error generating pre-approval letter:", error);
+      alert("Failed to generate pre-approval letter. Please try again.");
+    } finally {
+      setLoadingStates((prev) => ({ ...prev, preApprovalLetter: false }));
+    }
+  };
+
+  // API function to generate earnest money instructions
+  const generateEarnestMoneyInstructions = async () => {
+    // Validate section before generating
+    const validation = validateEarnestMoneySection();
+    if (!validation.isValid) {
+      showValidationErrors(validation.errors, "earnestMoney");
+      return;
+    }
+
+    setLoadingStates((prev) => ({ ...prev, earnestMoneyInstructions: true }));
+
+    try {
+      const response = await fetch("/api/v1/offer/earnest-money-instructions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getAuthToken()}`,
+        },
+        body: JSON.stringify({
+          earnest_money_amount:
+            parseInt(offer.earnestMoneyAmount) ||
+            parseInt(offer.earnestMoney) ||
+            0,
+          escrow_holder: {
+            company_name: offer.escrowHolder || "ABC Title Company",
+            contact_person: "Sarah Johnson",
+            phone: "555-0789",
+            email: "sarah@abctitle.com",
+            address: "456 Title St, City, State 12345",
+          },
+          deposit_timeline: offer.earnestTimeline || "within 3 business days",
+          property_address: "123 Main St, City, State 12345", // TODO: Get from form
+          buyer_info: {
+            name: "John Doe", // TODO: Get from user profile
+            phone: "555-0123",
+            email: "john@example.com",
+          },
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setGeneratedDocuments((prev) => ({
+          ...prev,
+          earnestMoneyInstructions: data,
+        }));
+        alert(
+          `Earnest Money Instructions generated successfully! Document ID: ${data.document_id}`
+        );
+      } else {
+        alert(`Error: ${data.error}`);
+      }
+    } catch (error) {
+      console.error("Error generating earnest money instructions:", error);
+      alert("Failed to generate earnest money instructions. Please try again.");
+    } finally {
+      setLoadingStates((prev) => ({
+        ...prev,
+        earnestMoneyInstructions: false,
+      }));
+    }
+  };
+
+  // API function to generate cover letter
+  const generateCoverLetter = async () => {
+    // Validate section before generating
+    const validation = validateCoverLetterSection();
+    if (!validation.isValid) {
+      showValidationErrors(validation.errors, "coverLetter");
+      return;
+    }
+
+    setLoadingStates((prev) => ({ ...prev, coverLetter: true }));
+
+    try {
+      const response = await fetch("/api/v1/offer/cover-letter", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getAuthToken()}`,
+        },
+        body: JSON.stringify({
+          property_address: "123 Main St, City, State 12345", // TODO: Get from form
+          seller_name: "Jane Smith", // TODO: Get from form
+          buyer_info: {
+            name: "John Doe", // TODO: Get from user profile
+            family_size: 2,
+            occupation: "Software Engineer",
+            why_this_home:
+              offer.coverLetter ||
+              "We love the neighborhood and the beautiful garden",
+            personal_story:
+              "This would be our first home together as newlyweds",
+          },
+          offer_highlights: {
+            offer_price: parseInt(offer.price) || 0,
+            down_payment_percent: 20,
+            closing_flexibility: true,
+            pre_approved: true,
+          },
+          tone: "warm",
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setGeneratedDocuments((prev) => ({ ...prev, coverLetter: data }));
+        alert(
+          `Cover Letter generated successfully! Document ID: ${data.document_id}`
+        );
+      } else {
+        alert(`Error: ${data.error}`);
+      }
+    } catch (error) {
+      console.error("Error generating cover letter:", error);
+      alert("Failed to generate cover letter. Please try again.");
+    } finally {
+      setLoadingStates((prev) => ({ ...prev, coverLetter: false }));
+    }
+  };
+
+  // Function to generate all documents
+  const generateAllDocuments = async () => {
+    // Validate all required sections before generating
+    const validation = validateAllSections();
+    if (!validation.isValid) {
+      showValidationErrors(validation.errors, "allSections");
+      return;
+    }
+
+    setLoadingStates((prev) => ({ ...prev, allDocuments: true }));
+
+    try {
+      await Promise.all([
+        generatePurchaseAgreement(),
+        generatePreApprovalLetter(),
+        generateEarnestMoneyInstructions(),
+        generateCoverLetter(),
+      ]);
+      alert("All documents generated successfully!");
+    } catch (error) {
+      console.error("Error generating all documents:", error);
+      alert(
+        "Some documents failed to generate. Please check individual sections."
+      );
+    } finally {
+      setLoadingStates((prev) => ({ ...prev, allDocuments: false }));
+    }
   };
 
   // Placeholder submit handler
@@ -133,15 +715,28 @@ const OfferDraftPage: React.FC = () => {
       {/* Header */}
       <div className="bg-white border-b border-beige/40 rounded-t-2xl mx-2 mt-4">
         <div className="mx-auto px-12 py-10">
-          <div className="flex items-center gap-4 mb-4">
-            <KeyLogo size="sm" />
-            <div>
-              <h1 className="text-2xl font-bold text-navy">
-                Draft Your Purchase Offer
-              </h1>
-              <p className="text-navy/70">
-                Prepare your offer package to purchase a home
-              </p>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-4">
+              <KeyLogo size="sm" />
+              <div>
+                <h1 className="text-2xl font-bold text-navy">
+                  Draft Your Purchase Offer
+                </h1>
+                <p className="text-navy/70">
+                  Prepare your offer package to purchase a home
+                </p>
+              </div>
+            </div>
+
+            {/* Favorite Homes Dropdown */}
+            <div className="flex justify-center w-full">
+              <div className="w-3/4">
+                <FavoriteHomesDropdown
+                  selectedHome={selectedHome}
+                  onHomeSelect={handleHomeSelection}
+                  placeholder="Select a favorite home"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -184,48 +779,7 @@ const OfferDraftPage: React.FC = () => {
               Signed Purchase Offer
             </div>
             <div className={infoBox}>
-              This is a legal contract. Use a state-specific template and have
-              it reviewed by a real estate attorney.
-              <br />
-              <span className="italic">
-                Must be signed and dated by all buyers.
-              </span>
-            </div>
-            <div className={warningBox}>
-              <div className="flex items-start gap-2">
-                <X className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
-                <div>
-                  <strong>You Don't Send the Purchase Agreement</strong>
-                  <div className="mt-2">
-                    <div className="flex items-center gap-2 mb-1">
-                      <CheckCircle className="h-4 w-4 text-olive" />
-                      <span className="font-medium">Only if:</span>
-                    </div>
-                    <ul className="list-disc pl-6 mb-2 space-y-1">
-                      <li>
-                        You're not ready to make an official offer yet and are
-                        just expressing interest or starting a conversation
-                      </li>
-                      <li>
-                        You're still clarifying disclosures, HOA details, or
-                        title issues before committing
-                      </li>
-                      <li>
-                        You want the seller to send their preferred contract
-                        first (more common in FSBO deals or off-market sales)
-                      </li>
-                    </ul>
-                    <div className="flex items-start gap-2">
-                      <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
-                      <span className="italic">
-                        "We're interested and pre-approved, but would like to
-                        review the HOA/tax documents before submitting a formal
-                        offer."
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              Legal contract requiring attorney review. Must be signed by all buyers.
             </div>
             <label className={label}>Offer Price ($)</label>
             <input
@@ -303,24 +857,31 @@ const OfferDraftPage: React.FC = () => {
             <div className="flex gap-3 mt-6 pt-4 border-t border-beige/30">
               <button
                 type="button"
-                className="bg-brown text-white px-4 py-2 rounded-lg font-medium hover:bg-brown/90 transition-colors duration-200 flex items-center gap-2"
-                onClick={() =>
-                  alert("Generate Purchase Agreement functionality")
+                className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2 ${
+                  !sectionValidation.purchaseAgreement
+                    ? "bg-gray-400 text-gray-600 cursor-not-allowed"
+                    : "bg-brown text-white hover:bg-brown/90"
+                }`}
+                onClick={generatePurchaseAgreement}
+                disabled={
+                  loadingStates.purchaseAgreement ||
+                  !sectionValidation.purchaseAgreement
                 }
               >
-                <FileCheck className="h-4 w-4" />
-                Generate Agreement
+                {loadingStates.purchaseAgreement ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <FileCheck className="h-4 w-4" />
+                )}
+                {loadingStates.purchaseAgreement
+                  ? "Generating..."
+                  : "Generate Agreement"}
               </button>
-              <button
-                type="button"
-                className="bg-olive text-white px-4 py-2 rounded-lg font-medium hover:bg-olive-light transition-colors duration-200 flex items-center gap-2"
-                onClick={() =>
-                  alert("Download Purchase Agreement functionality")
-                }
-              >
-                <Download className="h-4 w-4" />
-                Download Agreement
-              </button>
+              {!sectionValidation.purchaseAgreement && (
+                <div className="text-sm text-red-600 mt-2">
+                  ⚠️ Please fill out all required fields to enable generation
+                </div>
+              )}
             </div>
           </div>
 
@@ -400,24 +961,32 @@ const OfferDraftPage: React.FC = () => {
             <div className="flex gap-3 mt-6 pt-4 border-t border-beige/30">
               <button
                 type="button"
-                className="bg-brown text-white px-4 py-2 rounded-lg font-medium hover:bg-brown/90 transition-colors duration-200 flex items-center gap-2"
-                onClick={() =>
-                  alert("Generate Pre-Approval Letter functionality")
+                className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2 ${
+                  !sectionValidation.preApproval
+                    ? "bg-gray-400 text-gray-600 cursor-not-allowed"
+                    : "bg-brown text-white hover:bg-brown/90"
+                }`}
+                onClick={generatePreApprovalLetter}
+                disabled={
+                  loadingStates.preApprovalLetter ||
+                  !sectionValidation.preApproval
                 }
               >
-                <FileCheck className="h-4 w-4" />
-                Generate Pre-Approval
+                {loadingStates.preApprovalLetter ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <FileCheck className="h-4 w-4" />
+                )}
+                {loadingStates.preApprovalLetter
+                  ? "Generating..."
+                  : "Generate Pre-Approval"}
               </button>
-              <button
-                type="button"
-                className="bg-olive text-white px-4 py-2 rounded-lg font-medium hover:bg-olive-light transition-colors duration-200 flex items-center gap-2"
-                onClick={() =>
-                  alert("Download Pre-Approval Letter functionality")
-                }
-              >
-                <Download className="h-4 w-4" />
-                Download Pre-Approval
-              </button>
+              {!sectionValidation.preApproval && (
+                <div className="text-sm text-red-600 mt-2">
+                  ⚠️ Please upload either a pre-approval letter or proof of
+                  funds
+                </div>
+              )}
             </div>
           </div>
 
@@ -509,24 +1078,32 @@ const OfferDraftPage: React.FC = () => {
             <div className="flex gap-3 mt-6 pt-4 border-t border-beige/30">
               <button
                 type="button"
-                className="bg-brown text-white px-4 py-2 rounded-lg font-medium hover:bg-brown/90 transition-colors duration-200 flex items-center gap-2"
-                onClick={() =>
-                  alert("Generate Earnest Money Instructions functionality")
+                className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2 ${
+                  !sectionValidation.earnestMoney
+                    ? "bg-gray-400 text-gray-600 cursor-not-allowed"
+                    : "bg-brown text-white hover:bg-brown/90"
+                }`}
+                onClick={generateEarnestMoneyInstructions}
+                disabled={
+                  loadingStates.earnestMoneyInstructions ||
+                  !sectionValidation.earnestMoney
                 }
               >
-                <FileCheck className="h-4 w-4" />
-                Generate Instructions
+                {loadingStates.earnestMoneyInstructions ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <FileCheck className="h-4 w-4" />
+                )}
+                {loadingStates.earnestMoneyInstructions
+                  ? "Generating..."
+                  : "Generate Instructions"}
               </button>
-              <button
-                type="button"
-                className="bg-olive text-white px-4 py-2 rounded-lg font-medium hover:bg-olive-light transition-colors duration-200 flex items-center gap-2"
-                onClick={() =>
-                  alert("Download Earnest Money Instructions functionality")
-                }
-              >
-                <Download className="h-4 w-4" />
-                Download Instructions
-              </button>
+              {!sectionValidation.earnestMoney && (
+                <div className="text-sm text-red-600 mt-2">
+                  ⚠️ Please fill out earnest money amount, escrow holder, and
+                  timeline
+                </div>
+              )}
             </div>
           </div>
 
@@ -588,20 +1165,30 @@ const OfferDraftPage: React.FC = () => {
             <div className="flex gap-3 mt-6 pt-4 border-t border-beige/30">
               <button
                 type="button"
-                className="bg-brown text-white px-4 py-2 rounded-lg font-medium hover:bg-brown/90 transition-colors duration-200 flex items-center gap-2"
-                onClick={() => alert("Generate Cover Letter functionality")}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2 ${
+                  !sectionValidation.coverLetter
+                    ? "bg-gray-400 text-gray-600 cursor-not-allowed"
+                    : "bg-brown text-white hover:bg-brown/90"
+                }`}
+                onClick={generateCoverLetter}
+                disabled={
+                  loadingStates.coverLetter || !sectionValidation.coverLetter
+                }
               >
-                <FileCheck className="h-4 w-4" />
-                Generate Cover Letter
+                {loadingStates.coverLetter ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <FileCheck className="h-4 w-4" />
+                )}
+                {loadingStates.coverLetter
+                  ? "Generating..."
+                  : "Generate Cover Letter"}
               </button>
-              <button
-                type="button"
-                className="bg-olive text-white px-4 py-2 rounded-lg font-medium hover:bg-olive-light transition-colors duration-200 flex items-center gap-2"
-                onClick={() => alert("Download Cover Letter functionality")}
-              >
-                <Download className="h-4 w-4" />
-                Download Cover Letter
-              </button>
+              {!sectionValidation.coverLetter && (
+                <div className="text-sm text-red-600 mt-2">
+                  ⚠️ Please write your cover letter content
+                </div>
+              )}
             </div>
           </div>
 
@@ -613,15 +1200,70 @@ const OfferDraftPage: React.FC = () => {
             <div className="flex flex-wrap gap-4 justify-center">
               <button
                 type="button"
-                className="bg-brown text-white px-6 py-3 rounded-lg font-semibold hover:bg-brown/90 transition-colors duration-200 flex items-center gap-2"
-                onClick={() => alert("Generate All Documents functionality")}
+                className={`px-6 py-3 rounded-lg font-semibold transition-colors duration-200 flex items-center gap-2 ${
+                  !validateAllSections().isValid
+                    ? "bg-gray-400 text-gray-600 cursor-not-allowed"
+                    : "bg-brown text-white hover:bg-brown/90"
+                }`}
+                onClick={generateAllDocuments}
+                disabled={
+                  loadingStates.allDocuments || !validateAllSections().isValid
+                }
               >
-                <FileCheck className="h-5 w-5" />
-                Generate All Documents
+                {loadingStates.allDocuments ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <FileCheck className="h-5 w-5" />
+                )}
+                {loadingStates.allDocuments
+                  ? "Generating All..."
+                  : "Generate All Documents"}
               </button>
+              {!validateAllSections().isValid && (
+                <div className="text-sm text-red-600 mt-2 text-center">
+                  ⚠️ Please complete all required sections (Purchase Agreement,
+                  Pre-Approval, Earnest Money) before generating all documents
+                </div>
+              )}
               <button className={button} type="submit">
                 <Download className="h-5 w-5" />
                 Download All Documents
+              </button>
+              <button
+                type="button"
+                className="bg-red-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-700 transition-colors duration-200 flex items-center gap-2"
+                onClick={() => {
+                  if (
+                    window.confirm(
+                      "Are you sure you want to clear all draft data? This cannot be undone."
+                    )
+                  ) {
+                    clearDraftOfferData();
+                    // Reset form state
+                    setOffer({
+                      price: "",
+                      contingencies: "",
+                      closingDate: "",
+                      earnestMoney: "",
+                      inclusions: "",
+                      exclusions: "",
+                      signedAgreement: null,
+                      signature: null,
+                      preApproval: null,
+                      earnestMoneyAmount: "",
+                      escrowHolder: "",
+                      earnestTimeline: "",
+                      earnestInstructions: "",
+                      proofOfFunds: null,
+                      coverLetter: "",
+                    });
+                    setSelectedHome(null);
+                    alert("Draft data cleared successfully!");
+                  }
+                }}
+              >
+                <X className="h-4 w-4" />
+                Clear Draft
               </button>
               <button
                 type="button"

@@ -734,3 +734,66 @@ def delete_report(report_id):
             'error': error_msg,
             'traceback': traceback.format_exc()
         }), 500
+
+
+@report_bp.route('/documents', methods=['GET'])
+@cross_origin(**cors_config)
+def get_user_documents():
+    """
+    Get all documents from a user's documents directory.
+    Returns all PDF documents and their metadata for the authenticated user.
+    """
+    try:
+        # Get current user from JWT token
+        current_user = get_current_user()
+        if not current_user:
+            logger.warning("❌ [USER_DOCUMENTS] Unauthorized access attempt")
+            return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+        
+        user_id = current_user.id
+        logger.info(f"📁 [USER_DOCUMENTS] Fetching all documents for user {user_id}")
+        
+        # Query all PDF documents for the user and type
+        documents = PDFDocument.query.filter(
+            PDFDocument.user_id == user_id,
+            PDFDocument.report_type == 'detailed',
+        ).all()
+        
+        logger.info(f"📊 [USER_DOCUMENTS] Found {len(documents)} documents for user {user_id}")
+        
+        # Convert documents to dictionary format
+        documents_data = []
+        for doc in documents:
+            doc_data = {
+                'id': doc.id,
+                'filename': doc.filename,
+                'file_path': doc.file_path,
+                'status': doc.status,
+                'created_at': doc.created_at.isoformat() if doc.created_at else None,
+                'updated_at': doc.updated_at.isoformat() if doc.updated_at else None,
+                'user_id': doc.user_id,
+                'report_type': getattr(doc, 'report_type', None),
+                'address': getattr(doc, 'address', None),
+                'city': getattr(doc, 'city', None),
+                'state': getattr(doc, 'state', None),
+                'zip_code': getattr(doc, 'zip_code', None)
+            }
+            documents_data.append(doc_data)
+        
+        logger.info(f"✅ [USER_DOCUMENTS] Successfully retrieved {len(documents_data)} documents")
+        
+        return jsonify({
+            'success': True,
+            'documents': documents_data,
+            'count': len(documents_data)
+        }), 200
+        
+    except Exception as e:
+        error_msg = f"Failed to retrieve user documents: {str(e)}"
+        logger.error(f"❌ [USER_DOCUMENTS] {error_msg}")
+        logger.error(traceback.format_exc())
+        return jsonify({
+            'success': False,
+            'error': error_msg,
+            'traceback': traceback.format_exc()
+        }), 500
