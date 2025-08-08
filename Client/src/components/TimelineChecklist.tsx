@@ -45,7 +45,6 @@ export const TIMELINE_STEPS: Step[] = [
     icon: ClipboardList,
     subSteps: [
       { name: "Personalization", href: "/dashboard/personalization", icon: UserIcon },
-      { name: "Subscription", href: "/dashboard/subscription", icon: CreditCard },
       { name: "Get Pre-Approved", href: "/dashboard/get-preapproved", icon: BadgeCheck },
     ],
   },

@@ -135,8 +135,31 @@ def chat_for_address(report_id):
         # Fetch complete report data from S3
         report_data = None
         try:
-            # Construct S3 key for the JSON report data
-            json_s3_key = f"reports/{report_id.replace('.pdf', '.json')}"
+            # Find the PDF document in database to get the correct S3 path
+            from app.models.pdf_document import PDFDocument
+            pdf_doc = PDFDocument.query.filter_by(id=report_id, user_id=user_id).first()
+            
+            if not pdf_doc:
+                logger.warning(f"[CHAT_ROUTE] PDF document not found for report_id: {report_id}, user_id: {user_id}")
+                raise Exception(f"Report not found: {report_id}")
+            
+            # Construct S3 key for the JSON report data using the simplified tree structure
+            pdf_path = pdf_doc.file_path
+            if '/' in pdf_path:
+                # New tree structure: userid/reports/type/filename.pdf -> userid/json/type/filename.json
+                path_parts = pdf_path.split('/')
+                if len(path_parts) >= 3 and path_parts[1] == 'reports':
+                    user_id = path_parts[0]
+                    report_type = path_parts[2]
+                    pdf_filename = path_parts[3]
+                    json_s3_key = f"{user_id}/json/{report_type}/{pdf_filename.removesuffix('.pdf')}.json"
+                else:
+                    # Fallback for unexpected structure
+                    json_s3_key = pdf_path.replace('.pdf', '.json')
+            else:
+                # Old flat structure fallback
+                json_s3_key = pdf_path.replace('.pdf', '.json')
+            
             logger.info(f"[CHAT_ROUTE] Attempting to fetch full report data from S3 key: {json_s3_key}")
             
             from app.services.report_comparator import _download_json_from_s3

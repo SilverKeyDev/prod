@@ -301,12 +301,32 @@ def _create_pdf(report: dict, address: str, filename: str, comparison_address: s
         logger.info(f"✅ PDF creation completed - size: {len(pdf_data)} bytes")
 
         s3_key = s3_service.upload_pdf(pdf_data, filename, 'application/pdf')
+        logger.info(f"📤 PDF upload result - s3_key: {s3_key}")
 
         if s3_key:
             try:
                 import json
                 json_data = json.dumps(report, indent=1).encode('utf-8')
-                json_filename = f"{filename.removesuffix('.pdf')}.json"
+                # Create JSON filename with simplified tree structure: userid/json/type/filename
+                # Extract the path components from the PDF filename
+                if '/' in filename:
+                    # New tree structure: userid/reports/type/filename.pdf -> userid/json/type/filename.json
+                    path_parts = filename.split('/')
+                    if len(path_parts) >= 3 and path_parts[1] == 'reports':
+                        user_id = path_parts[0]
+                        report_type = path_parts[2]
+                        pdf_filename = path_parts[3]
+                        json_filename = f"{user_id}/json/{report_type}/{pdf_filename.removesuffix('.pdf')}.json"
+                    else:
+                        # Fallback for unexpected structure
+                        json_filename = f"{filename.removesuffix('.pdf')}.json"
+                else:
+                    # Old flat structure fallback
+                    json_filename = f"{filename.removesuffix('.pdf')}.json"
+                
+                logger.info(f"📁 PDF filename input: {filename}")
+                logger.info(f"📁 JSON filename output: {json_filename}")
+                logger.info(f"Uploading JSON file to: {json_filename}")
                 s3_service.upload_pdf(json_data, json_filename, 'application/json')
             except Exception as e:
                 logger.error(f"Failed to save raw JSON to S3: {str(e)}")

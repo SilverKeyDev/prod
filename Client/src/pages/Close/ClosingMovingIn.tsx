@@ -93,8 +93,8 @@ export default function ClosingMovingIn() {
         "The seller has fully vacated (unless negotiated otherwise).",
       ],
       resource: {
-        label: "Final Walkthrough Checklist (PDF)",
-        href: "https://www.hud.gov/sites/dfiles/Housing/documents/walkthrough_checklist.pdf",
+        label: "Final Walkthrough Checklist (Redfin Blog)",
+        href: "https://www.redfin.com/blog/final-walk-through-checklist-before-closing-on-a-home/",
       },
     },
     {
@@ -109,7 +109,7 @@ export default function ClosingMovingIn() {
         "Loan documents (if financing): note, mortgage, affidavits.",
       ],
       resource: {
-        label: "CFPB Closing Disclosure Guide",
+        label: "CFPB Closing Disclosure Guide (Consumer Finance Official Guide)",
         href: "https://www.consumerfinance.gov/owning-a-home/closing-disclosure/",
       },
     },

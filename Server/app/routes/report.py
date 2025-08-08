@@ -161,22 +161,25 @@ def generate_report_endpoint():
             logger.info(f"📋 Will use CLIENT's preferences (client_id: {preferences_user_id}, agent_id: {user.id})")
         
         if is_comparison:
-            logger.info(f"📝 Generating comparison report for: {address} vs {comparison_address} using preferences from user_id: {preferences_user_id}")
+            logger.info(f" Generating comparison report for: {address} vs {comparison_address} using preferences from user_id: {preferences_user_id}")
         else:
-            logger.info(f"📝 Generating detailed report for: {address} using preferences from user_id: {preferences_user_id}")
+            logger.info(f" Generating detailed report for: {address} using preferences from user_id: {preferences_user_id}")
 
         safe_address = "".join(c for c in address if c.isalnum() or c in (' ', '-', '_')).rstrip().replace(' ', '_')
         
-        # Include user ID in filename for uniqueness and organization
-        user_id_short = user.id[:8] if len(user.id) >= 8 else user.id
+        # Create simplified filename with just address and random code
+        random_code = uuid.uuid4().hex[:17]
         
         if is_comparison:
             safe_comparison_address = "".join(c for c in comparison_address if c.isalnum() or c in (' ', '-', '_')).rstrip().replace(' ', '_')
-            filenamee = f"reports/Comparison:_{safe_address}_vs_{safe_comparison_address}_{user_id_short}_{uuid.uuid4().hex[:8]}.pdf"
+            simple_filename = f"{safe_address}_vs_{safe_comparison_address}.pdf"
+            filenamee = f"{user.id}/reports/comparison/{random_code}_{simple_filename}"
         elif marketing_model:
-            filenamee = f"reports/MarketingModel:_{safe_address}_{user_id_short}_{uuid.uuid4().hex[:8]}.pdf"
+            simple_filename = f"{safe_address}.pdf"
+            filenamee = f"{user.id}/reports/marketing/{random_code}_{simple_filename}"
         else:
-            filenamee = f"reports/{safe_address}_{user_id_short}_{uuid.uuid4().hex[:8]}.pdf"
+            simple_filename = f"{safe_address}.pdf"
+            filenamee = f"{user.id}/reports/standard/{random_code}_{simple_filename}"
 
         pdf_doc = PDFDocument(
                 id=str(uuid.uuid4()),
@@ -282,11 +285,13 @@ def list_reports():
             })
             logger.info(f"Found {report.status} report for user {user.id}: {report.id}")
 
-        # Get completed reports from S3
+        # Get completed reports from S3 using prefix filtering for new tree structure
         s3_client = s3_service.s3_client
         if s3_client:
             bucket_name = current_app.config.get("S3_BUCKET_NAME_PDFS")
-            response = s3_client.list_objects_v2(Bucket=bucket_name)
+            # Use prefix to only list objects under this user's directory
+            user_prefix = f"{user.id}/reports/"
+            response = s3_client.list_objects_v2(Bucket=bucket_name, Prefix=user_prefix)
 
             for obj in response.get("Contents", []):
                 s3_key = obj["Key"]
@@ -296,10 +301,6 @@ def list_reports():
                     continue  # skip duplicate
 
                 if not file_name.endswith('.pdf'):
-                    continue
-                
-                # Only include files that contain the user's ID
-                if user.id[:8] not in file_name:
                     continue
 
                 presigned_url = s3_service.generate_presigned_url(s3_key, download_filename=file_name)
@@ -396,11 +397,23 @@ def list_reports_almostall():
             logger.error(f"User not found with ID: {current_user_id}")
             return jsonify({'error': 'User not found', 'success': False}), 404
 
-        # Get completed reports from S3
+        # Get only standard ('detailed') reports from database for comparison functionality
+        standard_reports = PDFDocument.query.filter(
+            PDFDocument.user_id == user.id,
+            PDFDocument.report_type == 'detailed',
+            or_(PDFDocument.status == 'processed', PDFDocument.status == 'completed')
+        ).all()
+
+        # Create a set of valid filenames from database
+        valid_filenames = {doc.filename for doc in standard_reports}
+
+        # Get completed reports from S3 using prefix filtering for new tree structure
         s3_client = s3_service.s3_client
         if s3_client:
             bucket_name = current_app.config.get("S3_BUCKET_NAME_PDFS")
-            response = s3_client.list_objects_v2(Bucket=bucket_name)
+            # Use prefix to only list objects under this user's directory
+            user_prefix = f"{user.id}/reports/"
+            response = s3_client.list_objects_v2(Bucket=bucket_name, Prefix=user_prefix)
 
             for obj in response.get("Contents", []):
                 s3_key = obj["Key"]
@@ -412,8 +425,8 @@ def list_reports_almostall():
                 if not file_name.endswith('.pdf'):
                     continue
 
-                # Only include files that contain the user's ID
-                if user.id[:8] not in file_name:
+                # Only include files that are standard reports according to database
+                if file_name not in valid_filenames:
                     continue
 
                 presigned_url = s3_service.generate_presigned_url(s3_key, download_filename=file_name)
@@ -620,8 +633,21 @@ def delete_report(report_id):
                             )
                             logger.info(f"[DELETE] Successfully deleted from S3. Response: {delete_response}")
                             
-                            # Also delete the _RAW version if it exists
-                            raw_s3_key = s3_key.replace('.pdf', '.json')
+                            # Also delete the JSON version using the simplified tree structure
+                            if '/' in s3_key:
+                                # New tree structure: userid/reports/type/filename.pdf -> userid/json/type/filename.json
+                                path_parts = s3_key.split('/')
+                                if len(path_parts) >= 3 and path_parts[1] == 'reports':
+                                    user_id = path_parts[0]
+                                    report_type = path_parts[2]
+                                    pdf_filename = path_parts[3]
+                                    raw_s3_key = f"{user_id}/json/{report_type}/{pdf_filename.removesuffix('.pdf')}.json"
+                                else:
+                                    # Fallback for unexpected structure
+                                    raw_s3_key = s3_key.replace('.pdf', '.json')
+                            else:
+                                # Old flat structure fallback
+                                raw_s3_key = s3_key.replace('.pdf', '.json')
                             try:
                                 s3_service.s3_client.head_object(Bucket=bucket_name, Key=raw_s3_key)
                                 raw_delete_response = s3_service.s3_client.delete_object(

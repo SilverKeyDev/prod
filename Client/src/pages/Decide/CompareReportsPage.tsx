@@ -14,6 +14,7 @@ import ErrorToast from "../../components/ErrorToast";
 import SuccessToast from "../../components/SuccessToast";
 import { useData } from "../../contexts/DataContext";
 import MiniLogo from "../../components/MiniLogo";
+import { formatFilenameToAddress } from "../../lib/addressFormat";
 
 // Custom scrollbar styles
 const scrollbarStyles = `
@@ -65,10 +66,6 @@ const ALL_METRIC_KEYS: string[] = [
   "Things to Watch Out For",
   "Population Total",
 
-  // Demographics
-  "Age Distribution",
-  "Lifestyle DNA",
-
   // Safety
   "Crime Rating",
   "Places to Watch Out For",
@@ -101,8 +98,6 @@ const ALL_METRIC_KEYS: string[] = [
   "Park 1 Features",
 
   // Local Amenities - Stores
-  "Thrift Store Name",
-  "Thrift Store Vibe",
   "Grocery Store Name",
   "Grocery Store Vibe",
 
@@ -118,11 +113,8 @@ const ALL_METRIC_KEYS: string[] = [
 
   // Nightlife and Dating
   "Nightlife Rating",
-  "Nightlife Score",
   "Best Spots",
   "Dating Scene",
-  "Tinder Popularity",
-  "Hinge Popularity",
 
   // Development
   "Upcoming Changes",
@@ -148,17 +140,15 @@ const ALL_METRIC_KEYS: string[] = [
   "Investment Potential",
   "Financial Rating",
 
-  // Schools (Elementary)
-  "Elementary Name",
+  // Schools
+  "Elementary Walking Distance",
   "Elementary Known For",
-
-  // Schools (Middle)
-  "Middle Name",
+  "Middle Walking Distance",
   "Middle Known For",
-
-  // Schools (High)
-  "High Name",
+  "High Walking Distance",
   "High Known For",
+  "High Graduation Rate",
+  "High Top Colleges",
 
   // Extra Tips
   "Parking",
@@ -177,12 +167,8 @@ export default function CompareReportsPage() {
     refreshCompareReports();
   }, [refreshCompareReports]);
 
-  // Filter out reports with "comparison" or "marketing" in their names
-  const reports =
-    compareReports?.filter((report) => {
-      const address = report.address?.toLowerCase() || "";
-      return !address.includes("comparison") && !address.includes("marketing");
-    }) || [];
+  // Backend now filters to only return standard ('detailed') reports
+  const reports = compareReports || [];
 
   const [selectedReports, setSelectedReports] = useState<Report[]>([]);
   const [isLoading, setIsLoading] = useState(false); // Only for comparison loading
@@ -313,12 +299,23 @@ export default function CompareReportsPage() {
       // If it's already a JSON key, return it directly.
       if (key.endsWith(".json")) return key;
 
-      // Otherwise, derive the JSON key from the PDF key.
-      const baseName = key.replace(/^reports\//, "").replace(/\.pdf$/, "");
+      // Transform PDF key to JSON key based on actual storage structure
+      // PDF: user_id/reports/type/filename.pdf
+      // JSON: user_id/json/type/filename.json
+      
+      // Extract user_id, report_type, and filename from PDF key
+      const pdfMatch = key.match(/^([^\/]+)\/reports\/([^\/]+)\/(.+)\.pdf$/);
+      if (pdfMatch) {
+        const [, userId, reportType, filename] = pdfMatch;
+        return `${userId}/json/${reportType}/${filename}.json`;
+      }
 
-      return `reports/${baseName}.json`;
+      // Fallback: if pattern doesn't match, try simple transformation
+      const baseName = key.replace(/\.pdf$/, "");
+      return `${baseName}.json`;
     };
     const keys = selectedReports.map((r) => toJsonKey(r.s3Key || ""));
+    
     if (keys.length > 0) {
       fetchComparison(keys);
     } else {
@@ -615,10 +612,7 @@ export default function CompareReportsPage() {
                               hyphens: "auto",
                             }}
                           >
-                            {report.address
-                              .replace(/_/g, " ")
-                              .slice(0, -18)
-                              .trim()}
+                            {formatFilenameToAddress(report.address)}
                           </h3>
                         </div>
                       </div>
@@ -681,15 +675,7 @@ export default function CompareReportsPage() {
                         className={`px-2 sm:px-4 py-2 sm:py-3 text-left font-semibold text-black text-xs ${colWidth}`}
                       >
                         <div className="truncate" title={r.address}>
-                          {(() => {
-                            const formattedAddress = r.address.replace(
-                              /_/g,
-                              " "
-                            );
-                            return formattedAddress
-                              .substring(0, formattedAddress.length - 18)
-                              .trim();
-                          })()}
+                          {formatFilenameToAddress(r.address)}
                         </div>
                       </th>
                     );

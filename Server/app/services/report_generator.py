@@ -641,37 +641,55 @@ def response_sort(report_responses: list, section_names: list) -> list:
     logger.info(f"✅ Response sorting completed: {len(sorted_responses)} responses sorted")
     return sorted_responses
 
-def _download_json_from_s3(file_path: str, address: str) -> Dict:
-    """Download JSON report from S3"""
+def _download_json_from_s3(file_path: str, address: str) -> Dict[str, Any]:
+    """Download JSON report from S3."""
     try:
         from app.services.s3_service import s3_service
         from flask import current_app
         from io import BytesIO
-        
-        # Construct JSON file path (assuming JSON is stored alongside PDF)
-        json_file_path = file_path.replace('.pdf', '.json')
-        
-        # Try to download JSON from S3
+
+        # Build JSON key
+        if "/" in file_path:
+            parts = file_path.split("/")
+            # Expect: userId/reports/<type>/<filename>.pdf
+            if len(parts) >= 4 and parts[1] == "reports":
+                user_id = parts[0]
+                report_type = parts[2]
+                pdf_filename = parts[3]
+                stem, ext = os.path.splitext(pdf_filename)
+                json_key = f"{user_id}/json/{report_type}/{stem}.json"
+            else:
+                # Fallback: just swap extension
+                stem, _ = os.path.splitext(file_path)
+                json_key = f"{stem}.json"
+        else:
+            # Old flat structure fallback
+            stem, _ = os.path.splitext(file_path)
+            json_key = f"{stem}.json"
+
+        # S3 client sanity
         if s3_service.s3_client is None:
             raise RuntimeError("S3 client not initialised")
-        
+
         bucket_name = current_app.config.get("S3_BUCKET_NAME_PDFS")
         if not bucket_name:
             raise RuntimeError("S3_BUCKET_NAME_PDFS config missing")
-        
-        logger.debug(f"🔽 Downloading JSON: Bucket={bucket_name}, Key={json_file_path}")
-        buffer = BytesIO()
-        
-        s3_service.s3_client.download_fileobj(bucket_name, json_file_path, buffer)
-        buffer.seek(0)
-        raw_json = buffer.read().decode("utf-8")
-        
-        logger.info(f"✅ Retrieved JSON report from S3 for {address}")
-        return json.loads(raw_json)
-    except Exception as e:
-        logger.error(f"❌ Failed to download JSON for {address}: {str(e)}")
-        raise e
 
+        logger.info(f"🔽 Downloading JSON: Bucket={bucket_name}, Key={json_key}")
+        logger.info(f"🔍 PDF file_path: {file_path}")
+        logger.info(f"🔍 Constructed JSON key: {json_key}")
+
+        buf = BytesIO()
+        s3_service.s3_client.download_fileobj(bucket_name, json_key, buf)
+        buf.seek(0)
+        raw = buf.read().decode("utf-8")
+
+        logger.info(f"✅ Retrieved JSON report from S3 for {address}")
+        return json.loads(raw)
+
+    except Exception as e:
+        logger.exception(f"❌ Failed to download JSON for {address}: {e}")
+        raise
 
 def _wait_for_report_completion(pdf_doc, address: str, max_wait_time: int = 600) -> Dict:
     """Wait for a report to complete generation and return the JSON data"""
@@ -679,23 +697,18 @@ def _wait_for_report_completion(pdf_doc, address: str, max_wait_time: int = 600)
     from app.models.pdf_document import PDFDocument
     from sqlalchemy.exc import OperationalError, DisconnectionError
     
-    logger.info(f"⏳ Waiting for report completion: {pdf_doc.id} for address {address}")
     start_time = time.time()
     
-    # Dispose engine before long-running DB operations
-    try:
-        db.engine.dispose()
-        logger.debug("🔄 Disposed database engine before long polling operation")
-    except Exception as e:
-        logger.warning(f"⚠️ Failed to dispose engine: {str(e)}")
+    logger.info(f"⏳ Waiting for report completion: {address}")
     
     while time.time() - start_time < max_wait_time:
-        # Refresh the PDF document from database with retry logic
+        # Refresh the database object with retry logic
         max_retries = 3
-        retry_delay = 1
+        retry_delay = 1  # Start with 1 second delay
         
         for attempt in range(max_retries):
             try:
+                # Refresh the object from database
                 db.session.refresh(pdf_doc)
                 break  # Success, exit retry loop
             except (OperationalError, DisconnectionError) as e:
@@ -727,6 +740,8 @@ def _wait_for_report_completion(pdf_doc, address: str, max_wait_time: int = 600)
         
         if pdf_doc.status in ['completed', 'processed']:
             logger.info(f"✅ Report completed for {address}, downloading JSON")
+            # Add a small delay to ensure JSON upload has completed
+            time.sleep(2)
             return _download_json_from_s3(pdf_doc.file_path, address)
         elif pdf_doc.status == 'error':
             logger.error(f"❌ Report generation failed for {address}")
@@ -741,19 +756,16 @@ def _wait_for_report_completion(pdf_doc, address: str, max_wait_time: int = 600)
     raise Exception(f"Timeout waiting for report completion: {address}")
 
 
-def _get_or_generate_report_json(address: str, user_id: int, filename: str) -> Dict:
+def _get_or_generate_report_json(address: str, user_id: int) -> Dict:
     """Get existing JSON report from S3 or generate a new one if it doesn't exist.
     
     This function ensures the report is fully generated before returning JSON data.
     For comparison reports, this guarantees both individual reports are ready.
     """
-    try:
-        logger.info(f"🔍 Checking for existing JSON report for address: {address}")
-        
+    try:        
         # Create a safe filename for S3 lookup
         safe_address = "".join(c for c in address if c.isalnum() or c in (' ', '-', '_')).rstrip().replace(' ', '_')
-        user_id_short = str(user_id)[:8] if len(str(user_id)) >= 8 else str(user_id)
-        
+        filename = f"{uuid.uuid4().hex[:17]}_{safe_address}.pdf"
         # Try to find existing JSON report in S3
         from app.models.pdf_document import PDFDocument
         from app.models.user import User
@@ -762,19 +774,7 @@ def _get_or_generate_report_json(address: str, user_id: int, filename: str) -> D
         user = User.query.get(user_id)
         if not user:
             raise Exception(f"User not found with ID: {user_id}")
-        
-        # Look for existing completed report first
-        existing_report = PDFDocument.query.filter(
-            PDFDocument.user_id == user_id,
-            PDFDocument.primary_address == address,
-            PDFDocument.report_type == 'detailed',
-            PDFDocument.status.in_(['completed', 'processed'])
-        ).first()
-        
-        if existing_report:
-            logger.info(f"📄 Found existing completed report for {address}")
-            return _download_json_from_s3(existing_report.file_path, address)
-        
+
         # Check if report is currently generating
         generating_report = PDFDocument.query.filter(
             PDFDocument.user_id == user_id,
@@ -795,13 +795,13 @@ def _get_or_generate_report_json(address: str, user_id: int, filename: str) -> D
             logger.warning(f"User {user.id} has no reports available")
             raise Exception("No reports available. Please purchase a subscription or more reports.")
         
-        # Create new PDF document record
-        filenamee = f"reports/{safe_address}_{user_id_short}_{uuid.uuid4().hex[:8]}.pdf"
+        # Create new PDF document record with tree structure: userid/reports/standard/
+        path = f"{user_id}/reports/standard/{filename}"
         pdf_doc = PDFDocument(
             id=str(uuid.uuid4()),
             user_id=user.id,
-            filename=filenamee,
-            file_path=filenamee,
+            filename=filename,
+            file_path=path,
             status='generating',
             primary_address=address,
             report_type='detailed',
@@ -860,7 +860,7 @@ def _get_or_generate_report_json(address: str, user_id: int, filename: str) -> D
         
         # Start async task and wait for completion
         from app.celery.tasks import generate_report_async
-        task = generate_report_async.delay(address, None, filenamee, pdf_doc.id, user_id)
+        task = generate_report_async.delay(address, None, path, pdf_doc.id, user_id)
         logger.info(f"🚀 Started async report generation task: {task.id}")
         
         # Wait for the report to complete and return JSON
@@ -1001,11 +1001,11 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
             
             # Get or generate JSON reports for both addresses - these calls will block until reports are ready
             logger.info(f"📋 Ensuring primary report is ready for {address}...")
-            primary_report_json = _get_or_generate_report_json(address, user_id, filename)
+            primary_report_json = _get_or_generate_report_json(address, user_id)
             logger.info(f"✅ Primary report JSON ready for {address}")
             
             logger.info(f"📋 Ensuring comparison report is ready for {comparison_address}...")
-            comparison_report_json = _get_or_generate_report_json(comparison_address, user_id, filename)
+            comparison_report_json = _get_or_generate_report_json(comparison_address, user_id)
             logger.info(f"✅ Comparison report JSON ready for {comparison_address}")
             
             logger.info(f"🎯 Both individual reports are now ready - proceeding with comparison generation")

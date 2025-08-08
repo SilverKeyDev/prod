@@ -14,7 +14,7 @@ import {
 import ErrorToast from "../../components/ErrorToast";
 import SuccessToast from "../../components/SuccessToast";
 import { useData } from "../../contexts/DataContext";
-
+import { formatFilenameToAddress } from "../../lib/addressFormat";
 import MiniLogo from "../../components/MiniLogo";
 
 interface Report {
@@ -85,6 +85,7 @@ const ProgressBar: React.FC<ProgressBarProps> = ({ startTime }) => {
 // PdfModal component moved outside to prevent remounting on every render
 interface PdfModalProps {
   currentPdf: string | null;
+  currentReportAddress: string | null;
   onClose: () => void;
   onShare?: () => void;
   reports: Report[];
@@ -92,9 +93,9 @@ interface PdfModalProps {
 
 const PdfModal: React.FC<PdfModalProps> = ({
   currentPdf,
+  currentReportAddress,
   onClose,
   onShare,
-  reports,
 }) => {
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -126,41 +127,23 @@ const PdfModal: React.FC<PdfModalProps> = ({
     };
   }, [onClose]);
 
-  // Get report title from the current PDF URL
+  // Get report title from the current report address or PDF URL
   const getReportTitle = () => {
+    // Use the report address if available (preferred)
+    if (currentReportAddress) {
+      console.log(`[getReportTitle] Using report address:`, currentReportAddress);
+      const result = formatFilenameToAddress(currentReportAddress);
+      console.log(`[getReportTitle] Formatted result:`, result);
+      return result;
+    }
+
+    // Fallback to parsing PDF URL
     if (!currentPdf) return "Property Report";
 
-    // Find the report that matches the current PDF URL
-    const matchingReport = reports.find(
-      (report) =>
-        report.pdfUrl === currentPdf ||
-        (report.s3Key && currentPdf.includes(report.s3Key))
-    );
-
-    if (matchingReport) {
-      // Use the same formatting method as report cards
-      const formattedAddress = matchingReport.address.replace(/_/g, " ");
-      return formattedAddress.substring(0, formattedAddress.length - 18).trim();
-    }
-
-    // Fallback: extract address from URL if possible
-    try {
-      const urlParts = currentPdf.split("/");
-      const filename = urlParts[urlParts.length - 1];
-      if (filename.includes(".pdf")) {
-        // Use the same formatting method as report cards
-        const formattedAddress = filename
-          .replace(".pdf", "")
-          .replace(/_/g, " ");
-        return formattedAddress
-          .substring(0, formattedAddress.length - 18)
-          .trim();
-      }
-    } catch (e) {
-      console.warn("Could not extract title from PDF URL");
-    }
-
-    return "Property Report";
+    console.log(`[getReportTitle] Fallback to PDF URL:`, currentPdf);
+    const result = formatFilenameToAddress(currentPdf);
+    console.log(`[getReportTitle] Output result:`, result);
+    return result;
   };
 
   const handleDownload = () => {
@@ -315,6 +298,7 @@ export default function PastReports() {
   // Local cache for PDF URLs to avoid modifying context state
   const [pdfUrlCache, setPdfUrlCache] = useState<Record<string, string>>({});
   const [currentPdf, setCurrentPdf] = useState<string | null>(null);
+  const [currentReportAddress, setCurrentReportAddress] = useState<string | null>(null);
   const [loadingUrls, setLoadingUrls] = useState<Set<string>>(new Set());
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [reportToDelete, setReportToDelete] = useState<{
@@ -399,7 +383,7 @@ export default function PastReports() {
     const pdfUrl = await getFreshViewUrl(report.id);
 
     if (pdfUrl) {
-      openPdfModal(pdfUrl);
+      openPdfModal(pdfUrl, report.address);
     } else {
       console.error("Failed to get PDF view URL");
     }
@@ -669,15 +653,17 @@ export default function PastReports() {
     });
   };
 
-  const openPdfModal = (pdfUrl: string) => {
+  const openPdfModal = (pdfUrl: string, reportAddress?: string) => {
     console.log("[PdfModal] Opening PDF modal for:", pdfUrl);
     setCurrentPdf(pdfUrl);
+    setCurrentReportAddress(reportAddress || null);
     document.body.style.overflow = "hidden";
   };
 
   const closePdfModal = useCallback(() => {
     console.log("[PdfModal] Closing PDF modal");
     setCurrentPdf(null);
+    setCurrentReportAddress(null);
     document.body.style.overflow = "auto";
   }, []);
 
@@ -1042,6 +1028,7 @@ export default function PastReports() {
       {currentPdf && (
         <PdfModal
           currentPdf={currentPdf}
+          currentReportAddress={currentReportAddress}
           onClose={closePdfModal}
           onShare={handleShareCurrentPdf}
           reports={reports}
@@ -1306,15 +1293,7 @@ export default function PastReports() {
                             hyphens: "auto",
                           }}
                         >
-                          {(() => {
-                            const formattedAddress = report.address.replace(
-                              /_/g,
-                              " "
-                            );
-                            return formattedAddress
-                              .substring(0, formattedAddress.length - 18)
-                              .trim();
-                          })()}
+                          {formatFilenameToAddress(report.address)}
                         </h3>
                         <p className="text-xs sm:text-sm text-black/60 flex items-center">
                           <Calendar className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
@@ -1434,15 +1413,7 @@ export default function PastReports() {
                         hyphens: "auto",
                       }}
                     >
-                      {(() => {
-                        const formattedAddress = report.address.replace(
-                          /_/g,
-                          " "
-                        );
-                        return formattedAddress
-                          .substring(0, formattedAddress.length - 18)
-                          .trim();
-                      })()}
+                      {formatFilenameToAddress(report.address)}
                     </h3>
                   </div>
                   <div className="flex flex-col gap-2">

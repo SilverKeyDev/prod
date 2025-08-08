@@ -7,6 +7,7 @@ import {
   ReactNode,
 } from "react";
 import { apiRequest } from "../lib/api";
+import { formatFilenameToAddress } from "../lib/addressFormat";
 
 // Types
 interface Report {
@@ -387,18 +388,10 @@ export function DataProvider({ children }: DataProviderProps) {
       const json = await response.json();
 
       if (json.success && json.reports) {
-        // Format address the same way as AIAssistant
-        const formatAddress = (address: string) => {
-          const formattedAddress = address.replace(/_/g, " ");
-          return formattedAddress
-            .substring(0, formattedAddress.length - 18)
-            .trim();
-        };
-
         const newChats: Chat[] = json.reports.map((report: any) => ({
           id: report.id,
           title: report.address
-            ? formatAddress(report.address)
+            ? formatFilenameToAddress(report.address)
             : `Report ${report.id}`,
           propertyAddress: report.address,
           messages: [], // Start with empty messages - will be loaded when chat is selected

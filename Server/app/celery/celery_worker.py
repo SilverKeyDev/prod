@@ -2,6 +2,10 @@ from celery import Celery
 from celery.signals import worker_process_init, worker_process_shutdown
 import socket
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Create Celery instance with basic configuration
 # Flask app will be initialized lazily to avoid circular imports
@@ -17,6 +21,9 @@ celery.conf.update({
     "broker_connection_retry_on_startup": True,
     "broker_connection_retry": True,
     "broker_connection_max_retries": 10,
+    # Fix for macOS Objective-C fork issue - use threads instead of prefork
+    "worker_pool": "threads",
+    "worker_concurrency": 4,  # Number of threads
 })
 
 # Context-aware Celery task base with robust database handling
