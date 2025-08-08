@@ -82,130 +82,130 @@ export default function EscrowLegalLogistics() {
       id: 1,
       label: "Choose or confirm escrow/title company",
       explanation:
-        "The escrow or title company is a neutral third party that manages documents, funds, and coordinates closing.",
+        "A neutral third party that holds funds, manages documents, and coordinates closing.",
       bullets: [
-        "Ask your agent or lender for recommendations.",
-        "Ensure the company is licensed and reputable.",
-        "They will prepare the escrow instructions and manage fund transfers.",
+        "Get recommendations from your lender (and attorney if you’re using one).",
+        "Verify licensing and reputation.",
+        "They’ll prepare escrow instructions and handle fund transfers."
       ],
       resource: {
-        label: "What is Escrow? (CFPB Guide)",
-        href: "https://www.consumerfinance.gov/ask-cfpb/what-is-escrow-en-123/",
-      },
+        label: "What is Escrow? (CFPB)",
+        href: "https://www.consumerfinance.gov/ask-cfpb/what-is-escrow-en-123/"
+      }
     },
     {
       id: 2,
       label: "Deposit earnest money into escrow",
       explanation:
-        "Earnest money shows you’re serious about the purchase. It's held in escrow and applied toward closing costs.",
+        "Shows good faith and is credited toward your closing. Follow the contract timeline.",
       bullets: [
-        "Typically 1–3% of the purchase price.",
-        "Must be wired or delivered within 1–3 business days after offer acceptance.",
-        "Avoid wire fraud — confirm details with escrow officer directly.",
+        "Commonly 1–3% of purchase price (varies by market).",
+        "Due within 1–3 business days after acceptance (check contract).",
+        "Call the escrow/title office to verify wire details—beware of fraud."
       ],
       resource: {
-        label: "FBI Guide: Avoid Wire Fraud",
-        href: "https://www.fbi.gov/scams-and-safety/common-scams-and-crimes/business-email-compromise",
-      },
+        label: "Avoid Real Estate Wire Fraud (FBI)",
+        href: "https://www.fbi.gov/how-we-can-help-you/safety-resources/scams-and-safety/common-scams-and-crimes/business-email-compromise"
+      }
     },
     {
       id: 3,
       label: "Send purchase agreement to lender",
       explanation:
-        "Your lender needs a signed purchase agreement to begin processing your loan and schedule the appraisal.",
+        "Your lender needs the signed contract (and addenda) to start underwriting and order the appraisal.",
       bullets: [
-        "Include any addendums or counteroffers.",
-        "Check if the title/escrow company needs a copy too.",
+        "Include counters/addenda and contact info for title/escrow.",
+        "Confirm if title/escrow also needs a copy."
       ],
       resource: {
-        label: "Sample Purchase Agreement (Rocket Mortgage)",
-        href: "https://www.rocketmortgage.com/learn/purchase-agreement",
-      },
+        label: "Purchase Agreement Basics (Realtor.com)",
+        href: "https://www.realtor.com/advice/buy/what-is-a-purchase-and-sale-agreement/"
+      }
     },
     {
       id: 4,
       label: "Review escrow instructions",
       explanation:
-        "Escrow instructions outline the duties of the escrow company and what must happen before closing.",
+        "Spell out what the escrow holder must do and what conditions must be met before closing.",
       bullets: [
-        "Review for accuracy: names, address, sale price, timelines.",
-        "Make sure contingencies and conditions are listed correctly.",
+        "Verify names, property address, price, and timelines.",
+        "Confirm contingencies and payoffs are listed correctly."
       ],
       resource: {
-        label: "Escrow Instructions Explained",
-        href: "https://homeguides.sfgate.com/escrow-instructions-mean-7972.html",
-      },
+        label: "Escrow: How It Works in Real Estate (ALTA)",
+        href: "https://www.alta.org/homebuyer/what-is-escrow/"
+      }
     },
     {
       id: 5,
       label: "Monitor contingency deadlines",
       explanation:
-        "Each contingency (inspection, financing, appraisal, etc.) has a deadline. Missing them can risk your deposit.",
+        "Missing inspection/financing/appraisal/title deadlines can put your deposit at risk.",
       bullets: [
-        "Track deadlines in a calendar or checklist.",
-        "Communicate with your agent, lender, and escrow company to stay on schedule.",
+        "Track dates in a calendar with reminders.",
+        "Coordinate with lender and title/escrow to stay on schedule."
       ],
       resource: {
-        label: "Real Estate Contingency Timeline Guide",
-        href: "https://www.opendoor.com/w/blog/real-estate-contingencies",
-      },
+        label: "Common Homebuying Contingencies (Nolo)",
+        href: "https://www.nolo.com/legal-encyclopedia/contingency-clauses-home-purchase-contracts-30019.html"
+      }
     },
     {
       id: 6,
       label: "Order title search & review report",
       explanation:
-        "A title search ensures the seller has the legal right to sell and identifies any claims against the property.",
+        "Confirms the seller’s ownership and flags claims or defects before you close.",
       bullets: [
-        "Usually handled by the title company.",
-        "Review the preliminary title report for accuracy and red flags.",
+        "Title company typically performs the search and issues the commitment.",
+        "Read the preliminary report/commitment for exceptions and red flags."
       ],
       resource: {
-        label: "Understanding Title Reports",
-        href: "https://www.firstam.com/ownership/title-insurance/title-insurance-basics.html",
-      },
+        label: "Title Insurance Basics (First American)",
+        href: "https://www.firstam.com/ownership/title-insurance/title-insurance-basics.html"
+      }
     },
     {
       id: 7,
       label: "Check for liens, easements, and legal encumbrances",
       explanation:
-        "These are restrictions or claims on the property that could affect your use or ownership.",
+        "These can affect ownership, access, or how you use the property.",
       bullets: [
-        "Liens: unpaid taxes, HOA dues, or contractor fees.",
-        "Easements: shared driveways, utility access.",
+        "Liens: unpaid taxes, judgments, HOA/contractor liens.",
+        "Easements: utility access, shared driveways, ingress/egress."
       ],
       resource: {
-        label: "Easements & Liens Overview (Nolo)",
-        href: "https://www.nolo.com/legal-encyclopedia/easements-land-use-basics-29651.html",
-      },
+        label: "Easements & Land Use Basics (Nolo)",
+        href: "https://www.nolo.com/legal-encyclopedia/easements-land-use-basics-29651.html"
+      }
     },
     {
       id: 8,
       label: "Review zoning and hazard disclosures",
       explanation:
-        "Zoning laws affect what you can do with the property; hazard disclosures warn of risks (e.g., floods, fires).",
+        "Local zoning controls use/renovations; hazard zones can affect insurance and lender requirements.",
       bullets: [
-        "Check if the property is in a flood, fire, or earthquake zone.",
-        "Understand any zoning restrictions that could impact renovations or use.",
+        "Check flood, wildfire, or earthquake risk as applicable.",
+        "Confirm zoning allows your intended use or projects."
       ],
       resource: {
-        label: "FEMA Flood Map Lookup",
-        href: "https://msc.fema.gov/portal/home",
-      },
+        label: "FEMA Flood Map Service Center",
+        href: "https://msc.fema.gov/portal/home"
+      }
     },
     {
       id: 9,
       label: "Review HOA rules and financials (if applicable)",
       explanation:
-        "If the home is part of an HOA, review their rules, fees, and financials before proceeding.",
+        "Understand restrictions, fees, and the HOA’s financial health before you proceed.",
       bullets: [
-        "Look for restrictions on short-term rentals, pets, exterior changes.",
-        "Review recent budgets, reserves, and meeting minutes for red flags.",
+        "Look for rules on rentals, pets, parking, exterior changes.",
+        "Review budgets, reserves, assessments, and meeting minutes."
       ],
       resource: {
-        label: "HOA Document Checklist",
-        href: "https://www.homeloanlearningcenter.com/mortgage-basics/the-hoa-document-checklist",
-      },
-    },
+        label: "Reviewing HOA Documents Before Buying (Nolo)",
+        href: "https://www.nolo.com/legal-encyclopedia/reviewing-hoa-documents-before-buying.html"
+      }
+    }
   ];
 
   const completedCount = Object.values(checked).filter(Boolean).length;

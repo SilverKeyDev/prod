@@ -194,19 +194,6 @@ def generate_report_endpoint():
         db.session.add(pdf_doc)
         db.session.commit()
         
-        
-        #if user.reports_available <= 0:
-        #    logger.warning(f"User {user.id} has no active subscription and no reports available")
-        #    return jsonify({
-        #        'success': False,
-        #        'error': 'NO_REPORTS_AVAILABLE',
-        #        'message': 'No reports available. Please purchase a subscription or more reports.'
-        #    }), 402  # Payment Required
-            
-        # Decrement reports_available for non-subscription users
-        #user.reports_available -= 1
-        db.session.commit()
-        
         # Start async task (lazy import to avoid circular import)
         # Always use the unified generate_report_async task, passing comparison_address (None for detailed reports)
         # Use preferences_user_id for report generation (could be agent's client or agent themselves)
@@ -224,7 +211,6 @@ def generate_report_endpoint():
             'status': 'started',
             'task_id': task.id,
             'document_id': pdf_doc.id,
-            'reports_remaining': user.reports_available,
             'report_type': 'comparison' if is_comparison else 'detailed',
             'addresses': {
                 'primary': address,

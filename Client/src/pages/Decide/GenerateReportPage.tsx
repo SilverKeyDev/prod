@@ -603,13 +603,6 @@ export default function GenerateReportPage() {
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
         if (res.status === 402) {
-          navigate("/dashboard/subscription", {
-            state: {
-              message:
-                errorData.error ||
-                "You have no reports available. Please subscribe to continue.",
-            },
-          });
           return; // Stop further execution
         }
         throw new Error(errorData.error || "Report generation failed");

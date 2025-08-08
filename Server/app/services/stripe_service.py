@@ -112,15 +112,11 @@ def handle_checkout_session(session):
             return
 
         current_app.logger.info(f"[CHECKOUT] 👤 Found user ID: {user.id}, email: {user.email}")
-        current_app.logger.info(f"[CHECKOUT] 📄 Reports available BEFORE update: {user.reports_available}")
 
         plan_id = session.get('metadata', {}).get('plan_id', '5-reports')
         current_app.logger.info(f"[CHECKOUT] 📦 Plan ID from metadata: {plan_id}")
 
         reports_limit = {
-            '5-reports': 5,
-            '20-reports': 20,
-            '50-reports': 50,
             'unlimited-monthly': -1,
             'unlimited-yearly': -1
         }.get(plan_id, 0)
@@ -134,27 +130,21 @@ def handle_checkout_session(session):
         else:
             current_app.logger.info(f"[CHECKOUT] 🔄 Updating existing subscription for user {user.id}")
 
-        if plan_id in ['5-reports', '20-reports', '50-reports']:
-            user.reports_available += reports_limit
-            db.session.add(user)
-            subscription.current_period_end = None
-            current_app.logger.info(f"[CHECKOUT] ➕ Incremented reports to {user.reports_available}")
-        else:
-            # For unlimited subscriptions, set user as agent and activate subscription
-            user.is_agent = True
-            db.session.add(user)
-            interval = 'month' if 'monthly' in plan_id else 'year'
-            subscription.current_period_end = datetime.utcnow() + timedelta(
-                days=30 if interval == 'month' else 365
-            )
-            subscription.reports_limit = -1  # Set reports_limit for unlimited subscriptions
-            current_app.logger.info(
-                f"[CHECKOUT] 🎯 Set user as agent (is_agent=True) for subscription plan: {plan_id}"
-            )
-            current_app.logger.info(
-                f"[CHECKOUT] 📅 Set subscription period end to {subscription.current_period_end} "
-                f"(interval: {interval}, limit: {reports_limit})"
-            )
+        # For unlimited subscriptions, set user as agent and activate subscription
+        user.is_agent = True
+        db.session.add(user)
+        interval = 'month' if 'monthly' in plan_id else 'year'
+        subscription.current_period_end = datetime.utcnow() + timedelta(
+            days=30 if interval == 'month' else 365
+        )
+        subscription.reports_limit = -1  # Set reports_limit for unlimited subscriptions
+        current_app.logger.info(
+            f"[CHECKOUT] 🎯 Set user as agent (is_agent=True) for subscription plan: {plan_id}"
+        )
+        current_app.logger.info(
+            f"[CHECKOUT] 📅 Set subscription period end to {subscription.current_period_end} "
+            f"(interval: {interval}, limit: {reports_limit})"
+        )
 
         # Set final subscription fields
         subscription.plan_id = plan_id
@@ -164,7 +154,6 @@ def handle_checkout_session(session):
 
         db.session.commit()
         current_app.logger.info(f"[CHECKOUT] ✅ Successfully committed subscription changes for user {user.id}")
-        current_app.logger.info(f"[CHECKOUT] 📄 Final reports_available: {user.reports_available}")
 
     except Exception as e:
         current_app.logger.error(f"[CHECKOUT] ❗ Error occurred: {str(e)}", exc_info=True)

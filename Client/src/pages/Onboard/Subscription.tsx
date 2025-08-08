@@ -324,19 +324,6 @@ export default function Subscription() {
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 lg:gap-4 mb-3 lg:mb-4">
-              {/* COMMENTED OUT: Reports Remaining - Individual report purchases disabled */}
-              {/* <div className="flex flex-col items-center justify-center p-3 lg:p-4">
-                <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-black">
-                  {billingInfo?.usage.reports_available === -1
-                    ? "∞"
-                    : Math.max(0, billingInfo?.usage.reports_available || 0)}
-                </div>
-                <div className="text-xs text-black/60 mt-1">
-                  {billingInfo?.usage.reports_available === -1
-                    ? "Unlimited Reports"
-                    : "Reports Remaining"}
-                </div>
-              </div> */}
 
               {/* Plan Details */}
               {billingInfo?.subscription?.plan_id ? (

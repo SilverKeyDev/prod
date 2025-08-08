@@ -790,10 +790,7 @@ def _get_or_generate_report_json(address: str, user_id: int) -> Dict:
         # No existing report - create and generate new one
         logger.info(f"🆕 Creating new report for {address}")
         
-        # Check user's report availability
-        if user.reports_available <= 0:
-            logger.warning(f"User {user.id} has no reports available")
-            raise Exception("No reports available. Please purchase a subscription or more reports.")
+
         
         # Create new PDF document record with tree structure: userid/reports/standard/
         path = f"{user_id}/reports/standard/{filename}"
@@ -821,11 +818,8 @@ def _get_or_generate_report_json(address: str, user_id: int) -> Dict:
         for attempt in range(max_retries):
             try:
                 db.session.add(pdf_doc)
-                # Decrement reports_available for non-subscription users
-                user.reports_available -= 1
                 db.session.commit()
                 logger.info(f"✅ Created PDF document record: {pdf_doc.id}")
-                logger.info(f"✅ Decremented reports_available for user {user.id}: {user.reports_available}")
                 break  # Success, exit retry loop
             except (OperationalError, DisconnectionError) as e:
                 logger.warning(f"🔄 DB commit error on attempt {attempt + 1}/{max_retries}: {str(e)}")
@@ -1297,7 +1291,6 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                         result = future.result()
                         if result["success"]:
                             successful_responses.append(result["data"])
-                            logger.info(f"✅ Section {section_name}: Added to successful responses")
                         else:
                             failed_sections.append({"section": section_name, "error": result["error"]})
                             logger.warning(f"⚠️ Section {section_name}: Failed - {result['error']}")

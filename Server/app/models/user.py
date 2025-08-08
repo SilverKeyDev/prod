@@ -10,7 +10,6 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     name = db.Column(db.String(100), nullable=False)
     phone = db.Column(db.String(20))
-    reports_available = db.Column(db.Integer, default=3)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     is_active = db.Column(db.Boolean, default=True)
@@ -45,7 +44,6 @@ class User(db.Model):
             'email': self.email,
             'name': self.name,
             'phone': self.phone,
-            'reports_available': self.reports_available,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'is_active': self.is_active,
             'has_subscription': self.subscription is not None,

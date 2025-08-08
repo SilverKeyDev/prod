@@ -141,23 +141,12 @@ def get_billing_info():
                 'reports_limit': subscription.reports_limit,
                 'stripe_subscription_id': subscription.stripe_subscription_id
             }
-        
-        # Get report usage
-        reports_available = user.reports_available
-        
-        # Calculate reports used safely
-        reports_limit = subscription.reports_limit if subscription else 0
-        reports_used = max(0, reports_limit - reports_available) if reports_limit is not None else 0
+      
         
         return jsonify({
             'success': True,
             'data': {
                 'subscription': subscription_data,
-                'usage': {
-                    'reports_available': reports_available,
-                    'reports_used': reports_used,
-                    'reports_limit': reports_limit
-                },
                 'has_active_subscription': subscription and subscription.status == 'active'
             }
         })
@@ -170,33 +159,6 @@ def get_billing_info():
             'message': 'Failed to retrieve billing information'
         }), 500
 
-# Keep the old endpoint for backward compatibility
-@user_bp.route('/report-usage', methods=['GET'])
-def get_report_usage():
-    """Get the current user's report usage and limit"""
-    try:
-        user = get_current_user()
-        
-        subscription = Subscription.query.filter_by(user_id=user.id).first()
-        reports_available = user.reports_available
-        reports_limit = subscription.reports_limit if subscription else 0
-        reports_used = max(0, reports_limit - reports_available) if reports_limit is not None else 0
-        
-        return jsonify({
-            'success': True,
-            'data': {
-                'reports_available': reports_available,
-                'reports_used': reports_used,
-                'reports_limit': reports_limit
-            }
-        })
-    except Exception as e:
-        current_app.logger.error(f'Error getting report usage: {str(e)}')
-        return jsonify({
-            'success': False,
-            'error': 'SERVER_ERROR',
-            'message': 'Failed to retrieve report usage'
-        }), 500
 
 def _parse_checklist(raw_value):
     """Helper to safely parse a stored checklist string back to Python list."""

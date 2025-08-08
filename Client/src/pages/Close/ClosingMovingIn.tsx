@@ -123,8 +123,8 @@ export default function ClosingMovingIn() {
         "If check is allowed, bring a certified/cashier’s check (no personal checks).",
       ],
       resource: {
-        label: "Protect Your Closing Funds (FBI Guide)",
-        href: "https://www.fbi.gov/scams-and-safety/common-scams-and-crimes/business-email-compromise",
+        label: "How to Send Closing Funds (Zillow Guide)",
+        href: "https://www.zillow.com/learn/how-to-wire-money-for-closing/",
       },
     },
     {
@@ -132,7 +132,12 @@ export default function ClosingMovingIn() {
       label: "Recording & disbursement",
       explanation:
         "The title/escrow company records the deed with the county, then disburses funds. Usually within 1–2 business days.",
+      resource: {
+        label: "The Escrow Timeline (Linear Title and Escrow)",
+        href: "https://lineartitleandescrow.com/2023/12/06/the-escrow-timeline-a-step-by-step-guide-to-closing/",
+      },
     },
+    
     {
       id: 5,
       label: "Receive keys & access devices",
@@ -151,7 +156,7 @@ export default function ClosingMovingIn() {
       ],
       resource: {
         label: "How to Rekey a Lock (YouTube Tutorial)",
-        href: "https://www.youtube.com/watch?v=UAZD6DQAOqM",
+        href: "https://www.youtube.com/watch?v=JWrRQXj8DUI",
       },
     },
     {
@@ -162,18 +167,24 @@ export default function ClosingMovingIn() {
         "Electricity, water/sewer, natural gas, trash/recycling, internet & cable.",
       ],
       resource: {
-        label: "MyUtilities.com or Utility Concierge",
-        href: "https://www.myutilities.com/",
+        label: "Guide to Transferring Utilities (Zillow)",
+        href: "https://www.zillow.com/learn/transferring-utilities-when-buying-a-house/?utm_source=chatgpt.com",
       },
     },
     {
       id: 8,
       label: "File homestead exemption",
       explanation:
-        "Reduces property taxes if the home is your primary residence. Deadline varies by state.",
+        "A homestead exemption can reduce your property taxes if the home is your primary residence. You must file with your local county tax assessor or appraisal district. Deadlines and rules vary by state, and many require filing within the first year of ownership.",
+      bullets: [
+        "Confirm you meet eligibility requirements (primary residence).",
+        "Find your county’s official tax assessor or appraisal district website.",
+        "Complete the homestead exemption application form.",
+        "Submit by your state or county’s deadline to receive the benefit.",
+      ],
       resource: {
-        label: "Search county tax assessor website",
-        href: "https://www.tax-rates.org/",
+        label: "Find Your County Tax Assessor",
+        href: "https://publicrecords.netronline.com/propertyrecords/",
       },
     },
     {
@@ -182,21 +193,12 @@ export default function ClosingMovingIn() {
       explanation:
         "Update USPS (mail forwarding 12 months, $1.10 fee) and key institutions (DMV, IRS, banks, healthcare, subscriptions).",
       resource: {
-        label: "USPS Change of Address",
-        href: "https://moversguide.usps.com/",
+        label: "Change Your Address – USA.gov",
+        href: "https://www.usa.gov/change-address",
       },
     },
     {
       id: 10,
-      label: "Secure important documents",
-      explanation:
-        "Create digital backups (cloud storage) and keep physical copies in a fireproof safe.",
-      bullets: [
-        "Closing Disclosure, deed, title insurance, loan docs, inspection report, warranties & manuals.",
-      ],
-    },
-    {
-      id: 11,
       label: "Create maintenance calendar",
       explanation: "Avoid costly repairs by staying proactive.",
       bullets: [
@@ -204,19 +206,15 @@ export default function ClosingMovingIn() {
         "Clean gutters biannually.",
         "Drain water heater yearly.",
       ],
-      resource: {
-        label: "HomeZada or Centriq",
-        href: "https://www.homezada.com/",
-      },
     },
     {
-      id: 12,
+      id: 11,
       label: "Update estate plan",
       explanation:
         "Ensures your home passes to the right beneficiaries; consult an estate attorney if you own significant assets.",
     },
     {
-      id: 13,
+      id: 12,
       label: "Join neighborhood or HOA group (optional)",
       explanation:
         "Benefits include staying informed, meeting neighbors, understanding HOA rules.",

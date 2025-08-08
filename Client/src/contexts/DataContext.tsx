@@ -50,9 +50,6 @@ interface BillingInfo {
     };
   } | null;
   usage: {
-    reports_available: number;
-    reports_used: number;
-    reports_limit: number;
     reports_generated: number;
   };
   has_active_subscription: boolean;
@@ -63,7 +60,6 @@ export interface UserProfile {
   email: string;
   name: string;
   phone?: string;
-  reports_available: number;
   created_at: string | null;
   is_active: boolean;
   has_subscription: boolean;
