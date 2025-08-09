@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import KeyLogo from "../../components/KeyLogo";
+import MiniLogo from "../../components/MiniLogo";
 import FavoriteHomesDropdown from "../../components/FavoriteHomesDropdown";
 import {
   FileText,
@@ -717,7 +717,7 @@ const OfferDraftPage: React.FC = () => {
         <div className="mx-auto px-12 py-10">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
-              <KeyLogo size="sm" />
+            <MiniLogo size="lg" />
               <div>
                 <h1 className="text-2xl font-bold text-navy">
                   Draft Your Purchase Offer
@@ -779,7 +779,8 @@ const OfferDraftPage: React.FC = () => {
               Signed Purchase Offer
             </div>
             <div className={infoBox}>
-              Legal contract requiring attorney review. Must be signed by all buyers.
+              Legal contract requiring attorney review. Must be signed by all
+              buyers.
             </div>
             <label className={label}>Offer Price ($)</label>
             <input
@@ -877,11 +878,6 @@ const OfferDraftPage: React.FC = () => {
                   ? "Generating..."
                   : "Generate Agreement"}
               </button>
-              {!sectionValidation.purchaseAgreement && (
-                <div className="text-sm text-red-600 mt-2">
-                  ⚠️ Please fill out all required fields to enable generation
-                </div>
-              )}
             </div>
           </div>
 
@@ -981,12 +977,6 @@ const OfferDraftPage: React.FC = () => {
                   ? "Generating..."
                   : "Generate Pre-Approval"}
               </button>
-              {!sectionValidation.preApproval && (
-                <div className="text-sm text-red-600 mt-2">
-                  ⚠️ Please upload either a pre-approval letter or proof of
-                  funds
-                </div>
-              )}
             </div>
           </div>
 
@@ -1098,12 +1088,6 @@ const OfferDraftPage: React.FC = () => {
                   ? "Generating..."
                   : "Generate Instructions"}
               </button>
-              {!sectionValidation.earnestMoney && (
-                <div className="text-sm text-red-600 mt-2">
-                  ⚠️ Please fill out earnest money amount, escrow holder, and
-                  timeline
-                </div>
-              )}
             </div>
           </div>
 
@@ -1184,11 +1168,6 @@ const OfferDraftPage: React.FC = () => {
                   ? "Generating..."
                   : "Generate Cover Letter"}
               </button>
-              {!sectionValidation.coverLetter && (
-                <div className="text-sm text-red-600 mt-2">
-                  ⚠️ Please write your cover letter content
-                </div>
-              )}
             </div>
           </div>
 
@@ -1219,12 +1198,6 @@ const OfferDraftPage: React.FC = () => {
                   ? "Generating All..."
                   : "Generate All Documents"}
               </button>
-              {!validateAllSections().isValid && (
-                <div className="text-sm text-red-600 mt-2 text-center">
-                  ⚠️ Please complete all required sections (Purchase Agreement,
-                  Pre-Approval, Earnest Money) before generating all documents
-                </div>
-              )}
               <button className={button} type="submit">
                 <Download className="h-5 w-5" />
                 Download All Documents

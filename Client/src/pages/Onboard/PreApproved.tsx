@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import KeyLogo from "../../components/KeyLogo";
+import MiniLogo from "../../components/MiniLogo";
 import { useData } from "../../contexts/DataContext";
 
 type FormData = {
@@ -121,7 +121,7 @@ const PreApproved: React.FC = () => {
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="bg-white border-b border-beige/40 rounded-t-2xl mx-auto my-6 max-w-4xl">
         <div className="flex items-center gap-4 p-6">
-          <KeyLogo size="sm" />
+          <MiniLogo size="lg" />
           <div>
             <h1 className="text-2xl font-bold text-navy">Pre-Approval</h1>
             <p className="text-navy/70">Start your mortgage pre-approval in minutes.</p>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { apiRequest } from "../../lib/api";
-import KeyLogo from "../../components/KeyLogo";
+import MiniLogo from "../../components/MiniLogo";
 import { CheckSquare } from "lucide-react";
 import ChecklistCheckbox from "../../components/ChecklistCheckbox";
 
@@ -216,8 +216,8 @@ export default function InspectionsChecklist() {
       <div className="bg-white border-b border-beige/40 rounded-t-2xl mx-2 mt-4">
         <div className="mx-auto px-12 py-10">
           <div className="flex items-center gap-4 mb-4">
-            <KeyLogo size="sm" />
-            <div>
+          <MiniLogo size="lg" />
+          <div>
               <h1 className="text-2xl font-bold text-navy">
                 Inspection & Due Diligence Checklist
               </h1>

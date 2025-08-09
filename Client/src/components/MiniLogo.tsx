@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface MiniLogoProps {
-  size?: 'xs' | 'sm' | 'md' | 'lg';
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'header';
   className?: string;
   logoClassName?: string;
 }
@@ -23,6 +23,9 @@ const MiniLogo: React.FC<MiniLogoProps> = ({
     },
     lg: {
       logo: 'h-10 w-auto'
+    },
+    header: {
+      logo: 'h-13 w-auto'
     }
   };
 

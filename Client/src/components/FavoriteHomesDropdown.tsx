@@ -1,10 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { apiRequest } from "../lib/api";
 import { formatFilenameToAddress } from "../lib/addressFormat";
-import {
-  ChevronDown,
-  Home,
-} from "lucide-react";
+import { ChevronDown, Home } from "lucide-react";
 
 interface FavoriteHome {
   home_id: string;
@@ -39,7 +36,7 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
       try {
         setLoadingHomes(true);
         const res = await apiRequest("/api/v1/user/favorite-homes");
-        
+
         if (res.success && res.favoriteHomes) {
           setFavoriteHomes(res.favoriteHomes);
         } else if (res.success && res.data?.favoriteHomes) {
@@ -74,14 +71,17 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
   // Handle click outside dropdown
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsDropdownOpen(false);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
@@ -99,17 +99,14 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
           ) : selectedHome ? (
             <div>
               <div className="text-sm font-medium text-navy">
-                {formatFilenameToAddress(selectedHome.home_id) || selectedHome.home_id}
+                {formatFilenameToAddress(selectedHome.home_id) ||
+                  selectedHome.home_id}
               </div>
-              <div className="text-xs text-gray-500">
-                Selected Property
-              </div>
+              <div className="text-xs text-gray-500">Selected Property</div>
             </div>
           ) : (
             <div>
-              <div className="text-sm text-gray-500">
-                {placeholder}
-              </div>
+              <div className="text-sm text-gray-500">{placeholder}</div>
               <div className="text-xs text-gray-400">
                 Choose from your saved properties
               </div>
@@ -131,14 +128,19 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
             </div>
           ) : (
             favoriteHomes.map((home, index) => {
-              const formattedAddress = formatFilenameToAddress(home.home_id) || home.home_id;
+              const formattedAddress =
+                formatFilenameToAddress(home.home_id) || home.home_id;
               return (
                 <button
                   key={home.home_id}
                   onClick={() => handleHomeSelection(home)}
                   className={`w-full px-4 py-3 text-left text-sm transition-colors duration-150 ${
                     index === 0 ? "first:rounded-t-lg" : ""
-                  } ${index === favoriteHomes.length - 1 ? "last:rounded-b-lg" : ""} ${
+                  } ${
+                    index === favoriteHomes.length - 1
+                      ? "last:rounded-b-lg"
+                      : ""
+                  } ${
                     selectedHome?.home_id === home.home_id
                       ? "bg-brown/10 text-brown font-medium"
                       : "text-black hover:bg-brown/5"

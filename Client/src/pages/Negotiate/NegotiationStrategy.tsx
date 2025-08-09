@@ -1,5 +1,5 @@
 import { useState } from "react";
-import KeyLogo from "../../components/KeyLogo";
+import MiniLogo from "../../components/MiniLogo";
 import FavoriteHomesDropdown from "../../components/FavoriteHomesDropdown";
 import {
   Home,
@@ -55,7 +55,7 @@ export default function NegotiationStrategy() {
       <div className="bg-white border-b border-beige/40 rounded-t-2xl mx-2 mt-4">
         <div className="mx-auto px-12 py-10">
           <div className="flex items-center gap-4 mb-4">
-            <KeyLogo size="sm" />
+            <MiniLogo size="lg" />
             <div>
               <h1 className="text-2xl font-bold text-navy">
                 Generate Negotiation Strategy
@@ -76,10 +76,8 @@ export default function NegotiationStrategy() {
             <Home className="h-5 w-5 text-brown" />
             Select a Home
           </div>
-          <label className={label}>
-            Choose from Your Favorite Homes
-          </label>
-          
+          <label className={label}>Choose from Your Favorite Homes</label>
+
           <div className="mb-6">
             <FavoriteHomesDropdown
               selectedHome={selectedHome}

@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { apiRequest } from "../lib/api";
-import HomeCard, { HomeDescription } from "../components/HomeCard";
 import DocumentCard, { DocumentData } from "../components/DocumentCard";
 import PriceDropCard from "../components/PriceDropCard";
 import NewMatchCard from "../components/NewMatchCard";
-import TimelineProgress from "../components/TimelineProgress";
 import MiniLogo from "../components/MiniLogo";
 import Carousel from "../components/Carousel";
+import TimelineChecklist from "../components/TimelineChecklist";
+import HomeCard, { HomeDescription } from "../components/HomeCard";
+
 
 // Dummy data for recent price drops (will be fetched from backend later)
 const priceDrops = [
@@ -14,19 +15,19 @@ const priceDrops = [
     address: "123 Maple St, Springfield, IL",
     oldPrice: 350000,
     newPrice: 330000,
-    imageUrl: "https://placehold.co/600x400",
+    imageUrl: "/defaut-home.jpg",
   },
   {
     address: "456 Oak Ave, Denver, CO",
     oldPrice: 525000,
     newPrice: 500000,
-    imageUrl: "https://placehold.co/600x400",
+    imageUrl: "/defaut-home.jpg",
   },
   {
     address: "789 Pine Rd, Austin, TX",
     oldPrice: 610000,
     newPrice: 585000,
-    imageUrl: "https://placehold.co/600x400",
+    imageUrl: "/defaut-home.jpg",
   },
 ];
 
@@ -37,6 +38,7 @@ const newMatches = [
     dateListed: "2025-08-05",
     matchScore: 94,
     reason: "Within your budget and close to preferred hiking spots.",
+    imageUrl: "/defaut-home.jpg",
   },
   {
     address: "220 Sunrise Ln, Raleigh, NC",
@@ -44,12 +46,14 @@ const newMatches = [
     matchScore: 89,
     reason:
       "Meets your 3-bed/2-bath requirement and has a large backyard for pets.",
+    imageUrl: "/defaut-home.jpg",
   },
   {
     address: "88 Seaside Blvd, Santa Cruz, CA",
     dateListed: "2025-08-07",
     matchScore: 91,
     reason: "Short commute to work and excellent walkability score.",
+    imageUrl: "/defaut-home.jpg",
   },
 ];
 
@@ -123,9 +127,9 @@ export default function UserDashboard() {
 
       {/* Timeline Progress */}
       <div className="mb-8">
-        <TimelineProgress
+        <TimelineChecklist
+          variant="horizontal"
           completedStepKey="search"
-          currentStepKey="negotiate"
         />{" "}
         {/* TODO: dynamic */}
       </div>

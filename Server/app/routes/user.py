@@ -343,37 +343,3 @@ def favorite_homes():
     except Exception as e:
         current_app.logger.error(f"Failed to update favorite_home_ids: {e}")
         return jsonify({'success': False, 'error': 'Server error'}), 500
-
-
-@user_bp.route('/documents', methods=['GET', 'POST'])
-def documents():
-    """Retrieve or replace the user's list of favorite home IDs.
-
-    GET  – Returns a list of favorite home IDs (strings).
-    POST – Expects a JSON array of strings and overwrites the user's list.
-    """
-    current_app.logger.info("🔔 /documents endpoint invoked", extra={"method": request.method})
-
-    user = _get_user()
-    if not user:
-        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
-
-    if request.method == 'GET':
-        favorites = _parse_checklist(user.documents)
-        current_app.logger.debug("Returning documents", extra={"count": len(favorites)})
-        return _build_response(favorites)
-
-    # POST – update list
-    try:
-        data = request.get_json(force=True)
-        if not isinstance(data, list):
-            return jsonify({'success': False, 'error': 'Expected JSON array'}), 400
-        current_app.logger.debug("Updating documents", extra={"new_ids": data})
-        user.documents = json.dumps(data)
-        from app import db
-        db.session.commit()
-        current_app.logger.info("Documents updated", extra={"count": len(data)})
-        return _build_response(data)
-    except Exception as e:
-        current_app.logger.error(f"Failed to update documents: {e}")
-        return jsonify({'success': False, 'error': 'Server error'}), 500

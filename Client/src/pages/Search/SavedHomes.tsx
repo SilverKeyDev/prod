@@ -4,7 +4,7 @@ import HomeCard, { HomeDescription } from "../../components/HomeCard";
 
 import ErrorToast from "../../components/ErrorToast";
 import { Search, RefreshCw, LayoutGrid, List } from "lucide-react";
-import KeyLogo from "../../components/KeyLogo";
+import MiniLogo from "../../components/MiniLogo";
 
 export default function SavedHomes() {
   const [homes, setHomes] = useState<HomeDescription[]>([]);
@@ -58,8 +58,8 @@ export default function SavedHomes() {
   return (
     <div className="max-w-6xl mx-auto py-8">
       <div className="flex items-center gap-4 mb-6 bg-white p-4 rounded-lg shadow-sm">
-        <KeyLogo size="sm" />
-        <div>
+        <MiniLogo size="lg" />
+      <div>
           <h1 className="text-2xl font-bold text-navy">Saved Homes</h1>
           <p className="text-navy/70">Your favorites all in one place</p>
         </div>
