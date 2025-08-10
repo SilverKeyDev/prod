@@ -779,8 +779,43 @@ const OfferDraftPage: React.FC = () => {
               Signed Purchase Offer
             </div>
             <div className={infoBox}>
-              Legal contract requiring attorney review. Must be signed by all
-              buyers.
+              This is the formal, legally binding contract that outlines the exact terms of your offer to buy the property — 
+              including price, contingencies, closing date, earnest money, and included/excluded items.  
+              <br />
+              <span className="italic">
+                Must be signed by all buyers and reviewed by your agent or a real estate attorney before delivery to the seller.
+              </span>
+            </div>
+            <div className={warningBox}>
+              <div className="flex items-start gap-2">
+                <X className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
+                <div>
+                  <strong>You Don’t Send a Signed Purchase Offer</strong>
+                  <div className="mt-2">
+                    <div className="flex items-center gap-2 mb-1">
+                      <CheckCircle className="h-4 w-4 text-olive" />
+                      <span className="font-medium">Only if:</span>
+                    </div>
+                    <ul className="list-disc pl-6 mb-2 space-y-1">
+                      <li>
+                        You’re still negotiating basic terms verbally or through email/text before formalizing in writing
+                      </li>
+                      <li>
+                        You’re making a non-binding letter of intent first to gauge seller interest
+                      </li>
+                      <li>
+                        Your agent or attorney advises waiting until certain disclosures or inspections are provided
+                      </li>
+                    </ul>
+                    <div className="flex items-start gap-2">
+                      <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                      <span>
+                        In most cases, sending a signed purchase offer promptly gives your offer legal weight and shows serious intent.
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
             <label className={label}>Offer Price ($)</label>
             <input

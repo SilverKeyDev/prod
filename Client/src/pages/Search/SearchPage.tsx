@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Search, Filter, Heart, Bookmark, MapPin, Shield, GraduationCap, CheckCircle, AlertTriangle } from "lucide-react";
+import { Search, Filter, Bookmark, MapPin, Shield, GraduationCap, CheckCircle, AlertTriangle } from "lucide-react";
 import mapStyles from "../../hooks/mapStyling";
+import { favoriteHomesApi } from "../../lib/api";
+import HeartSave from "../../components/HeartSave";
 
 
 interface SearchResult {
@@ -129,6 +131,7 @@ export default function SearchPage() {
       lng: -122.4394,
     },
   ]);
+  const [favoriteAddresses, setFavoriteAddresses] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState<SearchResult | null>(
@@ -431,6 +434,35 @@ export default function SearchPage() {
       updateMapMarkers(currentData);
     }
   }, [activeTab, searchResults, savedHomes]);
+
+  // Load existing favorites from backend on component mount
+  useEffect(() => {
+    const loadFavorites = async () => {
+      try {
+        const response = await favoriteHomesApi.getFavorites();
+        if (response.success && response.data?.favorites) {
+          setFavoriteAddresses(response.data.favorites);
+          console.log('✅ Loaded favorites from backend:', response.data.favorites);
+          
+          // Update savedHomes with any properties that match favorite addresses
+          const matchingSavedHomes = searchResults.filter(property => 
+            response.data?.favorites?.includes(property.address)
+          );
+          if (matchingSavedHomes.length > 0) {
+            setSavedHomes(prev => {
+              const existingIds = prev.map(home => home.id);
+              const newHomes = matchingSavedHomes.filter(home => !existingIds.includes(home.id));
+              return [...prev, ...newHomes];
+            });
+          }
+        }
+      } catch (error) {
+        console.error('❌ Error loading favorites:', error);
+      }
+    };
+
+    loadFavorites();
+  }, []); // Run once on mount
 
   // Mock search function - replace with actual API call
   const handleSearch = async () => {
@@ -753,18 +785,59 @@ export default function SearchPage() {
     );
   };
 
-  const saveHome = (property: SearchResult) => {
-    if (!savedHomes.find((home) => home.id === property.id)) {
-      setSavedHomes((prev) => [...prev, property]);
+  const saveHome = async (property: SearchResult) => {
+    try {
+      // Call backend API to add favorite
+      const response = await favoriteHomesApi.addFavorite(property.address);
+      
+      if (response.success) {
+        // Update local state
+        if (!savedHomes.find((home) => home.id === property.id)) {
+          setSavedHomes((prev) => [...prev, property]);
+        }
+        // Update favorite addresses from backend response
+        if (response.data?.favorites) {
+          setFavoriteAddresses(response.data.favorites);
+        }
+        console.log('✅ Home added to favorites:', property.address);
+      } else {
+        console.error('❌ Failed to add favorite:', response.error);
+      }
+    } catch (error) {
+      console.error('❌ Error adding favorite:', error);
     }
   };
 
-  const removeSavedHome = (propertyId: string) => {
-    setSavedHomes((prev) => prev.filter((home) => home.id !== propertyId));
+  const removeSavedHome = async (propertyId: string) => {
+    try {
+      // Find the property to get its address
+      const property = savedHomes.find((home) => home.id === propertyId);
+      if (!property) return;
+
+      // Call backend API to remove favorite
+      const response = await favoriteHomesApi.removeFavorite(property.address);
+      
+      if (response.success) {
+        // Update local state
+        setSavedHomes((prev) => prev.filter((home) => home.id !== propertyId));
+        // Update favorite addresses from backend response
+        if (response.data?.favorites) {
+          setFavoriteAddresses(response.data.favorites);
+        }
+        console.log('✅ Home removed from favorites:', property.address);
+      } else {
+        console.error('❌ Failed to remove favorite:', response.error);
+      }
+    } catch (error) {
+      console.error('❌ Error removing favorite:', error);
+    }
   };
 
-  const isHomeSaved = (propertyId: string) => {
-    return savedHomes.some((home) => home.id === propertyId);
+  const isHomeSaved = (propertyId: string): boolean => {
+    // Check both local savedHomes and favoriteAddresses from backend
+    const property = searchResults.find(p => p.id === propertyId) || savedHomes.find(p => p.id === propertyId);
+    return savedHomes.some((home) => home.id === propertyId) || 
+           (property ? favoriteAddresses.includes(property.address) : false);
   };
 
   // Zoom functions
@@ -864,27 +937,13 @@ export default function SearchPage() {
                                 <div>{property.sqft.toLocaleString()} sqft</div>
                               </div>
                             </div>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (isHomeSaved(property.id)) {
-                                  removeSavedHome(property.id);
-                                } else {
-                                  saveHome(property);
-                                }
-                              }}
-                              className={`p-1 rounded-full transition-colors ${
-                                isHomeSaved(property.id)
-                                  ? "text-red-500 hover:text-red-600"
-                                  : "text-gray-400 hover:text-red-500"
-                              }`}
-                            >
-                              <Heart
-                                className={`w-4 h-4 ${
-                                  isHomeSaved(property.id) ? "fill-current" : ""
-                                }`}
-                              />
-                            </button>
+                            <HeartSave
+                              property={property}
+                              isSaved={isHomeSaved(property.id)}
+                              onSave={saveHome}
+                              onRemove={removeSavedHome}
+                              size="sm"
+                            />
                           </div>
                         </div>
                       ))}
@@ -929,15 +988,13 @@ export default function SearchPage() {
                                 <div>{property.sqft.toLocaleString()} sqft</div>
                               </div>
                             </div>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                removeSavedHome(property.id);
-                              }}
-                              className="p-1 rounded-full text-red-500 hover:text-red-600 transition-colors"
-                            >
-                              <Heart className="w-4 h-4 fill-current" />
-                            </button>
+                            <HeartSave
+                              property={property}
+                              isSaved={true}
+                              onSave={saveHome}
+                              onRemove={removeSavedHome}
+                              size="sm"
+                            />
                           </div>
                         </div>
                       ))}
@@ -1130,28 +1187,14 @@ export default function SearchPage() {
                     Schedule
                   </button>
                   
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (isHomeSaved(selectedProperty.id)) {
-                        removeSavedHome(selectedProperty.id);
-                      } else {
-                        saveHome(selectedProperty);
-                      }
-                    }}
-                    className={`p-2 rounded-full transition-colors ${
-                      isHomeSaved(selectedProperty.id)
-                        ? "text-red-500 hover:text-red-600"
-                        : "text-gray-400 hover:text-red-500"
-                    }`}
-                    aria-label={isHomeSaved(selectedProperty.id) ? "Remove from saved" : "Save property"}
-                  >
-                    <Heart
-                      className={`w-6 h-6 ${
-                        isHomeSaved(selectedProperty.id) ? "fill-current" : ""
-                      }`}
-                    />
-                  </button>
+                  <HeartSave
+                    property={selectedProperty}
+                    isSaved={isHomeSaved(selectedProperty.id)}
+                    onSave={saveHome}
+                    onRemove={removeSavedHome}
+                    size="lg"
+                    ariaLabel={isHomeSaved(selectedProperty.id) ? "Remove from saved" : "Save property"}
+                  />
                   
                   <button
                     onClick={() => setSelectedProperty(null)}

@@ -142,6 +142,29 @@ export const authApi = {
     }),
 };
 
+// Favorite Homes API
+export const favoriteHomesApi = {
+  addFavorite(address: string): Promise<ApiResponse<{ favorites: string[] }>> {
+    return apiRequest('/api/v1/user/favorite-homes/add', {
+      method: 'POST',
+      body: JSON.stringify({ address }),
+    });
+  },
+
+  removeFavorite(address: string): Promise<ApiResponse<{ favorites: string[] }>> {
+    return apiRequest('/api/v1/user/favorite-homes/remove', {
+      method: 'POST',
+      body: JSON.stringify({ address }),
+    });
+  },
+
+  getFavorites(): Promise<ApiResponse<{ favorites: string[] }>> {
+    return apiRequest('/api/v1/user/favorite-homes', {
+      method: 'GET',
+    });
+  },
+};
+
 // Report API
 export const reportApi = {
   generateReport: async (

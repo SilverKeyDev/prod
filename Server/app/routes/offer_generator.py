@@ -9,8 +9,17 @@ from app import db
 import time
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.services.report_generator import generate_report
-from app.services.offer.generate import generate_report as generate_offer_section
+# from app.services.offer.generate import generate_report as generate_offer_section
+# TODO: Fix this import once the offer generation service is properly implemented
 
+# Temporary placeholder function to prevent server startup errors
+def generate_offer_section(*args, **kwargs):
+    """Temporary placeholder for offer generation functionality"""
+    return {
+        'success': False,
+        'error': 'Offer generation service not yet implemented',
+        'message': 'This feature is under development'
+    }
 from app.services.s3_service import s3_service
 from flask import current_app
 from app import db
@@ -589,6 +598,164 @@ def list_offer_documents():
     except Exception as e:
         error_msg = f"Failed to list offer documents: {str(e)}"
         logger.error(f"❌ [OFFER_DOCUMENTS] {error_msg}")
+        logger.error(traceback.format_exc())
+        return jsonify({
+            'success': False,
+            'error': error_msg,
+            'traceback': traceback.format_exc()
+        }), 500
+
+
+@offer_bp.route('/generate-strategy', methods=['POST', 'GET'])
+@cross_origin(**cors_config)
+def generate_negotiation_strategy():
+    """
+    Generate a negotiation strategy for a specific property.
+    
+    Follows the same pattern as the report generation endpoint with proper
+    authentication, user/agent logic, and service layer integration.
+    
+    Expected payload:
+    {
+        "user_id": "user-uuid",  # Optional - for agent client selection
+        "address": "123 Main St, City, State 12345"
+    }
+    """
+    try:
+        if request.method == 'GET':
+            logger.warning("GET request received for strategy generation endpoint")
+            return jsonify({'error': 'POST method required for strategy generation'}), 405
+        
+        # Get current user
+        user = get_current_user()
+        if not user:
+            logger.error("User not found - authentication failed")
+            return jsonify({'error': 'User not found', 'success': False}), 404
+        
+        logger.info(f"🔐 Authenticated user: {user.id} (is_agent: {user.is_agent})")
+        
+        data = request.get_json()
+        if not data:
+            logger.error("No JSON data provided in request")
+            return jsonify({'error': 'No data provided', 'success': False}), 400
+        
+        address = data.get('address')
+        target_user_id = data.get('user_id', None)  # For agent client selection
+        
+        logger.info(f"📥 Request parameters: address='{address}', target_user_id='{target_user_id}'")
+        
+        if not address:
+            logger.error("No address provided in request data")
+            return jsonify({'error': 'Address is required', 'success': False}), 400
+        
+        # Determine which user's preferences to use for strategy generation
+        preferences_user_id = user.id  # Default to authenticated user
+        logger.info(f"🎯 Initial preferences_user_id set to authenticated user: {preferences_user_id}")
+        
+        if target_user_id:
+            # Agent is generating strategy for a client
+            logger.info(f"🔄 Agent {user.id} requesting to generate strategy for client {target_user_id}")
+            
+            # Verify the agent has access to this client
+            if not user.is_agent:
+                logger.warning(f"Non-agent user {user.id} attempted to generate strategy for another user {target_user_id}")
+                return jsonify({'error': 'Only agents can generate strategies for other users', 'success': False}), 403
+            
+            # Parse agent's client_ids to verify access
+            try:
+                import json
+                if user.client_ids:
+                    client_ids = json.loads(user.client_ids) if isinstance(user.client_ids, str) else user.client_ids
+                else:
+                    client_ids = []
+                
+                if target_user_id not in client_ids:
+                    logger.warning(f"Agent {user.id} attempted to access client {target_user_id} who is not in their client list")
+                    return jsonify({'error': 'Access denied: User is not your client', 'success': False}), 403
+                
+                # Ensure preferences_user_id is the same type as user.id (string)
+                preferences_user_id = str(target_user_id) if target_user_id else user.id
+                logger.info(f"✅ Agent {user.id} authorized to generate strategy using preferences from client {target_user_id}")
+                
+            except Exception as e:
+                logger.error(f"Error parsing agent client_ids: {str(e)}")
+                return jsonify({'error': 'Error validating client access', 'success': False}), 500
+        
+        # Import the strategy generation service
+        try:
+            from app.services.standardgen.generate import generate_report
+            logger.info("📦 Successfully imported strategy generation service")
+        except ImportError as e:
+            logger.error(f"Failed to import strategy generation service: {str(e)}")
+            return jsonify({'error': 'Strategy generation service unavailable', 'success': False}), 500
+        
+        # Generate unique filename for the strategy
+        strategy_id = str(uuid.uuid4())
+        filename = f"negotiation_strategy_{strategy_id}.json"
+        
+        logger.info(f"🎯 [NEGOTIATION_STRATEGY] Generating strategy for address: {address}")
+        logger.info(f"📄 Strategy filename: {filename}")
+        
+        # Fetch user preferences for personalized strategy generation
+        user_preferences = None
+        try:
+            from app.models.user_preferences import UserPreferences
+            user_prefs_obj = UserPreferences.query.filter_by(user_id=preferences_user_id).first()
+            if user_prefs_obj:
+                user_preferences = user_prefs_obj.to_dict()
+                logger.info(f"📋 [NEGOTIATION_STRATEGY] Loaded user preferences for personalization")
+            else:
+                logger.warning(f"⚠️ [NEGOTIATION_STRATEGY] No user preferences found for user {preferences_user_id}")
+        except Exception as e:
+            logger.error(f"❌ [NEGOTIATION_STRATEGY] Failed to load user preferences: {str(e)}")
+            # Continue without preferences - service will use defaults
+        
+        # Call the strategy generation service
+        try:
+            # Use the standardgen service to generate negotiation strategy
+            # This follows the same pattern as report generation with user preferences
+            strategy_data = generate_report(
+                section_type="negotiation_strategy",
+                address=address,
+                filename=filename,
+                user_id=preferences_user_id,
+                params={
+                    'strategy_type': 'comprehensive',
+                    'include_market_analysis': True,
+                    'include_tactics': True,
+                    'temperature': 0.2,
+                    'max_tokens': 3000
+                },
+                user_preferences=user_preferences
+            )
+            
+            logger.info(f"✅ [NEGOTIATION_STRATEGY] Successfully generated strategy for {address}")
+            
+            # Return the generated strategy data
+            return jsonify({
+                'success': True,
+                'strategy': strategy_data,
+                'property_address': address,
+                'strategy_id': strategy_id,
+                'filename': filename,
+                'generated_at': datetime.utcnow().isoformat(),
+                'generated_for_user': preferences_user_id
+            }), 200
+            
+        except Exception as e:
+            error_msg = f"Strategy generation failed: {str(e)}"
+            logger.error(f"❌ [NEGOTIATION_STRATEGY] {error_msg}")
+            logger.error(traceback.format_exc())
+            
+            return jsonify({
+                'success': False,
+                'error': error_msg,
+                'traceback': traceback.format_exc()
+            }), 500
+        
+    except Exception as e:
+        error_msg = f"Failed to generate negotiation strategy: {str(e)}"
+        logger.error(f"❌ [NEGOTIATION_STRATEGY] {error_msg}")
         logger.error(traceback.format_exc())
         return jsonify({
             'success': False,

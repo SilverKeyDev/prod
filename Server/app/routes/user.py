@@ -1,8 +1,9 @@
-from flask import Blueprint, jsonify, request, current_app
-from datetime import datetime
-import jwt
-import requests
+from flask import Blueprint, request, jsonify, current_app
+from flask_jwt_extended import jwt_required, get_jwt_identity
 import json
+import requests
+from app.models.user import User
+from app.utils.address_format import normalize_address, denormalize_address
 import os
 from jose import jwk, jwt as jose_jwt
 from jose.utils import base64url_decode
@@ -325,7 +326,9 @@ def favorite_homes():
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
 
     if request.method == 'GET':
-        favorites = _parse_checklist(user.favorite_home_ids)
+        normalized_favorites = _parse_checklist(user.favorite_home_ids)
+        # Denormalize addresses for frontend display
+        favorites = [denormalize_address(addr) for addr in normalized_favorites]
         current_app.logger.debug("Returning favorite_home_ids", extra={"count": len(favorites)})
         return _build_response(favorites)
 
@@ -342,4 +345,92 @@ def favorite_homes():
         return _build_response(data)
     except Exception as e:
         current_app.logger.error(f"Failed to update favorite_home_ids: {e}")
+        return jsonify({'success': False, 'error': 'Server error'}), 500
+
+
+
+
+@user_bp.route('/favorite-homes/add', methods=['POST'])
+def add_favorite_home():
+    """Add a single home address to the user's favorites list."""
+    current_app.logger.info("🏠 /favorite-homes/add endpoint invoked")
+    
+    user = _get_user()
+    if not user:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    try:
+        data = request.get_json(force=True)
+        address = data.get('address')
+        
+        if not address or not isinstance(address, str):
+            return jsonify({'success': False, 'error': 'Address is required and must be a string'}), 400
+        
+        # Normalize the address for storage
+        normalized_address = normalize_address(address)
+        
+        # Get current favorites
+        current_favorites = _parse_checklist(user.favorite_home_ids)
+        
+        # Add normalized address if not already in favorites
+        if normalized_address not in current_favorites:
+            current_favorites.append(normalized_address)
+            user.favorite_home_ids = json.dumps(current_favorites)
+            db.session.commit()
+            current_app.logger.info(f"Added favorite home: {address} (stored as: {normalized_address})")
+            
+        # Return denormalized addresses for frontend display
+        denormalized_favorites = [denormalize_address(addr) for addr in current_favorites]
+        
+        return jsonify({
+            'success': True,
+            'message': 'Home added to favorites',
+            'favorites': denormalized_favorites
+        })
+        
+    except Exception as e:
+        current_app.logger.error(f"Failed to add favorite home: {e}")
+        return jsonify({'success': False, 'error': 'Server error'}), 500
+
+
+@user_bp.route('/favorite-homes/remove', methods=['POST'])
+def remove_favorite_home():
+    """Remove a single home address from the user's favorites list."""
+    current_app.logger.info("🗑️ /favorite-homes/remove endpoint invoked")
+    
+    user = _get_user()
+    if not user:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    try:
+        data = request.get_json(force=True)
+        address = data.get('address')
+        
+        if not address or not isinstance(address, str):
+            return jsonify({'success': False, 'error': 'Address is required and must be a string'}), 400
+        
+        # Normalize the address for lookup
+        normalized_address = normalize_address(address)
+        
+        # Get current favorites
+        current_favorites = _parse_checklist(user.favorite_home_ids)
+        
+        # Remove normalized address if it exists in favorites
+        if normalized_address in current_favorites:
+            current_favorites.remove(normalized_address)
+            user.favorite_home_ids = json.dumps(current_favorites)
+            db.session.commit()
+            current_app.logger.info(f"Removed favorite home: {address} (stored as: {normalized_address})")
+            
+        # Return denormalized addresses for frontend display
+        denormalized_favorites = [denormalize_address(addr) for addr in current_favorites]
+        
+        return jsonify({
+            'success': True,
+            'message': 'Home removed from favorites',
+            'favorites': denormalized_favorites
+        })
+        
+    except Exception as e:
+        current_app.logger.error(f"Failed to remove favorite home: {e}")
         return jsonify({'success': False, 'error': 'Server error'}), 500

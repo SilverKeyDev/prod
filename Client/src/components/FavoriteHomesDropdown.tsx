@@ -4,7 +4,7 @@ import { formatFilenameToAddress } from "../lib/addressFormat";
 import { ChevronDown, Home } from "lucide-react";
 
 interface FavoriteHome {
-  home_id: string;
+  address: string;
   description?: string;
   [key: string]: any;
 }
@@ -37,10 +37,13 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
         setLoadingHomes(true);
         const res = await apiRequest("/api/v1/user/favorite-homes");
 
-        if (res.success && res.favoriteHomes) {
-          setFavoriteHomes(res.favoriteHomes);
-        } else if (res.success && res.data?.favoriteHomes) {
-          setFavoriteHomes(res.data.favoriteHomes);
+        if (res.success && Array.isArray(res.data)) {
+          // Backend returns array of address strings, convert to FavoriteHome objects
+          const homes = res.data.map((address: string) => ({
+            address: address,
+            description: undefined
+          }));
+          setFavoriteHomes(homes);
         } else {
           setFavoriteHomes([]);
         }
@@ -99,8 +102,8 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
           ) : selectedHome ? (
             <div>
               <div className="text-sm font-medium text-navy">
-                {formatFilenameToAddress(selectedHome.home_id) ||
-                  selectedHome.home_id}
+                {formatFilenameToAddress(selectedHome.address) ||
+                  selectedHome.address}
               </div>
               <div className="text-xs text-gray-500">Selected Property</div>
             </div>
@@ -129,10 +132,10 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
           ) : (
             favoriteHomes.map((home, index) => {
               const formattedAddress =
-                formatFilenameToAddress(home.home_id) || home.home_id;
+                formatFilenameToAddress(home.address) || home.address;
               return (
                 <button
-                  key={home.home_id}
+                  key={home.address}
                   onClick={() => handleHomeSelection(home)}
                   className={`w-full px-4 py-3 text-left text-sm transition-colors duration-150 ${
                     index === 0 ? "first:rounded-t-lg" : ""
@@ -141,12 +144,12 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
                       ? "last:rounded-b-lg"
                       : ""
                   } ${
-                    selectedHome?.home_id === home.home_id
-                      ? "bg-brown/10 text-brown font-medium"
+                    selectedHome?.address === home.address
+                      ? "bg-brown/10 text-brown"
                       : "text-black hover:bg-brown/5"
                   }`}
                 >
-                  <div className="font-medium">{formattedAddress}</div>
+                  <div>{formattedAddress}</div>
                   {home.description && (
                     <div className="text-xs text-gray-500 mt-1 truncate">
                       {home.description}

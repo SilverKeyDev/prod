@@ -18,7 +18,17 @@ from app.models.offer_models import (
     PropertyAddress, PersonInfo, OfferDecisionAction, PreApprovalAction,
     EarnestMoneyAction, CoverLetterAction
 )
-from app.services.offer.generate import generate_report as generate_offer_section
+# from app.services.offer.generate import generate_report as generate_offer_section
+# TODO: Fix this import once the offer generation service is properly implemented
+
+# Temporary placeholder function to prevent server startup errors
+def generate_offer_section(*args, **kwargs):
+    """Temporary placeholder for offer generation functionality"""
+    return {
+        'success': False,
+        'error': 'Offer generation service not yet implemented',
+        'message': 'This feature is under development'
+    }
 from app.services.s3_service import s3_service
 
 logger = logging.getLogger(__name__)

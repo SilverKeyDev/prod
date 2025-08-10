@@ -48,7 +48,7 @@ HEADERS = {
 }
 
 PPLX_URL = "https://api.perplexity.ai/chat/completions"
-PPLX_MODEL = os.getenv("PERPLEXITY_MODEL", "sonar")
+PPLX_MODEL = os.getenv("PERPLEXITY_MODEL", "sonar-pro")
 
 # -------------------------------------------------
 # Utility: placeholder PDF
@@ -132,6 +132,36 @@ def _safe_parse_json(text: str, report_customization: Optional[dict] = None) -> 
         raise ValueError("Failed to parse structured JSON from model output") from e
 
 # -------------------------------------------------
+# Response format mapping for different section types
+# -------------------------------------------------
+def _response_format_for(section_type: str) -> dict:
+    """
+    Returns the appropriate response format schema for the given section_type.
+    For 'strategy' type, uses the NegotiationStrategy model from strategy_model.py.
+    """
+    if section_type == "strategy" or section_type == "negotiation_strategy":
+        try:
+            from .strategy_model import NegotiationStrategy
+            # Get the Pydantic model schema for structured response
+            schema = NegotiationStrategy.model_json_schema()
+            return {
+                "type": "json_schema",
+                "json_schema": {
+                    "name": "negotiation_strategy",
+                    "description": "A comprehensive negotiation strategy for real estate offers",
+                    "schema": schema,
+                    "strict": True
+                }
+            }
+        except ImportError as e:
+            logger.error(f"Failed to import strategy_model: {e}")
+            # Fallback to basic JSON format
+            return {"type": "json_object"}
+    
+    # Default fallback for other section types
+    return {"type": "json_object"}
+
+# -------------------------------------------------
 # Simple single-call runner
 # -------------------------------------------------
 def _requests_session() -> requests.Session:
@@ -145,193 +175,83 @@ def _requests_session() -> requests.Session:
     session.mount("https://", HTTPAdapter(max_retries=retries))
     return session
 
-# -------------------------------------------------
-# Response formats (one schema per call, selected by section_type)
-# Keep these minimal and aligned with your Pydantic models.
-# -------------------------------------------------
-def _response_format_for(section_type: str) -> dict:
-    """
-    Returns a JSON Schema for the requested section. Exactly ONE schema per call.
-    Valid section_type values:
-      - "purchase_agreement"
-      - "preapproval"
-      - "earnest_money"
-      - "buyer_letter"
-    """
-    if section_type == "purchase_agreement":
-        return {
-            "type": "object",
-            "additionalProperties": False,
-            "properties": {
-                "state_template_code": {"type": "string"},
-                "buyers": {
-                    "type": "array",
-                    "items": {"type": "object", "properties": {"name": {"type": "string"}, "email": {"type": "string"}}},
-                    "minItems": 1,
-                },
-                "sellers": {
-                    "type": "array",
-                    "items": {"type": "object", "properties": {"name": {"type": "string"}, "email": {"type": "string"}}},
-                },
-                "property_address": {
-                    "type": "object",
-                    "properties": {
-                        "line1": {"type": "string"},
-                        "line2": {"type": "string"},
-                        "city": {"type": "string"},
-                        "state": {"type": "string"},
-                        "postal_code": {"type": "string"},
-                    },
-                    "required": ["line1", "city", "state", "postal_code"],
-                    "additionalProperties": True,
-                },
-                "offer_price_usd": {"type": "integer", "minimum": 0},
-                "contingencies": {"type": "array", "items": {"type": "string"}},
-                "closing_date": {"type": "string"},
-                "earnest_money_usd": {"type": "integer", "minimum": 0},
-                "whats_included": {"type": "array", "items": {"type": "string"}},
-                "whats_excluded": {"type": "array", "items": {"type": "string"}},
-                "send_decision": {
-                    "type": "object",
-                    "properties": {
-                        "action": {"type": "string", "enum": ["SEND", "DONT_SEND"]},
-                        "reasons": {
-                            "type": "array",
-                            "items": {
-                                "type": "string",
-                                "enum": [
-                                    "NotReadyOfficialOffer",
-                                    "ClarifyingDisclosuresOrHOAOrTitle",
-                                    "RequestSellerPreferredContract",
-                                ],
-                            },
-                        },
-                        "message_to_seller": {"type": "string"},
-                    },
-                    "required": ["action"],
-                },
-                "generate_agreement": {"type": "boolean"},
-            },
-            "required": ["state_template_code", "buyers", "property_address", "offer_price_usd", "closing_date", "send_decision"],
-        }
 
-    if section_type == "preapproval":
-        return {
-            "type": "object",
-            "additionalProperties": False,
-            "properties": {
-                "decision": {
-                    "type": "object",
-                    "properties": {
-                        "action": {
-                            "type": "string",
-                            "enum": ["SEND_PREAPPROVAL", "SEND_PROOF_OF_FUNDS", "DONT_SEND"],
-                        },
-                        "reasons_if_dont_send": {
-                            "type": "array",
-                            "items": {
-                                "type": "string",
-                                "enum": [
-                                    "CashOfferWillSendPOF",
-                                    "WaitingOnPreApprovalButSignalingIntent",
-                                    "OffMarketKnownFinancing",
-                                ],
-                            },
-                        },
-                    },
-                    "required": ["action"],
-                },
-                "upload_preapproval_letter": {"type": "object"},
-                "upload_proof_of_funds": {"type": "object"},
-            },
-            "required": ["decision"],
-        }
-
-    if section_type == "earnest_money":
-        return {
-            "type": "object",
-            "additionalProperties": False,
-            "properties": {
-                "amount_text": {"type": "string"},
-                "amount_usd": {"type": "integer", "minimum": 0},
-                "escrow_holder_name": {"type": "string"},
-                "payment_timeline_text": {"type": "string"},
-                "additional_instructions": {"type": "string"},
-                "decision": {
-                    "type": "object",
-                    "properties": {
-                        "action": {"type": "string", "enum": ["INCLUDE_INSTRUCTIONS", "DONT_INCLUDE"]},
-                        "reasons_if_dont_include": {
-                            "type": "array",
-                            "items": {
-                                "type": "string",
-                                "enum": ["AgreeTermsFirst", "SpeedOfferThenProvideLater", "EscrowHolderUnspecified"],
-                            },
-                        },
-                    },
-                    "required": ["action"],
-                },
-            },
-            "required": ["decision"],
-        }
-
-    if section_type == "buyer_letter":
-        return {
-            "type": "object",
-            "additionalProperties": False,
-            "properties": {
-                "letter_text": {"type": "string"},
-                "decision": {
-                    "type": "object",
-                    "properties": {
-                        "action": {"type": "string", "enum": ["INCLUDE", "DONT_INCLUDE"]},
-                        "reasons_if_dont_include": {
-                            "type": "array",
-                            "items": {
-                                "type": "string",
-                                "enum": [
-                                    "ListingAgentForbidsLetters",
-                                    "HighlyCompetitiveMarketDiscouraged",
-                                    "PreferProfessionalOnly",
-                                ],
-                            },
-                        },
-                    },
-                    "required": ["action"],
-                },
-            },
-            "required": ["decision"],
-        }
-
-    raise ValueError(f"Unknown section_type '{section_type}'")
-
-# -------------------------------------------------
-# Build single payload per section_type
-# -------------------------------------------------
 def _build_payload(
     section_type: str,
     address: str,
     params: Optional[dict] = None,
     report_customization: Optional[dict] = None,
+    user_preferences: Optional[dict] = None,
 ) -> dict:
     """
     Creates exactly ONE payload for the specified section_type.
     No multithreading, no multi-schema fanout.
+    Enhanced for strategy generation with user preferences integration.
     """
     params = params or {}
     response_format = _response_format_for(section_type)
 
-    system_content = (
-        "You are a structured JSON generator for real-estate offer components. "
-        "Return ONLY valid JSON matching the provided response_format. "
-        "No markdown, no prose—JSON object only."
-    )
-
-    # Minimal, section-specific user instruction (you can expand if needed)
-    user_content = (
-        f"Generate the '{section_type}' object for the property at {address}. "
-        "Fill reasonable defaults if unspecified. Return valid JSON only."
-    )
+    # Enhanced system content for strategy generation
+    if section_type == "strategy" or section_type == "negotiation_strategy":
+        system_content = (
+            "You are an expert real estate negotiation strategist and advisor. "
+            "Generate a comprehensive, personalized negotiation strategy for real estate offers. "
+            "Use current market data, property information, and buyer preferences to create actionable advice. "
+            "Return ONLY valid JSON matching the provided response_format schema. "
+            "No markdown, no prose—structured JSON object only. "
+            "Include specific tactics, market analysis, pricing recommendations, and negotiation approaches."
+        )
+        
+        # Enhanced user content with preferences integration
+        user_preferences_text = ""
+        if user_preferences:
+            # Extract key preferences for strategy personalization
+            budget = user_preferences.get('home_budget', 'Not specified')
+            financing = user_preferences.get('financing_preference', 'conventional')
+            timeline = user_preferences.get('desired_closing_date', 'flexible')
+            priorities = user_preferences.get('preferred_home_features', [])
+            
+            user_preferences_text = f"""
+            
+Buyer Profile:
+- Budget: {budget}
+- Financing: {financing}
+- Timeline: {timeline}
+- Priorities: {', '.join(priorities) if priorities else 'Not specified'}
+"""
+        
+        user_content = (
+            f"Generate a comprehensive negotiation strategy for the property at {address}. "
+            f"Research current market conditions, comparable sales, and property details. "
+            f"Create a personalized strategy that includes: "
+            f"1. Market analysis and seller intelligence "
+            f"2. Pricing strategy with offer recommendations "
+            f"3. Negotiation tactics and communication approach "
+            f"4. Contingency planning and risk management "
+            f"5. Timeline and closing considerations{user_preferences_text}"
+            f"\n\nReturn comprehensive strategy as valid JSON only."
+        )
+        
+        # Increase token limit for comprehensive strategy
+        max_tokens = params.get("max_tokens", 3000)
+        temperature = params.get("temperature", 0.2)  # Slightly higher for creativity
+        
+    else:
+        # Default system content for other section types
+        system_content = (
+            "You are a structured JSON generator for real-estate offer components. "
+            "Return ONLY valid JSON matching the provided response_format. "
+            "No markdown, no prose—JSON object only."
+        )
+        
+        # Default user content
+        user_content = (
+            f"Generate the '{section_type}' object for the property at {address}. "
+            "Fill reasonable defaults if unspecified. Return valid JSON only."
+        )
+        
+        max_tokens = params.get("max_tokens", 1500)
+        temperature = params.get("temperature", 0.1)
 
     payload = {
         "model": PPLX_MODEL,
@@ -339,14 +259,14 @@ def _build_payload(
             {"role": "system", "content": system_content},
             {"role": "user", "content": user_content},
         ],
-        "search_mode": "web",  # adjust to "concise" if you want to skip web
+        "search_mode": "web",  # Use web search for market data
         "reasoning_effort": "medium",
-        "temperature": params.get("temperature", 0.1),
-        "max_tokens": params.get("max_tokens", 1500),
+        "temperature": temperature,
+        "max_tokens": max_tokens,
         "stream": False,
         "return_images": False,
         "return_citations": False,
-        "response_format": response_format,  # <- single schema per call
+        "response_format": response_format,
     }
 
     return payload
@@ -411,7 +331,13 @@ def generate_report(
     if not validate_address(address):
         raise ValueError("Invalid address")
 
-    payload = _build_payload(section_type, address, params=params, report_customization=report_customization)
+    payload = _build_payload(
+        section_type, 
+        address, 
+        params=params, 
+        report_customization=report_customization,
+        user_preferences=user_preferences
+    )
     session = _requests_session()
 
     last_error = None
@@ -483,7 +409,7 @@ def generate_report(
 
         # Render PDF (best-effort)
         try:
-            _render_pdf_or_placeholder(parsed, address, filename, comparison_address, user_preferences)
+            _render_pdf_or_placeholder(parsed, address, filename)
         except Exception as pdf_e:
             # Non-fatal for the JSON generation path
             logger.error(f"⚠️ PDF generation failed (non-fatal): {pdf_e}")
