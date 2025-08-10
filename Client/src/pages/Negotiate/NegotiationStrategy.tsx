@@ -4,10 +4,9 @@ import FavoriteHomesDropdown from "../../components/FavoriteHomesDropdown";
 import Loading from "../../components/Loading";
 import {
   Home,
+  Download,
+  Share2,
   Lightbulb,
-  DollarSign,
-  MessageCircle,
-  FileText,
 } from "lucide-react";
 
 const sectionBox =
@@ -61,9 +60,9 @@ export default function NegotiationStrategy() {
       if (!idToken) {
         throw new Error('Authentication required. Please log in.');
       }
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || "";
 
-      // Call the backend API
-      const response = await fetch('http://localhost:5000/api/v1/offer/generate-strategy', {
+      const res = await fetch(`${baseUrl}/api/v1/offer/generate-strategy`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -74,10 +73,10 @@ export default function NegotiationStrategy() {
         }),
       });
 
-      const data = await response.json();
+      const data = await res.json();
 
-      if (!response.ok) {
-        throw new Error(data.error || `HTTP error! status: ${response.status}`);
+      if (!res.ok) {
+        throw new Error(data.error || `HTTP error! status: ${res.status}`);
       }
 
       if (!data.success) {
@@ -118,6 +117,58 @@ export default function NegotiationStrategy() {
     
     // Clear saved strategy since we're selecting a different home
     localStorage.removeItem('negotiationStrategy');
+  };
+
+  // Handle JSON download
+  const handleDownloadJson = () => {
+    if (!strategyData) return;
+    
+    const dataStr = JSON.stringify(strategyData, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `negotiation-strategy-${selectedHome?.address?.replace(/[^a-zA-Z0-9]/g, '-') || 'strategy'}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  // Handle JSON sharing
+  const handleShareJson = async () => {
+    if (!strategyData) return;
+    
+    const dataStr = JSON.stringify(strategyData, null, 2);
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Negotiation Strategy',
+          text: `Negotiation strategy for ${selectedHome?.address || 'property'}`,
+          files: [new File([dataStr], 'negotiation-strategy.json', { type: 'application/json' })]
+        });
+      } catch (err) {
+        console.log('Share cancelled or failed:', err);
+        // Fallback to clipboard
+        handleCopyToClipboard(dataStr);
+      }
+    } else {
+      // Fallback for browsers without Web Share API
+      handleCopyToClipboard(dataStr);
+    }
+  };
+
+  // Fallback function to copy JSON to clipboard
+  const handleCopyToClipboard = async (dataStr: string) => {
+    try {
+      await navigator.clipboard.writeText(dataStr);
+      alert('Strategy JSON copied to clipboard!');
+    } catch (err) {
+      console.error('Failed to copy to clipboard:', err);
+      alert('Failed to share. Please try downloading instead.');
+    }
   };
 
   return (
@@ -207,6 +258,26 @@ export default function NegotiationStrategy() {
         {/* Strategy output - Dynamic display of all AI fields */}
         {strategyData && !isLoading && (
           <div className="space-y-6">
+            {/* Header with Download and Share buttons */}
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-semibold text-navy">Your Negotiation Strategy</h2>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => handleDownloadJson()}
+                  className="bg-brown text-white px-4 py-2 rounded-lg font-medium hover:bg-brown/90 transition-colors duration-200 flex items-center gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  Download JSON
+                </button>
+                <button
+                  onClick={() => handleShareJson()}
+                  className="bg-olive text-white px-4 py-2 rounded-lg font-medium hover:bg-olive-light transition-colors duration-200 flex items-center gap-2"
+                >
+                  <Share2 className="h-4 w-4" />
+                  Share
+                </button>
+              </div>
+            </div>
             {Object.entries(strategyData).map(([key, value]) => {
               // Skip empty or null values
               if (!value || (typeof value === 'string' && value.trim() === '')) {
@@ -218,27 +289,7 @@ export default function NegotiationStrategy() {
               if (metadataFields.includes(key.toLowerCase())) {
                 return null;
               }
-
-              // Format the field name for display
-              const displayName = key
-                .split('_')
-                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-                .join(' ');
-
-              // Choose appropriate icon based on field name
-              const getIcon = (fieldName: string) => {
-                const lowerField = fieldName.toLowerCase();
-                if (lowerField.includes('price') || lowerField.includes('offer') || lowerField.includes('financial')) {
-                  return <DollarSign className="h-4 w-4 text-brown" />;
-                } else if (lowerField.includes('communication') || lowerField.includes('message')) {
-                  return <MessageCircle className="h-4 w-4 text-brown" />;
-                } else if (lowerField.includes('tip') || lowerField.includes('strategy') || lowerField.includes('tactic')) {
-                  return <Lightbulb className="h-4 w-4 text-brown" />;
-                } else {
-                  return <FileText className="h-4 w-4 text-brown" />;
-                }
-              };
-
+              
               // Format the value for display with better styling - NO JSON
               const formatValue = (val: any): JSX.Element | string => {
                 if (typeof val === 'object' && val !== null) {
@@ -271,7 +322,7 @@ export default function NegotiationStrategy() {
                             .replace(/_/g, ' ')
                             .replace(/([a-z])([A-Z])/g, '$1 $2')
                             .split(' ')
-                            .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                            .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
                             .join(' ');
 
                           return (
@@ -299,9 +350,9 @@ export default function NegotiationStrategy() {
                                     <div className="space-y-1">
                                       {Object.entries(subValue).map(([nestedKey, nestedValue]) => (
                                         <div key={nestedKey} className="text-xs bg-white/70 p-2 rounded">
-                                          <span className="font-medium text-brown/80">
-                                            {nestedKey.replace(/_/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2')}:
-                                          </span>{' '}
+                                           <span className="font-medium text-brown/80">
+                                             {nestedKey.replace(/_/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}:
+                                           </span>{' '}
                                           <span className="text-navy/70">
                                             {typeof nestedValue === 'boolean' ? 
                                               (nestedValue ? 'Yes' : 'No') :
@@ -365,10 +416,6 @@ export default function NegotiationStrategy() {
 
               return (
                 <div key={key} className={sectionBox}>
-                  <div className={sectionTitle}>
-                    {getIcon(key)}
-                    {displayName}
-                  </div>
                   <div className="text-navy/80">
                     {typeof formattedValue === 'string' ? (
                       <p className="text-sm leading-relaxed">{formattedValue}</p>
