@@ -243,11 +243,18 @@ def generate_action_plan(user_preferences, client_name):
             if user_preferences.get('important_locations'):
                 locations = user_preferences['important_locations']
                 if isinstance(locations, list) and locations:
-                    location_names = [l.get('name', l) if isinstance(l, dict) else str(l) for l in locations]
+                    location_names = []
+                    for l in locations:
+                        if isinstance(l, dict):
+                            name = l.get('name', 'Unknown Location')
+                            commute = l.get('commute_tolerance')
+                            if commute:
+                                location_names.append(f"{name} ({commute}min commute)")
+                            else:
+                                location_names.append(name)
+                        else:
+                            location_names.append(str(l))
                     context_parts.append(f"Important locations: {', '.join(location_names[:3])}")
-            
-            if user_preferences.get('commute_tolerance'):
-                context_parts.append(f"Commute tolerance: {user_preferences['commute_tolerance']} minutes")
             if user_preferences.get('walkability_importance'):
                 context_parts.append(f"Walkability importance: {user_preferences['walkability_importance']}")
 

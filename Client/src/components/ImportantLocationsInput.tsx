@@ -4,6 +4,7 @@ import { MapPin, Plus, X } from "lucide-react";
 interface ImportantLocation {
   name: string;
   address: string;
+  commute_tolerance?: number;
 }
 
 interface Suggestion {
@@ -27,6 +28,7 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
   const [isAddingLocation, setIsAddingLocation] = useState(false);
   const [locationName, setLocationName] = useState("");
   const [locationAddress, setLocationAddress] = useState("");
+  const [commuteTime, setCommuteTime] = useState<number>(30);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [hasSelected, setHasSelected] = useState(false);
   
@@ -90,10 +92,12 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
       const newLocation: ImportantLocation = {
         name: locationName.trim(),
         address: locationAddress.trim(),
+        commute_tolerance: commuteTime,
       };
       onChange([...locations, newLocation]);
       setLocationName("");
       setLocationAddress("");
+      setCommuteTime(30);
       setIsAddingLocation(false);
       setHasSelected(false);
     }
@@ -107,6 +111,7 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
   const handleCancel = () => {
     setLocationName("");
     setLocationAddress("");
+    setCommuteTime(30);
     setIsAddingLocation(false);
     setHasSelected(false);
     setSuggestions([]);
@@ -125,6 +130,11 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
               <div className="flex-1 min-w-0">
                 <h4 className="font-medium text-black text-sm">{location.name}</h4>
                 <p className="text-xs text-black/60 mt-1 break-words">{location.address}</p>
+                {location.commute_tolerance && (
+                  <p className="text-xs text-brown mt-1">
+                    Max commute: {location.commute_tolerance} minutes
+                  </p>
+                )}
               </div>
               {isEditMode && (
                 <button
@@ -203,6 +213,26 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
                 ))}
               </ul>
             )}
+          </div>
+
+          {/* Commute Tolerance Input */}
+          <div>
+            <label className="block text-sm font-medium text-black mb-2">
+              Max Commute Time (minutes)
+            </label>
+            <input
+              type="number"
+              value={commuteTime}
+              onChange={(e) => setCommuteTime(parseInt(e.target.value) || 30)}
+              placeholder="30"
+              min="5"
+              max="180"
+              className="w-full h-12 px-3 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-olive focus:border-olive transition-colors"
+              autoComplete="off"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Maximum acceptable commute time to this location
+            </p>
           </div>
 
           {/* Action Buttons */}

@@ -30,6 +30,10 @@ chex==0.1.87
 openai==1.56.0
 httpx>=0.24.1
 
+# --- Geospatial ---
+osmnx==1.9.4
+shapely==2.0.4
+
 # --- PDF, API, and Web ---
 reportlab==4.0.4
 stripe==9.4.0

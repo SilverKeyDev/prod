@@ -23,7 +23,7 @@ wheels/
 # Virtual Environment
 venv/
 ENV/
-
+cache/
 # IDE specific files
 .idea/
 .vscode/

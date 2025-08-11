@@ -163,6 +163,7 @@ jobs:
               -e OPENAI_KEY="${{ secrets.OPENAI_KEY }}" \
               -e CENSUS_API_KEY="${{ secrets.CENSUS_API_KEY }}" \
               -e HUD_TOKEN="${{ secrets.HUD_TOKEN }}" \
+              -e RAPIDAPI_KEY="${{ secrets.RAPIDAPI_KEY }}" \
               "$IMAGE"
             
             
@@ -177,17 +178,24 @@ jobs:
               -e COGNITO_CLIENT_SECRET="${{ secrets.COGNITO_CLIENT_SECRET }}" \
               -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
               -e S3_BUCKET_NAME_PDFS="${{ secrets.S3_BUCKET_NAME_PDFS }}" \
-              -e CELERY_BROKER_URL="redis://localhost:6379/0" \
-              -e CELERY_RESULT_BACKEND="redis://localhost:6379/0" \
-              -e STRIPE_PUBLIC_KEY="${{ secrets.STRIPE_PUBLIC_KEY }}" \
-              -e STRIPE_SECRET_KEY="${{ secrets.STRIPE_SECRET_KEY }}" \
               -e STRIPE_PROD_ID_BASIC="${{ secrets.STRIPE_PROD_ID_BASIC }}" \
               -e GOOGLE_MAPS_API_KEY="${{ secrets.GOOGLE_MAPS_API_KEY }}" \
               -e PERPLEXITY_API_KEY="${{ secrets.PERPLEXITY_API_KEY }}" \
+              -e VITE_GOOGLE_MAPS_API_KEY="${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}" \
+              -e VITE_API_BASE_URL="${{ secrets.VITE_API_BASE_URL }}" \
+              -e STRIPE_PUBLIC_KEY="${{ secrets.STRIPE_PUBLIC_KEY }}" \
+              -e STRIPE_SECRET_KEY="${{ secrets.STRIPE_SECRET_KEY }}" \
+              -e STRIPE_WEBHOOK_SECRET="${{ secrets.STRIPE_WEBHOOK_SECRET }}" \
+              -e STRIPE_FIVE_REPORTS="${{ secrets.STRIPE_FIVE_REPORTS }}" \
+              -e STRIPE_TWENTY_REPORTS="${{ secrets.STRIPE_TWENTY_REPORTS }}" \
+              -e STRIPE_FIFTY_REPORTS="${{ secrets.STRIPE_FIFTY_REPORTS }}" \
+              -e STRIPE_UNLIMITED_MONTHLY="${{ secrets.STRIPE_UNLIMITED_MONTHLY }}" \
+              -e STRIPE_UNLIMITED_YEARLY="${{ secrets.STRIPE_UNLIMITED_YEARLY }}" \
               -e SERP_API="${{ secrets.SERP_API }}" \
               -e OPENAI_KEY="${{ secrets.OPENAI_KEY }}" \
               -e CENSUS_API_KEY="${{ secrets.CENSUS_API_KEY }}" \
               -e HUD_TOKEN="${{ secrets.HUD_TOKEN }}" \
+              -e RAPIDAPI_KEY="${{ secrets.RAPIDAPI_KEY }}" \
               "$IMAGE" \
               celery -A app.celery.celery_worker worker --loglevel=info
 

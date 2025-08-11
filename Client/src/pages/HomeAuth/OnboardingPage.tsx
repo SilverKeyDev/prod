@@ -74,8 +74,7 @@ interface OnboardingData {
 
   // Location & Housing
   preferred_regions?: { name: string; address: string }[];
-  important_locations?: { name: string; address: string }[];
-  commute_tolerance?: number;
+  important_locations?: { name: string; address: string; commute_tolerance?: number }[];
   walkability_importance?: string;
   // Communication
   communication_frequency?: string;
@@ -1361,27 +1360,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
               Location Preferences
             </h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Commute Tolerance (minutes)
-                </label>
-                <input
-                  type="number"
-                  value={formData.commute_tolerance || ""}
-                  onChange={(e) =>
-                    updateFormData(
-                      "commute_tolerance",
-                      parseInt(e.target.value) || undefined
-                    )
-                  }
-                  className="mobile-input"
-                  min="0"
-                  max="180"
-                  placeholder="Maximum commute time"
-                />
-              </div>
-
+            <div className="grid grid-cols-1 gap-6">
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
                   Walkability Importance

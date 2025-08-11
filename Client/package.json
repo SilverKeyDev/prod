@@ -26,7 +26,8 @@
         "react-dom": "^18.3.1",
         "react-phone-number-input": "^3.2.20",
         "react-router-dom": "^6.20.1",
-        "use-places-autocomplete": "^4.0.0"
+        "use-places-autocomplete": "^4.0.0",
+        "node-fetch": "^3.3.2"
     },
     "devDependencies": {
         "@eslint/js": "^9.9.1",

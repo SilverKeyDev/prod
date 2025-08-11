@@ -336,7 +336,16 @@ class NegotiationTactics(BaseModel):
             give_to_get_trades.append(("accept property as-is", "price reduction"))
             give_to_get_trades.append(("waive repair requests", "seller credit"))
         
-        if user_preferences.get('commute_tolerance', 30) > 45:
+        # Check if any important location has high commute tolerance
+        important_locations = user_preferences.get('important_locations', [])
+        max_commute_tolerance = 30  # default
+        if isinstance(important_locations, list):
+            for location in important_locations:
+                if isinstance(location, dict):
+                    commute = location.get('commute_tolerance', 30)
+                    max_commute_tolerance = max(max_commute_tolerance, commute)
+        
+        if max_commute_tolerance > 45:
             give_to_get_trades.append(("flexible closing date", "price concession"))
         
         # Apply any overrides

@@ -70,14 +70,14 @@ const navigationStructure: NavigationStructure = {
         icon: UserIcon,
       },
       {
-        name: "Subscription",
-        href: "/dashboard/subscription",
-        icon: CreditCard,
-      },
-      {
         name: "Get PreApproved",
         href: "/dashboard/get-preapproved",
         icon: BadgeCheck,
+      },
+      {
+        name: "Subscription",
+        href: "/dashboard/subscription",
+        icon: CreditCard,
       },
     ],
   },

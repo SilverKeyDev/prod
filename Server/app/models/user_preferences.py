@@ -50,8 +50,7 @@ class UserPreferences(db.Model):
 
     # === Location & Housing ===
     preferred_regions = db.Column(db.Text)  # JSON stringified list of { name, address }
-    important_locations = db.Column(db.Text)  # JSON stringified list of { name, address }
-    commute_tolerance = db.Column(db.Float)
+    important_locations = db.Column(db.Text)  # JSON stringified list of { name, address, commute_tolerance }
     walkability_importance = db.Column(db.String(50))
 
     # === Communication ===
@@ -122,7 +121,6 @@ class UserPreferences(db.Model):
         # Location & Housing
         'preferred_regions': self._parse_json_field(self.preferred_regions),
         'important_locations': self._parse_json_field(self.important_locations),
-        'commute_tolerance': self.commute_tolerance,
         'walkability_importance': self.walkability_importance,
 
         # Communication

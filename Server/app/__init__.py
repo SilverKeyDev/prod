@@ -101,6 +101,7 @@ def create_app(config=None):
     from .routes.chatbot import chatbot_bp
     from .routes.home_matching import home_matching_bp
     from .routes.offer_generator import offer_bp
+    from .routes.search import search_bp
 
     app.register_blueprint(report_bp)
     app.register_blueprint(dashboard_bp)
@@ -111,6 +112,7 @@ def create_app(config=None):
     app.register_blueprint(chatbot_bp)
     app.register_blueprint(home_matching_bp)
     app.register_blueprint(offer_bp)
+    app.register_blueprint(search_bp)
 
     # Global handler for expired JWT tokens
     @app.errorhandler(ExpiredSignatureError)

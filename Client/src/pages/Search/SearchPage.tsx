@@ -1,9 +1,12 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Search, Filter, Bookmark, MapPin, Shield, GraduationCap, CheckCircle, AlertTriangle } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Bookmark, MapPin, ChevronLeft, ChevronRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import mapStyles from "../../hooks/mapStyling";
 import { favoriteHomesApi } from "../../lib/api";
 import HeartSave from "../../components/HeartSave";
-
+import PropertyDetailsModal from "../../components/PropertyDetailsModal";
+import { searchZillowByPolygon, LatLng } from "../../hooks/searchByCoords";
+import Loading from "../../components/Loading";
 
 interface SearchResult {
   id: string;
@@ -14,6 +17,10 @@ interface SearchResult {
   sqft: number;
   lat: number;
   lng: number;
+  lotSize?: string;
+  propertyType?: string;
+  listingStatus?: string;
+  imageUrl?: string;
 }
 
 interface PropertyScore {
@@ -43,100 +50,24 @@ const userPreferences: UserPreferences = {
 };
 
 export default function SearchPage() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [thumbnailStartIndex, setThumbnailStartIndex] = useState(0);
-  const [searchResults, setSearchResults] = useState<SearchResult[]>([
-    {
-      id: "1",
-      address: "123 Oak Street, San Francisco, CA 94102",
-      price: "$850,000",
-      bedrooms: 3,
-      bathrooms: 2,
-      sqft: 1850,
-      lat: 37.7849,
-      lng: -122.4094,
-    },
-    {
-      id: "2",
-      address: "456 Pine Avenue, San Francisco, CA 94103",
-      price: "$1,200,000",
-      bedrooms: 4,
-      bathrooms: 3,
-      sqft: 2400,
-      lat: 37.7749,
-      lng: -122.4194,
-    },
-    {
-      id: "3",
-      address: "789 Market Street, San Francisco, CA 94105",
-      price: "$950,000",
-      bedrooms: 2,
-      bathrooms: 2,
-      sqft: 1600,
-      lat: 37.7649,
-      lng: -122.4294,
-    },
-    {
-      id: "4",
-      address: "321 Valencia Street, San Francisco, CA 94110",
-      price: "$750,000",
-      bedrooms: 3,
-      bathrooms: 1,
-      sqft: 1400,
-      lat: 37.7549,
-      lng: -122.4094,
-    },
-    {
-      id: "5",
-      address: "654 Mission Bay Blvd, San Francisco, CA 94158",
-      price: "$1,100,000",
-      bedrooms: 3,
-      bathrooms: 2.5,
-      sqft: 2100,
-      lat: 37.7699,
-      lng: -122.3944,
-    },
-  ]);
+  const navigate = useNavigate();
+  // selectedLocation state removed - no longer needed without map click search
 
-  const [savedHomes, setSavedHomes] = useState<SearchResult[]>([
-    {
-      id: "6",
-      address: "987 Castro Street, San Francisco, CA 94114",
-      price: "$1,350,000",
-      bedrooms: 4,
-      bathrooms: 3,
-      sqft: 2600,
-      lat: 37.7599,
-      lng: -122.4344,
-    },
-    {
-      id: "7",
-      address: "147 Nob Hill Avenue, San Francisco, CA 94108",
-      price: "$2,100,000",
-      bedrooms: 5,
-      bathrooms: 4,
-      sqft: 3200,
-      lat: 37.7899,
-      lng: -122.4144,
-    },
-    {
-      id: "8",
-      address: "258 Pacific Heights Dr, San Francisco, CA 94115",
-      price: "$1,800,000",
-      bedrooms: 4,
-      bathrooms: 3.5,
-      sqft: 2800,
-      lat: 37.7949,
-      lng: -122.4394,
-    },
-  ]);
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+
+  const [savedHomes, setSavedHomes] = useState<SearchResult[]>([]);
   const [favoriteAddresses, setFavoriteAddresses] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [showFilters, setShowFilters] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState<SearchResult | null>(
     null
   );
+  const [showPropertyModals, setShowPropertyModals] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
+  const [, setIsochronePolygon] = useState<google.maps.Polygon | null>(null);
+  const [, setIsochroneData] = useState<any>(null);
+  const [, setImportantLocationMarkers] = useState<google.maps.Marker[]>([]);
+  const [currentPage, setCurrentPage] = useState(0);
+  const PROPERTIES_PER_PAGE = 5;
 
   // Global function to open property modal from info window
   useEffect(() => {
@@ -153,15 +84,18 @@ export default function SearchPage() {
       delete (window as any).openPropertyModal;
     };
   }, [searchResults, savedHomes]);
-  const [activeTab, setActiveTab] = useState<"results" | "saved">("saved");
+  const [activeTab, setActiveTab] = useState<"results" | "saved">("results");
+
+  // Reset to first page when switching tabs
+  const handleTabChange = (tab: "results" | "saved") => {
+    setActiveTab(tab);
+    setCurrentPage(0);
+  };
   const mapRef = useRef<HTMLDivElement>(null);
   const googleMapRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<google.maps.Marker[]>([]);
-
-  // Filter states
-  const [priceRange, setPriceRange] = useState({ min: "", max: "" });
-  const [bedrooms, setBedrooms] = useState("");
-  const [bathrooms, setBathrooms] = useState("");
+  const polygonRef = useRef<google.maps.Polygon | null>(null);
+  const importantMarkersRef = useRef<google.maps.Marker[]>([]);
 
   // Calculate property score based on user preferences
   const calculatePropertyScore = (property: SearchResult): PropertyScore => {
@@ -342,13 +276,13 @@ export default function SearchPage() {
     score: number
   ): { fillColor: string; strokeColor: string } => {
     const normalizedScore = Math.max(0, Math.min(100, score)) / 100;
-  
+
     const highColor = { r: 123, g: 158, b: 124 }; // #7B9E7C
     const midColor = { r: 240, g: 233, b: 210 }; // #F0E9D2
     const lowColor = { r: 216, g: 140, b: 140 }; // #D88C8C
-  
+
     let r: number, g: number, b: number;
-  
+
     if (normalizedScore >= 0.5) {
       const t = (normalizedScore - 0.5) * 2;
       r = Math.round(midColor.r + (highColor.r - midColor.r) * t);
@@ -360,16 +294,15 @@ export default function SearchPage() {
       g = Math.round(lowColor.g + (midColor.g - lowColor.g) * t);
       b = Math.round(lowColor.b + (midColor.b - lowColor.b) * t);
     }
-  
+
     const fillColor = `rgb(${r}, ${g}, ${b})`;
     const strokeColor = `rgb(${Math.round(r * 0.75)}, ${Math.round(
       g * 0.75
     )}, ${Math.round(b * 0.75)})`;
-  
+
     return { fillColor, strokeColor };
   };
 
-  
   // Initialize Google Maps
   useEffect(() => {
     const initializeMap = async () => {
@@ -417,99 +350,725 @@ export default function SearchPage() {
           gestureHandling: "greedy", // Allow map interaction without ctrl key
         });
 
-        // Load initial markers after map is created
-        const initialData =
-          activeTab === "results" ? searchResults : savedHomes;
-        updateMapMarkers(initialData);
+        // Map click listeners removed - search only happens on page load
+
+        // Fetch and render isochrone polygon and important location markers
+        console.log("🚀 Map initialized, fetching isochrone polygon...");
+        fetchIsochronePolygon()
+          .then((data) => {
+            if (data) {
+              console.log("📦 Isochrone data received, rendering polygon...");
+              renderIsochronePolygon(data);
+
+              // Also render important location markers
+              console.log("📍 Rendering important location markers...");
+              renderImportantLocationMarkers(data);
+            } else {
+              console.warn(
+                "⚠️ No isochrone data received, polygon will not be displayed"
+              );
+            }
+          })
+          .catch((error) => {
+            console.error(
+              "❌ Failed to fetch or render isochrone polygon:",
+              error
+            );
+          });
+
+        // Initialize map without property modals - they will only show after search or saved homes click
+        // Don't load any markers initially
       }
     };
 
     initializeMap();
   }, []);
 
-  // Update markers when activeTab changes
+  // Update markers when activeTab changes or when hasSearched/showPropertyModals changes
   useEffect(() => {
-    if (googleMapRef.current) {
+    if (googleMapRef.current && hasSearched && showPropertyModals) {
       const currentData = activeTab === "results" ? searchResults : savedHomes;
       updateMapMarkers(currentData);
+    } else if (googleMapRef.current && (!hasSearched || !showPropertyModals)) {
+      // Clear all markers when user hasn't searched yet or property modals should not be shown
+      markersRef.current.forEach((marker) => {
+        marker.setMap(null);
+        if ((marker as any).overlay) {
+          (marker as any).overlay.setMap(null);
+        }
+      });
+      markersRef.current = [];
     }
-  }, [activeTab, searchResults, savedHomes]);
+  }, [
+    activeTab,
+    searchResults,
+    savedHomes,
+    showPropertyModals,
+    hasSearched,
+    currentPage,
+  ]);
 
-  // Load existing favorites from backend on component mount
-  useEffect(() => {
-    const loadFavorites = async () => {
-      try {
-        const response = await favoriteHomesApi.getFavorites();
-        if (response.success && response.data?.favorites) {
-          setFavoriteAddresses(response.data.favorites);
-          console.log('✅ Loaded favorites from backend:', response.data.favorites);
-          
-          // Update savedHomes with any properties that match favorite addresses
-          const matchingSavedHomes = searchResults.filter(property => 
-            response.data?.favorites?.includes(property.address)
+  // Fetch isochrone polygon from backend
+  const fetchIsochronePolygon = async () => {
+    console.log("🔍 Starting isochrone polygon fetch...");
+    try {
+      // Try multiple token sources for authentication
+      const idToken = localStorage.getItem("id_token");
+      const token = localStorage.getItem("token");
+      const authToken = idToken || token;
+
+      if (!authToken) {
+        console.log(
+          "❌ No auth token found (checked both id_token and token), skipping isochrone fetch"
+        );
+        return null;
+      }
+
+      console.log("🔑 Auth token found, making API request...");
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "";
+      const response = await fetch(`${apiBaseUrl}/api/v1/search/isochrone`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
+
+      console.log("📡 API response status:", response.status);
+      console.log("📡 API response ok:", response.ok);
+      console.log("📡 API response statusText:", response.statusText);
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log(
+          "📊 ISOCHRONE API RESPONSE - Raw data:",
+          JSON.stringify(data, null, 2)
+        );
+
+        if (data.success && data.data) {
+          setIsochroneData(data.data);
+          console.log("✅ ISOCHRONE SUCCESS - Detailed data breakdown:");
+          console.log(
+            "  📍 Center Location:",
+            JSON.stringify(data.data.center, null, 2)
           );
-          if (matchingSavedHomes.length > 0) {
-            setSavedHomes(prev => {
-              const existingIds = prev.map(home => home.id);
-              const newHomes = matchingSavedHomes.filter(home => !existingIds.includes(home.id));
-              return [...prev, ...newHomes];
-            });
+          console.log(
+            "  ⏱️ Commute Tolerance:",
+            data.data.commute_tolerance,
+            "minutes"
+          );
+          console.log("  🚗 Travel Mode:", data.data.mode);
+          console.log(
+            "  🗺️ Geometry Type:",
+            data.data.isochrone?.geometry?.type
+          );
+          console.log(
+            "  📐 Geometry Coordinates Length:",
+            data.data.isochrone?.geometry?.coordinates?.length
+          );
+          console.log(
+            "  🔍 Full Isochrone Object:",
+            JSON.stringify(data.data.isochrone, null, 2)
+          );
+
+          // Automatically trigger property search using the isochrone polygon
+          console.log(
+            "🏠 Auto-triggering property search within isochrone polygon..."
+          );
+          await searchPropertiesInIsochrone(data.data);
+
+          return data.data;
+        } else {
+          console.warn(
+            "⚠️ ISOCHRONE FAILED - API returned unsuccessful response:"
+          );
+          console.warn("  📄 Message:", data.message || "Unknown error");
+          console.warn("  📊 Full Response:", JSON.stringify(data, null, 2));
+        }
+      } else {
+        console.warn("⚠️ ISOCHRONE HTTP ERROR - Request failed:");
+        console.warn("  🔢 Status Code:", response.status);
+        console.warn("  📄 Status Text:", response.statusText);
+
+        try {
+          const errorText = await response.text();
+          console.warn("  📋 Error Response Text:", errorText);
+
+          // Try to parse as JSON for more structured error info
+          try {
+            const errorJson = JSON.parse(errorText);
+            console.warn(
+              "  📊 Error Response JSON:",
+              JSON.stringify(errorJson, null, 2)
+            );
+          } catch (jsonError) {
+            console.warn(
+              "  📋 Error response is not JSON, showing as text above"
+            );
+          }
+        } catch (textError) {
+          console.warn("  ❌ Could not read error response text:", textError);
+        }
+      }
+    } catch (error) {
+      console.error("❌ Error fetching isochrone polygon:", error);
+    }
+    return null;
+  };
+
+  // Automatically search for properties within the isochrone polygon
+  const searchPropertiesInIsochrone = async (isochroneData: any) => {
+    console.log(
+      "🏠 Starting automatic property search within isochrone polygon..."
+    );
+    setIsSearching(true);
+
+    if (!isochroneData?.isochrone?.geometry) {
+      console.warn("❌ No isochrone geometry available for property search");
+      setIsSearching(false);
+      return;
+    }
+
+    try {
+      // Convert isochrone polygon coordinates to LatLng format for search
+      const geometry = isochroneData.isochrone.geometry;
+      let searchPolygon: LatLng[] = [];
+
+      if (geometry.type === "Polygon") {
+        // Use the outer ring of the polygon
+        const coordinates = geometry.coordinates[0];
+        searchPolygon = coordinates.map((coord: [number, number]) => ({
+          lon: coord[0],
+          lat: coord[1],
+        }));
+      } else if (geometry.type === "MultiPolygon") {
+        // Use the first polygon's outer ring
+        const coordinates = geometry.coordinates[0][0];
+        searchPolygon = coordinates.map((coord: [number, number]) => ({
+          lon: coord[0],
+          lat: coord[1],
+        }));
+      } else {
+        console.warn("❌ Unsupported geometry type for search:", geometry.type);
+        return;
+      }
+
+      console.log(
+        "🔍 Converted isochrone to search polygon with",
+        searchPolygon.length,
+        "points"
+      );
+
+      // Map current userPreferences to the searchByCoords format
+      // Include important_locations from the isochrone data since that's what the backend needs
+      const searchUserPreferences = {
+        home_budget: userPreferences.priceRange.max,
+        preferred_bedrooms: userPreferences.preferredBedrooms,
+        preferred_bathrooms:
+          Math.floor(userPreferences.preferredBedrooms / 2) + 1,
+        preferred_housing_type: "single_family",
+        preferred_home_age: "any",
+        preferred_lot_size: "medium",
+        preferred_home_features: [],
+        deal_breakers: [],
+        // Include important_locations from the isochrone center data
+        important_locations: isochroneData.center
+          ? [
+              {
+                name: isochroneData.center.name || "Search Location",
+                address: isochroneData.center.address,
+                commute_tolerance: isochroneData.commute_tolerance || 30,
+              },
+            ]
+          : [],
+      };
+
+      console.log(
+        "🔍 Starting property search with preferences:",
+        searchUserPreferences
+      );
+
+      // Call the Zillow search API with the isochrone polygon
+      const searchResult = await searchZillowByPolygon({
+        polygon: searchPolygon,
+        user_preferences: searchUserPreferences,
+        status_type: "ForSale",
+        perBucketPages: 10,
+        maxRetries: 3,
+      });
+
+      console.log(
+        "📊 Search completed, found",
+        searchResult.properties.length,
+        "properties"
+      );
+
+      // Transform Zillow API results to SearchResult format
+      const transformedResults: SearchResult[] = searchResult.properties.map(
+        (property, index) => ({
+          id: property.zpid || `${Date.now()}-${index}`,
+          address: property.address || "Address not available",
+          price: property.price
+            ? `$${property.price.toLocaleString()}`
+            : "Price not available",
+          bedrooms: property.bedrooms || 0,
+          bathrooms: property.bathrooms || 0,
+          sqft: property.livingArea || 0,
+          lat:
+            property.latitude ||
+            isochroneData.center.lat + (Math.random() - 0.5) * 0.01,
+          lng:
+            property.longitude ||
+            isochroneData.center.lng + (Math.random() - 0.5) * 0.01,
+          lotSize: property.lotAreaValue && property.lotAreaUnit 
+            ? `${property.lotAreaValue.toLocaleString()} ${property.lotAreaUnit}`
+            : undefined,
+          propertyType: property.propertyType || "Single Family",
+          listingStatus: property.listingStatus || "For Sale",
+          imageUrl: property.imgSrc || "/default-home.jpg",
+        })
+      );
+
+      // Update search results and mark as searched
+      setSearchResults(transformedResults);
+      setHasSearched(true);
+      setIsSearching(false);
+      setCurrentPage(0); // Reset to first page when new search results come in
+      setShowPropertyModals(true); // Enable property markers to be displayed on map
+
+      console.log(
+        "✅ Auto-search completed successfully with",
+        transformedResults.length,
+        "results"
+      );
+    } catch (error) {
+      console.error("❌ Error in automatic isochrone property search:", error);
+      console.error("❌ Error details:", {
+        message: (error as Error).message,
+        stack: (error as Error).stack,
+        isochroneData: isochroneData,
+      });
+      setIsSearching(false);
+    }
+  };
+
+  // Render isochrone polygon on the map
+  const renderIsochronePolygon = (isochroneData: any) => {
+    console.log("🗺️ Starting polygon rendering...");
+    console.log("  - Map ref exists:", !!googleMapRef.current);
+    console.log("  - Isochrone data exists:", !!isochroneData);
+    console.log("  - Geometry exists:", !!isochroneData?.isochrone?.geometry);
+
+    if (!googleMapRef.current) {
+      console.warn("❌ Google Map not initialized yet");
+      return;
+    }
+
+    if (!isochroneData?.isochrone?.geometry) {
+      console.warn("❌ No isochrone geometry data available");
+      return;
+    }
+
+    // Clear existing polygon
+    if (polygonRef.current) {
+      console.log("🧹 Clearing existing polygon");
+      polygonRef.current.setMap(null);
+    }
+
+    try {
+      const geometry = isochroneData.isochrone.geometry;
+      console.log("📐 Geometry type:", geometry.type);
+      console.log(
+        "📐 Geometry coordinates length:",
+        geometry.coordinates?.length
+      );
+
+      let coordinates: number[][][] = [];
+
+      if (geometry.type === "Polygon") {
+        coordinates = geometry.coordinates;
+        console.log("📍 Processing Polygon with", coordinates.length, "rings");
+      } else if (geometry.type === "MultiPolygon") {
+        // For MultiPolygon, take the first polygon
+        coordinates = geometry.coordinates[0];
+        console.log(
+          "📍 Processing MultiPolygon, using first polygon with",
+          coordinates.length,
+          "rings"
+        );
+      } else {
+        console.warn("❌ Unsupported geometry type:", geometry.type);
+        return;
+      }
+
+      // Convert GeoJSON coordinates to Google Maps LatLng format
+      // GeoJSON uses [longitude, latitude], Google Maps uses {lat, lng}
+      const paths = coordinates.map((ring: number[][]) => {
+        const convertedRing = ring.map((coord: number[]) => ({
+          lat: coord[1], // latitude is second
+          lng: coord[0], // longitude is first
+        }));
+        console.log("🔄 Converted ring with", convertedRing.length, "points");
+        return convertedRing;
+      });
+
+      console.log("📊 Total paths created:", paths.length);
+      console.log("📊 First path sample points:", paths[0]?.slice(0, 3));
+
+      // Create the polygon
+      const polygon = new google.maps.Polygon({
+        paths: paths,
+        strokeColor: "#7B9E7C", // Match the app's green theme
+        strokeOpacity: 0.8,
+        strokeWeight: 2,
+        fillColor: "#7B9E7C",
+        fillOpacity: 0.15,
+        clickable: false,
+      });
+
+      console.log("🎨 Created polygon with styling");
+      polygon.setMap(googleMapRef.current);
+      polygonRef.current = polygon;
+      setIsochronePolygon(polygon);
+
+      console.log("✅ Successfully rendered isochrone polygon on map");
+
+      // Fit the map to include the polygon bounds
+      const bounds = new google.maps.LatLngBounds();
+      paths[0].forEach((point: { lat: number; lng: number }) => {
+        bounds.extend(point);
+      });
+
+      console.log("🔍 Fitting map bounds to polygon");
+      googleMapRef.current.fitBounds(bounds);
+
+      // Add some padding to the bounds
+      setTimeout(() => {
+        if (googleMapRef.current) {
+          const currentZoom = googleMapRef.current.getZoom();
+          if (currentZoom && currentZoom > 15) {
+            googleMapRef.current.setZoom(15); // Max zoom for better visibility
           }
         }
+      }, 100);
+    } catch (error) {
+      console.error("❌ Error rendering isochrone polygon:", error);
+      console.error("❌ Error details:", {
+        message: (error as Error).message,
+        stack: (error as Error).stack,
+        isochroneData: isochroneData,
+      });
+    }
+  };
+
+  // Render important location markers on the map
+  const renderImportantLocationMarkers = async (isochroneData: any) => {
+    if (!googleMapRef.current || !isochroneData?.center) {
+      console.warn(
+        "❌ Cannot render important location markers: map or data not available"
+      );
+      return;
+    }
+
+    // Clear existing important location markers
+    importantMarkersRef.current.forEach((marker) => {
+      marker.setMap(null);
+    });
+    importantMarkersRef.current = [];
+
+    try {
+      // Get user preferences to extract all important locations
+      const idToken = localStorage.getItem("id_token");
+      const token = localStorage.getItem("token");
+      const authToken = idToken || token;
+
+      if (!authToken) {
+        console.log(
+          "❌ No auth token found, cannot fetch user preferences for markers"
+        );
+        return;
+      }
+
+      // Fetch user preferences to get all important locations
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "";
+      const response = await fetch(`${apiBaseUrl}/api/v1/preferences`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        console.warn("⚠️ Failed to fetch user preferences for markers");
+        return;
+      }
+
+      const userData = await response.json();
+      console.log(
+        "📊 USER PREFERENCES API RESPONSE - Raw data:",
+        JSON.stringify(userData, null, 2)
+      );
+
+      let importantLocations = [];
+
+      // Extract important locations from user data
+      const locationsData = userData.important_locations;
+      console.log(
+        "📍 IMPORTANT LOCATIONS - Raw data type:",
+        typeof locationsData
+      );
+      console.log("📍 IMPORTANT LOCATIONS - Raw data value:", locationsData);
+
+      if (typeof locationsData === "string") {
+        try {
+          importantLocations = JSON.parse(locationsData);
+          console.log(
+            "📍 IMPORTANT LOCATIONS - Parsed from JSON string:",
+            JSON.stringify(importantLocations, null, 2)
+          );
+        } catch (e) {
+          console.warn(
+            "⚠️ IMPORTANT LOCATIONS - Failed to parse JSON string:",
+            e
+          );
+          console.warn(
+            "⚠️ IMPORTANT LOCATIONS - Original string was:",
+            locationsData
+          );
+          return;
+        }
+      } else if (Array.isArray(locationsData)) {
+        importantLocations = locationsData;
+        console.log(
+          "📍 IMPORTANT LOCATIONS - Already array format:",
+          JSON.stringify(importantLocations, null, 2)
+        );
+      } else {
+        console.warn(
+          "⚠️ IMPORTANT LOCATIONS - Unexpected data format:",
+          typeof locationsData,
+          locationsData
+        );
+      }
+
+      console.log("📍 IMPORTANT LOCATIONS SUMMARY:");
+      console.log("  🔢 Total Count:", importantLocations.length);
+      importantLocations.forEach((loc: any, index: number) => {
+        console.log(
+          `  ${index + 1}. Name: "${loc.name}", Address: "${loc.address}"`
+        );
+      });
+
+      // Create markers for each important location
+      const markers: google.maps.Marker[] = [];
+
+      for (let i = 0; i < importantLocations.length; i++) {
+        const location = importantLocations[i];
+        const { name, address } = location;
+
+        if (!address) {
+          console.warn("⚠️ Skipping location without address:", name);
+          continue;
+        }
+
+        try {
+          // Geocode the address to get coordinates
+          const geocoder = new google.maps.Geocoder();
+          const geocodeResponse = await geocoder.geocode({ address });
+
+          if (geocodeResponse.results && geocodeResponse.results.length > 0) {
+            const position = geocodeResponse.results[0].geometry.location;
+
+            // Create custom marker icon based on location index
+            const isFirstLocation = i === 0;
+            const markerIcon = {
+              path: google.maps.SymbolPath.CIRCLE,
+              fillColor: isFirstLocation ? "#7B9E7C" : "#E8A87C", // Green for first (isochrone center), orange for others
+              fillOpacity: 0.9,
+              strokeColor: "#ffffff",
+              strokeWeight: 2,
+              scale: isFirstLocation ? 12 : 8,
+            };
+
+            // Create the marker
+            const marker = new google.maps.Marker({
+              position: position,
+              map: googleMapRef.current,
+              title: `${name}${isFirstLocation ? " (Commute Center)" : ""}`,
+              icon: markerIcon,
+            });
+
+            // Create info window for the marker
+            const infoWindow = new google.maps.InfoWindow({
+              content: `
+                <div style="padding: 8px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+                  <h3 style="margin: 0 0 4px 0; color: #333; font-size: 14px; font-weight: 600;">
+                    ${name}${isFirstLocation ? " 🎯" : ""}
+                  </h3>
+                  <p style="margin: 0; color: #666; font-size: 12px;">${address}</p>
+                  ${
+                    isFirstLocation
+                      ? '<p style="margin: 4px 0 0 0; color: #7B9E7C; font-size: 11px; font-weight: 500;">Commute Center</p>'
+                      : ""
+                  }
+                </div>
+              `,
+            });
+
+            // Add click listener to show info window
+            marker.addListener("click", () => {
+              // Close any open info windows
+              importantMarkersRef.current.forEach((m) => {
+                if ((m as any).infoWindow) {
+                  (m as any).infoWindow.close();
+                }
+              });
+
+              infoWindow.open(googleMapRef.current, marker);
+            });
+
+            // Store info window reference on marker for cleanup
+            (marker as any).infoWindow = infoWindow;
+
+            markers.push(marker);
+            console.log(`✅ Created marker for ${name} at`, position.toJSON());
+          } else {
+            console.warn(
+              `⚠️ Could not geocode address for ${name}: ${address}`
+            );
+          }
+        } catch (error) {
+          console.error(`❌ Error creating marker for ${name}:`, error);
+        }
+      }
+
+      // Update refs and state
+      importantMarkersRef.current = markers;
+      setImportantLocationMarkers(markers);
+
+      console.log(
+        `✅ Successfully created ${markers.length} important location markers`
+      );
+    } catch (error) {
+      console.error("❌ Error rendering important location markers:", error);
+    }
+  };
+
+  // Load saved homes from user's favorite_home_ids on component mount
+  useEffect(() => {
+    const loadSavedHomes = async () => {
+      try {
+        // Get auth token
+        const idToken = localStorage.getItem("id_token");
+        const token = localStorage.getItem("token");
+        const authToken = idToken || token;
+
+        if (!authToken) {
+          console.log("❌ No auth token found, cannot load saved homes");
+          return;
+        }
+
+        // Fetch user preferences to get favorite_home_ids
+        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "";
+        const response = await fetch(`${apiBaseUrl}/api/v1/preferences`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: `Bearer ${authToken}`,
+          },
+        });
+
+        if (!response.ok) {
+          console.warn("⚠️ Failed to fetch user preferences for saved homes");
+          return;
+        }
+
+        const userData = await response.json();
+        console.log(
+          "📊 USER PREFERENCES FOR SAVED HOMES - Raw data:",
+          JSON.stringify(userData, null, 2)
+        );
+
+        // Extract favorite_home_ids from user data
+        let favoriteHomeIds = [];
+        const favoriteHomeIdsData = userData.favorite_home_ids;
+        
+        console.log(
+          "🏠 FAVORITE HOME IDS - Raw data type:",
+          typeof favoriteHomeIdsData
+        );
+        console.log("🏠 FAVORITE HOME IDS - Raw data value:", favoriteHomeIdsData);
+
+        if (typeof favoriteHomeIdsData === "string") {
+          try {
+            favoriteHomeIds = JSON.parse(favoriteHomeIdsData);
+            console.log(
+              "🏠 FAVORITE HOME IDS - Parsed from JSON string:",
+              JSON.stringify(favoriteHomeIds, null, 2)
+            );
+          } catch (e) {
+            console.warn(
+              "⚠️ FAVORITE HOME IDS - Failed to parse JSON string:",
+              e
+            );
+            console.warn(
+              "⚠️ FAVORITE HOME IDS - Original string was:",
+              favoriteHomeIdsData
+            );
+            return;
+          }
+        } else if (Array.isArray(favoriteHomeIdsData)) {
+          favoriteHomeIds = favoriteHomeIdsData;
+          console.log(
+            "🏠 FAVORITE HOME IDS - Already array format:",
+            JSON.stringify(favoriteHomeIds, null, 2)
+          );
+        } else {
+          console.warn(
+            "⚠️ FAVORITE HOME IDS - Unexpected data format:",
+            typeof favoriteHomeIdsData,
+            favoriteHomeIdsData
+          );
+          return;
+        }
+
+        console.log("🏠 FAVORITE HOME IDS SUMMARY:");
+        console.log("  🔢 Total Count:", favoriteHomeIds.length);
+        favoriteHomeIds.forEach((id: string, index: number) => {
+          console.log(`  ${index + 1}. ID: "${id}"`);
+        });
+
+        // If we have favorite home IDs, we need to fetch the actual property data
+        // For now, we'll also load the favorite addresses for backward compatibility
+        const favoritesResponse = await favoriteHomesApi.getFavorites();
+        if (favoritesResponse.success && favoritesResponse.data?.favorites) {
+          setFavoriteAddresses(favoritesResponse.data.favorites);
+          console.log(
+            "✅ Loaded favorite addresses from backend:",
+            favoritesResponse.data.favorites
+          );
+        }
+
+        // TODO: In a real implementation, you would fetch the actual property data
+        // for each favorite_home_id from a properties API endpoint
+        // For now, we'll keep savedHomes empty until we have a proper properties API
+        console.log(
+          "ℹ️ Favorite home IDs loaded but savedHomes will remain empty until property data API is implemented"
+        );
+        
       } catch (error) {
-        console.error('❌ Error loading favorites:', error);
+        console.error("❌ Error loading saved homes:", error);
       }
     };
 
-    loadFavorites();
+    loadSavedHomes();
   }, []); // Run once on mount
 
-  // Mock search function - replace with actual API call
-  const handleSearch = async () => {
-    if (!searchQuery.trim()) return;
-
-    setIsLoading(true);
-
-    // Simulate API call
-    setTimeout(() => {
-      const mockResults: SearchResult[] = [
-        {
-          id: "1",
-          address: "123 Main St, San Francisco, CA",
-          price: "$850,000",
-          bedrooms: 2,
-          bathrooms: 2,
-          sqft: 1200,
-          lat: 37.7849,
-          lng: -122.4094,
-        },
-        {
-          id: "2",
-          address: "456 Oak Ave, San Francisco, CA",
-          price: "$1,200,000",
-          bedrooms: 3,
-          bathrooms: 2.5,
-          sqft: 1800,
-          lat: 37.7649,
-          lng: -122.4294,
-        },
-        {
-          id: "3",
-          address: "789 Pine St, San Francisco, CA",
-          price: "$950,000",
-          bedrooms: 2,
-          bathrooms: 1.5,
-          sqft: 1400,
-          lat: 37.7949,
-          lng: -122.3994,
-        },
-      ];
-
-      setSearchResults(mockResults);
-      updateMapMarkers(mockResults);
-      setIsLoading(false);
-    }, 1000);
-  };
+  // Map click search functionality removed - search only happens on page load
 
   // Update map markers
   const updateMapMarkers = (results: SearchResult[]) => {
@@ -525,8 +1084,11 @@ export default function SearchPage() {
     });
     markersRef.current = [];
 
-    // Use the passed results parameter (which will be the current data)
-    const currentData = results;
+    // Paginate the results - only show PROPERTIES_PER_PAGE at a time
+    const startIndex = currentPage * PROPERTIES_PER_PAGE;
+    const endIndex = startIndex + PROPERTIES_PER_PAGE;
+    const paginatedData = results.slice(startIndex, endIndex);
+    const currentData = paginatedData;
 
     const BASE_PIN_PATH =
       "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z";
@@ -552,12 +1114,12 @@ export default function SearchPage() {
       anchor,
     });
 
-
-
     currentData.forEach((result) => {
       // Calculate property score and get explanation
       const propertyAnalysis = calculatePropertyScore(result);
-      const { fillColor, strokeColor } = getScoreBasedPinColor(propertyAnalysis.score);
+      const { fillColor, strokeColor } = getScoreBasedPinColor(
+        propertyAnalysis.score
+      );
 
       const marker = new google.maps.Marker({
         position: { lat: result.lat, lng: result.lng },
@@ -567,28 +1129,38 @@ export default function SearchPage() {
       });
 
       // Create always-visible property overlay
-      
+
       // Generate a concise explanation for the overlay
       const getShortExplanation = (analysis: PropertyScore): string => {
-        const positiveFactors = analysis.factors.filter(f => f.impact === 'positive');
-        const negativeFactors = analysis.factors.filter(f => f.impact === 'negative');
-        
+        const positiveFactors = analysis.factors.filter(
+          (f) => f.impact === "positive"
+        );
+        const negativeFactors = analysis.factors.filter(
+          (f) => f.impact === "negative"
+        );
+
         if (analysis.score >= 70) {
-          const topPositive = positiveFactors.slice(0, 2).map(f => f.factor).join(', ');
+          const topPositive = positiveFactors
+            .slice(0, 2)
+            .map((f) => f.factor)
+            .join(", ");
           return `Great fit! Strong on ${topPositive}.`;
         } else if (analysis.score >= 55) {
-          const positive = positiveFactors[0]?.factor || 'some aspects';
-          const negative = negativeFactors[0]?.factor || 'some areas';
+          const positive = positiveFactors[0]?.factor || "some aspects";
+          const negative = negativeFactors[0]?.factor || "some areas";
           return `Good match on ${positive}, but ${negative} could be better.`;
         } else {
-          const topNegative = negativeFactors.slice(0, 2).map(f => f.factor).join(', ');
+          const topNegative = negativeFactors
+            .slice(0, 2)
+            .map((f) => f.factor)
+            .join(", ");
           return `Limited fit. Concerns with ${topNegative}.`;
         }
       };
-      
+
       const shortExplanation = getShortExplanation(propertyAnalysis);
 
-      const overlayDiv = document.createElement('div');
+      const overlayDiv = document.createElement("div");
       overlayDiv.style.cssText = `
         position: absolute;
         padding: 6px;
@@ -605,7 +1177,7 @@ export default function SearchPage() {
         z-index: 1000;
         pointer-events: auto;
       `;
-      
+
       overlayDiv.innerHTML = `
         <img src="/defaut-home.jpg" alt="Property" style="
           width: 100%;
@@ -697,8 +1269,8 @@ export default function SearchPage() {
           if (projection) {
             const point = projection.fromLatLngToDivPixel(this.position);
             if (point) {
-              this.div.style.left = point.x + 'px';
-              this.div.style.top = point.y + 'px';
+              this.div.style.left = point.x + "px";
+              this.div.style.top = point.y + "px";
             }
           }
         }
@@ -730,66 +1302,11 @@ export default function SearchPage() {
       googleMapRef.current.fitBounds(bounds);
     }
   };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      handleSearch();
-    }
-  };
-
-  const clearFilters = () => {
-    setPriceRange({ min: "", max: "" });
-    setBedrooms("");
-    setBathrooms("");
-  };
-
-  const propertyImages = [
-    "/defaut-home.jpg",
-    "/defaut-home.jpg", 
-    "/defaut-home.jpg",
-    "/defaut-home.jpg",
-    "/defaut-home.jpg",
-    "/defaut-home.jpg"
-  ];
-
-  const nextImage = () => {
-    setCurrentImageIndex((prev) => 
-      prev === propertyImages.length - 1 ? 0 : prev + 1
-    );
-  };
-
-  const prevImage = () => {
-    setCurrentImageIndex((prev) => 
-      prev === 0 ? propertyImages.length - 1 : prev - 1
-    );
-  };
-
-  const goToImage = (index: number) => {
-    setCurrentImageIndex(index);
-  };
-
-  // Thumbnail carousel navigation
-  const thumbnailsPerView = 4; // Number of thumbnails to show at once
-  
-  const nextThumbnails = () => {
-    const maxStart = Math.max(0, propertyImages.length - thumbnailsPerView);
-    setThumbnailStartIndex((prev) => 
-      prev >= maxStart ? 0 : prev + 1
-    );
-  };
-
-  const prevThumbnails = () => {
-    const maxStart = Math.max(0, propertyImages.length - thumbnailsPerView);
-    setThumbnailStartIndex((prev) => 
-      prev <= 0 ? maxStart : prev - 1
-    );
-  };
-
   const saveHome = async (property: SearchResult) => {
     try {
       // Call backend API to add favorite
       const response = await favoriteHomesApi.addFavorite(property.address);
-      
+
       if (response.success) {
         // Update local state
         if (!savedHomes.find((home) => home.id === property.id)) {
@@ -799,12 +1316,12 @@ export default function SearchPage() {
         if (response.data?.favorites) {
           setFavoriteAddresses(response.data.favorites);
         }
-        console.log('✅ Home added to favorites:', property.address);
+        console.log("✅ Home added to favorites:", property.address);
       } else {
-        console.error('❌ Failed to add favorite:', response.error);
+        console.error("❌ Failed to add favorite:", response.error);
       }
     } catch (error) {
-      console.error('❌ Error adding favorite:', error);
+      console.error("❌ Error adding favorite:", error);
     }
   };
 
@@ -816,7 +1333,7 @@ export default function SearchPage() {
 
       // Call backend API to remove favorite
       const response = await favoriteHomesApi.removeFavorite(property.address);
-      
+
       if (response.success) {
         // Update local state
         setSavedHomes((prev) => prev.filter((home) => home.id !== propertyId));
@@ -824,20 +1341,24 @@ export default function SearchPage() {
         if (response.data?.favorites) {
           setFavoriteAddresses(response.data.favorites);
         }
-        console.log('✅ Home removed from favorites:', property.address);
+        console.log("✅ Home removed from favorites:", property.address);
       } else {
-        console.error('❌ Failed to remove favorite:', response.error);
+        console.error("❌ Failed to remove favorite:", response.error);
       }
     } catch (error) {
-      console.error('❌ Error removing favorite:', error);
+      console.error("❌ Error removing favorite:", error);
     }
   };
 
   const isHomeSaved = (propertyId: string): boolean => {
     // Check both local savedHomes and favoriteAddresses from backend
-    const property = searchResults.find(p => p.id === propertyId) || savedHomes.find(p => p.id === propertyId);
-    return savedHomes.some((home) => home.id === propertyId) || 
-           (property ? favoriteAddresses.includes(property.address) : false);
+    const property =
+      searchResults.find((p) => p.id === propertyId) ||
+      savedHomes.find((p) => p.id === propertyId);
+    return (
+      savedHomes.some((home) => home.id === propertyId) ||
+      (property ? favoriteAddresses.includes(property.address) : false)
+    );
   };
 
   // Zoom functions
@@ -868,7 +1389,12 @@ export default function SearchPage() {
             {/* Tab Navigation */}
             <div className="flex border-b border-gray-200 mb-4 flex-shrink-0">
               <button
-                onClick={() => setActiveTab("results")}
+                onClick={() => {
+                  handleTabChange("results");
+                  if (hasSearched && searchResults.length > 0) {
+                    setShowPropertyModals(true);
+                  }
+                }}
                 className={`flex-1 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
                   activeTab === "results"
                     ? "border-brown text-brown"
@@ -883,7 +1409,14 @@ export default function SearchPage() {
                 )}
               </button>
               <button
-                onClick={() => setActiveTab("saved")}
+                onClick={() => {
+                  handleTabChange("saved");
+                  // For saved homes, we can show modals even without searching since these are user's saved properties
+                  if (savedHomes.length > 0) {
+                    setShowPropertyModals(true);
+                    setHasSearched(true); // Allow saved homes to be viewed
+                  }
+                }}
                 className={`flex-1 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
                   activeTab === "saved"
                     ? "border-brown text-brown"
@@ -904,55 +1437,105 @@ export default function SearchPage() {
               {activeTab === "results" ? (
                 // Search Results Tab
                 <div className="h-full">
-                  {isLoading ? (
-                    <div className="text-center py-8">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brown mx-auto"></div>
-                      <p className="text-sm text-gray-500 mt-2">Searching...</p>
-                    </div>
-                  ) : searchResults.length > 0 ? (
-                    <div className="h-full overflow-y-auto scrollbar-hide space-y-3 pr-2">
-                      {searchResults.map((property) => (
-                        <div
-                          key={property.id}
-                          className={`p-3 border rounded-lg cursor-pointer transition-all ${
-                            selectedProperty?.id === property.id
-                              ? "border-brown bg-brown/5"
-                              : "border-gray-200 hover:border-brown/50 hover:bg-gray-50"
-                          }`}
-                          onClick={() => setSelectedProperty(property)}
-                        >
-                          <div className="flex items-start justify-between mb-2">
-                            <div className="flex-1">
-                              <div className="flex items-center mb-1">
-                                <h3 className="text-sm font-medium text-black line-clamp-2">
-                                  {property.address}
-                                </h3>
+                  {searchResults.length > 0 ? (
+                    <div className="h-full flex flex-col">
+                      {/* Pagination Info */}
+                      {searchResults.length > PROPERTIES_PER_PAGE && (
+                        <div className="text-xs text-gray-600 mb-3 px-1 flex-shrink-0">
+                          Showing {currentPage * PROPERTIES_PER_PAGE + 1}-
+                          {Math.min(
+                            (currentPage + 1) * PROPERTIES_PER_PAGE,
+                            searchResults.length
+                          )}{" "}
+                          of {searchResults.length} properties on map
+                        </div>
+                      )}
+                      <div className="flex-1 overflow-y-auto scrollbar-hide space-y-3 pr-2">
+                        {searchResults.map((property) => (
+                          <div
+                            key={property.id}
+                            className={`border rounded-lg cursor-pointer transition-all overflow-hidden ${
+                              selectedProperty?.id === property.id
+                                ? "border-brown bg-brown/5"
+                                : "border-gray-200 hover:border-brown/50 hover:bg-gray-50"
+                            }`}
+                            onClick={() => setSelectedProperty(property)}
+                          >
+                            {/* Property Image */}
+                            {property.imageUrl && (
+                              <div className="w-full h-32 bg-gray-200 overflow-hidden">
+                                <img
+                                  src={property.imageUrl}
+                                  alt={property.address}
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    (e.target as HTMLImageElement).src = "/default-home.jpg";
+                                  }}
+                                />
                               </div>
-                              <p className="text-lg font-semibold text-brown mb-2">
-                                {property.price}
-                              </p>
-                              <div className="grid grid-cols-3 gap-2 text-xs text-gray-600">
-                                <div>{property.bedrooms} beds</div>
-                                <div>{property.bathrooms} baths</div>
-                                <div>{property.sqft.toLocaleString()} sqft</div>
+                            )}
+                            
+                            <div className="p-3">
+                              <div className="flex items-start justify-between mb-2">
+                                <div className="flex-1">
+                                  {/* Property Type and Status */}
+                                  <div className="flex items-center gap-2 mb-1">
+                                    {property.propertyType && (
+                                      <span className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded">
+                                        {property.propertyType}
+                                      </span>
+                                    )}
+                                    {property.listingStatus && (
+                                      <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
+                                        {property.listingStatus}
+                                      </span>
+                                    )}
+                                  </div>
+                                  
+                                  {/* Address */}
+                                  <h3 className="text-sm font-medium text-black line-clamp-2 mb-1">
+                                    {property.address}
+                                  </h3>
+                                  
+                                  {/* Price */}
+                                  <p className="text-lg font-semibold text-brown mb-2">
+                                    {property.price}
+                                  </p>
+                                  
+                                  {/* Property Details */}
+                                  <div className="grid grid-cols-3 gap-2 text-xs text-gray-600 mb-1">
+                                    <div>{property.bedrooms} beds</div>
+                                    <div>{property.bathrooms} baths</div>
+                                    <div>
+                                      {property.sqft.toLocaleString()} sqft
+                                    </div>
+                                  </div>
+                                  
+                                  {/* Lot Size */}
+                                  {property.lotSize && (
+                                    <div className="text-xs text-gray-500">
+                                      Lot: {property.lotSize}
+                                    </div>
+                                  )}
+                                </div>
+                                <HeartSave
+                                  property={property}
+                                  isSaved={isHomeSaved(property.id)}
+                                  onSave={saveHome}
+                                  onRemove={removeSavedHome}
+                                  size="sm"
+                                />
                               </div>
                             </div>
-                            <HeartSave
-                              property={property}
-                              isSaved={isHomeSaved(property.id)}
-                              onSave={saveHome}
-                              onRemove={removeSavedHome}
-                              size="sm"
-                            />
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
                   ) : (
                     <div className="text-center py-8 text-gray-500">
-                      <Search className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+                      <MapPin className="w-8 h-8 mx-auto mb-2 text-gray-300" />
                       <p className="text-sm">
-                        Search for properties to see results
+                        Click on the map to search for properties
                       </p>
                     </div>
                   )}
@@ -965,36 +1548,76 @@ export default function SearchPage() {
                       {savedHomes.map((property) => (
                         <div
                           key={property.id}
-                          className={`p-3 border rounded-lg cursor-pointer transition-all ${
+                          className={`border rounded-lg cursor-pointer transition-all overflow-hidden ${
                             selectedProperty?.id === property.id
                               ? "border-brown bg-brown/5"
                               : "border-gray-200 hover:border-brown/50 hover:bg-gray-50"
                           }`}
                           onClick={() => setSelectedProperty(property)}
                         >
-                          <div className="flex items-start justify-between mb-2">
-                            <div className="flex-1">
-                              <div className="flex items-center mb-1">
-                                <h3 className="text-sm font-medium text-black line-clamp-2">
+                          {/* Property Image */}
+                          {property.imageUrl && (
+                            <div className="w-full h-32 bg-gray-200 overflow-hidden">
+                              <img
+                                src={property.imageUrl}
+                                alt={property.address}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).src = "/default-home.jpg";
+                                }}
+                              />
+                            </div>
+                          )}
+                          
+                          <div className="p-3">
+                            <div className="flex items-start justify-between mb-2">
+                              <div className="flex-1">
+                                {/* Property Type and Status */}
+                                <div className="flex items-center gap-2 mb-1">
+                                  {property.propertyType && (
+                                    <span className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded">
+                                      {property.propertyType}
+                                    </span>
+                                  )}
+                                  {property.listingStatus && (
+                                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                                      Saved
+                                    </span>
+                                  )}
+                                </div>
+                                
+                                {/* Address */}
+                                <h3 className="text-sm font-medium text-black line-clamp-2 mb-1">
                                   {property.address}
                                 </h3>
+                                
+                                {/* Price */}
+                                <p className="text-lg font-semibold text-brown mb-2">
+                                  {property.price}
+                                </p>
+                                
+                                {/* Property Details */}
+                                <div className="grid grid-cols-3 gap-2 text-xs text-gray-600 mb-1">
+                                  <div>{property.bedrooms} beds</div>
+                                  <div>{property.bathrooms} baths</div>
+                                  <div>{property.sqft.toLocaleString()} sqft</div>
+                                </div>
+                                
+                                {/* Lot Size */}
+                                {property.lotSize && (
+                                  <div className="text-xs text-gray-500">
+                                    Lot: {property.lotSize}
+                                  </div>
+                                )}
                               </div>
-                              <p className="text-lg font-semibold text-brown mb-2">
-                                {property.price}
-                              </p>
-                              <div className="grid grid-cols-3 gap-2 text-xs text-gray-600">
-                                <div>{property.bedrooms} beds</div>
-                                <div>{property.bathrooms} baths</div>
-                                <div>{property.sqft.toLocaleString()} sqft</div>
-                              </div>
+                              <HeartSave
+                                property={property}
+                                isSaved={true}
+                                onSave={saveHome}
+                                onRemove={removeSavedHome}
+                                size="sm"
+                              />
                             </div>
-                            <HeartSave
-                              property={property}
-                              isSaved={true}
-                              onSave={saveHome}
-                              onRemove={removeSavedHome}
-                              size="sm"
-                            />
                           </div>
                         </div>
                       ))}
@@ -1016,517 +1639,123 @@ export default function SearchPage() {
 
         {/* Main Content */}
         <div className="flex-1 flex flex-col">
-          {/* Search Bar */}
+          {/* Search Instructions and Controls */}
           <div className="mobile-card mb-6 flex-shrink-0">
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col sm:flex-row gap-4 items-center">
               <div className="flex-1">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <input
-                    type="text"
-                    placeholder="Search by address, city, or neighborhood..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    className="mobile-input pl-10 pr-4"
-                  />
+                <div className="flex items-center gap-3">
+                  <MapPin className="text-brown w-5 h-5 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">
+                      We use your preferences, commute times, and important
+                      addresses to find the best properties for you.
+                      <button
+                        onClick={() => navigate("/dashboard/personalization")}
+                        className="text-xs text-brown hover:text-brown-dark underline cursor-pointer"
+                      >
+                        Edit Here
+                      </button>
+                    </p>
+                    {/* Location display removed - no longer needed without map click search */}
+                  </div>
                 </div>
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setShowFilters(!showFilters)}
-                  className={`px-4 py-2 rounded-lg border transition-colors ${
-                    showFilters
-                      ? "bg-brown text-white border-brown"
-                      : "bg-white text-gray-700 border-gray-300 hover:border-brown"
-                  }`}
-                >
-                  <Filter className="w-4 h-4 inline mr-2" />
-                  Filters
-                </button>
-                <button
-                  onClick={handleSearch}
-                  disabled={!searchQuery.trim() || isLoading}
-                  className="px-6 py-2 bg-olive-light text-gray-800 rounded-lg hover:bg-olive-light/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {isLoading ? "Searching..." : "Search"}
-                </button>
               </div>
             </div>
-
-            {/* Filters */}
-            {showFilters && (
-              <div className="mt-4 pt-4 border-t border-gray-200">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Price Range
-                    </label>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        placeholder="Min"
-                        value={priceRange.min}
-                        onChange={(e) =>
-                          setPriceRange((prev) => ({
-                            ...prev,
-                            min: e.target.value,
-                          }))
-                        }
-                        className="mobile-input text-sm"
-                      />
-                      <input
-                        type="text"
-                        placeholder="Max"
-                        value={priceRange.max}
-                        onChange={(e) =>
-                          setPriceRange((prev) => ({
-                            ...prev,
-                            max: e.target.value,
-                          }))
-                        }
-                        className="mobile-input text-sm"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Bedrooms
-                    </label>
-                    <select
-                      value={bedrooms}
-                      onChange={(e) => setBedrooms(e.target.value)}
-                      className="mobile-input text-sm"
-                    >
-                      <option value="">Any</option>
-                      <option value="1">1+</option>
-                      <option value="2">2+</option>
-                      <option value="3">3+</option>
-                      <option value="4">4+</option>
-                      <option value="5">5+</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Bathrooms
-                    </label>
-                    <select
-                      value={bathrooms}
-                      onChange={(e) => setBathrooms(e.target.value)}
-                      className="mobile-input text-sm"
-                    >
-                      <option value="">Any</option>
-                      <option value="1">1+</option>
-                      <option value="2">2+</option>
-                      <option value="3">3+</option>
-                      <option value="4">4+</option>
-                    </select>
-                  </div>
-                </div>
-                <div className="mt-4 flex justify-end">
-                  <button
-                    onClick={clearFilters}
-                    className="text-sm text-gray-500 hover:text-gray-700"
-                  >
-                    Clear Filters
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Map - Takes remaining height */}
           <div className="mobile-card flex-1 p-0 relative">
-            <div
-              ref={mapRef}
-              className="w-full h-full rounded-lg"
-              style={{ minHeight: "100%" }}
-            />
+            {isSearching ? (
+              <div className="w-full h-full rounded-lg flex items-center justify-center bg-gray-50">
+                <Loading message="Searching properties..." />
+              </div>
+            ) : (
+              <>
+                <div
+                  ref={mapRef}
+                  className="w-full h-full rounded-lg"
+                  style={{ minHeight: "100%" }}
+                />
 
-            {/* Custom Zoom Controls */}
-            <div className="absolute bottom-12 left-8 flex flex-row gap-1 z-10">
-              <button
-                onClick={zoomIn}
-                className="w-10 h-10 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20"
-                title="Zoom in"
-              >
-                <span className="text-lg font-bold leading-none">+</span>
-              </button>
-              <button
-                onClick={zoomOut}
-                className="w-10 h-10 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20"
-                title="Zoom out"
-              >
-                <span className="text-lg font-bold leading-none">−</span>
-              </button>
-            </div>
+                {/* Custom Zoom Controls */}
+                <div className="absolute bottom-12 left-8 flex flex-row gap-1 z-10">
+                  <button
+                    onClick={zoomIn}
+                    className="w-10 h-10 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20"
+                    title="Zoom in"
+                  >
+                    <span className="text-lg font-bold leading-none">+</span>
+                  </button>
+                  <button
+                    onClick={zoomOut}
+                    className="w-10 h-10 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20"
+                    title="Zoom out"
+                  >
+                    <span className="text-lg font-bold leading-none">−</span>
+                  </button>
+                </div>
+
+                {/* Property Pagination Controls */}
+                {hasSearched &&
+                  (activeTab === "results"
+                    ? searchResults.length > PROPERTIES_PER_PAGE
+                    : savedHomes.length > PROPERTIES_PER_PAGE) && (
+                    <div className="absolute bottom-12 right-8 flex flex-row gap-1 z-10">
+                      <button
+                        onClick={() =>
+                          setCurrentPage(Math.max(0, currentPage - 1))
+                        }
+                        disabled={currentPage === 0}
+                        className="w-10 h-10 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-gray-700 disabled:hover:border-gray-300"
+                        title="Previous properties"
+                      >
+                        <ChevronLeft className="w-5 h-5" />
+                      </button>
+                      <div className="w-auto px-3 h-10 bg-white border border-gray-300 rounded-lg shadow-md flex items-center justify-center text-sm font-medium text-gray-700">
+                        {Math.min(
+                          (currentPage + 1) * PROPERTIES_PER_PAGE,
+                          activeTab === "results"
+                            ? searchResults.length
+                            : savedHomes.length
+                        )}{" "}
+                        of{" "}
+                        {activeTab === "results"
+                          ? searchResults.length
+                          : savedHomes.length}
+                      </div>
+                      <button
+                        onClick={() => setCurrentPage(currentPage + 1)}
+                        disabled={
+                          (currentPage + 1) * PROPERTIES_PER_PAGE >=
+                          (activeTab === "results"
+                            ? searchResults.length
+                            : savedHomes.length)
+                        }
+                        className="w-10 h-10 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-gray-700 disabled:hover:border-gray-300"
+                        title="Next properties"
+                      >
+                        <ChevronRight className="w-5 h-5" />
+                      </button>
+                    </div>
+                  )}
+              </>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Enhanced Property Details Modal */}
-      {selectedProperty && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
-          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-brown/30 hover:scrollbar-thumb-brown/50">
-            {/* Header */}
-            <div className="sticky top-0 bg-white border-b border-gray-200 p-4 rounded-t-lg">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div>
-                    <h2 className="text-xl font-bold text-brown">Property Details</h2>
-                    <p className="text-sm text-gray-600 mt-1">{selectedProperty.address}</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  {/* Compact Action Buttons */}
-                  <button className="bg-olive-light text-gray-800 py-1.5 px-3 rounded text-xs font-medium hover:bg-olive-light/80 transition-colors">
-                    Full Report
-                  </button>
-                  <button className="border border-gray-300 text-gray-700 py-1.5 px-3 rounded text-xs font-medium hover:bg-gray-50 transition-colors">
-                    Schedule
-                  </button>
-                  
-                  <HeartSave
-                    property={selectedProperty}
-                    isSaved={isHomeSaved(selectedProperty.id)}
-                    onSave={saveHome}
-                    onRemove={removeSavedHome}
-                    size="lg"
-                    ariaLabel={isHomeSaved(selectedProperty.id) ? "Remove from saved" : "Save property"}
-                  />
-                  
-                  <button
-                    onClick={() => setSelectedProperty(null)}
-                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                    aria-label="Close modal"
-                  >
-                    <svg
-                      className="w-5 h-5 text-gray-500 hover:text-gray-700"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div className="p-6">
-              {/* Property Image Carousel and Basic Info */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                <div>
-                  {/* Main Image Carousel */}
-                  <div className="relative">
-                    <div className="relative w-full h-64 rounded-lg overflow-hidden">
-                      <img 
-                        src={propertyImages[currentImageIndex]} 
-                        alt={`Property view ${currentImageIndex + 1}`}
-                        className="w-full h-full object-cover"
-                      />
-                      
-                      {/* Navigation Arrows */}
-                      <button
-                        onClick={prevImage}
-                        className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 rounded-full p-2 shadow-lg transition-all duration-200 hover:scale-110"
-                        aria-label="Previous image"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                        </svg>
-                      </button>
-                      
-                      <button
-                        onClick={nextImage}
-                        className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 rounded-full p-2 shadow-lg transition-all duration-200 hover:scale-110"
-                        aria-label="Next image"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </button>
-                      
-                      {/* Image Counter */}
-                      <div className="absolute bottom-2 right-2 bg-black/60 text-white px-2 py-1 rounded text-sm">
-                        {currentImageIndex + 1} / {propertyImages.length}
-                      </div>
-                    </div>
-                    
-                    {/* Thumbnail Carousel Navigation */}
-                    <div className="relative mt-3">
-                      <div className="flex items-center gap-2">
-                        {/* Previous Thumbnails Button */}
-                        <button
-                          onClick={prevThumbnails}
-                          className="flex-shrink-0 p-1 rounded-full bg-white/80 hover:bg-white text-gray-600 hover:text-brown shadow-sm transition-all duration-200"
-                          aria-label="Previous thumbnails"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                          </svg>
-                        </button>
-                        
-                        {/* Thumbnail Grid */}
-                        <div className="flex gap-2 flex-1 overflow-hidden">
-                          {propertyImages
-                            .slice(thumbnailStartIndex, thumbnailStartIndex + thumbnailsPerView)
-                            .map((image, relativeIndex) => {
-                              const actualIndex = thumbnailStartIndex + relativeIndex;
-                              return (
-                                <button
-                                  key={actualIndex}
-                                  onClick={() => goToImage(actualIndex)}
-                                  className={`flex-shrink-0 w-16 h-12 rounded overflow-hidden border-2 transition-all duration-200 ${
-                                    actualIndex === currentImageIndex 
-                                      ? 'border-brown shadow-md' 
-                                      : 'border-gray-200 hover:border-gray-400'
-                                  }`}
-                                >
-                                  <img 
-                                    src={image} 
-                                    alt={`Thumbnail ${actualIndex + 1}`}
-                                    className="w-full h-full object-cover"
-                                  />
-                                </button>
-                              );
-                            })}
-                        </div>
-                        
-                        {/* Next Thumbnails Button */}
-                        <button
-                          onClick={nextThumbnails}
-                          className="flex-shrink-0 p-1 rounded-full bg-white/80 hover:bg-white text-gray-600 hover:text-brown shadow-sm transition-all duration-200"
-                          aria-label="Next thumbnails"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div>
-                  <div className="text-3xl font-bold text-brown mb-4">
-                    {selectedProperty.price}
-                  </div>
-                  <div className="grid grid-cols-3 gap-4 mb-6">
-                    <div className="text-center p-3 bg-gray-50 rounded-lg">
-                      <div className="text-2xl font-bold text-black">
-                        {selectedProperty.bedrooms}
-                      </div>
-                      <div className="text-sm text-gray-600">Bedrooms</div>
-                    </div>
-                    <div className="text-center p-3 bg-gray-50 rounded-lg">
-                      <div className="text-2xl font-bold text-black">
-                        {selectedProperty.bathrooms}
-                      </div>
-                      <div className="text-sm text-gray-600">Bathrooms</div>
-                    </div>
-                    <div className="text-center p-3 bg-gray-50 rounded-lg">
-                      <div className="text-2xl font-bold text-black">
-                        {selectedProperty.sqft.toLocaleString()}
-                      </div>
-                      <div className="text-sm text-gray-600">Sq Ft</div>
-                    </div>
-                  </div>
-                  
-                  {/* Additional Property Stats */}
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Year Built:</span>
-                      <span className="font-medium">1995</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Lot Size:</span>
-                      <span className="font-medium">0.25 acres</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Property Type:</span>
-                      <span className="font-medium">Single Family</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Parking:</span>
-                      <span className="font-medium">2-car garage</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Personalized Pros and Cons */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                {/* Pros */}
-                <div>
-                  <div className="flex items-center gap-2 mb-4">
-                    <CheckCircle className="w-5 h-5 text-olive" />
-                    <h3 className="text-lg font-semibold text-olive">Pros for You</h3>
-                  </div>
-                  <div className="space-y-3">
-                    <div className="bg-olive/10 border border-olive/30 rounded-lg p-4">
-                      <h4 className="font-medium text-olive mb-1">Excellent Schools</h4>
-                      <p className="text-sm text-brown/80">Perfect for your family with young children. Top-rated elementary school within walking distance.</p>
-                    </div>
-                    <div className="bg-olive/10 border border-olive/30 rounded-lg p-4">
-                      <h4 className="font-medium text-olive mb-1">Great Commute</h4>
-                      <p className="text-sm text-brown/80">25-minute commute to downtown SF aligns with your work location preferences.</p>
-                    </div>
-                    <div className="bg-olive/10 border border-olive/30 rounded-lg p-4">
-                      <h4 className="font-medium text-olive mb-1">Family Neighborhood</h4>
-                      <p className="text-sm text-brown/80">Quiet residential area with parks and family-friendly amenities nearby.</p>
-                    </div>
-                    <div className="bg-olive/10 border border-olive/30 rounded-lg p-4">
-                      <h4 className="font-medium text-olive mb-1">Within Budget</h4>
-                      <p className="text-sm text-brown/80">Price fits comfortably within your specified budget range of $800K-$1M.</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Cons */}
-                <div>
-                  <div className="flex items-center gap-2 mb-4">
-                    <AlertTriangle className="w-5 h-5 text-amber-600" />
-                    <h3 className="text-lg font-semibold text-amber-600">Considerations</h3>
-                  </div>
-                  <div className="space-y-3">
-                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                      <h4 className="font-medium text-amber-600 mb-1">Limited Nightlife</h4>
-                      <p className="text-sm text-brown/70">Fewer entertainment options compared to urban areas you've shown interest in.</p>
-                    </div>
-                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                      <h4 className="font-medium text-amber-600 mb-1">Older Construction</h4>
-                      <p className="text-sm text-brown/70">Built in 1995, may require updates to meet your modern home preferences.</p>
-                    </div>
-                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                      <h4 className="font-medium text-amber-600 mb-1">Public Transit</h4>
-                      <p className="text-sm text-brown/70">Limited public transportation options, car dependency for most activities.</p>
-                    </div>
-                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                      <h4 className="font-medium text-amber-600 mb-1">HOA Fees</h4>
-                      <p className="text-sm text-brown/70">$250/month HOA fees not included in listing price.</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Commute Map Section */}
-              <div className="mb-8">
-                <div className="flex items-center gap-2 mb-4">
-                  <MapPin className="w-5 h-5 text-brown" />
-                  <h3 className="text-lg font-semibold text-brown">Commute Information</h3>
-                </div>
-                <div className="bg-beige/20 border border-beige rounded-lg p-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <div className="bg-white border border-beige/40 rounded-lg p-4 h-48 flex items-center justify-center">
-                        <div className="text-center text-brown/60">
-                          <MapPin className="w-12 h-12 mx-auto mb-3 text-brown/40" />
-                          <p className="text-brown font-medium">Commute Map Visualization</p>
-                          <p className="text-sm text-brown/60 mt-1">(Interactive map would go here)</p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="space-y-4">
-                      <div className="bg-white border border-beige/40 rounded-lg p-4">
-                        <div className="flex justify-between items-center">
-                          <span className="text-brown/80">To Downtown SF</span>
-                          <span className="font-medium text-olive px-2 py-1 bg-olive/10 rounded">25 min</span>
-                        </div>
-                      </div>
-                      <div className="bg-white border border-beige/40 rounded-lg p-4">
-                        <div className="flex justify-between items-center">
-                          <span className="text-brown/80">To SFO Airport</span>
-                          <span className="font-medium text-amber-600 px-2 py-1 bg-amber-50 rounded">35 min</span>
-                        </div>
-                      </div>
-                      <div className="bg-white border border-beige/40 rounded-lg p-4">
-                        <div className="flex justify-between items-center">
-                          <span className="text-brown/80">To Silicon Valley</span>
-                          <span className="font-medium text-red-600 px-2 py-1 bg-red-50 rounded">45 min</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Schools and Crime Section */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                {/* Schools */}
-                <div>
-                  <div className="flex items-center gap-2 mb-4">
-                    <GraduationCap className="w-5 h-5 text-brown" />
-                    <h3 className="text-lg font-semibold text-brown">Schools</h3>
-                  </div>
-                  <div className="space-y-3">
-                    <div className="bg-beige/10 border border-beige/40 rounded-lg p-4">
-                      <div className="flex justify-between items-center mb-2">
-                        <h4 className="font-medium text-brown">Lincoln Elementary</h4>
-                        <span className="bg-olive/20 text-olive border border-olive/30 px-2 py-1 rounded text-sm font-medium">9/10</span>
-                      </div>
-                      <p className="text-sm text-brown/70">0.3 miles • Public • K-5</p>
-                    </div>
-                    <div className="bg-beige/10 border border-beige/40 rounded-lg p-4">
-                      <div className="flex justify-between items-center mb-2">
-                        <h4 className="font-medium text-brown">Roosevelt Middle School</h4>
-                        <span className="bg-amber-50 text-amber-600 border border-amber-200 px-2 py-1 rounded text-sm font-medium">7/10</span>
-                      </div>
-                      <p className="text-sm text-brown/70">0.8 miles • Public • 6-8</p>
-                    </div>
-                    <div className="bg-beige/10 border border-beige/40 rounded-lg p-4">
-                      <div className="flex justify-between items-center mb-2">
-                        <h4 className="font-medium text-brown">Washington High School</h4>
-                        <span className="bg-olive/20 text-olive border border-olive/30 px-2 py-1 rounded text-sm font-medium">8/10</span>
-                      </div>
-                      <p className="text-sm text-brown/70">1.2 miles • Public • 9-12</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Crime & Safety */}
-                <div>
-                  <div className="flex items-center gap-2 mb-4">
-                    <Shield className="w-5 h-5 text-brown" />
-                    <h3 className="text-lg font-semibold text-brown">Safety & Crime</h3>
-                  </div>
-                  <div className="space-y-4">
-                    <div className="bg-beige/10 border border-beige/40 rounded-lg p-4">
-                      <div className="flex justify-between items-center mb-3">
-                        <h4 className="font-medium text-brown">Overall Safety Score</h4>
-                        <span className="bg-olive/20 text-olive border border-olive/30 px-3 py-1 rounded-full text-sm font-medium">B+</span>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-brown/70">Violent Crime</span>
-                          <span className="text-olive font-medium">Low</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-brown/70">Property Crime</span>
-                          <span className="text-amber-600 font-medium">Moderate</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-brown/70">Police Response</span>
-                          <span className="text-olive font-medium">Fast (4 min avg)</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="bg-beige/10 border border-beige/40 rounded-lg p-4">
-                      <h4 className="font-medium text-brown mb-2">Recent Activity</h4>
-                      <p className="text-sm text-brown/70">2 incidents in past 30 days within 0.5 miles</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Property Details Modal */}
+      <PropertyDetailsModal
+        property={selectedProperty}
+        onClose={() => setSelectedProperty(null)}
+        isHomeSaved={isHomeSaved}
+        saveHome={saveHome}
+        removeSavedHome={removeSavedHome}
+        onFullReport={() => {
+          // Handle full report action
+          console.log("Full report requested for:", selectedProperty?.address);
+        }}
+      />
     </div>
   );
 }

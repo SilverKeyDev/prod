@@ -2,10 +2,47 @@
 // The @types/google.maps package provides global type definitions
 
 const mapStyles: google.maps.MapTypeStyle[] = [
+  // Show city and neighborhood labels with custom styling
   {
-    elementType: "labels.text",
+    featureType: "administrative.locality",
+    elementType: "labels.text.fill",
+    stylers: [
+      { color: "#4a4a4a" },
+      { visibility: "on" }
+    ]
+  },
+  {
+    featureType: "administrative.neighborhood",
+    elementType: "labels.text.fill",
+    stylers: [
+      { color: "#666666" },
+      { visibility: "on" }
+    ]
+  },
+  // Show major road labels (highways and arterials)
+  {
+    featureType: "road.highway",
+    elementType: "labels.text.fill",
+    stylers: [
+      { color: "#4a4a4a" },
+      { visibility: "on" }
+    ]
+  },
+  {
+    featureType: "road.arterial",
+    elementType: "labels.text.fill",
+    stylers: [
+      { color: "#666666" },
+      { visibility: "on" }
+    ]
+  },
+  // Hide local road labels to reduce clutter
+  {
+    featureType: "road.local",
+    elementType: "labels",
     stylers: [{ visibility: "off" }]
   },
+  // Landscape styling
   {
     featureType: "landscape.natural",
     elementType: "geometry.fill",
@@ -15,24 +52,21 @@ const mapStyles: google.maps.MapTypeStyle[] = [
     ]
   },
   {
-    featureType: "administrative",
-    stylers: [{ visibility: "off" }]
-  },
-  {
-    featureType: "transit",
-    stylers: [{ visibility: "off" }]
-  },
-  {
-    featureType: "poi.attraction",
-    stylers: [{ visibility: "off" }]
-  },
-  {
     featureType: "landscape.man_made",
     elementType: "geometry.fill",
     stylers: [
       { color: "#ffffff" },
       { visibility: "on" }
     ]
+  },
+  {
+    featureType: "landscape",
+    stylers: [{ color: "#f5f5f2" }]
+  },
+  // Hide most POI labels but keep icons off
+  {
+    featureType: "poi.attraction",
+    stylers: [{ visibility: "off" }]
   },
   {
     featureType: "poi.business",
@@ -55,6 +89,23 @@ const mapStyles: google.maps.MapTypeStyle[] = [
     stylers: [{ visibility: "off" }]
   },
   {
+    featureType: "poi.government",
+    elementType: "geometry",
+    stylers: [{ visibility: "off" }]
+  },
+  // Hide POI icons but allow some labels
+  {
+    featureType: "poi",
+    elementType: "labels.icon",
+    stylers: [{ visibility: "off" }]
+  },
+  {
+    featureType: "poi.park",
+    elementType: "labels.icon",
+    stylers: [{ visibility: "off" }]
+  },
+  // Road styling
+  {
     featureType: "road.highway",
     elementType: "geometry",
     stylers: [
@@ -64,53 +115,64 @@ const mapStyles: google.maps.MapTypeStyle[] = [
   },
   {
     featureType: "road.arterial",
-    stylers: [
-      { visibility: "simplified" },
-      { color: "#ffffff" }
-    ]
-  },
-  {
-    featureType: "road.highway",
-    elementType: "labels.icon",
+    elementType: "geometry",
     stylers: [
       { color: "#ffffff" },
-      { visibility: "off" }
+      { visibility: "simplified" }
     ]
-  },
-  {
-    featureType: "road.arterial",
-    stylers: [{ color: "#ffffff" }]
   },
   {
     featureType: "road.local",
-    stylers: [{ color: "#ffffff" }]
-  },
-  {
-    featureType: "poi.park",
-    elementType: "labels.icon",
-    stylers: [{ visibility: "off" }]
-  },
-  {
-    featureType: "poi",
-    elementType: "labels.icon",
-    stylers: [{ visibility: "off" }]
-  },
-  {
-    featureType: "water",
-    stylers: [{ color: "#a0d3d3" }]
-  },
-  {
-    featureType: "landscape",
-    stylers: [{ color: "#e5e8e7" }]
-  },
-  {
-    featureType: "poi.park",
-    stylers: [{ color: "#91b65d" }, { gamma: 1.51 }]
+    elementType: "geometry",
+    stylers: [
+      { color: "#ffffff" },
+      { visibility: "on" }
+    ]
   },
   {
     featureType: "road",
     stylers: [{ color: "#ffffff" }]
   },
+  // Hide highway icons
+  {
+    featureType: "road.highway",
+    elementType: "labels.icon",
+    stylers: [{ visibility: "off" }]
+  },
+  // Water and parks
+  {
+    featureType: "water",
+    stylers: [{ color: "#a0d3d3" }]
+  },
+  {
+    featureType: "poi.park",
+    stylers: [{ color: "#91b65d" }, { gamma: 1.51 }]
+  },
+  // National parks text styling - less bold and blurry
+  {
+    featureType: "poi.park",
+    elementType: "labels.text.fill",
+    stylers: [
+      { color: "#5a7c42" },
+      { weight: "normal" },
+      { visibility: "on" }
+    ]
+  },
+  {
+    featureType: "poi.park",
+    elementType: "labels.text.stroke",
+    stylers: [
+      { color: "#ffffff" },
+      { weight: 1 },
+      { visibility: "on" }
+    ]
+  },
+  // Hide transit
+  {
+    featureType: "transit",
+    stylers: [{ visibility: "off" }]
+  },
+  // Hide sports complex geometry
   {
     featureType: "poi.sports_complex",
     elementType: "geometry",
@@ -118,72 +180,7 @@ const mapStyles: google.maps.MapTypeStyle[] = [
       { color: "#c7c7c7" },
       { visibility: "off" }
     ]
-  },
-  {
-    featureType: "road.local",
-    stylers: [{ visibility: "off" }]
-  },
-  {
-    featureType: "road.local",
-    elementType: "geometry",
-    stylers: [{ visibility: "on" }]
-  },
-  {
-    featureType: "poi.government",
-    elementType: "geometry",
-    stylers: [{ visibility: "off" }]
-  },
-  {
-    featureType: "landscape",
-    stylers: [{ visibility: "off" }]
-  },
-  {
-    featureType: "road",
-    elementType: "labels",
-    stylers: [{ visibility: "off" }]
-  },
-  {
-    featureType: "road.arterial",
-    elementType: "geometry",
-    stylers: [{ visibility: "simplified" }]
-  },
-  {
-    featureType: "road.local",
-    stylers: [{ visibility: "simplified" }]
-  },
-  {
-    elementType: 'labels',
-    stylers: [{ visibility: 'off' }],
-  },
-  {
-    featureType: 'administrative',
-    stylers: [{ visibility: 'off' }],
-  },
-  {
-    featureType: 'poi',
-    stylers: [{ visibility: 'off' }],
-  },
-  {
-    featureType: 'road',
-    elementType: 'labels',
-    stylers: [{ visibility: 'off' }],
-  },
-  {
-    featureType: 'transit',
-    stylers: [{ visibility: 'off' }],
-  },
-  {
-    featureType: 'landscape',
-    stylers: [{ color: '#f5f5f2' }],
-  },
-  {
-    featureType: 'water',
-    stylers: [{ color: '#a0d3d3' }],
-  },
-  {
-    featureType: 'poi.park',
-    stylers: [{ color: '#91b65d' }],
-  },
+  }
 ];
 
 export default mapStyles;

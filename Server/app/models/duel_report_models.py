@@ -461,7 +461,22 @@ class Commute(BaseModel):
     @classmethod
     def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
         """Generate personalized example based on user preferences"""
-        commute_tolerance = user_preferences.get('commute_tolerance', 'under_30') if user_preferences else 'under_30'
+        # Get commute tolerance from important locations
+        commute_tolerance = 'under_30'  # default
+        if user_preferences:
+            important_locations = user_preferences.get('important_locations', [])
+            if isinstance(important_locations, list) and important_locations:
+                first_location = important_locations[0]
+                if isinstance(first_location, dict):
+                    commute_val = first_location.get('commute_tolerance', 30)
+                    if commute_val <= 15:
+                        commute_tolerance = 'under_15'
+                    elif commute_val <= 30:
+                        commute_tolerance = 'under_30'
+                    elif commute_val <= 45:
+                        commute_tolerance = 'under_45'
+                    else:
+                        commute_tolerance = 'over_45'
         walkability_importance = user_preferences.get('walkability_importance', 'somewhat_important') if user_preferences else 'somewhat_important'
         
         return {
@@ -494,7 +509,22 @@ class Commute(BaseModel):
     @classmethod
     def get_description(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, str]:
         """Generate personalized field descriptions based on user preferences"""
-        commute_tolerance = user_preferences.get('commute_tolerance', 'under_30') if user_preferences else 'under_30'
+        # Get commute tolerance from important locations
+        commute_tolerance = 'under_30'  # default
+        if user_preferences:
+            important_locations = user_preferences.get('important_locations', [])
+            if isinstance(important_locations, list) and important_locations:
+                first_location = important_locations[0]
+                if isinstance(first_location, dict):
+                    commute_val = first_location.get('commute_tolerance', 30)
+                    if commute_val <= 15:
+                        commute_tolerance = 'under_15'
+                    elif commute_val <= 30:
+                        commute_tolerance = 'under_30'
+                    elif commute_val <= 45:
+                        commute_tolerance = 'under_45'
+                    else:
+                        commute_tolerance = 'over_45'
         walkability_importance = user_preferences.get('walkability_importance', 'somewhat_important') if user_preferences else 'somewhat_important'
         
         return {
