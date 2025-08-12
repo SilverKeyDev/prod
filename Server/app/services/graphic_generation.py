@@ -9,6 +9,8 @@ import requests
 import urllib.parse
 from PIL import Image as PILImage
 from io import BytesIO
+import re
+
 
 
 logger = logging.getLogger(__name__)
@@ -18,6 +20,32 @@ TITLE_FONTSIZE = 16
 LABEL_FONTSIZE = 12
 TICK_FONTSIZE = 10
 AUTOPCT_FONTSIZE = 10
+
+
+def _slugify_address(street: str, city: str, state: str, zipcode: str | None = None) -> str:
+    """
+    Make a Zillow-friendly slug: "1107-E-Beechwood-Dr-NW-Atlanta-GA-30327"
+    We keep directionals like NE/NW, collapse punctuation/whitespace to "-".
+    """
+    parts = [street or "", city or "", state or ""]
+    if zipcode:
+        parts.append(str(zipcode))
+    base = "-".join(p.strip() for p in parts if p and p.strip())
+    # Replace any non-alphanumeric runs with a single hyphen; strip leading/trailing hyphens.
+    slug = re.sub(r"[^A-Za-z0-9]+", "-", base).strip("-")
+    return slug
+
+def _parse_address_line(addr: str) -> tuple[str, str, str, str | None] | None:
+    """
+    Parse "935 Cumberland Rd NE, Atlanta, GA 30306" -> (street, city, state, zipcode?)
+    Returns None if it can't confidently parse.
+    """
+    m = re.match(r"^(.*?),\s*([^,]+),\s*([A-Z]{2})(?:\s+(\d{5}(?:-\d{4})?))?$", addr.strip())
+    if not m:
+        return None
+    street, city, state, zipcode = m.groups()
+    return street.strip(), city.strip(), state.strip(), (zipcode.strip() if zipcode else None)
+
 
 def format_label(label: str) -> str:
     """Format label by capitalizing and replacing underscores with spaces.
@@ -305,39 +333,88 @@ def fetch_travel_time(origin, destination, api_key):
 
 
 def generate_static_map_url(primary_address, secondary_locations, api_key):
+    """Generate a styled static map URL with proper zoom to show all routes."""
     base_url = "https://maps.googleapis.com/maps/api/staticmap?"
+    
+    # Enhanced parameters with custom styling
     params = {
         "size": "800x600",
         "maptype": "roadmap",
         "key": api_key,
+        "format": "png",
+        "scale": "2",  # High resolution for better quality
     }
-
+    
+    # Custom map styling based on mapStyling.ts
+    custom_style = [
+        # Clean landscape
+        "style=feature:landscape%7Celement:geometry.fill%7Ccolor:0xf5f5f2",
+        "style=feature:landscape.man_made%7Celement:geometry.fill%7Ccolor:0xffffff",
+        
+        # Clean roads
+        "style=feature:road.highway%7Celement:geometry%7Ccolor:0xffffff%7Cvisibility:simplified",
+        "style=feature:road.arterial%7Celement:geometry%7Ccolor:0xffffff%7Cvisibility:simplified",
+        "style=feature:road.local%7Celement:geometry%7Ccolor:0xffffff",
+        
+        # Hide clutter
+        "style=feature:poi%7Celement:labels.icon%7Cvisibility:off",
+        "style=feature:road.local%7Celement:labels%7Cvisibility:off",
+        "style=feature:transit%7Cvisibility:off",
+        
+        # Water and parks
+        "style=feature:water%7Ccolor:0xa0d3d3",
+        "style=feature:poi.park%7Ccolor:0x91b65d",
+        
+        # Keep important labels
+        "style=feature:administrative.locality%7Celement:labels.text.fill%7Ccolor:0x4a4a4a%7Cvisibility:on",
+        "style=feature:road.highway%7Celement:labels.text.fill%7Ccolor:0x4a4a4a%7Cvisibility:on",
+    ]
+    
     markers = []
     paths = []
+    all_addresses = [primary_address]
 
-    markers.append(f"label:A|{primary_address}")
+    # Enhanced marker for primary address (property)
+    markers.append(f"color:red%7Clabel:P%7C{primary_address}")
 
+    # Enhanced markers for secondary locations with different colors
+    colors = ["blue", "green", "orange", "purple", "yellow"]
     for i, loc in enumerate(secondary_locations):
-        label = chr(ord("B") + i)
-        markers.append(f"label:{label}|{loc['address']}")
+        color = colors[i % len(colors)]
+        label = loc.get('name', f'L{i+1}')[:1].upper()  # Use first letter of location name
+        markers.append(f"color:{color}%7Clabel:{label}%7C{loc['address']}")
+        all_addresses.append(loc['address'])
+        
+        # Enhanced path styling
         polyline = fetch_route_polyline(primary_address, loc['address'], api_key)
         if polyline:
-            paths.append(f"enc:{polyline}")
+            # Use different colors for different routes
+            path_color = "0x4285F4" if i == 0 else "0x34A853" if i == 1 else "0xEA4335"
+            paths.append(f"color:{path_color}%7Cweight:4%7Cenc:{polyline}")
         else:
-            paths.append(f"color:0x888888|weight:1|{primary_address}|{loc['address']}")
+            # Fallback straight line with styling
+            path_color = "0x888888"
+            paths.append(f"color:{path_color}%7Cweight:2%7C{primary_address}%7C{loc['address']}")
 
+    # Auto-zoom: Let Google determine the best zoom to fit all markers
+    # Don't set center or zoom, let Google auto-fit based on markers
+    
+    params["style"] = custom_style
     params["markers"] = markers
-    params["path"] = paths
+    if paths:  # Only add paths if we have routes
+        params["path"] = paths
 
     query_string = ""
     for k, v in params.items():
         if isinstance(v, list):
             for item in v:
-                query_string += f"{k}={urllib.parse.quote_plus(item)}&"
+                query_string += f"{k}={item}&"
         else:
-            query_string += f"{k}={urllib.parse.quote_plus(v)}&"
+            query_string += f"{k}={urllib.parse.quote_plus(str(v))}&"
 
-    return base_url + query_string.rstrip("&")
+    final_url = base_url + query_string.rstrip("&")
+    logger.info(f"🗺️ Generated enhanced map URL with {len(secondary_locations)} routes")
+    return final_url
 
 
 def save_map_as_buffer(url):

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { CheckCircle, AlertTriangle, MapPin, GraduationCap, Shield, ExternalLink, Star, DollarSign, Home, User, Phone } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { CheckCircle, AlertTriangle, MapPin, GraduationCap, Shield, ExternalLink, Star, Home, User, Phone } from 'lucide-react';
 import HeartSave from './HeartSave';
 
 // Import SearchResult interface from SearchPage
@@ -168,6 +169,39 @@ interface SearchResult {
   
   // Legacy support
   images?: string[];
+  
+  // Zillow photos array
+  photos?: Array<{
+    url?: string;
+    mixedSources?: {
+      jpeg?: Array<{
+        url: string;
+        width?: number;
+        height?: number;
+      }>;
+    };
+  }> | string[];
+  
+  // Commute data from enhanced property API
+  commute_data?: {
+    travel_times: Array<{
+      location_name: string;
+      location_address: string;
+      travel_time: string;
+      commute_tolerance?: number;
+      name?: string; // Alias for location_name
+      address?: string; // Alias for location_address
+    }>;
+    map_url: string;
+    property_address: string;
+    error?: string;
+  };
+  
+  // Zillow URL from enhanced property API
+  zillow_url?: string;
+  
+  // Property features from enhanced property API
+  features?: Record<string, string[]>;
 }
 
 interface PropertyDetailsModalProps {
@@ -176,36 +210,142 @@ interface PropertyDetailsModalProps {
   isHomeSaved: (id: string) => boolean;
   saveHome: (property: SearchResult) => void;
   removeSavedHome: (id: string) => void;
-  onFullReport?: () => void;
 }
 
-const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
-  property,
-  onClose,
-  isHomeSaved,
-  saveHome,
-  removeSavedHome,
-  onFullReport
-}) => {
+const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({ property, onClose, isHomeSaved, saveHome, removeSavedHome }) => {
+  const navigate = useNavigate();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [thumbnailStartIndex, setThumbnailStartIndex] = useState(0);
+
+  // Handle navigation to generate report page with pre-filled address
+  const handleGenerateFullReport = () => {
+    if (property) {
+      // Get the property address in the best format available
+      const propertyAddress = formatAddress(property.address);
+      
+      // Save the address to localStorage for the GenerateReportPage
+      const generateReportState = {
+        address: propertyAddress,
+        comparisonAddress: '',
+        reportType: 'detailed',
+        selectedClientId: ''
+      };
+      
+      localStorage.setItem('generateReportState', JSON.stringify(generateReportState));
+      
+      // Navigate to the generate report page
+      navigate('/dashboard/generate-report');
+    }
+  };
   
   if (!property) return null;
 
-  // Default property images if none provided
-  const propertyImages = property.images || [
-    'https://images.unsplash.com/photo-1570129477492-45c003edd2be?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    'https://images.unsplash.com/photo-1484154218962-a197022b5858?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
-  ];
+  // Helper function to format address - handle both string and object formats
+  const formatAddress = (address: any): string => {
+    if (typeof address === 'string') {
+      return address;
+    }
+    
+    if (typeof address === 'object' && address !== null) {
+      // Handle address object with components
+      const parts = [];
+      if (address.streetAddress) parts.push(address.streetAddress);
+      if (address.city) parts.push(address.city);
+      if (address.state) parts.push(address.state);
+      if (address.zipcode) parts.push(address.zipcode);
+      
+      return parts.join(', ') || 'Address not available';
+    }
+    
+    return 'Address not available';
+  };
+
+  // Helper function to format price
+  const formatPrice = (price: any): string => {
+    if (typeof price === 'number') {
+      return `$${price.toLocaleString()}`;
+    }
+    if (typeof price === 'string') {
+      // Remove any existing $ and format as number if possible
+      const numericPrice = price.replace(/[^0-9]/g, '');
+      if (numericPrice && !isNaN(Number(numericPrice))) {
+        return `$${Number(numericPrice).toLocaleString()}`;
+      }
+      return price.startsWith('$') ? price : `$${price}`;
+    }
+    return 'Price not available';
+  };
+
+  // Helper function to format property type
+  const formatPropertyType = (type: string): string => {
+    if (!type) return 'N/A';
+    
+    // Convert SINGLE_FAMILY to Single Family, etc.
+    return type
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  };
+
+  // Handle property images - prioritize extracted images from API, then Zillow static images, fallback to default
+  const getPropertyImages = () => {
+    // First priority: extracted images from API response
+    if (property.images && Array.isArray(property.images) && property.images.length > 0) {
+      console.log('🖼️ [MODAL] Using extracted images from API:', property.images.length);
+      return property.images;
+    }
+    
+    // Second priority: Check for Zillow static images
+    if (property.photos && Array.isArray(property.photos) && property.photos.length > 0) {
+      console.log('🖼️ [MODAL] Using Zillow photos:', property.photos.length);
+      return property.photos.map((photo: any) => {
+        if (typeof photo === 'string') return photo;
+        if (photo && photo.url) return photo.url;
+        if (photo && photo.mixedSources && photo.mixedSources.jpeg && photo.mixedSources.jpeg.length > 0) {
+          // Get the highest quality image
+          const jpegSources = photo.mixedSources.jpeg;
+          return jpegSources[jpegSources.length - 1].url;
+        }
+        return null;
+      }).filter(Boolean);
+    }
+    
+    // Default fallback images
+    return [
+      'https://images.unsplash.com/photo-1570129477492-45c003edd2be?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1484154218962-a197022b5858?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
+    ];
+  };
+
+  const propertyImages = getPropertyImages();
 
   const handleGoToZillow = () => {
     try {
-
+      // Use dynamic Zillow URL from API response if available
+      if (property.zillow_url) {
+        console.log('🔗 Using dynamic Zillow URL:', property.zillow_url);
+        window.open(property.zillow_url, '_blank', 'noopener,noreferrer');
+        return;
+      }
+      
+      // Fallback: construct URL from property data
+      if (property.zpid) {
+        const zillowUrl = `https://www.zillow.com/homedetails/${property.zpid}_zpid/`;
+        console.log('🔗 Using zpid-based Zillow URL:', zillowUrl);
+        window.open(zillowUrl, '_blank', 'noopener,noreferrer');
+        return;
+      }
+      
+      // Last resort: search by address
+      const fallbackUrl = `https://www.zillow.com/homes/${encodeURIComponent(property.address)}_rb/`;
+      console.log('🔗 Using address-based Zillow search:', fallbackUrl);
+      window.open(fallbackUrl, '_blank', 'noopener,noreferrer');
+      
     } catch (error) {
-      console.error('Error generating Zillow link:', error);
-      // Fallback to general Zillow search
+      console.error('Error opening Zillow link:', error);
+      // Ultimate fallback to general Zillow search
       const fallbackUrl = `https://www.zillow.com/homes/${encodeURIComponent(property.address)}_rb/`;
       window.open(fallbackUrl, '_blank', 'noopener,noreferrer');
     }
@@ -246,20 +386,18 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
             <div className="flex items-center gap-3">
               <div>
                 <h2 className="text-xl font-bold text-brown">Property Details</h2>
-                <p className="text-sm text-gray-600 mt-1">{property.address}</p>
+                <p className="text-sm text-gray-600 mt-1">{formatAddress(property.address)}</p>
               </div>
             </div>
             
             <div className="flex items-center gap-2">
               {/* Compact Action Buttons */}
-              {onFullReport && (
-                <button 
-                  onClick={onFullReport}
-                  className="bg-olive-light text-gray-800 py-1.5 px-3 rounded text-xs font-medium hover:bg-olive-light/80 transition-colors"
-                >
-                  Full Report
-                </button>
-              )}
+              <button 
+                onClick={handleGenerateFullReport}
+                className="bg-olive-light text-gray-800 py-1.5 px-3 rounded text-xs font-medium hover:bg-olive-light/80 transition-colors"
+              >
+                Generate Full Report
+              </button>
               <button 
                 onClick={handleGoToZillow}
                 className="border border-blue-600 text-blue-600 py-1.5 px-3 rounded text-xs font-medium hover:bg-blue-50 transition-colors flex items-center gap-1"
@@ -359,7 +497,7 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
                     <div className="flex gap-2 flex-1 overflow-hidden">
                       {propertyImages
                         .slice(thumbnailStartIndex, thumbnailStartIndex + thumbnailsPerView)
-                        .map((image, relativeIndex) => {
+                        .map((image: string, relativeIndex: number) => {
                           const actualIndex = thumbnailStartIndex + relativeIndex;
                           return (
                             <button
@@ -397,7 +535,7 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
             </div>
             <div>
               <div className="text-3xl font-bold text-brown mb-4">
-                {property.price}
+                {formatPrice(property.price)}
               </div>
               <div className="grid grid-cols-3 gap-4 mb-6">
                 <div className="text-center p-3 bg-gray-50 rounded-lg">
@@ -432,7 +570,7 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Property Type:</span>
-                  <span className="font-medium">{property.homeType || property.propertyType || 'N/A'}</span>
+                  <span className="font-medium">{formatPropertyType(property.homeType || property.propertyType || '')}</span>
                 </div>
                 {property.pricePerSquareFoot && (
                   <div className="flex justify-between">
@@ -457,8 +595,14 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
                 )}
                 {property.zestimate && (
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Zestimate:</span>
+                    <span className="text-gray-600">Estimate:</span>
                     <span className="font-medium">${property.zestimate.toLocaleString()}</span>
+                  </div>
+                )}
+                {property.rentZestimate && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Rent Estimate:</span>
+                    <span className="font-medium">${property.rentZestimate.toLocaleString()}/month</span>
                   </div>
                 )}
               </div>
@@ -523,47 +667,7 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
           {/* Enhanced Property Details Section */}
           <div className="mb-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Financial Information */}
-              <div>
-                <div className="flex items-center gap-2 mb-4">
-                  <DollarSign className="w-5 h-5 text-brown" />
-                  <h3 className="text-lg font-semibold text-brown">Financial Details</h3>
-                </div>
-                <div className="space-y-3">
-                  {property.taxAnnualAmount && (
-                    <div className="bg-beige/10 border border-beige/40 rounded-lg p-4">
-                      <div className="flex justify-between">
-                        <span className="text-brown/70">Annual Property Tax:</span>
-                        <span className="font-medium text-brown">${property.taxAnnualAmount.toLocaleString()}</span>
-                      </div>
-                      {property.propertyTaxRate && (
-                        <div className="flex justify-between mt-2">
-                          <span className="text-brown/70">Tax Rate:</span>
-                          <span className="font-medium text-brown">{(property.propertyTaxRate * 100).toFixed(2)}%</span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  {(property.monthlyHoaFee || property.hoaFee) && (
-                    <div className="bg-beige/10 border border-beige/40 rounded-lg p-4">
-                      <div className="flex justify-between">
-                        <span className="text-brown/70">HOA Fee:</span>
-                        <span className="font-medium text-brown">
-                          {property.monthlyHoaFee ? `$${property.monthlyHoaFee}/month` : property.hoaFee}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                  {property.rentZestimate && (
-                    <div className="bg-beige/10 border border-beige/40 rounded-lg p-4">
-                      <div className="flex justify-between">
-                        <span className="text-brown/70">Rent Estimate:</span>
-                        <span className="font-medium text-brown">${property.rentZestimate.toLocaleString()}/month</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
+
 
               {/* Property Features */}
               <div>
@@ -637,13 +741,24 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
                 </div>
                 <div className="bg-beige/10 border border-beige/40 rounded-lg p-4">
                   <div className="flex items-start space-x-4">
-                    {property.listed_by.image_url && (
-                      <img 
-                        src={property.listed_by.image_url} 
-                        alt={property.listed_by.display_name}
-                        className="w-16 h-16 rounded-full object-cover border-2 border-brown/20"
-                      />
-                    )}
+                    <div className="w-16 h-16 rounded-full border-2 border-brown/20 flex-shrink-0 overflow-hidden bg-brown/10">
+                      {property.listed_by.image_url ? (
+                        <img 
+                          src={property.listed_by.image_url} 
+                          alt={property.listed_by.display_name || 'Listing Agent'}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                            const fallback = target.nextElementSibling as HTMLElement;
+                            if (fallback) fallback.style.display = 'flex';
+                          }}
+                        />
+                      ) : null}
+                      <div className={`w-full h-full flex items-center justify-center ${property.listed_by.image_url ? 'hidden' : 'flex'}`}>
+                        <User className="w-8 h-8 text-brown/40" />
+                      </div>
+                    </div>
                     <div className="flex-1">
                       <h4 className="font-medium text-brown text-lg">{property.listed_by.display_name}</h4>
                       {property.listed_by.business_name && (
@@ -672,7 +787,10 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
                           <div className="flex items-center text-brown">
                             <Phone className="h-4 w-4 mr-1" />
                             <span>
-                              {property.listed_by.phone.prefix}-{property.listed_by.phone.areacode}-{property.listed_by.phone.number}
+                              {property.listed_by.phone.areacode && property.listed_by.phone.prefix && property.listed_by.phone.number
+                                ? `(${property.listed_by.phone.areacode}) ${property.listed_by.phone.prefix}-${property.listed_by.phone.number}`
+                                : property.listed_by.phone.areacode || property.listed_by.phone.prefix || property.listed_by.phone.number || 'Phone available'
+                              }
                             </span>
                           </div>
                         )}
@@ -693,45 +811,142 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
           </div>
 
           {/* Commute Map Section */}
-          <div className="mb-8">
-            <div className="flex items-center gap-2 mb-4">
-              <MapPin className="w-5 h-5 text-brown" />
-              <h3 className="text-lg font-semibold text-brown">Commute Information</h3>
+          {property.commute_data && (
+            <div className="mb-8">
+              <div className="flex items-center gap-2 mb-4">
+                <MapPin className="w-5 h-5 text-brown" />
+                <h3 className="text-lg font-semibold text-brown">Commute Information</h3>
+              </div>
+              <div className="bg-beige/20 border border-beige rounded-lg p-6">
+                {property.commute_data?.error ? (
+                  <div className="text-center text-brown/60 py-8">
+                    <MapPin className="w-12 h-12 mx-auto mb-3 text-brown/40" />
+                    <p className="text-brown font-medium">Commute data unavailable</p>
+                    <p className="text-sm text-brown/60 mt-1">{property.commute_data?.error}</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      {property.commute_data.map_url ? (
+                        <div className="bg-white border border-beige/40 rounded-lg p-4">
+                          <div className="aspect-square w-full">
+                            <img 
+                              src={property.commute_data.map_url} 
+                              alt="Commute Map" 
+                              className="w-full h-full object-contain rounded"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = 'none';
+                                const fallback = target.nextElementSibling as HTMLElement;
+                                if (fallback) fallback.style.display = 'flex';
+                              }}
+                            />
+                            <div className="hidden h-full items-center justify-center text-center text-brown/60">
+                              <div>
+                                <MapPin className="w-12 h-12 mx-auto mb-3 text-brown/40" />
+                                <p className="text-brown font-medium">Map unavailable</p>
+                                <p className="text-sm text-brown/60 mt-1">Unable to load commute map</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="bg-white border border-beige/40 rounded-lg p-4">
+                          <div className="aspect-square w-full flex items-center justify-center">
+                            <div className="text-center text-brown/60">
+                              <MapPin className="w-12 h-12 mx-auto mb-3 text-brown/40" />
+                              <p className="text-brown font-medium">Commute Map</p>
+                              <p className="text-sm text-brown/60 mt-1">Map generation in progress...</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex flex-col justify-center h-full space-y-4">
+                      {property.commute_data.travel_times && property.commute_data.travel_times.length > 0 ? (
+                        property.commute_data.travel_times.map((commute, index) => {
+                          const travelTimeMinutes = commute.travel_time ? 
+                            parseInt(commute.travel_time.replace(/\D/g, '')) : null;
+                          const tolerance = commute.commute_tolerance;
+                          
+                          // Determine color based on travel time vs tolerance
+                          let colorClass = 'text-olive bg-olive/10'; // Default green
+                          if (travelTimeMinutes && tolerance && typeof tolerance === 'number') {
+                            if (travelTimeMinutes > tolerance * 1.2) {
+                              colorClass = 'text-red-600 bg-red-50'; // Red for over tolerance
+                            } else if (travelTimeMinutes > tolerance) {
+                              colorClass = 'text-amber-600 bg-amber-50'; // Amber for close to tolerance
+                            }
+                          }
+                          
+                          return (
+                            <div key={index} className="bg-white border border-beige/40 rounded-lg p-4">
+                              <div className="flex justify-between items-center">
+                                <div>
+                                  <span className="text-brown/80 font-medium">{commute.location_name || commute.name}</span>
+                                  <p className="text-xs text-brown/60 mt-1 truncate">{commute.location_address || commute.address}</p>
+                                </div>
+                                <div className="text-right">
+                                  <span className={`font-medium px-2 py-1 rounded ${colorClass}`}>
+                                    {commute.travel_time || 'N/A'}
+                                  </span>
+                                  {tolerance && (
+                                    <p className="text-xs text-brown/60 mt-1">Target: {tolerance} min</p>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <div className="flex items-center justify-center h-full">
+                          <div className="bg-white border border-beige/40 rounded-lg p-4 text-center text-brown/60">
+                            <p>No important locations configured</p>
+                            <p className="text-sm mt-1">Set up your important locations in preferences to see commute times</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
-            <div className="bg-beige/20 border border-beige rounded-lg p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <div className="bg-white border border-beige/40 rounded-lg p-4 h-48 flex items-center justify-center">
-                    <div className="text-center text-brown/60">
-                      <MapPin className="w-12 h-12 mx-auto mb-3 text-brown/40" />
-                      <p className="text-brown font-medium">Commute Map Visualization</p>
-                      <p className="text-sm text-brown/60 mt-1">(Interactive map would go here)</p>
-                    </div>
-                  </div>
-                </div>
+          )}
+
+          {/* Property Features Section */}
+          {property.features && (
+            <div className="mb-8">
+              <div className="flex items-center gap-2 mb-4">
+                <Star className="w-5 h-5 text-brown" />
+                <h3 className="text-lg font-semibold text-brown">Property Features</h3>
+              </div>
+              <div className="bg-beige/20 border border-beige rounded-lg p-6">
                 <div className="space-y-4">
-                  <div className="bg-white border border-beige/40 rounded-lg p-4">
-                    <div className="flex justify-between items-center">
-                      <span className="text-brown/80">To Downtown SF</span>
-                      <span className="font-medium text-olive px-2 py-1 bg-olive/10 rounded">25 min</span>
+                  {property.features && typeof property.features === 'object' ? (
+                    Object.entries(property.features).map(([category, featureList]) => (
+                      <div key={category} className="">
+                        <h4 className="text-brown font-semibold text-sm mb-2">{category}</h4>
+                        <div className="text-brown/70 text-xs leading-relaxed">
+                          {featureList.map((feature, index) => (
+                            <span key={index} className="inline-block">
+                              {feature.trim()}
+                              {index < featureList.length - 1 && (
+                                <span className="text-brown/40 mx-2">•</span>
+                              )}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-brown/60 text-sm text-center py-4">
+                      No detailed features available
                     </div>
-                  </div>
-                  <div className="bg-white border border-beige/40 rounded-lg p-4">
-                    <div className="flex justify-between items-center">
-                      <span className="text-brown/80">To SFO Airport</span>
-                      <span className="font-medium text-amber-600 px-2 py-1 bg-amber-50 rounded">35 min</span>
-                    </div>
-                  </div>
-                  <div className="bg-white border border-beige/40 rounded-lg p-4">
-                    <div className="flex justify-between items-center">
-                      <span className="text-brown/80">To Silicon Valley</span>
-                      <span className="font-medium text-red-600 px-2 py-1 bg-red-50 rounded">45 min</span>
-                    </div>
-                  </div>
+                  )}
                 </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Schools and Crime Section */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">

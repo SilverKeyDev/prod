@@ -1,19 +1,62 @@
+from __future__ import annotations
+
 from flask import Blueprint, request, jsonify, current_app
 import requests
 import os
 import json
-from typing import Dict, List, Any, Tuple, Optional
+import sys
+import re
+from typing import Dict, List, Any, Tuple, Optional, Iterable
 from jose import jwk, jwt as jose_jwt
-from jose.utils import base64url_decode
 from jose.exceptions import JWTError, JWTClaimsError, ExpiredSignatureError
 from urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
 from ..models.user import User
-from ..utils.locationPolygon import isochrone_polygon, isochrone_union_for_addresses
-import math
+from ..utils.locationPolygon import isochrone_union_for_addresses
+from flask_cors import cross_origin
+from ..services.search_help import extract_property_features
 
 RAPI_HOST = "zillow-com1.p.rapidapi.com"
 RAPI_KEY = os.getenv('RAPIDAPI_KEY')
+
+# CORS settings
+cors_config = {
+    'origins': [
+        "*"
+    ],
+    'supports_credentials': True
+}
+
+
+def _slugify_address(street: str, city: str, state: str, zipcode: str | None = None) -> str:
+    parts = [street or "", city or "", state or ""]
+    if zipcode:
+        parts.append(str(zipcode))
+    base = "-".join(p.strip() for p in parts if p and p.strip())
+    return re.sub(r"[^A-Za-z0-9]+", "-", base).strip("-")
+
+def _extract_address_fields_from_data(data: dict) -> tuple[str, str, str, str | None]:
+    """
+    Prefer data['address'] {...}; fall back to top-level keys.
+    """
+    street = city = state = ""
+    zipcode = None
+
+    addr = data.get("address") or {}
+    if isinstance(addr, dict):
+        street = (addr.get("streetAddress") or "").strip()
+        city   = (addr.get("city") or "").strip()
+        state  = (addr.get("state") or "").strip()
+        zipcode = (addr.get("zipcode") or addr.get("zipCode") or None)
+        zipcode = (str(zipcode).strip() if zipcode else None)
+
+    # fallbacks if nested block was incomplete
+    street = street or (data.get("streetAddress") or "").strip()
+    city   = city   or (data.get("city") or "").strip()
+    state  = state  or (data.get("state") or "").strip()
+    zipcode = zipcode or (str(data.get("zipcode") or data.get("zipCode") or "").strip() or None)
+
+    return street, city, state, zipcode
 
 # Build pooled session with retry/backoff
 def _build_session() -> requests.Session:
@@ -182,149 +225,249 @@ class ZillowProperty:
         self.raw_data = data
 
         
-@search_bp.route('/property-by-address', methods=['POST'])
-def search_property_by_address():
+@search_bp.route('/property', methods=['POST'])
+@cross_origin(**cors_config)
+def get_property_via_address():
     """
-    Fetch nearby property data from Zillow API by first geocoding an address
-    and then calling /propertyByCoordinates.
+    Call RapidAPI Zillow /property using exactly one of:
+    zpid, property_url, or address (address-only is fine).
+    Enhanced with commute map visualization data.
     """
-    import time, os, requests
-    from flask import current_app, jsonify, request as flask_request
+    import os, time, json, requests
+    from flask import current_app, jsonify, request as req
+    from ..services.graphic_generation import fetch_travel_time, generate_static_map_url
+    from ..models.user_preferences import UserPreferences
 
-    start_time = time.time()
+    start = time.time()
+    RAPI_HOST = os.getenv("RAPIDAPI_HOST", "zillow-com1.p.rapidapi.com")
+    RAPI_KEY  = os.getenv("RAPIDAPI_KEY")
+    GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
+    
+    if not RAPI_KEY:
+        return jsonify({"success": False, "error": "CONFIG", "message": "RapidAPI key not configured"}), 500
 
-    def geocode_address(addr: str) -> tuple[float, float] | None:
-        """Return (lat, lon) for the given address or None on failure."""
-        gkey = os.getenv("GOOGLE_MAPS_API_KEY")
+    body = req.get_json(silent=True) or {}
+    zpid = body.get("zpid")
+    property_url = body.get("property_url")
+    address = body.get("address")  # full address string, e.g., "935 Cumberland Rd NE, Atlanta, GA 30306"
+
+    # Priority: zpid > property_url > address
+    params = None
+    if zpid is not None:
         try:
-            if gkey:
-                g_url = "https://maps.googleapis.com/maps/api/geocode/json"
-                g_params = {"address": addr, "key": gkey}
-                r = requests.get(g_url, params=g_params, timeout=10)
-                if r.ok:
-                    j = r.json()
-                    if j.get("results"):
-                        loc = j["results"][0]["geometry"]["location"]
-                        return (loc["lat"], loc["lng"])
-            # Fallback: Nominatim (best-effort; rate-limited; add UA)
-            n_url = "https://nominatim.openstreetmap.org/search"
-            n_params = {"q": addr, "format": "json", "limit": 1}
-            r = requests.get(n_url, params=n_params, headers={"User-Agent": "SilverKey/1.0"}, timeout=10)
-            if r.ok and r.json():
-                item = r.json()[0]
-                return (float(item["lat"]), float(item["lon"]))
-        except Exception as _:
-            pass
-        return None
+            params = {"zpid": str(int(str(zpid).strip()))}
+        except Exception:
+            current_app.logger.warning(f"[PROPERTY] Invalid zpid: {zpid}")
+    if params is None and isinstance(property_url, str) and property_url.strip():
+        params = {"property_url": property_url.strip()}
+    if params is None and isinstance(address, str) and address.strip():
+        params = {"address": address.strip()}
+
+    if params is None:
+        return jsonify({"success": False, "error": "BAD_REQUEST",
+                        "message": "Provide one of: zpid, property_url, or address"}), 400
+
+    url = f"https://{RAPI_HOST}/property"
+    headers = {
+        "x-rapidapi-host": RAPI_HOST,
+        "x-rapidapi-key": RAPI_KEY,
+        "Accept": "application/json",
+    }
+
+    current_app.logger.info(f"🏠 [PROPERTY] GET {url} params={params}")
+    r = requests.get(url, headers=headers, params=params, timeout=20)
+    current_app.logger.info(f"🏠 [PROPERTY] status={r.status_code}")
+
+    if not r.ok:
+        return jsonify({"success": False, "error": "RAPIDAPI_ERROR",
+                        "status_code": r.status_code, "details": r.text[:800]}), r.status_code
+
+    data = r.json()
+    # Optional: log shape to help the client pick fields
+    if isinstance(data, dict):
+        current_app.logger.info(f"🏠 [PROPERTY] keys={list(data.keys())[:12]}")
+
+    # Enhanced: Add commute map visualization data
+    commute_data = {}
+    map_url = None
+    
+    # Get the property address for commute calculations
+    property_address = None
+    if address:
+        property_address = address.strip()
+    elif data and isinstance(data, dict):
+        # Try to extract address from property data
+        street = data.get('streetAddress', '')
+        city = data.get('city', '')
+        state = data.get('state', '')
+        zipcode = data.get('zipcode', '')
+        if street and city and state:
+            property_address = f"{street}, {city}, {state} {zipcode}".strip()
+    
+    # Get user's important locations for commute calculations
+    try:
+        current_user = get_current_user()
+        if current_user and property_address and GOOGLE_MAPS_API_KEY:
+            user_preferences = UserPreferences.query.filter_by(user_id=current_user.id).first()
+            
+            if user_preferences:
+                important_locations = []
+                locations_data = user_preferences.important_locations
+                
+                # Parse important_locations (could be JSON string or list)
+                if isinstance(locations_data, str):
+                    try:
+                        locations_data = json.loads(locations_data)
+                    except json.JSONDecodeError:
+                        current_app.logger.error("🗺️ [PROPERTY] Failed to parse important_locations JSON")
+                        locations_data = []
+                
+                if isinstance(locations_data, list):
+                    important_locations = locations_data
+                
+                current_app.logger.info(f"🗺️ [PROPERTY] Found {len(important_locations)} important locations for commute calculation")
+                
+                # Calculate travel times for each important location
+                travel_times = []
+                secondary_locations = []
+                
+                for i, location in enumerate(important_locations):
+                    if isinstance(location, dict) and 'address' in location:
+                        location_address = location['address']
+                        location_name = location.get('name', f'Location {i+1}')
+                        
+                        # Fetch travel time
+                        travel_time = fetch_travel_time(property_address, location_address, GOOGLE_MAPS_API_KEY)
+                        
+                        travel_times.append({
+                            'name': location_name,
+                            'address': location_address,
+                            'travel_time': travel_time,
+                            'commute_tolerance': location.get('commute_tolerance', 30)
+                        })
+                        
+                        # Prepare for map generation
+                        secondary_locations.append({
+                            'name': location_name,
+                            'address': location_address
+                        })
+                        
+                        current_app.logger.info(f"🗺️ [PROPERTY] Travel time to {location_name}: {travel_time}")
+                
+                commute_data['travel_times'] = travel_times
+                
+                # Generate static map URL with commute routes
+                if secondary_locations:
+                    try:
+                        map_url = generate_static_map_url(property_address, secondary_locations, GOOGLE_MAPS_API_KEY)
+                        current_app.logger.info(f"🗺️ [PROPERTY] Generated commute map URL")
+                    except Exception as e:
+                        current_app.logger.error(f"🗺️ [PROPERTY] Error generating map URL: {e}")
+                
+                commute_data['map_url'] = map_url
+                commute_data['property_address'] = property_address
+                
+    except Exception as e:
+        current_app.logger.error(f"🗺️ [PROPERTY] Error calculating commute data: {e}")
+        # Don't fail the entire request if commute calculation fails
+        commute_data = {'error': 'Failed to calculate commute data'}
+    
+        # --- Build Zillow URL from payload/zpid/address ---
+    zillow_url = None
+    zillow_base = "https://www.zillow.com"
 
     try:
-        current_app.logger.info("🔍 [BACKEND] ===== PROPERTY-BY-ADDRESS REQUEST STARTED =====")
-        current_app.logger.info(f"🔍 [BACKEND] Timestamp: {time.strftime('%Y-%m-%d %H:%M:%S')}")
+        if isinstance(data, dict):
+            # 1) Prefer direct/relative URL from payload
+            for key in ("url", "detailUrl", "homeDetailsUrl", "propertyUrl", "hdpUrl"):
+                val = data.get(key)
+                if isinstance(val, str) and val.strip():
+                    if val.startswith("http"):
+                        zillow_url = val
+                    elif val.startswith("/"):
+                        zillow_url = f"{zillow_base}{val}"
+                    # If found anything, stop here
+                    if zillow_url:
+                        break
 
-        # Authenticate user
-        current_app.logger.info("🔍 [BACKEND] Step 1: Authenticating user...")
-        user = get_current_user()
-        if not user:
-            current_app.logger.error("🔍 [BACKEND] ❌ User authentication failed")
-            return jsonify({'success': False, 'error': 'USER_NOT_FOUND', 'message': 'User not found'}), 404
-        current_app.logger.info(f"🔍 [BACKEND] ✅ User authenticated: {user.id}")
+        # 2) zpid from params or payload
+        zpid_val = None
+        if isinstance(params, dict) and params.get("zpid"):
+            zpid_val = str(params["zpid"]).strip()
+        if not zpid_val and isinstance(data, dict) and data.get("zpid"):
+            zpid_val = str(data["zpid"]).strip()
 
-        # Parse request
-        current_app.logger.info("🔍 [BACKEND] Step 2: Parsing request data...")
-        data = flask_request.get_json(silent=True) or {}
-        address = data.get('address')
-        radius_miles = float(data.get('radius_miles', 0.1))      # matches your curl d=0.1
-        include_sold = bool(data.get('includeSold', True))       # default True as in curl example
-        current_app.logger.info(f"🔍 [BACKEND] Request data: {data}")
-        current_app.logger.info(f"🔍 [BACKEND] Target address: '{address}'")
+        # 3) Address parts for slug (from nested 'address' first)
+        street, city, state, zipcode = _extract_address_fields_from_data(data)
 
-        if not address:
-            current_app.logger.error("🔍 [BACKEND] ❌ No address provided in request")
-            return jsonify({'error': 'Address is required'}), 400
+        # 4) Construct canonical URL if not provided
+        if not zillow_url and zpid_val and street and city and state:
+            slug = _slugify_address(street, city, state, zipcode)
+            zillow_url = f"{zillow_base}/homedetails/{slug}/{zpid_val}_zpid/"
 
-        if not RAPI_KEY:
-            current_app.logger.error("🔍 [BACKEND] ❌ RapidAPI key not configured")
-            return jsonify({'error': 'RapidAPI key not configured'}), 500
-
-        current_app.logger.info("🔍 [BACKEND] ✅ Configuration check passed")
-        current_app.logger.info(f"🔍 [BACKEND] RapidAPI Host: {RAPI_HOST}")
-        current_app.logger.info(f"🔍 [BACKEND] RapidAPI Key length: {len(RAPI_KEY) if RAPI_KEY else 0}")
-
-        # Step 3: Geocode address -> (lat, lon)
-        current_app.logger.info("🔍 [BACKEND] Step 3: Geocoding address...")
-        geo_start = time.time()
-        coords = geocode_address(address)
-        geo_duration = time.time() - geo_start
-        if not coords:
-            current_app.logger.error(f"🔍 [BACKEND] ❌ Geocoding failed for: {address}")
-            return jsonify({'error': f'Failed to geocode address: {address}'}), 400
-        lat, lon = coords
-        current_app.logger.info(f"🔍 [BACKEND] ✅ Geocoded: lat={lat}, lon={lon} (took {geo_duration:.2f}s)")
-
-        # Step 4: Call /propertyByCoordinates
-        current_app.logger.info("🔍 [BACKEND] Step 4: Fetching properties by coordinates...")
-        base_url = f"https://{RAPI_HOST}/propertyByCoordinates"
-        params = {
-            "long": f"{lon}",
-            "lat": f"{lat}",
-            "d": f"{radius_miles}",
-            "includeSold": "true" if include_sold else "false",
-        }
-        current_app.logger.info(f"🔍 [BACKEND] Coordinates URL: {base_url} params={params}")
-
-        headers = {
-            "x-rapidapi-host": RAPI_HOST,
-            "x-rapidapi-key": RAPI_KEY,
-            "Accept": "application/json",
-        }
-
-        prop_start = time.time()
-        res = requests.get(base_url, headers=headers, params=params, timeout=20)
-        prop_duration = time.time() - prop_start
-        current_app.logger.info(f"🔍 [BACKEND] propertyByCoordinates response: {res.status_code} (took {prop_duration:.2f}s)")
-        current_app.logger.info(f"🔍 [BACKEND] Response headers: {dict(res.headers)}")
-
-        if not res.ok:
-            current_app.logger.error(f"🔍 [BACKEND] ❌ propertyByCoordinates failed: {res.status_code}")
-            current_app.logger.error(f"🔍 [BACKEND] ❌ Response text: {res.text}")
-            return jsonify({
-                'error': f'propertyByCoordinates failed: {res.status_code}',
-                'details': res.text
-            }), res.status_code
-
-        payload = res.json()
-
-        # Optional: try to pick the best match by address string similarity
-        # (kept simple—return all results and let frontend choose/filter)
-        current_app.logger.info("🔍 [BACKEND] ✅ propertyByCoordinates data received")
-        if isinstance(payload, dict):
-            current_app.logger.info(f"🔍 [BACKEND] Top-level keys: {list(payload.keys())}")
-
-        total_duration = time.time() - start_time
-        current_app.logger.info("🔍 [BACKEND] ===== PROPERTY-BY-ADDRESS COMPLETED SUCCESSFULLY =====")
-        current_app.logger.info(f"🔍 [BACKEND] Total duration: {total_duration:.2f}s")
-
-        return jsonify({
-            'success': True,
-            'query': {
-                'address': address,
-                'lat': lat,
-                'lon': lon,
-                'radius_miles': radius_miles,
-                'includeSold': include_sold
-            },
-            'data': payload
-        })
+        # 5) Last-resort: zpid-only homedetails route
+        if not zillow_url and zpid_val:
+            zillow_url = f"{zillow_base}/homedetails/{zpid_val}_zpid/"
 
     except Exception as e:
-        total_duration = time.time() - start_time
-        current_app.logger.error("🔍 [BACKEND] ❌ ===== PROPERTY-BY-ADDRESS FAILED =====")
-        current_app.logger.error(f"🔍 [BACKEND] ❌ Error: {e}")
-        current_app.logger.error(f"🔍 [BACKEND] ❌ Type: {type(e).__name__}")
-        current_app.logger.error(f"🔍 [BACKEND] ❌ Total duration: {total_duration:.2f}s")
-        import traceback
-        current_app.logger.error(f"🔍 [BACKEND] ❌ Stack trace: {traceback.format_exc()}")
-        return jsonify({'error': f'Internal server error: {str(e)}'}), 500
+        current_app.logger.warning(f"🔗 [PROPERTY] Failed to build Zillow URL: {e}")
+    
+    # Fetch additional images from Zillow images API if we have a zpid
+    zillow_api_images = []
+    if zpid_val:
+        try:
+            current_app.logger.info(f"🖼️ [PROPERTY] Fetching images from Zillow API for zpid: {zpid_val}")
+            images_url = f"https://{RAPI_HOST}/images"
+            images_params = {"zpid": zpid_val}
+            images_headers = {
+                "X-RapidAPI-Key": RAPI_KEY,
+                "X-RapidAPI-Host": RAPI_HOST
+            }
+            
+            images_response = requests.get(images_url, headers=images_headers, params=images_params, timeout=10)
+            current_app.logger.info(f"🖼️ [PROPERTY] Images API status: {images_response.status_code}")
+            
+            if images_response.status_code == 200:
+                images_data = images_response.json()
+                current_app.logger.info(f"🖼️ [PROPERTY] Images API response keys: {list(images_data.keys()) if isinstance(images_data, dict) else 'not dict'}")
+                
+                # Extract image URLs from the response
+                if isinstance(images_data, dict):
+                    # Look for images in various possible fields
+                    for key in ['images', 'photos', 'imageList', 'data']:
+                        if key in images_data and isinstance(images_data[key], list):
+                            for img_item in images_data[key]:
+                                if isinstance(img_item, str):
+                                    zillow_api_images.append(img_item)
+                                elif isinstance(img_item, dict):
+                                    # Look for URL fields
+                                    for url_key in ['url', 'src', 'href', 'link']:
+                                        if url_key in img_item and isinstance(img_item[url_key], str):
+                                            zillow_api_images.append(img_item[url_key])
+                                            break
+                
+                current_app.logger.info(f"🖼️ [PROPERTY] Found {len(zillow_api_images)} images from Zillow API")
+            else:
+                current_app.logger.warning(f"🖼️ [PROPERTY] Images API failed with status {images_response.status_code}")
+                
+        except Exception as e:
+            current_app.logger.warning(f"🖼️ [PROPERTY] Failed to fetch images from Zillow API: {e}")
+    
+    
+    features = extract_property_features(data)
+    current_app.logger.info(f"🏠 [PROPERTY] Features: {features}")
+    # Include commute data in response
+    response_data = {
+        "success": True, 
+        "query": params, 
+        "data": data,
+        "features": features,
+        "commute_data": commute_data,
+        "zillow_url": zillow_url,
+        "images": zillow_api_images
+    }
+    
+    return jsonify(response_data), 200
 
 
 def to_polygon_param(ring: List[Dict[str, float]]) -> str:
@@ -1040,3 +1183,6 @@ def get_isochrone():
             "error": "INTERNAL_ERROR",
             "message": f"Internal server error: {str(e)}"
         }), 500
+
+
+

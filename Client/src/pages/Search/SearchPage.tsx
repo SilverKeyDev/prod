@@ -552,13 +552,16 @@ export default function SearchPage() {
     try {
       console.log("🔍 Step 1: Starting detailed property information fetch...");
       console.log(
-        "🔍 About to call getPropertyDetailsByAddress with address:",
+        "🔍 About to call getPropertyDetailsByAddress with zpid:",
+        property.id,
+        "for address:",
         property.address
       );
 
-      // Call the searchAddress function to get detailed property information
+      // Call the searchAddress function to get detailed property information using zpid for exact match
       const detailedPropertyData = await getPropertyDetailsByAddress(
-        property.address
+        property.id, // Use zpid for exact match instead of address
+        property.address // Fallback address if zpid fails
       );
 
       console.log("✅ Step 2: Successfully received detailed property data");
@@ -2130,10 +2133,6 @@ export default function SearchPage() {
         isHomeSaved={isHomeSaved}
         saveHome={saveHome}
         removeSavedHome={removeSavedHome}
-        onFullReport={() => {
-          // Handle full report action
-          console.log("Full report requested for:", selectedProperty?.address);
-        }}
       />
     </div>
   );
