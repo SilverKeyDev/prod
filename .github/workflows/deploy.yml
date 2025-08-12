@@ -164,6 +164,7 @@ jobs:
               -e CENSUS_API_KEY="${{ secrets.CENSUS_API_KEY }}" \
               -e HUD_TOKEN="${{ secrets.HUD_TOKEN }}" \
               -e RAPIDAPI_KEY="${{ secrets.RAPIDAPI_KEY }}" \
+              -e MAPBOX_API_KEY="${{ secrets.MAPBOX_API_KEY }}" \
               "$IMAGE"
             
             
@@ -196,6 +197,7 @@ jobs:
               -e CENSUS_API_KEY="${{ secrets.CENSUS_API_KEY }}" \
               -e HUD_TOKEN="${{ secrets.HUD_TOKEN }}" \
               -e RAPIDAPI_KEY="${{ secrets.RAPIDAPI_KEY }}" \
+              -e MAPBOX_API_KEY="${{ secrets.MAPBOX_API_KEY }}" \
               "$IMAGE" \
               celery -A app.celery.celery_worker worker --loglevel=info
 
