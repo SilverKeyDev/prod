@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { CheckCircle, AlertTriangle, MapPin, GraduationCap, Shield, ExternalLink } from 'lucide-react';
+import { CheckCircle, AlertTriangle, MapPin, GraduationCap, Shield, ExternalLink, Star, DollarSign, Home, User, Phone } from 'lucide-react';
 import HeartSave from './HeartSave';
 
-interface Property {
+// Import SearchResult interface from SearchPage
+interface SearchResult {
   id: string;
   address: string;
   price: string;
@@ -11,14 +12,169 @@ interface Property {
   sqft: number;
   lat: number;
   lng: number;
+  lotSize?: string;
+  propertyType?: string;
+  listingStatus?: string;
+  imageUrl?: string;
+  
+  // Enhanced property details from searchAddress API
+  zpid?: number;
+  streetAddress?: string;
+  city?: string;
+  state?: string;
+  zipcode?: string;
+  yearBuilt?: number;
+  livingArea?: string;
+  livingAreaValue?: number;
+  pricePerSquareFoot?: number;
+  propertyTypeDimension?: string;
+  homeType?: string;
+  homeStatus?: string;
+  timeOnZillow?: string;
+  daysOnZillow?: number;
+  onMarketDate?: number;
+  
+  // Financial information
+  zestimate?: number;
+  taxAnnualAmount?: number;
+  propertyTaxRate?: number;
+  hoaFee?: string;
+  associationFee?: string;
+  monthlyHoaFee?: number;
+  annualHomeownersInsurance?: number;
+  rentZestimate?: number;
+  
+  // Property features
+  architecturalStyle?: string;
+  structureType?: string;
+  propertyCondition?: string;
+  isNewConstruction?: boolean;
+  hasGarage?: boolean;
+  hasAttachedGarage?: boolean;
+  garageSpaces?: number;
+  parking?: number;
+  hasView?: boolean;
+  waterView?: string;
+  hasFireplace?: boolean;
+  hasCooling?: boolean;
+  hasHeating?: boolean;
+  hasAssociation?: boolean;
+  
+  // Detailed features
+  view?: string[];
+  flooring?: string[];
+  heating?: string[];
+  cooling?: string[];
+  appliances?: string[];
+  interiorFeatures?: string[];
+  exteriorFeatures?: any;
+  lotFeatures?: string[];
+  communityFeatures?: string[];
+  parkingFeatures?: string[];
+  utilities?: string[];
+  inclusions?: string[];
+  
+  // Room information
+  rooms?: any[];
+  bathroomsFull?: number;
+  bathroomsHalf?: number;
+  bathroomsPartial?: number;
+  bathroomsThreeQuarter?: number;
+  mainLevelBedrooms?: number;
+  mainLevelBathrooms?: number;
+  
+  // Building details
+  stories?: string;
+  roofType?: string;
+  foundationDetails?: string[];
+  constructionMaterials?: string[];
+  windowFeatures?: string[];
+  
+  // Location details
+  subdivision?: string;
+  subdivisionName?: string;
+  county?: string;
+  cityId?: number;
+  parcelNumber?: string;
+  
+  // Agent information
+  contact_recipients?: any[];
+  listed_by?: {
+    agent_reason?: number;
+    zpro?: boolean;
+    recent_sales?: number;
+    review_count?: number;
+    display_name?: string;
+    badge_type?: string;
+    business_name?: string;
+    rating_average?: number;
+    phone?: {
+      prefix?: string;
+      areacode?: string;
+      number?: string;
+    };
+    zuid?: string;
+    image_url?: string;
+  };
+  
+  // Schools
+  schools?: Array<{
+    name?: string;
+    rating?: number;
+    level?: string;
+    grades?: string;
+    type?: string;
+    distance?: number;
+    isAssigned?: boolean;
+    studentsPerTeacher?: number;
+    size?: number;
+    link?: string;
+  }>;
+  
+  // Price history
+  priceHistory?: Array<{
+    date?: string;
+    price?: number;
+    event?: string;
+    priceChangeRate?: number;
+    source?: string;
+    pricePerSquareFoot?: number;
+  }>;
+  
+  // Nearby homes
+  nearbyHomes?: any[];
+  
+  // At a glance facts
+  atAGlanceFacts?: Array<{
+    factLabel?: string;
+    factValue?: string;
+  }>;
+  
+  // Additional details
+  description?: string;
+  url?: string;
+  mlsid?: string;
+  pageViewCount?: number;
+  favoriteCount?: number;
+  virtualTour?: string;
+  buildingName?: string;
+  
+  // Mortgage rates
+  mortgageRates?: {
+    thirtyYearFixedRate?: number;
+    fifteenYearFixedRate?: number;
+    arm5Rate?: number;
+  };
+  
+  // Legacy support
   images?: string[];
 }
 
 interface PropertyDetailsModalProps {
-  property: Property | null;
+  property: SearchResult | null;
   onClose: () => void;
   isHomeSaved: (id: string) => boolean;
-  saveHome: (property: Property) => void;
+  saveHome: (property: SearchResult) => void;
   removeSavedHome: (id: string) => void;
   onFullReport?: () => void;
 }
@@ -268,20 +424,43 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Year Built:</span>
-                  <span className="font-medium">1995</span>
+                  <span className="font-medium">{property.yearBuilt || 'N/A'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Lot Size:</span>
-                  <span className="font-medium">0.25 acres</span>
+                  <span className="font-medium">{property.lotSize || 'N/A'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Property Type:</span>
-                  <span className="font-medium">Single Family</span>
+                  <span className="font-medium">{property.homeType || property.propertyType || 'N/A'}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Parking:</span>
-                  <span className="font-medium">2-car garage</span>
-                </div>
+                {property.pricePerSquareFoot && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Price per Sq Ft:</span>
+                    <span className="font-medium">${property.pricePerSquareFoot}</span>
+                  </div>
+                )}
+                {(property.garageSpaces || property.parking) && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Parking:</span>
+                    <span className="font-medium">
+                      {property.garageSpaces ? `${property.garageSpaces}-car garage` : 
+                       property.parking ? `${property.parking} spaces` : 'N/A'}
+                    </span>
+                  </div>
+                )}
+                {property.daysOnZillow && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Days on Market:</span>
+                    <span className="font-medium">{property.daysOnZillow} days</span>
+                  </div>
+                )}
+                {property.zestimate && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Zestimate:</span>
+                    <span className="font-medium">${property.zestimate.toLocaleString()}</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -341,6 +520,178 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
             </div>
           </div>
 
+          {/* Enhanced Property Details Section */}
+          <div className="mb-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Financial Information */}
+              <div>
+                <div className="flex items-center gap-2 mb-4">
+                  <DollarSign className="w-5 h-5 text-brown" />
+                  <h3 className="text-lg font-semibold text-brown">Financial Details</h3>
+                </div>
+                <div className="space-y-3">
+                  {property.taxAnnualAmount && (
+                    <div className="bg-beige/10 border border-beige/40 rounded-lg p-4">
+                      <div className="flex justify-between">
+                        <span className="text-brown/70">Annual Property Tax:</span>
+                        <span className="font-medium text-brown">${property.taxAnnualAmount.toLocaleString()}</span>
+                      </div>
+                      {property.propertyTaxRate && (
+                        <div className="flex justify-between mt-2">
+                          <span className="text-brown/70">Tax Rate:</span>
+                          <span className="font-medium text-brown">{(property.propertyTaxRate * 100).toFixed(2)}%</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {(property.monthlyHoaFee || property.hoaFee) && (
+                    <div className="bg-beige/10 border border-beige/40 rounded-lg p-4">
+                      <div className="flex justify-between">
+                        <span className="text-brown/70">HOA Fee:</span>
+                        <span className="font-medium text-brown">
+                          {property.monthlyHoaFee ? `$${property.monthlyHoaFee}/month` : property.hoaFee}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                  {property.rentZestimate && (
+                    <div className="bg-beige/10 border border-beige/40 rounded-lg p-4">
+                      <div className="flex justify-between">
+                        <span className="text-brown/70">Rent Estimate:</span>
+                        <span className="font-medium text-brown">${property.rentZestimate.toLocaleString()}/month</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Property Features */}
+              <div>
+                <div className="flex items-center gap-2 mb-4">
+                  <Star className="w-5 h-5 text-brown" />
+                  <h3 className="text-lg font-semibold text-brown">Property Features</h3>
+                </div>
+                <div className="space-y-3">
+                  <div className="bg-beige/10 border border-beige/40 rounded-lg p-4">
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      {property.hasFireplace && (
+                        <div className="flex items-center">
+                          <CheckCircle className="h-4 w-4 text-olive mr-2" />
+                          <span className="text-brown">Fireplace</span>
+                        </div>
+                      )}
+                      {property.hasGarage && (
+                        <div className="flex items-center">
+                          <CheckCircle className="h-4 w-4 text-olive mr-2" />
+                          <span className="text-brown">Garage</span>
+                        </div>
+                      )}
+                      {property.hasCooling && (
+                        <div className="flex items-center">
+                          <CheckCircle className="h-4 w-4 text-olive mr-2" />
+                          <span className="text-brown">A/C</span>
+                        </div>
+                      )}
+                      {property.hasHeating && (
+                        <div className="flex items-center">
+                          <CheckCircle className="h-4 w-4 text-olive mr-2" />
+                          <span className="text-brown">Heating</span>
+                        </div>
+                      )}
+                      {property.hasView && (
+                        <div className="flex items-center">
+                          <CheckCircle className="h-4 w-4 text-olive mr-2" />
+                          <span className="text-brown">View</span>
+                        </div>
+                      )}
+                      {property.isNewConstruction && (
+                        <div className="flex items-center">
+                          <CheckCircle className="h-4 w-4 text-olive mr-2" />
+                          <span className="text-brown">New Construction</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  {property.appliances && property.appliances.length > 0 && (
+                    <div className="bg-beige/10 border border-beige/40 rounded-lg p-4">
+                      <h4 className="font-medium text-brown mb-2">Appliances</h4>
+                      <div className="flex flex-wrap gap-1">
+                        {property.appliances.slice(0, 6).map((appliance, index) => (
+                          <span key={index} className="px-2 py-1 bg-brown/10 text-brown rounded text-xs">
+                            {appliance}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Agent Information */}
+            {property.listed_by && (
+              <div className="mt-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <User className="w-5 h-5 text-brown" />
+                  <h3 className="text-lg font-semibold text-brown">Listing Agent</h3>
+                </div>
+                <div className="bg-beige/10 border border-beige/40 rounded-lg p-4">
+                  <div className="flex items-start space-x-4">
+                    {property.listed_by.image_url && (
+                      <img 
+                        src={property.listed_by.image_url} 
+                        alt={property.listed_by.display_name}
+                        className="w-16 h-16 rounded-full object-cover border-2 border-brown/20"
+                      />
+                    )}
+                    <div className="flex-1">
+                      <h4 className="font-medium text-brown text-lg">{property.listed_by.display_name}</h4>
+                      {property.listed_by.business_name && (
+                        <p className="text-brown/70">{property.listed_by.business_name}</p>
+                      )}
+                      
+                      <div className="mt-3 grid grid-cols-2 gap-4 text-sm">
+                        {property.listed_by.rating_average && (
+                          <div className="flex items-center">
+                            <Star className="h-4 w-4 text-amber-500 mr-1" />
+                            <span className="font-medium text-brown">{property.listed_by.rating_average.toFixed(1)}</span>
+                            {property.listed_by.review_count && (
+                              <span className="text-brown/70 ml-1">({property.listed_by.review_count} reviews)</span>
+                            )}
+                          </div>
+                        )}
+                        
+                        {property.listed_by.recent_sales && (
+                          <div className="flex items-center text-brown/70">
+                            <Home className="h-4 w-4 mr-1" />
+                            <span>{property.listed_by.recent_sales} recent sales</span>
+                          </div>
+                        )}
+                        
+                        {property.listed_by.phone && (
+                          <div className="flex items-center text-brown">
+                            <Phone className="h-4 w-4 mr-1" />
+                            <span>
+                              {property.listed_by.phone.prefix}-{property.listed_by.phone.areacode}-{property.listed_by.phone.number}
+                            </span>
+                          </div>
+                        )}
+                        
+                        {property.listed_by.zpro && (
+                          <div>
+                            <span className="inline-block px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
+                              Zillow Pro
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Commute Map Section */}
           <div className="mb-8">
             <div className="flex items-center gap-2 mb-4">
@@ -391,27 +742,46 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
                 <h3 className="text-lg font-semibold text-brown">Schools</h3>
               </div>
               <div className="space-y-3">
-                <div className="bg-beige/10 border border-beige/40 rounded-lg p-4">
-                  <div className="flex justify-between items-center mb-2">
-                    <h4 className="font-medium text-brown">Lincoln Elementary</h4>
-                    <span className="bg-olive/20 text-olive border border-olive/30 px-2 py-1 rounded text-sm font-medium">9/10</span>
+                {property.schools && property.schools.length > 0 ? (
+                  property.schools.slice(0, 6).map((school, index) => (
+                    <div key={index} className="bg-beige/10 border border-beige/40 rounded-lg p-4">
+                      <div className="flex justify-between items-center mb-2">
+                        <h4 className="font-medium text-brown">{school.name || 'Unknown School'}</h4>
+                        {school.rating && (
+                          <span className={`px-2 py-1 rounded text-sm font-medium border ${
+                            school.rating >= 8 
+                              ? 'bg-olive/20 text-olive border-olive/30'
+                              : school.rating >= 6 
+                              ? 'bg-amber-50 text-amber-600 border-amber-200'
+                              : 'bg-red-50 text-red-600 border-red-200'
+                          }`}>
+                            {school.rating}/10
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-sm text-brown/70 space-y-1">
+                        {school.distance && (
+                          <p>{school.distance.toFixed(1)} miles</p>
+                        )}
+                        <div className="flex items-center gap-2">
+                          {school.type && <span>{school.type}</span>}
+                          {school.grades && <span>• Grades {school.grades}</span>}
+                          {school.level && <span>• {school.level}</span>}
+                        </div>
+                        {school.studentsPerTeacher && (
+                          <p>Student/Teacher Ratio: {school.studentsPerTeacher}:1</p>
+                        )}
+                        {school.isAssigned && (
+                          <p className="text-blue-600 font-medium">Assigned School</p>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="bg-beige/10 border border-beige/40 rounded-lg p-4">
+                    <p className="text-brown/70">No school information available for this property.</p>
                   </div>
-                  <p className="text-sm text-brown/70">0.3 miles • Public • K-5</p>
-                </div>
-                <div className="bg-beige/10 border border-beige/40 rounded-lg p-4">
-                  <div className="flex justify-between items-center mb-2">
-                    <h4 className="font-medium text-brown">Roosevelt Middle School</h4>
-                    <span className="bg-amber-50 text-amber-600 border border-amber-200 px-2 py-1 rounded text-sm font-medium">7/10</span>
-                  </div>
-                  <p className="text-sm text-brown/70">0.8 miles • Public • 6-8</p>
-                </div>
-                <div className="bg-beige/10 border border-beige/40 rounded-lg p-4">
-                  <div className="flex justify-between items-center mb-2">
-                    <h4 className="font-medium text-brown">Washington High School</h4>
-                    <span className="bg-olive/20 text-olive border border-olive/30 px-2 py-1 rounded text-sm font-medium">8/10</span>
-                  </div>
-                  <p className="text-sm text-brown/70">1.2 miles • Public • 9-12</p>
-                </div>
+                )}
               </div>
             </div>
 

@@ -38,15 +38,13 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
         const res = await apiRequest("/api/v1/user/favorite-homes");
 
         if (res.success && Array.isArray(res.data)) {
-          // Backend returns array of address strings, convert to FavoriteHome objects
-          const homes = res.data.map((address: string) => ({
-            address: address,
+          // Backend returns array of unformatted address strings, format and convert to FavoriteHome objects
+          const homes = res.data.map((rawAddress: string) => ({
+            address: formatFilenameToAddress(rawAddress),
             description: undefined
           }));
           setFavoriteHomes(homes);
-        } else {
-          setFavoriteHomes([]);
-        }
+        } 
       } catch (error) {
         console.error("Error fetching favorite homes:", error);
         setFavoriteHomes([]);

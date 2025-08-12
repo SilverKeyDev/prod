@@ -6,6 +6,7 @@ import { favoriteHomesApi } from "../../lib/api";
 import HeartSave from "../../components/HeartSave";
 import PropertyDetailsModal from "../../components/PropertyDetailsModal";
 import { searchZillowByPolygon, LatLng } from "../../hooks/searchByCoords";
+import { getPropertyDetailsByAddress } from "../../hooks/searchAddress";
 import Loading from "../../components/Loading";
 
 interface SearchResult {
@@ -21,6 +22,155 @@ interface SearchResult {
   propertyType?: string;
   listingStatus?: string;
   imageUrl?: string;
+  
+  // Enhanced property details from searchAddress API
+  zpid?: number;
+  streetAddress?: string;
+  city?: string;
+  state?: string;
+  zipcode?: string;
+  yearBuilt?: number;
+  livingArea?: string;
+  livingAreaValue?: number;
+  pricePerSquareFoot?: number;
+  propertyTypeDimension?: string;
+  homeType?: string;
+  homeStatus?: string;
+  timeOnZillow?: string;
+  daysOnZillow?: number;
+  onMarketDate?: number;
+  
+  // Financial information
+  zestimate?: number;
+  taxAnnualAmount?: number;
+  propertyTaxRate?: number;
+  hoaFee?: string;
+  associationFee?: string;
+  monthlyHoaFee?: number;
+  annualHomeownersInsurance?: number;
+  rentZestimate?: number;
+  
+  // Property features
+  architecturalStyle?: string;
+  structureType?: string;
+  propertyCondition?: string;
+  isNewConstruction?: boolean;
+  hasGarage?: boolean;
+  hasAttachedGarage?: boolean;
+  garageSpaces?: number;
+  parking?: number;
+  hasView?: boolean;
+  waterView?: string;
+  hasFireplace?: boolean;
+  hasCooling?: boolean;
+  hasHeating?: boolean;
+  hasAssociation?: boolean;
+  
+  // Detailed features
+  view?: string[];
+  flooring?: string[];
+  heating?: string[];
+  cooling?: string[];
+  appliances?: string[];
+  interiorFeatures?: string[];
+  exteriorFeatures?: any;
+  lotFeatures?: string[];
+  communityFeatures?: string[];
+  parkingFeatures?: string[];
+  utilities?: string[];
+  inclusions?: string[];
+  
+  // Room information
+  rooms?: any[];
+  bathroomsFull?: number;
+  bathroomsHalf?: number;
+  bathroomsPartial?: number;
+  bathroomsThreeQuarter?: number;
+  mainLevelBedrooms?: number;
+  mainLevelBathrooms?: number;
+  
+  // Building details
+  stories?: string;
+  roofType?: string;
+  foundationDetails?: string[];
+  constructionMaterials?: string[];
+  windowFeatures?: string[];
+  
+  // Location details
+  subdivision?: string;
+  subdivisionName?: string;
+  county?: string;
+  cityId?: number;
+  parcelNumber?: string;
+  
+  // Agent information
+  contact_recipients?: any[];
+  listed_by?: {
+    agent_reason?: number;
+    zpro?: boolean;
+    recent_sales?: number;
+    review_count?: number;
+    display_name?: string;
+    badge_type?: string;
+    business_name?: string;
+    rating_average?: number;
+    phone?: {
+      prefix?: string;
+      areacode?: string;
+      number?: string;
+    };
+    zuid?: string;
+    image_url?: string;
+  };
+  
+  // Schools
+  schools?: Array<{
+    name?: string;
+    rating?: number;
+    level?: string;
+    grades?: string;
+    type?: string;
+    distance?: number;
+    isAssigned?: boolean;
+    studentsPerTeacher?: number;
+    size?: number;
+    link?: string;
+  }>;
+  
+  // Price history
+  priceHistory?: Array<{
+    date?: string;
+    price?: number;
+    event?: string;
+    priceChangeRate?: number;
+    source?: string;
+    pricePerSquareFoot?: number;
+  }>;
+  
+  // Nearby homes
+  nearbyHomes?: any[];
+  
+  // At a glance facts
+  atAGlanceFacts?: Array<{
+    factLabel?: string;
+    factValue?: string;
+  }>;
+  
+  // Additional details
+  description?: string;
+  url?: string;
+  mlsid?: string;
+  pageViewCount?: number;
+  favoriteCount?: number;
+  virtualTour?: string;
+  buildingName?: string;
+  
+  // Mortgage rates
+  mortgageRates?: {
+    thirtyYearFixedRate?: number;
+    fifteenYearFixedRate?: number;
+    arm5Rate?: number;
+  };
 }
 
 interface PropertyScore {
@@ -384,6 +534,86 @@ export default function SearchPage() {
     initializeMap();
   }, []);
 
+  // Handle property details search
+  const handleViewPropertyDetails = async (property: SearchResult) => {
+    console.log("🔍 ===== VIEW DETAILS CLICKED =====");
+    console.log("🔍 Timestamp:", new Date().toISOString());
+    console.log("🔍 Property data received:", JSON.stringify(property, null, 2));
+    console.log("🔍 Property address:", property.address);
+    console.log("🔍 getPropertyDetailsByAddress function available:", typeof getPropertyDetailsByAddress);
+    
+    try {
+      console.log("🔍 Step 1: Starting detailed property information fetch...");
+      console.log("🔍 About to call getPropertyDetailsByAddress with address:", property.address);
+      
+      // Call the searchAddress function to get detailed property information
+      const detailedPropertyData = await getPropertyDetailsByAddress(property.address);
+      
+      console.log("✅ Step 2: Successfully received detailed property data");
+      console.log("✅ Detailed data type:", typeof detailedPropertyData);
+      console.log("✅ Detailed data keys:", detailedPropertyData ? Object.keys(detailedPropertyData) : "null/undefined");
+      console.log("✅ Full detailed data:", JSON.stringify(detailedPropertyData, null, 2));
+      
+      // Update the selected property with the detailed data if available
+      console.log("🔄 Step 3: Merging property data...");
+      const enhancedProperty = {
+        ...property,
+        ...detailedPropertyData, // Merge detailed data with existing property data
+      };
+      
+      console.log("🔄 Enhanced property keys:", Object.keys(enhancedProperty));
+      console.log("🔄 Enhanced property sample fields:");
+      console.log("  - address:", enhancedProperty.address);
+      console.log("  - price:", enhancedProperty.price);
+      console.log("  - yearBuilt:", enhancedProperty.yearBuilt);
+      console.log("  - taxAnnualAmount:", enhancedProperty.taxAnnualAmount);
+      console.log("  - listed_by:", !!enhancedProperty.listed_by);
+      console.log("  - schools:", enhancedProperty.schools?.length || 0);
+      
+      console.log("🔄 Step 4: Setting selected property in state...");
+      setSelectedProperty(enhancedProperty);
+      console.log("✅ ===== VIEW DETAILS COMPLETED SUCCESSFULLY =====");
+      
+    } catch (error) {
+      console.error("❌ ===== VIEW DETAILS FAILED =====");
+      console.error("❌ Error fetching property details:", error);
+      console.error("❌ Error type:", typeof error);
+      console.error("❌ Error message:", (error as Error).message);
+      console.error("❌ Error stack:", (error as Error).stack);
+      
+      // Fallback: use the original property data without detailed information
+      console.log("🔄 Using fallback: setting original property data");
+      setSelectedProperty(property);
+      console.log("⚠️ ===== VIEW DETAILS COMPLETED WITH FALLBACK =====");
+    }
+  };
+
+  // Create window function for map modal "View Details" buttons
+  useEffect(() => {
+    // Define the global function that map modals can call
+    (window as any).openPropertyModal = (propertyId: string) => {
+      console.log("🗺️ MAP MODAL: View Details clicked for property ID:", propertyId);
+      
+      // Find the property in current data (search results or saved homes)
+      const currentData = activeTab === "results" ? searchResults : savedHomes;
+      const property = currentData.find(p => p.id === propertyId);
+      
+      if (property) {
+        console.log("🗺️ MAP MODAL: Found property, calling handleViewPropertyDetails");
+        console.log("🗺️ MAP MODAL: Property address:", property.address);
+        handleViewPropertyDetails(property);
+      } else {
+        console.error("🗺️ MAP MODAL: Property not found with ID:", propertyId);
+        console.error("🗺️ MAP MODAL: Available properties:", currentData.map(p => ({ id: p.id, address: p.address })));
+      }
+    };
+
+    // Cleanup function to remove global function when component unmounts
+    return () => {
+      delete (window as any).openPropertyModal;
+    };
+  }, [searchResults, savedHomes, activeTab, handleViewPropertyDetails]);
+
   // Update markers when activeTab changes or when hasSearched/showPropertyModals changes
   useEffect(() => {
     if (googleMapRef.current && hasSearched && showPropertyModals) {
@@ -407,6 +637,8 @@ export default function SearchPage() {
     hasSearched,
     currentPage,
   ]);
+
+
 
   // Fetch isochrone polygon from backend
   const fetchIsochronePolygon = async () => {
@@ -778,82 +1010,38 @@ export default function SearchPage() {
     importantMarkersRef.current = [];
 
     try {
-      // Get user preferences to extract all important locations
-      const idToken = localStorage.getItem("id_token");
-      const token = localStorage.getItem("token");
-      const authToken = idToken || token;
-
-      if (!authToken) {
-        console.log(
-          "❌ No auth token found, cannot fetch user preferences for markers"
-        );
-        return;
-      }
-
-      // Fetch user preferences to get all important locations
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "";
-      const response = await fetch(`${apiBaseUrl}/api/v1/preferences`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          Authorization: `Bearer ${authToken}`,
-        },
-      });
-
-      if (!response.ok) {
-        console.warn("⚠️ Failed to fetch user preferences for markers");
-        return;
-      }
-
-      const userData = await response.json();
-      console.log(
-        "📊 USER PREFERENCES API RESPONSE - Raw data:",
-        JSON.stringify(userData, null, 2)
-      );
-
+      // Use the same important locations data that the isochrone calculation uses
+      // The isochrone data already contains the important locations information
       let importantLocations = [];
 
-      // Extract important locations from user data
-      const locationsData = userData.important_locations;
-      console.log(
-        "📍 IMPORTANT LOCATIONS - Raw data type:",
-        typeof locationsData
-      );
-      console.log("📍 IMPORTANT LOCATIONS - Raw data value:", locationsData);
-
-      if (typeof locationsData === "string") {
-        try {
-          importantLocations = JSON.parse(locationsData);
-          console.log(
-            "📍 IMPORTANT LOCATIONS - Parsed from JSON string:",
-            JSON.stringify(importantLocations, null, 2)
-          );
-        } catch (e) {
-          console.warn(
-            "⚠️ IMPORTANT LOCATIONS - Failed to parse JSON string:",
-            e
-          );
-          console.warn(
-            "⚠️ IMPORTANT LOCATIONS - Original string was:",
-            locationsData
-          );
-          return;
-        }
-      } else if (Array.isArray(locationsData)) {
-        importantLocations = locationsData;
-        console.log(
-          "📍 IMPORTANT LOCATIONS - Already array format:",
-          JSON.stringify(importantLocations, null, 2)
-        );
-      } else {
-        console.warn(
-          "⚠️ IMPORTANT LOCATIONS - Unexpected data format:",
-          typeof locationsData,
-          locationsData
-        );
+      // Extract important locations from isochrone data (same as property search)
+      if (isochroneData.center) {
+        // Add the center location (primary important location)
+        importantLocations.push({
+          name: isochroneData.center.name || "Primary Location",
+          address: isochroneData.center.address,
+          lat: isochroneData.center.lat,
+          lng: isochroneData.center.lng,
+          commute_tolerance: isochroneData.commute_tolerance || 30,
+        });
       }
 
+      // If there are additional important locations in the isochrone data, add them
+      if (isochroneData.important_locations && Array.isArray(isochroneData.important_locations)) {
+        isochroneData.important_locations.forEach((location: any) => {
+          if (location.address && location.lat && location.lng) {
+            importantLocations.push({
+              name: location.name || "Important Location",
+              address: location.address,
+              lat: location.lat,
+              lng: location.lng,
+              commute_tolerance: location.commute_tolerance || 30,
+            });
+          }
+        });
+      }
+
+      console.log("📍 IMPORTANT LOCATIONS - Using isochrone data:");
       console.log("📍 IMPORTANT LOCATIONS SUMMARY:");
       console.log("  🔢 Total Count:", importantLocations.length);
       importantLocations.forEach((loc: any, index: number) => {
@@ -960,115 +1148,132 @@ export default function SearchPage() {
   // Load saved homes from user's favorite_home_ids on component mount
   useEffect(() => {
     const loadSavedHomes = async () => {
+      console.log("🏠 ===== SAVED HOMES RETRIEVAL STARTED =====");
+      console.log("🕐 Timestamp:", new Date().toISOString());
+      
       try {
         // Get auth token
+        console.log("🔑 Step 1: Checking authentication tokens...");
         const idToken = localStorage.getItem("id_token");
         const token = localStorage.getItem("token");
         const authToken = idToken || token;
+
+        console.log("🔑 Token check results:");
+        console.log("  - id_token exists:", !!idToken);
+        console.log("  - token exists:", !!token);
+        console.log("  - Using token type:", idToken ? "id_token" : token ? "token" : "none");
+        console.log("  - Token length:", authToken ? authToken.length : 0);
 
         if (!authToken) {
           console.log("❌ No auth token found, cannot load saved homes");
           return;
         }
 
-        // Fetch user preferences to get favorite_home_ids
+        // Step 2: Call the dedicated /favorite-homes API endpoint
+        console.log("🏠 Step 2: Calling /favorite-homes API endpoint...");
         const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "";
-        const response = await fetch(`${apiBaseUrl}/api/v1/preferences`, {
+        const favoritesResponse = await fetch(`${apiBaseUrl}/api/v1/favorite-homes`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            Accept: "application/json",
             Authorization: `Bearer ${authToken}`,
           },
+          credentials: "include",
         });
 
-        if (!response.ok) {
-          console.warn("⚠️ Failed to fetch user preferences for saved homes");
+        if (!favoritesResponse.ok) {
+          console.error("🏠 Failed to fetch favorite homes:", favoritesResponse.status);
           return;
         }
 
-        const userData = await response.json();
-        console.log(
-          "📊 USER PREFERENCES FOR SAVED HOMES - Raw data:",
-          JSON.stringify(userData, null, 2)
-        );
+        const favoritesData = await favoritesResponse.json();
+        console.log("🏠 Step 3: Favorite homes API response received");
+        console.log("🏠 Response success:", favoritesData.success);
+        console.log("🏠 Response keys:", Object.keys(favoritesData));
 
-        // Extract favorite_home_ids from user data
-        let favoriteHomeIds = [];
-        const favoriteHomeIdsData = userData.favorite_home_ids;
-        
-        console.log(
-          "🏠 FAVORITE HOME IDS - Raw data type:",
-          typeof favoriteHomeIdsData
-        );
-        console.log("🏠 FAVORITE HOME IDS - Raw data value:", favoriteHomeIdsData);
+        if (!favoritesData.success) {
+          console.error("🏠 API returned success=false:", favoritesData.error);
+          return;
+        }
 
-        if (typeof favoriteHomeIdsData === "string") {
-          try {
-            favoriteHomeIds = JSON.parse(favoriteHomeIdsData);
-            console.log(
-              "🏠 FAVORITE HOME IDS - Parsed from JSON string:",
-              JSON.stringify(favoriteHomeIds, null, 2)
-            );
-          } catch (e) {
-            console.warn(
-              "⚠️ FAVORITE HOME IDS - Failed to parse JSON string:",
-              e
-            );
-            console.warn(
-              "⚠️ FAVORITE HOME IDS - Original string was:",
-              favoriteHomeIdsData
-            );
-            return;
-          }
-        } else if (Array.isArray(favoriteHomeIdsData)) {
-          favoriteHomeIds = favoriteHomeIdsData;
-          console.log(
-            "🏠 FAVORITE HOME IDS - Already array format:",
-            JSON.stringify(favoriteHomeIds, null, 2)
-          );
+        // Step 3: Extract favorite addresses from API response
+        const favoriteAddresses = favoritesData.data || [];
+        console.log("🏠 Step 4: Processing favorite addresses...");
+        console.log("🏠 FAVORITE ADDRESSES SUMMARY:");
+        console.log("  🔢 Total Count:", favoriteAddresses.length);
+        favoriteAddresses.forEach((address: string, index: number) => {
+          console.log(`  ${index + 1}. Address: "${address}"`);
+        });
+
+        // Step 4: Convert favorite addresses to SearchResult objects with dummy data
+        if (favoriteAddresses.length > 0) {
+          console.log("🔄 Step 5: Converting favorite addresses to SearchResult objects...");
+          
+          const savedHomesData: SearchResult[] = favoriteAddresses.map((address: string, index: number) => {
+            // Generate realistic dummy data for each saved home
+            const dummyPrices = [425000, 550000, 675000, 789000, 825000, 950000, 1200000];
+            const dummyBedrooms = [2, 3, 3, 4, 4, 5, 5];
+            const dummyBathrooms = [1.5, 2, 2.5, 2.5, 3, 3.5, 4];
+            const dummySqft = [1200, 1450, 1800, 2100, 2400, 2800, 3200];
+            const dummyImages = [
+              "https://photos.zillowstatic.com/fp/01cb7e1f500768d5c6e07439ff5906c0-p_e.jpg",
+              "https://photos.zillowstatic.com/fp/02ab8e2f600878d6c7e18549ff6917d1-p_e.jpg",
+              "https://photos.zillowstatic.com/fp/03bc9f3f701989e7d8f29659ff7928e2-p_e.jpg",
+              "https://photos.zillowstatic.com/fp/04cd0f4f802090f8e9f30769ff8039f3-p_e.jpg",
+              "https://photos.zillowstatic.com/fp/05de1f5f903101f9f0f41879ff9140f4-p_e.jpg"
+            ];
+
+            const randomIndex = index % dummyPrices.length;
+            
+            return {
+              id: `saved_${index + 1}`,
+              address: address,
+              price: `$${dummyPrices[randomIndex].toLocaleString()}`,
+              bedrooms: dummyBedrooms[randomIndex],
+              bathrooms: dummyBathrooms[randomIndex],
+              sqft: dummySqft[randomIndex],
+              lat: 33.7490 + (Math.random() - 0.5) * 0.1, // Atlanta area with some variation
+              lng: -84.3880 + (Math.random() - 0.5) * 0.1,
+              lotSize: `${(0.2 + Math.random() * 0.8).toFixed(3)} acres`,
+              propertyType: "SINGLE_FAMILY",
+              listingStatus: "FOR_SALE",
+              imageUrl: dummyImages[randomIndex],
+            };
+          });
+
+          console.log("🏠 Created saved homes with dummy data:");
+          savedHomesData.forEach((home, index) => {
+            console.log(`  ${index + 1}. ${home.address} - ${home.price} - ${home.bedrooms}br/${home.bathrooms}ba`);
+          });
+
+          // Update state
+          setFavoriteAddresses(favoriteAddresses);
+          setSavedHomes(savedHomesData);
+          console.log("✅ Successfully set saved homes with dummy data in component state");
         } else {
-          console.warn(
-            "⚠️ FAVORITE HOME IDS - Unexpected data format:",
-            typeof favoriteHomeIdsData,
-            favoriteHomeIdsData
-          );
-          return;
+          console.log("ℹ️ No favorite addresses found, saved homes will remain empty");
         }
 
-        console.log("🏠 FAVORITE HOME IDS SUMMARY:");
-        console.log("  🔢 Total Count:", favoriteHomeIds.length);
-        favoriteHomeIds.forEach((id: string, index: number) => {
-          console.log(`  ${index + 1}. ID: "${id}"`);
-        });
-
-        // If we have favorite home IDs, we need to fetch the actual property data
-        // For now, we'll also load the favorite addresses for backward compatibility
-        const favoritesResponse = await favoriteHomesApi.getFavorites();
-        if (favoritesResponse.success && favoritesResponse.data?.favorites) {
-          setFavoriteAddresses(favoritesResponse.data.favorites);
-          console.log(
-            "✅ Loaded favorite addresses from backend:",
-            favoritesResponse.data.favorites
-          );
-        }
-
-        // TODO: In a real implementation, you would fetch the actual property data
-        // for each favorite_home_id from a properties API endpoint
-        // For now, we'll keep savedHomes empty until we have a proper properties API
-        console.log(
-          "ℹ️ Favorite home IDs loaded but savedHomes will remain empty until property data API is implemented"
-        );
-        
+        console.log("🏠 ===== SAVED HOMES RETRIEVAL COMPLETED SUCCESSFULLY =====");
+        console.log("📊 Final state summary:");
+        console.log("  - Favorite addresses count:", favoriteAddresses.length);
+        console.log("  - Saved homes count:", favoriteAddresses.length);
+          
       } catch (error) {
+        console.error("❌ ===== SAVED HOMES RETRIEVAL FAILED =====");
         console.error("❌ Error loading saved homes:", error);
+        console.error("❌ Error type:", typeof error);
+        if (error instanceof Error) {
+          console.error("❌ Error message:", error.message);
+          console.error("❌ Error stack:", error.stack);
+        } else {
+          console.error("❌ Unknown error type:", error);
+        }
       }
     };
 
     loadSavedHomes();
   }, []); // Run once on mount
-
-  // Map click search functionality removed - search only happens on page load
 
   // Update map markers
   const updateMapMarkers = (results: SearchResult[]) => {
@@ -1179,13 +1384,13 @@ export default function SearchPage() {
       `;
 
       overlayDiv.innerHTML = `
-        <img src="/defaut-home.jpg" alt="Property" style="
+        <img src="${result.imageUrl || '/default-home.jpg'}" alt="Property" style="
           width: 100%;
           height: 60px;
           object-fit: cover;
           border-radius: 4px;
           margin-bottom: 6px;
-        " />
+        " onerror="this.src='/default-home.jpg'" />
         <div style="
           font-size: 11px;
           font-weight: 600;
@@ -1459,7 +1664,7 @@ export default function SearchPage() {
                                 ? "border-brown bg-brown/5"
                                 : "border-gray-200 hover:border-brown/50 hover:bg-gray-50"
                             }`}
-                            onClick={() => setSelectedProperty(property)}
+                            onClick={() => handleViewPropertyDetails(property)}
                           >
                             {/* Property Image */}
                             {property.imageUrl && (
@@ -1480,12 +1685,12 @@ export default function SearchPage() {
                                 <div className="flex-1">
                                   {/* Property Type and Status */}
                                   <div className="flex items-center gap-2 mb-1">
-                                    {property.propertyType && (
+                                    {property.propertyType && property.propertyType.toLowerCase() !== 'single_family' && (
                                       <span className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded">
                                         {property.propertyType}
                                       </span>
                                     )}
-                                    {property.listingStatus && (
+                                    {property.listingStatus && property.listingStatus.toLowerCase() !== 'for_sale' && (
                                       <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
                                         {property.listingStatus}
                                       </span>
@@ -1510,6 +1715,26 @@ export default function SearchPage() {
                                       {property.sqft.toLocaleString()} sqft
                                     </div>
                                   </div>
+                                  
+                                  {/* Match Score */}
+                                  {(() => {
+                                    const propertyAnalysis = calculatePropertyScore(property);
+                                    const { fillColor, strokeColor } = getScoreBasedPinColor(propertyAnalysis.score);
+                                    return (
+                                      <div className="flex items-center gap-2 mb-1">
+                                        <div 
+                                          className="px-2 py-1 rounded text-xs font-semibold"
+                                          style={{ 
+                                            backgroundColor: fillColor, 
+                                            color: strokeColor 
+                                          }}
+                                        >
+                                          {propertyAnalysis.score}/100
+                                        </div>
+                                        <span className="text-xs text-gray-500">Match Score</span>
+                                      </div>
+                                    );
+                                  })()}
                                   
                                   {/* Lot Size */}
                                   {property.lotSize && (
@@ -1553,7 +1778,7 @@ export default function SearchPage() {
                               ? "border-brown bg-brown/5"
                               : "border-gray-200 hover:border-brown/50 hover:bg-gray-50"
                           }`}
-                          onClick={() => setSelectedProperty(property)}
+                          onClick={() => handleViewPropertyDetails(property)}
                         >
                           {/* Property Image */}
                           {property.imageUrl && (
@@ -1574,7 +1799,7 @@ export default function SearchPage() {
                               <div className="flex-1">
                                 {/* Property Type and Status */}
                                 <div className="flex items-center gap-2 mb-1">
-                                  {property.propertyType && (
+                                  {property.propertyType && property.propertyType.toLowerCase() !== 'single_family' && (
                                     <span className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded">
                                       {property.propertyType}
                                     </span>
@@ -1602,6 +1827,26 @@ export default function SearchPage() {
                                   <div>{property.bathrooms} baths</div>
                                   <div>{property.sqft.toLocaleString()} sqft</div>
                                 </div>
+                                
+                                {/* Match Score */}
+                                {(() => {
+                                  const propertyAnalysis = calculatePropertyScore(property);
+                                  const { fillColor, strokeColor } = getScoreBasedPinColor(propertyAnalysis.score);
+                                  return (
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <div 
+                                        className="px-2 py-1 rounded text-xs font-semibold"
+                                        style={{ 
+                                          backgroundColor: fillColor, 
+                                          color: strokeColor 
+                                        }}
+                                      >
+                                        {propertyAnalysis.score}/100
+                                      </div>
+                                      <span className="text-xs text-gray-500">Match Score</span>
+                                    </div>
+                                  );
+                                })()}
                                 
                                 {/* Lot Size */}
                                 {property.lotSize && (
@@ -1648,12 +1893,12 @@ export default function SearchPage() {
                   <div>
                     <p className="text-sm font-medium text-gray-900">
                       We use your preferences, commute times, and important
-                      addresses to find the best properties for you.
+                      addresses to find the best properties for you.       
                       <button
                         onClick={() => navigate("/dashboard/personalization")}
                         className="text-xs text-brown hover:text-brown-dark underline cursor-pointer"
                       >
-                        Edit Here
+                           Edit Here
                       </button>
                     </p>
                     {/* Location display removed - no longer needed without map click search */}
@@ -1665,19 +1910,23 @@ export default function SearchPage() {
 
           {/* Map - Takes remaining height */}
           <div className="mobile-card flex-1 p-0 relative">
-            {isSearching ? (
-              <div className="w-full h-full rounded-lg flex items-center justify-center bg-gray-50">
+            {/* Loading overlay - shows on top when searching */}
+            {isSearching && (
+              <div className="absolute inset-0 z-20 w-full h-full rounded-lg flex items-center justify-center bg-gray-50">
                 <Loading message="Searching properties..." />
               </div>
-            ) : (
-              <>
-                <div
-                  ref={mapRef}
-                  className="w-full h-full rounded-lg"
-                  style={{ minHeight: "100%" }}
-                />
+            )}
+            
+            {/* Map container - always present in DOM */}
+            <div className="w-full h-full relative">
+              <div
+                ref={mapRef}
+                className="w-full h-full rounded-lg"
+                style={{ minHeight: "100%" }}
+              />
 
-                {/* Custom Zoom Controls */}
+              {/* Custom Zoom Controls - hidden during search */}
+              {!isSearching && (
                 <div className="absolute bottom-12 left-8 flex flex-row gap-1 z-10">
                   <button
                     onClick={zoomIn}
@@ -1694,52 +1943,52 @@ export default function SearchPage() {
                     <span className="text-lg font-bold leading-none">−</span>
                   </button>
                 </div>
+              )}
 
-                {/* Property Pagination Controls */}
-                {hasSearched &&
-                  (activeTab === "results"
-                    ? searchResults.length > PROPERTIES_PER_PAGE
-                    : savedHomes.length > PROPERTIES_PER_PAGE) && (
-                    <div className="absolute bottom-12 right-8 flex flex-row gap-1 z-10">
-                      <button
-                        onClick={() =>
-                          setCurrentPage(Math.max(0, currentPage - 1))
-                        }
-                        disabled={currentPage === 0}
-                        className="w-10 h-10 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-gray-700 disabled:hover:border-gray-300"
-                        title="Previous properties"
-                      >
-                        <ChevronLeft className="w-5 h-5" />
-                      </button>
-                      <div className="w-auto px-3 h-10 bg-white border border-gray-300 rounded-lg shadow-md flex items-center justify-center text-sm font-medium text-gray-700">
-                        {Math.min(
-                          (currentPage + 1) * PROPERTIES_PER_PAGE,
-                          activeTab === "results"
-                            ? searchResults.length
-                            : savedHomes.length
-                        )}{" "}
-                        of{" "}
-                        {activeTab === "results"
+              {/* Property Pagination Controls - hidden during search */}
+              {!isSearching && hasSearched &&
+                (activeTab === "results"
+                  ? searchResults.length > PROPERTIES_PER_PAGE
+                  : savedHomes.length > PROPERTIES_PER_PAGE) && (
+                  <div className="absolute bottom-12 right-8 flex flex-row gap-1 z-10">
+                    <button
+                      onClick={() =>
+                        setCurrentPage(Math.max(0, currentPage - 1))
+                      }
+                      disabled={currentPage === 0}
+                      className="w-10 h-10 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-gray-700 disabled:hover:border-gray-300"
+                      title="Previous properties"
+                    >
+                      <ChevronLeft className="w-5 h-5" />
+                    </button>
+                    <div className="w-auto px-3 h-10 bg-white border border-gray-300 rounded-lg shadow-md flex items-center justify-center text-sm font-medium text-gray-700">
+                      {Math.min(
+                        (currentPage + 1) * PROPERTIES_PER_PAGE,
+                        activeTab === "results"
                           ? searchResults.length
-                          : savedHomes.length}
-                      </div>
-                      <button
-                        onClick={() => setCurrentPage(currentPage + 1)}
-                        disabled={
-                          (currentPage + 1) * PROPERTIES_PER_PAGE >=
-                          (activeTab === "results"
-                            ? searchResults.length
-                            : savedHomes.length)
-                        }
-                        className="w-10 h-10 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-gray-700 disabled:hover:border-gray-300"
-                        title="Next properties"
-                      >
-                        <ChevronRight className="w-5 h-5" />
-                      </button>
+                          : savedHomes.length
+                      )}{" "}
+                      of{" "}
+                      {activeTab === "results"
+                        ? searchResults.length
+                        : savedHomes.length}
                     </div>
-                  )}
-              </>
-            )}
+                    <button
+                      onClick={() => setCurrentPage(currentPage + 1)}
+                      disabled={
+                        (currentPage + 1) * PROPERTIES_PER_PAGE >=
+                        (activeTab === "results"
+                          ? searchResults.length
+                          : savedHomes.length)
+                      }
+                      className="w-10 h-10 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-gray-700 disabled:hover:border-gray-300"
+                      title="Next properties"
+                    >
+                      <ChevronRight className="w-5 h-5" />
+                    </button>
+                  </div>
+                )}
+            </div>
           </div>
         </div>
       </div>

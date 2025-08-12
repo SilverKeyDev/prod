@@ -181,80 +181,149 @@ class ZillowProperty:
         self.imgSrc = data.get('imgSrc')
         self.raw_data = data
 
+        
 @search_bp.route('/property-by-address', methods=['POST'])
 def search_property_by_address():
     """
-    Fetch property details from Zillow API given a street address.
+    Fetch nearby property data from Zillow API by first geocoding an address
+    and then calling /propertyByCoordinates.
     """
+    import time, os, requests
+    from flask import current_app, jsonify, request as flask_request
+
+    start_time = time.time()
+
+    def geocode_address(addr: str) -> tuple[float, float] | None:
+        """Return (lat, lon) for the given address or None on failure."""
+        gkey = os.getenv("GOOGLE_MAPS_API_KEY")
+        try:
+            if gkey:
+                g_url = "https://maps.googleapis.com/maps/api/geocode/json"
+                g_params = {"address": addr, "key": gkey}
+                r = requests.get(g_url, params=g_params, timeout=10)
+                if r.ok:
+                    j = r.json()
+                    if j.get("results"):
+                        loc = j["results"][0]["geometry"]["location"]
+                        return (loc["lat"], loc["lng"])
+            # Fallback: Nominatim (best-effort; rate-limited; add UA)
+            n_url = "https://nominatim.openstreetmap.org/search"
+            n_params = {"q": addr, "format": "json", "limit": 1}
+            r = requests.get(n_url, params=n_params, headers={"User-Agent": "SilverKey/1.0"}, timeout=10)
+            if r.ok and r.json():
+                item = r.json()[0]
+                return (float(item["lat"]), float(item["lon"]))
+        except Exception as _:
+            pass
+        return None
+
     try:
+        current_app.logger.info("🔍 [BACKEND] ===== PROPERTY-BY-ADDRESS REQUEST STARTED =====")
+        current_app.logger.info(f"🔍 [BACKEND] Timestamp: {time.strftime('%Y-%m-%d %H:%M:%S')}")
+
         # Authenticate user
+        current_app.logger.info("🔍 [BACKEND] Step 1: Authenticating user...")
         user = get_current_user()
         if not user:
-            return jsonify({
-                'success': False,
-                'error': 'USER_NOT_FOUND',
-                'message': 'User not found'
-            }), 404
-        data = request.get_json()
+            current_app.logger.error("🔍 [BACKEND] ❌ User authentication failed")
+            return jsonify({'success': False, 'error': 'USER_NOT_FOUND', 'message': 'User not found'}), 404
+        current_app.logger.info(f"🔍 [BACKEND] ✅ User authenticated: {user.id}")
+
+        # Parse request
+        current_app.logger.info("🔍 [BACKEND] Step 2: Parsing request data...")
+        data = flask_request.get_json(silent=True) or {}
         address = data.get('address')
-        
+        radius_miles = float(data.get('radius_miles', 0.1))      # matches your curl d=0.1
+        include_sold = bool(data.get('includeSold', True))       # default True as in curl example
+        current_app.logger.info(f"🔍 [BACKEND] Request data: {data}")
+        current_app.logger.info(f"🔍 [BACKEND] Target address: '{address}'")
+
         if not address:
+            current_app.logger.error("🔍 [BACKEND] ❌ No address provided in request")
             return jsonify({'error': 'Address is required'}), 400
-            
+
         if not RAPI_KEY:
+            current_app.logger.error("🔍 [BACKEND] ❌ RapidAPI key not configured")
             return jsonify({'error': 'RapidAPI key not configured'}), 500
 
-        # Step 1: Search for location suggestions to get zpid
-        suggest_url = f"https://{RAPI_HOST}/locationSuggestions?location={requests.utils.quote(address)}"
-        
-        suggest_headers = {
+        current_app.logger.info("🔍 [BACKEND] ✅ Configuration check passed")
+        current_app.logger.info(f"🔍 [BACKEND] RapidAPI Host: {RAPI_HOST}")
+        current_app.logger.info(f"🔍 [BACKEND] RapidAPI Key length: {len(RAPI_KEY) if RAPI_KEY else 0}")
+
+        # Step 3: Geocode address -> (lat, lon)
+        current_app.logger.info("🔍 [BACKEND] Step 3: Geocoding address...")
+        geo_start = time.time()
+        coords = geocode_address(address)
+        geo_duration = time.time() - geo_start
+        if not coords:
+            current_app.logger.error(f"🔍 [BACKEND] ❌ Geocoding failed for: {address}")
+            return jsonify({'error': f'Failed to geocode address: {address}'}), 400
+        lat, lon = coords
+        current_app.logger.info(f"🔍 [BACKEND] ✅ Geocoded: lat={lat}, lon={lon} (took {geo_duration:.2f}s)")
+
+        # Step 4: Call /propertyByCoordinates
+        current_app.logger.info("🔍 [BACKEND] Step 4: Fetching properties by coordinates...")
+        base_url = f"https://{RAPI_HOST}/propertyByCoordinates"
+        params = {
+            "long": f"{lon}",
+            "lat": f"{lat}",
+            "d": f"{radius_miles}",
+            "includeSold": "true" if include_sold else "false",
+        }
+        current_app.logger.info(f"🔍 [BACKEND] Coordinates URL: {base_url} params={params}")
+
+        headers = {
             "x-rapidapi-host": RAPI_HOST,
             "x-rapidapi-key": RAPI_KEY,
             "Accept": "application/json",
         }
-        
-        suggest_res = requests.get(suggest_url, headers=suggest_headers)
-        
-        if not suggest_res.ok:
+
+        prop_start = time.time()
+        res = requests.get(base_url, headers=headers, params=params, timeout=20)
+        prop_duration = time.time() - prop_start
+        current_app.logger.info(f"🔍 [BACKEND] propertyByCoordinates response: {res.status_code} (took {prop_duration:.2f}s)")
+        current_app.logger.info(f"🔍 [BACKEND] Response headers: {dict(res.headers)}")
+
+        if not res.ok:
+            current_app.logger.error(f"🔍 [BACKEND] ❌ propertyByCoordinates failed: {res.status_code}")
+            current_app.logger.error(f"🔍 [BACKEND] ❌ Response text: {res.text}")
             return jsonify({
-                'error': f'Location suggestions failed: {suggest_res.status_code}',
-                'details': suggest_res.text
-            }), suggest_res.status_code
+                'error': f'propertyByCoordinates failed: {res.status_code}',
+                'details': res.text
+            }), res.status_code
 
-        suggestions = suggest_res.json()
-        if not isinstance(suggestions, list) or len(suggestions) == 0 or not suggestions[0].get('metaData', {}).get('zpid'):
-            return jsonify({
-                'error': f'No matching property found for address: {address}'
-            }), 404
+        payload = res.json()
 
-        zpid = suggestions[0]['metaData']['zpid']
-        print(f"Found zpid: {zpid} for address: {address}")
+        # Optional: try to pick the best match by address string similarity
+        # (kept simple—return all results and let frontend choose/filter)
+        current_app.logger.info("🔍 [BACKEND] ✅ propertyByCoordinates data received")
+        if isinstance(payload, dict):
+            current_app.logger.info(f"🔍 [BACKEND] Top-level keys: {list(payload.keys())}")
 
-        # Step 2: Get property details by zpid
-        property_url = f"https://{RAPI_HOST}/property?zpid={zpid}"
-        
-        prop_headers = {
-            "x-rapidapi-host": RAPI_HOST,
-            "x-rapidapi-key": RAPI_KEY,
-            "Accept": "application/json",
-        }
-        
-        prop_res = requests.get(property_url, headers=prop_headers)
-        
-        if not prop_res.ok:
-            return jsonify({
-                'error': f'Property fetch failed: {prop_res.status_code}',
-                'details': prop_res.text
-            }), prop_res.status_code
+        total_duration = time.time() - start_time
+        current_app.logger.info("🔍 [BACKEND] ===== PROPERTY-BY-ADDRESS COMPLETED SUCCESSFULLY =====")
+        current_app.logger.info(f"🔍 [BACKEND] Total duration: {total_duration:.2f}s")
 
-        property_data = prop_res.json()
         return jsonify({
             'success': True,
-            'data': property_data
+            'query': {
+                'address': address,
+                'lat': lat,
+                'lon': lon,
+                'radius_miles': radius_miles,
+                'includeSold': include_sold
+            },
+            'data': payload
         })
-        
+
     except Exception as e:
-        print(f"Error in search_property_by_address: {str(e)}")
+        total_duration = time.time() - start_time
+        current_app.logger.error("🔍 [BACKEND] ❌ ===== PROPERTY-BY-ADDRESS FAILED =====")
+        current_app.logger.error(f"🔍 [BACKEND] ❌ Error: {e}")
+        current_app.logger.error(f"🔍 [BACKEND] ❌ Type: {type(e).__name__}")
+        current_app.logger.error(f"🔍 [BACKEND] ❌ Total duration: {total_duration:.2f}s")
+        import traceback
+        current_app.logger.error(f"🔍 [BACKEND] ❌ Stack trace: {traceback.format_exc()}")
         return jsonify({'error': f'Internal server error: {str(e)}'}), 500
 
 
