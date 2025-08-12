@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Bookmark, MapPin, ChevronLeft, ChevronRight } from "lucide-react";
+import { Bookmark, MapPin, ChevronLeft, ChevronRight} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import mapStyles from "../../hooks/mapStyling";
 import { favoriteHomesApi } from "../../lib/api";
@@ -22,7 +22,7 @@ interface SearchResult {
   propertyType?: string;
   listingStatus?: string;
   imageUrl?: string;
-  
+
   // Enhanced property details from searchAddress API
   zpid?: number;
   streetAddress?: string;
@@ -39,7 +39,7 @@ interface SearchResult {
   timeOnZillow?: string;
   daysOnZillow?: number;
   onMarketDate?: number;
-  
+
   // Financial information
   zestimate?: number;
   taxAnnualAmount?: number;
@@ -49,7 +49,7 @@ interface SearchResult {
   monthlyHoaFee?: number;
   annualHomeownersInsurance?: number;
   rentZestimate?: number;
-  
+
   // Property features
   architecturalStyle?: string;
   structureType?: string;
@@ -65,7 +65,7 @@ interface SearchResult {
   hasCooling?: boolean;
   hasHeating?: boolean;
   hasAssociation?: boolean;
-  
+
   // Detailed features
   view?: string[];
   flooring?: string[];
@@ -79,7 +79,7 @@ interface SearchResult {
   parkingFeatures?: string[];
   utilities?: string[];
   inclusions?: string[];
-  
+
   // Room information
   rooms?: any[];
   bathroomsFull?: number;
@@ -88,21 +88,21 @@ interface SearchResult {
   bathroomsThreeQuarter?: number;
   mainLevelBedrooms?: number;
   mainLevelBathrooms?: number;
-  
+
   // Building details
   stories?: string;
   roofType?: string;
   foundationDetails?: string[];
   constructionMaterials?: string[];
   windowFeatures?: string[];
-  
+
   // Location details
   subdivision?: string;
   subdivisionName?: string;
   county?: string;
   cityId?: number;
   parcelNumber?: string;
-  
+
   // Agent information
   contact_recipients?: any[];
   listed_by?: {
@@ -122,7 +122,7 @@ interface SearchResult {
     zuid?: string;
     image_url?: string;
   };
-  
+
   // Schools
   schools?: Array<{
     name?: string;
@@ -136,7 +136,7 @@ interface SearchResult {
     size?: number;
     link?: string;
   }>;
-  
+
   // Price history
   priceHistory?: Array<{
     date?: string;
@@ -146,16 +146,16 @@ interface SearchResult {
     source?: string;
     pricePerSquareFoot?: number;
   }>;
-  
+
   // Nearby homes
   nearbyHomes?: any[];
-  
+
   // At a glance facts
   atAGlanceFacts?: Array<{
     factLabel?: string;
     factValue?: string;
   }>;
-  
+
   // Additional details
   description?: string;
   url?: string;
@@ -164,7 +164,7 @@ interface SearchResult {
   favoriteCount?: number;
   virtualTour?: string;
   buildingName?: string;
-  
+
   // Mortgage rates
   mortgageRates?: {
     thirtyYearFixedRate?: number;
@@ -245,6 +245,7 @@ export default function SearchPage() {
   const googleMapRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<google.maps.Marker[]>([]);
   const polygonRef = useRef<google.maps.Polygon | null>(null);
+  const individualPolygonsRef = useRef<google.maps.Polygon[]>([]);
   const importantMarkersRef = useRef<google.maps.Marker[]>([]);
 
   // Calculate property score based on user preferences
@@ -538,29 +539,48 @@ export default function SearchPage() {
   const handleViewPropertyDetails = async (property: SearchResult) => {
     console.log("🔍 ===== VIEW DETAILS CLICKED =====");
     console.log("🔍 Timestamp:", new Date().toISOString());
-    console.log("🔍 Property data received:", JSON.stringify(property, null, 2));
+    console.log(
+      "🔍 Property data received:",
+      JSON.stringify(property, null, 2)
+    );
     console.log("🔍 Property address:", property.address);
-    console.log("🔍 getPropertyDetailsByAddress function available:", typeof getPropertyDetailsByAddress);
-    
+    console.log(
+      "🔍 getPropertyDetailsByAddress function available:",
+      typeof getPropertyDetailsByAddress
+    );
+
     try {
       console.log("🔍 Step 1: Starting detailed property information fetch...");
-      console.log("🔍 About to call getPropertyDetailsByAddress with address:", property.address);
-      
+      console.log(
+        "🔍 About to call getPropertyDetailsByAddress with address:",
+        property.address
+      );
+
       // Call the searchAddress function to get detailed property information
-      const detailedPropertyData = await getPropertyDetailsByAddress(property.address);
-      
+      const detailedPropertyData = await getPropertyDetailsByAddress(
+        property.address
+      );
+
       console.log("✅ Step 2: Successfully received detailed property data");
       console.log("✅ Detailed data type:", typeof detailedPropertyData);
-      console.log("✅ Detailed data keys:", detailedPropertyData ? Object.keys(detailedPropertyData) : "null/undefined");
-      console.log("✅ Full detailed data:", JSON.stringify(detailedPropertyData, null, 2));
-      
+      console.log(
+        "✅ Detailed data keys:",
+        detailedPropertyData
+          ? Object.keys(detailedPropertyData)
+          : "null/undefined"
+      );
+      console.log(
+        "✅ Full detailed data:",
+        JSON.stringify(detailedPropertyData, null, 2)
+      );
+
       // Update the selected property with the detailed data if available
       console.log("🔄 Step 3: Merging property data...");
       const enhancedProperty = {
         ...property,
         ...detailedPropertyData, // Merge detailed data with existing property data
       };
-      
+
       console.log("🔄 Enhanced property keys:", Object.keys(enhancedProperty));
       console.log("🔄 Enhanced property sample fields:");
       console.log("  - address:", enhancedProperty.address);
@@ -569,18 +589,17 @@ export default function SearchPage() {
       console.log("  - taxAnnualAmount:", enhancedProperty.taxAnnualAmount);
       console.log("  - listed_by:", !!enhancedProperty.listed_by);
       console.log("  - schools:", enhancedProperty.schools?.length || 0);
-      
+
       console.log("🔄 Step 4: Setting selected property in state...");
       setSelectedProperty(enhancedProperty);
       console.log("✅ ===== VIEW DETAILS COMPLETED SUCCESSFULLY =====");
-      
     } catch (error) {
       console.error("❌ ===== VIEW DETAILS FAILED =====");
       console.error("❌ Error fetching property details:", error);
       console.error("❌ Error type:", typeof error);
       console.error("❌ Error message:", (error as Error).message);
       console.error("❌ Error stack:", (error as Error).stack);
-      
+
       // Fallback: use the original property data without detailed information
       console.log("🔄 Using fallback: setting original property data");
       setSelectedProperty(property);
@@ -592,19 +611,27 @@ export default function SearchPage() {
   useEffect(() => {
     // Define the global function that map modals can call
     (window as any).openPropertyModal = (propertyId: string) => {
-      console.log("🗺️ MAP MODAL: View Details clicked for property ID:", propertyId);
-      
+      console.log(
+        "🗺️ MAP MODAL: View Details clicked for property ID:",
+        propertyId
+      );
+
       // Find the property in current data (search results or saved homes)
       const currentData = activeTab === "results" ? searchResults : savedHomes;
-      const property = currentData.find(p => p.id === propertyId);
-      
+      const property = currentData.find((p) => p.id === propertyId);
+
       if (property) {
-        console.log("🗺️ MAP MODAL: Found property, calling handleViewPropertyDetails");
+        console.log(
+          "🗺️ MAP MODAL: Found property, calling handleViewPropertyDetails"
+        );
         console.log("🗺️ MAP MODAL: Property address:", property.address);
         handleViewPropertyDetails(property);
       } else {
         console.error("🗺️ MAP MODAL: Property not found with ID:", propertyId);
-        console.error("🗺️ MAP MODAL: Available properties:", currentData.map(p => ({ id: p.id, address: p.address })));
+        console.error(
+          "🗺️ MAP MODAL: Available properties:",
+          currentData.map((p) => ({ id: p.id, address: p.address }))
+        );
       }
     };
 
@@ -637,8 +664,6 @@ export default function SearchPage() {
     hasSearched,
     currentPage,
   ]);
-
-
 
   // Fetch isochrone polygon from backend
   const fetchIsochronePolygon = async () => {
@@ -793,7 +818,7 @@ export default function SearchPage() {
       );
 
       // Map current userPreferences to the searchByCoords format
-      // Include important_locations from the isochrone data since that's what the backend needs
+      // Include ALL important_locations from the isochrone data (not just center)
       const searchUserPreferences = {
         home_budget: userPreferences.priceRange.max,
         preferred_bedrooms: userPreferences.preferredBedrooms,
@@ -804,16 +829,8 @@ export default function SearchPage() {
         preferred_lot_size: "medium",
         preferred_home_features: [],
         deal_breakers: [],
-        // Include important_locations from the isochrone center data
-        important_locations: isochroneData.center
-          ? [
-              {
-                name: isochroneData.center.name || "Search Location",
-                address: isochroneData.center.address,
-                commute_tolerance: isochroneData.commute_tolerance || 30,
-              },
-            ]
-          : [],
+        // Use ALL important_locations from the isochrone response, not just center
+        important_locations: isochroneData.locations || [],
       };
 
       console.log(
@@ -853,9 +870,12 @@ export default function SearchPage() {
           lng:
             property.longitude ||
             isochroneData.center.lng + (Math.random() - 0.5) * 0.01,
-          lotSize: property.lotAreaValue && property.lotAreaUnit 
-            ? `${property.lotAreaValue.toLocaleString()} ${property.lotAreaUnit}`
-            : undefined,
+          lotSize:
+            property.lotAreaValue && property.lotAreaUnit
+              ? `${property.lotAreaValue.toLocaleString()} ${
+                  property.lotAreaUnit
+                }`
+              : undefined,
           propertyType: property.propertyType || "Single Family",
           listingStatus: property.listingStatus || "For Sale",
           imageUrl: property.imgSrc || "/default-home.jpg",
@@ -902,13 +922,81 @@ export default function SearchPage() {
       return;
     }
 
-    // Clear existing polygon
+    // Clear existing polygons
     if (polygonRef.current) {
-      console.log("🧹 Clearing existing polygon");
+      console.log("🧹 Clearing existing union polygon");
       polygonRef.current.setMap(null);
     }
 
+    // Clear existing individual polygons
+    if (individualPolygonsRef.current) {
+      console.log("🧹 Clearing existing individual polygons");
+      individualPolygonsRef.current.forEach((polygon: google.maps.Polygon) =>
+        polygon.setMap(null)
+      );
+      individualPolygonsRef.current = [];
+    }
+
     try {
+      // First, render individual isochrones as gray outlines
+      if (
+        isochroneData.individual_isochrones &&
+        Array.isArray(isochroneData.individual_isochrones)
+      ) {
+        console.log(
+          "🔍 Rendering",
+          isochroneData.individual_isochrones.length,
+          "individual isochrones"
+        );
+
+        isochroneData.individual_isochrones.forEach(
+          (individualData: any, index: number) => {
+            const geometry = individualData.isochrone?.geometry;
+            if (!geometry) return;
+
+            let coordinates: number[][][] = [];
+
+            if (geometry.type === "Polygon") {
+              coordinates = geometry.coordinates;
+            } else if (geometry.type === "MultiPolygon") {
+              coordinates = geometry.coordinates[0];
+            }
+
+            if (coordinates.length > 0) {
+              const paths = coordinates.map((ring: number[][]) => {
+                return ring.map((coord: number[]) => ({
+                  lat: coord[1],
+                  lng: coord[0],
+                }));
+              });
+
+              // Create individual polygon with gray styling
+              const individualPolygon = new google.maps.Polygon({
+                paths: paths,
+                strokeColor: "#888888", // Gray color
+                strokeOpacity: 0.6,
+                strokeWeight: 1,
+                fillColor: "transparent",
+                fillOpacity: 0,
+                clickable: false,
+              });
+
+              individualPolygon.setMap(googleMapRef.current);
+              if (!individualPolygonsRef.current)
+                individualPolygonsRef.current = [];
+              individualPolygonsRef.current.push(individualPolygon);
+
+              console.log(
+                `✅ Rendered individual isochrone ${index + 1} (${
+                  individualData.name
+                }) in gray`
+              );
+            }
+          }
+        );
+      }
+
+      // Now render the main union isochrone
       const geometry = isochroneData.isochrone.geometry;
       console.log("📐 Geometry type:", geometry.type);
       console.log(
@@ -948,7 +1036,7 @@ export default function SearchPage() {
       console.log("📊 Total paths created:", paths.length);
       console.log("📊 First path sample points:", paths[0]?.slice(0, 3));
 
-      // Create the polygon
+      // Create the main union polygon
       const polygon = new google.maps.Polygon({
         paths: paths,
         strokeColor: "#7B9E7C", // Match the app's green theme
@@ -959,7 +1047,7 @@ export default function SearchPage() {
         clickable: false,
       });
 
-      console.log("🎨 Created polygon with styling");
+      console.log("🎨 Created union polygon with styling");
       polygon.setMap(googleMapRef.current);
       polygonRef.current = polygon;
       setIsochronePolygon(polygon);
@@ -1027,14 +1115,14 @@ export default function SearchPage() {
       }
 
       // If there are additional important locations in the isochrone data, add them
-      if (isochroneData.important_locations && Array.isArray(isochroneData.important_locations)) {
-        isochroneData.important_locations.forEach((location: any) => {
-          if (location.address && location.lat && location.lng) {
+      if (isochroneData.locations && Array.isArray(isochroneData.locations)) {
+        isochroneData.locations.forEach((location: any) => {
+          if (location.address) {
             importantLocations.push({
               name: location.name || "Important Location",
               address: location.address,
-              lat: location.lat,
-              lng: location.lng,
+              lat: location.lat || null, // Backend doesn't include lat/lng, will geocode
+              lng: location.lng || null,
               commute_tolerance: location.commute_tolerance || 30,
             });
           }
@@ -1089,34 +1177,49 @@ export default function SearchPage() {
               icon: markerIcon,
             });
 
-            // Create info window for the marker
+            // Create minimal info window for the marker - always visible, no close button
+            const commuteTime = location.commute_tolerance || 30;
             const infoWindow = new google.maps.InfoWindow({
               content: `
-                <div style="padding: 8px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-                  <h3 style="margin: 0 0 4px 0; color: #333; font-size: 14px; font-weight: 600;">
-                    ${name}${isFirstLocation ? " 🎯" : ""}
-                  </h3>
-                  <p style="margin: 0; color: #666; font-size: 12px;">${address}</p>
-                  ${
-                    isFirstLocation
-                      ? '<p style="margin: 4px 0 0 0; color: #7B9E7C; font-size: 11px; font-weight: 500;">Commute Center</p>'
-                      : ""
-                  }
+                <style>
+                  .gm-ui-hover-effect { display: none !important; }
+                  .gm-style-iw-c button { display: none !important; }
+                  .gm-style-iw-t::after { display: none !important; }
+                </style>
+                <div style="
+                  padding: 6px 8px; 
+                  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                  background: rgba(245, 245, 220, 0.95);
+                  border: 1px solid #9E8371;
+                  border-radius: 6px;
+                  box-shadow: 0 2px 8px rgba(158, 131, 113, 0.2);
+                  min-width: 80px;
+                  max-width: 120px;
+                  text-align: center;
+                ">
+                  <div style="
+                    color: #5D4E37; 
+                    font-size: 12px; 
+                    font-weight: 600;
+                    margin-bottom: 2px;
+                  ">
+                    ${name}
+                  </div>
+                  <div style="
+                    color: #8B7355; 
+                    font-size: 10px;
+                    font-weight: 500;
+                  ">
+                    ${commuteTime} min
+                  </div>
                 </div>
               `,
+              disableAutoPan: true,
+              pixelOffset: new google.maps.Size(0, -5),
             });
 
-            // Add click listener to show info window
-            marker.addListener("click", () => {
-              // Close any open info windows
-              importantMarkersRef.current.forEach((m) => {
-                if ((m as any).infoWindow) {
-                  (m as any).infoWindow.close();
-                }
-              });
-
-              infoWindow.open(googleMapRef.current, marker);
-            });
+            // Open the info window immediately and keep it open (always visible)
+            infoWindow.open(googleMapRef.current, marker);
 
             // Store info window reference on marker for cleanup
             (marker as any).infoWindow = infoWindow;
@@ -1150,7 +1253,7 @@ export default function SearchPage() {
     const loadSavedHomes = async () => {
       console.log("🏠 ===== SAVED HOMES RETRIEVAL STARTED =====");
       console.log("🕐 Timestamp:", new Date().toISOString());
-      
+
       try {
         // Get auth token
         console.log("🔑 Step 1: Checking authentication tokens...");
@@ -1161,7 +1264,10 @@ export default function SearchPage() {
         console.log("🔑 Token check results:");
         console.log("  - id_token exists:", !!idToken);
         console.log("  - token exists:", !!token);
-        console.log("  - Using token type:", idToken ? "id_token" : token ? "token" : "none");
+        console.log(
+          "  - Using token type:",
+          idToken ? "id_token" : token ? "token" : "none"
+        );
         console.log("  - Token length:", authToken ? authToken.length : 0);
 
         if (!authToken) {
@@ -1169,24 +1275,9 @@ export default function SearchPage() {
           return;
         }
 
-        // Step 2: Call the dedicated /favorite-homes API endpoint
-        console.log("🏠 Step 2: Calling /favorite-homes API endpoint...");
-        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "";
-        const favoritesResponse = await fetch(`${apiBaseUrl}/api/v1/favorite-homes`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${authToken}`,
-          },
-          credentials: "include",
-        });
-
-        if (!favoritesResponse.ok) {
-          console.error("🏠 Failed to fetch favorite homes:", favoritesResponse.status);
-          return;
-        }
-
-        const favoritesData = await favoritesResponse.json();
+        // Step 2: Call the centralized favoriteHomesApi
+        console.log("🏠 Step 2: Calling favoriteHomesApi.getFavorites()...");
+        const favoritesData = await favoriteHomesApi.getFavorites();
         console.log("🏠 Step 3: Favorite homes API response received");
         console.log("🏠 Response success:", favoritesData.success);
         console.log("🏠 Response keys:", Object.keys(favoritesData));
@@ -1196,8 +1287,8 @@ export default function SearchPage() {
           return;
         }
 
-        // Step 3: Extract favorite addresses from API response
-        const favoriteAddresses = favoritesData.data || [];
+        // Step 3: Extract favorite addresses from API response (backend returns { favorites: string[] })
+        const favoriteAddresses = favoritesData.favorites || [];
         console.log("🏠 Step 4: Processing favorite addresses...");
         console.log("🏠 FAVORITE ADDRESSES SUMMARY:");
         console.log("  🔢 Total Count:", favoriteAddresses.length);
@@ -1207,58 +1298,73 @@ export default function SearchPage() {
 
         // Step 4: Convert favorite addresses to SearchResult objects with dummy data
         if (favoriteAddresses.length > 0) {
-          console.log("🔄 Step 5: Converting favorite addresses to SearchResult objects...");
-          
-          const savedHomesData: SearchResult[] = favoriteAddresses.map((address: string, index: number) => {
-            // Generate realistic dummy data for each saved home
-            const dummyPrices = [425000, 550000, 675000, 789000, 825000, 950000, 1200000];
-            const dummyBedrooms = [2, 3, 3, 4, 4, 5, 5];
-            const dummyBathrooms = [1.5, 2, 2.5, 2.5, 3, 3.5, 4];
-            const dummySqft = [1200, 1450, 1800, 2100, 2400, 2800, 3200];
-            const dummyImages = [
-              "https://photos.zillowstatic.com/fp/01cb7e1f500768d5c6e07439ff5906c0-p_e.jpg",
-              "https://photos.zillowstatic.com/fp/02ab8e2f600878d6c7e18549ff6917d1-p_e.jpg",
-              "https://photos.zillowstatic.com/fp/03bc9f3f701989e7d8f29659ff7928e2-p_e.jpg",
-              "https://photos.zillowstatic.com/fp/04cd0f4f802090f8e9f30769ff8039f3-p_e.jpg",
-              "https://photos.zillowstatic.com/fp/05de1f5f903101f9f0f41879ff9140f4-p_e.jpg"
-            ];
+          console.log(
+            "🔄 Step 5: Converting favorite addresses to SearchResult objects..."
+          );
 
-            const randomIndex = index % dummyPrices.length;
-            
-            return {
-              id: `saved_${index + 1}`,
-              address: address,
-              price: `$${dummyPrices[randomIndex].toLocaleString()}`,
-              bedrooms: dummyBedrooms[randomIndex],
-              bathrooms: dummyBathrooms[randomIndex],
-              sqft: dummySqft[randomIndex],
-              lat: 33.7490 + (Math.random() - 0.5) * 0.1, // Atlanta area with some variation
-              lng: -84.3880 + (Math.random() - 0.5) * 0.1,
-              lotSize: `${(0.2 + Math.random() * 0.8).toFixed(3)} acres`,
-              propertyType: "SINGLE_FAMILY",
-              listingStatus: "FOR_SALE",
-              imageUrl: dummyImages[randomIndex],
-            };
-          });
+          const savedHomesData: SearchResult[] = favoriteAddresses.map(
+            (address: string, index: number) => {
+              // Generate realistic dummy data for each saved home
+              const dummyPrices = [
+                425000, 550000, 675000, 789000, 825000, 950000, 1200000,
+              ];
+              const dummyBedrooms = [2, 3, 3, 4, 4, 5, 5];
+              const dummyBathrooms = [1.5, 2, 2.5, 2.5, 3, 3.5, 4];
+              const dummySqft = [1200, 1450, 1800, 2100, 2400, 2800, 3200];
+              const dummyImages = [
+                "https://photos.zillowstatic.com/fp/01cb7e1f500768d5c6e07439ff5906c0-p_e.jpg",
+                "https://photos.zillowstatic.com/fp/02ab8e2f600878d6c7e18549ff6917d1-p_e.jpg",
+                "https://photos.zillowstatic.com/fp/03bc9f3f701989e7d8f29659ff7928e2-p_e.jpg",
+                "https://photos.zillowstatic.com/fp/04cd0f4f802090f8e9f30769ff8039f3-p_e.jpg",
+                "https://photos.zillowstatic.com/fp/05de1f5f903101f9f0f41879ff9140f4-p_e.jpg",
+              ];
+
+              const randomIndex = index % dummyPrices.length;
+
+              return {
+                id: `saved_${index + 1}`,
+                address: address,
+                price: `$${dummyPrices[randomIndex].toLocaleString()}`,
+                bedrooms: dummyBedrooms[randomIndex],
+                bathrooms: dummyBathrooms[randomIndex],
+                sqft: dummySqft[randomIndex],
+                lat: 33.749 + (Math.random() - 0.5) * 0.1, // Atlanta area with some variation
+                lng: -84.388 + (Math.random() - 0.5) * 0.1,
+                lotSize: `${(0.2 + Math.random() * 0.8).toFixed(3)} acres`,
+                propertyType: "SINGLE_FAMILY",
+                listingStatus: "FOR_SALE",
+                imageUrl: dummyImages[randomIndex],
+              };
+            }
+          );
 
           console.log("🏠 Created saved homes with dummy data:");
           savedHomesData.forEach((home, index) => {
-            console.log(`  ${index + 1}. ${home.address} - ${home.price} - ${home.bedrooms}br/${home.bathrooms}ba`);
+            console.log(
+              `  ${index + 1}. ${home.address} - ${home.price} - ${
+                home.bedrooms
+              }br/${home.bathrooms}ba`
+            );
           });
 
           // Update state
           setFavoriteAddresses(favoriteAddresses);
           setSavedHomes(savedHomesData);
-          console.log("✅ Successfully set saved homes with dummy data in component state");
+          console.log(
+            "✅ Successfully set saved homes with dummy data in component state"
+          );
         } else {
-          console.log("ℹ️ No favorite addresses found, saved homes will remain empty");
+          console.log(
+            "ℹ️ No favorite addresses found, saved homes will remain empty"
+          );
         }
 
-        console.log("🏠 ===== SAVED HOMES RETRIEVAL COMPLETED SUCCESSFULLY =====");
+        console.log(
+          "🏠 ===== SAVED HOMES RETRIEVAL COMPLETED SUCCESSFULLY ====="
+        );
         console.log("📊 Final state summary:");
         console.log("  - Favorite addresses count:", favoriteAddresses.length);
         console.log("  - Saved homes count:", favoriteAddresses.length);
-          
       } catch (error) {
         console.error("❌ ===== SAVED HOMES RETRIEVAL FAILED =====");
         console.error("❌ Error loading saved homes:", error);
@@ -1384,7 +1490,9 @@ export default function SearchPage() {
       `;
 
       overlayDiv.innerHTML = `
-        <img src="${result.imageUrl || '/default-home.jpg'}" alt="Property" style="
+        <img src="${
+          result.imageUrl || "/default-home.jpg"
+        }" alt="Property" style="
           width: 100%;
           height: 60px;
           object-fit: cover;
@@ -1674,39 +1782,44 @@ export default function SearchPage() {
                                   alt={property.address}
                                   className="w-full h-full object-cover"
                                   onError={(e) => {
-                                    (e.target as HTMLImageElement).src = "/default-home.jpg";
+                                    (e.target as HTMLImageElement).src =
+                                      "/default-home.jpg";
                                   }}
                                 />
                               </div>
                             )}
-                            
+
                             <div className="p-3">
                               <div className="flex items-start justify-between mb-2">
                                 <div className="flex-1">
                                   {/* Property Type and Status */}
                                   <div className="flex items-center gap-2 mb-1">
-                                    {property.propertyType && property.propertyType.toLowerCase() !== 'single_family' && (
-                                      <span className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded">
-                                        {property.propertyType}
-                                      </span>
-                                    )}
-                                    {property.listingStatus && property.listingStatus.toLowerCase() !== 'for_sale' && (
-                                      <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
-                                        {property.listingStatus}
-                                      </span>
-                                    )}
+                                    {property.propertyType &&
+                                      property.propertyType.toLowerCase() !==
+                                        "single_family" && (
+                                        <span className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded">
+                                          {property.propertyType}
+                                        </span>
+                                      )}
+                                    {property.listingStatus &&
+                                      property.listingStatus.toLowerCase() !==
+                                        "for_sale" && (
+                                        <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
+                                          {property.listingStatus}
+                                        </span>
+                                      )}
                                   </div>
-                                  
+
                                   {/* Address */}
                                   <h3 className="text-sm font-medium text-black line-clamp-2 mb-1">
                                     {property.address}
                                   </h3>
-                                  
+
                                   {/* Price */}
                                   <p className="text-lg font-semibold text-brown mb-2">
                                     {property.price}
                                   </p>
-                                  
+
                                   {/* Property Details */}
                                   <div className="grid grid-cols-3 gap-2 text-xs text-gray-600 mb-1">
                                     <div>{property.bedrooms} beds</div>
@@ -1715,27 +1828,33 @@ export default function SearchPage() {
                                       {property.sqft.toLocaleString()} sqft
                                     </div>
                                   </div>
-                                  
+
                                   {/* Match Score */}
                                   {(() => {
-                                    const propertyAnalysis = calculatePropertyScore(property);
-                                    const { fillColor, strokeColor } = getScoreBasedPinColor(propertyAnalysis.score);
+                                    const propertyAnalysis =
+                                      calculatePropertyScore(property);
+                                    const { fillColor, strokeColor } =
+                                      getScoreBasedPinColor(
+                                        propertyAnalysis.score
+                                      );
                                     return (
                                       <div className="flex items-center gap-2 mb-1">
-                                        <div 
+                                        <div
                                           className="px-2 py-1 rounded text-xs font-semibold"
-                                          style={{ 
-                                            backgroundColor: fillColor, 
-                                            color: strokeColor 
+                                          style={{
+                                            backgroundColor: fillColor,
+                                            color: strokeColor,
                                           }}
                                         >
                                           {propertyAnalysis.score}/100
                                         </div>
-                                        <span className="text-xs text-gray-500">Match Score</span>
+                                        <span className="text-xs text-gray-500">
+                                          Match Score
+                                        </span>
                                       </div>
                                     );
                                   })()}
-                                  
+
                                   {/* Lot Size */}
                                   {property.lotSize && (
                                     <div className="text-xs text-gray-500">
@@ -1788,66 +1907,77 @@ export default function SearchPage() {
                                 alt={property.address}
                                 className="w-full h-full object-cover"
                                 onError={(e) => {
-                                  (e.target as HTMLImageElement).src = "/default-home.jpg";
+                                  (e.target as HTMLImageElement).src =
+                                    "/default-home.jpg";
                                 }}
                               />
                             </div>
                           )}
-                          
+
                           <div className="p-3">
                             <div className="flex items-start justify-between mb-2">
                               <div className="flex-1">
                                 {/* Property Type and Status */}
                                 <div className="flex items-center gap-2 mb-1">
-                                  {property.propertyType && property.propertyType.toLowerCase() !== 'single_family' && (
-                                    <span className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded">
-                                      {property.propertyType}
-                                    </span>
-                                  )}
+                                  {property.propertyType &&
+                                    property.propertyType.toLowerCase() !==
+                                      "single_family" && (
+                                      <span className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded">
+                                        {property.propertyType}
+                                      </span>
+                                    )}
                                   {property.listingStatus && (
                                     <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
                                       Saved
                                     </span>
                                   )}
                                 </div>
-                                
+
                                 {/* Address */}
                                 <h3 className="text-sm font-medium text-black line-clamp-2 mb-1">
                                   {property.address}
                                 </h3>
-                                
+
                                 {/* Price */}
                                 <p className="text-lg font-semibold text-brown mb-2">
                                   {property.price}
                                 </p>
-                                
+
                                 {/* Property Details */}
                                 <div className="grid grid-cols-3 gap-2 text-xs text-gray-600 mb-1">
                                   <div>{property.bedrooms} beds</div>
                                   <div>{property.bathrooms} baths</div>
-                                  <div>{property.sqft.toLocaleString()} sqft</div>
+                                  <div>
+                                    {property.sqft.toLocaleString()} sqft
+                                  </div>
                                 </div>
-                                
+
                                 {/* Match Score */}
                                 {(() => {
-                                  const propertyAnalysis = calculatePropertyScore(property);
-                                  const { fillColor, strokeColor } = getScoreBasedPinColor(propertyAnalysis.score);
+                                  const propertyAnalysis =
+                                    calculatePropertyScore(property);
+                                  const { fillColor, strokeColor } =
+                                    getScoreBasedPinColor(
+                                      propertyAnalysis.score
+                                    );
                                   return (
                                     <div className="flex items-center gap-2 mb-1">
-                                      <div 
+                                      <div
                                         className="px-2 py-1 rounded text-xs font-semibold"
-                                        style={{ 
-                                          backgroundColor: fillColor, 
-                                          color: strokeColor 
+                                        style={{
+                                          backgroundColor: fillColor,
+                                          color: strokeColor,
                                         }}
                                       >
                                         {propertyAnalysis.score}/100
                                       </div>
-                                      <span className="text-xs text-gray-500">Match Score</span>
+                                      <span className="text-xs text-gray-500">
+                                        Match Score
+                                      </span>
                                     </div>
                                   );
                                 })()}
-                                
+
                                 {/* Lot Size */}
                                 {property.lotSize && (
                                   <div className="text-xs text-gray-500">
@@ -1893,15 +2023,14 @@ export default function SearchPage() {
                   <div>
                     <p className="text-sm font-medium text-gray-900">
                       We use your preferences, commute times, and important
-                      addresses to find the best properties for you.       
+                      addresses to find the best properties for you.
                       <button
                         onClick={() => navigate("/dashboard/personalization")}
                         className="text-xs text-brown hover:text-brown-dark underline cursor-pointer"
                       >
-                           Edit Here
+                        Edit Here
                       </button>
                     </p>
-                    {/* Location display removed - no longer needed without map click search */}
                   </div>
                 </div>
               </div>
@@ -1916,7 +2045,7 @@ export default function SearchPage() {
                 <Loading message="Searching properties..." />
               </div>
             )}
-            
+
             {/* Map container - always present in DOM */}
             <div className="w-full h-full relative">
               <div
@@ -1946,7 +2075,8 @@ export default function SearchPage() {
               )}
 
               {/* Property Pagination Controls - hidden during search */}
-              {!isSearching && hasSearched &&
+              {!isSearching &&
+                hasSearched &&
                 (activeTab === "results"
                   ? searchResults.length > PROPERTIES_PER_PAGE
                   : savedHomes.length > PROPERTIES_PER_PAGE) && (

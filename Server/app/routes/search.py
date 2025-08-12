@@ -9,7 +9,7 @@ from jose.exceptions import JWTError, JWTClaimsError, ExpiredSignatureError
 from urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
 from ..models.user import User
-from ..utils.locationPolygon import isochrone_polygon
+from ..utils.locationPolygon import isochrone_polygon, isochrone_union_for_addresses
 import math
 
 RAPI_HOST = "zillow-com1.p.rapidapi.com"
@@ -470,10 +470,14 @@ def geocode_address(address: str) -> Optional[Tuple[float, float]]:
 
 def generate_isochrone_polygon_from_preferences(user_preferences: Dict[str, Any]) -> Optional[List[Dict[str, float]]]:
     """
-    Generate an isochrone polygon from user preferences using the first important location
-    and commute tolerance. Returns polygon coordinates as list of {lat, lon} dicts.
+    Generate an isochrone polygon from user preferences using ALL important locations
+    and their respective commute tolerances. Returns union polygon coordinates as list of {lat, lon} dicts.
     """
     try:
+        # DEBUG: Log the full user_preferences being passed to helper function
+        current_app.logger.info(f"🗺️ ISOCHRONE: 🔍 HELPER DEBUG - user_preferences keys: {list(user_preferences.keys())}")
+        current_app.logger.info(f"🗺️ ISOCHRONE: 🔍 HELPER DEBUG - raw important_locations: {user_preferences.get('important_locations')}")
+        
         # Extract important locations
         important_locations = []
         locations_data = user_preferences.get('important_locations')
@@ -494,42 +498,39 @@ def generate_isochrone_polygon_from_preferences(user_preferences: Dict[str, Any]
             current_app.logger.warning(f"🗺️ ISOCHRONE: ⚠️ Important locations data: {locations_data}")
             return None
         
-        # Get first location
-        first_location = important_locations[0]
-        address = first_location.get('address')
-        if not address:
-            current_app.logger.warning("🗺️ ISOCHRONE: ⚠️ First important location has no address")
+        current_app.logger.info(f"🗺️ ISOCHRONE: 📋 Found {len(important_locations)} important locations")
+        for i, loc in enumerate(important_locations):
+            current_app.logger.info(f"🗺️ ISOCHRONE: 📍 HELPER Location {i+1}: {loc}")
+        
+        # Prepare address and commute tolerance pairs for all locations
+        addresses_and_minutes = []
+        
+        for i, location in enumerate(important_locations):
+            address = location.get('address')
+            if not address:
+                current_app.logger.warning(f"🗺️ ISOCHRONE: ⚠️ Location {i+1} has no address, skipping")
+                continue
+            
+            # Get commute tolerance from the location (in minutes)
+            commute_tolerance = location.get('commute_tolerance', 30)
+            
+            location_name = location.get('name', f'Location {i+1}')
+            current_app.logger.info(f"🗺️ ISOCHRONE: 📍 Location {i+1}: {location_name} at {address} with {commute_tolerance} minutes commute")
+            
+            addresses_and_minutes.append((address, commute_tolerance))
+        
+        if not addresses_and_minutes:
+            current_app.logger.error("🗺️ ISOCHRONE: ❌ No valid locations with addresses found")
             return None
         
-        # Geocode the address
-        coords = geocode_address(address)
-        if not coords:
-            current_app.logger.error(f"🗺️ ISOCHRONE: ❌ Failed to geocode address: {address}")
-            return None
+        current_app.logger.info(f"🗺️ ISOCHRONE: 🔧 Generating union isochrone for {len(addresses_and_minutes)} locations")
         
-        lat, lon = coords
-        
-        # Get commute tolerance from the location (in minutes)
-        commute_tolerance = first_location.get('commute_tolerance', 30)
-        if isinstance(commute_tolerance, str):
-            # Handle string values like "under_30", "30_45", etc.
-            if commute_tolerance == 'under_15':
-                commute_tolerance = 15
-            elif commute_tolerance == '15_30':
-                commute_tolerance = 30
-            elif commute_tolerance == '30_45':
-                commute_tolerance = 45
-            elif commute_tolerance == '45_60':
-                commute_tolerance = 60
-            elif commute_tolerance == 'over_60':
-                commute_tolerance = 90
-            else:
-                commute_tolerance = 30  # default
-        
-        current_app.logger.info(f"🗺️ ISOCHRONE: 📍 Generating isochrone from {address} ({lat}, {lon}) with {commute_tolerance} minutes commute")
-        
-        # Generate isochrone polygon
-        isochrone_feature = isochrone_polygon(lat, lon, commute_tolerance, mode="drive")
+        # Generate union isochrone polygon for all locations
+        isochrone_feature = isochrone_union_for_addresses(
+            addresses_and_minutes, 
+            mode="drive",
+            include_individual=False  # We only want the union, not individual polygons
+        )
         
         # Extract coordinates from GeoJSON
         geometry = isochrone_feature.get('geometry', {})
@@ -700,6 +701,11 @@ def search_properties_by_polygon():
             f"status_type={status_type}, per_pages={per_pages}, max_retries={max_retries}, "
             f"user_preferences_keys={list(user_preferences.keys())}"
         )
+        
+        # Debug: Log important_locations data being passed to helper
+        important_locations_data = user_preferences.get('important_locations')
+        current_app.logger.info(f"[POLYGON_SEARCH] 🔍 Debug - important_locations type: {type(important_locations_data)}")
+        current_app.logger.info(f"[POLYGON_SEARCH] 🔍 Debug - important_locations data: {important_locations_data}")
 
         per_pages = max(0, min(int(per_pages), 20))
         if not RAPI_KEY:
@@ -910,63 +916,40 @@ def get_isochrone():
                 "message": "No important locations found in user preferences"
             }), 400
 
-        # Get first location
-        first_location = important_locations[0]
-        current_app.logger.info(f"[ISOCHRONE] 🎯 First location data: {first_location}")
+        # Prepare address and commute tolerance pairs for all locations
+        addresses_and_minutes = []
         
-        address = first_location.get('address')
-        location_name = first_location.get('name', 'Unknown Location')
+        for i, location in enumerate(important_locations):
+            address = location.get('address')
+            if not address:
+                current_app.logger.warning(f"[ISOCHRONE] ⚠️ Location {i+1} has no address, skipping")
+                continue
+            
+            # Get commute tolerance from the location (in minutes)
+            commute_tolerance = location.get('commute_tolerance', 30)
+            
+            location_name = location.get('name', f'Location {i+1}')
+            current_app.logger.info(f"[ISOCHRONE] 📍 Location {i+1}: {location_name} at {address} with {commute_tolerance} minutes commute")
+            
+            addresses_and_minutes.append((address, commute_tolerance))
         
-        current_app.logger.info(f"[ISOCHRONE] 📍 Extracted address: '{address}'")
-        current_app.logger.info(f"[ISOCHRONE] 🏷️ Location name: '{location_name}'")
-        
-        if not address:
-            current_app.logger.warning("[ISOCHRONE] ⚠️ First important location has no address")
-            current_app.logger.warning(f"[ISOCHRONE] ⚠️ First location keys: {list(first_location.keys()) if isinstance(first_location, dict) else 'Not a dict'}")
+        if not addresses_and_minutes:
+            current_app.logger.error("[ISOCHRONE] ❌ No valid locations with addresses found")
             return jsonify({
                 "success": False,
-                "error": "NO_ADDRESS",
-                "message": "First important location has no address"
+                "error": "NO_VALID_LOCATIONS",
+                "message": "No valid locations with addresses found"
             }), 400
 
-        # Geocode the address
-        current_app.logger.info(f"[ISOCHRONE] 🌍 Starting geocoding for address: '{address}'")
-        coords = geocode_address(address)
-        
-        if not coords:
-            current_app.logger.error(f"[ISOCHRONE] ❌ Failed to geocode address: {address}")
-            return jsonify({
-                "success": False,
-                "error": "GEOCODING_FAILED",
-                "message": f"Failed to geocode address: {address}"
-            }), 400
+        current_app.logger.info(f"[ISOCHRONE] 🔧 Generating union isochrone for {len(addresses_and_minutes)} locations")
 
-        lat, lon = coords
-        current_app.logger.info(f"[ISOCHRONE] ✅ Geocoded coordinates: lat={lat}, lon={lon}")
-
-        # Get commute tolerance from the location (in minutes)
-        commute_tolerance = first_location.get('commute_tolerance', 30)
-        if isinstance(commute_tolerance, str):
-            # Handle string values like "under_30", "30_45", etc.
-            if commute_tolerance == 'under_15':
-                commute_tolerance = 15
-            elif commute_tolerance == '15_30':
-                commute_tolerance = 30
-            elif commute_tolerance == '30_45':
-                commute_tolerance = 45
-            elif commute_tolerance == '45_60':
-                commute_tolerance = 60
-            elif commute_tolerance == 'over_60':
-                commute_tolerance = 90
-            else:
-                commute_tolerance = 30  # default
-
-        current_app.logger.info(f"[ISOCHRONE] 📍 Generating isochrone from {address} ({lat}, {lon}) with {commute_tolerance} minutes commute")
-
-        # Generate isochrone polygon using the locationPolygon utility
+        # Generate union isochrone polygon for all locations
         try:
-            current_app.logger.info(f"[ISOCHRONE] 🔧 Calling isochrone_polygon function...")
-            isochrone_feature = isochrone_polygon(lat, lon, commute_tolerance, mode="drive")
+            isochrone_feature = isochrone_union_for_addresses(
+                addresses_and_minutes, 
+                mode="drive",
+                include_individual=True  # Include individual polygons for rendering
+            )
             current_app.logger.info(f"[ISOCHRONE] ✅ Isochrone generation completed")
             current_app.logger.info(f"[ISOCHRONE] 📊 Isochrone feature type: {type(isochrone_feature)}")
             current_app.logger.info(f"[ISOCHRONE] 📊 Isochrone feature keys: {list(isochrone_feature.keys()) if isinstance(isochrone_feature, dict) else 'Not a dict'}")
@@ -975,7 +958,7 @@ def get_isochrone():
                 current_app.logger.info(f"[ISOCHRONE] 🗺️ Geometry type: {geom.get('type')}")
                 current_app.logger.info(f"[ISOCHRONE] 📐 Coordinates length: {len(geom.get('coordinates', []))}")
         except Exception as e:
-            current_app.logger.error(f"[ISOCHRONE] ❌ Error generating isochrone polygon: {e}")
+            current_app.logger.error(f"[ISOCHRONE] ❌ Error generating union isochrone polygon: {e}")
             current_app.logger.error(f"[ISOCHRONE] ❌ Error type: {type(e)}")
             current_app.logger.error(f"[ISOCHRONE] ❌ Error details: {str(e)}")
             return jsonify({
@@ -984,20 +967,60 @@ def get_isochrone():
                 "message": f"Failed to generate isochrone polygon: {str(e)}"
             }), 500
         
-        current_app.logger.info(f"[ISOCHRONE] ✅ Successfully generated isochrone for {location_name}")
+        current_app.logger.info(f"[ISOCHRONE] ✅ Successfully generated union isochrone for {len(addresses_and_minutes)} locations")
+
+        # Calculate center point from all locations (use first location as primary center for backward compatibility)
+        primary_location = important_locations[0]
+        primary_address = primary_location.get('address')
+        primary_name = primary_location.get('name', 'Multiple Locations')
+        
+        # For center coordinates, we'll use the first location's coordinates
+        # In the future, we could calculate the centroid of all locations
+        try:
+            coords = geocode_address(primary_address) if primary_address else None
+            if coords:
+                center_lat, center_lon = coords
+            else:
+                # Fallback: use center of isochrone bounds if available
+                center_lat, center_lon = 0, 0
+        except:
+            center_lat, center_lon = 0, 0
+
+        # Extract individual isochrones if available
+        individual_isochrones = []
+        if isinstance(isochrone_feature, dict) and 'extras' in isochrone_feature:
+            individual_features = isochrone_feature['extras'].get('individual_features', [])
+            for i, feature in enumerate(individual_features):
+                if i < len(important_locations):
+                    location = important_locations[i]
+                    individual_isochrones.append({
+                        "name": location.get('name', f'Location {i+1}'),
+                        "address": location.get('address'),
+                        "commute_tolerance": location.get('commute_tolerance', 30),
+                        "isochrone": feature
+                    })
 
         # Return the isochrone data
         response_data = {
             "success": True,
             "data": {
                 "isochrone": isochrone_feature,
+                "individual_isochrones": individual_isochrones,
                 "center": {
-                    "lat": lat,
-                    "lon": lon,
-                    "address": address,
-                    "name": location_name
+                    "lat": center_lat,
+                    "lon": center_lon,
+                    "address": primary_address,
+                    "name": primary_name
                 },
-                "commute_tolerance": commute_tolerance,
+                "locations": [
+                    {
+                        "name": loc.get('name', f'Location {i+1}'),
+                        "address": loc.get('address'),
+                        "commute_tolerance": loc.get('commute_tolerance', 30)
+                    }
+                    for i, loc in enumerate(important_locations)
+                ],
+                "commute_tolerance": primary_location.get('commute_tolerance', 30),  # Primary location's tolerance for backward compatibility
                 "mode": "drive"
             }
         }

@@ -330,6 +330,7 @@ def favorite_homes():
         # Denormalize addresses for frontend display
         favorites = [denormalize_address(addr) for addr in normalized_favorites]
         current_app.logger.debug("Returning favorite_home_ids", extra={"count": len(favorites)})
+        current_app.logger.debug("Returning favorite_home_ids", extra={"normalized_favorites": normalized_favorites})
         return _build_response(favorites)
 
     # POST – update list

@@ -4,7 +4,7 @@ import os
 import json
 import urllib.parse
 import requests
-from typing import Iterable, Optional, Dict, Any, List, Tuple
+from typing import Iterable, Optional, Dict, Any, List, Tuple, Literal
 from shapely.geometry import shape, mapping, Polygon, MultiPolygon
 from shapely.ops import unary_union
 
@@ -164,7 +164,21 @@ def isochrone_polygon(
     }
     return feature
 
-def isochrone_union_for_addresses(
+def _intersection_all(geoms: List[Polygon | MultiPolygon]):
+    """
+    Intersect a list of polygonal geometries.
+    Returns the common overlap (may be empty).
+    """
+    if not geoms:
+        raise RuntimeError("No geometries to intersect.")
+    g = geoms[0]
+    for h in geoms[1:]:
+        g = g.intersection(h)
+        if g.is_empty:
+            break
+    return g
+
+def isochrone_union_for_addresses(  # now supports AND/OR; defaults to AND
     addresses_and_minutes: Iterable[Tuple[str, float]],
     *,
     mode: str = "drive",
@@ -175,11 +189,15 @@ def isochrone_union_for_addresses(
     generalize_m: Optional[float] = None,
     access_token: Optional[str] = None,
     include_individual: bool = False,
+    combine: Literal["intersection", "union"] = "intersection",
 ) -> Dict[str, Any]:
     """
-    Given many (address, minutes) pairs, build an isochrone for each and return the
-    union of ALL isochrones as a single GeoJSON Feature. Optionally include individual
-    per-address isochrones under 'extras.individual_features'.
+    Given many (address, minutes) pairs, build an isochrone for each and return a single Feature
+    that combines them using:
+      - combine="intersection" (default): logical AND — only areas reachable from *all* addresses
+      - combine="union":        logical OR  — areas reachable from *any* address
+
+    Optionally include individual per-address isochrones under 'extras.individual_features'.
 
     Parameters apply to every request (minutes vary per address).
     """
@@ -215,13 +233,22 @@ def isochrone_union_for_addresses(
             if include_individual:
                 # add a bit of context to properties
                 f2 = json.loads(json.dumps(feat))  # deep-ish copy
-                f2["properties"]["address"] = address
+                f2.setdefault("properties", {})["address"] = address
                 indiv_features.append(f2)
 
     if not geoms:
         raise RuntimeError("No isochrones could be generated for the given inputs.")
 
-    merged = unary_union(geoms)
+    if combine == "intersection":
+        combined = _intersection_all(geoms)
+        notes = "Intersection of all requested address/time isochrones (AND)"
+    else:
+        combined = unary_union(geoms)
+        notes = "Union of all requested address/time isochrones (OR)"
+
+    # Geometry may be empty if there is no common area
+    geom = mapping(combined) if not combined.is_empty else {"type": "GeometryCollection", "geometries": []}
+
     out: Dict[str, Any] = {
         "type": "Feature",
         "properties": {
@@ -233,9 +260,11 @@ def isochrone_union_for_addresses(
             "exclude": [e for e in (exclude or []) if e in _ALLOWED_EXCLUDES] or None,
             "denoise": denoise,
             "generalize_m": generalize_m,
-            "notes": "Union of all requested address/time isochrones",
+            "notes": notes,
+            "combine": combine,
+            "empty": combined.is_empty,
         },
-        "geometry": mapping(merged),
+        "geometry": geom,
     }
     if include_individual:
         out.setdefault("extras", {})["individual_features"] = indiv_features
@@ -247,7 +276,8 @@ def isochrone_union_for_addresses(
 #     ("Ponce City Market, Atlanta, GA", 15),
 #     ("Hartsfield-Jackson Atlanta International Airport", 25),
 # ]
-# union_feature = isochrone_union_for_addresses(
+# # AND (default)
+# overlap_feature = isochrone_union_for_addresses(
 #     addresses,
 #     mode="drive",
 #     traffic=True,
@@ -256,4 +286,9 @@ def isochrone_union_for_addresses(
 #     generalize_m=25,
 #     include_individual=True,
 # )
-# print(union_feature["geometry"]["type"])  # "Polygon" or "MultiPolygon"
+# # OR
+# union_feature = isochrone_union_for_addresses(
+#     addresses,
+#     combine="union",
+# )
+# print(overlap_feature["geometry"]["type"])  # "Polygon" | "MultiPolygon" | "GeometryCollection" (empty)

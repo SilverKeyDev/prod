@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { apiRequest } from "../lib/api";
+import { apiRequest, favoriteHomesApi } from "../lib/api";
 import DocumentCard, { DocumentData } from "../components/DocumentCard";
 import MiniLogo from "../components/MiniLogo";
 import Carousel from "../components/Carousel";
@@ -35,21 +35,31 @@ export default function UserDashboard() {
     const fetchFavs = async () => {
       setFavLoading(true);
       setFavError(null);
-      const res = await apiRequest("/api/v1/user/favorite-homes");
-      if (res.success) {
-        if (res.favoriteHomes) {
-          setFavoriteHomes(res.favoriteHomes as HomeDescription[]);
-        } else if (Array.isArray(res.data)) {
-          // Endpoint returned array of IDs only; treat as empty for now
-          setFavoriteHomes([]);
-        } else if (res.data?.favoriteHomes) {
-          setFavoriteHomes(res.data.favoriteHomes as HomeDescription[]);
+      try {
+        const res = await favoriteHomesApi.getFavorites();
+        if (res.success) {
+          // Backend returns { favorites: string[] } where strings are address names
+          const addressStrings = res.favorites || [];
+          // Convert address strings to HomeDescription objects with dummy data
+          const homeObjects: HomeDescription[] = addressStrings.map(
+            (address: string, index: number) => ({
+              home_id: `home_${index}_${Date.now()}`,
+              description: address, // The address string becomes the description
+              address: address,
+              price: "$0", // Dummy data
+              bedrooms: 0,
+              bathrooms: 0,
+              sqft: 0,
+              lat: 0,
+              lng: 0,
+            })
+          );
+          setFavoriteHomes(homeObjects);
         } else {
-          // Successful but no homes field -> none saved yet
-          setFavoriteHomes([]);
+          setFavError(res.error || "Failed to load favorite homes");
         }
-      } else {
-        setFavError(res.error || "Failed to load favorite homes");
+      } catch (error) {
+        setFavError("Failed to load favorite homes");
       }
       setFavLoading(false);
     };
@@ -90,10 +100,7 @@ export default function UserDashboard() {
 
       {/* Timeline Progress */}
       <div className="mb-8">
-        <TimelineChecklist
-          variant="horizontal"
-          completedStepKey="search"
-        />{" "}
+        <TimelineChecklist variant="horizontal" completedStepKey="search" />{" "}
         {/* TODO: dynamic */}
       </div>
 
@@ -116,15 +123,15 @@ export default function UserDashboard() {
         error={docsError}
         emptyMessage="Create your first document today"
         renderItem={(doc) => (
-          <DocumentCard 
+          <DocumentCard
             doc={doc}
             onView={(doc) => {
               // TODO: Implement document viewing
-              console.log('View document:', doc);
+              console.log("View document:", doc);
             }}
             onDownload={(doc) => {
               // TODO: Implement document download
-              console.log('Download document:', doc);
+              console.log("Download document:", doc);
             }}
           />
         )}

@@ -1013,7 +1013,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="w-4/5 mx-auto">
                 <label className="block text-xs font-normal text-black mb-1 text-center w-full">
-                  Gross Household Income (after annual debts)
+                Gross Annual Income (after debts)
                 </label>
                 {isEditMode ? (
                   <PriceRangeSlider

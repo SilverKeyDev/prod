@@ -59,7 +59,7 @@ export default function SavedHomes() {
     <div className="max-w-6xl mx-auto py-8">
       <div className="flex items-center gap-4 mb-6 bg-white p-4 rounded-lg shadow-sm">
         <MiniLogo size="lg" />
-      <div>
+        <div>
           <h1 className="text-2xl font-bold text-navy">Saved Homes</h1>
           <p className="text-navy/70">Your favorites all in one place</p>
         </div>
