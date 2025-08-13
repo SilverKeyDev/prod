@@ -65,10 +65,6 @@ def get_current_user():
 
 @maps_bp.route('/script', methods=['GET'])
 def get_maps_script_url():
-    # Authenticate user with JWT
-    user_id = get_current_user()
-    if not user_id:
-        return jsonify({'success': False, 'error': 'Authentication required.'}), 401
     
     # Get Google Maps API key from backend environment variable
     api_key = os.environ.get('GOOGLE_MAPS_API_KEY')

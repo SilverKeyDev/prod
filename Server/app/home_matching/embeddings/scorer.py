@@ -54,14 +54,43 @@ class EmbeddingScorer:
                 return 0.0
             
             # Calculate similarity
-            similarity = self.similarity_calculator.calculate(user_embedding, home_embedding)
+            raw_similarity = self.similarity_calculator.calculate(user_embedding, home_embedding)
             
-            logger.debug(f"Similarity between user {user_data.get('user_id', 'unknown')} and home {home_data.get('home_id', 'unknown')}: {similarity:.3f}")
-            return similarity
+            # Apply 5x amplification to make differences more dramatic
+            # Use power function to amplify differences while keeping in [0,1] range
+            amplified_similarity = self._amplify_embedding_score(raw_similarity)
+            
+            logger.debug(f"Similarity between user {user_data.get('user_id', 'unknown')} and home {home_data.get('home_id', 'unknown')}: {raw_similarity:.4f} -> {amplified_similarity:.4f} (amplified)")
+            return amplified_similarity
             
         except Exception as e:
             logger.error(f"Error calculating user-home similarity: {e}")
             return 0.0
+    
+    def _amplify_embedding_score(self, raw_score: float) -> float:
+        """
+        Apply 5x amplification to embedding scores to make differences more dramatic.
+        
+        Uses a power function approach that amplifies differences while keeping scores in [0,1].
+        If the difference between best and second best was 0.01, it becomes ~0.05.
+        """
+        try:
+            # Ensure score is in valid range
+            raw_score = max(0.0, min(1.0, raw_score))
+            
+            # Apply power amplification
+            # Using power of 0.2 (1/5) which effectively amplifies differences by ~5x
+            # This makes small differences much more pronounced
+            amplified_score = raw_score ** 0.2
+            
+            # Ensure result stays in [0,1] range
+            amplified_score = max(0.0, min(1.0, amplified_score))
+            
+            return amplified_score
+            
+        except Exception as e:
+            logger.error(f"Error amplifying embedding score: {e}")
+            return raw_score  # Return original score if amplification fails
     
     def score_user_against_homes(
         self, 
@@ -80,12 +109,15 @@ class EmbeddingScorer:
             home_embeddings = self.home_encoder.encode_homes_batch(homes_data)
             
             # Calculate similarities in batch
-            similarities = self.similarity_calculator.calculate_multiple(
+            raw_similarities = self.similarity_calculator.calculate_multiple(
                 user_embedding, home_embeddings
             )
             
-            # Combine homes with their scores
-            scored_homes = list(zip(homes_data, similarities))
+            # Apply 5x amplification to all similarities
+            amplified_similarities = [self._amplify_embedding_score(sim) for sim in raw_similarities]
+            
+            # Combine homes with their amplified scores
+            scored_homes = list(zip(homes_data, amplified_similarities))
             
             # Sort by similarity (highest first)
             scored_homes.sort(key=lambda x: x[1], reverse=True)

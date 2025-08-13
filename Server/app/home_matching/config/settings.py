@@ -28,7 +28,7 @@ TABULAR_MODEL_TYPE = "xgboost"  # or "lightgbm"
 RANDOM_STATE = 42
 
 # LLM settings
-LLM_MODEL = "gpt-4.1-nano"  # Valid OpenAI model
+LLM_MODEL = "gpt-4o-mini" 
 #CHANGE TO GROK LATER ON
 LLM_TEMPERATURE = 0.1
 LLM_MAX_TOKENS = 1000
@@ -42,12 +42,6 @@ DEFAULT_TOP_K = 10
 EMBEDDING_WEIGHT = 0.4
 TABULAR_WEIGHT = 0.4
 LLM_WEIGHT = 0.2
-
-# Feature engineering settings
-PRICE_TOLERANCE_PERCENT = 0.15  # 15% price tolerance
-COMMUTE_TOLERANCE_MINUTES = 10  # 10 minute commute tolerance
-BEDROOM_TOLERANCE = 1  # +/- 1 bedroom tolerance
-BATHROOM_TOLERANCE = 0.5  # +/- 0.5 bathroom tolerance
 
 # Text processing settings
 MAX_TEXT_LENGTH = 2000  # Maximum text length for embeddings

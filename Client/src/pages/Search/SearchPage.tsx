@@ -210,6 +210,7 @@ export default function SearchPage() {
   const [, setIsochroneData] = useState<any>(null);
   const [, setImportantLocationMarkers] = useState<google.maps.Marker[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
+  const [isLoadingPropertyDetails, setIsLoadingPropertyDetails] = useState(false);
   const PROPERTIES_PER_PAGE = 3;
 
   // Load search results from localStorage or run fresh search based on preferences version
@@ -580,6 +581,9 @@ export default function SearchPage() {
       typeof getPropertyDetailsByAddress
     );
 
+    // Set loading state to show KeyTurnLoader
+    setIsLoadingPropertyDetails(true);
+
     try {
       console.log("🔍 Step 1: Starting detailed property information fetch...");
       console.log(
@@ -638,6 +642,9 @@ export default function SearchPage() {
       console.log("🔄 Using fallback: setting original property data");
       setSelectedProperty(property);
       console.log("⚠️ ===== VIEW DETAILS COMPLETED WITH FALLBACK =====");
+    } finally {
+      // Clear loading state regardless of success or failure
+      setIsLoadingPropertyDetails(false);
     }
   };
 
@@ -726,16 +733,8 @@ export default function SearchPage() {
         },
       });
 
-      console.log("📡 API response status:", response.status);
-      console.log("📡 API response ok:", response.ok);
-      console.log("📡 API response statusText:", response.statusText);
-
       if (response.ok) {
         const data = await response.json();
-        console.log(
-          "📊 ISOCHRONE API RESPONSE - Raw data:",
-          JSON.stringify(data, null, 2)
-        );
 
         if (data.success && data.data) {
           setIsochroneData(data.data);
@@ -810,10 +809,6 @@ export default function SearchPage() {
 
       if (response.ok) {
         const data = await response.json();
-        console.log(
-          "📊 ISOCHRONE API RESPONSE - Raw data:",
-          JSON.stringify(data, null, 2)
-        );
 
         if (data.success && data.data) {
           setIsochroneData(data.data);
@@ -1561,22 +1556,6 @@ export default function SearchPage() {
       });
 
       // Create always-visible property overlay
-
-      // Simple explanation based on score only
-      const getShortExplanation = (score: number): string => {
-        if (score >= 70) {
-          return `Great match! ${score}% compatibility.`;
-        } else if (score >= 55) {
-          return `Good option - ${score}% match.`;
-        } else if (score >= 40) {
-          return `Mixed fit - ${score}% compatibility.`;
-        } else {
-          return `Limited match - ${score}% fit.`;
-        }
-      };
-
-      const shortExplanation = getShortExplanation(score);
-
       const overlayDiv = document.createElement("div");
       overlayDiv.style.cssText = `
         position: absolute;
@@ -1596,6 +1575,18 @@ export default function SearchPage() {
       `;
 
       overlayDiv.innerHTML = `
+        <style>
+          .gm-style-cc { display: none !important; }
+          .gm-style .gm-style-cc { display: none !important; }
+          .gm-style-mtc { display: none !important; }
+          .gmnoprint { display: none !important; }
+          .gm-bundled-control { display: none !important; }
+          .gm-fullscreen-control { display: none !important; }
+          .gm-svpc { display: none !important; }
+          [title="View on Google Maps"] { display: none !important; }
+          a[href*="maps.google.com"] { display: none !important; }
+          .gm-style .gm-style-iw-tc::after { display: none !important; }
+        </style>
         <img src="${
           result.imageUrl || "/default-home.jpg"
         }" alt="Property" style="
@@ -1619,13 +1610,6 @@ export default function SearchPage() {
           margin-bottom: 6px;
         ">${result.price}</div>
         <div style="
-          font-size: 9px;
-          color: #4b5563;
-          margin-bottom: 6px;
-          line-height: 1.3;
-          min-height: 26px;
-        ">${shortExplanation}</div>
-        <div style="
           display: flex;
           align-items: center;
           gap: 6px;
@@ -1645,7 +1629,22 @@ export default function SearchPage() {
           ">Match Score</div>
         </div>
         <button 
-          onclick="window.openPropertyModal('${result.id}')"
+          onclick="
+            // Show loading state
+            this.style.cursor = 'not-allowed';
+            this.style.opacity = '0.8';
+            this.disabled = true;
+            
+            // Add keyframe animation if not already added
+            if (!document.getElementById('mapModalKeyframes')) {
+              const style = document.createElement('style');
+              style.id = 'mapModalKeyframes';
+              style.innerHTML = '@keyframes turnKey { 0% { transform: rotate(0deg); } 25% { transform: rotate(20deg); } 50% { transform: rotate(0deg); } 75% { transform: rotate(-20deg); } 100% { transform: rotate(0deg); } }';
+              document.head.appendChild(style);
+            }
+            
+            window.openPropertyModal('${result.id}');
+          "
           style="
             width: 100%;
             background: #A47551;
@@ -1656,10 +1655,10 @@ export default function SearchPage() {
             font-size: 9px;
             font-weight: 500;
             cursor: pointer;
-            transition: background-color 0.2s;
+            transition: all 0.2s;
           "
-          onmouseover="this.style.background='#8b5a3c'"
-          onmouseout="this.style.background='#A47551'"
+          onmouseover="if (!this.disabled) this.style.background='#8b5a3c'"
+          onmouseout="if (!this.disabled) this.style.background='#A47551'"
         >
           View Details
         </button>
@@ -1873,13 +1872,19 @@ export default function SearchPage() {
                         {searchResults.map((property) => (
                           <div
                             key={property.id}
-                            className={`border rounded-lg cursor-pointer transition-all overflow-hidden ${
+                            className={`border rounded-lg cursor-pointer transition-all overflow-hidden relative ${
                               selectedProperty?.id === property.id
                                 ? "border-brown bg-brown/5"
                                 : "border-gray-200 hover:border-brown/50 hover:bg-gray-50"
                             }`}
                             onClick={() => handleViewPropertyDetails(property)}
                           >
+                            {/* Loading overlay */}
+                            {isLoadingPropertyDetails && (
+                              <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-10 rounded-lg">
+                                <KeyTurnLoader />
+                              </div>
+                            )}
                             {/* Property Image */}
                             {property.imageUrl && (
                               <div className="w-full h-32 bg-gray-200 overflow-hidden">
@@ -2003,13 +2008,19 @@ export default function SearchPage() {
                       {savedHomes.map((property) => (
                         <div
                           key={property.id}
-                          className={`border rounded-lg cursor-pointer transition-all overflow-hidden ${
+                          className={`border rounded-lg cursor-pointer transition-all overflow-hidden relative ${
                             selectedProperty?.id === property.id
                               ? "border-brown bg-brown/5"
                               : "border-gray-200 hover:border-brown/50 hover:bg-gray-50"
                           }`}
                           onClick={() => handleViewPropertyDetails(property)}
                         >
+                          {/* Loading overlay */}
+                          {isLoadingPropertyDetails && (
+                            <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-10 rounded-lg">
+                              <KeyTurnLoader />
+                            </div>
+                          )}
                           {/* Property Image */}
                           {property.imageUrl && (
                             <div className="w-full h-32 bg-gray-200 overflow-hidden">

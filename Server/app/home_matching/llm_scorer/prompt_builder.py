@@ -12,20 +12,53 @@ class PromptBuilder:
     """Builds structured prompts for LLM scoring."""
     
     def __init__(self):
-        self.system_prompt_template = """You are an expert real estate matching assistant. Your task is to evaluate how well a home matches a user's preferences and provide a compatibility score with detailed justification.
+        self.system_prompt_template = """You are a comprehensive real estate matching expert who evaluates homes based on how well they meet and exceed user preferences.
 
-You will be given:
-1. User preferences including budget, lifestyle, family situation, and housing requirements
-2. Home details including price, features, location, and neighborhood information
+**SCORING PHILOSOPHY:**
+- Evaluate each home against the user's specific requirements for price, bedrooms, bathrooms, and lot size
+- Score based on how well the home meets or exceeds these preferences
+- Consider the complete picture: price value, size adequacy, and lot space
 
-Your response should be a JSON object with:
-- "score": A precise float between 0.0 and 1.0 with exactly 3 decimal places (e.g., 0.726, 0.834, 0.291)
-- "reasoning": Detailed explanation of the score
-- "pros": List of positive aspects of the match
-- "cons": List of potential concerns or mismatches
-- "key_factors": Most important factors that influenced the score
+**SCORING SYSTEM:**
+- **GREAT (0.8-0.95)**: Home EXCEEDS user preferences significantly
+  - Price is well within budget with room to spare
+  - Bedrooms/bathrooms exceed what user wants
+  - Lot size is larger than expected
+  - Excellent value proposition
 
-Be thorough, objective, and consider both quantitative factors (price, size, commute) and qualitative factors (lifestyle fit, neighborhood character)."""
+- **GOOD (0.6-0.79)**: Home MEETS user requirements well
+  - Price fits within user's budget
+  - Bedrooms/bathrooms match user preferences
+  - Adequate lot size for needs
+  - Solid match for requirements
+
+- **FAIR (0.4-0.59)**: Home partially meets requirements
+  - Price at upper limit of budget or slightly over
+  - Bedrooms/bathrooms close but not perfect match
+  - Lot size adequate but not ideal
+  - Some compromises needed
+
+- **POOR (0.1-0.39)**: Home fails to meet key requirements
+  - Price significantly over budget
+  - Wrong number of bedrooms/bathrooms
+  - Inadequate lot size
+  - Major mismatches
+
+**KEY EVALUATION FACTORS:**
+1. **Price vs Budget**: How well does the home price fit the user's financial capacity?
+2. **Bedroom Match**: Does the home have adequate bedrooms for the user's needs?
+3. **Bathroom Match**: Are there sufficient bathrooms for the user's preferences?
+4. **Lot Size**: Is the lot appropriate for the user's space needs?
+5. **Overall Value**: Does this home represent good value for the user?
+
+Return a JSON object with:
+{
+  "score": <float between 0.0 and 1.0>,
+  "reasoning": "<detailed explanation of how home meets/exceeds requirements>",
+  "pros": [<list of positive aspects>],
+  "cons": [<list of areas where home falls short>],
+  "key_factors": [<most important factors in your evaluation>]
+}"""
     
     def build_user_prompt(self, user_data: Dict[str, Any], home_data: Dict[str, Any]) -> str:
         """Build user prompt with user preferences and home details."""
@@ -54,23 +87,43 @@ Provide your assessment as a JSON object with the required fields."""
         
         sections = [f"USER PROFILE (ID: {user_id})"]
         
-        # Budget information
-        budget_min = preferences.get('budget_min', 0)
-        budget_max = preferences.get('budget_max', 0)
+        # ESSENTIAL REQUIREMENTS - Always include these key factors
+        essential_reqs = []
+        
+        # Budget information - Always show
+        budget_min = preferences.get('budget_min', 0) or preferences.get('home_budget', 0)
+        budget_max = preferences.get('budget_max', 0) or preferences.get('home_budget', 0)
         if budget_max > 0:
-            sections.append(f"Budget: ${budget_min:,} - ${budget_max:,}")
+            if budget_min > 0 and budget_min != budget_max:
+                essential_reqs.append(f"Budget: ${budget_min:,} - ${budget_max:,}")
+            else:
+                essential_reqs.append(f"Budget: Up to ${budget_max:,}")
+        else:
+            essential_reqs.append("Budget: Not specified")
         
-        # Size preferences
-        size_prefs = []
-        if preferences.get('preferred_bedrooms'):
-            size_prefs.append(f"{preferences['preferred_bedrooms']} bedrooms")
-        if preferences.get('preferred_bathrooms'):
-            size_prefs.append(f"{preferences['preferred_bathrooms']} bathrooms")
+        # Bedroom requirements - Always show
+        preferred_bedrooms = preferences.get('preferred_bedrooms', 0)
+        if preferred_bedrooms > 0:
+            essential_reqs.append(f"Bedrooms needed: {preferred_bedrooms}")
+        else:
+            essential_reqs.append("Bedrooms needed: Not specified")
+        
+        # Bathroom requirements - Always show  
+        preferred_bathrooms = preferences.get('preferred_bathrooms', 0)
+        if preferred_bathrooms > 0:
+            essential_reqs.append(f"Bathrooms needed: {preferred_bathrooms}")
+        else:
+            essential_reqs.append("Bathrooms needed: Not specified")
+        
+        # Lot size preferences
+        if preferences.get('preferred_lot_size'):
+            essential_reqs.append(f"Lot size preference: {preferences['preferred_lot_size']}")
+        
+        # Square footage
         if preferences.get('min_sqft'):
-            size_prefs.append(f"min {preferences['min_sqft']:,} sq ft")
+            essential_reqs.append(f"Minimum square feet: {preferences['min_sqft']:,}")
         
-        if size_prefs:
-            sections.append(f"Size preferences: {', '.join(size_prefs)}")
+        sections.extend(essential_reqs)
         
         # Home type preferences
         if preferences.get('preferred_home_types'):
@@ -133,67 +186,61 @@ Provide your assessment as a JSON object with the required fields."""
         return '\n'.join(sections)
     
     def _format_home_details(self, home_data: Dict[str, Any]) -> str:
-        """Format home details section."""
+        """Format comprehensive home details section."""
         home_id = home_data.get('home_id', 'Unknown')
         sections = [f"HOME LISTING (ID: {home_id})"]
         
-        # Basic info
+        # Address
         if home_data.get('address'):
             sections.append(f"Address: {home_data['address']}")
         
-        if home_data.get('price'):
-            sections.append(f"Price: ${home_data['price']:,}")
+        # ESSENTIAL DETAILS - Always include these key factors
+        essential_details = []
         
-        # Size and layout
-        size_info = []
-        if home_data.get('bedrooms'):
-            size_info.append(f"{home_data['bedrooms']} bedrooms")
-        if home_data.get('bathrooms'):
-            size_info.append(f"{home_data['bathrooms']} bathrooms")
-        if home_data.get('sqft'):
-            size_info.append(f"{home_data['sqft']:,} sq ft")
-        if home_data.get('lot_size'):
-            size_info.append(f"{home_data['lot_size']:,} sq ft lot")
+        # Price - Always show
+        price = home_data.get('price', 0)
+        if price > 0:
+            essential_details.append(f"Price: ${price:,}")
+        else:
+            essential_details.append("Price: Not specified")
         
-        if size_info:
-            sections.append(f"Size: {', '.join(size_info)}")
+        # Bedrooms - Always show
+        bedrooms = home_data.get('bedrooms', 0)
+        essential_details.append(f"Bedrooms: {bedrooms}")
         
-        # Property characteristics
-        if home_data.get('home_type'):
-            sections.append(f"Type: {home_data['home_type']}")
-        if home_data.get('style'):
-            sections.append(f"Style: {home_data['style']}")
+        # Bathrooms - Always show  
+        bathrooms = home_data.get('bathrooms', 0)
+        essential_details.append(f"Bathrooms: {bathrooms}")
+        
+        # Lot size - Always show if available
+        lot_size = home_data.get('lot_size') or home_data.get('lotSize') or home_data.get('lot_area')
+        if lot_size:
+            essential_details.append(f"Lot size: {lot_size}")
+        else:
+            essential_details.append("Lot size: Not specified")
+        
+        # Square footage
+        sqft = home_data.get('sqft') or home_data.get('living_area') or home_data.get('square_feet')
+        if sqft:
+            essential_details.append(f"Square feet: {sqft:,}")
+        
+        sections.extend(essential_details)
+        
+        # Additional property details
+        if home_data.get('property_type'):
+            sections.append(f"Property type: {home_data['property_type']}")
         if home_data.get('year_built'):
-            sections.append(f"Built: {home_data['year_built']}")
-        if home_data.get('condition'):
-            sections.append(f"Condition: {home_data['condition']}")
+            sections.append(f"Year built: {home_data['year_built']}")
         
-        # Location and neighborhood
+        # Location context
         if home_data.get('neighborhood'):
             sections.append(f"Neighborhood: {home_data['neighborhood']}")
-        if home_data.get('school_district'):
-            sections.append(f"School district: {home_data['school_district']}")
         if home_data.get('commute_minutes'):
             sections.append(f"Commute time: {home_data['commute_minutes']} minutes")
         
-        # Scores and ratings
-        scores = []
-        if home_data.get('walkability_score'):
-            scores.append(f"Walkability: {home_data['walkability_score']}/100")
-        if home_data.get('transit_score'):
-            scores.append(f"Transit: {home_data['transit_score']}/100")
-        if home_data.get('bike_score'):
-            scores.append(f"Bike: {home_data['bike_score']}/100")
-        
-        if scores:
-            sections.append(f"Scores: {', '.join(scores)}")
-        
         # Features and amenities
         if home_data.get('amenities'):
-            if isinstance(home_data['amenities'], list):
-                amenities = ', '.join(home_data['amenities'])
-            else:
-                amenities = str(home_data['amenities'])
+            amenities = ', '.join(home_data['amenities'])
             sections.append(f"Amenities: {amenities}")
         
         if home_data.get('features'):

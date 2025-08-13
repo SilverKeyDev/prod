@@ -202,6 +202,35 @@ interface SearchResult {
   
   // Property features from enhanced property API
   features?: Record<string, string[]>;
+  
+  // AI-extracted features from property images
+  image_features?: {
+    raw: string[];
+    clean: string[];
+    error?: string;
+  };
+  
+  // Property analysis from Perplexity Sonar Pro
+  property_analysis?: {
+    pros: string[];
+    cons: string[];
+    crime_stats: {
+      overall_safety_score: string;
+      crime_rate: string;
+      recent_trends: string;
+      specific_concerns: string[];
+      data_source: string;
+    };
+    gentrification_index: {
+      score: string;
+      trend: string;
+      indicators: string[];
+      timeline: string;
+      impact_on_property_value: string;
+    };
+    roi_explanation: string;
+    error?: string;
+  };
 }
 
 interface PropertyDetailsModalProps {
@@ -394,7 +423,7 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({ property, o
               {/* Compact Action Buttons */}
               <button 
                 onClick={handleGenerateFullReport}
-                className="bg-olive-light text-gray-800 py-1.5 px-3 rounded text-xs font-medium hover:bg-olive-light/80 transition-colors"
+                className="bg-olive-light text-white py-1.5 px-3 rounded text-xs font-medium hover:bg-olive-light/80 transition-colors"
               >
                 Generate Full Report
               </button>
@@ -609,132 +638,11 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({ property, o
             </div>
           </div>
 
-          {/* Personalized Pros and Cons */}
+          {/* Listing Agent and Schools Section */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            {/* Pros */}
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <CheckCircle className="w-5 h-5 text-olive" />
-                <h3 className="text-lg font-semibold text-olive">Pros for You</h3>
-              </div>
-              <div className="space-y-3">
-                <div className="bg-olive/10 border border-olive/30 rounded-lg p-4">
-                  <h4 className="font-medium text-olive mb-1">Excellent Schools</h4>
-                  <p className="text-sm text-brown/80">Perfect for your family with young children. Top-rated elementary school within walking distance.</p>
-                </div>
-                <div className="bg-olive/10 border border-olive/30 rounded-lg p-4">
-                  <h4 className="font-medium text-olive mb-1">Great Commute</h4>
-                  <p className="text-sm text-brown/80">25-minute commute to downtown SF aligns with your work location preferences.</p>
-                </div>
-                <div className="bg-olive/10 border border-olive/30 rounded-lg p-4">
-                  <h4 className="font-medium text-olive mb-1">Family Neighborhood</h4>
-                  <p className="text-sm text-brown/80">Quiet residential area with parks and family-friendly amenities nearby.</p>
-                </div>
-                <div className="bg-olive/10 border border-olive/30 rounded-lg p-4">
-                  <h4 className="font-medium text-olive mb-1">Within Budget</h4>
-                  <p className="text-sm text-brown/80">Price fits comfortably within your specified budget range of $800K-$1M.</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Cons */}
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <AlertTriangle className="w-5 h-5 text-amber-600" />
-                <h3 className="text-lg font-semibold text-amber-600">Considerations</h3>
-              </div>
-              <div className="space-y-3">
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                  <h4 className="font-medium text-amber-600 mb-1">Limited Nightlife</h4>
-                  <p className="text-sm text-brown/70">Fewer entertainment options compared to urban areas you've shown interest in.</p>
-                </div>
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                  <h4 className="font-medium text-amber-600 mb-1">Older Construction</h4>
-                  <p className="text-sm text-brown/70">Built in 1995, may require updates to meet your modern home preferences.</p>
-                </div>
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                  <h4 className="font-medium text-amber-600 mb-1">Public Transit</h4>
-                  <p className="text-sm text-brown/70">Limited public transportation options, car dependency for most activities.</p>
-                </div>
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                  <h4 className="font-medium text-amber-600 mb-1">HOA Fees</h4>
-                  <p className="text-sm text-brown/70">$250/month HOA fees not included in listing price.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Enhanced Property Details Section */}
-          <div className="mb-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-
-              {/* Property Features */}
-              <div>
-                <div className="flex items-center gap-2 mb-4">
-                  <Star className="w-5 h-5 text-brown" />
-                  <h3 className="text-lg font-semibold text-brown">Property Features</h3>
-                </div>
-                <div className="space-y-3">
-                  <div className="bg-beige/10 border border-beige/40 rounded-lg p-4">
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      {property.hasFireplace && (
-                        <div className="flex items-center">
-                          <CheckCircle className="h-4 w-4 text-olive mr-2" />
-                          <span className="text-brown">Fireplace</span>
-                        </div>
-                      )}
-                      {property.hasGarage && (
-                        <div className="flex items-center">
-                          <CheckCircle className="h-4 w-4 text-olive mr-2" />
-                          <span className="text-brown">Garage</span>
-                        </div>
-                      )}
-                      {property.hasCooling && (
-                        <div className="flex items-center">
-                          <CheckCircle className="h-4 w-4 text-olive mr-2" />
-                          <span className="text-brown">A/C</span>
-                        </div>
-                      )}
-                      {property.hasHeating && (
-                        <div className="flex items-center">
-                          <CheckCircle className="h-4 w-4 text-olive mr-2" />
-                          <span className="text-brown">Heating</span>
-                        </div>
-                      )}
-                      {property.hasView && (
-                        <div className="flex items-center">
-                          <CheckCircle className="h-4 w-4 text-olive mr-2" />
-                          <span className="text-brown">View</span>
-                        </div>
-                      )}
-                      {property.isNewConstruction && (
-                        <div className="flex items-center">
-                          <CheckCircle className="h-4 w-4 text-olive mr-2" />
-                          <span className="text-brown">New Construction</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  {property.appliances && property.appliances.length > 0 && (
-                    <div className="bg-beige/10 border border-beige/40 rounded-lg p-4">
-                      <h4 className="font-medium text-brown mb-2">Appliances</h4>
-                      <div className="flex flex-wrap gap-1">
-                        {property.appliances.slice(0, 6).map((appliance, index) => (
-                          <span key={index} className="px-2 py-1 bg-brown/10 text-brown rounded text-xs">
-                            {appliance}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
             {/* Agent Information */}
             {property.listed_by && (
-              <div className="mt-6">
+              <div>
                 <div className="flex items-center gap-2 mb-4">
                   <User className="w-5 h-5 text-brown" />
                   <h3 className="text-lg font-semibold text-brown">Listing Agent</h3>
@@ -765,53 +673,333 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({ property, o
                         <p className="text-brown/70">{property.listed_by.business_name}</p>
                       )}
                       
-                      <div className="mt-3 grid grid-cols-2 gap-4 text-sm">
-                        {property.listed_by.rating_average && (
-                          <div className="flex items-center">
-                            <Star className="h-4 w-4 text-amber-500 mr-1" />
-                            <span className="font-medium text-brown">{property.listed_by.rating_average.toFixed(1)}</span>
-                            {property.listed_by.review_count && (
-                              <span className="text-brown/70 ml-1">({property.listed_by.review_count} reviews)</span>
-                            )}
-                          </div>
-                        )}
-                        
-                        {property.listed_by.recent_sales && (
-                          <div className="flex items-center text-brown/70">
-                            <Home className="h-4 w-4 mr-1" />
-                            <span>{property.listed_by.recent_sales} recent sales</span>
-                          </div>
-                        )}
-                        
-                        {property.listed_by.phone && (
-                          <div className="flex items-center text-brown">
-                            <Phone className="h-4 w-4 mr-1" />
-                            <span>
-                              {property.listed_by.phone.areacode && property.listed_by.phone.prefix && property.listed_by.phone.number
-                                ? `(${property.listed_by.phone.areacode}) ${property.listed_by.phone.prefix}-${property.listed_by.phone.number}`
-                                : property.listed_by.phone.areacode || property.listed_by.phone.prefix || property.listed_by.phone.number || 'Phone available'
-                              }
-                            </span>
-                          </div>
-                        )}
-                        
-                        {property.listed_by.zpro && (
+                      {property.listed_by.phone && (
+                        <div className="flex items-center text-brown mt-2">
+                          <Phone className="h-4 w-4 mr-1" />
+                          <span>
+                            {property.listed_by.phone.areacode && property.listed_by.phone.prefix && property.listed_by.phone.number
+                              ? `(${property.listed_by.phone.areacode}) ${property.listed_by.phone.prefix}-${property.listed_by.phone.number}`
+                              : property.listed_by.phone.areacode || property.listed_by.phone.prefix || property.listed_by.phone.number || 'Phone available'
+                            }
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Neighborhood Overview */}
+                {(() => {
+                  console.log('🔍 [FRONTEND] Full property object:', property);
+                  console.log('🔍 [FRONTEND] Property analysis:', property.property_analysis);
+                  console.log('🔍 [FRONTEND] Neighborhood overview data:', (property.property_analysis as any)?.neighborhood_overview);
+                  console.log('🔍 [FRONTEND] Neighborhood overview exists:', !!(property.property_analysis as any)?.neighborhood_overview);
+                  return null;
+                })()}
+                {(property.property_analysis as any)?.neighborhood_overview && (
+                  <div className="mt-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <MapPin className="w-5 h-5 text-brown" />
+                      <h3 className="text-lg font-semibold text-brown">Neighborhood Overview</h3>
+                    </div>
+                    <div className="bg-beige/10 border border-beige/40 rounded-lg p-4">
+                      <div className="space-y-3">
+                        <div>
+                          <p className="text-brown/80 text-sm leading-relaxed">
+                            {(property.property_analysis as any)?.neighborhood_overview?.description}
+                          </p>
+                        </div>
+                        {(property.property_analysis as any)?.neighborhood_overview?.vibe && (
                           <div>
-                            <span className="inline-block px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
-                              Zillow Pro
-                            </span>
+                            <div className="bg-olive/10 border border-olive/20 rounded-lg px-3 py-2">
+                              <span className="text-olive text-sm font-medium">
+                                {(property.property_analysis as any)?.neighborhood_overview?.vibe}
+                              </span>
+                            </div>
                           </div>
                         )}
                       </div>
                     </div>
                   </div>
-                </div>
+                )}
               </div>
             )}
+
+            {/* Schools */}
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <GraduationCap className="w-5 h-5 text-brown" />
+                <h3 className="text-lg font-semibold text-brown">Schools</h3>
+              </div>
+              <div className="space-y-3">
+                {property.schools && property.schools.length > 0 ? (
+                  property.schools.slice(0, 6).map((school, index) => (
+                    <div key={index} className="bg-beige/10 border border-beige/40 rounded-lg p-4">
+                      <div className="flex justify-between items-center mb-2">
+                        <h4 className="font-medium text-brown">{school.name || 'Unknown School'}</h4>
+                        {school.rating && (
+                          <span className={`px-2 py-1 rounded text-sm font-medium border ${
+                            school.rating >= 8 
+                              ? 'bg-olive/20 text-olive border-olive/30'
+                              : school.rating >= 6 
+                              ? 'bg-amber-50 text-amber-600 border-amber-200'
+                              : 'bg-red-50 text-red-600 border-red-200'
+                          }`}>
+                            {school.rating}/10
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-sm text-brown/70 space-y-1">
+                        {school.distance && (
+                          <p>{school.distance.toFixed(1)} miles</p>
+                        )}
+                        <div className="flex items-center gap-2">
+                          {school.type && <span>{school.type}</span>}
+                          {school.grades && <span>• Grades {school.grades}</span>}
+                          {school.level && <span>• {school.level}</span>}
+                        </div>
+                        {school.studentsPerTeacher && (
+                          <p>Student/Teacher Ratio: {school.studentsPerTeacher}:1</p>
+                        )}
+                        {school.isAssigned && (
+                          <p className="text-blue-600 font-medium">Assigned School</p>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="bg-beige/10 border border-beige/40 rounded-lg p-4">
+                    <p className="text-brown/70">No school information available for this property.</p>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
-          {/* Commute Map Section */}
-          {property.commute_data && (
+          {/* Property Features Section */}
+          {property.features && (
+            <div className="mb-8">
+              <div className="flex items-center gap-2 mb-4">
+                <Star className="w-5 h-5 text-brown" />
+                <h3 className="text-lg font-semibold text-brown">Property Features</h3>
+              </div>
+              <div className="bg-beige/20 border border-beige rounded-lg p-6">
+
+               {/* AI-Detected Features integrated into Property Features */}
+               {property.image_features && !property.image_features.error && property.image_features.clean && property.image_features.clean.length > 0 && (
+                    <div className="">
+                      <h4 className="text-brown font-semibold text-sm mb-2">AI-Detected Features from Photos</h4>
+                      <div className="text-brown/70 text-xs leading-relaxed">
+                        {property.image_features?.clean?.map((feature, index) => (
+                          <span key={index} className="inline-block">
+                            {feature.trim()}
+                            {index < (property.image_features?.clean?.length || 0) - 1 && (
+                              <span className="text-brown/40 mx-2">•</span>
+                            )}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                <div className="space-y-4">
+                  {property.features && typeof property.features === 'object' ? (
+                    Object.entries(property.features).map(([category, featureList]) => (
+                      <div key={category} className="">
+                        <h4 className="text-brown font-semibold text-sm mb-2">{category}</h4>
+                        <div className="text-brown/70 text-xs leading-relaxed">
+                          {featureList.map((feature, index) => (
+                            <span key={index} className="inline-block">
+                              {feature.trim()}
+                              {index < featureList.length - 1 && (
+                                <span className="text-brown/40 mx-2">•</span>
+                              )}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-brown/60 text-sm text-center py-4">
+                      No detailed features available
+                    </div>
+                  )}
+                  
+
+                </div>
+              </div>
+            </div>
+          )}
+
+
+
+          {/* Property Analysis Section - Perplexity Sonar Pro */}
+          {property.property_analysis && !property.property_analysis.error && (
+            <div className="mb-8">
+              <div className="flex items-center gap-2 mb-4">
+                <AlertTriangle className="w-5 h-5 text-brown" />
+                <h3 className="text-lg font-semibold text-brown">AI Property Analysis</h3>
+              </div>
+              
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                {/* Pros */}
+                <div>
+                  <div className="flex items-center gap-2 mb-4">
+                    <CheckCircle className="w-5 h-5 text-olive" />
+                    <h3 className="text-lg font-semibold text-olive">Pros for You</h3>
+                  </div>
+                  <div className="space-y-3">
+                    {property.property_analysis.pros.map((pro, index) => (
+                      <div key={index} className="bg-olive/10 border border-olive/30 rounded-lg p-4">
+                        <h4 className="font-medium text-olive mb-1">Property Advantage</h4>
+                        <p className="text-sm text-brown/80">{pro}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Cons */}
+                <div>
+                  <div className="flex items-center gap-2 mb-4">
+                    <AlertTriangle className="w-5 h-5 text-amber-600" />
+                    <h3 className="text-lg font-semibold text-amber-600">Considerations</h3>
+                  </div>
+                  <div className="space-y-3">
+                    {property.property_analysis.cons.map((con, index) => (
+                      <div key={index} className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                        <h4 className="font-medium text-amber-600 mb-1">Consideration</h4>
+                        <p className="text-sm text-brown/70">{con}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                {/* Crime & Safety Analysis */}
+                <div>
+                  <div className="flex items-center gap-2 mb-4">
+                    <Shield className="w-5 h-5 text-brown" />
+                    <h3 className="text-lg font-semibold text-brown">Crime & Safety Analysis</h3>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="bg-beige/10 border border-beige/40 rounded-lg p-4">
+                      <div className="flex justify-between items-center mb-6">
+                        <h4 className="font-medium text-brown">Overall Safety Score</h4>
+                        <span className="bg-olive/20 text-olive border border-olive/30 px-3 py-1 rounded-full text-sm font-medium">{property.property_analysis.crime_stats.overall_safety_score}</span>
+                      </div>
+                      <div className="space-y-3 ml-2.5">
+                        <div className="flex justify-start text-xs">
+                          <span className="text-brown/70">Crime Rate</span>
+                          <span className="text-olive ml-2">{property.property_analysis.crime_stats.crime_rate}</span>
+                        </div>
+                        <div className="flex justify-start text-xs">
+                          <span className="text-brown/70">Trend</span>
+                          <span className={`ml-2 ${
+                            property.property_analysis.crime_stats.recent_trends.toLowerCase().includes('improving') 
+                              ? 'text-olive' 
+                              : property.property_analysis.crime_stats.recent_trends.toLowerCase().includes('declining')
+                              ? 'text-amber-600'
+                              : 'text-olive'
+                          }`}>
+                            {property.property_analysis.crime_stats.recent_trends}
+                          </span>
+                        </div>
+                        <div className="flex justify-start text-xs">
+                          <span className="text-brown/70">Data Source</span>
+                          <span className="text-olive ml-2">{property.property_analysis.crime_stats.data_source}</span>
+                        </div>
+                      </div>
+                    </div>
+                    {property.property_analysis.crime_stats.specific_concerns.length > 0 && (
+                      <div className="bg-beige/10 border border-beige/40 rounded-lg p-4">
+                        <h4 className="font-medium text-brown mb-2">Specific Concerns</h4>
+                        <div className="space-y-1">
+                          {property.property_analysis.crime_stats.specific_concerns.map((concern, index) => (
+                            <p key={index} className="text-sm text-brown/70">{concern}</p>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Gentrification Analysis */}
+                <div>
+                  <div className="flex items-center gap-2 mb-4">
+                    <Home className="w-5 h-5 text-brown" />
+                    <h3 className="text-lg font-semibold text-brown">Gentrification Analysis</h3>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="bg-beige/10 border border-beige/40 rounded-lg p-4">
+                      <div className="flex justify-between items-center mb-6">
+                        <h4 className="font-medium text-brown">Gentrification Score</h4>
+                        <span className="bg-olive/20 text-olive border border-olive/30 px-3 py-1 rounded-full text-sm font-medium">{property.property_analysis.gentrification_index.score}</span>
+                      </div>
+                      <div className="space-y-3 ml-2.5">
+                        <div className="flex justify-start text-xs">
+                          <span className="text-brown/70">Trend</span>
+                          <span className={`ml-2 ${
+                            property.property_analysis.gentrification_index.trend.toLowerCase().includes('gentrifying') 
+                              ? 'text-amber-600' 
+                              : property.property_analysis.gentrification_index.trend.toLowerCase().includes('stable')
+                              ? 'text-olive'
+                              : 'text-olive'
+                          }`}>
+                            {property.property_analysis.gentrification_index.trend}
+                          </span>
+                        </div>
+                        <div className="flex justify-start text-xs">
+                          <span className="text-brown/70">Timeline</span>
+                          <span className="text-olive ml-2">{property.property_analysis.gentrification_index.timeline}</span>
+                        </div>
+                        <div className="flex justify-start text-xs">
+                          <span className="text-brown/70">Property Value Impact</span>
+                          <span className={`ml-2 ${
+                            property.property_analysis.gentrification_index.impact_on_property_value.toLowerCase().includes('positive') 
+                              ? 'text-olive' 
+                              : property.property_analysis.gentrification_index.impact_on_property_value.toLowerCase().includes('negative')
+                              ? 'text-amber-600'
+                              : 'text-olive'
+                          }`}>
+                            {property.property_analysis.gentrification_index.impact_on_property_value}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    {property.property_analysis.gentrification_index.indicators.length > 0 && (
+                      <div className="bg-beige/10 border border-beige/40 rounded-lg p-4">
+                        <h4 className="font-medium text-brown mb-2">Key Indicators</h4>
+                        <div className="space-y-1">
+                          {property.property_analysis.gentrification_index.indicators.map((indicator, index) => (
+                            <p key={index} className="text-sm text-brown/70">{indicator}</p>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Error state for property analysis */}
+          {property.property_analysis?.error && (
+            <div className="mb-8">
+              <div className="flex items-center gap-2 mb-4">
+                <AlertTriangle className="w-5 h-5 text-brown" />
+                <h3 className="text-lg font-semibold text-brown">AI Property Analysis</h3>
+              </div>
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <p className="text-yellow-800 text-sm">
+                  Property analysis is temporarily unavailable. Please try again later.
+                </p>
+              </div>
+            </div>
+          )}
+
+            {/* Commute Map Section */}
+            {property.commute_data && (
             <div className="mb-8">
               <div className="flex items-center gap-2 mb-4">
                 <MapPin className="w-5 h-5 text-brown" />
@@ -913,127 +1101,45 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({ property, o
             </div>
           )}
 
-          {/* Property Features Section */}
-          {property.features && (
-            <div className="mb-8">
-              <div className="flex items-center gap-2 mb-4">
-                <Star className="w-5 h-5 text-brown" />
-                <h3 className="text-lg font-semibold text-brown">Property Features</h3>
-              </div>
-              <div className="bg-beige/20 border border-beige rounded-lg p-6">
-                <div className="space-y-4">
-                  {property.features && typeof property.features === 'object' ? (
-                    Object.entries(property.features).map(([category, featureList]) => (
-                      <div key={category} className="">
-                        <h4 className="text-brown font-semibold text-sm mb-2">{category}</h4>
-                        <div className="text-brown/70 text-xs leading-relaxed">
-                          {featureList.map((feature, index) => (
-                            <span key={index} className="inline-block">
-                              {feature.trim()}
-                              {index < featureList.length - 1 && (
-                                <span className="text-brown/40 mx-2">•</span>
-                              )}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-brown/60 text-sm text-center py-4">
-                      No detailed features available
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Schools and Crime Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            {/* Schools */}
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <GraduationCap className="w-5 h-5 text-brown" />
-                <h3 className="text-lg font-semibold text-brown">Schools</h3>
-              </div>
-              <div className="space-y-3">
-                {property.schools && property.schools.length > 0 ? (
-                  property.schools.slice(0, 6).map((school, index) => (
-                    <div key={index} className="bg-beige/10 border border-beige/40 rounded-lg p-4">
-                      <div className="flex justify-between items-center mb-2">
-                        <h4 className="font-medium text-brown">{school.name || 'Unknown School'}</h4>
-                        {school.rating && (
-                          <span className={`px-2 py-1 rounded text-sm font-medium border ${
-                            school.rating >= 8 
-                              ? 'bg-olive/20 text-olive border-olive/30'
-                              : school.rating >= 6 
-                              ? 'bg-amber-50 text-amber-600 border-amber-200'
-                              : 'bg-red-50 text-red-600 border-red-200'
-                          }`}>
-                            {school.rating}/10
-                          </span>
+        {/* ROI Explanation */}
+        <div className="bg-gold/10 border border-gold/30 rounded-lg p-4">
+                <h4 className="font-semibold text-gold mb-3 flex items-center gap-2">
+                  <Star className="w-4 h-4" />
+                  Investment Analysis & ROI
+                </h4>
+                <div className="text-gold text-sm leading-relaxed">
+                  {/* Parse ROI explanation to extract summary and bullet points */}
+                  {(() => {
+                    const roiText = property.property_analysis?.roi_explanation || '';
+                    const sentences = roiText.split(/[.!?]+/).filter(s => s.trim().length > 0);
+                    
+                    if (sentences.length === 0) {
+                      return <p>No investment analysis available.</p>;
+                    }
+                    
+                    // First sentence as summary
+                    const summary = sentences[0].trim() + '.';
+                    
+                    // Remaining sentences as bullet points
+                    const bulletPoints = sentences.slice(1).filter(s => s.trim().length > 10);
+                    
+                    return (
+                      <div>
+                        <p className="font-medium text-gold mb-3">{summary}</p>
+                        {bulletPoints.length > 0 && (
+                          <ul className="space-y-2">
+                            {bulletPoints.map((point, index) => (
+                              <li key={index} className="flex items-start gap-2">
+                                <span>{point.trim()}</span>
+                              </li>
+                            ))}
+                          </ul>
                         )}
                       </div>
-                      <div className="text-sm text-brown/70 space-y-1">
-                        {school.distance && (
-                          <p>{school.distance.toFixed(1)} miles</p>
-                        )}
-                        <div className="flex items-center gap-2">
-                          {school.type && <span>{school.type}</span>}
-                          {school.grades && <span>• Grades {school.grades}</span>}
-                          {school.level && <span>• {school.level}</span>}
-                        </div>
-                        {school.studentsPerTeacher && (
-                          <p>Student/Teacher Ratio: {school.studentsPerTeacher}:1</p>
-                        )}
-                        {school.isAssigned && (
-                          <p className="text-blue-600 font-medium">Assigned School</p>
-                        )}
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="bg-beige/10 border border-beige/40 rounded-lg p-4">
-                    <p className="text-brown/70">No school information available for this property.</p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Crime & Safety */}
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <Shield className="w-5 h-5 text-brown" />
-                <h3 className="text-lg font-semibold text-brown">Safety & Crime</h3>
-              </div>
-              <div className="space-y-4">
-                <div className="bg-beige/10 border border-beige/40 rounded-lg p-4">
-                  <div className="flex justify-between items-center mb-3">
-                    <h4 className="font-medium text-brown">Overall Safety Score</h4>
-                    <span className="bg-olive/20 text-olive border border-olive/30 px-3 py-1 rounded-full text-sm font-medium">B+</span>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-brown/70">Violent Crime</span>
-                      <span className="text-olive font-medium">Low</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-brown/70">Property Crime</span>
-                      <span className="text-amber-600 font-medium">Moderate</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-brown/70">Police Response</span>
-                      <span className="text-olive font-medium">Fast (4 min avg)</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="bg-beige/10 border border-beige/40 rounded-lg p-4">
-                  <h4 className="font-medium text-brown mb-2">Recent Activity</h4>
-                  <p className="text-sm text-brown/70">2 incidents in past 30 days within 0.5 miles</p>
+                    );
+                  })()}
                 </div>
               </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>

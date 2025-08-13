@@ -60,28 +60,18 @@ export async function getPropertyDetailsByAddress(zpid?: string | number, addres
       console.error('🔍 [SEARCH_ADDRESS] API returned success=false:', result.error);
       throw new Error(result.error || 'Search failed');
     }
-
-    console.log('🔍 [SEARCH_ADDRESS] Property data keys:', result.data ? Object.keys(result.data) : 'null');
-    console.log('🔍 [SEARCH_ADDRESS] Commute data available:', !!result.commute_data);
-    console.log('🔍 [SEARCH_ADDRESS] Zillow URL available:', !!result.zillow_url);
-    console.log('🔍 [SEARCH_ADDRESS] Features available:', !!result.features);
-    console.log('🔍 [SEARCH_ADDRESS] Images available:', result.images?.length || 0);
-    if (result.commute_data) {
-      console.log('🔍 [SEARCH_ADDRESS] Commute data keys:', Object.keys(result.commute_data));
-      console.log('🔍 [SEARCH_ADDRESS] Travel times count:', result.commute_data.travel_times?.length || 0);
-      console.log('🔍 [SEARCH_ADDRESS] Map URL available:', !!result.commute_data.map_url);
-    }
-    
-    // Merge commute data, zillow_url, features, and images with property data
+    // Merge commute data, property analysis, image features, zillow_url, features, and images with property data
     const enhancedPropertyData = {
       ...result.data,
       commute_data: result.commute_data,
+      property_analysis: result.property_analysis,
+      image_features: result.image_features,
       zillow_url: result.zillow_url,
       features: result.features,
       images: result.images
     };
     
-    console.log('🔍 [SEARCH_ADDRESS] Successfully returning enhanced property data with commute, Zillow URL, features, and images');
+    console.log('🔍 [SEARCH_ADDRESS] Successfully returning enhanced property data with commute, property analysis, image features, Zillow URL, features, and images');
     return enhancedPropertyData;
   } catch (error) {
     console.error('🔍 [SEARCH_ADDRESS] ❌ Error in getPropertyDetailsByAddress:', error);

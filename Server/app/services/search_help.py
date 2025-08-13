@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
 Extract a comma-separated list of normalized property features from a Zillow-style JSON.
+Also provides property analysis using Perplexity Sonar Pro API.
 
 Usage:
   python features.py listing.json
@@ -8,10 +9,214 @@ Usage:
 """
 
 from __future__ import annotations
-import sys, json, re
+import sys, json, re, os, logging, time
 from typing import Any, Dict, Iterable, List, Optional
-import re
-from typing import Any, List
+import requests
+from pydantic import BaseModel, Field
+import os
+from openai import OpenAI
+import json
+from typing import List, Dict, Any
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import math
+
+client = OpenAI(api_key=os.getenv("OPENAI_KEY"))
+
+
+def _safe_json_parse(s: str) -> Dict[str, Any]:
+    try:
+        return json.loads(s)
+    except json.JSONDecodeError:
+        # Fallback: try to extract the last {...} block
+        start = s.find("{")
+        end = s.rfind("}")
+        if start != -1 and end != -1 and end > start:
+            try:
+                return json.loads(s[start:end+1])
+            except json.JSONDecodeError:
+                pass
+        return {}
+
+def extract_features_from_batch(image_batch: List[str], batch_num: int) -> List[str]:
+    """
+    Extract features from a batch of images using OpenAI vision API.
+    """
+    try:
+        content = [
+            {"type": "text", "text": (
+                "You are a real estate feature spotter. "
+                "From the following photos, list every visible home feature or amenity. "
+                "Prefer concise nouns, e.g., 'in-ground pool', 'brick pizza oven', "
+                "'swing set', 'solar panels', 'vaulted ceiling', 'granite countertops', "
+                "'hardwood floors', 'two-car garage'. If unsure, omit. No hallucinations. "
+                "Return strictly valid JSON with a top-level 'features' array of strings."
+            )}
+        ] + [{"type": "image_url", "image_url": {"url": url}} for url in image_batch]
+
+        schema = {
+            "name": "RawFeatureList",
+            "schema": {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {
+                    "features": {
+                        "type": "array",
+                        "items": {"type": "string", "minLength": 1},
+                        "description": "Flat list of short feature strings seen in the photos."
+                    }
+                },
+                "required": ["features"]
+            }
+        }
+
+        resp = client.chat.completions.create(
+            model="gpt-4o-mini",  # vision-capable + cheap
+            messages=[{"role": "user", "content": content}],
+            response_format={"type": "json_schema", "json_schema": schema},
+            max_tokens=600,
+            temperature=0
+        )
+
+        content_str = resp.choices[0].message.content or "{}"
+        data = _safe_json_parse(content_str)
+        features = data.get("features", [])
+        
+        logger.info(f"🔍 [BATCH {batch_num}] Extracted {len(features)} features from {len(image_batch)} images")
+        return features
+        
+    except Exception as e:
+        logger.error(f"🔍 [BATCH {batch_num}] Error extracting features: {str(e)}")
+        return []
+
+def extract_features_from_images(image_urls: List[str]) -> List[str]:
+    """
+    Concurrently extract features from all images using multithreading.
+    Returns a list of raw (possibly redundant) features.
+    """
+    if not image_urls:
+        return []
+    
+    # Process all images, not just first 5
+    total_images = len(image_urls)
+    logger.info(f"🔍 [FEATURE_EXTRACTION] Processing {total_images} images concurrently")
+    
+    # Split images into batches of 5 for API efficiency (vision API works better with smaller batches)
+    batch_size = 5
+    batches = [image_urls[i:i + batch_size] for i in range(0, len(image_urls), batch_size)]
+    total_batches = len(batches)
+    
+    logger.info(f"🔍 [FEATURE_EXTRACTION] Created {total_batches} batches of up to {batch_size} images each")
+    
+    all_features = []
+    
+    # Use ThreadPoolExecutor for concurrent processing
+    with ThreadPoolExecutor(max_workers=min(8, total_batches)) as executor:
+        # Submit all batch processing tasks
+        future_to_batch = {
+            executor.submit(extract_features_from_batch, batch, i + 1): i + 1 
+            for i, batch in enumerate(batches)
+        }
+        
+        # Collect results as they complete
+        for future in as_completed(future_to_batch):
+            batch_num = future_to_batch[future]
+            try:
+                batch_features = future.result()
+                all_features.extend(batch_features)
+                logger.info(f"🔍 [BATCH {batch_num}] Completed - {len(batch_features)} features extracted")
+            except Exception as e:
+                logger.error(f"🔍 [BATCH {batch_num}] Failed with error: {str(e)}")
+    
+    logger.info(f"🔍 [FEATURE_EXTRACTION] ✅ Completed processing {total_images} images")
+    logger.info(f"🔍 [FEATURE_EXTRACTION] Total raw features extracted: {len(all_features)}")
+    
+    return all_features
+
+def normalize_and_dedupe_features(raw_features: List[str]) -> List[str]:
+    """
+    Polishing pass: use gpt-4o (text-only) to normalize synonyms and remove dupes.
+    Returns a clean, deduplicated, consistently formatted list.
+    """
+    schema = {
+        "name": "NormalizedFeatures",
+        "schema": {
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {
+                "features": {
+                    "type": "array",
+                    "items": {"type": "string", "minLength": 1},
+                    "description": "Canonical, deduplicated feature names (snake case avoided)."
+                }
+            },
+            "required": ["features"]
+        }
+    }
+
+    system = (
+        "You normalize real estate features. "
+        "Rules: (1) lowercase then Title Case; (2) singularize common nouns; "
+        "(3) merge synonyms to common US real-estate terms "
+        "(e.g., 'swing set' vs 'swingset' -> 'Swing Set', "
+        "'pizza oven'/'brick oven' -> 'Brick Pizza Oven', "
+        "'two car garage' -> 'Two-Car Garage'); "
+        "(4) remove duplicates and near-duplicates; "
+        "(5) keep high-signal terms only."
+    )
+
+    user = (
+        "Normalize and dedupe these features. "
+        "Return strictly valid JSON with a top-level 'features' array.\n\n"
+        f"RAW FEATURES:\n{raw_features}"
+    )
+
+    resp = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": system},
+            {"role": "user", "content": user},
+        ],
+        response_format={"type": "json_schema", "json_schema": schema},
+        max_tokens=600,
+        temperature=0
+    )
+
+    # ✅ FIX: use .content and json.loads (NOT .parsed)
+    content_str = resp.choices[0].message.content or "{}"
+    data = _safe_json_parse(content_str)
+    return data.get("features", [])
+
+def extract_and_clean_features(image_urls: List[str]) -> Dict[str, List[str]]:
+    raw = extract_features_from_images(image_urls)
+    clean = normalize_and_dedupe_features(raw) if raw else []
+    return {"raw": raw, "clean": clean}
+
+
+# Configure logging
+logger = logging.getLogger(__name__)
+
+# Perplexity API configuration
+PERPLEXITY_API_KEY = os.getenv("PERPLEXITY_API_KEY")
+if not PERPLEXITY_API_KEY:
+    logger.warning("PERPLEXITY_API_KEY environment variable is not set. Property analysis will not be available.")
+
+PERPLEXITY_HEADERS = {
+    "Authorization": f"Bearer {PERPLEXITY_API_KEY}",
+    "Content-Type": "application/json",
+} if PERPLEXITY_API_KEY else {}
+
+PERPLEXITY_URL = "https://api.perplexity.ai/chat/completions"
+PERPLEXITY_MODEL = os.getenv("PERPLEXITY_MODEL", "sonar-pro")
+
+# Pydantic models for structured response
+class PropertyAnalysis(BaseModel):
+    """Structured property analysis response from Perplexity Sonar Pro"""
+    pros: List[str] = Field(description="2-5 key advantages of this property/location", min_items=2, max_items=5)
+    cons: List[str] = Field(description="2-5 key disadvantages of this property/location", min_items=2, max_items=5)
+    neighborhood_overview: Dict[str, str] = Field(description="Neighborhood overview with description and vibe")
+    crime_stats: Dict[str, Any] = Field(description="Crime statistics and safety information for the area")
+    gentrification_index: Dict[str, Any] = Field(description="Gentrification analysis including score and trends")
+    roi_explanation: str = Field(description="Return on investment analysis and market outlook")
 
 def extract_property_features(listing: Dict[str, Any]) -> Dict[str, List[str]]:
     rf: Dict[str, Any] = (listing.get("resoFacts") or {}) if isinstance(listing, dict) else {}
@@ -285,6 +490,212 @@ def _normalize_sewer_water(s: str, kind: str) -> str:
     if kind == "sewer":
         return _keep_nice(s) if "sewer" in t else f"{_keep_nice(s)} sewer"
     return _keep_nice(s) if "water" in t else f"{_keep_nice(s)} water"
+
+# ----------------------------- Property Analysis with Perplexity Sonar Pro -----------------------------
+
+def analyze_property_with_sonar_pro(user_preferences: Dict[str, Any], home_object: Dict[str, Any]) -> Optional[PropertyAnalysis]:
+    """
+    Analyze a property using Perplexity's Sonar Pro API based on user preferences.
+    
+    Args:
+        user_preferences: User's preferences and profile information
+        home_object: Property/home data object containing address, price, features, etc.
+        
+    Returns:
+        PropertyAnalysis object with pros, cons, crime stats, gentrification index, and ROI explanation
+        Returns None if API key is not configured or request fails
+    """
+    if not PERPLEXITY_API_KEY:
+        logger.error("Cannot analyze property: PERPLEXITY_API_KEY not configured")
+        return None
+    
+    try:
+        # Extract key information from home object
+        address = home_object.get('address', 'Unknown address')
+        price = home_object.get('price', home_object.get('listPrice', 'Unknown price'))
+        bedrooms = home_object.get('bedrooms', home_object.get('beds', 'Unknown'))
+        bathrooms = home_object.get('bathrooms', home_object.get('baths', 'Unknown'))
+        sqft = home_object.get('livingArea', home_object.get('sqft', 'Unknown'))
+        property_type = home_object.get('propertyType', home_object.get('homeType', 'Unknown'))
+        
+        # Extract user preferences for context
+        budget = user_preferences.get('home_budget', 'Not specified')
+        occupation = user_preferences.get('occupation', 'Not specified')
+        age = user_preferences.get('age', 'Not specified')
+        important_locations = user_preferences.get('important_locations', [])
+        preferred_features = user_preferences.get('preferred_home_features', [])
+        deal_breakers = user_preferences.get('deal_breakers', [])
+        
+        # Build comprehensive prompt for Sonar Pro
+        prompt = f"""
+        Analyze this property for a potential buyer with the following profile and preferences:
+
+        PROPERTY DETAILS:
+        - Address: {address}
+        - Price: ${price:,} if isinstance(price, (int, float)) else {price}
+        - Bedrooms: {bedrooms}
+        - Bathrooms: {bathrooms}
+        - Square Feet: {sqft}
+        - Property Type: {property_type}
+
+        BUYER PROFILE:
+        - Budget: ${budget:,} if isinstance(budget, (int, float)) else {budget}
+        - Occupation: {occupation}
+        - Age: {age}
+        - Important Locations: {', '.join([loc.get('name', 'Unknown') for loc in important_locations]) if important_locations else 'None specified'}
+        - Preferred Features: {', '.join(preferred_features) if preferred_features else 'None specified'}
+        - Deal Breakers: {', '.join(deal_breakers) if deal_breakers else 'None specified'}
+
+        Do not include any '*' characters or other special characters, besides '-' at the start of each bullet point.
+        Do not include any inline citations, reference numbers, or source attributions in your response.
+
+        Please provide a comprehensive analysis in the following JSON format:
+        {{
+            "pros": ["2-5 key advantages of this property/location based on buyer profile"],
+            "cons": ["2-5 key disadvantages of this property/location based on buyer profile"],
+            "neighborhood_overview": {{
+                "description": "2-3 sentence overview of the neighborhood character, demographics, and general atmosphere",
+                "vibe": "brief description of the neighborhood vibe/personality (e.g., trendy, family-friendly, artistic, professional, etc.)"
+            }},
+            "crime_stats": {{
+                "overall_safety_score": "letter grade only (e.g., A+, B+, C-, etc.) without additional description",
+                "crime_rate": "rate compared to national/local average",
+                "recent_trends": "improving/stable/declining",
+                "specific_concerns": ["list of specific safety concerns if any"],
+                "data_source": "source of crime data"
+            }},
+            "gentrification_index": {{
+                "score": "numerical score or rating",
+                "trend": "gentrifying/stable/declining",
+                "indicators": ["key gentrification indicators"],
+                "timeline": "expected timeline for changes",
+                "impact_on_property_value": "positive/neutral/negative impact"
+            }},
+            "roi_explanation": "Start with a clear summarizing sentence about the investment potential. Follow with 2-3 supporting sentences that provide specific details about market trends, appreciation outlook, rental potential if applicable, and financial factors. Structure as: 'Summary sentence. Supporting detail 1. Supporting detail 2. Supporting detail 3.' This will be formatted with the summary as a header and details as bullet points."
+        }}
+
+        Focus on current, accurate data from reliable sources. Consider the buyer's specific needs, budget, and preferences in your analysis.
+        """
+
+        # Prepare API payload
+        payload = {
+            "model": PERPLEXITY_MODEL,
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are a real estate analysis expert. Provide accurate, data-driven property analysis using current market information and reliable sources. Always respond in valid JSON format."
+                },
+                {
+                    "role": "user", 
+                    "content": prompt
+                }
+            ],
+            "max_tokens": 2000,
+            "temperature": 0.1,
+            "top_p": 0.9
+        }
+
+        # Make API request with retry logic
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                logger.info(f"🏠 Making Perplexity Sonar Pro request for property analysis (attempt {attempt + 1}/{max_retries})")
+                start_time = time.perf_counter()
+                
+                response = requests.post(
+                    PERPLEXITY_URL,
+                    headers=PERPLEXITY_HEADERS,
+                    json=payload,
+                    timeout=60
+                )
+                
+                duration = time.perf_counter() - start_time
+                logger.info(f"📊 Perplexity API response: HTTP {response.status_code} in {duration:.2f}s")
+                
+                if response.status_code == 200:
+                    response_data = response.json()
+                    content = response_data.get('choices', [{}])[0].get('message', {}).get('content', '')
+                    
+                    if not content:
+                        logger.error("Empty content in Perplexity response")
+                        if attempt < max_retries - 1:
+                            continue
+                        return None
+                    
+                    # Parse JSON response
+                    try:
+                        # Clean up response if it has markdown formatting
+                        if content.startswith('```json'):
+                            content = content.replace('```json', '').replace('```', '').strip()
+                        elif content.startswith('```'):
+                            content = content.replace('```', '').strip()
+                        
+                        logger.info(f"🔍 [PERPLEXITY] Raw response content: {content}")
+                        
+                        analysis_data = json.loads(content)
+                        logger.info(f"🔍 [PERPLEXITY] Parsed JSON keys: {list(analysis_data.keys())}")
+                        
+                        # Check specifically for neighborhood_overview
+                        if 'neighborhood_overview' in analysis_data:
+                            logger.info(f"✅ [PERPLEXITY] Found neighborhood_overview: {analysis_data['neighborhood_overview']}")
+                        else:
+                            logger.warning(f"⚠️ [PERPLEXITY] Missing neighborhood_overview in response")
+                        
+                        # Validate and create PropertyAnalysis object
+                        property_analysis = PropertyAnalysis(**analysis_data)
+                        
+                        # Log what the PropertyAnalysis object contains
+                        logger.info(f"🔍 [PROPERTY_ANALYSIS] Created object with fields: {list(property_analysis.__dict__.keys())}")
+                        if hasattr(property_analysis, 'neighborhood_overview'):
+                            logger.info(f"✅ [PROPERTY_ANALYSIS] neighborhood_overview in object: {property_analysis.neighborhood_overview}")
+                        else:
+                            logger.warning(f"⚠️ [PROPERTY_ANALYSIS] neighborhood_overview missing from object")
+                        
+                        logger.info(f"✅ Successfully analyzed property: {address}")
+                        return property_analysis
+                        
+                    except json.JSONDecodeError as e:
+                        logger.error(f"Failed to parse JSON response: {e}")
+                        logger.error(f"Raw content: {content[:500]}...")
+                        if attempt < max_retries - 1:
+                            continue
+                        return None
+                    except Exception as e:
+                        logger.error(f"Failed to create PropertyAnalysis object: {e}")
+                        if attempt < max_retries - 1:
+                            continue
+                        return None
+                
+                else:
+                    logger.error(f"Perplexity API error: HTTP {response.status_code}")
+                    try:
+                        error_data = response.json()
+                        logger.error(f"Error details: {error_data}")
+                    except:
+                        logger.error(f"Error response: {response.text[:500]}")
+                    
+                    if attempt < max_retries - 1:
+                        time.sleep(2 ** attempt)  # Exponential backoff
+                        continue
+                    return None
+                    
+            except requests.exceptions.RequestException as e:
+                logger.error(f"Request exception: {e}")
+                if attempt < max_retries - 1:
+                    time.sleep(2 ** attempt)
+                    continue
+                return None
+            except Exception as e:
+                logger.error(f"Unexpected error in property analysis: {e}")
+                if attempt < max_retries - 1:
+                    continue
+                return None
+        
+        return None
+        
+    except Exception as e:
+        logger.error(f"Failed to analyze property: {e}")
+        return None
 
 # ----------------------------- CLI -----------------------------
 

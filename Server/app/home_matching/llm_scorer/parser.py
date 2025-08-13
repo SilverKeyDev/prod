@@ -19,14 +19,30 @@ class LLMResponseParser:
     def parse_scoring_response(self, response: Dict[str, Any]) -> Dict[str, Any]:
         """Parse LLM response for single home scoring."""
         try:
+            logger.info(f"[LLM_PARSER] Starting response parsing")
+            logger.debug(f"[LLM_PARSER] Response keys: {list(response.keys())}")
+            
             content = response.get('content', {})
+            raw_content = response.get('raw_content', '')
+            
+            logger.info(f"[LLM_PARSER] Content type: {type(content)}")
+            logger.debug(f"[LLM_PARSER] Raw content preview: {raw_content[:200]}...")
             
             # Handle case where content is a string (JSON parsing failed)
             if isinstance(content, str):
+                logger.warning(f"[LLM_PARSER] Content is string, attempting to parse: {content[:100]}...")
                 content = self._parse_string_response(content)
+                logger.info(f"[LLM_PARSER] String parsing result: {type(content)}")
+            
+            # Log content structure
+            if isinstance(content, dict):
+                logger.info(f"[LLM_PARSER] Content keys: {list(content.keys())}")
+                if 'score' in content:
+                    logger.info(f"[LLM_PARSER] Found score in content: {content['score']} (type: {type(content['score'])})")
             
             # Validate and clean the response
             parsed = self._validate_scoring_response(content)
+            logger.info(f"[LLM_PARSER] Validation result - score: {parsed.get('score')}")
             
             # Add metadata from original response
             parsed['metadata'] = {
@@ -36,10 +52,11 @@ class LLMResponseParser:
                 'finish_reason': response.get('finish_reason', '')
             }
             
+            logger.info(f"[LLM_PARSER] ✅ Parsing successful - final score: {parsed.get('score')}")
             return parsed
             
         except Exception as e:
-            logger.error(f"Error parsing scoring response: {e}")
+            logger.error(f"[LLM_PARSER] ❌ Error parsing scoring response: {e}", exc_info=True)
             return self._create_error_response(str(e))
     
     def parse_comparison_response(self, response: Dict[str, Any]) -> Dict[str, Any]:

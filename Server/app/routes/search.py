@@ -239,6 +239,7 @@ def get_property_via_address():
     from flask import current_app, jsonify, request as req
     from ..services.graphic_generation import fetch_travel_time, generate_static_map_url
     from ..models.user_preferences import UserPreferences
+    from ..services.search_help import analyze_property_with_sonar_pro, extract_and_clean_features
 
     start = time.time()
     RAPI_HOST = os.getenv("RAPIDAPI_HOST", "zillow-com1.p.rapidapi.com")
@@ -374,6 +375,84 @@ def get_property_via_address():
         # Don't fail the entire request if commute calculation fails
         commute_data = {'error': 'Failed to calculate commute data'}
     
+    # Enhanced: Add property analysis using Perplexity Sonar Pro
+    property_analysis = None
+    try:
+        current_user = get_current_user()
+        if current_user and data and isinstance(data, dict):
+            user_preferences = UserPreferences.query.filter_by(user_id=current_user.id).first()
+            
+            if user_preferences:
+                # Convert user preferences to dict format
+                user_prefs_dict = user_preferences.to_dict() if hasattr(user_preferences, 'to_dict') else {
+                    'home_budget': user_preferences.home_budget,
+                    'occupation': user_preferences.occupation,
+                    'age': user_preferences.age,
+                    'important_locations': user_preferences.important_locations,
+                    'preferred_home_features': user_preferences.preferred_home_features,
+                    'deal_breakers': user_preferences.deal_breakers,
+                    'gross_income': user_preferences.gross_income,
+                    'housing_type': user_preferences.housing_type,
+                    'preferred_regions': user_preferences.preferred_regions
+                }
+                
+                # Parse JSON fields if they're strings
+                for field in ['important_locations', 'preferred_home_features', 'deal_breakers', 'preferred_regions']:
+                    if hasattr(user_preferences, field):
+                        field_value = getattr(user_preferences, field)
+                        if isinstance(field_value, str):
+                            try:
+                                user_prefs_dict[field] = json.loads(field_value)
+                            except json.JSONDecodeError:
+                                user_prefs_dict[field] = []
+                        else:
+                            user_prefs_dict[field] = field_value or []
+                
+                # Prepare home object for analysis
+                home_object = {
+                    'address': property_address or data.get('streetAddress', 'Unknown address'),
+                    'price': data.get('price', data.get('listPrice', 0)),
+                    'bedrooms': data.get('bedrooms', data.get('beds', 0)),
+                    'bathrooms': data.get('bathrooms', data.get('baths', 0)),
+                    'livingArea': data.get('livingArea', data.get('sqft', 0)),
+                    'propertyType': data.get('propertyType', data.get('homeType', 'Unknown')),
+                    'lotAreaValue': data.get('lotAreaValue'),
+                    'lotAreaUnit': data.get('lotAreaUnit'),
+                    'listingStatus': data.get('listingStatus'),
+                    'city': data.get('city'),
+                    'state': data.get('state'),
+                    'zipcode': data.get('zipcode')
+                }
+                
+                current_app.logger.info(f"🔍 [PROPERTY] Starting Perplexity analysis for property: {home_object.get('address')}")
+                
+                # Call the property analysis function
+                analysis_result = analyze_property_with_sonar_pro(user_prefs_dict, home_object)
+                
+                if analysis_result:
+                    # Convert Pydantic model to dict for JSON response
+                    property_analysis = {
+                        'pros': analysis_result.pros,
+                        'cons': analysis_result.cons,
+                        'neighborhood_overview': analysis_result.neighborhood_overview,
+                        'crime_stats': analysis_result.crime_stats,
+                        'gentrification_index': analysis_result.gentrification_index,
+                        'roi_explanation': analysis_result.roi_explanation
+                    }
+                    current_app.logger.info(f"✅ [PROPERTY] Successfully completed Perplexity analysis")
+                    current_app.logger.info(f"🔍 [PROPERTY] Returning property_analysis with keys: {list(property_analysis.keys())}")
+                    if 'neighborhood_overview' in property_analysis:
+                        current_app.logger.info(f"✅ [PROPERTY] neighborhood_overview being sent to frontend: {property_analysis['neighborhood_overview']}")
+                    else:
+                        current_app.logger.warning(f"⚠️ [PROPERTY] neighborhood_overview missing from response to frontend")
+                else:
+                    current_app.logger.warning(f"⚠️ [PROPERTY] Perplexity analysis returned no results")
+                    
+    except Exception as e:
+        current_app.logger.error(f"🔍 [PROPERTY] Error during property analysis: {e}")
+        # Don't fail the entire request if analysis fails
+        property_analysis = {'error': 'Failed to analyze property'}
+    
         # --- Build Zillow URL from payload/zpid/address ---
     zillow_url = None
     zillow_base = "https://www.zillow.com"
@@ -455,16 +534,43 @@ def get_property_via_address():
         except Exception as e:
             current_app.logger.warning(f"🖼️ [PROPERTY] Failed to fetch images from Zillow API: {e}")
     
+    # Enhanced: Extract features from property images using AI vision
+    image_features = None
+    try:
+        if zillow_api_images and len(zillow_api_images) > 0:
+            current_app.logger.info(f"🔍 [PROPERTY] Starting AI image feature extraction for {len(zillow_api_images)} images")
+            
+            # Limit to first 5 images for cost efficiency
+            images_to_analyze = zillow_api_images[:5]
+            current_app.logger.info(f"🔍 [PROPERTY] Analyzing first {len(images_to_analyze)} images for features")
+            
+            # Extract features using OpenAI vision
+            image_features = extract_and_clean_features(images_to_analyze)
+            
+            if image_features:
+                current_app.logger.info(f"✅ [PROPERTY] Successfully extracted image features:")
+                current_app.logger.info(f"🔍 [PROPERTY] Raw features: {len(image_features.get('raw', []))} items")
+                current_app.logger.info(f"🔍 [PROPERTY] Clean features: {len(image_features.get('clean', []))} items")
+                current_app.logger.info(f"🔍 [PROPERTY] Clean features: {image_features.get('clean', [])}")
+            else:
+                current_app.logger.warning(f"⚠️ [PROPERTY] Image feature extraction returned no results")
+                
+    except Exception as e:
+        current_app.logger.error(f"🔍 [PROPERTY] Error during image feature extraction: {e}")
+        # Don't fail the entire request if image analysis fails
+        image_features = {'error': 'Failed to extract features from images'}
     
     features = extract_property_features(data)
     current_app.logger.info(f"🏠 [PROPERTY] Features: {features}")
-    # Include commute data in response
+    # Include commute data, property analysis, and image features in response
     response_data = {
         "success": True, 
         "query": params, 
         "data": data,
         "features": features,
         "commute_data": commute_data,
+        "property_analysis": property_analysis,
+        "image_features": image_features,
         "zillow_url": zillow_url,
         "images": zillow_api_images
     }
