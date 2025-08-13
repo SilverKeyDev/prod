@@ -117,7 +117,6 @@ class UserEncoder:
             # else:
             #     combined_embedding = text_embedding
             
-            logger.debug(f"Encoded user {user_data.get('user_id', 'unknown')} into {len(combined_embedding)}-dim embedding")
             return combined_embedding
             
         except Exception as e:
@@ -168,7 +167,6 @@ class UserEncoder:
                 combined_embedding = np.concatenate([text_embedding, structured_features])
                 embeddings.append(combined_embedding)
             
-            logger.info(f"Encoded {len(users_data)} users into embeddings")
             return embeddings
             
         except Exception as e:

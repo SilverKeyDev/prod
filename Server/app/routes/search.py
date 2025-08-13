@@ -5,6 +5,8 @@ import requests
 import os
 import json
 import re
+import redis
+import time
 from typing import Dict, List, Any, Tuple, Optional
 from jose import jwk, jwt as jose_jwt
 from jose.exceptions import JWTError, JWTClaimsError, ExpiredSignatureError
@@ -14,6 +16,7 @@ from ..models.user import User
 from ..utils.locationPolygon import isochrone_union_for_addresses
 from flask_cors import cross_origin
 from ..services.search_help import extract_property_features
+from ..home_matching.app.match import find_best_matches
 
 RAPI_HOST = "zillow-com1.p.rapidapi.com"
 RAPI_KEY = os.getenv('RAPIDAPI_KEY')
@@ -544,8 +547,7 @@ def geocode_address(address: str) -> Optional[Tuple[float, float]]:
     Geocode an address to lat/lon using Google Geocoding API.
     Returns (lat, lon) tuple or None if geocoding fails.
     """
-    current_app.logger.info(f"🗺️ GEOCODING: 🚀 Starting geocoding for address: '{address}'")
-    current_app.logger.info(f"🗺️ GEOCODING: 📏 Address length: {len(address)} characters")
+
     
     try:
         google_api_key = os.getenv('GOOGLE_MAPS_API_KEY')
@@ -553,7 +555,7 @@ def geocode_address(address: str) -> Optional[Tuple[float, float]]:
             current_app.logger.error("🗺️ GEOCODING: ❌ Google Maps API key not configured")
             return None
         
-        current_app.logger.info(f"🗺️ GEOCODING: 🔑 API key found (length: {len(google_api_key)} chars)")
+
         
         url = "https://maps.googleapis.com/maps/api/geocode/json"
         params = {
@@ -561,29 +563,24 @@ def geocode_address(address: str) -> Optional[Tuple[float, float]]:
             'key': google_api_key
         }
         
-        current_app.logger.info(f"🗺️ GEOCODING: 🌐 Making request to Google Geocoding API")
-        current_app.logger.info(f"🗺️ GEOCODING: 📍 Request URL: {url}")
-        current_app.logger.info(f"🗺️ GEOCODING: 📋 Request params: address='{address}', key='***{google_api_key[-4:]}'")
+
         
         response = requests.get(url, params=params, timeout=10)
-        current_app.logger.info(f"🗺️ GEOCODING: 📡 Response status: {response.status_code}")
+
         response.raise_for_status()
         
         data = response.json()
-        current_app.logger.info(f"🗺️ GEOCODING: 📊 Response data: {json.dumps(data, indent=2)}")
+
         status = data.get('status')
         results = data.get('results', [])
         
-        current_app.logger.info(f"🗺️ GEOCODING: 📈 API Status: {status}")
-        current_app.logger.info(f"🗺️ GEOCODING: 📊 Results count: {len(results)}")
+
         
         if status == 'OK' and results:
             location = results[0]['geometry']['location']
             lat, lon = location['lat'], location['lng']
             formatted_address = results[0].get('formatted_address', 'Unknown')
-            current_app.logger.info(f"🗺️ GEOCODING: ✅ Successfully geocoded '{address}'")
-            current_app.logger.info(f"🗺️ GEOCODING: 📍 Coordinates: lat={lat}, lon={lon}")
-            current_app.logger.info(f"🗺️ GEOCODING: 🏠 Formatted address: '{formatted_address}'")
+
             return (lat, lon)
         else:
             current_app.logger.warning(f"🗺️ GEOCODING: ⚠️ Geocoding failed for address: '{address}'")
@@ -617,8 +614,7 @@ def generate_isochrone_polygon_from_preferences(user_preferences: Dict[str, Any]
     """
     try:
         # DEBUG: Log the full user_preferences being passed to helper function
-        current_app.logger.info(f"🗺️ ISOCHRONE: 🔍 HELPER DEBUG - user_preferences keys: {list(user_preferences.keys())}")
-        current_app.logger.info(f"🗺️ ISOCHRONE: 🔍 HELPER DEBUG - raw important_locations: {user_preferences.get('important_locations')}")
+
         
         # Extract important locations
         important_locations = []
@@ -640,10 +636,6 @@ def generate_isochrone_polygon_from_preferences(user_preferences: Dict[str, Any]
             current_app.logger.warning(f"🗺️ ISOCHRONE: ⚠️ Important locations data: {locations_data}")
             return None
         
-        current_app.logger.info(f"🗺️ ISOCHRONE: 📋 Found {len(important_locations)} important locations")
-        for i, loc in enumerate(important_locations):
-            current_app.logger.info(f"🗺️ ISOCHRONE: 📍 HELPER Location {i+1}: {loc}")
-        
         # Prepare address and commute tolerance pairs for all locations
         addresses_and_minutes = []
         
@@ -656,16 +648,11 @@ def generate_isochrone_polygon_from_preferences(user_preferences: Dict[str, Any]
             # Get commute tolerance from the location (in minutes)
             commute_tolerance = location.get('commute_tolerance', 30)
             
-            location_name = location.get('name', f'Location {i+1}')
-            current_app.logger.info(f"🗺️ ISOCHRONE: 📍 Location {i+1}: {location_name} at {address} with {commute_tolerance} minutes commute")
-            
             addresses_and_minutes.append((address, commute_tolerance))
         
         if not addresses_and_minutes:
             current_app.logger.error("🗺️ ISOCHRONE: ❌ No valid locations with addresses found")
             return None
-        
-        current_app.logger.info(f"🗺️ ISOCHRONE: 🔧 Generating union isochrone for {len(addresses_and_minutes)} locations")
         
         # Generate union isochrone polygon for all locations
         isochrone_feature = isochrone_union_for_addresses(
@@ -683,7 +670,7 @@ def generate_isochrone_polygon_from_preferences(user_preferences: Dict[str, Any]
             polygon_coords = coordinates[0]  # Get outer ring
             # Convert to [{lat, lon}, {lat, lon}, ...] format expected by search API
             polygon_points = [{'lat': coord[1], 'lon': coord[0]} for coord in polygon_coords]
-            current_app.logger.info(f"🗺️ ISOCHRONE: ✅ Generated polygon with {len(polygon_points)} points")
+
             return polygon_points
             
         elif geometry.get('type') == 'MultiPolygon' and coordinates:
@@ -691,7 +678,7 @@ def generate_isochrone_polygon_from_preferences(user_preferences: Dict[str, Any]
             largest_polygon = max(coordinates, key=lambda p: len(p[0]))
             polygon_coords = largest_polygon[0]  # Get outer ring of largest polygon
             polygon_points = [{'lat': coord[1], 'lon': coord[0]} for coord in polygon_coords]
-            current_app.logger.info(f"🗺️ ISOCHRONE: ✅ Generated MultiPolygon, using largest with {len(polygon_points)} points")
+
             return polygon_points
         
         else:
@@ -953,20 +940,182 @@ def search_properties_by_polygon():
             if len(all_properties) >= TARGET_LIMIT:
                 break
 
+        # ---- Apply home matching scores ----
+        scored_properties = []
+        if all_properties:
+            current_app.logger.info(f"[POLYGON_SEARCH] 🎯 Applying home matching scores to {len(all_properties)} properties")
+            
+            try:
+                # Prepare user data for home matching
+                user_data = {
+                    "user_id": user.id,
+                    "preferences": user_preferences
+                }
+                
+                # Convert properties to format expected by home matching system
+                homes_data = []
+                for prop in all_properties:
+                    # Transform Zillow property format to home matching format
+                    home_data = {
+                        "zpid": prop.get("zpid"),
+                        "address": prop.get("address", ""),
+                        "price": prop.get("price"),
+                        "bedrooms": prop.get("bedrooms"),
+                        "bathrooms": prop.get("bathrooms"),
+                        "livingArea": prop.get("livingArea"),
+                        "lotAreaValue": prop.get("lotAreaValue"),
+                        "propertyType": prop.get("propertyType"),
+                        "latitude": prop.get("latitude"),
+                        "longitude": prop.get("longitude"),
+                        "listingStatus": prop.get("listingStatus"),
+                        "yearBuilt": prop.get("yearBuilt"),
+                        "homeType": prop.get("homeType"),
+                        "raw_data": prop
+                    }
+                    homes_data.append(home_data)
+                
+                # Get scored matches (returns all properties with scores)
+                scored_matches = find_best_matches(
+                    user_data=user_data,
+                    homes_data=homes_data,
+                    top_k=len(homes_data),  # Score all properties
+                    include_explanations=False,  # Skip explanations for performance
+                    embedding_provider="sentence_transformer",
+                    llm_provider="openai"
+                )
+                
+                # Use Redis sorted set for efficient sorting by score
+                redis_client = None
+                try:
+                    # Connect to Redis
+                    redis_client = redis.Redis(
+                        host=os.getenv('REDIS_HOST', 'localhost'),
+                        port=int(os.getenv('REDIS_PORT', 6379)),
+                        db=0,
+                        decode_responses=False
+                    )
+                    
+                    # Create unique key for this search session
+                    sort_key = f"property_scores:{request_id}:{int(time.time())}"
+                    
+                    # Create a mapping of zpid to score and add to Redis sorted set
+                    score_map = {}
+                    for match in scored_matches:
+                        # Extract zpid from home_data within the match result
+                        home_data = match.get("home_data", {})
+                        zpid = home_data.get("zpid")
+                        
+                        # Get the final ensemble score
+                        score = match.get("final_score", 0.0)
+                        
+                        if zpid:
+                            score_map[zpid] = score
+                            # Add to Redis sorted set (score as the sort value)
+                            redis_client.zadd(sort_key, {str(zpid): score})
+                    
+                    # Set expiration for cleanup (5 minutes)
+                    redis_client.expire(sort_key, 300)
+                    
+                    # Get sorted zpids from Redis (highest score first)
+                    sorted_zpids = redis_client.zrevrange(sort_key, 0, -1, withscores=False)
+                    sorted_zpids = [zpid.decode('utf-8') if isinstance(zpid, bytes) else str(zpid) for zpid in sorted_zpids]
+                    
+                    # Create property lookup map
+                    prop_map = {str(prop.get("zpid")): prop for prop in all_properties}
+                    
+                    # Build sorted properties list using Redis order
+                    for zpid in sorted_zpids:
+                        if zpid in prop_map:
+                            prop = prop_map[zpid]
+                            prop["_score"] = score_map.get(zpid, 0.0)
+                            scored_properties.append(prop)
+                    
+                    # Add any remaining properties that weren't scored
+                    for prop in all_properties:
+                        zpid = str(prop.get("zpid"))
+                        if zpid not in score_map:
+                            prop["_score"] = 0.0
+                            scored_properties.append(prop)
+                    
+                    # Clean up Redis key
+                    redis_client.delete(sort_key)
+                    
+                    current_app.logger.info(
+                        f"[POLYGON_SEARCH] ✅ Redis sorted {len(scored_properties)} properties by score. "
+                        f"Top score: {scored_properties[0].get('_score', 0.0) if scored_properties else 'N/A'}"
+                    )
+                    
+                except Exception as redis_error:
+                    current_app.logger.warning(f"[POLYGON_SEARCH] ⚠️ Redis sorting failed: {str(redis_error)}, falling back to Python sort")
+                    
+                    # Fallback to Python sorting if Redis fails
+                    score_map = {}
+                    for match in scored_matches:
+                        zpid = match.get("zpid")
+                        score = match.get("_score", 0.0)
+                        if zpid:
+                            score_map[zpid] = score
+                    
+                    # Add scores to original properties
+                    for prop in all_properties:
+                        zpid = prop.get("zpid")
+                        prop["_score"] = score_map.get(zpid, 0.0)
+                        scored_properties.append(prop)
+                    
+                    # Sort properties by score (highest first)
+                    scored_properties.sort(key=lambda x: x.get("_score", 0.0), reverse=True)
+                    
+                    current_app.logger.info(
+                        f"[POLYGON_SEARCH] ✅ Python sorted {len(scored_properties)} properties by score. "
+                    )
+                
+                finally:
+                    # Ensure Redis connection is closed
+                    if redis_client:
+                        try:
+                            redis_client.close()
+                        except:
+                            pass
+                
+                # Get top 5 scores for logging
+                top_scores = [prop.get('_score', 0) for prop in scored_properties[:5]]
+                scores_str = ', '.join([f"{score:.6f}" for score in top_scores])
+                current_app.logger.info(
+                    f"[POLYGON_SEARCH] ✅ Successfully scored {len(scored_properties)} properties. "
+                    f"Top scores: {scores_str}"
+                )
+                
+            except Exception as e:
+                current_app.logger.error(f"[POLYGON_SEARCH] ⚠️ Home matching failed: {str(e)}")
+                # Fallback: add default scores and use original properties
+                for prop in all_properties:
+                    prop["_score"] = 0.0
+                    scored_properties.append(prop)
+        else:
+            scored_properties = all_properties
+
+        # Convert scores to integer percentages (multiply by 100 and convert to int)
+        for prop in scored_properties:
+            if "_score" in prop and prop["_score"] is not None:
+                prop["_score"] = int(prop["_score"] * 100)
+            else:
+                prop["_score"] = 0
+
         total_time = time.time() - start_time
         response_data = {
             "success": True,
             "data": {
-                "properties": all_properties,
+                "properties": scored_properties,
                 "meta": {
                     "requestsMade": requests_made,
-                    "deduped": len(all_properties),
+                    "deduped": len(scored_properties),
                     "errors": errors[:20],
                     "status_type": status_type,
                     "pagesTried": per_pages + 1,
                     "searchTime": round(total_time, 2),
                     "requestId": request_id,
-                    "limit": TARGET_LIMIT
+                    "limit": TARGET_LIMIT,
+                    "scored": len(scored_properties) > 0 and scored_properties[0].get("_score", 0.0) > 0
                 }
             }
         }

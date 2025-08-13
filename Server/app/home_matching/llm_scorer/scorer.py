@@ -41,7 +41,7 @@ class LLMScorer:
             # Ensure precise 3-decimal formatting
             score = round(float(raw_score), 3)
             
-            logger.debug(f"LLM score: {score:.3f} for user {user_data.get('user_id', 'unknown')} and home {home_data.get('home_id', 'unknown')}")
+
             
             return score
             
@@ -75,7 +75,7 @@ class LLMScorer:
             completeness = self.parser.validate_response_completeness(parsed)
             parsed['response_quality'] = completeness
             
-            logger.debug(f"LLM detailed score: {parsed.get('score', 0.0):.3f} with explanation")
+
             return parsed
             
         except Exception as e:
@@ -104,7 +104,7 @@ class LLMScorer:
             
             # Process each home
             for i, home_data in enumerate(homes_data):
-                logger.debug(f"Processing home {i + 1}/{len(homes_data)}")
+
                 
                 try:
                     user_prompt = self.prompt_builder.build_user_prompt(user_data, home_data)
@@ -138,7 +138,7 @@ class LLMScorer:
             # Sort by score (highest first)
             results.sort(key=lambda x: x[1], reverse=True)
             
-            logger.info(f"LLM scored user {user_data.get('user_id', 'unknown')} against {len(homes_data)} homes")
+
             return results
             
         except Exception as e:
@@ -170,7 +170,7 @@ class LLMScorer:
             # Parse response
             parsed = self.parser.parse_comparison_response(response)
             
-            logger.info(f"LLM compared {len(homes_data)} homes for user {user_data.get('user_id', 'unknown')}")
+
             return parsed
             
         except Exception as e:
@@ -238,7 +238,7 @@ class LLMScorer:
             # Parse response
             parsed = self.parser.parse_explanation_response(response)
             
-            logger.debug(f"LLM explained score {existing_score:.3f}")
+
             return parsed
             
         except Exception as e:
@@ -280,7 +280,7 @@ class LLMScorer:
                 }
                 formatted_results.append(formatted_result)
             
-            logger.info(f"Generated top {len(formatted_results)} matches with explanations")
+
             return formatted_results
             
         except Exception as e:
@@ -297,23 +297,32 @@ class LLMScorer:
             if not homes_data:
                 return []
             
-            # Build prompts for batch processing
+            # Build system prompt once
             system_prompt = self.prompt_builder.get_system_prompt()
-            user_prompts = []
+            scores = []
             
-            for home_data in homes_data:
-                user_prompt = self.prompt_builder.build_user_prompt(user_data, home_data)
-                if not self.prompt_builder.validate_prompt_length(system_prompt + user_prompt):
-                    user_prompt = user_prompt[:3000] + "...\n\nProvide your assessment as a JSON object."
-                user_prompts.append(user_prompt)
+            # Process each home individually (since call_llm_batch doesn't exist)
+            for i, home_data in enumerate(homes_data):
+                try:
+                    user_prompt = self.prompt_builder.build_user_prompt(user_data, home_data)
+                    if not self.prompt_builder.validate_prompt_length(system_prompt + user_prompt):
+                        user_prompt = user_prompt[:3000] + "...\n\nProvide your assessment as a JSON object."
+                    
+                    # Make individual LLM call
+                    response = self.llm_client.call_llm(system_prompt, user_prompt)
+                    
+                    # Parse response to extract score
+                    parsed = self.parser.parse_scoring_response(response)
+                    score = parsed.get('score', 0.0)
+                    scores.append(float(score))
+                    
+
+                    
+                except Exception as e:
+                    logger.error(f"Error scoring home {i+1}: {e}")
+                    scores.append(0.0)
             
-            # Make batch LLM calls
-            responses = self.llm_client.call_llm_batch(system_prompt, user_prompts)
-            
-            # Extract scores
-            scores = self.parser.extract_scores_from_batch(responses)
-            
-            logger.info(f"Batch scored {len(scores)} homes for user {user_data.get('user_id', 'unknown')}")
+
             return scores
             
         except Exception as e:

@@ -1,3 +1,16 @@
+# Fix Hugging Face parallelism warnings - must be set before any HF imports
+import os
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+os.environ.setdefault("OMP_NUM_THREADS", "1")
+os.environ.setdefault("MKL_NUM_THREADS", "1")
+
+# Optional on macOS to avoid fork shenanigans in dev
+try:
+    import multiprocessing as mp
+    mp.set_start_method("spawn")  # no-op if already set
+except Exception:
+    pass
+
 from flask import Flask, send_from_directory, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin
@@ -8,7 +21,6 @@ from flask_executor import Executor
 from flask_jwt_extended import JWTManager
 from datetime import datetime
 from .config import Config
-import os
 import logging
 from jose.exceptions import ExpiredSignatureError
 
@@ -31,6 +43,10 @@ def create_app(config=None):
     logging.getLogger('matplotlib').setLevel(logging.WARNING)
     logging.getLogger('celery').setLevel(logging.WARNING)
     logging.getLogger('werkzeug').setLevel(logging.WARNING)
+    logging.getLogger('openai').setLevel(logging.WARNING)
+    logging.getLogger('httpx').setLevel(logging.WARNING)
+    logging.getLogger('httpcore').setLevel(logging.WARNING)
+
     # STATIC FOLDER: matches Docker
     STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../Client/dist")
     app = Flask(__name__, static_folder=STATIC_DIR, static_url_path="")

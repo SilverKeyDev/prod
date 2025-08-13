@@ -72,7 +72,7 @@ class TabularPredictor:
             # Ensure score is in [0, 1] range
             score = max(0.0, min(1.0, score))
             
-            logger.debug(f"Predicted match score: {score:.3f} for user {user_data.get('user_id', 'unknown')} and home {home_data.get('home_id', 'unknown')}")
+
             return float(score)
             
         except Exception as e:
@@ -113,7 +113,7 @@ class TabularPredictor:
             # Ensure scores are in [0, 1] range
             scores = np.clip(scores, 0.0, 1.0)
             
-            logger.debug(f"Predicted {len(scores)} match scores for user {user_data.get('user_id', 'unknown')}")
+
             return scores.tolist()
             
         except Exception as e:

@@ -61,7 +61,7 @@ def find_best_matches(
             include_explanations=include_explanations
         )
         
-        logger.info(f"Found {len(matches)} matches for user {user_data.get('user_id', 'unknown')}")
+
         return matches
         
     except Exception as e:
@@ -104,7 +104,7 @@ def score_single_match(
             include_explanations=include_explanations
         )
         
-        logger.info(f"Scored user-home pair: {result.get('final_score', 0.0):.3f}")
+
         return result
         
     except Exception as e:
@@ -158,7 +158,7 @@ def compare_homes_for_user(
             method_comparison = ensemble.compare_scoring_methods(user_data, homes_data)
             result['method_comparison'] = method_comparison
         
-        logger.info(f"Compared {len(homes_data)} homes for user {user_data.get('user_id', 'unknown')}")
+
         return result
         
     except Exception as e:
@@ -206,7 +206,7 @@ def batch_match_users(
                 logger.error(f"Error matching user {user_id}: {e}")
                 results[user_id] = []
         
-        logger.info(f"Batch matched {len(users_data)} users against {len(homes_data)} homes")
+
         return results
         
     except Exception as e:

@@ -32,11 +32,6 @@ class EmbeddingScorer:
             user_dim = dimensions['user_total_dimension']
             home_dim = dimensions['home_total_dimension']
             
-            logger.info(f"Embedding dimensions - User: {user_dim}, Home: {home_dim}")
-            logger.info(f"Text dimension: {dimensions['text_dimension']}")
-            logger.info(f"User structured features: {dimensions['user_structured_dimension']}")
-            logger.info(f"Home structured features: {dimensions['home_structured_dimension']}")
-            
             if user_dim != home_dim:
                 logger.warning(f"Dimension mismatch detected! User: {user_dim}, Home: {home_dim}")
                 logger.warning("This will cause cosine similarity calculation errors.")

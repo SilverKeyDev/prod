@@ -730,10 +730,6 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
 
       // Debug: Log the data being saved
       console.log("💾 Saving formData:", formData);
-      console.log(
-        "💾 Report section priorities being saved:",
-        formData.report_section_priorities
-      );
 
       await apiRequest("/api/v1/preferences", {
         method: "POST",

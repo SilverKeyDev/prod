@@ -8,6 +8,7 @@ import PropertyDetailsModal from "../../components/PropertyDetailsModal";
 import { searchZillowByPolygon, LatLng } from "../../hooks/searchByCoords";
 import { getPropertyDetailsByAddress } from "../../hooks/searchAddress";
 import Loading from "../../components/Loading";
+import KeyTurnLoader from "../../components/KeyTurnLoader";
 
 interface SearchResult {
   id: string;
@@ -22,6 +23,7 @@ interface SearchResult {
   propertyType?: string;
   listingStatus?: string;
   imageUrl?: string;
+  _score?: number; // Backend ML match score (0-100 integer)
 
   // Enhanced property details from searchAddress API
   zpid?: number;
@@ -173,16 +175,6 @@ interface SearchResult {
   };
 }
 
-interface PropertyScore {
-  score: number;
-  recommendation: string;
-  factors: {
-    factor: string;
-    impact: "positive" | "negative" | "neutral";
-    description: string;
-  }[];
-}
-
 interface UserPreferences {
   priceRange: { min: number; max: number };
   preferredBedrooms: number;
@@ -248,178 +240,9 @@ export default function SearchPage() {
   const individualPolygonsRef = useRef<google.maps.Polygon[]>([]);
   const importantMarkersRef = useRef<google.maps.Marker[]>([]);
 
-  // Calculate property score based on user preferences
-  const calculatePropertyScore = (property: SearchResult): PropertyScore => {
-    let score = 0;
-    const factors: PropertyScore["factors"] = [];
-
-    // Parse price (remove $ and commas)
-    const propertyPrice = parseInt(property.price.replace(/[$,]/g, ""));
-
-    // Price scoring (30% weight)
-    if (
-      propertyPrice >= userPreferences.priceRange.min &&
-      propertyPrice <= userPreferences.priceRange.max
-    ) {
-      score += 30;
-      factors.push({
-        factor: "Price",
-        impact: "positive",
-        description: `${
-          property.price
-        } fits perfectly within your budget of $${userPreferences.priceRange.min.toLocaleString()}-$${userPreferences.priceRange.max.toLocaleString()}`,
-      });
-    } else if (propertyPrice < userPreferences.priceRange.min) {
-      const discount =
-        ((userPreferences.priceRange.min - propertyPrice) /
-          userPreferences.priceRange.min) *
-        100;
-      score += 25;
-      factors.push({
-        factor: "Price",
-        impact: "positive",
-        description: `${property.price} is ${discount.toFixed(
-          0
-        )}% below your budget - great value!`,
-      });
-    } else {
-      const overage =
-        ((propertyPrice - userPreferences.priceRange.max) /
-          userPreferences.priceRange.max) *
-        100;
-      score += Math.max(0, 30 - overage);
-      factors.push({
-        factor: "Price",
-        impact: "negative",
-        description: `${property.price} is ${overage.toFixed(
-          0
-        )}% over your budget of $${userPreferences.priceRange.max.toLocaleString()}`,
-      });
-    }
-
-    // Bedrooms scoring (20% weight)
-    const bedroomDiff = Math.abs(
-      property.bedrooms - userPreferences.preferredBedrooms
-    );
-    if (bedroomDiff === 0) {
-      score += 20;
-      factors.push({
-        factor: "Bedrooms",
-        impact: "positive",
-        description: `${property.bedrooms} bedrooms matches your preference exactly`,
-      });
-    } else if (bedroomDiff === 1) {
-      score += 15;
-      factors.push({
-        factor: "Bedrooms",
-        impact: "neutral",
-        description: `${property.bedrooms} bedrooms is close to your preference of ${userPreferences.preferredBedrooms}`,
-      });
-    } else {
-      score += Math.max(0, 20 - bedroomDiff * 5);
-      factors.push({
-        factor: "Bedrooms",
-        impact: "negative",
-        description: `${property.bedrooms} bedrooms differs significantly from your preference of ${userPreferences.preferredBedrooms}`,
-      });
-    }
-
-    // Square footage scoring (20% weight)
-    if (
-      property.sqft >= userPreferences.preferredSqft.min &&
-      property.sqft <= userPreferences.preferredSqft.max
-    ) {
-      score += 20;
-      factors.push({
-        factor: "Size",
-        impact: "positive",
-        description: `${property.sqft.toLocaleString()} sqft is within your ideal range`,
-      });
-    } else if (property.sqft > userPreferences.preferredSqft.max) {
-      score += 18;
-      factors.push({
-        factor: "Size",
-        impact: "positive",
-        description: `${property.sqft.toLocaleString()} sqft gives you extra space beyond your minimum needs`,
-      });
-    } else {
-      const shortfall =
-        ((userPreferences.preferredSqft.min - property.sqft) /
-          userPreferences.preferredSqft.min) *
-        100;
-      score += Math.max(0, 20 - shortfall);
-      factors.push({
-        factor: "Size",
-        impact: "negative",
-        description: `${property.sqft.toLocaleString()} sqft is ${shortfall.toFixed(
-          0
-        )}% smaller than your minimum preference`,
-      });
-    }
-
-    // Location/Commute scoring (20% weight) - simplified for demo
-    const locationScore = Math.random() * 20; // In real app, would calculate actual commute time
-    score += locationScore;
-    if (locationScore > 15) {
-      factors.push({
-        factor: "Commute",
-        impact: "positive",
-        description: `Excellent location with easy access to ${userPreferences.commuteLocation}`,
-      });
-    } else if (locationScore > 10) {
-      factors.push({
-        factor: "Commute",
-        impact: "neutral",
-        description: `Moderate commute to ${userPreferences.commuteLocation}`,
-      });
-    } else {
-      factors.push({
-        factor: "Commute",
-        impact: "negative",
-        description: `Longer commute to ${userPreferences.commuteLocation} than preferred`,
-      });
-    }
-
-    // Lifestyle fit (10% weight)
-    const lifestyleScore = Math.random() * 10; // In real app, would analyze neighborhood data
-    score += lifestyleScore;
-    factors.push({
-      factor: "Lifestyle",
-      impact:
-        lifestyleScore > 7
-          ? "positive"
-          : lifestyleScore > 4
-          ? "neutral"
-          : "negative",
-      description: `${
-        lifestyleScore > 7 ? "Great" : lifestyleScore > 4 ? "Good" : "Limited"
-      } match for ${userPreferences.lifestyle} lifestyle preferences`,
-    });
-
-    // Generate recommendation based on score
-    let recommendation = "";
-    if (score >= 85) {
-      recommendation =
-        "Excellent match! This property aligns perfectly with your preferences and priorities.";
-    } else if (score >= 70) {
-      recommendation =
-        "Strong match! This property meets most of your key criteria with minor trade-offs.";
-    } else if (score >= 55) {
-      recommendation =
-        "Good option with some compromises. Consider if the trade-offs align with your priorities.";
-    } else if (score >= 40) {
-      recommendation =
-        "Mixed fit. This property has both strengths and significant drawbacks for your needs.";
-    } else {
-      recommendation =
-        "Poor match. This property doesn't align well with your stated preferences.";
-    }
-
-    return {
-      score: Math.round(score),
-      recommendation,
-      factors,
-    };
+  // Use backend ML match score (already calculated as 0-100 integer)
+  const calculatePropertyScore = (property: SearchResult) => {
+    return property._score || 0; // Backend ML score (0-100 integer)
   };
 
   // Get pin color based on property score (gradient from very dark faded green to very dark faded red)
@@ -455,109 +278,120 @@ export default function SearchPage() {
   };
 
   // Initialize Google Maps
-    useEffect(() => {
-        const initializeMap = async () => {
-            try {
-                // Fetch the Google Maps script URL from backend
-                const idToken = localStorage.getItem("id_token");
-                console.log("🔑 Fetching Google Maps script URL from backend...");
-                const response = await fetch("/api/maps/script", {
-                    headers: {
-                        "Authorization": idToken ? `Bearer ${idToken}` : "",
-                        "Content-Type": "application/json",
-                    },
-                });
-                
-                console.log("📡 Response status:", response.status);
-                console.log("📡 Response headers:", response.headers);
-                
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error("❌ Backend response error:", response.status, errorText);
-                    return;
-                }
-                
-                const contentType = response.headers.get("content-type");
-                if (!contentType || !contentType.includes("application/json")) {
-                    const responseText = await response.text();
-                    console.error("❌ Expected JSON but got:", contentType, responseText.substring(0, 200));
-                    return;
-                }
-                
-                const data = await response.json();
-                console.log("📦 Backend response data:", data);
-                
-                if (!data.success || !data.script_url) {
-                    console.error("❌ Backend returned error or missing script_url:", data);
-                    return;
-                }
-                const scriptUrl = data.script_url;
-                console.log("✅ Got script URL:", scriptUrl);
+  useEffect(() => {
+    const initializeMap = async () => {
+      try {
+        // Fetch the Google Maps script URL from backend
+        const idToken = localStorage.getItem("id_token");
+        console.log("🔑 Fetching Google Maps script URL from backend...");
+        const response = await fetch("/api/maps/script", {
+          headers: {
+            Authorization: idToken ? `Bearer ${idToken}` : "",
+            "Content-Type": "application/json",
+          },
+        });
 
-                // Load Google Maps script if not already loaded
-                if (!window.google) {
-                    const script = document.createElement("script");
-                    script.src = scriptUrl;
-                    script.async = true;
-                    script.defer = true;
-                    document.head.appendChild(script);
+        console.log("📡 Response status:", response.status);
+        console.log("📡 Response headers:", response.headers);
 
-                    script.onload = () => {
-                        createMap();
-                    };
-                } else {
-                    createMap();
-                }
-            } catch (error) {
-                console.error("Error loading Google Maps:", error);
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error(
+            "❌ Backend response error:",
+            response.status,
+            errorText
+          );
+          return;
+        }
+
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+          const responseText = await response.text();
+          console.error(
+            "❌ Expected JSON but got:",
+            contentType,
+            responseText.substring(0, 200)
+          );
+          return;
+        }
+
+        const data = await response.json();
+        console.log("📦 Backend response data:", data);
+
+        if (!data.success || !data.script_url) {
+          console.error(
+            "❌ Backend returned error or missing script_url:",
+            data
+          );
+          return;
+        }
+        const scriptUrl = data.script_url;
+        console.log("✅ Got script URL:", scriptUrl);
+
+        // Load Google Maps script if not already loaded
+        if (!window.google) {
+          const script = document.createElement("script");
+          script.src = scriptUrl;
+          script.async = true;
+          script.defer = true;
+          document.head.appendChild(script);
+
+          script.onload = () => {
+            createMap();
+          };
+        } else {
+          createMap();
+        }
+      } catch (error) {
+        console.error("Error loading Google Maps:", error);
+      }
+    };
+
+    const createMap = () => {
+      if (mapRef.current && window.google) {
+        googleMapRef.current = new window.google.maps.Map(mapRef.current, {
+          center: { lat: 37.7749, lng: -122.4194 }, // Default to San Francisco
+          zoom: 12,
+          styles: mapStyles,
+          // Hide all controls except map type (satellite/map) controls
+          disableDefaultUI: true,
+          mapTypeControl: true,
+          mapTypeControlOptions: {
+            style: window.google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
+            position: window.google.maps.ControlPosition.TOP_RIGHT,
+            mapTypeIds: ["roadmap", "satellite"],
+          },
+          gestureHandling: "greedy", // Allow map interaction without ctrl key
+        });
+
+        // Fetch and render isochrone polygon and important location markers
+        console.log("🚀 Map initialized, fetching isochrone polygon...");
+        fetchIsochronePolygon()
+          .then((data) => {
+            if (data) {
+              console.log("📦 Isochrone data received, rendering polygon...");
+              renderIsochronePolygon(data);
+
+              // Also render important location markers
+              console.log("📍 Rendering important location markers...");
+              renderImportantLocationMarkers(data);
+            } else {
+              console.warn(
+                "⚠️ No isochrone data received, polygon will not be displayed"
+              );
             }
-        };
+          })
+          .catch((error) => {
+            console.error(
+              "❌ Failed to fetch or render isochrone polygon:",
+              error
+            );
+          });
+      }
+    };
 
-        const createMap = () => {
-            if (mapRef.current && window.google) {
-                googleMapRef.current = new window.google.maps.Map(mapRef.current, {
-                    center: { lat: 37.7749, lng: -122.4194 }, // Default to San Francisco
-                    zoom: 12,
-                    styles: mapStyles,
-                    // Hide all controls except map type (satellite/map) controls
-                    disableDefaultUI: true,
-                    mapTypeControl: true,
-                    mapTypeControlOptions: {
-                        style: window.google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
-                        position: window.google.maps.ControlPosition.TOP_RIGHT,
-                        mapTypeIds: ["roadmap", "satellite"],
-                    },
-                    gestureHandling: "greedy", // Allow map interaction without ctrl key
-                });
-
-                // Fetch and render isochrone polygon and important location markers
-                console.log("🚀 Map initialized, fetching isochrone polygon...");
-                fetchIsochronePolygon()
-                    .then((data) => {
-                        if (data) {
-                            console.log("📦 Isochrone data received, rendering polygon...");
-                            renderIsochronePolygon(data);
-
-                            // Also render important location markers
-                            console.log("📍 Rendering important location markers...");
-                            renderImportantLocationMarkers(data);
-                        } else {
-                            console.warn(
-                                "⚠️ No isochrone data received, polygon will not be displayed"
-                            );
-                        }
-                    })
-                    .catch((error) => {
-                        console.error(
-                            "❌ Failed to fetch or render isochrone polygon:",
-                            error
-                        );
-                    });
-            }
-        };
-
-        initializeMap();
-    }, []);
+    initializeMap();
+  }, []);
 
   // Handle property details search
   const handleViewPropertyDetails = async (property: SearchResult) => {
@@ -906,6 +740,7 @@ export default function SearchPage() {
           propertyType: property.propertyType || "Single Family",
           listingStatus: property.listingStatus || "For Sale",
           imageUrl: property.imgSrc || "/default-home.jpg",
+          _score: property._score || 0, // Backend ML match score (0-100 integer)
         })
       );
 
@@ -1453,11 +1288,9 @@ export default function SearchPage() {
     });
 
     currentData.forEach((result) => {
-      // Calculate property score and get explanation
-      const propertyAnalysis = calculatePropertyScore(result);
-      const { fillColor, strokeColor } = getScoreBasedPinColor(
-        propertyAnalysis.score
-      );
+      // Use backend ML match score directly
+      const score = calculatePropertyScore(result);
+      const { fillColor, strokeColor } = getScoreBasedPinColor(score);
 
       const marker = new google.maps.Marker({
         position: { lat: result.lat, lng: result.lng },
@@ -1468,35 +1301,20 @@ export default function SearchPage() {
 
       // Create always-visible property overlay
 
-      // Generate a concise explanation for the overlay
-      const getShortExplanation = (analysis: PropertyScore): string => {
-        const positiveFactors = analysis.factors.filter(
-          (f) => f.impact === "positive"
-        );
-        const negativeFactors = analysis.factors.filter(
-          (f) => f.impact === "negative"
-        );
-
-        if (analysis.score >= 70) {
-          const topPositive = positiveFactors
-            .slice(0, 2)
-            .map((f) => f.factor)
-            .join(", ");
-          return `Great fit! Strong on ${topPositive}.`;
-        } else if (analysis.score >= 55) {
-          const positive = positiveFactors[0]?.factor || "some aspects";
-          const negative = negativeFactors[0]?.factor || "some areas";
-          return `Good match on ${positive}, but ${negative} could be better.`;
+      // Simple explanation based on score only
+      const getShortExplanation = (score: number): string => {
+        if (score >= 70) {
+          return `Great match! ${score}% compatibility.`;
+        } else if (score >= 55) {
+          return `Good option - ${score}% match.`;
+        } else if (score >= 40) {
+          return `Mixed fit - ${score}% compatibility.`;
         } else {
-          const topNegative = negativeFactors
-            .slice(0, 2)
-            .map((f) => f.factor)
-            .join(", ");
-          return `Limited fit. Concerns with ${topNegative}.`;
+          return `Limited match - ${score}% fit.`;
         }
       };
 
-      const shortExplanation = getShortExplanation(propertyAnalysis);
+      const shortExplanation = getShortExplanation(score);
 
       const overlayDiv = document.createElement("div");
       overlayDiv.style.cssText = `
@@ -1559,7 +1377,7 @@ export default function SearchPage() {
             border-radius: 4px;
             font-size: 10px;
             font-weight: 600;
-          ">${propertyAnalysis.score}/100</div>
+          ">${score}/100</div>
           <div style="
             font-size: 9px;
             color: #6b7280;
@@ -1865,12 +1683,9 @@ export default function SearchPage() {
 
                                   {/* Match Score */}
                                   {(() => {
-                                    const propertyAnalysis =
-                                      calculatePropertyScore(property);
+                                    const score = calculatePropertyScore(property);
                                     const { fillColor, strokeColor } =
-                                      getScoreBasedPinColor(
-                                        propertyAnalysis.score
-                                      );
+                                      getScoreBasedPinColor(score);
                                     return (
                                       <div className="flex items-center gap-2 mb-1">
                                         <div
@@ -1880,7 +1695,7 @@ export default function SearchPage() {
                                             color: strokeColor,
                                           }}
                                         >
-                                          {propertyAnalysis.score}/100
+                                          {score}/100
                                         </div>
                                         <span className="text-xs text-gray-500">
                                           Match Score
@@ -1961,14 +1776,14 @@ export default function SearchPage() {
                                         {property.propertyType}
                                       </span>
                                     )}
-                                  
                                 </div>
 
                                 {/* Address */}
                                 <h3 className="text-sm font-medium text-black line-clamp-2 mb-1">
-                                  {typeof property.address === "string" || typeof property.address === "number"
-  ? property.address
-  : "[Invalid address]"}
+                                  {typeof property.address === "string" ||
+                                  typeof property.address === "number"
+                                    ? property.address
+                                    : "[Invalid address]"}
                                 </h3>
 
                                 {/* Price */}
@@ -1990,12 +1805,9 @@ export default function SearchPage() {
 
                                 {/* Match Score */}
                                 {(() => {
-                                  const propertyAnalysis =
-                                    calculatePropertyScore(property);
+                                  const score = calculatePropertyScore(property);
                                   const { fillColor, strokeColor } =
-                                    getScoreBasedPinColor(
-                                      propertyAnalysis.score
-                                    );
+                                    getScoreBasedPinColor(score);
                                   return (
                                     <div className="flex items-center gap-2 mb-1">
                                       <div
@@ -2005,7 +1817,7 @@ export default function SearchPage() {
                                           color: strokeColor,
                                         }}
                                       >
-                                        {propertyAnalysis.score}/100
+                                        {score}/100
                                       </div>
                                       <span className="text-xs text-gray-500">
                                         Match Score
@@ -2055,11 +1867,10 @@ export default function SearchPage() {
             <div className="flex flex-col sm:flex-row gap-4 items-center">
               <div className="flex-1">
                 <div className="flex items-center gap-3">
-                  <MapPin className="text-brown w-5 h-5 flex-shrink-0" />
                   <div>
                     <p className="text-sm font-medium text-gray-900">
                       We use your preferences, commute times, and important
-                      addresses to find the best properties for you.
+                      addresses to find the best properties for you. &nbsp;
                       <button
                         onClick={() => navigate("/dashboard/personalization")}
                         className="text-xs text-brown hover:text-brown-dark underline cursor-pointer"
@@ -2070,15 +1881,40 @@ export default function SearchPage() {
                   </div>
                 </div>
               </div>
+              <button
+                onClick={async () => {
+                  try {
+                    setIsSearching(true);
+                    await fetchIsochronePolygon();
+                  } catch (error) {
+                    console.error("Search failed:", error);
+                  } finally {
+                    setIsSearching(false);
+                  }
+                }}
+                disabled={isSearching}
+                className="px-4 py-2 bg-gold text-black rounded-lg hover:bg-gold/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {isSearching ? (
+                  <KeyTurnLoader message="Searching..." />
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    Search Properties
+                  </>
+                )}
+              </button>
             </div>
           </div>
 
           {/* Map - Takes remaining height */}
           <div className="mobile-card flex-1 p-0 relative">
-            {/* Loading overlay - shows on top when searching */}
-            {isSearching && (
+            {/* Loading overlay - shows until at least one property is available on map */}
+            {(isSearching || (hasSearched && searchResults.length === 0 && savedHomes.length === 0) || (!hasSearched && searchResults.length === 0 && savedHomes.length === 0)) && (
               <div className="absolute inset-0 z-20 w-full h-full rounded-lg flex items-center justify-center bg-gray-50">
-                <Loading message="Searching properties..." />
+                <Loading message={isSearching ? "Searching properties..." : "Loading map..."} />
               </div>
             )}
 

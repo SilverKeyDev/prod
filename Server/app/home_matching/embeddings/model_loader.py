@@ -31,10 +31,8 @@ class EmbeddingModelLoader:
         
         if model_name not in self._model_cache:
             try:
-                logger.info(f"Loading sentence-transformer model: {model_name}")
                 model = SentenceTransformer(model_name)
                 self._model_cache[model_name] = model
-                logger.info(f"Successfully loaded {model_name}")
             except Exception as e:
                 logger.error(f"Error loading sentence-transformer {model_name}: {e}")
                 raise

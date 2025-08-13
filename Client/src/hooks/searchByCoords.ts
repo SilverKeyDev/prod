@@ -2,8 +2,20 @@
 type SearchStatus = "ForSale" | "ForRent" | "RecentlySold";
 
 export interface LatLng {
-  lon: number; // longitude (x)
-  lat: number; // latitude (y)
+  lat: number;
+  lon: number;
+}
+
+// Increased timeout for complex ML processing
+const TOTAL_TIMEOUT_MS = 500_000;
+
+function fetchWithDeadline(url: string, init: RequestInit, deadline: number): Promise<Response> {
+  const controller = new AbortController();
+  const remaining = Math.max(100, deadline - Date.now());
+  const timeoutId = setTimeout(() => controller.abort(), remaining);
+  
+  return fetch(url, { ...init, signal: controller.signal })
+    .finally(() => clearTimeout(timeoutId));
 }
 
 // User preferences interface for filtering
@@ -140,12 +152,8 @@ export async function searchZillowByPolygon(
     endpoint: "/api/v1/search/properties-by-polygon"
   });
 
-  // timeout guard
-  const controller = new AbortController();
-  const to = setTimeout(() => {
-    console.warn("[POLYGON_SEARCH] ⏰ Request timeout (30s) - aborting");
-    controller.abort();
-  }, 30000); // 30s
+  // Set deadline for request
+  const deadline = Date.now() + TOTAL_TIMEOUT_MS;
 
   const requestBody = {
     polygon: closedPolygon,
@@ -158,6 +166,7 @@ export async function searchZillowByPolygon(
   console.log("[POLYGON_SEARCH] 📤 Sending API request", {
     url: `${API_BASE}/api/v1/search/properties-by-polygon`,
     bodySize: JSON.stringify(requestBody).length,
+    timeoutMs: TOTAL_TIMEOUT_MS,
     polygonBounds: {
       minLat: Math.min(...closedPolygon.map(p => p.lat)),
       maxLat: Math.max(...closedPolygon.map(p => p.lat)),
@@ -167,7 +176,7 @@ export async function searchZillowByPolygon(
   });
 
   try {
-    const response = await fetch(
+    const response = await fetchWithDeadline(
       `${API_BASE}/api/v1/search/properties-by-polygon`,
       {
         method: "POST",
@@ -178,9 +187,9 @@ export async function searchZillowByPolygon(
           Authorization: `Bearer ${idToken}`,
         },
         credentials: "include",
-        signal: controller.signal,
         body: JSON.stringify(requestBody),
-      }
+      },
+      deadline
     );
 
     const responseTime = Date.now() - startTime;
@@ -258,14 +267,6 @@ export async function searchZillowByPolygon(
   } catch (err: any) {
     const totalTime = Date.now() - startTime;
     
-    if (err?.name === "AbortError") {
-      console.error("[POLYGON_SEARCH] ⏰ Search timed out", {
-        totalTime: `${totalTime}ms`,
-        timeoutDuration: "30s"
-      });
-      throw new Error("Search timed out. Please try again.");
-    }
-    
     console.error("[POLYGON_SEARCH] ❌ Search failed with error", {
       errorName: err?.name,
       errorMessage: err?.message,
@@ -275,7 +276,6 @@ export async function searchZillowByPolygon(
     
     throw err;
   } finally {
-    clearTimeout(to);
     console.log("[POLYGON_SEARCH] 🏁 Search operation completed", {
       totalDuration: `${Date.now() - startTime}ms`
     });

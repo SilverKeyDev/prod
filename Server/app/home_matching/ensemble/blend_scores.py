@@ -61,11 +61,21 @@ class EnsembleScorer:
             tabular_score = max(0.0, min(1.0, tabular_score))
             llm_score = max(0.0, min(1.0, llm_score))
             
-            # Calculate weighted average
-            final_score = (
-                self.embedding_weight * embedding_score +
-                self.tabular_weight * tabular_score +
-                self.llm_weight * llm_score
+            # Calculate weighted contributions
+            embedding_contribution = self.embedding_weight * embedding_score
+            tabular_contribution = self.tabular_weight * tabular_score
+            llm_contribution = self.llm_weight * llm_score
+            
+            # Calculate final weighted average
+            final_score = embedding_contribution + tabular_contribution + llm_contribution
+            
+            # Log detailed weight breakdown for each property scored
+            logger.info(
+                f"🎯 Score blend - "
+                f"Embedding: {embedding_score:.4f} × {self.embedding_weight:.3f} = {embedding_contribution:.4f}, "
+                f"Tabular: {tabular_score:.4f} × {self.tabular_weight:.3f} = {tabular_contribution:.4f}, "
+                f"LLM: {llm_score:.4f} × {self.llm_weight:.3f} = {llm_contribution:.4f}, "
+                f"Total: {final_score:.4f}"
             )
             
             return float(final_score)
