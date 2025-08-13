@@ -4,9 +4,8 @@ from flask import Blueprint, request, jsonify, current_app
 import requests
 import os
 import json
-import sys
 import re
-from typing import Dict, List, Any, Tuple, Optional, Iterable
+from typing import Dict, List, Any, Tuple, Optional
 from jose import jwk, jwt as jose_jwt
 from jose.exceptions import JWTError, JWTClaimsError, ExpiredSignatureError
 from urllib3.util.retry import Retry

@@ -7,7 +7,6 @@ WORKDIR /app/client
 
 # build-time variables
 ARG VITE_API_BASE_URL
-ARG VITE_GOOGLE_MAPS_API_KEY
 
 # install dependencies
 COPY Client/package*.json ./
@@ -18,7 +17,6 @@ COPY Client/ .
 
 # build with env vars
 RUN VITE_API_BASE_URL=$VITE_API_BASE_URL \
-    VITE_GOOGLE_MAPS_API_KEY=$VITE_GOOGLE_MAPS_API_KEY \
     npm run build
 
 # verify assets exist

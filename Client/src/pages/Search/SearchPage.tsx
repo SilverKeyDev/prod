@@ -455,85 +455,109 @@ export default function SearchPage() {
   };
 
   // Initialize Google Maps
-  useEffect(() => {
-    const initializeMap = async () => {
-      const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+    useEffect(() => {
+        const initializeMap = async () => {
+            try {
+                // Fetch the Google Maps script URL from backend
+                const idToken = localStorage.getItem("id_token");
+                console.log("🔑 Fetching Google Maps script URL from backend...");
+                const response = await fetch("/api/maps/script", {
+                    headers: {
+                        "Authorization": idToken ? `Bearer ${idToken}` : "",
+                        "Content-Type": "application/json",
+                    },
+                });
+                
+                console.log("📡 Response status:", response.status);
+                console.log("📡 Response headers:", response.headers);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error("❌ Backend response error:", response.status, errorText);
+                    return;
+                }
+                
+                const contentType = response.headers.get("content-type");
+                if (!contentType || !contentType.includes("application/json")) {
+                    const responseText = await response.text();
+                    console.error("❌ Expected JSON but got:", contentType, responseText.substring(0, 200));
+                    return;
+                }
+                
+                const data = await response.json();
+                console.log("📦 Backend response data:", data);
+                
+                if (!data.success || !data.script_url) {
+                    console.error("❌ Backend returned error or missing script_url:", data);
+                    return;
+                }
+                const scriptUrl = data.script_url;
+                console.log("✅ Got script URL:", scriptUrl);
 
-      if (!apiKey) {
-        console.error("Google Maps API key not found");
-        return;
-      }
+                // Load Google Maps script if not already loaded
+                if (!window.google) {
+                    const script = document.createElement("script");
+                    script.src = scriptUrl;
+                    script.async = true;
+                    script.defer = true;
+                    document.head.appendChild(script);
 
-      try {
-        // Load Google Maps script if not already loaded
-        if (!window.google) {
-          const script = document.createElement("script");
-          script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
-          script.async = true;
-          script.defer = true;
-          document.head.appendChild(script);
-
-          script.onload = () => {
-            createMap();
-          };
-        } else {
-          createMap();
-        }
-      } catch (error) {
-        console.error("Error loading Google Maps:", error);
-      }
-    };
-
-    const createMap = () => {
-      if (mapRef.current && window.google) {
-        googleMapRef.current = new google.maps.Map(mapRef.current, {
-          center: { lat: 37.7749, lng: -122.4194 }, // Default to San Francisco
-          zoom: 12,
-          styles: mapStyles,
-          // Hide all controls except map type (satellite/map) controls
-          disableDefaultUI: true,
-          mapTypeControl: true,
-          mapTypeControlOptions: {
-            style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
-            position: google.maps.ControlPosition.TOP_RIGHT,
-            mapTypeIds: ["roadmap", "satellite"],
-          },
-          gestureHandling: "greedy", // Allow map interaction without ctrl key
-        });
-
-        // Map click listeners removed - search only happens on page load
-
-        // Fetch and render isochrone polygon and important location markers
-        console.log("🚀 Map initialized, fetching isochrone polygon...");
-        fetchIsochronePolygon()
-          .then((data) => {
-            if (data) {
-              console.log("📦 Isochrone data received, rendering polygon...");
-              renderIsochronePolygon(data);
-
-              // Also render important location markers
-              console.log("📍 Rendering important location markers...");
-              renderImportantLocationMarkers(data);
-            } else {
-              console.warn(
-                "⚠️ No isochrone data received, polygon will not be displayed"
-              );
+                    script.onload = () => {
+                        createMap();
+                    };
+                } else {
+                    createMap();
+                }
+            } catch (error) {
+                console.error("Error loading Google Maps:", error);
             }
-          })
-          .catch((error) => {
-            console.error(
-              "❌ Failed to fetch or render isochrone polygon:",
-              error
-            );
-          });
+        };
 
-        // Initialize map without property modals - they will only show after search or saved homes click
-        // Don't load any markers initially
-      }
-    };
+        const createMap = () => {
+            if (mapRef.current && window.google) {
+                googleMapRef.current = new window.google.maps.Map(mapRef.current, {
+                    center: { lat: 37.7749, lng: -122.4194 }, // Default to San Francisco
+                    zoom: 12,
+                    styles: mapStyles,
+                    // Hide all controls except map type (satellite/map) controls
+                    disableDefaultUI: true,
+                    mapTypeControl: true,
+                    mapTypeControlOptions: {
+                        style: window.google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
+                        position: window.google.maps.ControlPosition.TOP_RIGHT,
+                        mapTypeIds: ["roadmap", "satellite"],
+                    },
+                    gestureHandling: "greedy", // Allow map interaction without ctrl key
+                });
 
-    initializeMap();
-  }, []);
+                // Fetch and render isochrone polygon and important location markers
+                console.log("🚀 Map initialized, fetching isochrone polygon...");
+                fetchIsochronePolygon()
+                    .then((data) => {
+                        if (data) {
+                            console.log("📦 Isochrone data received, rendering polygon...");
+                            renderIsochronePolygon(data);
+
+                            // Also render important location markers
+                            console.log("📍 Rendering important location markers...");
+                            renderImportantLocationMarkers(data);
+                        } else {
+                            console.warn(
+                                "⚠️ No isochrone data received, polygon will not be displayed"
+                            );
+                        }
+                    })
+                    .catch((error) => {
+                        console.error(
+                            "❌ Failed to fetch or render isochrone polygon:",
+                            error
+                        );
+                    });
+            }
+        };
+
+        initializeMap();
+    }, []);
 
   // Handle property details search
   const handleViewPropertyDetails = async (property: SearchResult) => {

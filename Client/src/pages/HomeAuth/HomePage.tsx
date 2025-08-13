@@ -54,26 +54,59 @@ export default function HomePage() {
 
   // Load Google Maps script
   useEffect(() => {
-    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+    const loadGoogleMapsScript = async () => {
+      if (window.google?.maps?.places?.AutocompleteSuggestion) {
+        setScriptsReady(true);
+        return;
+      }
 
-    if (!apiKey) {
-      setLoadError("Missing Google Maps API key.");
-      return;
-    }
+      try {
+        // Fetch the Google Maps script URL from backend
+        const idToken = localStorage.getItem("id_token");
+        const response = await fetch("/api/maps/script", {
+          headers: {
+            "Authorization": idToken ? `Bearer ${idToken}` : "",
+            "Content-Type": "application/json",
+          },
+        });
 
-    if (window.google?.maps?.places?.AutocompleteSuggestion) {
-      setScriptsReady(true);
-      return;
-    }
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error("❌ Backend response error:", response.status, errorText);
+          setLoadError("Failed to get Google Maps script URL from backend.");
+          return;
+        }
 
-    const script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&v=weekly`;
-    script.async = true;
-    script.defer = true;
-    script.onload = () => setScriptsReady(true);
-    script.onerror = () => setLoadError("Save your first home today!");
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+          const responseText = await response.text();
+          console.error("❌ Expected JSON but got:", contentType, responseText.substring(0, 200));
+          setLoadError("Invalid response from backend.");
+          return;
+        }
 
-    document.head.appendChild(script);
+        const data = await response.json();
+        if (!data.success || !data.script_url) {
+          console.error("❌ Backend returned error or missing script_url:", data);
+          setLoadError("Backend failed to provide Google Maps script URL.");
+          return;
+        }
+
+        const script = document.createElement("script");
+        script.src = data.script_url;
+        script.async = true;
+        script.defer = true;
+        script.onload = () => setScriptsReady(true);
+        script.onerror = () => setLoadError("Save your first home today!");
+
+        document.head.appendChild(script);
+      } catch (error) {
+        console.error("❌ Error loading Google Maps script:", error);
+        setLoadError("Failed to load Google Maps script.");
+      }
+    };
+
+    loadGoogleMapsScript();
   }, []);
 
   // Fetch autocomplete suggestions as the user types
