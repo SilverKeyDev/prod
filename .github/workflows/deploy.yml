@@ -7,7 +7,6 @@ on:
 
 # Non-secret constants → use repo variables or keep them here
 env:
-  REGION: us-east-2
   REPO: cre
   IMAGE_TAG: latest
 
