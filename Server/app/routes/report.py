@@ -756,7 +756,6 @@ def get_user_documents():
         # Query all PDF documents for the user and type
         documents = PDFDocument.query.filter(
             PDFDocument.user_id == user_id,
-            PDFDocument.report_type == 'document',
         ).all()
         
         logger.info(f"📊 [USER_DOCUMENTS] Found {len(documents)} documents for user {user_id}")

@@ -1,4 +1,4 @@
-import { FileText, Download, Eye, Calendar, MapPin } from "lucide-react";
+import { FileText,Calendar } from "lucide-react";
 import { formatFilenameToAddress, truncateText } from "../lib/addressFormat";
 
 export interface DocumentData {
@@ -35,7 +35,7 @@ interface DocumentCardProps {
  * Enhanced document card component to display user documents with rich metadata.
  * Shows document info, location, creation date, and action buttons.
  */
-export default function DocumentCard({ doc, onView, onDownload }: DocumentCardProps) {
+export default function DocumentCard({ doc }: DocumentCardProps) {
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'Unknown';
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -47,14 +47,26 @@ export default function DocumentCard({ doc, onView, onDownload }: DocumentCardPr
 
   // Use formatFilenameToAddress for both display name and location
   const formattedAddress = doc.filename ? formatFilenameToAddress(doc.filename) : null;
-  const rawDisplayName = formattedAddress || doc.filename || `Document ${doc.id.slice(0, 8)}`;
-  const displayName = truncateText(rawDisplayName, 40);
-  
-  // Use formatted address from filename, or fall back to manual construction
-  const rawLocation = formattedAddress || 
-    (doc.address ? `${doc.address}${doc.city ? `, ${doc.city}` : ''}${doc.state ? `, ${doc.state}` : ''}` : null);
-  const location = rawLocation ? truncateText(rawLocation, 50) : null;
+  let displayName = formattedAddress || doc.filename || `Document ${doc.id.slice(0, 8)}`;
 
+  // If comparison report, format as 'Comparison: address v address'
+  if (doc.report_type === 'comparison') {
+    // Try to extract both addresses from the filename
+    // e.g. '123_Main_St_New_York_NY_10001__456_Oak_Ave_San_Jose_CA_95112.pdf'
+    const baseName = doc.filename ? doc.filename.replace(/\.[^.]+$/i, "") : "";
+    const parts = baseName.split("__");
+    if (parts.length === 2) {
+      const addr1 = formatFilenameToAddress(parts[0]);
+      const addr2 = formatFilenameToAddress(parts[1]);
+      displayName = `Comparison: ${addr1} v ${addr2}`;
+    } else {
+      displayName = `Comparison Report`;
+    }
+    displayName = truncateText(displayName, 60);
+  } else {
+    displayName = truncateText(displayName, 40);
+  }
+  
   return (
     <div className="border rounded-lg shadow-sm bg-white hover:shadow-md transition p-4">
       {/* Header with icon and status */}
@@ -76,44 +88,12 @@ export default function DocumentCard({ doc, onView, onDownload }: DocumentCardPr
         </div>
       </div>
 
-      {/* Location */}
-      {location && (
-        <div className="flex items-center gap-2 mb-2">
-          <MapPin size={14} className="text-gray-400 flex-shrink-0" />
-          <p className="text-sm text-gray-600 truncate" title={location}>
-            {location}
-          </p>
-        </div>
-      )}
-
       {/* Creation date */}
       <div className="flex items-center gap-2 mb-3">
         <Calendar size={14} className="text-gray-400 flex-shrink-0" />
         <p className="text-sm text-gray-600">
           Created {formatDate(doc.created_at)}
         </p>
-      </div>
-
-      {/* Action buttons */}
-      <div className="flex gap-2">
-        {onView && (
-          <button
-            onClick={() => onView(doc)}
-            className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm bg-brown text-white rounded hover:bg-brown/90 transition"
-          >
-            <Eye size={16} />
-            View
-          </button>
-        )}
-        {onDownload && (
-          <button
-            onClick={() => onDownload(doc)}
-            className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm border border-brown text-brown rounded hover:bg-brown/5 transition"
-          >
-            <Download size={16} />
-            Download
-          </button>
-        )}
       </div>
     </div>
   );

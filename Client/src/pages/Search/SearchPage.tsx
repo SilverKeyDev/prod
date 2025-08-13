@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Bookmark, MapPin, ChevronLeft, ChevronRight} from "lucide-react";
+import { Bookmark, MapPin, ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import mapStyles from "../../hooks/mapStyling";
 import { favoriteHomesApi } from "../../lib/api";
@@ -1621,7 +1621,7 @@ export default function SearchPage() {
   const saveHome = async (property: SearchResult) => {
     try {
       // Call backend API to add favorite
-      const response = await favoriteHomesApi.addFavorite(property.address);
+      const response = await favoriteHomesApi.addFavorite(property);
 
       if (response.success) {
         // Update local state
@@ -1804,7 +1804,8 @@ export default function SearchPage() {
                                           {property.propertyType}
                                         </span>
                                       )}
-                                    {property.listingStatus &&
+                                    {typeof property.listingStatus ===
+                                      "string" &&
                                       property.listingStatus.toLowerCase() !==
                                         "for_sale" && (
                                         <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
@@ -1815,12 +1816,18 @@ export default function SearchPage() {
 
                                   {/* Address */}
                                   <h3 className="text-sm font-medium text-black line-clamp-2 mb-1">
-                                    {property.address}
+                                    {typeof property.address === "string" ||
+                                    typeof property.address === "number"
+                                      ? property.address
+                                      : "[Invalid address]"}
                                   </h3>
 
                                   {/* Price */}
                                   <p className="text-lg font-semibold text-brown mb-2">
-                                    {property.price}
+                                    {typeof property.price === "string" ||
+                                    typeof property.price === "number"
+                                      ? property.price
+                                      : "[Invalid price]"}
                                   </p>
 
                                   {/* Property Details */}
@@ -1859,11 +1866,12 @@ export default function SearchPage() {
                                   })()}
 
                                   {/* Lot Size */}
-                                  {property.lotSize && (
-                                    <div className="text-xs text-gray-500">
-                                      Lot: {property.lotSize}
-                                    </div>
-                                  )}
+                                  {typeof property.lotSize === "string" &&
+                                    property.lotSize && (
+                                      <div className="text-xs text-gray-500">
+                                        Lot: {property.lotSize}
+                                      </div>
+                                    )}
                                 </div>
                                 <HeartSave
                                   property={property}
@@ -1922,28 +1930,29 @@ export default function SearchPage() {
                               <div className="flex-1">
                                 {/* Property Type and Status */}
                                 <div className="flex items-center gap-2 mb-1">
-                                  {property.propertyType &&
+                                  {typeof property.propertyType === "string" &&
                                     property.propertyType.toLowerCase() !==
                                       "single_family" && (
                                       <span className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded">
                                         {property.propertyType}
                                       </span>
                                     )}
-                                  {property.listingStatus && (
-                                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
-                                      Saved
-                                    </span>
-                                  )}
+                                  
                                 </div>
 
                                 {/* Address */}
                                 <h3 className="text-sm font-medium text-black line-clamp-2 mb-1">
-                                  {property.address}
+                                  {typeof property.address === "string" || typeof property.address === "number"
+  ? property.address
+  : "[Invalid address]"}
                                 </h3>
 
                                 {/* Price */}
                                 <p className="text-lg font-semibold text-brown mb-2">
-                                  {property.price}
+                                  {typeof property.price === "string" ||
+                                  typeof property.price === "number"
+                                    ? property.price
+                                    : "[Invalid price]"}
                                 </p>
 
                                 {/* Property Details */}

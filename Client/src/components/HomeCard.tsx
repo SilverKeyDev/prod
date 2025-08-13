@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { formatFilenameToAddress, truncateText } from "../lib/addressFormat";
 import PropertyDetailsModal from './PropertyDetailsModal';
-import { Eye, ExternalLink } from 'lucide-react';
 
 export interface HomeDescription {
   home_id: string;
@@ -12,14 +11,13 @@ export interface HomeDescription {
 
 interface HomeCardProps {
   home: HomeDescription;
-  onViewDetails?: (home: HomeDescription) => void;
 }
 
 /**
  * Simple presentation component to display a saved home.
  * Can be enhanced later with images, price, address, etc.
  */
-export default function HomeCard({ home, onViewDetails }: HomeCardProps) {
+export default function HomeCard({ home }: HomeCardProps) {
   const [showModal, setShowModal] = useState(false);
   const placeholder = "https://placehold.co/600x400?text=No+Image";
   
@@ -43,19 +41,6 @@ export default function HomeCard({ home, onViewDetails }: HomeCardProps) {
     };
   };
 
-  const handleViewDetails = () => {
-    if (onViewDetails) {
-      onViewDetails(home);
-    } else {
-      setShowModal(true);
-    }
-  };
-
-  const handleGoToZillow = () => {
-      // Fallback to general Zillow search
-      const fallbackUrl = `https://www.zillow.com/homes/${encodeURIComponent(formattedAddress || home.home_id)}_rb/`;
-      window.open(fallbackUrl, '_blank', 'noopener,noreferrer');
-  };
 
   // Mock functions for modal (these would typically come from parent component)
   const isHomeSaved = () => true; // Since this is already a saved home
@@ -82,26 +67,6 @@ export default function HomeCard({ home, onViewDetails }: HomeCardProps) {
             {home.description}
           </p>
         )}
-        
-        {/* Action Buttons */}
-        <div className="flex gap-2">
-          <button
-            onClick={handleViewDetails}
-            className="flex-1 bg-olive text-white py-2 px-3 rounded-lg hover:bg-olive-light transition-colors duration-200 flex items-center justify-center gap-2 text-sm font-medium"
-          >
-            <Eye className="w-4 h-4" />
-            View Details
-          </button>
-          
-          <button
-            onClick={handleGoToZillow}
-            className="flex-1 bg-blue-600 text-white py-2 px-3 rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center justify-center gap-2 text-sm font-medium"
-            title="View on Zillow"
-          >
-            <ExternalLink className="w-4 h-4" />
-            Zillow
-          </button>
-        </div>
       </div>
 
       {/* Property Details Modal */}

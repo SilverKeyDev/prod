@@ -124,10 +124,10 @@ const TimelineChecklist: React.FC<TimelineChecklistProps> = ({
                   {/* Main icon */}
                   <Link
                     to={step.subSteps[0]?.href || "#"}
-                    className="w-10 h-10 rounded-full flex items-center justify-center transition-colors bg-gray-200 text-brown"
+                    className="w-10 h-10 rounded-full flex items-center justify-center transition-colors bg-brown text-white"
                     title={step.name}
                   >
-                    <StepIcon size={20} />
+                    <StepIcon size={20} color="white" />
                   </Link>
 
                   {/* Step name */}
@@ -200,9 +200,9 @@ const TimelineChecklist: React.FC<TimelineChecklistProps> = ({
               }`}
             >
               <div className="flex items-center space-x-3">
-                <StepIcon
-                  className={`w-6 h-6 ${isCompleted ? "text-green-600" : "text-brown"}`}
-                />
+                <span className="w-8 h-8 rounded-full flex items-center justify-center bg-brown">
+                  <StepIcon className="w-6 h-6" color="white" />
+                </span>
                 <span className="font-medium text-brown-dark">{step.name}</span>
               </div>
               {isOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}

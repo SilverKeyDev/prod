@@ -131,7 +131,10 @@ const PdfModal: React.FC<PdfModalProps> = ({
   const getReportTitle = () => {
     // Use the report address if available (preferred)
     if (currentReportAddress) {
-      console.log(`[getReportTitle] Using report address:`, currentReportAddress);
+      console.log(
+        `[getReportTitle] Using report address:`,
+        currentReportAddress
+      );
       const result = formatFilenameToAddress(currentReportAddress);
       console.log(`[getReportTitle] Formatted result:`, result);
       return result;
@@ -298,7 +301,9 @@ export default function PastReports() {
   // Local cache for PDF URLs to avoid modifying context state
   const [pdfUrlCache, setPdfUrlCache] = useState<Record<string, string>>({});
   const [currentPdf, setCurrentPdf] = useState<string | null>(null);
-  const [currentReportAddress, setCurrentReportAddress] = useState<string | null>(null);
+  const [currentReportAddress, setCurrentReportAddress] = useState<
+    string | null
+  >(null);
   const [loadingUrls, setLoadingUrls] = useState<Set<string>>(new Set());
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [reportToDelete, setReportToDelete] = useState<{

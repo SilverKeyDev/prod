@@ -20,6 +20,9 @@ const newMatches = [
 
 ]; */
 
+import { handleViewPdf, handleDownloadPdf } from "../lib/pdfInteractions";
+import PdfModal from "../components/PdfModal";
+
 export default function UserDashboard() {
   // 🆕 Fetch favorite homes
   const [favoriteHomes, setFavoriteHomes] = useState<HomeDescription[]>([]);
@@ -31,6 +34,15 @@ export default function UserDashboard() {
   const [docsLoading, setDocsLoading] = useState(false);
   const [docsError, setDocsError] = useState<string | null>(null);
 
+  // State for PDF viewing modal
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalPdfUrl, setModalPdfUrl] = useState<string | null>(null);
+  const [modalReportAddress, setModalReportAddress] = useState<string | null>(
+    null
+  );
+  // State for download URL cache
+  const [pdfUrlCache, setPdfUrlCache] = useState<Record<string, string>>({});
+
   useEffect(() => {
     const fetchFavs = async () => {
       setFavLoading(true);
@@ -38,20 +50,24 @@ export default function UserDashboard() {
       try {
         const res = await favoriteHomesApi.getFavorites();
         if (res.success) {
-          // Backend returns { favorites: string[] } where strings are address names
-          const addressStrings = res.favorites || [];
-          // Convert address strings to HomeDescription objects with dummy data
-          const homeObjects: HomeDescription[] = addressStrings.map(
-            (address: string, index: number) => ({
-              home_id: `home_${index}_${Date.now()}`,
-              description: address, // The address string becomes the description
-              address: address,
-              price: "$0", // Dummy data
-              bedrooms: 0,
-              bathrooms: 0,
-              sqft: 0,
-              lat: 0,
-              lng: 0,
+          // Backend returns { favorites: HomeUniversal[] } where each is an object
+          const rawHomes = res.favorites || [];
+          // Map HomeUniversal fields to HomeDescription for HomeCard
+          const homeObjects: HomeDescription[] = rawHomes.map(
+            (home: any, index: number) => ({
+              home_id: home.address || `home_${index}_${Date.now()}`,
+              description: home.address || "",
+              address: home.address || "",
+              price: home.price || "",
+              bedrooms: parseInt(home.beds) || 0,
+              bathrooms: parseInt(home.baths) || 0,
+              sqft: parseInt(home.sqft) || 0,
+              lot_size: home.lot_size || "",
+              image_url: home.image_url || undefined,
+              lat: home.lat || 0,
+              lng: home.lng || 0,
+              // Any other HomeUniversal fields can be passed through
+              ...home,
             })
           );
           setFavoriteHomes(homeObjects);
@@ -122,19 +138,37 @@ export default function UserDashboard() {
         loading={docsLoading}
         error={docsError}
         emptyMessage="Create your first document today"
-        renderItem={(doc) => (
-          <DocumentCard
-            doc={doc}
-            onView={(doc) => {
-              // TODO: Implement document viewing
-              console.log("View document:", doc);
-            }}
-            onDownload={(doc) => {
-              // TODO: Implement document download
-              console.log("Download document:", doc);
-            }}
-          />
-        )}
+        renderItem={(doc) => {
+          // Convert DocumentData to PdfReport shape (align with PastReports)
+          const pdfReport = {
+            id: doc.id,
+            address: doc.address || doc.filename || "",
+            pdfUrl: undefined, // Not pre-fetched
+            s3Key: doc.file_path || undefined,
+          };
+          return (
+            <DocumentCard
+              doc={doc}
+              onView={async () => {
+                await handleViewPdf(pdfReport, (pdfUrl, reportAddress) => {
+                  setModalPdfUrl(pdfUrl);
+                  setModalReportAddress(
+                    reportAddress || doc.address || doc.filename || ""
+                  );
+                  setModalOpen(true);
+                });
+              }}
+              onDownload={async () => {
+                await handleDownloadPdf(
+                  pdfReport,
+                  pdfUrlCache,
+                  setPdfUrlCache,
+                  (msg) => setDocsError(msg)
+                );
+              }}
+            />
+          );
+        }}
         getItemKey={(doc) => doc.id}
       />
 
@@ -156,6 +190,14 @@ export default function UserDashboard() {
           getItemKey={(nm) => nm.address}
         />
       </div> */}
+      {/* PDF Modal for viewing */}
+      {modalOpen && modalPdfUrl && (
+        <PdfModal
+          currentPdf={modalPdfUrl}
+          currentReportAddress={modalReportAddress}
+          onClose={() => setModalOpen(false)}
+        />
+      )}
     </div>
   );
 }

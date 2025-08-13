@@ -326,69 +326,95 @@ def favorite_homes():
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
 
     if request.method == 'GET':
-        normalized_favorites = _parse_checklist(user.favorite_home_ids)
-        # Denormalize addresses for frontend display
-        favorites = [denormalize_address(addr) for addr in normalized_favorites]
-        current_app.logger.debug("Returning favorite_home_ids", extra={"count": len(favorites)})
-        current_app.logger.debug("Returning favorite_home_ids", extra={"normalized_favorites": normalized_favorites})
-        return _build_response(favorites)
+        # Return all HomeUniversal rows for this user
+        from app.models.home_universal import HomeUniversal
+        homes = HomeUniversal.query.filter_by(user_id=str(user.id)).all()
+        favorites = [home.to_dict() for home in homes]
+        current_app.logger.debug("Returning HomeUniversal favorites", extra={"count": len(favorites)})
+        return jsonify({"success": True, "favorites": favorites})
 
     # POST – update list
     try:
         data = request.get_json(force=True)
         if not isinstance(data, list):
             return jsonify({'success': False, 'error': 'Expected JSON array'}), 400
-        current_app.logger.debug("Updating favorite_home_ids", extra={"new_ids": data})
-        user.favorite_home_ids = json.dumps(data)
-        from app import db
+        current_app.logger.debug("Updating favorite homes", extra={"new_ids": data})
+        
+        # Remove existing HomeUniversal records for this user
+        from app.models.home_universal import HomeUniversal
+        HomeUniversal.query.filter_by(user_id=str(user.id)).delete()
         db.session.commit()
-        current_app.logger.info("favorite_home_ids updated", extra={"count": len(data)})
+        
+        # Add new HomeUniversal records for this user
+        for home in data:
+            home_universal = HomeUniversal(
+                user_id=str(user.id),
+                address=home.get('address'),
+                beds=home.get('bedrooms', ''),
+                baths=home.get('bathrooms', ''),
+                sqft=home.get('sqft', ''),
+                lot_size=home.get('lotSize', ''),
+                price=home.get('price', ''),
+                image_url=home.get('image_url', '')
+            )
+            db.session.add(home_universal)
+        db.session.commit()
+        current_app.logger.info("Favorite homes updated", extra={"count": len(data)})
         return _build_response(data)
     except Exception as e:
-        current_app.logger.error(f"Failed to update favorite_home_ids: {e}")
+        current_app.logger.error(f"Failed to update favorite homes: {e}")
         return jsonify({'success': False, 'error': 'Server error'}), 500
-
-
 
 
 @user_bp.route('/favorite-homes/add', methods=['POST'])
 def add_favorite_home():
-    """Add a single home address to the user's favorites list."""
-    current_app.logger.info("🏠 /favorite-homes/add endpoint invoked")
-    
+    """Add a single home to the user's favorites list and store full home data in home_universal."""
+    current_app.logger.info("\ud83c\udfe0 /favorite-homes/add endpoint invoked")
+
     user = _get_user()
     if not user:
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
-    
+
     try:
         data = request.get_json(force=True)
-        address = data.get('address')
-        
+        home = data.get('home')
+        if not home or not isinstance(home, dict):
+            return jsonify({'success': False, 'error': 'Home object is required'}), 400
+
+        address = home.get('address')
         if not address or not isinstance(address, str):
             return jsonify({'success': False, 'error': 'Address is required and must be a string'}), 400
+
+        # Check if home is already in favorites
+        from app.models.home_universal import HomeUniversal
+        home_universal = HomeUniversal.query.filter_by(user_id=str(user.id), address=address).first()
+        if home_universal:
+            return jsonify({'success': False, 'error': 'Home is already in favorites'}), 400
+
+        # Add new HomeUniversal record for this user
+        home_universal = HomeUniversal(
+            user_id=str(user.id),
+            address=address,
+            beds=home.get('bedrooms', ''),
+            baths=home.get('bathrooms', ''),
+            sqft=home.get('sqft', ''),
+            lot_size=home.get('lotSize', ''),
+            price=home.get('price', ''),
+            image_url=home.get('image_url', '')
+        )
+        db.session.add(home_universal)
+        db.session.commit()
+        current_app.logger.info(f"Added favorite home: {address}")
         
-        # Normalize the address for storage
-        normalized_address = normalize_address(address)
-        
-        # Get current favorites
-        current_favorites = _parse_checklist(user.favorite_home_ids)
-        
-        # Add normalized address if not already in favorites
-        if normalized_address not in current_favorites:
-            current_favorites.append(normalized_address)
-            user.favorite_home_ids = json.dumps(current_favorites)
-            db.session.commit()
-            current_app.logger.info(f"Added favorite home: {address} (stored as: {normalized_address})")
-            
-        # Return denormalized addresses for frontend display
-        denormalized_favorites = [denormalize_address(addr) for addr in current_favorites]
-        
+        # Return all HomeUniversal rows for this user
+        homes = HomeUniversal.query.filter_by(user_id=str(user.id)).all()
+        favorites = [home.to_dict() for home in homes]
         return jsonify({
             'success': True,
             'message': 'Home added to favorites',
-            'favorites': denormalized_favorites
+            'favorites': favorites
         })
-        
+
     except Exception as e:
         current_app.logger.error(f"Failed to add favorite home: {e}")
         return jsonify({'success': False, 'error': 'Server error'}), 500
@@ -410,26 +436,19 @@ def remove_favorite_home():
         if not address or not isinstance(address, str):
             return jsonify({'success': False, 'error': 'Address is required and must be a string'}), 400
         
-        # Normalize the address for lookup
-        normalized_address = normalize_address(address)
+        # Remove HomeUniversal record for this user and address
+        from app.models.home_universal import HomeUniversal
+        HomeUniversal.query.filter_by(user_id=str(user.id), address=address).delete()
+        db.session.commit()
+        current_app.logger.info(f"Removed favorite home: {address}")
         
-        # Get current favorites
-        current_favorites = _parse_checklist(user.favorite_home_ids)
-        
-        # Remove normalized address if it exists in favorites
-        if normalized_address in current_favorites:
-            current_favorites.remove(normalized_address)
-            user.favorite_home_ids = json.dumps(current_favorites)
-            db.session.commit()
-            current_app.logger.info(f"Removed favorite home: {address} (stored as: {normalized_address})")
-            
-        # Return denormalized addresses for frontend display
-        denormalized_favorites = [denormalize_address(addr) for addr in current_favorites]
-        
+        # Return all HomeUniversal rows for this user
+        homes = HomeUniversal.query.filter_by(user_id=str(user.id)).all()
+        favorites = [home.to_dict() for home in homes]
         return jsonify({
             'success': True,
             'message': 'Home removed from favorites',
-            'favorites': denormalized_favorites
+            'favorites': favorites
         })
         
     except Exception as e:

@@ -19,23 +19,11 @@ def dashboard():
         .all()
     )
 
-    try:
-        favorite_ids = json.loads(user.favorite_home_ids) if user.favorite_home_ids else []
-    except (TypeError, ValueError):
-        current_app.logger.warning("dashboard: failed to parse favorite_home_ids", extra={"raw": user.favorite_home_ids})
-        favorite_ids = []
-
-    favorite_homes = []
-    if favorite_ids:
-        favorite_homes = (
-            HomeDescription.query.filter(HomeDescription.home_id.in_(favorite_ids)).all()
-        )
 
     return jsonify(
         {
             "success": True,
             "user": user.to_dict(),
-            "favoriteHomes": [home.to_dict() for home in favorite_homes],
         }
     )
 

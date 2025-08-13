@@ -57,7 +57,7 @@ def create_app(config=None):
 
     # Initialize database within app context
     with app.app_context():
-        from .models import User, PDFDocument, Subscription, HomeDescription
+        from .models import User, PDFDocument, Subscription, HomeDescription, HomeUniversal
         from .models.chat_history import ChatHistory
         db.create_all()
 

@@ -144,10 +144,10 @@ export const authApi = {
 
 // Favorite Homes API
 export const favoriteHomesApi = {
-  addFavorite(address: string): Promise<ApiResponse<{ favorites: string[] }>> {
+  addFavorite(home: any): Promise<ApiResponse<{ favorites: string[] }>> {
     return apiRequest('/api/v1/user/favorite-homes/add', {
       method: 'POST',
-      body: JSON.stringify({ address }),
+      body: JSON.stringify({ home }),
     });
   },
 

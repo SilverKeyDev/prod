@@ -302,7 +302,7 @@ export default function CompareReportsPage() {
       // Transform PDF key to JSON key based on actual storage structure
       // PDF: user_id/reports/type/filename.pdf
       // JSON: user_id/json/type/filename.json
-      
+
       // Extract user_id, report_type, and filename from PDF key
       const pdfMatch = key.match(/^([^\/]+)\/reports\/([^\/]+)\/(.+)\.pdf$/);
       if (pdfMatch) {
@@ -315,7 +315,7 @@ export default function CompareReportsPage() {
       return `${baseName}.json`;
     };
     const keys = selectedReports.map((r) => toJsonKey(r.s3Key || ""));
-    
+
     if (keys.length > 0) {
       fetchComparison(keys);
     } else {
