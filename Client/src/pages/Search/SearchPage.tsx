@@ -204,12 +204,87 @@ export default function SearchPage() {
     null
   );
   const [showPropertyModals, setShowPropertyModals] = useState(false);
+  const [isLocalStorageLoaded, setIsLocalStorageLoaded] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [, setIsochronePolygon] = useState<google.maps.Polygon | null>(null);
   const [, setIsochroneData] = useState<any>(null);
   const [, setImportantLocationMarkers] = useState<google.maps.Marker[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
-  const PROPERTIES_PER_PAGE = 5;
+  const PROPERTIES_PER_PAGE = 3;
+
+  // Load search results from localStorage or run fresh search based on preferences version
+  useEffect(() => {
+    const initializeSearchResults = async () => {
+      try {
+        // Get current user preferences version
+        let currentPreferencesVersion = '1.0'; // Default version
+        
+        try {
+          const idToken = localStorage.getItem("id_token");
+          const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "";
+          
+          if (idToken) {
+            const response = await fetch(`${apiBaseUrl}/api/v1/preferences`, {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${idToken}`,
+                "Content-Type": "application/json",
+              },
+            });
+            
+            if (response.ok) {
+              const data = await response.json();
+              currentPreferencesVersion = data.preferences?.preferences_version || '1.0';
+              console.log(`🔧 Current user preferences version: ${currentPreferencesVersion}`);
+            }
+          }
+        } catch (prefError) {
+          console.warn('⚠️ Could not fetch current preferences version, using default:', prefError);
+        }
+        
+        // Check localStorage for saved search results
+        const savedSearchData = loadSearchResultsFromLocalStorage();
+        const savedPreferencesVersion = savedSearchData?.preferencesVersion;
+        
+        console.log(`📊 Version comparison - Current: ${currentPreferencesVersion}, Saved: ${savedPreferencesVersion || 'none'}`);
+        
+        // Decide whether to load from localStorage or run fresh search
+        if (savedSearchData && 
+            savedSearchData.results && 
+            savedSearchData.results.length > 0 && 
+            savedPreferencesVersion === currentPreferencesVersion) {
+          
+          // Preferences versions match - load from localStorage
+          console.log(`✅ Preferences versions match (${currentPreferencesVersion}) - loading ${savedSearchData.results.length} results from localStorage`);
+          setSearchResults(savedSearchData.results);
+          setHasSearched(savedSearchData.searchMetadata?.hasSearched || true);
+          setCurrentPage(savedSearchData.searchMetadata?.currentPage || 0);
+          setShowPropertyModals(true);
+          console.log('✅ localStorage loading complete - cached results loaded');
+          
+        } else {
+          console.log('🔄 No valid cached results found - will run fresh search');
+        }
+        
+      } catch (error) {
+        console.error('❌ Error in search results initialization:', error);
+        // Fallback: try to load any saved data regardless of version
+        const savedSearchData = loadSearchResultsFromLocalStorage();
+        if (savedSearchData && savedSearchData.results && savedSearchData.results.length > 0) {
+          console.log(`🔄 Fallback: loading ${savedSearchData.results.length} results from localStorage despite error`);
+          setSearchResults(savedSearchData.results);
+          setHasSearched(true);
+          setShowPropertyModals(true);
+        }
+      }
+      
+      // Mark localStorage loading as complete
+      setIsLocalStorageLoaded(true);
+      console.log('✅ localStorage initialization complete');
+    };
+    
+    initializeSearchResults();
+  }, []); // Empty dependency array - only run on mount
 
   // Global function to open property modal from info window
   useEffect(() => {
@@ -243,6 +318,69 @@ export default function SearchPage() {
   // Use backend ML match score (already calculated as 0-100 integer)
   const calculatePropertyScore = (property: SearchResult) => {
     return property._score || 0; // Backend ML score (0-100 integer)
+  };
+
+  // Save search results to localStorage with preferences version
+  const saveSearchResultsToLocalStorage = async (results: SearchResult[]) => {
+    try {
+      // Fetch current user preferences to get the version
+      let preferencesVersion = '1.0'; // Default version
+      
+      try {
+        const idToken = localStorage.getItem("id_token");
+        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "";
+        
+        if (idToken) {
+          const response = await fetch(`${apiBaseUrl}/api/v1/preferences`, {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${idToken}`,
+              "Content-Type": "application/json",
+            },
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            preferencesVersion = data.preferences?.preferences_version || '1.0';
+            console.log(`🔧 Retrieved preferences version: ${preferencesVersion}`);
+          }
+        }
+      } catch (prefError) {
+        console.warn('⚠️ Could not fetch preferences version, using default:', prefError);
+      }
+      
+      const searchData = {
+        results: results,
+        timestamp: new Date().toISOString(),
+        totalCount: results.length,
+        preferencesVersion: preferencesVersion,
+        searchMetadata: {
+          hasSearched: true,
+          currentPage: 0,
+          propertiesPerPage: PROPERTIES_PER_PAGE
+        }
+      };
+      
+      localStorage.setItem('searchResults', JSON.stringify(searchData));
+      console.log(`💾 Saved ${results.length} search results to localStorage with preferences version ${preferencesVersion}`);
+    } catch (error) {
+      console.error('❌ Error saving search results to localStorage:', error);
+    }
+  };
+
+  // Load search results from localStorage on component mount
+  const loadSearchResultsFromLocalStorage = () => {
+    try {
+      const savedData = localStorage.getItem('searchResults');
+      if (savedData) {
+        const parsedData = JSON.parse(savedData);
+        console.log(`📂 Loaded ${parsedData.results?.length || 0} search results from localStorage`);
+        return parsedData;
+      }
+    } catch (error) {
+      console.error('❌ Error loading search results from localStorage:', error);
+    }
+    return null;
   };
 
   // Get pin color based on property score (gradient from very dark faded green to very dark faded red)
@@ -364,34 +502,69 @@ export default function SearchPage() {
           gestureHandling: "greedy", // Allow map interaction without ctrl key
         });
 
-        // Fetch and render isochrone polygon and important location markers
-        console.log("🚀 Map initialized, fetching isochrone polygon...");
-        fetchIsochronePolygon()
-          .then((data) => {
-            if (data) {
-              console.log("📦 Isochrone data received, rendering polygon...");
-              renderIsochronePolygon(data);
+        // Check if we already have search results loaded (from localStorage or previous search)
+        // If so, just fetch isochrone for map population without property search
+        // If not, fetch isochrone with property search
+        console.log("🚀 Map initialized, checking for existing search results...");
+        
+        // Small delay to allow localStorage loading to complete first
+        setTimeout(() => {
+          if (searchResults.length > 0) {
+            console.log("✅ Found existing search results, fetching isochrone for map population only...");
+            fetchIsochroneForMapOnly()
+              .then((data) => {
+                if (data) {
+                  console.log("📦 Isochrone data received, rendering polygon...");
+                  renderIsochronePolygon(data);
 
-              // Also render important location markers
-              console.log("📍 Rendering important location markers...");
-              renderImportantLocationMarkers(data);
-            } else {
-              console.warn(
-                "⚠️ No isochrone data received, polygon will not be displayed"
-              );
-            }
-          })
-          .catch((error) => {
-            console.error(
-              "❌ Failed to fetch or render isochrone polygon:",
-              error
-            );
-          });
+                  // Also render important location markers
+                  console.log("📍 Rendering important location markers...");
+                  renderImportantLocationMarkers(data);
+                } else {
+                  console.warn(
+                    "⚠️ No isochrone data received, polygon will not be displayed"
+                  );
+                }
+              })
+              .catch((error) => {
+                console.error(
+                  "❌ Failed to fetch or render isochrone polygon:",
+                  error
+                );
+              });
+          } else {
+            console.log("🔄 No existing search results, fetching isochrone with property search...");
+            fetchIsochronePolygon()
+              .then((data) => {
+                if (data) {
+                  console.log("📦 Isochrone data received, rendering polygon...");
+                  renderIsochronePolygon(data);
+
+                  // Also render important location markers
+                  console.log("📍 Rendering important location markers...");
+                  renderImportantLocationMarkers(data);
+                } else {
+                  console.warn(
+                    "⚠️ No isochrone data received, polygon will not be displayed"
+                  );
+                }
+              })
+              .catch((error) => {
+                console.error(
+                  "❌ Failed to fetch or render isochrone polygon:",
+                  error
+                );
+              });
+          }
+        }, 100); // Small delay to allow localStorage loading to complete
       }
     };
 
-    initializeMap();
-  }, []);
+    // Only initialize map after localStorage loading is complete
+    if (isLocalStorageLoaded) {
+      initializeMap();
+    }
+  }, [isLocalStorageLoaded]);
 
   // Handle property details search
   const handleViewPropertyDetails = async (property: SearchResult) => {
@@ -526,6 +699,84 @@ export default function SearchPage() {
     currentPage,
   ]);
 
+  // Fetch isochrone polygon from backend for map population only (no property search)
+  const fetchIsochroneForMapOnly = async () => {
+    console.log("🗺️ Starting isochrone fetch for map population only...");
+    try {
+      // Try multiple token sources for authentication
+      const idToken = localStorage.getItem("id_token");
+      const token = localStorage.getItem("token");
+      const authToken = idToken || token;
+
+      if (!authToken) {
+        console.log(
+          "❌ No auth token found (checked both id_token and token), skipping isochrone fetch"
+        );
+        return null;
+      }
+
+      console.log("🔑 Auth token found, making API request...");
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "";
+      const response = await fetch(`${apiBaseUrl}/api/v1/search/isochrone`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
+
+      console.log("📡 API response status:", response.status);
+      console.log("📡 API response ok:", response.ok);
+      console.log("📡 API response statusText:", response.statusText);
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log(
+          "📊 ISOCHRONE API RESPONSE - Raw data:",
+          JSON.stringify(data, null, 2)
+        );
+
+        if (data.success && data.data) {
+          setIsochroneData(data.data);
+          console.log("✅ ISOCHRONE SUCCESS - Map population only:");
+          console.log(
+            "  📍 Center Location:",
+            JSON.stringify(data.data.center, null, 2)
+          );
+          console.log(
+            "  ⏱️ Commute Tolerance:",
+            data.data.commute_tolerance,
+            "minutes"
+          );
+          console.log("  🚗 Travel Mode:", data.data.mode);
+          console.log(
+            "  🗺️ Geometry Type:",
+            data.data.isochrone?.geometry?.type
+          );
+          console.log(
+            "  📐 Geometry Coordinates Length:",
+            data.data.isochrone?.geometry?.coordinates?.length
+          );
+
+          // NO property search - just return the data for map population
+          console.log("🗺️ Isochrone data ready for map population (no search triggered)");
+          return data.data;
+        } else {
+          console.warn("⚠️ Invalid isochrone response structure:", data);
+          return null;
+        }
+      } else {
+        const errorText = await response.text();
+        console.error("❌ Isochrone API error:", response.status, errorText);
+        return null;
+      }
+    } catch (error) {
+      console.error("❌ Error fetching isochrone polygon:", error);
+      return null;
+    }
+  };
+
   // Fetch isochrone polygon from backend
   const fetchIsochronePolygon = async () => {
     console.log("🔍 Starting isochrone polygon fetch...");
@@ -642,6 +893,10 @@ export default function SearchPage() {
     );
     setIsSearching(true);
 
+    // Clear previous search results to show loading state in sidebar
+    setSearchResults([]);
+    console.log("🧹 Cleared previous search results from sidebar");
+
     if (!isochroneData?.isochrone?.geometry) {
       console.warn("❌ No isochrone geometry available for property search");
       setIsSearching(false);
@@ -746,6 +1001,12 @@ export default function SearchPage() {
 
       // Update search results and mark as searched
       setSearchResults(transformedResults);
+      
+      // Save search results to localStorage with preferences version
+      saveSearchResultsToLocalStorage(transformedResults).catch((error) => {
+        console.error('❌ Failed to save search results to localStorage:', error);
+      });
+      
       setHasSearched(true);
       setIsSearching(false);
       setCurrentPage(0); // Reset to first page when new search results come in

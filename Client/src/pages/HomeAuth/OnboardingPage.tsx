@@ -1177,9 +1177,12 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
       case "housing":
         return (
           <div className="space-y-6">
-            <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
+            <h2 className="text-xl sm:text-2xl font-serif text-black mb-2">
               Housing Preferences
             </h2>
+            <p className="text-sm text-black/60 mb-6">
+              Tell us about your ideal home. These preferences help our AI understand what features and characteristics matter most to you when matching properties to your lifestyle and needs.
+            </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
@@ -1426,8 +1429,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   Important Locations
                 </label>
                 <p className="text-xs text-black/60 mb-4">
-                  Add locations that are important for your commute (e.g.,
-                  workplace, family home, gym)
+                  Add locations important to you (workplace, gym, family, etc.). We use these to create travel time maps and find properties within your commute tolerance. Each location helps our AI match you with homes that fit your lifestyle and daily routines.
                 </p>
                 <ImportantLocationsInput
                   locations={formData.important_locations || []}

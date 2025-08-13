@@ -48,6 +48,9 @@ declare global {
 }
 
 interface OnboardingData {
+  // Metadata
+  preferences_version?: string;
+  
   // Demographics
   pets?: string;
   age?: number;
@@ -728,19 +731,35 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
     try {
       setIsSaving(true);
 
+      // Increment version for this update
+      const currentVersion = formData.preferences_version || '1.0';
+      const versionParts = currentVersion.split('.');
+      const majorVersion = parseInt(versionParts[0]) || 1;
+      const minorVersion = parseInt(versionParts[1]) || 0;
+      const newVersion = `${majorVersion}.${minorVersion + 1}`;
+      
+      const dataToSave = {
+        ...formData,
+        preferences_version: newVersion
+      };
+
       // Debug: Log the data being saved
-      console.log("💾 Saving formData:", formData);
+      console.log("💾 Saving formData with version update:", dataToSave);
+      console.log(`📈 Version updated: ${currentVersion} → ${newVersion}`);
 
       await apiRequest("/api/v1/preferences", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(dataToSave),
       });
 
+      // Update local state with new version
+      const updatedFormData = { ...formData, preferences_version: newVersion };
+      setFormData(updatedFormData);
+      setOriginalData(updatedFormData);
       setIsEditMode(false);
-      setOriginalData(formData);
       setShowSuccessDialog(true);
     } catch (error) {
       console.error("Failed to update preferences:", error);
@@ -1386,9 +1405,12 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
       case "housing":
         return (
           <div className="space-y-6">
-            <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
+            <h2 className="text-xl sm:text-2xl font-serif text-black mb-2">
               Housing Preferences
             </h2>
+            <p className="text-sm text-black/60 mb-6">
+              Tell us about your ideal home. These preferences help our AI understand what features and characteristics matter most to you when matching properties to your lifestyle and needs.
+            </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
@@ -1779,8 +1801,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   Important Locations
                 </label>
                 <p className="text-xs text-black/60 mb-4">
-                  Add relevant locations to your commute (e.g., workplace,
-                  family home)
+                  Add locations important to you (workplace, gym, family, etc.). We use these to create travel time maps and find properties within your commute tolerance. Each location helps our AI match you with homes that fit your lifestyle and daily routines.
                 </p>
                 <ImportantLocationsInput
                   locations={formData.important_locations || []}
