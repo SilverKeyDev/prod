@@ -20,7 +20,7 @@ import {
   ShieldCheck,
   Building2,
   KeyRound,
-  BadgeCheck,
+  //BadgeCheck,
   Bookmark,
   ClipboardList,
 } from "lucide-react";
@@ -69,11 +69,11 @@ const navigationStructure: NavigationStructure = {
         href: "/dashboard/personalization",
         icon: UserIcon,
       },
-      {
+      /*{
         name: "Get PreApproved",
         href: "/dashboard/get-preapproved",
         icon: BadgeCheck,
-      },
+      },*/
       {
         name: "Subscription",
         href: "/dashboard/subscription",
@@ -120,7 +120,7 @@ const navigationStructure: NavigationStructure = {
         href: "/dashboard/negotiation-strategy",
         icon: Brain,
       },
-      { name: "Draft Offer", href: "/dashboard/draft-offer", icon: FileText },
+      /*{ name: "Draft Offer", href: "/dashboard/draft-offer", icon: FileText },*/
     ],
   },
   close: {
