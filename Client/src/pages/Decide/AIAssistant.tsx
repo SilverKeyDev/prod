@@ -436,7 +436,7 @@ export default function AIAssistant() {
               </h2>
             </div>
             <p className="text-sm text-black/60">
-              Ask questions about your future home
+              Generate a report to be able to ask questions about your future home 
             </p>
           </div>
 

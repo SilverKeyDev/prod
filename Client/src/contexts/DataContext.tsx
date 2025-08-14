@@ -1,12 +1,5 @@
-import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useCallback,
-  ReactNode,
-} from "react";
-import { apiRequest } from "../lib/api";
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { apiRequest, favoriteHomesApi } from "../lib/api";
 import { formatFilenameToAddress } from "../lib/addressFormat";
 
 // Types
@@ -85,19 +78,26 @@ interface UserPreferences {
   [key: string]: any;
 }
 
-interface ChatMessage {
-  id: string;
-  content: string;
-  role: "user" | "assistant";
-  timestamp: Date;
-}
-
 interface Chat {
   id: string;
   title: string;
-  propertyAddress?: string;
-  messages: ChatMessage[];
+  propertyAddress: string;
+  messages: any[];
   createdAt: Date;
+}
+
+interface SavedHome {
+  home_id: string;
+  description?: string;
+  image_url?: string;
+  price?: string | number;
+  bedrooms?: number;
+  bathrooms?: number;
+  sqft?: number;
+  lat?: number;
+  lng?: number;
+  address?: string;
+  [key: string]: any; // allow additional properties for future use
 }
 
 interface DataContextType {
@@ -136,6 +136,12 @@ interface DataContextType {
   chatsLoading: boolean;
   chatsError: string | null;
   refreshChats: () => Promise<void>;
+
+  // Saved Homes data
+  savedHomes: SavedHome[];
+  savedHomesLoading: boolean;
+  savedHomesError: string | null;
+  refreshSavedHomes: () => Promise<void>;
 
   // Global refresh
   refreshAllData: () => Promise<void>;
@@ -180,6 +186,11 @@ export function DataProvider({ children }: DataProviderProps) {
   const [chats, setChats] = useState<Chat[]>([]);
   const [chatsLoading, setChatsLoading] = useState(false);
   const [chatsError, setChatsError] = useState<string | null>(null);
+
+  // Saved Homes state
+  const [savedHomes, setSavedHomes] = useState<SavedHome[]>([]);
+  const [savedHomesLoading, setSavedHomesLoading] = useState(false);
+  const [savedHomesError, setSavedHomesError] = useState<string | null>(null);
 
   // Fetch Past Reports - using exact same pattern as PastReports.tsx
   const fetchReports = async () => {
@@ -410,6 +421,52 @@ export function DataProvider({ children }: DataProviderProps) {
     }
   };
 
+  // Fetch Saved Homes - using exact same pattern as User Dashboard
+  const fetchSavedHomes = async () => {
+    const idToken = localStorage.getItem("id_token");
+    if (!idToken) return; // Don't fetch if not authenticated
+
+    try {
+      setSavedHomesLoading(true);
+      setSavedHomesError(null);
+
+      const response = await favoriteHomesApi.getFavorites();
+
+      if (response.success) {
+        // Backend returns { favorites: HomeUniversal[] } where each is an object
+        const rawHomes = response.favorites || [];
+        // Map HomeUniversal fields to SavedHome for consistency
+        const homeObjects: SavedHome[] = rawHomes.map(
+          (home: any, index: number) => ({
+            home_id: home.address || `home_${index}_${Date.now()}`,
+            description: home.address || "",
+            address: home.address || "",
+            price: home.price || "",
+            bedrooms: parseInt(home.beds) || 0,
+            bathrooms: parseInt(home.baths) || 0,
+            sqft: parseInt(home.sqft) || 0,
+            lot_size: home.lot_size || "",
+            image_url: home.image_url || undefined,
+            lat: home.lat || 0,
+            lng: home.lng || 0,
+            // Any other HomeUniversal fields can be passed through
+            ...home,
+          })
+        );
+        setSavedHomes(homeObjects);
+      } else {
+        throw new Error(response.error || "Failed to load favorite homes");
+      }
+    } catch (error) {
+      console.error("Failed to fetch saved homes:", error);
+      setSavedHomesError(
+        error instanceof Error ? error.message : "Failed to fetch saved homes"
+      );
+    } finally {
+      setSavedHomesLoading(false);
+    }
+  };
+
   // Refresh functions - wrapped with useCallback to prevent unnecessary re-renders
   const refreshReports = useCallback(async () => {
     await fetchReports();
@@ -435,6 +492,10 @@ export function DataProvider({ children }: DataProviderProps) {
     await fetchChats();
   }, []);
 
+  const refreshSavedHomes = useCallback(async () => {
+    await fetchSavedHomes();
+  }, []);
+
   const refreshAllData = useCallback(async () => {
     await Promise.all([
       fetchReports(),
@@ -443,6 +504,7 @@ export function DataProvider({ children }: DataProviderProps) {
       fetchUserProfile(),
       fetchUserPreferences(),
       fetchChats(),
+      fetchSavedHomes(),
     ]);
   }, []);
 
@@ -522,6 +584,10 @@ export function DataProvider({ children }: DataProviderProps) {
     chatsLoading,
     chatsError,
     refreshChats,
+    savedHomes,
+    savedHomesLoading,
+    savedHomesError,
+    refreshSavedHomes,
     refreshAllData,
   };
 

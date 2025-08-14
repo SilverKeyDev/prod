@@ -1553,6 +1553,7 @@ export default function SearchPage() {
       // Use backend ML match score directly
       const score = calculatePropertyScore(result);
       const { fillColor, strokeColor } = getScoreBasedPinColor(score);
+      const isSaved = isHomeSaved(result.id);
 
       const marker = new google.maps.Marker({
         position: { lat: result.lat, lng: result.lng },
@@ -1579,6 +1580,28 @@ export default function SearchPage() {
         z-index: 1000;
         pointer-events: auto;
       `;
+
+      // Conditionally include match score section only for non-saved homes
+      const matchScoreSection = isSaved ? '' : `
+        <div style="
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          margin-bottom: 8px;
+        ">
+          <div style="
+            background: ${fillColor};
+            color: ${strokeColor};
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+          ">${score}/100</div>
+          <div style="
+            font-size: 9px;
+            color: #6b7280;
+          ">Match Score</div>
+        </div>`;
 
       overlayDiv.innerHTML = `
         <style>
@@ -1615,25 +1638,7 @@ export default function SearchPage() {
           color: #A47551;
           margin-bottom: 6px;
         ">${result.price}</div>
-        <div style="
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          margin-bottom: 8px;
-        ">
-          <div style="
-            background: ${fillColor};
-            color: ${strokeColor};
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 10px;
-            font-weight: 600;
-          ">${score}/100</div>
-          <div style="
-            font-size: 9px;
-            color: #6b7280;
-          ">Match Score</div>
-        </div>
+        ${matchScoreSection}
         <button 
           onclick="
             // Show loading state

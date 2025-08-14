@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { formatFilenameToAddress, truncateText } from "../lib/addressFormat";
 import PropertyDetailsModal from './PropertyDetailsModal';
 import HeartSave from './HeartSave';
+import KeyTurnLoader from './KeyTurnLoader';
 
 export interface HomeDescription {
   home_id: string;
@@ -18,6 +19,10 @@ interface HomeCardProps {
   onSave?: (home: HomeDescription) => void | Promise<void>;
   /** Function to remove the home */
   onRemove?: (homeId: string) => void | Promise<void>;
+  /** Function to handle view details */
+  onViewDetails?: (home: HomeDescription) => void | Promise<void>;
+  /** Whether the View Details button is currently loading */
+  isLoadingDetails?: boolean;
 }
 
 /**
@@ -28,7 +33,9 @@ export default function HomeCard({
   home, 
   isHomeSaved = () => true, // Default to true since these are saved homes
   onSave = () => {}, 
-  onRemove = () => {} 
+  onRemove = () => {},
+  onViewDetails = () => {},
+  isLoadingDetails = false
 }: HomeCardProps) {
   const [showModal, setShowModal] = useState(false);
   const placeholder = "https://placehold.co/600x400?text=No+Image";
@@ -59,7 +66,9 @@ export default function HomeCard({
   const removeSavedHomeForModal = () => {}; // Could implement removal logic
   
   return (
-    <div className="border rounded-lg shadow-sm bg-white hover:shadow-md transition overflow-hidden">
+    <div className={`border rounded-lg shadow-sm bg-white hover:shadow-md transition overflow-hidden ${
+      isLoadingDetails ? 'opacity-60 pointer-events-none' : ''
+    }`}>
       {/* Image */}
       <div className="w-full h-32 bg-gray-100 overflow-hidden">
         <img
@@ -105,7 +114,7 @@ export default function HomeCard({
             </p>
 
             {/* Property Details - exactly like search results */}
-            <div className="grid grid-cols-3 gap-2 text-xs text-gray-600 mb-1">
+            <div className="grid grid-cols-4 gap-2 text-xs text-gray-600 mb-1">
               <div>{home.bedrooms || 0} beds</div>
               <div>{home.bathrooms || 0} baths</div>
               {(home.sqft && home.sqft > 0) && (
@@ -113,14 +122,13 @@ export default function HomeCard({
                   {home.sqft.toLocaleString()} sqft
                 </div>
               )}
+              {/* Lot Size - moved to top right */}
+              {home.lot_size && (
+                <div className="text-xs text-gray-500">
+                  Lot: {home.lot_size}
+                </div>
+              )}
             </div>
-
-            {/* Lot Size */}
-            {home.lot_size && (
-              <div className="text-xs text-gray-500">
-                Lot: {home.lot_size}
-              </div>
-            )}
           </div>
           <HeartSave
             property={convertToProperty(home)}
@@ -129,6 +137,27 @@ export default function HomeCard({
             onRemove={onRemove}
             size="sm"
           />
+        </div>
+        
+        {/* View Details Button */}
+        <div className="px-3 pb-3">
+          <button
+            onClick={() => onViewDetails ? onViewDetails(home) : setShowModal(true)}
+            disabled={isLoadingDetails}
+            className={`w-full py-2 px-4 rounded-lg transition-colors text-sm font-medium flex items-center justify-center ${
+              isLoadingDetails 
+                ? 'bg-brown/70 text-white cursor-not-allowed' 
+                : 'bg-brown text-white hover:bg-brown/90'
+            }`}
+          >
+            {isLoadingDetails ? (
+              <div className="flex items-center justify-center">
+                <KeyTurnLoader />
+              </div>
+            ) : (
+              'View Details'
+            )}
+          </button>
         </div>
       </div>
 
