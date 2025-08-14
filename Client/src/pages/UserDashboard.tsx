@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { apiRequest, favoriteHomesApi } from "../lib/api";
 import DocumentCard, { DocumentData } from "../components/DocumentCard";
 import MiniLogo from "../components/MiniLogo";
@@ -20,18 +21,17 @@ const newMatches = [
 
 ]; */
 
-import { handleViewPdf, handleDownloadPdf } from "../lib/pdfInteractions";
+import { handleViewPdf } from "../lib/pdfInteractions";
 import PdfModal from "../components/PdfModal";
 
 export default function UserDashboard() {
+  const navigate = useNavigate();
   // 🆕 Fetch favorite homes
   const [favoriteHomes, setFavoriteHomes] = useState<HomeDescription[]>([]);
-  const [favLoading, setFavLoading] = useState(false);
-  const [favError, setFavError] = useState<string | null>(null);
-
-  // State for user documents
   const [documents, setDocuments] = useState<DocumentData[]>([]);
-  const [docsLoading, setDocsLoading] = useState(false);
+  const [favLoading, setFavLoading] = useState(true);
+  const [docsLoading, setDocsLoading] = useState(true);
+  const [favError, setFavError] = useState<string | null>(null);
   const [docsError, setDocsError] = useState<string | null>(null);
 
   // State for PDF viewing modal
@@ -40,8 +40,43 @@ export default function UserDashboard() {
   const [modalReportAddress, setModalReportAddress] = useState<string | null>(
     null
   );
-  // State for download URL cache
-  const [pdfUrlCache, setPdfUrlCache] = useState<Record<string, string>>({});
+
+  // Helper function to check if a home is saved
+  const isHomeSaved = (homeId: string): boolean => {
+    return favoriteHomes.some(home => home.home_id === homeId);
+  };
+
+  // Handle saving a home
+  const handleSaveHome = async (property: any) => {
+    try {
+      await favoriteHomesApi.addFavorite(property);
+      // Refresh the saved homes list - we'll trigger a re-fetch via useEffect
+      window.location.reload();
+    } catch (error) {
+      console.error('Error saving home:', error);
+    }
+  };
+
+  // Handle removing a saved home
+  const handleRemoveHome = async (homeId: string) => {
+    try {
+      await favoriteHomesApi.removeFavorite(homeId);
+      // Update local state by removing the home
+      setFavoriteHomes(prev => prev.filter(home => home.home_id !== homeId));
+      console.log("Successfully removed home from favorites:", homeId);
+    } catch (error) {
+      console.error("Error removing home from favorites:", error);
+    }
+  };
+
+  // Navigation handlers
+  const handleSavedHomesClick = () => {
+    navigate('/dashboard/search');
+  };
+
+  const handleDocumentsClick = () => {
+    navigate('/dashboard/reports');
+  };
 
   useEffect(() => {
     const fetchFavs = async () => {
@@ -121,56 +156,81 @@ export default function UserDashboard() {
       </div>
 
       {/* Favorite Homes */}
-      <Carousel
-        items={favoriteHomes}
-        title="Your Saved Homes"
-        loading={favLoading}
-        error={favError}
-        emptyMessage="Save your first home today"
-        renderItem={(home) => <HomeCard home={home} />}
-        getItemKey={(home) => home.home_id}
-      />
+      <div className="mt-12">
+        {/* Clickable Header */}
+        <div className="flex items-center justify-between mb-2">
+          <button 
+            className="text-lg font-semibold bg-gold text-white px-3 py-0.5 rounded-lg hover:bg-yellow-700 transition-colors cursor-pointer shadow-md"
+            onClick={handleSavedHomesClick}
+            title="Click to view all saved homes"
+          >
+            Your Saved Homes
+          </button>
+        </div>
+        
+        <Carousel
+          items={favoriteHomes}
+          title=""
+          loading={favLoading}
+          error={favError}
+          emptyMessage="Save your first home today"
+          renderItem={(home) => (
+            <HomeCard 
+              home={home} 
+              isHomeSaved={isHomeSaved}
+              onSave={handleSaveHome}
+              onRemove={handleRemoveHome}
+            />
+          )}
+          getItemKey={(home) => home.home_id}
+        />
+      </div>
 
       {/* Documents */}
-      <Carousel
-        items={documents}
-        title="Your Documents"
-        loading={docsLoading}
-        error={docsError}
-        emptyMessage="Create your first document today"
-        renderItem={(doc) => {
-          // Convert DocumentData to PdfReport shape (align with PastReports)
-          const pdfReport = {
-            id: doc.id,
-            address: doc.address || doc.filename || "",
-            pdfUrl: undefined, // Not pre-fetched
-            s3Key: doc.file_path || undefined,
-          };
-          return (
-            <DocumentCard
-              doc={doc}
-              onView={async () => {
-                await handleViewPdf(pdfReport, (pdfUrl, reportAddress) => {
-                  setModalPdfUrl(pdfUrl);
-                  setModalReportAddress(
-                    reportAddress || doc.address || doc.filename || ""
-                  );
-                  setModalOpen(true);
-                });
-              }}
-              onDownload={async () => {
-                await handleDownloadPdf(
-                  pdfReport,
-                  pdfUrlCache,
-                  setPdfUrlCache,
-                  (msg) => setDocsError(msg)
-                );
-              }}
-            />
-          );
-        }}
-        getItemKey={(doc) => doc.id}
-      />
+      <div className="my-8">
+        {/* Clickable Header */}
+        <div className="flex items-center justify-between mb-2">
+          <button 
+            className="text-lg font-semibold bg-gold text-white px-3 py-0.5 rounded-lg hover:bg-yellow-700 transition-colors cursor-pointer shadow-md"
+            onClick={handleDocumentsClick}
+            title="Click to view all documents"
+          >
+            Your Documents
+          </button>
+        </div>
+        
+        <Carousel
+          items={documents}
+          title=""
+          loading={docsLoading}
+          error={docsError}
+          emptyMessage="Create your first document today"
+          renderItem={(doc) => {
+            // Convert DocumentData to PdfReport shape (align with PastReports)
+            const pdfReport = {
+              id: doc.id,
+              address: doc.address || doc.filename || "",
+              pdfUrl: undefined, // Not pre-fetched
+              s3Key: doc.file_path || undefined,
+            };
+            return (
+              <DocumentCard
+                doc={doc}
+                onView={async () => {
+                  await handleViewPdf(pdfReport, (pdfUrl, reportAddress) => {
+                    setModalPdfUrl(pdfUrl);
+                    setModalReportAddress(
+                      reportAddress || doc.address || doc.filename || ""
+                    );
+                    setModalOpen(true);
+                  });
+                }}
+              />
+            );
+          }}
+          getItemKey={(doc) => doc.id}
+        />
+      </div>
 
       {/* Notifications */}
       {/* <div className="my-8 space-y-10">

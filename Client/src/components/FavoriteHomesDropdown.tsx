@@ -1,12 +1,18 @@
 import React, { useState, useRef, useEffect } from "react";
 import { apiRequest } from "../lib/api";
-import { formatFilenameToAddress } from "../lib/addressFormat";
 import { ChevronDown, Home } from "lucide-react";
 
 interface FavoriteHome {
+  user_id: string;
   address: string;
-  description?: string;
-  [key: string]: any;
+  beds: string;
+  baths: string;
+  sqft: string;
+  lot_size: string;
+  price: string;
+  image_url: string;
+  created_at: string;
+  updated_at: string;
 }
 
 interface FavoriteHomesDropdownProps {
@@ -37,11 +43,19 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
         setLoadingHomes(true);
         const res = await apiRequest("/api/v1/user/favorite-homes");
 
-        if (res.success && Array.isArray(res.data)) {
-          // Backend returns array of unformatted address strings, format and convert to FavoriteHome objects
-          const homes = res.data.map((rawAddress: string) => ({
-            address: formatFilenameToAddress(rawAddress),
-            description: undefined
+        if (res.success && Array.isArray(res.favorites)) {
+          // Backend returns array of HomeUniversal objects with full property data
+          const homes: FavoriteHome[] = res.favorites.map((home: any) => ({
+            user_id: home.user_id,
+            address: home.address,
+            beds: home.beds,
+            baths: home.baths,
+            sqft: home.sqft,
+            lot_size: home.lot_size,
+            price: home.price,
+            image_url: home.image_url,
+            created_at: home.created_at,
+            updated_at: home.updated_at
           }));
           setFavoriteHomes(homes);
         } 
@@ -100,10 +114,15 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
           ) : selectedHome ? (
             <div>
               <div className="text-sm font-medium text-navy">
-                {formatFilenameToAddress(selectedHome.address) ||
-                  selectedHome.address}
+                {selectedHome.address}
               </div>
-              <div className="text-xs text-gray-500">Selected Property</div>
+              <div className="text-xs text-gray-500">
+                {selectedHome.beds && selectedHome.baths ? 
+                  `${selectedHome.beds} bed, ${selectedHome.baths} bath` : 
+                  'Selected Property'
+                }
+                {selectedHome.price && ` • ${selectedHome.price}`}
+              </div>
             </div>
           ) : (
             <div>
@@ -129,8 +148,6 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
             </div>
           ) : (
             favoriteHomes.map((home, index) => {
-              const formattedAddress =
-                formatFilenameToAddress(home.address) || home.address;
               return (
                 <button
                   key={home.address}
@@ -147,12 +164,15 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
                       : "text-black hover:bg-brown/5"
                   }`}
                 >
-                  <div>{formattedAddress}</div>
-                  {home.description && (
-                    <div className="text-xs text-gray-500 mt-1 truncate">
-                      {home.description}
-                    </div>
-                  )}
+                  <div className="font-medium">{home.address}</div>
+                  <div className="text-xs text-gray-500 mt-1 truncate">
+                    {home.beds && home.baths ? 
+                      `${home.beds} bed, ${home.baths} bath` : 
+                      'Property details'
+                    }
+                    {home.sqft && ` • ${home.sqft} sqft`}
+                    {home.price && ` • ${home.price}`}
+                  </div>
                 </button>
               );
             })

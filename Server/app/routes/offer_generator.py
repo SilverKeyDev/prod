@@ -710,29 +710,161 @@ def generate_negotiation_strategy():
             logger.error(f"❌ [NEGOTIATION_STRATEGY] Failed to load user preferences: {str(e)}")
             # Continue without preferences - service will use defaults
         
+        # Fetch detailed property information using get_property_via_address logic
+        property_data = None
+        commute_data = None
+        property_analysis = None
+        
+        try:
+            logger.info(f"🏠 [NEGOTIATION_STRATEGY] Fetching detailed property data for: {address}")
+            
+            # Import necessary modules for property data fetching
+            import os, requests, json
+            from app.services.graphic_generation import fetch_travel_time, generate_static_map_url
+            from app.models.user_preferences import UserPreferences
+            from app.services.search_help import analyze_property_with_sonar_pro
+            
+            # Get API keys
+            RAPI_HOST = os.getenv("RAPIDAPI_HOST", "zillow-com1.p.rapidapi.com")
+            RAPI_KEY = os.getenv("RAPIDAPI_KEY")
+            GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
+            
+            if RAPI_KEY:
+                # Call Zillow API to get property details
+                url = f"https://{RAPI_HOST}/property"
+                headers = {
+                    "x-rapidapi-host": RAPI_HOST,
+                    "x-rapidapi-key": RAPI_KEY,
+                    "Accept": "application/json",
+                }
+                params = {"address": address.strip()}
+                
+                logger.info(f"🔍 [NEGOTIATION_STRATEGY] Calling Zillow API for property details")
+                r = requests.get(url, headers=headers, params=params, timeout=20)
+                
+                if r.ok:
+                    property_data = r.json()
+                    logger.info(f"✅ [NEGOTIATION_STRATEGY] Successfully fetched property data")
+                    
+                    # Extract property address for commute calculations
+                    property_address = address.strip()
+                    if isinstance(property_data, dict):
+                        street = property_data.get('streetAddress', '')
+                        city = property_data.get('city', '')
+                        state = property_data.get('state', '')
+                        zipcode = property_data.get('zipcode', '')
+                        if street and city and state:
+                            property_address = f"{street}, {city}, {state} {zipcode}".strip()
+                    
+                    # Get commute data if user preferences and Google Maps API available
+                    if user_preferences and GOOGLE_MAPS_API_KEY:
+                        logger.info(f"🗺️ [NEGOTIATION_STRATEGY] Calculating commute data")
+                        commute_data = {'travel_times': [], 'property_address': property_address}
+                        
+                        # Parse important locations from user preferences
+                        important_locations = []
+                        locations_data = user_preferences.get('important_locations', [])
+                        
+                        if isinstance(locations_data, str):
+                            try:
+                                locations_data = json.loads(locations_data)
+                            except json.JSONDecodeError:
+                                locations_data = []
+                        
+                        if isinstance(locations_data, list):
+                            important_locations = locations_data
+                        
+                        # Calculate travel times for each important location
+                        for i, location in enumerate(important_locations):
+                            if isinstance(location, dict) and 'address' in location:
+                                location_address = location['address']
+                                location_name = location.get('name', f'Location {i+1}')
+                                
+                                travel_time = fetch_travel_time(property_address, location_address, GOOGLE_MAPS_API_KEY)
+                                
+                                commute_data['travel_times'].append({
+                                    'name': location_name,
+                                    'address': location_address,
+                                    'travel_time': travel_time,
+                                    'commute_tolerance': location.get('commute_tolerance', 30)
+                                })
+                                
+                                logger.info(f"🗺️ [NEGOTIATION_STRATEGY] Travel time to {location_name}: {travel_time}")
+                    
+                    # Get property analysis using Perplexity Sonar Pro
+                    if user_preferences and isinstance(property_data, dict):
+                        logger.info(f"🔍 [NEGOTIATION_STRATEGY] Starting property analysis")
+                        
+                        # Prepare home object for analysis
+                        home_object = {
+                            'address': property_address,
+                            'price': property_data.get('price', property_data.get('listPrice', 0)),
+                            'bedrooms': property_data.get('bedrooms', property_data.get('beds', 0)),
+                            'bathrooms': property_data.get('bathrooms', property_data.get('baths', 0)),
+                            'livingArea': property_data.get('livingArea', property_data.get('sqft', 0)),
+                            'propertyType': property_data.get('propertyType', property_data.get('homeType', 'Unknown')),
+                            'lotAreaValue': property_data.get('lotAreaValue'),
+                            'lotAreaUnit': property_data.get('lotAreaUnit'),
+                            'listingStatus': property_data.get('listingStatus'),
+                            'city': property_data.get('city'),
+                            'state': property_data.get('state'),
+                            'zipcode': property_data.get('zipcode')
+                        }
+                        
+                        # Call the property analysis function
+                        analysis_result = analyze_property_with_sonar_pro(user_preferences, home_object)
+                        
+                        if analysis_result:
+                            property_analysis = {
+                                'pros': analysis_result.pros,
+                                'cons': analysis_result.cons,
+                                'neighborhood_overview': analysis_result.neighborhood_overview,
+                                'crime_stats': analysis_result.crime_stats,
+                                'gentrification_index': analysis_result.gentrification_index,
+                                'roi_explanation': analysis_result.roi_explanation
+                            }
+                            logger.info(f"✅ [NEGOTIATION_STRATEGY] Successfully completed property analysis")
+                        else:
+                            logger.warning(f"⚠️ [NEGOTIATION_STRATEGY] Property analysis returned no results")
+                else:
+                    logger.warning(f"⚠️ [NEGOTIATION_STRATEGY] Zillow API call failed: {r.status_code}")
+            else:
+                logger.warning(f"⚠️ [NEGOTIATION_STRATEGY] RapidAPI key not configured, skipping property data fetch")
+                
+        except Exception as e:
+            logger.error(f"❌ [NEGOTIATION_STRATEGY] Error fetching property data: {str(e)}")
+            # Continue without property data - strategy will use address only
+        
         # Call the strategy generation service
         try:
             # Use the standardgen service to generate negotiation strategy
-            # This follows the same pattern as report generation with user preferences
+            # Enhanced with property data, commute info, and property analysis
+            enhanced_params = {
+                'strategy_type': 'comprehensive',
+                'include_market_analysis': True,
+                'include_tactics': True,
+                'temperature': 0.2,
+                'max_tokens': 3000,
+                'property_data': property_data,
+                'commute_data': commute_data,
+                'property_analysis': property_analysis
+            }
+            
+            logger.info(f"🎯 [NEGOTIATION_STRATEGY] Generating strategy with enhanced property data")
+            
             strategy_data = generate_report(
                 section_type="negotiation_strategy",
                 address=address,
                 filename=filename,
                 user_id=preferences_user_id,
-                params={
-                    'strategy_type': 'comprehensive',
-                    'include_market_analysis': True,
-                    'include_tactics': True,
-                    'temperature': 0.2,
-                    'max_tokens': 3000
-                },
+                params=enhanced_params,
                 user_preferences=user_preferences
             )
             
             logger.info(f"✅ [NEGOTIATION_STRATEGY] Successfully generated strategy for {address}")
             
-            # Return the generated strategy data
-            return jsonify({
+            # Return the generated strategy data with enhanced property information
+            response_data = {
                 'success': True,
                 'strategy': strategy_data,
                 'property_address': address,
@@ -740,7 +872,22 @@ def generate_negotiation_strategy():
                 'filename': filename,
                 'generated_at': datetime.utcnow().isoformat(),
                 'generated_for_user': preferences_user_id
-            }), 200
+            }
+            
+            # Include enhanced property data if available
+            if property_data:
+                response_data['property_data'] = property_data
+                logger.info(f"📊 [NEGOTIATION_STRATEGY] Including property data in response")
+            
+            if commute_data:
+                response_data['commute_data'] = commute_data
+                logger.info(f"🗺️ [NEGOTIATION_STRATEGY] Including commute data in response")
+            
+            if property_analysis:
+                response_data['property_analysis'] = property_analysis
+                logger.info(f"🔍 [NEGOTIATION_STRATEGY] Including property analysis in response")
+            
+            return jsonify(response_data), 200
             
         except Exception as e:
             error_msg = f"Strategy generation failed: {str(e)}"

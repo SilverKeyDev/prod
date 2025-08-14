@@ -1423,75 +1423,63 @@ export default function SearchPage() {
           return;
         }
 
-        // Step 3: Extract favorite addresses from API response (backend returns { favorites: string[] })
-        const favoriteAddresses = favoritesData.favorites || [];
-        console.log("🏠 Step 4: Processing favorite addresses...");
-        console.log("🏠 FAVORITE ADDRESSES SUMMARY:");
-        console.log("  🔢 Total Count:", favoriteAddresses.length);
-        favoriteAddresses.forEach((address: string, index: number) => {
-          console.log(`  ${index + 1}. Address: "${address}"`);
+        // Step 3: Extract actual saved homes data from API response (backend returns { favorites: HomeUniversal[] })
+        const rawHomes = favoritesData.favorites || [];
+        console.log("🏠 Step 4: Processing saved homes data...");
+        console.log("🏠 SAVED HOMES SUMMARY:");
+        console.log("  🔢 Total Count:", rawHomes.length);
+        rawHomes.forEach((home: any, index: number) => {
+          console.log(`  ${index + 1}. Address: "${home.address || 'N/A'}" - Price: ${home.price || 'N/A'} - ${home.beds || 0}br/${home.baths || 0}ba`);
         });
 
-        // Step 4: Convert favorite addresses to SearchResult objects with dummy data
-        if (favoriteAddresses.length > 0) {
+        // Step 4: Convert HomeUniversal objects to SearchResult format (same as UserDashboard)
+        if (rawHomes.length > 0) {
           console.log(
-            "🔄 Step 5: Converting favorite addresses to SearchResult objects..."
+            "🔄 Step 5: Converting HomeUniversal objects to SearchResult format..."
           );
 
-          const savedHomesData: SearchResult[] = favoriteAddresses.map(
-            (address: string, index: number) => {
-              // Generate realistic dummy data for each saved home
-              const dummyPrices = [
-                425000, 550000, 675000, 789000, 825000, 950000, 1200000,
-              ];
-              const dummyBedrooms = [2, 3, 3, 4, 4, 5, 5];
-              const dummyBathrooms = [1.5, 2, 2.5, 2.5, 3, 3.5, 4];
-              const dummySqft = [1200, 1450, 1800, 2100, 2400, 2800, 3200];
-              const dummyImages = [
-                "https://photos.zillowstatic.com/fp/01cb7e1f500768d5c6e07439ff5906c0-p_e.jpg",
-                "https://photos.zillowstatic.com/fp/02ab8e2f600878d6c7e18549ff6917d1-p_e.jpg",
-                "https://photos.zillowstatic.com/fp/03bc9f3f701989e7d8f29659ff7928e2-p_e.jpg",
-                "https://photos.zillowstatic.com/fp/04cd0f4f802090f8e9f30769ff8039f3-p_e.jpg",
-                "https://photos.zillowstatic.com/fp/05de1f5f903101f9f0f41879ff9140f4-p_e.jpg",
-              ];
-
-              const randomIndex = index % dummyPrices.length;
-
+          const savedHomesData: SearchResult[] = rawHomes.map(
+            (home: any, index: number) => {
               return {
-                id: `saved_${index + 1}`,
-                address: address,
-                price: `$${dummyPrices[randomIndex].toLocaleString()}`,
-                bedrooms: dummyBedrooms[randomIndex],
-                bathrooms: dummyBathrooms[randomIndex],
-                sqft: dummySqft[randomIndex],
-                lat: 33.749 + (Math.random() - 0.5) * 0.1, // Atlanta area with some variation
-                lng: -84.388 + (Math.random() - 0.5) * 0.1,
-                lotSize: `${(0.2 + Math.random() * 0.8).toFixed(3)} acres`,
-                propertyType: "SINGLE_FAMILY",
-                listingStatus: "FOR_SALE",
-                imageUrl: dummyImages[randomIndex],
+                id: home.address || `saved_${index + 1}`,
+                address: home.address || "Address not available",
+                price: typeof home.price === 'string' && home.price.startsWith('$') 
+                  ? home.price 
+                  : `$${home.price?.toLocaleString() || 'N/A'}`,
+                bedrooms: parseInt(home.beds) || 0,
+                bathrooms: parseInt(home.baths) || 0,
+                sqft: parseInt(home.sqft) || 0,
+                lat: home.lat || 33.749,
+                lng: home.lng || -84.388,
+                lotSize: home.lot_size || undefined,
+                propertyType: home.property_type || "SINGLE_FAMILY",
+                listingStatus: home.listing_status || "FOR_SALE",
+                imageUrl: home.image_url || undefined,
               };
             }
           );
 
-          console.log("🏠 Created saved homes with dummy data:");
+          console.log("🏠 Created saved homes with real data:");
           savedHomesData.forEach((home, index) => {
             console.log(
               `  ${index + 1}. ${home.address} - ${home.price} - ${
                 home.bedrooms
-              }br/${home.bathrooms}ba`
+              }br/${home.bathrooms}ba - ${home.sqft} sqft`
             );
           });
+
+          // Extract addresses for favoriteAddresses state (for compatibility)
+          const favoriteAddresses = rawHomes.map((home: any) => home.address).filter(Boolean);
 
           // Update state
           setFavoriteAddresses(favoriteAddresses);
           setSavedHomes(savedHomesData);
           console.log(
-            "✅ Successfully set saved homes with dummy data in component state"
+            "✅ Successfully set saved homes with real data in component state"
           );
         } else {
           console.log(
-            "ℹ️ No favorite addresses found, saved homes will remain empty"
+            "ℹ️ No saved homes found, saved homes will remain empty"
           );
         }
 
@@ -1739,50 +1727,133 @@ export default function SearchPage() {
     }
   };
   const saveHome = async (property: SearchResult) => {
+    console.log("🏠 ===== HOME SAVE OPERATION STARTED (FRONTEND) =====");
+    console.log("🕐 Timestamp:", new Date().toISOString());
+    console.log("🏠 Property to save:", {
+      id: property.id,
+      address: property.address,
+      price: property.price,
+      bedrooms: property.bedrooms,
+      bathrooms: property.bathrooms,
+      sqft: property.sqft,
+      propertyType: property.propertyType,
+      listingStatus: property.listingStatus,
+      imageUrl: property.imageUrl
+    });
+    console.log("📊 Current saved homes count before save:", savedHomes.length);
+    
     try {
+      console.log("🔄 Calling backend API to add favorite...");
       // Call backend API to add favorite
       const response = await favoriteHomesApi.addFavorite(property);
+      console.log("📥 Backend API response received:", {
+        success: response.success,
+        error: response.error,
+        favoritesCount: response.data?.favorites?.length || 0
+      });
 
       if (response.success) {
+        console.log("✅ Backend API call successful, updating frontend state...");
+        
         // Update local state
-        if (!savedHomes.find((home) => home.id === property.id)) {
-          setSavedHomes((prev) => [...prev, property]);
+        const isAlreadySaved = savedHomes.find((home) => home.id === property.id);
+        console.log("🔍 Is home already in local state?", !!isAlreadySaved);
+        
+        if (!isAlreadySaved) {
+          console.log("➕ Adding home to local savedHomes state");
+          setSavedHomes((prev) => {
+            const newSavedHomes = [...prev, property];
+            console.log("📊 New saved homes count after local update:", newSavedHomes.length);
+            return newSavedHomes;
+          });
+        } else {
+          console.log("ℹ️ Home already exists in local state, skipping local update");
         }
+        
         // Update favorite addresses from backend response
         if (response.data?.favorites) {
+          console.log("🔄 Updating favoriteAddresses from backend response:", response.data.favorites.length, "addresses");
           setFavoriteAddresses(response.data.favorites);
         }
-        console.log("✅ Home added to favorites:", property.address);
+        
+        console.log("✅ Home successfully added to favorites:", property.address);
+        console.log("🏠 ===== HOME SAVE OPERATION COMPLETED SUCCESSFULLY (FRONTEND) =====");
       } else {
-        console.error("❌ Failed to add favorite:", response.error);
+        console.error("❌ Backend API returned failure:", response.error);
+        console.error("🏠 ===== HOME SAVE OPERATION FAILED (FRONTEND) =====");
       }
     } catch (error) {
+      console.error("🏠 ===== HOME SAVE OPERATION FAILED (FRONTEND) =====");
       console.error("❌ Error adding favorite:", error);
+      console.error("❌ Error type:", typeof error);
+      if (error instanceof Error) {
+        console.error("❌ Error message:", error.message);
+        console.error("❌ Error stack:", error.stack);
+      }
     }
   };
 
   const removeSavedHome = async (propertyId: string) => {
+    console.log("🗑️ ===== HOME UNSAVE OPERATION STARTED (FRONTEND) =====");
+    console.log("🕐 Timestamp:", new Date().toISOString());
+    console.log("🗑️ Property ID to remove:", propertyId);
+    console.log("📊 Current saved homes count before removal:", savedHomes.length);
+    
     try {
       // Find the property to get its address
       const property = savedHomes.find((home) => home.id === propertyId);
-      if (!property) return;
+      if (!property) {
+        console.error("❌ Property not found in local savedHomes state:", propertyId);
+        console.error("🗑️ ===== HOME UNSAVE OPERATION FAILED (FRONTEND) =====");
+        return;
+      }
+      
+      console.log("🏠 Property found for removal:", {
+        id: property.id,
+        address: property.address,
+        price: property.price
+      });
 
+      console.log("🔄 Calling backend API to remove favorite...");
       // Call backend API to remove favorite
       const response = await favoriteHomesApi.removeFavorite(property.address);
+      console.log("📥 Backend API response received:", {
+        success: response.success,
+        error: response.error,
+        favoritesCount: response.data?.favorites?.length || 0
+      });
 
       if (response.success) {
+        console.log("✅ Backend API call successful, updating frontend state...");
+        
         // Update local state
-        setSavedHomes((prev) => prev.filter((home) => home.id !== propertyId));
+        console.log("➖ Removing home from local savedHomes state");
+        setSavedHomes((prev) => {
+          const newSavedHomes = prev.filter((home) => home.id !== propertyId);
+          console.log("📊 New saved homes count after local removal:", newSavedHomes.length);
+          return newSavedHomes;
+        });
+        
         // Update favorite addresses from backend response
         if (response.data?.favorites) {
+          console.log("🔄 Updating favoriteAddresses from backend response:", response.data.favorites.length, "addresses");
           setFavoriteAddresses(response.data.favorites);
         }
-        console.log("✅ Home removed from favorites:", property.address);
+        
+        console.log("✅ Home successfully removed from favorites:", property.address);
+        console.log("🗑️ ===== HOME UNSAVE OPERATION COMPLETED SUCCESSFULLY (FRONTEND) =====");
       } else {
-        console.error("❌ Failed to remove favorite:", response.error);
+        console.error("❌ Backend API returned failure:", response.error);
+        console.error("🗑️ ===== HOME UNSAVE OPERATION FAILED (FRONTEND) =====");
       }
     } catch (error) {
+      console.error("🗑️ ===== HOME UNSAVE OPERATION FAILED (FRONTEND) =====");
       console.error("❌ Error removing favorite:", error);
+      console.error("❌ Error type:", typeof error);
+      if (error instanceof Error) {
+        console.error("❌ Error message:", error.message);
+        console.error("❌ Error stack:", error.stack);
+      }
     }
   };
 
@@ -2088,40 +2159,12 @@ export default function SearchPage() {
                                 <div className="grid grid-cols-3 gap-2 text-xs text-gray-600 mb-1">
                                   <div>{property.bedrooms} beds</div>
                                   <div>{property.bathrooms} baths</div>
-                                  <div>
-                                    {property.sqft.toLocaleString()} sqft
-                                  </div>
-                                </div>
-
-                                {/* Match Score */}
-                                {(() => {
-                                  const score = calculatePropertyScore(property);
-                                  const { fillColor, strokeColor } =
-                                    getScoreBasedPinColor(score);
-                                  return (
-                                    <div className="flex items-center gap-2 mb-1">
-                                      <div
-                                        className="px-2 py-1 rounded text-xs font-semibold"
-                                        style={{
-                                          backgroundColor: fillColor,
-                                          color: strokeColor,
-                                        }}
-                                      >
-                                        {score}/100
-                                      </div>
-                                      <span className="text-xs text-gray-500">
-                                        Match Score
-                                      </span>
+                                  {property.sqft > 0 && (
+                                    <div>
+                                      {property.sqft.toLocaleString()} sqft
                                     </div>
-                                  );
-                                })()}
-
-                                {/* Lot Size */}
-                                {property.lotSize && (
-                                  <div className="text-xs text-gray-500">
-                                    Lot: {property.lotSize}
-                                  </div>
-                                )}
+                                  )}
+                                </div>
                               </div>
                               <HeartSave
                                 property={property}

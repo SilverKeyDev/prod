@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
 import json
 import requests
+from datetime import datetime
 from app.models.user import User
 from app.utils.address_format import normalize_address, denormalize_address
 import os
@@ -369,29 +370,50 @@ def favorite_homes():
 @user_bp.route('/favorite-homes/add', methods=['POST'])
 def add_favorite_home():
     """Add a single home to the user's favorites list and store full home data in home_universal."""
-    current_app.logger.info("\ud83c\udfe0 /favorite-homes/add endpoint invoked")
+    current_app.logger.info("🏠 ===== HOME SAVE OPERATION STARTED =====")
+    current_app.logger.info("🏠 /favorite-homes/add endpoint invoked")
+    current_app.logger.info(f"🕐 Timestamp: {datetime.utcnow().isoformat()}")
 
     user = _get_user()
     if not user:
+        current_app.logger.warning("❌ Unauthorized attempt to save home - no valid user found")
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    current_app.logger.info(f"👤 User authenticated: {user.id} ({user.email})")
 
     try:
         data = request.get_json(force=True)
+        current_app.logger.info(f"📥 Received save home request data keys: {list(data.keys()) if data else 'None'}")
+        
         home = data.get('home')
         if not home or not isinstance(home, dict):
+            current_app.logger.error("❌ Invalid home object in request")
             return jsonify({'success': False, 'error': 'Home object is required'}), 400
 
         address = home.get('address')
         if not address or not isinstance(address, str):
+            current_app.logger.error(f"❌ Invalid address in home object: {address}")
             return jsonify({'success': False, 'error': 'Address is required and must be a string'}), 400
+        
+        current_app.logger.info(f"🏠 Attempting to save home: {address}")
+        current_app.logger.info(f"🏠 Home details: {home.get('bedrooms', 'N/A')}br/{home.get('bathrooms', 'N/A')}ba, {home.get('sqft', 'N/A')} sqft, ${home.get('price', 'N/A')}")
 
         # Check if home is already in favorites
         from app.models.home_universal import HomeUniversal
+        current_app.logger.info(f"🔍 Checking if home already exists in favorites for user {user.id}")
         home_universal = HomeUniversal.query.filter_by(user_id=str(user.id), address=address).first()
         if home_universal:
+            current_app.logger.warning(f"⚠️ Home already exists in favorites: {address}")
             return jsonify({'success': False, 'error': 'Home is already in favorites'}), 400
+        
+        current_app.logger.info("✅ Home not found in existing favorites, proceeding with save")
 
         # Add new HomeUniversal record for this user
+        current_app.logger.info("💾 Creating new HomeUniversal database record")
+        
+        # Handle both camelCase (imageUrl) and snake_case (image_url) field names
+        image_url = home.get('image_url', '') or home.get('imageUrl', '')
+        
         home_universal = HomeUniversal(
             user_id=str(user.id),
             address=address,
@@ -400,15 +422,21 @@ def add_favorite_home():
             sqft=home.get('sqft', ''),
             lot_size=home.get('lotSize', ''),
             price=home.get('price', ''),
-            image_url=home.get('image_url', '')
+            image_url=image_url
         )
+        current_app.logger.info(f"💾 Database record details: beds={home.get('bedrooms', '')}, baths={home.get('bathrooms', '')}, sqft={home.get('sqft', '')}, lot_size={home.get('lotSize', '')}, price={home.get('price', '')}, image_url={image_url[:50] if image_url else 'None'}...")
+        
         db.session.add(home_universal)
         db.session.commit()
-        current_app.logger.info(f"Added favorite home: {address}")
+        current_app.logger.info(f"✅ Successfully saved home to database: {address}")
         
         # Return all HomeUniversal rows for this user
+        current_app.logger.info("📊 Retrieving updated favorites list for response")
         homes = HomeUniversal.query.filter_by(user_id=str(user.id)).all()
         favorites = [home.to_dict() for home in homes]
+        current_app.logger.info(f"📊 User now has {len(favorites)} total saved homes")
+        current_app.logger.info("🏠 ===== HOME SAVE OPERATION COMPLETED SUCCESSFULLY =====")
+        
         return jsonify({
             'success': True,
             'message': 'Home added to favorites',
@@ -416,35 +444,65 @@ def add_favorite_home():
         })
 
     except Exception as e:
-        current_app.logger.error(f"Failed to add favorite home: {e}")
+        current_app.logger.error("🏠 ===== HOME SAVE OPERATION FAILED =====")
+        current_app.logger.error(f"❌ Failed to add favorite home: {e}")
+        current_app.logger.error(f"❌ Exception type: {type(e).__name__}")
+        current_app.logger.error(f"❌ Exception details: {str(e)}")
+        import traceback
+        current_app.logger.error(f"❌ Stack trace: {traceback.format_exc()}")
         return jsonify({'success': False, 'error': 'Server error'}), 500
 
 
 @user_bp.route('/favorite-homes/remove', methods=['POST'])
 def remove_favorite_home():
     """Remove a single home address from the user's favorites list."""
+    current_app.logger.info("🗑️ ===== HOME UNSAVE OPERATION STARTED =====")
     current_app.logger.info("🗑️ /favorite-homes/remove endpoint invoked")
+    current_app.logger.info(f"🕐 Timestamp: {datetime.utcnow().isoformat()}")
     
     user = _get_user()
     if not user:
+        current_app.logger.warning("❌ Unauthorized attempt to remove home - no valid user found")
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    current_app.logger.info(f"👤 User authenticated: {user.id} ({user.email})")
     
     try:
         data = request.get_json(force=True)
+        current_app.logger.info(f"📥 Received remove home request data keys: {list(data.keys()) if data else 'None'}")
+        
         address = data.get('address')
         
         if not address or not isinstance(address, str):
+            current_app.logger.error(f"❌ Invalid address in request: {address}")
             return jsonify({'success': False, 'error': 'Address is required and must be a string'}), 400
+        
+        current_app.logger.info(f"🗑️ Attempting to remove home: {address}")
         
         # Remove HomeUniversal record for this user and address
         from app.models.home_universal import HomeUniversal
-        HomeUniversal.query.filter_by(user_id=str(user.id), address=address).delete()
+        current_app.logger.info(f"🔍 Checking if home exists in favorites for user {user.id}")
+        
+        # Check if home exists before attempting to delete
+        existing_home = HomeUniversal.query.filter_by(user_id=str(user.id), address=address).first()
+        if not existing_home:
+            current_app.logger.warning(f"⚠️ Home not found in favorites: {address}")
+            return jsonify({'success': False, 'error': 'Home not found in favorites'}), 404
+        
+        current_app.logger.info(f"✅ Home found in favorites, proceeding with removal")
+        current_app.logger.info(f"🗑️ Removing home from database: {address}")
+        
+        deleted_count = HomeUniversal.query.filter_by(user_id=str(user.id), address=address).delete()
         db.session.commit()
-        current_app.logger.info(f"Removed favorite home: {address}")
+        current_app.logger.info(f"✅ Successfully removed {deleted_count} home record(s) from database: {address}")
         
         # Return all HomeUniversal rows for this user
+        current_app.logger.info("📊 Retrieving updated favorites list for response")
         homes = HomeUniversal.query.filter_by(user_id=str(user.id)).all()
         favorites = [home.to_dict() for home in homes]
+        current_app.logger.info(f"📊 User now has {len(favorites)} total saved homes")
+        current_app.logger.info("🗑️ ===== HOME UNSAVE OPERATION COMPLETED SUCCESSFULLY =====")
+        
         return jsonify({
             'success': True,
             'message': 'Home removed from favorites',
@@ -452,5 +510,10 @@ def remove_favorite_home():
         })
         
     except Exception as e:
-        current_app.logger.error(f"Failed to remove favorite home: {e}")
+        current_app.logger.error("🗑️ ===== HOME UNSAVE OPERATION FAILED =====")
+        current_app.logger.error(f"❌ Failed to remove favorite home: {e}")
+        current_app.logger.error(f"❌ Exception type: {type(e).__name__}")
+        current_app.logger.error(f"❌ Exception details: {str(e)}")
+        import traceback
+        current_app.logger.error(f"❌ Stack trace: {traceback.format_exc()}")
         return jsonify({'success': False, 'error': 'Server error'}), 500

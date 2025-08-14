@@ -124,7 +124,7 @@ const TimelineChecklist: React.FC<TimelineChecklistProps> = ({
                   {/* Main icon */}
                   <Link
                     to={step.subSteps[0]?.href || "#"}
-                    className="w-10 h-10 rounded-full flex items-center justify-center transition-colors bg-brown text-white"
+                    className="w-10 h-10 rounded-full flex items-center justify-center transition-colors bg-olive text-white"
                     title={step.name}
                   >
                     <StepIcon size={20} color="white" />

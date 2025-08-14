@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { formatFilenameToAddress, truncateText } from "../lib/addressFormat";
 import PropertyDetailsModal from './PropertyDetailsModal';
+import HeartSave from './HeartSave';
 
 export interface HomeDescription {
   home_id: string;
@@ -11,13 +12,24 @@ export interface HomeDescription {
 
 interface HomeCardProps {
   home: HomeDescription;
+  /** Function to check if home is saved */
+  isHomeSaved?: (homeId: string) => boolean;
+  /** Function to save the home */
+  onSave?: (home: HomeDescription) => void | Promise<void>;
+  /** Function to remove the home */
+  onRemove?: (homeId: string) => void | Promise<void>;
 }
 
 /**
  * Simple presentation component to display a saved home.
  * Can be enhanced later with images, price, address, etc.
  */
-export default function HomeCard({ home }: HomeCardProps) {
+export default function HomeCard({ 
+  home, 
+  isHomeSaved = () => true, // Default to true since these are saved homes
+  onSave = () => {}, 
+  onRemove = () => {} 
+}: HomeCardProps) {
   const [showModal, setShowModal] = useState(false);
   const placeholder = "https://placehold.co/600x400?text=No+Image";
   
@@ -41,16 +53,15 @@ export default function HomeCard({ home }: HomeCardProps) {
     };
   };
 
-
-  // Mock functions for modal (these would typically come from parent component)
-  const isHomeSaved = () => true; // Since this is already a saved home
-  const saveHome = () => {}; // No-op since already saved
-  const removeSavedHome = () => {}; // Could implement removal logic
+  // Modal functions for property details
+  const isHomeSavedForModal = () => true; // Since this is already a saved home
+  const saveHomeForModal = () => {}; // No-op since already saved
+  const removeSavedHomeForModal = () => {}; // Could implement removal logic
   
   return (
     <div className="border rounded-lg shadow-sm bg-white hover:shadow-md transition overflow-hidden">
       {/* Image */}
-      <div className="w-full h-48 bg-gray-100 overflow-hidden">
+      <div className="w-full h-32 bg-gray-100 overflow-hidden">
         <img
           src={home.image_url || placeholder}
           alt={home.description || displayName}
@@ -58,24 +69,76 @@ export default function HomeCard({ home }: HomeCardProps) {
           loading="lazy"
         />
       </div>
-      <div className="p-4">
-        <h3 className="font-semibold text-lg mb-2 truncate" title={displayName}>
-          {displayName}
-        </h3>
-        {home.description && (
-          <p className="text-sm text-gray-700 line-clamp-3 mb-3">
-            {home.description}
-          </p>
-        )}
+      <div className="p-3">
+        <div className="flex items-start justify-between mb-2">
+          <div className="flex-1">
+            {/* Property Type and Status (if available) */}
+            <div className="flex items-center gap-2 mb-1">
+              {home.propertyType &&
+                home.propertyType.toLowerCase() !== "single_family" && (
+                  <span className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded">
+                    {home.propertyType}
+                  </span>
+                )}
+              {typeof home.listingStatus === "string" &&
+                home.listingStatus.toLowerCase() !== "for_sale" && (
+                  <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
+                    {home.listingStatus}
+                  </span>
+                )}
+            </div>
+
+            {/* Address */}
+            <h3 className="text-sm font-medium text-black line-clamp-2 mb-1">
+              {typeof displayName === "string" || typeof displayName === "number"
+                ? displayName
+                : "[Invalid address]"}
+            </h3>
+
+            {/* Price */}
+            <p className="text-lg font-semibold text-brown mb-2">
+              {typeof home.price === "string" || typeof home.price === "number"
+                ? (typeof home.price === 'string' && home.price.startsWith('$') 
+                    ? home.price 
+                    : `$${home.price?.toLocaleString() || 'N/A'}`)
+                : "[Invalid price]"}
+            </p>
+
+            {/* Property Details - exactly like search results */}
+            <div className="grid grid-cols-3 gap-2 text-xs text-gray-600 mb-1">
+              <div>{home.bedrooms || 0} beds</div>
+              <div>{home.bathrooms || 0} baths</div>
+              {(home.sqft && home.sqft > 0) && (
+                <div>
+                  {home.sqft.toLocaleString()} sqft
+                </div>
+              )}
+            </div>
+
+            {/* Lot Size */}
+            {home.lot_size && (
+              <div className="text-xs text-gray-500">
+                Lot: {home.lot_size}
+              </div>
+            )}
+          </div>
+          <HeartSave
+            property={convertToProperty(home)}
+            isSaved={isHomeSaved(home.home_id)}
+            onSave={onSave}
+            onRemove={onRemove}
+            size="sm"
+          />
+        </div>
       </div>
 
       {/* Property Details Modal */}
       <PropertyDetailsModal
         property={showModal ? convertToProperty(home) : null}
         onClose={() => setShowModal(false)}
-        isHomeSaved={isHomeSaved}
-        saveHome={saveHome}
-        removeSavedHome={removeSavedHome}
+        isHomeSaved={isHomeSavedForModal}
+        saveHome={saveHomeForModal}
+        removeSavedHome={removeSavedHomeForModal}
       />
     </div>
   );

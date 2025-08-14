@@ -202,8 +202,12 @@ def _build_payload(
             "Include specific tactics, market analysis, pricing recommendations, and negotiation approaches."
         )
         
-        # Enhanced user content with preferences integration
+        # Enhanced user content with preferences and property data integration
         user_preferences_text = ""
+        property_data_text = ""
+        commute_data_text = ""
+        property_analysis_text = ""
+        
         if user_preferences:
             # Extract key preferences for strategy personalization
             budget = user_preferences.get('home_budget', 'Not specified')
@@ -220,16 +224,80 @@ Buyer Profile:
 - Priorities: {', '.join(priorities) if priorities else 'Not specified'}
 """
         
+        # Include detailed property data if available
+        if params.get('property_data'):
+            property_data = params['property_data']
+            price = property_data.get('price', property_data.get('listPrice', 'Not available'))
+            bedrooms = property_data.get('bedrooms', property_data.get('beds', 'Not available'))
+            bathrooms = property_data.get('bathrooms', property_data.get('baths', 'Not available'))
+            sqft = property_data.get('livingArea', property_data.get('sqft', 'Not available'))
+            property_type = property_data.get('propertyType', property_data.get('homeType', 'Not available'))
+            listing_status = property_data.get('listingStatus', 'Not available')
+            lot_size = property_data.get('lotAreaValue', 'Not available')
+            
+            property_data_text = f"""
+
+Property Details:
+- List Price: ${price:,} if isinstance(price, (int, float)) else price
+- Bedrooms: {bedrooms}
+- Bathrooms: {bathrooms}
+- Square Feet: {sqft:,} if isinstance(sqft, (int, float)) else sqft
+- Property Type: {property_type}
+- Listing Status: {listing_status}
+- Lot Size: {lot_size}
+"""
+        
+        # Include commute data if available
+        if params.get('commute_data'):
+            commute_data = params['commute_data']
+            travel_times = commute_data.get('travel_times', [])
+            if travel_times:
+                commute_info = []
+                for travel in travel_times:
+                    name = travel.get('name', 'Location')
+                    time = travel.get('travel_time', 'Unknown')
+                    tolerance = travel.get('commute_tolerance', 30)
+                    status = "✅ Within tolerance" if isinstance(time, str) and "min" in time and int(time.split()[0]) <= tolerance else "⚠️ May exceed tolerance"
+                    commute_info.append(f"  - {name}: {time} ({status})")
+                
+                commute_data_text = f"""
+
+Commute Analysis:
+{chr(10).join(commute_info)}
+"""
+        
+        # Include property analysis if available
+        if params.get('property_analysis'):
+            analysis = params['property_analysis']
+            pros = analysis.get('pros', [])
+            cons = analysis.get('cons', [])
+            neighborhood = analysis.get('neighborhood_overview', '')
+            crime_stats = analysis.get('crime_stats', '')
+            gentrification = analysis.get('gentrification_index', '')
+            roi = analysis.get('roi_explanation', '')
+            
+            property_analysis_text = f"""
+
+Property Analysis:
+- Pros: {', '.join(pros) if pros else 'Not available'}
+- Cons: {', '.join(cons) if cons else 'Not available'}
+- Neighborhood: {neighborhood[:200] + '...' if len(neighborhood) > 200 else neighborhood}
+- Crime Stats: {crime_stats}
+- Gentrification Index: {gentrification}
+- ROI Potential: {roi[:200] + '...' if len(roi) > 200 else roi}
+"""
+        
         user_content = (
             f"Generate a comprehensive negotiation strategy for the property at {address}. "
-            f"Research current market conditions, comparable sales, and property details. "
-            f"Create a personalized strategy that includes: "
+            f"Use the provided property data, commute analysis, and market insights to create a personalized strategy. "
+            f"Create a detailed strategy that includes: "
             f"1. Market analysis and seller intelligence "
             f"2. Pricing strategy with offer recommendations "
             f"3. Negotiation tactics and communication approach "
             f"4. Contingency planning and risk management "
-            f"5. Timeline and closing considerations{user_preferences_text}"
-            f"\n\nReturn comprehensive strategy as valid JSON only."
+            f"5. Timeline and closing considerations{user_preferences_text}{property_data_text}{commute_data_text}{property_analysis_text}"
+            f"\n\nUse all provided information to create a highly personalized and data-driven negotiation strategy. "
+            f"Return comprehensive strategy as valid JSON only."
         )
         
         # Increase token limit for comprehensive strategy
