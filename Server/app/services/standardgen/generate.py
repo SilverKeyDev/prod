@@ -81,11 +81,47 @@ def validate_address(address: str) -> bool:
 # Utility: remove empty fields
 # -------------------------------------------------
 def _remove_empty_fields(obj):
+    """
+    Recursively remove fields that are None, empty strings, empty lists, or empty dicts.
+    """
     if isinstance(obj, dict):
-        return {k: _remove_empty_fields(v) for k, v in obj.items() if v not in ("", None, [], {})}
-    if isinstance(obj, list):
-        return [ _remove_empty_fields(x) for x in obj if x not in ("", None, [], {}) ]
-    return obj
+        return {k: _remove_empty_fields(v) for k, v in obj.items() 
+                if v is not None and v != "" and v != [] and v != {}}
+    elif isinstance(obj, list):
+        return [_remove_empty_fields(item) for item in obj 
+                if item is not None and item != "" and item != [] and item != {}]
+    else:
+        return obj
+
+def _fix_object_placeholders(obj):
+    """
+    Recursively fix [object Object] placeholders and other problematic content.
+    """
+    if isinstance(obj, dict):
+        return {k: _fix_object_placeholders(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        fixed_list = []
+        for item in obj:
+            if isinstance(item, str):
+                # Remove [object Object] placeholders
+                if item == "[object Object]" or item.strip() == "[object Object]":
+                    continue  # Skip this item entirely
+                # Fix other placeholder patterns
+                item = item.replace("[object Object]", "").strip()
+                if item:  # Only add non-empty items
+                    fixed_list.append(item)
+            else:
+                fixed_item = _fix_object_placeholders(item)
+                if fixed_item:  # Only add non-empty items
+                    fixed_list.append(fixed_item)
+        return fixed_list
+    elif isinstance(obj, str):
+        # Fix string placeholders
+        if obj == "[object Object]" or obj.strip() == "[object Object]":
+            return ""
+        return obj.replace("[object Object]", "").strip()
+    else:
+        return obj
 
 # -------------------------------------------------
 # JSON parse w/ cleanup
@@ -110,16 +146,66 @@ def _safe_parse_json(text: str, report_customization: Optional[dict] = None) -> 
         cleaned = cleaned.replace("“", '"').replace("”", '"').replace("’", "'")
         # remove trailing commas before ] or }
         cleaned = re.sub(r",(\s*[}\]])", r"\1", cleaned)
+        
+        # Additional JSON cleaning for malformed strings
+        # Fix unterminated strings by finding and closing them
+        lines = cleaned.split('\n')
+        fixed_lines = []
+        
+        for line in lines:
+            # Fix lines with unterminated strings
+            if '"' in line and line.count('"') % 2 != 0:
+                # Odd number of quotes - likely unterminated string
+                if line.strip().endswith(',') or line.strip().endswith('{') or line.strip().endswith('['):
+                    # Add closing quote before comma/brace
+                    line = re.sub(r'([^"]*"[^"]*)(,|\{|\[)\s*$', r'\1"\2', line)
+                elif not line.strip().endswith('"'):
+                    # Add closing quote at end
+                    line = line.rstrip() + '"'
+            fixed_lines.append(line)
+        
+        cleaned = '\n'.join(fixed_lines)
+        
+        # Remove any remaining malformed JSON patterns
+        cleaned = re.sub(r'"\s*"\s*:', '"":', cleaned)  # Fix empty key patterns
+        cleaned = re.sub(r':\s*"\s*"\s*,', ': "",', cleaned)  # Fix empty value patterns
 
         try:
             parsed = json.loads(cleaned)
         except json.JSONDecodeError as e:
             logger.error(f"🛑 Failed to parse structured JSON: {e}")
+            logger.error(f"🔍 Problematic JSON around character {e.pos}:")
+            start = max(0, e.pos - 100)
+            end = min(len(cleaned), e.pos + 100)
+            logger.error(f"📝 Context: ...{cleaned[start:end]}...")
             logger.error("🧵 Traceback:\n%s", traceback.format_exc())
-            raise ValueError("Failed to parse structured JSON from model output") from e
+            
+            # Try one more fix attempt - truncate at the error position and close JSON
+            try:
+                truncated = cleaned[:e.pos]
+                # Count open braces/brackets and close them
+                open_braces = truncated.count('{') - truncated.count('}')
+                open_brackets = truncated.count('[') - truncated.count(']')
+                
+                # Remove any incomplete key-value pair at the end
+                truncated = re.sub(r',\s*"[^"]*"?\s*$', '', truncated)
+                truncated = re.sub(r',\s*$', '', truncated)
+                
+                # Close open structures
+                for _ in range(open_brackets):
+                    truncated += ']'
+                for _ in range(open_braces):
+                    truncated += '}'
+                
+                logger.info("🔧 Attempting recovery with truncated JSON")
+                parsed = json.loads(truncated)
+                logger.info("✅ Successfully recovered malformed JSON")
+            except:
+                raise ValueError("Failed to parse structured JSON from model output") from e
 
-        logger.info("🧹 CLEANUP: Removing empty fields...")
+        logger.info("🧹 CLEANUP: Removing empty fields and object placeholders...")
         parsed = _remove_empty_fields(parsed)
+        parsed = _fix_object_placeholders(parsed)
         if isinstance(parsed, dict):
             logger.info(f"✅ Successfully parsed and cleaned JSON with {len(parsed.keys())} keys")
         else:
@@ -193,13 +279,20 @@ def _build_payload(
 
     # Enhanced system content for strategy generation
     if section_type == "strategy" or section_type == "negotiation_strategy":
-        system_content = (
-            "You are an expert real estate negotiation strategist and advisor. "
-            "Generate a comprehensive, personalized negotiation strategy for real estate offers. "
-            "Use current market data, property information, and buyer preferences to create actionable advice. "
-            "Return ONLY valid JSON matching the provided response_format schema. "
-            "No markdown, no prose—structured JSON object only. "
-            "Include specific tactics, market analysis, pricing recommendations, and negotiation approaches."
+        system_message = (
+            f"You are an expert real estate negotiation strategist. "
+            f"Generate a comprehensive negotiation strategy for the property at {address}. "
+            "Focus on practical, actionable advice with comp-based rationale and seller pain point leverage. "
+            "\n\nCRITICAL REQUIREMENTS:\n"
+            "1. COMP-BASED OPENING RATIONALE: Reference specific comparable sales data (e.g., 'Comps in original condition within 0.5 miles sold $515k-$540k, supporting this opening'). "
+            "2. SELLER PAIN POINT CONCESSIONS: Tie each concession directly to seller pain points with give-to-get logic (e.g., 'If seller covers demo permit fees, buyer closes in 30 days'). "
+            "3. AGGRESSIVE HOLDING COST LEVERAGE: Work holding costs into negotiation sequence - 'Every 30 days costs seller ~$5k, use after round one to pressure acceptance'. "
+            "4. ACTIONABLE URGENCY STRATEGY: Clear actions like 'Slow-play negotiations to increase holding cost pressure' or 'Accelerate timeline to close before year-end'. "
+            "5. CONDITION TOLERANCE CLARITY: Specify repair tolerance and credit expectations based on buyer's renovation preference. "
+            "6. FIELD CONSOLIDATION: Remove empty/placeholder fields, merge duplicates, consolidate market data into bullet points. "
+            "\n\nIMPORTANT: Return ONLY valid, well-formed JSON. Ensure all strings are properly quoted and terminated. "
+            "No markdown, no prose, no truncated strings—complete, valid JSON object only. "
+            "Keep field values concise to avoid JSON parsing issues. Use simple strings instead of complex nested structures where possible."
         )
         
         # Enhanced user content with preferences and property data integration
@@ -215,13 +308,32 @@ def _build_payload(
             timeline = user_preferences.get('desired_closing_date', 'flexible')
             priorities = user_preferences.get('preferred_home_features', [])
             
+            # Enhanced buyer profile with urgency and leverage analysis
+            search_stage = user_preferences.get('property_search_stage', 'actively_searching')
+            experience = user_preferences.get('home_buying_experience', 'first_time')
+            down_payment = user_preferences.get('down_payment', 0)
+            credit_score = user_preferences.get('credit_score_range', 'good')
+            
+            # Determine buyer urgency level for strategy
+            urgency_level = 'moderate'
+            if search_stage == 'ready_to_buy':
+                urgency_level = 'high'
+            elif search_stage == 'just_looking':
+                urgency_level = 'low'
+            
             user_preferences_text = f"""
             
-Buyer Profile:
+Buyer Profile & Strategy Context:
 - Budget: {budget}
-- Financing: {financing}
+- Financing: {financing} 
 - Timeline: {timeline}
-- Priorities: {', '.join(priorities) if priorities else 'Not specified'}
+- Experience: {experience}
+- Down Payment: ${down_payment:,} ({int((down_payment/budget)*100) if isinstance(down_payment, (int, float)) and budget != 'Not specified' else 'Unknown'}% down)
+- Credit Score: {credit_score}
+- Search Stage: {search_stage}
+- URGENCY LEVEL: {urgency_level} (low = slow-play for concessions, high = accelerate timeline)
+- Renovation Preference: {user_preferences.get('renovation_preference', 'minor')} (affects condition tolerance)
+- Key Priorities: {', '.join(priorities) if priorities else 'Not specified'}
 """
         
         # Include detailed property data if available
@@ -235,14 +347,26 @@ Buyer Profile:
             listing_status = property_data.get('listingStatus', 'Not available')
             lot_size = property_data.get('lotAreaValue', 'Not available')
             
+            # Enhanced property analysis with seller motivation indicators
+            days_on_market = property_data.get('daysOnMarket', property_data.get('dom', 'Unknown'))
+            price_history = property_data.get('priceHistory', [])
+            price_reductions = len([p for p in price_history if p.get('event') == 'Price reduction']) if price_history else 0
+            
+            # Calculate estimated monthly holding costs for leverage analysis
+            estimated_monthly_costs = 'Unknown'
+            if isinstance(price, (int, float)):
+                # Rough estimate: 0.5-1% of home value per month (mortgage, taxes, insurance, maintenance)
+                estimated_monthly_costs = f"${int(price * 0.007):,} - ${int(price * 0.012):,}"
+            
             property_data_text = f"""
 
-Property Details:
+Property Details & Seller Leverage Analysis:
 - List Price: ${price:,} if isinstance(price, (int, float)) else price
-- Bedrooms: {bedrooms}
-- Bathrooms: {bathrooms}
-- Square Feet: {sqft:,} if isinstance(sqft, (int, float)) else sqft
-- Property Type: {property_type}
+- Days on Market: {days_on_market} {'(LEVERAGE: Extended DOM suggests seller urgency)' if isinstance(days_on_market, int) and days_on_market > 60 else ''}
+- Price Reductions: {price_reductions} {'(LEVERAGE: Multiple cuts indicate motivated seller)' if price_reductions > 1 else ''}
+- Estimated Monthly Holding Costs: {estimated_monthly_costs}
+- Bedrooms: {bedrooms} | Bathrooms: {bathrooms} | Sq Ft: {sqft:,} if isinstance(sqft, (int, float)) else sqft
+- Property Type: {property_type} {'(LEVERAGE: Tear-down potential = price flexibility)' if 'tear' in str(property_type).lower() else ''}
 - Listing Status: {listing_status}
 - Lot Size: {lot_size}
 """
@@ -287,18 +411,24 @@ Property Analysis:
 - ROI Potential: {roi[:200] + '...' if len(roi) > 200 else roi}
 """
         
-        user_content = (
-            f"Generate a comprehensive negotiation strategy for the property at {address}. "
-            f"Use the provided property data, commute analysis, and market insights to create a personalized strategy. "
-            f"Create a detailed strategy that includes: "
-            f"1. Market analysis and seller intelligence "
-            f"2. Pricing strategy with offer recommendations "
-            f"3. Negotiation tactics and communication approach "
-            f"4. Contingency planning and risk management "
-            f"5. Timeline and closing considerations{user_preferences_text}{property_data_text}{commute_data_text}{property_analysis_text}"
-            f"\n\nUse all provided information to create a highly personalized and data-driven negotiation strategy. "
-            f"Return comprehensive strategy as valid JSON only."
-        )
+        user_content = f"""
+Generate a negotiation strategy for: {address}
+
+{user_preferences_text}
+{property_data_text}
+{commute_data_text}
+{property_analysis_text}
+
+CRITICAL: Provide strategy with these specific improvements:
+1. COMP-BASED OPENING: Reference specific comparable sales in opening offer rationale
+2. SELLER PAIN POINT CONCESSIONS: Link each concession to seller pain points with clear give-to-get value
+3. HOLDING COST SEQUENCE: Specify how to use holding costs in negotiation rounds (not just opening)
+4. ACTIONABLE URGENCY: Clear strategy like 'slow-play' or 'accelerate timeline' based on buyer urgency
+5. CONDITION TOLERANCE: Specific repair tolerance based on renovation preference
+6. CONSOLIDATED FIELDS: No empty/placeholder fields, merge duplicates, bullet-point market data
+
+Ensure all fields are populated with specific, actionable content. Remove any '[object Object]' or 'No data' placeholders.
+"""
         
         # Increase token limit for comprehensive strategy
         max_tokens = params.get("max_tokens", 3000)
@@ -306,10 +436,9 @@ Property Analysis:
         
     else:
         # Default system content for other section types
-        system_content = (
-            "You are a structured JSON generator for real-estate offer components. "
-            "Return ONLY valid JSON matching the provided response_format. "
-            "No markdown, no prose—JSON object only."
+        system_message = (
+            f"You are an expert real estate analyst. Generate a detailed {section_type} for the property at {address}. Focus on practical insights and actionable recommendations with specific data and clear rationale. Return ONLY valid JSON matching the provided response_format schema. Avoid empty fields and placeholder content."
+            "\n\nNo markdown, no prose—structured JSON object only."
         )
         
         # Default user content
@@ -324,17 +453,12 @@ Property Analysis:
     payload = {
         "model": PPLX_MODEL,
         "messages": [
-            {"role": "system", "content": system_content},
-            {"role": "user", "content": user_content},
+            {"role": "system", "content": system_message},
+            {"role": "user", "content": user_content}
         ],
-        "search_mode": "web",  # Use web search for market data
-        "reasoning_effort": "medium",
-        "temperature": temperature,
-        "max_tokens": max_tokens,
-        "stream": False,
-        "return_images": False,
-        "return_citations": False,
         "response_format": response_format,
+        "temperature": params.get("temperature", 0.3),
+        "max_tokens": max_tokens,
     }
 
     return payload

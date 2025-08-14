@@ -299,9 +299,11 @@ export default function NegotiationStrategy() {
                       <ul className="list-disc list-inside space-y-1 ml-2">
                         {val.map((item, idx) => (
                           <li key={idx} className="text-sm text-navy/80">
-                            {typeof item === 'object' ? 
-                              JSON.stringify(item).replace(/[{}"]/g, '').replace(/,/g, ', ').replace(/_/g, ' ') :
-                              item.toString()
+                            {typeof item === 'object' && item !== null ? 
+                              // Handle objects properly - extract meaningful content
+                              Object.entries(item).map(([k, v]) => `${k}: ${v}`).join(', ').replace(/_/g, ' ') :
+                              // Handle strings and primitives
+                              String(item)
                                 .replace(/_/g, ' ')
                                 .replace(/([a-z])([A-Z])/g, '$1 $2')
                                 .split(' ')
