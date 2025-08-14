@@ -36,8 +36,8 @@ import ImportantLocationsInput from "../../components/ImportantLocationsInput";
 import Loading from "../../components/Loading";
 import MiniLogo from "../../components/MiniLogo";
 import OliveCheckbox from "../../components/OliveCheckbox";
-import PreferredRegionsInput from "../../components/PreferredRegionsInput";
 import PriceRangeSlider from "../../components/PriceRangeSlider";
+import ValidationWarning from "../../components/ValidationWarning";
 import { estimateAffordableHomePrice } from "../../hooks/getHomePrice";
 
 // Extend window interface for Google Maps
@@ -306,6 +306,11 @@ export default function PersonalizationPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [activeSection, setActiveSection] = useState("demographics");
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [showValidationWarning, setShowValidationWarning] = useState(false);
+  const [validationResult, setValidationResult] = useState<{
+    missingFields: string[];
+    errors: string[];
+  }>({ missingFields: [], errors: [] });
   const [openDropdowns, setOpenDropdowns] = useState<{
     [key: string]: boolean;
   }>({});
@@ -727,7 +732,126 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  // Validation function to check if all required fields are filled
+  const validateFormData = (): { isValid: boolean; missingFields: string[]; errors: string[] } => {
+    const missingFields: string[] = [];
+    const errors: string[] = [];
+
+    // Demographics - Required fields
+    if (!formData.age || formData.age <= 0) {
+      missingFields.push("Age");
+    }
+    if (!formData.gender || formData.gender.trim() === "") {
+      missingFields.push("Gender");
+    }
+    if (!formData.occupation || formData.occupation.trim() === "") {
+      missingFields.push("Occupation");
+    }
+    if (!formData.pets || formData.pets.trim() === "") {
+      missingFields.push("Pet ownership status");
+    }
+
+    // Financial - Required fields
+    if (!formData.gross_income || formData.gross_income <= 0) {
+      missingFields.push("Gross income");
+    }
+    if (!formData.home_budget || formData.home_budget <= 0) {
+      missingFields.push("Home budget");
+    }
+    if (!formData.credit_score_range || formData.credit_score_range.trim() === "") {
+      missingFields.push("Credit score range");
+    }
+    if (!formData.down_payment || formData.down_payment < 0) {
+      missingFields.push("Down payment");
+    }
+
+    // Housing - Required fields
+    if (!formData.preferred_housing_type || formData.preferred_housing_type.trim() === "") {
+      missingFields.push("Preferred housing type");
+    }
+    if (!formData.preferred_bedrooms || formData.preferred_bedrooms <= 0) {
+      missingFields.push("Preferred bedrooms");
+    }
+    if (!formData.preferred_bathrooms || formData.preferred_bathrooms <= 0) {
+      missingFields.push("Preferred bathrooms");
+    }
+    if (!formData.preferred_lot_size || formData.preferred_lot_size.trim() === "") {
+      missingFields.push("Preferred lot size");
+    }
+    if (!formData.preferred_home_age || formData.preferred_home_age.trim() === "") {
+      missingFields.push("Preferred home age");
+    }
+    if (!formData.renovation_preference || formData.renovation_preference.trim() === "") {
+      missingFields.push("Renovation preference");
+    }
+    if (!formData.intended_property_use || formData.intended_property_use.trim() === "") {
+      missingFields.push("Intended property use");
+    }
+
+    // Location - Required fields
+    if (!formData.important_locations || formData.important_locations.length === 0) {
+      missingFields.push("At least one important location");
+    } else {
+      // Validate each important location has required fields
+      formData.important_locations.forEach((location, index) => {
+        if (!location.name || location.name.trim() === "") {
+          missingFields.push(`Important location ${index + 1} name`);
+        }
+        if (!location.address || location.address.trim() === "") {
+          missingFields.push(`Important location ${index + 1} address`);
+        }
+        if (!location.commute_tolerance || location.commute_tolerance <= 0) {
+          missingFields.push(`Important location ${index + 1} commute tolerance`);
+        }
+      });
+    }
+    
+    if (!formData.walkability_importance || formData.walkability_importance.trim() === "") {
+      missingFields.push("Walkability importance");
+    }
+
+    // Communication - Required fields
+    if (!formData.communication_frequency || formData.communication_frequency.trim() === "") {
+      missingFields.push("Communication frequency");
+    }
+    if (!formData.information_detail_level || formData.information_detail_level.trim() === "") {
+      missingFields.push("Information detail level");
+    }
+    if (!formData.has_buyers_agent || formData.has_buyers_agent.trim() === "") {
+      missingFields.push("Buyers agent status");
+    }
+
+    // Report Customization - At least one section must be selected
+    if (!formData.report_section_priorities || formData.report_section_priorities.length === 0) {
+      missingFields.push("At least one report section");
+    }
+
+    // Additional validation rules
+    if (formData.down_payment && formData.home_budget && formData.down_payment > formData.home_budget) {
+      errors.push("Down payment cannot be higher than home budget.");
+    }
+
+    return {
+      isValid: missingFields.length === 0 && errors.length === 0,
+      missingFields,
+      errors
+    };
+  };
+
   const handleSaveChanges = async () => {
+    // Validate form data before saving
+    const validation = validateFormData();
+    
+    if (!validation.isValid) {
+      // Show the custom validation warning component
+      setValidationResult({
+        missingFields: validation.missingFields,
+        errors: validation.errors
+      });
+      setShowValidationWarning(true);
+      return;
+    }
+
     try {
       setIsSaving(true);
 
@@ -772,6 +896,35 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
   const handleCancel = () => {
     setFormData(originalData);
     setIsEditMode(false);
+  };
+
+  // Handler for closing the validation warning
+  const handleCloseValidationWarning = () => {
+    setShowValidationWarning(false);
+  };
+
+  // Handler for reviewing information from validation warning
+  const handleReviewInformation = () => {
+    setShowValidationWarning(false);
+    
+    // Navigate to the first missing field's section if possible
+    const firstMissingField = validationResult.missingFields[0];
+    if (firstMissingField) {
+      // Try to determine which section contains the missing field and navigate there
+      if (firstMissingField.includes("report")) {
+        setActiveSection("reportcustomization");
+      } else if (firstMissingField.includes("Age") || firstMissingField.includes("Gender") || firstMissingField.includes("Occupation") || firstMissingField.includes("Pet")) {
+        setActiveSection("demographics");
+      } else if (firstMissingField.includes("income") || firstMissingField.includes("budget") || firstMissingField.includes("credit") || firstMissingField.includes("payment")) {
+        setActiveSection("financial");
+      } else if (firstMissingField.includes("housing") || firstMissingField.includes("bedroom") || firstMissingField.includes("bathroom") || firstMissingField.includes("lot") || firstMissingField.includes("home") || firstMissingField.includes("renovation") || firstMissingField.includes("property")) {
+        setActiveSection("housing");
+      } else if (firstMissingField.includes("location") || firstMissingField.includes("walkability")) {
+        setActiveSection("location");
+      } else if (firstMissingField.includes("communication") || firstMissingField.includes("agent")) {
+        setActiveSection("communication");
+      }
+    }
   };
 
   const scrollToSection = (sectionId: string) => {
@@ -1091,7 +1244,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                 {isEditMode ? (
                   <PriceRangeSlider
                     tickValues={[
-                      50000, 100000, 200000, 300000, 500000, 750000, 1000000,
+                      100000, 250000, 500000, 1000000, 2000000, 5000000,
                     ]}
                     value={formData.down_payment || 100000}
                     onChange={(value) => {
@@ -1815,23 +1968,6 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   <p className="text-red-500 text-xs mt-2">{loadError}</p>
                 )}
               </div>
-              <div className="flex-1">
-                <label className="block text-sm font-medium text-black mb-2">
-                  Preferred Regions
-                </label>
-                <p className="text-xs text-gray-500 mb-4">
-                  Add regions where you'd like to live (e.g. Midtown Atlanta,
-                  L.A, etc.)
-                </p>
-                <PreferredRegionsInput
-                  regions={formData.preferred_regions || []}
-                  onChange={(regions) =>
-                    updateFormData("preferred_regions", regions)
-                  }
-                  scriptsReady={scriptsReady}
-                  isEditMode={isEditMode}
-                />
-              </div>
             </div>
           </div>
         );
@@ -2339,6 +2475,15 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
           </div>,
           document.body
         )}
+
+      {/* Validation Warning Modal */}
+      <ValidationWarning
+        isVisible={showValidationWarning}
+        onClose={handleCloseValidationWarning}
+        onReview={handleReviewInformation}
+        missingFields={validationResult.missingFields}
+        errors={validationResult.errors}
+      />
     </div>
   );
 }

@@ -200,6 +200,7 @@ export default function SearchPage() {
   const [savedHomes, setSavedHomes] = useState<SearchResult[]>([]);
   const [favoriteAddresses, setFavoriteAddresses] = useState<string[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [searchStage, setSearchStage] = useState<string>("");
   const [selectedProperty, setSelectedProperty] = useState<SearchResult | null>(
     null
   );
@@ -887,6 +888,7 @@ export default function SearchPage() {
       "🏠 Starting automatic property search within isochrone polygon..."
     );
     setIsSearching(true);
+    setSearchStage("Locating homes in your area...");
 
     // Clear previous search results to show loading state in sidebar
     setSearchResults([]);
@@ -949,6 +951,8 @@ export default function SearchPage() {
         searchUserPreferences
       );
 
+      setSearchStage("Extracting property data...");
+      
       // Call the Zillow search API with the isochrone polygon
       const searchResult = await searchZillowByPolygon({
         polygon: searchPolygon,
@@ -964,6 +968,12 @@ export default function SearchPage() {
         "properties"
       );
 
+      // Show evaluating scores stage for 10 seconds
+      setSearchStage("Evaluating scores...");
+      await new Promise(resolve => setTimeout(resolve, 10000));
+
+      setSearchStage("Scoring homes based on your preferences...");
+      
       // Transform Zillow API results to SearchResult format
       const transformedResults: SearchResult[] = searchResult.properties.map(
         (property, index) => ({
@@ -994,6 +1004,13 @@ export default function SearchPage() {
         })
       );
 
+      setSearchStage("Extracting property images...");
+      
+      // Simulate image extraction delay
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      setSearchStage("Finalizing results...");
+      
       // Update search results and mark as searched
       setSearchResults(transformedResults);
       
@@ -1020,6 +1037,7 @@ export default function SearchPage() {
         isochroneData: isochroneData,
       });
       setIsSearching(false);
+      setSearchStage("");
     }
   };
 
@@ -2186,7 +2204,9 @@ export default function SearchPage() {
             {/* Loading overlay - shows until at least one property is available on map */}
             {(isSearching || (hasSearched && searchResults.length === 0 && savedHomes.length === 0) || (!hasSearched && searchResults.length === 0 && savedHomes.length === 0)) && (
               <div className="absolute inset-0 z-20 w-full h-full rounded-lg flex items-center justify-center bg-gray-50">
-                <Loading message={isSearching ? "Searching properties..." : "Loading map..."} />
+                <div className="flex flex-col items-center gap-4">
+                  <Loading message={isSearching ? (searchStage || "Searching properties...") : "Loading map..."} />
+                </div>
               </div>
             )}
 

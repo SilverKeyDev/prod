@@ -33,10 +33,10 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import ImportantLocationsInput from "../../components/ImportantLocationsInput";
-import PreferredRegionsInput from "../../components/PreferredRegionsInput";
 import KeyLogo from "../../components/KeyLogo";
 import OliveCheckbox from "../../components/OliveCheckbox";
 import PriceRangeSlider from "../../components/PriceRangeSlider";
+import ValidationWarning from "../../components/ValidationWarning";
 
 // Extend window interface for Google Maps
 declare global {
@@ -73,7 +73,6 @@ interface OnboardingData {
   deal_breakers?: string[];
 
   // Location & Housing
-  preferred_regions?: { name: string; address: string }[];
   important_locations?: { name: string; address: string; commute_tolerance?: number }[];
   walkability_importance?: string;
   // Communication
@@ -110,6 +109,20 @@ const REPORT_SECTIONS = [
   { key: "schools", label: "Schools & Education" },
   { key: "extra_tips", label: "Extra Tips & Insights" },
 ];
+
+// Helper component for required field labels
+const RequiredLabel: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <label className="block text-sm font-medium text-black mb-2">
+    {children}
+  </label>
+);
+
+// Helper component for optional field labels
+const OptionalLabel: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <label className="block text-sm font-medium text-black mb-2">
+    {children}
+  </label>
+);
 
 // Sortable Report Section Component
 interface SortableReportSectionProps {
@@ -310,6 +323,11 @@ export default function OnboardingPage() {
   const dropdownRefs = useRef<Record<string, React.RefObject<HTMLDivElement>>>(
     {}
   );
+  const [showValidationWarning, setShowValidationWarning] = useState(false);
+  const [validationResult, setValidationResult] = useState<{
+    missingFields: string[];
+    errors: string[];
+  }>({ missingFields: [], errors: [] });
   const navigate = useNavigate();
 
   // Drag and drop sensors
@@ -677,7 +695,126 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
     setCurrentStep(stepIndex);
   };
 
+  // Validation function to check if all required fields are filled
+  const validateFormData = (): { isValid: boolean; missingFields: string[]; errors: string[] } => {
+    const missingFields: string[] = [];
+    const errors: string[] = [];
+
+    // Demographics - Required fields
+    if (!formData.age || formData.age <= 0) {
+      missingFields.push("Age");
+    }
+    if (!formData.gender || formData.gender.trim() === "") {
+      missingFields.push("Gender");
+    }
+    if (!formData.occupation || formData.occupation.trim() === "") {
+      missingFields.push("Occupation");
+    }
+    if (!formData.pets || formData.pets.trim() === "") {
+      missingFields.push("Pet ownership status");
+    }
+
+    // Financial - Required fields
+    if (!formData.gross_income || formData.gross_income <= 0) {
+      missingFields.push("Gross income");
+    }
+    if (!formData.home_budget || formData.home_budget <= 0) {
+      missingFields.push("Home budget");
+    }
+    if (!formData.credit_score_range || formData.credit_score_range.trim() === "") {
+      missingFields.push("Credit score range");
+    }
+    if (!formData.down_payment || formData.down_payment < 0) {
+      missingFields.push("Down payment");
+    }
+
+    // Housing - Required fields
+    if (!formData.preferred_housing_type || formData.preferred_housing_type.trim() === "") {
+      missingFields.push("Preferred housing type");
+    }
+    if (!formData.preferred_bedrooms || formData.preferred_bedrooms <= 0) {
+      missingFields.push("Preferred bedrooms");
+    }
+    if (!formData.preferred_bathrooms || formData.preferred_bathrooms <= 0) {
+      missingFields.push("Preferred bathrooms");
+    }
+    if (!formData.preferred_lot_size || formData.preferred_lot_size.trim() === "") {
+      missingFields.push("Preferred lot size");
+    }
+    if (!formData.preferred_home_age || formData.preferred_home_age.trim() === "") {
+      missingFields.push("Preferred home age");
+    }
+    if (!formData.renovation_preference || formData.renovation_preference.trim() === "") {
+      missingFields.push("Renovation preference");
+    }
+    if (!formData.intended_property_use || formData.intended_property_use.trim() === "") {
+      missingFields.push("Intended property use");
+    }
+
+    // Location - Required fields
+    if (!formData.important_locations || formData.important_locations.length === 0) {
+      missingFields.push("At least one important location");
+    } else {
+      // Validate each important location has required fields
+      formData.important_locations.forEach((location, index) => {
+        if (!location.name || location.name.trim() === "") {
+          missingFields.push(`Important location ${index + 1} name`);
+        }
+        if (!location.address || location.address.trim() === "") {
+          missingFields.push(`Important location ${index + 1} address`);
+        }
+        if (!location.commute_tolerance || location.commute_tolerance <= 0) {
+          missingFields.push(`Important location ${index + 1} commute tolerance`);
+        }
+      });
+    }
+    
+    if (!formData.walkability_importance || formData.walkability_importance.trim() === "") {
+      missingFields.push("Walkability importance");
+    }
+
+    // Communication - Required fields
+    if (!formData.communication_frequency || formData.communication_frequency.trim() === "") {
+      missingFields.push("Communication frequency");
+    }
+    if (!formData.information_detail_level || formData.information_detail_level.trim() === "") {
+      missingFields.push("Information detail level");
+    }
+    if (!formData.has_buyers_agent || formData.has_buyers_agent.trim() === "") {
+      missingFields.push("Buyers agent status");
+    }
+
+    // Report Customization - At least one section must be selected
+    if (!formData.report_section_priorities || formData.report_section_priorities.length === 0) {
+      missingFields.push("At least one report section");
+    }
+
+    // Additional validation rules
+    if (formData.down_payment && formData.home_budget && formData.down_payment > formData.home_budget) {
+      errors.push("Down payment cannot be higher than home budget.");
+    }
+
+    return {
+      isValid: missingFields.length === 0 && errors.length === 0,
+      missingFields,
+      errors
+    };
+  };
+
   const handleSubmit = async () => {
+    // Validate form data before submission
+    const validation = validateFormData();
+    
+    if (!validation.isValid) {
+      // Show the custom validation warning component
+      setValidationResult({
+        missingFields: validation.missingFields,
+        errors: validation.errors
+      });
+      setShowValidationWarning(true);
+      return;
+    }
+
     setLoading(true);
     try {
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
@@ -781,6 +918,35 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
     }
   };
 
+  // Handler for closing the validation warning
+  const handleCloseValidationWarning = () => {
+    setShowValidationWarning(false);
+  };
+
+  // Handler for reviewing information from validation warning
+  const handleReviewInformation = () => {
+    setShowValidationWarning(false);
+    
+    // Navigate to the first missing field's section if possible
+    const firstMissingField = validationResult.missingFields[0];
+    if (firstMissingField) {
+      // Try to determine which step contains the missing field and navigate there
+      if (firstMissingField.includes("Age") || firstMissingField.includes("Gender") || firstMissingField.includes("Occupation") || firstMissingField.includes("Pet")) {
+        setCurrentStep(0); // Demographics
+      } else if (firstMissingField.includes("income") || firstMissingField.includes("budget") || firstMissingField.includes("credit") || firstMissingField.includes("payment")) {
+        setCurrentStep(1); // Financial
+      } else if (firstMissingField.includes("housing") || firstMissingField.includes("bedroom") || firstMissingField.includes("bathroom") || firstMissingField.includes("lot") || firstMissingField.includes("home") || firstMissingField.includes("renovation") || firstMissingField.includes("property")) {
+        setCurrentStep(2); // Housing
+      } else if (firstMissingField.includes("location") || firstMissingField.includes("walkability")) {
+        setCurrentStep(3); // Location
+      } else if (firstMissingField.includes("communication") || firstMissingField.includes("agent")) {
+        setCurrentStep(4); // Communication
+      } else if (firstMissingField.includes("report")) {
+        setCurrentStep(5); // Report Customization
+      }
+    }
+  };
+
   const renderStepContent = () => {
     const step = STEPS[currentStep];
 
@@ -794,9 +960,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Age
-                </label>
+                <RequiredLabel>Age</RequiredLabel>
                 <input
                   type="number"
                   value={formData.age || ""}
@@ -809,9 +973,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Gender
-                </label>
+                <RequiredLabel>Gender</RequiredLabel>
                 <CustomDropdown
                   value={formData.gender || ""}
                   onChange={(value) => updateFormData("gender", value)}
@@ -829,9 +991,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Do you have pets?
-                </label>
+                <RequiredLabel>Do you have pets?</RequiredLabel>
                 <CustomDropdown
                   value={formData.pets || ""}
                   onChange={(value) => updateFormData("pets", value)}
@@ -848,9 +1008,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Occupation
-                </label>
+                <RequiredLabel>Occupation</RequiredLabel>
                 <input
                   type="text"
                   value={formData.occupation || ""}
@@ -873,7 +1031,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="w-4/5 mx-auto">
                 <label className="block text-xs font-normal text-black mb-1 text-center w-full">
-                  Gross Annual Income (after debts)
+                  Gross Annual Income (after debts) <span className="text-red-500">*</span>
                 </label>
                 <PriceRangeSlider
                   tickValues={[
@@ -892,11 +1050,11 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
 
               <div className="w-4/5 mx-auto">
                 <label className="block text-xs font-normal text-black mb-1 text-center w-full">
-                  Down Payment
+                  Down Payment <span className="text-red-500">*</span>
                 </label>
                 <PriceRangeSlider
                   tickValues={[
-                    50000, 100000, 200000, 300000, 500000, 750000, 1000000,
+                    100000, 250000, 500000, 1000000, 2000000, 5000000,
                   ]}
                   value={formData.down_payment || 100000}
                   onChange={(value) => {
@@ -910,9 +1068,9 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-black mb-2 text-center">
-                  Ideal Zip Code
-                </label>
+                <OptionalLabel>
+                  <span className="text-center block">Ideal Zip Code</span>
+                </OptionalLabel>
                 <input
                   type="text"
                   value={formData.ideal_zip_code || ""}
@@ -925,9 +1083,9 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-black mb-2 text-center">
-                  Credit Score Range
-                </label>
+                <RequiredLabel>
+                  <span className="text-center block">Credit Score Range</span>
+                </RequiredLabel>
                 <CustomDropdown
                   value={formData.credit_score_range || ""}
                   onChange={(value) =>
@@ -1442,21 +1600,6 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   <p className="text-red-500 text-xs mt-2">{loadError}</p>
                 )}
               </div>
-              <div className="flex-1">
-                <label className="block text-sm font-medium text-black mb-2">
-                  Preferred Regions
-                </label>
-                <p className="text-xs text-gray-500 mb-2">
-                  Add regions where you'd like to live
-                </p>
-                <PreferredRegionsInput
-                  regions={formData.preferred_regions || []}
-                  onChange={(regions) =>
-                    updateFormData("preferred_regions", regions)
-                  }
-                  scriptsReady={scriptsReady}
-                />
-              </div>
             </div>
           </div>
         );
@@ -1758,14 +1901,6 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
           <KeyLogo size="sm" />
         </div>
         <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3 mt-4 sm:mt-0">
-          <button
-            onClick={handleSubmit}
-            disabled={loading}
-            className="flex items-center justify-center px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 disabled:opacity-50 font-medium transition-all duration-200 touch-friendly text-sm"
-          >
-            {loading ? "Saving..." : "Save and Setup Later"}
-            {!loading && <Check className="w-4 h-4 ml-2" />}
-          </button>
           <span className="text-sm text-black/60">
             Step {currentStep + 1} of {STEPS.length}
           </span>
@@ -1859,6 +1994,15 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
           )}
         </div>
       </div>
+
+      {/* Validation Warning Modal */}
+      <ValidationWarning
+        isVisible={showValidationWarning}
+        onClose={handleCloseValidationWarning}
+        onReview={handleReviewInformation}
+        missingFields={validationResult.missingFields}
+        errors={validationResult.errors}
+      />
     </div>
   );
 }

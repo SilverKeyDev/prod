@@ -393,11 +393,10 @@ def get_property_via_address():
                     'deal_breakers': user_preferences.deal_breakers,
                     'gross_income': user_preferences.gross_income,
                     'housing_type': user_preferences.housing_type,
-                    'preferred_regions': user_preferences.preferred_regions
                 }
                 
                 # Parse JSON fields if they're strings
-                for field in ['important_locations', 'preferred_home_features', 'deal_breakers', 'preferred_regions']:
+                for field in ['important_locations', 'preferred_home_features', 'deal_breakers']:
                     if hasattr(user_preferences, field):
                         field_value = getattr(user_preferences, field)
                         if isinstance(field_value, str):
@@ -685,8 +684,6 @@ def geocode_address(address: str) -> Optional[Tuple[float, float]]:
         if status == 'OK' and results:
             location = results[0]['geometry']['location']
             lat, lon = location['lat'], location['lng']
-            formatted_address = results[0].get('formatted_address', 'Unknown')
-
             return (lat, lon)
         else:
             current_app.logger.warning(f"🗺️ GEOCODING: ⚠️ Geocoding failed for address: '{address}'")
@@ -1200,12 +1197,6 @@ def search_properties_by_polygon():
         else:
             scored_properties = all_properties
 
-        # Convert scores to integer percentages (multiply by 100 and convert to int)
-        for prop in scored_properties:
-            if "_score" in prop and prop["_score"] is not None:
-                prop["_score"] = int(prop["_score"] * 100)
-            else:
-                prop["_score"] = 0
 
         total_time = time.time() - start_time
         response_data = {

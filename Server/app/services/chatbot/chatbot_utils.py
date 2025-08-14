@@ -232,13 +232,6 @@ def generate_action_plan(user_preferences, client_name):
                 breakers = user_preferences['deal_breakers']
                 if isinstance(breakers, list) and breakers:
                     context_parts.append(f"Deal breakers: {', '.join(breakers[:3])}")
-
-            # Location Preferences (using actual fields)
-            if user_preferences.get('preferred_regions'):
-                regions = user_preferences['preferred_regions']
-                if isinstance(regions, list) and regions:
-                    region_names = [r.get('name', r) if isinstance(r, dict) else str(r) for r in regions]
-                    context_parts.append(f"Preferred regions: {', '.join(region_names[:3])}")
             
             if user_preferences.get('important_locations'):
                 locations = user_preferences['important_locations']

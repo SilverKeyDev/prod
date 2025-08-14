@@ -49,7 +49,6 @@ class UserPreferences(db.Model):
     deal_breakers = db.Column(db.Text)  # JSON stringified list
 
     # === Location & Housing ===
-    preferred_regions = db.Column(db.Text)  # JSON stringified list of { name, address }
     important_locations = db.Column(db.Text)  # JSON stringified list of { name, address, commute_tolerance }
     walkability_importance = db.Column(db.String(50))
 
@@ -119,7 +118,6 @@ class UserPreferences(db.Model):
         'deal_breakers': self._parse_json_field(self.deal_breakers),
 
         # Location & Housing
-        'preferred_regions': self._parse_json_field(self.preferred_regions),
         'important_locations': self._parse_json_field(self.important_locations),
         'walkability_importance': self.walkability_importance,
 

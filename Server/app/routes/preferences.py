@@ -171,7 +171,7 @@ def create_or_update_preferences():
     try:
         # List of all JSON/text fields (array/object fields in model)
         json_fields = {
-            'children_ages', 'preferred_home_features', 'preferred_regions',
+            'children_ages', 'preferred_home_features',
             'hobbies_interests', 'dining_preferences', 'fitness_activities',
             'deal_breakers', 'content_feedback_log',
             'agent_interaction_history', 'personality_insights', 'quote_bubbles',

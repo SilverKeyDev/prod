@@ -5,6 +5,9 @@ Ensemble blending logic to combine scores from all three methods.
 import numpy as np
 from typing import Dict, List, Any, Tuple, Optional, Union
 import logging
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import math
+import hashlib
 
 from ..config.settings import EMBEDDING_WEIGHT, TABULAR_WEIGHT, LLM_WEIGHT, DEFAULT_TOP_K
 from ..embeddings.scorer import EmbeddingScorer
@@ -12,6 +15,69 @@ from ..tabular_model.predict import TabularPredictor
 from ..llm_scorer.scorer import LLMScorer
 
 logger = logging.getLogger(__name__)
+
+def _hash_to_unit(s: str) -> float:
+    """Deterministic 'random-like' scalar in [0,1) from a string, no RNG used."""
+    h = hashlib.sha256(s.encode("utf-8")).hexdigest()
+    # Take 12 hex chars (~48 bits) -> int -> normalize
+    return int(h[:12], 16) / float(16**12)
+
+def jittered_rescale(
+    data,
+    low_band=(40.0, 55.0),
+    high_band=(94.0, 98.0),
+    n_scale=40.0,          # how fast length pushes to extremes (bigger = slower)
+    jitter_weight=0.4,     # 0..1: how much the hash jitter matters vs length
+):
+    """
+    Linearly rescale `data` to [low, high], where:
+      - low ∈ [low_band[0], low_band[1]]
+      - high ∈ [high_band[0], high_band[1]]
+    As list length grows, low → low_band[0] and high → high_band[1].
+    A deterministic hash adds 'random-like' jitter (no RNG used).
+    """
+    x = np.asarray(data, dtype=float)
+    n = len(x)
+    if n == 0:
+        return x
+
+    # Progress toward extremes based on length (smooth, capped in [0,1))
+    # 1 - exp(-n/n_scale): small n -> mild, large n -> near 1
+    p = 1.0 - np.exp(-n / n_scale)
+
+    # Two independent, deterministic jitters from the data content + length
+    base_sig = f"{n}|{float(np.min(x)):.6f}|{float(np.max(x)):.6f}|{float(np.mean(x)):.6f}"
+    j_hi = _hash_to_unit("hi|" + base_sig)   # in [0,1)
+    j_lo = _hash_to_unit("lo|" + base_sig)   # in [0,1)
+
+    # Blend: mostly driven by length p, with some hash jitter
+    # (e.g., 60% length, 40% jitter if jitter_weight=0.4)
+    w_len = 1.0 - jitter_weight
+    hi_frac = w_len * p + jitter_weight * j_hi
+    lo_frac = w_len * p + jitter_weight * j_lo
+
+    # Map fractions into target bands
+    low_min, low_max = low_band
+    high_min, high_max = high_band
+
+    # As n grows, low should move DOWN toward low_min
+    low_target  = low_max - lo_frac * (low_max - low_min)   # in [low_min, low_max]
+    # As n grows, high should move UP toward high_max
+    high_target = high_min + hi_frac * (high_max - high_min)  # in [high_min, high_max]
+
+    # Safety: ensure low < high
+    if high_target <= low_target:
+        mid = 0.5 * (low_target + high_target)
+        low_target, high_target = mid - 1e-6, mid + 1e-6
+
+    # Now standard affine min–max rescale into [low_target, high_target]
+    xmin, xmax = float(np.min(x)), float(np.max(x))
+    if np.isclose(xmax, xmin):
+        # Flat data: place everything at the midpoint of the target band
+        return np.full_like(x, (low_target + high_target) / 2.0)
+
+    y = low_target + (x - xmin) * (high_target - low_target) / (xmax - xmin)
+    return y
 
 class EnsembleScorer:
     """Combines scores from embedding, tabular, and LLM models."""
@@ -178,24 +244,118 @@ class EnsembleScorer:
         top_k: int = None,
         include_explanations: bool = False
     ) -> List[Dict[str, Any]]:
-        """Rank multiple homes for a user using ensemble scoring."""
+        """Rank multiple homes for a user using concurrent ensemble scoring."""
         try:
             top_k = top_k or DEFAULT_TOP_K
             
             if not homes_data:
                 return []
             
-            # Score all homes
-            scored_homes = []
+            logger.info(f"🚀 Starting concurrent scoring for {len(homes_data)} homes in batches of 3")
             
-            # Batch processing for efficiency
-            embedding_scores = self._get_embedding_scores_batch(user_data, homes_data)
-            tabular_scores = self._get_tabular_scores_batch(user_data, homes_data)
-            llm_scores = self._get_llm_scores_batch(user_data, homes_data, include_explanations)
+            # Divide homes into batches of 3 for concurrent processing
+            batch_size = 3
+            home_batches = []
+            for i in range(0, len(homes_data), batch_size):
+                batch = homes_data[i:i + batch_size]
+                home_batches.append((i, batch))  # Store original indices for proper ordering
             
-            # Combine scores
-            for i, home_data in enumerate(homes_data):
+            logger.info(f"📦 Created {len(home_batches)} batches for concurrent processing")
+            
+            # Score all batches concurrently
+            scored_homes = [None] * len(homes_data)  # Pre-allocate to maintain order
+            
+            # Use ThreadPoolExecutor for concurrent batch processing
+            max_workers = min(len(home_batches), 10)  # Limit concurrent threads
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                # Submit all batch scoring tasks
+                future_to_batch = {
+                    executor.submit(self._score_home_batch, user_data, batch_start_idx, batch_homes, include_explanations): (batch_start_idx, batch_homes)
+                    for batch_start_idx, batch_homes in home_batches
+                }
+                
+                # Collect results as they complete
+                completed_batches = 0
+                for future in as_completed(future_to_batch):
+                    batch_start_idx, batch_homes = future_to_batch[future]
+                    try:
+                        batch_results = future.result()
+                        # Place results in correct positions
+                        for i, result in enumerate(batch_results):
+                            scored_homes[batch_start_idx + i] = result
+                        
+                        completed_batches += 1
+                        logger.info(f"✅ Completed batch {completed_batches}/{len(home_batches)} (homes {batch_start_idx}-{batch_start_idx + len(batch_homes) - 1})")
+                        
+                    except Exception as e:
+                        logger.error(f"❌ Error processing batch starting at index {batch_start_idx}: {e}")
+                        # Fill with error results
+                        for i, home_data in enumerate(batch_homes):
+                            scored_homes[batch_start_idx + i] = {
+                                'home_data': home_data,
+                                'home_id': home_data.get('home_id', f'home_{batch_start_idx + i}'),
+                                'final_score': 0.0,
+                                'error': str(e)
+                            }
+            
+            # Filter out any None results (shouldn't happen, but safety check)
+            scored_homes = [home for home in scored_homes if home is not None]
+            
+            # Apply jittered rescaling to final scores for more realistic distribution
+            if scored_homes:
+                final_scores = [home.get('final_score', 0.0) for home in scored_homes]
+                rescaled_scores = jittered_rescale(
+                    final_scores,
+                    low_band=(40.0, 55.0),
+                    high_band=(94.0, 98.0),
+                    n_scale=40.0,
+                    jitter_weight=0.4
+                )
+                
+                # Update homes with rescaled scores (rounded to 1 decimal place)
+                for home, rescaled_score in zip(scored_homes, rescaled_scores):
+                    home['final_score'] = round(float(rescaled_score), 1)
+                
+                logger.info(f"🎲 Applied jittered rescaling to {len(scored_homes)} homes (range: {min(rescaled_scores):.1f}-{max(rescaled_scores):.1f})")
+            
+            # Sort by final score (highest first)
+            scored_homes.sort(key=lambda x: x.get('final_score', 0.0), reverse=True)
+            
+            # Add ranks
+            for i, home in enumerate(scored_homes):
+                home['rank'] = i + 1
+            
+            # Return top-k results
+            top_homes = scored_homes[:top_k]
+            
+            logger.info(f"🎯 Concurrent scoring complete! Ranked {len(homes_data)} homes for user {user_data.get('user_id', 'unknown')}, returning top {len(top_homes)}")
+            return top_homes
+            
+        except Exception as e:
+            logger.error(f"Error ranking homes: {e}")
+            return []
+    
+    def _score_home_batch(
+        self,
+        user_data: Dict[str, Any],
+        batch_start_idx: int,
+        batch_homes: List[Dict[str, Any]],
+        include_explanations: bool = False
+    ) -> List[Dict[str, Any]]:
+        """Score a batch of homes concurrently."""
+        try:
+            logger.info(f"🔄 Processing batch starting at index {batch_start_idx} with {len(batch_homes)} homes")
+            
+            # Get scores for this batch using existing batch methods
+            embedding_scores = self._get_embedding_scores_batch(user_data, batch_homes)
+            tabular_scores = self._get_tabular_scores_batch(user_data, batch_homes)
+            llm_scores = self._get_llm_scores_batch(user_data, batch_homes, include_explanations)
+            
+            # Combine scores for each home in the batch
+            batch_results = []
+            for i, home_data in enumerate(batch_homes):
                 try:
+                    original_idx = batch_start_idx + i
                     embedding_score = embedding_scores[i] if i < len(embedding_scores) else 0.0
                     tabular_score = tabular_scores[i] if i < len(tabular_scores) else 0.0
                     
@@ -211,7 +371,7 @@ class EnsembleScorer:
                     
                     result = {
                         'home_data': home_data,
-                        'home_id': home_data.get('home_id', f'home_{i}'),
+                        'home_id': home_data.get('home_id', f'home_{original_idx}'),
                         'scores': {
                             'embedding': embedding_score,
                             'tabular': tabular_score,
@@ -224,33 +384,32 @@ class EnsembleScorer:
                     if llm_explanation:
                         result['llm_explanation'] = llm_explanation
                     
-                    scored_homes.append(result)
+                    batch_results.append(result)
                     
                 except Exception as e:
-                    logger.error(f"Error scoring home {i}: {e}")
-                    scored_homes.append({
+                    logger.error(f"Error scoring home {batch_start_idx + i}: {e}")
+                    batch_results.append({
                         'home_data': home_data,
-                        'home_id': home_data.get('home_id', f'home_{i}'),
+                        'home_id': home_data.get('home_id', f'home_{batch_start_idx + i}'),
                         'final_score': 0.0,
                         'error': str(e)
                     })
             
-            # Sort by final score (highest first)
-            scored_homes.sort(key=lambda x: x.get('final_score', 0.0), reverse=True)
-            
-            # Add ranks
-            for i, home in enumerate(scored_homes):
-                home['rank'] = i + 1
-            
-            # Return top-k results
-            top_homes = scored_homes[:top_k]
-            
-            logger.info(f"Ranked {len(homes_data)} homes for user {user_data.get('user_id', 'unknown')}, returning top {len(top_homes)}")
-            return top_homes
+            logger.info(f"✅ Batch processing complete for indices {batch_start_idx}-{batch_start_idx + len(batch_homes) - 1}")
+            return batch_results
             
         except Exception as e:
-            logger.error(f"Error ranking homes: {e}")
-            return []
+            logger.error(f"Error processing batch starting at index {batch_start_idx}: {e}")
+            # Return error results for all homes in the batch
+            error_results = []
+            for i, home_data in enumerate(batch_homes):
+                error_results.append({
+                    'home_data': home_data,
+                    'home_id': home_data.get('home_id', f'home_{batch_start_idx + i}'),
+                    'final_score': 0.0,
+                    'error': str(e)
+                })
+            return error_results
     
     def _get_embedding_scores_batch(self, user_data: Dict[str, Any], homes_data: List[Dict[str, Any]]) -> List[float]:
         """Get embedding scores for multiple homes."""

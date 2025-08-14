@@ -44,7 +44,7 @@ export const PasswordValidation: React.FC<PasswordValidationProps> = ({
   }
 
   return (
-    <div className="mt-3 p-3 bg-beige/10 rounded-lg border border-beige/30">
+    <div className="mt-3 p-3 bg-olive/10 rounded-lg border border-olive/30">
       <p className="text-sm font-medium text-black mb-2">Password requirements:</p>
       <div className="space-y-1">
         {validationRules.map((rule) => {
@@ -53,7 +53,7 @@ export const PasswordValidation: React.FC<PasswordValidationProps> = ({
             <div key={rule.id} className="flex items-center space-x-2">
               <div className={`flex-shrink-0 w-4 h-4 rounded-full flex items-center justify-center ${
                 isValid 
-                  ? 'bg-green-500' 
+                  ? 'bg-olive' 
                   : 'bg-gray-300'
               }`}>
                 {isValid ? (
@@ -64,7 +64,7 @@ export const PasswordValidation: React.FC<PasswordValidationProps> = ({
               </div>
               <span className={`text-sm ${
                 isValid 
-                  ? 'text-green-700 font-medium' 
+                  ? 'text-olive font-medium' 
                   : 'text-gray-600'
               }`}>
                 {rule.label}

@@ -666,7 +666,6 @@ const UserPreferencesTable: React.FC<UserPreferencesTableProps> = ({
       return "Not specified";
     }
 
-    // Special handling for location arrays (important_locations, preferred_regions)
     if (Array.isArray(value)) {
       if (value.length === 0) {
         return "Not specified";
@@ -961,7 +960,6 @@ const UserPreferencesTable: React.FC<UserPreferencesTableProps> = ({
   };
 
   const locationData = {
-    preferred_regions: preferences.preferred_regions,
     important_locations: preferences.important_locations,
     commute_tolerance: preferences.commute_tolerance,
     walkability_importance: preferences.walkability_importance,
