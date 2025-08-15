@@ -22,18 +22,31 @@ interface Report {
   status: "generating" | "completed" | "error";
   pdfUrl?: string | null;
   s3Key?: string | null;
-  // Add more report fields as needed
+  // Property data fields from JSON
   price?: number;
+  bedrooms?: number;
+  bathrooms?: number;
+  living_area?: number;
+  property_type?: string;
+  zillow_url?: string;
+  // Legacy fields for backward compatibility
   squareFootage?: number;
   yearBuilt?: number;
   propertyType?: string;
   estimatedValue?: number;
   neighborhoodScore?: number;
   schoolScore?: number;
-  // Add more fields as needed
 }
 
 const ALL_METRIC_KEYS: string[] = [
+  // Property Data
+  "Price",
+  "Bedrooms",
+  "Bathrooms",
+  "Living Area",
+  "Property Type",
+  "Zillow URL",
+
   // Neighborhood Overview
   "Local Culture",
   "Neighborhood Vibe",
