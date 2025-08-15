@@ -140,7 +140,7 @@ export default function UserDashboard() {
     <div className="min-h-screen bg-off-white">
       <PageHeader
         title="Dashboard"
-        subtitle="All the tools you need for a seamless, agent-free buying experience."
+        subtitle="All the tools you need for a seamless purchasing experience."
       />
       
       <div className="max-w-6xl mx-auto p-6">
@@ -154,9 +154,9 @@ export default function UserDashboard() {
       {/* Favorite Homes */}
       <div className="mt-12">
         {/* Clickable Header */}
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center justify-between">
           <button 
-            className="text-lg font-semibold bg-gold text-white px-3 py-0.5 rounded-lg hover:bg-yellow-700 transition-colors cursor-pointer shadow-md"
+            className="text-lg font-bold underline text-gray-600 hover:text-gray-500 transition-colors cursor-pointer"
             onClick={handleSavedHomesClick}
             title="Click to view all saved homes"
           >
@@ -164,30 +164,32 @@ export default function UserDashboard() {
           </button>
         </div>
         
-        <Carousel
-          items={favoriteHomes}
-          title=""
-          loading={favLoading}
-          error={favError}
-          emptyMessage="Save your first home today"
-          renderItem={(home) => (
-            <HomeCard 
-              home={home} 
-              isHomeSaved={isHomeSaved}
-              onSave={handleSaveHome}
-              onRemove={handleRemoveHome}
-            />
-          )}
-          getItemKey={(home) => home.home_id}
-        />
+        <div className="-mt-2">
+          <Carousel
+            items={favoriteHomes}
+            title=""
+            loading={favLoading}
+            error={favError}
+            emptyMessage="Save your first home today"
+            renderItem={(home) => (
+              <HomeCard 
+                home={home} 
+                isHomeSaved={isHomeSaved}
+                onSave={handleSaveHome}
+                onRemove={handleRemoveHome}
+              />
+            )}
+            getItemKey={(home) => home.home_id}
+          />
+        </div>
       </div>
 
       {/* Documents */}
       <div className="my-8">
         {/* Clickable Header */}
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center justify-between">
           <button 
-            className="text-lg font-semibold bg-gold text-white px-3 py-0.5 rounded-lg hover:bg-yellow-700 transition-colors cursor-pointer shadow-md"
+            className="text-lg font-bold underline text-gray-600 hover:text-gray-500 transition-colors cursor-pointer"
             onClick={handleDocumentsClick}
             title="Click to view all documents"
           >
@@ -195,57 +197,41 @@ export default function UserDashboard() {
           </button>
         </div>
         
-        <Carousel
-          items={documents}
-          title=""
-          loading={docsLoading}
-          error={docsError}
-          emptyMessage="Create your first document today"
-          renderItem={(doc) => {
-            // Convert DocumentData to PdfReport shape (align with PastReports)
-            const pdfReport = {
-              id: doc.id,
-              address: doc.address || doc.filename || "",
-              pdfUrl: undefined, // Not pre-fetched
-              s3Key: doc.file_path || undefined,
-            };
-            return (
-              <DocumentCard
-                doc={doc}
-                onView={async () => {
-                  await handleViewPdf(pdfReport, (pdfUrl, reportAddress) => {
-                    setModalPdfUrl(pdfUrl);
-                    setModalReportAddress(
-                      reportAddress || doc.address || doc.filename || ""
-                    );
-                    setModalOpen(true);
-                  });
-                }}
-              />
-            );
-          }}
-          getItemKey={(doc) => doc.id}
-        />
+        <div className="-mt-2">
+          <Carousel
+            items={documents}
+            title=""
+            loading={docsLoading}
+            error={docsError}
+            emptyMessage="Create your first document today"
+            renderItem={(doc) => {
+              // Convert DocumentData to PdfReport shape (align with PastReports)
+              const pdfReport = {
+                id: doc.id,
+                address: doc.address || doc.filename || "",
+                pdfUrl: undefined, // Not pre-fetched
+                s3Key: doc.file_path || undefined,
+              };
+              return (
+                <DocumentCard
+                  doc={doc}
+                  onView={async () => {
+                    await handleViewPdf(pdfReport, (pdfUrl, reportAddress) => {
+                      setModalPdfUrl(pdfUrl);
+                      setModalReportAddress(
+                        reportAddress || doc.address || doc.filename || ""
+                      );
+                      setModalOpen(true);
+                    });
+                  }}
+                />
+              );
+            }}
+            getItemKey={(doc) => doc.id}
+          />
+        </div>
       </div>
 
-      {/* Notifications */}
-      {/* <div className="my-8 space-y-10">
-        <Carousel
-          items={priceDrops}
-          title="Recent Price Drops"
-          emptyMessage="No recent price drops"
-          renderItem={(pd) => <PriceDropCard item={pd} />}
-          getItemKey={(pd) => pd.address}
-        />
-
-        <Carousel
-          items={newMatches}
-          title="New Matches For You"
-          emptyMessage="No new matches yet"
-          renderItem={(nm) => <NewMatchCard item={nm} />}
-          getItemKey={(nm) => nm.address}
-        />
-      </div> */}
       {/* PDF Modal for viewing */}
       {modalOpen && modalPdfUrl && (
         <PdfModal
