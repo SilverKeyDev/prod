@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Send,
   Bot,
@@ -27,6 +28,7 @@ interface Chat {
 }
 
 export default function AIAssistant() {
+  const navigate = useNavigate();
   const { chats, refreshChats } = useData();
   const [localChats, setLocalChats] = useState<Chat[]>([]);
   const [activeChatId, setActiveChatId] = useState<string>("");
@@ -436,7 +438,12 @@ export default function AIAssistant() {
               </h2>
             </div>
             <p className="text-sm text-black/60">
-              Generate a report to be able to ask questions about your future home 
+              <button 
+                onClick={() => navigate('/dashboard/generate-report')}
+                className="font-bold underline hover:text-brown transition-colors cursor-pointer"
+              >
+                Generate a report
+              </button> to be able to ask questions about your future home 
             </p>
           </div>
 

@@ -565,6 +565,7 @@ export default function SearchPage() {
         contextDiameterM: number
       ) => {
         const usableW = Math.max(1, widthPx - 2 * padPx);
+        heightPx=heightPx
         // Use width to drive the "feel" (city context across width)
         const desiredMPP = contextDiameterM / usableW;
         return zoomFromMPP(centerLat, desiredMPP);
