@@ -736,12 +736,6 @@ export default function PastReports() {
         const initialData = await initialResponse.json();
 
         // LOG EVERY DETAIL OF INITIAL POLL RESPONSE
-        console.log(`[PastReports] 📥 === INITIAL POLL RESPONSE DETAILS ===`);
-        console.log(
-          `[PastReports] 📥 Raw JSON:`,
-          JSON.stringify(initialData, null, 2)
-        );
-        console.log(`[PastReports] 📥 === END INITIAL POLL RESPONSE ===`);
 
         if (initialData.success && initialData.report) {
           lastReportSnapshot = JSON.stringify(initialData.report);
@@ -751,18 +745,12 @@ export default function PastReports() {
             initialData.report.status === "completed" ||
             initialData.report.status === "error"
           ) {
-            console.log(
-              `[PastReports] ✅ Report already ${initialData.report.status}, triggering refresh`
-            );
             await handleRefresh();
             window.dispatchEvent(new CustomEvent("reportGenerated"));
-            console.log(`==============================\n`);
             return;
           }
         } else if (initialData.success && !initialData.report) {
-          console.log(
-            `[PastReports] 📭 Report not found initially, will continue polling`
-          );
+          lastReportSnapshot = null;
           lastReportSnapshot = null;
         } else {
           console.error(
@@ -814,7 +802,6 @@ export default function PastReports() {
             }
 
             if (attempts < maxAttempts) {
-              console.log(`[PastReports] 🔁 Retrying in ${pollInterval}ms...`);
               setTimeout(pollForCompletion, pollInterval);
             }
             return;
@@ -822,12 +809,6 @@ export default function PastReports() {
 
           const data = await response.json();
           consecutiveErrors = 0; // Reset error counter on success
-
-          // LOG EVERY DETAIL OF POLL RESPONSE
-          console.log(
-            `[PastReports] 📥 Raw JSON:`,
-            JSON.stringify(data, null, 2)
-          );
 
           if (!data.success) {
             console.error(`[PastReports] ❌ Poll API error:`, data.error);
@@ -839,16 +820,9 @@ export default function PastReports() {
 
           // Handle case where report is not found (null)
           if (!data.report) {
-            console.log(
-              `[PastReports] 📭 Report not found - may have been deleted or completed elsewhere`
-            );
             if (lastReportSnapshot !== null) {
               await handleRefresh();
               window.dispatchEvent(new CustomEvent("reportGenerated"));
-              console.log(
-                `[PastReports] ✅ Polling completed after ${attempts} attempts (${elapsedTime}s)`
-              );
-              console.log(`==============================\n`);
               return;
             }
 
@@ -872,34 +846,14 @@ export default function PastReports() {
           const currentReportSnapshot = JSON.stringify(data.report);
           const hasChanged = currentReportSnapshot !== lastReportSnapshot;
 
-          console.log(
-            `[PastReports] 📊 Report status: ${data.report.status}, changed: ${hasChanged}`
-          );
-
           // Check for completion or significant changes
           if (
             data.report.status === "completed" ||
             data.report.status === "error" ||
             hasChanged
           ) {
-            console.log(
-              `[PastReports] 🎉 Report ${
-                data.report.status === "completed"
-                  ? "completed"
-                  : data.report.status === "error"
-                  ? "failed"
-                  : "changed"
-              } for documentId: ${documentId}`
-            );
-            console.log(
-              `[PastReports] 🔁 Triggering refresh and dispatching event`
-            );
             await handleRefresh();
             window.dispatchEvent(new CustomEvent("reportGenerated"));
-            console.log(
-              `[PastReports] ✅ Polling completed after ${attempts} attempts (${elapsedTime}s)`
-            );
-            console.log(`==============================\n`);
             return;
           }
 
@@ -907,13 +861,6 @@ export default function PastReports() {
           lastReportSnapshot = currentReportSnapshot;
 
           if (attempts < maxAttempts) {
-            console.log(
-              `[PastReports] ⏳ Report still ${
-                data.report.status
-              }. Polling again in ${pollInterval}ms (${
-                maxAttempts - attempts
-              } left)`
-            );
             setTimeout(pollForCompletion, pollInterval);
           } else {
             console.warn(
@@ -921,7 +868,6 @@ export default function PastReports() {
                 elapsedTime / 60
               } mins — Report still ${data.report.status}`
             );
-            console.log(`==============================\n`);
           }
         } catch (error) {
           consecutiveErrors++;
@@ -938,15 +884,10 @@ export default function PastReports() {
           }
 
           if (attempts < maxAttempts) {
-            console.log(`[PastReports] 🔄 Will retry in ${pollInterval}ms...`);
             setTimeout(pollForCompletion, pollInterval);
           }
         }
       };
-
-      console.log(
-        `[PastReports] ⏰ First poll attempt will run in ${pollInterval}ms`
-      );
       setTimeout(pollForCompletion, pollInterval);
     },
     [refreshReports]

@@ -420,6 +420,178 @@ def inject_real_population_total(combined_report: dict, address: str) -> dict:
         return combined_report
 
 
+def start_property_data_collection(address: str, user_id: str = None):
+    """
+    Start asynchronous collection of property data from the search endpoint.
+    This should be called early in the report generation process.
+
+    Args:
+        address: The property address to get data for
+        user_id: Optional user ID for personalized data (commute calculations)
+
+    Returns:
+        Future object that will contain the property data when complete
+    """
+    import concurrent.futures
+    import threading
+    from flask import current_app
+    
+    logger.info(f"🚀 Starting async property data collection for address: {address}")
+    
+    # Capture the base URL from the current app context before threading
+    base_url = current_app.config.get('BASE_URL', 'http://localhost:5000')
+    
+    def fetch_property_data():
+        """Internal function to fetch property data"""
+        try:
+            import requests
+            import json
+            
+            # Use the captured base URL instead of accessing current_app in thread
+            search_url = f"{base_url}/api/v1/search/property"
+            
+            # Prepare request payload
+            payload = {"address": address}
+            
+            logger.info("🔍 Fetching property data from search endpoint...")
+            
+            # Make the request to our own search endpoint
+            response = requests.post(search_url, json=payload, timeout=30)
+            
+            if response.status_code != 200:
+                logger.warning(f"⚠️ Search endpoint returned status {response.status_code}")
+                return None
+            
+            property_data = response.json()
+            
+            if not property_data.get('success', False):
+                logger.warning("⚠️ Search endpoint returned unsuccessful response")
+                return None
+            
+            logger.info("✅ Property data collection completed successfully")
+            return property_data
+            
+        except Exception as e:
+            logger.error(f"❌ Error in property data collection: {str(e)}")
+            logger.error(f"🔍 Traceback: {traceback.format_exc()}")
+            return None
+    
+    # Create thread pool executor for async execution
+    executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+    future = executor.submit(fetch_property_data)
+    
+    # Store executor reference to ensure proper cleanup
+    future.executor = executor
+    
+    return future
+
+
+def inject_property_data_result(combined_report: dict, address: str, property_data_future) -> dict:
+    """
+    Inject property data from the async collection into the top-level of the report,
+    immediately after the 'neighborhood_overview' section.
+
+    Args:
+        combined_report: The combined report dictionary
+        address: The property address (for logging)
+        property_data_future: Future object containing the property data
+
+    Returns:
+        Updated combined_report with real property data at top level
+    """
+    logger.info(f"🏠 Injecting collected property data for address: {address}")
+    
+    try:
+        # Check if neighborhood_overview exists
+        if 'neighborhood_overview' not in combined_report:
+            logger.warning("⚠️ No neighborhood_overview section found - skipping property data injection")
+            return combined_report
+
+        # Wait for the property data collection to complete (with timeout)
+        logger.info("⏳ Waiting for property data collection to complete...")
+        try:
+            property_data = property_data_future.result(timeout=60)  # 60 second timeout
+            
+            # Clean up the executor
+            if hasattr(property_data_future, 'executor'):
+                property_data_future.executor.shutdown(wait=False)
+                
+        except concurrent.futures.TimeoutError:
+            logger.error("⏰ Property data collection timed out")
+            return combined_report
+        except Exception as e:
+            logger.error(f"❌ Error waiting for property data: {str(e)}")
+            return combined_report
+
+        if not property_data:
+            logger.warning("⚠️ No property data received from collection - skipping injection")
+            return combined_report
+
+        # Extract relevant property information
+        property_info = {}
+        
+        # Helper function to format property type
+        def format_property_type(prop_type):
+            if not prop_type:
+                return None
+            # Convert SINGLE_FAMILY to Single Family, CONDO to Condo, etc.
+            return prop_type.replace('_', ' ').title()
+
+        # Basic property details from the main data
+        main_data = property_data.get('data', {})
+        if isinstance(main_data, dict):
+            raw_property_type = main_data.get('propertyType', main_data.get('homeType'))
+            property_info.update({
+                'price': main_data.get('price', main_data.get('listPrice')),
+                'bedrooms': main_data.get('bedrooms', main_data.get('beds')),
+                'bathrooms': main_data.get('bathrooms', main_data.get('baths')),
+                'living_area': main_data.get('livingArea', main_data.get('sqft')),
+                'property_type': format_property_type(raw_property_type),
+                'lot_area': main_data.get('lotAreaValue'),
+                'lot_unit': main_data.get('lotAreaUnit'),
+                'listing_status': main_data.get('listingStatus'),
+            })
+
+        # Commute data
+        commute_data = property_data.get('commute_data', {})
+        if isinstance(commute_data, dict) and 'travel_times' in commute_data:
+            property_info['commute_times'] = commute_data['travel_times']
+            property_info['commute_map_url'] = commute_data.get('map_url')
+
+  
+        # Zillow URL and images
+        property_info['zillow_url'] = property_data.get('zillow_url')
+        zillow_images = property_data.get('zillow_api_images', [])
+        if zillow_images:
+            property_info['additional_images'] = zillow_images[:10]  # Limit to 10 images
+
+        # Remove None values
+        property_info = {k: v for k, v in property_info.items() if v is not None}
+
+        if not property_info:
+            logger.warning("⚠️ No valid property data extracted - skipping injection")
+            return combined_report
+
+        # Insert property_data as the very first section
+        logger.info("📦 Inserting property_data as the first section")
+        new_combined_report = OrderedDict()
+        new_combined_report['property_data'] = property_info
+        logger.info("✅ Inserted real property data as first section")
+        
+        # Add all other sections after property_data
+        for key, value in combined_report.items():
+            new_combined_report[key] = value
+
+        logger.info("🎉 Successfully injected real property data from async collection")
+        return dict(new_combined_report)
+
+    except Exception as e:
+        logger.error(f"❌ Error injecting property data result: {str(e)}")
+        logger.error(f"🔍 Traceback: {traceback.format_exc()}")
+        logger.warning("⚠️ Continuing with original report data")
+        return combined_report
+
+
 def get_preferences(user_id: str) -> Dict:
     """Get user preferences by user_id"""
     try:
@@ -919,12 +1091,18 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
             logger.info("✅ Inserted 'lifestyle_dna' into section_names after 'neighborhood_overview'")
 
     payloads = []
+    property_data_future = None
     try:
         # Validate address
         if not validate_address(address):
             logger.error("🚫 Address validation failed")
             raise ValueError("Invalid address format")
-        elif marketing_model:
+        
+        # Start async property data collection early in the process
+        logger.info("🚀 Starting async property data collection...")
+        property_data_future = start_property_data_collection(address, user_id)
+        
+        if marketing_model:
             section_schema = get_individual_section_schema("marketing", user_preferences, mode="marketing")
             payload = {
                 "model": "sonar-pro",
@@ -1329,6 +1507,14 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
         # Inject real age distribution data from Census API if neighborhood_overview exists
         logger.info("🔄 Checking for age distribution injection...")
         combined_report = inject_real_age_distribution(combined_report, address)
+        
+        # Inject real property data from search endpoint if available (only for detailed reports)
+        logger.info("🔄 Checking for property data injection...")
+        if property_data_future is not None and not marketing_model:
+            logger.info("📦 Injecting property data for detailed report")
+            combined_report = inject_property_data_result(combined_report, address, property_data_future)
+        elif marketing_model:
+            logger.info("📈 Skipping property data injection for marketing report")
         
         # Inject real population total data from Census API after things_to_watch_out_for
         logger.info("🔄 Checking for population total injection...")

@@ -377,43 +377,22 @@ def poll_report_status(document_id):
 def list_reports_almostall():
     try:
         reports_list = []
-        seen_names = set()
         user = get_current_user()
         if not user:
             logger.error(f"User not found with ID: {current_user_id}")
             return jsonify({'error': 'User not found', 'success': False}), 404
-
-        # Get only standard ('detailed') reports from database for comparison functionality
-        standard_reports = PDFDocument.query.filter(
-            PDFDocument.user_id == user.id,
-            PDFDocument.report_type == 'detailed',
-            or_(PDFDocument.status == 'processed', PDFDocument.status == 'completed')
-        ).all()
-
-        # Create a set of valid filenames from database
-        valid_filenames = {doc.filename for doc in standard_reports}
-
+            
         # Get completed reports from S3 using prefix filtering for new tree structure
         s3_client = s3_service.s3_client
         if s3_client:
             bucket_name = current_app.config.get("S3_BUCKET_NAME_PDFS")
             # Use prefix to only list objects under this user's directory
-            user_prefix = f"{user.id}/reports/"
+            user_prefix = f"{user.id}/json/standard/"
             response = s3_client.list_objects_v2(Bucket=bucket_name, Prefix=user_prefix)
 
             for obj in response.get("Contents", []):
                 s3_key = obj["Key"]
                 file_name = os.path.basename(s3_key)
-
-                if file_name in seen_names:
-                    continue  # skip duplicate
-
-                if not file_name.endswith('.pdf'):
-                    continue
-
-                # Only include files that are standard reports according to database
-                if file_name not in valid_filenames:
-                    continue
 
                 presigned_url = s3_service.generate_presigned_url(s3_key, download_filename=file_name)
                 reports_list.append({
@@ -532,19 +511,36 @@ def get_view_url(report_id):
 def compare_reports_endpoint():
     """Compare multiple report JSON files and return flattened table data."""
     try:
+        logger.info("🔍 Compare reports endpoint called")
         data = request.get_json() or {}
+        logger.info(f"📊 Request data: {data}")
+        
         s3_keys = data.get('s3Keys')
+        logger.info(f"🔑 S3 keys received: {s3_keys}")
+        
         if not s3_keys or not isinstance(s3_keys, list):
+            logger.warning("❌ Invalid s3Keys parameter")
             return jsonify({'success': False, 'error': 's3Keys (list) is required'}), 400
 
+        logger.info(f"📝 Processing {len(s3_keys)} S3 keys for comparison")
+        for i, key in enumerate(s3_keys):
+            logger.info(f"  {i+1}. {key}")
+
         from app.services.report_comparator import compare_reports
+        logger.info("🔄 Calling compare_reports function...")
         df = compare_reports(s3_keys)
-        table = df.reset_index().to_dict(orient='records')  # include address in index column
+        logger.info(f"✅ DataFrame created with shape: {df.shape}")
+        logger.info(f"📋 DataFrame columns: {list(df.columns)}")
+        
+        table = df.reset_index().to_dict(orient='records')
+        logger.info(f"📊 Table created with {len(table)} records")
+        
         return jsonify({'success': True, 'table': table})
     except Exception as e:
-        logger.error(f"Error comparing reports: {str(e)}")
-        logger.error(traceback.format_exc())
-        return jsonify({'success': False, 'error': 'Internal server error'}), 500
+        logger.error(f"❌ Error comparing reports: {str(e)}")
+        logger.error(f"🔍 Error type: {type(e).__name__}")
+        logger.error(f"📋 Traceback: {traceback.format_exc()}")
+        return jsonify({'success': False, 'error': f'Internal server error: {str(e)}'}), 500
 
 
 @report_bp.route('/static/reports/<path:filename>', methods=['GET'])

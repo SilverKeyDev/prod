@@ -55,6 +55,17 @@ def _extract_summary(data: Dict) -> Dict[str, str]:
                 merged_data[subkey] = subval  # flatten it into merged
 
     field_paths = {
+        # Property Data
+        "Price": "property_data.price",
+        "Bedrooms": "property_data.bedrooms",
+        "Bathrooms": "property_data.bathrooms",
+        "Living Area": "property_data.living_area",
+        "Property Type": "property_data.property_type",
+        "Lot Area": "property_data.lot_area",
+        "Lot Unit": "property_data.lot_unit",
+        "Listing Status": "property_data.listing_status",
+        "Zillow URL": "property_data.zillow_url",
+        
         # Neighborhood Overview
         "Local Culture": "neighborhood_overview.local_culture",
         "Neighborhood Vibe": "neighborhood_overview.vibe",
@@ -222,6 +233,26 @@ def _extract_summary(data: Dict) -> Dict[str, str]:
                 missing_fields.append(label)
         else:
             logger.debug(f"✅ Found '{label}' via path '{path}'")
+
+        # Format specific property data fields for better comparison display
+        if label == "Price" and value and value != "":
+            try:
+                price_num = float(value)
+                value = f"${price_num:,.0f}"
+            except (ValueError, TypeError):
+                pass
+        elif label == "Living Area" and value and value != "":
+            try:
+                area_num = float(value)
+                value = f"{area_num:,.0f} sq ft"
+            except (ValueError, TypeError):
+                pass
+        elif label == "Lot Area" and value and value != "":
+            try:
+                lot_num = float(value)
+                value = f"{lot_num:,.0f}"
+            except (ValueError, TypeError):
+                pass
 
         summary[label] = value or ""
 

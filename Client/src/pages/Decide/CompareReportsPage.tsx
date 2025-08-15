@@ -426,11 +426,18 @@ export default function CompareReportsPage() {
 
   const refreshReports = async () => {
     try {
-      await refreshCompareReports();
+      console.log("📊 Updated compareReports data:", compareReports);
+      
       setToastMessage("Reports refreshed successfully");
       setShowSuccess(true);
     } catch (error) {
-      console.error("Failed to refresh reports:", error);
+      console.error("❌ Failed to refresh reports:", error);
+      console.log("🔍 Error details:", {
+        message: error instanceof Error ? error.message : "Unknown error",
+        stack: error instanceof Error ? error.stack : undefined,
+        error
+      });
+      
       setToastMessage(
         error instanceof Error ? error.message : "Failed to refresh reports"
       );

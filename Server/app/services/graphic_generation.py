@@ -60,6 +60,7 @@ def format_label(label: str) -> str:
 
 def generate_vertical_lollipop_chart(data: dict, title: str) -> BytesIO:
     try:
+        logger.info(f"📊 Generating vertical lollipop chart for '{title}' with data: {data}")
         labels = [format_label(key) for key in data.keys()]
         sizes = []
         for val in data.values():
@@ -69,11 +70,13 @@ def generate_vertical_lollipop_chart(data: dict, title: str) -> BytesIO:
                 else:
                     sizes.append(float(val))
             except Exception as e:
-                logger.warning(f"Skipping non-numeric value in vertical lollipop chart for '{title}': {val} - {e}")
+                logger.error(f"❌ Skipping non-numeric value in vertical lollipop chart for '{title}': {val} - {e}")
                 return None
 
+        logger.info(f"📊 Processed chart data - labels: {labels}, sizes: {sizes}")
+        
         if not sizes or sum(sizes) == 0:
-            logger.warning(f"Skipping vertical lollipop chart for '{title}' due to empty or invalid data.")
+            logger.error(f"❌ Skipping vertical lollipop chart for '{title}' due to empty or invalid data.")
             return None
 
         fig, ax = plt.subplots(figsize=(0.6 * len(labels) + 1, 4))
@@ -93,14 +96,16 @@ def generate_vertical_lollipop_chart(data: dict, title: str) -> BytesIO:
         plt.savefig(img_buffer, format="PNG", bbox_inches="tight")
         plt.close(fig)
         img_buffer.seek(0)
+        logger.info(f"✅ Successfully generated vertical lollipop chart for '{title}' - buffer size: {len(img_buffer.getvalue())} bytes")
         return img_buffer
     except Exception as e:
-        logger.warning(f"Failed to generate vertical lollipop chart for {title}: {e}")
+        logger.error(f"❌ Failed to generate vertical lollipop chart for {title}: {e}")
         return None
 
 
 def generate_horizontal_bar_chart(data: dict, title: str) -> BytesIO:
     try:
+        logger.info(f"📊 Generating horizontal bar chart for '{title}' with data: {data}")
         labels = [format_label(key) for key in data.keys()]
         sizes = []
         for val in data.values():
@@ -111,11 +116,13 @@ def generate_horizontal_bar_chart(data: dict, title: str) -> BytesIO:
                 else:
                     sizes.append(float(val))
             except Exception as e:
-                logger.warning(f"Skipping non-numeric value in bar chart for '{title}': {val} - {e}")
+                logger.error(f"❌ Skipping non-numeric value in bar chart for '{title}': {val} - {e}")
                 return None
 
+        logger.info(f"📊 Processed chart data - labels: {labels}, sizes: {sizes}")
+        
         if not sizes or sum(sizes) == 0:
-            logger.warning(f"Skipping bar chart for '{title}' due to empty or invalid data.")
+            logger.error(f"❌ Skipping bar chart for '{title}' due to empty or invalid data.")
             return None
 
         fig, ax = plt.subplots(figsize=(6, 0.4 * len(labels) + 1))
@@ -131,9 +138,10 @@ def generate_horizontal_bar_chart(data: dict, title: str) -> BytesIO:
         plt.savefig(img_buffer, format="PNG", bbox_inches="tight")
         plt.close(fig)
         img_buffer.seek(0)
+        logger.info(f"✅ Successfully generated horizontal bar chart for '{title}' - buffer size: {len(img_buffer.getvalue())} bytes")
         return img_buffer
     except Exception as e:
-        logger.warning(f"Failed to generate horizontal bar chart for {title}: {e}")
+        logger.error(f"❌ Failed to generate horizontal bar chart for {title}: {e}")
         return None
 
 def generate_donut_chart(data: dict, title: str) -> BytesIO:
