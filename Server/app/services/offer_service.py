@@ -109,9 +109,7 @@ class OfferService:
         try:
             document_id = str(uuid.uuid4())
             filename = f"{section_type}_{document_id}.pdf"
-            
-            logger.info(f"🔧 Generating {section_type} document for user {user_id}")
-            
+                        
             # Call the core generation service
             result = generate_offer_section(
                 section_type=section_type,

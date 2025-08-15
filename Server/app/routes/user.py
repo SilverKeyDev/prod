@@ -331,7 +331,6 @@ def favorite_homes():
         from app.models.home_universal import HomeUniversal
         homes = HomeUniversal.query.filter_by(user_id=str(user.id)).all()
         favorites = [home.to_dict() for home in homes]
-        current_app.logger.debug("Returning HomeUniversal favorites", extra={"count": len(favorites)})
         return jsonify({"success": True, "favorites": favorites})
 
     # POST – update list

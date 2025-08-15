@@ -11,7 +11,6 @@ logger.setLevel(logging.INFO)
 
 def get_preferences(user_id):
     """Get user preferences for the given user_id"""
-    logger.info(f"[CHATBOT] Fetching user preferences for user_id: {user_id}")
     try:
         prefs = UserPreferences.query.filter_by(user_id=user_id).first()
         if prefs:
@@ -28,10 +27,6 @@ def get_preferences(user_id):
 
 def get_chat_response(report_data, user_profile, user_message, address):
     """Generate AI chat response using OpenAI API"""
-    logger.info(f"[CHATBOT] Generating chat response for address: {address}")
-    logger.info(f"[CHATBOT] User message length: {len(user_message)} characters")
-    logger.debug(f"[CHATBOT] User message preview: {user_message[:100]}")
-
     if isinstance(report_data, dict):
         logger.info(f"[CHATBOT] Report data available with {len(report_data)} keys")
         logger.debug(f"[CHATBOT] Report data keys: {list(report_data.keys())}")

@@ -1248,14 +1248,11 @@ def get_isochrone():
                 "message": "User not found"
             }), 404
 
-        current_app.logger.info(f"[ISOCHRONE] 🔐 User authenticated: {user.id}")
-
         # Get user preferences from the preferences table, not user profile
         from app.models.user_preferences import UserPreferences
         user_prefs_obj = UserPreferences.query.filter_by(user_id=user.id).first()
         
         if not user_prefs_obj:
-            current_app.logger.warning(f"[ISOCHRONE] ⚠️ No preferences found for user {user.id}")
             return jsonify({
                 "success": False,
                 "error": "NO_PREFERENCES",
@@ -1263,21 +1260,14 @@ def get_isochrone():
             }), 400
         
         user_preferences = user_prefs_obj.to_dict()
-        current_app.logger.info(f"[ISOCHRONE] 📊 Retrieved user preferences for user {user.id}")
-        current_app.logger.info(f"[ISOCHRONE] 🔍 Raw user preferences keys: {list(user_preferences.keys())}")
-        current_app.logger.info(f"[ISOCHRONE] 📋 User preferences sample: {dict(list(user_preferences.items())[:5])}")
-
+       
         # Extract important locations
         important_locations = []
         locations_data = user_preferences.get('important_locations')
-        current_app.logger.info(f"[ISOCHRONE] 📍 Raw important_locations data: {locations_data}")
-        current_app.logger.info(f"[ISOCHRONE] 📍 Important_locations type: {type(locations_data)}")
-        
+       
         if isinstance(locations_data, str):
-            current_app.logger.info(f"[ISOCHRONE] 🔄 Parsing JSON string: {locations_data[:200]}...")
             try:
                 locations_data = json.loads(locations_data)
-                current_app.logger.info(f"[ISOCHRONE] ✅ Successfully parsed JSON: {locations_data}")
             except json.JSONDecodeError as e:
                 current_app.logger.error(f"[ISOCHRONE] ❌ Failed to parse important_locations JSON: {e}")
                 current_app.logger.error(f"[ISOCHRONE] ❌ Original string was: {locations_data}")
@@ -1289,14 +1279,10 @@ def get_isochrone():
         
         if isinstance(locations_data, list) and locations_data:
             important_locations = locations_data
-            current_app.logger.info(f"[ISOCHRONE] 📋 Found {len(important_locations)} important locations")
-            for i, loc in enumerate(important_locations):
-                current_app.logger.info(f"[ISOCHRONE] 📍 Location {i+1}: {loc}")
         else:
             current_app.logger.warning(f"[ISOCHRONE] ⚠️ Locations data is not a valid list: {type(locations_data)} - {locations_data}")
         
         if not important_locations:
-            current_app.logger.warning("[ISOCHRONE] ⚠️ No important locations found after processing")
             current_app.logger.warning(f"[ISOCHRONE] ⚠️ Original data: {user_preferences.get('important_locations')}")
             return jsonify({
                 "success": False,
@@ -1310,26 +1296,18 @@ def get_isochrone():
         for i, location in enumerate(important_locations):
             address = location.get('address')
             if not address:
-                current_app.logger.warning(f"[ISOCHRONE] ⚠️ Location {i+1} has no address, skipping")
                 continue
             
             # Get commute tolerance from the location (in minutes)
-            commute_tolerance = location.get('commute_tolerance', 30)
-            
-            location_name = location.get('name', f'Location {i+1}')
-            current_app.logger.info(f"[ISOCHRONE] 📍 Location {i+1}: {location_name} at {address} with {commute_tolerance} minutes commute")
-            
+            commute_tolerance = location.get('commute_tolerance', 30)            
             addresses_and_minutes.append((address, commute_tolerance))
         
         if not addresses_and_minutes:
-            current_app.logger.error("[ISOCHRONE] ❌ No valid locations with addresses found")
             return jsonify({
                 "success": False,
                 "error": "NO_VALID_LOCATIONS",
                 "message": "No valid locations with addresses found"
             }), 400
-
-        current_app.logger.info(f"[ISOCHRONE] 🔧 Generating union isochrone for {len(addresses_and_minutes)} locations")
 
         # Generate union isochrone polygon for all locations
         try:
@@ -1338,25 +1316,15 @@ def get_isochrone():
                 mode="drive",
                 include_individual=True  # Include individual polygons for rendering
             )
-            current_app.logger.info(f"[ISOCHRONE] ✅ Isochrone generation completed")
-            current_app.logger.info(f"[ISOCHRONE] 📊 Isochrone feature type: {type(isochrone_feature)}")
-            current_app.logger.info(f"[ISOCHRONE] 📊 Isochrone feature keys: {list(isochrone_feature.keys()) if isinstance(isochrone_feature, dict) else 'Not a dict'}")
             if isinstance(isochrone_feature, dict) and 'geometry' in isochrone_feature:
                 geom = isochrone_feature['geometry']
-                current_app.logger.info(f"[ISOCHRONE] 🗺️ Geometry type: {geom.get('type')}")
-                current_app.logger.info(f"[ISOCHRONE] 📐 Coordinates length: {len(geom.get('coordinates', []))}")
         except Exception as e:
-            current_app.logger.error(f"[ISOCHRONE] ❌ Error generating union isochrone polygon: {e}")
-            current_app.logger.error(f"[ISOCHRONE] ❌ Error type: {type(e)}")
-            current_app.logger.error(f"[ISOCHRONE] ❌ Error details: {str(e)}")
             return jsonify({
                 "success": False,
                 "error": "ISOCHRONE_GENERATION_FAILED",
                 "message": f"Failed to generate isochrone polygon: {str(e)}"
             }), 500
         
-        current_app.logger.info(f"[ISOCHRONE] ✅ Successfully generated union isochrone for {len(addresses_and_minutes)} locations")
-
         # Calculate center point from all locations (use first location as primary center for backward compatibility)
         primary_location = important_locations[0]
         primary_address = primary_location.get('address')
@@ -1412,10 +1380,6 @@ def get_isochrone():
                 "mode": "drive"
             }
         }
-        
-        current_app.logger.info(f"[ISOCHRONE] 🎉 Returning successful response")
-        current_app.logger.info(f"[ISOCHRONE] 📊 Response data keys: {list(response_data['data'].keys())}")
-        current_app.logger.info(f"[ISOCHRONE] 📍 Center: {response_data['data']['center']}")
         
         return jsonify(response_data), 200
 

@@ -751,15 +751,12 @@ def get_user_documents():
             return jsonify({'success': False, 'error': 'Unauthorized'}), 401
         
         user_id = current_user.id
-        logger.info(f"📁 [USER_DOCUMENTS] Fetching all documents for user {user_id}")
-        
+                
         # Query all PDF documents for the user and type
         documents = PDFDocument.query.filter(
             PDFDocument.user_id == user_id,
         ).all()
-        
-        logger.info(f"📊 [USER_DOCUMENTS] Found {len(documents)} documents for user {user_id}")
-        
+                
         # Convert documents to dictionary format
         documents_data = []
         for doc in documents:

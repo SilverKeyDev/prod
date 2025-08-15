@@ -268,7 +268,6 @@ def create_or_update_preferences():
 @preferences_bp.route('', methods=['GET'])
 def get_preferences():
     logger = current_app.logger
-    logger.info("📥 [GET] /api/v1/preferences - Fetching user preferences")
 
     try:
         user = get_current_user()

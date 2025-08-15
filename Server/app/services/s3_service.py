@@ -286,9 +286,7 @@ class S3Service:
 
         Returns:
             The presigned URL, or None if generation failed
-        """
-        logger.info(f"🔗 Generating presigned URL for: {s3_key}")
-        
+        """        
         # Ensure S3 client is available
         if not self._ensure_s3_client():
             logger.error("❌ S3 client not initialized - cannot generate presigned URL")
@@ -335,7 +333,6 @@ class S3Service:
             if download_filename:
                 params['ResponseContentDisposition'] = f'attachment; filename="{download_filename}"'
 
-            logger.info(f"🔧 Generating presigned URL with {expiration}s expiration")
             presigned_url = self.s3_client.generate_presigned_url(
                 operation,
                 Params=params,

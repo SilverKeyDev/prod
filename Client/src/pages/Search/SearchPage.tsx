@@ -211,20 +211,20 @@ export default function SearchPage() {
   const [, setIsochroneData] = useState<any>(null);
   const [, setImportantLocationMarkers] = useState<google.maps.Marker[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
-  const [isLoadingPropertyDetails, setIsLoadingPropertyDetails] = useState(false);
+  const [isLoadingPropertyDetails, setIsLoadingPropertyDetails] =
+    useState(false);
   const PROPERTIES_PER_PAGE = 3;
 
   // Load search results from localStorage or run fresh search based on preferences version
   useEffect(() => {
     const initializeSearchResults = async () => {
       try {
-        // Get current user preferences version
-        let currentPreferencesVersion = '1.0'; // Default version
-        
+        let currentPreferencesVersion = "0"; // Default version
+
         try {
           const idToken = localStorage.getItem("id_token");
           const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "";
-          
+
           if (idToken) {
             const response = await fetch(`${apiBaseUrl}/api/v1/preferences`, {
               method: "GET",
@@ -233,58 +233,60 @@ export default function SearchPage() {
                 "Content-Type": "application/json",
               },
             });
-            
+
             if (response.ok) {
               const data = await response.json();
-              currentPreferencesVersion = data.preferences?.preferences_version || '1.0';
-              console.log(`🔧 Current user preferences version: ${currentPreferencesVersion}`);
+              currentPreferencesVersion =
+                data.preferences?.preferences_version || "1.0";
+
             }
           }
         } catch (prefError) {
-          console.warn('⚠️ Could not fetch current preferences version, using default:', prefError);
+          console.warn(
+            "⚠️ Could not fetch current preferences version, using default:",
+            prefError
+          );
         }
-        
+
         // Check localStorage for saved search results
         const savedSearchData = loadSearchResultsFromLocalStorage();
         const savedPreferencesVersion = savedSearchData?.preferencesVersion;
-        
-        console.log(`📊 Version comparison - Current: ${currentPreferencesVersion}, Saved: ${savedPreferencesVersion || 'none'}`);
-        
+
         // Decide whether to load from localStorage or run fresh search
-        if (savedSearchData && 
-            savedSearchData.results && 
-            savedSearchData.results.length > 0 && 
-            savedPreferencesVersion === currentPreferencesVersion) {
-          
-          // Preferences versions match - load from localStorage
-          console.log(`✅ Preferences versions match (${currentPreferencesVersion}) - loading ${savedSearchData.results.length} results from localStorage`);
+        if (
+          savedSearchData &&
+          savedSearchData.results &&
+          savedSearchData.results.length > 0 &&
+          savedPreferencesVersion === currentPreferencesVersion
+        ) {
           setSearchResults(savedSearchData.results);
           setHasSearched(savedSearchData.searchMetadata?.hasSearched || true);
           setCurrentPage(savedSearchData.searchMetadata?.currentPage || 0);
           setShowPropertyModals(true);
-          console.log('✅ localStorage loading complete - cached results loaded');
-          
         } else {
-          console.log('🔄 No valid cached results found - will run fresh search');
+          console.log(
+            "🔄 No valid cached results found - will run fresh search"
+          );
         }
-        
       } catch (error) {
-        console.error('❌ Error in search results initialization:', error);
+        console.error("❌ Error in search results initialization:", error);
         // Fallback: try to load any saved data regardless of version
         const savedSearchData = loadSearchResultsFromLocalStorage();
-        if (savedSearchData && savedSearchData.results && savedSearchData.results.length > 0) {
-          console.log(`🔄 Fallback: loading ${savedSearchData.results.length} results from localStorage despite error`);
+        if (
+          savedSearchData &&
+          savedSearchData.results &&
+          savedSearchData.results.length > 0
+        ) {
           setSearchResults(savedSearchData.results);
           setHasSearched(true);
           setShowPropertyModals(true);
         }
       }
-      
+
       // Mark localStorage loading as complete
       setIsLocalStorageLoaded(true);
-      console.log('✅ localStorage initialization complete');
     };
-    
+
     initializeSearchResults();
   }, []); // Empty dependency array - only run on mount
 
@@ -303,12 +305,18 @@ export default function SearchPage() {
       delete (window as any).openPropertyModal;
     };
   }, [searchResults, savedHomes]);
-  const [activeTab, setActiveTab] = useState<"results" | "saved">("results");
+  const [activeTab, setActiveTab] = useState<"results" | "saved">(() => {
+    // Load last active tab from localStorage, default to "results"
+    const savedTab = localStorage.getItem("searchPageActiveTab");
+    return (savedTab === "results" || savedTab === "saved") ? savedTab : "results";
+  });
 
-  // Reset to first page when switching tabs
+  // Reset to first page when switching tabs and save to localStorage
   const handleTabChange = (tab: "results" | "saved") => {
     setActiveTab(tab);
     setCurrentPage(0);
+    // Save the selected tab to localStorage
+    localStorage.setItem("searchPageActiveTab", tab);
   };
   const mapRef = useRef<HTMLDivElement>(null);
   const googleMapRef = useRef<google.maps.Map | null>(null);
@@ -326,12 +334,12 @@ export default function SearchPage() {
   const saveSearchResultsToLocalStorage = async (results: SearchResult[]) => {
     try {
       // Fetch current user preferences to get the version
-      let preferencesVersion = '1.0'; // Default version
-      
+      let preferencesVersion = "1.0"; // Default version
+
       try {
         const idToken = localStorage.getItem("id_token");
         const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "";
-        
+
         if (idToken) {
           const response = await fetch(`${apiBaseUrl}/api/v1/preferences`, {
             method: "GET",
@@ -340,17 +348,22 @@ export default function SearchPage() {
               "Content-Type": "application/json",
             },
           });
-          
+
           if (response.ok) {
             const data = await response.json();
-            preferencesVersion = data.preferences?.preferences_version || '1.0';
-            console.log(`🔧 Retrieved preferences version: ${preferencesVersion}`);
+            preferencesVersion = data.preferences?.preferences_version || "1.0";
+            console.log(
+              `🔧 Retrieved preferences version: ${preferencesVersion}`
+            );
           }
         }
       } catch (prefError) {
-        console.warn('⚠️ Could not fetch preferences version, using default:', prefError);
+        console.warn(
+          "⚠️ Could not fetch preferences version, using default:",
+          prefError
+        );
       }
-      
+
       const searchData = {
         results: results,
         timestamp: new Date().toISOString(),
@@ -359,28 +372,37 @@ export default function SearchPage() {
         searchMetadata: {
           hasSearched: true,
           currentPage: 0,
-          propertiesPerPage: PROPERTIES_PER_PAGE
-        }
+          propertiesPerPage: PROPERTIES_PER_PAGE,
+        },
       };
-      
-      localStorage.setItem('searchResults', JSON.stringify(searchData));
-      console.log(`💾 Saved ${results.length} search results to localStorage with preferences version ${preferencesVersion}`);
+
+      localStorage.setItem("searchResults", JSON.stringify(searchData));
+      console.log(
+        `💾 Saved ${results.length} search results to localStorage with preferences version ${preferencesVersion}`
+      );
     } catch (error) {
-      console.error('❌ Error saving search results to localStorage:', error);
+      console.error("❌ Error saving search results to localStorage:", error);
     }
   };
 
   // Load search results from localStorage on component mount
   const loadSearchResultsFromLocalStorage = () => {
     try {
-      const savedData = localStorage.getItem('searchResults');
+      const savedData = localStorage.getItem("searchResults");
       if (savedData) {
         const parsedData = JSON.parse(savedData);
-        console.log(`📂 Loaded ${parsedData.results?.length || 0} search results from localStorage`);
+        console.log(
+          `📂 Loaded ${
+            parsedData.results?.length || 0
+          } search results from localStorage`
+        );
         return parsedData;
       }
     } catch (error) {
-      console.error('❌ Error loading search results from localStorage:', error);
+      console.error(
+        "❌ Error loading search results from localStorage:",
+        error
+      );
     }
     return null;
   };
@@ -423,17 +445,12 @@ export default function SearchPage() {
       try {
         // Fetch the Google Maps script URL from backend
         const idToken = localStorage.getItem("id_token");
-        console.log("🔑 Fetching Google Maps script URL from backend...");
         const response = await fetch("/api/maps/script", {
           headers: {
             Authorization: idToken ? `Bearer ${idToken}` : "",
             "Content-Type": "application/json",
           },
         });
-
-        console.log("📡 Response status:", response.status);
-        console.log("📡 Response headers:", response.headers);
-
         if (!response.ok) {
           const errorText = await response.text();
           console.error(
@@ -456,7 +473,6 @@ export default function SearchPage() {
         }
 
         const data = await response.json();
-        console.log("📦 Backend response data:", data);
 
         if (!data.success || !data.script_url) {
           console.error(
@@ -466,7 +482,6 @@ export default function SearchPage() {
           return;
         }
         const scriptUrl = data.script_url;
-        console.log("✅ Got script URL:", scriptUrl);
 
         // Load Google Maps script if not already loaded
         if (!window.google) {
@@ -488,79 +503,187 @@ export default function SearchPage() {
     };
 
     const createMap = () => {
-      if (mapRef.current && window.google) {
-        googleMapRef.current = new window.google.maps.Map(mapRef.current, {
-          center: { lat: 37.7749, lng: -122.4194 }, // Default to San Francisco
-          zoom: 12,
-          styles: mapStyles,
-          // Hide all controls except map type (satellite/map) controls
-          disableDefaultUI: true,
-          mapTypeControl: true,
-          mapTypeControlOptions: {
-            style: window.google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
-            position: window.google.maps.ControlPosition.TOP_RIGHT,
-            mapTypeIds: ["roadmap", "satellite"],
-          },
-          gestureHandling: "greedy", // Allow map interaction without ctrl key
-        });
-
-        // Check if we already have search results loaded (from localStorage or previous search)
-        // If so, just fetch isochrone for map population without property search
-        // If not, fetch isochrone with property search
-        console.log("🚀 Map initialized, checking for existing search results...");
-        
-        // Small delay to allow localStorage loading to complete first
-        setTimeout(() => {
-          if (searchResults.length > 0) {
-            console.log("✅ Found existing search results, fetching isochrone for map population only...");
-            fetchIsochroneForMapOnly()
-              .then((data) => {
-                if (data) {
-                  console.log("📦 Isochrone data received, rendering polygon...");
-                  renderIsochronePolygon(data);
-
-                  // Also render important location markers
-                  console.log("📍 Rendering important location markers...");
-                  renderImportantLocationMarkers(data);
-                } else {
-                  console.warn(
-                    "⚠️ No isochrone data received, polygon will not be displayed"
-                  );
-                }
-              })
-              .catch((error) => {
-                console.error(
-                  "❌ Failed to fetch or render isochrone polygon:",
-                  error
-                );
-              });
+      if (!mapRef.current || !window.google) return;
+    
+      // ---------- Helpers ----------
+      const toRad = (d: number) => (d * Math.PI) / 180;
+    
+      // Distance in meters between two lat/lng points (Haversine)
+      const haversine = (lat1: number, lng1: number, lat2: number, lng2: number) => {
+        const R = 6371000; // meters
+        const dLat = toRad(lat2 - lat1);
+        const dLng = toRad(lng2 - lng1);
+        const a =
+          Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+          Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+          Math.sin(dLng / 2) * Math.sin(dLng / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
+      };
+    
+      // Convert desired meters-per-pixel to a Google zoom at a given latitude
+      const zoomFromMPP = (latDeg: number, mpp: number) => {
+        // Spherical mercator; 156543.03392 is meters/pixel at zoom 0 on equator
+        const latRad = toRad(latDeg);
+        const denom = Math.max(mpp, 0.0001); // avoid div-by-zero
+        const z = Math.log2((156543.03392 * Math.cos(latRad)) / denom);
+        return z;
+      };
+    
+      // Compute zoom to fit a lat/lng span inside the viewport with padding
+      const zoomToFitBounds = (
+        centerLat: number,
+        latSpanDeg: number,
+        lngSpanDeg: number,
+        widthPx: number,
+        heightPx: number,
+        padPx: number
+      ) => {
+        const usableW = Math.max(1, widthPx - 2 * padPx);
+        const usableH = Math.max(1, heightPx - 2 * padPx);
+        // Approx meters per degree
+        const mPerDegLat = 111320; // average
+        const mPerDegLng = 111320 * Math.cos(toRad(centerLat));
+        const spanM_Lat = Math.max(0, latSpanDeg) * mPerDegLat;
+        const spanM_Lng = Math.max(0, lngSpanDeg) * mPerDegLng;
+    
+        // Required meters-per-pixel in each axis to fit
+        const mppX = spanM_Lng / usableW;
+        const mppY = spanM_Lat / usableH;
+    
+        // We must satisfy both; take the larger mpp (i.e., more zoomed out)
+        const requiredMPP = Math.max(mppX, mppY, 0.5); // 0.5m/px floor to avoid ultra-close
+        return zoomFromMPP(centerLat, requiredMPP);
+      };
+    
+      // Compute a city-context zoom around a single point (diameter in meters)
+      const zoomForSinglePoint = (
+        centerLat: number,
+        widthPx: number,
+        heightPx: number,
+        padPx: number,
+        contextDiameterM: number
+      ) => {
+        const usableW = Math.max(1, widthPx - 2 * padPx);
+        // Use width to drive the "feel" (city context across width)
+        const desiredMPP = contextDiameterM / usableW;
+        return zoomFromMPP(centerLat, desiredMPP);
+      };
+    
+      // ---------- Defaults and map creation ----------
+      const DEFAULT_CENTER = { lat: 37.7749, lng: -122.4194 }; // SF
+      const DEFAULT_ZOOM = 12;
+    
+      const map = new window.google.maps.Map(mapRef.current, {
+        center: DEFAULT_CENTER,
+        zoom: DEFAULT_ZOOM,
+        styles: mapStyles,
+        disableDefaultUI: true,
+        mapTypeControl: true,
+        mapTypeControlOptions: {
+          style: window.google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
+          position: window.google.maps.ControlPosition.TOP_RIGHT,
+          mapTypeIds: ["roadmap", "satellite"],
+        },
+        gestureHandling: "greedy",
+      });
+      googleMapRef.current = map;
+    
+      // ---------- Compute zoom/center from data ----------
+      const widthPx = mapRef.current.clientWidth || mapRef.current.offsetWidth || 1024;
+      const heightPx = mapRef.current.clientHeight || mapRef.current.offsetHeight || 768;
+      const padPx = Math.round(Math.min(widthPx, heightPx) * 0.08); // ~8% padding (40–120px typical)
+    
+      if (searchResults.length > 0) {
+        const bounds = new google.maps.LatLngBounds();
+        for (const p of searchResults) {
+          bounds.extend(new window.google.maps.LatLng(p.lat, p.lng));
+        }
+    
+        const center = bounds.getCenter();
+        const centerLat = center.lat();
+        const centerLng = center.lng();
+        map.setCenter({ lat: centerLat, lng: centerLng });
+    
+        const ne = bounds.getNorthEast();
+        const sw = bounds.getSouthWest();
+    
+        // Degree spans (handle potential negatives if bounds cross dateline – unlikely for city use)
+        let latSpanDeg = ne.lat() - sw.lat();
+        let lngSpanDeg = ne.lng() - sw.lng();
+        if (lngSpanDeg < 0) lngSpanDeg += 360; // antimeridian safety
+    
+        // For a single point, show broader area context (zoomed out more)
+        if (searchResults.length === 1) {
+          // 15km diameter shows broader area context - zoomed out more for single home
+          const AREA_DIAMETER_M = 15000;
+          let z = zoomForSinglePoint(centerLat, widthPx, heightPx, padPx, AREA_DIAMETER_M);
+    
+          // Clamp to prevent too close zoom only
+          const MAX_Z = 14; // prevent too close zoom
+          z = Math.min(MAX_Z, z); // No minimum zoom limit - can zoom out as far as needed
+          map.setZoom(Math.round(z));
+          console.log(`🔍 ZOOM(single): target area diameter=${AREA_DIAMETER_M}m -> z≈${z.toFixed(2)}`);
+        } else {
+          // Multi-point: compute zoom from actual spans, zoom in more for better detail
+          let z = zoomToFitBounds(centerLat, latSpanDeg, lngSpanDeg, widthPx, heightPx, padPx);
+    
+          const diagMeters = haversine(ne.lat(), ne.lng(), sw.lat(), sw.lng());
+          
+          // For multiple homes, especially 3 homes, zoom in more for better detail
+          if (searchResults.length <= 3) {
+            z += 1.5; // Zoom in significantly more for 2-3 homes
+            console.log(`🔍 ZOOM(few-homes): ${searchResults.length} homes, zooming in +1.5 levels for detail`);
           } else {
-            console.log("🔄 No existing search results, fetching isochrone with property search...");
-            fetchIsochronePolygon()
-              .then((data) => {
-                if (data) {
-                  console.log("📦 Isochrone data received, rendering polygon...");
-                  renderIsochronePolygon(data);
-
-                  // Also render important location markers
-                  console.log("📍 Rendering important location markers...");
-                  renderImportantLocationMarkers(data);
-                } else {
-                  console.warn(
-                    "⚠️ No isochrone data received, polygon will not be displayed"
-                  );
-                }
-              })
-              .catch((error) => {
-                console.error(
-                  "❌ Failed to fetch or render isochrone polygon:",
-                  error
-                );
-              });
+            z += 0.5; // Moderate zoom in for 4+ homes
+            console.log(`🔍 ZOOM(many-homes): ${searchResults.length} homes, zooming in +0.5 levels`);
           }
-        }, 100); // Small delay to allow localStorage loading to complete
+    
+          // Tight-cluster handling: if very close together, zoom in even more
+          const TIGHT_CLUSTER_KM = 2_000;
+          if (diagMeters > 0 && diagMeters < TIGHT_CLUSTER_KM) {
+            z += 0.8;
+            console.log(`🔍 ZOOM(tight-cluster): very tight cluster diag=${Math.round(diagMeters)}m -> +0.8 more`);
+          }
+    
+          // Guard against degenerate spans (identical coords)
+          if ((latSpanDeg === 0 && lngSpanDeg === 0) || !isFinite(z)) {
+            // Fall back to a focused view for multiple homes
+            const FALLBACK_DIAMETER_M = 8000; // ~8km - focused for multiple homes
+            z = zoomForSinglePoint(centerLat, widthPx, heightPx, padPx, FALLBACK_DIAMETER_M);
+          }
+    
+          // Clamp to prevent too close zoom only
+          const MAX_Z = 14;  // prevent too close zoom
+          z = Math.min(MAX_Z, z); // No minimum zoom limit - can zoom out as far as needed
+          map.setZoom(Math.round(z));
+          console.log(
+            `🔍 ZOOM(multi): latSpan=${latSpanDeg.toFixed(4)}°, lngSpan=${lngSpanDeg.toFixed(4)}°, diag=${Math.round(diagMeters)}m -> z≈${z.toFixed(2)}`
+          );
+        }
+      } else {
+        console.log("🔍 ZOOM: No search results; using fallback center/zoom");
       }
+    
+      // ---------- Isochrone overlay logic (unchanged) ----------
+      setTimeout(() => {
+        const fetcher = searchResults.length > 0 ? fetchIsochroneForMapOnly : fetchIsochronePolygon;
+        fetcher()
+          .then((data) => {
+            if (data) {
+              renderIsochronePolygon(data);
+              renderImportantLocationMarkers(data);
+            } else {
+              console.warn("⚠️ No isochrone data received, polygon will not be displayed");
+            }
+          })
+          .catch((error) => {
+            console.error("❌ Failed to fetch or render isochrone polygon:", error);
+          });
+      }, 100);
     };
+    
+    
 
     // Only initialize map after localStorage loading is complete
     if (isLocalStorageLoaded) {
@@ -570,68 +693,20 @@ export default function SearchPage() {
 
   // Handle property details search
   const handleViewPropertyDetails = async (property: SearchResult) => {
-    console.log("🔍 ===== VIEW DETAILS CLICKED =====");
-    console.log("🔍 Timestamp:", new Date().toISOString());
-    console.log(
-      "🔍 Property data received:",
-      JSON.stringify(property, null, 2)
-    );
-    console.log("🔍 Property address:", property.address);
-    console.log(
-      "🔍 getPropertyDetailsByAddress function available:",
-      typeof getPropertyDetailsByAddress
-    );
-
-    // Set loading state to show KeyTurnLoader
     setIsLoadingPropertyDetails(true);
 
     try {
-      console.log("🔍 Step 1: Starting detailed property information fetch...");
-      console.log(
-        "🔍 About to call getPropertyDetailsByAddress with zpid:",
-        property.id,
-        "for address:",
-        property.address
-      );
-
-      // Call the searchAddress function to get detailed property information using zpid for exact match
       const detailedPropertyData = await getPropertyDetailsByAddress(
         property.id, // Use zpid for exact match instead of address
         property.address // Fallback address if zpid fails
       );
 
-      console.log("✅ Step 2: Successfully received detailed property data");
-      console.log("✅ Detailed data type:", typeof detailedPropertyData);
-      console.log(
-        "✅ Detailed data keys:",
-        detailedPropertyData
-          ? Object.keys(detailedPropertyData)
-          : "null/undefined"
-      );
-      console.log(
-        "✅ Full detailed data:",
-        JSON.stringify(detailedPropertyData, null, 2)
-      );
-
-      // Update the selected property with the detailed data if available
-      console.log("🔄 Step 3: Merging property data...");
       const enhancedProperty = {
         ...property,
         ...detailedPropertyData, // Merge detailed data with existing property data
       };
 
-      console.log("🔄 Enhanced property keys:", Object.keys(enhancedProperty));
-      console.log("🔄 Enhanced property sample fields:");
-      console.log("  - address:", enhancedProperty.address);
-      console.log("  - price:", enhancedProperty.price);
-      console.log("  - yearBuilt:", enhancedProperty.yearBuilt);
-      console.log("  - taxAnnualAmount:", enhancedProperty.taxAnnualAmount);
-      console.log("  - listed_by:", !!enhancedProperty.listed_by);
-      console.log("  - schools:", enhancedProperty.schools?.length || 0);
-
-      console.log("🔄 Step 4: Setting selected property in state...");
       setSelectedProperty(enhancedProperty);
-      console.log("✅ ===== VIEW DETAILS COMPLETED SUCCESSFULLY =====");
     } catch (error) {
       console.error("❌ ===== VIEW DETAILS FAILED =====");
       console.error("❌ Error fetching property details:", error);
@@ -663,10 +738,6 @@ export default function SearchPage() {
       const property = currentData.find((p) => p.id === propertyId);
 
       if (property) {
-        console.log(
-          "🗺️ MAP MODAL: Found property, calling handleViewPropertyDetails"
-        );
-        console.log("🗺️ MAP MODAL: Property address:", property.address);
         handleViewPropertyDetails(property);
       } else {
         console.error("🗺️ MAP MODAL: Property not found with ID:", propertyId);
@@ -686,6 +757,7 @@ export default function SearchPage() {
   // Update markers when activeTab changes or when hasSearched/showPropertyModals changes
   useEffect(() => {
     if (googleMapRef.current && hasSearched && showPropertyModals) {
+      // Show only properties from the currently selected tab
       const currentData = activeTab === "results" ? searchResults : savedHomes;
       updateMapMarkers(currentData);
     } else if (googleMapRef.current && (!hasSearched || !showPropertyModals)) {
@@ -709,7 +781,6 @@ export default function SearchPage() {
 
   // Fetch isochrone polygon from backend for map population only (no property search)
   const fetchIsochroneForMapOnly = async () => {
-    console.log("🗺️ Starting isochrone fetch for map population only...");
     try {
       // Try multiple token sources for authentication
       const idToken = localStorage.getItem("id_token");
@@ -723,7 +794,6 @@ export default function SearchPage() {
         return null;
       }
 
-      console.log("🔑 Auth token found, making API request...");
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "";
       const response = await fetch(`${apiBaseUrl}/api/v1/search/isochrone`, {
         method: "GET",
@@ -739,28 +809,6 @@ export default function SearchPage() {
 
         if (data.success && data.data) {
           setIsochroneData(data.data);
-          console.log("✅ ISOCHRONE SUCCESS - Map population only:");
-          console.log(
-            "  📍 Center Location:",
-            JSON.stringify(data.data.center, null, 2)
-          );
-          console.log(
-            "  ⏱️ Commute Tolerance:",
-            data.data.commute_tolerance,
-            "minutes"
-          );
-          console.log("  🚗 Travel Mode:", data.data.mode);
-          console.log(
-            "  🗺️ Geometry Type:",
-            data.data.isochrone?.geometry?.type
-          );
-          console.log(
-            "  📐 Geometry Coordinates Length:",
-            data.data.isochrone?.geometry?.coordinates?.length
-          );
-
-          // NO property search - just return the data for map population
-          console.log("🗺️ Isochrone data ready for map population (no search triggered)");
           return data.data;
         } else {
           console.warn("⚠️ Invalid isochrone response structure:", data);
@@ -952,7 +1000,7 @@ export default function SearchPage() {
       );
 
       setSearchStage("Extracting property data...");
-      
+
       // Call the Zillow search API with the isochrone polygon
       const searchResult = await searchZillowByPolygon({
         polygon: searchPolygon,
@@ -970,10 +1018,10 @@ export default function SearchPage() {
 
       // Show evaluating scores stage for 10 seconds
       setSearchStage("Evaluating scores...");
-      await new Promise(resolve => setTimeout(resolve, 10000));
+      await new Promise((resolve) => setTimeout(resolve, 10000));
 
       setSearchStage("Scoring homes based on your preferences...");
-      
+
       // Transform Zillow API results to SearchResult format
       const transformedResults: SearchResult[] = searchResult.properties.map(
         (property, index) => ({
@@ -1005,20 +1053,23 @@ export default function SearchPage() {
       );
 
       setSearchStage("Extracting property images...");
-      
+
       // Simulate image extraction delay
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
+      await new Promise((resolve) => setTimeout(resolve, 800));
+
       setSearchStage("Finalizing results...");
-      
+
       // Update search results and mark as searched
       setSearchResults(transformedResults);
-      
+
       // Save search results to localStorage with preferences version
       saveSearchResultsToLocalStorage(transformedResults).catch((error) => {
-        console.error('❌ Failed to save search results to localStorage:', error);
+        console.error(
+          "❌ Failed to save search results to localStorage:",
+          error
+        );
       });
-      
+
       setHasSearched(true);
       setIsSearching(false);
       setCurrentPage(0); // Reset to first page when new search results come in
@@ -1043,11 +1094,6 @@ export default function SearchPage() {
 
   // Render isochrone polygon on the map
   const renderIsochronePolygon = (isochroneData: any) => {
-    console.log("🗺️ Starting polygon rendering...");
-    console.log("  - Map ref exists:", !!googleMapRef.current);
-    console.log("  - Isochrone data exists:", !!isochroneData);
-    console.log("  - Geometry exists:", !!isochroneData?.isochrone?.geometry);
-
     if (!googleMapRef.current) {
       console.warn("❌ Google Map not initialized yet");
       return;
@@ -1079,14 +1125,8 @@ export default function SearchPage() {
         isochroneData.individual_isochrones &&
         Array.isArray(isochroneData.individual_isochrones)
       ) {
-        console.log(
-          "🔍 Rendering",
-          isochroneData.individual_isochrones.length,
-          "individual isochrones"
-        );
-
         isochroneData.individual_isochrones.forEach(
-          (individualData: any, index: number) => {
+          (individualData: any) => {
             const geometry = individualData.isochrone?.geometry;
             if (!geometry) return;
 
@@ -1121,12 +1161,6 @@ export default function SearchPage() {
               if (!individualPolygonsRef.current)
                 individualPolygonsRef.current = [];
               individualPolygonsRef.current.push(individualPolygon);
-
-              console.log(
-                `✅ Rendered individual isochrone ${index + 1} (${
-                  individualData.name
-                }) in gray`
-              );
             }
           }
         );
@@ -1134,25 +1168,13 @@ export default function SearchPage() {
 
       // Now render the main union isochrone
       const geometry = isochroneData.isochrone.geometry;
-      console.log("📐 Geometry type:", geometry.type);
-      console.log(
-        "📐 Geometry coordinates length:",
-        geometry.coordinates?.length
-      );
-
       let coordinates: number[][][] = [];
 
       if (geometry.type === "Polygon") {
         coordinates = geometry.coordinates;
-        console.log("📍 Processing Polygon with", coordinates.length, "rings");
       } else if (geometry.type === "MultiPolygon") {
         // For MultiPolygon, take the first polygon
         coordinates = geometry.coordinates[0];
-        console.log(
-          "📍 Processing MultiPolygon, using first polygon with",
-          coordinates.length,
-          "rings"
-        );
       } else {
         console.warn("❌ Unsupported geometry type:", geometry.type);
         return;
@@ -1169,10 +1191,6 @@ export default function SearchPage() {
         return convertedRing;
       });
 
-      console.log("📊 Total paths created:", paths.length);
-      console.log("📊 First path sample points:", paths[0]?.slice(0, 3));
-
-      // Create the main union polygon
       const polygon = new google.maps.Polygon({
         paths: paths,
         strokeColor: "#7B9E7C", // Match the app's green theme
@@ -1183,12 +1201,9 @@ export default function SearchPage() {
         clickable: false,
       });
 
-      console.log("🎨 Created union polygon with styling");
       polygon.setMap(googleMapRef.current);
       polygonRef.current = polygon;
       setIsochronePolygon(polygon);
-
-      console.log("✅ Successfully rendered isochrone polygon on map");
 
       // Fit the map to include the polygon bounds
       const bounds = new google.maps.LatLngBounds();
@@ -1196,7 +1211,6 @@ export default function SearchPage() {
         bounds.extend(point);
       });
 
-      console.log("🔍 Fitting map bounds to polygon");
       googleMapRef.current.fitBounds(bounds);
 
       // Add some padding to the bounds
@@ -1218,205 +1232,185 @@ export default function SearchPage() {
     }
   };
 
-  // Render important location markers on the map
-  const renderImportantLocationMarkers = async (isochroneData: any) => {
-    if (!googleMapRef.current || !isochroneData?.center) {
-      console.warn(
-        "❌ Cannot render important location markers: map or data not available"
-      );
-      return;
-    }
+  // Render important location markers on the map (nubless, gapless bubbles)
+const renderImportantLocationMarkers = async (isochroneData: any) => {
+  if (!googleMapRef.current || !isochroneData?.center) {
+    console.warn("❌ Cannot render important location markers: map or data not available");
+    return;
+  }
 
-    // Clear existing important location markers
-    importantMarkersRef.current.forEach((marker) => {
-      marker.setMap(null);
+  // Clear existing markers + bubbles
+  importantMarkersRef.current.forEach((marker) => {
+    (marker as any)._bubble?.setMap(null);
+    marker.setMap(null);
+  });
+  importantMarkersRef.current = [];
+
+  // Build list of important locations
+  const importantLocations: Array<any> = [];
+  if (isochroneData.center) {
+    importantLocations.push({
+      name: isochroneData.center.name || "Primary Location",
+      address: isochroneData.center.address,
+      lat: isochroneData.center.lat,
+      lng: isochroneData.center.lng,
+      commute_tolerance: isochroneData.commute_tolerance || 30,
     });
-    importantMarkersRef.current = [];
-
-    try {
-      // Use the same important locations data that the isochrone calculation uses
-      // The isochrone data already contains the important locations information
-      let importantLocations = [];
-
-      // Extract important locations from isochrone data (same as property search)
-      if (isochroneData.center) {
-        // Add the center location (primary important location)
+  }
+  if (Array.isArray(isochroneData.locations)) {
+    isochroneData.locations.forEach((loc: any) => {
+      if (!loc?.address) return;
+      const dup = importantLocations.some((e) => e.address === loc.address);
+      if (!dup) {
         importantLocations.push({
-          name: isochroneData.center.name || "Primary Location",
-          address: isochroneData.center.address,
-          lat: isochroneData.center.lat,
-          lng: isochroneData.center.lng,
-          commute_tolerance: isochroneData.commute_tolerance || 30,
+          name: loc.name || "Important Location",
+          address: loc.address,
+          lat: loc.lat ?? null,
+          lng: loc.lng ?? null,
+          commute_tolerance: loc.commute_tolerance || 30,
         });
       }
+    });
+  }
 
-      // If there are additional important locations in the isochrone data, add them
-      if (isochroneData.locations && Array.isArray(isochroneData.locations)) {
-        isochroneData.locations.forEach((location: any) => {
-          if (location.address) {
-            importantLocations.push({
-              name: location.name || "Important Location",
-              address: location.address,
-              lat: location.lat || null, // Backend doesn't include lat/lng, will geocode
-              lng: location.lng || null,
-              commute_tolerance: location.commute_tolerance || 30,
-            });
-          }
-        });
-      }
+  // Small, always-visible bubble overlay (no nub, zero-gap)
+  class BubbleOverlay extends google.maps.OverlayView {
+    private div: HTMLDivElement;
+    private position: google.maps.LatLng | google.maps.LatLngLiteral;
 
-      console.log("📍 IMPORTANT LOCATIONS - Using isochrone data:");
-      console.log("📍 IMPORTANT LOCATIONS SUMMARY:");
-      console.log("  🔢 Total Count:", importantLocations.length);
-      importantLocations.forEach((loc: any, index: number) => {
-        console.log(
-          `  ${index + 1}. Name: "${loc.name}", Address: "${loc.address}"`
-        );
-      });
-
-      // Create markers for each important location
-      const markers: google.maps.Marker[] = [];
-
-      for (let i = 0; i < importantLocations.length; i++) {
-        const location = importantLocations[i];
-        const { name, address } = location;
-
-        if (!address) {
-          console.warn("⚠️ Skipping location without address:", name);
-          continue;
-        }
-
-        try {
-          // Geocode the address to get coordinates
-          const geocoder = new google.maps.Geocoder();
-          const geocodeResponse = await geocoder.geocode({ address });
-
-          if (geocodeResponse.results && geocodeResponse.results.length > 0) {
-            const position = geocodeResponse.results[0].geometry.location;
-
-            // Create custom marker icon based on location index
-            const isFirstLocation = i === 0;
-            const markerIcon = {
-              path: google.maps.SymbolPath.CIRCLE,
-              fillColor: isFirstLocation ? "#7B9E7C" : "#E8A87C", // Green for first (isochrone center), orange for others
-              fillOpacity: 0.9,
-              strokeColor: "#ffffff",
-              strokeWeight: 2,
-              scale: isFirstLocation ? 12 : 8,
-            };
-
-            // Create the marker
-            const marker = new google.maps.Marker({
-              position: position,
-              map: googleMapRef.current,
-              title: `${name}${isFirstLocation ? " (Commute Center)" : ""}`,
-              icon: markerIcon,
-            });
-
-            // Create minimal info window for the marker - always visible, no close button
-            const commuteTime = location.commute_tolerance || 30;
-            const infoWindow = new google.maps.InfoWindow({
-              content: `
-                <style>
-                  .gm-ui-hover-effect { display: none !important; }
-                  .gm-style-iw-c button { display: none !important; }
-                  .gm-style-iw-t::after { display: none !important; }
-                </style>
-                <div style="
-                  padding: 6px 8px; 
-                  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                  background: rgba(245, 245, 220, 0.95);
-                  border: 1px solid #9E8371;
-                  border-radius: 6px;
-                  box-shadow: 0 2px 8px rgba(158, 131, 113, 0.2);
-                  min-width: 80px;
-                  max-width: 120px;
-                  text-align: center;
-                ">
-                  <div style="
-                    color: #5D4E37; 
-                    font-size: 12px; 
-                    font-weight: 600;
-                    margin-bottom: 2px;
-                  ">
-                    ${name}
-                  </div>
-                  <div style="
-                    color: #8B7355; 
-                    font-size: 10px;
-                    font-weight: 500;
-                  ">
-                    ${commuteTime} min
-                  </div>
-                </div>
-              `,
-              disableAutoPan: true,
-              pixelOffset: new google.maps.Size(0, -5),
-            });
-
-            // Open the info window immediately and keep it open (always visible)
-            infoWindow.open(googleMapRef.current, marker);
-
-            // Store info window reference on marker for cleanup
-            (marker as any).infoWindow = infoWindow;
-
-            markers.push(marker);
-            console.log(`✅ Created marker for ${name} at`, position.toJSON());
-          } else {
-            console.warn(
-              `⚠️ Could not geocode address for ${name}: ${address}`
-            );
-          }
-        } catch (error) {
-          console.error(`❌ Error creating marker for ${name}:`, error);
-        }
-      }
-
-      // Update refs and state
-      importantMarkersRef.current = markers;
-      setImportantLocationMarkers(markers);
-
-      console.log(
-        `✅ Successfully created ${markers.length} important location markers`
-      );
-    } catch (error) {
-      console.error("❌ Error rendering important location markers:", error);
+    constructor(position: google.maps.LatLng | google.maps.LatLngLiteral, contentHTML: string) {
+      super();
+      this.position = position;
+      this.div = document.createElement("div");
+      this.div.style.position = "absolute";
+      this.div.style.zIndex = "1100"; // above property overlays (yours use 1000)
+      // Place directly above the marker, no gap:
+      // translateX(-50%) centers horizontally; -100% puts top edge at marker point;
+      // extra -2px tucks it flush (tweak if your dot size changes)
+      this.div.style.transform = "translate(-50%, calc(-100% - 2px))";
+      this.div.style.pointerEvents = "auto";
+      this.div.innerHTML = contentHTML;
     }
-  };
+
+    onAdd() {
+      const panes = this.getPanes();
+      panes?.overlayMouseTarget.appendChild(this.div);
+    }
+
+    draw() {
+      const projection = this.getProjection();
+      if (!projection) return;
+      const pt = projection.fromLatLngToDivPixel(
+        this.position instanceof google.maps.LatLng ? this.position : new google.maps.LatLng(this.position)
+      );
+      if (!pt) return;
+      this.div.style.left = `${pt.x}px`;
+      this.div.style.top = `${pt.y}px`;
+    }
+
+    onRemove() {
+      this.div.remove();
+    }
+  }
+
+  const markers: google.maps.Marker[] = [];
+  const geocoder = new google.maps.Geocoder();
+
+  for (let i = 0; i < importantLocations.length; i++) {
+    const loc = importantLocations[i];
+    const name = loc.name ?? "Important Location";
+    const address = loc.address;
+
+    if (!address) {
+      console.warn("⚠️ Skipping location without address:", name);
+      continue;
+    }
+
+    // Resolve coordinates
+    let position: google.maps.LatLng | google.maps.LatLngLiteral | null = null;
+    if (typeof loc.lat === "number" && typeof loc.lng === "number") {
+      position = { lat: loc.lat, lng: loc.lng };
+    } else {
+      const geocode = await geocoder.geocode({ address });
+      if (geocode.results?.length) {
+        position = geocode.results[0].geometry.location;
+      }
+    }
+    if (!position) {
+      console.warn(`⚠️ Could not resolve coordinates for ${name}: ${address}`);
+      continue;
+    }
+
+    const isFirst = i === 0;
+    const marker = new google.maps.Marker({
+      position,
+      map: googleMapRef.current!,
+      title: `${name}${isFirst ? " (Commute Center)" : ""}`,
+      icon: {
+        path: google.maps.SymbolPath.CIRCLE,
+        fillColor: isFirst ? "#7B9E7C" : "#E8A87C",
+        fillOpacity: 0.9,
+        strokeColor: "#ffffff",
+        strokeWeight: 1,
+        scale: isFirst ? 6 : 4,
+      },
+      zIndex: 10,
+    });
+
+    const commuteTime = loc.commute_tolerance ?? isochroneData.commute_tolerance ?? 30;
+    const bubbleHTML = `
+      <div style="
+        padding: 3px 6px;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: rgba(255, 255, 255, 0.92);
+        border: 1px solid rgba(158, 131, 113, 0.3);
+        border-radius: 4px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        min-width: 60px; max-width: 90px;
+        text-align: center; font-size: 10px; line-height: 1.2;
+      ">
+        <div style="
+          color: #4A3228; font-size: 10px; font-weight: 600;
+          margin-bottom: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        ">${name}</div>
+        <div style="color: #8B7355; font-size: 9px; font-weight: 500;">
+          ${commuteTime} min
+        </div>
+      </div>
+    `;
+
+    const bubble = new BubbleOverlay(
+      position instanceof google.maps.LatLng ? position : new google.maps.LatLng(position),
+      bubbleHTML
+    );
+    bubble.setMap(googleMapRef.current!);
+
+    (marker as any)._bubble = bubble;
+    markers.push(marker);
+  }
+
+  importantMarkersRef.current = markers;
+  setImportantLocationMarkers(markers);
+  console.log(`✅ Successfully created ${markers.length} important location markers (custom bubbles)`);
+};
+
+  
 
   // Load saved homes from user's favorite_home_ids on component mount
   useEffect(() => {
     const loadSavedHomes = async () => {
-      console.log("🏠 ===== SAVED HOMES RETRIEVAL STARTED =====");
-      console.log("🕐 Timestamp:", new Date().toISOString());
-
       try {
         // Get auth token
-        console.log("🔑 Step 1: Checking authentication tokens...");
         const idToken = localStorage.getItem("id_token");
         const token = localStorage.getItem("token");
         const authToken = idToken || token;
-
-        console.log("🔑 Token check results:");
-        console.log("  - id_token exists:", !!idToken);
-        console.log("  - token exists:", !!token);
-        console.log(
-          "  - Using token type:",
-          idToken ? "id_token" : token ? "token" : "none"
-        );
-        console.log("  - Token length:", authToken ? authToken.length : 0);
-
         if (!authToken) {
           console.log("❌ No auth token found, cannot load saved homes");
           return;
         }
 
         // Step 2: Call the centralized favoriteHomesApi
-        console.log("🏠 Step 2: Calling favoriteHomesApi.getFavorites()...");
         const favoritesData = await favoriteHomesApi.getFavorites();
-        console.log("🏠 Step 3: Favorite homes API response received");
-        console.log("🏠 Response success:", favoritesData.success);
-        console.log("🏠 Response keys:", Object.keys(favoritesData));
 
         if (!favoritesData.success) {
           console.error("🏠 API returned success=false:", favoritesData.error);
@@ -1425,38 +1419,65 @@ export default function SearchPage() {
 
         // Step 3: Extract actual saved homes data from API response (backend returns { favorites: HomeUniversal[] })
         const rawHomes = favoritesData.favorites || [];
-        console.log("🏠 Step 4: Processing saved homes data...");
-        console.log("🏠 SAVED HOMES SUMMARY:");
-        console.log("  🔢 Total Count:", rawHomes.length);
+
         rawHomes.forEach((home: any, index: number) => {
-          console.log(`  ${index + 1}. Address: "${home.address || 'N/A'}" - Price: ${home.price || 'N/A'} - ${home.beds || 0}br/${home.baths || 0}ba`);
+          console.log(
+            `  ${index + 1}. Address: "${home.address || "N/A"}" - Price: ${
+              home.price || "N/A"
+            } - ${home.beds || 0}br/${home.baths || 0}ba`
+          );
         });
 
         // Step 4: Convert HomeUniversal objects to SearchResult format (same as UserDashboard)
         if (rawHomes.length > 0) {
-          console.log(
-            "🔄 Step 5: Converting HomeUniversal objects to SearchResult format..."
-          );
 
-          const savedHomesData: SearchResult[] = rawHomes.map(
-            (home: any, index: number) => {
+          const savedHomesData: SearchResult[] = await Promise.all(
+            rawHomes.map(async (home: any, index: number) => {
+              let lat = home.lat;
+              let lng = home.lng;
+              
+              // If coordinates are missing, geocode the address
+              if (!lat || !lng) {
+                console.log(`🔍 Geocoding saved home address: ${home.address}`);
+                try {
+                  const geocoder = new google.maps.Geocoder();
+                  const geocodeResponse = await geocoder.geocode({ address: home.address });
+                  
+                  if (geocodeResponse.results && geocodeResponse.results.length > 0) {
+                    const location = geocodeResponse.results[0].geometry.location;
+                    lat = location.lat();
+                    lng = location.lng();
+                    console.log(`✅ Geocoded ${home.address} to:`, { lat, lng });
+                  } else {
+                    console.warn(`⚠️ Could not geocode ${home.address}, using fallback coordinates`);
+                    lat = 33.749; // Atlanta fallback
+                    lng = -84.388;
+                  }
+                } catch (error) {
+                  console.error(`❌ Geocoding error for ${home.address}:`, error);
+                  lat = 33.749; // Atlanta fallback
+                  lng = -84.388;
+                }
+              }
+              
               return {
                 id: home.address || `saved_${index + 1}`,
                 address: home.address || "Address not available",
-                price: typeof home.price === 'string' && home.price.startsWith('$') 
-                  ? home.price 
-                  : `$${home.price?.toLocaleString() || 'N/A'}`,
+                price:
+                  typeof home.price === "string" && home.price.startsWith("$")
+                    ? home.price
+                    : `$${home.price?.toLocaleString() || "N/A"}`,
                 bedrooms: parseInt(home.beds) || 0,
                 bathrooms: parseInt(home.baths) || 0,
                 sqft: parseInt(home.sqft) || 0,
-                lat: home.lat || 33.749,
-                lng: home.lng || -84.388,
+                lat: lat,
+                lng: lng,
                 lotSize: home.lot_size || undefined,
                 propertyType: home.property_type || "SINGLE_FAMILY",
                 listingStatus: home.listing_status || "FOR_SALE",
                 imageUrl: home.image_url || undefined,
               };
-            }
+            })
           );
 
           console.log("🏠 Created saved homes with real data:");
@@ -1469,26 +1490,16 @@ export default function SearchPage() {
           });
 
           // Extract addresses for favoriteAddresses state (for compatibility)
-          const favoriteAddresses = rawHomes.map((home: any) => home.address).filter(Boolean);
+          const favoriteAddresses = rawHomes
+            .map((home: any) => home.address)
+            .filter(Boolean);
 
           // Update state
           setFavoriteAddresses(favoriteAddresses);
           setSavedHomes(savedHomesData);
-          console.log(
-            "✅ Successfully set saved homes with real data in component state"
-          );
         } else {
-          console.log(
-            "ℹ️ No saved homes found, saved homes will remain empty"
-          );
+          console.log("ℹ️ No saved homes found, saved homes will remain empty");
         }
-
-        console.log(
-          "🏠 ===== SAVED HOMES RETRIEVAL COMPLETED SUCCESSFULLY ====="
-        );
-        console.log("📊 Final state summary:");
-        console.log("  - Favorite addresses count:", favoriteAddresses.length);
-        console.log("  - Saved homes count:", favoriteAddresses.length);
       } catch (error) {
         console.error("❌ ===== SAVED HOMES RETRIEVAL FAILED =====");
         console.error("❌ Error loading saved homes:", error);
@@ -1505,11 +1516,74 @@ export default function SearchPage() {
     loadSavedHomes();
   }, []); // Run once on mount
 
+  // Adaptive zoom function to fit all housing markers
+  const fitMapToMarkers = (properties: SearchResult[]) => {
+    if (!googleMapRef.current || properties.length === 0) {
+      console.log("🔍 ZOOM: Cannot fit markers - no map or properties", {
+        hasMap: !!googleMapRef.current,
+        propertyCount: properties.length
+      });
+      return;
+    }
+
+    console.log("🔍 ZOOM: Starting adaptive zoom for", properties.length, "properties");
+
+    const bounds = new google.maps.LatLngBounds();
+    
+    // Add all property locations to bounds
+    properties.forEach((property, index) => {
+      bounds.extend(new google.maps.LatLng(property.lat, property.lng));
+      if (index < 3) { // Log first 3 for debugging
+        console.log(`🔍 ZOOM: Added property ${index + 1}:`, {
+          address: property.address,
+          lat: property.lat,
+          lng: property.lng
+        });
+      }
+    });
+
+    const boundsNE = bounds.getNorthEast();
+    const boundsSW = bounds.getSouthWest();
+    console.log("🔍 ZOOM: Calculated bounds:", {
+      northeast: { lat: boundsNE.lat(), lng: boundsNE.lng() },
+      southwest: { lat: boundsSW.lat(), lng: boundsSW.lng() }
+    });
+
+    // Fit the map to show all markers with padding
+    googleMapRef.current.fitBounds(bounds, {
+      top: 50,
+      right: 50,
+      bottom: 50,
+      left: 320, // Extra padding for sidebar
+    });
+
+    console.log("🔍 ZOOM: Applied fitBounds with padding");
+
+    // Set reasonable zoom limits
+    const listener = google.maps.event.addListener(googleMapRef.current, 'bounds_changed', () => {
+      const currentZoom = googleMapRef.current!.getZoom();
+      console.log("🔍 ZOOM: Bounds changed, current zoom:", currentZoom);
+      
+      if (currentZoom && currentZoom > 16) {
+        console.log("🔍 ZOOM: Limiting max zoom from", currentZoom, "to 16");
+        googleMapRef.current!.setZoom(16); // Max zoom for readability
+      } else if (currentZoom && currentZoom < 10) {
+        console.log("🔍 ZOOM: Limiting min zoom from", currentZoom, "to 10");
+        googleMapRef.current!.setZoom(10); // Min zoom to avoid being too far out
+      } else {
+        console.log("🔍 ZOOM: Zoom level", currentZoom, "is within acceptable range (10-16)");
+      }
+      
+      google.maps.event.removeListener(listener);
+      console.log("🔍 ZOOM: Adaptive zoom complete");
+    });
+  };
+
   // Update map markers
-  const updateMapMarkers = (results: SearchResult[]) => {
+  const updateMapMarkers = async (results: SearchResult[]) => {
     if (!googleMapRef.current) return;
 
-    // Clear existing markers and overlays
+    // Clear existing HOME markers and overlays (but preserve important location markers)
     markersRef.current.forEach((marker) => {
       marker.setMap(null);
       // Also remove the overlay if it exists
@@ -1518,6 +1592,12 @@ export default function SearchPage() {
       }
     });
     markersRef.current = [];
+
+    // Re-render important location markers FIRST (so they appear behind home markers)
+    const isochroneData = await fetchIsochroneForMapOnly();
+    if (isochroneData) {
+      await renderImportantLocationMarkers(isochroneData);
+    }
 
     // Paginate the results - only show PROPERTIES_PER_PAGE at a time
     const startIndex = currentPage * PROPERTIES_PER_PAGE;
@@ -1582,7 +1662,9 @@ export default function SearchPage() {
       `;
 
       // Conditionally include match score section only for non-saved homes
-      const matchScoreSection = isSaved ? '' : `
+      const matchScoreSection = isSaved
+        ? ""
+        : `
         <div style="
           display: flex;
           align-items: center;
@@ -1722,67 +1804,44 @@ export default function SearchPage() {
       markersRef.current.push(marker);
     });
 
-    // Fit map to show all markers
-    if (currentData.length > 0) {
-      const bounds = new google.maps.LatLngBounds();
-      currentData.forEach((result) => {
-        bounds.extend({ lat: result.lat, lng: result.lng });
-      });
-      googleMapRef.current.fitBounds(bounds);
+    // Fit map to show all housing markers with adaptive zoom
+    if (results.length > 0) {
+      console.log("🔍 ZOOM: Triggering adaptive zoom for", results.length, "markers");
+      fitMapToMarkers(results);
+    } else {
+      console.log("🔍 ZOOM: No markers to fit - skipping adaptive zoom");
     }
   };
   const saveHome = async (property: SearchResult) => {
-    console.log("🏠 ===== HOME SAVE OPERATION STARTED (FRONTEND) =====");
-    console.log("🕐 Timestamp:", new Date().toISOString());
-    console.log("🏠 Property to save:", {
-      id: property.id,
-      address: property.address,
-      price: property.price,
-      bedrooms: property.bedrooms,
-      bathrooms: property.bathrooms,
-      sqft: property.sqft,
-      propertyType: property.propertyType,
-      listingStatus: property.listingStatus,
-      imageUrl: property.imageUrl
-    });
-    console.log("📊 Current saved homes count before save:", savedHomes.length);
-    
     try {
-      console.log("🔄 Calling backend API to add favorite...");
       // Call backend API to add favorite
       const response = await favoriteHomesApi.addFavorite(property);
-      console.log("📥 Backend API response received:", {
-        success: response.success,
-        error: response.error,
-        favoritesCount: response.data?.favorites?.length || 0
-      });
-
       if (response.success) {
-        console.log("✅ Backend API call successful, updating frontend state...");
-        
         // Update local state
-        const isAlreadySaved = savedHomes.find((home) => home.id === property.id);
-        console.log("🔍 Is home already in local state?", !!isAlreadySaved);
-        
+        const isAlreadySaved = savedHomes.find(
+          (home) => home.id === property.id
+        );
+
         if (!isAlreadySaved) {
-          console.log("➕ Adding home to local savedHomes state");
           setSavedHomes((prev) => {
             const newSavedHomes = [...prev, property];
-            console.log("📊 New saved homes count after local update:", newSavedHomes.length);
             return newSavedHomes;
           });
         } else {
-          console.log("ℹ️ Home already exists in local state, skipping local update");
+          console.log(
+            "ℹ️ Home already exists in local state, skipping local update"
+          );
         }
-        
+
         // Update favorite addresses from backend response
         if (response.data?.favorites) {
-          console.log("🔄 Updating favoriteAddresses from backend response:", response.data.favorites.length, "addresses");
           setFavoriteAddresses(response.data.favorites);
         }
-        
-        console.log("✅ Home successfully added to favorites:", property.address);
-        console.log("🏠 ===== HOME SAVE OPERATION COMPLETED SUCCESSFULLY (FRONTEND) =====");
+
+        console.log(
+          "✅ Home successfully added to favorites:",
+          property.address
+        );
       } else {
         console.error("❌ Backend API returned failure:", response.error);
         console.error("🏠 ===== HOME SAVE OPERATION FAILED (FRONTEND) =====");
@@ -1799,24 +1858,22 @@ export default function SearchPage() {
   };
 
   const removeSavedHome = async (propertyId: string) => {
-    console.log("🗑️ ===== HOME UNSAVE OPERATION STARTED (FRONTEND) =====");
-    console.log("🕐 Timestamp:", new Date().toISOString());
-    console.log("🗑️ Property ID to remove:", propertyId);
-    console.log("📊 Current saved homes count before removal:", savedHomes.length);
-    
     try {
       // Find the property to get its address
       const property = savedHomes.find((home) => home.id === propertyId);
       if (!property) {
-        console.error("❌ Property not found in local savedHomes state:", propertyId);
+        console.error(
+          "❌ Property not found in local savedHomes state:",
+          propertyId
+        );
         console.error("🗑️ ===== HOME UNSAVE OPERATION FAILED (FRONTEND) =====");
         return;
       }
-      
+
       console.log("🏠 Property found for removal:", {
         id: property.id,
         address: property.address,
-        price: property.price
+        price: property.price,
       });
 
       console.log("🔄 Calling backend API to remove favorite...");
@@ -1825,31 +1882,22 @@ export default function SearchPage() {
       console.log("📥 Backend API response received:", {
         success: response.success,
         error: response.error,
-        favoritesCount: response.data?.favorites?.length || 0
+        favoritesCount: response.data?.favorites?.length || 0,
       });
 
       if (response.success) {
-        console.log("✅ Backend API call successful, updating frontend state...");
-        
         // Update local state
-        console.log("➖ Removing home from local savedHomes state");
         setSavedHomes((prev) => {
           const newSavedHomes = prev.filter((home) => home.id !== propertyId);
-          console.log("📊 New saved homes count after local removal:", newSavedHomes.length);
           return newSavedHomes;
         });
-        
+
         // Update favorite addresses from backend response
         if (response.data?.favorites) {
-          console.log("🔄 Updating favoriteAddresses from backend response:", response.data.favorites.length, "addresses");
           setFavoriteAddresses(response.data.favorites);
         }
-        
-        console.log("✅ Home successfully removed from favorites:", property.address);
-        console.log("🗑️ ===== HOME UNSAVE OPERATION COMPLETED SUCCESSFULLY (FRONTEND) =====");
       } else {
         console.error("❌ Backend API returned failure:", response.error);
-        console.error("🗑️ ===== HOME UNSAVE OPERATION FAILED (FRONTEND) =====");
       }
     } catch (error) {
       console.error("🗑️ ===== HOME UNSAVE OPERATION FAILED (FRONTEND) =====");
@@ -1877,14 +1925,22 @@ export default function SearchPage() {
   const zoomIn = () => {
     if (googleMapRef.current) {
       const currentZoom = googleMapRef.current.getZoom() || 12;
-      googleMapRef.current.setZoom(currentZoom + 1);
+      const newZoom = currentZoom + 1;
+      console.log("🔍 ZOOM: Manual zoom in from", currentZoom, "to", newZoom);
+      googleMapRef.current.setZoom(newZoom);
+    } else {
+      console.log("🔍 ZOOM: Cannot zoom in - map not available");
     }
   };
 
   const zoomOut = () => {
     if (googleMapRef.current) {
       const currentZoom = googleMapRef.current.getZoom() || 12;
-      googleMapRef.current.setZoom(currentZoom - 1);
+      const newZoom = currentZoom - 1;
+      console.log("🔍 ZOOM: Manual zoom out from", currentZoom, "to", newZoom);
+      googleMapRef.current.setZoom(newZoom);
+    } else {
+      console.log("🔍 ZOOM: Cannot zoom out - map not available");
     }
   };
 
@@ -1913,7 +1969,7 @@ export default function SearchPage() {
                     : "border-transparent text-gray-500 hover:text-gray-700"
                 }`}
               >
-                Search Results
+                Search
                 {searchResults.length > 0 && (
                   <span className="ml-2 px-2 py-0.5 bg-olive-light text-gray-800 text-xs rounded-full">
                     {searchResults.length}
@@ -1935,7 +1991,7 @@ export default function SearchPage() {
                     : "border-transparent text-gray-500 hover:text-gray-700"
                 }`}
               >
-                Saved Homes
+                Saved
                 {savedHomes.length > 0 && (
                   <span className="ml-2 px-2 py-0.5 bg-olive-light text-gray-800 text-xs rounded-full">
                     {savedHomes.length}
@@ -2043,7 +2099,8 @@ export default function SearchPage() {
 
                                   {/* Match Score */}
                                   {(() => {
-                                    const score = calculatePropertyScore(property);
+                                    const score =
+                                      calculatePropertyScore(property);
                                     const { fillColor, strokeColor } =
                                       getScoreBasedPinColor(score);
                                     return (
@@ -2237,8 +2294,18 @@ export default function SearchPage() {
                   <KeyTurnLoader message="Searching..." />
                 ) : (
                   <>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                      />
                     </svg>
                     Search Properties
                   </>
@@ -2250,10 +2317,22 @@ export default function SearchPage() {
           {/* Map - Takes remaining height */}
           <div className="mobile-card flex-1 p-0 relative">
             {/* Loading overlay - shows until at least one property is available on map */}
-            {(isSearching || (hasSearched && searchResults.length === 0 && savedHomes.length === 0) || (!hasSearched && searchResults.length === 0 && savedHomes.length === 0)) && (
+            {(isSearching ||
+              (hasSearched &&
+                searchResults.length === 0 &&
+                savedHomes.length === 0) ||
+              (!hasSearched &&
+                searchResults.length === 0 &&
+                savedHomes.length === 0)) && (
               <div className="absolute inset-0 z-20 w-full h-full rounded-lg flex items-center justify-center bg-gray-50">
                 <div className="flex flex-col items-center gap-4">
-                  <Loading message={isSearching ? (searchStage || "Searching properties...") : "Loading map..."} />
+                  <Loading
+                    message={
+                      isSearching
+                        ? searchStage || "Searching properties..."
+                        : "Loading map..."
+                    }
+                  />
                 </div>
               </div>
             )}

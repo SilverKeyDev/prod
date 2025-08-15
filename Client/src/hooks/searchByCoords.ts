@@ -128,13 +128,6 @@ export async function searchZillowByPolygon(
       ? polygon
       : [...polygon, polygon[0]];
 
-  if (closedPolygon.length !== polygon.length) {
-    console.log("[POLYGON_SEARCH] 🔄 Closed polygon ring", {
-      originalPoints: polygon.length,
-      closedPoints: closedPolygon.length
-    });
-  }
-
   // auth
   const idToken = localStorage.getItem("id_token");
   if (!idToken) {
@@ -142,16 +135,8 @@ export async function searchZillowByPolygon(
     throw new Error("Authentication required. Please log in.");
   }
 
-  console.log("[POLYGON_SEARCH] 🔐 Authentication token found");
-
   const API_BASE =
     import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
-
-  console.log("[POLYGON_SEARCH] 🌐 API configuration", {
-    apiBase: API_BASE,
-    endpoint: "/api/v1/search/properties-by-polygon"
-  });
-
   // Set deadline for request
   const deadline = Date.now() + TOTAL_TIMEOUT_MS;
 
