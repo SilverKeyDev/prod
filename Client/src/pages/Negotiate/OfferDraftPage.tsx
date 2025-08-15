@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
-import MiniLogo from "../../components/MiniLogo";
 import FavoriteHomesDropdown from "../../components/FavoriteHomesDropdown";
+import PageHeader from "../../components/PageHeader";
 import {
   FileText,
   CreditCard,
@@ -712,35 +712,24 @@ const OfferDraftPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-off-white">
-      {/* Header */}
-      <div className="bg-white border-b border-beige/40 rounded-t-2xl mx-2 mt-4">
-        <div className="mx-auto px-12 py-10">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-4">
-            <MiniLogo size="lg" />
-              <div>
-                <h1 className="text-2xl font-bold text-navy">
-                  Draft Your Purchase Offer
-                </h1>
-                <p className="text-navy/70">
-                  Prepare your offer package to purchase a home
-                </p>
-              </div>
-            </div>
-
-            {/* Favorite Homes Dropdown */}
-            <div className="flex justify-center w-full">
-              <div className="w-3/4">
-                <FavoriteHomesDropdown
-                  selectedHome={selectedHome}
-                  onHomeSelect={handleHomeSelection}
-                  placeholder="Select a favorite home"
-                />
-              </div>
+      <PageHeader
+        title="Draft Your Offer"
+        subtitle="Create a comprehensive offer package with all necessary details"
+      />
+      
+      <div className="mx-auto px-12 py-10 max-w-6xl">
+        {/* Favorite Homes Dropdown */}
+        <div className="bg-white rounded-xl shadow-sm p-6 mb-6 border border-beige/40">
+          <div className="flex justify-center w-full">
+            <div className="w-3/4">
+              <FavoriteHomesDropdown
+                selectedHome={selectedHome}
+                onHomeSelect={handleHomeSelection}
+                placeholder="Select a favorite home"
+              />
             </div>
           </div>
         </div>
-      </div>
 
       {/* Tab Navigation */}
       <div className="bg-white border-b border-beige/40 sticky top-0 z-10 mx-2">
@@ -1284,6 +1273,7 @@ const OfferDraftPage: React.FC = () => {
             </div>
           </div>
         </form>
+      </div>
       </div>
     </div>
   );

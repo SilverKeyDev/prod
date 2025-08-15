@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { apiRequest } from "../../lib/api";
-import MiniLogo from "../../components/MiniLogo";
 import { CheckSquare } from "lucide-react";
 import ChecklistCheckbox from "../../components/ChecklistCheckbox";
+import ClosePageHeader from "../../components/ClosePageHeader";
 
 const sectionBox =
   "bg-white rounded-xl shadow-sm p-6 mb-6 border border-beige/40";
@@ -212,35 +212,13 @@ export default function InspectionsChecklist() {
 
   return (
     <div className="min-h-screen bg-off-white">
-      {/* Header */}
-      <div className="bg-white border-b border-beige/40 rounded-t-2xl mx-2 mt-4">
-        <div className="mx-auto px-12 py-10">
-          <div className="flex items-center gap-4 mb-4">
-          <MiniLogo size="lg" />
-          <div>
-              <h1 className="text-2xl font-bold text-navy">
-                Inspection & Due Diligence Checklist
-              </h1>
-              <p className="text-navy/70">
-                Follow these steps to make an informed decision before closing
-              </p>
-            </div>
-          </div>
-
-          {/* Progress Bar */}
-          <div className="mt-4">
-            <p className="text-sm text-navy/70 mb-1">
-              {completedCount} of {total} items completed
-            </p>
-            <div className="w-full h-2 bg-beige/30 rounded">
-              <div
-                className="h-full bg-olive rounded transition-all duration-500"
-                style={{ width: `${(completedCount / total) * 100}%` }}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
+      <ClosePageHeader
+        title="Inspection & Due Diligence Checklist"
+        subtitle="Follow these steps to make an informed decision before closing"
+        completedCount={completedCount}
+        totalCount={total}
+        loading={loading}
+      />
 
       {/* Checklist */}
       <div className="mx-auto px-12 py-10 max-w-4xl">

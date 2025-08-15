@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { X, Search, UserPlus } from "lucide-react";
 import { useData } from "../../contexts/DataContext";
+import PageHeader from "../../components/PageHeader";
 
 interface Agent {
   id: string;
@@ -11,7 +12,7 @@ interface Agent {
   created_at?: string;
 }
 
-export default function PersonalizationPage() {
+export default function AgentConnection() {
   const { refreshUserPreferences, userProfile } = useData();
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [openDropdowns, setOpenDropdowns] = useState<{
@@ -236,16 +237,12 @@ export default function PersonalizationPage() {
 
   return (
     <div className="min-h-screen bg-off-white">
-      <div className="max-w-7xl mx-auto mobile-padding">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-serif text-black">
-              Agent Connection
-            </h1>
-            <p className="text-gray-600 mt-2">Connect with your agent</p>
-          </div>
-        </div>
+      <PageHeader
+        title="Agent Connection"
+        subtitle="Connect with real estate agents and manage your professional relationships"
+      />
+      
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
         {/* Agent Search Section */}
         {userProfile && !userProfile.is_agent && (
@@ -316,43 +313,87 @@ export default function PersonalizationPage() {
                     </div>
                   )}
 
-                {/* Assigned Agents Display */}
-                {assignedAgents.length > 0 && (
-                  <div className="space-y-3">
-                    <h4 className="font-medium text-black text-sm">
-                      Your Agents
-                    </h4>
-                    {assignedAgents.map((agent) => (
-                      <div
-                        key={agent.id}
-                        className="bg-beige/20 border border-beige rounded-lg p-4"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h4 className="font-medium text-black">
-                              {agent.name}
-                            </h4>
-                            <p className="text-sm text-gray-600">
-                              {agent.email}
-                            </p>
-                            {agent.phone && (
-                              <p className="text-sm text-gray-600">
-                                {agent.phone}
-                              </p>
-                            )}
-                          </div>
-                          <button
-                            onClick={() => removeAgent(agent)}
-                            className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
-                            title="Remove agent"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Assigned Agents Section */}
+        {userProfile && !userProfile.is_agent && assignedAgents.length > 0 && (
+          <div className="mb-8">
+            <div className="card">
+              <h3 className="text-lg font-medium text-black mb-4 flex items-center gap-2">
+                <UserPlus className="h-5 w-5 text-olive" />
+                Your Agents ({assignedAgents.length})
+              </h3>
+              <div className="space-y-3">
+                {assignedAgents.map((agent) => (
+                  <div
+                    key={agent.id}
+                    className="bg-olive/5 border border-olive/20 rounded-lg p-4 hover:bg-olive/10 transition-colors"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-black mb-1">
+                          {agent.name}
+                        </h4>
+                        <p className="text-sm text-gray-600 mb-1">
+                          {agent.email}
+                        </p>
+                        {agent.phone && (
+                          <p className="text-sm text-gray-600">
+                            📞 {agent.phone}
+                          </p>
+                        )}
+                        {agent.created_at && (
+                          <p className="text-xs text-gray-500 mt-2">
+                            Connected: {new Date(agent.created_at).toLocaleDateString()}
+                          </p>
+                        )}
                       </div>
-                    ))}
+                      <button
+                        onClick={() => removeAgent(agent)}
+                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                        title="Remove agent"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
-                )}
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Empty State for Non-Agents */}
+        {userProfile && !userProfile.is_agent && assignedAgents.length === 0 && (
+          <div className="card text-center py-12">
+            <UserPlus className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-black mb-2">
+              No Agents Connected
+            </h3>
+            <p className="text-gray-600 mb-4">
+              Search for agents above to connect with real estate professionals who can help you find your perfect home.
+            </p>
+          </div>
+        )}
+
+        {/* Agent View - Show Client List */}
+        {userProfile && userProfile.is_agent && (
+          <div className="mb-8">
+            <div className="card">
+              <h3 className="text-lg font-medium text-black mb-4 flex items-center gap-2">
+                <UserPlus className="h-5 w-5 text-olive" />
+                Your Clients
+              </h3>
+              <p className="text-gray-600 mb-4">
+                As an agent, you can view and manage your client connections here.
+              </p>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p className="text-sm text-blue-800">
+                  💡 <strong>Tip:</strong> Your clients can find and connect with you by searching for your name or email address.
+                </p>
               </div>
             </div>
           </div>

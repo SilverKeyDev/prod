@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 
 import Loading from "../../components/Loading";
-import MiniLogo from "../../components/MiniLogo";
+import PageHeader from "../../components/PageHeader";
 
 // Custom scrollbar styles matching CompareReportsPage
 const scrollbarStyles = `
@@ -326,22 +326,13 @@ const ClientIntelPage: React.FC = () => {
   return (
     <>
       <style>{scrollbarStyles}</style>
-      <div className="min-h-screen bg-cream">
+      <div className="min-h-screen bg-off-white">
+        <PageHeader
+          title="Client Intel"
+          subtitle="Manage and analyze your clients' preferences and data"
+        />
+        
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Header */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-serif text-black mb-3 sm:mb-4 flex items-center gap-2">
-                  <MiniLogo size="md" />
-                  Client Intel
-                </h1>
-                <p className="mt-2 text-gray-600">
-                  Manage and analyze your clients' preferences and data
-                </p>
-              </div>
-            </div>
-          </div>
 
           {/* Filters and Search */}
           <div className="card mb-6">

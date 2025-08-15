@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import MiniLogo from "../../components/MiniLogo";
 import FavoriteHomesDropdown from "../../components/FavoriteHomesDropdown";
 import Loading from "../../components/Loading";
+import PageHeader from "../../components/PageHeader";
 import {
   Home,
   Download,
@@ -173,25 +173,13 @@ export default function NegotiationStrategy() {
 
   return (
     <div className="min-h-screen bg-off-white">
-      {/* Header */}
-      <div className="bg-white border-b border-beige/40 rounded-t-2xl mx-2 mt-4">
-        <div className="mx-auto px-12 py-10">
-          <div className="flex items-center gap-4 mb-4">
-            <MiniLogo size="lg" />
-            <div>
-              <h1 className="text-2xl font-bold text-navy">
-                Generate Negotiation Strategy
-              </h1>
-              <p className="text-navy/70">
-                Craft a personalized approach for your selected home
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        title="Negotiation Strategy"
+        subtitle="AI-powered insights to help you craft the perfect offer"
+      />
 
       {/* Main Content */}
-      <div className="mx-auto px-12 py-10 max-w-4xl">
+      <div className="mx-auto px-12 py-10 max-w-6xl">
         {/* Home selector */}
         <div className={sectionBox}>
           <div className={sectionTitle}>

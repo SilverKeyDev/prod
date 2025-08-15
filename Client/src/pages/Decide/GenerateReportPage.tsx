@@ -2,9 +2,9 @@ export {};
 
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { MapPin, Loader2, AlertCircle, ChevronDown } from "lucide-react";
+import { MapPin, ChevronDown, Loader2, AlertCircle } from "lucide-react";
 import { useData } from "../../contexts/DataContext";
-import MiniLogo from "../../components/MiniLogo";
+import PageHeader from "../../components/PageHeader";
 import KeyTurnLoader from "../../components/KeyTurnLoader";
 
 declare global {
@@ -674,18 +674,12 @@ export default function GenerateReportPage() {
     (userProfile?.is_agent && !selectedClientId);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-off-white to-white mobile-padding py-6 sm:py-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-8 sm:mb-12">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-serif text-black mb-3 sm:mb-4 px-2 flex items-center justify-center gap-2">
-            <MiniLogo size="md" />
-            Generate Report
-          </h1>
-          <p className="text-base sm:text-lg text-black/60 font-light max-w-2xl mx-auto px-2">
-            Enter an address to generate a comprehensive AI-powered property
-            report
-          </p>
-        </div>
+    <div className="min-h-screen bg-off-white">
+      <PageHeader
+        title="Generate Property Report"
+        subtitle="Create a comprehensive analysis for any property"
+      />
+      <div className="mx-auto px-12 py-10 max-w-4xl">
 
         <div className="mobile-card max-w-2xl mx-auto space-y-4 sm:space-y-6">
           <div>

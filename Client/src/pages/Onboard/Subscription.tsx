@@ -21,7 +21,7 @@ import ErrorToast from "../../components/ErrorToast";
 import SuccessToast from "../../components/SuccessToast";
 import { useData } from "../../contexts/DataContext";
 import Loading from "../../components/Loading";
-import MiniLogo from "../../components/MiniLogo";
+import PageHeader from "../../components/PageHeader";
 
 interface Plan {
   id: string;
@@ -34,32 +34,7 @@ interface Plan {
 }
 
 const plans: Plan[] = [
-  // COMMENTED OUT: Individual report purchases disabled
-  // {
-  //   id: "5-reports",
-  //   name: "5 Reports",
-  //   price: 4.99,
-  //   interval: "one-time",
-  //   reportsLimit: 5,
-  //   features: ["No expiration"],
-  // },
-  // {
-  //   id: "20-reports",
-  //   name: "20 Reports",
-  //   price: 14.99,
-  //   interval: "one-time",
-  //   reportsLimit: 20,
-  //   popular: true,
-  //   features: ["Save 25% vs individual reports"],
-  // },
-  // {
-  //   id: "50-reports",
-  //   name: "50 Reports",
-  //   price: 29.99,
-  //   interval: "one-time",
-  //   reportsLimit: 50,
-  //   features: ["Save 40% vs individual reports"],
-  // },
+
   {
     id: "unlimited-monthly",
     name: "Enterprise Monthly",
@@ -95,12 +70,8 @@ export default function Subscription() {
   const location = useLocation();
   const notificationMessage = location.state?.message;
   const cancelled = searchParams.get("cancelled") === "true";
-  // COMMENTED OUT: Tab functionality removed - only unlimited plans available
-  // const [activeTab, setActiveTab] = useState<"one-time" | "unlimited">(
-  //   "unlimited"
-  // );
   const [showSuccess, setShowSuccess] = useState(false);
-  const [toastMessage] = useState(""); // setToastMessage was unused
+  const [toastMessage] = useState("");
 
   // Use preloaded data from context
   const {
@@ -138,7 +109,12 @@ export default function Subscription() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 lg:pt-0">
+    <div className="min-h-screen bg-off-white">
+      <PageHeader
+        title="Subscription & Billing"
+        subtitle=" Choose the perfect plan for your real estate business needs"
+      />
+
       {/* Notification from redirect */}
       {notificationMessage && (
         <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-8">
@@ -173,17 +149,6 @@ export default function Subscription() {
           duration={3000}
         />
       )}
-
-      {/* Header */}
-      <div className="text-center mb-4 lg:mb-6">
-        <h1 className="text-lg sm:text-xl lg:text-2xl font-serif text-black mb-2 lg:mb-3 flex items-center justify-center gap-2">
-          <MiniLogo size="md" />
-          Subscription & Billing
-        </h1>
-        <p className="text-xs sm:text-sm lg:text-base text-black/60 max-w-2xl mx-auto">
-          Choose the perfect plan for your real estate business needs
-        </p>
-      </div>
 
       {/* Billing & Usage Summary */}
       <div className="card mb-4 lg:mb-6">
@@ -324,7 +289,6 @@ export default function Subscription() {
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 lg:gap-4 mb-3 lg:mb-4">
-
               {/* Plan Details */}
               {billingInfo?.subscription?.plan_id ? (
                 <div className="bg-gradient-to-br from-navy/5 to-navy/10 p-4 rounded-xl">

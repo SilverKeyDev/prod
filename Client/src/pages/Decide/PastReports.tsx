@@ -16,6 +16,7 @@ import SuccessToast from "../../components/SuccessToast";
 import { useData } from "../../contexts/DataContext";
 import { formatFilenameToAddress } from "../../lib/addressFormat";
 import MiniLogo from "../../components/MiniLogo";
+import PageHeader from "../../components/PageHeader";
 
 interface Report {
   id: string;
@@ -1103,23 +1104,18 @@ export default function PastReports() {
           duration={3000}
         />
       )}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-serif text-black mb-2 flex items-center gap-2">
-            <MiniLogo size="md" />
-            Past Reports
-          </h1>
-          <p className="text-sm sm:text-base text-black/60">
-            Manage and download your generated property reports
-          </p>
-        </div>
-        <div className="mt-4 sm:mt-0">
+      <PageHeader
+        title="Past Reports"
+        subtitle="Manage and download your generated property reports"
+      />
+      
+      <div className="max-w-6xl mx-auto p-6">
+        <div className="flex justify-between items-center mb-6">
           <span className="text-sm text-black/60">
             {filteredReports.length} report
             {filteredReports.length !== 1 ? "s" : ""}
           </span>
         </div>
-      </div>
       <div className="mobile-card mb-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
           <div className="relative flex-1 sm:max-w-md">
@@ -1510,6 +1506,7 @@ export default function PastReports() {
           ))}
         </div>
       )}
+      </div>
     </div>
   );
 }

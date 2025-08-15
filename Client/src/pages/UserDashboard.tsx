@@ -2,10 +2,10 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiRequest, favoriteHomesApi } from "../lib/api";
 import DocumentCard, { DocumentData } from "../components/DocumentCard";
-import MiniLogo from "../components/MiniLogo";
 import Carousel from "../components/Carousel";
 import TimelineChecklist from "../components/TimelineChecklist";
 import HomeCard, { HomeDescription } from "../components/HomeCard";
+import PageHeader from "../components/PageHeader";
 
 /*import PriceDropCard from "../components/PriceDropCard";
 import NewMatchCard from "../components/NewMatchCard";
@@ -137,17 +137,13 @@ export default function UserDashboard() {
   }, []);
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      {/* Dashboard Header */}
-      <div className="bg-white rounded-lg shadow p-6 mb-6 flex items-center gap-4">
-        <MiniLogo className="w-50 h-10 shrink-0" />
-        <div>
-          <h1 className="text-3xl font-semibold">Dashboard</h1>
-          <p className="text-gray-600">
-            All the tools you need for a seamless, agent-free buying experience.
-          </p>
-        </div>
-      </div>
+    <div className="min-h-screen bg-off-white">
+      <PageHeader
+        title="Dashboard"
+        subtitle="All the tools you need for a seamless, agent-free buying experience."
+      />
+      
+      <div className="max-w-6xl mx-auto p-6">
 
       {/* Timeline Progress */}
       <div className="mb-8">
@@ -258,6 +254,7 @@ export default function UserDashboard() {
           onClose={() => setModalOpen(false)}
         />
       )}
+      </div>
     </div>
   );
 }

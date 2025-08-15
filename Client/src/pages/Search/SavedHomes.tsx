@@ -1,10 +1,10 @@
-import { useEffect, useState, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { favoriteHomesApi } from "../../lib/api";
 import HomeCard from "../../components/HomeCard";
+import PageHeader from "../../components/PageHeader";
 import ErrorToast from "../../components/ErrorToast";
 import { Search, RefreshCw, LayoutGrid, List } from "lucide-react";
-import MiniLogo from "../../components/MiniLogo";
 import { useData } from "../../contexts/DataContext";
-import { favoriteHomesApi } from "../../lib/api";
 import { getPropertyDetailsByAddress } from "../../hooks/searchAddress";
 import PropertyDetailsModal from "../../components/PropertyDetailsModal";
 
@@ -225,14 +225,13 @@ export default function SavedHomes() {
   ) : null;
 
   return (
-    <div className="max-w-6xl mx-auto py-8">
-      <div className="flex items-center gap-4 mb-6 bg-white p-4 rounded-lg shadow-sm">
-        <MiniLogo size="lg" />
-        <div>
-          <h1 className="text-2xl font-bold text-navy">Saved Homes</h1>
-          <p className="text-navy/70">Your favorites all in one place</p>
-        </div>
-      </div>
+    <div className="min-h-screen bg-off-white">
+      <PageHeader
+        title="Saved Homes"
+        subtitle="Your collection of favorite properties"
+      />
+      
+      <div className="max-w-6xl mx-auto p-6">
 
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-4 mb-6">
@@ -317,6 +316,7 @@ export default function SavedHomes() {
         saveHome={saveHomeForModal}
         removeSavedHome={removeSavedHomeForModal}
       />
+      </div>
     </div>
   );
 }

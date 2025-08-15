@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import MiniLogo from "../../components/MiniLogo";
+import PageHeader from "../../components/PageHeader";
 import { useData } from "../../contexts/DataContext";
 
 type FormData = {
@@ -118,17 +118,11 @@ const PreApproved: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="bg-white border-b border-beige/40 rounded-t-2xl mx-auto my-6 max-w-4xl">
-        <div className="flex items-center gap-4 p-6">
-          <MiniLogo size="lg" />
-          <div>
-            <h1 className="text-2xl font-bold text-navy">Pre-Approval</h1>
-            <p className="text-navy/70">Start your mortgage pre-approval in minutes.</p>
-          </div>
-        </div>
-      </div>
-
+    <div className="min-h-screen bg-off-white">
+      <PageHeader
+        title="Get Pre-Approved"
+        subtitle="Connect with our lending partner to get pre-approved for a mortgage"
+      />
       <div className="max-w-2xl mx-auto px-4">
         <form onSubmit={handleSubmit} className="bg-white p-8 rounded-lg space-y-4">
           {error && (

@@ -5,39 +5,16 @@ import {
   Loader2,
   BarChart2,
   RefreshCw,
+  Download,
   Share,
   Settings,
   X,
-  Download,
 } from "lucide-react";
 import ErrorToast from "../../components/ErrorToast";
 import SuccessToast from "../../components/SuccessToast";
 import { useData } from "../../contexts/DataContext";
-import MiniLogo from "../../components/MiniLogo";
 import { formatFilenameToAddress } from "../../lib/addressFormat";
-
-// Custom scrollbar styles
-const scrollbarStyles = `
-  .custom-scrollbar::-webkit-scrollbar {
-    width: 6px;
-    margin-left: 4px;
-  }
-  .custom-scrollbar::-webkit-scrollbar-track {
-    background: #f3f4f6;
-    border-radius: 3px;
-    margin-left: 4px;
-  }
-  .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #E8D5B560; /* Lighter brown with 60% opacity */
-    border-radius: 3px;
-  }
-  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #E8D5B580; /* Slightly darker on hover with 80% opacity */
-  }
-  .custom-scrollbar {
-    padding-right: 8px;
-  }
-`;
+import PageHeader from "../../components/PageHeader";
 
 interface Report {
   id: string;
@@ -460,21 +437,14 @@ export default function CompareReportsPage() {
       setShowError(true);
     }
   };
-  return (
-    <>
-      <style dangerouslySetInnerHTML={{ __html: scrollbarStyles }} />
-      <div className="max-w-7xl mx-auto mobile-padding py-6 sm:py-8">
-        {/* Header */}
-        <div className="text-center mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl font-serif text-black mb-3 sm:mb-4 px-2 flex items-center justify-center gap-2">
-            <MiniLogo size="md" />
-            Compare Properties
-          </h1>
-          <p className="text-base sm:text-lg text-black/60 max-w-3xl mx-auto px-2">
-            Select properties to compare their details side by side
-          </p>
-        </div>
 
+  return (
+    <div className="min-h-screen bg-off-white">
+      <PageHeader
+        title="Compare Reports"
+        subtitle="Select two reports to compare side by side"
+      />
+      <div className="mx-auto px-12 py-10 max-w-6xl">
         {/* Error Toast */}
         {showError && (
           <ErrorToast
@@ -914,6 +884,6 @@ export default function CompareReportsPage() {
           </div>
         )}
       </div>
-    </>
+    </div>
   );
 }
