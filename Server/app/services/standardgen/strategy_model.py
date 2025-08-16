@@ -46,13 +46,6 @@ class Contingency(str, Enum):
 
 # ---------- Core Sections ----------
 
-class SellerIntel(BaseModel):
-    """Information about the seller's situation and motivations"""
-    days_on_market: Optional[int] = Field(None, description="Days the property has been listed")
-    price_reductions_count: int = Field(default=0, description="Number of price reductions")
-    holding_costs_monthly: Optional[Decimal] = Field(None, description="Estimated monthly carrying costs")
-    motivation_consolidated: str = Field(..., description="Consolidated motivation narrative without duplicates")
-    competing_offers: Optional[int] = Field(None, description="Number of competing offers")
 
 
 class Comp(BaseModel):
@@ -146,8 +139,6 @@ class PersonalPriorities(BaseModel):
                 stats.append(f"Average DOM: {market_conditions.average_days_on_market} days")
             if hasattr(market_conditions, 'market_trend'):
                 stats.append(f"Market trend: {market_conditions.market_trend}")
-            if seller_intel.days_on_market:
-                stats.append(f"This property: {seller_intel.days_on_market} DOM, {seller_intel.price_reductions_count} price cuts")
             
             # Convert comps to readable strings
             comp_strings = []
@@ -486,7 +477,6 @@ class NegotiationStrategy(BaseModel):
     """Complete negotiation strategy with optimized field grouping"""
     # Group 1: Market Context
     market_conditions: MarketConditions
-    seller_intel: SellerIntel
     
     # Group 2: Price Strategy & Concessions
     price_strategy: PriceStrategy
@@ -506,7 +496,6 @@ class NegotiationStrategy(BaseModel):
     def from_user_preferences(
         cls,
         user_preferences: Dict[str, Any],
-        seller_intel: SellerIntel,
         market_conditions: MarketConditions,
         initial_offer_approach: InitialOfferApproach,
         counteroffer_plan: CounterofferPlan,
@@ -521,12 +510,8 @@ class NegotiationStrategy(BaseModel):
         home_budget = user_preferences.get('home_budget', 500000)
         max_price = Decimal(str(home_budget))
         
-        # Calculate opening offer based on market conditions and seller motivation
+        # Calculate opening offer based on market conditions
         opening_offer_percentage = 0.95  # Default 5% below ask
-        if seller_intel.days_on_market and seller_intel.days_on_market > 60:
-            opening_offer_percentage = 0.90  # 10% below for stale listings
-        if seller_intel.price_reductions_count > 1:
-            opening_offer_percentage = 0.88  # 12% below for multiple price cuts
         
         opening_offer = max_price * Decimal(str(opening_offer_percentage))
         
@@ -547,16 +532,9 @@ class NegotiationStrategy(BaseModel):
                 f"Seller wants to avoid repair negotiations: Waive minor repair requests (<$1k) for 2% price reduction - ${int(max_price * 0.02):,} savings vs small repair costs"
             )
         
-        if seller_intel.holding_costs_monthly and seller_intel.holding_costs_monthly > 4000:
-            pain_point_concessions.append(
-                f"High holding costs (${seller_intel.holding_costs_monthly:,.0f}/month): Accept lower offer to avoid additional monthly costs - Every 30 days costs seller ~${seller_intel.holding_costs_monthly:,.0f}"
-            )
         
         # Create holding cost leverage sequence
-        if seller_intel.holding_costs_monthly:
-            holding_sequence = f"Round 1: Present offer with market data. Round 2+: 'Every 30 days costs you ~${seller_intel.holding_costs_monthly:,.0f} — use this data to pressure acceptance without increasing price.'"
-        else:
-            holding_sequence = "Estimate holding costs at $4,000-6,000/month and reference after initial offer to create urgency without price increases."
+        holding_sequence = "Estimate holding costs at $4,000-6,000/month and reference after initial offer to create urgency without price increases."
         
         price_strategy = PriceStrategy(
             max_price_with_rationale=f"Maximum budget: ${max_price:,.0f}. We will not exceed this amount under any circumstances, even with concessions or bidding wars.",
@@ -606,7 +584,7 @@ class NegotiationStrategy(BaseModel):
         )
         
         # Create NegotiationTactics with actionable urgency strategy
-        urgency_window = 14 if seller_intel.holding_costs_monthly and seller_intel.holding_costs_monthly > 5000 else 21
+        urgency_window = 21
         
         # Create actionable urgency strategy
         if urgency_level == 'high':
@@ -631,22 +609,9 @@ class NegotiationStrategy(BaseModel):
             condition_tolerance_clarified=condition_clarity
         )
         
-        # Consolidate seller motivation without duplicates
-        motivation_indicators = seller_intel.motivation_indicators if hasattr(seller_intel, 'motivation_indicators') else []
-        # Remove duplicates while preserving order
-        unique_motivations = list(dict.fromkeys(motivation_indicators))
-        
-        if unique_motivations:
-            motivation_text = f"Seller motivation: {', '.join(unique_motivations)} - suggests {'high urgency' if any(m in ['estate_sale', 'relocation', 'job_transfer'] for m in unique_motivations) else 'moderate flexibility'}"
-        else:
-            motivation_text = "Seller motivation: Standard sale with typical timeline flexibility"
-        
-        # Update seller intel with consolidated motivation
-        seller_intel.motivation_consolidated = motivation_text
         
         # Apply any overrides to the main strategy
         data = {
-            'seller_intel': seller_intel,
             'market_conditions': market_conditions,
             'price_strategy': price_strategy,
             'personal_priorities': personal_priorities,

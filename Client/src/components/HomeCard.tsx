@@ -3,6 +3,7 @@ import { formatFilenameToAddress, truncateText } from "../lib/addressFormat";
 import PropertyDetailsModal from './PropertyDetailsModal';
 import HeartSave from './HeartSave';
 import KeyTurnLoader from './KeyTurnLoader';
+import { MapPin, Bed, Bath, Square } from "lucide-react";
 
 export interface HomeDescription {
   home_id: string;
@@ -45,6 +46,7 @@ export default function HomeCard({
   const rawDisplayName = formattedAddress || `Home ${home.home_id}`;
   const displayName = truncateText(rawDisplayName, 35);
 
+
   // Convert HomeDescription to Property format for modal
   const convertToProperty = (homeDesc: HomeDescription) => {
     return {
@@ -66,70 +68,31 @@ export default function HomeCard({
   const removeSavedHomeForModal = () => {}; // Could implement removal logic
   
   return (
-    <div className={`border rounded-lg shadow-sm bg-white hover:shadow-md transition overflow-hidden ${
+    <div className={`bg-white rounded-xl shadow-sm border border-beige/40 overflow-hidden hover:shadow-md transition-shadow duration-200 ${
       isLoadingDetails ? 'opacity-60 pointer-events-none' : ''
     }`}>
       {/* Image */}
-      <div className="w-full h-32 bg-gray-100 overflow-hidden">
+      <div className="relative h-48 overflow-hidden">
         <img
           src={home.image_url || placeholder}
           alt={home.description || displayName}
-          className="object-cover w-full h-full"
+          className="w-full h-full object-cover"
           loading="lazy"
         />
-      </div>
-      <div className="p-3">
-        <div className="flex items-start justify-between mb-2">
-          <div className="flex-1">
-            {/* Property Type and Status (if available) */}
-            <div className="flex items-center gap-2 mb-1">
-              {home.propertyType &&
-                home.propertyType.toLowerCase() !== "single_family" && (
-                  <span className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded">
-                    {home.propertyType}
-                  </span>
-                )}
-              {typeof home.listingStatus === "string" &&
-                home.listingStatus.toLowerCase() !== "for_sale" && (
-                  <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
-                    {home.listingStatus}
-                  </span>
-                )}
-            </div>
+        
+        {/* Price Badge */}
+        <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full">
+          <span className="text-sm font-semibold text-navy">
+            {typeof home.price === "string" || typeof home.price === "number"
+              ? (typeof home.price === 'string' && home.price.startsWith('$') 
+                  ? home.price 
+                  : `$${home.price?.toLocaleString() || 'N/A'}`)
+              : "[Invalid price]"}
+          </span>
+        </div>
 
-            {/* Address */}
-            <h3 className="text-sm font-medium text-black line-clamp-2 mb-1">
-              {typeof displayName === "string" || typeof displayName === "number"
-                ? displayName
-                : "[Invalid address]"}
-            </h3>
-
-            {/* Price */}
-            <p className="text-lg font-semibold text-brown mb-2">
-              {typeof home.price === "string" || typeof home.price === "number"
-                ? (typeof home.price === 'string' && home.price.startsWith('$') 
-                    ? home.price 
-                    : `$${home.price?.toLocaleString() || 'N/A'}`)
-                : "[Invalid price]"}
-            </p>
-
-            {/* Property Details - exactly like search results */}
-            <div className="grid grid-cols-4 gap-2 text-xs text-gray-600 mb-1">
-              <div>{home.bedrooms || 0} beds</div>
-              <div>{home.bathrooms || 0} baths</div>
-              {(home.sqft && home.sqft > 0) && (
-                <div>
-                  {home.sqft.toLocaleString()} sqft
-                </div>
-              )}
-              {/* Lot Size - moved to top right */}
-              {home.lot_size && (
-                <div className="text-xs text-gray-500">
-                  Lot: {home.lot_size}
-                </div>
-              )}
-            </div>
-          </div>
+        {/* Heart Save Button */}
+        <div className="absolute top-3 right-3 bg-white rounded-full p-1">
           <HeartSave
             property={convertToProperty(home)}
             isSaved={isHomeSaved(home.home_id)}
@@ -138,27 +101,85 @@ export default function HomeCard({
             size="sm"
           />
         </div>
-        
-        {/* View Details Button */}
-        <div className="px-3 pb-3">
-          <button
-            onClick={() => onViewDetails ? onViewDetails(home) : setShowModal(true)}
-            disabled={isLoadingDetails}
-            className={`w-full py-2 px-4 rounded-lg transition-colors text-sm font-medium flex items-center justify-center ${
-              isLoadingDetails 
-                ? 'bg-brown/70 text-white cursor-not-allowed' 
-                : 'bg-brown text-white hover:bg-brown/90'
-            }`}
-          >
-            {isLoadingDetails ? (
-              <div className="flex items-center justify-center">
-                <KeyTurnLoader />
-              </div>
-            ) : (
-              'View Details'
-            )}
-          </button>
+      </div>
+
+      {/* Content */}
+      <div className="p-4">
+        {/* Address */}
+        <div className="flex items-start gap-2 mb-3">
+          <MapPin className="h-4 w-4 text-brown mt-0.5 flex-shrink-0" />
+          <div>
+            <p className="text-sm font-medium text-navy leading-tight">
+              {typeof displayName === "string" || typeof displayName === "number"
+                ? displayName
+                : "[Invalid address]"}
+            </p>
+          </div>
         </div>
+
+        {/* Property Details */}
+        <div className="grid grid-cols-3 gap-3 mb-3">
+          <div className="flex items-center gap-1">
+            <Bed className="h-3 w-3 text-brown" />
+            <span className="text-xs text-gray-600">
+              {home.bedrooms || 0} bed{(home.bedrooms || 0) !== 1 ? 's' : ''}
+            </span>
+          </div>
+          <div className="flex items-center gap-1">
+            <Bath className="h-3 w-3 text-brown" />
+            <span className="text-xs text-gray-600">
+              {home.bathrooms || 0} bath{(home.bathrooms || 0) !== 1 ? 's' : ''}
+            </span>
+          </div>
+          <div className="flex items-center gap-1">
+            <Square className="h-3 w-3 text-brown" />
+            <span className="text-xs text-gray-600">
+              {(home.sqft || 0).toLocaleString()} sqft
+            </span>
+          </div>
+        </div>
+
+        {/* Additional Details */}
+        <div className="space-y-2 mb-3">
+          {/* Home Type */}
+          {home.propertyType && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-500">Type:</span>
+              <span className="text-xs font-medium text-navy">
+                {home.propertyType.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase())}
+              </span>
+            </div>
+          )}
+
+          {/* Lot Size */}
+          {home.lot_size && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-500">Lot:</span>
+              <span className="text-xs font-medium text-navy">
+                {home.lot_size}
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* View Details Button */}
+        <button
+          onClick={() => onViewDetails ? onViewDetails(home) : setShowModal(true)}
+          disabled={isLoadingDetails}
+          className={`w-full py-2 px-4 rounded-lg transition-colors text-sm font-medium flex items-center justify-center ${
+            isLoadingDetails 
+              ? 'bg-brown/70 text-white cursor-not-allowed' 
+              : 'bg-brown text-white hover:bg-brown/90'
+          }`}
+        >
+          {isLoadingDetails ? (
+            <div className="flex items-center justify-center">
+              <KeyTurnLoader />
+            </div>
+          ) : (
+            'View Details'
+          )}
+        </button>
       </div>
 
       {/* Property Details Modal */}

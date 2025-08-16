@@ -21,7 +21,7 @@ interface CarouselProps<T> {
   /**
    * Title for the carousel section
    */
-  title: string;
+  title: string | ReactNode;
   /**
    * Loading state
    */
@@ -79,7 +79,11 @@ export default function Carousel<T>({
     <div className="my-8">
       {/* Header with title and navigation */}
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-2xl font-semibold">{title}</h2>
+        {typeof title === 'string' ? (
+          <h2 className="text-2xl font-semibold">{title}</h2>
+        ) : (
+          <div>{title}</div>
+        )}
         {items.length > itemsPerPage && (
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-500">

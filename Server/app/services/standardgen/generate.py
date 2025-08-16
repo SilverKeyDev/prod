@@ -169,6 +169,15 @@ def _safe_parse_json(text: str, report_customization: Optional[dict] = None) -> 
         # Remove any remaining malformed JSON patterns
         cleaned = re.sub(r'"\s*"\s*:', '"":', cleaned)  # Fix empty key patterns
         cleaned = re.sub(r':\s*"\s*"\s*,', ': "",', cleaned)  # Fix empty value patterns
+        
+        # Fix repetitive "buy", "sell" patterns that break JSON
+        # This pattern occurs when AI generates malformed arrays with endless repetition
+        cleaned = re.sub(r'("buy",\s*"sell",\s*){3,}("buy",?\s*)', r'"buy", "sell"', cleaned)
+        cleaned = re.sub(r'("sell",\s*"buy",\s*){3,}("sell",?\s*)', r'"sell", "buy"', cleaned)
+        
+        # Remove trailing repetitive patterns at end of arrays
+        cleaned = re.sub(r',\s*("buy",\s*"sell",?\s*)+\]', ']', cleaned)
+        cleaned = re.sub(r',\s*("sell",\s*"buy",?\s*)+\]', ']', cleaned)
 
         try:
             parsed = json.loads(cleaned)
@@ -426,6 +435,13 @@ CRITICAL: Provide strategy with these specific improvements:
 4. ACTIONABLE URGENCY: Clear strategy like 'slow-play' or 'accelerate timeline' based on buyer urgency
 5. CONDITION TOLERANCE: Specific repair tolerance based on renovation preference
 6. CONSOLIDATED FIELDS: No empty/placeholder fields, merge duplicates, bullet-point market data
+
+IMPORTANT JSON REQUIREMENTS:
+- Keep all array values SHORT and DESCRIPTIVE (max 100 chars per item)
+- NO repetitive patterns like 'buy, sell, buy, sell'
+- Use meaningful strings like 'Waive inspection for $5k credit' instead of generic terms
+- Limit arrays to 3-5 items maximum to prevent JSON bloat
+- All field values must be complete, well-formed strings
 
 Ensure all fields are populated with specific, actionable content. Remove any '[object Object]' or 'No data' placeholders.
 """

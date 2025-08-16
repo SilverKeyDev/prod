@@ -227,6 +227,98 @@ class ZillowProperty:
         self.raw_data = data
 
         
+@search_bp.route('/propertyComps', methods=['GET'])
+@cross_origin(**cors_config)
+def get_property_comps():
+    """
+    Get property comparables using Zillow API.
+    Prioritizes address parameter, with zpid and property_url as fallbacks.
+    """
+    try:
+        # Get query parameters
+        address = request.args.get('address')
+        
+        # Validate that at least one parameter is provided
+        if not address:
+            return jsonify({
+                "success": False, 
+                "error": "BAD_REQUEST",
+                "message": "Provide one of: address, zpid, or property_url"
+            }), 400
+        
+        # Build API request parameters - prioritize address
+        params = {}
+        if address and str(address).strip():
+            params['address'] = str(address).strip()
+        elif zpid:
+            try:
+                params['zpid'] = str(int(str(zpid).strip()))
+            except (ValueError, TypeError):
+                return jsonify({
+                    "success": False,
+                    "error": "BAD_REQUEST", 
+                    "message": "Invalid zpid format"
+                }), 400
+        elif property_url:
+            params['property_url'] = str(property_url).strip()
+        
+        # Make API request to Zillow
+        url = f"https://{RAPI_HOST}/propertyComps"
+        headers = {
+            "x-rapidapi-host": RAPI_HOST,
+            "x-rapidapi-key": RAPI_KEY,
+            "Accept": "application/json"
+        }
+        
+        current_app.logger.info(f"🏠 [PROPERTY_COMPS] GET {url} params={params}")
+        
+        response = _SESSION.get(url, headers=headers, params=params, timeout=30)
+        current_app.logger.info(f"🏠 [PROPERTY_COMPS] status={response.status_code}")
+        
+        # Handle API response
+        if not response.ok:
+            error_details = response.text[:500] if response.text else "No error details"
+            current_app.logger.error(f"🏠 [PROPERTY_COMPS] API Error: {response.status_code} - {error_details}")
+            return jsonify({
+                "success": False,
+                "error": "RAPIDAPI_ERROR",
+                "status_code": response.status_code,
+                "message": f"Zillow API request failed: {response.status_code}",
+                "details": error_details
+            }), response.status_code
+        
+        # Parse response data
+        try:
+            data = response.json()
+        except ValueError as e:
+            current_app.logger.error(f"🏠 [PROPERTY_COMPS] JSON Parse Error: {e}")
+            return jsonify({
+                "success": False,
+                "error": "PARSE_ERROR",
+                "message": "Failed to parse API response"
+            }), 500
+        
+        # Log response structure for debugging
+        if isinstance(data, dict):
+            current_app.logger.info(f"🏠 [PROPERTY_COMPS] Response keys: {list(data.keys())[:10]}")
+        
+        # Return successful response
+        return jsonify({
+            "success": True,
+            "query": params,
+            "data": data,
+            "source": "zillow_rapidapi"
+        }), 200
+        
+    except Exception as e:
+        current_app.logger.error(f"🏠 [PROPERTY_COMPS] Unexpected error: {e}", exc_info=True)
+        return jsonify({
+            "success": False,
+            "error": "INTERNAL_ERROR",
+            "message": "An unexpected error occurred while fetching property comparables"
+        }), 500
+
+
 @search_bp.route('/property', methods=['POST'])
 @cross_origin(**cors_config)
 def get_property_via_address():
@@ -242,12 +334,8 @@ def get_property_via_address():
     from ..services.search_help import analyze_property_with_sonar_pro, extract_and_clean_features
 
     start = time.time()
-    RAPI_HOST = os.getenv("RAPIDAPI_HOST", "zillow-com1.p.rapidapi.com")
-    RAPI_KEY  = os.getenv("RAPIDAPI_KEY")
+
     GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
-    
-    if not RAPI_KEY:
-        return jsonify({"success": False, "error": "CONFIG", "message": "RapidAPI key not configured"}), 500
 
     body = req.get_json(silent=True) or {}
     zpid = body.get("zpid")
@@ -940,8 +1028,7 @@ def search_properties_by_polygon():
         current_app.logger.info(f"[POLYGON_SEARCH] 🔍 Debug - important_locations data: {important_locations_data}")
 
         per_pages = max(0, min(int(per_pages), 20))
-        if not RAPI_KEY:
-            return jsonify({"success": False, "error": "CONFIG", "message": "RapidAPI key not configured"}), 500
+
         if not user_preferences:
             return jsonify({"success": False, "error": "NO_PREFS", "message": "User preferences are required"}), 400
 

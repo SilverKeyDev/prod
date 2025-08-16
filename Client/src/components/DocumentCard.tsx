@@ -1,5 +1,5 @@
-import { FileText,Calendar } from "lucide-react";
-import { formatFilenameToAddress, truncateText } from "../lib/addressFormat";
+import { FileText, Calendar } from "lucide-react";
+import { truncateText } from "../lib/addressFormat";
 
 export interface DocumentData {
   id: string;
@@ -14,6 +14,8 @@ export interface DocumentData {
   city: string | null;
   state: string | null;
   zip_code: string | null;
+  primary_address: string;
+  comparison_address?: string | null;
 }
 
 interface DocumentCardProps {
@@ -36,37 +38,49 @@ interface DocumentCardProps {
  * Shows document info, location, creation date, and action buttons.
  */
 export default function DocumentCard({ doc }: DocumentCardProps) {
+  // Log the full input object
+  console.log("[DocumentCard] Full input object:", JSON.stringify(doc, null, 2));
+
   const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'Unknown';
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
+    if (!dateString) return "Unknown";
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
-  // Use formatFilenameToAddress for both display name and location
-  const formattedAddress = doc.filename ? formatFilenameToAddress(doc.filename) : null;
-  let displayName = formattedAddress || doc.filename || `Document ${doc.id.slice(0, 8)}`;
-
-  // If comparison report, format as 'Comparison: address v address'
-  if (doc.report_type === 'comparison') {
-    // Try to extract both addresses from the filename
-    // e.g. '123_Main_St_New_York_NY_10001__456_Oak_Ave_San_Jose_CA_95112.pdf'
-    const baseName = doc.filename ? doc.filename.replace(/\.[^.]+$/i, "") : "";
-    const parts = baseName.split("__");
-    if (parts.length === 2) {
-      const addr1 = formatFilenameToAddress(parts[0]);
-      const addr2 = formatFilenameToAddress(parts[1]);
-      displayName = `Comparison: ${addr1} v ${addr2}`;
-    } else {
-      displayName = `Comparison Report`;
+  // Extract address from primary_address or fallback to filename
+  const extractAddressFromFilename = (filename: string): string => {
+    // Remove file extension and user ID prefix
+    const nameWithoutExt = filename.replace(/\.pdf$/, '');
+    const parts = nameWithoutExt.split('_');
+    
+    // Skip the first part (user ID hash) and rejoin the rest
+    if (parts.length > 1) {
+      return parts.slice(1).join(' ').replace(/_/g, ' ');
     }
-    displayName = truncateText(displayName, 60);
+    return filename;
+  };
+
+  const primaryAddress = doc.primary_address || extractAddressFromFilename(doc.filename);
+  let displayName = "";
+
+  // If comparison report, format as 'Comparison: primary v comparison'
+  if (doc.report_type === "comparison") {
+    if (doc.comparison_address) {
+      displayName = `Comparison: ${primaryAddress} v ${doc.comparison_address}`;
+    } else {
+      displayName = primaryAddress;
+    }
   } else {
-    displayName = truncateText(displayName, 40);
+    displayName = primaryAddress;
   }
-  
+  displayName = truncateText(displayName, 77);
+
+  // Log the final displayName result
+  console.log("[DocumentCard] Final displayName result:", displayName);
+
   return (
     <div className="border rounded-lg shadow-sm bg-white hover:shadow-md transition p-4">
       {/* Header with icon and status */}
@@ -76,7 +90,7 @@ export default function DocumentCard({ doc }: DocumentCardProps) {
             <FileText size={24} />
           </div>
           <div className="flex-1 overflow-hidden">
-            <p className="font-medium truncate text-sm" title={displayName}>
+            <p className="font-medium text-xs leading-tight line-clamp-2 h-8 flex items-center" title={displayName}>
               {displayName}
             </p>
             {doc.report_type && (

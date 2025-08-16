@@ -1,13 +1,11 @@
-import { useState, useEffect } from "react";
-import FavoriteHomesDropdown from "../../components/FavoriteHomesDropdown";
-import Loading from "../../components/Loading";
-import PageHeader from "../../components/PageHeader";
-import {
-  Home,
-  Download,
-  Share2,
-  Lightbulb,
-} from "lucide-react";
+import { useState, useEffect } from 'react';
+import { Lightbulb, Home, Download, Share2 } from 'lucide-react';
+import PageHeader from '../../components/PageHeader';
+import FavoriteHomesDropdown from '../../components/FavoriteHomesDropdown';
+import Loading from '../../components/Loading';
+import KeyTurnLoader from '../../components/KeyTurnLoader';
+import Carousel from '../../components/Carousel';
+import CompCard, { CompData } from '../../components/CompCard';
 
 const sectionBox =
   "bg-white rounded-xl shadow-sm p-6 mb-6 border border-beige/40";
@@ -20,6 +18,7 @@ const button =
 export default function NegotiationStrategy() {
   const [selectedHome, setSelectedHome] = useState<any>(null);
   const [strategyData, setStrategyData] = useState<any>(null);
+  const [compsData, setCompsData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -27,23 +26,51 @@ export default function NegotiationStrategy() {
   useEffect(() => {
     const savedStrategy = localStorage.getItem('negotiationStrategy');
     const savedHome = localStorage.getItem('negotiationSelectedHome');
+    const savedComps = localStorage.getItem('negotiationComps');
     
     if (savedStrategy) {
       try {
-        setStrategyData(JSON.parse(savedStrategy));
+        const parsedStrategy = JSON.parse(savedStrategy);
+        setStrategyData(parsedStrategy);
+        console.log('✅ [NEGOTIATION] Successfully loaded saved strategy data from localStorage:', parsedStrategy);
       } catch (error) {
-        console.error('Failed to parse saved strategy data:', error);
+        console.error('❌ [NEGOTIATION] Failed to parse saved strategy data:', error);
         localStorage.removeItem('negotiationStrategy');
       }
+    } else {
+      console.log('ℹ️ [NEGOTIATION] No saved strategy data found in localStorage');
     }
     
     if (savedHome) {
       try {
-        setSelectedHome(JSON.parse(savedHome));
+        const parsedHome = JSON.parse(savedHome);
+        setSelectedHome(parsedHome);
+        console.log('✅ [NEGOTIATION] Successfully loaded saved home data from localStorage:', parsedHome);
       } catch (error) {
-        console.error('Failed to parse saved home data:', error);
+        console.error('❌ [NEGOTIATION] Failed to parse saved home data:', error);
         localStorage.removeItem('negotiationSelectedHome');
       }
+    } else {
+      console.log('ℹ️ [NEGOTIATION] No saved home data found in localStorage');
+    }
+    
+    if (savedComps) {
+      try {
+        const parsedComps = JSON.parse(savedComps);
+        setCompsData(parsedComps);
+        console.log('✅ [NEGOTIATION] Successfully loaded saved comps data from localStorage:', parsedComps);
+        console.log('✅ [NEGOTIATION] Comps data structure:', {
+          success: parsedComps?.success,
+          hasData: !!parsedComps?.data,
+          hasComps: !!parsedComps?.data?.comps,
+          compsCount: parsedComps?.data?.comps?.length || 0
+        });
+      } catch (error) {
+        console.error('❌ [NEGOTIATION] Failed to parse saved comps data:', error);
+        localStorage.removeItem('negotiationComps');
+      }
+    } else {
+      console.log('ℹ️ [NEGOTIATION] No saved comps data found in localStorage');
     }
   }, []);
 
@@ -53,6 +80,7 @@ export default function NegotiationStrategy() {
     setIsLoading(true);
     setError(null);
     setStrategyData(null);
+    setCompsData(null);
 
     try {
       // Get authentication token
@@ -61,43 +89,79 @@ export default function NegotiationStrategy() {
         throw new Error('Authentication required. Please log in.');
       }
       const baseUrl = import.meta.env.VITE_API_BASE_URL || "";
+      const address = selectedHome.address || selectedHome.full_address || selectedHome.location;
 
-      const res = await fetch(`${baseUrl}/api/v1/offer/generate-strategy`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${idToken}`,
-        },
-        body: JSON.stringify({
-          address: selectedHome.address || selectedHome.full_address || selectedHome.location,
+      // Make both API calls concurrently
+      const [strategyRes, compsRes] = await Promise.all([
+        fetch(`${baseUrl}/api/v1/offer/generate-strategy`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${idToken}`,
+          },
+          body: JSON.stringify({
+            address: address,
+          }),
         }),
-      });
+        fetch(`${baseUrl}/api/v1/search/propertyComps?address=${encodeURIComponent(address)}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${idToken}`,
+          },
+        })
+      ]);
 
-      const data = await res.json();
+      const [strategyResponseData, compsResponseData] = await Promise.all([
+        strategyRes.json(),
+        compsRes.json()
+      ]);
 
-      if (!res.ok) {
-        throw new Error(data.error || `HTTP error! status: ${res.status}`);
+      // Check strategy response
+      if (!strategyRes.ok) {
+        throw new Error(strategyResponseData.error || `Strategy API error! status: ${strategyRes.status}`);
       }
 
-      if (!data.success) {
-        throw new Error(data.error || 'Failed to generate strategy');
+      if (!strategyResponseData.success) {
+        throw new Error(strategyResponseData.error || 'Failed to generate strategy');
+      }
+
+      // Check comps response (log but don't fail if comps fails)
+      if (!compsRes.ok) {
+        console.warn('Property comps API failed:', compsRes.status, compsResponseData);
       }
 
       // Parse the strategy data from the AI response
-      const strategyData = data.strategy;
+      const parsedStrategyData = strategyResponseData.strategy;
       
       // Debug: Log the actual response structure
-      console.log('Full API response:', data);
-      console.log('Strategy data structure:', strategyData);
-      console.log('Strategy data keys:', Object.keys(strategyData || {}));
+      console.log('Full Strategy API response:', strategyResponseData);
+      console.log('Strategy data structure:', parsedStrategyData);
+      console.log('Strategy data keys:', Object.keys(parsedStrategyData || {}));
+      console.log('Full Property Comps API response:', compsResponseData);
       
       // Store the complete strategy data from the AI response
       // This will display ALL fields returned by the AI
-      setStrategyData(strategyData || {});
+      setStrategyData(parsedStrategyData || {});
       
-      // Save both strategy data and selected home to localStorage
-      localStorage.setItem('negotiationStrategy', JSON.stringify(strategyData || {}));
+      // Store the property comps data
+      setCompsData(compsResponseData || {});
+      
+      // Save strategy data, comps data, and selected home to localStorage
+      localStorage.setItem('negotiationStrategy', JSON.stringify(parsedStrategyData || {}));
+      localStorage.setItem('negotiationComps', JSON.stringify(compsResponseData || {}));
       localStorage.setItem('negotiationSelectedHome', JSON.stringify(selectedHome));
+      
+      // Log successful saves
+      console.log('💾 [NEGOTIATION] Successfully saved strategy data to localStorage:', parsedStrategyData);
+      console.log('💾 [NEGOTIATION] Successfully saved comps data to localStorage:', compsResponseData);
+      console.log('💾 [NEGOTIATION] Comps save structure:', {
+        success: compsResponseData?.success,
+        hasData: !!compsResponseData?.data,
+        hasComps: !!compsResponseData?.data?.comps,
+        compsCount: compsResponseData?.data?.comps?.length || 0
+      });
+      console.log('💾 [NEGOTIATION] Successfully saved selected home to localStorage:', selectedHome);
 
     } catch (err) {
       console.error('Error generating negotiation strategy:', err);
@@ -111,12 +175,16 @@ export default function NegotiationStrategy() {
   const handleHomeSelection = (home: any) => {
     setSelectedHome(home);
     setStrategyData(null); // Reset strategy when home changes
+    setCompsData(null); // Reset comps when home changes
     
     // Save the newly selected home to localStorage
     localStorage.setItem('negotiationSelectedHome', JSON.stringify(home));
+    console.log('💾 [NEGOTIATION] Successfully saved new selected home to localStorage:', home);
     
-    // Clear saved strategy since we're selecting a different home
+    // Clear saved strategy and comps since we're selecting a different home
     localStorage.removeItem('negotiationStrategy');
+    localStorage.removeItem('negotiationComps');
+    console.log('🗑️ [NEGOTIATION] Cleared saved strategy and comps data due to home change');
   };
 
   // Handle JSON download
@@ -188,25 +256,23 @@ export default function NegotiationStrategy() {
           </div>
           <label className={label}>Choose from Your Favorite Homes</label>
 
-          <div className="mb-6">
-            <FavoriteHomesDropdown
-              selectedHome={selectedHome}
-              onHomeSelect={handleHomeSelection}
-              placeholder="Select a favorite home for strategy generation"
-            />
-          </div>
-
-          <div className="flex justify-center">
+          <div className="flex items-stretch gap-4 mb-6">
+            <div className="flex-1">
+              <FavoriteHomesDropdown
+                selectedHome={selectedHome}
+                onHomeSelect={handleHomeSelection}
+                placeholder="Select a favorite home for strategy generation"
+              />
+            </div>
             <button
               type="button"
-              className={`${button} ${isLoading || !selectedHome ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={`${button} h-auto ${isLoading || !selectedHome ? 'opacity-50 cursor-not-allowed' : ''}`}
               onClick={handleGenerate}
               disabled={!selectedHome || isLoading}
             >
               {isLoading ? (
                 <>
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                  Generating...
+                  <KeyTurnLoader />
                 </>
               ) : (
                 <>
@@ -239,6 +305,45 @@ export default function NegotiationStrategy() {
               >
                 Dismiss
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* Property Comparables Carousel */}
+        {compsData && compsData.success && compsData.data?.comps && !isLoading && (
+          <div className="my-8">
+            <Carousel
+              items={compsData.data.comps as CompData[]}
+              title={
+                <div className={sectionTitle}>
+                  <Home className="h-5 w-5 text-brown" />
+                  Property Comparables
+                </div>
+              }
+              loading={false}
+              error={null}
+              emptyMessage="No comparable properties found"
+              renderItem={(comp) => (
+                <CompCard comp={comp} />
+              )}
+              getItemKey={(comp) => comp.zpid.toString()}
+              itemsPerPage={3}
+              itemWidth="w-80"
+            />
+          </div>
+        )}
+
+        {/* Property Comps Debug JSON (fallback) */}
+        {compsData && (!compsData.success || !compsData.data?.comps) && !isLoading && (
+          <div className={sectionBox}>
+            <div className={sectionTitle}>
+              <Home className="h-5 w-5 text-brown" />
+              Property Comparables - Debug Response
+            </div>
+            <div className="bg-gray-900 text-green-400 p-4 rounded-lg overflow-auto max-h-96 font-mono text-sm">
+              <pre className="whitespace-pre-wrap break-words">
+                {JSON.stringify(compsData, null, 2)}
+              </pre>
             </div>
           </div>
         )}

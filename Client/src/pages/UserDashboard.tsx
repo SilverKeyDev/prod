@@ -43,7 +43,7 @@ export default function UserDashboard() {
 
   // Helper function to check if a home is saved
   const isHomeSaved = (homeId: string): boolean => {
-    return favoriteHomes.some(home => home.home_id === homeId);
+    return favoriteHomes.some((home) => home.home_id === homeId);
   };
 
   // Handle saving a home
@@ -53,7 +53,7 @@ export default function UserDashboard() {
       // Refresh the saved homes list - we'll trigger a re-fetch via useEffect
       window.location.reload();
     } catch (error) {
-      console.error('Error saving home:', error);
+      console.error("Error saving home:", error);
     }
   };
 
@@ -62,7 +62,9 @@ export default function UserDashboard() {
     try {
       await favoriteHomesApi.removeFavorite(homeId);
       // Update local state by removing the home
-      setFavoriteHomes(prev => prev.filter(home => home.home_id !== homeId));
+      setFavoriteHomes((prev) =>
+        prev.filter((home) => home.home_id !== homeId)
+      );
       console.log("Successfully removed home from favorites:", homeId);
     } catch (error) {
       console.error("Error removing home from favorites:", error);
@@ -71,11 +73,11 @@ export default function UserDashboard() {
 
   // Navigation handlers
   const handleSavedHomesClick = () => {
-    navigate('/dashboard/search');
+    navigate("/dashboard/search");
   };
 
   const handleDocumentsClick = () => {
-    navigate('/dashboard/reports');
+    navigate("/dashboard/reports");
   };
 
   useEffect(() => {
@@ -142,38 +144,33 @@ export default function UserDashboard() {
         title="Dashboard"
         subtitle="All the tools you need for a seamless purchasing experience."
       />
-      
+
       <div className="max-w-6xl mx-auto p-6">
-
-      {/* Timeline Progress */}
-      <div className="mb-8">
-        <TimelineChecklist variant="horizontal" completedStepKey="search" />{" "}
-        {/* TODO: dynamic */}
-      </div>
-
-      {/* Favorite Homes */}
-      <div className="mt-12">
-        {/* Clickable Header */}
-        <div className="flex items-center justify-between">
-          <button 
-            className="text-lg font-bold underline text-gray-600 hover:text-gray-500 transition-colors cursor-pointer"
-            onClick={handleSavedHomesClick}
-            title="Click to view all saved homes"
-          >
-            Your Saved Homes
-          </button>
+        {/* Timeline Progress */}
+        <div className="mb-8">
+          <TimelineChecklist variant="horizontal" completedStepKey="search" />{" "}
+          {/* TODO: dynamic */}
         </div>
-        
-        <div className="-mt-2">
+
+        {/* Favorite Homes */}
+        <div className="mt-12">
           <Carousel
             items={favoriteHomes}
-            title=""
+            title={
+              <button
+                className="text-2xl font-semibold underline text-gray-600 hover:text-gray-500 transition-colors cursor-pointer"
+                onClick={handleSavedHomesClick}
+                title="Click to view all saved homes"
+              >
+                Your Saved Homes
+              </button>
+            }
             loading={favLoading}
             error={favError}
             emptyMessage="Save your first home today"
             renderItem={(home) => (
-              <HomeCard 
-                home={home} 
+              <HomeCard
+                home={home}
                 isHomeSaved={isHomeSaved}
                 onSave={handleSaveHome}
                 onRemove={handleRemoveHome}
@@ -182,25 +179,20 @@ export default function UserDashboard() {
             getItemKey={(home) => home.home_id}
           />
         </div>
-      </div>
 
-      {/* Documents */}
-      <div className="my-8">
-        {/* Clickable Header */}
-        <div className="flex items-center justify-between">
-          <button 
-            className="text-lg font-bold underline text-gray-600 hover:text-gray-500 transition-colors cursor-pointer"
-            onClick={handleDocumentsClick}
-            title="Click to view all documents"
-          >
-            Your Documents
-          </button>
-        </div>
-        
-        <div className="-mt-2">
+        {/* Documents */}
+        <div className="my-8">
           <Carousel
             items={documents}
-            title=""
+            title={
+              <button
+                className="text-2xl font-semibold underline text-gray-600 hover:text-gray-500 transition-colors cursor-pointer"
+                onClick={handleDocumentsClick}
+                title="Click to view all documents"
+              >
+                Your Documents
+              </button>
+            }
             loading={docsLoading}
             error={docsError}
             emptyMessage="Create your first document today"
@@ -212,6 +204,7 @@ export default function UserDashboard() {
                 pdfUrl: undefined, // Not pre-fetched
                 s3Key: doc.file_path || undefined,
               };
+
               return (
                 <DocumentCard
                   doc={doc}
@@ -230,16 +223,15 @@ export default function UserDashboard() {
             getItemKey={(doc) => doc.id}
           />
         </div>
-      </div>
 
-      {/* PDF Modal for viewing */}
-      {modalOpen && modalPdfUrl && (
-        <PdfModal
-          currentPdf={modalPdfUrl}
-          currentReportAddress={modalReportAddress}
-          onClose={() => setModalOpen(false)}
-        />
-      )}
+        {/* PDF Modal for viewing */}
+        {modalOpen && modalPdfUrl && (
+          <PdfModal
+            currentPdf={modalPdfUrl}
+            currentReportAddress={modalReportAddress}
+            onClose={() => setModalOpen(false)}
+          />
+        )}
       </div>
     </div>
   );
