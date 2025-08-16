@@ -6,7 +6,7 @@ import { favoriteHomesApi } from "../../lib/api";
 import HeartSave from "../../components/HeartSave";
 import PropertyDetailsModal from "../../components/PropertyDetailsModal";
 import { searchZillowByPolygon, LatLng } from "../../hooks/searchByCoords";
-import { getPropertyDetailsByAddress } from "../../hooks/searchAddress";
+import { usePropertyDetails } from "../../hooks/usePropertyDetails";
 import Loading from "../../components/Loading";
 import KeyTurnLoader from "../../components/KeyTurnLoader";
 
@@ -201,18 +201,14 @@ export default function SearchPage() {
   const [favoriteAddresses, setFavoriteAddresses] = useState<string[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [searchStage, setSearchStage] = useState<string>("");
-  const [selectedProperty, setSelectedProperty] = useState<SearchResult | null>(
-    null
-  );
-  const [showPropertyModals, setShowPropertyModals] = useState(false);
+  const { isLoading: isLoadingPropertyDetails, selectedProperty, fetchPropertyDetails, clearSelectedProperty } = usePropertyDetails();
   const [isLocalStorageLoaded, setIsLocalStorageLoaded] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [, setIsochronePolygon] = useState<google.maps.Polygon | null>(null);
   const [, setIsochroneData] = useState<any>(null);
   const [, setImportantLocationMarkers] = useState<google.maps.Marker[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
-  const [isLoadingPropertyDetails, setIsLoadingPropertyDetails] =
-    useState(false);
+  const [showPropertyModals, setShowPropertyModals] = useState(false);
   const PROPERTIES_PER_PAGE = 3;
 
   // Load search results from localStorage or run fresh search based on preferences version
@@ -296,7 +292,7 @@ export default function SearchPage() {
       const allProperties = [...searchResults, ...savedHomes];
       const property = allProperties.find((p) => p.id === propertyId);
       if (property) {
-        setSelectedProperty(property);
+        handleViewPropertyDetails(property);
       }
     };
 
@@ -692,37 +688,9 @@ export default function SearchPage() {
     }
   }, [isLocalStorageLoaded]);
 
-  // Handle property details search
+  // Handle property details search using the hook
   const handleViewPropertyDetails = async (property: SearchResult) => {
-    setIsLoadingPropertyDetails(true);
-
-    try {
-      const detailedPropertyData = await getPropertyDetailsByAddress(
-        property.id, // Use zpid for exact match instead of address
-        property.address // Fallback address if zpid fails
-      );
-
-      const enhancedProperty = {
-        ...property,
-        ...detailedPropertyData, // Merge detailed data with existing property data
-      };
-
-      setSelectedProperty(enhancedProperty);
-    } catch (error) {
-      console.error("❌ ===== VIEW DETAILS FAILED =====");
-      console.error("❌ Error fetching property details:", error);
-      console.error("❌ Error type:", typeof error);
-      console.error("❌ Error message:", (error as Error).message);
-      console.error("❌ Error stack:", (error as Error).stack);
-
-      // Fallback: use the original property data without detailed information
-      console.log("🔄 Using fallback: setting original property data");
-      setSelectedProperty(property);
-      console.log("⚠️ ===== VIEW DETAILS COMPLETED WITH FALLBACK =====");
-    } finally {
-      // Clear loading state regardless of success or failure
-      setIsLoadingPropertyDetails(false);
-    }
+    await fetchPropertyDetails(property);
   };
 
   // Create window function for map modal "View Details" buttons
@@ -2418,7 +2386,7 @@ const renderImportantLocationMarkers = async (isochroneData: any) => {
       {/* Property Details Modal */}
       <PropertyDetailsModal
         property={selectedProperty}
-        onClose={() => setSelectedProperty(null)}
+        onClose={clearSelectedProperty}
         isHomeSaved={isHomeSaved}
         saveHome={saveHome}
         removeSavedHome={removeSavedHome}
