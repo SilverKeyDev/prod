@@ -1,4 +1,4 @@
-import { FileText, Calendar } from "lucide-react";
+import { FileText, Calendar, Download, Eye } from "lucide-react";
 import { truncateText } from "../lib/addressFormat";
 
 export interface DocumentData {
@@ -37,9 +37,7 @@ interface DocumentCardProps {
  * Enhanced document card component to display user documents with rich metadata.
  * Shows document info, location, creation date, and action buttons.
  */
-export default function DocumentCard({ doc }: DocumentCardProps) {
-  // Log the full input object
-  console.log("[DocumentCard] Full input object:", JSON.stringify(doc, null, 2));
+export default function DocumentCard({ doc, onView, onDownload }: DocumentCardProps) {
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return "Unknown";
@@ -78,9 +76,6 @@ export default function DocumentCard({ doc }: DocumentCardProps) {
   }
   displayName = truncateText(displayName, 77);
 
-  // Log the final displayName result
-  console.log("[DocumentCard] Final displayName result:", displayName);
-
   return (
     <div className="border rounded-lg shadow-sm bg-white hover:shadow-md transition p-4">
       {/* Header with icon and status */}
@@ -100,15 +95,32 @@ export default function DocumentCard({ doc }: DocumentCardProps) {
             )}
           </div>
         </div>
+        {/* Download button in top right */}
+        <button
+          onClick={() => onDownload?.(doc)}
+          className="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600 transition-colors"
+          title="Download"
+        >
+          <Download size={16} />
+        </button>
       </div>
 
       {/* Creation date */}
-      <div className="flex items-center gap-2 mb-3">
+      <div className="flex items-center gap-2 mb-4">
         <Calendar size={14} className="text-gray-400 flex-shrink-0" />
         <p className="text-sm text-gray-600">
           Created {formatDate(doc.created_at)}
         </p>
       </div>
+
+      {/* View Document button */}
+      <button
+        onClick={() => onView?.(doc)}
+        className="w-full flex items-center justify-center gap-2 px-3 py-1 bg-gold text-white text-sm font-medium rounded hover:bg-gold/90 transition-colors"
+      >
+        <Eye size={16} />
+        View Document
+      </button>
     </div>
   );
 }
