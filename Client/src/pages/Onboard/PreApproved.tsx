@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import PageHeader from "../../components/ui/PageHeader";
-import { useData } from "../../contexts/DataContext";
+import { usePreferences, useUser } from "../../context";
 
 type FormData = {
   name: string;
@@ -10,7 +10,8 @@ type FormData = {
 };
 
 const PreApproved: React.FC = () => {
-  const { userPreferences, userProfile } = useData();
+  const { userPreferences } = usePreferences();
+  const { userProfile } = useUser();
 
   const [formData, setFormData] = useState<FormData>({
     name: "",

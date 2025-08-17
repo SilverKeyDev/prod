@@ -518,29 +518,17 @@ def get_view_url(report_id):
 def compare_reports_endpoint():
     """Compare multiple report JSON files and return flattened table data."""
     try:
-        logger.info("🔍 Compare reports endpoint called")
         data = request.get_json() or {}
-        logger.info(f"📊 Request data: {data}")
         
         s3_keys = data.get('s3Keys')
-        logger.info(f"🔑 S3 keys received: {s3_keys}")
         
         if not s3_keys or not isinstance(s3_keys, list):
             logger.warning("❌ Invalid s3Keys parameter")
             return jsonify({'success': False, 'error': 's3Keys (list) is required'}), 400
 
-        logger.info(f"📝 Processing {len(s3_keys)} S3 keys for comparison")
-        for i, key in enumerate(s3_keys):
-            logger.info(f"  {i+1}. {key}")
-
         from app.services.report_comparator import compare_reports
-        logger.info("🔄 Calling compare_reports function...")
         df = compare_reports(s3_keys)
-        logger.info(f"✅ DataFrame created with shape: {df.shape}")
-        logger.info(f"📋 DataFrame columns: {list(df.columns)}")
-        
         table = df.reset_index().to_dict(orient='records')
-        logger.info(f"📊 Table created with {len(table)} records")
         
         return jsonify({'success': True, 'table': table})
     except Exception as e:

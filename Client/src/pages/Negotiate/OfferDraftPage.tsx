@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import FavoriteHomesDropdown from "../../components/ui/FavoriteHomesDropdown";
 import PageHeader from "../../components/ui/PageHeader";
+// import { useNegotiation } from "../../context";
 import {
   FileText,
   CreditCard,
@@ -35,8 +36,27 @@ const button =
   "bg-olive text-white px-6 py-3 rounded-lg font-semibold hover:bg-olive-light transition-colors duration-200 flex items-center gap-2";
 
 const OfferDraftPage: React.FC = () => {
+  // Use NegotiationContext for offer management (for future implementation)
+  // const {
+  //   saveOfferDraft,
+  //   submitOffer
+  // } = useNegotiation();
+
   // Tab state
   const [activeTab, setActiveTab] = useState(0);
+  
+  // Local form state (for future implementation)
+  // const [formData, setFormData] = useState({
+  //   propertyId: '',
+  //   offerPrice: '',
+  //   earnestMoney: '',
+  //   downPayment: '',
+  //   financingType: 'conventional',
+  //   inspectionPeriod: '10',
+  //   closingDate: '',
+  //   contingencies: [] as string[],
+  //   additionalTerms: ''
+  // });
 
   // Refs for scrolling to sections
   const sectionRefs = {
@@ -45,6 +65,37 @@ const OfferDraftPage: React.FC = () => {
     2: useRef<HTMLDivElement>(null),
     3: useRef<HTMLDivElement>(null),
   };
+  
+  // Form handlers for future UI implementation
+  // const updateFormField = (field: string, value: any) => {
+  //   setFormData(prev => ({ ...prev, [field]: value }));
+  // };
+  
+  // const handleSaveDraft = async () => {
+  //   try {
+  //     await saveOfferDraft({
+  //       property_id: formData.propertyId,
+  //       offer_price: parseFloat(formData.offerPrice),
+  //       earnest_money: parseFloat(formData.earnestMoney),
+  //       down_payment: parseFloat(formData.downPayment),
+  //       financing_type: formData.financingType,
+  //       inspection_period: parseInt(formData.inspectionPeriod),
+  //       closing_date: formData.closingDate,
+  //       special_terms: formData.additionalTerms,
+  //       status: 'draft'
+  //     });
+  //   } catch (error) {
+  //     console.error('Error saving draft:', error);
+  //   }
+  // };
+  
+  // const handleSubmitOffer = async () => {
+  //   try {
+  //     await submitOffer(formData.propertyId);
+  //   } catch (error) {
+  //     console.error('Error submitting offer:', error);
+  //   }
+  // };
 
   // Tab configuration
   const tabs = [

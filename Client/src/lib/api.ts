@@ -1,3 +1,5 @@
+import { fetchJson, logHttp, createAuthHeaders, HttpError } from './fetchUtils';
+
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
 export interface ApiResponse<T = any> {
@@ -18,6 +20,7 @@ const getAuthToken = (): string | null => {
 
 /**
  * Makes an API request with proper authentication and error handling
+ * Uses the robust fetchJson utility with HTML/404 tolerance
  * @param endpoint The API endpoint (e.g., '/payment/create-checkout-session')
  * @param options Fetch options (method, body, headers, etc.)
  * @returns Promise with the API response
@@ -30,37 +33,47 @@ export async function apiRequest<T = any>(
   const url = `${API_BASE_URL}${normalizedEndpoint}`;
   const token = getAuthToken();
 
-  const headers = new Headers({
-    'Content-Type': 'application/json',
-    ...(token && { 'Authorization': `Bearer ${token}` }),
-  });
-
-  // Merge any custom headers
+  // Merge auth headers with custom headers
+  const authHeaders = createAuthHeaders(token) as Record<string, string>;
+  const mergedHeaders: Record<string, string> = { ...authHeaders };
+  
   if (options.headers) {
     if (options.headers instanceof Headers) {
-      options.headers.forEach((value, key) => headers.set(key, value));
+      options.headers.forEach((value, key) => {
+        mergedHeaders[key] = value;
+      });
     } else if (Array.isArray(options.headers)) {
-      options.headers.forEach(([key, value]) => headers.set(key, value));
+      (options.headers as [string, string][]).forEach(([key, value]) => {
+        mergedHeaders[key] = value;
+      });
     } else {
-      Object.entries(options.headers).forEach(([key, value]) => {
+      Object.entries(options.headers as Record<string, string>).forEach(([key, value]) => {
         if (value !== undefined) {
-          headers.set(key, String(value));
+          mergedHeaders[key] = String(value);
         }
       });
     }
   }
 
   try {
-    const response = await fetch(url, {
+    const data = await fetchJson<any>(url, {
       ...options,
-      headers,
+      headers: mergedHeaders,
       credentials: 'include',
+      acceptStatuses: [401, 404], // Handle auth and not found gracefully
     });
 
-    const data = await response.json().catch(() => ({}));
+    // Handle 401 responses (token expired/unauthorized)
+    if (data === undefined) {
+      // This could be a 404 or 401 that was accepted
+      return {
+        success: false,
+        error: 'Resource not found or unauthorized',
+      } as ApiResponse<T>;
+    }
 
-    // If the server indicates the token has expired or unauthorized, redirect to login
-    if (response.status === 401 || data?.error === 'TOKEN_EXPIRED') {
+    // Handle explicit error responses
+    if (data?.error === 'TOKEN_EXPIRED' || data?.status === 401) {
       try {
         localStorage.removeItem('id_token');
         localStorage.removeItem('access_token');
@@ -75,21 +88,46 @@ export async function apiRequest<T = any>(
       } as ApiResponse<T>;
     }
 
-    if (!response.ok) {
+    // Handle success responses
+    if (data?.success !== false) {
       return {
-        success: false,
-        error: data.message || 'An error occurred',
+        success: true,
+        data,
         ...data,
       };
     }
 
+    // Handle error responses
     return {
-      success: true,
-      data,
+      success: false,
+      error: data.message || data.error || 'An error occurred',
       ...data,
     };
   } catch (error) {
-    console.error('API request failed:', error);
+    if (error instanceof HttpError) {
+      // Handle HTTP errors gracefully
+      if (error.status === 401) {
+        try {
+          localStorage.removeItem('id_token');
+          localStorage.removeItem('access_token');
+        } catch (_) {
+          /* ignore */
+        }
+        window.location.href = '/login';
+        return {
+          success: false,
+          error: 'TOKEN_EXPIRED',
+          message: 'Session expired. Redirecting to login.'
+        } as ApiResponse<T>;
+      }
+      
+      return {
+        success: false,
+        error: `HTTP ${error.status}: ${error.message}`,
+      };
+    }
+    
+    logHttp('api-request', error);
     return {
       success: false,
       error: 'Network error. Please check your connection.',

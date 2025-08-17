@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { getPropertyDetailsByAddress } from './searchAddress';
+import { getPropertyDetailsByAddress } from '../lib/propertyApi';
 
 export interface Property {
   id: string;

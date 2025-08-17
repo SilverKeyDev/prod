@@ -9,19 +9,7 @@ import PageHeader from "../components/ui/PageHeader";
 
 /*import PriceDropCard from "../components/PriceDropCard";
 import NewMatchCard from "../components/NewMatchCard";
-
-
-// Dummy data for recent price drops (will be fetched from backend later)
-const priceDrops = [
-
-];
-
-// Dummy data for brand-new matches (homes newly on the market matching user prefs)
-const newMatches = [
-
-]; */
-
-// Removed unused imports: handleViewPdf, PdfModal
+*/
 
 export default function UserDashboard() {
   const navigate = useNavigate();

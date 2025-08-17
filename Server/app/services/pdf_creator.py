@@ -212,21 +212,10 @@ def _create_pdf(report: dict, address: str, filename: str, comparison_address: s
                 
                 # Generate commute map for commute section
                 elif section.lower() == "commute":
-                    logger.info("🗺️ Generating commute map for PDF...")
                     try:
                         # Get Google Maps API key from environment
                         google_maps_api_key = os.getenv('GOOGLE_MAPS_API_KEY')
                         if google_maps_api_key and user_preferences:
-                            # Debug: Log user preferences structure
-                            logger.info(f"🔍 Debug: user_preferences type: {type(user_preferences)}")
-                            logger.info(f"🔍 Debug: user_preferences content: {user_preferences}")
-                            if hasattr(user_preferences, 'important_locations'):
-                                logger.info(f"🔍 Debug: important_locations attribute: {user_preferences.important_locations}")
-                            elif isinstance(user_preferences, dict) and 'important_locations' in user_preferences:
-                                logger.info(f"🔍 Debug: important_locations key: {user_preferences['important_locations']}")
-                            else:
-                                logger.info(f"🔍 Debug: No important_locations found in user_preferences")
-                            
                             # Generate commute map using primary address and important locations
                             commute_map_result = generate_commute_map(address, user_preferences, google_maps_api_key)
                             if commute_map_result:

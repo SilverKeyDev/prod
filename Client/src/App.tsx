@@ -10,7 +10,7 @@ import OnboardingPage from "./pages/HomeAuth/OnboardingPage";
 import PrivacyPolicy from "./pages/HomeAuth/PrivacyPolicy.tsx";
 import TermsOfService from "./pages/HomeAuth/TermsOfService.tsx";
 import ContactUs from "./pages/HomeAuth/ContactUs.tsx";
-import { DataProvider, UserProfile } from "./contexts/DataContext.tsx";
+import { AppProviders, UserProfile } from "./context";
 
 function App() {
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -66,7 +66,7 @@ function App() {
   }
 
   return (
-    <DataProvider>
+    <AppProviders>
       <BrowserRouter
         future={{ v7_relativeSplatPath: true, v7_startTransition: true }}
       >
@@ -97,7 +97,7 @@ function App() {
           </Routes>
         </div>
       </BrowserRouter>
-    </DataProvider>
+    </AppProviders>
   );
 }
 

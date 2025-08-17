@@ -67,12 +67,7 @@ class TabularPredictor:
             self.scaler = model_data["scaler"]
             self.feature_names = model_data.get("feature_names", None)
             self.model_type = model_data.get("model_type", "unknown")
-
             self.is_loaded = True
-            logger.info(
-                f"[TABULAR] Loaded {self.model_type} model from {self.model_path} "
-                f"(feature_names={len(self.feature_names) if self.feature_names else 0})"
-            )
 
         except Exception as e:
             logger.error(f"[TABULAR] Error loading model: {e}", exc_info=True)
@@ -93,17 +88,7 @@ class TabularPredictor:
         const_idx = np.where(stds <= CONST_EPS)[0].tolist()
         if not const_idx:
             return
-        if names and len(names) == X.shape[1]:
-            const_named = [names[i] for i in const_idx]
-        else:
-            const_named = [f"col_{i}" for i in const_idx]
 
-        msg_level = logging.WARNING if WARN_ON_CONSTANT_BATCH else logging.DEBUG
-        logger.log(
-            msg_level,
-            "[TABULAR][BATCH] %d constant columns detected (std≤%.1e): %s",
-            len(const_idx), CONST_EPS, const_named[:50]  # cap list in logs
-        )
 
     def _neutral_vector(self, length: int) -> np.ndarray:
         """
@@ -185,27 +170,11 @@ class TabularPredictor:
         Returns (ordered_features, scaled_features, missing_names).
         """
         f = np.asarray(features, dtype=float).reshape(1, -1)
-        ordered_row, ordered_names, missing = self._align_by_name_or_pad(f[0], fe_output_names)
+        ordered_row, missing = self._align_by_name_or_pad(f[0], fe_output_names)
         ordered = ordered_row.reshape(1, -1)
-
-        # Diagnostics pre-scale
-        if logger.isEnabledFor(logging.DEBUG):
-            logger.debug(
-                "[TABULAR][SINGLE] pre-scale stats mean=%.6f std=%.6f first10=%s",
-                float(np.nanmean(ordered)), float(np.nanstd(ordered)),
-                np.round(ordered[0, :10], 4).tolist()
-            )
 
         # Scale
         fs = self.scaler.transform(ordered)
-
-        # Diagnostics post-scale
-        if logger.isEnabledFor(logging.DEBUG):
-            logger.debug(
-                "[TABULAR][SINGLE] post-scale stats mean=%.6f std=%.6f first10=%s",
-                float(np.nanmean(fs)), float(np.nanstd(fs)),
-                np.round(fs[0, :10], 4).tolist()
-            )
 
         return ordered, fs, missing
 
@@ -225,12 +194,6 @@ class TabularPredictor:
 
             y = np.asarray(y, dtype=float)
 
-            if logger.isEnabledFor(logging.DEBUG):
-                logger.debug(
-                    "[TABULAR] raw model output stats mean=%.6f std=%.6f sample=%s",
-                    float(np.nanmean(y)), float(np.nanstd(y)), np.round(y[:5], 6).tolist()
-                )
-
             return y
         except Exception as e:
             logger.error(f"[TABULAR] Error during model prediction: {e}", exc_info=True)
@@ -248,19 +211,6 @@ class TabularPredictor:
             # Preprocess data
             user_processed = self.preprocessor.preprocess_user_data(user_data)
             home_processed = self.preprocessor.preprocess_home_data(home_data)
-
-            # Helpful raw diagnostic for parsed numerics
-            if logger.isEnabledFor(logging.DEBUG):
-                logger.debug(
-                    "[TABULAR][SINGLE][INPUT] price=%r beds=%r baths=%r sqft=%r lot=%r year=%r",
-                    home_processed.get("price"),
-                    home_processed.get("bedrooms"),
-                    home_processed.get("bathrooms"),
-                    home_processed.get("sqft"),
-                    home_processed.get("lotSize"),
-                    home_processed.get("yearBuilt"),
-                )
-
             # Create features + (optional) feature names in generation order
             fe_output_names = getattr(self.feature_engineer, "get_feature_names", lambda: None)()
 
@@ -271,10 +221,7 @@ class TabularPredictor:
             features = np.asarray(features, dtype=float)
 
             # Align & Scale (fills missing-by-name)
-            ordered, features_scaled, missing = self._align_and_scale_single(features, fe_output_names)
-
-            if missing:
-                logger.debug("[TABULAR][SINGLE] Filled %d missing features with neutral values.", len(missing))
+            _, features_scaled = self._align_and_scale_single(features, fe_output_names)
 
             # Predict
             raw = self._predict_array(features_scaled)[0]
@@ -282,12 +229,6 @@ class TabularPredictor:
             # Ensure score is in [0, 1]
             score = float(np.clip(raw, 0.0, 1.0))
 
-            # Extra trace: where could constancy come from?
-            if logger.isEnabledFor(logging.DEBUG):
-                logger.debug(
-                    "[TABULAR][SINGLE] row_hash=%s aligned_len=%d score=%.6f",
-                    self._hash_row(ordered[0]), ordered.shape[1], score
-                )
 
             return score
 
@@ -323,19 +264,6 @@ class TabularPredictor:
             for idx, home_data in enumerate(homes_data):
                 home_processed = self.preprocessor.preprocess_home_data(home_data)
 
-                # Raw parsed diagnostics for first few rows
-                if logger.isEnabledFor(logging.DEBUG) and idx < 3:
-                    logger.debug(
-                        "[TABULAR][BATCH][INPUT %d] price=%r beds=%r baths=%r sqft=%r lot=%r year=%r",
-                        idx,
-                        home_processed.get("price"),
-                        home_processed.get("bedrooms"),
-                        home_processed.get("bathrooms"),
-                        home_processed.get("sqft"),
-                        home_processed.get("lotSize"),
-                        home_processed.get("yearBuilt"),
-                    )
-
                 features = self.feature_engineer.create_all_features(user_prefs, home_processed)
                 features = np.asarray(features, dtype=float)
                 all_features.append(features)
@@ -350,17 +278,6 @@ class TabularPredictor:
 
             # Convert to array
             X_raw = np.array(all_features, dtype=float)
-
-            # Before alignment, quick variability diag on raw
-            if logger.isEnabledFor(logging.DEBUG):
-                row_hashes = [self._hash_row(r) for r in X_raw]
-                unique_hashes = len(set(row_hashes))
-                col_std_first10 = np.round(np.nanstd(X_raw, axis=0)[:10], 6).tolist() if X_raw.shape[1] else []
-                logger.debug(
-                    "[TABULAR][BATCH] RAW X shape=%s unique_row_hashes=%d colwise_std_first10=%s "
-                    "sample_row_hashes=%s row0_preview=%s",
-                    tuple(X_raw.shape), unique_hashes, col_std_first10, row_hashes[:5], row_debug_samples[:1]
-                )
 
             # Align each row by name (or pad) to match training-time features
             if self.feature_names:
@@ -390,36 +307,11 @@ class TabularPredictor:
             # Scale
             X_scaled = self.scaler.transform(X_aligned)
 
-            # Batch diagnostics post-scale
-            if logger.isEnabledFor(logging.DEBUG):
-                logger.debug(
-                    "[TABULAR][BATCH] pre-scale mean=%.6f std=%.6f | post-scale mean=%.6f std=%.6f",
-                    float(np.nanmean(X_aligned)), float(np.nanstd(X_aligned)),
-                    float(np.nanmean(X_scaled)), float(np.nanstd(X_scaled))
-                )
-
-                # Single vs batch sanity check on first row
-                single_first = self._predict_array(self.scaler.transform(X_aligned[0].reshape(1, -1)))[0]
-                batch_first = self._predict_array(X_scaled[:1])[0]
-                logger.debug(
-                    "[TABULAR][BATCH] single_first=%.6f vs batch_first=%.6f (should match closely)",
-                    single_first, batch_first
-                )
-
             # Predict all scores
             raw_scores = self._predict_array(X_scaled)
 
             # Ensure scores are in [0, 1] range
             scores = np.clip(raw_scores, 0.0, 1.0)
-
-            # Final variability check
-            if logger.isEnabledFor(logging.DEBUG):
-                logger.debug(
-                    "[TABULAR][BATCH] scores mean=%.6f std=%.6f min=%.6f max=%.6f first5=%s",
-                    float(scores.mean()), float(scores.std()),
-                    float(scores.min()), float(scores.max()),
-                    np.round(scores[:5], 6).tolist()
-                )
 
             # Optional warning if scores are (nearly) identical
             if WARN_ON_CONSTANT_BATCH and (np.nanstd(scores) <= CONST_EPS):

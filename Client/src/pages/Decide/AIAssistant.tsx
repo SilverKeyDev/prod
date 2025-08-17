@@ -8,7 +8,9 @@ import {
   FileText,
   X,
 } from "lucide-react";
-import { useData } from "../../contexts/DataContext";
+import { useChats } from "../../context";
+import { Chat } from "../../context/utils";
+import { fetchJson, createAuthHeaders } from "../../lib/fetchUtils";
 import Loading from "../../components/ui/Loading";
 import MiniLogo from "../../components/ui/MiniLogo";
 
@@ -19,17 +21,10 @@ interface ChatMessage {
   timestamp: Date;
 }
 
-interface Chat {
-  id: string;
-  title: string;
-  propertyAddress?: string;
-  messages: ChatMessage[];
-  createdAt: Date;
-}
 
 export default function AIAssistant() {
   const navigate = useNavigate();
-  const { chats, refreshChats } = useData();
+  const { chats, refreshChats } = useChats();
   const [localChats, setLocalChats] = useState<Chat[]>([]);
   const [activeChatId, setActiveChatId] = useState<string>("");
   const [message, setMessage] = useState("");
@@ -63,11 +58,12 @@ export default function AIAssistant() {
     const stateToSave = {
       activeChatId,
       message,
+      isTyping,
     };
     localStorage.setItem("aiAssistantState", JSON.stringify(stateToSave));
-  }, [activeChatId, message]);
+  }, [activeChatId, message, isTyping]);
 
-  const activeChat = localChats.find((chat) => chat.id === activeChatId);
+  const activeChat = localChats.find((chat: Chat) => chat.id === activeChatId);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -79,9 +75,9 @@ export default function AIAssistant() {
     try {
       if (chats && chats.length > 0) {
         // Preserve existing messages from localChats when updating from context
-        const updatedChats = chats.map((contextChat) => {
+        const updatedChats = chats.map((contextChat: Chat) => {
           const existingChat = localChats.find(
-            (chat) => chat.id === contextChat.id
+            (chat: Chat) => chat.id === contextChat.id
           );
           return {
             ...contextChat,
@@ -91,8 +87,8 @@ export default function AIAssistant() {
 
         console.log("[AI_ASSISTANT] Updated chats from context:", {
           chatCount: updatedChats.length,
-          chatIds: updatedChats.map((c) => c.id),
-          preservedMessages: updatedChats.filter((c) => c.messages.length > 0)
+          chatIds: updatedChats.map((c: Chat) => c.id),
+          preservedMessages: updatedChats.filter((c: Chat) => c.messages.length > 0)
             .length,
         });
 
@@ -130,7 +126,7 @@ export default function AIAssistant() {
   // Load chat history and PDF when active chat changes
   useEffect(() => {
     if (activeChatId) {
-      const currentChat = chats.find((chat) => chat.id === activeChatId);
+      const currentChat = chats.find((chat: Chat) => chat.id === activeChatId);
       if (currentChat && currentChat.messages.length === 0) {
         console.log(
           `[AI_ASSISTANT] Loading chat history for new active chat: ${activeChatId}`
@@ -154,33 +150,26 @@ export default function AIAssistant() {
         hasToken: !!idToken,
       });
 
-      const response = await fetch(
+      const json = await fetchJson<{ url?: string; error?: string }>(
         `${apiBaseUrl}/api/v1/report/${chatId}/view-url`,
         {
           method: "GET",
           mode: "cors",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-            Authorization: `Bearer ${idToken}`,
-          },
+          headers: createAuthHeaders(idToken),
+          credentials: "include",
+          acceptStatuses: [404]
         }
       );
 
-      console.log(
-        `[AI_ASSISTANT] PDF view-url response status: ${response.status}`
-      );
-
-      if (response.ok) {
-        const data = await response.json();
+      if (json?.url) {
         console.log(`[AI_ASSISTANT] Received PDF URL for chat ${chatId}`);
-        setPdfUrl(data.url);
+        setPdfUrl(json.url);
+      } else if (json === undefined) {
+        // 404 response, report not found
+        console.log(`[AI_ASSISTANT] Report not found for chat ${chatId}`);
+        setPdfUrl(null);
       } else {
-        console.error(
-          `[AI_ASSISTANT] Failed to load PDF URL - Status: ${response.status}`
-        );
-        const errorText = await response.text();
-        console.error(`[AI_ASSISTANT] Error response:`, errorText);
+        console.error(`[AI_ASSISTANT] Failed to load PDF URL:`, json?.error || "Unknown error");
         setPdfUrl(null);
       }
     } catch (error) {
@@ -241,9 +230,9 @@ export default function AIAssistant() {
         );
 
         // Update the chat with loaded messages
-        setLocalChats((prev: Chat[]) =>
-          prev.map((chat) =>
-            chat.id === chatId ? { ...chat, messages } : chat
+        setLocalChats((prevChats) =>
+          prevChats.map((c: Chat) =>
+            c.id === activeChatId ? { ...c, messages } : c
           )
         );
 
@@ -458,14 +447,14 @@ export default function AIAssistant() {
               </div>
             ) : localChats.length === 0 ? (
               <div className="p-4 text-center">
-                <MessageCircle className="h-12 w-12 text-black/30 mx-auto mb-2" />
+                <MessageCircle className="h-12 w-12 text-black/30 mx-auto mb-4" />
                 <p className="text-sm text-black/60">No reports yet</p>
                 <p className="text-xs text-black/40 mt-1">
                   Generate a report to start chatting about properties.
                 </p>
               </div>
             ) : (
-              localChats.map((chat) => (
+              localChats.map((chat: Chat) => (
                 <div
                   key={chat.id}
                   onClick={() => setActiveChatId(chat.id)}

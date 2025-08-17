@@ -1,152 +1,55 @@
 import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { X, Search, UserPlus } from "lucide-react";
-import { useData } from "../../contexts/DataContext";
+import { usePreferences, useUser, useAgent, Agent } from "../../context";
 import PageHeader from "../../components/ui/PageHeader";
 
-interface Agent {
-  id: string;
-  name: string;
-  email: string;
-  phone?: string;
-  created_at?: string;
-}
-
 export default function AgentConnection() {
-  const { refreshUserPreferences, userProfile } = useData();
-  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
-  const [openDropdowns, setOpenDropdowns] = useState<{
-    [key: string]: boolean;
-  }>({});
+  const { refreshUserPreferences } = usePreferences();
+  const { userProfile } = useUser();
+  const {
+    assignedAgent,
+    agentSearchResults: agents,
+    searchLoading: agentSearchLoading,
+    searchAgents,
+    assignAgent,
+    removeAgent
+  } = useAgent();
 
-  // Agent search state
   const [agentSearchTerm, setAgentSearchTerm] = useState("");
-  const [agents, setAgents] = useState<Agent[]>([]);
-  const [agentSearchLoading, setAgentSearchLoading] = useState(false);
-  const [assignedAgents, setAssignedAgents] = useState<Agent[]>([]);
-
-  // Confirmation modal state
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [agentToRemove, setAgentToRemove] = useState<Agent | null>(null);
+  const [openDropdowns, setOpenDropdowns] = useState<{[key: string]: boolean}>({});
 
-  // Fetch user's assigned agents
-  const fetchUserAgents = async () => {
-    try {
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
-      const idToken = localStorage.getItem("id_token");
+  const assignedAgents = assignedAgent ? [assignedAgent] : [];
 
-      const response = await fetch(
-        `${apiBaseUrl}/api/v1/preferences/users_agents`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${idToken}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      const data = await response.json();
-      if (data.success) {
-        setAssignedAgents(data.agents || []);
-      } else {
-        console.error("❌ Failed to fetch user agents:", data.error);
-      }
-    } catch (error) {
-      console.error("💥 Error fetching user agents:", error);
+  // Handle agent search with debouncing
+  useEffect(() => {
+    if (agentSearchTerm.trim()) {
+      const timeoutId = setTimeout(() => {
+        searchAgents(agentSearchTerm);
+      }, 300);
+      return () => clearTimeout(timeoutId);
     }
-  };
+  }, [agentSearchTerm, searchAgents]);
 
-  // Agent search functions
-  const searchAgents = async (searchTerm: string) => {
-    if (!searchTerm.trim()) {
-      setAgents([]);
-      return;
-    }
-
-    try {
-      setAgentSearchLoading(true);
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
-      const idToken = localStorage.getItem("id_token");
-
-      const response = await fetch(
-        `${apiBaseUrl}/api/v1/preferences/agents?search=${encodeURIComponent(
-          searchTerm
-        )}`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${idToken}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      const data = await response.json();
-      if (data.success) {
-        // Filter out all assigned agents from search results
-        const assignedAgentIds = assignedAgents.map((agent) => agent.id);
-        const filteredAgents = (data.agents || []).filter((agent: Agent) => {
-          return !assignedAgentIds.includes(agent.id);
-        });
-        setAgents(filteredAgents);
-      } else {
-        console.error("Failed to search agents:", data.error);
-        setAgents([]);
-      }
-    } catch (error) {
-      console.error("Error searching agents:", error);
-      setAgents([]);
-    } finally {
-      setAgentSearchLoading(false);
-    }
-  };
-
-  const handleAgentSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
+  const handleAgentSearch = (value: string) => {
     setAgentSearchTerm(value);
-
-    // Debounce search
-    const timeoutId = setTimeout(() => {
-      searchAgents(value);
-    }, 300);
-
-    return () => clearTimeout(timeoutId);
   };
 
-  const assignAgent = async (agent: Agent) => {
+  const handleAssignAgent = async (agent: Agent) => {
     try {
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
-      const idToken = localStorage.getItem("id_token");
-
-      const response = await fetch(
-        `${apiBaseUrl}/api/v1/preferences/add?agent_id=${encodeURIComponent(
-          agent.id
-        )}`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${idToken}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      const data = await response.json();
-      if (data.success) {
-        setAssignedAgents((prev) => [...prev, agent]);
-        setAgentSearchTerm("");
-        setAgents([]);
-      } else {
-        console.error("❌ Failed to assign agent:", data.error);
-      }
+      await assignAgent(agent.id);
+      setAgentSearchTerm("");
+      setShowSuccessDialog(true);
+      refreshUserPreferences();
     } catch (error) {
-      console.error("💥 Error assigning agent:", error);
+      console.error("Error assigning agent:", error);
     }
   };
 
-  const removeAgent = (agent: Agent) => {
-    // Show custom confirmation modal
+  const handleRemoveAgentClick = (agent: Agent) => {
     setAgentToRemove(agent);
     setShowConfirmModal(true);
   };
@@ -155,35 +58,11 @@ export default function AgentConnection() {
     if (!agentToRemove) return;
 
     try {
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
-      const idToken = localStorage.getItem("id_token");
-
-      const response = await fetch(
-        `${apiBaseUrl}/api/v1/preferences/remove?agent_id=${encodeURIComponent(
-          agentToRemove.id
-        )}`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${idToken}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      const data = await response.json();
-      if (data.success) {
-        // Remove agent from frontend state
-        setAssignedAgents((prev) =>
-          prev.filter((agent) => agent.id !== agentToRemove.id)
-        );
-      } else {
-        console.error("❌ Failed to remove agent:", data.error);
-      }
+      await removeAgent();
+      refreshUserPreferences();
     } catch (error) {
-      console.error("💥 Error removing agent:", error);
+      console.error("Error removing agent:", error);
     } finally {
-      // Close modal and reset state
       setShowConfirmModal(false);
       setAgentToRemove(null);
     }
@@ -226,7 +105,6 @@ export default function AgentConnection() {
   // Refresh data when page loads to ensure latest updates
   useEffect(() => {
     refreshUserPreferences();
-    fetchUserAgents();
   }, [refreshUserPreferences]);
 
   return (
@@ -255,7 +133,7 @@ export default function AgentConnection() {
                   <input
                     type="text"
                     value={agentSearchTerm}
-                    onChange={handleAgentSearch}
+                    onChange={(e) => handleAgentSearch(e.target.value)}
                     placeholder="Search agents by name or email..."
                     className="mobile-input pl-10 hover:border-brown focus:border-brown focus:ring-brown/20"
                   />
@@ -288,7 +166,7 @@ export default function AgentConnection() {
                           )}
                         </div>
                         <button
-                          onClick={() => assignAgent(agent)}
+                          onClick={() => handleAssignAgent(agent)}
                           className="flex items-center px-3 py-1 bg-brown text-white rounded-md hover:bg-brown/80 transition-colors text-sm"
                         >
                           <UserPlus className="w-4 h-4 mr-1" />
@@ -339,14 +217,9 @@ export default function AgentConnection() {
                             📞 {agent.phone}
                           </p>
                         )}
-                        {agent.created_at && (
-                          <p className="text-xs text-gray-500 mt-2">
-                            Connected: {new Date(agent.created_at).toLocaleDateString()}
-                          </p>
-                        )}
                       </div>
                       <button
-                        onClick={() => removeAgent(agent)}
+                        onClick={() => handleRemoveAgentClick(agent)}
                         className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
                         title="Remove agent"
                       >

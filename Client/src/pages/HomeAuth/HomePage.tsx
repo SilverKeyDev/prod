@@ -1,15 +1,14 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import {
-  MapPin,
   Lock,
   X,
   Building2,
   BarChart2,
   Lightbulb,
-  Loader2,
   FolderLock,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useGoogleMaps } from "../../context";
 import RippleBackground from "../../components/ui/RippleBackground";
 import RippleBackgroundMobile from "../../components/ui/RippleBackgroundMobile";
 import KeyLogo from "../../components/ui/KeyLogo";
@@ -28,86 +27,28 @@ declare global {
 
 export default function HomePage() {
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [address, setAddress] = useState("");
-  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  const [address, ] = useState("");
+  const [, setSuggestions] = useState<Suggestion[]>([]);
   const [scriptsReady, setScriptsReady] = useState(false);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  const [hasSelected, setHasSelected] = useState(false);
-  const inputRef = useRef<HTMLInputElement | null>(null);
+  const [, setLoadError] = useState<string | null>(null);
+  const [hasSelected, ] = useState(false);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setHasSelected(false);
-    setAddress(e.target.value);
-    setError(null);
-  };
+  // Use centralized Google Maps loading
+  const { isLoaded: googleMapsLoaded, error: googleMapsError } = useGoogleMaps();
 
-  const handleSelect = async (suggestion: Suggestion) => {
-    setHasSelected(true);
-    const place = suggestion.placePrediction.toPlace();
-    await place.fetchFields({
-      fields: ["displayName", "formattedAddress"],
-    });
-    setAddress(place.formattedAddress);
-    setSuggestions([]);
-  };
-
-  // Load Google Maps script
+  // Update scriptsReady based on centralized Google Maps loading
   useEffect(() => {
-    const loadGoogleMapsScript = async () => {
-      if (window.google?.maps?.places?.AutocompleteSuggestion) {
-        setScriptsReady(true);
-        return;
-      }
+    if (googleMapsError) {
+      console.error("❌ Google Maps loading error:", googleMapsError);
+      setLoadError("Failed to load Google Maps script.");
+      return;
+    }
 
-      try {
-        // Fetch the Google Maps script URL from backend
-        const idToken = localStorage.getItem("id_token");
-        const response = await fetch("/api/maps/script", {
-          headers: {
-            "Authorization": idToken ? `Bearer ${idToken}` : "",
-            "Content-Type": "application/json",
-          },
-        });
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error("❌ Backend response error:", response.status, errorText);
-          setLoadError("Failed to get Google Maps script URL from backend.");
-          return;
-        }
-
-        const contentType = response.headers.get("content-type");
-        if (!contentType || !contentType.includes("application/json")) {
-          const responseText = await response.text();
-          console.error("❌ Expected JSON but got:", contentType, responseText.substring(0, 200));
-          setLoadError("Invalid response from backend.");
-          return;
-        }
-
-        const data = await response.json();
-        if (!data.success || !data.script_url) {
-          console.error("❌ Backend returned error or missing script_url:", data);
-          setLoadError("Backend failed to provide Google Maps script URL.");
-          return;
-        }
-
-        const script = document.createElement("script");
-        script.src = data.script_url;
-        script.async = true;
-        script.defer = true;
-        script.onload = () => setScriptsReady(true);
-        script.onerror = () => setLoadError("Save your first home today!");
-
-        document.head.appendChild(script);
-      } catch (error) {
-        console.error("❌ Error loading Google Maps script:", error);
-        setLoadError("Failed to load Google Maps script.");
-      }
-    };
-
-    loadGoogleMapsScript();
-  }, []);
+    if (googleMapsLoaded && window.google?.maps?.places) {
+      console.log("✅ Google Maps loaded for homepage");
+      setScriptsReady(true);
+    }
+  }, [googleMapsLoaded, googleMapsError]);
 
   // Fetch autocomplete suggestions as the user types
   useEffect(() => {
@@ -186,49 +127,6 @@ export default function HomePage() {
             <p className="text-gray-600 mb-6 sm:mb-8 text-base sm:text-lg">
               Onboard, Search, Decide, Negotiate, Close
             </p>
-
-            {/* Search */}
-            <div className="relative">
-              <MapPin className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-black/40 pointer-events-none z-10" />
-              <input
-                id="address-input"
-                ref={inputRef}
-                type="text"
-                value={address}
-                onChange={handleInputChange}
-                placeholder={scriptsReady ? "Search here" : "Loading..."}
-                disabled={!scriptsReady}
-                className="w-full h-12 sm:h-14 pl-10 sm:pl-12 pr-3 sm:pr-4 rounded-lg border border-gray-300 text-xs sm:text-base focus:ring-2 focus:ring-olive focus:border-olive transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed touch-manipulation"
-                autoComplete="off"
-              />
-            </div>
-
-            {suggestions.length > 0 && (
-              <ul className="border mt-2 rounded-md overflow-hidden shadow-sm bg-white z-50 relative max-h-60 overflow-y-auto">
-                {suggestions.map((s, idx) => (
-                  <li
-                    key={idx}
-                    onClick={() => handleSelect(s)}
-                    className="px-3 sm:px-4 py-3 sm:py-2 cursor-pointer hover:bg-gray-100 text-sm sm:text-base touch-friendly border-b border-gray-100 last:border-b-0"
-                  >
-                    {s.description}
-                  </li>
-                ))}
-              </ul>
-            )}
-
-            {!scriptsReady && !loadError && (
-              <p className="text-sm text-black/60 mt-2 flex items-center">
-                <Loader2 className="animate-spin h-4 w-4 mr-2" />
-                Loading address autocomplete...
-              </p>
-            )}
-
-            {(error || loadError) && (
-              <div className="mt-2 text-red-600 text-sm">
-                {error || loadError}
-              </div>
-            )}
             <div className="mt-4 sm:mt-8">
               <button
                 onClick={() => setShowAuthModal(true)}

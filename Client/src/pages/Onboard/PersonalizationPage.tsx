@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
+import { useGoogleMaps } from "../../context";
 import {
   Edit,
   Save,
@@ -31,14 +32,14 @@ import {
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { apiRequest } from "../../lib/api";
-import { useData } from "../../contexts/DataContext";
+import { usePreferences } from "../../context";
 import ImportantLocationsInput from "../../components/ui/ImportantLocationsInput";
 import Loading from "../../components/ui/Loading";
 import MiniLogo from "../../components/ui/MiniLogo";
 import OliveCheckbox from "../../components/ui/OliveCheckbox";
 import PriceRangeSlider from "../../components/ui/PriceRangeSlider";
 import ValidationWarning from "../../components/feedback/ValidationWarning";
-import { estimateAffordableHomePrice } from "../../hooks/getHomePrice";
+import { estimateAffordableHomePrice } from "../../lib/affordabilityCalculator";
 
 // Extend window interface for Google Maps
 declare global {
@@ -298,7 +299,7 @@ const SortableReportSection: React.FC<SortableReportSectionProps> = ({
 };
 
 export default function PersonalizationPage() {
-  const { userPreferences, refreshUserPreferences } = useData();
+  const { userPreferences, refreshUserPreferences } = usePreferences();
   const [formData, setFormData] = useState<OnboardingData>({});
   const [originalData, setOriginalData] = useState<OnboardingData>({});
   const [isEditMode, setIsEditMode] = useState(false);
@@ -632,75 +633,22 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Load Google Places API script
+  // Use centralized Google Maps loading
+  const { isLoaded: googleMapsLoaded, error: googleMapsError } = useGoogleMaps();
+
+  // Update scriptsReady based on centralized Google Maps loading
   useEffect(() => {
-    const loadGoogleMapsScript = async () => {
-      if (window.google?.maps?.places?.AutocompleteSuggestion) {
-        setScriptsReady(true);
-        return;
-      }
+    if (googleMapsError) {
+      console.error("❌ Google Maps loading error:", googleMapsError);
+      setLoadError("Failed to load Google Maps script.");
+      return;
+    }
 
-      try {
-        // Fetch the Google Maps script URL from backend
-        const idToken = localStorage.getItem("id_token");
-        const response = await fetch("/api/maps/script", {
-          headers: {
-            "Authorization": idToken ? `Bearer ${idToken}` : "",
-            "Content-Type": "application/json",
-          },
-        });
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error("❌ Backend response error:", response.status, errorText);
-          setLoadError("Failed to get Google Maps script URL from backend.");
-          return;
-        }
-
-        const contentType = response.headers.get("content-type");
-        if (!contentType || !contentType.includes("application/json")) {
-          const responseText = await response.text();
-          console.error("❌ Expected JSON but got:", contentType, responseText.substring(0, 200));
-          setLoadError("Invalid response from backend.");
-          return;
-        }
-
-        const data = await response.json();
-        if (!data.success || !data.script_url) {
-          console.error("❌ Backend returned error or missing script_url:", data);
-          setLoadError("Backend failed to provide Google Maps script URL.");
-          return;
-        }
-
-        const script = document.createElement("script");
-        script.src = data.script_url;
-        script.async = true;
-        script.defer = true;
-        script.onload = () => setScriptsReady(true);
-        script.onerror = () =>
-          setLoadError(
-            "Failed to load Google Maps script. Please check your internet connection."
-          );
-
-        document.head.appendChild(script);
-      } catch (error) {
-        console.error("❌ Error loading Google Maps script:", error);
-        setLoadError("Failed to load Google Maps script.");
-      }
-    };
-
-    loadGoogleMapsScript();
-
-    return () => {
-      // Clean up script if component unmounts
-      const existingScript = document.querySelector(
-        `script[src*="maps.googleapis.com"]`
-      );
-      if (existingScript) {
-        document.head.removeChild(existingScript);
-      }
-    };
-  }, []);
+    if (googleMapsLoaded && window.google?.maps?.places) {
+      console.log("✅ Google Maps loaded for personalization");
+      setScriptsReady(true);
+    }
+  }, [googleMapsLoaded, googleMapsError]);
 
   const loadUserPreferencesFromContext = () => {
     try {

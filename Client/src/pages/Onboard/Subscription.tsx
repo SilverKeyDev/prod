@@ -19,7 +19,7 @@ import {
 } from "../../hooks/useStripePayment";
 import ErrorToast from "../../components/feedback/ErrorToast";
 import SuccessToast from "../../components/feedback/SuccessToast";
-import { useData } from "../../contexts/DataContext";
+import { useBilling } from "../../context";
 import Loading from "../../components/ui/Loading";
 import PageHeader from "../../components/ui/PageHeader";
 
@@ -63,7 +63,6 @@ const plans: Plan[] = [
   },
 ];
 
-// BillingInfo type is now imported from DataContext
 
 export default function Subscription() {
   const [searchParams] = useSearchParams();
@@ -76,10 +75,10 @@ export default function Subscription() {
   // Use preloaded data from context
   const {
     billingInfo,
-    billingLoading: isLoading,
-    billingError,
+    loading: isLoading,
+    error: billingError,
     refreshBillingInfo,
-  } = useData();
+  } = useBilling();
 
   // Refresh data when page loads to ensure latest updates
   useEffect(() => {

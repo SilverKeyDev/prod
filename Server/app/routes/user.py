@@ -320,7 +320,6 @@ def favorite_homes():
     GET  – Returns a list of favorite home IDs (strings).
     POST – Expects a JSON array of strings and overwrites the user's list.
     """
-    current_app.logger.info("🔔 /favorite-homes endpoint invoked", extra={"method": request.method})
 
     user = _get_user()
     if not user:

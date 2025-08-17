@@ -1,0 +1,82 @@
+/* =========================
+   Auth State Management
+   ========================= */
+
+import { useState, useEffect, useCallback } from 'react';
+import { fetchJson, logHttp, createAuthHeaders } from './fetchUtils';
+
+export interface AuthState {
+  user: any | null;
+  authReady: boolean;
+  isAuthenticated: boolean;
+}
+
+/**
+ * Hook to manage authentication state with proper readiness tracking
+ */
+export function useAuthState(): AuthState {
+  const [user, setUser] = useState<any | null>(null);
+  const [authReady, setAuthReady] = useState(false);
+
+  const checkAuth = useCallback(async () => {
+    const token = localStorage.getItem('id_token');
+    
+    if (!token) {
+      setUser(null);
+      setAuthReady(true);
+      return;
+    }
+
+    try {
+      // Verify token with backend
+      const response = await fetchJson<any>('/api/v1/user/profile', {
+        headers: createAuthHeaders(token),
+        acceptStatuses: [401, 404], // Treat these as "not authenticated"
+      });
+
+      if (response?.success && response?.data) {
+        setUser(response.data);
+      } else {
+        // Invalid token, clear it
+        localStorage.removeItem('id_token');
+        localStorage.removeItem('access_token');
+        setUser(null);
+      }
+    } catch (error) {
+      logHttp('auth', error);
+      // On error, assume not authenticated
+      localStorage.removeItem('id_token');
+      localStorage.removeItem('access_token');
+      setUser(null);
+    } finally {
+      setAuthReady(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
+  // Listen for storage changes (cross-tab auth)
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'id_token') {
+        if (e.newValue) {
+          checkAuth();
+        } else {
+          setUser(null);
+          setAuthReady(true);
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [checkAuth]);
+
+  return {
+    user,
+    authReady,
+    isAuthenticated: !!user,
+  };
+}

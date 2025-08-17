@@ -24,11 +24,11 @@ import {
   Bookmark,
   ClipboardList,
 } from "lucide-react";
-import { UserProfile } from "../../contexts/DataContext.tsx";
+import { UserProfile } from "../../context";
 import { useState } from "react";
 import ConfirmationDialog from "../modals/ConfirmationDialog";
 
-import { useData } from "../../contexts/DataContext.tsx";
+import { useUser } from "../../context";
 import MiniLogo from "../ui/MiniLogo";
 interface SidebarProps {
   user?: UserProfile; // make user optional to prevent crash
@@ -214,8 +214,8 @@ export default function Sidebar({
   isMobile = false,
 }: SidebarProps) {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  // Use userProfile from DataContext for all user info
-  const { userProfile, userProfileLoading } = useData();
+  // Use userProfile from UserContext for all user info
+  const { userProfile, loading: userProfileLoading } = useUser();
   const isLoading = userProfileLoading;
   const [openCategories, setOpenCategories] = useState<Record<string, boolean>>(
     {
@@ -228,7 +228,7 @@ export default function Sidebar({
   );
   const location = useLocation();
 
-  // Get userProfile from DataContext for agent check
+  // Get userProfile from UserContext for agent check
   // Already destructured above.
 
   const handleLogoutClick = (e: React.MouseEvent) => {
@@ -245,7 +245,7 @@ export default function Sidebar({
     setShowLogoutConfirm(false);
   };
 
-  // No local fetchUserData; userProfile is loaded by DataContext on login/app load.
+  // No local fetchUserData; userProfile is loaded by UserContext on login/app load.
 
   const isActive = (href: string) =>
     location.pathname === href || location.pathname.endsWith(href);

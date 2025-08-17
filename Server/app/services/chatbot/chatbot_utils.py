@@ -14,9 +14,7 @@ def get_preferences(user_id):
     try:
         prefs = UserPreferences.query.filter_by(user_id=user_id).first()
         if prefs:
-            logger.info(f"[CHATBOT] Successfully retrieved preferences for user {user_id}")
             prefs_dict = prefs.to_dict()
-            logger.debug(f"[CHATBOT] User preferences keys: {list(prefs_dict.keys())}")
             return prefs_dict
         else:
             logger.warning(f"[CHATBOT] No preferences found for user {user_id}, using defaults")
@@ -27,16 +25,6 @@ def get_preferences(user_id):
 
 def get_chat_response(report_data, user_profile, user_message, address):
     """Generate AI chat response using OpenAI API"""
-    if isinstance(report_data, dict):
-        logger.info(f"[CHATBOT] Report data available with {len(report_data)} keys")
-        logger.debug(f"[CHATBOT] Report data keys: {list(report_data.keys())}")
-    else:
-        logger.warning(f"[CHATBOT] Report data is missing or malformed")
-
-    if user_profile:
-        logger.info(f"[CHATBOT] User profile has {len(user_profile)} preferences")
-    else:
-        logger.info(f"[CHATBOT] No user profile available")
 
     # Construct system prompt with complete context
     SYSTEM_PROMPT = f"""You are SilverKey, a helpful real estate AI assistant.
@@ -61,8 +49,6 @@ Consider the user's preferences when making recommendations or highlighting rele
 
 Now respond helpfully to the user's question.
 """
-    logger.debug(f"[CHATBOT] System prompt length: {len(SYSTEM_PROMPT)}")
-
     try:
         api_key = os.getenv("OPENAI_KEY")
         if not api_key:
@@ -73,7 +59,6 @@ Now respond helpfully to the user's question.
         http_client=httpx.Client()
         )
 
-        logger.info(f"[CHATBOT] Sending message to GPT-4o")
         response = client.chat.completions.create(
             model="gpt-4o",
             messages=[
@@ -85,15 +70,6 @@ Now respond helpfully to the user's question.
         )
 
         reply = response.choices[0].message.content
-        logger.info(f"[CHATBOT] Response generated ({len(reply)} chars)")
-        logger.debug(f"[CHATBOT] Preview: {reply[:100]}")
-
-        try:
-            usage = response.usage
-            if usage:
-                logger.info(f"[CHATBOT] Token usage: Prompt={usage.prompt_tokens}, Completion={usage.completion_tokens}, Total={usage.total_tokens}")
-        except Exception as usage_error:
-            logger.warning(f"[CHATBOT] Token usage not available: {usage_error}")
 
         return reply, None
 
@@ -105,9 +81,7 @@ Now respond helpfully to the user's question.
 
 def summarize_user_message(user_message):
     """Summarize user message in 3 words or less using OpenAI"""
-    logger.info(f"[CHATBOT] Summarizing user message: {len(user_message)} characters")
-    logger.debug(f"[CHATBOT] Message to summarize: {user_message[:100]}")
-    
+   
     try:
         api_key = os.getenv("OPENAI_KEY")
         if not api_key:
@@ -138,20 +112,11 @@ Message to summarize:"""
         )
         
         summary = response.choices[0].message.content.strip()
-        logger.info(f"[CHATBOT] Generated summary: '{summary}'")
         
         # Ensure summary is 3 words or less
         words = summary.split()
         if len(words) > 3:
             summary = " ".join(words[:3])
-            logger.info(f"[CHATBOT] Truncated summary to 3 words: '{summary}'")
-        
-        try:
-            usage = response.usage
-            if usage:
-                logger.info(f"[CHATBOT] Summarization token usage: Prompt={usage.prompt_tokens}, Completion={usage.completion_tokens}, Total={usage.total_tokens}")
-        except Exception as usage_error:
-            logger.warning(f"[CHATBOT] Summarization token usage not available: {usage_error}")
         
         return summary
         
@@ -304,7 +269,6 @@ Keep tone friendly, expert, and strategic. Response should be specific and agent
         )
 
         action_plan = response.choices[0].message.content.strip()
-        logger.info(f"[ACTION_PLAN] Successfully generated action plan for {client_name}")
         return action_plan
 
     except Exception as e:

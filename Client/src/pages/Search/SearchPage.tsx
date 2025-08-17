@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { Bookmark, MapPin, ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import mapStyles from "../../hooks/mapStyling";
+import mapStyles from "../../lib/mapStyles";
 import { favoriteHomesApi } from "../../lib/api";
 import HeartSave from "../../components/ui/HeartSave";
 import PropertyDetailsModal from "../../components/modals/PropertyDetailsModal";
-import { searchZillowByPolygon, LatLng } from "../../hooks/searchByCoords";
+import { searchZillowByPolygon, LatLng } from "../../lib/searchApi";
 import { usePropertyDetails } from "../../hooks/usePropertyDetails";
 import Loading from "../../components/ui/Loading";
 import KeyTurnLoader from "../../components/ui/KeyTurnLoader";

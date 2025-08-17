@@ -24,7 +24,6 @@ def _download_json_from_s3(s3_key: str) -> Dict:
     if not bucket_name:
         raise RuntimeError("S3_BUCKET_NAME_PDFS config missing")
 
-    logger.debug(f"🔽 Attempting to download: Bucket={bucket_name}, Key={s3_key}")
     buffer = BytesIO()
 
     try:
@@ -42,7 +41,6 @@ def _download_json_from_s3(s3_key: str) -> Dict:
 
 def _extract_summary(data: Dict) -> Dict[str, str]:
     """Extracts summary fields with full recursive fallback and top-level section merge."""
-    logger.debug(f"🔍 Extracting summary from data: {json.dumps(data, indent=2)}")
 
     # Merge all top-level sections into a single structure
     merged_data = {}
@@ -225,13 +223,9 @@ def _extract_summary(data: Dict) -> Dict[str, str]:
             fallback = deep_search(merged_data, search_key)
             if fallback not in [None, ""]:
                 value = str(fallback)
-                logger.debug(f"🔄 Fallback found '{label}' via deep search for '{search_key}'")
             else:
-                logger.warning(f"⚠️ Could not find '{label}' via path '{path}' or fallback for key '{search_key}'")
                 missing_fields.append(label)
-        else:
-            logger.debug(f"✅ Found '{label}' via path '{path}'")
-
+                
         # Format specific property data fields for better comparison display
         if label == "Price" and value and value != "":
             try:
@@ -254,21 +248,15 @@ def _extract_summary(data: Dict) -> Dict[str, str]:
 
         summary[label] = value or ""
 
-    if missing_fields:
-        logger.warning(f"Missing fields in report data: {missing_fields}")
-
     return summary
 
 
 
 def compare_reports(s3_keys: List[str]) -> pd.DataFrame:
     """Given a list of S3 keys, download each JSON and return flattened summary list."""
-    logger.info(f"🔍 Comparing {len(s3_keys)} reports")
     results = []
-    logger.debug(f"🧵 S3 keys to process: {s3_keys}")
 
     for key in s3_keys:
-        logger.debug(f"📌 Processing key: {key}")
         raw = None
         tried_keys = [key]
 
@@ -285,7 +273,6 @@ def compare_reports(s3_keys: List[str]) -> pd.DataFrame:
             for alt_key in alt_keys:
                 if alt_key != key:
                     tried_keys.append(alt_key)
-                    logger.debug(f"🔁 Trying fallback key: {alt_key}")
                     try:
                         raw = _download_json_from_s3(alt_key)
                         key = alt_key
@@ -311,5 +298,4 @@ def compare_reports(s3_keys: List[str]) -> pd.DataFrame:
     df = pd.DataFrame(results)
     if "Address" in df.columns:
         df = df.set_index("Address")
-    logger.info(f"📊 Comparison DataFrame ready with shape {df.shape}")
     return df

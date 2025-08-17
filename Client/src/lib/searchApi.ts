@@ -80,16 +80,6 @@ export async function searchZillowByPolygon(
   opts: PolygonSearchOptions
 ): Promise<PolygonSearchResult> {
   const startTime = Date.now();
-  console.log("[POLYGON_SEARCH] 🔍 Starting polygon property search", {
-    timestamp: new Date().toISOString(),
-    options: {
-      polygonPoints: opts?.polygon?.length,
-      statusType: opts?.status_type,
-      perBucketPages: opts?.perBucketPages,
-      maxRetries: opts?.maxRetries,
-    }
-  });
-
   const {
     polygon,
     user_preferences,

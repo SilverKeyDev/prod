@@ -1,4 +1,12 @@
 import { MapPin, Bed, Bath, Square } from "lucide-react";
+import { 
+  formatPrice, 
+  formatStructuredAddress, 
+  getStatusColor, 
+  formatHomeStatus, 
+  formatAgentName, 
+  formatLotSize 
+} from "../../lib/addressFormat";
 
 export interface CompData {
   address: {
@@ -39,38 +47,6 @@ interface CompCardProps {
 }
 
 export default function CompCard({ comp, className = "" }: CompCardProps) {
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: comp.currency || 'USD',
-      maximumFractionDigits: 0,
-    }).format(price);
-  };
-
-  const formatAddress = () => {
-    return `${comp.address.streetAddress}, ${comp.address.city}, ${comp.address.state} ${comp.address.zipcode}`;
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'recently_sold':
-        return 'bg-green-100 text-green-800';
-      case 'for_sale':
-        return 'bg-blue-100 text-blue-800';
-      case 'off_market':
-        return 'bg-gray-100 text-gray-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const formatHomeStatus = (status: string) => {
-    return status.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
-  };
-
-  const formatAgentName = (name: string) => {
-    return name.toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
-  };
 
   const imageUrl = comp.miniCardPhotos?.[0]?.url || '/defaut-home.jpg';
 
@@ -80,7 +56,7 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
       <div className="relative h-48 overflow-hidden">
         <img
           src={imageUrl}
-          alt={formatAddress()}
+          alt={formatStructuredAddress(comp.address)}
           className="w-full h-full object-cover"
           onError={(e) => {
             const target = e.target as HTMLImageElement;
@@ -98,7 +74,7 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
         {/* Price Badge */}
         <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full">
           <span className="text-sm font-semibold text-navy">
-            {formatPrice(comp.price)}
+            {formatPrice(comp.price, comp.currency)}
           </span>
         </div>
       </div>
@@ -128,19 +104,19 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
           <div className="flex items-center gap-1">
             <Bed className="h-3 w-3 text-brown" />
             <span className="text-xs text-gray-600">
-              {comp.bedrooms} bed{comp.bedrooms !== 1 ? 's' : ''}
+              {comp.bedrooms || 'not provided'} bed{comp.bedrooms !== 1 ? 's' : ''}
             </span>
           </div>
           <div className="flex items-center gap-1">
             <Bath className="h-3 w-3 text-brown" />
             <span className="text-xs text-gray-600">
-              {comp.bathrooms} bath{comp.bathrooms !== 1 ? 's' : ''}
+              {comp.bathrooms || 'not provided'} bath{comp.bathrooms !== 1 ? 's' : ''}
             </span>
           </div>
           <div className="flex items-center gap-1">
             <Square className="h-3 w-3 text-brown" />
             <span className="text-xs text-gray-600">
-              {comp.livingArea?.toLocaleString()} {comp.livingAreaUnitsShort || 'sqft'}
+              {comp.livingArea?.toLocaleString() || 'not provided'} {comp.livingAreaUnitsShort || 'sqft'}
             </span>
           </div>
         </div>
@@ -149,15 +125,13 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
         <div className="space-y-2">
 
           {/* Lot Size */}
-          {comp.lotAreaValue && (
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-500">Lot:</span>
-              <span className="text-xs font-medium text-navy">
-                {comp.lotAreaValue} {comp.lotAreaUnits?.toLowerCase() || 'acres'}
-                {comp.lotSize && comp.lotAreaUnits?.toLowerCase().includes('acre') && ` (${comp.lotSize.toLocaleString()} sqft)`}
-              </span>
-            </div>
-          )}
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-500">Lot:</span>
+            <span className="text-xs font-medium text-navy">
+              {comp.lotAreaValue ? formatLotSize(comp.lotAreaValue, comp.lotAreaUnits || 'acres') : 'not provided'}
+              {comp.lotSize && comp.lotAreaUnits?.toLowerCase().includes('acre') && ` (${Math.round(comp.lotSize).toLocaleString()} sqft)`}
+            </span>
+          </div>
 
           {/* Agent/Broker */}
           {comp.attributionInfo?.agentName && (
@@ -169,18 +143,6 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
             </div>
           )}
         </div>
-
-        {/* Price per sqft - always show */}
-        {comp.livingArea && comp.price && (
-          <div className="mt-3 pt-3 border-t border-gray-100">
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-500">Price per sqft:</span>
-              <span className="text-xs font-semibold text-brown">
-                ${Math.round(comp.price / comp.livingArea).toLocaleString()}
-              </span>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

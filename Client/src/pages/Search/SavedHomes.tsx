@@ -4,7 +4,8 @@ import HomeCard from "../../components/cards/HomeCard";
 import PageHeader from "../../components/ui/PageHeader";
 import ErrorToast from "../../components/feedback/ErrorToast";
 import { Search, RefreshCw, LayoutGrid, List } from "lucide-react";
-import { useData } from "../../contexts/DataContext";
+import { useSavedHomes } from "../../context";
+import { SavedHome } from "../../context/utils";
 import PropertyDetailsModal from "../../components/modals/PropertyDetailsModal";
 
 export default function SavedHomes() {
@@ -13,13 +14,12 @@ export default function SavedHomes() {
   const [refreshing, setRefreshing] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState<any>(null);
 
-  // Use DataContext for centralized data management (dashboard pattern)
   const { 
     savedHomes: homes, 
-    savedHomesLoading: loading, 
-    savedHomesError: error, 
+    loading, 
+    error, 
     refreshSavedHomes 
-  } = useData();
+  } = useSavedHomes();
 
   // Refresh saved homes when page loads (dashboard pattern)
   useEffect(() => {
@@ -37,11 +37,11 @@ export default function SavedHomes() {
 
   // Check if a home is saved
   const isHomeSaved = useCallback((homeId: string) => {
-    return homes.some(home => home.home_id === homeId);
+    return homes.some((home: SavedHome) => home.home_id === homeId);
   }, [homes]);
 
   // Save a home to favorites
-  const saveHome = useCallback(async (home: any) => {
+  const saveHome = useCallback(async (home: SavedHome) => {
     try {
       console.log('Saving home to favorites:', home.home_id);
       const response = await favoriteHomesApi.addFavorite(home);
@@ -61,7 +61,7 @@ export default function SavedHomes() {
   const removeSavedHome = useCallback(async (homeId: string) => {
     try {
       console.log('Removing home from favorites:', homeId);
-      const home = homes.find(h => h.home_id === homeId);
+      const home = homes.find((h: SavedHome) => h.home_id === homeId);
       
       if (!home) {
         throw new Error('Home not found');
@@ -83,12 +83,11 @@ export default function SavedHomes() {
 
   // Check if a home is saved (for modal)
   const isHomeSavedForModal = useCallback((homeId: string) => {
-    return homes.some(home => 
+    return homes.some((home: SavedHome) => 
       home.home_id === homeId || 
       home.id === homeId || 
       home.zpid === homeId ||
       home.zpid?.toString() === homeId ||
-      home.home_id === homeId ||
       home.address === homeId
     );
   }, [homes]);
@@ -115,7 +114,12 @@ export default function SavedHomes() {
   // Remove saved home for modal - handle different ID formats
   const removeSavedHomeForModal = useCallback(async (homeId: string) => {
     // Find the saved home by any matching ID format
-    const savedHome = homes.find(home => 
+    const sortedHomes = [...filteredHomes].sort((a: SavedHome, b: SavedHome) => {
+      if (a.home_id === homeId) return -1;
+      if (b.home_id === homeId) return 1;
+      return 0;
+    });
+    const savedHome = sortedHomes.find((home: SavedHome) => 
       home.home_id === homeId || 
       home.id === homeId || 
       home.zpid === homeId ||
@@ -131,11 +135,10 @@ export default function SavedHomes() {
     }
   }, [homes, removeSavedHome]);
 
-  const filteredHomes = homes.filter(
-    (h) =>
-      h.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  const filteredHomes = homes.filter((h: SavedHome) => {
+    return h.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       h.home_id.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  });
 
   // overlay toast component
   const toastUI = error ? (
@@ -197,7 +200,7 @@ export default function SavedHomes() {
         )
       ) : viewMode === "grid" ? (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {filteredHomes.map((home) => (
+          {filteredHomes.map((home: SavedHome) => (
             <HomeCard 
               key={home.home_id} 
               home={home}
@@ -208,8 +211,8 @@ export default function SavedHomes() {
           ))}
         </div>
       ) : (
-        <ul className="space-y-4">
-          {filteredHomes.map((home) => (
+        <div className="space-y-4">
+          {filteredHomes.map((home: SavedHome) => (
             <HomeCard 
               key={home.home_id} 
               home={home}
@@ -218,7 +221,7 @@ export default function SavedHomes() {
               onRemove={removeSavedHome}
             />
           ))}
-        </ul>
+        </div>
       )}
       {toastUI}
       

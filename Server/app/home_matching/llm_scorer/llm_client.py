@@ -55,30 +55,11 @@ class LLMClient:
                  response_format: str = "json") -> Dict[str, Any]:
         temperature = temperature or LLM_TEMPERATURE
         max_tokens = max_tokens or LLM_MAX_TOKENS
-        
-        logger.info(f"[LLM_CLIENT] Starting API call - model: {self.model}, temp: {temperature}, max_tokens: {max_tokens}")
-        logger.debug(f"[LLM_CLIENT] System prompt length: {len(system_prompt)} chars")
-        logger.debug(f"[LLM_CLIENT] User prompt length: {len(user_prompt)} chars")
-        logger.debug(f"[LLM_CLIENT] System prompt preview: {system_prompt[:150]}...")
-        logger.debug(f"[LLM_CLIENT] User prompt preview: {user_prompt[:200]}...")
-        
+    
         start_time = time.time()
         try:
             result = self._call_openai(system_prompt, user_prompt, temperature, max_tokens, response_format)
             duration = time.time() - start_time
-            
-            # Log successful completion with metrics
-            usage = result.get('usage', {})
-            content = result.get('content', {})
-            raw_content = result.get('raw_content', '')
-            
-            logger.info(f"[LLM_CLIENT] ✅ API call successful in {duration:.2f}s")
-            logger.info(f"[LLM_CLIENT] Usage - prompt: {usage.get('prompt_tokens', 0)}, completion: {usage.get('completion_tokens', 0)}, total: {usage.get('total_tokens', 0)}")
-            logger.info(f"[LLM_CLIENT] Response content type: {type(content)}")
-            logger.debug(f"[LLM_CLIENT] Raw response: {raw_content[:300]}...")
-            
-            if isinstance(content, dict) and 'score' in content:
-                logger.info(f"[LLM_CLIENT] Extracted score: {content.get('score')}")
             
             return result
         except Exception as e:

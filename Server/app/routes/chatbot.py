@@ -64,7 +64,6 @@ chatbot_bp = Blueprint('chatbot', __name__)
 
 @chatbot_bp.route('/api/v1/chat/address/<string:report_id>', methods=['POST'])
 def chat_for_address(report_id):
-    logger.info(f"[CHAT_ROUTE] Received chat request for report_id: {report_id}")
     try:
         try:
             user = get_current_user()
@@ -79,24 +78,16 @@ def chat_for_address(report_id):
             logger.warning(f"[CHAT_ROUTE] Empty message received from user {user_id}")
             return jsonify({"error": "Message cannot be empty"}), 400
 
-        logger.info(f"[CHAT_ROUTE] User {user_id} sending message to report {report_id}")
-        logger.info(f"[CHAT_ROUTE] Message length: {len(user_message)} characters")
-
-        # Generate 3-word summary of user message
-        logger.info(f"[CHAT_ROUTE] Generating summary for user message")
         message_summary = summarize_user_message(user_message)
-        logger.info(f"[CHAT_ROUTE] Generated summary: '{message_summary}'")
 
         # Store summary in user_preferences.chat_sessions
         try:
             user_prefs = UserPreferences.query.filter_by(user_id=user_id).first()
             if not user_prefs:
-                logger.info(f"[CHAT_ROUTE] Creating new user preferences for user {user_id}")
                 user_prefs = UserPreferences(user_id=user_id)
                 db.session.add(user_prefs)
                 db.session.flush()
 
-            # Get existing chat sessions or initialize empty list
             existing_sessions = []
             if user_prefs.chat_sessions:
                 try:
@@ -123,14 +114,12 @@ def chat_for_address(report_id):
             user_prefs.chat_sessions = json.dumps(existing_sessions)
             user_prefs.updated_at = datetime.utcnow()
             
-            logger.info(f"[CHAT_ROUTE] Stored chat summary in user preferences. Total sessions: {len(existing_sessions)}")
 
         except Exception as prefs_error:
             logger.error(f"[CHAT_ROUTE] Error storing chat summary: {str(prefs_error)}")
             # Continue with chat processing even if summary storage fails
 
         address = report_id.replace("_", " ").replace(".pdf", "") if report_id else "Unknown Address"
-        logger.info(f"[CHAT_ROUTE] Report address: {address}")
 
         # Fetch complete report data from S3
         report_data = None
@@ -159,13 +148,9 @@ def chat_for_address(report_id):
             else:
                 # Old flat structure fallback
                 json_s3_key = pdf_path.replace('.pdf', '.json')
-            
-            logger.info(f"[CHAT_ROUTE] Attempting to fetch full report data from S3 key: {json_s3_key}")
-            
+                        
             from app.services.report_comparator import _download_json_from_s3
             report_data = _download_json_from_s3(json_s3_key)
-            logger.info(f"[CHAT_ROUTE] Successfully fetched complete report data with {len(report_data)} keys")
-            logger.debug(f"[CHAT_ROUTE] Report data keys: {list(report_data.keys())}")
             
         except Exception as report_error:
             logger.warning(f"[CHAT_ROUTE] Failed to fetch full report data: {str(report_error)}")
@@ -180,9 +165,6 @@ def chat_for_address(report_id):
 
         # Fetch complete user preferences
         user_profile = get_preferences(user_id)
-        logger.info(f"[CHAT_ROUTE] Retrieved user preferences: {len(user_profile) if user_profile else 0} fields")
-        if user_profile:
-            logger.debug(f"[CHAT_ROUTE] User preference categories: {list(user_profile.keys())}")
 
         user_chat = ChatHistory(
             user_id=user_id,
@@ -192,7 +174,6 @@ def chat_for_address(report_id):
         )
         db.session.add(user_chat)
         db.session.flush()
-        logger.info(f"[CHAT_ROUTE] User message saved with ID: {user_chat.id}")
 
         try:
             reply, function_call = get_chat_response(
@@ -206,7 +187,6 @@ def chat_for_address(report_id):
             reply = "I'm sorry, the AI service is currently unavailable. Please try again later."
             function_call = None
 
-        logger.info(f"[CHAT_ROUTE] Received AI response with {len(reply)} characters")
 
         ai_chat = ChatHistory(
             user_id=user_id,
@@ -216,13 +196,12 @@ def chat_for_address(report_id):
         )
         db.session.add(ai_chat)
         db.session.commit()
-        logger.info(f"[CHAT_ROUTE] AI response saved with ID: {ai_chat.id}")
 
         return jsonify({
             "response": reply,
             "function_call": function_call,
             "message_id": ai_chat.id,
-            "message_summary": message_summary  # Include summary in response for debugging
+            "message_summary": message_summary
         })
 
     except Exception as e:
@@ -235,7 +214,6 @@ def chat_for_address(report_id):
 @chatbot_bp.route('/api/v1/chat/history/<string:report_id>', methods=['GET'])
 def get_chat_history(report_id):
     """Get chat history for a specific property report"""
-    logger.info(f"[HISTORY_ROUTE] Received chat history request for report_id: {report_id}")
     try:
         # Authenticate user first
         try:
@@ -245,16 +223,13 @@ def get_chat_history(report_id):
             logger.error(f"[HISTORY_ROUTE] Authentication failed: {str(auth_error)}")
             return jsonify({"error": "Authentication required"}), 401
         
-        logger.info(f"[HISTORY_ROUTE] User {user_id} requesting history for report {report_id}")
         
         # Get chat history for this user and report
-        logger.info(f"[HISTORY_ROUTE] Querying chat history from database")
         chat_history = ChatHistory.query.filter_by(
             user_id=user_id,
             report_id=report_id
         ).order_by(ChatHistory.timestamp.asc()).all()
         
-        logger.info(f"[HISTORY_ROUTE] Found {len(chat_history)} messages in history")
         
         messages = [{
             "id": chat.id,
@@ -262,9 +237,6 @@ def get_chat_history(report_id):
             "message": chat.message,
             "timestamp": chat.timestamp.isoformat()
         } for chat in chat_history]
-        
-        logger.debug(f"[HISTORY_ROUTE] Formatted {len(messages)} messages for response")
-        logger.info(f"[HISTORY_ROUTE] Successfully retrieved chat history for {report_id}")
         
         return jsonify({"messages": messages})
         

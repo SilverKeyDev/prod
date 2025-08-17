@@ -133,3 +133,68 @@ export function formatDate(dateString: string): string {
   if (isNaN(date.getTime())) return dateString;
   return date.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
 }
+
+/**
+ * Formats a price with currency formatting.
+ */
+export function formatPrice(price: number, currency: string = 'USD'): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: currency,
+    maximumFractionDigits: 0,
+  }).format(price);
+}
+
+/**
+ * Formats an address from structured address object.
+ */
+export function formatStructuredAddress(address: {
+  streetAddress: string;
+  city: string;
+  state: string;
+  zipcode: string;
+}): string {
+  return `${address.streetAddress}, ${address.city}, ${address.state} ${address.zipcode}`;
+}
+
+/**
+ * Gets status color classes for home status badges.
+ */
+export function getStatusColor(status: string): string {
+  switch (status.toLowerCase()) {
+    case 'recently_sold':
+      return 'bg-green-100 text-green-800';
+    case 'for_sale':
+      return 'bg-blue-100 text-blue-800';
+    case 'off_market':
+      return 'bg-gray-100 text-gray-800';
+    default:
+      return 'bg-gray-100 text-gray-800';
+  }
+}
+
+/**
+ * Formats home status text (converts underscores to spaces and title cases).
+ */
+export function formatHomeStatus(status: string): string {
+  return status.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
+}
+
+/**
+ * Formats agent name to title case.
+ */
+export function formatAgentName(name: string): string {
+  return name.toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
+}
+
+/**
+ * Formats lot size with proper decimal places.
+ * Acres: 2 decimal places, Square footage: 0 decimal places.
+ */
+export function formatLotSize(value: number, units: string): string {
+  if (units?.toLowerCase().includes('acre')) {
+    return `${value.toFixed(2)} ${units.toLowerCase()}`;
+  } else {
+    return `${Math.round(value).toLocaleString()} ${units?.toLowerCase() || 'sqft'}`;
+  }
+}

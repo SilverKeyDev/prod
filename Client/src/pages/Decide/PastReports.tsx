@@ -13,14 +13,12 @@ import {
 } from "lucide-react";
 import ErrorToast from "../../components/feedback/ErrorToast";
 import SuccessToast from "../../components/feedback/SuccessToast";
-import { useData } from "../../contexts/DataContext";
+import { useReports } from "../../context";
+import { Report } from "../../context/utils";
 import { formatFilenameToAddress } from "../../lib/addressFormat";
 import MiniLogo from "../../components/ui/MiniLogo";
 import PageHeader from "../../components/ui/PageHeader";
 import { useDocumentActions } from "../../hooks/useDocumentActions";
-
-// Import Report type from DataContext to ensure consistency
-import { Report } from "../../contexts/DataContext";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -72,7 +70,6 @@ const ProgressBar: React.FC<ProgressBarProps> = ({ startTime }) => {
   );
 };
 
-
 export default function PastReports() {
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
@@ -80,7 +77,7 @@ export default function PastReports() {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Use preloaded data from context
-  const { reports, reportsLoading, refreshReports } = useData();
+  const { reports, loading: reportsLoading, refreshReports } = useReports();
 
   // Debug: Log the actual report data structure
   useEffect(() => {
@@ -128,21 +125,21 @@ export default function PastReports() {
   const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
   const sortDropdownRef = useRef<HTMLDivElement>(null);
 
-
-
-
   // Share individual report using centralized function
-  const handleShareReport = useCallback(async (report: Report) => {
-    const result = await handleShareDocument(report.address);
-    
-    if (result.success) {
-      setSuccessMessage(result.message);
-      setShowSuccess(true);
-    } else {
-      setErrorMessage(result.message);
-      setShowError(true);
-    }
-  }, [handleShareDocument]);
+  const handleShareReport = useCallback(
+    async (report: Report) => {
+      const result = await handleShareDocument(report.address);
+
+      if (result.success) {
+        setSuccessMessage(result.message);
+        setShowSuccess(true);
+      } else {
+        setErrorMessage(result.message);
+        setShowError(true);
+      }
+    },
+    [handleShareDocument]
+  );
 
   const openDeleteModal = (
     reportId: string,
@@ -161,7 +158,6 @@ export default function PastReports() {
     reportId: string,
     s3Key: string | null | undefined
   ) => {
-
     if (!reportId) {
       console.error("[DELETE] Error: No report ID provided");
       return;
@@ -242,7 +238,7 @@ export default function PastReports() {
     }
   };
 
-  const filteredReports = reports.filter((report) =>
+  const filteredReports = reports.filter((report: Report) =>
     report.address.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -289,7 +285,6 @@ export default function PastReports() {
       year: "numeric",
     });
   };
-
 
   const pollForReportCompletion = useCallback(
     async (documentId: string) => {
@@ -550,7 +545,6 @@ export default function PastReports() {
     };
   }, []);
 
-
   return (
     <div className="max-w-7xl mx-auto mobile-padding">
       {currentPdf && (
@@ -701,7 +695,7 @@ export default function PastReports() {
         title="Past Reports"
         subtitle="Manage and download your generated property reports"
       />
-      
+
       <div className="max-w-6xl mx-auto p-6">
         <div className="flex justify-between items-center mb-6">
           <span className="text-sm text-black/60">
@@ -709,332 +703,394 @@ export default function PastReports() {
             {filteredReports.length !== 1 ? "s" : ""}
           </span>
         </div>
-      <div className="mobile-card mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
-          <div className="relative flex-1 sm:max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-black/40" />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="mobile-input pl-9 sm:pl-10 pr-4"
-              placeholder="Filter by address"
-            />
-          </div>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end space-y-3 sm:space-y-0 sm:space-x-4 flex-1 sm:max-w-md sm:flex-none">
-            <div className="hidden sm:flex items-center space-x-1 sm:space-x-2">
-              <button
-                onClick={() => setViewMode("grid")}
-                className={`p-2 rounded touch-friendly flex items-center justify-center ${
-                  viewMode === "grid"
-                    ? "bg-brown text-white"
-                    : "bg-beige text-white hover:bg-brown/80"
-                }`}
-              >
-                <div className="grid grid-cols-2 gap-1 w-3 h-3 sm:w-4 sm:h-4">
-                  <div className="bg-current rounded-sm"></div>
-                  <div className="bg-current rounded-sm"></div>
-                  <div className="bg-current rounded-sm"></div>
-                  <div className="bg-current rounded-sm"></div>
-                </div>
-              </button>
-              <button
-                onClick={() => setViewMode("list")}
-                className={`p-2 rounded touch-friendly flex items-center justify-center ${
-                  viewMode === "list"
-                    ? "bg-brown text-white"
-                    : "bg-beige text-white hover:bg-brown/80"
-                }`}
-              >
-                <div className="space-y-1 w-3 h-3 sm:w-4 sm:h-4">
-                  <div className="bg-current rounded-sm h-0.5"></div>
-                  <div className="bg-current rounded-sm h-0.5"></div>
-                  <div className="bg-current rounded-sm h-0.5"></div>
-                </div>
-              </button>
-            </div>
-            <button
-              onClick={handleRefresh}
-              disabled={isRefreshing || reportsLoading}
-              className={`p-2 rounded touch-friendly flex items-center justify-center transition-colors duration-200 ${
-                isRefreshing
-                  ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-                  : "bg-gray-300 text-gray-600 hover:bg-gray-500 hover:text-white"
-              }`}
-              title={
-                isRefreshing || reportsLoading
-                  ? "Refreshing..."
-                  : "Refresh reports"
-              }
-            >
-              <RefreshCw
-                className={`w-3 h-3 sm:w-4 sm:h-4 transition-transform duration-200 ${
-                  isRefreshing ? "animate-spin" : ""
-                }`}
+        <div className="mobile-card mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
+            <div className="relative flex-1 sm:max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-black/40" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="mobile-input pl-9 sm:pl-10 pr-4"
+                placeholder="Filter by address"
               />
-            </button>
-            <div className="relative" ref={sortDropdownRef}>
+            </div>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end space-y-3 sm:space-y-0 sm:space-x-4 flex-1 sm:max-w-md sm:flex-none">
+              <div className="hidden sm:flex items-center space-x-1 sm:space-x-2">
+                <button
+                  onClick={() => setViewMode("grid")}
+                  className={`p-2 rounded touch-friendly flex items-center justify-center ${
+                    viewMode === "grid"
+                      ? "bg-brown text-white"
+                      : "bg-beige text-white hover:bg-brown/80"
+                  }`}
+                >
+                  <div className="grid grid-cols-2 gap-1 w-3 h-3 sm:w-4 sm:h-4">
+                    <div className="bg-current rounded-sm"></div>
+                    <div className="bg-current rounded-sm"></div>
+                    <div className="bg-current rounded-sm"></div>
+                    <div className="bg-current rounded-sm"></div>
+                  </div>
+                </button>
+                <button
+                  onClick={() => setViewMode("list")}
+                  className={`p-2 rounded touch-friendly flex items-center justify-center ${
+                    viewMode === "list"
+                      ? "bg-brown text-white"
+                      : "bg-beige text-white hover:bg-brown/80"
+                  }`}
+                >
+                  <div className="space-y-1 w-3 h-3 sm:w-4 sm:h-4">
+                    <div className="bg-current rounded-sm h-0.5"></div>
+                    <div className="bg-current rounded-sm h-0.5"></div>
+                    <div className="bg-current rounded-sm h-0.5"></div>
+                  </div>
+                </button>
+              </div>
               <button
-                onClick={() => setSortDropdownOpen(!sortDropdownOpen)}
-                className="mobile-input sm:w-auto text-sm flex items-center justify-between min-w-[140px] cursor-pointer hover:border-brown focus:border-brown focus:ring-brown/20"
+                onClick={handleRefresh}
+                disabled={isRefreshing || reportsLoading}
+                className={`p-2 rounded touch-friendly flex items-center justify-center transition-colors duration-200 ${
+                  isRefreshing
+                    ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                    : "bg-gray-300 text-gray-600 hover:bg-gray-500 hover:text-white"
+                }`}
+                title={
+                  isRefreshing || reportsLoading
+                    ? "Refreshing..."
+                    : "Refresh reports"
+                }
               >
-                <span className="flex items-center space-x-2">
-                  {sortBy === "date" ? (
-                    <>
-                      <Calendar className="w-4 h-4" />
-                      <span>Sort by Date</span>
-                    </>
-                  ) : (
-                    <>
-                      <MapPin className="w-4 h-4" />
-                      <span>Sort by Address</span>
-                    </>
-                  )}
-                </span>
-                <ChevronDown
-                  className={`w-4 h-4 transition-transform duration-200 ${
-                    sortDropdownOpen ? "rotate-180" : ""
+                <RefreshCw
+                  className={`w-3 h-3 sm:w-4 sm:h-4 transition-transform duration-200 ${
+                    isRefreshing ? "animate-spin" : ""
                   }`}
                 />
               </button>
+              <div className="relative" ref={sortDropdownRef}>
+                <button
+                  onClick={() => setSortDropdownOpen(!sortDropdownOpen)}
+                  className="mobile-input sm:w-auto text-sm flex items-center justify-between min-w-[140px] cursor-pointer hover:border-brown focus:border-brown focus:ring-brown/20"
+                >
+                  <span className="flex items-center space-x-2">
+                    {sortBy === "date" ? (
+                      <>
+                        <Calendar className="w-4 h-4" />
+                        <span>Sort by Date</span>
+                      </>
+                    ) : (
+                      <>
+                        <MapPin className="w-4 h-4" />
+                        <span>Sort by Address</span>
+                      </>
+                    )}
+                  </span>
+                  <ChevronDown
+                    className={`w-4 h-4 transition-transform duration-200 ${
+                      sortDropdownOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
 
-              {sortDropdownOpen && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-beige rounded-lg shadow-lg z-50">
-                  <button
-                    onClick={() => {
-                      setSortBy("date");
-                      setSortDropdownOpen(false);
-                    }}
-                    className={`w-full px-3 py-2 text-left text-sm hover:bg-brown/5 flex items-center space-x-2 first:rounded-t-lg transition-colors duration-150 ${
-                      sortBy === "date"
-                        ? "bg-brown/10 text-brown font-medium"
-                        : "text-black"
-                    }`}
-                  >
-                    <Calendar className="w-4 h-4" />
-                    <span>Sort by Date</span>
-                  </button>
-                  <button
-                    onClick={() => {
-                      setSortBy("address");
-                      setSortDropdownOpen(false);
-                    }}
-                    className={`w-full px-3 py-2 text-left text-sm hover:bg-brown/5 flex items-center space-x-2 last:rounded-b-lg transition-colors duration-150 ${
-                      sortBy === "address"
-                        ? "bg-brown/10 text-brown font-medium"
-                        : "text-black"
-                    }`}
-                  >
-                    <MapPin className="w-4 h-4" />
-                    <span>Sort by Address</span>
-                  </button>
-                </div>
-              )}
+                {sortDropdownOpen && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-beige rounded-lg shadow-lg z-50">
+                    <button
+                      onClick={() => {
+                        setSortBy("date");
+                        setSortDropdownOpen(false);
+                      }}
+                      className={`w-full px-3 py-2 text-left text-sm hover:bg-brown/5 flex items-center space-x-2 first:rounded-t-lg transition-colors duration-150 ${
+                        sortBy === "date"
+                          ? "bg-brown/10 text-brown font-medium"
+                          : "text-black"
+                      }`}
+                    >
+                      <Calendar className="w-4 h-4" />
+                      <span>Sort by Date</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSortBy("address");
+                        setSortDropdownOpen(false);
+                      }}
+                      className={`w-full px-3 py-2 text-left text-sm hover:bg-brown/5 flex items-center space-x-2 last:rounded-b-lg transition-colors duration-150 ${
+                        sortBy === "address"
+                          ? "bg-brown/10 text-brown font-medium"
+                          : "text-black"
+                      }`}
+                    >
+                      <MapPin className="w-4 h-4" />
+                      <span>Sort by Address</span>
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {sortedReports.length === 0 ? (
-        <div className="text-center py-8 sm:py-12">
-          <MapPin className="h-8 w-8 sm:h-12 sm:w-12 text-black/40 mx-auto mb-3 sm:mb-4" />
-          <h3 className="text-base sm:text-lg font-medium text-black mb-2">
-            No reports found
-          </h3>
-          <p className="text-sm sm:text-base text-black/60 px-4">
-            {searchTerm
-              ? "Try adjusting your search terms"
-              : "Generate your first property report to get started"}
-          </p>
-        </div>
-      ) : (
-        <div
-          className={
-            viewMode === "grid"
-              ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
-              : "space-y-3 sm:space-y-4"
-          }
-        >
-          {sortedReports.map((report) => (
-            <div
-              key={report.id}
-              className={
-                viewMode === "grid"
-                  ? "mobile-card hover:shadow-lg transition-shadow flex flex-col h-full"
-                  : "mobile-card flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0"
-              }
-            >
-              {viewMode === "grid" ? (
-                <>
-                  <div className="flex-grow">
-                    <div className="flex items-start justify-between mb-3 sm:mb-4">
-                      <div className="flex-1">
+        {sortedReports.length === 0 ? (
+          <div className="text-center py-8 sm:py-12">
+            <MapPin className="h-8 w-8 sm:h-12 sm:w-12 text-black/40 mx-auto mb-3 sm:mb-4" />
+            <h3 className="text-base sm:text-lg font-medium text-black mb-2">
+              No reports found
+            </h3>
+            <p className="text-sm sm:text-base text-black/60 px-4">
+              {searchTerm
+                ? "Try adjusting your search terms"
+                : "Generate your first property report to get started"}
+            </p>
+          </div>
+        ) : (
+          <div
+            className={
+              viewMode === "grid"
+                ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
+                : "space-y-3 sm:space-y-4"
+            }
+          >
+            {sortedReports.map((report) => (
+              <div
+                key={report.id}
+                className={
+                  viewMode === "grid"
+                    ? "mobile-card hover:shadow-lg transition-shadow flex flex-col h-full"
+                    : "mobile-card flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0"
+                }
+              >
+                {viewMode === "grid" ? (
+                  <>
+                    <div className="flex-grow">
+                      <div className="flex items-start justify-between mb-3 sm:mb-4">
+                        <div className="flex-1">
+                          <span
+                            className={`inline-block px-2 py-1 rounded-full text-xs font-medium mb-2 ${getStatusColor(
+                              report.status
+                            )}`}
+                          >
+                            {getStatusText(report.status)}
+                          </span>
+                          <h3
+                            className="text-sm sm:text-base font-medium text-black mb-1 overflow-hidden leading-5"
+                            title={report.address}
+                            style={{
+                              display: "-webkit-box",
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: "vertical" as const,
+                              wordBreak: "break-word",
+                              hyphens: "auto",
+                            }}
+                          >
+                            {formatFilenameToAddress(report.address)}
+                          </h3>
+                          <p className="text-xs sm:text-sm text-black/60 flex items-center">
+                            <Calendar className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                            {formatDate(report.generatedAt)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                      {report.status === "completed" && (
+                        <>
+                          <div className="flex flex-col sm:flex-row gap-2">
+                            <button
+                              onClick={() => {
+                                console.log(
+                                  "[PastReports] View button clicked for report:",
+                                  { id: report.id, address: report.address }
+                                );
+                                handleViewDocument(report.id, report.address);
+                              }}
+                              disabled={loadingUrls.has(report.id)}
+                              className="flex-1 bg-transparent border border-brown text-black hover:bg-brown hover:text-white font-medium px-6 py-1 rounded-lg transition-all duration-200 text-xs font-bold flex items-center justify-center disabled:opacity-50 touch-manipulation select-none"
+                            >
+                              <Eye className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
+                              {loadingUrls.has(report.id)
+                                ? "Loading..."
+                                : "View"}
+                            </button>
+                            <button
+                              onClick={() =>
+                                handleDownloadDocument(
+                                  report.id,
+                                  report.address
+                                )
+                              }
+                              disabled={loadingUrls.has(report.id)}
+                              className="flex-1 btn-primary py-1 text-xs font-bold flex items-center justify-center disabled:opacity-50 touch-manipulation select-none"
+                            >
+                              <Download className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
+                              {loadingUrls.has(report.id)
+                                ? "Loading..."
+                                : "Download"}
+                            </button>
+                            <button
+                              onClick={() => {
+                                console.log(
+                                  "[DELETE] Delete button clicked for report:",
+                                  {
+                                    id: report.id,
+                                    s3Key: report.s3Key,
+                                    address: report.address,
+                                    status: report.status,
+                                  }
+                                );
+                                openDeleteModal(report.id, report.s3Key);
+                              }}
+                              disabled={loadingUrls.has(report.id)}
+                              className="py-px px-2 text-xs bg-white border border-red-600 text-red-600 hover:bg-red-500 hover:text-white font-medium rounded-lg transition-all duration-200 flex items-center justify-center touch-manipulation sm:py-2 sm:px-3 sm:text-sm sm:rounded-lg"
+                              title="Delete report"
+                            >
+                              <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                            </button>
+                          </div>
+                          <button
+                            onClick={() => handleShareReport(report)}
+                            disabled={loadingUrls.has(report.id)}
+                            className="w-full bg-beige hover:bg-beige/80 text-black font-medium px-6 py-2 rounded-lg transition-all duration-200 text-xs font-bold flex items-center justify-center disabled:opacity-50 touch-manipulation select-none"
+                          >
+                            <Share className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
+                            {loadingUrls.has(report.id)
+                              ? "Loading..."
+                              : "Share"}
+                          </button>
+                        </>
+                      )}
+                      {report.status === "generating" && (
+                        <div className="w-full py-2">
+                          <ProgressBar startTime={report.generatedAt} />
+                        </div>
+                      )}
+                      {report.status === "error" && (
+                        <div className="flex items-center justify-center space-x-2 w-full">
+                          <button
+                            onClick={() => {
+                              console.log(
+                                "[DELETE] Delete button clicked for report:",
+                                {
+                                  id: report.id,
+                                  s3Key: report.s3Key,
+                                  address: report.address,
+                                  status: report.status,
+                                }
+                              );
+                              openDeleteModal(report.id, report.s3Key);
+                            }}
+                            disabled={loadingUrls.has(report.id)}
+                            className="flex-1 btn-danger py-2 text-sm flex items-center justify-center disabled:opacity-50"
+                          >
+                            <Trash2 className="h-4 w-4 mr-1" />
+                            Delete
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  // List
+                  <>
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-3 mb-1">
                         <span
-                          className={`inline-block px-2 py-1 rounded-full text-xs font-medium mb-2 ${getStatusColor(
+                          className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
                             report.status
                           )}`}
                         >
                           {getStatusText(report.status)}
                         </span>
-                        <h3
-                          className="text-sm sm:text-base font-medium text-black mb-1 overflow-hidden leading-5"
-                          title={report.address}
-                          style={{
-                            display: "-webkit-box",
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: "vertical" as const,
-                            wordBreak: "break-word",
-                            hyphens: "auto",
-                          }}
-                        >
-                          {formatFilenameToAddress(report.address)}
-                        </h3>
-                        <p className="text-xs sm:text-sm text-black/60 flex items-center">
-                          <Calendar className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                          {formatDate(report.generatedAt)}
-                        </p>
+                        <span className="text-sm text-black/60">
+                          {formatDate(new Date(report.generatedAt.getTime()))}
+                        </span>
                       </div>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col gap-2">
-                    {report.status === "completed" && (
-                      <>
-                        <div className="flex flex-col sm:flex-row gap-2">
-                          <button
-                            onClick={() => {
-                              console.log("[PastReports] View button clicked for report:", { id: report.id, address: report.address });
-                              handleViewDocument(report.id, report.address);
-                            }}
-                            disabled={loadingUrls.has(report.id)}
-                            className="flex-1 bg-transparent border border-brown text-black hover:bg-brown hover:text-white font-medium px-6 py-1 rounded-lg transition-all duration-200 text-xs font-bold flex items-center justify-center disabled:opacity-50 touch-manipulation select-none"
-                          >
-                            <Eye className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
-                            {loadingUrls.has(report.id) ? "Loading..." : "View"}
-                          </button>
-                          <button
-                            onClick={() => handleDownloadDocument(report.id, report.address)}
-                            disabled={loadingUrls.has(report.id)}
-                            className="flex-1 btn-primary py-1 text-xs font-bold flex items-center justify-center disabled:opacity-50 touch-manipulation select-none"
-                          >
-                            <Download className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
-                            {loadingUrls.has(report.id)
-                              ? "Loading..."
-                              : "Download"}
-                          </button>
-                          <button
-                            onClick={() => {
-                              console.log(
-                                "[DELETE] Delete button clicked for report:",
-                                {
-                                  id: report.id,
-                                  s3Key: report.s3Key,
-                                  address: report.address,
-                                  status: report.status,
-                                }
-                              );
-                              openDeleteModal(report.id, report.s3Key);
-                            }}
-                            disabled={loadingUrls.has(report.id)}
-                            className="py-px px-2 text-xs bg-white border border-red-600 text-red-600 hover:bg-red-500 hover:text-white font-medium rounded-lg transition-all duration-200 flex items-center justify-center touch-manipulation sm:py-2 sm:px-3 sm:text-sm sm:rounded-lg"
-                            title="Delete report"
-                          >
-                            <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
-                          </button>
-                        </div>
-                        <button
-                          onClick={() => handleShareReport(report)}
-                          disabled={loadingUrls.has(report.id)}
-                          className="w-full bg-beige hover:bg-beige/80 text-black font-medium px-6 py-2 rounded-lg transition-all duration-200 text-xs font-bold flex items-center justify-center disabled:opacity-50 touch-manipulation select-none"
-                        >
-                          <Share className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
-                          {loadingUrls.has(report.id) ? "Loading..." : "Share"}
-                        </button>
-                      </>
-                    )}
-                    {report.status === "generating" && (
-                      <div className="w-full py-2">
-                        <ProgressBar startTime={report.generatedAt} />
-                      </div>
-                    )}
-                    {report.status === "error" && (
-                      <div className="flex items-center justify-center space-x-2 w-full">
-                        <button
-                          onClick={() => {
-                            console.log(
-                              "[DELETE] Delete button clicked for report:",
-                              {
-                                id: report.id,
-                                s3Key: report.s3Key,
-                                address: report.address,
-                                status: report.status,
-                              }
-                            );
-                            openDeleteModal(report.id, report.s3Key);
-                          }}
-                          disabled={loadingUrls.has(report.id)}
-                          className="flex-1 btn-danger py-2 text-sm flex items-center justify-center disabled:opacity-50"
-                        >
-                          <Trash2 className="h-4 w-4 mr-1" />
-                          Delete
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </>
-              ) : (
-                // List
-                <>
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-1">
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                          report.status
-                        )}`}
+                      <h3
+                        className="font-medium text-black overflow-hidden leading-5"
+                        title={report.address}
+                        style={{
+                          maxWidth: "calc(100% - 10rem)",
+                          display: "-webkit-box",
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: "vertical" as const,
+                          wordBreak: "break-word",
+                          hyphens: "auto",
+                        }}
                       >
-                        {getStatusText(report.status)}
-                      </span>
-                      <span className="text-sm text-black/60">
-                        {formatDate(new Date(report.generatedAt.getTime()))}
-                      </span>
+                        {formatFilenameToAddress(report.address)}
+                      </h3>
                     </div>
-                    <h3
-                      className="font-medium text-black overflow-hidden leading-5"
-                      title={report.address}
-                      style={{
-                        maxWidth: "calc(100% - 10rem)",
-                        display: "-webkit-box",
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: "vertical" as const,
-                        wordBreak: "break-word",
-                        hyphens: "auto",
-                      }}
-                    >
-                      {formatFilenameToAddress(report.address)}
-                    </h3>
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    {report.status === "completed" && (
-                      <>
-                        <div className="flex flex-col sm:flex-row gap-2">
+                    <div className="flex flex-col gap-2">
+                      {report.status === "completed" && (
+                        <>
+                          <div className="flex flex-col sm:flex-row gap-2">
+                            <button
+                              onClick={() =>
+                                handleViewDocument(report.id, report.address)
+                              }
+                              disabled={loadingUrls.has(report.id)}
+                              className="bg-transparent border border-brown text-gray-600 hover:bg-brown hover:text-white font-medium px-2 py-1 rounded-lg transition-all duration-200 text-xs font-bold flex items-center disabled:opacity-50 touch-manipulation select-none"
+                            >
+                              <Eye className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
+                              {loadingUrls.has(report.id)
+                                ? "Loading..."
+                                : "View"}
+                            </button>
+                            <button
+                              onClick={() =>
+                                handleDownloadDocument(
+                                  report.id,
+                                  report.address
+                                )
+                              }
+                              disabled={loadingUrls.has(report.id)}
+                              className="btn-primary py-1 px-2 text-xs font-bold flex items-center disabled:opacity-50 touch-manipulation select-none"
+                            >
+                              <Download className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
+                              {loadingUrls.has(report.id)
+                                ? "Loading..."
+                                : "Download"}
+                            </button>
+                            <button
+                              onClick={() => {
+                                console.log(
+                                  "[DELETE] Delete button clicked for report:",
+                                  {
+                                    id: report.id,
+                                    s3Key: report.s3Key,
+                                    address: report.address,
+                                    status: report.status,
+                                  }
+                                );
+                                openDeleteModal(report.id, report.s3Key);
+                              }}
+                              disabled={loadingUrls.has(report.id)}
+                              className="sm:p-2 sm:text-red-600 sm:hover:bg-red-50 sm:rounded-lg sm:transition-colors touch-friendly bg-white border border-red-600 text-red-600 hover:bg-red-500 hover:text-white font-medium py-1 px-3 rounded-lg transition-all duration-200 flex items-center justify-center"
+                              title="Delete report"
+                            >
+                              <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                            </button>
+                          </div>
                           <button
-                            onClick={() => handleViewDocument(report.id, report.address)}
+                            onClick={() => handleShareReport(report)}
                             disabled={loadingUrls.has(report.id)}
-                            className="bg-transparent border border-brown text-gray-600 hover:bg-brown hover:text-white font-medium px-2 py-1 rounded-lg transition-all duration-200 text-xs font-bold flex items-center disabled:opacity-50 touch-manipulation select-none"
+                            className="w-full bg-beige hover:bg-beige/80 text-black font-medium px-6 py-2 rounded-lg transition-all duration-200 text-xs font-bold flex items-center justify-center disabled:opacity-50 touch-manipulation select-none"
                           >
-                            <Eye className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
-                            {loadingUrls.has(report.id) ? "Loading..." : "View"}
-                          </button>
-                          <button
-                            onClick={() => handleDownloadDocument(report.id, report.address)}
-                            disabled={loadingUrls.has(report.id)}
-                            className="btn-primary py-1 px-2 text-xs font-bold flex items-center disabled:opacity-50 touch-manipulation select-none"
-                          >
-                            <Download className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
+                            <Share className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
                             {loadingUrls.has(report.id)
                               ? "Loading..."
-                              : "Download"}
+                              : "Share"}
                           </button>
+                        </>
+                      )}
+                      {report.status === "generating" && (
+                        <div className="w-full space-y-2">
+                          <ProgressBar
+                            startTime={new Date(report.generatedAt.getTime())}
+                          />
+                        </div>
+                      )}
+                      {report.status === "error" && (
+                        <div className="flex items-center space-x-2">
                           <button
                             onClick={() => {
                               console.log(
@@ -1049,59 +1105,20 @@ export default function PastReports() {
                               openDeleteModal(report.id, report.s3Key);
                             }}
                             disabled={loadingUrls.has(report.id)}
-                            className="sm:p-2 sm:text-red-600 sm:hover:bg-red-50 sm:rounded-lg sm:transition-colors touch-friendly bg-white border border-red-600 text-red-600 hover:bg-red-500 hover:text-white font-medium py-1 px-3 rounded-lg transition-all duration-200 flex items-center justify-center"
-                            title="Delete report"
+                            className="btn-danger py-2 px-3 text-xs sm:text-sm flex items-center disabled:opacity-50 touch-friendly"
                           >
-                            <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                            <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                            Delete
                           </button>
                         </div>
-                        <button
-                          onClick={() => handleShareReport(report)}
-                          disabled={loadingUrls.has(report.id)}
-                          className="w-full bg-beige hover:bg-beige/80 text-black font-medium px-6 py-2 rounded-lg transition-all duration-200 text-xs font-bold flex items-center justify-center disabled:opacity-50 touch-manipulation select-none"
-                        >
-                          <Share className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
-                          {loadingUrls.has(report.id) ? "Loading..." : "Share"}
-                        </button>
-                      </>
-                    )}
-                    {report.status === "generating" && (
-                      <div className="w-full space-y-2">
-                        <ProgressBar
-                          startTime={new Date(report.generatedAt.getTime())}
-                        />
-                      </div>
-                    )}
-                    {report.status === "error" && (
-                      <div className="flex items-center space-x-2">
-                        <button
-                          onClick={() => {
-                            console.log(
-                              "[DELETE] Delete button clicked for report:",
-                              {
-                                id: report.id,
-                                s3Key: report.s3Key,
-                                address: report.address,
-                                status: report.status,
-                              }
-                            );
-                            openDeleteModal(report.id, report.s3Key);
-                          }}
-                          disabled={loadingUrls.has(report.id)}
-                          className="btn-danger py-2 px-3 text-xs sm:text-sm flex items-center disabled:opacity-50 touch-friendly"
-                        >
-                          <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                          Delete
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

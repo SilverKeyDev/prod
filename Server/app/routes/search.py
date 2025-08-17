@@ -81,9 +81,7 @@ def simplify_polygon(polygon: List[Dict[str, float]], max_points: int = 50) -> L
     """
     if len(polygon) <= max_points:
         return polygon
-    
-    current_app.logger.info(f"[POLYGON_SIMPLIFY] 🔧 Simplifying polygon from {len(polygon)} to max {max_points} points")
-    
+        
     # Keep first and last points (should be the same for closed polygons)
     if polygon[0] == polygon[-1]:
         # Closed polygon - work with interior points
@@ -95,7 +93,6 @@ def simplify_polygon(polygon: List[Dict[str, float]], max_points: int = 50) -> L
         target_interior = max_points - 2
     
     if len(interior_points) <= target_interior:
-        current_app.logger.info(f"[POLYGON_SIMPLIFY] ✅ No simplification needed: {len(interior_points)} <= {target_interior}")
         return polygon
     
     # Simple uniform sampling approach
@@ -115,7 +112,6 @@ def simplify_polygon(polygon: List[Dict[str, float]], max_points: int = 50) -> L
         # Open polygon
         simplified = [polygon[0]] + simplified_interior + [polygon[-1]]
     
-    current_app.logger.info(f"[POLYGON_SIMPLIFY] ✅ Simplified polygon from {len(polygon)} to {len(simplified)} points")
     return simplified
 
 _SESSION = _build_session()
@@ -970,33 +966,16 @@ def search_properties_by_polygon():
     request_id = f"poly_{int(start_time * 1000)}"
     TARGET_LIMIT = 100  # hard cap on deduped results
 
-    current_app.logger.info(f"[POLYGON_SEARCH] 🔍 Starting polygon search request {request_id}")
-
     try:
         user = get_current_user()
         if not user:
             current_app.logger.error(f"[POLYGON_SEARCH] ❌ User authentication failed for {request_id}")
             return jsonify({"success": False, "error": "USER_NOT_FOUND", "message": "User not found"}), 404
 
-        current_app.logger.info(f"[POLYGON_SEARCH] 🔐 User authenticated: {user.id} for request {request_id}")
-
         data = request.get_json(silent=True) or {}
         user_preferences = data.get("user_preferences") or {}
         status_type = "ForSale"
-        per_pages = data.get("perBucketPages", 20)
-        max_retries = int(data.get("maxRetries", 3))
-
-        current_app.logger.info(
-            f"[POLYGON_SEARCH] 📊 Input parameters for {request_id}: "
-            f"status_type={status_type}, per_pages={per_pages}, max_retries={max_retries}, "
-            f"user_preferences_keys={list(user_preferences.keys())}"
-        )
-        
-        # Debug: Log important_locations data being passed to helper
-        important_locations_data = user_preferences.get('important_locations')
-        current_app.logger.info(f"[POLYGON_SEARCH] 🔍 Debug - important_locations type: {type(important_locations_data)}")
-        current_app.logger.info(f"[POLYGON_SEARCH] 🔍 Debug - important_locations data: {important_locations_data}")
-
+        per_pages = data.get("perBucketPages", 20)        
         per_pages = max(0, min(int(per_pages), 20))
 
         if not user_preferences:
@@ -1022,10 +1001,7 @@ def search_properties_by_polygon():
                 hb_val = float(home_budget)
                 filters["minPrice"] = int(hb_val * 0.6)
                 filters["maxPrice"] = int(hb_val * 1.05)
-                current_app.logger.info(
-                    f"[POLYGON_SEARCH] 💰 Set minPrice={filters['minPrice']} maxPrice={filters['maxPrice']} "
-                    f"from home_budget={hb_val}"
-                )
+
             except (TypeError, ValueError):
                 current_app.logger.warning(
                     f"[POLYGON_SEARCH] ⚠️ home_budget value invalid: {home_budget}"
@@ -1102,9 +1078,7 @@ def search_properties_by_polygon():
 
         # ---- Apply home matching scores ----
         scored_properties = []
-        if all_properties:
-            current_app.logger.info(f"[POLYGON_SEARCH] 🎯 Applying home matching scores to {len(all_properties)} properties")
-            
+        if all_properties:            
             try:
                 # Prepare user data for home matching
                 user_data = {
@@ -1199,11 +1173,6 @@ def search_properties_by_polygon():
                     
                     # Clean up Redis key
                     redis_client.delete(sort_key)
-                    
-                    current_app.logger.info(
-                        f"[POLYGON_SEARCH] ✅ Redis sorted {len(scored_properties)} properties by score. "
-                        f"Top score: {scored_properties[0].get('_score', 0.0) if scored_properties else 'N/A'}"
-                    )
                     
                 except Exception as redis_error:
                     current_app.logger.warning(f"[POLYGON_SEARCH] ⚠️ Redis sorting failed: {str(redis_error)}, falling back to Python sort")

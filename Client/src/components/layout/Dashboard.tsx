@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
 import Sidebar from "./Sidebar";
+// import { useNotifications } from "../../context";
 import GenerateReportPage from "../../pages/Decide/GenerateReportPage.tsx";
 import PastReports from "../../pages/Decide/PastReports.tsx";
 import CompareReportsPage from "../../pages/Decide/CompareReportsPage.tsx";
@@ -17,7 +18,7 @@ import InspectionsDueDiligence from "../../pages/Close/InspectionsDueDiligence.t
 import FinancingInsurance from "../../pages/Close/FinancingInsurance.tsx";
 import ClosingMovingIn from "../../pages/Close/ClosingMovingIn.tsx";
 import UserDashboardPage from "../../pages/UserDashboard.tsx";
-import { UserProfile } from "../../contexts/DataContext.tsx";
+import { UserProfile } from "../../context/utils";
 //import PreApproved from "../../pages/Onboard/PreApproved.tsx";
 import SavedHomes from "../../pages/Search/SavedHomes";
 
@@ -29,6 +30,9 @@ interface DashboardProps {
 export default function Dashboard({ user, onLogout }: DashboardProps) {
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
+  
+  // Use NotificationsContext for activity feed (for future notification badge)
+  // const { unreadCount } = useNotifications();
 
   // Check if screen is mobile size
   useEffect(() => {

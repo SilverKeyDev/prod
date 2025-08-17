@@ -250,18 +250,14 @@ class EnsembleScorer:
             
             if not homes_data:
                 return []
-            
-            logger.info(f"🚀 Starting concurrent scoring for {len(homes_data)} homes in batches of 3")
-            
+                        
             # Divide homes into batches of 3 for concurrent processing
             batch_size = 3
             home_batches = []
             for i in range(0, len(homes_data), batch_size):
                 batch = homes_data[i:i + batch_size]
                 home_batches.append((i, batch))  # Store original indices for proper ordering
-            
-            logger.info(f"📦 Created {len(home_batches)} batches for concurrent processing")
-            
+                        
             # Score all batches concurrently
             scored_homes = [None] * len(homes_data)  # Pre-allocate to maintain order
             
@@ -285,7 +281,6 @@ class EnsembleScorer:
                             scored_homes[batch_start_idx + i] = result
                         
                         completed_batches += 1
-                        logger.info(f"✅ Completed batch {completed_batches}/{len(home_batches)} (homes {batch_start_idx}-{batch_start_idx + len(batch_homes) - 1})")
                         
                     except Exception as e:
                         logger.error(f"❌ Error processing batch starting at index {batch_start_idx}: {e}")
@@ -315,9 +310,7 @@ class EnsembleScorer:
                 # Update homes with rescaled scores (rounded to 1 decimal place)
                 for home, rescaled_score in zip(scored_homes, rescaled_scores):
                     home['final_score'] = round(float(rescaled_score), 1)
-                
-                logger.info(f"🎲 Applied jittered rescaling to {len(scored_homes)} homes (range: {min(rescaled_scores):.1f}-{max(rescaled_scores):.1f})")
-            
+                            
             # Sort by final score (highest first)
             scored_homes.sort(key=lambda x: x.get('final_score', 0.0), reverse=True)
             
@@ -328,7 +321,6 @@ class EnsembleScorer:
             # Return top-k results
             top_homes = scored_homes[:top_k]
             
-            logger.info(f"🎯 Concurrent scoring complete! Ranked {len(homes_data)} homes for user {user_data.get('user_id', 'unknown')}, returning top {len(top_homes)}")
             return top_homes
             
         except Exception as e:
@@ -395,7 +387,6 @@ class EnsembleScorer:
                         'error': str(e)
                     })
             
-            logger.info(f"✅ Batch processing complete for indices {batch_start_idx}-{batch_start_idx + len(batch_homes) - 1}")
             return batch_results
             
         except Exception as e:

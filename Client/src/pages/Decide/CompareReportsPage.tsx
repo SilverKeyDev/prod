@@ -12,31 +12,11 @@ import {
 } from "lucide-react";
 import ErrorToast from "../../components/feedback/ErrorToast";
 import SuccessToast from "../../components/feedback/SuccessToast";
-import { useData } from "../../contexts/DataContext";
+import { useCompareReports } from "../../context";
+import { Report } from "../../context/utils";
 import { formatFilenameToAddress } from "../../lib/addressFormat";
 import PageHeader from "../../components/ui/PageHeader";
 
-interface Report {
-  id: string;
-  address: string;
-  status: "generating" | "completed" | "error";
-  pdfUrl?: string | null;
-  s3Key?: string | null;
-  // Property data fields from JSON
-  price?: number;
-  bedrooms?: number;
-  bathrooms?: number;
-  living_area?: number;
-  property_type?: string;
-  zillow_url?: string;
-  // Legacy fields for backward compatibility
-  squareFootage?: number;
-  yearBuilt?: number;
-  propertyType?: string;
-  estimatedValue?: number;
-  neighborhoodScore?: number;
-  schoolScore?: number;
-}
 
 const ALL_METRIC_KEYS: string[] = [
   // Property Data
@@ -149,8 +129,8 @@ const ALL_METRIC_KEYS: string[] = [
 
 export default function CompareReportsPage() {
   // Use preloaded data from context
-  const { compareReports, compareReportsError, refreshCompareReports } =
-    useData();
+  const { compareReports, error: compareReportsError, refreshCompareReports } =
+    useCompareReports();
 
   // Refresh data when page loads to ensure latest updates
   useEffect(() => {
@@ -440,7 +420,7 @@ export default function CompareReportsPage() {
   const refreshReports = async () => {
     try {
       console.log("📊 Updated compareReports data:", compareReports);
-      
+
       setToastMessage("Reports refreshed successfully");
       setShowSuccess(true);
     } catch (error) {
@@ -448,9 +428,9 @@ export default function CompareReportsPage() {
       console.log("🔍 Error details:", {
         message: error instanceof Error ? error.message : "Unknown error",
         stack: error instanceof Error ? error.stack : undefined,
-        error
+        error,
       });
-      
+
       setToastMessage(
         error instanceof Error ? error.message : "Failed to refresh reports"
       );
@@ -573,7 +553,7 @@ export default function CompareReportsPage() {
                   : {}),
               }}
             >
-              {reports.map((report) => {
+              {reports.map((report: Report) => {
                 const isSelected = selectedReports.some(
                   (r) => r.id === report.id
                 );

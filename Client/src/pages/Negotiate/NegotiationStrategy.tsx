@@ -6,6 +6,7 @@ import Loading from '../../components/ui/Loading';
 import KeyTurnLoader from '../../components/ui/KeyTurnLoader';
 import Carousel from '../../components/ui/Carousel';
 import CompCard, { CompData } from '../../components/cards/CompCard';
+import { useDocuments, useNegotiation } from '../../context';
 
 const sectionBox =
   "bg-white rounded-xl shadow-sm p-6 mb-6 border border-beige/40";
@@ -21,6 +22,17 @@ export default function NegotiationStrategy() {
   const [compsData, setCompsData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Use contexts for document management and strategy generation
+  const { documents } = useDocuments();
+  const { generateStrategy } = useNegotiation();
+  
+  // Filter documents for negotiation-related categories
+  const negotiationDocs = documents.filter(doc => 
+    doc.category === 'offer' || 
+    doc.category === 'contract' ||
+    doc.category === 'negotiation'
+  );
 
   // Load saved data from localStorage on component mount
   useEffect(() => {
