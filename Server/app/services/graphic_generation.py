@@ -320,7 +320,6 @@ def fetch_travel_time(origin, destination, api_key):
             data = response.json()
             if data.get("routes") and data["routes"][0].get("legs"):
                 duration = data["routes"][0]["legs"][0]["duration"]["text"]
-                logger.info(f"🕐 Travel time from {origin[:30]}... to {destination[:30]}...: {duration}")
                 return duration
             else:
                 logger.warning(f"🕐 No route found from {origin[:30]}... to {destination[:30]}...")

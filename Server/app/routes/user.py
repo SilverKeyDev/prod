@@ -482,8 +482,14 @@ def remove_favorite_home():
         if not existing_home:
             current_app.logger.warning(f"⚠️ Home not found in favorites: {address}")
             return jsonify({'success': False, 'error': 'Home not found in favorites'}), 404
-      
+        
+        current_app.logger.info(f"✅ Found home in favorites, proceeding with deletion")
+        
+        # Delete the home record
+        db.session.delete(existing_home)
         db.session.commit()
+        
+        current_app.logger.info(f"🗑️ Successfully removed home from favorites: {address}")
         
         # Return all HomeUniversal rows for this user
         homes = HomeUniversal.query.filter_by(user_id=str(user.id)).all()
