@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Lightbulb, Home, Download, Share2 } from 'lucide-react';
-import PageHeader from '../../components/PageHeader';
-import FavoriteHomesDropdown from '../../components/FavoriteHomesDropdown';
-import Loading from '../../components/Loading';
-import KeyTurnLoader from '../../components/KeyTurnLoader';
-import Carousel from '../../components/Carousel';
-import CompCard, { CompData } from '../../components/CompCard';
+import PageHeader from '../../components/ui/PageHeader';
+import FavoriteHomesDropdown from '../../components/ui/FavoriteHomesDropdown';
+import Loading from '../../components/ui/Loading';
+import KeyTurnLoader from '../../components/ui/KeyTurnLoader';
+import Carousel from '../../components/ui/Carousel';
+import CompCard, { CompData } from '../../components/cards/CompCard';
 
 const sectionBox =
   "bg-white rounded-xl shadow-sm p-6 mb-6 border border-beige/40";

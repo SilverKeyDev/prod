@@ -41,8 +41,6 @@ export function usePropertyDetails(): UsePropertyDetailsReturn {
     setError(null);
 
     try {
-      console.log('🔍 [USE_PROPERTY_DETAILS] Fetching details for property:', property.id);
-      
       const detailedPropertyData = await getPropertyDetailsByAddress(
         useAddressOnly ? undefined : property.id, // Only use zpid if not address-only
         property.address // Always pass address
@@ -52,8 +50,6 @@ export function usePropertyDetails(): UsePropertyDetailsReturn {
         ...property,
         ...detailedPropertyData, // Merge detailed data with existing property data
       };
-
-      console.log('🔍 [USE_PROPERTY_DETAILS] Successfully fetched property details');
       setSelectedProperty(enhancedProperty);
     } catch (error) {
       console.error("❌ [USE_PROPERTY_DETAILS] Error fetching property details:", error);

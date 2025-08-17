@@ -72,8 +72,6 @@ def generate_vertical_lollipop_chart(data: dict, title: str) -> BytesIO:
             except Exception as e:
                 logger.error(f"❌ Skipping non-numeric value in vertical lollipop chart for '{title}': {val} - {e}")
                 return None
-
-        logger.info(f"📊 Processed chart data - labels: {labels}, sizes: {sizes}")
         
         if not sizes or sum(sizes) == 0:
             logger.error(f"❌ Skipping vertical lollipop chart for '{title}' due to empty or invalid data.")
@@ -96,7 +94,6 @@ def generate_vertical_lollipop_chart(data: dict, title: str) -> BytesIO:
         plt.savefig(img_buffer, format="PNG", bbox_inches="tight")
         plt.close(fig)
         img_buffer.seek(0)
-        logger.info(f"✅ Successfully generated vertical lollipop chart for '{title}' - buffer size: {len(img_buffer.getvalue())} bytes")
         return img_buffer
     except Exception as e:
         logger.error(f"❌ Failed to generate vertical lollipop chart for {title}: {e}")
@@ -105,7 +102,6 @@ def generate_vertical_lollipop_chart(data: dict, title: str) -> BytesIO:
 
 def generate_horizontal_bar_chart(data: dict, title: str) -> BytesIO:
     try:
-        logger.info(f"📊 Generating horizontal bar chart for '{title}' with data: {data}")
         labels = [format_label(key) for key in data.keys()]
         sizes = []
         for val in data.values():
@@ -118,8 +114,6 @@ def generate_horizontal_bar_chart(data: dict, title: str) -> BytesIO:
             except Exception as e:
                 logger.error(f"❌ Skipping non-numeric value in bar chart for '{title}': {val} - {e}")
                 return None
-
-        logger.info(f"📊 Processed chart data - labels: {labels}, sizes: {sizes}")
         
         if not sizes or sum(sizes) == 0:
             logger.error(f"❌ Skipping bar chart for '{title}' due to empty or invalid data.")
@@ -138,7 +132,6 @@ def generate_horizontal_bar_chart(data: dict, title: str) -> BytesIO:
         plt.savefig(img_buffer, format="PNG", bbox_inches="tight")
         plt.close(fig)
         img_buffer.seek(0)
-        logger.info(f"✅ Successfully generated horizontal bar chart for '{title}' - buffer size: {len(img_buffer.getvalue())} bytes")
         return img_buffer
     except Exception as e:
         logger.error(f"❌ Failed to generate horizontal bar chart for {title}: {e}")
@@ -497,7 +490,6 @@ def generate_commute_map(primary_address, user_preferences, api_key):
             import json
             try:
                 locations_data = json.loads(locations_data)
-                logger.info(f"🗺️ COMMUTE MAP: ✅ Successfully parsed JSON locations: {locations_data}")
             except json.JSONDecodeError as e:
                 logger.error(f"🗺️ COMMUTE MAP: ❌ Failed to parse important_locations JSON: {e}")
                 logger.error(f"🗺️ COMMUTE MAP: Raw JSON string: {repr(locations_data)}")

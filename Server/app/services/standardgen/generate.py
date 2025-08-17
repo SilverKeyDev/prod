@@ -206,19 +206,12 @@ def _safe_parse_json(text: str, report_customization: Optional[dict] = None) -> 
                 for _ in range(open_braces):
                     truncated += '}'
                 
-                logger.info("🔧 Attempting recovery with truncated JSON")
                 parsed = json.loads(truncated)
-                logger.info("✅ Successfully recovered malformed JSON")
             except:
                 raise ValueError("Failed to parse structured JSON from model output") from e
 
-        logger.info("🧹 CLEANUP: Removing empty fields and object placeholders...")
         parsed = _remove_empty_fields(parsed)
         parsed = _fix_object_placeholders(parsed)
-        if isinstance(parsed, dict):
-            logger.info(f"✅ Successfully parsed and cleaned JSON with {len(parsed.keys())} keys")
-        else:
-            logger.info("✅ Successfully parsed and cleaned non-dict JSON")
         return parsed
 
     except Exception as e:

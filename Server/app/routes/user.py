@@ -423,18 +423,13 @@ def add_favorite_home():
             price=home.get('price', ''),
             image_url=image_url
         )
-        current_app.logger.info(f"💾 Database record details: beds={home.get('bedrooms', '')}, baths={home.get('bathrooms', '')}, sqft={home.get('sqft', '')}, lot_size={home.get('lotSize', '')}, price={home.get('price', '')}, image_url={image_url[:50] if image_url else 'None'}...")
         
         db.session.add(home_universal)
         db.session.commit()
-        current_app.logger.info(f"✅ Successfully saved home to database: {address}")
         
         # Return all HomeUniversal rows for this user
-        current_app.logger.info("📊 Retrieving updated favorites list for response")
         homes = HomeUniversal.query.filter_by(user_id=str(user.id)).all()
         favorites = [home.to_dict() for home in homes]
-        current_app.logger.info(f"📊 User now has {len(favorites)} total saved homes")
-        current_app.logger.info("🏠 ===== HOME SAVE OPERATION COMPLETED SUCCESSFULLY =====")
         
         return jsonify({
             'success': True,
@@ -487,21 +482,13 @@ def remove_favorite_home():
         if not existing_home:
             current_app.logger.warning(f"⚠️ Home not found in favorites: {address}")
             return jsonify({'success': False, 'error': 'Home not found in favorites'}), 404
-        
-        current_app.logger.info(f"✅ Home found in favorites, proceeding with removal")
-        current_app.logger.info(f"🗑️ Removing home from database: {address}")
-        
-        deleted_count = HomeUniversal.query.filter_by(user_id=str(user.id), address=address).delete()
+      
         db.session.commit()
-        current_app.logger.info(f"✅ Successfully removed {deleted_count} home record(s) from database: {address}")
         
         # Return all HomeUniversal rows for this user
-        current_app.logger.info("📊 Retrieving updated favorites list for response")
         homes = HomeUniversal.query.filter_by(user_id=str(user.id)).all()
         favorites = [home.to_dict() for home in homes]
-        current_app.logger.info(f"📊 User now has {len(favorites)} total saved homes")
-        current_app.logger.info("🗑️ ===== HOME UNSAVE OPERATION COMPLETED SUCCESSFULLY =====")
-        
+       
         return jsonify({
             'success': True,
             'message': 'Home removed from favorites',

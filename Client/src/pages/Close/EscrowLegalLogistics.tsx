@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { apiRequest } from "../../lib/api";
 import { CheckSquare } from "lucide-react";
-import ChecklistCheckbox from "../../components/ChecklistCheckbox";
-import ClosePageHeader from "../../components/ClosePageHeader";
+import ChecklistCheckbox from "../../components/ui/ChecklistCheckbox";
+import ClosePageHeader from "../../components/ui/ClosePageHeader";
 
 const sectionBox =
   "bg-white rounded-xl shadow-sm p-6 mb-6 border border-beige/40";

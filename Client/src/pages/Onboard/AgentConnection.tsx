@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { X, Search, UserPlus } from "lucide-react";
 import { useData } from "../../contexts/DataContext";
-import PageHeader from "../../components/PageHeader";
+import PageHeader from "../../components/ui/PageHeader";
 
 interface Agent {
   id: string;
@@ -49,10 +49,6 @@ export default function AgentConnection() {
       const data = await response.json();
       if (data.success) {
         setAssignedAgents(data.agents || []);
-        console.log(
-          "✅ Successfully loaded user agents:",
-          data.agents?.length || 0
-        );
       } else {
         console.error("❌ Failed to fetch user agents:", data.error);
       }
@@ -141,7 +137,6 @@ export default function AgentConnection() {
         setAssignedAgents((prev) => [...prev, agent]);
         setAgentSearchTerm("");
         setAgents([]);
-        console.log("✅ Successfully assigned agent:", data.message);
       } else {
         console.error("❌ Failed to assign agent:", data.error);
       }
@@ -182,7 +177,6 @@ export default function AgentConnection() {
         setAssignedAgents((prev) =>
           prev.filter((agent) => agent.id !== agentToRemove.id)
         );
-        console.log("✅ Successfully removed agent:", agentToRemove.name);
       } else {
         console.error("❌ Failed to remove agent:", data.error);
       }

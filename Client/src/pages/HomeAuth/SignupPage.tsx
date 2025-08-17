@@ -7,8 +7,8 @@ import "react-phone-number-input/style.css";
 import {
   PasswordValidation,
   usePasswordValidation,
-} from "../../components/PasswordValidation";
-import MiniLogo from "../../components/MiniLogo";
+} from "../../components/feedback/PasswordValidation";
+import MiniLogo from "../../components/ui/MiniLogo";
 
 interface SignupPageProps {}
 

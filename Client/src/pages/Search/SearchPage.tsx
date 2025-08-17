@@ -3,12 +3,12 @@ import { Bookmark, MapPin, ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import mapStyles from "../../hooks/mapStyling";
 import { favoriteHomesApi } from "../../lib/api";
-import HeartSave from "../../components/HeartSave";
-import PropertyDetailsModal from "../../components/PropertyDetailsModal";
+import HeartSave from "../../components/ui/HeartSave";
+import PropertyDetailsModal from "../../components/modals/PropertyDetailsModal";
 import { searchZillowByPolygon, LatLng } from "../../hooks/searchByCoords";
 import { usePropertyDetails } from "../../hooks/usePropertyDetails";
-import Loading from "../../components/Loading";
-import KeyTurnLoader from "../../components/KeyTurnLoader";
+import Loading from "../../components/ui/Loading";
+import KeyTurnLoader from "../../components/ui/KeyTurnLoader";
 
 interface SearchResult {
   id: string;
@@ -201,7 +201,12 @@ export default function SearchPage() {
   const [favoriteAddresses, setFavoriteAddresses] = useState<string[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [searchStage, setSearchStage] = useState<string>("");
-  const { isLoading: isLoadingPropertyDetails, selectedProperty, fetchPropertyDetails, clearSelectedProperty } = usePropertyDetails();
+  const {
+    isLoading: isLoadingPropertyDetails,
+    selectedProperty,
+    fetchPropertyDetails,
+    clearSelectedProperty,
+  } = usePropertyDetails();
   const [isLocalStorageLoaded, setIsLocalStorageLoaded] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [, setIsochronePolygon] = useState<google.maps.Polygon | null>(null);
@@ -234,7 +239,6 @@ export default function SearchPage() {
               const data = await response.json();
               currentPreferencesVersion =
                 data.preferences?.preferences_version || "1.0";
-
             }
           }
         } catch (prefError) {
@@ -260,9 +264,7 @@ export default function SearchPage() {
           setCurrentPage(savedSearchData.searchMetadata?.currentPage || 0);
           setShowPropertyModals(true);
         } else {
-          console.log(
-            "🔄 No valid cached results found - will run fresh search"
-          );
+          console.log("🔄");
         }
       } catch (error) {
         console.error("❌ Error in search results initialization:", error);
@@ -304,7 +306,9 @@ export default function SearchPage() {
   const [activeTab, setActiveTab] = useState<"results" | "saved">(() => {
     // Load last active tab from localStorage, default to "results"
     const savedTab = localStorage.getItem("searchPageActiveTab");
-    return (savedTab === "results" || savedTab === "saved") ? savedTab : "results";
+    return savedTab === "results" || savedTab === "saved"
+      ? savedTab
+      : "results";
   });
 
   // Reset to first page when switching tabs and save to localStorage
@@ -387,11 +391,6 @@ export default function SearchPage() {
       const savedData = localStorage.getItem("searchResults");
       if (savedData) {
         const parsedData = JSON.parse(savedData);
-        console.log(
-          `📂 Loaded ${
-            parsedData.results?.length || 0
-          } search results from localStorage`
-        );
         return parsedData;
       }
     } catch (error) {
@@ -500,23 +499,30 @@ export default function SearchPage() {
 
     const createMap = () => {
       if (!mapRef.current || !window.google) return;
-    
+
       // ---------- Helpers ----------
       const toRad = (d: number) => (d * Math.PI) / 180;
-    
+
       // Distance in meters between two lat/lng points (Haversine)
-      const haversine = (lat1: number, lng1: number, lat2: number, lng2: number) => {
+      const haversine = (
+        lat1: number,
+        lng1: number,
+        lat2: number,
+        lng2: number
+      ) => {
         const R = 6371000; // meters
         const dLat = toRad(lat2 - lat1);
         const dLng = toRad(lng2 - lng1);
         const a =
           Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-          Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-          Math.sin(dLng / 2) * Math.sin(dLng / 2);
+          Math.cos(toRad(lat1)) *
+            Math.cos(toRad(lat2)) *
+            Math.sin(dLng / 2) *
+            Math.sin(dLng / 2);
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         return R * c;
       };
-    
+
       // Convert desired meters-per-pixel to a Google zoom at a given latitude
       const zoomFromMPP = (latDeg: number, mpp: number) => {
         // Spherical mercator; 156543.03392 is meters/pixel at zoom 0 on equator
@@ -525,7 +531,7 @@ export default function SearchPage() {
         const z = Math.log2((156543.03392 * Math.cos(latRad)) / denom);
         return z;
       };
-    
+
       // Compute zoom to fit a lat/lng span inside the viewport with padding
       const zoomToFitBounds = (
         centerLat: number,
@@ -542,16 +548,16 @@ export default function SearchPage() {
         const mPerDegLng = 111320 * Math.cos(toRad(centerLat));
         const spanM_Lat = Math.max(0, latSpanDeg) * mPerDegLat;
         const spanM_Lng = Math.max(0, lngSpanDeg) * mPerDegLng;
-    
+
         // Required meters-per-pixel in each axis to fit
         const mppX = spanM_Lng / usableW;
         const mppY = spanM_Lat / usableH;
-    
+
         // We must satisfy both; take the larger mpp (i.e., more zoomed out)
         const requiredMPP = Math.max(mppX, mppY, 0.5); // 0.5m/px floor to avoid ultra-close
         return zoomFromMPP(centerLat, requiredMPP);
       };
-    
+
       // Compute a city-context zoom around a single point (diameter in meters)
       const zoomForSinglePoint = (
         centerLat: number,
@@ -561,16 +567,16 @@ export default function SearchPage() {
         contextDiameterM: number
       ) => {
         const usableW = Math.max(1, widthPx - 2 * padPx);
-        heightPx=heightPx
+        heightPx = heightPx;
         // Use width to drive the "feel" (city context across width)
         const desiredMPP = contextDiameterM / usableW;
         return zoomFromMPP(centerLat, desiredMPP);
       };
-    
+
       // ---------- Defaults and map creation ----------
       const DEFAULT_CENTER = { lat: 37.7749, lng: -122.4194 }; // SF
       const DEFAULT_ZOOM = 12;
-    
+
       const map = new window.google.maps.Map(mapRef.current, {
         center: DEFAULT_CENTER,
         zoom: DEFAULT_ZOOM,
@@ -585,102 +591,136 @@ export default function SearchPage() {
         gestureHandling: "greedy",
       });
       googleMapRef.current = map;
-    
+
       // ---------- Compute zoom/center from data ----------
-      const widthPx = mapRef.current.clientWidth || mapRef.current.offsetWidth || 1024;
-      const heightPx = mapRef.current.clientHeight || mapRef.current.offsetHeight || 768;
+      const widthPx =
+        mapRef.current.clientWidth || mapRef.current.offsetWidth || 1024;
+      const heightPx =
+        mapRef.current.clientHeight || mapRef.current.offsetHeight || 768;
       const padPx = Math.round(Math.min(widthPx, heightPx) * 0.08); // ~8% padding (40–120px typical)
-    
+
       if (searchResults.length > 0) {
         const bounds = new google.maps.LatLngBounds();
         for (const p of searchResults) {
           bounds.extend(new window.google.maps.LatLng(p.lat, p.lng));
         }
-    
+
         const center = bounds.getCenter();
         const centerLat = center.lat();
         const centerLng = center.lng();
         map.setCenter({ lat: centerLat, lng: centerLng });
-    
+
         const ne = bounds.getNorthEast();
         const sw = bounds.getSouthWest();
-    
+
         // Degree spans (handle potential negatives if bounds cross dateline – unlikely for city use)
         let latSpanDeg = ne.lat() - sw.lat();
         let lngSpanDeg = ne.lng() - sw.lng();
         if (lngSpanDeg < 0) lngSpanDeg += 360; // antimeridian safety
-    
+
         // For a single point, show broader area context (zoomed out more)
         if (searchResults.length === 1) {
           // 15km diameter shows broader area context - zoomed out more for single home
           const AREA_DIAMETER_M = 15000;
-          let z = zoomForSinglePoint(centerLat, widthPx, heightPx, padPx, AREA_DIAMETER_M);
-    
+          let z = zoomForSinglePoint(
+            centerLat,
+            widthPx,
+            heightPx,
+            padPx,
+            AREA_DIAMETER_M
+          );
+
           // Clamp to prevent too close zoom only
           const MAX_Z = 14; // prevent too close zoom
           z = Math.min(MAX_Z, z); // No minimum zoom limit - can zoom out as far as needed
           map.setZoom(Math.round(z));
-          console.log(`🔍 ZOOM(single): target area diameter=${AREA_DIAMETER_M}m -> z≈${z.toFixed(2)}`);
+          console.log(
+            `🔍 ZOOM(single): target area diameter=${AREA_DIAMETER_M}m -> z≈${z.toFixed(
+              2
+            )}`
+          );
         } else {
           // Multi-point: compute zoom from actual spans, zoom in more for better detail
-          let z = zoomToFitBounds(centerLat, latSpanDeg, lngSpanDeg, widthPx, heightPx, padPx);
-    
+          let z = zoomToFitBounds(
+            centerLat,
+            latSpanDeg,
+            lngSpanDeg,
+            widthPx,
+            heightPx,
+            padPx
+          );
+
           const diagMeters = haversine(ne.lat(), ne.lng(), sw.lat(), sw.lng());
-          
+
           // For multiple homes, especially 3 homes, zoom in more for better detail
           if (searchResults.length <= 3) {
             z += 1.5; // Zoom in significantly more for 2-3 homes
-            console.log(`🔍 ZOOM(few-homes): ${searchResults.length} homes, zooming in +1.5 levels for detail`);
+            console.log(
+              `🔍 ZOOM(few-homes): ${searchResults.length} homes, zooming in +1.5 levels for detail`
+            );
           } else {
             z += 0.5; // Moderate zoom in for 4+ homes
-            console.log(`🔍 ZOOM(many-homes): ${searchResults.length} homes, zooming in +0.5 levels`);
+            console.log(
+              `🔍 ZOOM(many-homes): ${searchResults.length} homes, zooming in +0.5 levels`
+            );
           }
-    
+
           // Tight-cluster handling: if very close together, zoom in even more
           const TIGHT_CLUSTER_KM = 2_000;
           if (diagMeters > 0 && diagMeters < TIGHT_CLUSTER_KM) {
             z += 0.8;
-            console.log(`🔍 ZOOM(tight-cluster): very tight cluster diag=${Math.round(diagMeters)}m -> +0.8 more`);
+            console.log(
+              `🔍 ZOOM(tight-cluster): very tight cluster diag=${Math.round(
+                diagMeters
+              )}m -> +0.8 more`
+            );
           }
-    
+
           // Guard against degenerate spans (identical coords)
           if ((latSpanDeg === 0 && lngSpanDeg === 0) || !isFinite(z)) {
             // Fall back to a focused view for multiple homes
             const FALLBACK_DIAMETER_M = 8000; // ~8km - focused for multiple homes
-            z = zoomForSinglePoint(centerLat, widthPx, heightPx, padPx, FALLBACK_DIAMETER_M);
+            z = zoomForSinglePoint(
+              centerLat,
+              widthPx,
+              heightPx,
+              padPx,
+              FALLBACK_DIAMETER_M
+            );
           }
-    
+
           // Clamp to prevent too close zoom only
-          const MAX_Z = 14;  // prevent too close zoom
+          const MAX_Z = 14; // prevent too close zoom
           z = Math.min(MAX_Z, z); // No minimum zoom limit - can zoom out as far as needed
           map.setZoom(Math.round(z));
-          console.log(
-            `🔍 ZOOM(multi): latSpan=${latSpanDeg.toFixed(4)}°, lngSpan=${lngSpanDeg.toFixed(4)}°, diag=${Math.round(diagMeters)}m -> z≈${z.toFixed(2)}`
-          );
         }
-      } else {
-        console.log("🔍 ZOOM: No search results; using fallback center/zoom");
       }
-    
+
       // ---------- Isochrone overlay logic (unchanged) ----------
       setTimeout(() => {
-        const fetcher = searchResults.length > 0 ? fetchIsochroneForMapOnly : fetchIsochronePolygon;
+        const fetcher =
+          searchResults.length > 0
+            ? fetchIsochroneForMapOnly
+            : fetchIsochronePolygon;
         fetcher()
           .then((data) => {
             if (data) {
               renderIsochronePolygon(data);
               renderImportantLocationMarkers(data);
             } else {
-              console.warn("⚠️ No isochrone data received, polygon will not be displayed");
+              console.warn(
+                "⚠️ No isochrone data received, polygon will not be displayed"
+              );
             }
           })
           .catch((error) => {
-            console.error("❌ Failed to fetch or render isochrone polygon:", error);
+            console.error(
+              "❌ Failed to fetch or render isochrone polygon:",
+              error
+            );
           });
       }, 100);
     };
-    
-    
 
     // Only initialize map after localStorage loading is complete
     if (isLocalStorageLoaded) {
@@ -1094,45 +1134,43 @@ export default function SearchPage() {
         isochroneData.individual_isochrones &&
         Array.isArray(isochroneData.individual_isochrones)
       ) {
-        isochroneData.individual_isochrones.forEach(
-          (individualData: any) => {
-            const geometry = individualData.isochrone?.geometry;
-            if (!geometry) return;
+        isochroneData.individual_isochrones.forEach((individualData: any) => {
+          const geometry = individualData.isochrone?.geometry;
+          if (!geometry) return;
 
-            let coordinates: number[][][] = [];
+          let coordinates: number[][][] = [];
 
-            if (geometry.type === "Polygon") {
-              coordinates = geometry.coordinates;
-            } else if (geometry.type === "MultiPolygon") {
-              coordinates = geometry.coordinates[0];
-            }
-
-            if (coordinates.length > 0) {
-              const paths = coordinates.map((ring: number[][]) => {
-                return ring.map((coord: number[]) => ({
-                  lat: coord[1],
-                  lng: coord[0],
-                }));
-              });
-
-              // Create individual polygon with gray styling
-              const individualPolygon = new google.maps.Polygon({
-                paths: paths,
-                strokeColor: "#888888", // Gray color
-                strokeOpacity: 0.6,
-                strokeWeight: 1,
-                fillColor: "transparent",
-                fillOpacity: 0,
-                clickable: false,
-              });
-
-              individualPolygon.setMap(googleMapRef.current);
-              if (!individualPolygonsRef.current)
-                individualPolygonsRef.current = [];
-              individualPolygonsRef.current.push(individualPolygon);
-            }
+          if (geometry.type === "Polygon") {
+            coordinates = geometry.coordinates;
+          } else if (geometry.type === "MultiPolygon") {
+            coordinates = geometry.coordinates[0];
           }
-        );
+
+          if (coordinates.length > 0) {
+            const paths = coordinates.map((ring: number[][]) => {
+              return ring.map((coord: number[]) => ({
+                lat: coord[1],
+                lng: coord[0],
+              }));
+            });
+
+            // Create individual polygon with gray styling
+            const individualPolygon = new google.maps.Polygon({
+              paths: paths,
+              strokeColor: "#888888", // Gray color
+              strokeOpacity: 0.6,
+              strokeWeight: 1,
+              fillColor: "transparent",
+              fillOpacity: 0,
+              clickable: false,
+            });
+
+            individualPolygon.setMap(googleMapRef.current);
+            if (!individualPolygonsRef.current)
+              individualPolygonsRef.current = [];
+            individualPolygonsRef.current.push(individualPolygon);
+          }
+        });
       }
 
       // Now render the main union isochrone
@@ -1156,7 +1194,6 @@ export default function SearchPage() {
           lat: coord[1], // latitude is second
           lng: coord[0], // longitude is first
         }));
-        console.log("🔄 Converted ring with", convertedRing.length, "points");
         return convertedRing;
       });
 
@@ -1202,132 +1239,143 @@ export default function SearchPage() {
   };
 
   // Render important location markers on the map (nubless, gapless bubbles)
-const renderImportantLocationMarkers = async (isochroneData: any) => {
-  if (!googleMapRef.current || !isochroneData?.center) {
-    console.warn("❌ Cannot render important location markers: map or data not available");
-    return;
-  }
-
-  // Clear existing markers + bubbles
-  importantMarkersRef.current.forEach((marker) => {
-    (marker as any)._bubble?.setMap(null);
-    marker.setMap(null);
-  });
-  importantMarkersRef.current = [];
-
-  // Build list of important locations
-  const importantLocations: Array<any> = [];
-  if (isochroneData.center) {
-    importantLocations.push({
-      name: isochroneData.center.name || "Primary Location",
-      address: isochroneData.center.address,
-      lat: isochroneData.center.lat,
-      lng: isochroneData.center.lng,
-      commute_tolerance: isochroneData.commute_tolerance || 30,
-    });
-  }
-  if (Array.isArray(isochroneData.locations)) {
-    isochroneData.locations.forEach((loc: any) => {
-      if (!loc?.address) return;
-      const dup = importantLocations.some((e) => e.address === loc.address);
-      if (!dup) {
-        importantLocations.push({
-          name: loc.name || "Important Location",
-          address: loc.address,
-          lat: loc.lat ?? null,
-          lng: loc.lng ?? null,
-          commute_tolerance: loc.commute_tolerance || 30,
-        });
-      }
-    });
-  }
-
-  // Small, always-visible bubble overlay (no nub, zero-gap)
-  class BubbleOverlay extends google.maps.OverlayView {
-    private div: HTMLDivElement;
-    private position: google.maps.LatLng | google.maps.LatLngLiteral;
-
-    constructor(position: google.maps.LatLng | google.maps.LatLngLiteral, contentHTML: string) {
-      super();
-      this.position = position;
-      this.div = document.createElement("div");
-      this.div.style.position = "absolute";
-      this.div.style.zIndex = "1100"; // above property overlays (yours use 1000)
-      // Place directly above the marker, no gap:
-      // translateX(-50%) centers horizontally; -100% puts top edge at marker point;
-      // extra -2px tucks it flush (tweak if your dot size changes)
-      this.div.style.transform = "translate(-50%, calc(-100% - 2px))";
-      this.div.style.pointerEvents = "auto";
-      this.div.innerHTML = contentHTML;
-    }
-
-    onAdd() {
-      const panes = this.getPanes();
-      panes?.overlayMouseTarget.appendChild(this.div);
-    }
-
-    draw() {
-      const projection = this.getProjection();
-      if (!projection) return;
-      const pt = projection.fromLatLngToDivPixel(
-        this.position instanceof google.maps.LatLng ? this.position : new google.maps.LatLng(this.position)
+  const renderImportantLocationMarkers = async (isochroneData: any) => {
+    if (!googleMapRef.current || !isochroneData?.center) {
+      console.warn(
+        "❌ Cannot render important location markers: map or data not available"
       );
-      if (!pt) return;
-      this.div.style.left = `${pt.x}px`;
-      this.div.style.top = `${pt.y}px`;
+      return;
     }
 
-    onRemove() {
-      this.div.remove();
+    // Clear existing markers + bubbles
+    importantMarkersRef.current.forEach((marker) => {
+      (marker as any)._bubble?.setMap(null);
+      marker.setMap(null);
+    });
+    importantMarkersRef.current = [];
+
+    // Build list of important locations
+    const importantLocations: Array<any> = [];
+    if (isochroneData.center) {
+      importantLocations.push({
+        name: isochroneData.center.name || "Primary Location",
+        address: isochroneData.center.address,
+        lat: isochroneData.center.lat,
+        lng: isochroneData.center.lng,
+        commute_tolerance: isochroneData.commute_tolerance || 30,
+      });
     }
-  }
-
-  const markers: google.maps.Marker[] = [];
-  const geocoder = new google.maps.Geocoder();
-
-  for (let i = 0; i < importantLocations.length; i++) {
-    const loc = importantLocations[i];
-    const name = loc.name ?? "Important Location";
-    const address = loc.address;
-
-    if (!address) {
-      console.warn("⚠️ Skipping location without address:", name);
-      continue;
+    if (Array.isArray(isochroneData.locations)) {
+      isochroneData.locations.forEach((loc: any) => {
+        if (!loc?.address) return;
+        const dup = importantLocations.some((e) => e.address === loc.address);
+        if (!dup) {
+          importantLocations.push({
+            name: loc.name || "Important Location",
+            address: loc.address,
+            lat: loc.lat ?? null,
+            lng: loc.lng ?? null,
+            commute_tolerance: loc.commute_tolerance || 30,
+          });
+        }
+      });
     }
 
-    // Resolve coordinates
-    let position: google.maps.LatLng | google.maps.LatLngLiteral | null = null;
-    if (typeof loc.lat === "number" && typeof loc.lng === "number") {
-      position = { lat: loc.lat, lng: loc.lng };
-    } else {
-      const geocode = await geocoder.geocode({ address });
-      if (geocode.results?.length) {
-        position = geocode.results[0].geometry.location;
+    // Small, always-visible bubble overlay (no nub, zero-gap)
+    class BubbleOverlay extends google.maps.OverlayView {
+      private div: HTMLDivElement;
+      private position: google.maps.LatLng | google.maps.LatLngLiteral;
+
+      constructor(
+        position: google.maps.LatLng | google.maps.LatLngLiteral,
+        contentHTML: string
+      ) {
+        super();
+        this.position = position;
+        this.div = document.createElement("div");
+        this.div.style.position = "absolute";
+        this.div.style.zIndex = "1100"; // above property overlays (yours use 1000)
+        // Place directly above the marker, no gap:
+        // translateX(-50%) centers horizontally; -100% puts top edge at marker point;
+        // extra -2px tucks it flush (tweak if your dot size changes)
+        this.div.style.transform = "translate(-50%, calc(-100% - 2px))";
+        this.div.style.pointerEvents = "auto";
+        this.div.innerHTML = contentHTML;
+      }
+
+      onAdd() {
+        const panes = this.getPanes();
+        panes?.overlayMouseTarget.appendChild(this.div);
+      }
+
+      draw() {
+        const projection = this.getProjection();
+        if (!projection) return;
+        const pt = projection.fromLatLngToDivPixel(
+          this.position instanceof google.maps.LatLng
+            ? this.position
+            : new google.maps.LatLng(this.position)
+        );
+        if (!pt) return;
+        this.div.style.left = `${pt.x}px`;
+        this.div.style.top = `${pt.y}px`;
+      }
+
+      onRemove() {
+        this.div.remove();
       }
     }
-    if (!position) {
-      console.warn(`⚠️ Could not resolve coordinates for ${name}: ${address}`);
-      continue;
-    }
 
-    const isFirst = i === 0;
-    const marker = new google.maps.Marker({
-      position,
-      map: googleMapRef.current!,
-      title: `${name}${isFirst ? " (Commute Center)" : ""}`,
-      icon: {
-        path: google.maps.SymbolPath.CIRCLE,
-        fillColor: isFirst ? "#7B9E7C" : "#E8A87C",
-        fillOpacity: 0.9,
-        strokeColor: "#ffffff",
-        strokeWeight: 1,
-        scale: isFirst ? 6 : 4,
-      },
-      zIndex: 10,
-    });
+    const markers: google.maps.Marker[] = [];
+    const geocoder = new google.maps.Geocoder();
 
-    const commuteTime = loc.commute_tolerance ?? isochroneData.commute_tolerance ?? 30;
-    const bubbleHTML = `
+    for (let i = 0; i < importantLocations.length; i++) {
+      const loc = importantLocations[i];
+      const name = loc.name ?? "Important Location";
+      const address = loc.address;
+
+      if (!address) {
+        console.warn("⚠️ Skipping location without address:", name);
+        continue;
+      }
+
+      // Resolve coordinates
+      let position: google.maps.LatLng | google.maps.LatLngLiteral | null =
+        null;
+      if (typeof loc.lat === "number" && typeof loc.lng === "number") {
+        position = { lat: loc.lat, lng: loc.lng };
+      } else {
+        const geocode = await geocoder.geocode({ address });
+        if (geocode.results?.length) {
+          position = geocode.results[0].geometry.location;
+        }
+      }
+      if (!position) {
+        console.warn(
+          `⚠️ Could not resolve coordinates for ${name}: ${address}`
+        );
+        continue;
+      }
+
+      const isFirst = i === 0;
+      const marker = new google.maps.Marker({
+        position,
+        map: googleMapRef.current!,
+        title: `${name}${isFirst ? " (Commute Center)" : ""}`,
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          fillColor: isFirst ? "#7B9E7C" : "#E8A87C",
+          fillOpacity: 0.9,
+          strokeColor: "#ffffff",
+          strokeWeight: 1,
+          scale: isFirst ? 6 : 4,
+        },
+        zIndex: 10,
+      });
+
+      const commuteTime =
+        loc.commute_tolerance ?? isochroneData.commute_tolerance ?? 30;
+      const bubbleHTML = `
       <div style="
         padding: 3px 6px;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -1348,22 +1396,21 @@ const renderImportantLocationMarkers = async (isochroneData: any) => {
       </div>
     `;
 
-    const bubble = new BubbleOverlay(
-      position instanceof google.maps.LatLng ? position : new google.maps.LatLng(position),
-      bubbleHTML
-    );
-    bubble.setMap(googleMapRef.current!);
+      const bubble = new BubbleOverlay(
+        position instanceof google.maps.LatLng
+          ? position
+          : new google.maps.LatLng(position),
+        bubbleHTML
+      );
+      bubble.setMap(googleMapRef.current!);
 
-    (marker as any)._bubble = bubble;
-    markers.push(marker);
-  }
+      (marker as any)._bubble = bubble;
+      markers.push(marker);
+    }
 
-  importantMarkersRef.current = markers;
-  setImportantLocationMarkers(markers);
-  console.log(`✅ Successfully created ${markers.length} important location markers (custom bubbles)`);
-};
-
-  
+    importantMarkersRef.current = markers;
+    setImportantLocationMarkers(markers);
+  };
 
   // Load saved homes from user's favorite_home_ids on component mount
   useEffect(() => {
@@ -1399,36 +1446,49 @@ const renderImportantLocationMarkers = async (isochroneData: any) => {
 
         // Step 4: Convert HomeUniversal objects to SearchResult format (same as UserDashboard)
         if (rawHomes.length > 0) {
-
           const savedHomesData: SearchResult[] = await Promise.all(
             rawHomes.map(async (home: any, index: number) => {
               let lat = home.lat;
               let lng = home.lng;
-              
+
               // If coordinates are missing, geocode the address
               if (!lat || !lng) {
                 console.log(`🔍 Geocoding saved home address: ${home.address}`);
                 try {
                   const geocoder = new google.maps.Geocoder();
-                  const geocodeResponse = await geocoder.geocode({ address: home.address });
-                  
-                  if (geocodeResponse.results && geocodeResponse.results.length > 0) {
-                    const location = geocodeResponse.results[0].geometry.location;
+                  const geocodeResponse = await geocoder.geocode({
+                    address: home.address,
+                  });
+
+                  if (
+                    geocodeResponse.results &&
+                    geocodeResponse.results.length > 0
+                  ) {
+                    const location =
+                      geocodeResponse.results[0].geometry.location;
                     lat = location.lat();
                     lng = location.lng();
-                    console.log(`✅ Geocoded ${home.address} to:`, { lat, lng });
+                    console.log(`✅ Geocoded ${home.address} to:`, {
+                      lat,
+                      lng,
+                    });
                   } else {
-                    console.warn(`⚠️ Could not geocode ${home.address}, using fallback coordinates`);
+                    console.warn(
+                      `⚠️ Could not geocode ${home.address}, using fallback coordinates`
+                    );
                     lat = 33.749; // Atlanta fallback
                     lng = -84.388;
                   }
                 } catch (error) {
-                  console.error(`❌ Geocoding error for ${home.address}:`, error);
+                  console.error(
+                    `❌ Geocoding error for ${home.address}:`,
+                    error
+                  );
                   lat = 33.749; // Atlanta fallback
                   lng = -84.388;
                 }
               }
-              
+
               return {
                 id: home.address || `saved_${index + 1}`,
                 address: home.address || "Address not available",
@@ -1488,64 +1548,37 @@ const renderImportantLocationMarkers = async (isochroneData: any) => {
   // Adaptive zoom function to fit all housing markers
   const fitMapToMarkers = (properties: SearchResult[]) => {
     if (!googleMapRef.current || properties.length === 0) {
-      console.log("🔍 ZOOM: Cannot fit markers - no map or properties", {
-        hasMap: !!googleMapRef.current,
-        propertyCount: properties.length
-      });
       return;
     }
 
-    console.log("🔍 ZOOM: Starting adaptive zoom for", properties.length, "properties");
-
     const bounds = new google.maps.LatLngBounds();
-    
+
     // Add all property locations to bounds
-    properties.forEach((property, index) => {
+    properties.forEach((property) => {
       bounds.extend(new google.maps.LatLng(property.lat, property.lng));
-      if (index < 3) { // Log first 3 for debugging
-        console.log(`🔍 ZOOM: Added property ${index + 1}:`, {
-          address: property.address,
-          lat: property.lat,
-          lng: property.lng
-        });
-      }
     });
 
-    const boundsNE = bounds.getNorthEast();
-    const boundsSW = bounds.getSouthWest();
-    console.log("🔍 ZOOM: Calculated bounds:", {
-      northeast: { lat: boundsNE.lat(), lng: boundsNE.lng() },
-      southwest: { lat: boundsSW.lat(), lng: boundsSW.lng() }
-    });
-
-    // Fit the map to show all markers with padding
     googleMapRef.current.fitBounds(bounds, {
       top: 50,
       right: 50,
       bottom: 50,
       left: 320, // Extra padding for sidebar
     });
-
-    console.log("🔍 ZOOM: Applied fitBounds with padding");
-
     // Set reasonable zoom limits
-    const listener = google.maps.event.addListener(googleMapRef.current, 'bounds_changed', () => {
-      const currentZoom = googleMapRef.current!.getZoom();
-      console.log("🔍 ZOOM: Bounds changed, current zoom:", currentZoom);
-      
-      if (currentZoom && currentZoom > 16) {
-        console.log("🔍 ZOOM: Limiting max zoom from", currentZoom, "to 16");
-        googleMapRef.current!.setZoom(16); // Max zoom for readability
-      } else if (currentZoom && currentZoom < 10) {
-        console.log("🔍 ZOOM: Limiting min zoom from", currentZoom, "to 10");
-        googleMapRef.current!.setZoom(10); // Min zoom to avoid being too far out
-      } else {
-        console.log("🔍 ZOOM: Zoom level", currentZoom, "is within acceptable range (10-16)");
+    const listener = google.maps.event.addListener(
+      googleMapRef.current,
+      "bounds_changed",
+      () => {
+        const currentZoom = googleMapRef.current!.getZoom();
+
+        if (currentZoom && currentZoom > 16) {
+          googleMapRef.current!.setZoom(16); // Max zoom for readability
+        } else if (currentZoom && currentZoom < 10) {
+          googleMapRef.current!.setZoom(10); // Min zoom to avoid being too far out
+        }
+        google.maps.event.removeListener(listener);
       }
-      
-      google.maps.event.removeListener(listener);
-      console.log("🔍 ZOOM: Adaptive zoom complete");
-    });
+    );
   };
 
   // Update map markers
@@ -1775,10 +1808,7 @@ const renderImportantLocationMarkers = async (isochroneData: any) => {
 
     // Fit map to show all housing markers with adaptive zoom
     if (results.length > 0) {
-      console.log("🔍 ZOOM: Triggering adaptive zoom for", results.length, "markers");
       fitMapToMarkers(results);
-    } else {
-      console.log("🔍 ZOOM: No markers to fit - skipping adaptive zoom");
     }
   };
   const saveHome = async (property: SearchResult) => {
@@ -1895,10 +1925,7 @@ const renderImportantLocationMarkers = async (isochroneData: any) => {
     if (googleMapRef.current) {
       const currentZoom = googleMapRef.current.getZoom() || 12;
       const newZoom = currentZoom + 1;
-      console.log("🔍 ZOOM: Manual zoom in from", currentZoom, "to", newZoom);
       googleMapRef.current.setZoom(newZoom);
-    } else {
-      console.log("🔍 ZOOM: Cannot zoom in - map not available");
     }
   };
 
@@ -1906,10 +1933,7 @@ const renderImportantLocationMarkers = async (isochroneData: any) => {
     if (googleMapRef.current) {
       const currentZoom = googleMapRef.current.getZoom() || 12;
       const newZoom = currentZoom - 1;
-      console.log("🔍 ZOOM: Manual zoom out from", currentZoom, "to", newZoom);
       googleMapRef.current.setZoom(newZoom);
-    } else {
-      console.log("🔍 ZOOM: Cannot zoom out - map not available");
     }
   };
 

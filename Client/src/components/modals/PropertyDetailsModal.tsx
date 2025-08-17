@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CheckCircle, AlertTriangle, MapPin, GraduationCap, Shield, ExternalLink, Star, Home, User, Phone } from 'lucide-react';
-import HeartSave from './HeartSave';
+import HeartSave from '../ui/HeartSave';
 
 // Import SearchResult interface from SearchPage
 interface SearchResult {
@@ -320,7 +320,6 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({ property, o
   const getPropertyImages = () => {
     // First priority: extracted images from API response
     if (property.images && Array.isArray(property.images) && property.images.length > 0) {
-      console.log('🖼️ [MODAL] Using extracted images from API:', property.images.length);
       return property.images;
     }
     
@@ -690,10 +689,7 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({ property, o
 
                 {/* Neighborhood Overview */}
                 {(() => {
-                  console.log('🔍 [FRONTEND] Full property object:', property);
-                  console.log('🔍 [FRONTEND] Property analysis:', property.property_analysis);
-                  console.log('🔍 [FRONTEND] Neighborhood overview data:', (property.property_analysis as any)?.neighborhood_overview);
-                  console.log('🔍 [FRONTEND] Neighborhood overview exists:', !!(property.property_analysis as any)?.neighborhood_overview);
+                
                   return null;
                 })()}
                 {(property.property_analysis as any)?.neighborhood_overview && (

@@ -365,18 +365,13 @@ def get_property_via_address():
         "Accept": "application/json",
     }
 
-    current_app.logger.info(f"🏠 [PROPERTY] GET {url} params={params}")
     r = requests.get(url, headers=headers, params=params, timeout=20)
-    current_app.logger.info(f"🏠 [PROPERTY] status={r.status_code}")
 
     if not r.ok:
         return jsonify({"success": False, "error": "RAPIDAPI_ERROR",
                         "status_code": r.status_code, "details": r.text[:800]}), r.status_code
 
     data = r.json()
-    # Optional: log shape to help the client pick fields
-    if isinstance(data, dict):
-        current_app.logger.info(f"🏠 [PROPERTY] keys={list(data.keys())[:12]}")
 
     # Enhanced: Add commute map visualization data
     commute_data = {}
@@ -415,9 +410,7 @@ def get_property_via_address():
                 
                 if isinstance(locations_data, list):
                     important_locations = locations_data
-                
-                current_app.logger.info(f"🗺️ [PROPERTY] Found {len(important_locations)} important locations for commute calculation")
-                
+                                
                 # Calculate travel times for each important location
                 travel_times = []
                 secondary_locations = []
@@ -443,7 +436,6 @@ def get_property_via_address():
                             'address': location_address
                         })
                         
-                        current_app.logger.info(f"🗺️ [PROPERTY] Travel time to {location_name}: {travel_time}")
                 
                 commute_data['travel_times'] = travel_times
                 
@@ -451,7 +443,6 @@ def get_property_via_address():
                 if secondary_locations:
                     try:
                         map_url = generate_static_map_url(property_address, secondary_locations, GOOGLE_MAPS_API_KEY)
-                        current_app.logger.info(f"🗺️ [PROPERTY] Generated commute map URL")
                     except Exception as e:
                         current_app.logger.error(f"🗺️ [PROPERTY] Error generating map URL: {e}")
                 
@@ -526,11 +517,8 @@ def get_property_via_address():
                         'gentrification_index': analysis_result.gentrification_index,
                         'roi_explanation': analysis_result.roi_explanation
                     }
-                    current_app.logger.info(f"✅ [PROPERTY] Successfully completed Perplexity analysis")
-                    current_app.logger.info(f"🔍 [PROPERTY] Returning property_analysis with keys: {list(property_analysis.keys())}")
-                    if 'neighborhood_overview' in property_analysis:
-                        current_app.logger.info(f"✅ [PROPERTY] neighborhood_overview being sent to frontend: {property_analysis['neighborhood_overview']}")
-                    else:
+                
+                    if not 'neighborhood_overview' in property_analysis:
                         current_app.logger.warning(f"⚠️ [PROPERTY] neighborhood_overview missing from response to frontend")
                 else:
                     current_app.logger.warning(f"⚠️ [PROPERTY] Perplexity analysis returned no results")
@@ -584,7 +572,6 @@ def get_property_via_address():
     zillow_api_images = []
     if zpid_val:
         try:
-            current_app.logger.info(f"🖼️ [PROPERTY] Fetching images from Zillow API for zpid: {zpid_val}")
             images_url = f"https://{RAPI_HOST}/images"
             images_params = {"zpid": zpid_val}
             images_headers = {
@@ -593,11 +580,9 @@ def get_property_via_address():
             }
             
             images_response = requests.get(images_url, headers=images_headers, params=images_params, timeout=10)
-            current_app.logger.info(f"🖼️ [PROPERTY] Images API status: {images_response.status_code}")
             
             if images_response.status_code == 200:
                 images_data = images_response.json()
-                current_app.logger.info(f"🖼️ [PROPERTY] Images API response keys: {list(images_data.keys()) if isinstance(images_data, dict) else 'not dict'}")
                 
                 # Extract image URLs from the response
                 if isinstance(images_data, dict):
@@ -614,10 +599,6 @@ def get_property_via_address():
                                             zillow_api_images.append(img_item[url_key])
                                             break
                 
-                current_app.logger.info(f"🖼️ [PROPERTY] Found {len(zillow_api_images)} images from Zillow API")
-            else:
-                current_app.logger.warning(f"🖼️ [PROPERTY] Images API failed with status {images_response.status_code}")
-                
         except Exception as e:
             current_app.logger.warning(f"🖼️ [PROPERTY] Failed to fetch images from Zillow API: {e}")
     
@@ -625,30 +606,19 @@ def get_property_via_address():
     image_features = None
     try:
         if zillow_api_images and len(zillow_api_images) > 0:
-            current_app.logger.info(f"🔍 [PROPERTY] Starting AI image feature extraction for {len(zillow_api_images)} images")
-            
+
             # Limit to first 5 images for cost efficiency
             images_to_analyze = zillow_api_images[:5]
-            current_app.logger.info(f"🔍 [PROPERTY] Analyzing first {len(images_to_analyze)} images for features")
-            
+
             # Extract features using OpenAI vision
             image_features = extract_and_clean_features(images_to_analyze)
             
-            if image_features:
-                current_app.logger.info(f"✅ [PROPERTY] Successfully extracted image features:")
-                current_app.logger.info(f"🔍 [PROPERTY] Raw features: {len(image_features.get('raw', []))} items")
-                current_app.logger.info(f"🔍 [PROPERTY] Clean features: {len(image_features.get('clean', []))} items")
-                current_app.logger.info(f"🔍 [PROPERTY] Clean features: {image_features.get('clean', [])}")
-            else:
-                current_app.logger.warning(f"⚠️ [PROPERTY] Image feature extraction returned no results")
-                
     except Exception as e:
         current_app.logger.error(f"🔍 [PROPERTY] Error during image feature extraction: {e}")
         # Don't fail the entire request if image analysis fails
         image_features = {'error': 'Failed to extract features from images'}
     
     features = extract_property_features(data)
-    current_app.logger.info(f"🏠 [PROPERTY] Features: {features}")
     # Include commute data, property analysis, and image features in response
     response_data = {
         "success": True, 
@@ -1266,14 +1236,7 @@ def search_properties_by_polygon():
                             redis_client.close()
                         except:
                             pass
-                
-                # Get top 5 scores for logging
-                top_scores = [prop.get('_score', 0) for prop in scored_properties[:5]]
-                scores_str = ', '.join([f"{score:.6f}" for score in top_scores])
-                current_app.logger.info(
-                    f"[POLYGON_SEARCH] ✅ Successfully scored {len(scored_properties)} properties. "
-                    f"Top scores: {scores_str}"
-                )
+
                 
             except Exception as e:
                 current_app.logger.error(f"[POLYGON_SEARCH] ⚠️ Home matching failed: {str(e)}")

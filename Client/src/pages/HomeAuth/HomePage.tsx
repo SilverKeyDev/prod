@@ -10,9 +10,9 @@ import {
   FolderLock,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import RippleBackground from "../../components/RippleBackground";
-import RippleBackgroundMobile from "../../components/RippleBackgroundMobile";
-import KeyLogo from "../../components/KeyLogo";
+import RippleBackground from "../../components/ui/RippleBackground";
+import RippleBackgroundMobile from "../../components/ui/RippleBackgroundMobile";
+import KeyLogo from "../../components/ui/KeyLogo";
 
 interface Suggestion {
   description: string;

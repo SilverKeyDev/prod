@@ -70,9 +70,7 @@ def generate_report_async(address, comparison_address, filename, document_id, us
                     for attempt in range(max_retries):
                         try:
                             db.session.commit()
-                            current_app.logger.info(
-                                f"✅ Successfully updated PDF document status to 'processed' for document_id: {document_id}"
-                            )
+
                             break  # Success, exit retry loop
                         except (OperationalError, DisconnectionError) as e:
                             current_app.logger.warning(f"🔄 Celery DB commit error on attempt {attempt + 1}/{max_retries}: {str(e)}")

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Mail, Lock, ArrowLeft } from "lucide-react";
 import { authApi } from "../../lib/api";
-import MiniLogo from "../../components/MiniLogo";
+import MiniLogo from "../../components/ui/MiniLogo";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");

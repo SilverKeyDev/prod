@@ -13,8 +13,8 @@ import {
   Target,
 } from "lucide-react";
 
-import Loading from "../../components/Loading";
-import PageHeader from "../../components/PageHeader";
+import Loading from "../../components/ui/Loading";
+import PageHeader from "../../components/ui/PageHeader";
 
 // Custom scrollbar styles matching CompareReportsPage
 const scrollbarStyles = `

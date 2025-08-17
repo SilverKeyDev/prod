@@ -36,9 +36,7 @@ def _download_json_from_s3(s3_key: str) -> Dict:
     buffer.seek(0)
     raw_json = buffer.read().decode("utf-8")
 
-    logger.debug(f"📄 Raw JSON ({len(raw_json)} bytes) for {s3_key}: {raw_json[:200]}...")
     parsed_data = json.loads(raw_json)
-    logger.debug(f"✅ Successfully parsed JSON for {s3_key}")
     return parsed_data
 
 

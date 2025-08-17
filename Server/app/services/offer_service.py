@@ -141,7 +141,6 @@ class OfferService:
                 data=result.get('data', {})
             )
             
-            logger.info(f"✅ Successfully generated {section_type} document {document_id}")
             return response, result.get('data')
             
         except Exception as e:

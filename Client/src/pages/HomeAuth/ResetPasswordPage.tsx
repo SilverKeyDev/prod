@@ -2,11 +2,11 @@ import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Mail, Lock, ArrowLeft, Key } from "lucide-react";
 import { authApi } from "../../lib/api";
-import SuccessDialog from "../../components/SuccessDialog";
+import SuccessDialog from "../../components/modals/SuccessDialog";
 import {
   PasswordValidation,
   usePasswordValidation,
-} from "../../components/PasswordValidation";
+} from "../../components/feedback/PasswordValidation";
 
 export default function ResetPasswordPage() {
   const [searchParams] = useSearchParams();

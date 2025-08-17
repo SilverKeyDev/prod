@@ -17,11 +17,11 @@ import {
   useStripePayment,
   useStripePortal,
 } from "../../hooks/useStripePayment";
-import ErrorToast from "../../components/ErrorToast";
-import SuccessToast from "../../components/SuccessToast";
+import ErrorToast from "../../components/feedback/ErrorToast";
+import SuccessToast from "../../components/feedback/SuccessToast";
 import { useData } from "../../contexts/DataContext";
-import Loading from "../../components/Loading";
-import PageHeader from "../../components/PageHeader";
+import Loading from "../../components/ui/Loading";
+import PageHeader from "../../components/ui/PageHeader";
 
 interface Plan {
   id: string;

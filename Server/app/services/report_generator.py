@@ -247,10 +247,6 @@ def _normalize_rating_value(value, field_name):
 
 def _safe_parse_json(text: str, report_customization: dict = None) -> dict:
     try:
-        logger.debug("🔧 Attempting to parse model output as structured JSON")
-        logger.debug(f"📝 Raw model output (first 500 chars): {text[:500]}...")
-        logger.info(f"🎛️ Report customization passed to FullReport: {json.dumps(report_customization, indent=2) if report_customization else 'None'}")
-
         # Strip any non-JSON hallucinated wrappers just in case
         cleaned = re.sub(r'(<think>.*?</think>|&lt;think&gt;.*?&lt;/think&gt;)', '', text, flags=re.DOTALL | re.IGNORECASE).strip()
         cleaned = cleaned.replace("“", '"').replace("”", '"').replace("’", "'")
@@ -268,11 +264,9 @@ def _safe_parse_json(text: str, report_customization: dict = None) -> dict:
 
 
         # Remove empty fields (empty strings, null, empty arrays)
-        logger.info("🧹 CLEANUP: Removing empty fields...")
         parsed = _remove_empty_fields(parsed)
         
         # Return the successfully parsed and cleaned JSON
-        logger.info(f"✅ Successfully parsed and cleaned JSON with {len(parsed) if isinstance(parsed, dict) else 'non-dict'} keys")
         return parsed
 
     except Exception as e:

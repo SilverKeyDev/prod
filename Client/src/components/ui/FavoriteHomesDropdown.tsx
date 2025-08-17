@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { apiRequest } from "../lib/api";
+import { apiRequest } from "../../lib/api";
 import { ChevronDown, Home } from "lucide-react";
 
 interface FavoriteHome {

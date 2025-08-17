@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiRequest, favoriteHomesApi } from "../lib/api";
-import DocumentCard, { DocumentData } from "../components/DocumentCard";
-import Carousel from "../components/Carousel";
-import TimelineChecklist from "../components/TimelineChecklist";
-import HomeCard, { HomeDescription } from "../components/HomeCard";
-import PageHeader from "../components/PageHeader";
+import DocumentCard, { DocumentData } from "../components/cards/DocumentCard";
+import Carousel from "../components/ui/Carousel";
+import TimelineChecklist from "../components/ui/TimelineChecklist";
+import HomeCard, { HomeDescription } from "../components/cards/HomeCard";
+import PageHeader from "../components/ui/PageHeader";
 
 /*import PriceDropCard from "../components/PriceDropCard";
 import NewMatchCard from "../components/NewMatchCard";
@@ -21,8 +21,7 @@ const newMatches = [
 
 ]; */
 
-import { handleViewPdf } from "../lib/pdfInteractions";
-import PdfModal from "../components/PdfModal";
+// Removed unused imports: handleViewPdf, PdfModal
 
 export default function UserDashboard() {
   const navigate = useNavigate();
@@ -33,13 +32,6 @@ export default function UserDashboard() {
   const [docsLoading, setDocsLoading] = useState(true);
   const [favError, setFavError] = useState<string | null>(null);
   const [docsError, setDocsError] = useState<string | null>(null);
-
-  // State for PDF viewing modal
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalPdfUrl, setModalPdfUrl] = useState<string | null>(null);
-  const [modalReportAddress, setModalReportAddress] = useState<string | null>(
-    null
-  );
 
   // Helper function to check if a home is saved
   const isHomeSaved = (homeId: string): boolean => {
@@ -197,41 +189,15 @@ export default function UserDashboard() {
             error={docsError}
             emptyMessage="Create your first document today"
             renderItem={(doc) => {
-              // Convert DocumentData to PdfReport shape (align with PastReports)
-              const pdfReport = {
-                id: doc.id,
-                address: doc.address || doc.filename || "",
-                pdfUrl: undefined, // Not pre-fetched
-                s3Key: doc.file_path || undefined,
-              };
-
               return (
                 <DocumentCard
                   doc={doc}
-                  onView={async () => {
-                    await handleViewPdf(pdfReport, (pdfUrl, reportAddress) => {
-                      setModalPdfUrl(pdfUrl);
-                      setModalReportAddress(
-                        reportAddress || doc.address || doc.filename || ""
-                      );
-                      setModalOpen(true);
-                    });
-                  }}
                 />
               );
             }}
             getItemKey={(doc) => doc.id}
           />
         </div>
-
-        {/* PDF Modal for viewing */}
-        {modalOpen && modalPdfUrl && (
-          <PdfModal
-            currentPdf={modalPdfUrl}
-            currentReportAddress={modalReportAddress}
-            onClose={() => setModalOpen(false)}
-          />
-        )}
       </div>
     </div>
   );

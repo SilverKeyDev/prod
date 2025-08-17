@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
-import FavoriteHomesDropdown from "../../components/FavoriteHomesDropdown";
-import PageHeader from "../../components/PageHeader";
+import FavoriteHomesDropdown from "../../components/ui/FavoriteHomesDropdown";
+import PageHeader from "../../components/ui/PageHeader";
 import {
   FileText,
   CreditCard,

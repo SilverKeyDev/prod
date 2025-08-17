@@ -10,7 +10,7 @@ import { apiRequest, favoriteHomesApi } from "../lib/api";
 import { formatFilenameToAddress } from "../lib/addressFormat";
 
 // Types
-interface Report {
+export interface Report {
   id: string;
   address: string;
   generatedAt: Date;

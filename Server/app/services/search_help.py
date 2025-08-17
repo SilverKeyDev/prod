@@ -95,18 +95,11 @@ def extract_features_from_images(image_urls: List[str]) -> List[str]:
     """
     if not image_urls:
         return []
-    
-    # Process all images, not just first 5
-    total_images = len(image_urls)
-    logger.info(f"🔍 [FEATURE_EXTRACTION] Processing {total_images} images concurrently")
-    
     # Split images into batches of 5 for API efficiency (vision API works better with smaller batches)
     batch_size = 5
     batches = [image_urls[i:i + batch_size] for i in range(0, len(image_urls), batch_size)]
     total_batches = len(batches)
-    
-    logger.info(f"🔍 [FEATURE_EXTRACTION] Created {total_batches} batches of up to {batch_size} images each")
-    
+        
     all_features = []
     
     # Use ThreadPoolExecutor for concurrent processing
@@ -123,12 +116,8 @@ def extract_features_from_images(image_urls: List[str]) -> List[str]:
             try:
                 batch_features = future.result()
                 all_features.extend(batch_features)
-                logger.info(f"🔍 [BATCH {batch_num}] Completed - {len(batch_features)} features extracted")
             except Exception as e:
                 logger.error(f"🔍 [BATCH {batch_num}] Failed with error: {str(e)}")
-    
-    logger.info(f"🔍 [FEATURE_EXTRACTION] ✅ Completed processing {total_images} images")
-    logger.info(f"🔍 [FEATURE_EXTRACTION] Total raw features extracted: {len(all_features)}")
     
     return all_features
 
@@ -598,19 +587,13 @@ def analyze_property_with_sonar_pro(user_preferences: Dict[str, Any], home_objec
         # Make API request with retry logic
         max_retries = 3
         for attempt in range(max_retries):
-            try:
-                logger.info(f"🏠 Making Perplexity Sonar Pro request for property analysis (attempt {attempt + 1}/{max_retries})")
-                start_time = time.perf_counter()
-                
+            try:                
                 response = requests.post(
                     PERPLEXITY_URL,
                     headers=PERPLEXITY_HEADERS,
                     json=payload,
                     timeout=60
                 )
-                
-                duration = time.perf_counter() - start_time
-                logger.info(f"📊 Perplexity API response: HTTP {response.status_code} in {duration:.2f}s")
                 
                 if response.status_code == 200:
                     response_data = response.json()
@@ -630,28 +613,18 @@ def analyze_property_with_sonar_pro(user_preferences: Dict[str, Any], home_objec
                         elif content.startswith('```'):
                             content = content.replace('```', '').strip()
                         
-                        logger.info(f"🔍 [PERPLEXITY] Raw response content: {content}")
-                        
                         analysis_data = json.loads(content)
-                        logger.info(f"🔍 [PERPLEXITY] Parsed JSON keys: {list(analysis_data.keys())}")
                         
                         # Check specifically for neighborhood_overview
-                        if 'neighborhood_overview' in analysis_data:
-                            logger.info(f"✅ [PERPLEXITY] Found neighborhood_overview: {analysis_data['neighborhood_overview']}")
-                        else:
+                        if not 'neighborhood_overview' in analysis_data:
                             logger.warning(f"⚠️ [PERPLEXITY] Missing neighborhood_overview in response")
                         
                         # Validate and create PropertyAnalysis object
                         property_analysis = PropertyAnalysis(**analysis_data)
-                        
-                        # Log what the PropertyAnalysis object contains
-                        logger.info(f"🔍 [PROPERTY_ANALYSIS] Created object with fields: {list(property_analysis.__dict__.keys())}")
-                        if hasattr(property_analysis, 'neighborhood_overview'):
-                            logger.info(f"✅ [PROPERTY_ANALYSIS] neighborhood_overview in object: {property_analysis.neighborhood_overview}")
-                        else:
+                       
+                        if not hasattr(property_analysis, 'neighborhood_overview'):
                             logger.warning(f"⚠️ [PROPERTY_ANALYSIS] neighborhood_overview missing from object")
                         
-                        logger.info(f"✅ Successfully analyzed property: {address}")
                         return property_analysis
                         
                     except json.JSONDecodeError as e:

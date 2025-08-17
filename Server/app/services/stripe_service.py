@@ -111,24 +111,12 @@ def handle_checkout_session(session):
             current_app.logger.error(f'[CHECKOUT] ❌ No user found with email: {customer_email}')
             return
 
-        current_app.logger.info(f"[CHECKOUT] 👤 Found user ID: {user.id}, email: {user.email}")
-
         plan_id = session.get('metadata', {}).get('plan_id', '5-reports')
-        current_app.logger.info(f"[CHECKOUT] 📦 Plan ID from metadata: {plan_id}")
-
-        reports_limit = {
-            'unlimited-monthly': -1,
-            'unlimited-yearly': -1
-        }.get(plan_id, 0)
-        current_app.logger.info(f"[CHECKOUT] 📊 Resolved reports_limit: {reports_limit}")
 
         subscription = Subscription.query.filter_by(user_id=user.id).first()
         if not subscription:
             subscription = Subscription(user_id=user.id, status='active')
             db.session.add(subscription)
-            current_app.logger.info(f"[CHECKOUT] 🆕 Created new subscription object for user {user.id}")
-        else:
-            current_app.logger.info(f"[CHECKOUT] 🔄 Updating existing subscription for user {user.id}")
 
         # For unlimited subscriptions, set user as agent and activate subscription
         user.is_agent = True
@@ -138,13 +126,6 @@ def handle_checkout_session(session):
             days=30 if interval == 'month' else 365
         )
         subscription.reports_limit = -1  # Set reports_limit for unlimited subscriptions
-        current_app.logger.info(
-            f"[CHECKOUT] 🎯 Set user as agent (is_agent=True) for subscription plan: {plan_id}"
-        )
-        current_app.logger.info(
-            f"[CHECKOUT] 📅 Set subscription period end to {subscription.current_period_end} "
-            f"(interval: {interval}, limit: {reports_limit})"
-        )
 
         # Set final subscription fields
         subscription.plan_id = plan_id
@@ -153,7 +134,6 @@ def handle_checkout_session(session):
         subscription.status = 'active'
 
         db.session.commit()
-        current_app.logger.info(f"[CHECKOUT] ✅ Successfully committed subscription changes for user {user.id}")
 
     except Exception as e:
         current_app.logger.error(f"[CHECKOUT] ❗ Error occurred: {str(e)}", exc_info=True)

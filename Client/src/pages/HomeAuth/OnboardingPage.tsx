@@ -32,11 +32,11 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import ImportantLocationsInput from "../../components/ImportantLocationsInput";
-import KeyLogo from "../../components/KeyLogo";
-import OliveCheckbox from "../../components/OliveCheckbox";
-import PriceRangeSlider from "../../components/PriceRangeSlider";
-import ValidationWarning from "../../components/ValidationWarning";
+import ImportantLocationsInput from "../../components/ui/ImportantLocationsInput";
+import KeyLogo from "../../components/ui/KeyLogo";
+import OliveCheckbox from "../../components/ui/OliveCheckbox";
+import PriceRangeSlider from "../../components/ui/PriceRangeSlider";
+import ValidationWarning from "../../components/feedback/ValidationWarning";
 
 // Extend window interface for Google Maps
 declare global {

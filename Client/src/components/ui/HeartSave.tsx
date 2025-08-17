@@ -34,10 +34,34 @@ const HeartSave: React.FC<HeartSaveProps> = ({
   const handleClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
     
-    if (isSaved) {
-      await onRemove(property.id);
-    } else {
-      await onSave(property);
+    try {
+      if (isSaved) {
+        console.log('❤️ [FAVORITES] Removing property from favorites:', {
+          propertyId: property.id,
+          address: property.address,
+          action: 'remove',
+          timestamp: new Date().toISOString()
+        });
+        await onRemove(property.id);
+        console.log('✅ [FAVORITES] Successfully removed property from favorites:', property.id);
+      } else {
+        console.log('❤️ [FAVORITES] Adding property to favorites:', {
+          propertyId: property.id,
+          address: property.address,
+          action: 'add',
+          timestamp: new Date().toISOString()
+        });
+        await onSave(property);
+        console.log('✅ [FAVORITES] Successfully added property to favorites:', property.id);
+      }
+    } catch (error) {
+      console.error('❌ [FAVORITES] Error updating favorites:', {
+        propertyId: property.id,
+        address: property.address,
+        action: isSaved ? 'remove' : 'add',
+        error: error,
+        timestamp: new Date().toISOString()
+      });
     }
   };
 

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Mail, ArrowLeft, RefreshCw } from "lucide-react";
 import { authApi } from "../../lib/api";
-import MiniLogo from "../../components/MiniLogo";
+import MiniLogo from "../../components/ui/MiniLogo";
 
 interface LocationState {
   email?: string;

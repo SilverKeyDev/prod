@@ -10,11 +10,11 @@ import {
   Settings,
   X,
 } from "lucide-react";
-import ErrorToast from "../../components/ErrorToast";
-import SuccessToast from "../../components/SuccessToast";
+import ErrorToast from "../../components/feedback/ErrorToast";
+import SuccessToast from "../../components/feedback/SuccessToast";
 import { useData } from "../../contexts/DataContext";
 import { formatFilenameToAddress } from "../../lib/addressFormat";
-import PageHeader from "../../components/PageHeader";
+import PageHeader from "../../components/ui/PageHeader";
 
 interface Report {
   id: string;

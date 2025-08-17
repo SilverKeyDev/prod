@@ -289,9 +289,18 @@ def list_reports():
                 if not file_name.endswith('.pdf'):
                     continue
 
+                # Try to find the corresponding database record to get the proper UUID
+                db_report = PDFDocument.query.filter(
+                    PDFDocument.user_id == user.id,
+                    PDFDocument.file_path == s3_key
+                ).first()
+                
+                # Use database ID if found, otherwise fall back to filename (for legacy reports)
+                report_id = db_report.id if db_report else file_name
+                
                 presigned_url = s3_service.generate_presigned_url(s3_key, download_filename=file_name)
                 reports_list.append({
-                    'id': file_name,
+                    'id': report_id,
                     'status': 'completed',
                     'generatedAt': int(obj["LastModified"].timestamp()),
                     'pdfUrl': presigned_url,
@@ -433,7 +442,7 @@ def get_download_url(report_id):
             logger.error(f"Report not found for ID: {report_id}")
             return jsonify({'error': 'Report not found'}), 404
 
-        pdf_url = report.pdf_url or report.file_path
+        pdf_url = report.file_path
         if not pdf_url:
             logger.error(f"PDF URL or S3 key missing for report: {report_id}")
             return jsonify({'error': 'PDF not found for this report'}), 404
@@ -480,9 +489,7 @@ def get_view_url(report_id):
             return jsonify({'error': 'Report ID is required'}), 400
 
         # Fetch report from DB
-        report = PDFDocument.query.filter(
-            func.lower(PDFDocument.file_path).like(f"%{report_id.lower()}")
-        ).first()
+        report = PDFDocument.query.filter_by(id=report_id).first()
         if not report:
             logger.error(f"Report not found for ID: {report_id}")
             return jsonify({'error': 'Report not found'}), 404
@@ -771,9 +778,7 @@ def get_user_documents():
                 'zip_code': getattr(doc, 'zip_code', None)
             }
             documents_data.append(doc_data)
-        
-        logger.info(f"✅ [USER_DOCUMENTS] Successfully retrieved {len(documents_data)} documents")
-        
+                
         return jsonify({
             'success': True,
             'documents': documents_data,

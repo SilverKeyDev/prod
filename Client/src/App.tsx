@@ -4,7 +4,7 @@ import LoginPage from "./pages/HomeAuth/LoginPage";
 import SignupPage from "./pages/HomeAuth/SignupPage";
 import ResetPasswordPage from "./pages/HomeAuth/ResetPasswordPage";
 import HomePage from "./pages/HomeAuth/HomePage.tsx";
-import Dashboard from "./components/Dashboard.tsx";
+import Dashboard from "./components/layout/Dashboard.tsx";
 import VerificationPage from "./pages/HomeAuth/VerificationPage";
 import OnboardingPage from "./pages/HomeAuth/OnboardingPage";
 import PrivacyPolicy from "./pages/HomeAuth/PrivacyPolicy.tsx";

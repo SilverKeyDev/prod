@@ -4,8 +4,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapPin, ChevronDown, Loader2, AlertCircle } from "lucide-react";
 import { useData } from "../../contexts/DataContext";
-import PageHeader from "../../components/PageHeader";
-import KeyTurnLoader from "../../components/KeyTurnLoader";
+import PageHeader from "../../components/ui/PageHeader";
+import KeyTurnLoader from "../../components/ui/KeyTurnLoader";
 
 declare global {
   interface Window {
@@ -457,9 +457,6 @@ export default function GenerateReportPage() {
       if ((window as any).pollForReportCompletion) {
         try {
           (window as any).pollForReportCompletion(documentId);
-          console.log(
-            `[GenerateReport] ✅ Successfully initiated polling for report: ${documentId}`
-          );
         } catch (pollingError) {
           console.error(
             `[GenerateReport] ❌ Error calling polling function:`,
@@ -483,13 +480,7 @@ export default function GenerateReportPage() {
 
           try {
             if ((window as any).pollForReportCompletion) {
-              console.log(
-                `[GenerateReport] ✅ Found polling function on retry ${retryCount}, starting polling`
-              );
               (window as any).pollForReportCompletion(documentId);
-              console.log(
-                `[GenerateReport] ✅ Successfully initiated polling for report: ${documentId}`
-              );
             } else if (retryCount < maxRetries) {
               console.log(
                 `[GenerateReport] ⏳ Polling function still not available, will retry in 500ms...`

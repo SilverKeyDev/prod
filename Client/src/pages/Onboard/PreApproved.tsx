@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import PageHeader from "../../components/PageHeader";
+import PageHeader from "../../components/ui/PageHeader";
 import { useData } from "../../contexts/DataContext";
 
 type FormData = {

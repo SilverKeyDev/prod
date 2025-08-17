@@ -1,19 +1,17 @@
 import { useState, useEffect, useCallback } from "react";
 import { favoriteHomesApi } from "../../lib/api";
-import HomeCard from "../../components/HomeCard";
-import PageHeader from "../../components/PageHeader";
-import ErrorToast from "../../components/ErrorToast";
+import HomeCard from "../../components/cards/HomeCard";
+import PageHeader from "../../components/ui/PageHeader";
+import ErrorToast from "../../components/feedback/ErrorToast";
 import { Search, RefreshCw, LayoutGrid, List } from "lucide-react";
 import { useData } from "../../contexts/DataContext";
-import { getPropertyDetailsByAddress } from "../../hooks/searchAddress";
-import PropertyDetailsModal from "../../components/PropertyDetailsModal";
+import PropertyDetailsModal from "../../components/modals/PropertyDetailsModal";
 
 export default function SavedHomes() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [searchTerm, setSearchTerm] = useState("");
   const [refreshing, setRefreshing] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState<any>(null);
-  const [loadingHomeId, setLoadingHomeId] = useState<string | null>(null);
 
   // Use DataContext for centralized data management (dashboard pattern)
   const { 
@@ -82,136 +80,56 @@ export default function SavedHomes() {
     }
   }, [homes, refreshSavedHomes]);
 
-  // Handle viewing property details - fetch additional data from backend
-  const handleViewPropertyDetails = useCallback(async (home: any) => {
-    console.log("🔍 ===== VIEW DETAILS CLICKED =====");
-    console.log("🔍 Timestamp:", new Date().toISOString());
-    console.log(
-      "🔍 Property data received:",
-      JSON.stringify(home, null, 2)
-    );
-    console.log("🔍 Property address:", home.address);
-    console.log(
-      "🔍 getPropertyDetailsByAddress function available:",
-      typeof getPropertyDetailsByAddress
-    );
-
-    // Set loading state for this specific home
-    setLoadingHomeId(home.home_id || home.id);
-
-    try {
-      console.log("🔍 Step 1: Starting detailed property information fetch...");
-      console.log("🔍 Home data structure:", {
-        home_id: home.home_id,
-        id: home.id,
-        address: home.address,
-        zpid: home.zpid
-      });
-      
-      // Determine the best parameter to use - prioritize zpid, then id, then home_id, then address
-      let zpidToUse = null;
-      let addressToUse = null;
-      
-      // Try to find a valid zpid (numeric value)
-      if (home.zpid && !isNaN(Number(home.zpid))) {
-        zpidToUse = home.zpid;
-      } else if (home.id && !isNaN(Number(home.id))) {
-        zpidToUse = home.id;
-      } else if (home.home_id && !isNaN(Number(home.home_id))) {
-        zpidToUse = home.home_id;
-      }
-      
-      // Use address as fallback if no valid zpid
-      if (home.address && typeof home.address === 'string' && home.address.trim()) {
-        addressToUse = home.address.trim();
-      }
-      
-      console.log(
-        "🔍 About to call getPropertyDetailsByAddress with zpid:",
-        zpidToUse,
-        "for address:",
-        addressToUse
-      );
-      
-      // Ensure we have at least one valid parameter
-      if (!zpidToUse && !addressToUse) {
-        throw new Error("No valid zpid or address found in saved home data");
-      }
-
-      // Call the searchAddress function to get detailed property information
-      const detailedPropertyData = await getPropertyDetailsByAddress(
-        zpidToUse, // Use best available zpid for exact match
-        addressToUse // Fallback address if zpid fails
-      );
-
-      console.log("✅ Step 2: Successfully received detailed property data");
-      console.log("✅ Detailed data type:", typeof detailedPropertyData);
-      console.log(
-        "✅ Detailed data keys:",
-        detailedPropertyData
-          ? Object.keys(detailedPropertyData)
-          : "null/undefined"
-      );
-      console.log(
-        "✅ Full detailed data:",
-        JSON.stringify(detailedPropertyData, null, 2)
-      );
-
-      // Update the selected property with the detailed data if available
-      console.log("🔄 Step 3: Merging property data...");
-      const enhancedProperty = {
-        ...home,
-        id: home.home_id, // Ensure id field is set for modal compatibility
-        ...detailedPropertyData, // Merge detailed data with existing property data
-      };
-
-      console.log("🔄 Enhanced property keys:", Object.keys(enhancedProperty));
-      console.log("🔄 Enhanced property sample fields:");
-      console.log("  - address:", enhancedProperty.address);
-      console.log("  - price:", enhancedProperty.price);
-      console.log("  - yearBuilt:", enhancedProperty.yearBuilt);
-      console.log("  - taxAnnualAmount:", enhancedProperty.taxAnnualAmount);
-      console.log("  - listed_by:", !!enhancedProperty.listed_by);
-      console.log("  - schools:", enhancedProperty.schools?.length || 0);
-
-      console.log("🔄 Step 4: Setting selected property in state...");
-      setSelectedProperty(enhancedProperty);
-      console.log("✅ ===== VIEW DETAILS COMPLETED SUCCESSFULLY =====");
-    } catch (error) {
-      console.error("❌ ===== VIEW DETAILS FAILED =====");
-      console.error("❌ Error fetching property details:", error);
-      console.error("❌ Error type:", typeof error);
-      console.error("❌ Error message:", (error as Error).message);
-      console.error("❌ Error stack:", (error as Error).stack);
-
-      // Fallback: use the original property data without detailed information
-      console.log("🔄 Using fallback: setting original property data");
-      const fallbackProperty = {
-        ...home,
-        id: home.home_id // Ensure id field is set for modal compatibility
-      };
-      setSelectedProperty(fallbackProperty);
-      console.log("⚠️ ===== VIEW DETAILS COMPLETED WITH FALLBACK =====");
-    } finally {
-      // Clear loading state regardless of success or failure
-      setLoadingHomeId(null);
-    }
-  }, []);
 
   // Check if a home is saved (for modal)
   const isHomeSavedForModal = useCallback((homeId: string) => {
-    return homes.some(home => home.home_id === homeId || home.id === homeId);
+    return homes.some(home => 
+      home.home_id === homeId || 
+      home.id === homeId || 
+      home.zpid === homeId ||
+      home.zpid?.toString() === homeId ||
+      home.home_id === homeId ||
+      home.address === homeId
+    );
   }, [homes]);
 
-  // Save home for modal
+  // Save home for modal - convert property to saved home format
   const saveHomeForModal = useCallback(async (property: any) => {
-    await saveHome(property);
+    // Convert the property object to the format expected by saveHome
+    const homeToSave = {
+      ...property,
+      home_id: property.id || property.zpid || property.home_id,
+      address: property.address,
+      price: property.price,
+      bedrooms: property.bedrooms,
+      bathrooms: property.bathrooms,
+      sqft: property.sqft,
+      lat: property.lat,
+      lng: property.lng,
+      image_url: property.images?.[0] || property.imageUrl,
+      description: property.description || property.address
+    };
+    await saveHome(homeToSave);
   }, [saveHome]);
 
-  // Remove saved home for modal
+  // Remove saved home for modal - handle different ID formats
   const removeSavedHomeForModal = useCallback(async (homeId: string) => {
-    await removeSavedHome(homeId);
-  }, [removeSavedHome]);
+    // Find the saved home by any matching ID format
+    const savedHome = homes.find(home => 
+      home.home_id === homeId || 
+      home.id === homeId || 
+      home.zpid === homeId ||
+      home.zpid?.toString() === homeId ||
+      home.address === homeId
+    );
+    
+    if (savedHome) {
+      await removeSavedHome(savedHome.home_id);
+    } else {
+      // Fallback: try to remove using the provided ID
+      await removeSavedHome(homeId);
+    }
+  }, [homes, removeSavedHome]);
 
   const filteredHomes = homes.filter(
     (h) =>
@@ -286,8 +204,6 @@ export default function SavedHomes() {
               isHomeSaved={isHomeSaved}
               onSave={saveHome}
               onRemove={removeSavedHome}
-              onViewDetails={handleViewPropertyDetails}
-              isLoadingDetails={loadingHomeId === (home.home_id || home.id)}
             />
           ))}
         </div>
@@ -300,8 +216,6 @@ export default function SavedHomes() {
               isHomeSaved={isHomeSaved}
               onSave={saveHome}
               onRemove={removeSavedHome}
-              onViewDetails={handleViewPropertyDetails}
-              isLoadingDetails={loadingHomeId === (home.home_id || home.id)}
             />
           ))}
         </ul>

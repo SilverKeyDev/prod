@@ -32,12 +32,12 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { apiRequest } from "../../lib/api";
 import { useData } from "../../contexts/DataContext";
-import ImportantLocationsInput from "../../components/ImportantLocationsInput";
-import Loading from "../../components/Loading";
-import MiniLogo from "../../components/MiniLogo";
-import OliveCheckbox from "../../components/OliveCheckbox";
-import PriceRangeSlider from "../../components/PriceRangeSlider";
-import ValidationWarning from "../../components/ValidationWarning";
+import ImportantLocationsInput from "../../components/ui/ImportantLocationsInput";
+import Loading from "../../components/ui/Loading";
+import MiniLogo from "../../components/ui/MiniLogo";
+import OliveCheckbox from "../../components/ui/OliveCheckbox";
+import PriceRangeSlider from "../../components/ui/PriceRangeSlider";
+import ValidationWarning from "../../components/feedback/ValidationWarning";
 import { estimateAffordableHomePrice } from "../../hooks/getHomePrice";
 
 // Extend window interface for Google Maps

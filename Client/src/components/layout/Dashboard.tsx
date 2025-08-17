@@ -1,25 +1,25 @@
 import { useState, useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
-import Sidebar from "./Sidebar.tsx";
-import GenerateReportPage from "../pages/Decide/GenerateReportPage.tsx";
-import PastReports from "../pages/Decide/PastReports.tsx";
-import CompareReportsPage from "../pages/Decide/CompareReportsPage.tsx";
-import SearchPage from "../pages/Search/SearchPage.tsx";
-import PersonalizationPage from "../pages/Onboard/PersonalizationPage.tsx";
-import Subscription from "../pages/Onboard/Subscription.tsx";
-import AIAssistant from "../pages/Decide/AIAssistant.tsx";
-import ClientIntelPage from "../pages/Onboard/ClientIntelPage.tsx";
-import AgentConnection from "../pages/Onboard/AgentConnection.tsx";
-import OfferDraftPage from "../pages/Negotiate/OfferDraftPage.tsx";
-import NegotiationStrategy from "../pages/Negotiate/NegotiationStrategy.tsx";
-import EscrowLegalLogistics from "../pages/Close/EscrowLegalLogistics.tsx";
-import InspectionsDueDiligence from "../pages/Close/InspectionsDueDiligence.tsx";
-import FinancingInsurance from "../pages/Close/FinancingInsurance.tsx";
-import ClosingMovingIn from "../pages/Close/ClosingMovingIn.tsx";
-import UserDashboardPage from "../pages/UserDashboard.tsx";
-import { UserProfile } from "../contexts/DataContext.tsx";
-import GetPreApproved from "../pages/Onboard/PreApproved.tsx";
-import SavedHomes from "../pages/Search/SavedHomes";
+import Sidebar from "./Sidebar";
+import GenerateReportPage from "../../pages/Decide/GenerateReportPage.tsx";
+import PastReports from "../../pages/Decide/PastReports.tsx";
+import CompareReportsPage from "../../pages/Decide/CompareReportsPage.tsx";
+import SearchPage from "../../pages/Search/SearchPage.tsx";
+import PersonalizationPage from "../../pages/Onboard/PersonalizationPage.tsx";
+import Subscription from "../../pages/Onboard/Subscription.tsx";
+import AIAssistant from "../../pages/Decide/AIAssistant.tsx";
+import ClientIntelPage from "../../pages/Onboard/ClientIntelPage.tsx";
+import AgentConnection from "../../pages/Onboard/AgentConnection.tsx";
+import OfferDraftPage from "../../pages/Negotiate/OfferDraftPage.tsx";
+import NegotiationStrategy from "../../pages/Negotiate/NegotiationStrategy.tsx";
+import EscrowLegalLogistics from "../../pages/Close/EscrowLegalLogistics.tsx";
+import InspectionsDueDiligence from "../../pages/Close/InspectionsDueDiligence.tsx";
+import FinancingInsurance from "../../pages/Close/FinancingInsurance.tsx";
+import ClosingMovingIn from "../../pages/Close/ClosingMovingIn.tsx";
+import UserDashboardPage from "../../pages/UserDashboard.tsx";
+import { UserProfile } from "../../contexts/DataContext.tsx";
+//import PreApproved from "../../pages/Onboard/PreApproved.tsx";
+import SavedHomes from "../../pages/Search/SavedHomes";
 
 interface DashboardProps {
   user?: UserProfile;
@@ -84,7 +84,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
             <Route path="financing-insurance" element={<FinancingInsurance />} />
             <Route path="closing-moving-in" element={<ClosingMovingIn />} />
             <Route path="/" element={<UserDashboardPage />} />
-            <Route path="get-preapproved" element={<GetPreApproved />} />
+            {/* <Route path="get-preapproved" element={<GetPreApproved />} /> */}
             <Route path="saved" element={<SavedHomes />} />
           </Routes>
         </div>

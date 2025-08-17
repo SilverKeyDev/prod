@@ -24,12 +24,12 @@ import {
   Bookmark,
   ClipboardList,
 } from "lucide-react";
-import { UserProfile } from "../contexts/DataContext.tsx";
+import { UserProfile } from "../../contexts/DataContext.tsx";
 import { useState } from "react";
-import ConfirmationDialog from "./ConfirmationDialog";
+import ConfirmationDialog from "../modals/ConfirmationDialog";
 
-import { useData } from "../contexts/DataContext.tsx";
-import MiniLogo from "./MiniLogo";
+import { useData } from "../../contexts/DataContext.tsx";
+import MiniLogo from "../ui/MiniLogo";
 interface SidebarProps {
   user?: UserProfile; // make user optional to prevent crash
   onLogout: () => void;

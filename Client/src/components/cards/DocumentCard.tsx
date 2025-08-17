@@ -1,5 +1,6 @@
 import { FileText, Calendar, Download, Eye } from "lucide-react";
-import { truncateText } from "../lib/addressFormat";
+import { useDocumentActions } from "../../hooks/useDocumentActions";
+import PdfModal from "../modals/PdfModal";
 
 export interface DocumentData {
   id: string;
@@ -23,21 +24,21 @@ interface DocumentCardProps {
    * Document data from the backend
    */
   doc: DocumentData;
-  /**
-   * Optional callback for when document is clicked to view
-   */
-  onView?: (doc: DocumentData) => void;
-  /**
-   * Optional callback for when document is downloaded
-   */
-  onDownload?: (doc: DocumentData) => void;
 }
 
 /**
  * Enhanced document card component to display user documents with rich metadata.
  * Shows document info, location, creation date, and action buttons.
  */
-export default function DocumentCard({ doc, onView, onDownload }: DocumentCardProps) {
+export default function DocumentCard({ doc }: DocumentCardProps) {
+  const {
+    loadingUrls,
+    handleViewDocument,
+    handleDownloadDocument,
+    currentPdf,
+    currentDocumentName,
+    closePdfModal,
+  } = useDocumentActions();
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return "Unknown";
@@ -74,10 +75,29 @@ export default function DocumentCard({ doc, onView, onDownload }: DocumentCardPr
   } else {
     displayName = primaryAddress;
   }
-  displayName = truncateText(displayName, 77);
+  // Don't truncate with character count - let CSS handle 2-line truncation
+  const fullDisplayName = displayName;
+
+  const isLoading = loadingUrls.has(doc.id);
+
+  const handleView = () => {
+    handleViewDocument(doc.id, fullDisplayName);
+  };
+
+  const handleDownload = () => {
+    handleDownloadDocument(doc.id, fullDisplayName);
+  };
 
   return (
-    <div className="border rounded-lg shadow-sm bg-white hover:shadow-md transition p-4">
+    <>
+      {currentPdf && (
+        <PdfModal
+          currentPdf={currentPdf}
+          currentReportAddress={currentDocumentName}
+          onClose={closePdfModal}
+        />
+      )}
+      <div className="border rounded-lg shadow-sm bg-white hover:shadow-md transition p-4">
       {/* Header with icon and status */}
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3">
@@ -85,8 +105,8 @@ export default function DocumentCard({ doc, onView, onDownload }: DocumentCardPr
             <FileText size={24} />
           </div>
           <div className="flex-1 overflow-hidden">
-            <p className="font-medium text-xs leading-tight line-clamp-2 h-8 flex items-center" title={displayName}>
-              {displayName}
+            <p className="font-medium text-xs leading-tight line-clamp-2 h-8" title={fullDisplayName}>
+              {fullDisplayName}
             </p>
             {doc.report_type && (
               <p className="text-xs text-gray-500 capitalize">
@@ -97,11 +117,16 @@ export default function DocumentCard({ doc, onView, onDownload }: DocumentCardPr
         </div>
         {/* Download button in top right */}
         <button
-          onClick={() => onDownload?.(doc)}
-          className="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600 transition-colors"
+          onClick={handleDownload}
+          disabled={isLoading}
+          className="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           title="Download"
         >
-          <Download size={16} />
+          {isLoading ? (
+            <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+          ) : (
+            <Download size={16} />
+          )}
         </button>
       </div>
 
@@ -115,12 +140,23 @@ export default function DocumentCard({ doc, onView, onDownload }: DocumentCardPr
 
       {/* View Document button */}
       <button
-        onClick={() => onView?.(doc)}
-        className="w-full flex items-center justify-center gap-2 px-3 py-1 bg-gold text-white text-sm font-medium rounded hover:bg-gold/90 transition-colors"
+        onClick={handleView}
+        disabled={isLoading}
+        className="w-full flex items-center justify-center gap-2 px-3 py-1 bg-gold text-white text-sm font-medium rounded hover:bg-gold/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        <Eye size={16} />
-        View Document
+        {isLoading ? (
+          <>
+            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            Loading...
+          </>
+        ) : (
+          <>
+            <Eye size={16} />
+            View Document
+          </>
+        )}
       </button>
-    </div>
+      </div>
+    </>
   );
 }
