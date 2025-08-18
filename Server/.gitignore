@@ -162,3 +162,10 @@ cython_debug/
 pytest.ini
 .pytest_cache/
 
+# Backend environment variables
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+

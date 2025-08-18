@@ -1,128 +1,208 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -euo pipefail
 
+# =========================
 # Colors
+# =========================
 GREEN='\033[0;32m'
 RED='\033[0;31m'
 BLUE='\033[1;34m'
+YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-# Initialize PIDs to avoid unbound errors
+# =========================
+# Config
+# =========================
+# Health check URL for Flask (override with FLASK_HEALTH_URL env if needed)
+FLASK_HEALTH_URL="${FLASK_HEALTH_URL:-http://127.0.0.1:5000/healthz}"
+# If you don't have /healthz, we'll fall back to a port probe on 5000.
+FLASK_PORT="${FLASK_PORT:-5000}"
+
+# =========================
+# PIDs
+# =========================
 FLASK_PID=""
 VITE_PID=""
 CELERY_PID=""
 REDIS_PID=""
 
-# Function to log messages with timestamp
+# =========================
+# Logging helpers
+# =========================
 log() {
-    echo -e "${BLUE}[$(date +%T)]${NC} $1"
+  echo -e "${BLUE}[$(date +%T)]${NC} $1"
 }
 
-# Function to kill processes on required ports
+warn() {
+  echo -e "${YELLOW}[$(date +%T)] WARN:${NC} $1"
+}
+
+# =========================
+# Kill processes on common dev ports
+# =========================
 kill_port_processes() {
-    local ports=(5000 5173 6379)
-    
-    for port in "${ports[@]}"; do
-        log "Checking for processes on port $port..."
-        local pids=$(lsof -ti:$port 2>/dev/null || true)
-        
-        if [[ -n "$pids" ]]; then
-            log "${RED}Killing processes on port $port: $pids${NC}"
-            echo "$pids" | xargs kill -9 2>/dev/null || true
-            sleep 1
-            
-            # Double-check if processes are still running
-            local remaining_pids=$(lsof -ti:$port 2>/dev/null || true)
-            if [[ -n "$remaining_pids" ]]; then
-                log "${RED}Warning: Some processes on port $port may still be running${NC}"
-            else
-                log "${GREEN}✅ Port $port is now free${NC}"
-            fi
-        else
-            log "${GREEN}✅ Port $port is already free${NC}"
-        fi
-    done
+  local ports=(5000 5173 6379)
+  for port in "${ports[@]}"; do
+    log "Checking for processes on port $port..."
+    local pids
+    pids=$(lsof -ti:"$port" 2>/dev/null || true)
+    if [[ -n "${pids}" ]]; then
+      log "${RED}Killing processes on port $port: ${pids}${NC}"
+      echo "${pids}" | xargs kill -9 2>/dev/null || true
+      sleep 1
+      local remaining
+      remaining=$(lsof -ti:"$port" 2>/dev/null || true)
+      if [[ -n "${remaining}" ]]; then
+        warn "Some processes on port $port may still be running"
+      else
+        log "${GREEN}✅ Port $port is now free${NC}"
+      fi
+    else
+      log "${GREEN}✅ Port $port is already free${NC}"
+    fi
+  done
 }
 
-# Function to clean up on exit
+# =========================
+# Cleanup on exit
+# =========================
 cleanup() {
-    log "${RED}Cleaning up..."
-    if [[ -n "$FLASK_PID" ]]; then
-        kill "$FLASK_PID" 2>/dev/null || true
-    fi
-    if [[ -n "$VITE_PID" ]]; then
-        kill "$VITE_PID" 2>/dev/null || true
-    fi
-    if [[ -n "$CELERY_PID" ]]; then
-        kill "$CELERY_PID" 2>/dev/null || true
-    fi
-    if [[ -n "$REDIS_PID" ]]; then
-        kill "$REDIS_PID" 2>/dev/null || true
-    fi
-    log "${GREEN}All processes terminated.${NC}"
+  log "${RED}Cleaning up...${NC}"
+  # Try graceful Redis shutdown first
+  if [[ -n "${REDIS_PID}" ]] && ps -p "${REDIS_PID}" >/dev/null 2>&1; then
+    redis-cli shutdown >/dev/null 2>&1 || true
+  fi
+  # Kill children we started
+  if [[ -n "${CELERY_PID}" ]]; then kill "${CELERY_PID}" 2>/dev/null || true; fi
+  if [[ -n "${VITE_PID}" ]];   then kill "${VITE_PID}"   2>/dev/null || true; fi
+  if [[ -n "${FLASK_PID}" ]];  then kill "${FLASK_PID}"  2>/dev/null || true; fi
+
+  # Also nuke any remaining children of this script
+  pkill -P $$ 2>/dev/null || true
+
+  log "${GREEN}All processes terminated.${NC}"
 }
 
-# Trap Ctrl+C and call cleanup
-trap cleanup SIGINT
+trap cleanup SIGINT SIGTERM EXIT
 
-# Load environment variables
-if [ -f Server/.env ]; then
-    log "Loading environment variables from Server/.env"
-    source Server/.env
+# =========================
+# Wait helpers
+# =========================
+wait_for_url() {
+  local url="$1"
+  local timeout="${2:-30}"
+  local elapsed=0
+  log "Waiting for ${url} (timeout ${timeout}s)..."
+  while ! curl -fsS "${url}" >/dev/null 2>&1; do
+    sleep 0.5
+    elapsed=$((elapsed + 1))
+    if (( elapsed >= timeout*2 )); then
+      return 1
+    fi
+  done
+  return 0
+}
+
+wait_for_port() {
+  local host="${1:-127.0.0.1}"
+  local port="${2:-5000}"
+  local timeout="${3:-30}"
+  local elapsed=0
+  log "Waiting for ${host}:${port} (timeout ${timeout}s)..."
+  while ! (echo > /dev/tcp/${host}/${port}) >/dev/null 2>&1; do
+    sleep 0.5
+    elapsed=$((elapsed + 1))
+    if (( elapsed >= timeout*2 )); then
+      return 1
+    fi
+  done
+  return 0
+}
+
+# =========================
+# Load env
+# =========================
+if [[ -f Server/.env ]]; then
+  log "Loading environment variables from Server/.env"
+  # shellcheck disable=SC1091
+  source Server/.env
 fi
 
-# Kill any existing processes on required ports
+# =========================
+# Prep
+# =========================
 log "${RED}Cleaning up existing processes on ports 5000, 5173, and 6379...${NC}"
 kill_port_processes
 
-# Start Vite client in background
-log "Starting Vite client..."
-cd Client || exit 1
-npm run dev &
-VITE_PID=$!
-cd ..
-
-# Wait for Vite to be ready
-log "Waiting for Vite to start on http://localhost:5173..."
-until curl -s http://localhost:5173 > /dev/null; do
-  sleep 0.5
-done
-log "${GREEN}✅ Vite is ready at http://localhost:5173${NC}"
-
-# Start Redis server in background
+# =========================
+# Start Redis
+# =========================
 log "Starting Redis server..."
-redis-server --daemonize no --port 6379 &
+redis-server --daemonize no --port 6379 >/dev/null 2>&1 &
 REDIS_PID=$!
-
-# Wait for Redis to be ready
 log "Waiting for Redis to start on localhost:6379..."
-until redis-cli ping > /dev/null 2>&1; do
-  sleep 0.5
-done
+until redis-cli ping >/dev/null 2>&1; do sleep 0.25; done
 log "${GREEN}✅ Redis is ready at localhost:6379${NC}"
 
-# Start Celery worker in background
-log "Starting Celery worker..."
-cd Server || exit 1
-celery -A app.celery.celery_worker:celery worker --loglevel=info &
-CELERY_PID=$!
-cd ..
-log "${GREEN}✅ Celery worker started${NC}"
-
-# Start Flask server
-if [ "${1:-}" = "--production" ]; then
-    log "Starting Flask server in ${RED}production${NC} mode..."
-    cd Server || exit 1
-    gunicorn -w 4 -b 0.0.0.0:5001 run:app --access-logfile - --error-logfile -
-    cd ..
+# =========================
+# Start Flask (dev or prod)
+# =========================
+if [[ "${1:-}" == "--production" ]]; then
+  log "Starting Flask server in ${RED}production${NC} mode (gunicorn @ 0.0.0.0:${FLASK_PORT})..."
+  pushd Server >/dev/null
+  # Bind gunicorn to 5000 for consistency with dev/proxy
+  gunicorn -w 4 -b "0.0.0.0:${FLASK_PORT}" run:app --access-logfile - --error-logfile - >/dev/null 2>&1 &
+  FLASK_PID=$!
+  popd >/dev/null
 else
-    log "Starting Flask server in ${GREEN}development${NC} mode..."
-    cd Server || exit 1
-    python run.py --host 0.0.0.0 --port 5000 &
-    FLASK_PID=$!
-    cd ..
-
-    # Wait for Flask to finish (until Ctrl+C)
-    wait "$FLASK_PID"
+  log "Starting Flask server in ${GREEN}development${NC} mode (0.0.0.0:${FLASK_PORT})..."
+  pushd Server >/dev/null
+  python run.py --host 0.0.0.0 --port "${FLASK_PORT}" >/dev/null 2>&1 &
+  FLASK_PID=$!
+  popd >/dev/null
 fi
+
+# Wait for Flask health or port
+if ! wait_for_url "${FLASK_HEALTH_URL}" 20; then
+  warn "Health URL ${FLASK_HEALTH_URL} not ready; falling back to port probe on ${FLASK_PORT}"
+  wait_for_port 127.0.0.1 "${FLASK_PORT}" 20 || {
+    echo -e "${RED}Flask failed to become ready on port ${FLASK_PORT}.${NC}"
+    exit 1
+  }
+fi
+log "${GREEN}✅ Flask is ready on port ${FLASK_PORT}${NC}"
+
+# =========================
+# Start Celery (after Flask so app context is ready)
+# =========================
+log "Starting Celery worker..."
+pushd Server >/dev/null
+celery -A app.celery.celery_worker:celery worker --loglevel=info >/dev/null 2>&1 &
+CELERY_PID=$!
+popd >/dev/null
+log "${GREEN}✅ Celery worker started (PID: ${CELERY_PID})${NC}"
+
+# =========================
+# Start Vite (dev only)
+# =========================
+if [[ "${1:-}" != "--production" ]]; then
+  log "Starting Vite client..."
+  pushd Client >/dev/null
+  npm run dev >/dev/null 2>&1 &
+  VITE_PID=$!
+  popd >/dev/null
+
+  # Wait for Vite to be ready so first page load doesn't race
+  log "Waiting for Vite to start on http://localhost:5173..."
+  until curl -fsS http://localhost:5173 >/dev/null 2>&1; do sleep 0.25; done
+  log "${GREEN}✅ Vite is ready at http://localhost:5173${NC}"
+else
+  log "Production mode: skipping Vite dev server."
+fi
+
+# =========================
+# Keep script in foreground
+# =========================
+# Wait for Flask; CTRL+C will trigger cleanup()
+wait "${FLASK_PID}"
