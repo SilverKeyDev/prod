@@ -77,10 +77,17 @@ def create_app(config=None):
         from .models.chat_history import ChatHistory
         db.create_all()
 
-    # CORS Configuration
+    # Global CORS Configuration - Restricted to specific domains
     CORS(app, resources={
         r"/*": {
-            "origins": ["*"],
+            "origins": [
+                "https://silverkeyestates.com",
+                "https://www.silverkeyestates.com",
+                "http://localhost:3000",
+                "http://localhost:5173",
+                "http://127.0.0.1:5173",
+                "http://192.168.0.108:5173"
+            ],
             "supports_credentials": True,
             "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"],
             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
@@ -111,7 +118,7 @@ def create_app(config=None):
     from .routes.report import report_bp
     from .routes.dashboard import dashboard_bp
     from .routes.auth import auth_bp
-    from .routes.payment import bp as payment_bp
+    from .routes.payment import payment_bp
     from .routes.user import user_bp
     from .routes.preferences import preferences_bp
     from .routes.chatbot import chatbot_bp

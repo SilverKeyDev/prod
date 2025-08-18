@@ -1,14 +1,10 @@
 from flask import Blueprint, request, jsonify, current_app
-from flask_cors import cross_origin
-from jose import jwt
-import requests
-import os
+from ..utils.auth import get_current_user
+from ..utils.security import security_error_response, SecurityError, rate_limit
+from ..models.subscription import Subscription
 import stripe
-
-# Import db from the main app package to ensure we're using the same instance
-from app import db
-from app.models.user import User
-from app.models.subscription import Subscription
+import os
+from app.utils.auth import get_current_user
 
 # Import services
 from app.services.stripe_service import (
@@ -21,59 +17,14 @@ from app.services.stripe_service import (
     handle_subscription_cancelled
 )
 
-bp = Blueprint('payment', __name__, url_prefix='/api/v1/payment')
-
-# CORS settings
-cors_config = {
-    'origins': [
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "http://10.91.128.151:5173",
-        "https://silverkeyestates.com"
-    ],
-    'supports_credentials': True
-}
-
-COGNITO_REGION = os.getenv("S3_REGION", "us-east-2")
-COGNITO_POOL_ID = os.getenv("COGNITO_USER_POOL_ID")
-COGNITO_CLIENT_ID = os.getenv("COGNITO_CLIENT_ID")
-
-if not COGNITO_POOL_ID or not COGNITO_CLIENT_ID:
-    raise RuntimeError("COGNITO_POOL_ID and COGNITO_CLIENT_ID must be set in environment variables.")
-
-COGNITO_KEYS_URL = f"https://cognito-idp.{COGNITO_REGION}.amazonaws.com/{COGNITO_POOL_ID}/.well-known/jwks.json"
+payment_bp = Blueprint('payment', __name__, url_prefix='/api/v1/payment')
 
 
-# cache the JWKS
-JWKS = requests.get(COGNITO_KEYS_URL).json()
-
-def get_current_user():
-    auth_header = request.headers.get('Authorization', None)
-    if not auth_header:
-        raise Exception("Authorization header missing")
-    
-    token = auth_header.replace("Bearer ", "")
-    
-    try:
-        claims = jwt.decode(
-            token,
-            JWKS,
-            algorithms=["RS256"],
-            audience=COGNITO_CLIENT_ID
-        )
-        user = User.query.filter_by(cognito_id=claims['sub']).first()
-        if not user:
-            current_app.logger.warning(f"User not found for cognito_id: {claims['sub']}")
-            raise Exception("User not found or not properly registered")
-        return user
-    except Exception as e:
-        current_app.logger.error(f"Token validation failed: {str(e)}")
-        raise
 
 # ------------------------
 
-@bp.route('/subscription-status', methods=['GET'])
-@cross_origin(**cors_config)
+@payment_bp.route('/subscription-status', methods=['GET'])
+@rate_limit(max_requests=20, window_seconds=60)
 def get_subscription():
     try:
         user = get_current_user()
@@ -116,29 +67,29 @@ def get_subscription():
         
         return jsonify(response)
         
+    except tuple as error_tuple:
+        return security_error_response(error_tuple)
     except Exception as e:
         current_app.logger.error(f'Error in get_subscription: {str(e)}')
-        return jsonify({
-            'error': 'Failed to get subscription status',
-            'details': str(e)
-        }), 500
+        return security_error_response(SecurityError.SERVER_ERROR)
+
 
 # ------------------------
 
-@bp.route('/create-checkout-session', methods=['POST', 'OPTIONS'])
-@cross_origin(**cors_config)
-def create_checkout():
+@payment_bp.route('/create-checkout-session', methods=['POST', 'OPTIONS'])
+@rate_limit(max_requests=10, window_seconds=60)
+def create_checkout_session_route():
     if request.method == 'OPTIONS':
         return jsonify({}), 200
 
     try:
         data = request.get_json()
         if not data:
-            return jsonify({'error': 'No data provided'}), 400
+            return security_error_response(SecurityError.MISSING_FIELDS, {'field_errors': ['data']})
         
         price_id = data.get('priceId')
         if not price_id:
-            return jsonify({'error': 'Missing price ID'}), 400
+            return security_error_response(SecurityError.MISSING_FIELDS, {'field_errors': ['priceId']})
         
         user = get_current_user()
         
@@ -146,14 +97,17 @@ def create_checkout():
         return jsonify({
             'sessionId': session_result['session_id']
         })
+    except tuple as error_tuple:
+        return security_error_response(error_tuple)
     except Exception as e:
-        current_app.logger.error(f'Error creating checkout session: {str(e)}')
-        return jsonify({'error': 'Failed to create checkout session'}), 401
+        current_app.logger.error(f"Error creating checkout session: {str(e)}")
+        return security_error_response(SecurityError.SERVER_ERROR)
+
 
 # ------------------------
 
-@bp.route('/create-portal-session', methods=['POST'])
-@cross_origin(**cors_config)
+@payment_bp.route('/create-portal-session', methods=['POST'])
+@rate_limit(max_requests=10, window_seconds=60)
 def create_portal_session_route():
     try:
         user = get_current_user()
@@ -162,20 +116,22 @@ def create_portal_session_route():
         subscription = Subscription.query.filter_by(user_id=user.id).first()
         if not subscription or not subscription.stripe_customer_id:
             current_app.logger.warning(f"[Portal] No subscription or Stripe ID for user {user.id}")
-            return jsonify({'error': 'No subscription found'}), 404
+            return security_error_response(SecurityError.NOT_FOUND, {'message': 'No subscription found'})
             
         current_app.logger.info(f"[Portal] Creating portal session for Stripe ID: {subscription.stripe_customer_id}")
         session = create_portal_session(subscription.stripe_customer_id)
         return jsonify(session)
         
+    except tuple as error_tuple:
+        return security_error_response(error_tuple)
     except Exception as e:
         current_app.logger.exception(f"[Portal] Failed to create customer portal: {str(e)}")
-        return jsonify({'error': 'Failed to create customer portal'}), 500
+        return security_error_response(SecurityError.SERVER_ERROR)
 
 
 # ------------------------
 
-@bp.route('/webhook', methods=['POST'])
+@payment_bp.route('/webhook', methods=['POST'])
 def webhook_received():
     from flask import current_app
 
@@ -186,8 +142,6 @@ def webhook_received():
         event = stripe.Webhook.construct_event(
             payload, sig_header, os.getenv('STRIPE_WEBHOOK_SECRET')
         )
-
-        current_app.logger.info(f"[WEBHOOK] 🔔 Received event: {event['type']}")
 
         event_type = event['type']
         data_object = event['data']['object']
@@ -212,8 +166,8 @@ def webhook_received():
 
 # ------------------------
 
-@bp.route('/subscription/status', methods=['GET'])
-@cross_origin(**cors_config)
+@payment_bp.route('/subscription/status', methods=['GET'])
+@rate_limit(max_requests=10, window_seconds=60)
 def get_subscription_status():
     """
     Get the status of a subscription from Stripe
@@ -223,7 +177,7 @@ def get_subscription_status():
     subscription_id = request.args.get('subscription_id')
     
     if not subscription_id:
-        return jsonify({'error': 'subscription_id is required'}), 400
+        return security_error_response(SecurityError.MISSING_FIELDS, {'field_errors': ['subscription_id']})
     
     try:
         status = get_subscription_status(subscription_id)
@@ -231,6 +185,8 @@ def get_subscription_status():
             'subscription_id': subscription_id,
             'status': status
         }), 200
+    except tuple as error_tuple:
+        return security_error_response(error_tuple)
     except Exception as e:
-        current_app.logger.error(f'Error getting subscription status: {str(e)}')
-        return jsonify({'error': 'Failed to get subscription status'}), 500
+        current_app.logger.error(f"Error getting subscription: {str(e)}")
+        return security_error_response(SecurityError.SERVER_ERROR)

@@ -1,26 +1,16 @@
-from flask import Blueprint, request, jsonify, send_from_directory, current_app
+from flask import Blueprint, request, jsonify, current_app
+from ..utils.auth import get_current_user
+from ..utils.security import security_error_response, SecurityError, rate_limit
+from ..models.pdf_document import PDFDocument
+from .. import db
+from app.utils.auth import get_current_user
+from app import db
+import os
 import logging
-import os
+from sqlalchemy import or_
+from app.models.pdf_document import PDFDocument
+from app.services.s3_service import s3_service
 import traceback
-import uuid
-from app.models.pdf_document import PDFDocument
-from app import db
-import time
-from flask_jwt_extended import jwt_required, get_jwt_identity
-from app.services.report_generator import generate_report
-
-from app.services.s3_service import s3_service
-from flask import current_app
-from app import db
-from flask_cors import cross_origin
-from jose import jwt
-import requests
-import os
-from sqlalchemy import or_, func
-from app.models.user import User
-from app.models.pdf_document import PDFDocument
-from app.services.s3_service import s3_service
-
 
 # Configure logger
 logging.basicConfig(level=logging.INFO)
@@ -29,55 +19,9 @@ logger = logging.getLogger(__name__)
 # Blueprint setup
 report_bp = Blueprint('report', __name__, url_prefix='/api/v1/report')
 
-# CORS settings
-cors_config = {
-    'origins': [
-        "*"
-    ],
-    'supports_credentials': True
-}
 
-COGNITO_REGION = os.getenv("S3_REGION", "us-east-2")
-COGNITO_POOL_ID = os.getenv("COGNITO_USER_POOL_ID")
-COGNITO_CLIENT_ID = os.getenv("COGNITO_CLIENT_ID")
-
-if not COGNITO_POOL_ID or not COGNITO_CLIENT_ID:
-    raise RuntimeError("COGNITO_POOL_ID and COGNITO_CLIENT_ID must be set in environment variables.")
-
-COGNITO_KEYS_URL = f"https://cognito-idp.{COGNITO_REGION}.amazonaws.com/{COGNITO_POOL_ID}/.well-known/jwks.json"
-
-
-# cache the JWKS
-JWKS = requests.get(COGNITO_KEYS_URL).json()
-
-def get_current_user():
-    auth_header = request.headers.get('Authorization', None)
-    if not auth_header:
-        raise Exception("Authorization header missing")
-    
-    token = auth_header.replace("Bearer ", "")
-    
-    try:
-        claims = jwt.decode(
-            token,
-            JWKS,
-            algorithms=["RS256"],
-            audience=COGNITO_CLIENT_ID,
-            options={
-                "leeway": 30
-            }
-        )
-        user = User.query.filter_by(cognito_id=claims['sub']).first()
-        if not user:
-            current_app.logger.warning(f"User not found for cognito_id: {claims['sub']}")
-            raise Exception("User not found or not properly registered")
-        return user
-    except Exception as e:
-        current_app.logger.error(f"Token validation failed: {str(e)}")
-        raise
-
-@report_bp.route('/generate', methods=['POST', 'GET'])
-@cross_origin(**cors_config)
+@report_bp.route('/generate', methods=['POST'])
+@rate_limit(max_requests=5, window_seconds=60)
 def generate_report_endpoint():
     """
     Generate a property report and upload PDF to S3
@@ -87,17 +31,12 @@ def generate_report_endpoint():
     If no subscription but has reports, consumes one report on generation.
     """
     try:
-        if request.method == 'GET':
-            logger.warning("GET request received for report generation endpoint")
-            return jsonify({'error': 'POST method required for report generation'}), 405
-        
         # Get current user
         user = get_current_user()
         if not user:
-            logger.error("User not found - authentication failed")
-            return jsonify({'error': 'User not found', 'success': False}), 404
+            return security_error_response(SecurityError.UNAUTHORIZED)
         
-        logger.info(f"🔐 Authenticated user: {user.id} (is_agent: {user.is_agent})")
+        logger.info(f" Authenticated user: {user.id} (is_agent: {user.is_agent})")
         
         data = request.get_json()
         if not data:
@@ -109,7 +48,7 @@ def generate_report_endpoint():
         target_user_id = data.get('user_id', None)  # For agent client selection
         marketing_model = data.get('marketing_model', False)  # For marketing model selection
         
-        logger.info(f"📥 Request parameters: address='{address}', comparison_address='{comparison_address}', target_user_id='{target_user_id}', marketing_model={marketing_model}")
+        logger.info(f" Request parameters: address='{address}', comparison_address='{comparison_address}', target_user_id='{target_user_id}', marketing_model={marketing_model}")
         
         if not address:
             logger.error("No address provided in request data")
@@ -117,13 +56,13 @@ def generate_report_endpoint():
         
         # Determine which user's preferences to use for report generation
         preferences_user_id = user.id  # Default to authenticated user
-        logger.info(f"🎯 Initial preferences_user_id set to authenticated user: {preferences_user_id}")
-        logger.info(f"🔍 preferences_user_id type: {type(preferences_user_id)}, target_user_id type: {type(target_user_id)}")
+        logger.info(f" Initial preferences_user_id set to authenticated user: {preferences_user_id}")
+        logger.info(f" preferences_user_id type: {type(preferences_user_id)}, target_user_id type: {type(target_user_id)}")
         
         if target_user_id:
             # Agent is generating report for a client
-            logger.info(f"🔄 Agent {user.id} requesting to generate report for client {target_user_id}")
-            logger.info(f"🔍 target_user_id received as: '{target_user_id}' (type: {type(target_user_id)})")
+            logger.info(f" Agent {user.id} requesting to generate report for client {target_user_id}")
+            logger.info(f" target_user_id received as: '{target_user_id}' (type: {type(target_user_id)})")
             
             # Verify the agent has access to this client
             if not user.is_agent:
@@ -144,8 +83,8 @@ def generate_report_endpoint():
                 
                 # Ensure preferences_user_id is the same type as user.id (string)
                 preferences_user_id = str(target_user_id) if target_user_id else user.id
-                logger.info(f"✅ Agent {user.id} authorized to generate report using preferences from client {target_user_id}")
-                logger.info(f"🎯 preferences_user_id updated to client: {preferences_user_id} (type: {type(preferences_user_id)})")
+                logger.info(f" Agent {user.id} authorized to generate report using preferences from client {target_user_id}")
+                logger.info(f" preferences_user_id updated to client: {preferences_user_id} (type: {type(preferences_user_id)})")
                 
             except (json.JSONDecodeError, TypeError) as e:
                 logger.error(f"Failed to parse agent's client_ids: {str(e)}")
@@ -154,11 +93,11 @@ def generate_report_endpoint():
         # Check if this is a comparison report
         is_comparison = bool(comparison_address and comparison_address.strip())
         
-        logger.info(f"📊 FINAL DECISION - Using preferences from user_id: {preferences_user_id}")
+        logger.info(f" FINAL DECISION - Using preferences from user_id: {preferences_user_id}")
         if preferences_user_id == user.id:
-            logger.info(f"📋 Will use AUTHENTICATED USER's preferences (user_id: {user.id})")
+            logger.info(f" Will use AUTHENTICATED USER's preferences (user_id: {user.id})")
         else:
-            logger.info(f"📋 Will use CLIENT's preferences (client_id: {preferences_user_id}, agent_id: {user.id})")
+            logger.info(f" Will use CLIENT's preferences (client_id: {preferences_user_id}, agent_id: {user.id})")
         
         if is_comparison:
             logger.info(f" Generating comparison report for: {address} vs {comparison_address} using preferences from user_id: {preferences_user_id}")
@@ -197,7 +136,7 @@ def generate_report_endpoint():
         # Start async task (lazy import to avoid circular import)
         # Always use the unified generate_report_async task, passing comparison_address (None for detailed reports)
         # Use preferences_user_id for report generation (could be agent's client or agent themselves)
-        logger.info(f"🚀 Starting async task with preferences_user_id: {preferences_user_id} (type: {type(preferences_user_id)})")
+        logger.info(f" Starting async task with preferences_user_id: {preferences_user_id} (type: {type(preferences_user_id)})")
         from app.celery.tasks import generate_report_async
         task = generate_report_async.delay(address, comparison_address, filenamee, pdf_doc.id, preferences_user_id, marketing_model)
         
@@ -239,8 +178,14 @@ def generate_report_endpoint():
         else:
             return jsonify({'error': 'Internal server error', 'success': False}), 500
 
-@report_bp.route('/all', methods=['POST', 'GET'])
-@cross_origin(**cors_config)
+@report_bp.route('/all', methods=['GET', 'POST'])
+@rate_limit(max_requests=20, window_seconds=60)
+def list_all_reports():
+    """Get all reports for the current user - alias for /list endpoint"""
+    return list_reports()
+
+@report_bp.route('/list', methods=['GET'])
+@rate_limit(max_requests=20, window_seconds=60)
 def list_reports():
     try:
         reports_list = []
@@ -333,7 +278,6 @@ def list_reports():
         return jsonify({'error': 'Internal server error', 'success': False}), 500
 
 @report_bp.route('/poll/<document_id>', methods=['GET'])
-@cross_origin(**cors_config)
 def poll_report_status(document_id):
     """
     Poll for a specific report's status by document ID.
@@ -382,7 +326,6 @@ def poll_report_status(document_id):
         return jsonify({'error': 'Internal server error', 'success': False}), 500
 
 @report_bp.route('/almostall', methods=['POST', 'GET'])
-@cross_origin(**cors_config)
 def list_reports_almostall():
     try:
         reports_list = []
@@ -514,7 +457,6 @@ def get_view_url(report_id):
         return jsonify({'error': 'Internal server error'}), 500
 
 @report_bp.route('/compare', methods=['POST'])
-@cross_origin(**cors_config)
 def compare_reports_endpoint():
     """Compare multiple report JSON files and return flattened table data."""
     try:
@@ -627,11 +569,6 @@ def delete_report(report_id):
                                 raw_s3_key = s3_key.replace('.pdf', '.json')
                             try:
                                 s3_service.s3_client.head_object(Bucket=bucket_name, Key=raw_s3_key)
-                                raw_delete_response = s3_service.s3_client.delete_object(
-                                    Bucket=bucket_name,
-                                    Key=raw_s3_key
-                                )
-                                logger.info(f"[DELETE] Successfully deleted RAW version from S3: {raw_s3_key}")
                             except s3_service.s3_client.exceptions.ClientError as e:
                                 if e.response['Error']['Code'] == '404':
                                     logger.info(f"[DELETE] No RAW version found at {raw_s3_key}, skipping")
@@ -728,7 +665,6 @@ def delete_report(report_id):
 
 
 @report_bp.route('/documents', methods=['GET'])
-@cross_origin(**cors_config)
 def get_user_documents():
     """
     Get all documents from a user's documents directory.

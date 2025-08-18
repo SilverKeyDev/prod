@@ -85,7 +85,7 @@ export function ReportsProvider({ children }: ReportsProviderProps) {
           headers: createAuthHeaders(token), 
           credentials: "include",
           signal,
-          acceptStatuses: [404] // Treat 404 as empty reports
+          acceptStatuses: [404]
         }
       );
       

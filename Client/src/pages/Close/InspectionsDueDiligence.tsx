@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
 import { apiRequest } from "../../lib/api";
-import { CheckSquare, Upload, FileText, Download } from "lucide-react";
+import { CheckSquare } from "lucide-react";
 import ChecklistCheckbox from "../../components/ui/ChecklistCheckbox";
 import ClosePageHeader from "../../components/ui/ClosePageHeader";
-import { useDocuments } from "../../context";
 
 const sectionBox =
   "bg-white rounded-xl shadow-sm p-6 mb-6 border border-beige/40";
@@ -32,20 +31,6 @@ export default function InspectionsChecklist() {
   const [checked, setChecked] = useState<{ [id: number]: boolean }>({});
   const [loading, setLoading] = useState(false);
   
-  // Use DocumentsContext for document management
-  const {
-    documents,
-    documentsLoading,
-    uploadDocument,
-    downloadDocument
-  } = useDocuments();
-  
-  // Filter documents for inspection-related categories
-  const inspectionDocs = documents.filter(doc => 
-    doc.category === 'inspection' || 
-    doc.category === 'disclosure' ||
-    doc.category === 'repair_request'
-  );
 
   const idsFromChecked = (state: { [id: number]: boolean }) =>
     Object.entries(state)
@@ -231,86 +216,6 @@ export default function InspectionsChecklist() {
         totalCount={total}
         loading={loading}
       />
-
-      {/* Documents Section */}
-      <div className="mx-auto px-12 py-6 max-w-4xl">
-        <div className={sectionBox}>
-          <div className={sectionTitle}>
-            <FileText className="h-5 w-5 text-brown" />
-            Inspection Documents
-          </div>
-          
-          {/* Upload Area */}
-          <div className="mb-6 p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-brown transition-colors">
-            <div className="text-center">
-              <Upload className="mx-auto h-8 w-8 text-gray-400 mb-2" />
-              <p className="text-sm text-gray-600 mb-2">Upload inspection reports, disclosures, or repair requests</p>
-              <input
-                type="file"
-                multiple
-                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                onChange={(e) => {
-                  const files = Array.from(e.target.files || []);
-                  files.forEach(file => {
-                    uploadDocument(file, 'inspection');
-                  });
-                }}
-                className="hidden"
-                id="document-upload"
-              />
-              <label
-                htmlFor="document-upload"
-                className="inline-flex items-center px-4 py-2 bg-brown text-white rounded-md hover:bg-brown/80 cursor-pointer transition-colors"
-              >
-                <Upload className="w-4 h-4 mr-2" />
-                Choose Files
-              </label>
-            </div>
-          </div>
-          
-          {/* Document List */}
-          {inspectionDocs.length > 0 && (
-            <div className="space-y-3">
-              <h4 className="font-medium text-navy">Uploaded Documents</h4>
-              {inspectionDocs.map((doc) => (
-                <div key={doc.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex-1">
-                    <p className="font-medium text-navy">{doc.name}</p>
-                    <p className="text-sm text-gray-600">
-                      {doc.category} • {new Date(doc.uploaded_at).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className={`px-2 py-1 text-xs rounded ${
-                      doc.status === 'approved' ? 'bg-green-100 text-green-700' :
-                      doc.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                      'bg-gray-100 text-gray-700'
-                    }`}>
-                      {doc.status.replace('_', ' ')}
-                    </span>
-                    <button
-                      onClick={() => downloadDocument(doc.id)}
-                      className="p-2 text-gray-400 hover:text-brown transition-colors"
-                      title="Download"
-                    >
-                      <Download className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-          
-          {documentsLoading && (
-            <div className="text-center py-4">
-              <div className="inline-flex items-center text-sm text-gray-600">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-brown mr-2"></div>
-                Uploading documents...
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
 
       {/* Checklist */}
       <div className="mx-auto px-12 py-4 max-w-4xl">

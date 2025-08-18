@@ -1,31 +1,23 @@
 from flask import Blueprint, request, jsonify, current_app
-from flask_jwt_extended import jwt_required, get_jwt_identity
 import json
-import requests
 from datetime import datetime
-from app.models.user import User
-from app.utils.address_format import normalize_address, denormalize_address
-import os
-from jose import jwk, jwt as jose_jwt
-from jose.utils import base64url_decode
-from jose.exceptions import JWTError, JWTClaimsError, ExpiredSignatureError
+from ..utils.auth import get_current_user
+from ..utils.security import security_error_response, SecurityError, rate_limit
 from ..models.user import User
 from ..models.subscription import Subscription
 from .. import db
 
 user_bp = Blueprint('user', __name__, url_prefix='/api/v1/user')
 
+
 @user_bp.route('/profile', methods=['GET'])
+@rate_limit(max_requests=30, window_seconds=60)
 def get_user_profile():
     """Get the current user's profile information"""
     try:
         user = get_current_user()
         if not user:
-            return jsonify({
-                'success': False,
-                'error': 'USER_NOT_FOUND',
-                'message': 'User not found'
-            }), 404
+            return security_error_response(SecurityError.UNAUTHORIZED)
             
         user_data = user.to_dict()
         return jsonify({
@@ -33,103 +25,21 @@ def get_user_profile():
             'data': user_data
         })
         
+    except tuple as error_tuple:
+        return security_error_response(error_tuple)
     except Exception as e:
-        current_app.logger.error(f'Error getting user profile: {str(e)}')
-        return jsonify({
-            'success': False,
-            'error': 'SERVER_ERROR',
-            'message': 'Failed to retrieve user profile'
-        }), 500
+        current_app.logger.error(f"Error getting user profile: {str(e)}")
+        return security_error_response(SecurityError.SERVER_ERROR)
 
-# Cognito Configuration
-COGNITO_REGION = os.getenv("S3_REGION", "us-east-2")
-COGNITO_POOL_ID = os.getenv("COGNITO_USER_POOL_ID")
-COGNITO_CLIENT_ID = os.getenv("COGNITO_CLIENT_ID")
-
-if not COGNITO_POOL_ID or not COGNITO_CLIENT_ID:
-    raise RuntimeError("COGNITO_POOL_ID and COGNITO_CLIENT_ID must be set in environment variables.")
-
-COGNITO_ISSUER = f"https://cognito-idp.{COGNITO_REGION}.amazonaws.com/{COGNITO_POOL_ID}"
-COGNITO_KEYS_URL = f"{COGNITO_ISSUER}/.well-known/jwks.json"
-
-# Cache the JWKS
-jwks = requests.get(COGNITO_KEYS_URL).json()
-
-def get_signing_key(token):
-    try:
-        headers = jose_jwt.get_unverified_header(token)
-        key_id = headers.get('kid')
-        
-        # Find the key with matching kid
-        key = None
-        for k in jwks['keys']:
-            if k['kid'] == key_id:
-                key = k
-                break
-        
-        if not key:
-            raise JWTError('Public key not found in jwks')
-            
-        return jwk.construct(key)
-    except Exception as e:
-        current_app.logger.error(f"Error getting signing key: {str(e)}")
-        raise JWTError('Invalid token header')
-
-def get_current_user():
-    auth_header = request.headers.get('Authorization', '')
-    if not auth_header or not auth_header.startswith('Bearer '):
-        raise JWTError('Missing or invalid Authorization header')
-    
-    token = auth_header.split(' ')[1]
-    
-    try:
-        # Verify token signature
-        key = get_signing_key(token)
-        claims = jose_jwt.decode(
-            token,
-            key=key,
-            algorithms=['RS256'],
-            audience=COGNITO_CLIENT_ID,
-            issuer=COGNITO_ISSUER,
-            options={
-                'verify_aud': True,
-                'verify_iss': True,
-                'verify_signature': True
-            }
-        )
-        
-        # Get user from database
-        user = User.query.filter_by(cognito_id=claims['sub']).first()
-        if not user:
-            current_app.logger.warning(f"User not found for cognito_id: {claims['sub']}")
-            raise JWTError('User not found or not properly registered')
-            
-        return user
-        
-    except ExpiredSignatureError:
-        current_app.error('Token has expired')
-        raise JWTError('Token has expired')
-    except JWTClaimsError as e:
-        current_app.error(f'Token claims error: {str(e)}')
-        raise JWTError(f'Invalid token claims: {str(e)}')
-    except JWTError as e:
-        current_app.error(f'JWT validation error: {str(e)}')
-        raise
-    except Exception as e:
-        current_app.error(f'Unexpected error during token validation: {str(e)}')
-        raise JWTError('Token validation failed')
 
 @user_bp.route('/billing-info', methods=['GET'])
+@rate_limit(max_requests=20, window_seconds=60)
 def get_billing_info():
     """Get the current user's subscription and report usage information"""
     try:
         user = get_current_user()
         if not user:
-            return jsonify({
-                'success': False,
-                'error': 'USER_NOT_FOUND',
-                'message': 'User not found'
-            }), 404
+            return security_error_response(SecurityError.UNAUTHORIZED)
         
         # Get subscription info
         subscription = Subscription.query.filter_by(user_id=user.id).first()
@@ -154,12 +64,8 @@ def get_billing_info():
         })
         
     except Exception as e:
-        current_app.logger.error(f'Error getting billing info: {str(e)}')
-        return jsonify({
-            'success': False,
-            'error': 'SERVER_ERROR',
-            'message': 'Failed to retrieve billing information'
-        }), 500
+        current_app.logger.error(f"Error getting billing info: {str(e)}")
+        return security_error_response(SecurityError.SERVER_ERROR)
 
 
 def _parse_checklist(raw_value):
@@ -191,7 +97,6 @@ def _get_user():
 
 @user_bp.route('/insurance', methods=['GET', 'PUT'])
 def insurance_checklist():
-    current_app.logger.info("🔔 /insurance endpoint invoked", extra={"method": request.method})
     user = _get_user()
     if not user:
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
@@ -216,7 +121,6 @@ def insurance_checklist():
 
 @user_bp.route('/closing', methods=['GET', 'PUT'])
 def closing_checklist():
-    current_app.logger.info("🔔 /closing endpoint invoked", extra={"method": request.method})
     """GET returns checklist, PUT updates it (expects JSON list)."""
     user = _get_user()
     if not user:
@@ -242,7 +146,6 @@ def closing_checklist():
 
 @user_bp.route('/timeline', methods=['GET', 'PUT'])
 def timeline_checklist():
-    current_app.logger.info("🔔 /timeline endpoint invoked", extra={"method": request.method})
     user = _get_user()
     if not user:
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
@@ -266,7 +169,6 @@ def timeline_checklist():
 
 @user_bp.route('/financing', methods=['GET', 'PUT'])
 def financing_checklist():
-    current_app.logger.info("🔔 /financing endpoint invoked", extra={"method": request.method})
     user = _get_user()
     if not user:
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
@@ -290,7 +192,6 @@ def financing_checklist():
 
 @user_bp.route('/escrow', methods=['GET', 'PUT'])
 def escrow_checklist():
-    current_app.logger.info("🔔 /escrow endpoint invoked", extra={"method": request.method})
     user = _get_user()
     if not user:
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401

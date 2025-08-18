@@ -1,6 +1,5 @@
 from datetime import datetime
 from flask import Blueprint, request, jsonify, current_app
-from flask_jwt_extended import create_access_token
 import os
 import jwt
 from .. import db

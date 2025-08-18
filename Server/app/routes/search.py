@@ -1,33 +1,21 @@
 from __future__ import annotations
 
 from flask import Blueprint, request, jsonify, current_app
+from app.models.user import User
+from app.models.user_preferences import UserPreferences
+from app.utils.locationPolygon import isochrone_union_for_addresses
+from app.utils.auth import get_current_user
 import requests
 import os
-import json
-import re
-import redis
-import time
-from typing import Dict, List, Any, Tuple, Optional
-from jose import jwk, jwt as jose_jwt
-from jose.exceptions import JWTError, JWTClaimsError, ExpiredSignatureError
 from urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
-from ..models.user import User
 from ..utils.locationPolygon import isochrone_union_for_addresses
-from flask_cors import cross_origin
 from ..services.search_help import extract_property_features
 from ..home_matching.app.match import find_best_matches
 
 RAPI_HOST = "zillow-com1.p.rapidapi.com"
 RAPI_KEY = os.getenv('RAPIDAPI_KEY')
 
-# CORS settings
-cors_config = {
-    'origins': [
-        "*"
-    ],
-    'supports_credentials': True
-}
 
 
 def _slugify_address(street: str, city: str, state: str, zipcode: str | None = None) -> str:
@@ -121,83 +109,6 @@ API_BASE = f"https://{RAPI_HOST}"
 
 search_bp = Blueprint('search', __name__, url_prefix='/api/v1/search')
 
-# Cognito Configuration
-COGNITO_REGION = os.getenv("S3_REGION", "us-east-2")
-COGNITO_POOL_ID = os.getenv("COGNITO_USER_POOL_ID")
-COGNITO_CLIENT_ID = os.getenv("COGNITO_CLIENT_ID")
-
-if not COGNITO_POOL_ID or not COGNITO_CLIENT_ID:
-    raise RuntimeError("COGNITO_POOL_ID and COGNITO_CLIENT_ID must be set in environment variables.")
-
-COGNITO_ISSUER = f"https://cognito-idp.{COGNITO_REGION}.amazonaws.com/{COGNITO_POOL_ID}"
-COGNITO_KEYS_URL = f"{COGNITO_ISSUER}/.well-known/jwks.json"
-
-# Cache the JWKS
-jwks = requests.get(COGNITO_KEYS_URL).json()
-
-def get_signing_key(token):
-    try:
-        headers = jose_jwt.get_unverified_header(token)
-        key_id = headers.get('kid')
-        
-        # Find the key with matching kid
-        key = None
-        for k in jwks['keys']:
-            if k['kid'] == key_id:
-                key = k
-                break
-        
-        if not key:
-            raise JWTError('Public key not found in jwks')
-            
-        return jwk.construct(key)
-    except Exception as e:
-        current_app.logger.error(f"Error getting signing key: {str(e)}")
-        raise JWTError('Invalid token header')
-
-def get_current_user():
-    auth_header = request.headers.get('Authorization', '')
-    if not auth_header or not auth_header.startswith('Bearer '):
-        raise JWTError('Missing or invalid Authorization header')
-    
-    token = auth_header.split(' ')[1]
-    
-    try:
-        # Verify token signature
-        key = get_signing_key(token)
-        claims = jose_jwt.decode(
-            token,
-            key=key,
-            algorithms=['RS256'],
-            audience=COGNITO_CLIENT_ID,
-            issuer=COGNITO_ISSUER,
-            options={
-                'verify_aud': True,
-                'verify_iss': True,
-                'verify_signature': True
-            }
-        )
-        
-        # Get user from database
-        user = User.query.filter_by(cognito_id=claims['sub']).first()
-        if not user:
-            current_app.logger.warning(f"User not found for cognito_id: {claims['sub']}")
-            raise JWTError('User not found or not properly registered')
-            
-        return user
-        
-    except ExpiredSignatureError:
-        current_app.logger.error('Token has expired')
-        raise JWTError('Token has expired')
-    except JWTClaimsError as e:
-        current_app.logger.error(f'Token claims error: {str(e)}')
-        raise JWTError(f'Invalid token claims: {str(e)}')
-    except JWTError as e:
-        current_app.logger.error(f'JWT validation error: {str(e)}')
-        raise
-    except Exception as e:
-        current_app.logger.error(f'Unexpected error during token validation: {str(e)}')
-        raise JWTError('Token validation failed')
 
 # Types for better code organization
 class LatLng:
@@ -224,7 +135,6 @@ class ZillowProperty:
 
         
 @search_bp.route('/propertyComps', methods=['GET'])
-@cross_origin(**cors_config)
 def get_property_comps():
     """
     Get property comparables using Zillow API.
@@ -316,7 +226,6 @@ def get_property_comps():
 
 
 @search_bp.route('/property', methods=['POST'])
-@cross_origin(**cors_config)
 def get_property_via_address():
     """
     Call RapidAPI Zillow /property using exactly one of:
@@ -325,7 +234,7 @@ def get_property_via_address():
     """
     import os, time, json, requests
     from flask import current_app, jsonify, request as req
-    from ..services.graphic_generation import fetch_travel_time, generate_static_map_url
+    from ..services.reportgen.graphic_generation import fetch_travel_time, generate_static_map_url
     from ..models.user_preferences import UserPreferences
     from ..services.search_help import analyze_property_with_sonar_pro, extract_and_clean_features
 

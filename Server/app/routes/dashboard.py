@@ -1,9 +1,6 @@
-from flask import Blueprint, request, jsonify, current_app
+from flask import Blueprint, jsonify
 from flask_login import login_required, current_user
-from app.extensions import db
 from app.models import PDFDocument
-import os
-import json
 from app.models.home_descriptions import HomeDescription
 
 dashboard_bp = Blueprint('dashboard', __name__, url_prefix='/api/dashboard')

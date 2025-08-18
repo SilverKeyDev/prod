@@ -2,11 +2,9 @@
 Flask routes for home matching system with Celery integration.
 """
 
-from flask import Blueprint, request, jsonify, current_app
+from flask import Blueprint, request, jsonify
 from flask_login import login_required, current_user
 import logging
-import json
-from typing import Dict, List, Any, Optional
 
 from ..celery.tasks import find_best_matches_task
 from ..celery.celery_worker import celery

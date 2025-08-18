@@ -21,7 +21,7 @@ import traceback
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from .s3_service import s3_service
+from app.services.s3_service import s3_service
 from urllib.parse import quote_plus
 from .graphic_generation import generate_horizontal_bar_chart, generate_vertical_lollipop_chart, generate_commute_map
 from PIL import Image as PILImage, ImageEnhance

@@ -2,61 +2,19 @@
 
 from flask import Blueprint, request, jsonify, current_app
 from app.models.user_preferences import UserPreferences
-from app.services.chatbot.chatbot_utils import get_chat_response, get_preferences, summarize_user_message
+from app.models.pdf_document import PDFDocument
 from app.models.chat_history import ChatHistory
-from app.models.user import User
-from app import db
-from datetime import datetime
-import logging
-import traceback
-import requests
-import os
+from app.services.chatbot.chatbot_utils import get_preferences
+from app.services.s3_service import s3_service
+from app.utils.auth import get_current_user
+from .. import db
 import json
-from jose import jwt
-
-# Configure logger
+import os
+import requests
+import logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-# Cognito configuration (matching report routes)
-COGNITO_REGION = os.getenv("S3_REGION", "us-east-2")
-COGNITO_POOL_ID = os.getenv("COGNITO_USER_POOL_ID")
-COGNITO_CLIENT_ID = os.getenv("COGNITO_CLIENT_ID")
-
-if not COGNITO_POOL_ID or not COGNITO_CLIENT_ID:
-    raise RuntimeError("COGNITO_POOL_ID and COGNITO_CLIENT_ID must be set in environment variables.")
-
-COGNITO_KEYS_URL = f"https://cognito-idp.{COGNITO_REGION}.amazonaws.com/{COGNITO_POOL_ID}/.well-known/jwks.json"
-
-# Cache the JWKS
-JWKS = requests.get(COGNITO_KEYS_URL).json()
-
-def get_current_user():
-    """Get current user from Cognito JWT token"""
-    auth_header = request.headers.get('Authorization', None)
-    if not auth_header:
-        raise Exception("Authorization header missing")
-    
-    token = auth_header.replace("Bearer ", "")
-    
-    try:
-        claims = jwt.decode(
-            token,
-            JWKS,
-            algorithms=["RS256"],
-            audience=COGNITO_CLIENT_ID,
-            options={
-                "leeway": 30
-            }
-        )
-        user = User.query.filter_by(cognito_id=claims['sub']).first()
-        if not user:
-            current_app.logger.warning(f"User not found for cognito_id: {claims['sub']}")
-            raise Exception("User not found or not properly registered")
-        return user
-    except Exception as e:
-        current_app.logger.error(f"Token validation failed: {str(e)}")
-        raise
 
 # Authentication handled directly in route functions
 
@@ -149,7 +107,7 @@ def chat_for_address(report_id):
                 # Old flat structure fallback
                 json_s3_key = pdf_path.replace('.pdf', '.json')
                         
-            from app.services.report_comparator import _download_json_from_s3
+            from app.services.repmparator import _download_json_from_s3
             report_data = _download_json_from_s3(json_s3_key)
             
         except Exception as report_error:

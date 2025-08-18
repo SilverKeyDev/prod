@@ -1,16 +1,20 @@
-from flask import Blueprint, request, jsonify, send_from_directory, current_app
+from flask import Blueprint, request, jsonify
 import logging
-import os
 import traceback
 import uuid
 from datetime import datetime
 from app.models.pdf_document import PDFDocument
 from app import db
-import time
-from flask_jwt_extended import jwt_required, get_jwt_identity
-from app.services.report_generator import generate_report
-# from app.services.offer.generate import generate_report as generate_offer_section
-# TODO: Fix this import once the offer generation service is properly implemented
+from app.utils.auth import get_current_user
+from .. import db
+from datetime import datetime
+import logging
+logger = logging.getLogger(__name__)
+
+# Blueprint setup
+offer_bp = Blueprint('offer', __name__, url_prefix='/api/v1/offer')
+
+
 
 # Temporary placeholder function to prevent server startup errors
 def generate_offer_section(*args, **kwargs):
@@ -20,76 +24,10 @@ def generate_offer_section(*args, **kwargs):
         'error': 'Offer generation service not yet implemented',
         'message': 'This feature is under development'
     }
-from app.services.s3_service import s3_service
-from flask import current_app
-from app import db
-from flask_cors import cross_origin
-from jose import jwt
-import requests
-import os
-from sqlalchemy import or_, func
-from app.models.user import User
-from app.models.pdf_document import PDFDocument
-from app.services.s3_service import s3_service
 
-
-# Configure logger
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-# Blueprint setup
-offer_bp = Blueprint('offer', __name__, url_prefix='/api/v1/offer')
-
-# CORS settings
-cors_config = {
-    'origins': [
-        "*"
-    ],
-    'supports_credentials': True
-}
-
-COGNITO_REGION = os.getenv("S3_REGION", "us-east-2")
-COGNITO_POOL_ID = os.getenv("COGNITO_USER_POOL_ID")
-COGNITO_CLIENT_ID = os.getenv("COGNITO_CLIENT_ID")
-
-if not COGNITO_POOL_ID or not COGNITO_CLIENT_ID:
-    raise RuntimeError("COGNITO_POOL_ID and COGNITO_CLIENT_ID must be set in environment variables.")
-
-COGNITO_KEYS_URL = f"https://cognito-idp.{COGNITO_REGION}.amazonaws.com/{COGNITO_POOL_ID}/.well-known/jwks.json"
-
-
-# cache the JWKS
-JWKS = requests.get(COGNITO_KEYS_URL).json()
-
-def get_current_user():
-    auth_header = request.headers.get('Authorization', None)
-    if not auth_header:
-        raise Exception("Authorization header missing")
-    
-    token = auth_header.replace("Bearer ", "")
-    
-    try:
-        claims = jwt.decode(
-            token,
-            JWKS,
-            algorithms=["RS256"],
-            audience=COGNITO_CLIENT_ID,
-            options={
-                "leeway": 30
-            }
-        )
-        user = User.query.filter_by(cognito_id=claims['sub']).first()
-        if not user:
-            current_app.logger.warning(f"User not found for cognito_id: {claims['sub']}")
-            raise Exception("User not found or not properly registered")
-        return user
-    except Exception as e:
-        current_app.logger.error(f"Token validation failed: {str(e)}")
-        raise
 
 
 @offer_bp.route('/purchase-agreement', methods=['POST'])
-@cross_origin(**cors_config)
 def generate_purchase_agreement():
     """
     Generate a Signed Purchase Offer/Agreement document.
@@ -202,7 +140,6 @@ def generate_purchase_agreement():
 
 
 @offer_bp.route('/pre-approval-letter', methods=['POST'])
-@cross_origin(**cors_config)
 def generate_pre_approval_letter():
     """
     Generate a Mortgage Pre-Approval Letter or Proof of Funds document.
@@ -314,7 +251,6 @@ def generate_pre_approval_letter():
 
 
 @offer_bp.route('/earnest-money-instructions', methods=['POST'])
-@cross_origin(**cors_config)
 def generate_earnest_money_instructions():
     """
     Generate Earnest Money Instructions document.
@@ -422,7 +358,6 @@ def generate_earnest_money_instructions():
 
 
 @offer_bp.route('/cover-letter', methods=['POST'])
-@cross_origin(**cors_config)
 def generate_cover_letter():
     """
     Generate an Optional Cover Letter for the offer.
@@ -551,7 +486,6 @@ def generate_cover_letter():
 
 
 @offer_bp.route('/documents', methods=['GET'])
-@cross_origin(**cors_config)
 def list_offer_documents():
     """
     List all offer documents for the current user.
@@ -607,7 +541,6 @@ def list_offer_documents():
 
 
 @offer_bp.route('/generate-strategy', methods=['POST', 'GET'])
-@cross_origin(**cors_config)
 def generate_negotiation_strategy():
     """
     Generate a negotiation strategy for a specific property.
@@ -720,7 +653,7 @@ def generate_negotiation_strategy():
             
             # Import necessary modules for property data fetching
             import os, requests, json
-            from app.services.graphic_generation import fetch_travel_time, generate_static_map_url
+            from app.services.reportgen.graphic_generation import fetch_travel_time, generate_static_map_url
             from app.models.user_preferences import UserPreferences
             from app.services.search_help import analyze_property_with_sonar_pro
             

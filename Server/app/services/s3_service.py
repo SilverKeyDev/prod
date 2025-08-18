@@ -384,7 +384,6 @@ class S3Service:
         Returns:
             The presigned URL, or None if generation failed
         """
-        logger.info(f"👁️ Generating view URL for: {s3_key}")
         
         # Ensure S3 client is available
         if not self._ensure_s3_client():
@@ -430,19 +429,12 @@ class S3Service:
                 'ResponseContentType': 'application/pdf'
             }
 
-            logger.info(f"🔧 Generating view URL with {expiration}s expiration")
             presigned_url = self.s3_client.generate_presigned_url(
                 operation,
                 Params=params,
                 ExpiresIn=expiration,
             )
 
-            logger.info(f"✅ View URL generated successfully!")
-            logger.info(f"   - S3 Key: {s3_key}")
-            logger.info(f"   - Operation: {operation}")
-            logger.info(f"   - Expires in: {expiration}s")
-            logger.info(f"   - Content-Disposition: inline (for browser viewing)")
-            
             return presigned_url
 
         except ClientError as e:

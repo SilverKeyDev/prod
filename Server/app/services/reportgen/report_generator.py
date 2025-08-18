@@ -8,19 +8,14 @@ from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 import uuid
 import time
-from flask import jsonify
 import traceback
 from sqlalchemy.exc import OperationalError, DisconnectionError
 from .pdf_creator import _create_pdf
 from io import BytesIO
 from .schema_generator import get_individual_section_schema
-from ..models.report_models import FullReport
-from ..models.marketing_model import MarketingReport
-from ..models.user_preferences import UserPreferences
-from ..services.s3_service import s3_service
-from flask import current_app
+from app.models.user_preferences import UserPreferences
 from app import db
-from ..scrapers.age_data import get_age_distribution, get_population_total
+from .age_data import get_age_distribution, get_population_total
 
 # Configure verbose logging
 logging.basicConfig(level=logging.DEBUG)

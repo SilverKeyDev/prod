@@ -575,7 +575,7 @@ export default function PastReports() {
                   <MiniLogo className="w-6 h-6" />
                 </div>
                 <h2 className="text-white font-semibold text-lg truncate">
-                  {currentDocumentName || "Property Report"}
+                  {currentDocumentName ? formatFilenameToAddress(currentDocumentName) : "Property Report"}
                 </h2>
               </div>
 
