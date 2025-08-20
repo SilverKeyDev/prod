@@ -5,7 +5,6 @@ from app.utils.auth import get_current_user, SecurityException
 from app.utils.secure_errors import SecureErrorHandler
 from ..utils.security import security_error_response
 from .. import db
-from jose import jwt as jose_jwt
 from jose.exceptions import JWTError, JWTClaimsError, ExpiredSignatureError
 import json
 from ..utils.app_logging import get_logger

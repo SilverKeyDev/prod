@@ -12,15 +12,13 @@ try:
 except Exception:
     pass
 
-from flask import Flask, send_from_directory, request, jsonify
+from flask import Flask, send_from_directory, jsonify
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, UserMixin
+from flask_login import LoginManager
 from flask_migrate import Migrate
 from flask_cors import CORS
 from flask_marshmallow import Marshmallow
 from flask_executor import Executor
-from flask_jwt_extended import JWTManager
-from datetime import datetime
 from .config import Config
 import logging
 from jose.exceptions import ExpiredSignatureError
@@ -46,17 +44,6 @@ def create_app(config=None):
     # Configure centralized logging for entire application
     from .utils.app_logging import configure_app_logging
     configure_app_logging(app)
-
-    # JWT Configuration
-    jwt_secret = os.getenv("JWT_SECRET_KEY")
-    if not jwt_secret:
-        raise RuntimeError("JWT_SECRET_KEY environment variable must be set")
-    app.config["JWT_SECRET_KEY"] = jwt_secret
-    app.config["JWT_TOKEN_LOCATION"] = ["headers"]
-    app.config["JWT_HEADER_NAME"] = "Authorization"
-    app.config["JWT_HEADER_TYPE"] = "Bearer"
-
-    jwt = JWTManager(app)
 
     # Initialize extensions
     db.init_app(app)    
