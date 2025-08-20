@@ -600,22 +600,52 @@ export default function PastReports() {
                 onError={(e) => {
                   const iframe = e.target as HTMLIFrameElement;
                   if (iframe?.contentDocument?.body) {
-                    iframe.contentDocument.body.innerHTML = `
-                      <div style="padding: 40px; text-align: center; font-family: system-ui, -apple-system, sans-serif; background: #faf9f7;">
-                        <div style="max-width: 400px; margin: 0 auto; padding: 30px; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(164, 117, 81, 0.1); border: 1px solid #D4AF7F;">
-                          <div style="width: 60px; height: 60px; background: #A47551; border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center;">
-                            <svg width="24" height="24" fill="white" viewBox="0 0 24 24">
-                              <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" />
-                            </svg>
-                          </div>
-                          <h3 style="color: #A47551; margin: 0 0 12px 0; font-size: 18px; font-weight: 600;">Unable to load PDF preview</h3>
-                          <p style="color: #666; margin: 0 0 20px 0; line-height: 1.5;">The PDF couldn't be displayed in the browser. You can download it directly instead.</p>
-                          <a href="${currentPdf}" download style="display: inline-block; background: #A47551; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 500; transition: background 0.2s;" onmouseover="this.style.background='#8B5A3C'" onmouseout="this.style.background='#A47551'">
-                            Download PDF
-                          </a>
-                        </div>
-                      </div>
-                    `;
+                    // Create error content safely using DOM methods
+                    const errorDiv = document.createElement('div');
+                    errorDiv.style.cssText = 'padding: 40px; text-align: center; font-family: system-ui, -apple-system, sans-serif; background: #faf9f7;';
+                    
+                    const contentDiv = document.createElement('div');
+                    contentDiv.style.cssText = 'max-width: 400px; margin: 0 auto; padding: 30px; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(164, 117, 81, 0.1); border: 1px solid #D4AF7F;';
+                    
+                    const iconDiv = document.createElement('div');
+                    iconDiv.style.cssText = 'width: 60px; height: 60px; background: #A47551; border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center;';
+                    
+                    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                    svg.setAttribute('width', '24');
+                    svg.setAttribute('height', '24');
+                    svg.setAttribute('fill', 'white');
+                    svg.setAttribute('viewBox', '0 0 24 24');
+                    
+                    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    path.setAttribute('d', 'M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z');
+                    
+                    svg.appendChild(path);
+                    iconDiv.appendChild(svg);
+                    
+                    const title = document.createElement('h3');
+                    title.style.cssText = 'color: #A47551; margin: 0 0 12px 0; font-size: 18px; font-weight: 600;';
+                    title.textContent = 'Unable to load PDF preview';
+                    
+                    const description = document.createElement('p');
+                    description.style.cssText = 'color: #666; margin: 0 0 20px 0; line-height: 1.5;';
+                    description.textContent = "The PDF couldn't be displayed in the browser. You can download it directly instead.";
+                    
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = currentPdf;
+                    downloadLink.download = '';
+                    downloadLink.style.cssText = 'display: inline-block; background: #A47551; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 500; transition: background 0.2s;';
+                    downloadLink.textContent = 'Download PDF';
+                    downloadLink.onmouseover = () => downloadLink.style.background = '#8B5A3C';
+                    downloadLink.onmouseout = () => downloadLink.style.background = '#A47551';
+                    
+                    contentDiv.appendChild(iconDiv);
+                    contentDiv.appendChild(title);
+                    contentDiv.appendChild(description);
+                    contentDiv.appendChild(downloadLink);
+                    errorDiv.appendChild(contentDiv);
+                    
+                    iframe.contentDocument.body.textContent = '';
+                    iframe.contentDocument.body.appendChild(errorDiv);
                   }
                 }}
               />

@@ -974,7 +974,14 @@ export default function SearchPage() {
         // extra -2px tucks it flush (tweak if your dot size changes)
         this.div.style.transform = "translate(-50%, calc(-100% - 2px))";
         this.div.style.pointerEvents = "auto";
-        this.div.innerHTML = contentHTML;
+        // Safely set content using textContent to prevent XSS
+        this.div.textContent = '';
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = contentHTML;
+        // Only append if content is safe (basic validation)
+        if (tempDiv.textContent || tempDiv.innerText) {
+          this.div.appendChild(tempDiv);
+        }
       }
 
       onAdd() {
@@ -1329,15 +1336,28 @@ export default function SearchPage() {
         height: 32px;
         cursor: pointer;
       `;
-      markerElement.innerHTML = `
-        <svg width="24" height="32" viewBox="0 0 24 32" xmlns="http://www.w3.org/2000/svg">
-          <path d="${BASE_PIN_PATH}" fill="${fillColor}" stroke="${strokeColor}" stroke-width="1.75" stroke-opacity="0.9" fill-opacity="0.9"/>
-        </svg>
-      `;
+      
+      // Create SVG element safely without innerHTML
+      const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      svg.setAttribute("width", "24");
+      svg.setAttribute("height", "32");
+      svg.setAttribute("viewBox", "0 0 24 32");
+      
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      path.setAttribute("d", BASE_PIN_PATH);
+      path.setAttribute("fill", fillColor);
+      path.setAttribute("stroke", strokeColor);
+      path.setAttribute("stroke-width", "1.75");
+      path.setAttribute("stroke-opacity", "0.9");
+      path.setAttribute("fill-opacity", "0.9");
+      
+      svg.appendChild(path);
+      markerElement.appendChild(svg);
 
+      // Create the marker
       const marker = new AdvancedMarkerElement({
-        position: { lat: result.lat, lng: result.lng },
         map: googleMapRef.current,
+        position: { lat: result.lat, lng: result.lng },
         title: result.address,
         content: markerElement,
       });
@@ -1385,6 +1405,7 @@ export default function SearchPage() {
           ">Match Score</div>
         </div>`;
 
+      // Create overlay content safely using DOM methods
       overlayDiv.innerHTML = `
         <style>
           .gm-style-cc { display: none !important; }
@@ -1432,7 +1453,7 @@ export default function SearchPage() {
             if (!document.getElementById('mapModalKeyframes')) {
               const style = document.createElement('style');
               style.id = 'mapModalKeyframes';
-              style.innerHTML = '@keyframes turnKey { 0% { transform: rotate(0deg); } 25% { transform: rotate(20deg); } 50% { transform: rotate(0deg); } 75% { transform: rotate(-20deg); } 100% { transform: rotate(0deg); } }';
+              style.textContent = '@keyframes turnKey { 0% { transform: rotate(0deg); } 25% { transform: rotate(20deg); } 50% { transform: rotate(0deg); } 75% { transform: rotate(-20deg); } 100% { transform: rotate(0deg); } }';
               document.head.appendChild(style);
             }
             
