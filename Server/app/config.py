@@ -33,7 +33,9 @@ class Config:
     }
     
 
-    SECRET_KEY = os.getenv('SECRET_KEY', 'dev-key-change-in-production')
+    SECRET_KEY = os.getenv('SECRET_KEY')
+    if not SECRET_KEY:
+        raise RuntimeError("SECRET_KEY environment variable must be set")
     
     # Database Configuration with SSL support
     database_url = os.getenv('DATABASE_URL', f'sqlite:///{os.path.join(instance_dir, "silverkey.db")}')
@@ -47,7 +49,9 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # JWT Settings
-    JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'jwt-secret-key-change-in-production')
+    JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY')
+    if not JWT_SECRET_KEY:
+        raise RuntimeError("JWT_SECRET_KEY environment variable must be set")
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(days=1)
     
     # AWS Cognito Settings

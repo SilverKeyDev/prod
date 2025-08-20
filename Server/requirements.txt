@@ -50,7 +50,6 @@ pillow==9.5.0
 
 # --- Security Dependencies ---
 python-magic==0.4.27
-python-magic-bin==0.4.14
 
 # --- Pydantic & Serialization ---
 pydantic==2.5.0

@@ -48,7 +48,10 @@ def create_app(config=None):
     configure_app_logging(app)
 
     # JWT Configuration
-    app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY", "dev-secret")
+    jwt_secret = os.getenv("JWT_SECRET_KEY")
+    if not jwt_secret:
+        raise RuntimeError("JWT_SECRET_KEY environment variable must be set")
+    app.config["JWT_SECRET_KEY"] = jwt_secret
     app.config["JWT_TOKEN_LOCATION"] = ["headers"]
     app.config["JWT_HEADER_NAME"] = "Authorization"
     app.config["JWT_HEADER_TYPE"] = "Bearer"

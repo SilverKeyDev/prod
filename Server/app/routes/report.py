@@ -348,10 +348,15 @@ def get_download_url(report_id):
             logger.error("No report ID provided")
             return jsonify({'error': 'Report ID is required'}), 400
 
-        # Fetch report from DB
-        report = PDFDocument.query.filter_by(id=report_id).first()
+        # Get current user for authorization
+        user = get_current_user()
+        if not user:
+            return jsonify({'error': 'Authentication required'}), 401
+
+        # Fetch report from DB with user ownership validation
+        report = PDFDocument.query.filter_by(id=report_id, user_id=user.id).first()
         if not report:
-            logger.error(f"Report not found for ID: {report_id}")
+            logger.error(f"Report not found or access denied for ID: {report_id}, user: {user.id}")
             return jsonify({'error': 'Report not found'}), 404
 
         pdf_url = report.file_path
@@ -393,10 +398,15 @@ def get_view_url(report_id):
             logger.error("No report ID provided")
             return jsonify({'error': 'Report ID is required'}), 400
 
-        # Fetch report from DB
-        report = PDFDocument.query.filter_by(id=report_id).first()
+        # Get current user for authorization
+        user = get_current_user()
+        if not user:
+            return jsonify({'error': 'Authentication required'}), 401
+
+        # Fetch report from DB with user ownership validation
+        report = PDFDocument.query.filter_by(id=report_id, user_id=user.id).first()
         if not report:
-            logger.error(f"Report not found for ID: {report_id}")
+            logger.error(f"Report not found or access denied for ID: {report_id}, user: {user.id}")
             return jsonify({'error': 'Report not found'}), 404
 
         pdf_url = report.file_path

@@ -303,8 +303,9 @@ def get_agents():
 @preferences_bp.route('/add', methods=['GET'])
 def set_as_agent():
     """
-    Add the current user to an agent's client list and set the user's agent_id.
+    Securely add the current user to an agent's client list and set the user's agent_id.
     Query parameter: agent_id (required) - ID of the agent to assign to the user
+    Only the authenticated user may assign an agent to themselves (not on behalf of others).
     """
     try:
         # Get JWT token and verify user
@@ -315,11 +316,9 @@ def set_as_agent():
 
         token = auth_header.split(' ')[1]
 
-
         try:
             # Get the signing key for this token
             key = get_signing_key(token)
-            
             # Decode and verify the token
             decoded_token = jose_jwt.decode(
                 token,
@@ -328,41 +327,35 @@ def set_as_agent():
                 issuer=COGNITO_ISSUER,
                 options={
                     'verify_signature': True,
-                    'verify_aud': False,  # We're not verifying audience
+                    'verify_aud': False,
                     'verify_iss': True,
                     'verify_exp': True
                 }
             )
-            
             user_id = decoded_token.get('sub')
             if not user_id:
                 logger.error("🚫 No user ID found in token")
                 return jsonify({'success': False, 'error': 'Invalid token'}), 401
-                
-            
-        except ExpiredSignatureError:
-            logger.error("🚫 Token has expired")
-            return jsonify({'success': False, 'error': 'Token expired'}), 401
-        except JWTClaimsError as e:
-            logger.error(f"🚫 JWT claims error: {str(e)}")
-            return jsonify({'success': False, 'error': 'Invalid token claims'}), 401
-        except JWTError as e:
+        except (ExpiredSignatureError, JWTClaimsError, JWTError) as e:
             logger.error(f"🚫 JWT verification failed: {str(e)}")
             return jsonify({'success': False, 'error': 'Token verification failed'}), 401
 
-        # Get the agent_id parameter from query string
+        # Only allow users to assign agents for themselves
         agent_id = request.args.get('agent_id')
         if not agent_id:
             logger.warning("🚫 No agent_id provided in request")
             return jsonify({'success': False, 'error': 'agent_id parameter is required'}), 400
 
-        # Find the current user
         current_user = User.query.filter_by(cognito_id=user_id).first()
         if not current_user:
             logger.error(f"🚫 User not found with cognito_id: {user_id}")
             return jsonify({'success': False, 'error': 'User not found'}), 404
 
-        # Find the agent
+        # Prevent agents from assigning clients to themselves (only clients can add agents)
+        if current_user.is_agent:
+            logger.warning(f"🚫 Agent {current_user.id} attempted to assign themselves as a client. Forbidden.")
+            return jsonify({'success': False, 'error': 'Agents cannot assign themselves as clients'}), 403
+
         agent = User.query.filter_by(id=agent_id, is_agent=True).first()
         if not agent:
             logger.error(f"🚫 Agent not found with id: {agent_id}")
@@ -370,37 +363,32 @@ def set_as_agent():
 
         # Parse the agent's current client_ids (JSON array)
         try:
-            if agent.client_ids:
-                client_ids = json.loads(agent.client_ids) if isinstance(agent.client_ids, str) else agent.client_ids
-            else:
-                client_ids = []
+            client_ids = json.loads(agent.client_ids) if agent.client_ids else []
         except (json.JSONDecodeError, TypeError):
             logger.warning(f"⚠️ Invalid client_ids format for agent {agent_id}, resetting to empty list")
             client_ids = []
 
-        # Add the current user to the agent's client list if not already present
-        if current_user.id not in client_ids:
-            client_ids.append(current_user.id)
-            agent.client_ids = json.dumps(client_ids)
-     
-        # Parse the user's current agent_ids (JSON array like client_ids)
+        # Prevent duplicate assignment
+        if current_user.id in client_ids:
+            logger.info(f"User {current_user.id} is already assigned to agent {agent_id}")
+            return jsonify({'success': False, 'error': 'User is already assigned to this agent'}), 409
+        client_ids.append(current_user.id)
+        agent.client_ids = json.dumps(client_ids)
+
+        # Parse the user's current agent_ids (JSON array)
         try:
-            if current_user.agent_id:
-                agent_ids = json.loads(current_user.agent_id) if isinstance(current_user.agent_id, str) else current_user.agent_id
-            else:
-                agent_ids = []
+            agent_ids = json.loads(current_user.agent_id) if current_user.agent_id else []
         except (json.JSONDecodeError, TypeError):
             logger.warning(f"⚠️ Invalid agent_id format for user {current_user.id}, resetting to empty list")
             agent_ids = []
 
-        # Add the agent to the user's agent list if not already present
-        if agent_id not in agent_ids:
-            agent_ids.append(agent_id)
-            current_user.agent_id = json.dumps(agent_ids)
-    
-        # Save changes to database
-        db.session.commit()
+        if agent_id in agent_ids:
+            logger.info(f"Agent {agent_id} is already assigned to user {current_user.id}")
+            return jsonify({'success': False, 'error': 'Agent is already assigned to this user'}), 409
+        agent_ids.append(agent_id)
+        current_user.agent_id = json.dumps(agent_ids)
 
+        db.session.commit()
         return jsonify({
             'success': True,
             'message': f'Successfully assigned agent {agent.name} to user {current_user.name}',
@@ -415,10 +403,8 @@ def set_as_agent():
     except Exception as e:
         logger.error(f"🔥 Failed to assign agent: {str(e)}", exc_info=True)
         db.session.rollback()
-        return jsonify({
-            'success': False,
-            'error': 'Failed to assign agent'
-        }), 500
+        return jsonify({'success': False, 'error': 'Failed to assign agent'}), 500
+
 
 @preferences_bp.route('/users_agents', methods=['GET'])
 def get_user_agents():
@@ -482,8 +468,9 @@ def get_user_agents():
 @preferences_bp.route('/remove', methods=['GET'])
 def remove_agent_relationship():
     """
-    Remove the current user from an agent's client list and remove the agent from the user's agent_id list.
+    Securely remove the current user from an agent's client list and remove the agent from the user's agent_id list.
     Query parameter: agent_id (required) - ID of the agent to disassociate from the user
+    Only the authenticated user may remove an agent from themselves (not on behalf of others).
     """
     try:
         # Get JWT token and verify user
@@ -493,7 +480,6 @@ def remove_agent_relationship():
             return jsonify({'success': False, 'error': 'Authorization required'}), 401
 
         token = auth_header.split(' ')[1]
-      
         try:
             key = get_signing_key(token)
             decoded_token = jose_jwt.decode(
@@ -512,17 +498,11 @@ def remove_agent_relationship():
             if not user_id:
                 logger.error("🚫 No user ID found in token")
                 return jsonify({'success': False, 'error': 'Invalid token'}), 401
-
-        except ExpiredSignatureError:
-            logger.error("🚫 Token has expired")
-            return jsonify({'success': False, 'error': 'Token expired'}), 401
-        except JWTClaimsError as e:
-            logger.error(f"🚫 JWT claims error: {str(e)}")
-            return jsonify({'success': False, 'error': 'Invalid token claims'}), 401
-        except JWTError as e:
+        except (ExpiredSignatureError, JWTClaimsError, JWTError) as e:
             logger.error(f"🚫 JWT verification failed: {str(e)}")
             return jsonify({'success': False, 'error': 'Token verification failed'}), 401
 
+        # Only allow users to remove agents for themselves
         agent_id = request.args.get('agent_id')
         if not agent_id:
             logger.warning("🚫 No agent_id provided in request")
@@ -532,6 +512,11 @@ def remove_agent_relationship():
         if not current_user:
             logger.error(f"🚫 User not found with cognito_id: {user_id}")
             return jsonify({'success': False, 'error': 'User not found'}), 404
+
+        # Prevent agents from removing clients (only clients can remove agents from themselves)
+        if current_user.is_agent:
+            logger.warning(f"🚫 Agent {current_user.id} attempted to remove themselves as a client. Forbidden.")
+            return jsonify({'success': False, 'error': 'Agents cannot remove themselves as clients'}), 403
 
         agent = User.query.filter_by(id=agent_id, is_agent=True).first()
         if not agent:
@@ -544,10 +529,12 @@ def remove_agent_relationship():
             logger.warning(f"⚠️ Invalid client_ids format for agent {agent_id}, resetting to empty list")
             client_ids = []
 
-        if current_user.id in client_ids:
-            client_ids.remove(current_user.id)
-            agent.client_ids = json.dumps(client_ids)
-     
+        # Only remove if present
+        if current_user.id not in client_ids:
+            logger.info(f"User {current_user.id} is not assigned to agent {agent_id}")
+            return jsonify({'success': False, 'error': 'User is not assigned to this agent'}), 409
+        client_ids.remove(current_user.id)
+        agent.client_ids = json.dumps(client_ids)
 
         try:
             agent_ids = json.loads(current_user.agent_id) if current_user.agent_id else []
@@ -555,12 +542,13 @@ def remove_agent_relationship():
             logger.warning(f"⚠️ Invalid agent_id format for user {current_user.id}, resetting to empty list")
             agent_ids = []
 
-        if agent_id in agent_ids:
-            agent_ids.remove(agent_id)
-            current_user.agent_id = json.dumps(agent_ids)
-    
-        db.session.commit()
+        if agent_id not in agent_ids:
+            logger.info(f"Agent {agent_id} is not assigned to user {current_user.id}")
+            return jsonify({'success': False, 'error': 'Agent is not assigned to this user'}), 409
+        agent_ids.remove(agent_id)
+        current_user.agent_id = json.dumps(agent_ids)
 
+        db.session.commit()
         return jsonify({
             'success': True,
             'message': f'Successfully removed agent {agent.name} from user {current_user.name}',
@@ -576,6 +564,7 @@ def remove_agent_relationship():
         logger.error(f"🔥 Failed to remove agent: {str(e)}", exc_info=True)
         db.session.rollback()
         return jsonify({'success': False, 'error': 'Failed to remove agent'}), 500
+
 
 
 @preferences_bp.route('/action-plan/<client_id>', methods=['POST'])
