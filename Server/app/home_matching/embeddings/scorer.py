@@ -35,9 +35,7 @@ class EmbeddingScorer:
             if user_dim != home_dim:
                 logger.warning(f"Dimension mismatch detected! User: {user_dim}, Home: {home_dim}")
                 logger.warning("This will cause cosine similarity calculation errors.")
-            else:
-                logger.info(f"✅ Dimension consistency validated: {user_dim} dimensions")
-                
+            
         except Exception as e:
             logger.error(f"Error validating dimensions: {e}")
     
@@ -60,7 +58,6 @@ class EmbeddingScorer:
             # Use power function to amplify differences while keeping in [0,1] range
             amplified_similarity = self._amplify_embedding_score(raw_similarity)
             
-            logger.debug(f"Similarity between user {user_data.get('user_id', 'unknown')} and home {home_data.get('home_id', 'unknown')}: {raw_similarity:.4f} -> {amplified_similarity:.4f} (amplified)")
             return amplified_similarity
             
         except Exception as e:
@@ -122,7 +119,6 @@ class EmbeddingScorer:
             # Sort by similarity (highest first)
             scored_homes.sort(key=lambda x: x[1], reverse=True)
             
-            logger.info(f"Scored user {user_data.get('user_id', 'unknown')} against {len(homes_data)} homes")
             return scored_homes
             
         except Exception as e:
@@ -157,7 +153,6 @@ class EmbeddingScorer:
                 user_id = user_data.get('user_id', 'unknown')
                 results[user_id] = scored_homes
             
-            logger.info(f"Scored {len(users_data)} users against {len(homes_data)} homes")
             return results
             
         except Exception as e:

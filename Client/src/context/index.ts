@@ -1,6 +1,7 @@
 // Barrel exports for clean public API
 export * from './utils';
 export { AppProviders } from './AppProviders';
+export { AuthProvider, useAuth } from './AuthContext';
 export { ReportsProvider, useReports, useCompareReports } from './ReportsContext';
 export { BillingProvider, useBilling } from './BillingContext';
 export { UserProvider, useUser, usePreferences } from './UserContext';

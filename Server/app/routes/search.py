@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 from flask import Blueprint, request, jsonify, current_app
-from app.models.user import User
-from app.models.user_preferences import UserPreferences
 from app.utils.locationPolygon import isochrone_union_for_addresses
 from app.utils.auth import get_current_user
+from app.utils.secure_errors import SecureErrorHandler
 import requests
 import os
+import redis
+import time
 from urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
 from ..utils.locationPolygon import isochrone_union_for_addresses
@@ -175,23 +176,17 @@ def get_property_comps():
             "x-rapidapi-key": RAPI_KEY,
             "Accept": "application/json"
         }
-        
-        current_app.logger.info(f"🏠 [PROPERTY_COMPS] GET {url} params={params}")
-        
+                
         response = _SESSION.get(url, headers=headers, params=params, timeout=30)
-        current_app.logger.info(f"🏠 [PROPERTY_COMPS] status={response.status_code}")
         
         # Handle API response
         if not response.ok:
-            error_details = response.text[:500] if response.text else "No error details"
-            current_app.logger.error(f"🏠 [PROPERTY_COMPS] API Error: {response.status_code} - {error_details}")
-            return jsonify({
-                "success": False,
-                "error": "RAPIDAPI_ERROR",
-                "status_code": response.status_code,
-                "message": f"Zillow API request failed: {response.status_code}",
-                "details": error_details
-            }), response.status_code
+            current_app.logger.error(f"🏠 [PROPERTY_COMPS] API Error: {response.status_code}")
+            return SecureErrorHandler.handle_external_api_error(
+                Exception(f"API returned status {response.status_code}"),
+                'Zillow API',
+                {'endpoint': 'propertyComps', 'status_code': response.status_code}
+            )
         
         # Parse response data
         try:
@@ -203,10 +198,6 @@ def get_property_comps():
                 "error": "PARSE_ERROR",
                 "message": "Failed to parse API response"
             }), 500
-        
-        # Log response structure for debugging
-        if isinstance(data, dict):
-            current_app.logger.info(f"🏠 [PROPERTY_COMPS] Response keys: {list(data.keys())[:10]}")
         
         # Return successful response
         return jsonify({
@@ -297,7 +288,15 @@ def get_property_via_address():
     
     # Get user's important locations for commute calculations
     try:
-        current_user = get_current_user()
+        try:
+            current_user = get_current_user()
+        except tuple:
+            # Silently handle SecurityError tuples for optional user context
+            current_user = None
+        except Exception:
+            # Silently handle other auth errors for optional user context
+            current_user = None
+            
         if current_user and property_address and GOOGLE_MAPS_API_KEY:
             user_preferences = UserPreferences.query.filter_by(user_id=current_user.id).first()
             
@@ -362,7 +361,15 @@ def get_property_via_address():
     # Enhanced: Add property analysis using Perplexity Sonar Pro
     property_analysis = None
     try:
-        current_user = get_current_user()
+        try:
+            current_user = get_current_user()
+        except tuple:
+            # Silently handle SecurityError tuples for optional user context
+            current_user = None
+        except Exception:
+            # Silently handle other auth errors for optional user context
+            current_user = None
+            
         if current_user and data and isinstance(data, dict):
             user_preferences = UserPreferences.query.filter_by(user_id=current_user.id).first()
             
@@ -406,9 +413,7 @@ def get_property_via_address():
                     'state': data.get('state'),
                     'zipcode': data.get('zipcode')
                 }
-                
-                current_app.logger.info(f"🔍 [PROPERTY] Starting Perplexity analysis for property: {home_object.get('address')}")
-                
+                                
                 # Call the property analysis function
                 analysis_result = analyze_property_with_sonar_pro(user_prefs_dict, home_object)
                 
@@ -880,6 +885,19 @@ def search_properties_by_polygon():
         if not user:
             current_app.logger.error(f"[POLYGON_SEARCH] ❌ User authentication failed for {request_id}")
             return jsonify({"success": False, "error": "USER_NOT_FOUND", "message": "User not found"}), 404
+    except tuple as error_tuple:
+        # Handle SecurityError tuples
+        from app.utils.security import security_error_response
+        if len(error_tuple) == 3:
+            return security_error_response(error_tuple)
+        else:
+            current_app.logger.error(f"[POLYGON_SEARCH] ❌ Invalid SecurityError tuple: {error_tuple}")
+            return jsonify({"success": False, "error": "AUTH_ERROR", "message": "Authentication failed"}), 401
+    except Exception as auth_error:
+        current_app.logger.error(f"[POLYGON_SEARCH] ❌ Authentication error: {str(auth_error)}")
+        return jsonify({"success": False, "error": "AUTH_ERROR", "message": "Authentication failed"}), 401
+
+    try:
 
         data = request.get_json(silent=True) or {}
         user_preferences = data.get("user_preferences") or {}
@@ -1102,10 +1120,6 @@ def search_properties_by_polygon():
                     
                     # Sort properties by score (highest first)
                     scored_properties.sort(key=lambda x: x.get("_score", 0.0), reverse=True)
-                    
-                    current_app.logger.info(
-                        f"[POLYGON_SEARCH] ✅ Python sorted {len(scored_properties)} properties by score. "
-                    )
                 
                 finally:
                     # Ensure Redis connection is closed
@@ -1175,6 +1189,19 @@ def get_isochrone():
                 "error": "USER_NOT_FOUND",
                 "message": "User not found"
             }), 404
+    except tuple as error_tuple:
+        # Handle SecurityError tuples
+        from app.utils.security import security_error_response
+        if len(error_tuple) == 3:
+            return security_error_response(error_tuple)
+        else:
+            current_app.logger.error(f"[ISOCHRONE] ❌ Invalid SecurityError tuple: {error_tuple}")
+            return jsonify({"success": False, "error": "AUTH_ERROR", "message": "Authentication failed"}), 401
+    except Exception as auth_error:
+        current_app.logger.error(f"[ISOCHRONE] ❌ Authentication error: {str(auth_error)}")
+        return jsonify({"success": False, "error": "AUTH_ERROR", "message": "Authentication failed"}), 401
+
+    try:
 
         # Get user preferences from the preferences table, not user profile
         from app.models.user_preferences import UserPreferences

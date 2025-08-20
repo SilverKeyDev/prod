@@ -1,8 +1,7 @@
 import { formatFilenameToAddress, truncateText } from "../../lib/addressFormat";
 import PropertyDetailsModal from "../modals/PropertyDetailsModal";
+import { PropertyCard, Button } from "../ui";
 import HeartSave from "../ui/HeartSave";
-import KeyTurnLoader from "../ui/KeyTurnLoader";
-import { MapPin, Bed, Bath, Square } from "lucide-react";
 import {
   usePropertyDetails,
   type Property,
@@ -41,7 +40,6 @@ export default function HomeCard({
     fetchPropertyDetails,
     clearSelectedProperty,
   } = usePropertyDetails();
-  const placeholder = "https://placehold.co/600x400?text=No+Image";
 
   // Format the home_id as an address if it contains address-like information
   const formattedAddress = formatFilenameToAddress(home.home_id);
@@ -85,125 +83,45 @@ export default function HomeCard({
   };
 
   return (
-    <div
-      className={`bg-white rounded-xl shadow-sm border border-beige/40 overflow-hidden hover:shadow-md transition-shadow duration-200 ${
-        isLoading ? "opacity-60 pointer-events-none" : ""
-      }`}
-    >
-      {/* Image */}
-      <div className="relative h-48 overflow-hidden">
-        <img
-          src={home.image_url || placeholder}
-          alt={home.description || displayName}
-          className="w-full h-full object-cover"
-          loading="lazy"
-        />
-
-        {/* Price Badge */}
-        <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full">
-          <span className="text-sm font-semibold text-navy">
-            {typeof home.price === "string" || typeof home.price === "number"
-              ? typeof home.price === "string" && home.price.startsWith("$")
-                ? home.price
-                : `$${home.price?.toLocaleString() || "N/A"}`
-              : "[Invalid price]"}
-          </span>
-        </div>
-
-        {/* Heart Save Button */}
-        <div className="absolute top-3 right-3 bg-white rounded-full p-1">
-          <HeartSave
-            property={convertToProperty(home)}
-            isSaved={isHomeSaved(home.home_id)}
-            onSave={onSave}
-            onRemove={onRemove}
-            size="sm"
-          />
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="p-4">
-        {/* Address */}
-        <div className="flex items-start gap-2 mb-3">
-          <MapPin className="h-4 w-4 text-brown mt-0.5 flex-shrink-0" />
-          <div>
-            <p className="text-sm font-medium text-navy leading-tight">
-              {typeof displayName === "string" ||
-              typeof displayName === "number"
-                ? displayName
-                : "[Invalid address]"}
-            </p>
+    <>
+      <PropertyCard
+        imageUrl={home.image_url}
+        address={typeof displayName === "string" || typeof displayName === "number" 
+          ? displayName.toString() 
+          : "[Invalid address]"}
+        price={home.price || "N/A"}
+        bedrooms={home.bedrooms}
+        bathrooms={home.bathrooms}
+        sqft={home.sqft}
+        propertyType={home.propertyType}
+        lotSize={home.lot_size}
+        pricePosition="top-left"
+        loading={isLoading}
+        onClick={handleViewDetails}
+        topContent={
+          <div className="bg-white rounded-full p-1">
+            <HeartSave
+              property={convertToProperty(home)}
+              isSaved={isHomeSaved(home.home_id)}
+              onSave={onSave}
+              onRemove={onRemove}
+              size="sm"
+            />
           </div>
-        </div>
-
-        {/* Property Details */}
-        <div className="grid grid-cols-3 gap-3 mb-3">
-          <div className="flex items-center gap-1">
-            <Bed className="h-3 w-3 text-brown" />
-            <span className="text-xs text-gray-600">
-              {home.bedrooms || 0} bed{(home.bedrooms || 0) !== 1 ? "s" : ""}
-            </span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Bath className="h-3 w-3 text-brown" />
-            <span className="text-xs text-gray-600">
-              {home.bathrooms || 0} bath{(home.bathrooms || 0) !== 1 ? "s" : ""}
-            </span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Square className="h-3 w-3 text-brown" />
-            <span className="text-xs text-gray-600">
-              {(home.sqft || 0).toLocaleString()} sqft
-            </span>
-          </div>
-        </div>
-
-        {/* Additional Details */}
-        <div className="space-y-2 mb-3">
-          {/* Home Type */}
-          {home.propertyType && (
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-500">Type:</span>
-              <span className="text-xs font-medium text-navy">
-                {home.propertyType
-                  .replace(/_/g, " ")
-                  .toLowerCase()
-                  .replace(/\b\w/g, (l: string) => l.toUpperCase())}
-              </span>
-            </div>
-          )}
-
-          {/* Lot Size */}
-          {home.lot_size && (
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-500">Lot:</span>
-              <span className="text-xs font-medium text-navy">
-                {home.lot_size}
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* View Details Button */}
-        <button
-          onClick={handleViewDetails}
-          disabled={isLoading}
-          className={`w-full py-2 px-4 rounded-lg transition-colors text-sm font-medium flex items-center justify-center ${
-            isLoading
-              ? "bg-brown/70 text-white cursor-not-allowed"
-              : "bg-brown text-white hover:bg-brown/90"
-          }`}
-        >
-          {isLoading ? (
-            <div className="flex items-center justify-center">
-              <KeyTurnLoader />
-            </div>
-          ) : (
-            "View Details"
-          )}
-        </button>
-      </div>
+        }
+        bottomContent={
+          <Button
+            onClick={handleViewDetails}
+            disabled={isLoading}
+            loading={isLoading}
+            variant="primary"
+            size="md"
+            fullWidth
+          >
+            View Details
+          </Button>
+        }
+      />
 
       {/* Property Details Modal */}
       <PropertyDetailsModal
@@ -213,6 +131,6 @@ export default function HomeCard({
         saveHome={saveHomeForModal}
         removeSavedHome={removeSavedHomeForModal}
       />
-    </div>
+    </>
   );
 }

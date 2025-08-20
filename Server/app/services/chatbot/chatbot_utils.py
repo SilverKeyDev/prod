@@ -100,7 +100,6 @@ Examples:
 
 Message to summarize:"""
         
-        logger.info(f"[CHATBOT] Sending summarization request to GPT-4o")
         response = client.chat.completions.create(
             model="gpt-4o",
             messages=[
@@ -128,7 +127,6 @@ Message to summarize:"""
 
 def generate_action_plan(user_preferences, client_name):
     """Generate a personalized action plan using OpenAI based on user preferences"""
-    logger.info(f"[ACTION_PLAN] Generating action plan for client: {client_name}")
     
     try:
         api_key = os.getenv("OPENAI_KEY")

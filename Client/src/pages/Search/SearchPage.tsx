@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Bookmark, MapPin, ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import mapStyles from "../../lib/mapStyles";
 import { favoriteHomesApi } from "../../lib/api";
 import HeartSave from "../../components/ui/HeartSave";
 import PropertyDetailsModal from "../../components/modals/PropertyDetailsModal";
@@ -9,6 +8,8 @@ import { searchZillowByPolygon, LatLng } from "../../lib/searchApi";
 import { usePropertyDetails } from "../../hooks/usePropertyDetails";
 import Loading from "../../components/ui/Loading";
 import KeyTurnLoader from "../../components/ui/KeyTurnLoader";
+import { checkAuthAndRedirect, getAuthToken } from "../../utils/authUtils";
+import { useGoogleMaps } from "../../context/GoogleMapsContext";
 
 interface SearchResult {
   id: string;
@@ -193,6 +194,7 @@ const userPreferences: UserPreferences = {
 
 export default function SearchPage() {
   const navigate = useNavigate();
+  const { isLoaded: isGoogleMapsLoaded, createMap } = useGoogleMaps();
   // selectedLocation state removed - no longer needed without map click search
 
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
@@ -210,8 +212,10 @@ export default function SearchPage() {
   const [isLocalStorageLoaded, setIsLocalStorageLoaded] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [, setIsochronePolygon] = useState<google.maps.Polygon | null>(null);
-  const [, setIsochroneData] = useState<any>(null);
-  const [, setImportantLocationMarkers] = useState<google.maps.Marker[]>([]);
+  const [isochroneData, setIsochroneData] = useState<any>(null);
+  const [, setImportantLocationMarkers] = useState<
+    google.maps.marker.AdvancedMarkerElement[]
+  >([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [showPropertyModals, setShowPropertyModals] = useState(false);
   const PROPERTIES_PER_PAGE = 3;
@@ -263,8 +267,6 @@ export default function SearchPage() {
           setHasSearched(savedSearchData.searchMetadata?.hasSearched || true);
           setCurrentPage(savedSearchData.searchMetadata?.currentPage || 0);
           setShowPropertyModals(true);
-        } else {
-          console.log("🔄");
         }
       } catch (error) {
         console.error("❌ Error in search results initialization:", error);
@@ -320,10 +322,12 @@ export default function SearchPage() {
   };
   const mapRef = useRef<HTMLDivElement>(null);
   const googleMapRef = useRef<google.maps.Map | null>(null);
-  const markersRef = useRef<google.maps.Marker[]>([]);
+  const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
   const polygonRef = useRef<google.maps.Polygon | null>(null);
   const individualPolygonsRef = useRef<google.maps.Polygon[]>([]);
-  const importantMarkersRef = useRef<google.maps.Marker[]>([]);
+  const importantMarkersRef = useRef<
+    google.maps.marker.AdvancedMarkerElement[]
+  >([]);
 
   // Use backend ML match score (already calculated as 0-100 integer)
   const calculatePropertyScore = (property: SearchResult) => {
@@ -352,9 +356,6 @@ export default function SearchPage() {
           if (response.ok) {
             const data = await response.json();
             preferencesVersion = data.preferences?.preferences_version || "1.0";
-            console.log(
-              `🔧 Retrieved preferences version: ${preferencesVersion}`
-            );
           }
         }
       } catch (prefError) {
@@ -436,265 +437,16 @@ export default function SearchPage() {
 
   // Initialize Google Maps
   useEffect(() => {
-    const initializeMap = async () => {
-      try {
-        // Fetch the Google Maps script URL from backend
-        const idToken = localStorage.getItem("id_token");
-        const response = await fetch("/api/maps/script", {
-          headers: {
-            Authorization: idToken ? `Bearer ${idToken}` : "",
-            "Content-Type": "application/json",
-          },
-        });
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error(
-            "❌ Backend response error:",
-            response.status,
-            errorText
-          );
-          return;
-        }
+    const initializeMap = () => {
+      if (!mapRef.current || !isGoogleMapsLoaded) return;
 
-        const contentType = response.headers.get("content-type");
-        if (!contentType || !contentType.includes("application/json")) {
-          const responseText = await response.text();
-          console.error(
-            "❌ Expected JSON but got:",
-            contentType,
-            responseText.substring(0, 200)
-          );
-          return;
-        }
-
-        const data = await response.json();
-
-        if (!data.success || !data.script_url) {
-          console.error(
-            "❌ Backend returned error or missing script_url:",
-            data
-          );
-          return;
-        }
-        const scriptUrl = data.script_url;
-
-        // Load Google Maps script if not already loaded
-        if (!window.google) {
-          const script = document.createElement("script");
-          script.src = scriptUrl;
-          script.async = true;
-          script.defer = true;
-          document.head.appendChild(script);
-
-          script.onload = () => {
-            createMap();
-          };
-        } else {
-          createMap();
-        }
-      } catch (error) {
-        console.error("Error loading Google Maps:", error);
+      const map = createMap(mapRef.current);
+      if (!map) {
+        console.error("❌ Failed to create map");
+        return;
       }
-    };
 
-    const createMap = () => {
-      if (!mapRef.current || !window.google) return;
-
-      // ---------- Helpers ----------
-      const toRad = (d: number) => (d * Math.PI) / 180;
-
-      // Distance in meters between two lat/lng points (Haversine)
-      const haversine = (
-        lat1: number,
-        lng1: number,
-        lat2: number,
-        lng2: number
-      ) => {
-        const R = 6371000; // meters
-        const dLat = toRad(lat2 - lat1);
-        const dLng = toRad(lng2 - lng1);
-        const a =
-          Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-          Math.cos(toRad(lat1)) *
-            Math.cos(toRad(lat2)) *
-            Math.sin(dLng / 2) *
-            Math.sin(dLng / 2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return R * c;
-      };
-
-      // Convert desired meters-per-pixel to a Google zoom at a given latitude
-      const zoomFromMPP = (latDeg: number, mpp: number) => {
-        // Spherical mercator; 156543.03392 is meters/pixel at zoom 0 on equator
-        const latRad = toRad(latDeg);
-        const denom = Math.max(mpp, 0.0001); // avoid div-by-zero
-        const z = Math.log2((156543.03392 * Math.cos(latRad)) / denom);
-        return z;
-      };
-
-      // Compute zoom to fit a lat/lng span inside the viewport with padding
-      const zoomToFitBounds = (
-        centerLat: number,
-        latSpanDeg: number,
-        lngSpanDeg: number,
-        widthPx: number,
-        heightPx: number,
-        padPx: number
-      ) => {
-        const usableW = Math.max(1, widthPx - 2 * padPx);
-        const usableH = Math.max(1, heightPx - 2 * padPx);
-        // Approx meters per degree
-        const mPerDegLat = 111320; // average
-        const mPerDegLng = 111320 * Math.cos(toRad(centerLat));
-        const spanM_Lat = Math.max(0, latSpanDeg) * mPerDegLat;
-        const spanM_Lng = Math.max(0, lngSpanDeg) * mPerDegLng;
-
-        // Required meters-per-pixel in each axis to fit
-        const mppX = spanM_Lng / usableW;
-        const mppY = spanM_Lat / usableH;
-
-        // We must satisfy both; take the larger mpp (i.e., more zoomed out)
-        const requiredMPP = Math.max(mppX, mppY, 0.5); // 0.5m/px floor to avoid ultra-close
-        return zoomFromMPP(centerLat, requiredMPP);
-      };
-
-      // Compute a city-context zoom around a single point (diameter in meters)
-      const zoomForSinglePoint = (
-        centerLat: number,
-        widthPx: number,
-        heightPx: number,
-        padPx: number,
-        contextDiameterM: number
-      ) => {
-        const usableW = Math.max(1, widthPx - 2 * padPx);
-        heightPx = heightPx;
-        // Use width to drive the "feel" (city context across width)
-        const desiredMPP = contextDiameterM / usableW;
-        return zoomFromMPP(centerLat, desiredMPP);
-      };
-
-      // ---------- Defaults and map creation ----------
-      const DEFAULT_CENTER = { lat: 37.7749, lng: -122.4194 }; // SF
-      const DEFAULT_ZOOM = 12;
-
-      const map = new window.google.maps.Map(mapRef.current, {
-        center: DEFAULT_CENTER,
-        zoom: DEFAULT_ZOOM,
-        styles: mapStyles,
-        disableDefaultUI: true,
-        mapTypeControl: true,
-        mapTypeControlOptions: {
-          style: window.google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
-          position: window.google.maps.ControlPosition.TOP_RIGHT,
-          mapTypeIds: ["roadmap", "satellite"],
-        },
-        gestureHandling: "greedy",
-      });
       googleMapRef.current = map;
-
-      // ---------- Compute zoom/center from data ----------
-      const widthPx =
-        mapRef.current.clientWidth || mapRef.current.offsetWidth || 1024;
-      const heightPx =
-        mapRef.current.clientHeight || mapRef.current.offsetHeight || 768;
-      const padPx = Math.round(Math.min(widthPx, heightPx) * 0.08); // ~8% padding (40–120px typical)
-
-      if (searchResults.length > 0) {
-        const bounds = new google.maps.LatLngBounds();
-        for (const p of searchResults) {
-          bounds.extend(new window.google.maps.LatLng(p.lat, p.lng));
-        }
-
-        const center = bounds.getCenter();
-        const centerLat = center.lat();
-        const centerLng = center.lng();
-        map.setCenter({ lat: centerLat, lng: centerLng });
-
-        const ne = bounds.getNorthEast();
-        const sw = bounds.getSouthWest();
-
-        // Degree spans (handle potential negatives if bounds cross dateline – unlikely for city use)
-        let latSpanDeg = ne.lat() - sw.lat();
-        let lngSpanDeg = ne.lng() - sw.lng();
-        if (lngSpanDeg < 0) lngSpanDeg += 360; // antimeridian safety
-
-        // For a single point, show broader area context (zoomed out more)
-        if (searchResults.length === 1) {
-          // 15km diameter shows broader area context - zoomed out more for single home
-          const AREA_DIAMETER_M = 15000;
-          let z = zoomForSinglePoint(
-            centerLat,
-            widthPx,
-            heightPx,
-            padPx,
-            AREA_DIAMETER_M
-          );
-
-          // Clamp to prevent too close zoom only
-          const MAX_Z = 14; // prevent too close zoom
-          z = Math.min(MAX_Z, z); // No minimum zoom limit - can zoom out as far as needed
-          map.setZoom(Math.round(z));
-          console.log(
-            `🔍 ZOOM(single): target area diameter=${AREA_DIAMETER_M}m -> z≈${z.toFixed(
-              2
-            )}`
-          );
-        } else {
-          // Multi-point: compute zoom from actual spans, zoom in more for better detail
-          let z = zoomToFitBounds(
-            centerLat,
-            latSpanDeg,
-            lngSpanDeg,
-            widthPx,
-            heightPx,
-            padPx
-          );
-
-          const diagMeters = haversine(ne.lat(), ne.lng(), sw.lat(), sw.lng());
-
-          // For multiple homes, especially 3 homes, zoom in more for better detail
-          if (searchResults.length <= 3) {
-            z += 1.5; // Zoom in significantly more for 2-3 homes
-            console.log(
-              `🔍 ZOOM(few-homes): ${searchResults.length} homes, zooming in +1.5 levels for detail`
-            );
-          } else {
-            z += 0.5; // Moderate zoom in for 4+ homes
-            console.log(
-              `🔍 ZOOM(many-homes): ${searchResults.length} homes, zooming in +0.5 levels`
-            );
-          }
-
-          // Tight-cluster handling: if very close together, zoom in even more
-          const TIGHT_CLUSTER_KM = 2_000;
-          if (diagMeters > 0 && diagMeters < TIGHT_CLUSTER_KM) {
-            z += 0.8;
-            console.log(
-              `🔍 ZOOM(tight-cluster): very tight cluster diag=${Math.round(
-                diagMeters
-              )}m -> +0.8 more`
-            );
-          }
-
-          // Guard against degenerate spans (identical coords)
-          if ((latSpanDeg === 0 && lngSpanDeg === 0) || !isFinite(z)) {
-            // Fall back to a focused view for multiple homes
-            const FALLBACK_DIAMETER_M = 8000; // ~8km - focused for multiple homes
-            z = zoomForSinglePoint(
-              centerLat,
-              widthPx,
-              heightPx,
-              padPx,
-              FALLBACK_DIAMETER_M
-            );
-          }
-
-          // Clamp to prevent too close zoom only
-          const MAX_Z = 14; // prevent too close zoom
-          z = Math.min(MAX_Z, z); // No minimum zoom limit - can zoom out as far as needed
-          map.setZoom(Math.round(z));
-        }
-      }
 
       // ---------- Isochrone overlay logic (unchanged) ----------
       setTimeout(() => {
@@ -722,11 +474,11 @@ export default function SearchPage() {
       }, 100);
     };
 
-    // Only initialize map after localStorage loading is complete
-    if (isLocalStorageLoaded) {
+    // Only initialize map after localStorage loading is complete and Google Maps is loaded
+    if (isLocalStorageLoaded && isGoogleMapsLoaded) {
       initializeMap();
     }
-  }, [isLocalStorageLoaded]);
+  }, [isLocalStorageLoaded, isGoogleMapsLoaded, createMap]);
 
   // Handle property details search using the hook
   const handleViewPropertyDetails = async (property: SearchResult) => {
@@ -737,11 +489,6 @@ export default function SearchPage() {
   useEffect(() => {
     // Define the global function that map modals can call
     (window as any).openPropertyModal = (propertyId: string) => {
-      console.log(
-        "🗺️ MAP MODAL: View Details clicked for property ID:",
-        propertyId
-      );
-
       // Find the property in current data (search results or saved homes)
       const currentData = activeTab === "results" ? searchResults : savedHomes;
       const property = currentData.find((p) => p.id === propertyId);
@@ -772,7 +519,7 @@ export default function SearchPage() {
     } else if (googleMapRef.current && (!hasSearched || !showPropertyModals)) {
       // Clear all markers when user hasn't searched yet or property modals should not be shown
       markersRef.current.forEach((marker) => {
-        marker.setMap(null);
+        marker.map = null;
         if ((marker as any).overlay) {
           (marker as any).overlay.setMap(null);
         }
@@ -791,17 +538,12 @@ export default function SearchPage() {
   // Fetch isochrone polygon from backend for map population only (no property search)
   const fetchIsochroneForMapOnly = async () => {
     try {
-      // Try multiple token sources for authentication
-      const idToken = localStorage.getItem("id_token");
-      const token = localStorage.getItem("token");
-      const authToken = idToken || token;
-
-      if (!authToken) {
-        console.log(
-          "❌ No auth token found (checked both id_token and token), skipping isochrone fetch"
-        );
+      // Check auth and redirect if no token found
+      if (!checkAuthAndRedirect(navigate)) {
         return null;
       }
+
+      const authToken = getAuthToken();
 
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "";
       const response = await fetch(`${apiBaseUrl}/api/v1/search/isochrone`, {
@@ -836,21 +578,14 @@ export default function SearchPage() {
 
   // Fetch isochrone polygon from backend
   const fetchIsochronePolygon = async () => {
-    console.log("🔍 Starting isochrone polygon fetch...");
     try {
-      // Try multiple token sources for authentication
-      const idToken = localStorage.getItem("id_token");
-      const token = localStorage.getItem("token");
-      const authToken = idToken || token;
-
-      if (!authToken) {
-        console.log(
-          "❌ No auth token found (checked both id_token and token), skipping isochrone fetch"
-        );
+      // Check auth and redirect if no token found
+      if (!checkAuthAndRedirect(navigate)) {
         return null;
       }
 
-      console.log("🔑 Auth token found, making API request...");
+      const authToken = getAuthToken();
+
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "";
       const response = await fetch(`${apiBaseUrl}/api/v1/search/isochrone`, {
         method: "GET",
@@ -861,43 +596,11 @@ export default function SearchPage() {
         },
       });
 
-      console.log("📡 API response status:", response.status);
-      console.log("📡 API response ok:", response.ok);
-      console.log("📡 API response statusText:", response.statusText);
-
       if (response.ok) {
         const data = await response.json();
 
         if (data.success && data.data) {
           setIsochroneData(data.data);
-          console.log("✅ ISOCHRONE SUCCESS - Detailed data breakdown:");
-          console.log(
-            "  📍 Center Location:",
-            JSON.stringify(data.data.center, null, 2)
-          );
-          console.log(
-            "  ⏱️ Commute Tolerance:",
-            data.data.commute_tolerance,
-            "minutes"
-          );
-          console.log("  🚗 Travel Mode:", data.data.mode);
-          console.log(
-            "  🗺️ Geometry Type:",
-            data.data.isochrone?.geometry?.type
-          );
-          console.log(
-            "  📐 Geometry Coordinates Length:",
-            data.data.isochrone?.geometry?.coordinates?.length
-          );
-          console.log(
-            "  🔍 Full Isochrone Object:",
-            JSON.stringify(data.data.isochrone, null, 2)
-          );
-
-          // Automatically trigger property search using the isochrone polygon
-          console.log(
-            "🏠 Auto-triggering property search within isochrone polygon..."
-          );
           await searchPropertiesInIsochrone(data.data);
 
           return data.data;
@@ -941,15 +644,11 @@ export default function SearchPage() {
 
   // Automatically search for properties within the isochrone polygon
   const searchPropertiesInIsochrone = async (isochroneData: any) => {
-    console.log(
-      "🏠 Starting automatic property search within isochrone polygon..."
-    );
     setIsSearching(true);
     setSearchStage("Locating homes in your area...");
 
     // Clear previous search results to show loading state in sidebar
     setSearchResults([]);
-    console.log("🧹 Cleared previous search results from sidebar");
 
     if (!isochroneData?.isochrone?.geometry) {
       console.warn("❌ No isochrone geometry available for property search");
@@ -981,12 +680,6 @@ export default function SearchPage() {
         return;
       }
 
-      console.log(
-        "🔍 Converted isochrone to search polygon with",
-        searchPolygon.length,
-        "points"
-      );
-
       // Map current userPreferences to the searchByCoords format
       // Include ALL important_locations from the isochrone data (not just center)
       const searchUserPreferences = {
@@ -1003,11 +696,6 @@ export default function SearchPage() {
         important_locations: isochroneData.locations || [],
       };
 
-      console.log(
-        "🔍 Starting property search with preferences:",
-        searchUserPreferences
-      );
-
       setSearchStage("Extracting property data...");
 
       // Call the Zillow search API with the isochrone polygon
@@ -1018,12 +706,6 @@ export default function SearchPage() {
         perBucketPages: 10,
         maxRetries: 3,
       });
-
-      console.log(
-        "📊 Search completed, found",
-        searchResult.properties.length,
-        "properties"
-      );
 
       // Show evaluating scores stage for 10 seconds
       setSearchStage("Evaluating scores...");
@@ -1083,12 +765,6 @@ export default function SearchPage() {
       setIsSearching(false);
       setCurrentPage(0); // Reset to first page when new search results come in
       setShowPropertyModals(true); // Enable property markers to be displayed on map
-
-      console.log(
-        "✅ Auto-search completed successfully with",
-        transformedResults.length,
-        "results"
-      );
     } catch (error) {
       console.error("❌ Error in automatic isochrone property search:", error);
       console.error("❌ Error details:", {
@@ -1115,13 +791,11 @@ export default function SearchPage() {
 
     // Clear existing polygons
     if (polygonRef.current) {
-      console.log("🧹 Clearing existing union polygon");
       polygonRef.current.setMap(null);
     }
 
     // Clear existing individual polygons
     if (individualPolygonsRef.current) {
-      console.log("🧹 Clearing existing individual polygons");
       individualPolygonsRef.current.forEach((polygon: google.maps.Polygon) =>
         polygon.setMap(null)
       );
@@ -1250,7 +924,7 @@ export default function SearchPage() {
     // Clear existing markers + bubbles
     importantMarkersRef.current.forEach((marker) => {
       (marker as any)._bubble?.setMap(null);
-      marker.setMap(null);
+      marker.map = null;
     });
     importantMarkersRef.current = [];
 
@@ -1326,7 +1000,16 @@ export default function SearchPage() {
       }
     }
 
-    const markers: google.maps.Marker[] = [];
+    // Check if Google Maps API and AdvancedMarkerElement are available
+    if (!window.google || !window.google.maps || !window.google.maps.marker) {
+      console.warn(
+        "⚠️ Google Maps API or AdvancedMarkerElement not available yet for important locations"
+      );
+      return;
+    }
+
+    const { AdvancedMarkerElement } = window.google.maps.marker;
+    const markers: google.maps.marker.AdvancedMarkerElement[] = [];
     const geocoder = new google.maps.Geocoder();
 
     for (let i = 0; i < importantLocations.length; i++) {
@@ -1358,19 +1041,23 @@ export default function SearchPage() {
       }
 
       const isFirst = i === 0;
-      const marker = new google.maps.Marker({
+
+      // Create custom marker element for AdvancedMarkerElement
+      const markerElement = document.createElement("div");
+      markerElement.style.cssText = `
+        width: ${isFirst ? 12 : 8}px;
+        height: ${isFirst ? 12 : 8}px;
+        background-color: ${isFirst ? "#7B9E7C" : "#E8A87C"};
+        border: 1px solid #ffffff;
+        border-radius: 50%;
+        opacity: 0.9;
+      `;
+
+      const marker = new AdvancedMarkerElement({
         position,
         map: googleMapRef.current!,
         title: `${name}${isFirst ? " (Commute Center)" : ""}`,
-        icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          fillColor: isFirst ? "#7B9E7C" : "#E8A87C",
-          fillOpacity: 0.9,
-          strokeColor: "#ffffff",
-          strokeWeight: 1,
-          scale: isFirst ? 6 : 4,
-        },
-        zIndex: 10,
+        content: markerElement,
       });
 
       const commuteTime =
@@ -1416,12 +1103,8 @@ export default function SearchPage() {
   useEffect(() => {
     const loadSavedHomes = async () => {
       try {
-        // Get auth token
-        const idToken = localStorage.getItem("id_token");
-        const token = localStorage.getItem("token");
-        const authToken = idToken || token;
-        if (!authToken) {
-          console.log("❌ No auth token found, cannot load saved homes");
+        // Check auth and redirect if no token found
+        if (!checkAuthAndRedirect(navigate)) {
           return;
         }
 
@@ -1453,31 +1136,35 @@ export default function SearchPage() {
 
               // If coordinates are missing, geocode the address
               if (!lat || !lng) {
-                console.log(`🔍 Geocoding saved home address: ${home.address}`);
                 try {
-                  const geocoder = new google.maps.Geocoder();
-                  const geocodeResponse = await geocoder.geocode({
-                    address: home.address,
-                  });
-
-                  if (
-                    geocodeResponse.results &&
-                    geocodeResponse.results.length > 0
-                  ) {
-                    const location =
-                      geocodeResponse.results[0].geometry.location;
-                    lat = location.lat();
-                    lng = location.lng();
-                    console.log(`✅ Geocoded ${home.address} to:`, {
-                      lat,
-                      lng,
-                    });
-                  } else {
+                  // Check if Google Maps API is loaded before geocoding
+                  if (!window.google || !window.google.maps) {
                     console.warn(
-                      `⚠️ Could not geocode ${home.address}, using fallback coordinates`
+                      `⚠️ Google Maps API not loaded yet, skipping geocoding for ${home.address}`
                     );
                     lat = 33.749; // Atlanta fallback
                     lng = -84.388;
+                  } else {
+                    const geocoder = new google.maps.Geocoder();
+                    const geocodeResponse = await geocoder.geocode({
+                      address: home.address,
+                    });
+
+                    if (
+                      geocodeResponse.results &&
+                      geocodeResponse.results.length > 0
+                    ) {
+                      const location =
+                        geocodeResponse.results[0].geometry.location;
+                      lat = location.lat();
+                      lng = location.lng();
+                    } else {
+                      console.warn(
+                        `⚠️ Could not geocode ${home.address}, using fallback coordinates`
+                      );
+                      lat = 33.749; // Atlanta fallback
+                      lng = -84.388;
+                    }
                   }
                 } catch (error) {
                   console.error(
@@ -1509,7 +1196,6 @@ export default function SearchPage() {
             })
           );
 
-          console.log("🏠 Created saved homes with real data:");
           savedHomesData.forEach((home, index) => {
             console.log(
               `  ${index + 1}. ${home.address} - ${home.price} - ${
@@ -1587,7 +1273,7 @@ export default function SearchPage() {
 
     // Clear existing HOME markers and overlays (but preserve important location markers)
     markersRef.current.forEach((marker) => {
-      marker.setMap(null);
+      marker.map = null;
       // Also remove the overlay if it exists
       if ((marker as any).overlay) {
         (marker as any).overlay.setMap(null);
@@ -1596,9 +1282,15 @@ export default function SearchPage() {
     markersRef.current = [];
 
     // Re-render important location markers FIRST (so they appear behind home markers)
-    const isochroneData = await fetchIsochroneForMapOnly();
+    // Use cached isochrone data if available, otherwise fetch it
     if (isochroneData) {
       await renderImportantLocationMarkers(isochroneData);
+    } else {
+      const data = await fetchIsochroneForMapOnly();
+      if (data) {
+        setIsochroneData(data);
+        await renderImportantLocationMarkers(data);
+      }
     }
 
     // Paginate the results - only show PROPERTIES_PER_PAGE at a time
@@ -1610,26 +1302,19 @@ export default function SearchPage() {
     const BASE_PIN_PATH =
       "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z";
 
-    const createMarkerStyle = ({
-      fillColor,
-      strokeColor,
-      scale = 1.2,
-      anchor = new google.maps.Point(12, 24),
-    }: {
-      fillColor: string;
-      strokeColor: string;
-      scale?: number;
-      anchor?: google.maps.Point;
-    }): google.maps.Symbol => ({
-      path: BASE_PIN_PATH,
-      scale,
-      fillColor,
-      fillOpacity: 0.9,
-      strokeColor,
-      strokeOpacity: 0.9,
-      strokeWeight: 1.75,
-      anchor,
-    });
+    // Check if Google Maps API and AdvancedMarkerElement are available
+    if (!window.google || !window.google.maps || !window.google.maps.marker) {
+      console.warn(
+        "⚠️ Google Maps API or AdvancedMarkerElement not available yet"
+      );
+      return;
+    }
+
+    // Tiny guard where you build markers/overlays
+    const idForLog = import.meta.env.VITE_GOOGLE_MAPS_ID;
+    console.log("Map ID in client:", idForLog || "(missing)");
+
+    const { AdvancedMarkerElement } = window.google.maps.marker;
 
     currentData.forEach((result) => {
       // Use backend ML match score directly
@@ -1637,11 +1322,24 @@ export default function SearchPage() {
       const { fillColor, strokeColor } = getScoreBasedPinColor(score);
       const isSaved = isHomeSaved(result.id);
 
-      const marker = new google.maps.Marker({
+      // Create custom marker element for AdvancedMarkerElement
+      const markerElement = document.createElement("div");
+      markerElement.style.cssText = `
+        width: 24px;
+        height: 32px;
+        cursor: pointer;
+      `;
+      markerElement.innerHTML = `
+        <svg width="24" height="32" viewBox="0 0 24 32" xmlns="http://www.w3.org/2000/svg">
+          <path d="${BASE_PIN_PATH}" fill="${fillColor}" stroke="${strokeColor}" stroke-width="1.75" stroke-opacity="0.9" fill-opacity="0.9"/>
+        </svg>
+      `;
+
+      const marker = new AdvancedMarkerElement({
         position: { lat: result.lat, lng: result.lng },
         map: googleMapRef.current,
         title: result.address,
-        icon: createMarkerStyle({ fillColor, strokeColor }),
+        content: markerElement,
       });
 
       // Create always-visible property overlay
@@ -1875,14 +1573,7 @@ export default function SearchPage() {
         price: property.price,
       });
 
-      console.log("🔄 Calling backend API to remove favorite...");
-      // Call backend API to remove favorite
       const response = await favoriteHomesApi.removeFavorite(property.address);
-      console.log("📥 Backend API response received:", {
-        success: response.success,
-        error: response.error,
-        favoritesCount: response.data?.favorites?.length || 0,
-      });
 
       if (response.success) {
         // Update local state

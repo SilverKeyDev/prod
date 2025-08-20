@@ -1,4 +1,5 @@
 import { ReactNode } from 'react';
+import { AuthProvider } from './AuthContext';
 import { UserProvider } from './UserContext';
 import { BillingProvider } from './BillingContext';
 import { ReportsProvider } from './ReportsContext';
@@ -16,26 +17,28 @@ interface AppProvidersProps {
 
 export function AppProviders({ children }: AppProvidersProps) {
   return (
-    <GoogleMapsProvider>
-      <UserProvider>
-        <BillingProvider>
-          <ReportsProvider>
-            <ChatsProvider>
-              <SavedHomesProvider>
-                <AgentProvider>
-                  <PropertySearchProvider>
-                    <NegotiationProvider>
-                      <DocumentsProvider>
-                          {children}
-                      </DocumentsProvider>
-                    </NegotiationProvider>
-                  </PropertySearchProvider>
-                </AgentProvider>
-              </SavedHomesProvider>
-            </ChatsProvider>
-          </ReportsProvider>
-        </BillingProvider>
-      </UserProvider>
-    </GoogleMapsProvider>
+    <AuthProvider>
+      <GoogleMapsProvider>
+        <UserProvider>
+          <BillingProvider>
+            <ReportsProvider>
+              <ChatsProvider>
+                <SavedHomesProvider>
+                  <AgentProvider>
+                    <PropertySearchProvider>
+                      <NegotiationProvider>
+                        <DocumentsProvider>
+                            {children}
+                        </DocumentsProvider>
+                      </NegotiationProvider>
+                    </PropertySearchProvider>
+                  </AgentProvider>
+                </SavedHomesProvider>
+              </ChatsProvider>
+            </ReportsProvider>
+          </BillingProvider>
+        </UserProvider>
+      </GoogleMapsProvider>
+    </AuthProvider>
   );
 }

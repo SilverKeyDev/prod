@@ -360,10 +360,6 @@ export default function PastReports() {
         attempts++;
         const elapsedTime = Math.round((Date.now() - startTime) / 1000);
 
-        console.log(
-          `[PastReports] 🔍 Poll attempt ${attempts}/${maxAttempts} (${elapsedTime}s elapsed) for documentId: ${documentId}`
-        );
-
         try {
           const response = await fetch(
             `${apiBaseUrl}/api/v1/report/poll/${documentId}`,

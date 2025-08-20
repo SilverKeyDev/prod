@@ -60,7 +60,6 @@ export function usePropertyDetails(): UsePropertyDetailsReturn {
       setError(errorMessage);
 
       // Fallback: use the original property data without detailed information
-      console.log("🔄 [USE_PROPERTY_DETAILS] Using fallback: setting original property data");
       setSelectedProperty(property);
     } finally {
       // Clear loading state regardless of success or failure

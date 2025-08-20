@@ -14,8 +14,6 @@ NC='\033[0m' # No Color
 # =========================
 # Config
 # =========================
-# Health check URL for Flask (override with FLASK_HEALTH_URL env if needed)
-FLASK_HEALTH_URL="${FLASK_HEALTH_URL:-http://127.0.0.1:5000/healthz}"
 # If you don't have /healthz, we'll fall back to a port probe on 5000.
 FLASK_PORT="${FLASK_PORT:-5000}"
 
@@ -158,20 +156,10 @@ if [[ "${1:-}" == "--production" ]]; then
 else
   log "Starting Flask server in ${GREEN}development${NC} mode (0.0.0.0:${FLASK_PORT})..."
   pushd Server >/dev/null
-  python run.py --host 0.0.0.0 --port "${FLASK_PORT}" >/dev/null 2>&1 &
+  python run.py --host 0.0.0.0 --port "${FLASK_PORT}" &
   FLASK_PID=$!
   popd >/dev/null
 fi
-
-# Wait for Flask health or port
-if ! wait_for_url "${FLASK_HEALTH_URL}" 20; then
-  warn "Health URL ${FLASK_HEALTH_URL} not ready; falling back to port probe on ${FLASK_PORT}"
-  wait_for_port 127.0.0.1 "${FLASK_PORT}" 20 || {
-    echo -e "${RED}Flask failed to become ready on port ${FLASK_PORT}.${NC}"
-    exit 1
-  }
-fi
-log "${GREEN}✅ Flask is ready on port ${FLASK_PORT}${NC}"
 
 # =========================
 # Start Celery (after Flask so app context is ready)
@@ -189,13 +177,17 @@ log "${GREEN}✅ Celery worker started (PID: ${CELERY_PID})${NC}"
 if [[ "${1:-}" != "--production" ]]; then
   log "Starting Vite client..."
   pushd Client >/dev/null
-  npm run dev >/dev/null 2>&1 &
+  npm run dev &
   VITE_PID=$!
   popd >/dev/null
 
   # Wait for Vite to be ready so first page load doesn't race
   log "Waiting for Vite to start on http://localhost:5173..."
-  until curl -fsS http://localhost:5173 >/dev/null 2>&1; do sleep 0.25; done
+  sleep 3  # Give Vite time to start before checking
+  until curl -fsS http://localhost:5173 >/dev/null 2>&1; do 
+    log "Still waiting for Vite..."
+    sleep 1
+  done
   log "${GREEN}✅ Vite is ready at http://localhost:5173${NC}"
 else
   log "Production mode: skipping Vite dev server."

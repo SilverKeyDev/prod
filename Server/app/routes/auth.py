@@ -45,7 +45,6 @@ def signup():
 
     try:
         # Create user in our database
-        current_app.logger.info(f'Signup user_sub from Cognito: {result["user_sub"]}')
         user = User(
             id=result['user_sub'],
             cognito_id=result['user_sub'],
@@ -58,9 +57,7 @@ def signup():
         )
         db.session.add(user)
         db.session.commit()
-        
-        current_app.logger.info(f'Successfully created user in database: {user.id}')
-        
+                
     except Exception as e:
         current_app.logger.error(f'Error creating user in database: {str(e)}')
         # Don't fail the signup if database creation fails, just log it
@@ -117,9 +114,6 @@ def verify():
         id_token = login_result['tokens']['IdToken']
         decoded_id_token = jwt.decode(id_token, options={"verify_signature": False})
         user_sub = decoded_id_token['sub']
-        
-        current_app.logger.info(f'JWT token sub: {user_sub}')
-        current_app.logger.info(f'JWT token email: {decoded_id_token.get("email")}')
 
         return jsonify({
             'success': True,

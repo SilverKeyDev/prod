@@ -44,7 +44,6 @@ def get_individual_section_schema(section_name: str, user_preferences: Dict[str,
     """
     Generate a flattened, Perplexity-compatible JSON schema for a given report section.
     """
-    logger.info(f"🔍 Generating individual schema for section: {section_name} in mode: {mode}")
 
     if mode == "report":
         from app.models.report_models import (
@@ -87,7 +86,6 @@ def get_individual_section_schema(section_name: str, user_preferences: Dict[str,
                 for key, desc in descriptions.items():
                     if key in schema.get("properties", {}):
                         schema["properties"][key]["description"] = desc
-                logger.info(f"✅ Added field descriptions to {section_name} schema")
             except Exception as e:
                 logger.warning(f"⚠️ Failed to add descriptions to {section_name} schema: {e}\n{traceback.format_exc()}")
 
@@ -103,7 +101,6 @@ def get_individual_section_schema(section_name: str, user_preferences: Dict[str,
         for prop_name, prop_schema in schema.get("properties", {}).items():
             if isinstance(prop_schema, dict) and "type" not in prop_schema:
                 prop_schema["type"] = "string"
-                logger.info(f"✅ Added missing type 'string' to property {prop_name}")
 
         # Trim required list to only valid props
         schema["required"] = [r for r in schema.get("required", []) if r in schema["properties"]]
@@ -159,7 +156,6 @@ def get_individual_section_schema(section_name: str, user_preferences: Dict[str,
                 for key, desc in descriptions.items():
                     if key in schema.get("properties", {}):
                         schema["properties"][key]["description"] = desc
-                logger.info(f"✅ Added field descriptions to {section_name} schema")
             except Exception as e:
                 logger.warning(f"⚠️ Failed to add descriptions to {section_name} schema: {e}\n{traceback.format_exc()}")
         
@@ -175,7 +171,6 @@ def get_individual_section_schema(section_name: str, user_preferences: Dict[str,
         for prop_name, prop_schema in schema.get("properties", {}).items():
             if isinstance(prop_schema, dict) and "type" not in prop_schema:
                 prop_schema["type"] = "string"
-                logger.info(f"✅ Added missing type 'string' to property {prop_name}")
         
         # Trim required list to only valid props
         schema["required"] = [r for r in schema.get("required", []) if r in schema["properties"]]
@@ -196,9 +191,6 @@ def get_individual_section_schema(section_name: str, user_preferences: Dict[str,
                 "schema": clean_schema
             }
         }
-        
-        # Logging for review
-        logger.info(f"🔍 Final schema for section '{section_name}':\n{json.dumps(final_schema, indent=2)}")
         
         # Final sanity check for forbidden keys
         disallowed_keys = ["$ref", "oneOf", "anyOf", "example", "default", "schema"]
@@ -250,7 +242,6 @@ def get_individual_section_schema(section_name: str, user_preferences: Dict[str,
                 for key, desc in descriptions.items():
                     if key in schema.get("properties", {}):
                         schema["properties"][key]["description"] = desc
-                logger.info(f"✅ Added field descriptions to {section_name} schema")
             except Exception as e:
                 logger.warning(f"⚠️ Failed to add descriptions to {section_name} schema: {e}\n{traceback.format_exc()}")
         
@@ -266,7 +257,6 @@ def get_individual_section_schema(section_name: str, user_preferences: Dict[str,
         for prop_name, prop_schema in schema.get("properties", {}).items():
             if isinstance(prop_schema, dict) and "type" not in prop_schema:
                 prop_schema["type"] = "object"  # Use string instead of class reference
-                logger.info(f"✅ Added missing type 'ComparisonField' to property {prop_name}")
         
         # Trim required list to only valid props
         schema["required"] = [r for r in schema.get("required", []) if r in schema["properties"]]
@@ -287,9 +277,6 @@ def get_individual_section_schema(section_name: str, user_preferences: Dict[str,
                 "schema": clean_schema
             }
         }
-        
-        # Logging for review
-        logger.info(f"🔍 Final schema for section '{section_name}':\n{json.dumps(final_schema, indent=2)}")
         
         # Final sanity check for forbidden keys
         disallowed_keys = ["$ref", "oneOf", "anyOf", "example", "default", "schema"]

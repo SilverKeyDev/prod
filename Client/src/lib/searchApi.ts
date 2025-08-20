@@ -103,14 +103,6 @@ export async function searchZillowByPolygon(
     throw new Error("Polygon must have at least 3 points.");
   }
 
-  console.log("[POLYGON_SEARCH] ✅ Input validation passed", {
-    polygonPoints: polygon.length,
-    userPreferencesKeys: Object.keys(user_preferences),
-    statusType: status_type,
-    perBucketPages,
-    maxRetries
-  });
-
   // ensure closed ring (backend also closes, but this avoids avoidable 400s)
   const closedPolygon =
     polygon[0].lon === polygon[polygon.length - 1].lon &&
@@ -126,7 +118,7 @@ export async function searchZillowByPolygon(
   }
 
   const API_BASE =
-    import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+    import.meta.env.VITE_API_BASE_URL || "";
   // Set deadline for request
   const deadline = Date.now() + TOTAL_TIMEOUT_MS;
 
@@ -168,13 +160,6 @@ export async function searchZillowByPolygon(
     );
 
     const responseTime = Date.now() - startTime;
-    console.log("[POLYGON_SEARCH] 📥 Received API response", {
-      status: response.status,
-      statusText: response.statusText,
-      responseTime: `${responseTime}ms`,
-      contentType: response.headers.get("content-type"),
-      contentLength: response.headers.get("content-length")
-    });
 
     // handle non-2xx with server message if available
     if (!response.ok) {
@@ -201,12 +186,6 @@ export async function searchZillowByPolygon(
     }
 
     const result = await response.json();
-    console.log("[POLYGON_SEARCH] 📊 Parsed API response", {
-      success: result?.success,
-      hasData: !!result?.data,
-      dataKeys: result?.data ? Object.keys(result.data) : [],
-      responseTime: `${responseTime}ms`
-    });
 
     if (!result?.success) {
       console.error("[POLYGON_SEARCH] ❌ API returned failure", {
@@ -250,9 +229,5 @@ export async function searchZillowByPolygon(
     });
     
     throw err;
-  } finally {
-    console.log("[POLYGON_SEARCH] 🏁 Search operation completed", {
-      totalDuration: `${Date.now() - startTime}ms`
-    });
   }
 }

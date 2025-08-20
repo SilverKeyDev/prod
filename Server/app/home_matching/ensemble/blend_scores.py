@@ -174,7 +174,6 @@ class EnsembleScorer:
             try:
                 embedding_score = self.embedding_scorer.get_user_home_similarity(user_data, home_data)
                 result['scores']['embedding'] = embedding_score
-                logger.debug(f"Embedding score: {embedding_score:.3f}")
             except Exception as e:
                 logger.error(f"Embedding scoring failed: {e}")
                 result['scores']['embedding'] = 0.0
@@ -185,7 +184,6 @@ class EnsembleScorer:
             try:
                 tabular_score = self.tabular_predictor.predict_match_score(user_data, home_data)
                 result['scores']['tabular'] = tabular_score
-                logger.debug(f"Tabular score: {tabular_score:.3f}")
             except Exception as e:
                 logger.error(f"Tabular scoring failed: {e}")
                 result['scores']['tabular'] = 0.0
@@ -202,7 +200,6 @@ class EnsembleScorer:
                     llm_score = self.llm_scorer.llm_score(user_data, home_data)
                 
                 result['scores']['llm'] = llm_score
-                logger.debug(f"LLM score: {llm_score:.3f}")
             except Exception as e:
                 logger.error(f"LLM scoring failed: {e}")
                 result['scores']['llm'] = 0.0
@@ -225,7 +222,6 @@ class EnsembleScorer:
                 'final': final_score
             })
             
-            logger.info(f"Final ensemble score: {final_score:.3f} for user {result['user_id']} and home {result['home_id']}")
             return result
             
         except Exception as e:
@@ -335,9 +331,7 @@ class EnsembleScorer:
         include_explanations: bool = False
     ) -> List[Dict[str, Any]]:
         """Score a batch of homes concurrently."""
-        try:
-            logger.info(f"🔄 Processing batch starting at index {batch_start_idx} with {len(batch_homes)} homes")
-            
+        try:            
             # Get scores for this batch using existing batch methods
             embedding_scores = self._get_embedding_scores_batch(user_data, batch_homes)
             tabular_scores = self._get_tabular_scores_batch(user_data, batch_homes)

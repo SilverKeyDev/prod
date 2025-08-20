@@ -645,7 +645,6 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
     }
 
     if (googleMapsLoaded && window.google?.maps?.places) {
-      console.log("✅ Google Maps loaded for personalization");
       setScriptsReady(true);
     }
   }, [googleMapsLoaded, googleMapsError]);
@@ -653,15 +652,6 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
   const loadUserPreferencesFromContext = () => {
     try {
       setIsLoading(true);
-
-      console.log(
-        "🔍 Loading from context - userPreferences:",
-        userPreferences
-      );
-      console.log(
-        "🔍 Report customization from context:",
-        userPreferences?.report_section_priorities
-      );
 
       if (userPreferences) {
         setFormData(userPreferences as OnboardingData);

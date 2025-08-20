@@ -3,9 +3,9 @@ import json
 import os
 import traceback
 
-# For local testing - fall back to hardcoded keys if not in env
-GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY") or "AIzaSyAf-BOMf4RE26r8XenLvtLBHkUnB9DHAQM"
-CENSUS_API_KEY = os.getenv("CENSUS_API_KEY") or "784ed021a452fa2e2e8141615fcc6d5f7aa5f6eb"
+# Environment variables - will be None if not set (secure approach)
+GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
+CENSUS_API_KEY = os.getenv("CENSUS_API_KEY")
 
 # ACS variable keys for age groups
 AGE_GROUP_KEYS = {
@@ -17,12 +17,14 @@ AGE_GROUP_KEYS = {
 }
 
 def get_zip_from_address(address):
-    print(f"🔎 Geocoding address: {address}")
+    if not address or not address.strip():
+        raise ValueError("❌ Address is required and cannot be empty.")
+    
     if not GOOGLE_MAPS_API_KEY:
         raise ValueError("❌ GOOGLE_MAPS_API_KEY is missing.")
 
     endpoint = "https://maps.googleapis.com/maps/api/geocode/json"
-    params = {"address": address, "key": GOOGLE_MAPS_API_KEY}
+    params = {"address": address.strip(), "key": GOOGLE_MAPS_API_KEY}
 
     try:
         res = requests.get(endpoint, params=params)
@@ -45,7 +47,9 @@ def get_zip_from_address(address):
         raise
 
 def fetch_age_table_by_zip(zip_code):
-    print(f"📡 Fetching Census age data for ZIP: {zip_code}")
+    if not zip_code or not zip_code.strip():
+        raise ValueError("❌ ZIP code is required and cannot be empty.")
+    
     if not CENSUS_API_KEY:
         raise ValueError("❌ CENSUS_API_KEY is missing.")
 

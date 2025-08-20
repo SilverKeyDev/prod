@@ -99,8 +99,6 @@ def handle_checkout_session(session):
     from datetime import datetime, timedelta
 
     try:
-        current_app.logger.info(f"[CHECKOUT] ✅ Received session: {session}")
-
         customer_email = session.get('customer_email')
         if not customer_email:
             current_app.logger.error('[CHECKOUT] ❌ No customer email in session')
@@ -171,12 +169,9 @@ def handle_successful_payment(invoice):
         if user and subscription.plan_id in ['unlimited-monthly', 'unlimited-yearly']:
             user.is_agent = True
             db.session.add(user)
-            current_app.logger.info(f'Set user {user.id} as agent (is_agent=True) for subscription payment')
         
         db.session.commit()
-        
-        current_app.logger.info(f'Processed payment for subscription {subscription_id}')
-        
+                
     except Exception as e:
         current_app.logger.error(f'Error handling successful payment: {str(e)}')
         db.session.rollback()
@@ -209,7 +204,6 @@ def handle_subscription_updated(subscription):
             )
             
         db.session.commit()
-        current_app.logger.info(f'Updated subscription {subscription_id} to status: {status}')
         
     except Exception as e:
         current_app.logger.error(f'Error updating subscription: {str(e)}')
@@ -246,9 +240,7 @@ def handle_subscription_cancelled(subscription):
         user.is_agent = False
         
         db.session.commit()
-        
-        current_app.logger.info(f'Canceled subscription: {subscription_id}, removed agent status from user: {user.id}')
-        
+                
     except Exception as e:
         current_app.logger.error(f'Error canceling subscription: {str(e)}')
         db.session.rollback()

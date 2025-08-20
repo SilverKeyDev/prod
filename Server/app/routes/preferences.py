@@ -1,21 +1,22 @@
 from flask import Blueprint, request, jsonify, current_app
 from app.models.user import User
 from app.models.user_preferences import UserPreferences
-from app.utils.auth import get_current_user
+from app.utils.auth import get_current_user, SecurityException
+from app.utils.secure_errors import SecureErrorHandler
+from ..utils.security import security_error_response
 from .. import db
 from jose import jwt as jose_jwt
 from jose.exceptions import JWTError, JWTClaimsError, ExpiredSignatureError
 import json
-import logging
+from ..utils.app_logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 preferences_bp = Blueprint('preferences', __name__, url_prefix='/api/v1/preferences')
 
 
 @preferences_bp.route('', methods=['POST'])
 def create_or_update_preferences():
     logger = current_app.logger
-    logger.info("🔐 [POST] /api/v1/preferences - Start processing user preferences")
 
     try:
         user = get_current_user()
@@ -31,19 +32,15 @@ def create_or_update_preferences():
         if not data:
             logger.warning("⚠️ No JSON data received in request body")
             return jsonify({'success': False, 'error': 'No data provided'}), 400
-        logger.debug(f"📦 Received data: {json.dumps(data, indent=2)}")
     except Exception as e:
         logger.error(f"🔥 Failed to parse JSON body: {str(e)}", exc_info=True)
         return jsonify({'success': False, 'error': 'Invalid JSON format'}), 400
 
     try:
         preferences = UserPreferences.query.filter_by(user_id=user.id).first()
-        if preferences:
-            logger.info("✏️ Existing preferences found — will update")
-        else:
+        if not preferences:
             preferences = UserPreferences(user_id=user.id)
             db.session.add(preferences)
-            logger.info("🆕 No preferences found — creating new record")
     except Exception as e:
         logger.error(f"🔥 Error accessing UserPreferences from DB: {str(e)}", exc_info=True)
         return jsonify({'success': False, 'error': 'Database access error'}), 500
@@ -68,9 +65,7 @@ def create_or_update_preferences():
         # Get all model columns to ensure only valid fields are set
         model_columns = set(c.name for c in UserPreferences.__table__.columns)
 
-        logger.info(f"🔍 Processing {len(data)} incoming fields...")
         for field, value in data.items():
-            logger.debug(f"🌾 Processing field: '{field}' with type: {type(value).__name__} and value: {value}")
             model_field = field
             # Alias handling for frontend/backend mismatches
             if field == 'preferred_housing_type':
@@ -103,13 +98,10 @@ def create_or_update_preferences():
                             json_value = json.dumps(value)
                             setattr(preferences, model_field, json_value)
                             json_encoded_fields.append(model_field)
-                            logger.debug(f"📝 JSON-encoded field '{model_field}': {json_value[:100]}...")
                         else:
                             setattr(preferences, model_field, value)
-                            logger.debug(f"📝 Set field '{model_field}' as-is (string): {str(value)[:100]}...")
                     else:
                         setattr(preferences, model_field, value)
-                        logger.debug(f"📝 Set regular field '{model_field}': {value}")
                     updated_fields.append(model_field)
                 except Exception as field_error:
                     logger.error(f"🔥 Failed to set field '{model_field}': {field_error}", exc_info=True)
@@ -118,20 +110,8 @@ def create_or_update_preferences():
                 logger.warning(f"❓ Field '{field}' not found on UserPreferences model — skipping")
                 skipped_fields.append(f"{field} (not found)")
 
-        logger.info(f"🛠 Successfully updated {len(updated_fields)} fields: {updated_fields}")
-        if json_encoded_fields:
-            logger.info(f"📦 JSON-encoded {len(json_encoded_fields)} fields: {json_encoded_fields}")
-        if skipped_fields:
-            logger.warning(f"⏭️ Skipped {len(skipped_fields)} fields: {skipped_fields}")
-
-        # Set has_preferences flag on user
         user.has_preferences = True
-        logger.debug(f"🏷️ Set has_preferences=True for user {user.id}")
-
-        # Log what we're about to commit
-        logger.debug(f"💾 About to commit preferences for user {user.id}")
         db.session.commit()
-        logger.info(f"✅ Database commit succeeded - preferences {'updated' if preferences else 'created'} for user {user.id}")
 
         return jsonify({
             'success': True,
@@ -141,8 +121,10 @@ def create_or_update_preferences():
 
     except Exception as e:
         db.session.rollback()
-        logger.error(f"🔥 Exception during preference save: {str(e)}", exc_info=True)
-        return jsonify({'success': False, 'error': str(e)}), 500
+        return SecureErrorHandler.handle_database_error(e, {
+            'function': 'create_or_update_preferences',
+            'user_id': getattr(user, 'id', 'unknown')
+        })
 
 
 @preferences_bp.route('', methods=['GET'])
@@ -174,8 +156,10 @@ def get_preferences():
         })
 
     except Exception as e:
-        logger.error(f"🔥 Failed to fetch preferences from DB: {str(e)}", exc_info=True)
-        return jsonify({'success': False, 'error': 'Failed to get preferences'}), 500
+        return SecureErrorHandler.handle_database_error(e, {
+            'function': 'get_preferences',
+            'user_id': getattr(user, 'id', 'unknown')
+        })
 
 
 @preferences_bp.route('/user/<user_id>', methods=['GET'])
@@ -190,8 +174,6 @@ def get_user_preferences_by_id(user_id):
         current_user = get_current_user()
         if not current_user:
             return jsonify({'success': False, 'error': 'Authentication required'}), 401
-
-        logger.info(f"🔍 Agent {current_user.id} requesting preferences for user {user_id}")
 
         # Verify the requested user is in the agent's client list
         if not hasattr(current_user, 'client_ids') or not current_user.client_ids:
@@ -229,13 +211,14 @@ def get_user_preferences_by_id(user_id):
 @preferences_bp.route('/clients', methods=['GET'])
 def get_clients_preferences():
     logger = current_app.logger
-    logger.info("📥 [GET] /api/v1/preferences/clients - Fetching preferences for client users")
 
     try:
         user = get_current_user()
         if not user:
             logger.warning("🚫 Unauthorized request: user not found in token")
             return jsonify({'error': 'Unauthorized', 'success': False}), 401
+    except SecurityException as e:
+        return security_error_response(e.error_tuple)
     except Exception as e:
         logger.error(f"🔥 Failed to get current user: {str(e)}", exc_info=True)
         return jsonify({'success': False, 'error': 'Authorization failure'}), 500
@@ -246,7 +229,6 @@ def get_clients_preferences():
             clients = json.loads(user.client_ids) if isinstance(user.client_ids, str) else user.client_ids
         else:
             clients = []
-        logger.info(f"🔗 Client IDs: {clients}")
     except (json.JSONDecodeError, TypeError) as e:
         logger.error(f"🔥 Failed to parse client IDs JSON: {str(e)}", exc_info=True)
         return jsonify({'success': True, 'preferences': [], 'has_preferences': False}), 500
@@ -281,9 +263,7 @@ def get_agents():
     try:
         # Get the search parameter from query string
         search_term = request.args.get('search', '').strip()
-        
-        logger.info(f"[GET_AGENTS] Searching for agents with name starting with: '{search_term}'")
-        
+                
         # Build the query to find agents
         query = User.query.filter(User.is_agent == True)
         
@@ -305,9 +285,7 @@ def get_agents():
                 'created_at': agent.created_at.isoformat() if agent.created_at else None
             }
             agent_list.append(agent_data)
-        
-        logger.info(f"[GET_AGENTS] Found {len(agent_list)} agents matching search criteria")
-        
+                
         return jsonify({
             'success': True,
             'agents': agent_list,
@@ -378,8 +356,6 @@ def set_as_agent():
             logger.warning("🚫 No agent_id provided in request")
             return jsonify({'success': False, 'error': 'agent_id parameter is required'}), 400
 
-        logger.info(f"[SET_AS_AGENT] Adding user {user_id} to agent {agent_id}'s client list")
-
         # Find the current user
         current_user = User.query.filter_by(cognito_id=user_id).first()
         if not current_user:
@@ -406,10 +382,7 @@ def set_as_agent():
         if current_user.id not in client_ids:
             client_ids.append(current_user.id)
             agent.client_ids = json.dumps(client_ids)
-            logger.info(f"✅ Added user {current_user.id} to agent {agent_id}'s client list")
-        else:
-            logger.info(f"ℹ️ User {current_user.id} already in agent {agent_id}'s client list")
-
+     
         # Parse the user's current agent_ids (JSON array like client_ids)
         try:
             if current_user.agent_id:
@@ -424,13 +397,9 @@ def set_as_agent():
         if agent_id not in agent_ids:
             agent_ids.append(agent_id)
             current_user.agent_id = json.dumps(agent_ids)
-            logger.info(f"✅ Added agent {agent_id} to user {current_user.id}'s agent list")
-        else:
-            logger.info(f"ℹ️ Agent {agent_id} already in user {current_user.id}'s agent list")
-
+    
         # Save changes to database
         db.session.commit()
-        logger.info(f"💾 Successfully saved agent assignment for user {current_user.id}")
 
         return jsonify({
             'success': True,
@@ -464,8 +433,6 @@ def get_user_agents():
             logger.error(f"🚫 User not found")
             return jsonify({'success': False, 'error': 'User not found'}), 404
 
-        logger.info(f"[GET_USER_AGENTS] Getting agents for user {current_user.id}")
-
         # Parse the user's agent_ids (JSON array)
         try:
             if current_user.agent_id:
@@ -478,7 +445,6 @@ def get_user_agents():
 
         # If no agents assigned, return empty list
         if not agent_ids:
-            logger.info(f"[GET_USER_AGENTS] No agents assigned to user {current_user.id}")
             return jsonify({
                 'success': True,
                 'agents': [],
@@ -499,9 +465,7 @@ def get_user_agents():
                 'created_at': agent.created_at.isoformat() if agent.created_at else None
             }
             agent_list.append(agent_data)
-        
-        logger.info(f"[GET_USER_AGENTS] Found {len(agent_list)} assigned agents for user {current_user.id}")
-        
+                
         return jsonify({
             'success': True,
             'agents': agent_list,
@@ -564,8 +528,6 @@ def remove_agent_relationship():
             logger.warning("🚫 No agent_id provided in request")
             return jsonify({'success': False, 'error': 'agent_id parameter is required'}), 400
 
-        logger.info(f"[REMOVE_AGENT_RELATIONSHIP] Removing user {user_id} from agent {agent_id}'s client list")
-
         current_user = User.query.filter_by(cognito_id=user_id).first()
         if not current_user:
             logger.error(f"🚫 User not found with cognito_id: {user_id}")
@@ -585,9 +547,7 @@ def remove_agent_relationship():
         if current_user.id in client_ids:
             client_ids.remove(current_user.id)
             agent.client_ids = json.dumps(client_ids)
-            logger.info(f"🗑️ Removed user {current_user.id} from agent {agent_id}'s client list")
-        else:
-            logger.info(f"ℹ️ User {current_user.id} not in agent {agent_id}'s client list")
+     
 
         try:
             agent_ids = json.loads(current_user.agent_id) if current_user.agent_id else []
@@ -598,12 +558,8 @@ def remove_agent_relationship():
         if agent_id in agent_ids:
             agent_ids.remove(agent_id)
             current_user.agent_id = json.dumps(agent_ids)
-            logger.info(f"🗑️ Removed agent {agent_id} from user {current_user.id}'s agent list")
-        else:
-            logger.info(f"ℹ️ Agent {agent_id} not in user {current_user.id}'s agent list")
-
+    
         db.session.commit()
-        logger.info(f"💾 Successfully removed agent relationship for user {current_user.id}")
 
         return jsonify({
             'success': True,
@@ -661,7 +617,6 @@ def generate_client_action_plan(client_id):
             }), 404
         
         # Generate action plan using OpenAI
-        logger.info(f"[ACTION_PLAN] Generating action plan for client {client_user.name} by agent {current_user.name}")
         action_plan = generate_action_plan(client_preferences, client_user.name)
         
         if action_plan.startswith("AI service unavailable") or action_plan.startswith("Unable to generate"):

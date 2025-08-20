@@ -1,16 +1,11 @@
-"""
-Flask routes for home matching system with Celery integration.
-"""
-
 from flask import Blueprint, request, jsonify
 from flask_login import login_required, current_user
-import logging
-
 from ..celery.tasks import find_best_matches_task
 from ..celery.celery_worker import celery
+from ..utils.app_logging import get_logger
 
 # Configure logging
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 # Create blueprint
 home_matching_bp = Blueprint('home_matching', __name__, url_prefix='/api/home-matching')
@@ -98,9 +93,7 @@ def find_matches():
             embedding_provider=embedding_provider,
             llm_provider=llm_provider
         )
-        
-        logger.info(f"Started home matching task {task.id} for user {user_data.get('user_id', 'unknown')}")
-        
+                
         return jsonify({
             'success': True,
             'task_id': task.id,

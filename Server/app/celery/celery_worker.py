@@ -47,9 +47,7 @@ class ContextTask(celery.Task):
                         conn.execute(db.text('SELECT 1'))
                     return self.run(*args, **kwargs)
                     
-                except (OperationalError, DisconnectionError) as e:
-                    print(f"🔄 Database connection error on attempt {attempt + 1}/{max_retries}: {str(e)}")
-                    
+                except (OperationalError, DisconnectionError) as e:                    
                     # Clean up the session
                     try:
                         db.session.rollback()

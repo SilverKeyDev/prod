@@ -54,7 +54,6 @@ export async function getPropertyDetailsByAddress(zpid?: string | number, addres
       images: result.images
     };
     
-    console.log('🔍 [SEARCH_ADDRESS] Successfully returning enhanced property data with commute, property analysis, image features, Zillow URL, features, and images');
     return enhancedPropertyData;
   } catch (error) {
     console.error('🔍 [SEARCH_ADDRESS] ❌ Error in getPropertyDetailsByAddress:', error);

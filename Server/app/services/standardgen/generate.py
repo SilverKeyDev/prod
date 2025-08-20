@@ -1,4 +1,3 @@
-# offer_generator.py
 import os
 import json
 import logging
@@ -74,7 +73,6 @@ def validate_address(address: str) -> bool:
     if len(address.strip()) == 0:
         logger.error("❌ Address is empty after stripping whitespace")
         return False
-    logger.debug(f"✅ Address validation passed: {address}")
     return True
 
 # -------------------------------------------------
@@ -128,13 +126,6 @@ def _fix_object_placeholders(obj):
 # -------------------------------------------------
 def _safe_parse_json(text: str, report_customization: Optional[dict] = None) -> dict:
     try:
-        logger.debug("🔧 Attempting to parse model output as structured JSON")
-        logger.debug(f"📝 Raw model output (first 500 chars): {text[:500]}...")
-        if report_customization:
-            logger.info(
-                "🎛️ Report customization passed: %s",
-                json.dumps(report_customization, indent=2)
-            )
 
         # strip think tags and smart quotes
         cleaned = re.sub(
@@ -488,7 +479,6 @@ def _render_pdf_or_placeholder(
             # The _pdf function expects (report, address, filename, title)
             title = f"Offer Document - {filename}"
             _pdf(data, address, filename, title)  # type: ignore
-            logger.info(f"✅ PDF generated successfully: {filename}")
             return True
         except Exception as e:
             logger.error("❌ _pdf generation failed: %s", str(e))
@@ -498,10 +488,7 @@ def _render_pdf_or_placeholder(
     # Generate placeholder PDF as fallback
     logger.warning("⚠️ Using placeholder PDF - actual PDF generation unavailable")
     placeholder_content = create_placeholder_pdf()
-    
-    # In a real implementation, you might want to save this placeholder to S3
-    # For now, we'll just log that we created it
-    logger.info(f"📄 Placeholder PDF created for {filename} ({len(placeholder_content)} bytes)")
+
     return False
 
 # -------------------------------------------------
@@ -526,8 +513,6 @@ def generate_report(
     """
     task_id = str(uuid.uuid4())
     section_name = section_type  # alias used in logs
-    logger.info(f"📝 REPORT_GEN[{task_id}]: Start for '{section_type}' at address: {address}")
-    logger.info(f"🆔 REPORT_GEN[{task_id}]: user_id={user_id}")
 
     if not validate_address(address):
         raise ValueError("Invalid address")
@@ -544,7 +529,6 @@ def generate_report(
     last_error = None
     for attempt in range(max_retries + 1):
         attempt_num = attempt + 1
-        logger.info(f"📨 {section_name}: Attempt {attempt_num}/{max_retries + 1}")
         start_time = time.perf_counter()
         try:
             resp = session.post(PPLX_URL, headers=HEADERS, json=payload, timeout=300)
@@ -557,7 +541,6 @@ def generate_report(
             raise
 
         duration = time.perf_counter() - start_time
-        logger.info(f"📊 {section_name}: HTTP {resp.status_code} in {duration:.2f}s")
 
         if resp.status_code != 200:
             # try to expose Perplexity error details
@@ -597,7 +580,6 @@ def generate_report(
             raise RuntimeError(last_error)
 
         raw = content["choices"][0]["message"]["content"]
-        logger.debug(f"🧾 {section_name}: Raw length {len(raw)} chars")
 
         try:
             parsed = _safe_parse_json(raw, report_customization)
@@ -615,7 +597,6 @@ def generate_report(
             # Non-fatal for the JSON generation path
             logger.error(f"⚠️ PDF generation failed (non-fatal): {pdf_e}")
 
-        logger.info(f"✅ REPORT_GEN[{task_id}]: Completed '{section_type}' successfully")
         return {"task_id": task_id, "section": section_type, "success": True, "data": parsed}
 
     # Should not reach here

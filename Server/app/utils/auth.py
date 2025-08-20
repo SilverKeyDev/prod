@@ -7,6 +7,12 @@ from ..models.user import User
 from .. import db
 from .security import SecurityError, log_security_event, safe_user_lookup_error, security_error_response
 
+class SecurityException(Exception):
+    """Exception class for SecurityError tuples"""
+    def __init__(self, security_error_tuple):
+        self.error_tuple = security_error_tuple
+        super().__init__(security_error_tuple[1])
+
 # Cognito Configuration
 COGNITO_REGION = os.getenv("S3_REGION", "us-east-2")
 COGNITO_POOL_ID = os.getenv("COGNITO_USER_POOL_ID")
@@ -47,12 +53,12 @@ def get_current_user():
     
     if not auth_header:
         log_security_event('auth_missing_header')
-        raise SecurityError.UNAUTHORIZED
+        raise SecurityException(SecurityError.UNAUTHORIZED)
     
     # Check if header starts with 'Bearer '
     if not auth_header.startswith('Bearer '):
         log_security_event('auth_invalid_header_format')
-        raise SecurityError.INVALID_TOKEN
+        raise SecurityException(SecurityError.INVALID_TOKEN)
     
     token = auth_header.replace("Bearer ", "")
     
@@ -60,7 +66,7 @@ def get_current_user():
     token_parts = token.split('.')
     if len(token_parts) != 3:
         log_security_event('auth_invalid_jwt_format', {'parts_count': len(token_parts)})
-        raise SecurityError.INVALID_TOKEN
+        raise SecurityException(SecurityError.INVALID_TOKEN)
     
     try:
         # Get the proper signing key for this token
@@ -91,20 +97,20 @@ def get_current_user():
             
             if not user:
                 log_security_event('auth_user_not_found', {'cognito_id': claims['sub'][:8] + '...'})
-                raise SecurityError.UNAUTHORIZED
+                raise SecurityException(SecurityError.UNAUTHORIZED)
         return user
     except ExpiredSignatureError:
         log_security_event('auth_token_expired')
-        raise SecurityError.TOKEN_EXPIRED
+        raise SecurityException(SecurityError.TOKEN_EXPIRED)
     except JWTClaimsError as e:
         log_security_event('auth_invalid_claims', {'error_type': type(e).__name__})
-        raise SecurityError.INVALID_TOKEN
+        raise SecurityException(SecurityError.INVALID_TOKEN)
     except JWTError as e:
         log_security_event('auth_jwt_validation_failed', {'error_type': type(e).__name__})
-        raise SecurityError.INVALID_TOKEN
+        raise SecurityException(SecurityError.INVALID_TOKEN)
     except Exception as e:
         log_security_event('auth_unexpected_error', {'error_type': type(e).__name__})
-        raise SecurityError.UNAUTHORIZED
+        raise SecurityException(SecurityError.UNAUTHORIZED)
 
 def require_auth(f):
     """

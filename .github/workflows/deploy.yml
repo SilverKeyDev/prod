@@ -38,6 +38,7 @@ jobs:
           docker build --no-cache \
             --build-arg VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }} \
             --build-arg VITE_STRIPE_PUBLIC_KEY=${{ secrets.VITE_STRIPE_PUBLIC_KEY }} \
+            --build-arg VITE_GOOGLE_MAPS_ID=${{ secrets.VITE_GOOGLE_MAPS_ID }} \
             -t $REPO:$IMAGE_TAG .
           docker tag $REPO:$IMAGE_TAG $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO:$IMAGE_TAG
           docker push $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO:$IMAGE_TAG
@@ -121,7 +122,14 @@ jobs:
 
             # Relaunch Redis cleanly
             echo "🚀 Starting Redis container..."
-            sudo docker run -d --name redis --network host redis
+            sudo docker run -d --name redis \
+              -p 6379:6379 \
+              --health-cmd="redis-cli ping || exit 1" \
+              --health-interval=30s \
+              --health-timeout=10s \
+              --health-retries=3 \
+              --health-start-period=30s \
+              redis
 
             # Health check
             sleep 2
@@ -136,7 +144,13 @@ jobs:
 
 
             echo "🚀 Starting new container..."
-            sudo docker run -d --network host --name cre_app \
+            sudo docker run -d --name cre_app \
+              -p 5000:5000 \
+              --health-cmd="curl -f http://localhost:5000/api/v1/user/profile || exit 1" \
+              --health-interval=30s \
+              --health-timeout=10s \
+              --health-retries=3 \
+              --health-start-period=40s \
               -e AWS_REGION="${{ secrets.AWS_REGION }}" \
               -e AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" \
               -e AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
@@ -168,7 +182,12 @@ jobs:
             
             echo "🚀 Starting Celery worker container (cre_worker)..."
             sudo docker run -d --name cre_worker \
-              --network host \
+              --link redis:redis \
+              --health-cmd="celery -A app.celery.celery_worker inspect ping || exit 1" \
+              --health-interval=60s \
+              --health-timeout=30s \
+              --health-retries=3 \
+              --health-start-period=60s \
               -e AWS_REGION="${{ secrets.AWS_REGION }}" \
               -e AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" \
               -e AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
@@ -206,7 +225,7 @@ jobs:
             sudo docker cp cre_app:/app/Client/dist/. /var/www/html/
             sudo chown -R www-data:www-data /var/www/html
 
-            echo "🔍 Verifying container status..."
+            echo "🔍 Verifying container status and health..."
             if ! sudo docker ps --format '{{.Names}}' | grep -q '^cre_app$'; then
               echo "❌ cre_app container is not running. Dumping logs:"
               sudo docker logs cre_app || echo "⚠️ No logs found"
@@ -217,6 +236,12 @@ jobs:
               echo "📜 Recent logs:"
               sudo docker logs --tail 20 cre_app || true
 
-              echo "📈 Container health (if available):"
+              echo "📈 Container health status:"
               sudo docker inspect --format='{{json .State.Health}}' cre_app || echo "ℹ️ No health info"
+              
+              echo "🔍 Verifying Celery worker health..."
+              sudo docker inspect --format='{{json .State.Health}}' cre_worker || echo "ℹ️ No Celery health info"
+              
+              echo "🔍 Verifying Redis health..."
+              sudo docker inspect --format='{{json .State.Health}}' redis || echo "ℹ️ No Redis health info"
             fi

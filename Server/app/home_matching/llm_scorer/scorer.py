@@ -25,56 +25,27 @@ class LLMScorer:
             user_id = user_data.get('user_id', 'unknown')
             home_id = home_data.get('home_id', 'unknown')
             
-            logger.info(f"[LLM] Starting scoring for user {user_id} vs home {home_id}")
             
             # Build prompts
             system_prompt = self.prompt_builder.get_system_prompt()
             user_prompt = self.prompt_builder.build_user_prompt(user_data, home_data)
-            
-            # Log key input data for debugging
-            home_price = home_data.get('price', 'unknown')
-            home_bedrooms = home_data.get('bedrooms', 'unknown')
-            home_bathrooms = home_data.get('bathrooms', 'unknown')
-            user_budget = user_data.get('preferences', {}).get('budget_max', 'unknown')
-            user_bedrooms = user_data.get('preferences', {}).get('preferred_bedrooms', 'unknown')
-            
-            logger.info(f"[LLM] Input data - Home: ${home_price}, {home_bedrooms}br/{home_bathrooms}ba | User budget: ${user_budget}, wants {user_bedrooms}br")
-            
+                        
             # Validate prompt length
-            prompt_length = len(system_prompt + user_prompt)
-            logger.debug(f"[LLM] Prompt length: {prompt_length} characters")
-            
             if not self.prompt_builder.validate_prompt_length(system_prompt + user_prompt):
                 logger.warning("[LLM] Prompt may be too long, truncating...")
                 user_prompt = user_prompt[:3000] + "...\n\nProvide your assessment as a JSON object."
             
             # Call LLM
-            logger.debug(f"[LLM] Calling LLM API...")
             response = self.llm_client.call_llm(system_prompt, user_prompt)
-            
-            # Log raw response for debugging
-            raw_content = response.get('raw_content', '')
-            logger.info(f"[LLM] Raw response length: {len(raw_content)} chars")
-            logger.debug(f"[LLM] Raw response preview: {raw_content[:200]}...")
             
             # Parse response
             parsed = self.parser.parse_scoring_response(response)
-            logger.debug(f"[LLM] Parsed response keys: {list(parsed.keys())}")
             
             raw_score = parsed.get('score', 0.0)
-            reasoning = parsed.get('reasoning', 'No reasoning provided')
-            pros = parsed.get('pros', [])
-            cons = parsed.get('cons', [])
             
             # Ensure precise 3-decimal formatting
             score = round(float(raw_score), 3)
-            
-            # Comprehensive logging
-            logger.info(f"[LLM] RESULT - User {user_id} vs Home {home_id}: {raw_score} -> {score}")
-            logger.info(f"[LLM] Reasoning: {reasoning[:100]}...")
-            logger.info(f"[LLM] Pros ({len(pros)}): {pros[:2]}")
-            logger.info(f"[LLM] Cons ({len(cons)}): {cons[:2]}")
-            
+        
             return score
             
         except Exception as e:

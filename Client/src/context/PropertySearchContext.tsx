@@ -22,7 +22,7 @@ import {
   getAuthToken,
   routeStartsWith,
 } from "../lib/fetchUtils";
-import { useAuthState } from "../lib/authUtils";
+import { useAuth } from "./AuthContext";
 
 /* =========================
    Types
@@ -64,7 +64,7 @@ interface PropertySearchProviderProps {
 
 export function PropertySearchProvider({ children }: PropertySearchProviderProps) {
   const { abortAll, withAbort } = useMemo(() => createAbortManager(), []);
-  const { user, authReady } = useAuthState();
+  const { user, authReady } = useAuth();
 
   // Search results state
   const [searchResults, setSearchResults] = useState<Property[]>([]);

@@ -173,16 +173,11 @@ export default function GenerateReportPage() {
         return;
       }
 
-      console.log(
-        "🔄 FRONTEND: Agent detected, fetching client list for user:",
-        userProfile.id
-      );
       setClientsLoading(true);
       try {
         const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
         const idToken = localStorage.getItem("id_token");
 
-        console.log("📡 FRONTEND: Making API call to fetch clients");
         const response = await fetch(
           `${apiBaseUrl}/api/v1/preferences/clients`,
           {
@@ -196,7 +191,6 @@ export default function GenerateReportPage() {
 
         if (response.ok) {
           const data = await response.json();
-          console.log("✅ FRONTEND: Client fetch response:", data);
           if (data.success && data.user_information) {
             const clientList: ClientInfo[] = data.user_information.map(
               (user: any) => ({
@@ -204,10 +198,6 @@ export default function GenerateReportPage() {
                 name: user.name || user.email,
                 email: user.email,
               })
-            );
-            console.log(
-              "📋 FRONTEND: Processed client list:",
-              clientList.map((c) => ({ id: c.id, name: c.name }))
             );
             setClients(clientList);
           } else {
@@ -431,9 +421,6 @@ export default function GenerateReportPage() {
 
         const retryPolling = () => {
           retryCount++;
-          console.log(
-            `[GenerateReport] 🔄 Retry attempt ${retryCount}/${maxRetries} - checking for polling function...`
-          );
 
           try {
             if ((window as any).pollForReportCompletion) {
@@ -501,41 +488,10 @@ export default function GenerateReportPage() {
     const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
     const idToken = localStorage.getItem("id_token");
 
-    // Prepare request body
-    console.log("🔧 FRONTEND: Preparing request body...");
-    console.log(
-      "📊 FRONTEND: Current state - userProfile.is_agent:",
-      userProfile?.is_agent
-    );
-    console.log(
-      "📊 FRONTEND: Current state - selectedClientId:",
-      selectedClientId
-    );
-    console.log(
-      "📊 FRONTEND: Current state - userProfile.id:",
-      userProfile?.id
-    );
-
     const willSendUserId =
       userProfile?.is_agent &&
       selectedClientId &&
       selectedClientId !== userProfile?.id;
-    console.log("🎯 FRONTEND: Will send user_id parameter:", willSendUserId);
-
-    if (willSendUserId) {
-      console.log(
-        "🔄 FRONTEND: Agent generating report for client:",
-        selectedClientId
-      );
-    } else if (userProfile?.is_agent) {
-      console.log(
-        "👤 FRONTEND: Agent generating report for themselves (no user_id sent)"
-      );
-    } else {
-      console.log(
-        "👤 FRONTEND: Regular user generating report (no user_id sent)"
-      );
-    }
 
     const requestBody = {
       address: trimmed,

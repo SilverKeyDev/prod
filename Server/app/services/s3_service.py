@@ -8,7 +8,9 @@ from io import BytesIO
 import traceback
 import time
 
-logger = logging.getLogger(__name__)
+from ..utils.app_logging import get_logger
+
+logger = get_logger()
 
 class S3Service:
     def __init__(self):
@@ -24,20 +26,10 @@ class S3Service:
     
     def _log_initialization_context(self):
         """Log detailed context information for debugging initialization issues"""
-        logger.info("🔍 S3Service initialization context:")
-        logger.info(f"   - Has Flask app context: {has_app_context()}")
-        logger.info(f"   - Environment AWS_ACCESS_KEY_ID: {'✅ Set' if os.getenv('AWS_ACCESS_KEY_ID') else '❌ Missing'}")
-        logger.info(f"   - Environment AWS_SECRET_ACCESS_KEY: {'✅ Set' if os.getenv('AWS_SECRET_ACCESS_KEY') else '❌ Missing'}")
-        logger.info(f"   - Environment S3_BUCKET_NAME_PDFS: {os.getenv('S3_BUCKET_NAME_PDFS', 'Not set')}")
-        logger.info(f"   - Environment S3_REGION: {os.getenv('S3_REGION', 'Not set')}")
-        
+      
         if has_app_context():
             try:
-                config = current_app.config
-                logger.info(f"   - Config AWS_ACCESS_KEY_ID: {'✅ Set' if config.get('AWS_ACCESS_KEY_ID') else '❌ Missing'}")
-                logger.info(f"   - Config AWS_SECRET_ACCESS_KEY: {'✅ Set' if config.get('AWS_SECRET_ACCESS_KEY') else '❌ Missing'}")
-                logger.info(f"   - Config S3_BUCKET_NAME_PDFS: {config.get('S3_BUCKET_NAME_PDFS', 'Not set')}")
-                logger.info(f"   - Config S3_REGION: {config.get('S3_REGION', 'Not set')}")
+                current_app.config
             except Exception as e:
                 logger.warning(f"   - Could not access Flask config: {e}")
     
@@ -49,13 +41,11 @@ class S3Service:
         if (not force_retry and 
             self.initialization_attempted and 
             current_time - self._last_init_attempt < self._init_retry_delay):
-            logger.debug(f"⏳ Skipping S3 initialization - last attempt was {current_time - self._last_init_attempt:.1f}s ago")
             return
         
         self._last_init_attempt = current_time
         self.initialization_attempted = True
         
-        logger.info("🚀 Attempting S3 client initialization...")
         self._log_initialization_context()
         
         try:
@@ -72,13 +62,11 @@ class S3Service:
                     aws_secret_key = config.get('AWS_SECRET_ACCESS_KEY')
                     s3_region = config.get('S3_REGION', 'us-east-2')
                     bucket_name = config.get('S3_BUCKET_NAME_PDFS')
-                    logger.info("📋 Using Flask app config for AWS credentials")
                 except Exception as e:
                     logger.warning(f"⚠️ Could not access Flask config: {e}")
             
             # Fallback to environment variables
             if not aws_access_key or not aws_secret_key:
-                logger.info("🔄 Falling back to environment variables for AWS credentials")
                 aws_access_key = os.getenv('AWS_ACCESS_KEY_ID')
                 aws_secret_key = os.getenv('AWS_SECRET_ACCESS_KEY')
                 s3_region = os.getenv('S3_REGION', 'us-east-2')
@@ -95,10 +83,6 @@ class S3Service:
             if not bucket_name:
                 logger.error("❌ S3 bucket name not configured")
                 logger.error("   - Set S3_BUCKET_NAME_PDFS in environment or config")
-                return
-            
-            logger.info(f"🔧 Creating S3 client with region: {s3_region}")
-            logger.info(f"🪣 Target bucket: {bucket_name}")
             
             # Create S3 client
             self.s3_client = boto3.client(
@@ -109,17 +93,11 @@ class S3Service:
             )
             
             # Test the connection and bucket access
-            logger.info("🔍 Testing S3 connection and bucket access...")
             self.s3_client.head_bucket(Bucket=bucket_name)
             
             # Store bucket name for later use
             self.bucket_name = bucket_name
             self.initialization_successful = True
-            
-            logger.info("✅ S3 client initialized successfully!")
-            logger.info(f"   - Region: {s3_region}")
-            logger.info(f"   - Bucket: {bucket_name}")
-            logger.info(f"   - Access Key ID: {aws_access_key[:8]}...")
             
         except NoCredentialsError as e:
             logger.error("❌ AWS credentials not found or invalid")
@@ -157,7 +135,6 @@ class S3Service:
     def _ensure_s3_client(self):
         """Ensure S3 client is initialized, with retry logic"""
         if self.s3_client is None and not self.initialization_successful:
-            logger.info("🔄 S3 client not available, attempting re-initialization...")
             self._initialize_s3_client(force_retry=True)
         
         return self.s3_client is not None
@@ -174,7 +151,6 @@ class S3Service:
         Returns:
             The S3 key (path) of the uploaded file, or None if upload failed
         """
-        logger.info(f"📤 Attempting to upload PDF: {filename} ({len(file_data) if file_data else 0} bytes)")
         
         # Ensure S3 client is available
         if not self._ensure_s3_client():
@@ -214,15 +190,11 @@ class S3Service:
                 logger.error("❌ S3 bucket name not available")
                 return None
             
-            logger.info(f"🪣 Uploading to bucket: {bucket_name}")
-            logger.info(f"📄 File size: {len(file_data):,} bytes")
-            logger.info(f"🏷️ Content type: {content_type}")
                         
             # Create a file-like object from bytes
             file_obj = BytesIO(file_data)
             
             # Upload to S3
-            logger.info(f"🚀 Starting S3 upload...")
             self.s3_client.upload_fileobj(
                 file_obj,
                 bucket_name,
@@ -232,11 +204,6 @@ class S3Service:
                     'ACL': 'private'  # Private access, use presigned URLs for access
                 }
             )
-            
-            logger.info(f"✅ PDF uploaded successfully to S3!")
-            logger.info(f"   - S3 Key: {filename}")
-            logger.info(f"   - Bucket: {bucket_name}")
-            logger.info(f"   - Size: {len(file_data):,} bytes")
             
             return filename
             
@@ -479,7 +446,6 @@ class S3Service:
         Returns:
             True if deletion was successful, False otherwise
         """
-        logger.info(f"🗑️ Attempting to delete PDF: {s3_key}")
         
         # Ensure S3 client is available
         if not self._ensure_s3_client():
@@ -509,18 +475,11 @@ class S3Service:
                 logger.error("❌ S3 bucket name not available for deletion")
                 return False
             
-            logger.info(f"🪣 Deleting from bucket: {bucket_name}")
-                        
-            logger.info(f"🚀 Executing S3 delete operation...")
             self.s3_client.delete_object(
                 Bucket=bucket_name,
                 Key=s3_key
             )
-            
-            logger.info(f"✅ PDF deleted successfully from S3!")
-            logger.info(f"   - S3 Key: {s3_key}")
-            logger.info(f"   - Bucket: {bucket_name}")
-            
+
             return True
             
         except ClientError as e:
@@ -532,7 +491,6 @@ class S3Service:
             
             if error_code == 'NoSuchKey':
                 logger.warning(f"⚠️ S3 object '{s3_key}' does not exist (already deleted?)")
-                logger.info("   - Treating as successful deletion since goal is achieved")
                 return True  # Consider this a success since the goal is achieved
             elif error_code == 'NoSuchBucket':
                 logger.error(f"   - S3 bucket '{bucket_name}' does not exist")
@@ -564,7 +522,6 @@ class S3Service:
         Returns:
             True if file exists, False otherwise
         """
-        logger.info(f"🔍 Checking if file exists: {s3_key}")
         
         # Ensure S3 client is available
         if not self._ensure_s3_client():
@@ -594,17 +551,13 @@ class S3Service:
                 logger.error("❌ S3 bucket name not available for existence check")
                 return False
                         
-            logger.info(f"🔧 Checking S3 object existence...")
             self.s3_client.head_object(Bucket=bucket_name, Key=s3_key)
-            logger.info(f"✅ File exists in S3: {s3_key}")
-            logger.info(f"   - Bucket: {bucket_name}")
+
             return True
             
         except ClientError as e:
             error_code = e.response['Error']['Code']
             if error_code == '404' or error_code == 'NoSuchKey':
-                logger.info(f"🚫 File does not exist in S3: {s3_key}")
-                logger.info(f"   - Bucket: {bucket_name}")
                 return False
             else:
                 error_message = e.response['Error']['Message']
@@ -631,7 +584,6 @@ class S3Service:
         Returns:
             The file contents as bytes, or None if download fails
         """
-        logger.info(f"📥 Attempting to download PDF: {s3_key}")
         
         # Ensure S3 client is available
         if not self._ensure_s3_client():
@@ -661,18 +613,12 @@ class S3Service:
                 logger.error("❌ S3 bucket name not available for download")
                 return None
             
-            logger.info(f"🪣 Downloading from bucket: {bucket_name}")
             
             file_obj = BytesIO()
-            logger.info(f"🚀 Starting S3 download...")
             self.s3_client.download_fileobj(bucket_name, s3_key, file_obj)
             file_obj.seek(0)
             
             file_data = file_obj.read()
-            logger.info(f"✅ PDF downloaded successfully from S3!")
-            logger.info(f"   - S3 Key: {s3_key}")
-            logger.info(f"   - Bucket: {bucket_name}")
-            logger.info(f"   - Size: {len(file_data):,} bytes")
             
             return file_data
             
@@ -706,13 +652,11 @@ class S3Service:
         """
         Add a local file fallback mechanism when S3 is not available
         """
-        logger.info("💾 Implementing local file fallback mechanism...")
         
         # Create local storage directory if it doesn't exist
         local_storage_dir = os.path.join(os.getcwd(), 'local_pdf_storage')
         os.makedirs(local_storage_dir, exist_ok=True)
         
-        logger.info(f"✅ Local fallback directory created: {local_storage_dir}")
         return local_storage_dir
     
     def save_pdf_locally(self, file_data: bytes, filename: str) -> Optional[str]:
@@ -726,7 +670,6 @@ class S3Service:
         Returns:
             The local file path, or None if save failed
         """
-        logger.info(f"💾 Saving PDF locally as fallback: {filename}")
         
         try:
             local_storage_dir = self.add_local_fallback_mechanism()
@@ -734,10 +677,6 @@ class S3Service:
             
             with open(local_file_path, 'wb') as f:
                 f.write(file_data)
-            
-            logger.info(f"✅ PDF saved locally successfully!")
-            logger.info(f"   - Local path: {local_file_path}")
-            logger.info(f"   - Size: {len(file_data):,} bytes")
             
             return local_file_path
             

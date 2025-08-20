@@ -4,12 +4,14 @@ interface GoogleMapsContextType {
   isLoaded: boolean;
   error: string | null;
   scriptUrl: string | null;
+  createMap: (container: HTMLElement) => google.maps.Map | null;
 }
 
 const GoogleMapsContext = createContext<GoogleMapsContextType>({
   isLoaded: false,
   error: null,
   scriptUrl: null,
+  createMap: () => null, // Default no-op function
 });
 
 export const useGoogleMaps = () => {
@@ -30,6 +32,45 @@ export function GoogleMapsProvider({ children }: GoogleMapsProviderProps) {
   const [scriptUrl, setScriptUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Get mapId from environment variables
+  const MAP_ID = import.meta.env.VITE_GOOGLE_MAPS_ID;
+
+  const createMap = (container: HTMLElement): google.maps.Map | null => {
+    if (!isLoaded || !window.google?.maps) {
+      console.error("Google Maps not loaded yet");
+      return null;
+    }
+
+    try {
+      const map = new window.google.maps.Map(container, {
+        center: { lat: 33.75, lng: -84.39 }, // Default Atlanta center
+        zoom: 12, // Default zoom, will be overridden by fitBounds
+        mapId: MAP_ID ?? undefined, // ✅ Map ID for cloud styling
+        mapTypeControl: true,
+        mapTypeControlOptions: {
+          style: window.google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
+          position: window.google.maps.ControlPosition.TOP_RIGHT,
+          mapTypeIds: ["roadmap", "satellite"], // styling affects roadmap only
+        },
+        gestureHandling: "greedy",
+        // Note: NO styles array - using mapId for cloud styling
+        // Note: NO mapTypeId override - let cloud styling control the default
+      });
+
+      // Runtime sanity checks
+      console.log("Using mapId:", MAP_ID);
+      console.log("Map type:", map.getMapTypeId()); // should be 'roadmap'
+      
+      // Some builds expose capabilities on vector maps:
+      console.log("Vector caps:", (map as any).getMapCapabilities?.());
+
+      return map;
+    } catch (err) {
+      console.error("Error creating Google Map:", err);
+      return null;
+    }
+  };
+
   useEffect(() => {
     // Check if Google Maps is already loaded
     if (window.google?.maps) {
@@ -40,7 +81,6 @@ export function GoogleMapsProvider({ children }: GoogleMapsProviderProps) {
     // More comprehensive check for existing Google Maps scripts
     const existingScripts = document.querySelectorAll('script[src*="maps.googleapis.com"], script[src*="maps.google.com"]');
     if (existingScripts.length > 0) {
-      console.log(`Found ${existingScripts.length} existing Google Maps script(s), waiting for load...`);
       const checkLoaded = () => {
         if (window.google?.maps) {
           setIsLoaded(true);
@@ -68,7 +108,6 @@ export function GoogleMapsProvider({ children }: GoogleMapsProviderProps) {
         const idToken = localStorage.getItem("id_token");
         if (!idToken) {
           // Don't set error, just wait for authentication
-          console.log("⏳ Waiting for user authentication to load Google Maps");
           return;
         }
 
@@ -95,45 +134,56 @@ export function GoogleMapsProvider({ children }: GoogleMapsProviderProps) {
         // Double-check no script was added while we were fetching the URL
         const scriptsAfterFetch = document.querySelectorAll('script[src*="maps.googleapis.com"], script[src*="maps.google.com"]');
         if (scriptsAfterFetch.length > 0) {
-          console.log('Google Maps script was added by another component, aborting duplicate load');
           setIsLoading(false);
           return;
         }
 
+        // Normalize script URL for vector maps and libraries
+        const url = new URL(data.script_url);
+        const libs = new Set((url.searchParams.get("libraries") || "").split(",").filter(Boolean));
+        libs.add("marker"); // needed for AdvancedMarkerElement overlays
+        // libs.add("places"); // only if you use Places
+        url.searchParams.set("libraries", Array.from(libs).join(","));
+        if (!url.searchParams.get("v")) url.searchParams.set("v", "weekly");
+        // Do NOT add map_ids= in script URL; pass mapId only via MapOptions
+        const finalScriptUrl = url.toString();
+
         // Load Google Maps script
         const script = document.createElement("script");
-        script.src = data.script_url;
+        script.src = finalScriptUrl;
         script.async = true;
         script.defer = true;
         script.id = 'google-maps-api'; // Add unique ID to prevent duplicates
 
-        script.onload = () => {
-          console.log('Google Maps script loaded, initializing...');
-          // Wait for Google Maps to be fully initialized with timeout
+        script.onload = async () => {
+          // Wait for core Google Maps API to be ready (don't wait for Places)
           let attempts = 0;
           const maxAttempts = 50; // 5 seconds max wait time
           
-          const checkGoogleMapsReady = () => {
+          const checkReady = () => {
             attempts++;
-            
-            if (window.google?.maps?.Map && window.google?.maps?.places?.PlacesService) {
-              console.log("✅ Google Maps loaded successfully with all required services");
+            if (window.google?.maps?.Map) {
               setIsLoaded(true);
               setIsLoading(false);
+              
+              // Optionally import libraries after core API is ready
+              if (window.google?.maps?.importLibrary) {
+                window.google.maps.importLibrary("marker").catch((err: unknown) => 
+                  console.warn("Failed to import marker library:", err)
+                );
+
+              }
             } else if (attempts >= maxAttempts) {
               console.error("❌ Google Maps initialization timeout after 5 seconds");
               setError("Google Maps initialization timeout. Please refresh the page.");
               setIsLoading(false);
-            } else if (window.google?.maps) {
-              // Google Maps is loading but not all services are ready yet
-              setTimeout(checkGoogleMapsReady, 100);
             } else {
-              setTimeout(checkGoogleMapsReady, 100);
+              setTimeout(checkReady, 100);
             }
           };
           
           // Start checking immediately
-          checkGoogleMapsReady();
+          checkReady();
         };
 
         script.onerror = () => {
@@ -151,7 +201,6 @@ export function GoogleMapsProvider({ children }: GoogleMapsProviderProps) {
         }
 
         document.head.appendChild(script);
-        console.log('Google Maps script added to DOM');
 
       } catch (err) {
         console.error("Error loading Google Maps:", err);
@@ -166,10 +215,9 @@ export function GoogleMapsProvider({ children }: GoogleMapsProviderProps) {
     const retryInterval = setInterval(() => {
       const idToken = localStorage.getItem("id_token");
       if (idToken && !isLoaded && !error) {
-        console.log("🔄 User authenticated, retrying Google Maps load");
         loadGoogleMaps();
       }
-    }, 2000); // Check every 2 seconds
+    }, 100); // Check every 2 seconds
 
     return () => {
       clearInterval(retryInterval);
@@ -177,7 +225,7 @@ export function GoogleMapsProvider({ children }: GoogleMapsProviderProps) {
   }, [isLoaded, error, isLoading]);
 
   return (
-    <GoogleMapsContext.Provider value={{ isLoaded, error, scriptUrl }}>
+    <GoogleMapsContext.Provider value={{ isLoaded, error, scriptUrl, createMap }}>
       {children}
     </GoogleMapsContext.Provider>
   );

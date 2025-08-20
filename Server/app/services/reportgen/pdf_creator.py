@@ -67,10 +67,6 @@ def _create_pdf(report: dict, address: str, filename: str, comparison_address: s
         logger.error("No address provided")
         raise ValueError("Address is required")
     
-    logger.info(f"📄 Starting PDF creation for address: {address}")
-    logger.info(f"📊 Report sections available: {list(report.keys())}")
-    logger.debug(f"🔍 Full report data: {report}")
-
     try:
         pdf_buffer = BytesIO()
         doc = SimpleDocTemplate(
@@ -98,7 +94,6 @@ def _create_pdf(report: dict, address: str, filename: str, comparison_address: s
         # Add main title with address (different for comparison reports)
         if comparison_address and comparison_address.strip():
             title = f"{address} vs"
-            logger.info(f"📊 Creating comparison report title: {title}")
             elements.append(Paragraph(title, styles["MainTitleComparison"]))
             elements.append(Spacer(1, 1))
             elements.append(Paragraph(comparison_address, styles["MainTitleComparison"]))
@@ -120,7 +115,6 @@ def _create_pdf(report: dict, address: str, filename: str, comparison_address: s
             elements.append(Spacer(1, 10))
         else:
             title = address
-            logger.info(f"📊 Creating regular report title: {title}")
             elements.append(Paragraph(title, styles["MainTitle"]))
             elements.append(Spacer(1, 1))
             elements.append(HRFlowable(width="100%", thickness=1.2, color="#D8CAB8"))
@@ -133,7 +127,6 @@ def _create_pdf(report: dict, address: str, filename: str, comparison_address: s
         chart_tables = {}  # Cache for deferred rendering
 
         for i, (section, section_data) in enumerate(report.items()):
-            logger.info(f"🔄 Processing section {i+1}/{len(report)}: '{section}'")
             key = section.replace("_", " ").title()
 
             # Special styling for property_data section (no title)
@@ -148,25 +141,19 @@ def _create_pdf(report: dict, address: str, filename: str, comparison_address: s
 
             # CHART SECTION: Generate and cache for later rendering
             if section.lower() in ["age_distribution", "lifestyle_dna"] and isinstance(section_data, dict):
-                logger.info(f"📊 Processing chart section: {section}")
-                logger.info(f"📊 Chart data received: {section_data}")
-                
+               
                 chart_data = {}
 
-                if section.lower() == "lifestyle_dna":
-                    logger.info("📊 Processing lifestyle_dna chart...")
+                if section.lower() == "lifesyle_dna":
                     for k, v in section_data.items():
                         # Handle values that are already percentages or numbers
                         if isinstance(v, str) and v.endswith('%'):
                             chart_data[k] = v
                         else:
                             chart_data[k] = f"{v}%"
-                    logger.info(f"📊 Lifestyle DNA chart data prepared: {chart_data}")
                     chart_buffer = generate_horizontal_bar_chart(chart_data, key)
-                    logger.info(f"📊 Lifestyle DNA chart buffer result: {chart_buffer is not None}")
 
                 elif section.lower() == "age_distribution":
-                    logger.info("📊 Processing age_distribution chart...")
                     for field_name, value in section_data.items():
                         if field_name.startswith("age_"):
                             display_name = field_name.replace("age_", "").replace("_plus", "+").replace("_", "-")
@@ -178,13 +165,10 @@ def _create_pdf(report: dict, address: str, filename: str, comparison_address: s
                             chart_data[display_name] = value
                         else:
                             chart_data[display_name] = f"{value}%"
-                    logger.info(f"📊 Age distribution chart data prepared: {chart_data}")
                     chart_buffer = generate_vertical_lollipop_chart(chart_data, key)
-                    logger.info(f"📊 Age distribution chart buffer result: {chart_buffer is not None}")
 
                 # Only cache if chart rendered successfully
                 if chart_buffer:
-                    logger.info(f"📊 Creating chart table for {section}")
                     img = _resize_image_to_fit(chart_buffer, target_width=3.6 * inch, target_height=2.8 * inch, is_chart=True)
                     table = Table([[img]], colWidths=[3.6 * inch])
                     table.setStyle(TableStyle([
@@ -196,15 +180,12 @@ def _create_pdf(report: dict, address: str, filename: str, comparison_address: s
                         ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
                     ]))
                     chart_tables[section.lower()] = table
-                    logger.info(f"📊 Chart table cached for {section}. Total cached: {len(chart_tables)}")
                 else:
                     logger.error(f"❌ Chart generation failed for {section} - chart_buffer is None")
 
                 continue  # Skip rest of loop for chart sections
 
-            if isinstance(section_data, dict):
-                logger.info(f"📝 Processing {section} as nested dictionary")
-                
+            if isinstance(section_data, dict):                
                 # Special aesthetic handling for property_data section
                 if section.lower() == "property_data":
                     _add_property_data_section(elements, section_data, styles)
@@ -237,7 +218,6 @@ def _create_pdf(report: dict, address: str, filename: str, comparison_address: s
                                             elements.append(map_image)
                                             elements.append(Paragraph("Commute Routes to Important Locations", styles["Caption"]))
                                             elements.append(Spacer(1, 6))
-                                            logger.info("✅ Commute map added to PDF successfully")
                                         else:
                                             logger.warning("⚠️ Failed to resize commute map image")
                                     except Exception as resize_error:
@@ -245,7 +225,6 @@ def _create_pdf(report: dict, address: str, filename: str, comparison_address: s
                                 
                                 # Add travel times as bulleted list
                                 if travel_times:
-                                    logger.info(f"📝 Adding {len(travel_times)} travel times to PDF as bulleted list")
                                     elements.append(Paragraph("Travel Times by Car", styles["SectionSubHeader"]))
                                     elements.append(Spacer(1, 1))
                                     elements.append(HRFlowable(width="100%", thickness=1.2, color="#D8CAB8"))
@@ -259,11 +238,9 @@ def _create_pdf(report: dict, address: str, filename: str, comparison_address: s
                                         # Use HTML bullet point for proper rendering
                                         travel_text = f"&bull; {location['name']} – {location['travel_time']}"
                                         elements.append(Paragraph(travel_text, styles["Normal"]))
-                                        logger.info(f"📝 Added bulleted travel time: {travel_text}")
                                     
                                     elements.append(Spacer(1, 10))
-                                else:
-                                    logger.info("📝 No travel times to display")
+                              
                             else:
                                 logger.warning("⚠️ Commute map generation returned None (no important locations or API error)")
                         elif not google_maps_api_key:
@@ -278,7 +255,6 @@ def _create_pdf(report: dict, address: str, filename: str, comparison_address: s
                 _add_section(elements, section_data, styles)
                 elements.append(Indenter(left=-1))
             elif isinstance(section_data, list):
-                logger.info(f"📝 Processing {section} as list with {len(section_data)} items")
                 for item in section_data:
                     elements.append(Indenter(left=1))
                     if isinstance(item, dict):
@@ -287,13 +263,10 @@ def _create_pdf(report: dict, address: str, filename: str, comparison_address: s
                         elements.append(Paragraph(f"- {item}", styles["Body"]))
                     elements.append(Indenter(left=-1))
             else:
-                logger.info(f"📝 Processing {section} as simple text: {str(section_data)[:100]}...")
                 elements.append(Paragraph(str(section_data), styles["Body"]))
         
         # Render side-by-side charts after all sections are processed
-        logger.info(f"📊 Chart tables cached: {list(chart_tables.keys())}")
         if "age_distribution" in chart_tables and "lifestyle_dna" in chart_tables:
-            logger.info("📊 Rendering side-by-side charts...")
             side_by_side = Table(
                 [[chart_tables["age_distribution"], chart_tables["lifestyle_dna"]]],
                 colWidths=[3.6 * inch, 3.6 * inch],
@@ -310,20 +283,17 @@ def _create_pdf(report: dict, address: str, filename: str, comparison_address: s
             elements.append(Spacer(1, 10))
             elements.append(side_by_side)
             elements.append(Spacer(1, 20))
-            logger.info("✅ Side-by-side charts added to PDF elements")
         elif len(chart_tables) > 0:
             logger.warning(f"⚠️ Only {len(chart_tables)} chart(s) cached, cannot render side-by-side: {list(chart_tables.keys())}")
         else:
             logger.warning("⚠️ No charts cached for rendering")
             
-        logger.info(f"📄 Building PDF document with {len(elements)} elements")
+        doc.build(elements)
         doc.build(elements)
         pdf_data = pdf_buffer.getvalue()
         pdf_buffer.close()
-        logger.info(f"✅ PDF creation completed - size: {len(pdf_data)} bytes")
 
         s3_key = s3_service.upload_pdf(pdf_data, filename, 'application/pdf')
-        logger.info(f"📤 PDF upload result - s3_key: {s3_key}")
 
         if s3_key:
             try:
@@ -345,16 +315,12 @@ def _create_pdf(report: dict, address: str, filename: str, comparison_address: s
                 else:
                     # Old flat structure fallback
                     json_filename = f"{filename.removesuffix('.pdf')}.json"
-                
-                logger.info(f"📁 PDF filename input: {filename}")
-                logger.info(f"📁 JSON filename output: {json_filename}")
-                logger.info(f"Uploading JSON file to: {json_filename}")
+        
                 s3_service.upload_pdf(json_data, json_filename, 'application/json')
             except Exception as e:
                 logger.error(f"Failed to save raw JSON to S3: {str(e)}")
 
         if s3_key:
-            logger.info("S3 upload successful, generating presigned URL")
             presigned_url = s3_service.generate_presigned_url(s3_key, download_filename=filename)
             return presigned_url if presigned_url else s3_key
 
@@ -457,9 +423,7 @@ def _fetch_image_from_serp(prompt: str) -> str:
                 if not candidate:
                     continue
                 if any(domain in candidate for domain in BAD_IMAGE_DOMAINS):
-                    logger.debug(f"[SERP FILTER] Skipping bad image domain: {candidate}")
                     continue
-                logger.debug(f"[SERP] Using image URL: {candidate}")
                 return candidate
 
         logger.warning(f"SERP API returned no usable image for prompt: '{prompt}'")
@@ -477,7 +441,6 @@ def _resize_image_to_fit(img_data: BytesIO, target_width: float = 3.6 * inch, ta
     
     # Convert to RGB if in P or RGBA mode to prevent format issues
     if pil_img.mode not in ("RGB", "L"):
-        logger.info(f"🖼️ Converting image from {pil_img.mode} mode to RGB")
         pil_img = pil_img.convert("RGB")
     
     # Apply image enhancement pipeline to all images except charts/graphs
@@ -722,7 +685,6 @@ def _add_property_data_section(elements, data, styles):
 
 def _add_section(elements, data, styles, level=0):
     indent = "  " * level
-    logger.debug(f"[SECTION KEYS] Level {level}, keys: {[k for k in data.keys()]}")
     
     # Group flattened fields by their pattern prefix
     flattened_groups = {}
@@ -883,24 +845,17 @@ def _add_section(elements, data, styles, level=0):
                                 
                             # Skip complex strings like price ranges, addresses, descriptions
                             if any(char in val_stripped for char in ['$', '-', '/', ' to ', ' and ', 'month', 'year', 'per']):
-                                logger.debug(f"📝 Skipping non-chartable value: '{val_stripped}' (contains price/range indicators)")
                                 continue
                     
                     # Only chart if most values are chartable (at least 50%)
                     if total_values > 0 and chartable_values >= (total_values * 0.5):
                         should_chart = True
-                        logger.debug(f"📊 Will chart '{k}': {chartable_values}/{total_values} values are chartable")
-                    else:
-                        logger.debug(f"📝 Skipping chart for '{k}': only {chartable_values}/{total_values} values are chartable")
-                
+                 
                 if should_chart:
                     chart_data = v
                     chart_buffer = generate_horizontal_bar_chart(chart_data, key)
                     chart_type = "Data Chart"
-                else:
-                    # Skip chart generation for text-based fields
-                    logger.debug(f"📝 Skipping chart for text-based field: {k}")
-
+              
         if chart_buffer:
             label = Paragraph(f"<b>{key}:</b>", styles["SubHeader"])
             
@@ -927,11 +882,9 @@ def _add_section(elements, data, styles, level=0):
         # HOME IMAGE PROMPT - Special handling for large hero home image
         if k.lower() == "home_image_prompt" and isinstance(v, str):
             elements.append(Spacer(1, 20))
-            logger.debug(f"{indent}[HOME IMAGE PROMPT] key '{k}', prompt: {v}")
             
             # Fetch home image
             image_url = _fetch_image_from_serp(v)
-            logger.debug(f"{indent}[HOME IMAGE PROMPT] Got image URL: {image_url}")
             
             if image_url:
                 try:
@@ -955,7 +908,6 @@ def _add_section(elements, data, styles, level=0):
                         ]))
                         elements.append(table)
                         elements.append(Spacer(1, 15))
-                        logger.debug(f"{indent}[HOME IMAGE PROMPT] Successfully added large home image")
                     else:
                         logger.warning(f"Failed to fetch home image, status code: {response.status_code}")
                 except Exception as e:
@@ -971,20 +923,16 @@ def _add_section(elements, data, styles, level=0):
         # COMMUNITY IMAGE 1 (inline in dict) - Now handles dual community images side by side
         if k.lower() == "community_image_1" and isinstance(v, str):
             elements.append(Spacer(1, 15))
-            logger.debug(f"{indent}[COMMUNITY IMAGE 1] key '{k}', prompt: {v}")
             
             # Check if there's also a community_image_2 in the same data dict
             second_prompt = None
             if isinstance(data, dict) and "community_image_2" in data:
                 second_prompt = data["community_image_2"]
-                logger.debug(f"{indent}[COMMUNITY IMAGE 2] found: {second_prompt}")
             
             # Fetch both community images
             image_url_1 = _fetch_image_from_serp(v)
             image_url_2 = _fetch_image_from_serp(second_prompt)
-            
-            logger.debug(f"{indent}[COMMUNITY IMAGES] Got image URLs: {image_url_1}, {image_url_2}")
-            
+                        
             images = []
             
             # Try to fetch first community image
@@ -1044,7 +992,6 @@ def _add_section(elements, data, styles, level=0):
                 
                 elements.append(table)
                 elements.append(Spacer(1, 10))
-                logger.debug(f"{indent}[COMMUNITY IMAGES] Successfully added {len(images)} community image(s)")
             continue
 
         # IMAGE PROMPT_2 - Skip text content (handled together with image_prompt)
@@ -1054,20 +1001,16 @@ def _add_section(elements, data, styles, level=0):
         # IMAGE PROMPT (inline in dict) - Now handles dual images side by side
         if k.lower() == "image_prompt" and isinstance(v, str):
             elements.append(Spacer(1, 15))
-            logger.debug(f"{indent}[IMAGE PROMPT] key '{k}', prompt: {v}")
             
             # Check if there's also an image_prompt_2 in the same data dict
             second_prompt = None
             if isinstance(data, dict) and "image_prompt_2" in data:
                 second_prompt = data["image_prompt_2"]
-                logger.debug(f"{indent}[IMAGE PROMPT 2] found: {second_prompt}")
             
             # Fetch both images
             image_url_1 = _fetch_image_from_serp(v)
             image_url_2 = _fetch_image_from_serp(second_prompt)
-            
-            logger.debug(f"{indent}[IMAGE PROMPT] Got image URLs: {image_url_1}, {image_url_2}")
-            
+                        
             images = []
             
             # Try to fetch first image

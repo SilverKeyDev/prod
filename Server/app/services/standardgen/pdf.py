@@ -36,10 +36,6 @@ def _pdf(report: dict, address: str, filename: str, title: str) -> str:
     if not address:
         logger.error("No address provided")
         raise ValueError("Address is required")
-    
-    logger.info(f"📄 Starting PDF creation for address: {address}")
-    logger.info(f"📊 Report sections available: {list(report.keys())}")
-    logger.debug(f"🔍 Full report data: {report}")
 
     try:
         pdf_buffer = BytesIO()
@@ -86,12 +82,10 @@ def _pdf(report: dict, address: str, filename: str, title: str) -> str:
 
 
             if isinstance(section_data, dict):
-                logger.info(f"📝 Processing {section} as nested dictionary")
                 elements.append(Indenter(left=1))
                 _add_section(elements, section_data, styles)
                 elements.append(Indenter(left=-1))
             elif isinstance(section_data, list):
-                logger.info(f"📝 Processing {section} as list with {len(section_data)} items")
                 for item in section_data:
                     elements.append(Indenter(left=1))
                     if isinstance(item, dict):
@@ -100,17 +94,13 @@ def _pdf(report: dict, address: str, filename: str, title: str) -> str:
                         elements.append(Paragraph(f"- {item}", styles["Body"]))
                     elements.append(Indenter(left=-1))
             else:
-                logger.info(f"📝 Processing {section} as simple text: {str(section_data)[:100]}...")
                 elements.append(Paragraph(str(section_data), styles["Body"]))
             
-        logger.info(f"📄 Building PDF document with {len(elements)} elements")
         doc.build(elements)
         pdf_data = pdf_buffer.getvalue()
         pdf_buffer.close()
-        logger.info(f"✅ PDF creation completed - size: {len(pdf_data)} bytes")
 
         s3_key = s3_service.upload_pdf(pdf_data, filename, 'application/pdf')
-        logger.info(f"📤 PDF upload result - s3_key: {s3_key}")
 
         if s3_key:
             try:
@@ -132,16 +122,12 @@ def _pdf(report: dict, address: str, filename: str, title: str) -> str:
                 else:
                     # Old flat structure fallback
                     json_filename = f"{filename.removesuffix('.pdf')}.json"
-                
-                logger.info(f"📁 PDF filename input: {filename}")
-                logger.info(f"📁 JSON filename output: {json_filename}")
-                logger.info(f"Uploading JSON file to: {json_filename}")
+             
                 s3_service.upload_pdf(json_data, json_filename, 'application/json')
             except Exception as e:
                 logger.error(f"Failed to save raw JSON to S3: {str(e)}")
 
         if s3_key:
-            logger.info("S3 upload successful, generating presigned URL")
             presigned_url = s3_service.generate_presigned_url(s3_key, download_filename=filename)
             return presigned_url if presigned_url else s3_key
 
@@ -152,8 +138,6 @@ def _pdf(report: dict, address: str, filename: str, title: str) -> str:
         raise
 
 def _add_section(elements, data, styles, level=0):
-    indent = "  " * level
-    logger.debug(f"[SECTION KEYS] Level {level}, keys: {[k for k in data.keys()]}")
     
     # Group flattened fields by their pattern prefix
     flattened_groups = {}

@@ -13,10 +13,7 @@ from sqlalchemy.exc import OperationalError, DisconnectionError
 @celery.task(name="tasks.generate_report_async")
 def generate_report_async(address, comparison_address, filename, document_id, user_id, marketing_model=False):
     """Asynchronously generate a property report with robust DB session management"""
-    try:
-        current_app.logger.info(f"🔧 CELERY TASK: Starting report generation with user_id: {user_id}")
-        current_app.logger.info(f"📍 Task parameters: address='{address}', comparison_address='{comparison_address}', filename='{filename}', marketing_model={marketing_model}")
-        
+    try:        
         # Generate the report (this does not depend on db.session)
         result_data = generate_report(address, comparison_address, filename, user_id, marketing_model)
 
@@ -29,10 +26,8 @@ def generate_report_async(address, comparison_address, filename, document_id, us
                     pdf_doc.file_size = len(str(result_data).encode('utf-8'))
 
                     # Handle user preferences
-                    current_app.logger.info(f"🔍 CELERY TASK: Looking up preferences for user_id: {user_id}")
                     user_prefs = UserPreferences.query.filter_by(user_id=user_id).first()
                     if user_prefs:
-                        current_app.logger.info(f"✅ CELERY TASK: Found preferences for user_id: {user_id}")
                         user_prefs.solo_reports_created = (user_prefs.solo_reports_created or 0) + 1
 
                         # Maintain unique addresses
@@ -48,18 +43,10 @@ def generate_report_async(address, comparison_address, filename, document_id, us
 
                         user_prefs.solo_reports_addresses = json.dumps(current_addresses)
 
-                        current_app.logger.info(
-                            f"📊 CELERY TASK: Updated user preferences for user_id {user_id}: "
-                            f"solo_reports_created={user_prefs.solo_reports_created}, "
-                            f"addresses_count={len(current_addresses)}"
-                        )
-                    else:
-                        current_app.logger.warning(f"⚠️ CELERY TASK: No user preferences found for user_id {user_id}")
-
+                    
                     # Dispose engine before database operations for better reliability
                     try:
                         db.engine.dispose()
-                        current_app.logger.debug("🔄 Disposed database engine before Celery task commit")
                     except Exception as e:
                         current_app.logger.warning(f"⚠️ Failed to dispose engine in Celery task: {str(e)}")
                     
@@ -89,7 +76,6 @@ def generate_report_async(address, comparison_address, filename, document_id, us
                                 pass
                             
                             if attempt < max_retries - 1:
-                                current_app.logger.debug(f"⏳ Retrying Celery DB commit in {retry_delay} seconds...")
                                 time.sleep(retry_delay)
                                 retry_delay *= 2  # Exponential backoff
                             else:
@@ -102,7 +88,6 @@ def generate_report_async(address, comparison_address, filename, document_id, us
                             except Exception:
                                 pass
                             raise
-                    current_app.logger.info(f"🔍 Raw JSON response:\n{json.dumps(result_data, indent=2)}")
 
             except Exception as db_error:
                 current_app.logger.error(f"❌ DB error in Celery task: {str(db_error)}")
@@ -125,7 +110,6 @@ def generate_report_async(address, comparison_address, filename, document_id, us
                 # Dispose engine before error recovery operation
                 try:
                     db.engine.dispose()
-                    current_app.logger.debug("🔄 Disposed database engine before error recovery")
                 except Exception as e:
                     current_app.logger.warning(f"⚠️ Failed to dispose engine in error recovery: {str(e)}")
                 
@@ -159,7 +143,6 @@ def generate_report_async(address, comparison_address, filename, document_id, us
                                 pass
                             
                             if attempt < max_retries - 1:
-                                current_app.logger.debug(f"⏳ Retrying error recovery DB commit in {retry_delay} seconds...")
                                 time.sleep(retry_delay)
                                 retry_delay *= 2  # Exponential backoff
                             else:
@@ -235,9 +218,7 @@ def find_best_matches_task(self, user_data, homes_data, top_k=10, include_explan
             state='PROGRESS',
             meta={'status': 'Finalizing results', 'progress': 90}
         )
-        
-        current_app.logger.info(f"✅ HOME MATCHING: Found {len(matches)} matches for user {user_data.get('user_id', 'unknown')}")
-        
+                
         return {
             'success': True,
             'matches': matches,

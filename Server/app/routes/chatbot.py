@@ -1,19 +1,14 @@
 # routes/chatbot.py
 
-from flask import Blueprint, request, jsonify, current_app
+from flask import Blueprint, request, jsonify
 from app.models.user_preferences import UserPreferences
-from app.models.pdf_document import PDFDocument
 from app.models.chat_history import ChatHistory
 from app.services.chatbot.chatbot_utils import get_preferences
-from app.services.s3_service import s3_service
 from app.utils.auth import get_current_user
 from .. import db
 import json
-import os
-import requests
-import logging
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+from ..utils.app_logging import get_logger
+logger = get_logger()
 
 
 # Authentication handled directly in route functions

@@ -3,6 +3,7 @@ import os
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 os.environ.setdefault("OMP_NUM_THREADS", "1")
 os.environ.setdefault("MKL_NUM_THREADS", "1")
+os.environ.setdefault("NUMEXPR_MAX_THREADS", "14")
 
 # Optional on macOS to avoid fork shenanigans in dev
 try:
@@ -32,20 +33,6 @@ executor = Executor()
 
 
 def create_app(config=None):
-    # Set Flask app logger to INFO or WARNING
-    #logging.getLogger('flask.app').setLevel(logging.INFO)
-
-    # Silence common verbose libraries
-    logging.getLogger('botocore').setLevel(logging.WARNING)
-    logging.getLogger('boto3').setLevel(logging.WARNING)
-    logging.getLogger('urllib3').setLevel(logging.WARNING)
-    logging.getLogger('s3transfer').setLevel(logging.WARNING)
-    logging.getLogger('matplotlib').setLevel(logging.WARNING)
-    logging.getLogger('celery').setLevel(logging.WARNING)
-    logging.getLogger('werkzeug').setLevel(logging.WARNING)
-    logging.getLogger('openai').setLevel(logging.WARNING)
-    logging.getLogger('httpx').setLevel(logging.WARNING)
-    logging.getLogger('httpcore').setLevel(logging.WARNING)
 
     # STATIC FOLDER: matches Docker
     STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../Client/dist")
@@ -55,6 +42,10 @@ def create_app(config=None):
     app.config.from_object(Config)
     if config:
         app.config.update(config)
+    
+    # Configure centralized logging for entire application
+    from .utils.app_logging import configure_app_logging
+    configure_app_logging(app)
 
     # JWT Configuration
     app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY", "dev-secret")
@@ -86,7 +77,8 @@ def create_app(config=None):
                 "http://localhost:3000",
                 "http://localhost:5173",
                 "http://127.0.0.1:5173",
-                "http://192.168.0.108:5173"
+                "http://10.136.25.50:5173",
+                "http://10.90.20.231:5173"
             ],
             "supports_credentials": True,
             "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"],
@@ -107,12 +99,24 @@ def create_app(config=None):
     with app.app_context():
         try:
             from .services.s3_service import s3_service
-            logger = logging.getLogger(__name__)
-            logger.info("S3 service initialized successfully")
+            from .utils.app_logging import get_logger
+            logger = get_logger()
         except Exception as e:
-            logger = logging.getLogger(__name__)
+            from .utils.app_logging import get_logger
+            logger = get_logger()
             logger.error(f"Failed to initialize S3 service: {str(e)}")
             logger.error("Application will continue with local storage fallback")
+
+    # Validate environment variables at startup
+    from .utils.env_validator import validate_environment, check_api_keys
+    try:
+        validate_environment()
+        api_status = check_api_keys()
+        missing_apis = [name for name, status in api_status.items() if not status]
+        if missing_apis:
+            logging.getLogger(__name__).warning(f"Missing API keys: {', '.join(missing_apis)}")
+    except Exception as e:
+        logging.getLogger(__name__).warning(f"Environment validation warning: {e}")
 
     # Register blueprints
     from .routes.report import report_bp
@@ -123,9 +127,9 @@ def create_app(config=None):
     from .routes.preferences import preferences_bp
     from .routes.chatbot import chatbot_bp
     from .routes.home_matching import home_matching_bp
-    from .routes.offer_generator import offer_bp
     from .routes.maps import maps_bp
     from .routes.search import search_bp
+    from .routes.secure_upload import secure_upload_bp
 
     app.register_blueprint(report_bp)
     app.register_blueprint(dashboard_bp)
@@ -135,9 +139,40 @@ def create_app(config=None):
     app.register_blueprint(preferences_bp)
     app.register_blueprint(chatbot_bp)
     app.register_blueprint(home_matching_bp)
-    app.register_blueprint(offer_bp)
     app.register_blueprint(maps_bp)
     app.register_blueprint(search_bp)
+    app.register_blueprint(secure_upload_bp)
+
+    # Security headers middleware
+    @app.after_request
+    def security_headers(response):
+        """Add security headers to all responses"""
+        # HTTPS enforcement
+        response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains; preload'
+        
+        # Content security policy
+        csp_policy = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://maps.googleapis.com https://js.stripe.com; "
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+            "font-src 'self' https://fonts.gstatic.com; "
+            "img-src 'self' data: https: blob:; "
+            "connect-src 'self' https://api.stripe.com https://maps.googleapis.com https://cognito-idp.us-east-2.amazonaws.com; "
+            "frame-src https://js.stripe.com; "
+            "object-src 'none'; "
+            "base-uri 'self'; "
+            "form-action 'self';"
+        )
+        response.headers['Content-Security-Policy'] = csp_policy
+        
+        # Additional security headers
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        response.headers['X-Frame-Options'] = 'DENY'
+        response.headers['X-XSS-Protection'] = '1; mode=block'
+        response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+        response.headers['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=()'
+        
+        return response
 
     # Global handler for expired JWT tokens
     @app.errorhandler(ExpiredSignatureError)

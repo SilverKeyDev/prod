@@ -25,7 +25,6 @@ def save_json(data: Dict[str, Any], file_path: Union[str, Path]) -> None:
     try:
         with open(file_path, 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
-        logger.info(f"Saved JSON to {file_path}")
     except Exception as e:
         logger.error(f"Error saving JSON to {file_path}: {e}")
         raise
@@ -42,7 +41,6 @@ def save_csv(df: pd.DataFrame, file_path: Union[str, Path]) -> None:
     """Save DataFrame to CSV file."""
     try:
         df.to_csv(file_path, index=False)
-        logger.info(f"Saved CSV to {file_path}")
     except Exception as e:
         logger.error(f"Error saving CSV to {file_path}: {e}")
         raise
@@ -61,7 +59,6 @@ def save_model(model: Any, file_path: Union[str, Path]) -> None:
     try:
         with open(file_path, 'wb') as f:
             pickle.dump(model, f)
-        logger.info(f"Saved model to {file_path}")
     except Exception as e:
         logger.error(f"Error saving model to {file_path}: {e}")
         raise
@@ -102,7 +99,6 @@ def load_multiple_homes(directory: Union[str, Path]) -> List[Dict[str, Any]]:
         except Exception as e:
             logger.warning(f"Skipping {json_file}: {e}")
     
-    logger.info(f"Loaded {len(homes)} homes from {directory}")
     return homes
 
 def load_multiple_users(directory: Union[str, Path]) -> List[Dict[str, Any]]:
@@ -117,5 +113,4 @@ def load_multiple_users(directory: Union[str, Path]) -> List[Dict[str, Any]]:
         except Exception as e:
             logger.warning(f"Skipping {json_file}: {e}")
     
-    logger.info(f"Loaded {len(users)} users from {directory}")
     return users

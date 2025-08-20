@@ -226,9 +226,6 @@ if __name__ == "__main__":
     consistency_scores = []
     consistency_times = []
 
-    print("🔄 Testing scoring consistency...")
-    print(f"Testing {test_user['user_id']} + {test_home['home_id']} {num_consistency_tests} times:")
-
     for i in range(num_consistency_tests):
         try:
             start_time = time.time()

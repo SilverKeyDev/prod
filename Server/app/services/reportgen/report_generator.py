@@ -17,22 +17,14 @@ from app.models.user_preferences import UserPreferences
 from app import db
 from .age_data import get_age_distribution, get_population_total
 
-# Configure verbose logging
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
+# Import utilities
+from ...utils.app_logging import get_logger
+from ...utils.env_validator import get_env_var
 
-# Optional: Enable HTTP-level debugging for requests
-# Uncomment the following lines for detailed HTTP debugging:
-# import urllib3
-# urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-# logging.getLogger("urllib3.connectionpool").setLevel(logging.DEBUG)
-# logging.getLogger("requests.packages.urllib3").setLevel(logging.DEBUG)
+# Configure logging using centralized utility
+logger = get_logger()
 
-# Perplexity API configuration
-PERPLEXITY_API_KEY = os.getenv('PERPLEXITY_API_KEY')
-if not PERPLEXITY_API_KEY:
-    logger.critical("PERPLEXITY_API_KEY environment variable is not set.")
-    raise ValueError("PERPLEXITY_API_KEY environment variable is not set")
+PERPLEXITY_API_KEY = get_env_var('PERPLEXITY_API_KEY', required=True)
 
 HEADERS = {
     "Authorization": f"Bearer {PERPLEXITY_API_KEY}",
@@ -62,7 +54,6 @@ def validate_address(address: str) -> bool:
         logger.error("❌ Address is empty after stripping whitespace")
         return False
     
-    logger.debug(f"✅ Address validation passed: {address}")
     return True
 
 def _remove_empty_fields(data):
@@ -231,9 +222,6 @@ def _normalize_rating_value(value, field_name):
         # Format to one decimal place and add /10
         normalized = f"{numeric_value:.1f}/10"
         
-        if normalized != str_value:
-            logger.info(f"📊 RATING: Normalized '{field_name}': '{value}' → '{normalized}'")
-        
         return normalized
         
     except Exception as e:
@@ -286,9 +274,7 @@ def inject_real_age_distribution(combined_report: dict, address: str) -> dict:
 
     Returns:
         Updated combined_report with real age distribution data at top level
-    """
-    logger.info(f"🏘️ Injecting real age distribution data for address: {address}")
-    
+    """    
     try:
         # Check if neighborhood_overview exists
         if 'neighborhood_overview' not in combined_report:
@@ -302,11 +288,9 @@ def inject_real_age_distribution(combined_report: dict, address: str) -> dict:
 
         # Remove any nested age_distribution if it exists
         if 'age_distribution' in neighborhood_section:
-            logger.info("🗑️ Removing nested age_distribution from neighborhood_overview")
             neighborhood_section.pop('age_distribution')
 
         # Fetch real age distribution data from Census API
-        logger.info("📊 Fetching real age distribution data from Census API...")
         real_age_data = get_age_distribution(address)
 
         if not real_age_data:
@@ -323,15 +307,12 @@ def inject_real_age_distribution(combined_report: dict, address: str) -> dict:
         }
 
         # Insert age_distribution at top-level after neighborhood_overview
-        logger.info("📦 Inserting age_distribution at top-level after neighborhood_overview")
         new_combined_report = OrderedDict()
         for key, value in combined_report.items():
             new_combined_report[key] = value
             if key == 'neighborhood_overview':
                 new_combined_report['age_distribution'] = age_distribution
-                logger.info("✅ Inserted real age distribution at top level")
 
-        logger.info("🎉 Successfully injected real age distribution data from Census API")
         return dict(new_combined_report)
 
     except Exception as e:
@@ -353,7 +334,6 @@ def inject_real_population_total(combined_report: dict, address: str) -> dict:
     Returns:
         Updated combined_report with real population total data at top level
     """
-    logger.info(f"👥 Injecting real population total data for address: {address}")
     
     try:
         # Check if neighborhood_overview exists
@@ -372,7 +352,6 @@ def inject_real_population_total(combined_report: dict, address: str) -> dict:
             return combined_report
 
         # Fetch real population total data from Census API
-        logger.info("📊 Fetching real population total data from Census API...")
         real_population_data = get_population_total(address)
 
         if not real_population_data or 'error' in real_population_data:
@@ -383,7 +362,6 @@ def inject_real_population_total(combined_report: dict, address: str) -> dict:
         population_total = real_population_data.get('total_population', 0)
         
         # Insert population_total at top-level after things_to_watch_out_for
-        logger.info("📦 Inserting population_total at top-level after things_to_watch_out_for")
         new_combined_report = OrderedDict()
         
         for key, value in combined_report.items():
@@ -394,12 +372,10 @@ def inject_real_population_total(combined_report: dict, address: str) -> dict:
                     new_neighborhood[nkey] = nvalue
                     if nkey == 'things_to_watch_out_for':
                         new_neighborhood['population_total'] = f"{population_total:,} residents"
-                        logger.info(f"✅ Inserted population_total: {population_total:,} residents")
                 new_combined_report[key] = new_neighborhood
             else:
                 new_combined_report[key] = value
 
-        logger.info("🎉 Successfully injected real population total data from Census API")
         return dict(new_combined_report)
 
     except Exception as e:
@@ -424,9 +400,7 @@ def start_property_data_collection(address: str, user_id: str = None):
     import concurrent.futures
     import threading
     from flask import current_app
-    
-    logger.info(f"🚀 Starting async property data collection for address: {address}")
-    
+        
     # Capture the base URL from the current app context before threading
     base_url = current_app.config.get('BASE_URL', 'http://localhost:5000')
     
@@ -441,9 +415,7 @@ def start_property_data_collection(address: str, user_id: str = None):
             
             # Prepare request payload
             payload = {"address": address}
-            
-            logger.info("🔍 Fetching property data from search endpoint...")
-            
+                        
             # Make the request to our own search endpoint
             response = requests.post(search_url, json=payload, timeout=30)
             
@@ -457,7 +429,6 @@ def start_property_data_collection(address: str, user_id: str = None):
                 logger.warning("⚠️ Search endpoint returned unsuccessful response")
                 return None
             
-            logger.info("✅ Property data collection completed successfully")
             return property_data
             
         except Exception as e:
@@ -488,7 +459,6 @@ def inject_property_data_result(combined_report: dict, address: str, property_da
     Returns:
         Updated combined_report with real property data at top level
     """
-    logger.info(f"🏠 Injecting collected property data for address: {address}")
     
     try:
         # Check if neighborhood_overview exists
@@ -497,7 +467,6 @@ def inject_property_data_result(combined_report: dict, address: str, property_da
             return combined_report
 
         # Wait for the property data collection to complete (with timeout)
-        logger.info("⏳ Waiting for property data collection to complete...")
         try:
             property_data = property_data_future.result(timeout=60)  # 60 second timeout
             
@@ -562,16 +531,12 @@ def inject_property_data_result(combined_report: dict, address: str, property_da
             return combined_report
 
         # Insert property_data as the very first section
-        logger.info("📦 Inserting property_data as the first section")
         new_combined_report = OrderedDict()
         new_combined_report['property_data'] = property_info
-        logger.info("✅ Inserted real property data as first section")
         
         # Add all other sections after property_data
         for key, value in combined_report.items():
             new_combined_report[key] = value
-
-        logger.info("🎉 Successfully injected real property data from async collection")
         return dict(new_combined_report)
 
     except Exception as e:
@@ -584,15 +549,10 @@ def inject_property_data_result(combined_report: dict, address: str, property_da
 def get_preferences(user_id: str) -> Dict:
     """Get user preferences by user_id"""
     try:
-        logger.info(f"🔍 PREFERENCES: Looking up preferences for user_id: {user_id}")
         preferences = UserPreferences.query.filter_by(user_id=user_id).first()
         if preferences:
-            logger.info(f"✅ PREFERENCES: Found preferences for user_id {user_id}")
             prefs_dict = preferences.to_dict()
-            logger.info(f"📊 PREFERENCES: Preferences keys: {list(prefs_dict.keys()) if prefs_dict else 'None'}")
-            if prefs_dict and 'report_section_priorities' in prefs_dict:
-                logger.info(f"🎯 PREFERENCES: report_section_priorities found: {prefs_dict['report_section_priorities']}")
-            else:
+            if not prefs_dict and 'report_section_priorities' in prefs_dict:
                 logger.warning(f"⚠️ PREFERENCES: No report_section_priorities found in preferences for user_id {user_id}")
             return prefs_dict
         else:
@@ -613,7 +573,6 @@ def break_schema_into_sections(schema: Dict[str, Any]) -> Dict[str, Dict[str, An
     Returns:
         Dictionary mapping section names to their individual schemas
     """
-    logger.debug("🔧 Breaking schema into individual sections")
     
     if not isinstance(schema, dict) or "properties" not in schema:
         logger.error("❌ Invalid schema format - missing properties")
@@ -675,9 +634,7 @@ def break_schema_into_sections(schema: Dict[str, Any]) -> Dict[str, Dict[str, An
             section_schema["$defs"] = section_defs
         
         sections[section_name] = section_schema
-        logger.debug(f"✅ Created schema for section: {section_name} with {len(section_defs)} definitions")
     
-    logger.info(f"📋 Successfully broke schema into {len(sections)} sections: {list(sections.keys())}")
     return sections
 
 def response_sort(report_responses: list, section_names: list) -> list:
@@ -694,7 +651,6 @@ def response_sort(report_responses: list, section_names: list) -> list:
     Raises:
         ValueError: If critical mismatches are detected that could indicate data corruption
     """
-    logger.info(f"🔄 Starting response sorting: {len(report_responses)} responses, {len(section_names)} expected sections")
     
     if not report_responses:
         logger.error("❌ No report responses provided to response_sort")
@@ -703,9 +659,7 @@ def response_sort(report_responses: list, section_names: list) -> list:
     if not section_names:
         logger.error("❌ No section names provided to response_sort")
         raise ValueError("Cannot sort without section names reference")
-    
-    logger.info(f"📋 Expected sections: {section_names}")
-    
+        
     # Track all response sections for comprehensive analysis
     all_response_sections = set()
     response_map = {}
@@ -721,7 +675,6 @@ def response_sort(report_responses: list, section_names: list) -> list:
         
         response_sections = list(response.keys())
         all_response_sections.update(response_sections)
-        logger.debug(f"📝 Response {i} contains sections: {response_sections}")
         
         # Try to match this response to a section name
         matched = False
@@ -731,7 +684,6 @@ def response_sort(report_responses: list, section_names: list) -> list:
                     logger.warning(f"⚠️ Duplicate response for section '{section_name}' - keeping first occurrence")
                 else:
                     response_map[section_name] = response
-                    logger.debug(f"✅ Mapped response {i} to section: {section_name}")
                 matched = True
                 break
         
@@ -745,12 +697,6 @@ def response_sort(report_responses: list, section_names: list) -> list:
     missing_sections = expected_sections - found_sections
     unexpected_sections = all_response_sections - expected_sections
     
-    logger.info(f"   ❌ Missing sections: {len(missing_sections)}")
-    logger.info(f"   ⚠️ Unexpected sections: {len(unexpected_sections)}")
-    logger.info(f"   🚫 Invalid responses: {len(invalid_responses)}")
-    logger.info(f"   📎 Unmatched responses: {len(unmatched_responses)}")
-    
-    # Log detailed issues
     if missing_sections:
         logger.warning(f"❌ Missing expected sections: {list(missing_sections)}")
     
@@ -774,7 +720,6 @@ def response_sort(report_responses: list, section_names: list) -> list:
     for section_name in section_names:
         if section_name in response_map:
             sorted_responses.append(response_map[section_name])
-            logger.debug(f"✅ Added response for section: {section_name}")
         else:
             logger.error(f"❌ CRITICAL: No response found for required section: {section_name}")
     
@@ -799,7 +744,6 @@ def response_sort(report_responses: list, section_names: list) -> list:
         # For now, log the error but don't raise to allow partial success
         # raise ValueError(error_msg)
     
-    logger.info(f"✅ Response sorting completed: {len(sorted_responses)} responses sorted")
     return sorted_responses
 
 def _download_json_from_s3(file_path: str, address: str) -> Dict[str, Any]:
@@ -836,16 +780,11 @@ def _download_json_from_s3(file_path: str, address: str) -> Dict[str, Any]:
         if not bucket_name:
             raise RuntimeError("S3_BUCKET_NAME_PDFS config missing")
 
-        logger.info(f"🔽 Downloading JSON: Bucket={bucket_name}, Key={json_key}")
-        logger.info(f"🔍 PDF file_path: {file_path}")
-        logger.info(f"🔍 Constructed JSON key: {json_key}")
-
         buf = BytesIO()
         s3_service.s3_client.download_fileobj(bucket_name, json_key, buf)
         buf.seek(0)
         raw = buf.read().decode("utf-8")
 
-        logger.info(f"✅ Retrieved JSON report from S3 for {address}")
         return json.loads(raw)
 
     except Exception as e:
@@ -859,9 +798,7 @@ def _wait_for_report_completion(pdf_doc, address: str, max_wait_time: int = 600)
     from sqlalchemy.exc import OperationalError, DisconnectionError
     
     start_time = time.time()
-    
-    logger.info(f"⏳ Waiting for report completion: {address}")
-    
+        
     while time.time() - start_time < max_wait_time:
         # Refresh the database object with retry logic
         max_retries = 3
@@ -889,7 +826,6 @@ def _wait_for_report_completion(pdf_doc, address: str, max_wait_time: int = 600)
                     pass
                 
                 if attempt < max_retries - 1:
-                    logger.debug(f"⏳ Retrying DB refresh in {retry_delay} seconds...")
                     time.sleep(retry_delay)
                     retry_delay *= 2  # Exponential backoff
                 else:
@@ -900,7 +836,6 @@ def _wait_for_report_completion(pdf_doc, address: str, max_wait_time: int = 600)
                 raise
         
         if pdf_doc.status in ['completed', 'processed']:
-            logger.info(f"✅ Report completed for {address}, downloading JSON")
             # Add a small delay to ensure JSON upload has completed
             time.sleep(2)
             return _download_json_from_s3(pdf_doc.file_path, address)
@@ -910,7 +845,6 @@ def _wait_for_report_completion(pdf_doc, address: str, max_wait_time: int = 600)
         
         # Wait 5 seconds before checking again
         time.sleep(5)
-        logger.debug(f"⏳ Still waiting for {address} (status: {pdf_doc.status})")
     
     # Timeout reached
     logger.error(f"⏰ Timeout waiting for report completion: {address}")
@@ -945,14 +879,8 @@ def _get_or_generate_report_json(address: str, user_id: int) -> Dict:
         ).first()
         
         if generating_report:
-            logger.info(f"⏳ Report is currently generating for {address}, waiting...")
             return _wait_for_report_completion(generating_report, address)
-        
-        # No existing report - create and generate new one
-        logger.info(f"🆕 Creating new report for {address}")
-        
 
-        
         # Create new PDF document record with tree structure: userid/reports/standard/
         path = f"{user_id}/reports/standard/{filename}"
         pdf_doc = PDFDocument(
@@ -968,7 +896,6 @@ def _get_or_generate_report_json(address: str, user_id: int) -> Dict:
         # Dispose engine before database operations for better reliability
         try:
             db.engine.dispose()
-            logger.debug("🔄 Disposed database engine before PDF document creation")
         except Exception as e:
             logger.warning(f"⚠️ Failed to dispose engine: {str(e)}")
         
@@ -980,7 +907,6 @@ def _get_or_generate_report_json(address: str, user_id: int) -> Dict:
             try:
                 db.session.add(pdf_doc)
                 db.session.commit()
-                logger.info(f"✅ Created PDF document record: {pdf_doc.id}")
                 break  # Success, exit retry loop
             except (OperationalError, DisconnectionError) as e:
                 logger.warning(f"🔄 DB commit error on attempt {attempt + 1}/{max_retries}: {str(e)}")
@@ -999,7 +925,6 @@ def _get_or_generate_report_json(address: str, user_id: int) -> Dict:
                     pass
                 
                 if attempt < max_retries - 1:
-                    logger.debug(f"⏳ Retrying DB commit in {retry_delay} seconds...")
                     time.sleep(retry_delay)
                     retry_delay *= 2  # Exponential backoff
                 else:
@@ -1016,7 +941,6 @@ def _get_or_generate_report_json(address: str, user_id: int) -> Dict:
         # Start async task and wait for completion
         from app.celery.tasks import generate_report_async
         task = generate_report_async.delay(address, None, path, pdf_doc.id, user_id)
-        logger.info(f"🚀 Started async report generation task: {task.id}")
         
         # Wait for the report to complete and return JSON
         return _wait_for_report_completion(pdf_doc, address)
@@ -1031,28 +955,15 @@ def _get_or_generate_report_json(address: str, user_id: int) -> Dict:
 def generate_report(address: str, comparison_address: str, filename: str, user_id: str, marketing_model: bool = False) -> Dict:
     """Generate a comprehensive property report and upload PDF to S3"""
     task_id = str(uuid.uuid4())
-    logger.info(f"📝 REPORT_GEN: Starting report generation for address: {address}")
-    logger.info(f"🆔 REPORT_GEN: Task ID: {task_id}")
-    logger.info(f"🎯 REPORT_GEN: Using user_id for preferences: {user_id}")
-    logger.info(f"📈 REPORT_GEN: Marketing model enabled: {marketing_model}")
-    
-    # Get user preferences
-    logger.info(f"🔍 REPORT_GEN: Calling get_preferences with user_id: {user_id}")
     user_preferences = get_preferences(user_id)
-    logger.info(f"📊 REPORT_GEN: get_preferences returned: {user_preferences is not None}")
     
-    if user_preferences:
-        logger.info(f"✅ REPORT_GEN: Successfully retrieved preferences for user_id {user_id}")
-        logger.info(f"📋 REPORT_GEN: Preferences summary: {len(user_preferences)} keys found")
-    else:
+    if not user_preferences:
         logger.error(f"❌ REPORT_GEN: No preferences found for user_id {user_id} - this will cause report generation to fail")
     
     # Extract report_section_priorities directly from user_preferences
     section_names = []
     if user_preferences and 'report_section_priorities' in user_preferences:
         section_names = user_preferences['report_section_priorities']
-        logger.info(f"✅ REPORT_GEN: Using report_section_priorities from user_id {user_id}")
-        logger.info(f"🎯 REPORT_GEN: Section priorities: {section_names}")
     else:
         # Default to all sections if no preferences found
         logger.error(f"❌ REPORT_GEN: No report_section_priorities found for user_id {user_id}")
@@ -1070,14 +981,11 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
     # Override section_names for marketing model
     if marketing_model:
         section_names = ["marketing"]
-        logger.info(f"🎯 REPORT_GEN: Using marketing model - overriding section_names to: {section_names}")
     # Only auto-include demographics if neighborhood_overview exists and not comparing
     elif 'neighborhood_overview' in section_names and (not comparison_address or comparison_address == ""):
-        logger.info("🏘️ neighborhood_overview detected and no comparison_address - auto-including demographic sections")
 
         if 'lifestyle_dna' not in section_names:
             section_names.insert(section_names.index('neighborhood_overview') + 1, 'lifestyle_dna')
-            logger.info("✅ Inserted 'lifestyle_dna' into section_names after 'neighborhood_overview'")
 
     payloads = []
     property_data_future = None
@@ -1088,7 +996,6 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
             raise ValueError("Invalid address format")
         
         # Start async property data collection early in the process
-        logger.info("🚀 Starting async property data collection...")
         property_data_future = start_property_data_collection(address, user_id)
         
         if marketing_model:
@@ -1120,13 +1027,11 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
             "return_citations": False,
             "response_format": section_schema
         }
-            logger.info(payload)
             payloads.append(payload)
         elif comparison_address is None or comparison_address == "":
             # Fix: Iterate over section_names which contains the list of sections to process
             for section_name in section_names:
                 section_schema = get_individual_section_schema(section_name, user_preferences, mode="report")
-                logger.debug(f"🔧 Creating payload for section: {section_name}")
                 payload = {
                 "model": "sonar-pro",
                 "messages": [
@@ -1157,24 +1062,12 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
             }
                 payloads.append(payload)
         else:
-            # Comparison report logic - need to get JSON data for both properties
-            logger.info(f"🔄 Generating comparison report for {address} vs {comparison_address}")
-            
-            # Get or generate JSON reports for both addresses - these calls will block until reports are ready
-            logger.info(f"📋 Ensuring primary report is ready for {address}...")
             primary_report_json = _get_or_generate_report_json(address, user_id)
-            logger.info(f"✅ Primary report JSON ready for {address}")
-            
-            logger.info(f"📋 Ensuring comparison report is ready for {comparison_address}...")
             comparison_report_json = _get_or_generate_report_json(comparison_address, user_id)
-            logger.info(f"✅ Comparison report JSON ready for {comparison_address}")
-            
-            logger.info(f"🎯 Both individual reports are now ready - proceeding with comparison generation")
             
             # Fix: Iterate over schema values, not keys (same fix as above)
             for section_name in section_names:
                 section_schema = get_individual_section_schema(section_name, user_preferences, mode="comparison")
-                logger.debug(f"🔧 Creating comparison payload for section: {section_name}")
                 payload = {
                     "model": "sonar-pro",
                     "messages": [
@@ -1213,7 +1106,6 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                     "return_citations": False,
                     "response_format": section_schema
                 }
-                logger.info(payload)
                 payloads.append(payload)
 
         # Concurrent execution with partial failure handling
@@ -1225,11 +1117,9 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
             
             for attempt in range(max_retries + 1):  # 0, 1, 2 (total 3 attempts)
                 attempt_num = attempt + 1
-                logger.info(f"🔄 Section {section_name}: Attempt {attempt_num}/{max_retries + 1}")
                 
                 try:
-                    # Debug: Check payload type first
-                    logger.debug(payload)
+
                     
                     # Validate payload is a dictionary
                     if not isinstance(payload, dict):
@@ -1247,9 +1137,7 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                         raise_on_status=False
                     )
                     session.mount("https://", HTTPAdapter(max_retries=retries))
-                    
-                    logger.info(f"📨 Starting request for section: {section_name} (attempt {attempt_num})")
-                                    
+                                                        
                     start_time = time.perf_counter()
                     response = session.post(
                         "https://api.perplexity.ai/chat/completions",
@@ -1259,13 +1147,11 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                     )
                     
                     duration = time.perf_counter() - start_time
-                    logger.info(f"📊 Section {section_name} attempt {attempt_num} completed in {duration:.2f}s → status {response.status_code}")
                     
                     # Check if request took longer than 5 minutes (300 seconds)
                     if duration > 300:
                         logger.warning(f"⏰ Section {section_name}: Request took {duration:.2f}s (>5min) on attempt {attempt_num}")
                         if attempt < max_retries:
-                            logger.info(f"🔄 Section {section_name}: Retrying due to timeout (attempt {attempt_num + 1}/{max_retries + 1})")
                             continue
                         else:
                             logger.error(f"❌ Section {section_name}: Max retries reached after timeout")
@@ -1274,43 +1160,34 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                     # Handle successful response
                     if response.status_code == 200:
                         try:
-                            content = response.json()
-                            logger.info(content)
-                            
+                            content = response.json()                            
                             # Validate response structure
                             if "choices" not in content or not content["choices"]:
                                 logger.error(f"❌ Section {section_name}: Missing 'choices' in response on attempt {attempt_num}")
                                 if attempt < max_retries:
-                                    logger.info(f"🔄 Section {section_name}: Retrying due to malformed response")
                                     continue
                                 return {"section": section_name, "success": False, "error": "Malformed API response after all retries"}
                             
                             # Extract and parse the response
                             raw_json_text = content["choices"][0]["message"]["content"]
-                            logger.info(f"📝 Section {section_name}: Received {len(raw_json_text)} characters on attempt {attempt_num}")
                             
                             # Parse the JSON response
                             try:
                                 report = _safe_parse_json(raw_json_text, report_customization)
-                                logger.info(report)
                                 # Check if the requested section exists and is not null
                                 if section_name in report and report[section_name] is not None:
                                     section_data = {section_name: report[section_name]}
-                                    logger.info(f"✅ Section {section_name}: Successfully parsed and extracted on attempt {attempt_num}")
                                     return {"section": section_name, "success": True, "data": section_data}
                                 # If section not found but we have data, wrap the entire response in the section name
                                 elif report and len(report) > 0:
                                     # Wrap the entire response in the section name
                                     section_data = {section_name: report}
-                                    logger.info(f"✅ Section {section_name}: Wrapped entire response in section name on attempt {attempt_num}")
                                     return {"section": section_name, "success": True, "data": section_data}
                                 else:
                                     logger.warning(f"⚠️ Section {section_name}: Requested section not found or null in response on attempt {attempt_num}")
-                                    logger.debug(f"🔍 Available sections in response: {list(report.keys())}")
                                     
                                     # Retry if we got null data and have retries left
                                     if attempt < max_retries:
-                                        logger.info(f"🔄 Section {section_name}: Retrying due to null/missing data (attempt {attempt_num + 1}/{max_retries + 1})")
                                         continue
                                     else:
                                         logger.error(f"❌ Section {section_name}: Still null/missing after {max_retries + 1} attempts")
@@ -1320,14 +1197,12 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                             except Exception as pe:
                                 logger.error(f"❌ Section {section_name}: Parse error on attempt {attempt_num}: {str(pe)}")
                                 if attempt < max_retries:
-                                    logger.info(f"🔄 Section {section_name}: Retrying due to parse error")
                                     continue
                                 return {"section": section_name, "success": False, "error": f"Parse error after all retries: {str(pe)}"}
                                 
                         except json.JSONDecodeError as je:
                             logger.error(f"❌ Section {section_name}: JSON decode error on attempt {attempt_num}: {str(je)}")
                             if attempt < max_retries:
-                                logger.info(f"🔄 Section {section_name}: Retrying due to JSON decode error")
                                 continue
                             return {"section": section_name, "success": False, "error": f"JSON decode error after all retries: {str(je)}"}
                     
@@ -1370,7 +1245,6 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                         
                         # Retry on certain error codes
                         if response.status_code in [429, 500, 502, 503, 504] and attempt < max_retries:
-                            logger.info(f"🔄 Section {section_name}: Retrying due to {response.status_code} error")
                             time.sleep(2 ** attempt)  # Exponential backoff
                             continue
                         
@@ -1379,20 +1253,17 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                 except requests.exceptions.Timeout:
                     logger.error(f"❌ Section {section_name}: Request timeout on attempt {attempt_num}")
                     if attempt < max_retries:
-                        logger.info(f"🔄 Section {section_name}: Retrying due to timeout")
                         continue
                     return {"section": section_name, "success": False, "error": "Request timeout after all retries"}
                 except requests.exceptions.ConnectionError as ce:
                     logger.error(f"❌ Section {section_name}: Connection error on attempt {attempt_num}: {str(ce)}")
                     if attempt < max_retries:
-                        logger.info(f"🔄 Section {section_name}: Retrying due to connection error")
                         time.sleep(2 ** attempt)  # Exponential backoff
                         continue
                     return {"section": section_name, "success": False, "error": f"Connection error after all retries: {str(ce)}"}
                 except Exception as e:
                     logger.error(f"❌ Section {section_name}: Unexpected error on attempt {attempt_num}: {str(e)}")
                     if attempt < max_retries:
-                        logger.info(f"🔄 Section {section_name}: Retrying due to unexpected error")
                         continue
                     return {"section": section_name, "success": False, "error": f"Unexpected error after all retries: {str(e)}"}
             
@@ -1416,12 +1287,8 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
         # Build payload_infos with exact 1:1 mapping
         for i, payload in enumerate(payloads):
             section_name = section_names[i]
-            logger.debug(f"🔗 Mapping payload {i} → section '{section_name}'")
             payload_infos.append((payload, section_name))
-        
-        logger.info(f"🚀 Starting concurrent execution of {len(payload_infos)} sections")
-        logger.info(f"📋 Sections to execute: {[info[1] for info in payload_infos]}")
-        
+      
         # Execute all payloads with staggered launch to respect rate limits
         successful_responses = []
         failed_sections = []
@@ -1446,11 +1313,7 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                     future = executor.submit(process_single_payload, payload_info)
                     futures.append(future)
                     future_to_section[future] = section_name
-                    
-                    logger.debug(f"🚀 Submitted section '{section_name}' with {delay*1000:.1f}ms delay")
-                
-                logger.info(f"📡 All {len(futures)} sections submitted with staggered delays")
-                
+                                                    
                 # Collect results as they complete
                 for future in concurrent.futures.as_completed(futures):
                     section_name = future_to_section[future]
@@ -1468,9 +1331,6 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
         # Execute with staggered launch
         staggered_concurrent_execution(payload_infos)
         
-        logger.info(f"📊 Concurrent execution completed:")
-        logger.info(f"   ❌ Failed sections: {len(failed_sections)}")
-        
         if failed_sections:
             logger.warning(f"⚠️ Failed sections details:")
             for failure in failed_sections:
@@ -1478,7 +1338,6 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
         
         # Handle partial success - continue if we have at least some sections
         if successful_responses:
-            logger.info(f"✅ Proceeding with {len(successful_responses)} successful sections (partial success)")
             report_responses = successful_responses
         else:
             logger.error(f"❌ All sections failed - cannot generate report")
@@ -1494,19 +1353,14 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                 combined_report.update(response)
         
         # Inject real age distribution data from Census API if neighborhood_overview exists
-        logger.info("🔄 Checking for age distribution injection...")
         combined_report = inject_real_age_distribution(combined_report, address)
         
         # Inject real property data from search endpoint if available (only for detailed reports)
-        logger.info("🔄 Checking for property data injection...")
         if property_data_future is not None and not marketing_model:
-            logger.info("📦 Injecting property data for detailed report")
             combined_report = inject_property_data_result(combined_report, address, property_data_future)
-        elif marketing_model:
-            logger.info("📈 Skipping property data injection for marketing report")
+
         
         # Inject real population total data from Census API after things_to_watch_out_for
-        logger.info("🔄 Checking for population total injection...")
         if comparison_address == None or comparison_address == "":
             combined_report = inject_real_population_total(combined_report, address)
         
@@ -1518,18 +1372,8 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
             "generation_timestamp": time.time()
         }
         
-        # Log debugging information
-        logger.info(f"✅ Combined {len(sorted_responses)} section responses into final report")
-        logger.info(f"📋 Report customization: {json.dumps(report_customization, indent=2) if report_customization else 'None'}")
-        logger.info(f"📊 Generation metadata: {json.dumps(metadata, indent=2)}")
-        logger.info(f"🔍 Raw JSON response:")
-        logger.info(json.dumps(combined_report, indent=2))
-        
-        # Generate PDF using the combined report (raw JSON sections only)
-        logger.debug("🖨️ Calling PDF generation helper...")
         try:
             _create_pdf(combined_report, address, filename, comparison_address, user_preferences)
-            logger.info(f"✅ Report generation completed successfully for task {task_id}")
             return combined_report  # Return only the raw JSON sections
         except Exception as pdf_error:
             logger.error(f"❌ PDF generation failed: {str(pdf_error)}")

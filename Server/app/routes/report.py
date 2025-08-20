@@ -1,20 +1,20 @@
 from flask import Blueprint, request, jsonify, current_app
 from ..utils.auth import get_current_user
 from ..utils.security import security_error_response, SecurityError, rate_limit
+from ..utils.secure_errors import SecureErrorHandler
 from ..models.pdf_document import PDFDocument
 from .. import db
 from app.utils.auth import get_current_user
 from app import db
 import os
-import logging
 from sqlalchemy import or_
 from app.models.pdf_document import PDFDocument
 from app.services.s3_service import s3_service
+from ..utils.app_logging import get_logger
 import traceback
 
-# Configure logger
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# Get logger using centralized utility
+logger = get_logger()
 
 # Blueprint setup
 report_bp = Blueprint('report', __name__, url_prefix='/api/v1/report')
@@ -35,9 +35,7 @@ def generate_report_endpoint():
         user = get_current_user()
         if not user:
             return security_error_response(SecurityError.UNAUTHORIZED)
-        
-        logger.info(f" Authenticated user: {user.id} (is_agent: {user.is_agent})")
-        
+                
         data = request.get_json()
         if not data:
             logger.error("No JSON data provided in request")
@@ -47,22 +45,15 @@ def generate_report_endpoint():
         comparison_address = data.get('comparisonAddress', None)  # Default to None if not provided
         target_user_id = data.get('user_id', None)  # For agent client selection
         marketing_model = data.get('marketing_model', False)  # For marketing model selection
-        
-        logger.info(f" Request parameters: address='{address}', comparison_address='{comparison_address}', target_user_id='{target_user_id}', marketing_model={marketing_model}")
-        
+                
         if not address:
             logger.error("No address provided in request data")
             return jsonify({'error': 'Address is required', 'success': False}), 400
         
         # Determine which user's preferences to use for report generation
         preferences_user_id = user.id  # Default to authenticated user
-        logger.info(f" Initial preferences_user_id set to authenticated user: {preferences_user_id}")
-        logger.info(f" preferences_user_id type: {type(preferences_user_id)}, target_user_id type: {type(target_user_id)}")
         
-        if target_user_id:
-            # Agent is generating report for a client
-            logger.info(f" Agent {user.id} requesting to generate report for client {target_user_id}")
-            logger.info(f" target_user_id received as: '{target_user_id}' (type: {type(target_user_id)})")
+        if target_user_id:          
             
             # Verify the agent has access to this client
             if not user.is_agent:
@@ -83,26 +74,13 @@ def generate_report_endpoint():
                 
                 # Ensure preferences_user_id is the same type as user.id (string)
                 preferences_user_id = str(target_user_id) if target_user_id else user.id
-                logger.info(f" Agent {user.id} authorized to generate report using preferences from client {target_user_id}")
-                logger.info(f" preferences_user_id updated to client: {preferences_user_id} (type: {type(preferences_user_id)})")
-                
+            
             except (json.JSONDecodeError, TypeError) as e:
                 logger.error(f"Failed to parse agent's client_ids: {str(e)}")
                 return jsonify({'error': 'Invalid agent client configuration', 'success': False}), 500
         
         # Check if this is a comparison report
         is_comparison = bool(comparison_address and comparison_address.strip())
-        
-        logger.info(f" FINAL DECISION - Using preferences from user_id: {preferences_user_id}")
-        if preferences_user_id == user.id:
-            logger.info(f" Will use AUTHENTICATED USER's preferences (user_id: {user.id})")
-        else:
-            logger.info(f" Will use CLIENT's preferences (client_id: {preferences_user_id}, agent_id: {user.id})")
-        
-        if is_comparison:
-            logger.info(f" Generating comparison report for: {address} vs {comparison_address} using preferences from user_id: {preferences_user_id}")
-        else:
-            logger.info(f" Generating detailed report for: {address} using preferences from user_id: {preferences_user_id}")
 
         safe_address = "".join(c for c in address if c.isalnum() or c in (' ', '-', '_')).rstrip().replace(' ', '_')
         
@@ -136,14 +114,8 @@ def generate_report_endpoint():
         # Start async task (lazy import to avoid circular import)
         # Always use the unified generate_report_async task, passing comparison_address (None for detailed reports)
         # Use preferences_user_id for report generation (could be agent's client or agent themselves)
-        logger.info(f" Starting async task with preferences_user_id: {preferences_user_id} (type: {type(preferences_user_id)})")
         from app.celery.tasks import generate_report_async
         task = generate_report_async.delay(address, comparison_address, filenamee, pdf_doc.id, preferences_user_id, marketing_model)
-        
-        if is_comparison:
-            logger.info(f"Started comparison report task {task.id} for addresses: {address} vs {comparison_address} using preferences from user {preferences_user_id}")
-        else:
-            logger.info(f"Started detailed report task {task.id} for address: {address} using preferences from user {preferences_user_id}")
         
         return jsonify({
             'success': True,
@@ -167,7 +139,6 @@ def generate_report_endpoint():
             try:
                 pdf_doc.status = 'error'
                 db.session.commit()
-                logger.info(f"Updated report {pdf_doc.id} status to 'error'")
             except Exception as db_err:
                 logger.error(f"Failed to update report status to 'error': {db_err}")
                 db.session.rollback()
@@ -179,13 +150,13 @@ def generate_report_endpoint():
             return jsonify({'error': 'Internal server error', 'success': False}), 500
 
 @report_bp.route('/all', methods=['GET', 'POST'])
-@rate_limit(max_requests=20, window_seconds=60)
+@rate_limit(max_requests=50, window_seconds=60)
 def list_all_reports():
     """Get all reports for the current user - alias for /list endpoint"""
     return list_reports()
 
 @report_bp.route('/list', methods=['GET'])
-@rate_limit(max_requests=20, window_seconds=60)
+@rate_limit(max_requests=50, window_seconds=60)
 def list_reports():
     try:
         reports_list = []
@@ -214,7 +185,6 @@ def list_reports():
                 'address': os.path.splitext(os.path.basename(report.filename))[0],
                 's3Key': report.file_path
             })
-            logger.info(f"Found {report.status} report for user {user.id}: {report.id}")
 
         # Get completed reports from S3 using prefix filtering for new tree structure
         s3_client = s3_service.s3_client
@@ -373,7 +343,6 @@ def list_reports_almostall():
 def get_download_url(report_id):
     """Generate a fresh presigned URL for downloading a specific report."""
     try:
-        logger.info(f"Download URL request received for report: {report_id}")
 
         if not report_id:
             logger.error("No report ID provided")
@@ -390,11 +359,8 @@ def get_download_url(report_id):
             logger.error(f"PDF URL or S3 key missing for report: {report_id}")
             return jsonify({'error': 'PDF not found for this report'}), 404
 
-        logger.debug(f"Processing PDF URL for report {report_id}: {pdf_url}")
-
         # If already a full presigned URL, return it
         if pdf_url.startswith("http"):
-            logger.debug(f"PDF URL is already a presigned URL: {pdf_url[:100]}...")
             return jsonify({
                 'success': True,
                 'downloadUrl': pdf_url
@@ -403,17 +369,14 @@ def get_download_url(report_id):
         # Generate new presigned URL with attachment download disposition
         if not pdf_url.startswith("/"):
             filename = os.path.basename(pdf_url)
-            logger.info(f"Generating fresh presigned URL for S3 key: {pdf_url}")
             fresh_url = s3_service.generate_presigned_url(pdf_url, download_filename=filename)
             if fresh_url:
-                logger.info(f"Successfully generated presigned URL for report {report_id}")
                 return jsonify({'success': True, 'downloadUrl': fresh_url})
             else:
                 logger.error(f"Failed to generate presigned URL for {pdf_url}")
                 return jsonify({'error': 'Failed to generate download URL'}), 500
 
         # Local static path fallback (if used)
-        logger.debug(f"PDF URL is a local file path: {pdf_url}")
         return jsonify({'success': True, 'downloadUrl': pdf_url})
 
     except Exception as e:
@@ -425,7 +388,6 @@ def get_download_url(report_id):
 def get_view_url(report_id):
     """Generate a fresh presigned URL for viewing a specific report inline in browser."""
     try:
-        logger.info(f"View URL request received for report: {report_id}")
 
         if not report_id:
             logger.error("No report ID provided")
@@ -442,10 +404,8 @@ def get_view_url(report_id):
             logger.error(f"PDF URL or S3 key missing for report: {report_id}")
             return jsonify({'error': 'PDF not found for this report'}), 404
 
-        logger.info(f"Generating fresh view URL for S3 key: {pdf_url}")
         fresh_url = s3_service.generate_view_url(pdf_url)
         if fresh_url:
-            logger.info(f"Successfully generated view URL for report {report_id}")
             return jsonify({'success': True, 'viewUrl': fresh_url})
         else:
             logger.error(f"Failed to generate view URL for {pdf_url}")
@@ -484,7 +444,6 @@ def compare_reports_endpoint():
 def serve_report(filename):
     """Serve static report files from the reports directory (fallback for local files)."""
     try:
-        logger.info(f"Serving static report file: {filename}")
         
         if not filename:
             logger.error("No filename provided for static file serving")
@@ -503,7 +462,6 @@ def serve_report(filename):
             logger.error(f"Static file not found: {file_path}")
             return jsonify({'error': 'File not found'}), 404
         
-        logger.info(f"Serving static file: {file_path}")
         return send_from_directory(directory, filename, as_attachment=False, mimetype='application/pdf')
         
     except Exception as e:
@@ -515,13 +473,10 @@ def serve_report(filename):
 @report_bp.route('/<report_id>', methods=['DELETE'])
 def delete_report(report_id):
     """Delete a report from S3 and in-memory storage"""
-    logger.info(f"[DELETE] Received delete request for report_id: {report_id}")
     
     try:
         # Log request data
         data = request.get_json() or {}
-        s3_key = data.get('s3Key')
-        logger.info(f"[DELETE] Request data - s3Key: {s3_key}")
         
         # Delete from S3 if s3_key is provided and s3_client is available
         if s3_key:
@@ -537,20 +492,16 @@ def delete_report(report_id):
                     else:
                         # Ensure the key doesn't start with a slash
                         s3_key = s3_key.lstrip('/')
-                        logger.info(f"[DELETE] Attempting to delete from S3 - Bucket: {bucket_name}, Key: {s3_key}")
                         
                         # Check if the object exists before trying to delete
                         try:
-                            logger.info("[DELETE] Checking if object exists in S3...")
                             s3_service.s3_client.head_object(Bucket=bucket_name, Key=s3_key)
-                            logger.info("[DELETE] Object exists, proceeding with deletion...")
                             
                             # Delete the main PDF
                             delete_response = s3_service.s3_client.delete_object(
                                 Bucket=bucket_name, 
                                 Key=s3_key
                             )
-                            logger.info(f"[DELETE] Successfully deleted from S3. Response: {delete_response}")
                             
                             # Also delete the JSON version using the simplified tree structure
                             if '/' in s3_key:
@@ -604,48 +555,38 @@ def delete_report(report_id):
             # Strategy 1: If we have s3_key, try to find by filename first (most reliable)
             if s3_key:
                 filename = os.path.basename(s3_key)
-                logger.info(f"[DELETE] Searching for PDF document by filename: {filename}")
                 pdf_doc = PDFDocument.query.filter_by(filename=filename).first()
                 
                 # Also try to find by file_path (s3_key)
                 if not pdf_doc:
-                    logger.info(f"[DELETE] Not found by filename, trying by file_path: {s3_key}")
                     pdf_doc = PDFDocument.query.filter_by(file_path=s3_key).first()
             
             # Strategy 2: Try to find the document by its UUID (report_id) as fallback
             if not pdf_doc:
-                logger.info(f"[DELETE] Trying to find PDF document by ID: {report_id}")
                 pdf_doc = PDFDocument.query.get(report_id)
             
             # Strategy 3: If still not found and we have s3_key, try partial matches
             if not pdf_doc and s3_key:
-                logger.info(f"[DELETE] Trying partial file_path match for: {s3_key}")
                 # Try to find by partial file_path match (in case of URL encoding issues)
                 pdf_doc = PDFDocument.query.filter(
                     PDFDocument.file_path.like(f"%{os.path.basename(s3_key)}%")
                 ).first()
 
             if pdf_doc:
-                logger.info(f"[DELETE] Found PDF document in DB - ID: {pdf_doc.id}, filename: {pdf_doc.filename}, file_path: {pdf_doc.file_path}")
                 db.session.delete(pdf_doc)
                 db.session.commit()
                 db_deleted = True
-                logger.info(f"[DELETE] Successfully deleted PDF document from database: {pdf_doc.id}")
             else:
                 logger.warning(f"[DELETE] PDF document not found in database for report_id: {report_id}, s3_key: {s3_key}")
                 # Log all PDF documents for this user to help debug
                 user = get_current_user()
                 if user:
                     user_docs = PDFDocument.query.filter_by(user_id=user.id).all()
-                    logger.info(f"[DELETE] User {user.id} has {len(user_docs)} PDF documents:")
-                    for doc in user_docs:
-                        logger.info(f"[DELETE]   - ID: {doc.id}, filename: {doc.filename}, file_path: {doc.file_path}")
         except Exception as e:
             db.session.rollback()
             logger.error(f"[DELETE] Error deleting from database: {str(e)}")
             logger.error(traceback.format_exc())
         
-        logger.info(f"[DELETE] Successfully completed deletion for report {report_id}")
         return jsonify({
             'success': True, 
             'message': 'Report deleted successfully',

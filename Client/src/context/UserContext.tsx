@@ -20,7 +20,7 @@ import {
   getAuthToken,
   routeStartsWith,
 } from "../lib/fetchUtils";
-import { useAuthState } from "../lib/authUtils";
+import { useAuth } from "./AuthContext";
 
 /* =========================
    Types
@@ -49,7 +49,7 @@ interface UserProviderProps {
 }
 
 export function UserProvider({ children }: UserProviderProps) {
-  const { user, authReady } = useAuthState();
+  const { user, authReady } = useAuth();
   
   // Profile state
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);

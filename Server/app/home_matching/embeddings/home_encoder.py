@@ -128,7 +128,6 @@ class HomeEncoder:
             # Combine text and structured embeddings
             combined_embedding = np.concatenate([text_embedding, structured_features])
             
-            logger.debug(f"Encoded home {home_data.get('home_id', 'unknown')} into {len(combined_embedding)}-dim embedding")
             return combined_embedding
             
         except Exception as e:
@@ -179,7 +178,6 @@ class HomeEncoder:
                 combined_embedding = np.concatenate([text_embedding, structured_features])
                 embeddings.append(combined_embedding)
             
-            logger.info(f"Encoded {len(homes_data)} homes into embeddings")
             return embeddings
             
         except Exception as e:

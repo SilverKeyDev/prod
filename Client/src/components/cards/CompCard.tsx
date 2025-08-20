@@ -1,12 +1,11 @@
-import { MapPin, Bed, Bath, Square } from "lucide-react";
 import { 
   formatPrice, 
-  formatStructuredAddress, 
   getStatusColor, 
   formatHomeStatus, 
   formatAgentName, 
   formatLotSize 
 } from "../../lib/addressFormat";
+import { PropertyCard, AddressDisplay } from "../ui";
 
 export interface CompData {
   address: {
@@ -50,90 +49,48 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
 
   const imageUrl = comp.miniCardPhotos?.[0]?.url || '/defaut-home.jpg';
 
+  // Format lot size for display
+  const lotSizeDisplay = comp.lotAreaValue 
+    ? formatLotSize(comp.lotAreaValue, comp.lotAreaUnits || 'acres')
+    : 'not provided';
+
+  // Format agent info for additional details
+  const additionalDetails = [];
+  if (comp.lotAreaValue) {
+    additionalDetails.push(`Lot: ${lotSizeDisplay}`);
+  }
+  if (comp.attributionInfo?.agentName) {
+    additionalDetails.push(`Agent: ${formatAgentName(comp.attributionInfo.agentName)}`);
+  }
+
   return (
-    <div className={`bg-white rounded-xl shadow-sm border border-beige/40 overflow-hidden hover:shadow-md transition-shadow duration-200 ${className}`}>
-      {/* Image */}
-      <div className="relative h-48 overflow-hidden">
-        <img
-          src={imageUrl}
-          alt={formatStructuredAddress(comp.address)}
-          className="w-full h-full object-cover"
-          onError={(e) => {
-            const target = e.target as HTMLImageElement;
-            target.src = '/defaut-home.jpg';
-          }}
-        />
-        
-        {/* Status Badge */}
-        <div className="absolute top-3 left-3">
-          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(comp.homeStatus)}`}>
-            {formatHomeStatus(comp.homeStatus)}
-          </span>
-        </div>
-
-        {/* Price Badge */}
-        <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full">
-          <span className="text-sm font-semibold text-navy">
-            {formatPrice(comp.price, comp.currency)}
-          </span>
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="p-4">
-        {/* Address */}
-        <div className="flex items-start gap-2 mb-3">
-          <MapPin className="h-4 w-4 text-brown mt-0.5 flex-shrink-0" />
-          <div>
-            <p className="text-sm font-medium text-navy leading-tight">
-              {comp.address.streetAddress}
-            </p>
-            <p className="text-xs text-gray-600">
-              {comp.address.city}, {comp.address.state} {comp.address.zipcode}
-            </p>
-            {comp.parentRegion?.name && (
-              <p className="text-xs text-brown font-medium">
-                {comp.parentRegion.name}
-              </p>
-            )}
-          </div>
-        </div>
-
-        {/* Property Details */}
-        <div className="grid grid-cols-3 gap-3 mb-3">
-          <div className="flex items-center gap-1">
-            <Bed className="h-3 w-3 text-brown" />
-            <span className="text-xs text-gray-600">
-              {comp.bedrooms || 'not provided'} bed{comp.bedrooms !== 1 ? 's' : ''}
-            </span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Bath className="h-3 w-3 text-brown" />
-            <span className="text-xs text-gray-600">
-              {comp.bathrooms || 'not provided'} bath{comp.bathrooms !== 1 ? 's' : ''}
-            </span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Square className="h-3 w-3 text-brown" />
-            <span className="text-xs text-gray-600">
-              {comp.livingArea?.toLocaleString() || 'not provided'} {comp.livingAreaUnitsShort || 'sqft'}
-            </span>
-          </div>
-        </div>
-
-        {/* Additional Details */}
+    <PropertyCard
+      imageUrl={imageUrl}
+      address={comp.address.streetAddress}
+      price={formatPrice(comp.price, comp.currency)}
+      bedrooms={comp.bedrooms}
+      bathrooms={comp.bathrooms}
+      sqft={comp.livingArea}
+      propertyType={comp.homeType}
+      lotSize={lotSizeDisplay}
+      status={{
+        text: formatHomeStatus(comp.homeStatus),
+        className: getStatusColor(comp.homeStatus)
+      }}
+      className={className}
+      bottomContent={
         <div className="space-y-2">
-
-          {/* Lot Size */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-500">Lot:</span>
-            <span className="text-xs font-medium text-navy">
-              {comp.lotAreaValue ? formatLotSize(comp.lotAreaValue, comp.lotAreaUnits || 'acres') : 'not provided'}
-              {comp.lotSize && comp.lotAreaUnits?.toLowerCase().includes('acre') && ` (${Math.round(comp.lotSize).toLocaleString()} sqft)`}
-            </span>
-          </div>
-
-          {/* Agent/Broker */}
+          {/* Secondary Address */}
+          <AddressDisplay
+            address={`${comp.address.city}, ${comp.address.state} ${comp.address.zipcode}`}
+            region={comp.parentRegion?.name}
+            variant="compact"
+            size="xs"
+            showIcon={false}
+            className="text-gray-600"
+          />
+          
+          {/* Agent Info */}
           {comp.attributionInfo?.agentName && (
             <div className="flex items-center gap-2">
               <span className="text-xs text-gray-500">Agent:</span>
@@ -143,7 +100,7 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
             </div>
           )}
         </div>
-      </div>
-    </div>
+      }
+    />
   );
 }

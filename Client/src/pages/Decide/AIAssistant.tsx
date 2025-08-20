@@ -320,10 +320,6 @@ export default function AIAssistant() {
         }
       );
 
-      console.log(
-        `[AI_ASSISTANT] Chat API response status: ${response.status}`
-      );
-
       if (response.ok) {
         const data = await response.json();
         console.log(`[AI_ASSISTANT] Received AI response:`, {

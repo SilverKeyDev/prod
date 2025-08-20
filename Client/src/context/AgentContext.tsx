@@ -20,7 +20,7 @@ import {
   getAuthToken,
   routeStartsWith,
 } from "../lib/fetchUtils";
-import { useAuthState } from "../lib/authUtils";
+import { useAuth } from "./AuthContext";
 
 /* =========================
    Types
@@ -56,7 +56,7 @@ interface AgentProviderProps {
 
 export function AgentProvider({ children }: AgentProviderProps) {
   const { abortAll, withAbort } = useMemo(() => createAbortManager(), []);
-  const { user, authReady } = useAuthState();
+  const { user, authReady } = useAuth();
 
   // Agent state
   const [assignedAgent, setAssignedAgent] = useState<Agent | null>(null);

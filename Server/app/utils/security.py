@@ -61,7 +61,7 @@ def auth_error_response(message="Authentication required"):
     """Standardized authentication error response"""
     return security_error_response(SecurityError.UNAUTHORIZED)
 
-def rate_limit(max_requests=10, window_seconds=60, per='ip'):
+def rate_limit(max_requests=60, window_seconds=60, per='ip'):
     """
     Rate limiting decorator
     

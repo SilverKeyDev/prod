@@ -200,7 +200,6 @@ class DataPreprocessor:
         self.scaler = StandardScaler()
         self.scaler.fit(X)
         self.fitted = True
-        logger.info("Fitted scalers on training data")
     
     def transform_features(self, feature_vector: np.ndarray) -> np.ndarray:
         """Transform features using fitted scalers."""

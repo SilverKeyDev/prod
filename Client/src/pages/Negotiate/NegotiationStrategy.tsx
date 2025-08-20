@@ -6,7 +6,6 @@ import Loading from '../../components/ui/Loading';
 import KeyTurnLoader from '../../components/ui/KeyTurnLoader';
 import Carousel from '../../components/ui/Carousel';
 import CompCard, { CompData } from '../../components/cards/CompCard';
-import { useDocuments, useNegotiation } from '../../context';
 
 const sectionBox =
   "bg-white rounded-xl shadow-sm p-6 mb-6 border border-beige/40";
@@ -23,17 +22,6 @@ export default function NegotiationStrategy() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  // Use contexts for document management and strategy generation
-  const { documents } = useDocuments();
-  const { generateStrategy } = useNegotiation();
-  
-  // Filter documents for negotiation-related categories
-  const negotiationDocs = documents.filter(doc => 
-    doc.category === 'offer' || 
-    doc.category === 'contract' ||
-    doc.category === 'negotiation'
-  );
-
   // Load saved data from localStorage on component mount
   useEffect(() => {
     const savedStrategy = localStorage.getItem('negotiationStrategy');
@@ -146,12 +134,6 @@ export default function NegotiationStrategy() {
       // Parse the strategy data from the AI response
       const parsedStrategyData = strategyResponseData.strategy;
       
-      // Debug: Log the actual response structure
-      console.log('Full Strategy API response:', strategyResponseData);
-      console.log('Strategy data structure:', parsedStrategyData);
-      console.log('Strategy data keys:', Object.keys(parsedStrategyData || {}));
-      console.log('Full Property Comps API response:', compsResponseData);
-      
       // Store the complete strategy data from the AI response
       // This will display ALL fields returned by the AI
       setStrategyData(parsedStrategyData || {});
@@ -163,17 +145,6 @@ export default function NegotiationStrategy() {
       localStorage.setItem('negotiationStrategy', JSON.stringify(parsedStrategyData || {}));
       localStorage.setItem('negotiationComps', JSON.stringify(compsResponseData || {}));
       localStorage.setItem('negotiationSelectedHome', JSON.stringify(selectedHome));
-      
-      // Log successful saves
-      console.log('💾 [NEGOTIATION] Successfully saved strategy data to localStorage:', parsedStrategyData);
-      console.log('💾 [NEGOTIATION] Successfully saved comps data to localStorage:', compsResponseData);
-      console.log('💾 [NEGOTIATION] Comps save structure:', {
-        success: compsResponseData?.success,
-        hasData: !!compsResponseData?.data,
-        hasComps: !!compsResponseData?.data?.comps,
-        compsCount: compsResponseData?.data?.comps?.length || 0
-      });
-      console.log('💾 [NEGOTIATION] Successfully saved selected home to localStorage:', selectedHome);
 
     } catch (err) {
       console.error('Error generating negotiation strategy:', err);

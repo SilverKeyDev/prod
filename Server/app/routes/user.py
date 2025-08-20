@@ -3,7 +3,7 @@ import json
 from datetime import datetime
 from ..utils.auth import get_current_user
 from ..utils.security import security_error_response, SecurityError, rate_limit
-from ..models.user import User
+from ..utils.secure_errors import SecureErrorHandler
 from ..models.subscription import Subscription
 from .. import db
 
@@ -11,7 +11,7 @@ user_bp = Blueprint('user', __name__, url_prefix='/api/v1/user')
 
 
 @user_bp.route('/profile', methods=['GET'])
-@rate_limit(max_requests=30, window_seconds=60)
+@rate_limit(max_requests=100, window_seconds=60)
 def get_user_profile():
     """Get the current user's profile information"""
     try:
@@ -28,12 +28,14 @@ def get_user_profile():
     except tuple as error_tuple:
         return security_error_response(error_tuple)
     except Exception as e:
-        current_app.logger.error(f"Error getting user profile: {str(e)}")
-        return security_error_response(SecurityError.SERVER_ERROR)
+        return SecureErrorHandler.handle_database_error(e, {
+            'function': 'get_user_profile',
+            'user_id': getattr(get_current_user(), 'id', 'unknown')
+        })
 
 
 @user_bp.route('/billing-info', methods=['GET'])
-@rate_limit(max_requests=20, window_seconds=60)
+@rate_limit(max_requests=50, window_seconds=60)
 def get_billing_info():
     """Get the current user's subscription and report usage information"""
     try:
@@ -64,8 +66,10 @@ def get_billing_info():
         })
         
     except Exception as e:
-        current_app.logger.error(f"Error getting billing info: {str(e)}")
-        return security_error_response(SecurityError.SERVER_ERROR)
+        return SecureErrorHandler.handle_database_error(e, {
+            'function': 'get_billing_info',
+            'user_id': getattr(get_current_user(), 'id', 'unknown')
+        })
 
 
 def _parse_checklist(raw_value):
@@ -102,18 +106,15 @@ def insurance_checklist():
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
     if request.method == 'GET':
         checklist = _parse_checklist(user.insurance_checklist)
-        current_app.logger.debug("Returning insurance checklist", extra={"count": len(checklist)})
         return _build_response(checklist)
     # PUT update
     try:
         data = request.get_json(force=True)
         if not isinstance(data, list):
             return jsonify({'success': False, 'error': 'Expected JSON array'}), 400
-        current_app.logger.debug("Updating insurance checklist", extra={"new_ids": data})
         user.insurance_checklist = json.dumps(data)
         from app import db
         db.session.commit()
-        current_app.logger.info("Insurance checklist updated", extra={"count": len(data)})
         return _build_response(data)
     except Exception as e:
         current_app.logger.error(f"Failed to update insurance checklist: {e}")
@@ -127,18 +128,15 @@ def closing_checklist():
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
     if request.method == 'GET':
         checklist = _parse_checklist(user.closing_checklist)
-        current_app.logger.debug("Returning closing checklist", extra={"count": len(checklist)})
         return _build_response(checklist)
     # PUT - update
     try:
         data = request.get_json(force=True)
         if not isinstance(data, list):
             return jsonify({'success': False, 'error': 'Expected JSON array'}), 400
-        current_app.logger.debug("Updating closing checklist", extra={"new_ids": data})
         user.closing_checklist = json.dumps(data)
         from app import db
         db.session.commit()
-        current_app.logger.info("Closing checklist updated and saved", extra={"count": len(data)})
         return _build_response(data)
     except Exception as e:
         current_app.logger.error(f"Failed to update closing checklist: {e}")
@@ -151,17 +149,14 @@ def timeline_checklist():
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
     if request.method == 'GET':
         checklist = _parse_checklist(user.timeline_checklist)
-        current_app.logger.debug("Returning timeline checklist", extra={"count": len(checklist)})
         return _build_response(checklist)
     try:
         data = request.get_json(force=True)
         if not isinstance(data, list):
             return jsonify({'success': False, 'error': 'Expected JSON array'}), 400
-        current_app.logger.debug("Updating timeline checklist", extra={"new_ids": data})
         user.timeline_checklist = json.dumps(data)
         from app import db
         db.session.commit()
-        current_app.logger.info("Timeline checklist updated", extra={"count": len(data)})
         return _build_response(data)
     except Exception as e:
         current_app.logger.error(f"Failed to update timeline checklist: {e}")
@@ -174,17 +169,14 @@ def financing_checklist():
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
     if request.method == 'GET':
         checklist = _parse_checklist(user.financing_checklist)
-        current_app.logger.debug("Returning financing checklist", extra={"count": len(checklist)})
         return _build_response(checklist)
     try:
         data = request.get_json(force=True)
         if not isinstance(data, list):
             return jsonify({'success': False, 'error': 'Expected JSON array'}), 400
-        current_app.logger.debug("Updating financing checklist", extra={"new_ids": data})
         user.financing_checklist = json.dumps(data)
         from app import db
         db.session.commit()
-        current_app.logger.info("Financing checklist updated", extra={"count": len(data)})
         return _build_response(data)
     except Exception as e:
         current_app.logger.error(f"Failed to update financing checklist: {e}")
@@ -197,17 +189,14 @@ def escrow_checklist():
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
     if request.method == 'GET':
         checklist = _parse_checklist(user.escrow_checklist)
-        current_app.logger.debug("Returning escrow checklist", extra={"count": len(checklist)})
         return _build_response(checklist)
     try:
         data = request.get_json(force=True)
         if not isinstance(data, list):
             return jsonify({'success': False, 'error': 'Expected JSON array'}), 400
-        current_app.logger.debug("Updating escrow checklist", extra={"new_ids": data})
         user.escrow_checklist = json.dumps(data)
         from app import db
         db.session.commit()
-        current_app.logger.info("Escrow checklist updated", extra={"count": len(data)})
         return _build_response(data)
     except Exception as e:
         current_app.logger.error(f"Failed to update escrow checklist: {e}")
@@ -238,7 +227,6 @@ def favorite_homes():
         data = request.get_json(force=True)
         if not isinstance(data, list):
             return jsonify({'success': False, 'error': 'Expected JSON array'}), 400
-        current_app.logger.debug("Updating favorite homes", extra={"new_ids": data})
         
         # Remove existing HomeUniversal records for this user
         from app.models.home_universal import HomeUniversal
@@ -259,7 +247,6 @@ def favorite_homes():
             )
             db.session.add(home_universal)
         db.session.commit()
-        current_app.logger.info("Favorite homes updated", extra={"count": len(data)})
         return _build_response(data)
     except Exception as e:
         current_app.logger.error(f"Failed to update favorite homes: {e}")
@@ -269,20 +256,15 @@ def favorite_homes():
 @user_bp.route('/favorite-homes/add', methods=['POST'])
 def add_favorite_home():
     """Add a single home to the user's favorites list and store full home data in home_universal."""
-    current_app.logger.info("🏠 ===== HOME SAVE OPERATION STARTED =====")
-    current_app.logger.info("🏠 /favorite-homes/add endpoint invoked")
-    current_app.logger.info(f"🕐 Timestamp: {datetime.utcnow().isoformat()}")
 
     user = _get_user()
     if not user:
         current_app.logger.warning("❌ Unauthorized attempt to save home - no valid user found")
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
     
-    current_app.logger.info(f"👤 User authenticated: {user.id} ({user.email})")
 
     try:
         data = request.get_json(force=True)
-        current_app.logger.info(f"📥 Received save home request data keys: {list(data.keys()) if data else 'None'}")
         
         home = data.get('home')
         if not home or not isinstance(home, dict):
@@ -293,24 +275,13 @@ def add_favorite_home():
         if not address or not isinstance(address, str):
             current_app.logger.error(f"❌ Invalid address in home object: {address}")
             return jsonify({'success': False, 'error': 'Address is required and must be a string'}), 400
-        
-        current_app.logger.info(f"🏠 Attempting to save home: {address}")
-        current_app.logger.info(f"🏠 Home details: {home.get('bedrooms', 'N/A')}br/{home.get('bathrooms', 'N/A')}ba, {home.get('sqft', 'N/A')} sqft, ${home.get('price', 'N/A')}")
 
-        # Check if home is already in favorites
         from app.models.home_universal import HomeUniversal
-        current_app.logger.info(f"🔍 Checking if home already exists in favorites for user {user.id}")
         home_universal = HomeUniversal.query.filter_by(user_id=str(user.id), address=address).first()
         if home_universal:
             current_app.logger.warning(f"⚠️ Home already exists in favorites: {address}")
             return jsonify({'success': False, 'error': 'Home is already in favorites'}), 400
         
-        current_app.logger.info("✅ Home not found in existing favorites, proceeding with save")
-
-        # Add new HomeUniversal record for this user
-        current_app.logger.info("💾 Creating new HomeUniversal database record")
-        
-        # Handle both camelCase (imageUrl) and snake_case (image_url) field names
         image_url = home.get('image_url', '') or home.get('imageUrl', '')
         
         home_universal = HomeUniversal(
@@ -350,20 +321,14 @@ def add_favorite_home():
 @user_bp.route('/favorite-homes/remove', methods=['POST'])
 def remove_favorite_home():
     """Remove a single home address from the user's favorites list."""
-    current_app.logger.info("🗑️ ===== HOME UNSAVE OPERATION STARTED =====")
-    current_app.logger.info("🗑️ /favorite-homes/remove endpoint invoked")
-    current_app.logger.info(f"🕐 Timestamp: {datetime.utcnow().isoformat()}")
-    
     user = _get_user()
     if not user:
         current_app.logger.warning("❌ Unauthorized attempt to remove home - no valid user found")
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
     
-    current_app.logger.info(f"👤 User authenticated: {user.id} ({user.email})")
     
     try:
         data = request.get_json(force=True)
-        current_app.logger.info(f"📥 Received remove home request data keys: {list(data.keys()) if data else 'None'}")
         
         address = data.get('address')
         
@@ -371,11 +336,9 @@ def remove_favorite_home():
             current_app.logger.error(f"❌ Invalid address in request: {address}")
             return jsonify({'success': False, 'error': 'Address is required and must be a string'}), 400
         
-        current_app.logger.info(f"🗑️ Attempting to remove home: {address}")
         
         # Remove HomeUniversal record for this user and address
         from app.models.home_universal import HomeUniversal
-        current_app.logger.info(f"🔍 Checking if home exists in favorites for user {user.id}")
         
         # Check if home exists before attempting to delete
         existing_home = HomeUniversal.query.filter_by(user_id=str(user.id), address=address).first()
@@ -383,13 +346,9 @@ def remove_favorite_home():
             current_app.logger.warning(f"⚠️ Home not found in favorites: {address}")
             return jsonify({'success': False, 'error': 'Home not found in favorites'}), 404
         
-        current_app.logger.info(f"✅ Found home in favorites, proceeding with deletion")
-        
         # Delete the home record
         db.session.delete(existing_home)
         db.session.commit()
-        
-        current_app.logger.info(f"🗑️ Successfully removed home from favorites: {address}")
         
         # Return all HomeUniversal rows for this user
         homes = HomeUniversal.query.filter_by(user_id=str(user.id)).all()

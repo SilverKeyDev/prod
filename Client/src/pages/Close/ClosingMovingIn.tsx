@@ -37,11 +37,9 @@ export default function ClosingMovingIn() {
       .map(([k]) => Number(k));
 
   const fetchChecklist = async () => {
-    console.info("📡 Fetching closing checklist from API...");
     try {
       setLoading(true);
       const res = await apiRequest<number[]>("/api/v1/user/closing");
-      console.debug("✅ API response", res);
       if (res.success && Array.isArray(res.data)) {
         const mapping: { [id: number]: boolean } = {};
         res.data.forEach((id) => (mapping[id] = true));
@@ -57,7 +55,6 @@ export default function ClosingMovingIn() {
   const updateChecklist = async (newState: { [id: number]: boolean }) => {
     try {
       const body = idsFromChecked(newState);
-      console.info("🚀 Sending updated checklist to API", body);
       await apiRequest("/api/v1/user/closing", {
         method: "PUT",
         body: JSON.stringify(body),

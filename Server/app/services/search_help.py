@@ -81,7 +81,6 @@ def extract_features_from_batch(image_batch: List[str], batch_num: int) -> List[
         data = _safe_json_parse(content_str)
         features = data.get("features", [])
         
-        logger.info(f"🔍 [BATCH {batch_num}] Extracted {len(features)} features from {len(image_batch)} images")
         return features
         
     except Exception as e:
@@ -184,10 +183,7 @@ def extract_and_clean_features(image_urls: List[str]) -> Dict[str, List[str]]:
 # Configure logging
 logger = logging.getLogger(__name__)
 
-# Perplexity API configuration
 PERPLEXITY_API_KEY = os.getenv("PERPLEXITY_API_KEY")
-if not PERPLEXITY_API_KEY:
-    logger.warning("PERPLEXITY_API_KEY environment variable is not set. Property analysis will not be available.")
 
 PERPLEXITY_HEADERS = {
     "Authorization": f"Bearer {PERPLEXITY_API_KEY}",

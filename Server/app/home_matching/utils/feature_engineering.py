@@ -232,7 +232,6 @@ class FeatureEngineer:
         all_features.extend(amenity_features)  # 2 features
         # Total: 4 + 9 + 4 + 2 + 2 = 21 features
         
-        logger.info(f"Generated {len(all_features)} features: {all_features[:5]}...")
         return np.array(all_features)
     
     def get_feature_names(self) -> List[str]:

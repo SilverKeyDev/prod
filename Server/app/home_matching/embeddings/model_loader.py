@@ -47,7 +47,6 @@ class EmbeddingModelLoader:
             
             try:
                 self.openai_client = openai.OpenAI(api_key=OPENAI_KEY)
-                logger.info("Successfully loaded OpenAI client")
             except Exception as e:
                 logger.error(f"Error loading OpenAI client: {e}")
                 raise

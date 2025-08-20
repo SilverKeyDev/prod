@@ -46,7 +46,6 @@ def with_db_retry(
     if dispose_engine:
         try:
             db_engine.dispose()
-            logger.debug(f"🔄 Disposed database engine before {operation_name}")
         except Exception as e:
             logger.warning(f"⚠️ Failed to dispose engine before {operation_name}: {str(e)}")
     
@@ -56,7 +55,6 @@ def with_db_retry(
     for attempt in range(max_retries):
         try:
             result = operation()
-            logger.debug(f"✅ {operation_name} succeeded on attempt {attempt + 1}")
             return result
             
         except (OperationalError, DisconnectionError) as e:
@@ -77,7 +75,6 @@ def with_db_retry(
                 pass
             
             if attempt < max_retries - 1:
-                logger.debug(f"⏳ Retrying {operation_name} in {retry_delay} seconds...")
                 time.sleep(retry_delay)
                 retry_delay *= 2  # Exponential backoff
             else:
@@ -170,6 +167,5 @@ def dispose_engine_safely(db_engine, operation_name: str = "operation") -> None:
     """
     try:
         db_engine.dispose()
-        logger.debug(f"🔄 Disposed database engine before {operation_name}")
     except Exception as e:
         logger.warning(f"⚠️ Failed to dispose engine before {operation_name}: {str(e)}")

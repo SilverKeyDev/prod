@@ -80,7 +80,7 @@ const ClientIntelPage: React.FC = () => {
   const fetchClientData = async () => {
     try {
       setLoading(true);
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "";
       const idToken = localStorage.getItem("id_token");
 
       const response = await fetch(`${apiBaseUrl}/api/v1/preferences/clients`, {
@@ -152,7 +152,7 @@ const ClientIntelPage: React.FC = () => {
     setShowActionPlanModal(true);
 
     try {
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "";
       const idToken = localStorage.getItem("id_token");
 
       const response = await fetch(
