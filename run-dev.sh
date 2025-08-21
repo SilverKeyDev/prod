@@ -87,36 +87,34 @@ trap cleanup SIGINT SIGTERM EXIT
 # =========================
 # Wait helpers
 # =========================
-wait_for_url() {
-  local url="$1"
-  local timeout="${2:-30}"
-  local elapsed=0
-  log "Waiting for ${url} (timeout ${timeout}s)..."
-  while ! curl -fsS "${url}" >/dev/null 2>&1; do
-    sleep 0.5
-    elapsed=$((elapsed + 1))
-    if (( elapsed >= timeout*2 )); then
-      return 1
+wait_for_port() {
+  local host="$1" port="$2" retries="${3:-30}" delay="${4:-1}"
+  for i in $(seq 1 "$retries"); do
+    if nc -z "$host" "$port" 2>/dev/null; then
+      log "${GREEN}✅ $host:$port is accepting TCP${NC}"
+      return 0
     fi
+    log "Waiting for $host:$port... ($i/$retries)"
+    sleep "$delay"
   done
-  return 0
+  warn "❌ Timeout waiting for $host:$port"
+  return 1
 }
 
-wait_for_port() {
-  local host="${1:-127.0.0.1}"
-  local port="${2:-5000}"
-  local timeout="${3:-30}"
-  local elapsed=0
-  log "Waiting for ${host}:${port} (timeout ${timeout}s)..."
-  while ! (echo > /dev/tcp/${host}/${port}) >/dev/null 2>&1; do
-    sleep 0.5
-    elapsed=$((elapsed + 1))
-    if (( elapsed >= timeout*2 )); then
-      return 1
+wait_for_http() {
+  local url="$1" retries="${2:-30}" delay="${3:-1}"
+  for i in $(seq 1 "$retries"); do
+    if NO_PROXY="localhost,127.0.0.1,::1" curl -4 --noproxy "localhost,127.0.0.1,::1" -fsS "$url" >/dev/null 2>&1; then
+      log "${GREEN}✅ $url is ready${NC}"
+      return 0
     fi
+    log "Waiting for $url... ($i/$retries)"
+    sleep "$delay"
   done
-  return 0
+  warn "❌ Timeout waiting for $url"
+  return 1
 }
+
 
 # =========================
 # Load env
@@ -162,6 +160,30 @@ else
 fi
 
 # =========================
+# Wait for Flask to be ready before proceeding
+# =========================
+log "Waiting for Flask TCP on 127.0.0.1:${FLASK_PORT}..."
+if wait_for_port 127.0.0.1 "${FLASK_PORT}" 30 1; then
+  log "${GREEN}✅ Flask TCP is accepting on 127.0.0.1:${FLASK_PORT}${NC}"
+else
+  warn "Flask did not start accepting TCP on port ${FLASK_PORT} within timeout. Exiting."
+  exit 1
+fi
+
+log "Waiting for Flask HTTP endpoint on 127.0.0.1:${FLASK_PORT}/healthz..."
+if wait_for_http "http://127.0.0.1:${FLASK_PORT}/healthz" 30 1; then
+  log "${GREEN}✅ Flask HTTP endpoint is ready at http://127.0.0.1:${FLASK_PORT}/healthz${NC}"
+else
+  warn "Flask did not start responding on http://127.0.0.1:${FLASK_PORT}/healthz within timeout. Trying root URL..."
+  if wait_for_http "http://127.0.0.1:${FLASK_PORT}/" 10 1; then
+    log "${GREEN}✅ Flask root endpoint is ready at http://127.0.0.1:${FLASK_PORT}/${NC}"
+  else
+    warn "Flask did not start responding on port ${FLASK_PORT} within timeout. Exiting."
+    exit 1
+  fi
+fi
+
+# =========================
 # Start Celery (after Flask so app context is ready)
 # =========================
 log "Starting Celery worker..."
@@ -181,14 +203,13 @@ if [[ "${1:-}" != "--production" ]]; then
   VITE_PID=$!
   popd >/dev/null
 
-  # Wait for Vite to be ready so first page load doesn't race
-  log "Waiting for Vite to start on http://localhost:5173..."
-  sleep 3  # Give Vite time to start before checking
-  until curl -fsS http://localhost:5173 >/dev/null 2>&1; do 
-    log "Still waiting for Vite..."
-    sleep 1
-  done
-  log "${GREEN}✅ Vite is ready at http://localhost:5173${NC}"
+  log "Waiting for Vite TCP on localhost:5173..."
+  if wait_for_port localhost 5173 30 1; then
+    log "${GREEN}✅ Vite TCP is accepting on localhost:5173${NC}"
+  else
+    warn "Vite did not start accepting TCP on port 5173 within timeout. Exiting."
+    exit 1
+  fi
 else
   log "Production mode: skipping Vite dev server."
 fi

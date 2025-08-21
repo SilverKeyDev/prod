@@ -133,6 +133,11 @@ def create_app(config=None):
     app.register_blueprint(search_bp)
     app.register_blueprint(secure_upload_bp)
 
+    # Health check endpoint
+    @app.route('/healthz', methods=['GET'])
+    def healthz():
+        return jsonify({"status": "ok"}), 200
+
     # Security headers middleware
     @app.after_request
     def security_headers(response):

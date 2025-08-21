@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, current_app
 import json
-from datetime import datetime
-from ..utils.auth import get_current_user
+from jose.exceptions import ExpiredSignatureError, JWTError
+from ..utils.auth import get_current_user, SecurityException
 from ..utils.security import security_error_response, SecurityError, rate_limit
 from ..utils.secure_errors import SecureErrorHandler
 from ..models.subscription import Subscription
@@ -18,19 +18,19 @@ def get_user_profile():
         user = get_current_user()
         if not user:
             return security_error_response(SecurityError.UNAUTHORIZED)
-            
+
         user_data = user.to_dict()
         return jsonify({
             'success': True,
             'data': user_data
         })
         
-    except tuple as error_tuple:
-        return security_error_response(error_tuple)
+    except (SecurityException, ExpiredSignatureError, JWTError) as e:
+        return jsonify({'success': False, 'error': 'Authentication required'}), 401
     except Exception as e:
         return SecureErrorHandler.handle_database_error(e, {
             'function': 'get_user_profile',
-            'user_id': getattr(get_current_user(), 'id', 'unknown')
+            'user_id': 'unknown'
         })
 
 
@@ -55,21 +55,26 @@ def get_billing_info():
                 'reports_limit': subscription.reports_limit,
                 'stripe_subscription_id': subscription.stripe_subscription_id
             }
-      
+
         
         return jsonify({
             'success': True,
             'data': {
                 'subscription': subscription_data,
-                'has_active_subscription': subscription and subscription.status == 'active'
+                'has_active_subscription': (
+                    subscription and subscription.status == 'active')
             }
         })
         
+    except (SecurityException, ExpiredSignatureError, JWTError) as e:
+        return jsonify({'success': False, 'error': 'Authentication required'}), 401
     except Exception as e:
         return SecureErrorHandler.handle_database_error(e, {
             'function': 'get_billing_info',
-            'user_id': getattr(get_current_user(), 'id', 'unknown')
+            'user_id': 'unknown'
         })
+
+
 
 
 def _parse_checklist(raw_value):

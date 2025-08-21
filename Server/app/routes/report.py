@@ -12,6 +12,7 @@ from app.models.pdf_document import PDFDocument
 from app.services.s3_service import s3_service
 from ..utils.app_logging import get_logger
 import traceback
+import uuid
 
 # Get logger using centralized utility
 logger = get_logger()
@@ -129,6 +130,8 @@ def generate_report_endpoint():
             }
         })
 
+    except (SecurityException, ExpiredSignatureError, JWTError) as e:
+        return jsonify({'success': False, 'error': 'Authentication required'}), 401
     except Exception as e:
         logger.error(f"Unhandled error in generate_report_endpoint: {str(e)}")
         logger.error(f"Exception type: {type(e).__name__}")
@@ -231,6 +234,8 @@ def list_reports():
 
         return jsonify({'success': True, 'reports': reports_list})
 
+    except (SecurityException, ExpiredSignatureError, JWTError) as e:
+        return jsonify({'success': False, 'error': 'Authentication required'}), 401
     except Exception as e:
         logger.error(f"Error listing reports: {str(e)}")
         logger.error(traceback.format_exc())
@@ -290,6 +295,8 @@ def poll_report_status(document_id):
             'report': report_data
         }), 200
 
+    except (SecurityException, ExpiredSignatureError, JWTError) as e:
+        return jsonify({'success': False, 'error': 'Authentication required'}), 401
     except Exception as e:
         logger.error(f"Error polling report {document_id}: {str(e)}")
         logger.error(traceback.format_exc())
@@ -384,6 +391,8 @@ def get_download_url(report_id):
         # Local static path fallback (if used)
         return jsonify({'success': True, 'downloadUrl': pdf_url})
 
+    except (SecurityException, ExpiredSignatureError, JWTError) as e:
+        return jsonify({'success': False, 'error': 'Authentication required'}), 401
     except Exception as e:
         logger.error(f"Error generating download URL for report {report_id}: {str(e)}")
         logger.error(f"Traceback: {traceback.format_exc()}")
@@ -421,6 +430,8 @@ def get_view_url(report_id):
             logger.error(f"Failed to generate view URL for {pdf_url}")
             return jsonify({'error': 'Failed to generate view URL'}), 500
 
+    except (SecurityException, ExpiredSignatureError, JWTError) as e:
+        return jsonify({'success': False, 'error': 'Authentication required'}), 401
     except Exception as e:
         logger.error(f"Error generating view URL for report {report_id}: {str(e)}")
         logger.error(f"Traceback: {traceback.format_exc()}")
@@ -660,6 +671,8 @@ def get_user_documents():
             'count': len(documents_data)
         }), 200
         
+    except (SecurityException, ExpiredSignatureError, JWTError) as e:
+        return jsonify({'success': False, 'error': 'Authentication required'}), 401
     except Exception as e:
         error_msg = f"Failed to retrieve user documents: {str(e)}"
         logger.error(f"❌ [USER_DOCUMENTS] {error_msg}")
