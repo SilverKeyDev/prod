@@ -7,7 +7,14 @@
         "dev": "vite",
         "build": "vite build",
         "lint": "eslint .",
-        "preview": "vite preview"
+        "preview": "vite preview",
+        "test": "playwright test",
+        "test:mobile": "playwright test tests/mobile/",
+        "test:visual": "playwright test tests/visual/",
+        "test:headed": "playwright test --headed",
+        "test:ui": "playwright test --ui",
+        "lighthouse": "lhci autorun",
+        "lighthouse:mobile": "lhci autorun --config=lighthouserc.js"
     },
     "dependencies": {
         "@babel/core": "^7.27.4",
@@ -31,6 +38,8 @@
     },
     "devDependencies": {
         "@eslint/js": "^9.9.1",
+        "@lhci/cli": "^0.15.1",
+        "@playwright/test": "^1.55.0",
         "@types/google.maps": "^3.55.3",
         "@types/node": "^20.11.28",
         "@types/react": "^18.3.5",

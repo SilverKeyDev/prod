@@ -1,10 +1,10 @@
 from flask import Blueprint, request, jsonify, current_app
+from app.utils.auth import require_auth, get_current_user
 from ..utils.auth import get_current_user
 from ..utils.security import security_error_response, SecurityError, rate_limit
 from ..utils.secure_errors import SecureErrorHandler
 from ..models.pdf_document import PDFDocument
 from .. import db
-from app.utils.auth import get_current_user
 from app import db
 import os
 from sqlalchemy import or_
@@ -347,7 +347,8 @@ def list_reports_almostall():
         return jsonify({'error': 'Internal server error'}), 500
 
 @report_bp.route('/<report_id>/download-url', methods=['GET'])
-def get_download_url(report_id):
+@require_auth
+def get_download_url(user, report_id):
     """Generate a fresh presigned URL for downloading a specific report."""
     try:
 
@@ -399,7 +400,8 @@ def get_download_url(report_id):
         return jsonify({'error': 'Internal server error'}), 500
 
 @report_bp.route('/<report_id>/view-url', methods=['GET'])
-def get_view_url(report_id):
+@require_auth
+def get_view_url(user, report_id):
     """Generate a fresh presigned URL for viewing a specific report inline in browser."""
     try:
 
@@ -626,21 +628,18 @@ def delete_report(report_id):
         }), 500
 
 
+from ..utils.auth import require_auth
+
 @report_bp.route('/documents', methods=['GET'])
-def get_user_documents():
+@require_auth
+def get_user_documents(user):
     """
     Get all documents from a user's documents directory.
     Returns all PDF documents and their metadata for the authenticated user.
     """
     try:
-        # Get current user from JWT token
-        current_user = get_current_user()
-        if not current_user:
-            logger.warning("❌ [USER_DOCUMENTS] Unauthorized access attempt")
-            return jsonify({'success': False, 'error': 'Unauthorized'}), 401
-        
-        user_id = current_user.id
-                
+        # user is now passed in from @require_auth
+        user_id = user.id
         # Query all PDF documents for the user and type
         documents = PDFDocument.query.filter(
             PDFDocument.user_id == user_id,

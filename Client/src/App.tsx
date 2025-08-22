@@ -30,7 +30,6 @@ function App() {
         return res.json();
       })
       .then((data) => {
-        console.log("/healthz response:", data);
         if (isMounted) {
           if (data && data.status === "ok") {
             setMaintenance(false);

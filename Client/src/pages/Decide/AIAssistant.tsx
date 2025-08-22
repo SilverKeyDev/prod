@@ -71,7 +71,6 @@ export default function AIAssistant() {
 
   // Load chats from centralized context
   const loadChatsFromContext = () => {
-    console.log("[AI_ASSISTANT] Loading chats from centralized context");
     try {
       if (chats && chats.length > 0) {
         // Preserve existing messages from localChats when updating from context
@@ -85,13 +84,6 @@ export default function AIAssistant() {
           };
         });
 
-        console.log("[AI_ASSISTANT] Updated chats from context:", {
-          chatCount: updatedChats.length,
-          chatIds: updatedChats.map((c: Chat) => c.id),
-          preservedMessages: updatedChats.filter((c: Chat) => c.messages.length > 0)
-            .length,
-        });
-
         setLocalChats(updatedChats);
 
         // Set first chat as active if none selected
@@ -99,7 +91,6 @@ export default function AIAssistant() {
           setActiveChatId(updatedChats[0].id);
         }
       } else {
-        console.log("[AI_ASSISTANT] No chats found in context");
         setLocalChats([]);
       }
     } catch (error) {
@@ -128,9 +119,6 @@ export default function AIAssistant() {
     if (activeChatId) {
       const currentChat = chats.find((chat: Chat) => chat.id === activeChatId);
       if (currentChat && currentChat.messages.length === 0) {
-        console.log(
-          `[AI_ASSISTANT] Loading chat history for new active chat: ${activeChatId}`
-        );
         loadChatHistory(activeChatId);
       }
       loadPdfForChat(activeChatId);
@@ -139,16 +127,10 @@ export default function AIAssistant() {
 
   // Load PDF for the active chat
   const loadPdfForChat = async (chatId: string) => {
-    console.log(`[AI_ASSISTANT] Loading PDF for chatId: ${chatId}`);
     setLoadingPdf(true);
     try {
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
       const idToken = localStorage.getItem("id_token");
-
-      console.log(`[AI_ASSISTANT] Making view-url request:`, {
-        url: `${apiBaseUrl}/api/v1/report/${chatId}/view-url`,
-        hasToken: !!idToken,
-      });
 
       const json = await fetchJson<{ url?: string; error?: string }>(
         `${apiBaseUrl}/api/v1/report/${chatId}/view-url`,
@@ -162,11 +144,9 @@ export default function AIAssistant() {
       );
 
       if (json?.url) {
-        console.log(`[AI_ASSISTANT] Received PDF URL for chat ${chatId}`);
         setPdfUrl(json.url);
       } else if (json === undefined) {
         // 404 response, report not found
-        console.log(`[AI_ASSISTANT] Report not found for chat ${chatId}`);
         setPdfUrl(null);
       } else {
         console.error(`[AI_ASSISTANT] Failed to load PDF URL:`, json?.error || "Unknown error");
@@ -185,15 +165,9 @@ export default function AIAssistant() {
 
   // Load chat history for a specific chat
   const loadChatHistory = async (chatId: string) => {
-    console.log(`[AI_ASSISTANT] Loading chat history for chatId: ${chatId}`);
     try {
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
       const idToken = localStorage.getItem("id_token");
-
-      console.log(`[AI_ASSISTANT] Making history request:`, {
-        url: `${apiBaseUrl}/api/v1/chat/history/${chatId}`,
-        hasToken: !!idToken,
-      });
 
       const response = await fetch(
         `${apiBaseUrl}/api/v1/chat/history/${chatId}`,
@@ -208,15 +182,8 @@ export default function AIAssistant() {
         }
       );
 
-      console.log(`[AI_ASSISTANT] History response status: ${response.status}`);
-
       if (response.ok) {
         const data = await response.json();
-        console.log(
-          `[AI_ASSISTANT] Received ${
-            data.messages?.length || 0
-          } messages from history`
-        );
 
         const messages: ChatMessage[] = data.messages.map((msg: any) => ({
           id: msg.id,
@@ -225,10 +192,6 @@ export default function AIAssistant() {
           timestamp: new Date(msg.timestamp),
         }));
 
-        console.log(
-          `[AI_ASSISTANT] Processed ${messages.length} messages for chat ${chatId}`
-        );
-
         // Update the chat with loaded messages
         setLocalChats((prevChats) =>
           prevChats.map((c: Chat) =>
@@ -236,9 +199,6 @@ export default function AIAssistant() {
           )
         );
 
-        console.log(
-          `[AI_ASSISTANT] Successfully loaded chat history for ${chatId}`
-        );
       } else {
         console.error(
           `[AI_ASSISTANT] Failed to load chat history - Status: ${response.status}`
@@ -255,7 +215,6 @@ export default function AIAssistant() {
   };
 
   const sendMessage = async () => {
-    console.log(`[AI_ASSISTANT] Send message triggered`);
 
     if (!message.trim() || !activeChat) {
       console.warn(`[AI_ASSISTANT] Send message aborted:`, {
@@ -267,11 +226,6 @@ export default function AIAssistant() {
     }
 
     const userMessage = message.trim();
-    console.log(`[AI_ASSISTANT] Sending message:`, {
-      chatId: activeChatId,
-      messageLength: userMessage.length,
-      messagePreview: userMessage.substring(0, 50) + "...",
-    });
 
     const newMessage: ChatMessage = {
       id: Date.now().toString(),
@@ -281,7 +235,6 @@ export default function AIAssistant() {
     };
 
     // Add user message immediately
-    console.log(`[AI_ASSISTANT] Adding user message to UI`);
     setLocalChats((prev: Chat[]) =>
       prev.map((chat) =>
         chat.id === activeChatId
@@ -292,17 +245,10 @@ export default function AIAssistant() {
 
     setMessage("");
     setIsTyping(true);
-    console.log(`[AI_ASSISTANT] UI updated, making API request to backend`);
 
     try {
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
       const idToken = localStorage.getItem("id_token");
-
-      console.log(`[AI_ASSISTANT] Making chat API request:`, {
-        url: `${apiBaseUrl}/api/v1/chat/address/${activeChatId}`,
-        hasToken: !!idToken,
-        messageLength: userMessage.length,
-      });
 
       const response = await fetch(
         `${apiBaseUrl}/api/v1/chat/address/${activeChatId}`,
@@ -322,12 +268,6 @@ export default function AIAssistant() {
 
       if (response.ok) {
         const data = await response.json();
-        console.log(`[AI_ASSISTANT] Received AI response:`, {
-          hasResponse: !!data.response,
-          responseLength: data.response?.length || 0,
-          messageId: data.message_id,
-          hasFunctionCall: !!data.function_call,
-        });
 
         const aiResponse: ChatMessage = {
           id: data.message_id || (Date.now() + 1).toString(),
@@ -336,7 +276,6 @@ export default function AIAssistant() {
           timestamp: new Date(),
         };
 
-        console.log(`[AI_ASSISTANT] Adding AI response to UI`);
         setLocalChats((prev: Chat[]) =>
           prev.map((chat) =>
             chat.id === activeChatId
@@ -345,7 +284,6 @@ export default function AIAssistant() {
           )
         );
 
-        console.log(`[AI_ASSISTANT] Successfully processed AI response`);
       } else {
         console.error(
           `[AI_ASSISTANT] Chat API error - Status: ${response.status}`
@@ -366,7 +304,6 @@ export default function AIAssistant() {
           timestamp: new Date(),
         };
 
-        console.log(`[AI_ASSISTANT] Adding error message to UI`);
         setLocalChats((prev: Chat[]) =>
           prev.map((chat) =>
             chat.id === activeChatId
@@ -385,7 +322,6 @@ export default function AIAssistant() {
         timestamp: new Date(),
       };
 
-      console.log(`[AI_ASSISTANT] Adding network error message to UI`);
       setLocalChats((prev: Chat[]) =>
         prev.map((chat) =>
           chat.id === activeChatId
@@ -395,9 +331,6 @@ export default function AIAssistant() {
       );
     } finally {
       setIsTyping(false);
-      console.log(
-        `[AI_ASSISTANT] Send message completed, typing indicator off`
-      );
     }
   };
 

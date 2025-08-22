@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
 import Sidebar from "./Sidebar";
+import MobileSidebar from "./MobileSidebar";
 // import { useNotifications } from "../../context";
 import GenerateReportPage from "../../pages/Decide/GenerateReportPage.tsx";
 import PastReports from "../../pages/Decide/PastReports.tsx";
@@ -51,25 +52,37 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
 
   return (
     <div className="min-h-screen bg-off-white flex">
-      <Sidebar
-        user={user}
-        onLogout={onLogout}
-        expanded={sidebarExpanded}
-        onToggleExpanded={() => setSidebarExpanded(!sidebarExpanded)}
-        isMobile={isMobile}
-      />
+      {/* Desktop Sidebar */}
+      {!isMobile && (
+        <Sidebar
+          user={user}
+          onLogout={onLogout}
+          expanded={sidebarExpanded}
+          onToggleExpanded={() => setSidebarExpanded(!sidebarExpanded)}
+          isMobile={false}
+        />
+      )}
+
+      {/* Mobile Sidebar */}
+      {isMobile && (
+        <MobileSidebar
+          user={user}
+          onLogout={onLogout}
+          expanded={sidebarExpanded}
+          onToggleExpanded={() => setSidebarExpanded(!sidebarExpanded)}
+        />
+      )}
 
       <main
         className={`flex-1 transition-all duration-200 ${
           isMobile
-            ? sidebarExpanded
-              ? "ml-72" // Full sidebar on mobile when expanded
-              : "ml-12" // Small sidebar on mobile when collapsed
+            ? "ml-0" // No margin on mobile (MobileSidebar handles positioning)
             : sidebarExpanded
-            ? "ml-72"
-            : "ml-16"
+            ? "ml-64" // Desktop expanded (w-64 = 256px)
+            : "ml-16" // Desktop collapsed (w-16 = 64px)
         }`}
       >
+        
         <div className={`${isMobile ? "p-4" : "p-8"}`}>
           <Routes>
             <Route path="generate-report" element={<GenerateReportPage />} />
