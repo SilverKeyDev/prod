@@ -324,8 +324,18 @@ def list_reports_almostall():
                 file_name = os.path.basename(s3_key)
 
                 presigned_url = s3_service.generate_presigned_url(s3_key, download_filename=file_name)
+                # Find the corresponding PDF document in database to get the UUID
+                filename_without_ext = os.path.splitext(file_name)[0]
+                pdf_doc = PDFDocument.query.filter(
+                    PDFDocument.user_id == user.id,
+                    PDFDocument.file_path.like(f'%{filename_without_ext}.pdf')
+                ).first()
+                
+                # Use UUID if found, otherwise fallback to filename
+                report_id = pdf_doc.id if pdf_doc else file_name.replace("/", "_")
+                
                 reports_list.append({
-                    'id': file_name.replace("/", "_"),
+                    'id': report_id,
                     'status': 'completed',
                     'generatedAt': int(obj["LastModified"].timestamp()),
                     'pdfUrl': presigned_url,

@@ -20,12 +20,10 @@ export const useDocumentActions = (): DocumentActionHooks => {
 
   const getFreshViewUrl = async (documentId: string): Promise<string | null> => {
     try {
-      console.log("[useDocumentActions] Getting view URL for document ID:", documentId);
       setLoadingUrls((prev) => new Set(prev).add(documentId));
 
       const baseUrl = API_BASE_URL || "";
       const url = `${baseUrl}/api/v1/report/${documentId}/view-url`;
-      console.log("[useDocumentActions] Fetching URL:", url);
       
       const res = await fetch(url, {
         credentials: "include",
@@ -85,7 +83,6 @@ export const useDocumentActions = (): DocumentActionHooks => {
   };
 
   const handleViewDocument = useCallback(async (documentId: string, documentName?: string) => {
-    console.log("[useDocumentActions] handleViewDocument called with:", { documentId, documentName });
     const pdfUrl = await getFreshViewUrl(documentId);
 
     if (pdfUrl) {
@@ -151,14 +148,12 @@ export const useDocumentActions = (): DocumentActionHooks => {
   }, []);
 
   const openPdfModal = useCallback((pdfUrl: string, documentName?: string) => {
-    console.log("[PdfModal] Opening PDF modal for:", pdfUrl);
     setCurrentPdf(pdfUrl);
     setCurrentDocumentName(documentName || null);
     document.body.style.overflow = "hidden";
   }, []);
 
   const closePdfModal = useCallback(() => {
-    console.log("[PdfModal] Closing PDF modal");
     setCurrentPdf(null);
     setCurrentDocumentName(null);
     document.body.style.overflow = "auto";

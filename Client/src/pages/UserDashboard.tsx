@@ -45,7 +45,6 @@ export default function UserDashboard() {
       setFavoriteHomes((prev) =>
         prev.filter((home) => home.home_id !== homeId)
       );
-      console.log("Successfully removed home from favorites:", homeId);
     } catch (error) {
       console.error("Error removing home from favorites:", error);
     }

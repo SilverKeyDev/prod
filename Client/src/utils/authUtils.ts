@@ -11,7 +11,6 @@ export const checkAuthAndRedirect = (navigate: NavigateFunction): boolean => {
   const authToken = idToken || token;
 
   if (!authToken) {
-    console.log("❌ No auth token found, redirecting to login");
     navigate("/login");
     return false;
   }

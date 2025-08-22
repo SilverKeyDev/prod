@@ -169,7 +169,6 @@ export default function GenerateReportPage() {
   useEffect(() => {
     const fetchClients = async () => {
       if (!userProfile?.is_agent) {
-        console.log("👤 FRONTEND: User is not an agent, skipping client fetch");
         return;
       }
 
@@ -215,7 +214,6 @@ export default function GenerateReportPage() {
         console.error("💥 FRONTEND: Error fetching clients:", error);
       } finally {
         setClientsLoading(false);
-        console.log("🏁 FRONTEND: Client fetch process completed");
       }
     };
 
@@ -225,18 +223,7 @@ export default function GenerateReportPage() {
   // Set default client selection to agent themselves
   useEffect(() => {
     if (userProfile?.is_agent && userProfile.id && !selectedClientId) {
-      console.log(
-        "🎯 FRONTEND: Setting default selectedClientId to agent's own ID:",
-        userProfile.id
-      );
       setSelectedClientId(userProfile.id);
-    } else if (userProfile?.is_agent && selectedClientId) {
-      console.log(
-        "📌 FRONTEND: selectedClientId already set to:",
-        selectedClientId
-      );
-    } else if (!userProfile?.is_agent) {
-      console.log("👤 FRONTEND: Non-agent user, no client selection needed");
     }
   }, [userProfile?.is_agent, userProfile?.id, selectedClientId]);
 
@@ -252,7 +239,6 @@ export default function GenerateReportPage() {
     }
 
     if (googleMapsLoaded && window.google?.maps?.places) {
-      console.log("✅ Google Maps loaded for report generation");
       setScriptsReady(true);
     }
   }, [googleMapsLoaded, googleMapsError]);
@@ -395,9 +381,6 @@ export default function GenerateReportPage() {
 
   // Start polling for report completion using PastReports polling function
   const setupReportCompletionListener = (documentId: string) => {
-    console.log(
-      `[GenerateReport] 🚀 Setting up completion listener for report: ${documentId}`
-    );
 
     try {
       // Try to call the polling function from PastReports
@@ -411,9 +394,6 @@ export default function GenerateReportPage() {
           );
         }
       } else {
-        console.log(
-          `[GenerateReport] ⏳ PastReports polling function not available yet, will retry...`
-        );
 
         // PastReports component might not be mounted yet, retry a few times
         let retryCount = 0;
@@ -426,9 +406,6 @@ export default function GenerateReportPage() {
             if ((window as any).pollForReportCompletion) {
               (window as any).pollForReportCompletion(documentId);
             } else if (retryCount < maxRetries) {
-              console.log(
-                `[GenerateReport] ⏳ Polling function still not available, will retry in 500ms...`
-              );
               setTimeout(retryPolling, 500); // Retry every 500ms
             } else {
               console.error(
@@ -506,17 +483,6 @@ export default function GenerateReportPage() {
       }),
     };
 
-    console.log("📤 FRONTEND: Final request body:", requestBody);
-
-    console.log(`[GenerateReport] 📤 Request body:`, requestBody);
-    console.log(`[GenerateReport] 📤 Report type: ${reportType}`);
-    console.log(`[GenerateReport] 📤 Address: ${trimmed}`);
-    if (reportType === "comparison") {
-      console.log(
-        `[GenerateReport] 📤 Comparison address: ${comparisonAddress.trim()}`
-      );
-    }
-
     // Start both immediately
     const delayPromise = new Promise((resolve) => setTimeout(resolve, 500));
     const fetchPromise = fetch(`${apiBaseUrl}/api/v1/report/generate`, {
@@ -550,14 +516,8 @@ export default function GenerateReportPage() {
         throw new Error(data.error || "Failed to generate report");
       }
 
-      console.log("✅ Report generation started", data);
-
       // Set up listener for when report generation actually completes (~5 minutes)
       if (data.document_id) {
-        console.log(
-          "[GenerateReport] Setting up completion listener for document:",
-          data.document_id
-        );
         setupReportCompletionListener(data.document_id);
       }
     } catch (err: any) {

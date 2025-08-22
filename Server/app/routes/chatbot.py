@@ -3,10 +3,12 @@
 from flask import Blueprint, request, jsonify
 from app.models.user_preferences import UserPreferences
 from app.models.chat_history import ChatHistory
-from app.services.chatbot.chatbot_utils import get_preferences
+from app.services.chatbot.chatbot_utils import get_preferences, summarize_user_message, get_chat_response
 from app.utils.auth import get_current_user
 from .. import db
 import json
+import traceback
+from datetime import datetime
 from ..utils.app_logging import get_logger
 logger = get_logger()
 
@@ -102,7 +104,7 @@ def chat_for_address(report_id):
                 # Old flat structure fallback
                 json_s3_key = pdf_path.replace('.pdf', '.json')
                         
-            from app.services.repmparator import _download_json_from_s3
+            from app.services.report_comparator import _download_json_from_s3
             report_data = _download_json_from_s3(json_s3_key)
             
         except Exception as report_error:

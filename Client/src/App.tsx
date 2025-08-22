@@ -35,7 +35,7 @@ function App() {
             setMaintenance(false);
           } else {
             setMaintenance(true);
-            console.warn("/healthz returned unexpected data:", data);
+            console.warn("/healthz returned unexpected data:");
           }
         }
       })

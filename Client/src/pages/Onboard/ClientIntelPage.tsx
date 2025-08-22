@@ -645,13 +645,6 @@ interface UserPreferencesTableProps {
 const UserPreferencesTable: React.FC<UserPreferencesTableProps> = ({
   preferences,
 }) => {
-  // Debug logging for preferences data
-  console.log("[DEBUG] Full preferences object:", preferences);
-  console.log("[DEBUG] Preferences keys:", Object.keys(preferences || {}));
-  console.log(
-    "[DEBUG] Report customization data:",
-    preferences?.report_section_priorities
-  );
   const formatValue = (value: any, fieldKey?: string): string => {
     if (value === null || value === undefined) {
       return "Not specified";
@@ -734,17 +727,8 @@ const UserPreferencesTable: React.FC<UserPreferencesTableProps> = ({
   ];
 
   const renderSection = (title: string, data: any) => {
-    // Add debugging for Report Customization section
-    if (title === "Report Customization") {
-      console.log("[DEBUG] Report Customization data:", data);
-      console.log("[DEBUG] Data type:", typeof data);
-      console.log("[DEBUG] Data keys:", data ? Object.keys(data) : "No data");
-    }
 
     if (!data || typeof data !== "object") {
-      if (title === "Report Customization") {
-        console.log("[DEBUG] Report Customization: No data or not an object");
-      }
       return null;
     }
 
@@ -752,15 +736,7 @@ const UserPreferencesTable: React.FC<UserPreferencesTableProps> = ({
       ([_, value]) => value !== null && value !== undefined && value !== ""
     );
 
-    if (title === "Report Customization") {
-      console.log("[DEBUG] Report Customization entries:", entries);
-      console.log("[DEBUG] Entries length:", entries.length);
-    }
-
     if (entries.length === 0) {
-      if (title === "Report Customization") {
-        console.log("[DEBUG] Report Customization: No entries found");
-      }
       return null;
     }
 
@@ -789,11 +765,9 @@ const UserPreferencesTable: React.FC<UserPreferencesTableProps> = ({
 
     // Special styling for Report Customization section
     if (isReportCustomization) {
-      console.log("[DEBUG] Processing Report Customization section");
 
       // Handle the actual data structure: {report_section_priorities: [array of sections]}
       const prioritizedSections = data.report_section_priorities || [];
-      console.log("[DEBUG] Prioritized sections:", prioritizedSections);
 
       // Determine which sections are enabled (in the priorities) vs disabled (not in priorities)
       const enabledSections = prioritizedSections.map(
@@ -816,9 +790,6 @@ const UserPreferencesTable: React.FC<UserPreferencesTableProps> = ({
         const displayName = name; // No numbering for disabled sections
         return { key: sectionKey, displayName };
       });
-
-      console.log("[DEBUG] Enabled sections:", enabledSections);
-      console.log("[DEBUG] Disabled sections:", disabledSections);
 
       return (
         <div className="mb-8">

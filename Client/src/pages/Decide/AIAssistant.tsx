@@ -5,13 +5,9 @@ import {
   Bot,
   MessageCircle,
   User as UserIcon,
-  FileText,
-  X,
 } from "lucide-react";
 import { useChats } from "../../context";
 import { Chat } from "../../context/utils";
-import { fetchJson, createAuthHeaders } from "../../lib/fetchUtils";
-import Loading from "../../components/ui/Loading";
 import MiniLogo from "../../components/ui/MiniLogo";
 
 interface ChatMessage {
@@ -30,9 +26,6 @@ export default function AIAssistant() {
   const [message, setMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [showPdf, setShowPdf] = useState(true);
-  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
-  const [loadingPdf, setLoadingPdf] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Load AI assistant state from localStorage on mount
@@ -41,14 +34,19 @@ export default function AIAssistant() {
     if (savedState) {
       try {
         const parsed = JSON.parse(savedState);
-        if (parsed.activeChatId) {
+        // Validate that activeChatId is a proper UUID format (not filename-based)
+        if (parsed.activeChatId && parsed.activeChatId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
           setActiveChatId(parsed.activeChatId);
+        } else if (parsed.activeChatId) {
+          console.warn("Clearing invalid activeChatId from localStorage:", parsed.activeChatId);
+          localStorage.removeItem("aiAssistantState");
         }
         if (parsed.message) {
           setMessage(parsed.message);
         }
       } catch (e) {
         console.warn("Invalid AI assistant state data");
+        localStorage.removeItem("aiAssistantState");
       }
     }
   }, []);
@@ -114,54 +112,16 @@ export default function AIAssistant() {
     scrollToBottom();
   }, [activeChat?.messages]);
 
-  // Load chat history and PDF when active chat changes
+  // Load chat history when active chat changes
   useEffect(() => {
     if (activeChatId) {
       const currentChat = chats.find((chat: Chat) => chat.id === activeChatId);
       if (currentChat && currentChat.messages.length === 0) {
         loadChatHistory(activeChatId);
       }
-      loadPdfForChat(activeChatId);
     }
   }, [activeChatId]);
 
-  // Load PDF for the active chat
-  const loadPdfForChat = async (chatId: string) => {
-    setLoadingPdf(true);
-    try {
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
-      const idToken = localStorage.getItem("id_token");
-
-      const json = await fetchJson<{ url?: string; error?: string }>(
-        `${apiBaseUrl}/api/v1/report/${chatId}/view-url`,
-        {
-          method: "GET",
-          mode: "cors",
-          headers: createAuthHeaders(idToken),
-          credentials: "include",
-          acceptStatuses: [404]
-        }
-      );
-
-      if (json?.url) {
-        setPdfUrl(json.url);
-      } else if (json === undefined) {
-        // 404 response, report not found
-        setPdfUrl(null);
-      } else {
-        console.error(`[AI_ASSISTANT] Failed to load PDF URL:`, json?.error || "Unknown error");
-        setPdfUrl(null);
-      }
-    } catch (error) {
-      console.error(
-        `[AI_ASSISTANT] Failed to load PDF URL for ${chatId}:`,
-        error
-      );
-      setPdfUrl(null);
-    } finally {
-      setLoadingPdf(false);
-    }
-  };
 
   // Load chat history for a specific chat
   const loadChatHistory = async (chatId: string) => {
@@ -169,8 +129,11 @@ export default function AIAssistant() {
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
       const idToken = localStorage.getItem("id_token");
 
+      // Remove .json extension if present in chatId for chat history API
+      const cleanChatId = chatId.endsWith('.json') ? chatId.slice(0, -5) : chatId;
+      
       const response = await fetch(
-        `${apiBaseUrl}/api/v1/chat/history/${chatId}`,
+        `${apiBaseUrl}/api/v1/chat/history/${cleanChatId}`,
         {
           method: "GET",
           mode: "cors",
@@ -250,8 +213,11 @@ export default function AIAssistant() {
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
       const idToken = localStorage.getItem("id_token");
 
+      // Remove .json extension if present in activeChatId for chat API
+      const cleanActiveChatId = activeChatId.endsWith('.json') ? activeChatId.slice(0, -5) : activeChatId;
+      
       const response = await fetch(
-        `${apiBaseUrl}/api/v1/chat/address/${activeChatId}`,
+        `${apiBaseUrl}/api/v1/chat/address/${cleanActiveChatId}`,
         {
           method: "POST",
           mode: "cors",
@@ -411,27 +377,12 @@ export default function AIAssistant() {
         </div>
 
         {/* Chat Area */}
-        <div
-          className={`${
-            showPdf && pdfUrl ? "flex-1" : "flex-1"
-          } flex flex-col bg-off-white ${
-            showPdf && pdfUrl ? "" : "rounded-r-xl"
-          }`}
-        >
+        <div className="flex-1 flex flex-col bg-off-white rounded-r-xl">
           {activeChat ? (
             <>
               {/* Chat Header */}
               <div className="p-4 border-b border-beige bg-white flex items-center justify-between">
                 <h3 className="font-medium text-black">{activeChat.title}</h3>
-                {pdfUrl && (
-                  <button
-                    onClick={() => setShowPdf(!showPdf)}
-                    className="flex items-center space-x-2 px-3 py-1 text-sm bg-brown text-white rounded-lg hover:bg-brown/80 transition-colors"
-                  >
-                    <FileText className="h-4 w-4" />
-                    <span>{showPdf ? "Hide PDF" : "Show PDF"}</span>
-                  </button>
-                )}
               </div>
 
               {/* Messages */}
@@ -561,44 +512,6 @@ export default function AIAssistant() {
           )}
         </div>
 
-        {/* PDF Viewer */}
-        {showPdf && pdfUrl && (
-          <div className="w-1/2 bg-white border-l border-beige rounded-r-xl flex flex-col">
-            {/* PDF Header */}
-            <div className="p-4 border-b border-beige bg-white flex items-center justify-between">
-              <h3 className="font-medium text-black">Property Report</h3>
-              <button
-                onClick={() => setShowPdf(false)}
-                className="p-1 hover:bg-gray-100 rounded transition-colors"
-              >
-                <X className="h-4 w-4 text-gray-500" />
-              </button>
-            </div>
-
-            {/* PDF Content */}
-            <div className="flex-1 relative">
-              {loadingPdf ? (
-                <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
-                  <Loading message="Loading PDF..." />
-                </div>
-              ) : (
-                <iframe
-                  src={`${pdfUrl}#toolbar=1&navpanes=1&view=FitH`}
-                  className="w-full h-full border-0"
-                  title="Property Report PDF"
-                  onLoad={() => {
-                    console.log(
-                      "[AI_ASSISTANT] PDF iframe loaded successfully"
-                    );
-                  }}
-                  onError={(e) => {
-                    console.error("[AI_ASSISTANT] Error loading PDF:", e);
-                  }}
-                />
-              )}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

@@ -254,7 +254,6 @@ const OfferDraftPage: React.FC = () => {
         // Note: File uploads are not saved for security reasons
       };
       localStorage.setItem(DRAFT_OFFER_STORAGE_KEY, JSON.stringify(dataToSave));
-      console.log("📝 Draft offer data saved to localStorage");
     } catch (error) {
       console.error("Failed to save draft offer data to localStorage:", error);
     }
@@ -267,7 +266,6 @@ const OfferDraftPage: React.FC = () => {
         "silverkey_draft_offer_selected_home",
         JSON.stringify(home)
       );
-      console.log("🏠 Selected home saved to localStorage");
     } catch (error) {
       console.error("Failed to save selected home to localStorage:", error);
     }
@@ -278,7 +276,6 @@ const OfferDraftPage: React.FC = () => {
     try {
       localStorage.removeItem(DRAFT_OFFER_STORAGE_KEY);
       localStorage.removeItem("silverkey_draft_offer_selected_home");
-      console.log("🗑️ Draft offer data cleared from localStorage");
     } catch (error) {
       console.error(
         "Failed to clear draft offer data from localStorage:",
@@ -306,9 +303,6 @@ const OfferDraftPage: React.FC = () => {
   ) => {
     if (e.target.files && e.target.files[0]) {
       setOffer((prev) => ({ ...prev, [key]: e.target.files![0] }));
-      // Note: Files are not saved to localStorage for security reasons
-      console.log(`📎 File uploaded for ${key}:`, e.target.files[0].name);
-      // Update validation state when form changes
       setTimeout(updateSectionValidation, 100);
     }
   };

@@ -81,10 +81,6 @@ export default function PastReports() {
 
   // Debug: Log the actual report data structure
   useEffect(() => {
-    if (reports.length > 0) {
-      console.log("[PastReports] Reports data loaded:", reports);
-      console.log("[PastReports] First report structure:", reports[0]);
-    }
   }, [reports]);
 
   // Use centralized document actions
@@ -185,12 +181,7 @@ export default function PastReports() {
 
       const baseUrl = API_BASE_URL || "";
       const endpoint = `${baseUrl}/api/v1/report/${reportId}`;
-      console.log(`[DELETE] Sending request to: ${endpoint}`, {
-        method: "DELETE",
-        s3Key: processedS3Key,
-      });
 
-      const startTime = Date.now();
       const res = await fetch(endpoint, {
         method: "DELETE",
         credentials: "include",
@@ -200,14 +191,7 @@ export default function PastReports() {
         body: JSON.stringify({ s3Key: processedS3Key }),
       });
 
-      const responseTime = Date.now() - startTime;
-      console.log(`[DELETE] Received response in ${responseTime}ms`, {
-        status: res.status,
-        statusText: res.statusText,
-      });
-
       const responseData = await res.json().catch(() => ({}));
-      console.log("[DELETE] Response data:", responseData);
 
       if (!res.ok) {
         throw new Error(
@@ -215,13 +199,11 @@ export default function PastReports() {
         );
       }
 
-      console.log(`[DELETE] Successfully deleted report ${reportId}`);
       closeDeleteModal();
       setSuccessMessage("Report deleted successfully");
       setShowSuccess(true);
 
       // Refresh the reports list
-      console.log("[DELETE] Refreshing reports list...");
       await refreshReports();
     } catch (error) {
       console.error("[DELETE] Error deleting report:", {
@@ -414,9 +396,6 @@ export default function PastReports() {
             }
 
             if (attempts < maxAttempts) {
-              console.log(
-                `[PastReports] ⏳ Report still not found. Polling again in ${pollInterval}ms`
-              );
               setTimeout(pollForCompletion, pollInterval);
             } else {
               console.warn(
@@ -424,7 +403,6 @@ export default function PastReports() {
                   elapsedTime / 60
                 } mins`
               );
-              console.log(`==============================\n`);
             }
             return;
           }
@@ -483,7 +461,6 @@ export default function PastReports() {
   useEffect(() => {
     // Event listener setup - data is already preloaded by context
     const handleReportGenerated = () => {
-      console.log("reportGenerated event received, refreshing reports.");
       refreshReports();
     };
 
@@ -923,10 +900,6 @@ export default function PastReports() {
                           <div className="flex flex-col sm:flex-row gap-2">
                             <button
                               onClick={() => {
-                                console.log(
-                                  "[PastReports] View button clicked for report:",
-                                  { id: report.id, address: report.address }
-                                );
                                 handleViewDocument(report.id, report.address);
                               }}
                               disabled={loadingUrls.has(report.id)}
@@ -954,15 +927,7 @@ export default function PastReports() {
                             </button>
                             <button
                               onClick={() => {
-                                console.log(
-                                  "[DELETE] Delete button clicked for report:",
-                                  {
-                                    id: report.id,
-                                    s3Key: report.s3Key,
-                                    address: report.address,
-                                    status: report.status,
-                                  }
-                                );
+                            
                                 openDeleteModal(report.id, report.s3Key);
                               }}
                               disabled={loadingUrls.has(report.id)}
@@ -993,15 +958,6 @@ export default function PastReports() {
                         <div className="flex items-center justify-center space-x-2 w-full">
                           <button
                             onClick={() => {
-                              console.log(
-                                "[DELETE] Delete button clicked for report:",
-                                {
-                                  id: report.id,
-                                  s3Key: report.s3Key,
-                                  address: report.address,
-                                  status: report.status,
-                                }
-                              );
                               openDeleteModal(report.id, report.s3Key);
                             }}
                             disabled={loadingUrls.has(report.id)}
@@ -1078,15 +1034,6 @@ export default function PastReports() {
                             </button>
                             <button
                               onClick={() => {
-                                console.log(
-                                  "[DELETE] Delete button clicked for report:",
-                                  {
-                                    id: report.id,
-                                    s3Key: report.s3Key,
-                                    address: report.address,
-                                    status: report.status,
-                                  }
-                                );
                                 openDeleteModal(report.id, report.s3Key);
                               }}
                               disabled={loadingUrls.has(report.id)}
@@ -1119,15 +1066,6 @@ export default function PastReports() {
                         <div className="flex items-center space-x-2">
                           <button
                             onClick={() => {
-                              console.log(
-                                "[DELETE] Delete button clicked for report:",
-                                {
-                                  id: report.id,
-                                  s3Key: report.s3Key,
-                                  address: report.address,
-                                  status: report.status,
-                                }
-                              );
                               openDeleteModal(report.id, report.s3Key);
                             }}
                             disabled={loadingUrls.has(report.id)}

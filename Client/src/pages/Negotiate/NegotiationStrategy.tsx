@@ -32,45 +32,29 @@ export default function NegotiationStrategy() {
       try {
         const parsedStrategy = JSON.parse(savedStrategy);
         setStrategyData(parsedStrategy);
-        console.log('✅ [NEGOTIATION] Successfully loaded saved strategy data from localStorage:', parsedStrategy);
       } catch (error) {
         console.error('❌ [NEGOTIATION] Failed to parse saved strategy data:', error);
         localStorage.removeItem('negotiationStrategy');
       }
-    } else {
-      console.log('ℹ️ [NEGOTIATION] No saved strategy data found in localStorage');
     }
-    
     if (savedHome) {
       try {
         const parsedHome = JSON.parse(savedHome);
         setSelectedHome(parsedHome);
-        console.log('✅ [NEGOTIATION] Successfully loaded saved home data from localStorage:', parsedHome);
       } catch (error) {
         console.error('❌ [NEGOTIATION] Failed to parse saved home data:', error);
         localStorage.removeItem('negotiationSelectedHome');
       }
-    } else {
-      console.log('ℹ️ [NEGOTIATION] No saved home data found in localStorage');
     }
     
     if (savedComps) {
       try {
         const parsedComps = JSON.parse(savedComps);
         setCompsData(parsedComps);
-        console.log('✅ [NEGOTIATION] Successfully loaded saved comps data from localStorage:', parsedComps);
-        console.log('✅ [NEGOTIATION] Comps data structure:', {
-          success: parsedComps?.success,
-          hasData: !!parsedComps?.data,
-          hasComps: !!parsedComps?.data?.comps,
-          compsCount: parsedComps?.data?.comps?.length || 0
-        });
       } catch (error) {
         console.error('❌ [NEGOTIATION] Failed to parse saved comps data:', error);
         localStorage.removeItem('negotiationComps');
       }
-    } else {
-      console.log('ℹ️ [NEGOTIATION] No saved comps data found in localStorage');
     }
   }, []);
 
@@ -162,12 +146,10 @@ export default function NegotiationStrategy() {
     
     // Save the newly selected home to localStorage
     localStorage.setItem('negotiationSelectedHome', JSON.stringify(home));
-    console.log('💾 [NEGOTIATION] Successfully saved new selected home to localStorage:', home);
     
     // Clear saved strategy and comps since we're selecting a different home
     localStorage.removeItem('negotiationStrategy');
     localStorage.removeItem('negotiationComps');
-    console.log('🗑️ [NEGOTIATION] Cleared saved strategy and comps data due to home change');
   };
 
   // Handle JSON download
@@ -201,7 +183,6 @@ export default function NegotiationStrategy() {
           files: [new File([dataStr], 'negotiation-strategy.json', { type: 'application/json' })]
         });
       } catch (err) {
-        console.log('Share cancelled or failed:', err);
         // Fallback to clipboard
         handleCopyToClipboard(dataStr);
       }

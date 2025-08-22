@@ -656,8 +656,6 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
       if (userPreferences) {
         setFormData(userPreferences as OnboardingData);
         setOriginalData(userPreferences as OnboardingData);
-      } else {
-        console.log("❌ No preferences found in context");
       }
     } catch (error) {
       console.error("Failed to load user preferences from context:", error);
@@ -804,10 +802,6 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
         ...formData,
         preferences_version: newVersion
       };
-
-      // Debug: Log the data being saved
-      console.log("💾 Saving formData with version update:", dataToSave);
-      console.log(`📈 Version updated: ${currentVersion} → ${newVersion}`);
 
       await apiRequest("/api/v1/preferences", {
         method: "POST",

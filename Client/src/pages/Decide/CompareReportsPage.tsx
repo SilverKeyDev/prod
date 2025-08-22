@@ -245,7 +245,6 @@ export default function CompareReportsPage() {
       });
       const json = await res.json();
       if (json.success) {
-        console.log("Comparison table received:", json.table);
         setComparisonTable(json.table);
       } else {
         throw new Error(json.error || "Comparison failed");
@@ -419,8 +418,6 @@ export default function CompareReportsPage() {
 
   const refreshReports = async () => {
     try {
-      console.log("📊 Updated compareReports data:", compareReports);
-
       setToastMessage("Reports refreshed successfully");
       setShowSuccess(true);
     } catch (error) {

@@ -45,7 +45,6 @@ export default function HomePage() {
     }
 
     if (googleMapsLoaded && window.google?.maps?.places) {
-      console.log("✅ Google Maps loaded for homepage");
       setScriptsReady(true);
     }
   }, [googleMapsLoaded, googleMapsError]);

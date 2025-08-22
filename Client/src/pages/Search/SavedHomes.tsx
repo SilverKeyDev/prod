@@ -43,12 +43,10 @@ export default function SavedHomes() {
   // Save a home to favorites
   const saveHome = useCallback(async (home: SavedHome) => {
     try {
-      console.log('Saving home to favorites:', home.home_id);
       const response = await favoriteHomesApi.addFavorite(home);
       
       if (response.success) {
         await refreshSavedHomes();
-        console.log('Home saved to favorites successfully');
       } else {
         throw new Error(response.error || 'Failed to save home');
       }
@@ -60,7 +58,6 @@ export default function SavedHomes() {
   // Remove a home from favorites
   const removeSavedHome = useCallback(async (homeId: string) => {
     try {
-      console.log('Removing home from favorites:', homeId);
       const home = homes.find((h: SavedHome) => h.home_id === homeId);
       
       if (!home) {
@@ -71,7 +68,6 @@ export default function SavedHomes() {
       
       if (response.success) {
         await refreshSavedHomes();
-        console.log('Home removed from favorites successfully');
       } else {
         throw new Error(response.error || 'Failed to remove home');
       }

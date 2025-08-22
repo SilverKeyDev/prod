@@ -57,13 +57,6 @@ export function GoogleMapsProvider({ children }: GoogleMapsProviderProps) {
         // Note: NO mapTypeId override - let cloud styling control the default
       });
 
-      // Runtime sanity checks
-      console.log("Using mapId:", MAP_ID);
-      console.log("Map type:", map.getMapTypeId()); // should be 'roadmap'
-      
-      // Some builds expose capabilities on vector maps:
-      console.log("Vector caps:", (map as any).getMapCapabilities?.());
-
       return map;
     } catch (err) {
       console.error("Error creating Google Map:", err);

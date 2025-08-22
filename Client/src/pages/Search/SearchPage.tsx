@@ -378,9 +378,6 @@ export default function SearchPage() {
       };
 
       localStorage.setItem("searchResults", JSON.stringify(searchData));
-      console.log(
-        `💾 Saved ${results.length} search results to localStorage with preferences version ${preferencesVersion}`
-      );
     } catch (error) {
       console.error("❌ Error saving search results to localStorage:", error);
     }
@@ -1126,14 +1123,6 @@ export default function SearchPage() {
         // Step 3: Extract actual saved homes data from API response (backend returns { favorites: HomeUniversal[] })
         const rawHomes = favoritesData.favorites || [];
 
-        rawHomes.forEach((home: any, index: number) => {
-          console.log(
-            `  ${index + 1}. Address: "${home.address || "N/A"}" - Price: ${
-              home.price || "N/A"
-            } - ${home.beds || 0}br/${home.baths || 0}ba`
-          );
-        });
-
         // Step 4: Convert HomeUniversal objects to SearchResult format (same as UserDashboard)
         if (rawHomes.length > 0) {
           const savedHomesData: SearchResult[] = await Promise.all(
@@ -1203,14 +1192,6 @@ export default function SearchPage() {
             })
           );
 
-          savedHomesData.forEach((home, index) => {
-            console.log(
-              `  ${index + 1}. ${home.address} - ${home.price} - ${
-                home.bedrooms
-              }br/${home.bathrooms}ba - ${home.sqft} sqft`
-            );
-          });
-
           // Extract addresses for favoriteAddresses state (for compatibility)
           const favoriteAddresses = rawHomes
             .map((home: any) => home.address)
@@ -1219,8 +1200,6 @@ export default function SearchPage() {
           // Update state
           setFavoriteAddresses(favoriteAddresses);
           setSavedHomes(savedHomesData);
-        } else {
-          console.log("ℹ️ No saved homes found, saved homes will remain empty");
         }
       } catch (error) {
         console.error("❌ ===== SAVED HOMES RETRIEVAL FAILED =====");
@@ -1316,10 +1295,6 @@ export default function SearchPage() {
       );
       return;
     }
-
-    // Tiny guard where you build markers/overlays
-    const idForLog = import.meta.env.VITE_GOOGLE_MAPS_ID;
-    console.log("Map ID in client:", idForLog || "(missing)");
 
     const { AdvancedMarkerElement } = window.google.maps.marker;
 
@@ -1545,21 +1520,13 @@ export default function SearchPage() {
             const newSavedHomes = [...prev, property];
             return newSavedHomes;
           });
-        } else {
-          console.log(
-            "ℹ️ Home already exists in local state, skipping local update"
-          );
-        }
+        } 
 
         // Update favorite addresses from backend response
         if (response.data?.favorites) {
           setFavoriteAddresses(response.data.favorites);
         }
 
-        console.log(
-          "✅ Home successfully added to favorites:",
-          property.address
-        );
       } else {
         console.error("❌ Backend API returned failure:", response.error);
         console.error("🏠 ===== HOME SAVE OPERATION FAILED (FRONTEND) =====");
@@ -1587,13 +1554,7 @@ export default function SearchPage() {
         console.error("🗑️ ===== HOME UNSAVE OPERATION FAILED (FRONTEND) =====");
         return;
       }
-
-      console.log("🏠 Property found for removal:", {
-        id: property.id,
-        address: property.address,
-        price: property.price,
-      });
-
+      
       const response = await favoriteHomesApi.removeFavorite(property.address);
 
       if (response.success) {

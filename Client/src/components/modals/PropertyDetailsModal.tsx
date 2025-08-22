@@ -325,7 +325,6 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({ property, o
     
     // Second priority: Check for Zillow static images
     if (property.photos && Array.isArray(property.photos) && property.photos.length > 0) {
-      console.log('🖼️ [MODAL] Using Zillow photos:', property.photos.length);
       return property.photos.map((photo: any) => {
         if (typeof photo === 'string') return photo;
         if (photo && photo.url) return photo.url;
@@ -353,7 +352,6 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({ property, o
     try {
       // Use dynamic Zillow URL from API response if available
       if (property.zillow_url) {
-        console.log('🔗 Using dynamic Zillow URL:', property.zillow_url);
         window.open(property.zillow_url, '_blank', 'noopener,noreferrer');
         return;
       }
@@ -361,14 +359,12 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({ property, o
       // Fallback: construct URL from property data
       if (property.zpid) {
         const zillowUrl = `https://www.zillow.com/homedetails/${property.zpid}_zpid/`;
-        console.log('🔗 Using zpid-based Zillow URL:', zillowUrl);
         window.open(zillowUrl, '_blank', 'noopener,noreferrer');
         return;
       }
       
       // Last resort: search by address
       const fallbackUrl = `https://www.zillow.com/homes/${encodeURIComponent(property.address)}_rb/`;
-      console.log('🔗 Using address-based Zillow search:', fallbackUrl);
       window.open(fallbackUrl, '_blank', 'noopener,noreferrer');
       
     } catch (error) {

@@ -130,18 +130,6 @@ export async function searchZillowByPolygon(
     maxRetries,
   };
 
-  console.log("[POLYGON_SEARCH] 📤 Sending API request", {
-    url: `${API_BASE}/api/v1/search/properties-by-polygon`,
-    bodySize: JSON.stringify(requestBody).length,
-    timeoutMs: TOTAL_TIMEOUT_MS,
-    polygonBounds: {
-      minLat: Math.min(...closedPolygon.map(p => p.lat)),
-      maxLat: Math.max(...closedPolygon.map(p => p.lat)),
-      minLon: Math.min(...closedPolygon.map(p => p.lon)),
-      maxLon: Math.max(...closedPolygon.map(p => p.lon)),
-    }
-  });
-
   try {
     const response = await fetchWithDeadline(
       `${API_BASE}/api/v1/search/properties-by-polygon`,
@@ -206,16 +194,6 @@ export async function searchZillowByPolygon(
       });
       throw new Error("Malformed response from server.");
     }
-
-    const totalTime = Date.now() - startTime;
-    console.log("[POLYGON_SEARCH] ✅ Search completed successfully", {
-      propertiesFound: data.properties.length,
-      bucketsTried: data.meta.bucketsTried,
-      requestsMade: data.meta.requestsMade,
-      deduped: data.meta.deduped,
-      totalTime: `${totalTime}ms`,
-      avgTimePerProperty: data.properties.length > 0 ? `${Math.round(totalTime / data.properties.length)}ms` : 'N/A'
-    });
 
     return data;
   } catch (err: any) {
