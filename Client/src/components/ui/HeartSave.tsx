@@ -51,23 +51,23 @@ const HeartSave: React.FC<HeartSaveProps> = ({
     }
   };
 
-  // Size configurations
+  // Size configurations - mobile responsive
   const sizeClasses = {
-    sm: "w-4 h-4",
-    md: "w-5 h-5", 
-    lg: "w-6 h-6"
+    sm: "w-5 h-5 sm:w-4 sm:h-4",
+    md: "w-6 h-6 sm:w-5 sm:h-5", 
+    lg: "w-7 h-7 sm:w-6 sm:h-6"
   };
 
   const buttonSizeClasses = {
-    sm: "p-1",
-    md: "p-1.5",
-    lg: "p-2"
+    sm: "p-2 sm:p-1",
+    md: "p-2.5 sm:p-1.5",
+    lg: "p-3 sm:p-2"
   };
 
   return (
     <button
       onClick={handleClick}
-      className={`rounded-full transition-colors ${
+      className={`rounded-full transition-colors touch-manipulation active:scale-95 ${
         isSaved
           ? "text-red-500 hover:text-red-600"
           : "text-gray-400 hover:text-red-500"

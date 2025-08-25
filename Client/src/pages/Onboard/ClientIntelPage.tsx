@@ -13,7 +13,7 @@ import {
   Target,
 } from "lucide-react";
 
-import Loading from "../../components/ui/Loading";
+import KeyTurnLoader from "../../components/ui/KeyTurnLoader";
 import PageHeader from "../../components/ui/PageHeader";
 
 // Custom scrollbar styles matching CompareReportsPage
@@ -301,7 +301,7 @@ const ClientIntelPage: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-cream flex items-center justify-center">
-        <Loading message="Loading client data..." />
+        <KeyTurnLoader message="Loading client data..." />
       </div>
     );
   }
@@ -576,7 +576,7 @@ const ClientIntelPage: React.FC = () => {
             <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)] custom-scrollbar">
               {actionPlanLoading ? (
                 <div className="text-center py-12">
-                  <Loading message="Generating action plan..." />
+                  <KeyTurnLoader message="Generating action plan..." />
                 </div>
               ) : actionPlanData ? (
                 <div className="space-y-6">

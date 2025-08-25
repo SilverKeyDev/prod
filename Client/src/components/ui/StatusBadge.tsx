@@ -20,12 +20,12 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({
   // Base styles
   const baseStyles = 'inline-block px-2 py-1 rounded-full font-medium';
 
-  // Size variants
+  // Size variants - mobile responsive
   const sizeStyles = {
     xs: 'text-xs px-1.5 py-0.5',
     sm: 'text-xs px-2 py-1',
-    md: 'text-sm px-3 py-1.5',
-    lg: 'text-base px-4 py-2'
+    md: 'text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-1.5',
+    lg: 'text-sm sm:text-base px-3 sm:px-4 py-1.5 sm:py-2'
   };
 
   // Variant styles matching existing patterns

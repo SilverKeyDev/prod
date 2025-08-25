@@ -33,7 +33,7 @@ const AddressDisplay: React.FC<AddressDisplayProps> = ({
   className = '',
   onClick
 }) => {
-  // Size variants
+  // Size variants - mobile responsive
   const sizeStyles = {
     xs: {
       primary: 'text-xs',
@@ -41,27 +41,27 @@ const AddressDisplay: React.FC<AddressDisplayProps> = ({
       icon: 'h-3 w-3'
     },
     sm: {
-      primary: 'text-sm',
+      primary: 'text-xs sm:text-sm',
       secondary: 'text-xs',
-      icon: 'h-4 w-4'
+      icon: 'h-4 w-4 sm:h-4 sm:w-4'
     },
     md: {
-      primary: 'text-base',
-      secondary: 'text-sm',
-      icon: 'h-5 w-5'
+      primary: 'text-sm sm:text-base',
+      secondary: 'text-xs sm:text-sm',
+      icon: 'h-4 w-4 sm:h-5 sm:w-5'
     },
     lg: {
-      primary: 'text-lg',
-      secondary: 'text-base',
-      icon: 'h-6 w-6'
+      primary: 'text-base sm:text-lg',
+      secondary: 'text-sm sm:text-base',
+      icon: 'h-5 w-5 sm:h-6 sm:w-6'
     }
   };
 
-  // Layout variants
+  // Layout variants - mobile responsive
   const layoutStyles = {
-    default: iconPosition === 'left' ? 'flex items-start gap-2' : 'flex flex-col items-start gap-1',
+    default: iconPosition === 'left' ? 'flex items-start gap-1 sm:gap-2' : 'flex flex-col items-start gap-1',
     compact: 'flex items-center gap-1',
-    detailed: iconPosition === 'left' ? 'flex items-start gap-2' : 'flex flex-col items-start gap-2'
+    detailed: iconPosition === 'left' ? 'flex items-start gap-1 sm:gap-2' : 'flex flex-col items-start gap-1 sm:gap-2'
   };
 
   const currentSizeStyles = sizeStyles[size];
@@ -87,20 +87,20 @@ const AddressDisplay: React.FC<AddressDisplayProps> = ({
         )}
         
         {/* Primary Address */}
-        <p className={`${currentSizeStyles.primary} font-medium text-navy leading-tight`}>
+        <p className={`${currentSizeStyles.primary} font-medium text-navy leading-tight truncate`}>
           {address}
         </p>
         
         {/* Secondary Address */}
         {secondaryAddress && (
-          <p className={`${currentSizeStyles.secondary} text-gray-600 ${variant === 'compact' ? 'ml-1' : ''}`}>
+          <p className={`${currentSizeStyles.secondary} text-gray-600 ${variant === 'compact' ? 'ml-1' : ''} truncate`}>
             {secondaryAddress}
           </p>
         )}
         
         {/* Region */}
         {region && (
-          <p className={`${currentSizeStyles.secondary} text-brown font-medium ${variant === 'detailed' ? 'mt-1' : ''}`}>
+          <p className={`${currentSizeStyles.secondary} text-brown font-medium ${variant === 'detailed' ? 'mt-1' : ''} truncate`}>
             {region}
           </p>
         )}

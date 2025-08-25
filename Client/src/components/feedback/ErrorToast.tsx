@@ -25,18 +25,18 @@ export default function ErrorToast({
   if (!visible) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 z-50">
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4 max-w-md">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-red-800 font-medium">Error</p>
-            <p className="text-red-700 text-sm mt-1">{message}</p>
+    <div className="fixed bottom-2 sm:bottom-4 right-2 sm:right-4 z-50">
+      <div className="bg-red-50 border border-red-200 rounded-lg p-3 sm:p-4 max-w-xs sm:max-w-md">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex-1 min-w-0">
+            <p className="text-red-800 font-medium text-sm sm:text-base">Error</p>
+            <p className="text-red-700 text-xs sm:text-sm mt-1 break-words">{message}</p>
           </div>
           <button
             onClick={onClose}
-            className="text-red-500 hover:text-red-700 transition-colors"
+            className="text-red-500 hover:text-red-700 transition-colors flex-shrink-0 touch-manipulation p-1"
           >
-            <X className="h-5 w-5" />
+            <X className="h-4 w-4 sm:h-5 sm:w-5" />
           </button>
         </div>
       </div>

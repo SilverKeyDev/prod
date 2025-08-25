@@ -73,14 +73,14 @@ const BaseModal: React.FC<BaseModalProps> = ({
 
   if (!isOpen) return null;
 
-  // Size variants
+  // Size variants - mobile responsive
   const sizeStyles = {
     xs: 'max-w-xs',
     sm: 'max-w-sm',
-    md: 'max-w-md',
-    lg: 'max-w-lg',
-    xl: 'max-w-xl',
-    full: 'max-w-full mx-4'
+    md: 'max-w-md sm:max-w-lg',
+    lg: 'max-w-lg sm:max-w-xl',
+    xl: 'max-w-xl sm:max-w-2xl',
+    full: 'max-w-full mx-2 sm:mx-4'
   };
 
   const handleBackdropClick = (e: React.MouseEvent) => {
@@ -95,7 +95,7 @@ const BaseModal: React.FC<BaseModalProps> = ({
       style={{ zIndex }}
     >
       <div
-        className="flex min-h-screen items-center justify-center p-4 sm:p-6"
+        className="flex min-h-screen items-center justify-center p-2 sm:p-4 md:p-6"
         onClick={handleBackdropClick}
       >
         {/* Backdrop */}
@@ -106,15 +106,15 @@ const BaseModal: React.FC<BaseModalProps> = ({
 
         {/* Modal */}
         <div
-          className={`relative transform overflow-hidden rounded-xl bg-white text-left shadow-xl transition-all w-full ${sizeStyles[size]} ${className}`}
+          className={`relative transform overflow-hidden rounded-lg sm:rounded-xl bg-white text-left shadow-xl transition-all w-full max-h-[90vh] sm:max-h-[85vh] ${sizeStyles[size]} ${className}`}
         >
           {/* Header */}
           {(title || headerContent || showCloseButton) && (
-            <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200">
-              <div className="flex-1">
+            <div className="flex items-center justify-between p-3 sm:p-4 md:p-6 border-b border-gray-200">
+              <div className="flex-1 min-w-0">
                 {headerContent || (
                   title && (
-                    <h3 className="text-lg font-medium text-gray-900">
+                    <h3 className="text-base sm:text-lg font-medium text-gray-900 truncate">
                       {title}
                     </h3>
                   )
@@ -124,9 +124,9 @@ const BaseModal: React.FC<BaseModalProps> = ({
                 <IconButton
                   variant="ghost"
                   size="sm"
-                  icon={<X className="h-5 w-5" />}
+                  icon={<X className="h-4 w-4 sm:h-5 sm:w-5" />}
                   onClick={onClose}
-                  className="text-gray-400 hover:text-gray-500"
+                  className="text-gray-400 hover:text-gray-500 ml-2 flex-shrink-0 touch-manipulation"
                   aria-label="Close modal"
                 />
               )}
@@ -134,13 +134,13 @@ const BaseModal: React.FC<BaseModalProps> = ({
           )}
 
           {/* Content */}
-          <div className="p-4 sm:p-6">
+          <div className="p-3 sm:p-4 md:p-6 overflow-y-auto max-h-[calc(90vh-120px)] sm:max-h-[calc(85vh-120px)]">
             {children}
           </div>
 
           {/* Footer */}
           {footerContent && (
-            <div className="border-t border-gray-200 p-4 sm:p-6">
+            <div className="border-t border-gray-200 p-3 sm:p-4 md:p-6">
               {footerContent}
             </div>
           )}

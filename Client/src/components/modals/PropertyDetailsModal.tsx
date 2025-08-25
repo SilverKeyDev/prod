@@ -402,33 +402,41 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({ property, o
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
-      <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-brown/30 hover:scrollbar-thumb-brown/50">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 z-50 overflow-y-auto">
+      <div className="bg-white rounded-lg max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-brown/30 hover:scrollbar-thumb-brown/50">
         {/* Header */}
-        <div className="sticky top-0 bg-white border-b border-gray-200 p-4 rounded-t-lg">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div>
-                <h2 className="text-xl font-bold text-brown">Property Details</h2>
-                <p className="text-sm text-gray-600 mt-1">{formatAddress(property.address)}</p>
+        <div className="sticky top-0 bg-white border-b border-gray-200 p-3 sm:p-4 rounded-t-lg">
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+              <div className="flex-1 min-w-0">
+                <h2 className="text-lg sm:text-xl font-bold text-brown truncate">Property Details</h2>
+                <p className="text-xs sm:text-sm text-gray-600 mt-1 truncate">{formatAddress(property.address)}</p>
               </div>
             </div>
             
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
               {/* Compact Action Buttons */}
               <button 
                 onClick={handleGenerateFullReport}
-                className="bg-olive-light text-white py-1.5 px-3 rounded text-xs font-medium hover:bg-olive-light/80 transition-colors"
+                className="bg-olive-light text-white py-2 px-2 sm:py-1.5 sm:px-3 rounded text-xs font-medium hover:bg-olive-light/80 transition-colors touch-manipulation hidden sm:block"
               >
                 Generate Full Report
               </button>
               <button 
+                onClick={handleGenerateFullReport}
+                className="bg-olive-light text-white p-2 rounded text-xs font-medium hover:bg-olive-light/80 transition-colors touch-manipulation sm:hidden"
+                title="Generate Full Report"
+              >
+                <Home className="w-4 h-4" />
+              </button>
+              
+              <button 
                 onClick={handleGoToZillow}
-                className="border border-blue-600 text-blue-600 py-1.5 px-3 rounded text-xs font-medium hover:bg-blue-50 transition-colors flex items-center gap-1"
+                className="border border-blue-600 text-blue-600 py-2 px-2 sm:py-1.5 sm:px-3 rounded text-xs font-medium hover:bg-blue-50 transition-colors flex items-center gap-1 touch-manipulation"
                 title="View on Zillow"
               >
-                <ExternalLink className="w-3 h-3" />
-                Zillow
+                <ExternalLink className="w-3 h-3 sm:w-3 sm:h-3" />
+                <span className="hidden sm:inline">Zillow</span>
               </button>
               
               <HeartSave
@@ -436,17 +444,17 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({ property, o
                 isSaved={isHomeSaved(property.id)}
                 onSave={saveHome}
                 onRemove={removeSavedHome}
-                size="lg"
+                size="md"
                 ariaLabel={isHomeSaved(property.id) ? "Remove from saved" : "Save property"}
               />
               
               <button
                 onClick={onClose}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors touch-manipulation"
                 aria-label="Close modal"
               >
                 <svg
-                  className="w-5 h-5 text-gray-500 hover:text-gray-700"
+                  className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 hover:text-gray-700"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -463,13 +471,13 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({ property, o
           </div>
         </div>
 
-        <div className="p-6">
+        <div className="p-3 sm:p-6">
           {/* Property Image Carousel and Basic Info */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
             <div>
               {/* Main Image Carousel */}
               <div className="relative">
-                <div className="relative w-full h-64 rounded-lg overflow-hidden">
+                <div className="relative w-full h-48 sm:h-64 rounded-lg overflow-hidden">
                   <img 
                     src={propertyImages[currentImageIndex]} 
                     alt={`Property view ${currentImageIndex + 1}`}
@@ -479,20 +487,20 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({ property, o
                   {/* Navigation Arrows */}
                   <button
                     onClick={prevImage}
-                    className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 rounded-full p-2 shadow-lg transition-all duration-200 hover:scale-110"
+                    className="absolute left-1 sm:left-2 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 rounded-full p-1.5 sm:p-2 shadow-lg transition-all duration-200 hover:scale-110 touch-manipulation"
                     aria-label="Previous image"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                     </svg>
                   </button>
                   
                   <button
                     onClick={nextImage}
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 rounded-full p-2 shadow-lg transition-all duration-200 hover:scale-110"
+                    className="absolute right-1 sm:right-2 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 rounded-full p-1.5 sm:p-2 shadow-lg transition-all duration-200 hover:scale-110 touch-manipulation"
                     aria-label="Next image"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                   </button>

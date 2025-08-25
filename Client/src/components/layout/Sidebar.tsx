@@ -411,15 +411,15 @@ export default function Sidebar({
                               {category.name}
                             </span>
                           </div>
-                          {expanded &&
+                          {!expanded && openCategories[categoryKey] && (
+                            <div className="absolute right-1 top-1 w-2 h-2 bg-gold rounded-full"></div>
+                          )}
+                          {expanded && !isMobile &&
                             (openCategories[categoryKey] ? (
                               <ChevronDown className="w-5 h-5" />
                             ) : (
                               <ChevronRight className="w-5 h-5" />
                             ))}
-                          {!expanded && openCategories[categoryKey] && (
-                            <div className="absolute right-1 top-1 w-2 h-2 bg-gold rounded-full"></div>
-                          )}
                         </button>
 
                         {/* Category Items */}

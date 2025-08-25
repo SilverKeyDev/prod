@@ -7,6 +7,7 @@ import { Search, RefreshCw, LayoutGrid, List } from "lucide-react";
 import { useSavedHomes } from "../../context";
 import { SavedHome } from "../../context/utils";
 import PropertyDetailsModal from "../../components/modals/PropertyDetailsModal";
+import KeyTurnLoader from "../../components/ui/KeyTurnLoader";
 
 export default function SavedHomes() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
@@ -190,7 +191,9 @@ export default function SavedHomes() {
       {/* Content */}
       {filteredHomes.length === 0 ? (
         loading ? (
-          <p>Loading saved homes...</p>
+          <div className="flex justify-center py-12">
+            <KeyTurnLoader message="Loading saved homes..." />
+          </div>
         ) : (
           <p>You have no saved homes yet.</p>
         )

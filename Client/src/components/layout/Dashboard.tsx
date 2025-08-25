@@ -83,7 +83,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
         }`}
       >
         
-        <div className={`${isMobile ? "p-4" : "p-8"}`}>
+        <div className={`${isMobile ? "p-2 sm:p-4" : "p-4 sm:p-6 lg:p-8"}`}>
           <Routes>
             <Route path="generate-report" element={<GenerateReportPage />} />
             <Route path="reports" element={<PastReports />} />

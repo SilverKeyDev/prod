@@ -236,16 +236,16 @@ export function PropertySearchProvider({ children }: PropertySearchProviderProps
         }
       );
 
-      if (json.success && json.isochrones) {
+      if (json && json.success && json.isochrones) {
         setIsochrones(json.isochrones.map(i => ({
           ...i,
           created_at: new Date(i.created_at)
         })));
-      } else if (json === undefined) {
-        // 404 response, treat as empty
+      } else if (json === undefined || json === null) {
+        // 404 response or null response, treat as empty
         setIsochrones([]);
       } else {
-        throw new Error(json.error || "Failed to fetch isochrones");
+        throw new Error((json && json.error) || "Failed to fetch isochrones");
       }
     } catch (e: any) {
       if (!isAbortError(e)) {

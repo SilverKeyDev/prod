@@ -75,7 +75,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
       onClick={onClick}
     >
       {/* Image Section */}
-      <div className="relative h-48 overflow-hidden">
+      <div className="relative h-32 sm:h-40 md:h-48 overflow-hidden">
         <img
           src={imageUrl || placeholder}
           alt={address}
@@ -85,35 +85,35 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
 
         {/* Status Badge */}
         {status && (
-          <div className="absolute top-3 left-3">
-            <span className={`px-2 py-1 rounded-full text-xs font-medium ${status.className}`}>
+          <div className="absolute top-2 sm:top-3 left-2 sm:left-3">
+            <span className={`px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-xs font-medium ${status.className}`}>
               {status.text}
             </span>
           </div>
         )}
 
         {/* Price Badge */}
-        <div className={`absolute top-3 ${pricePosition === 'top-left' ? 'left-3' : 'right-3'} bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full`}>
-          <span className="text-sm font-semibold text-navy">
+        <div className={`absolute top-2 sm:top-3 ${pricePosition === 'top-left' ? 'left-2 sm:left-3' : 'right-2 sm:right-3'} bg-white/90 backdrop-blur-sm px-2 sm:px-3 py-0.5 sm:py-1 rounded-full`}>
+          <span className="text-xs sm:text-sm font-semibold text-navy">
             {formatPrice(price)}
           </span>
         </div>
 
         {/* Top Content (e.g., Heart Save Button) */}
         {topContent && (
-          <div className={`absolute top-3 ${pricePosition === 'top-left' ? 'right-3' : 'left-3'}`}>
+          <div className={`absolute top-2 sm:top-3 ${pricePosition === 'top-left' ? 'right-2 sm:right-3' : 'left-2 sm:left-3'}`}>
             {topContent}
           </div>
         )}
       </div>
 
       {/* Content Section */}
-      <div className="p-4">
+      <div className="p-3 sm:p-4">
         {/* Address */}
-        <div className="flex items-start gap-2 mb-3">
-          <MapPin className="h-4 w-4 text-brown mt-0.5 flex-shrink-0" />
+        <div className="flex items-start gap-2 mb-2 sm:mb-3">
+          <MapPin className="h-3 sm:h-4 w-3 sm:w-4 text-brown mt-0.5 flex-shrink-0" />
           <div>
-            <p className="text-sm font-medium text-navy leading-tight">
+            <p className="text-xs sm:text-sm font-medium text-navy leading-tight line-clamp-2">
               {address}
             </p>
           </div>
@@ -121,27 +121,27 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
 
         {/* Property Details */}
         {(bedrooms !== undefined || bathrooms !== undefined || sqft !== undefined) && (
-          <div className="grid grid-cols-3 gap-3 mb-3">
+          <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-2 sm:mb-3">
             {bedrooms !== undefined && (
               <div className="flex items-center gap-1">
-                <Bed className="h-3 w-3 text-brown" />
-                <span className="text-xs text-gray-600">
+                <Bed className="h-3 w-3 text-brown flex-shrink-0" />
+                <span className="text-xs text-gray-600 truncate">
                   {bedrooms} bed{bedrooms !== 1 ? 's' : ''}
                 </span>
               </div>
             )}
             {bathrooms !== undefined && (
               <div className="flex items-center gap-1">
-                <Bath className="h-3 w-3 text-brown" />
-                <span className="text-xs text-gray-600">
+                <Bath className="h-3 w-3 text-brown flex-shrink-0" />
+                <span className="text-xs text-gray-600 truncate">
                   {bathrooms} bath{bathrooms !== 1 ? 's' : ''}
                 </span>
               </div>
             )}
             {sqft !== undefined && (
               <div className="flex items-center gap-1">
-                <Square className="h-3 w-3 text-brown" />
-                <span className="text-xs text-gray-600">
+                <Square className="h-3 w-3 text-brown flex-shrink-0" />
+                <span className="text-xs text-gray-600 truncate">
                   {sqft.toLocaleString()} sqft
                 </span>
               </div>
@@ -151,12 +151,12 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
 
         {/* Additional Details */}
         {(propertyType || lotSize) && (
-          <div className="space-y-2 mb-3">
+          <div className="space-y-1 sm:space-y-2 mb-2 sm:mb-3">
             {/* Property Type */}
             {propertyType && (
               <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-500">Type:</span>
-                <span className="text-xs font-medium text-navy">
+                <span className="text-xs text-gray-500 flex-shrink-0">Type:</span>
+                <span className="text-xs font-medium text-navy truncate">
                   {propertyType
                     .replace(/_/g, " ")
                     .toLowerCase()
@@ -168,8 +168,8 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
             {/* Lot Size */}
             {lotSize && (
               <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-500">Lot:</span>
-                <span className="text-xs font-medium text-navy">
+                <span className="text-xs text-gray-500 flex-shrink-0">Lot:</span>
+                <span className="text-xs font-medium text-navy truncate">
                   {lotSize}
                 </span>
               </div>

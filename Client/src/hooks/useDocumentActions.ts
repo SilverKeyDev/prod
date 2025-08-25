@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { createAuthHeaders } from '../lib/fetchUtils';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -26,6 +27,7 @@ export const useDocumentActions = (): DocumentActionHooks => {
       const url = `${baseUrl}/api/v1/report/${documentId}/view-url`;
       
       const res = await fetch(url, {
+        headers: createAuthHeaders(),
         credentials: "include",
       });
 
@@ -57,6 +59,7 @@ export const useDocumentActions = (): DocumentActionHooks => {
 
       const baseUrl = API_BASE_URL || "";
       const res = await fetch(`${baseUrl}/api/v1/report/${documentId}/download-url`, {
+        headers: createAuthHeaders(),
         credentials: "include",
       });
 

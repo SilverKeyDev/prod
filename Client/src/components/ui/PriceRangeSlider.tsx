@@ -73,7 +73,7 @@ const PriceRangeSlider: React.FC<PriceRangeSliderProps> = ({
               style={{ left: `${leftPercent}%` }}
             >
               <div className="h-2 w-0.5 bg-gray-300 mx-auto"></div>
-              <div className="text-[10px] text-gray-500 mt-1 whitespace-nowrap">
+              <div className="text-[8px] sm:text-[10px] text-gray-500 mt-1 whitespace-nowrap">
                 {index === tickValues.length - 1 ? `${formattedValue(val)}+` : formattedValue(val)}
               </div>
             </div>
@@ -85,29 +85,29 @@ const PriceRangeSlider: React.FC<PriceRangeSliderProps> = ({
 
   return (
     <div className={`flex justify-center w-full ${className}`}>
-  <div className="w-[600px] max-w-full">
-    <div className="mb-6">
-      <input
-        type="range"
-        min={0}
-        max={100}
-        step={0.1}
-        value={sliderValue}
-        onChange={disabled ? undefined : handleSliderChange}
-        className={`w-full h-2 bg-beige rounded-lg appearance-none accent-brown ${disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
-        disabled={disabled}
-        tabIndex={disabled ? -1 : 0}
-        aria-disabled={disabled}
-      />
-      {renderTickMarks()}
+      <div className="w-full max-w-[600px] px-2 sm:px-4">
+        <div className="mb-4 sm:mb-6">
+          <input
+            type="range"
+            min={0}
+            max={100}
+            step={0.1}
+            value={sliderValue}
+            onChange={disabled ? undefined : handleSliderChange}
+            className={`w-full h-2 bg-beige rounded-lg appearance-none accent-brown touch-manipulation ${disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
+            disabled={disabled}
+            tabIndex={disabled ? -1 : 0}
+            aria-disabled={disabled}
+          />
+          {renderTickMarks()}
+        </div>
+        <div className="text-center">
+          <span className="text-base sm:text-lg font-medium text-brown">
+            {formattedValue(value)}
+          </span>
+        </div>
+      </div>
     </div>
-    <div className="text-center">
-      <span className="text-lg font-medium text-brown">
-        {formattedValue(value)}
-      </span>
-    </div>
-  </div>
-</div>
   );
 };
 

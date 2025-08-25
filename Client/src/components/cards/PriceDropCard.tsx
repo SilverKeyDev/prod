@@ -30,7 +30,7 @@ export default function PriceDropCard({ item }: PriceDropCardProps) {
   return (
     <div className="border rounded-lg shadow-sm bg-white hover:shadow-md transition overflow-hidden flex flex-col">
       {/* Image */}
-      <div className="w-full h-40 bg-gray-100 overflow-hidden">
+      <div className="w-full h-32 sm:h-36 md:h-40 bg-gray-100 overflow-hidden">
         <img
           src={imageUrl || placeholder}
           alt={address}
@@ -40,15 +40,15 @@ export default function PriceDropCard({ item }: PriceDropCardProps) {
       </div>
 
       {/* Details */}
-      <div className="p-4 flex-1 flex flex-col gap-2">
-        <h3 className="font-semibold text-base line-clamp-2" title={address}>
+      <div className="p-3 sm:p-4 flex-1 flex flex-col gap-1.5 sm:gap-2">
+        <h3 className="font-semibold text-sm sm:text-base line-clamp-2" title={address}>
           {address}
         </h3>
-        <div className="flex items-center gap-2 text-sm text-red-600 font-medium">
-          <ArrowDownRight size={18} />
+        <div className="flex items-center gap-2 text-xs sm:text-sm text-red-600 font-medium">
+          <ArrowDownRight size={16} className="sm:w-[18px] sm:h-[18px] flex-shrink-0" />
           <span>{percent}% price drop</span>
         </div>
-        <p className="text-sm text-gray-700">
+        <p className="text-xs sm:text-sm text-gray-700">
           {formatter.format(oldPrice)} → {formatter.format(newPrice)}
         </p>
       </div>

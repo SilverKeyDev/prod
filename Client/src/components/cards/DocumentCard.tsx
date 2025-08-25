@@ -97,19 +97,19 @@ export default function DocumentCard({ doc }: DocumentCardProps) {
           onClose={closePdfModal}
         />
       )}
-      <div className="border rounded-lg shadow-sm bg-white hover:shadow-md transition p-4">
+      <div className="border rounded-lg shadow-sm bg-white hover:shadow-md transition p-3 sm:p-4">
       {/* Header with icon and status */}
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center gap-3">
+      <div className="flex items-start justify-between mb-2 sm:mb-3">
+        <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
           <div className="flex-shrink-0 text-brown">
-            <FileText size={24} />
+            <FileText size={20} className="sm:w-6 sm:h-6" />
           </div>
           <div className="flex-1 overflow-hidden">
-            <p className="font-medium text-xs leading-tight line-clamp-2 h-8" title={fullDisplayName}>
+            <p className="font-medium text-xs sm:text-sm leading-tight line-clamp-2 h-6 sm:h-8" title={fullDisplayName}>
               {fullDisplayName}
             </p>
             {doc.report_type && (
-              <p className="text-xs text-gray-500 capitalize">
+              <p className="text-xs text-gray-500 capitalize mt-0.5">
                 {doc.report_type} Report
               </p>
             )}
@@ -119,21 +119,21 @@ export default function DocumentCard({ doc }: DocumentCardProps) {
         <button
           onClick={handleDownload}
           disabled={isLoading}
-          className="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex-shrink-0 p-1 sm:p-1.5 text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
           title="Download"
         >
           {isLoading ? (
-            <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+            <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
           ) : (
-            <Download size={16} />
+            <Download size={14} className="sm:w-4 sm:h-4" />
           )}
         </button>
       </div>
 
       {/* Creation date */}
-      <div className="flex items-center gap-2 mb-4">
-        <Calendar size={14} className="text-gray-400 flex-shrink-0" />
-        <p className="text-sm text-gray-600">
+      <div className="flex items-center gap-2 mb-3 sm:mb-4">
+        <Calendar size={12} className="sm:w-3.5 sm:h-3.5 text-gray-400 flex-shrink-0" />
+        <p className="text-xs sm:text-sm text-gray-600">
           Created {formatDate(doc.created_at)}
         </p>
       </div>
@@ -142,17 +142,17 @@ export default function DocumentCard({ doc }: DocumentCardProps) {
       <button
         onClick={handleView}
         disabled={isLoading}
-        className="w-full flex items-center justify-center gap-2 px-3 py-1 bg-gold text-white text-sm font-medium rounded hover:bg-gold/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full flex items-center justify-center gap-2 px-3 py-2 sm:py-2.5 bg-gold text-white text-xs sm:text-sm font-medium rounded hover:bg-gold/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
       >
         {isLoading ? (
           <>
-            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            Loading...
+            <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            <span className="text-xs sm:text-sm">Loading...</span>
           </>
         ) : (
           <>
-            <Eye size={16} />
-            View Document
+            <Eye size={14} className="sm:w-4 sm:h-4" />
+            <span className="text-xs sm:text-sm">View Document</span>
           </>
         )}
       </button>

@@ -6,7 +6,6 @@ import HeartSave from "../../components/ui/HeartSave";
 import PropertyDetailsModal from "../../components/modals/PropertyDetailsModal";
 import { searchZillowByPolygon, LatLng } from "../../lib/searchApi";
 import { usePropertyDetails } from "../../hooks/usePropertyDetails";
-import Loading from "../../components/ui/Loading";
 import KeyTurnLoader from "../../components/ui/KeyTurnLoader";
 import { checkAuthAndRedirect, getAuthToken } from "../../utils/authUtils";
 import { useGoogleMaps } from "../../context/GoogleMapsContext";
@@ -216,6 +215,7 @@ export default function SearchPage() {
   const [, setImportantLocationMarkers] = useState<
     google.maps.marker.AdvancedMarkerElement[]
   >([]);
+  const [isUpdatingMarkers, setIsUpdatingMarkers] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const [showPropertyModals, setShowPropertyModals] = useState(false);
   const PROPERTIES_PER_PAGE = 3;
@@ -525,8 +525,8 @@ export default function SearchPage() {
     }
   }, [
     activeTab,
-    searchResults,
-    savedHomes,
+    searchResults.length, // Only depend on length to avoid re-renders on same data
+    savedHomes.length,    // Only depend on length to avoid re-renders on same data
     showPropertyModals,
     hasSearched,
     currentPage,
@@ -1257,6 +1257,12 @@ export default function SearchPage() {
   const updateMapMarkers = async (results: SearchResult[]) => {
     if (!googleMapRef.current) return;
 
+    // Prevent duplicate processing using proper state
+    if (isUpdatingMarkers) {
+      return;
+    }
+    setIsUpdatingMarkers(true);
+
     // Clear existing HOME markers and overlays (but preserve important location markers)
     markersRef.current.forEach((marker) => {
       marker.map = null;
@@ -1504,6 +1510,9 @@ export default function SearchPage() {
     if (results.length > 0) {
       fitMapToMarkers(results);
     }
+
+    // Reset processing flag
+    setIsUpdatingMarkers(false);
   };
   const saveHome = async (property: SearchResult) => {
     try {
@@ -1612,8 +1621,272 @@ export default function SearchPage() {
 
   return (
     <div className="max-w-7xl mx-auto">
-      {/* Main Layout */}
-      <div className="flex gap-4 h-[calc(100vh-160px)]">
+      {/* Mobile Layout */}
+      <div className="md:hidden flex flex-col h-[calc(100vh-80px)]">
+        {/* Mobile Header - Small and Compact */}
+        <div className="flex-shrink-0 p-3 bg-white border-b border-gray-200">
+          <div className="flex gap-2">
+            <button
+              onClick={() => navigate("/dashboard/personalization")}
+              className="flex-1 px-3 py-2 text-xs font-medium text-brown border border-brown rounded-lg hover:bg-brown hover:text-white transition-colors touch-friendly"
+            >
+              Edit Preferences
+            </button>
+            <button
+              onClick={async () => {
+                try {
+                  setIsSearching(true);
+                  await fetchIsochronePolygon();
+                } catch (error) {
+                  console.error("Search failed:", error);
+                } finally {
+                  setIsSearching(false);
+                }
+              }}
+              disabled={isSearching}
+              className="flex-1 px-3 py-2 text-xs font-medium text-white bg-brown rounded-lg hover:bg-brown-dark transition-colors touch-friendly disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSearching ? "Searching..." : "Search Properties"}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Carousel for Properties */}
+        <div className="flex-shrink-0 bg-white border-b border-gray-200">
+          {/* Tab Navigation */}
+          <div className="flex border-b border-gray-200">
+            <button
+              onClick={() => {
+                handleTabChange("results");
+                if (hasSearched && searchResults.length > 0) {
+                  setShowPropertyModals(true);
+                }
+              }}
+              className={`flex-1 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === "results"
+                  ? "border-brown text-brown"
+                  : "border-transparent text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              Search
+              {searchResults.length > 0 && (
+                <span className="ml-2 px-2 py-0.5 bg-olive-light text-gray-800 text-xs rounded-full">
+                  {searchResults.length}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => {
+                handleTabChange("saved");
+                if (savedHomes.length > 0) {
+                  setShowPropertyModals(true);
+                  setHasSearched(true);
+                }
+              }}
+              className={`flex-1 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === "saved"
+                  ? "border-brown text-brown"
+                  : "border-transparent text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              Saved
+              {savedHomes.length > 0 && (
+                <span className="ml-2 px-2 py-0.5 bg-olive-light text-gray-800 text-xs rounded-full">
+                  {savedHomes.length}
+                </span>
+              )}
+            </button>
+          </div>
+
+          {/* Mobile Property Carousel */}
+          <div className="p-2 sm:p-3">
+            {activeTab === "results" ? (
+              searchResults.length > 0 ? (
+                <div className="flex gap-2 sm:gap-3 overflow-x-auto scrollbar-hide pb-2" style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
+                  {searchResults.slice(currentPage * PROPERTIES_PER_PAGE, (currentPage + 1) * PROPERTIES_PER_PAGE).map((property) => (
+                    <div
+                      key={property.id}
+                      className="flex-shrink-0 w-56 sm:w-64 border rounded-lg cursor-pointer transition-all overflow-hidden bg-white hover:shadow-md active:scale-95 touch-manipulation"
+                      onClick={() => handleViewPropertyDetails(property)}
+                    >
+                      {property.imageUrl && (
+                        <div className="w-full h-28 sm:h-32 bg-gray-200 overflow-hidden rounded-t-lg">
+                          <img
+                            src={property.imageUrl}
+                            alt={property.address}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = "/default-home.jpg";
+                            }}
+                          />
+                        </div>
+                      )}
+                      <div className="p-2 sm:p-3">
+                        <h3 className="text-xs sm:text-sm font-medium text-black line-clamp-2 mb-1 leading-tight">
+                          {typeof property.address === "string" || typeof property.address === "number"
+                            ? property.address
+                            : "[Invalid address]"}
+                        </h3>
+                        <p className="text-base sm:text-lg font-semibold text-brown mb-1 sm:mb-2">
+                          {typeof property.price === "string" || typeof property.price === "number"
+                            ? property.price
+                            : "[Invalid price]"}
+                        </p>
+                        <div className="grid grid-cols-3 gap-1 sm:gap-2 text-xs text-gray-600">
+                          <div className="text-center">{property.bedrooms} beds</div>
+                          <div className="text-center">{property.bathrooms} baths</div>
+                          <div className="text-center">{property.sqft.toLocaleString()} sqft</div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-6 sm:py-8 text-gray-500 px-4">
+                  <p className="text-sm sm:text-base">No search results yet.</p>
+                  <p className="text-xs sm:text-sm mt-1">Tap "Search Properties" to find homes.</p>
+                </div>
+              )
+            ) : (
+              savedHomes.length > 0 ? (
+                <div className="flex gap-2 sm:gap-3 overflow-x-auto scrollbar-hide pb-2" style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
+                  {savedHomes.slice(currentPage * PROPERTIES_PER_PAGE, (currentPage + 1) * PROPERTIES_PER_PAGE).map((property) => (
+                    <div
+                      key={property.id}
+                      className="flex-shrink-0 w-56 sm:w-64 border rounded-lg cursor-pointer transition-all overflow-hidden bg-white hover:shadow-md active:scale-95 touch-manipulation"
+                      onClick={() => handleViewPropertyDetails(property)}
+                    >
+                      {property.imageUrl && (
+                        <div className="w-full h-28 sm:h-32 bg-gray-200 overflow-hidden rounded-t-lg">
+                          <img
+                            src={property.imageUrl}
+                            alt={property.address}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = "/default-home.jpg";
+                            }}
+                          />
+                        </div>
+                      )}
+                      <div className="p-2 sm:p-3">
+                        <h3 className="text-xs sm:text-sm font-medium text-black line-clamp-2 mb-1 leading-tight">
+                          {typeof property.address === "string" || typeof property.address === "number"
+                            ? property.address
+                            : "[Invalid address]"}
+                        </h3>
+                        <p className="text-base sm:text-lg font-semibold text-brown mb-1 sm:mb-2">
+                          {typeof property.price === "string" || typeof property.price === "number"
+                            ? property.price
+                            : "[Invalid price]"}
+                        </p>
+                        <div className="grid grid-cols-3 gap-1 sm:gap-2 text-xs text-gray-600">
+                          <div className="text-center">{property.bedrooms} beds</div>
+                          <div className="text-center">{property.bathrooms} baths</div>
+                          <div className="text-center">{property.sqft.toLocaleString()} sqft</div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-6 sm:py-8 text-gray-500 px-4">
+                  <p className="text-sm sm:text-base">No saved homes yet.</p>
+                  <p className="text-xs sm:text-sm mt-1">Save homes from search results.</p>
+                </div>
+              )
+            )}
+          </div>
+        </div>
+
+        {/* Mobile Map - Takes majority of screen */}
+        <div className="flex-1 relative">
+          {/* Loading overlay */}
+          {(isSearching ||
+            (hasSearched &&
+              searchResults.length === 0 &&
+              savedHomes.length === 0) ||
+            (!hasSearched &&
+              searchResults.length === 0 &&
+              savedHomes.length === 0)) && (
+            <div className="absolute inset-0 z-20 w-full h-full flex items-center justify-center bg-gray-50">
+              <div className="flex flex-col items-center gap-4">
+                <KeyTurnLoader
+                  message={
+                    isSearching
+                      ? searchStage || "Searching properties..."
+                      : "Loading map..."
+                  }
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Map container */}
+          <div className="w-full h-full relative">
+            <div
+              ref={mapRef}
+              className="w-full h-full"
+              style={{ minHeight: "100%" }}
+            />
+
+            {/* Mobile Zoom Controls */}
+            {!isSearching && (
+              <div className="absolute bottom-4 left-4 flex flex-col gap-1 z-10">
+                <button
+                  onClick={zoomIn}
+                  className="w-12 h-12 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 touch-friendly"
+                  title="Zoom in"
+                >
+                  <span className="text-xl font-bold leading-none">+</span>
+                </button>
+                <button
+                  onClick={zoomOut}
+                  className="w-12 h-12 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 touch-friendly"
+                  title="Zoom out"
+                >
+                  <span className="text-xl font-bold leading-none">−</span>
+                </button>
+              </div>
+            )}
+
+            {/* Mobile Pagination Controls */}
+            {!isSearching &&
+              hasSearched &&
+              (activeTab === "results"
+                ? searchResults.length > PROPERTIES_PER_PAGE
+                : savedHomes.length > PROPERTIES_PER_PAGE) && (
+                <div className="absolute bottom-4 right-4 flex flex-row gap-1 z-10">
+                  <button
+                    onClick={() =>
+                      setCurrentPage(Math.max(0, currentPage - 1))
+                    }
+                    disabled={currentPage === 0}
+                    className="w-12 h-12 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 disabled:opacity-50 disabled:cursor-not-allowed touch-friendly"
+                    title="Previous properties"
+                  >
+                    <ChevronLeft className="w-6 h-6" />
+                  </button>
+                  <button
+                    onClick={() => setCurrentPage(currentPage + 1)}
+                    disabled={
+                      (currentPage + 1) * PROPERTIES_PER_PAGE >=
+                      (activeTab === "results"
+                        ? searchResults.length
+                        : savedHomes.length)
+                    }
+                    className="w-12 h-12 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 disabled:opacity-50 disabled:cursor-not-allowed touch-friendly"
+                    title="Next properties"
+                  >
+                    <ChevronRight className="w-6 h-6" />
+                  </button>
+                </div>
+              )}
+          </div>
+        </div>
+      </div>
+
+      {/* Desktop Layout */}
+      <div className="hidden md:flex gap-4 h-[calc(100vh-160px)]">
         {/* Sidebar */}
         <div className="w-64 flex-shrink-0 flex flex-col">
           <div
@@ -1980,7 +2253,7 @@ export default function SearchPage() {
             </div>
           </div>
 
-          {/* Map - Takes remaining height */}
+          {/* Desktop Map - Takes remaining height */}
           <div className="mobile-card flex-1 p-0 relative">
             {/* Loading overlay - shows until at least one property is available on map */}
             {(isSearching ||
@@ -1992,7 +2265,7 @@ export default function SearchPage() {
                 savedHomes.length === 0)) && (
               <div className="absolute inset-0 z-20 w-full h-full rounded-lg flex items-center justify-center bg-gray-50">
                 <div className="flex flex-col items-center gap-4">
-                  <Loading
+                  <KeyTurnLoader
                     message={
                       isSearching
                         ? searchStage || "Searching properties..."

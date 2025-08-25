@@ -133,7 +133,7 @@ const PdfModal: React.FC<PdfModalProps> = ({
             className="w-full h-full border-0"
             title="PDF Viewer"
             onLoad={() => {
-              /* Optionally log or handle load */
+              /* PDF loaded successfully */
             }}
             onError={(e) => {
               const iframe = e.target as HTMLIFrameElement;

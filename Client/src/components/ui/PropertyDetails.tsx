@@ -48,24 +48,24 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({
   // Size variants
   const sizeStyles = {
     xs: {
-      text: 'text-xs',
-      icon: 'h-3 w-3'
+      text: 'text-xs sm:text-xs',
+      icon: 'h-3 w-3 sm:h-3 sm:w-3'
     },
     sm: {
-      text: 'text-sm',
-      icon: 'h-4 w-4'
+      text: 'text-xs sm:text-sm',
+      icon: 'h-3 w-3 sm:h-4 sm:w-4'
     },
     md: {
-      text: 'text-base',
-      icon: 'h-5 w-5'
+      text: 'text-sm sm:text-base',
+      icon: 'h-4 w-4 sm:h-5 sm:w-5'
     }
   };
 
   // Layout variants
   const layoutStyles = {
-    grid: `grid grid-cols-${columns} gap-3`,
-    list: 'space-y-2',
-    inline: 'flex flex-wrap gap-4'
+    grid: `grid grid-cols-2 sm:grid-cols-${columns} gap-2 sm:gap-3`,
+    list: 'space-y-1 sm:space-y-2',
+    inline: 'flex flex-wrap gap-2 sm:gap-4'
   };
 
   const currentSizeStyles = sizeStyles[size];
@@ -156,9 +156,9 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({
   return (
     <div className={`${currentLayoutStyles} ${className}`}>
       {visibleDetails.map((detail) => (
-        <div key={detail.key} className="flex items-center gap-1">
+        <div key={detail.key} className="flex items-center gap-1 sm:gap-1.5">
           {showIcons && detail.icon}
-          <span className={`${currentSizeStyles.text} text-gray-600`}>
+          <span className={`${currentSizeStyles.text} text-gray-600 truncate`}>
             {detail.label}
           </span>
         </div>
