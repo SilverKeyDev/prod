@@ -367,11 +367,6 @@ export default function MobileSidebar({
                           <div className="flex items-center">
                             <category.icon className="w-6 h-6 mr-3" />
                             <span>{category.name}</span>
-                            {openCategories[categoryKey] ? (
-                              <ChevronDown className="w-5 h-5" />
-                            ) : (
-                              <ChevronRight className="w-5 h-5" />
-                            )}
                           </div>
                           {openCategories[categoryKey] ? (
                             <ChevronDown className="w-5 h-5" />

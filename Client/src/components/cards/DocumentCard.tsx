@@ -105,7 +105,7 @@ export default function DocumentCard({ doc }: DocumentCardProps) {
             <FileText size={20} className="sm:w-6 sm:h-6" />
           </div>
           <div className="flex-1 overflow-hidden">
-            <p className="font-medium text-xs sm:text-sm leading-tight line-clamp-2 h-6 sm:h-8" title={fullDisplayName}>
+            <p className="font-medium text-[10px] sm:text-xs md:text-sm leading-tight line-clamp-2" title={fullDisplayName}>
               {fullDisplayName}
             </p>
             {doc.report_type && (
