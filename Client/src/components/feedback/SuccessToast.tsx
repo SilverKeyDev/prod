@@ -27,7 +27,7 @@ export default function SuccessToast({
 
   return (
     <div className="fixed bottom-2 sm:bottom-4 right-2 sm:right-4 z-50">
-      <div className="bg-green-50 border border-green-200 rounded-lg p-3 sm:p-4 max-w-xs sm:max-w-md">
+      <div className="bg-green-50 border border-green-200 rounded-lg mobile-padding max-w-xs sm:max-w-md">
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
             <p className="text-green-800 font-medium text-sm sm:text-base">Success</p>

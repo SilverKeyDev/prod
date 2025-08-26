@@ -436,7 +436,7 @@ export default function CompareReportsPage() {
         title="Compare Reports"
         subtitle="Select two reports to compare side by side"
       />
-      <div className="mx-auto px-12 py-10 max-w-6xl">
+      <div className="mx-auto px-12 py-10 max-w-6xl overflow-x-auto">
         {/* Error Toast */}
         {showError && (
           <ErrorToast
@@ -456,7 +456,7 @@ export default function CompareReportsPage() {
         )}
 
         {/* Reports Selection */}
-        <div className="mobile-card mb-20 sm:mb-8">
+        <div className="mobile-card mb-20 sm:mb-8" style={{ minWidth: '800px' }}>
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 space-y-3 sm:space-y-0">
             <div>
               <h2 className="text-lg sm:text-xl font-medium text-black">
@@ -543,6 +543,7 @@ export default function CompareReportsPage() {
                       scrollbarColor: "#E8D5B560 #f3f4f6",
                     }
                   : {}),
+                minWidth: '750px'
               }}
             >
               {reports.map((report: Report) => {
@@ -619,8 +620,8 @@ export default function CompareReportsPage() {
 
         {/* Comparison Table */}
         {selectedReports.length > 0 && (
-          <div className="mt-6 sm:mt-10 w-full overflow-x-auto scrollbar-hide border rounded-lg">
-            <table className="min-w-full text-xs border-collapse">
+          <div className="mt-6 sm:mt-10 w-full overflow-x-auto scrollbar-hide border rounded-lg" style={{ minWidth: '800px' }}>
+            <table className="w-full text-xs border-collapse" style={{ minWidth: '800px', tableLayout: 'fixed' }}>
               <thead className="bg-beige/30">
                 <tr>
                   <th className="px-2 sm:px-4 py-2 sm:py-3 text-left font-semibold text-black sticky left-0 bg-beige/30 text-xs">

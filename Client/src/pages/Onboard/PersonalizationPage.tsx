@@ -35,7 +35,6 @@ import { apiRequest } from "../../lib/api";
 import { usePreferences } from "../../context";
 import ImportantLocationsInput from "../../components/ui/ImportantLocationsInput";
 import Loading from "../../components/ui/Loading";
-import MiniLogo from "../../components/ui/MiniLogo";
 import OliveCheckbox from "../../components/ui/OliveCheckbox";
 import PriceRangeSlider from "../../components/ui/PriceRangeSlider";
 import ValidationWarning from "../../components/feedback/ValidationWarning";
@@ -2227,29 +2226,30 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
   return (
     <div className="min-h-screen bg-off-white">
       <div className="max-w-7xl mx-auto mobile-padding">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-serif text-black flex items-center gap-2">
-              <MiniLogo size="md" />
-              Personalization
+        {/* Header with action buttons */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+          <div className="w-[90%] sm:w-auto mx-auto sm:mx-0 text-center sm:text-left">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-serif text-black mb-2">
+              Personalization Settings
             </h1>
-            <p className="text-gray-600 mt-2">
-              Review and update your preferences
+            <p className="text-sm sm:text-base text-gray-600">
+              Customize your preferences to get more personalized reports and
+              recommendations.
             </p>
           </div>
 
-          <div className="flex gap-3">
+          {/* Desktop Action Buttons - Hidden on mobile */}
+          <div className="hidden sm:flex gap-3">
             {!isEditMode ? (
               <button
                 onClick={() => setIsEditMode(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-olive text-white rounded-lg hover:bg-olive/80 transition-colors touch-friendly"
+                className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-olive text-white rounded-lg hover:bg-olive/80 transition-colors touch-friendly btn-text-sm"
               >
                 <Edit size={16} />
                 Edit Preferences
               </button>
             ) : (
-              <div className="flex gap-2">
+              <>
                 <button
                   onClick={handleCancel}
                   className="flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors touch-friendly"
@@ -2260,20 +2260,51 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                 <button
                   onClick={handleSaveChanges}
                   disabled={isSaving}
-                  className="flex-1 flex items-center gap-2 px-4 py-2 bg-olive text-white rounded-lg hover:bg-olive/80 transition-colors disabled:opacity-50 touch-friendly"
+                  className="flex items-center gap-2 px-4 py-2 bg-olive text-white rounded-lg hover:bg-olive/80 transition-colors disabled:opacity-50 touch-friendly"
                 >
                   <Save size={16} />
                   {isSaving ? "Saving..." : "Save Changes"}
                 </button>
-              </div>
+              </>
             )}
           </div>
         </div>
 
+        {/* Mobile Action Buttons - Only visible on mobile */}
+        <div className="sm:hidden w-[90%] mx-auto mb-6">
+          {!isEditMode ? (
+            <button
+              onClick={() => setIsEditMode(true)}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-olive text-white rounded-lg hover:bg-olive/80 transition-colors touch-friendly btn-text-sm"
+            >
+              <Edit size={16} />
+              Edit Preferences
+            </button>
+          ) : (
+            <div className="space-y-3">
+              <button
+                onClick={handleCancel}
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors touch-friendly"
+              >
+                <X size={16} />
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveChanges}
+                disabled={isSaving}
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-olive text-white rounded-lg hover:bg-olive/80 transition-colors disabled:opacity-50 touch-friendly"
+              >
+                <Save size={16} />
+                {isSaving ? "Saving..." : "Save Changes"}
+              </button>
+            </div>
+          )}
+        </div>
+
         {/* Sidebar and Content Layout */}
         <div className="flex gap-8">
-          {/* Sidebar Navigation */}
-          <div className="w-64 flex-shrink-0">
+          {/* Sidebar Navigation - Hidden on mobile */}
+          <div className="w-64 flex-shrink-0 hidden sm:block">
             <div className="mobile-card sticky top-4">
               <h3 className="text-lg font-semibold text-black mb-4">
                 Sections
@@ -2284,7 +2315,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                 {!isEditMode ? (
                   <button
                     onClick={() => setIsEditMode(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-olive text-white rounded-lg hover:bg-olive/80 transition-colors touch-friendly"
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-olive text-white rounded-lg hover:bg-olive/80 transition-colors touch-friendly btn-text-sm"
                   >
                     <Edit size={16} />
                     Edit Preferences
@@ -2334,10 +2365,10 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
           </div>
 
           {/* Main Content */}
-          <div className="flex-1">
+          <div className="flex-1 w-full">
             <div className="space-y-8">
               {STEPS.map((step) => (
-                <div key={step.id} id={step.id} className="mobile-card">
+                <div key={step.id} id={step.id} className="mobile-card w-[90%] sm:w-full mx-auto sm:mx-0">
                   {renderSectionContent(step.id)}
                 </div>
               ))}

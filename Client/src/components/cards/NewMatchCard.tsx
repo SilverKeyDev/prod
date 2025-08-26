@@ -27,7 +27,7 @@ export default function NewMatchCard({ item }: NewMatchCardProps) {
   const placeholder = "https://placehold.co/600x400?text=No+Image";
 
   return (
-    <div className="border rounded-lg shadow-sm bg-white hover:shadow-md transition overflow-hidden flex flex-col">
+    <div className="card-mobile overflow-hidden flex flex-col">
       {/* Image */}
       <div className="w-full h-32 sm:h-36 md:h-40 bg-gray-100 overflow-hidden">
         <img

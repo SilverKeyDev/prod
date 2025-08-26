@@ -31,6 +31,7 @@ export default {
         'off-white': '#FAF9F6',
         navy: '#1A1F36',
         'dark-green': '#405541',
+        'gray-brown': '#B8B3AB',
       },
       fontFamily: {
         serif: ['Playfair Display', 'serif'],

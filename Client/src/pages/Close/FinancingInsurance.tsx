@@ -38,7 +38,6 @@ export default function FinancingInsurance() {
 
   // fetch existing checklist
   const fetchChecklist = async () => {
-    console.info("📡 Fetching insurance checklist from API...");
     try {
       setLoading(true);
       const res = await apiRequest<number[]>("/api/v1/user/financing");

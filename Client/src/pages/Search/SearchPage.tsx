@@ -218,7 +218,7 @@ export default function SearchPage() {
   const [isUpdatingMarkers, setIsUpdatingMarkers] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const [showPropertyModals, setShowPropertyModals] = useState(false);
-  const PROPERTIES_PER_PAGE = 3;
+  const PROPERTIES_PER_PAGE = 1;
 
   // Load search results from localStorage or run fresh search based on preferences version
   useEffect(() => {
@@ -1628,9 +1628,9 @@ export default function SearchPage() {
           <div className="flex gap-2">
             <button
               onClick={() => navigate("/dashboard/personalization")}
-              className="flex-1 px-3 py-2 text-xs font-medium text-brown border border-brown rounded-lg hover:bg-brown hover:text-white transition-colors touch-friendly"
+              className="flex-1 px-3 py-2 btn-text-sm font-medium text-brown border border-brown rounded-lg hover:bg-brown hover:text-white transition-colors touch-friendly"
             >
-              Edit Preferences
+              Preferences
             </button>
             <button
               onClick={async () => {
@@ -1644,7 +1644,7 @@ export default function SearchPage() {
                 }
               }}
               disabled={isSearching}
-              className="flex-1 px-3 py-2 text-xs font-medium text-white bg-brown rounded-lg hover:bg-brown-dark transition-colors touch-friendly disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 px-3 py-2 btn-text-sm font-medium text-white bg-brown rounded-lg hover:bg-brown-dark transition-colors touch-friendly disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSearching ? "Searching..." : "Search Properties"}
             </button>
@@ -1732,7 +1732,7 @@ export default function SearchPage() {
                             ? property.price
                             : "[Invalid price]"}
                         </p>
-                        <div className="grid grid-cols-3 gap-1 sm:gap-2 text-xs text-gray-600">
+                        <div className="grid grid-cols-3 gap-1 sm:gap-2 text-xs text-gray-600 w-[80%] sm:w-full mx-auto sm:mx-0">
                           <div className="text-center">{property.bedrooms} beds</div>
                           <div className="text-center">{property.bathrooms} baths</div>
                           <div className="text-center">{property.sqft.toLocaleString()} sqft</div>
@@ -1779,7 +1779,7 @@ export default function SearchPage() {
                             ? property.price
                             : "[Invalid price]"}
                         </p>
-                        <div className="grid grid-cols-3 gap-1 sm:gap-2 text-xs text-gray-600">
+                        <div className="grid grid-cols-3 gap-1 sm:gap-2 text-xs text-gray-600 w-[80%] sm:w-full mx-auto sm:mx-0">
                           <div className="text-center">{property.bedrooms} beds</div>
                           <div className="text-center">{property.bathrooms} baths</div>
                           <div className="text-center">{property.sqft.toLocaleString()} sqft</div>
@@ -1864,7 +1864,7 @@ export default function SearchPage() {
                     className="w-12 h-12 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 disabled:opacity-50 disabled:cursor-not-allowed touch-friendly"
                     title="Previous properties"
                   >
-                    <ChevronLeft className="w-6 h-6" />
+                    <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 lg:w-8 lg:h-8" />
                   </button>
                   <button
                     onClick={() => setCurrentPage(currentPage + 1)}
@@ -1877,7 +1877,7 @@ export default function SearchPage() {
                     className="w-12 h-12 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 disabled:opacity-50 disabled:cursor-not-allowed touch-friendly"
                     title="Next properties"
                   >
-                    <ChevronRight className="w-6 h-6" />
+                    <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 lg:w-8 lg:h-8" />
                   </button>
                 </div>
               )}
@@ -2028,7 +2028,7 @@ export default function SearchPage() {
                                   </p>
 
                                   {/* Property Details */}
-                                  <div className="grid grid-cols-3 gap-2 text-xs text-gray-600 mb-1">
+                                  <div className="property-details-mobile mb-1">
                                     <div>{property.bedrooms} beds</div>
                                     <div>{property.bathrooms} baths</div>
                                     <div>
@@ -2083,7 +2083,7 @@ export default function SearchPage() {
                     </div>
                   ) : (
                     <div className="text-center py-8 text-gray-500">
-                      <MapPin className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+                      <MapPin className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 mx-auto mb-2 text-gray-300" />
                       <p className="text-sm">
                         Click on the map to search for properties
                       </p>
@@ -2157,7 +2157,7 @@ export default function SearchPage() {
                                 </p>
 
                                 {/* Property Details */}
-                                <div className="grid grid-cols-3 gap-2 text-xs text-gray-600 mb-1">
+                                <div className="property-details-grid mb-1">
                                   <div>{property.bedrooms} beds</div>
                                   <div>{property.bathrooms} baths</div>
                                   {property.sqft > 0 && (
@@ -2181,7 +2181,7 @@ export default function SearchPage() {
                     </div>
                   ) : (
                     <div className="text-center py-8 text-gray-500">
-                      <Bookmark className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+                      <Bookmark className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 mx-auto mb-2 text-gray-300" />
                       <p className="text-sm">No saved homes yet</p>
                       <p className="text-xs mt-1">
                         Click the heart icon to save properties
@@ -2203,13 +2203,13 @@ export default function SearchPage() {
                 <div className="flex items-center gap-3">
                   <div>
                     <p className="text-sm font-medium text-gray-900">
-                      We use your preferences, commute times, and important
-                      addresses to find the best properties for you. &nbsp;
+                      We use your preferences and important
+                      locations to surface the best properties &nbsp;
                       <button
                         onClick={() => navigate("/dashboard/personalization")}
-                        className="text-xs text-brown hover:text-brown-dark underline cursor-pointer"
+                        className="inline-flex items-center px-2 py-1 btn-text-sm font-medium text-brown border border-brown rounded hover:bg-brown hover:text-white transition-colors"
                       >
-                        Edit Here
+                        Preferences
                       </button>
                     </p>
                   </div>
@@ -2234,7 +2234,7 @@ export default function SearchPage() {
                 ) : (
                   <>
                     <svg
-                      className="w-4 h-4"
+                      className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 lg:w-6 lg:h-6"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -2319,7 +2319,7 @@ export default function SearchPage() {
                       className="w-10 h-10 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-gray-700 disabled:hover:border-gray-300"
                       title="Previous properties"
                     >
-                      <ChevronLeft className="w-5 h-5" />
+                      <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 lg:w-7 lg:h-7" />
                     </button>
                     <div className="w-auto px-3 h-10 bg-white border border-gray-300 rounded-lg shadow-md flex items-center justify-center text-sm font-medium text-gray-700">
                       {Math.min(
@@ -2344,7 +2344,7 @@ export default function SearchPage() {
                       className="w-10 h-10 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-gray-700 disabled:hover:border-gray-300"
                       title="Next properties"
                     >
-                      <ChevronRight className="w-5 h-5" />
+                      <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 lg:w-7 lg:h-7" />
                     </button>
                   </div>
                 )}

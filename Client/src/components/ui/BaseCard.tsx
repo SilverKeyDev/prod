@@ -93,7 +93,7 @@ const BaseCard = forwardRef<HTMLDivElement, BaseCardProps>(
     return (
       <div
         ref={ref}
-        className={cardClasses}
+        className={`${cardClasses} w-[90%] sm:w-full mx-auto sm:mx-0`}
         {...props}
       >
         {children}

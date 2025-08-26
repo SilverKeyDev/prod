@@ -220,31 +220,34 @@ export default function NegotiationStrategy() {
           </div>
           <label className={label}>Choose from Your Favorite Homes</label>
 
-          <div className="flex items-stretch gap-4 mb-6">
-            <div className="flex-1">
+          <div className="flex flex-col sm:flex-row items-center gap-4 mb-6">
+            <div className="flex-1 min-w-0 w-full sm:w-auto" style={{ maxWidth: '70%' }}>
               <FavoriteHomesDropdown
                 selectedHome={selectedHome}
                 onHomeSelect={handleHomeSelection}
                 placeholder="Select a favorite home for strategy generation"
               />
             </div>
-            <button
-              type="button"
-              className={`${button} h-auto ${isLoading || !selectedHome ? 'opacity-50 cursor-not-allowed' : ''}`}
-              onClick={handleGenerate}
-              disabled={!selectedHome || isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <KeyTurnLoader />
-                </>
-              ) : (
-                <>
-                  <Lightbulb className="h-5 w-5" />
-                  Generate Strategy
-                </>
-              )}
-            </button>
+            <div className="flex-shrink-0 w-full sm:w-auto" style={{ maxWidth: '30%' }}>
+              <button
+                type="button"
+                className={`${button} w-full h-12 ${isLoading || !selectedHome ? 'opacity-50 cursor-not-allowed' : ''}`}
+                onClick={handleGenerate}
+                disabled={!selectedHome || isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <KeyTurnLoader />
+                  </>
+                ) : (
+                  <>
+                    <Lightbulb className="h-5 w-5" />
+                    <span className="hidden sm:inline">Generate Strategy</span>
+                    <span className="sm:hidden">Generate</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
 

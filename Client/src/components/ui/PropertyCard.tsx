@@ -125,7 +125,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
             {bedrooms !== undefined && (
               <div className="flex items-center gap-1">
                 <Bed className="h-3 w-3 text-brown flex-shrink-0" />
-                <span className="text-xs text-gray-600 truncate">
+                <span className="btn-text-sm text-gray-600 truncate">
                   {bedrooms} bed{bedrooms !== 1 ? 's' : ''}
                 </span>
               </div>
@@ -133,15 +133,15 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
             {bathrooms !== undefined && (
               <div className="flex items-center gap-1">
                 <Bath className="h-3 w-3 text-brown flex-shrink-0" />
-                <span className="text-xs text-gray-600 truncate">
+                <span className="btn-text-sm text-gray-600 truncate">
                   {bathrooms} bath{bathrooms !== 1 ? 's' : ''}
                 </span>
               </div>
             )}
-            {sqft !== undefined && (
+            {sqft !== undefined && sqft > 0 && (
               <div className="flex items-center gap-1">
                 <Square className="h-3 w-3 text-brown flex-shrink-0" />
-                <span className="text-xs text-gray-600 truncate">
+                <span className="btn-text-sm text-gray-600 truncate">
                   {sqft.toLocaleString()} sqft
                 </span>
               </div>

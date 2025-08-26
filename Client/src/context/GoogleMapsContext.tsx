@@ -188,7 +188,6 @@ export function GoogleMapsProvider({ children }: GoogleMapsProviderProps) {
         // Final check before adding to DOM
         const finalCheck = document.getElementById('google-maps-api');
         if (finalCheck) {
-          console.log('Google Maps script already exists in DOM, aborting');
           setIsLoading(false);
           return;
         }

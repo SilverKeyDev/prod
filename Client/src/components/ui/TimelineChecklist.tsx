@@ -106,7 +106,7 @@ const TimelineChecklist: React.FC<TimelineChecklistProps> = ({
   // Horizontal timeline progress (from TimelineProgress)
   if (variant === 'horizontal') {
     return (
-      <div className="w-full">
+      <div className="mobile-container">
         {/* Timeline grid: each column contains main + substeps */}
         <div
           className="grid gap-x-1 sm:gap-x-2 md:gap-x-3 lg:gap-x-4 items-start relative w-full"
@@ -131,7 +131,7 @@ const TimelineChecklist: React.FC<TimelineChecklistProps> = ({
                   </Link>
 
                   {/* Step name */}
-                  <span className="text-[10px] sm:text-xs md:text-sm mt-0.5 sm:mt-1 text-brown-dark capitalize select-none text-center px-0.5 sm:px-1 truncate max-w-full">
+                  <span className="text-[8px] sm:text-xs md:text-sm mt-0.5 sm:mt-1 text-brown-dark capitalize select-none text-center px-0.5 sm:px-1 truncate max-w-full">
                     {step.name}
                   </span>
 
@@ -183,7 +183,7 @@ const TimelineChecklist: React.FC<TimelineChecklistProps> = ({
 
   // Vertical timeline checklist (original functionality)
   return (
-    <div className="w-full space-y-3 sm:space-y-4">
+    <div className="mobile-container space-y-3 sm:space-y-4">
       {TIMELINE_STEPS.map((step, index) => {
         const StepIcon = step.icon;
         const isCompleted = completedIndex >= index;
@@ -203,7 +203,7 @@ const TimelineChecklist: React.FC<TimelineChecklistProps> = ({
                 <span className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center bg-brown flex-shrink-0">
                   <StepIcon className="w-4 h-4 sm:w-5 sm:h-5" color="white" />
                 </span>
-                <span className="font-medium text-brown-dark text-sm sm:text-base truncate">{step.name}</span>
+                <span className="font-medium text-brown-dark text-xs sm:text-base truncate">{step.name}</span>
               </div>
               {isOpen ? <ChevronUp className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" /> : <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />}
             </button>
@@ -229,7 +229,7 @@ const TimelineChecklist: React.FC<TimelineChecklistProps> = ({
                       }`}
                     >
                       <SubIcon className="w-3 h-3 sm:w-4 sm:h-4 text-brown flex-shrink-0" />
-                      <span className="text-xs sm:text-sm truncate">{sub.name}</span>
+                      <span className="text-[10px] sm:text-sm truncate">{sub.name}</span>
                     </Link>
                   );
                 })}

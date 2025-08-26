@@ -1,0 +1,360 @@
+/* Mobile-specific styles and overrides */
+
+@layer utilities {
+  /* Mobile input zoom prevention */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="url"],
+  input[type="search"],
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+
+  /* Specific smaller inputs */
+  @media screen and (max-width: 768px) {
+    #address-input,
+    .mobile-input,
+    .pac-container,
+    .pac-item {
+      font-size: 12px !important;
+    }
+  }
+
+  /* Mobile-first breakpoint utilities */
+  .mobile-only {
+    @apply block sm:hidden;
+  }
+
+  .desktop-only {
+    @apply hidden sm:block;
+  }
+
+  .tablet-up {
+    @apply hidden md:block;
+  }
+
+  .mobile-tablet {
+    @apply block lg:hidden;
+  }
+
+  /* Touch-friendly sizing */
+  .touch-friendly {
+    min-height: 44px;
+    min-width: 44px;
+    touch-action: manipulation;
+  }
+
+  .touch-target {
+    @apply touch-friendly p-2;
+  }
+
+  /* Mobile navigation patterns */
+  .mobile-nav {
+    @apply fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 safe-bottom;
+  }
+
+  .mobile-nav-item {
+    @apply flex-1 flex flex-col items-center justify-center py-2 px-1 text-xs touch-friendly;
+  }
+
+  /* Mobile modal patterns */
+  .mobile-modal {
+    @apply fixed inset-0 z-modal;
+  }
+
+  .mobile-modal-backdrop {
+    @apply absolute inset-0 bg-black bg-opacity-50;
+  }
+
+  .mobile-modal-content {
+    @apply absolute bottom-0 left-0 right-0 bg-white rounded-t-xl max-h-[90vh] overflow-hidden;
+  }
+
+  .mobile-modal-header {
+    @apply flex items-center justify-between p-4 border-b border-gray-200;
+  }
+
+  .mobile-modal-body {
+    @apply p-4 overflow-y-auto;
+  }
+
+  /* Mobile form patterns */
+  .mobile-form {
+    @apply space-y-4 p-4;
+  }
+
+  .mobile-form-group {
+    @apply space-y-2;
+  }
+
+  .mobile-form-label {
+    @apply block text-sm font-medium text-gray-700;
+  }
+
+  .mobile-form-input {
+    @apply w-full px-3 py-3 border border-gray-300 rounded-lg text-base focus:ring-2 focus:ring-brown/20 focus:border-brown;
+  }
+
+  .mobile-form-button {
+    @apply w-full py-3 px-4 bg-brown text-white rounded-lg font-medium text-base touch-friendly;
+  }
+
+  /* Mobile card patterns */
+  .mobile-card {
+    @apply bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4;
+  }
+
+  .mobile-card-header {
+    @apply flex items-center justify-between mb-3;
+  }
+
+  .mobile-card-title {
+    @apply text-lg font-semibold text-gray-900;
+  }
+
+  .mobile-card-content {
+    @apply text-gray-600 text-base leading-relaxed;
+  }
+
+  /* Mobile list patterns */
+  .mobile-list {
+    @apply divide-y divide-gray-200;
+  }
+
+  .mobile-list-item {
+    @apply py-4 px-4 flex items-center justify-between touch-friendly;
+  }
+
+  .mobile-list-item-content {
+    @apply flex-1 min-w-0;
+  }
+
+  .mobile-list-item-title {
+    @apply text-base font-medium text-gray-900 truncate;
+  }
+
+  .mobile-list-item-subtitle {
+    @apply text-sm text-gray-500 truncate;
+  }
+
+  /* Mobile spacing utilities */
+  .mobile-px {
+    @apply px-4 sm:px-6 lg:px-8;
+  }
+
+  .mobile-py {
+    @apply py-4 sm:py-6 lg:py-8;
+  }
+
+  .mobile-space-y {
+    @apply space-y-4 sm:space-y-6 lg:space-y-8;
+  }
+
+  .mobile-gap {
+    @apply gap-4 sm:gap-6 lg:gap-8;
+  }
+
+  /* Mobile text utilities */
+  .mobile-text-xs {
+    @apply text-xs sm:text-sm;
+  }
+
+  .mobile-text-sm {
+    @apply text-sm sm:text-base;
+  }
+
+  .mobile-text-base {
+    @apply text-base sm:text-lg;
+  }
+
+  .mobile-text-lg {
+    @apply text-lg sm:text-xl;
+  }
+
+  .mobile-text-xl {
+    @apply text-xl sm:text-2xl;
+  }
+
+  /* Mobile grid utilities */
+  .mobile-grid-1 {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3;
+  }
+
+  .mobile-grid-2 {
+    @apply grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4;
+  }
+
+  .mobile-grid-auto {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4;
+  }
+
+  /* Mobile flexbox utilities */
+  .mobile-flex-col {
+    @apply flex flex-col sm:flex-row;
+  }
+
+  .mobile-flex-row {
+    @apply flex flex-row sm:flex-col;
+  }
+
+  /* Mobile positioning */
+  .mobile-sticky {
+    @apply sticky top-0 z-10 bg-white border-b border-gray-200;
+  }
+
+  .mobile-fixed-bottom {
+    @apply fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 safe-bottom;
+  }
+
+  /* Mobile scrolling */
+  .mobile-scroll {
+    @apply overflow-x-auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .mobile-scroll-snap {
+    @apply mobile-scroll;
+    scroll-snap-type: x mandatory;
+  }
+
+  .mobile-scroll-snap-item {
+    scroll-snap-align: start;
+  }
+
+  /* Mobile image utilities */
+  .mobile-image {
+    @apply w-full h-auto rounded-lg;
+  }
+
+  .mobile-avatar {
+    @apply w-10 h-10 sm:w-12 sm:h-12 rounded-full;
+  }
+
+  /* Mobile button patterns */
+  .mobile-button-primary {
+    @apply mobile-form-button bg-brown hover:bg-brown/90 active:bg-brown/80;
+  }
+
+  .mobile-button-secondary {
+    @apply mobile-form-button bg-gray-100 text-gray-900 hover:bg-gray-200 active:bg-gray-300;
+  }
+
+  .mobile-button-outline {
+    @apply mobile-form-button bg-transparent border-2 border-brown text-brown hover:bg-brown hover:text-white;
+  }
+
+  /* Mobile icon utilities */
+  .mobile-icon-xs {
+    @apply w-4 h-4 sm:w-5 sm:h-5;
+  }
+
+  .mobile-icon-sm {
+    @apply w-5 h-5 sm:w-6 sm:h-6;
+  }
+
+  .mobile-icon-md {
+    @apply w-6 h-6 sm:w-7 sm:h-7;
+  }
+
+  .mobile-icon-lg {
+    @apply w-8 h-8 sm:w-10 sm:h-10;
+  }
+
+  /* Mobile accessibility */
+  .mobile-focus {
+    @apply focus:outline-none focus:ring-2 focus:ring-brown/20 focus:border-brown;
+  }
+
+  .mobile-sr-only {
+    @apply sr-only sm:not-sr-only;
+  }
+
+  /* Mobile performance optimizations */
+  .mobile-will-change {
+    will-change: transform;
+  }
+
+  .mobile-gpu-layer {
+    transform: translateZ(0);
+  }
+
+  /* Mobile-specific media queries */
+  @media (max-width: 640px) {
+    .mobile-full-width {
+      width: 100vw;
+      margin-left: calc(-50vw + 50%);
+    }
+    
+    .mobile-no-scroll {
+      overflow: hidden;
+    }
+    
+    .mobile-safe-area {
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+      padding-left: env(safe-area-inset-left);
+      padding-right: env(safe-area-inset-right);
+    }
+  }
+
+  /* Landscape orientation adjustments */
+  @media (max-height: 500px) and (orientation: landscape) {
+    .mobile-modal-content {
+      max-height: 85vh;
+    }
+    
+    .mobile-form {
+      padding: 2rem 1rem;
+    }
+    
+    .mobile-py {
+      @apply py-2 sm:py-4;
+    }
+  }
+
+  /* High DPI display optimizations */
+  @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .mobile-image {
+      image-rendering: -webkit-optimize-contrast;
+    }
+  }
+
+  /* Mobile text scaling - targeted approach */
+  @media (max-width: 640px) {
+    /* Scale down headings */
+    h1 { font-size: 1.5rem !important; line-height: 2rem !important; }
+    h2 { font-size: 1.25rem !important; line-height: 1.75rem !important; }
+    h3 { font-size: 1.125rem !important; line-height: 1.75rem !important; }
+    h4 { font-size: 1rem !important; line-height: 1.5rem !important; }
+    h5 { font-size: 0.875rem !important; line-height: 1.25rem !important; }
+    h6 { font-size: 0.75rem !important; line-height: 1rem !important; }
+    
+    /* Scale down Tailwind text classes */
+    .text-4xl { font-size: 1.875rem !important; line-height: 2.25rem !important; }
+    .text-3xl { font-size: 1.5rem !important; line-height: 2rem !important; }
+    .text-2xl { font-size: 1.25rem !important; line-height: 1.75rem !important; }
+    .text-xl { font-size: 1.125rem !important; line-height: 1.75rem !important; }
+    .text-lg { font-size: 1rem !important; line-height: 1.5rem !important; }
+    .text-base { font-size: 0.875rem !important; line-height: 1.25rem !important; }
+    .text-sm { font-size: 0.75rem !important; line-height: 1rem !important; }
+    .text-xs { font-size: 0.625rem !important; line-height: 0.875rem !important; }
+    
+    /* Scale down buttons and labels - but NOT inputs (handled above) */
+    button:not(.mobile-input) { font-size: 0.75rem !important; }
+    select:not(.mobile-input) { font-size: 0.75rem !important; }
+    textarea:not(.mobile-input) { font-size: 0.75rem !important; }
+    label { font-size: 0.75rem !important; }
+    
+    /* Scale down common text elements */
+    p { font-size: 0.875rem !important; line-height: 1.25rem !important; }
+    
+    /* Scale down table text */
+    table { font-size: 0.75rem !important; }
+    th { font-size: 0.75rem !important; }
+    td { font-size: 0.75rem !important; }
+  }
+}

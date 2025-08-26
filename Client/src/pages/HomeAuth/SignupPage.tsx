@@ -103,13 +103,13 @@ export default function SignupPage({}: SignupPageProps) {
               Full name
             </label>
             <div className="relative">
-              <UserIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-black/40" />
+              <UserIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 lg:h-7 lg:w-7 text-black/40" />
               <input
                 type="text"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                className="input-field pl-10 h-12 sm:h-10 text-base sm:text-sm placeholder:text-base placeholder:sm:text-sm"
+                className="input-field pl-10 h-12 sm:h-10 md:h-12 lg:h-14 text-base sm:text-sm md:text-base lg:text-lg placeholder:text-base placeholder:sm:text-sm placeholder:md:text-base placeholder:lg:text-lg"
                 placeholder="Enter your full name"
                 autoComplete="name"
                 required
@@ -123,13 +123,13 @@ export default function SignupPage({}: SignupPageProps) {
               Email address
             </label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-black/40" />
+              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 lg:h-7 lg:w-7 text-black/40" />
               <input
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                className="input-field pl-10 h-12 sm:h-10 text-base sm:text-sm"
+                className="input-field pl-10 h-12 sm:h-10 md:h-12 lg:h-14 text-base sm:text-sm md:text-base lg:text-lg"
                 placeholder="Enter your email"
                 autoComplete="email"
                 required
@@ -143,13 +143,13 @@ export default function SignupPage({}: SignupPageProps) {
               Password
             </label>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-black/40" />
+              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 lg:h-7 lg:w-7 text-black/40" />
               <input
                 type="password"
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                className="input-field pl-10 h-12 sm:h-10 text-base sm:text-sm"
+                className="input-field pl-10 h-12 sm:h-10 md:h-12 lg:h-14 text-base sm:text-sm md:text-base lg:text-lg"
                 placeholder="Enter password"
                 autoComplete="new-password"
                 required
@@ -167,7 +167,7 @@ export default function SignupPage({}: SignupPageProps) {
               Phone number
             </label>
             <div className="relative">
-              <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-black/40 z-10" />
+              <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 lg:h-7 lg:w-7 text-black/40 z-10" />
               <PhoneInput
                 international
                 defaultCountry="US"
@@ -194,6 +194,20 @@ export default function SignupPage({}: SignupPageProps) {
                     padding: 0.5rem 0.75rem 0.5rem 2.5rem;
                     font-size: 0.875rem;
                     height: 2.5rem;
+                  }
+                }
+                @media (min-width: 768px) {
+                  .phone-input {
+                    padding: 0.75rem 0.75rem 0.75rem 2.5rem;
+                    font-size: 1rem;
+                    height: 3rem;
+                  }
+                }
+                @media (min-width: 1024px) {
+                  .phone-input {
+                    padding: 1rem 0.75rem 1rem 2.5rem;
+                    font-size: 1.125rem;
+                    height: 3.5rem;
                   }
                 }
                 .phone-input:focus {

@@ -257,6 +257,7 @@ export default function GenerateReportPage() {
         const request = {
           input: address,
           sessionToken,
+          includedRegionCodes: ['US'],
         };
 
         const { suggestions: fetched } =
@@ -299,6 +300,7 @@ export default function GenerateReportPage() {
         const request = {
           input: comparisonAddress,
           sessionToken,
+          includedRegionCodes: ['US'],
         };
 
         const { suggestions: fetched } =

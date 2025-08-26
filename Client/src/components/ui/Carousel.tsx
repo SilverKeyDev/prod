@@ -165,7 +165,7 @@ export default function Carousel<T>({
 
           {/* Mobile: single item with overlay navigation */}
           <div className={`${isMobile ? 'block' : 'hidden'} relative`}>
-            <div className="w-full">
+            <div className="w-[80%] mx-auto">
               {renderItem(visibleItems[0], currentIndex)}
             </div>
 

@@ -26,7 +26,7 @@ export default function ErrorToast({
 
   return (
     <div className="fixed bottom-2 sm:bottom-4 right-2 sm:right-4 z-50">
-      <div className="bg-red-50 border border-red-200 rounded-lg p-3 sm:p-4 max-w-xs sm:max-w-md">
+      <div className="bg-red-50 border border-red-200 rounded-lg mobile-padding max-w-xs sm:max-w-md">
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
             <p className="text-red-800 font-medium text-sm sm:text-base">Error</p>

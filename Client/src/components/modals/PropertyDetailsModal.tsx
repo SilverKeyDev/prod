@@ -418,7 +418,7 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({ property, o
               {/* Compact Action Buttons */}
               <button 
                 onClick={handleGenerateFullReport}
-                className="bg-olive-light text-white py-2 px-2 sm:py-1.5 sm:px-3 rounded text-xs font-medium hover:bg-olive-light/80 transition-colors touch-manipulation hidden sm:block"
+                className="bg-olive-light text-white py-2 px-2 sm:py-1.5 sm:px-3 rounded text-xs font-medium hover:bg-olive-light/80 transition-colors touch-manipulation hidden sm:block h-8"
               >
                 Generate Full Report
               </button>
@@ -432,10 +432,10 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({ property, o
               
               <button 
                 onClick={handleGoToZillow}
-                className="border border-blue-600 text-blue-600 py-2 px-2 sm:py-1.5 sm:px-3 rounded text-xs font-medium hover:bg-blue-50 transition-colors flex items-center gap-1 touch-manipulation"
+                className="border border-blue-600 text-blue-600 py-2 px-2 sm:py-1.5 sm:px-3 rounded text-xs font-medium hover:bg-blue-50 transition-colors flex items-center gap-1 touch-manipulation h-8"
                 title="View on Zillow"
               >
-                <ExternalLink className="w-3 h-3 sm:w-3 sm:h-3" />
+                <ExternalLink className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 lg:w-6 lg:h-6" />
                 <span className="hidden sm:inline">Zillow</span>
               </button>
               
@@ -454,7 +454,7 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({ property, o
                 aria-label="Close modal"
               >
                 <svg
-                  className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 hover:text-gray-700"
+                  className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 lg:w-7 lg:h-7 text-gray-500 hover:text-gray-700"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -473,11 +473,11 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({ property, o
 
         <div className="p-3 sm:p-6">
           {/* Property Image Carousel and Basic Info */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 md:gap-6 lg:gap-8 mb-4 sm:mb-6 md:mb-8">
             <div>
               {/* Main Image Carousel */}
               <div className="relative">
-                <div className="relative w-full h-48 sm:h-64 rounded-lg overflow-hidden">
+                <div className="relative w-full h-40 sm:h-48 md:h-56 lg:h-64 xl:h-72 rounded-lg overflow-hidden">
                   <img 
                     src={propertyImages[currentImageIndex]} 
                     alt={`Property view ${currentImageIndex + 1}`}
@@ -487,20 +487,20 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({ property, o
                   {/* Navigation Arrows */}
                   <button
                     onClick={prevImage}
-                    className="absolute left-1 sm:left-2 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 rounded-full p-1.5 sm:p-2 shadow-lg transition-all duration-200 hover:scale-110 touch-manipulation"
+                    className="absolute left-1 sm:left-2 md:left-3 lg:left-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 rounded-full p-1 sm:p-1.5 md:p-2 lg:p-2.5 shadow-lg transition-all duration-200 hover:scale-110 touch-manipulation"
                     aria-label="Previous image"
                   >
-                    <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 lg:w-6 lg:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                     </svg>
                   </button>
                   
                   <button
                     onClick={nextImage}
-                    className="absolute right-1 sm:right-2 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 rounded-full p-1.5 sm:p-2 shadow-lg transition-all duration-200 hover:scale-110 touch-manipulation"
+                    className="absolute right-1 sm:right-2 md:right-3 lg:right-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 rounded-full p-1 sm:p-1.5 md:p-2 lg:p-2.5 shadow-lg transition-all duration-200 hover:scale-110 touch-manipulation"
                     aria-label="Next image"
                   >
-                    <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 lg:w-6 lg:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                   </button>
@@ -642,7 +642,7 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({ property, o
           </div>
 
           {/* Listing Agent and Schools Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 md:gap-8 mb-6 sm:mb-8">
             {/* Agent Information */}
             {property.listed_by && (
               <div>
@@ -1013,7 +1013,7 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({ property, o
                     <p className="text-sm text-brown/60 mt-1">{property.commute_data?.error}</p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                     <div>
                       {property.commute_data.map_url ? (
                         <div className="bg-white border border-beige/40 rounded-lg p-4">

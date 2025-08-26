@@ -116,7 +116,7 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
               <div className="text-sm font-medium text-navy">
                 {selectedHome.address}
               </div>
-              <div className="text-xs text-gray-500">
+              <div className="btn-text-sm text-gray-500">
                 {selectedHome.beds && selectedHome.baths ? 
                   `${selectedHome.beds} bed, ${selectedHome.baths} bath` : 
                   'Selected Property'
@@ -165,12 +165,12 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
                   }`}
                 >
                   <div className="font-medium">{home.address}</div>
-                  <div className="text-xs text-gray-500 mt-1 truncate">
+                  <div className="btn-text-sm text-gray-500 mt-1 truncate">
                     {home.beds && home.baths ? 
                       `${home.beds} bed, ${home.baths} bath` : 
                       'Property details'
                     }
-                    {home.sqft && ` • ${home.sqft} sqft`}
+                    {home.sqft && Number(home.sqft) > 0 && ` • ${home.sqft} sqft`}
                     {home.price && ` • ${home.price}`}
                   </div>
                 </button>

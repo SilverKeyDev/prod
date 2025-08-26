@@ -251,6 +251,7 @@ export default function MobileSidebar({
         onClick={onToggleExpanded}
         className="fixed top-4 left-4 z-50 p-3 bg-brown text-white rounded-lg shadow-lg hover:bg-brown-light hover:text-beige active:text-beige transition-all duration-300 ease-in-out transform hover:scale-105 touch-friendly"
         aria-label="Open sidebar"
+        style={{ position: 'fixed', top: '1rem', left: '1rem' }}
       >
         <Menu className="w-6 h-6" />
       </button>
@@ -273,15 +274,15 @@ export default function MobileSidebar({
       {/* Full Sidebar */}
       <div className="fixed top-0 left-0 h-full bg-brown text-white z-50 w-80 transform transition-all duration-300 ease-in-out safe-top animate-slide-in-left">
         <div
-          className="h-full flex flex-col overflow-hidden animate-fade-in"
+          className="h-full flex flex-col animate-fade-in"
           style={{
             height: "100vh",
             maxHeight: "100vh",
             animationDelay: "150ms"
           }}
         >
-          {/* Header with Logo and Toggle Button */}
-          <div className="flex-shrink-0 p-4 flex justify-between items-center border-b border-brown-light">
+          {/* Header with Logo and Toggle Button - Fixed at top */}
+          <div className="flex-shrink-0 p-4 flex justify-between items-center border-b border-brown-light sticky top-0 bg-brown z-10">
             {/* User Info */}
             <div className="flex items-center flex-1">
               {isLoading ? (
@@ -403,8 +404,8 @@ export default function MobileSidebar({
             </nav>
           </div>
 
-          {/* Logout - Always visible at bottom */}
-          <div className="flex-shrink-0 border-t border-brown-light p-4">
+          {/* Logout - Fixed at bottom */}
+          <div className="flex-shrink-0 border-t border-brown-light p-4 sticky bottom-0 bg-brown z-10">
             <button
               onClick={handleLogoutClick}
               className="flex items-center px-4 py-3 text-white hover:bg-brown-light/50 hover:text-beige hover:-translate-y-0.5 active:text-beige rounded-lg w-full touch-friendly transition-all duration-200"

@@ -39,7 +39,6 @@ export default function InspectionsChecklist() {
 
   // fetch existing checklist
   const fetchChecklist = async () => {
-    console.info("📡 Fetching inspections checklist from API...");
     try {
       setLoading(true);
       const res = await apiRequest<number[]>("/api/v1/user/insurance");

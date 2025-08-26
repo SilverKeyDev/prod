@@ -37,7 +37,6 @@ export default function EscrowLegalLogistics() {
       .map(([k]) => Number(k));
 
   const fetchChecklist = async () => {
-    console.info("📡 Fetching escrow checklist from API...");
     try {
       setLoading(true);
       const res = await apiRequest<number[]>("/api/v1/user/escrow");

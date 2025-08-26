@@ -49,6 +49,7 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
         const request = {
           input: locationAddress,
           sessionToken,
+          componentRestrictions: { country: 'US' },
         };
 
         const { suggestions: fetched } =

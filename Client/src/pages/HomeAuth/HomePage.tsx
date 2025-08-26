@@ -63,6 +63,7 @@ export default function HomePage() {
         const request = {
           input: address,
           sessionToken,
+          componentRestrictions: { country: 'US' },
         };
 
         const { suggestions: fetched } =
@@ -138,7 +139,7 @@ export default function HomePage() {
         </div>
 
         {/* Feature Cards */}
-        <div className="relative z-12 grid grid-cols-1 md:grid-cols-4 gap-6 mt-20 max-w-6xl">
+        <div className="relative z-12 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 mt-20 max-w-6xl">
           {[
             {
               title: "Find Properties",

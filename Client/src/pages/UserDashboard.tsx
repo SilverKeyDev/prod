@@ -137,7 +137,7 @@ export default function UserDashboard() {
             items={favoriteHomes}
             title={
               <button
-                className="text-2xl font-semibold underline text-gray-600 hover:text-gray-500 transition-colors cursor-pointer"
+                className="text-lg font-semibold border border-gray-brown text-gray-brown bg-transparent hover:bg-gray-brown/10 transition-colors cursor-pointer px-4 py-2 rounded underline underline-offset-4"
                 onClick={handleSavedHomesClick}
                 title="Click to view all saved homes"
               >
@@ -165,7 +165,7 @@ export default function UserDashboard() {
             items={documents}
             title={
               <button
-                className="text-2xl font-semibold underline text-gray-600 hover:text-gray-500 transition-colors cursor-pointer"
+                className="text-lg font-semibold border border-gray-brown text-gray-brown bg-transparent hover:bg-gray-brown/10 transition-colors cursor-pointer px-4 py-2 rounded underline underline-offset-4"
                 onClick={handleDocumentsClick}
                 title="Click to view all documents"
               >

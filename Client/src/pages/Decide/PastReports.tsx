@@ -646,10 +646,12 @@ export default function PastReports() {
                   </div>
                 </button>
               </div>
+              
+              {/* Desktop: Refresh button in original position */}
               <button
                 onClick={handleRefresh}
                 disabled={isRefreshing || reportsLoading}
-                className={`p-2 rounded touch-friendly flex items-center justify-center transition-colors duration-200 ${
+                className={`hidden sm:flex p-2 rounded touch-friendly items-center justify-center transition-colors duration-200 ${
                   isRefreshing
                     ? "bg-gray-300 text-gray-600 cursor-not-allowed"
                     : "bg-gray-300 text-gray-600 hover:bg-gray-500 hover:text-white"
@@ -661,12 +663,98 @@ export default function PastReports() {
                 }
               >
                 <RefreshCw
-                  className={`w-3 h-3 sm:w-4 sm:h-4 transition-transform duration-200 ${
+                  className={`w-4 h-4 transition-transform duration-200 ${
                     isRefreshing ? "animate-spin" : ""
                   }`}
                 />
               </button>
-              <div className="relative" ref={sortDropdownRef}>
+              
+              {/* Mobile: Sort dropdown with refresh button to the right */}
+              <div className="flex items-center gap-2 sm:hidden">
+                <div className="relative flex-1" ref={sortDropdownRef}>
+                  <button
+                    onClick={() => setSortDropdownOpen(!sortDropdownOpen)}
+                    className="mobile-input w-full text-sm flex items-center justify-between cursor-pointer hover:border-brown focus:border-brown focus:ring-brown/20"
+                  >
+                    <span className="flex items-center space-x-2">
+                      {sortBy === "date" ? (
+                        <>
+                          <Calendar className="w-4 h-4" />
+                          <span>Sort by Date</span>
+                        </>
+                      ) : (
+                        <>
+                          <MapPin className="w-4 h-4" />
+                          <span>Sort by Address</span>
+                        </>
+                      )}
+                    </span>
+                    <ChevronDown
+                      className={`w-4 h-4 transition-transform duration-200 ${
+                        sortDropdownOpen ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+
+                  {sortDropdownOpen && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-beige rounded-lg shadow-lg z-50">
+                      <button
+                        onClick={() => {
+                          setSortBy("date");
+                          setSortDropdownOpen(false);
+                        }}
+                        className={`w-full px-3 py-2 text-left text-sm hover:bg-brown/5 flex items-center space-x-2 first:rounded-t-lg transition-colors duration-150 ${
+                          sortBy === "date"
+                            ? "bg-brown/10 text-brown font-medium"
+                            : "text-black"
+                        }`}
+                      >
+                        <Calendar className="w-4 h-4" />
+                        <span>Sort by Date</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSortBy("address");
+                          setSortDropdownOpen(false);
+                        }}
+                        className={`w-full px-3 py-2 text-left text-sm hover:bg-brown/5 flex items-center space-x-2 last:rounded-b-lg transition-colors duration-150 ${
+                          sortBy === "address"
+                            ? "bg-brown/10 text-brown font-medium"
+                            : "text-black"
+                        }`}
+                      >
+                        <MapPin className="w-4 h-4" />
+                        <span>Sort by Address</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Small refresh button to the right of sort dropdown on mobile */}
+                <button
+                  onClick={handleRefresh}
+                  disabled={isRefreshing || reportsLoading}
+                  className={`p-1.5 rounded touch-friendly flex items-center justify-center transition-colors duration-200 ${
+                    isRefreshing
+                      ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                      : "bg-gray-300 text-gray-600 hover:bg-gray-500 hover:text-white"
+                  }`}
+                  title={
+                    isRefreshing || reportsLoading
+                      ? "Refreshing..."
+                      : "Refresh reports"
+                  }
+                >
+                  <RefreshCw
+                    className={`w-3 h-3 transition-transform duration-200 ${
+                      isRefreshing ? "animate-spin" : ""
+                    }`}
+                  />
+                </button>
+              </div>
+              
+              {/* Desktop: Original sort dropdown */}
+              <div className="hidden sm:block relative" ref={sortDropdownRef}>
                 <button
                   onClick={() => setSortDropdownOpen(!sortDropdownOpen)}
                   className="mobile-input sm:w-auto text-sm flex items-center justify-between min-w-[140px] cursor-pointer hover:border-brown focus:border-brown focus:ring-brown/20"
@@ -793,19 +881,8 @@ export default function PastReports() {
                     <div className="flex flex-col gap-2">
                       {report.status === "completed" && (
                         <>
-                          <div className="flex flex-col sm:flex-row gap-2">
-                            <button
-                              onClick={() => {
-                                handleViewDocument(report.id, report.address);
-                              }}
-                              disabled={loadingUrls.has(report.id)}
-                              className="flex-1 bg-transparent border border-brown text-black hover:bg-brown hover:text-white font-medium px-6 py-1 rounded-lg transition-all duration-200 text-xs font-bold flex items-center justify-center disabled:opacity-50 touch-manipulation select-none"
-                            >
-                              <Eye className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
-                              {loadingUrls.has(report.id)
-                                ? "Loading..."
-                                : "View"}
-                            </button>
+                          {/* Mobile: Download button at top, shorter */}
+                          <div className="sm:hidden">
                             <button
                               onClick={() =>
                                 handleDownloadDocument(
@@ -814,35 +891,99 @@ export default function PastReports() {
                                 )
                               }
                               disabled={loadingUrls.has(report.id)}
-                              className="flex-1 btn-primary py-1 text-xs font-bold flex items-center justify-center disabled:opacity-50 touch-manipulation select-none"
+                              className="w-full btn-primary py-1 text-xs font-bold flex items-center justify-center disabled:opacity-50 touch-manipulation select-none"
                             >
-                              <Download className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
+                              <Download className="h-2.5 w-2.5 mr-1" />
                               {loadingUrls.has(report.id)
                                 ? "Loading..."
                                 : "Download"}
                             </button>
+                            {/* Share, Delete, View buttons side by side below */}
+                            <div className="flex gap-2 mt-2">
+                              <button
+                                onClick={() => handleShareReport(report)}
+                                disabled={loadingUrls.has(report.id)}
+                                className="flex-1 bg-beige hover:bg-beige/80 text-black font-medium py-1 rounded-lg transition-all duration-200 text-xs font-bold flex items-center justify-center disabled:opacity-50 touch-manipulation select-none"
+                              >
+                                <Share className="h-2.5 w-2.5 mr-1" />
+                                Share
+                              </button>
+                              <button
+                                onClick={() => {
+                                  openDeleteModal(report.id, report.s3Key);
+                                }}
+                                disabled={loadingUrls.has(report.id)}
+                                className="flex-1 bg-white border border-red-600 text-red-600 hover:bg-red-500 hover:text-white font-medium py-1 rounded-lg transition-all duration-200 text-xs flex items-center justify-center touch-manipulation"
+                                title="Delete report"
+                              >
+                                <Trash2 className="h-3 w-3 mr-1" />
+                                Delete
+                              </button>
+                              <button
+                                onClick={() => {
+                                  handleViewDocument(report.id, report.address);
+                                }}
+                                disabled={loadingUrls.has(report.id)}
+                                className="flex-1 bg-transparent border border-brown text-black hover:bg-brown hover:text-white font-medium py-1 rounded-lg transition-all duration-200 text-xs font-bold flex items-center justify-center disabled:opacity-50 touch-manipulation select-none"
+                              >
+                                <Eye className="h-2.5 w-2.5 mr-1" />
+                                View
+                              </button>
+                            </div>
+                          </div>
+                          
+                          {/* Desktop: Original layout */}
+                          <div className="hidden sm:flex sm:flex-col gap-2">
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => {
+                                  handleViewDocument(report.id, report.address);
+                                }}
+                                disabled={loadingUrls.has(report.id)}
+                                className="flex-1 bg-transparent border border-brown text-black hover:bg-brown hover:text-white font-medium px-6 py-1 rounded-lg transition-all duration-200 text-xs font-bold flex items-center justify-center disabled:opacity-50 touch-manipulation select-none"
+                              >
+                                <Eye className="h-3 w-3 mr-1" />
+                                {loadingUrls.has(report.id)
+                                  ? "Loading..."
+                                  : "View"}
+                              </button>
+                              <button
+                                onClick={() =>
+                                  handleDownloadDocument(
+                                    report.id,
+                                    report.address
+                                  )
+                                }
+                                disabled={loadingUrls.has(report.id)}
+                                className="flex-1 btn-primary py-1 text-xs font-bold flex items-center justify-center disabled:opacity-50 touch-manipulation select-none"
+                              >
+                                <Download className="h-3 w-3 mr-1" />
+                                {loadingUrls.has(report.id)
+                                  ? "Loading..."
+                                  : "Download"}
+                              </button>
+                              <button
+                                onClick={() => {
+                                  openDeleteModal(report.id, report.s3Key);
+                                }}
+                                disabled={loadingUrls.has(report.id)}
+                                className="py-px px-2 text-xs bg-white border border-red-600 text-red-600 hover:bg-red-500 hover:text-white font-medium rounded-lg transition-all duration-200 flex items-center justify-center touch-manipulation sm:py-2 sm:px-3 sm:text-sm sm:rounded-lg"
+                                title="Delete report"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
                             <button
-                              onClick={() => {
-                            
-                                openDeleteModal(report.id, report.s3Key);
-                              }}
+                              onClick={() => handleShareReport(report)}
                               disabled={loadingUrls.has(report.id)}
-                              className="py-px px-2 text-xs bg-white border border-red-600 text-red-600 hover:bg-red-500 hover:text-white font-medium rounded-lg transition-all duration-200 flex items-center justify-center touch-manipulation sm:py-2 sm:px-3 sm:text-sm sm:rounded-lg"
-                              title="Delete report"
+                              className="w-full bg-beige hover:bg-beige/80 text-black font-medium px-6 py-2 rounded-lg transition-all duration-200 text-xs font-bold flex items-center justify-center disabled:opacity-50 touch-manipulation select-none"
                             >
-                              <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                              <Share className="h-3 w-3 mr-1" />
+                              {loadingUrls.has(report.id)
+                                ? "Loading..."
+                                : "Share"}
                             </button>
                           </div>
-                          <button
-                            onClick={() => handleShareReport(report)}
-                            disabled={loadingUrls.has(report.id)}
-                            className="w-full bg-beige hover:bg-beige/80 text-black font-medium px-6 py-2 rounded-lg transition-all duration-200 text-xs font-bold flex items-center justify-center disabled:opacity-50 touch-manipulation select-none"
-                          >
-                            <Share className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
-                            {loadingUrls.has(report.id)
-                              ? "Loading..."
-                              : "Share"}
-                          </button>
                         </>
                       )}
                       {report.status === "generating" && (
@@ -900,19 +1041,8 @@ export default function PastReports() {
                     <div className="flex flex-col gap-2">
                       {report.status === "completed" && (
                         <>
-                          <div className="flex flex-col sm:flex-row gap-2">
-                            <button
-                              onClick={() =>
-                                handleViewDocument(report.id, report.address)
-                              }
-                              disabled={loadingUrls.has(report.id)}
-                              className="bg-transparent border border-brown text-gray-600 hover:bg-brown hover:text-white font-medium px-2 py-1 rounded-lg transition-all duration-200 text-xs font-bold flex items-center disabled:opacity-50 touch-manipulation select-none"
-                            >
-                              <Eye className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
-                              {loadingUrls.has(report.id)
-                                ? "Loading..."
-                                : "View"}
-                            </button>
+                          {/* Mobile: Download button at top, shorter */}
+                          <div className="sm:hidden">
                             <button
                               onClick={() =>
                                 handleDownloadDocument(
@@ -921,34 +1051,99 @@ export default function PastReports() {
                                 )
                               }
                               disabled={loadingUrls.has(report.id)}
-                              className="btn-primary py-1 px-2 text-xs font-bold flex items-center disabled:opacity-50 touch-manipulation select-none"
+                              className="w-full btn-primary py-1 text-xs font-bold flex items-center justify-center disabled:opacity-50 touch-manipulation select-none"
                             >
-                              <Download className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
+                              <Download className="h-2.5 w-2.5 mr-1" />
                               {loadingUrls.has(report.id)
                                 ? "Loading..."
                                 : "Download"}
                             </button>
+                            {/* Share, Delete, View buttons side by side below */}
+                            <div className="flex gap-2 mt-2">
+                              <button
+                                onClick={() => handleShareReport(report)}
+                                disabled={loadingUrls.has(report.id)}
+                                className="flex-1 bg-beige hover:bg-beige/80 text-black font-medium py-1 rounded-lg transition-all duration-200 text-xs font-bold flex items-center justify-center disabled:opacity-50 touch-manipulation select-none"
+                              >
+                                <Share className="h-2.5 w-2.5 mr-1" />
+                                Share
+                              </button>
+                              <button
+                                onClick={() => {
+                                  openDeleteModal(report.id, report.s3Key);
+                                }}
+                                disabled={loadingUrls.has(report.id)}
+                                className="flex-1 bg-white border border-red-600 text-red-600 hover:bg-red-500 hover:text-white font-medium py-1 rounded-lg transition-all duration-200 text-xs flex items-center justify-center touch-manipulation"
+                                title="Delete report"
+                              >
+                                <Trash2 className="h-3 w-3 mr-1" />
+                                Delete
+                              </button>
+                              <button
+                                onClick={() =>
+                                  handleViewDocument(report.id, report.address)
+                                }
+                                disabled={loadingUrls.has(report.id)}
+                                className="flex-1 bg-transparent border border-brown text-gray-600 hover:bg-brown hover:text-white font-medium py-1 rounded-lg transition-all duration-200 text-xs font-bold flex items-center justify-center disabled:opacity-50 touch-manipulation select-none"
+                              >
+                                <Eye className="h-2.5 w-2.5 mr-1" />
+                                View
+                              </button>
+                            </div>
+                          </div>
+                          
+                          {/* Desktop: Original layout */}
+                          <div className="hidden sm:flex sm:flex-col gap-2">
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() =>
+                                  handleViewDocument(report.id, report.address)
+                                }
+                                disabled={loadingUrls.has(report.id)}
+                                className="bg-transparent border border-brown text-gray-600 hover:bg-brown hover:text-white font-medium px-2 py-1 rounded-lg transition-all duration-200 text-xs font-bold flex items-center disabled:opacity-50 touch-manipulation select-none"
+                              >
+                                <Eye className="h-3 w-3 mr-1" />
+                                {loadingUrls.has(report.id)
+                                  ? "Loading..."
+                                  : "View"}
+                              </button>
+                              <button
+                                onClick={() =>
+                                  handleDownloadDocument(
+                                    report.id,
+                                    report.address
+                                  )
+                                }
+                                disabled={loadingUrls.has(report.id)}
+                                className="btn-primary py-1 px-2 text-xs font-bold flex items-center disabled:opacity-50 touch-manipulation select-none"
+                              >
+                                <Download className="h-3 w-3 mr-1" />
+                                {loadingUrls.has(report.id)
+                                  ? "Loading..."
+                                  : "Download"}
+                              </button>
+                              <button
+                                onClick={() => {
+                                  openDeleteModal(report.id, report.s3Key);
+                                }}
+                                disabled={loadingUrls.has(report.id)}
+                                className="sm:p-2 sm:text-red-600 sm:hover:bg-red-50 sm:rounded-lg sm:transition-colors touch-friendly bg-white border border-red-600 text-red-600 hover:bg-red-500 hover:text-white font-medium py-1 px-3 rounded-lg transition-all duration-200 flex items-center justify-center"
+                                title="Delete report"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
                             <button
-                              onClick={() => {
-                                openDeleteModal(report.id, report.s3Key);
-                              }}
+                              onClick={() => handleShareReport(report)}
                               disabled={loadingUrls.has(report.id)}
-                              className="sm:p-2 sm:text-red-600 sm:hover:bg-red-50 sm:rounded-lg sm:transition-colors touch-friendly bg-white border border-red-600 text-red-600 hover:bg-red-500 hover:text-white font-medium py-1 px-3 rounded-lg transition-all duration-200 flex items-center justify-center"
-                              title="Delete report"
+                              className="w-full bg-beige hover:bg-beige/80 text-black font-medium px-6 py-2 rounded-lg transition-all duration-200 text-xs font-bold flex items-center justify-center disabled:opacity-50 touch-manipulation select-none"
                             >
-                              <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                              <Share className="h-3 w-3 mr-1" />
+                              {loadingUrls.has(report.id)
+                                ? "Loading..."
+                                : "Share"}
                             </button>
                           </div>
-                          <button
-                            onClick={() => handleShareReport(report)}
-                            disabled={loadingUrls.has(report.id)}
-                            className="w-full bg-beige hover:bg-beige/80 text-black font-medium px-6 py-2 rounded-lg transition-all duration-200 text-xs font-bold flex items-center justify-center disabled:opacity-50 touch-manipulation select-none"
-                          >
-                            <Share className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
-                            {loadingUrls.has(report.id)
-                              ? "Loading..."
-                              : "Share"}
-                          </button>
                         </>
                       )}
                       {report.status === "generating" && (

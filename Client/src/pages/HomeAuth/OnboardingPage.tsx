@@ -1066,7 +1066,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   </div>
                 ) : homePriceResult ? (
                   <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                       <div>
                         <p className="text-sm text-black">Maximum Home Price</p>
                         <p className="text-xl font-bold text-olive">
@@ -1470,7 +1470,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
               Location Preferences
             </h2>
 
-            <div className="grid grid-cols-1 gap-6">
+            <div className="grid grid-cols-1 gap-4 sm:gap-6">
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
                   Walkability Importance

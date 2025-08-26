@@ -152,9 +152,9 @@ export default function SavedHomes() {
       <div className="max-w-6xl mx-auto p-6">
 
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-4 mb-6">
-        {/* Search */}
-        <div className="relative flex-1 min-w-[200px] md:max-w-xs">
+      <div className="flex items-center gap-4 mb-6">
+        {/* Search - adjustable width */}
+        <div className="relative flex-1 min-w-0">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
           <input
             type="text"
@@ -165,19 +165,19 @@ export default function SavedHomes() {
           />
         </div>
 
-        {/* View toggle */}
+        {/* View toggle - fixed width */}
         <button
           onClick={() => setViewMode(viewMode === "grid" ? "list" : "grid")}
-          className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+          className="flex-shrink-0 p-2 border border-gray-300 rounded-lg hover:bg-gray-50"
           title="Toggle view"
         >
           {viewMode === "grid" ? <List size={18} /> : <LayoutGrid size={18} />}
         </button>
 
-        {/* Refresh */}
+        {/* Refresh - fixed width */}
         <button
           onClick={refresh}
-          className={`p-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center ${
+          className={`flex-shrink-0 p-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center ${
             refreshing || loading ? "cursor-not-allowed" : ""
           }`}
         >
@@ -198,7 +198,7 @@ export default function SavedHomes() {
           <p>You have no saved homes yet.</p>
         )
       ) : viewMode === "grid" ? (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filteredHomes.map((home: SavedHome) => (
             <HomeCard 
               key={home.home_id} 
@@ -210,7 +210,7 @@ export default function SavedHomes() {
           ))}
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-4 mobile-container">
           {filteredHomes.map((home: SavedHome) => (
             <HomeCard 
               key={home.home_id} 
