@@ -7,7 +7,7 @@ import PropertyDetailsModal from "../../components/modals/PropertyDetailsModal";
 import { searchZillowByPolygon, LatLng } from "../../lib/searchApi";
 import { usePropertyDetails } from "../../hooks/usePropertyDetails";
 import KeyTurnLoader from "../../components/ui/KeyTurnLoader";
-import { checkAuthAndRedirect, getAuthToken } from "../../utils/authUtils";
+import { checkAuthAndRedirect, getAuthToken } from "../../lib/authUtils";
 import { useGoogleMaps } from "../../context/GoogleMapsContext";
 
 interface SearchResult {
