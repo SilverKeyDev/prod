@@ -68,3 +68,7 @@ key.pem
 dump.rdb
 
 .env
+
+# Jupyter Notebooks
+*.ipynb
+.ipynb_checkpoints/
