@@ -184,30 +184,30 @@ const SortableReportSection: React.FC<SortableReportSectionProps> = ({
     <div
       ref={setNodeRef}
       style={style}
-      className={`flex items-center space-x-3 p-3 border rounded-lg transition-all duration-200 border-beige hover:bg-beige/10 hover:border-brown/30 ${
+      className={`flex items-center space-x-responsive-sm space-responsive-sm border rounded-lg transition-all duration-200 border-beige hover:bg-beige/10 hover:border-brown/30 ${
         !checked ? "opacity-60" : ""
       } ${isDragging ? "shadow-lg bg-white border-brown/50" : ""}`}
     >
       <div
         {...attributes}
         {...listeners}
-        className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 p-1 rounded hover:bg-gray-100 transition-colors"
+        className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 space-responsive-xs rounded hover:bg-gray-100 transition-colors"
         title="Drag to reorder"
       >
-        <GripVertical className="w-5 h-5" />
+        <GripVertical className="mobile-icon-sm" />
       </div>
 
-      <div className="flex items-center space-x-3 flex-1">
-        <div className="flex items-center space-x-2">
+      <div className="flex items-center space-x-responsive-sm flex-1">
+        <div className="flex items-center space-x-responsive-xs">
           {priority && (
-            <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">
+            <span className="text-responsive-xs font-medium text-gray-500 bg-gray-100 px-responsive-xs py-responsive-xs rounded">
               {priority}
             </span>
           )}
 
           <label
             htmlFor={id}
-            className="flex items-center space-x-3 cursor-pointer flex-1"
+            className="flex items-center space-x-responsive-sm cursor-pointer flex-1"
           >
             <div className="relative">
               <input
@@ -218,7 +218,7 @@ const SortableReportSection: React.FC<SortableReportSectionProps> = ({
                 className="sr-only"
               />
               <div
-                className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all duration-200 ${
+                className={`mobile-icon-sm rounded border-2 flex items-center justify-center transition-all duration-200 ${
                   checked
                     ? "bg-brown border-brown text-white shadow-sm"
                     : "border-beige hover:border-brown/50 bg-white"
@@ -226,7 +226,7 @@ const SortableReportSection: React.FC<SortableReportSectionProps> = ({
               >
                 {checked && (
                   <svg
-                    className="w-3 h-3"
+                    className="mobile-icon-xs"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -239,7 +239,7 @@ const SortableReportSection: React.FC<SortableReportSectionProps> = ({
                 )}
               </div>
             </div>
-            <span className="text-sm font-medium text-gray-700 flex-1">
+            <span className="text-responsive-sm font-medium text-gray-700 flex-1">
               {label}
             </span>
           </label>
@@ -275,13 +275,13 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={onToggle}
-        className="mobile-input text-sm flex items-center justify-between cursor-pointer hover:border-brown focus:border-brown focus:ring-brown/20 w-full"
+        className="mobile-input text-responsive-sm flex items-center justify-between cursor-pointer hover:border-brown focus:border-brown focus:ring-brown/20 w-full touch-friendly"
       >
         <span className="text-left">
           {selectedOption ? selectedOption.label : placeholder}
         </span>
         <ChevronDown
-          className={`w-4 h-4 transition-transform duration-200 ${
+          className={`mobile-icon-xs transition-transform duration-200 ${
             isOpen ? "rotate-180" : ""
           }`}
         />
@@ -296,7 +296,7 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
                 onChange(option.value);
                 onToggle();
               }}
-              className={`w-full px-3 py-2 text-left text-sm hover:bg-brown/5 transition-colors duration-150 ${
+              className={`w-full px-responsive-sm py-responsive-xs text-left text-responsive-sm hover:bg-brown/5 transition-colors duration-150 touch-friendly ${
                 index === 0 ? "first:rounded-t-lg" : ""
               } ${index === options.length - 1 ? "last:rounded-b-lg" : ""} ${
                 value === option.value
@@ -1097,7 +1097,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
               </div>
 
               <div className="col-span-1 md:col-span-2 flex flex-col items-center">
-                <label className="block text-2xl font-bold text-black mb-2 text-center w-full">
+                <label className="block text-responsive-xl font-bold text-black space-y-responsive-xs text-center w-full">
                   Home Budget
                 </label>
                 <PriceRangeSlider
@@ -1116,20 +1116,20 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
               </div>
 
               {/* Home Price Calculation Results */}
-              <div className="col-span-1 md:col-span-2 mt-6 p-4 bg-white rounded-lg border border-olive">
-                <h3 className="text-lg font-medium text-olive mb-2">
+              <div className="col-span-1 md:col-span-2 mt-6 space-responsive-sm bg-white rounded-lg border border-olive">
+                <h3 className="text-responsive-md font-medium text-olive space-y-responsive-xs">
                   Estimated Home Affordability
                 </h3>
 
                 {homePriceLoading ? (
-                  <div className="flex items-center justify-center py-4">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-olive"></div>
-                    <span className="ml-2 text-sm text-black">
+                  <div className="flex items-center justify-center py-responsive-sm">
+                    <div className="animate-spin rounded-full mobile-icon-md border-b-2 border-olive"></div>
+                    <span className="ml-2 text-responsive-sm text-black">
                       Calculating affordability...
                     </span>
                   </div>
                 ) : homePriceError ? (
-                  <div className="text-black text-sm py-2">
+                  <div className="text-black text-responsive-sm py-responsive-xs">
                     <p className="font-medium">
                       Unable to calculate affordability:
                     </p>
@@ -1140,16 +1140,16 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                     </p>
                   </div>
                 ) : homePriceResult ? (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="space-y-responsive-sm">
+                    <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 gap-responsive-sm">
                       <div>
-                        <p className="text-sm text-black">Maximum Home Price</p>
+                        <p className="text-responsive-sm text-black">Maximum Home Price</p>
                         <p className="text-xl font-bold text-olive">
                           ${homePriceResult.maxHomePrice.toLocaleString()}
                         </p>
                       </div>
                       <div>
-                        <p className="text-sm text-black">Monthly Payment</p>
+                        <p className="text-responsive-sm text-black">Monthly Payment</p>
                         <p className="text-xl font-bold text-olive">
                           $
                           {homePriceResult.totalMonthlyHousingCost.toLocaleString()}

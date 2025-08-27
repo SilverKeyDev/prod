@@ -762,9 +762,9 @@ const OfferDraftPage: React.FC = () => {
         subtitle="Create a comprehensive offer package with all necessary details"
       />
       
-      <div className="mx-auto px-12 py-10 max-w-6xl">
+      <div className="mx-auto px-responsive-lg py-responsive-lg max-w-6xl">
         {/* Favorite Homes Dropdown */}
-        <div className="bg-white rounded-xl shadow-sm p-6 mb-6 border border-beige/40">
+        <div className="bg-white rounded-xl shadow-sm space-responsive-md space-y-responsive-md border border-beige/40">
           <div className="flex justify-center w-full">
             <div className="w-3/4">
               <FavoriteHomesDropdown
@@ -778,7 +778,7 @@ const OfferDraftPage: React.FC = () => {
 
       {/* Tab Navigation */}
       <div className="bg-white border-b border-beige/40 sticky top-0 z-10 mx-2">
-        <div className="mx-auto px-12">
+        <div className="mx-auto px-responsive-lg">
           <div className="flex overflow-x-auto scrollbar-hide">
             {tabs.map((tab) => {
               const IconComponent = tab.icon;
@@ -787,13 +787,13 @@ const OfferDraftPage: React.FC = () => {
                   key={tab.id}
                   type="button"
                   onClick={() => scrollToSection(tab.id)}
-                  className={`flex items-center gap-3 px-5 py-4 text-sm font-medium whitespace-nowrap border-b-2 transition-colors duration-200 min-w-fit ${
+                  className={`flex items-center gap-responsive-sm px-responsive-sm py-responsive-sm text-responsive-sm font-medium whitespace-nowrap border-b-2 transition-colors duration-200 min-w-fit touch-friendly ${
                     activeTab === tab.id
                       ? "border-brown text-brown bg-brown/5"
                       : "border-transparent text-navy/70 hover:text-navy hover:border-beige"
                   }`}
                 >
-                  <IconComponent className="h-4 w-4" />
+                  <IconComponent className="mobile-icon-xs" />
                   <span className="hidden lg:inline">{tab.title}</span>
                   <span className="lg:hidden">{tab.shortTitle}</span>
                 </button>
@@ -804,12 +804,12 @@ const OfferDraftPage: React.FC = () => {
       </div>
 
       {/* Main Content */}
-      <div className="mx-auto px-12 py-10">
+      <div className="mx-auto px-responsive-lg py-responsive-lg">
         <form onSubmit={handleSubmit}>
           {/* 1. Purchase Offer / Agreement */}
           <div ref={sectionRefs[0]} className={sectionBox}>
             <div className={sectionTitle}>
-              <FileText className="h-5 w-5 text-brown" />
+              <FileText className="mobile-icon-sm text-brown" />
               Signed Purchase Offer
             </div>
             <div className={infoBox}>
@@ -902,7 +902,7 @@ const OfferDraftPage: React.FC = () => {
               placeholder="e.g., Seller's personal property"
             />
             <label className={label}>
-              <Upload className="inline h-4 w-4 mr-1" />
+              <Upload className="inline mobile-icon-xs mr-1" />
               Upload Signed Agreement (PDF)
             </label>
             <input
@@ -913,7 +913,7 @@ const OfferDraftPage: React.FC = () => {
               required
             />
             <label className={label}>
-              <Upload className="inline h-4 w-4 mr-1" />
+              <Upload className="inline mobile-icon-xs mr-1" />
               Upload Signature(s) (if separate)
             </label>
             <input
@@ -939,9 +939,9 @@ const OfferDraftPage: React.FC = () => {
                 }
               >
                 {loadingStates.purchaseAgreement ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Loader2 className="mobile-icon-xs animate-spin" />
                 ) : (
-                  <FileCheck className="h-4 w-4" />
+                  <FileCheck className="mobile-icon-xs" />
                 )}
                 {loadingStates.purchaseAgreement
                   ? "Generating..."
@@ -953,7 +953,7 @@ const OfferDraftPage: React.FC = () => {
           {/* 2. Mortgage Pre-Approval or Proof of Funds */}
           <div ref={sectionRefs[1]} className={sectionBox}>
             <div className={sectionTitle}>
-              <CreditCard className="h-5 w-5 text-brown" />
+              <CreditCard className="mobile-icon-sm text-brown" />
               Mortgage Pre-Approval / Proof of Funds
             </div>
             <div className={infoBox}>
@@ -990,8 +990,8 @@ const OfferDraftPage: React.FC = () => {
                         child)
                       </li>
                     </ul>
-                    <div className="flex items-start gap-2">
-                      <AlertTriangle className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
+                    <div className="flex items-start gap-responsive-xs">
+                      <AlertTriangle className="mobile-icon-xs text-red-500 mt-0.5 flex-shrink-0" />
                       <span>
                         If you're financing and don't send this, your offer may
                         not be taken seriously.
@@ -1002,7 +1002,7 @@ const OfferDraftPage: React.FC = () => {
               </div>
             </div>
             <label className={label}>
-              <Upload className="inline h-4 w-4 mr-1" />
+              <Upload className="inline mobile-icon-xs mr-1" />
               Upload Pre-Approval Letter (PDF)
             </label>
             <input
@@ -1012,7 +1012,7 @@ const OfferDraftPage: React.FC = () => {
               onChange={(e) => handleFile(e, "preApproval")}
             />
             <label className={label}>
-              <Upload className="inline h-4 w-4 mr-1" />
+              <Upload className="inline mobile-icon-xs mr-1" />
               Or Upload Proof of Funds (PDF or Image)
             </label>
             <input
@@ -1038,9 +1038,9 @@ const OfferDraftPage: React.FC = () => {
                 }
               >
                 {loadingStates.preApprovalLetter ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Loader2 className="mobile-icon-xs animate-spin" />
                 ) : (
-                  <FileCheck className="h-4 w-4" />
+                  <FileCheck className="mobile-icon-xs" />
                 )}
                 {loadingStates.preApprovalLetter
                   ? "Generating..."

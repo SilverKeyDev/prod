@@ -37,13 +37,13 @@ const BaseCard = forwardRef<HTMLDivElement, BaseCardProps>(
       flat: 'border-0 shadow-none'
     };
 
-    // Padding variants
+    // Padding variants - using utilities.css classes
     const paddingStyles = {
       none: 'p-0',
-      sm: 'p-2',
-      md: 'p-4',
-      lg: 'p-6',
-      xl: 'p-8'
+      sm: 'space-responsive-xs',
+      md: 'space-responsive-sm',
+      lg: 'space-responsive-md',
+      xl: 'space-responsive-lg'
     };
 
     // Rounded variants

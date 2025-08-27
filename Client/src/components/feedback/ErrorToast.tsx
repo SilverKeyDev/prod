@@ -26,17 +26,17 @@ export default function ErrorToast({
 
   return (
     <div className="fixed bottom-2 sm:bottom-4 right-2 sm:right-4 z-50">
-      <div className="bg-red-50 border border-red-200 rounded-lg mobile-padding max-w-xs sm:max-w-md">
-        <div className="flex items-start justify-between gap-2">
+      <div className="bg-red-50 border border-red-200 rounded-lg space-responsive-sm max-w-xs sm:max-w-md">
+        <div className="flex items-start justify-between gap-responsive-sm">
           <div className="flex-1 min-w-0">
-            <p className="text-red-800 font-medium text-sm sm:text-base">Error</p>
-            <p className="text-red-700 text-xs sm:text-sm mt-1 break-words">{message}</p>
+            <p className="text-red-800 font-medium text-responsive-sm">Error</p>
+            <p className="text-red-700 text-responsive-xs mt-1 break-words">{message}</p>
           </div>
           <button
             onClick={onClose}
-            className="text-red-500 hover:text-red-700 transition-colors flex-shrink-0 touch-manipulation p-1"
+            className="text-red-500 hover:text-red-700 transition-colors flex-shrink-0 touch-manipulation space-responsive-xs"
           >
-            <X className="h-4 w-4 sm:h-5 sm:w-5" />
+            <X className="mobile-icon-sm" />
           </button>
         </div>
       </div>

@@ -211,16 +211,16 @@ export default function NegotiationStrategy() {
       />
 
       {/* Main Content */}
-      <div className="mx-auto px-12 py-10 max-w-6xl">
+      <div className="mx-auto px-responsive-lg py-responsive-lg max-w-6xl">
         {/* Home selector */}
         <div className={sectionBox}>
           <div className={sectionTitle}>
-            <Home className="h-5 w-5 text-brown" />
+            <Home className="mobile-icon-sm text-brown" />
             Select a Home
           </div>
           <label className={label}>Choose from Your Favorite Homes</label>
 
-          <div className="flex flex-col sm:flex-row items-center gap-4 mb-6">
+          <div className="flex flex-col sm:flex-row items-center gap-responsive-sm space-y-responsive-md">
             <div className="flex-1 min-w-0 w-full sm:w-auto" style={{ maxWidth: '70%' }}>
               <FavoriteHomesDropdown
                 selectedHome={selectedHome}
@@ -231,7 +231,7 @@ export default function NegotiationStrategy() {
             <div className="flex-shrink-0 w-full sm:w-auto" style={{ maxWidth: '30%' }}>
               <button
                 type="button"
-                className={`${button} w-full h-12 ${isLoading || !selectedHome ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`${button} w-full btn-responsive-md ${isLoading || !selectedHome ? 'opacity-50 cursor-not-allowed' : ''}`}
                 onClick={handleGenerate}
                 disabled={!selectedHome || isLoading}
               >
@@ -241,7 +241,7 @@ export default function NegotiationStrategy() {
                   </>
                 ) : (
                   <>
-                    <Lightbulb className="h-5 w-5" />
+                    <Lightbulb className="mobile-icon-sm" />
                     <span className="hidden sm:inline">Generate Strategy</span>
                     <span className="sm:hidden">Generate</span>
                   </>
@@ -263,12 +263,12 @@ export default function NegotiationStrategy() {
         {/* Error display */}
         {error && (
           <div className={`${sectionBox} border-red-200 bg-red-50`}>
-            <div className="text-red-600 text-center">
+            <div className="text-red-600 text-center text-responsive-sm">
               <p className="font-semibold mb-2">Error Generating Strategy</p>
-              <p className="text-sm">{error}</p>
+              <p className="text-responsive-sm">{error}</p>
               <button
                 onClick={() => setError(null)}
-                className="mt-3 text-red-500 hover:text-red-700 underline text-sm"
+                className="mt-3 text-red-500 hover:text-red-700 underline text-responsive-sm"
               >
                 Dismiss
               </button>
@@ -278,12 +278,12 @@ export default function NegotiationStrategy() {
 
         {/* Property Comparables Carousel */}
         {compsData && compsData.success && compsData.data?.comps && !isLoading && (
-          <div className="my-8">
+          <div className="my-responsive-lg">
             <Carousel
               items={compsData.data.comps as CompData[]}
               title={
                 <div className={sectionTitle}>
-                  <Home className="h-5 w-5 text-brown" />
+                  <Home className="mobile-icon-sm text-brown" />
                   Property Comparables
                 </div>
               }
@@ -304,10 +304,10 @@ export default function NegotiationStrategy() {
         {compsData && (!compsData.success || !compsData.data?.comps) && !isLoading && (
           <div className={sectionBox}>
             <div className={sectionTitle}>
-              <Home className="h-5 w-5 text-brown" />
+              <Home className="mobile-icon-sm text-brown" />
               Property Comparables - Debug Response
             </div>
-            <div className="bg-gray-900 text-green-400 p-4 rounded-lg overflow-auto max-h-96 font-mono text-sm">
+            <div className="bg-gray-900 text-green-400 space-responsive-sm rounded-lg overflow-auto max-h-96 font-mono text-responsive-sm">
               <pre className="whitespace-pre-wrap break-words">
                 {JSON.stringify(compsData, null, 2)}
               </pre>
@@ -317,23 +317,23 @@ export default function NegotiationStrategy() {
 
         {/* Strategy output - Dynamic display of all AI fields */}
         {strategyData && !isLoading && (
-          <div className="space-y-6">
+          <div className="space-y-responsive-md">
             {/* Header with Download and Share buttons */}
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold text-navy">Your Negotiation Strategy</h2>
-              <div className="flex gap-3">
+            <div className="flex justify-between items-center space-y-responsive-md">
+              <h2 className="text-responsive-lg font-semibold text-navy">Your Negotiation Strategy</h2>
+              <div className="flex gap-responsive-sm">
                 <button
                   onClick={() => handleDownloadJson()}
-                  className="bg-brown text-white px-4 py-2 rounded-lg font-medium hover:bg-brown/90 transition-colors duration-200 flex items-center gap-2"
+                  className="bg-brown text-white px-responsive-sm py-responsive-xs rounded-lg font-medium hover:bg-brown/90 transition-colors duration-200 flex items-center gap-responsive-xs touch-friendly"
                 >
-                  <Download className="h-4 w-4" />
+                  <Download className="mobile-icon-xs" />
                   Download JSON
                 </button>
                 <button
                   onClick={() => handleShareJson()}
-                  className="bg-olive text-white px-4 py-2 rounded-lg font-medium hover:bg-olive-light transition-colors duration-200 flex items-center gap-2"
+                  className="bg-olive text-white px-responsive-sm py-responsive-xs rounded-lg font-medium hover:bg-olive-light transition-colors duration-200 flex items-center gap-responsive-xs touch-friendly"
                 >
-                  <Share2 className="h-4 w-4" />
+                  <Share2 className="mobile-icon-xs" />
                   Share
                 </button>
               </div>
@@ -356,9 +356,9 @@ export default function NegotiationStrategy() {
                   if (Array.isArray(val)) {
                     // Format arrays as clean bullet points
                     return (
-                      <ul className="list-disc list-inside space-y-1 ml-2">
+                      <ul className="list-disc list-inside space-y-responsive-xs ml-2">
                         {val.map((item, idx) => (
-                          <li key={idx} className="text-sm text-navy/80">
+                          <li key={idx} className="text-responsive-sm text-navy/80">
                             {typeof item === 'object' && item !== null ? 
                               // Handle objects properly - extract meaningful content
                               Object.entries(item).map(([k, v]) => `${k}: ${v}`).join(', ').replace(/_/g, ' ') :
@@ -377,7 +377,7 @@ export default function NegotiationStrategy() {
                   } else {
                     // For objects, create clean structured display without JSON
                     return (
-                      <div className="space-y-3">
+                      <div className="space-y-responsive-sm">
                         {Object.entries(val).map(([subKey, subValue]) => {
                           // Format the sub-key nicely
                           const formattedKey = subKey
@@ -388,16 +388,16 @@ export default function NegotiationStrategy() {
                             .join(' ');
 
                           return (
-                            <div key={subKey} className="bg-gray-50/50 rounded-lg p-3 border-l-4 border-brown/30">
-                              <div className="text-sm font-semibold text-brown mb-2">
+                            <div key={subKey} className="bg-gray-50/50 rounded-lg space-responsive-sm border-l-4 border-brown/30">
+                              <div className="text-responsive-sm font-semibold text-brown space-y-responsive-xs">
                                 {formattedKey}
                               </div>
-                              <div className="text-sm text-navy/80">
+                              <div className="text-responsive-sm text-navy/80">
                                 {typeof subValue === 'object' && subValue !== null ? (
                                   Array.isArray(subValue) ? (
-                                    <ul className="list-disc list-inside space-y-1 ml-2">
+                                    <ul className="list-disc list-inside space-y-responsive-xs ml-2">
                                       {subValue.map((item, idx) => (
-                                        <li key={idx} className="text-sm">
+                                        <li key={idx} className="text-responsive-sm">
                                           {typeof item === 'object' ? 
                                             Object.entries(item).map(([k, v]) => 
                                               `${k.replace(/_/g, ' ')}: ${v}`
@@ -409,9 +409,9 @@ export default function NegotiationStrategy() {
                                     </ul>
                                   ) : (
                                     // Nested objects - display as key-value pairs
-                                    <div className="space-y-1">
+                                    <div className="space-y-responsive-xs">
                                       {Object.entries(subValue).map(([nestedKey, nestedValue]) => (
-                                        <div key={nestedKey} className="text-xs bg-white/70 p-2 rounded">
+                                        <div key={nestedKey} className="text-responsive-xs bg-white/70 space-responsive-xs rounded">
                                            <span className="font-medium text-brown/80">
                                              {nestedKey.replace(/_/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}:
                                            </span>{' '}

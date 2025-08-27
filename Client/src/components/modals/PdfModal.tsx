@@ -58,7 +58,7 @@ const PdfModal: React.FC<PdfModalProps> = ({
   if (!currentPdf) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-2 sm:p-4">
+    <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center space-responsive-sm">
       <div
         ref={modalRef}
         className="viewer-container w-full max-w-5xl h-[95vh] sm:h-[90vh] flex flex-col"
@@ -78,47 +78,47 @@ const PdfModal: React.FC<PdfModalProps> = ({
           style={{ borderRadius: "24px 24px 0 0" }}
         >
           {/* Logo and Address Title */}
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center gap-responsive-sm">
             <div
               className="text-white"
               style={{ filter: "brightness(0) invert(1)" }}
             >
-              <MiniLogo className="w-6 h-6" />
+              <MiniLogo className="mobile-icon-lg" />
             </div>
-            <h2 className="text-white font-semibold text-lg truncate">
+            <h2 className="text-white font-semibold text-responsive-lg truncate">
               {getReportTitle()}
             </h2>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center gap-responsive-sm">
             {/* Download Button */}
             <button
               onClick={handleDownload}
-              className="p-2 hover:bg-white/10 rounded-lg transition-colors duration-200 group"
+              className="space-responsive-sm hover:bg-white/10 rounded-lg transition-colors duration-200 group"
               title="Download PDF"
             >
-              <Download className="w-5 h-5 text-white group-hover:scale-110 transition-transform duration-200" />
+              <Download className="mobile-icon-md text-white group-hover:scale-110 transition-transform duration-200" />
             </button>
 
             {/* Share Button */}
             {onShare && (
               <button
                 onClick={onShare}
-                className="p-2 hover:bg-white/10 rounded-lg transition-colors duration-200 group"
+                className="space-responsive-sm hover:bg-white/10 rounded-lg transition-colors duration-200 group"
                 title="Share Report"
               >
-                <Share className="w-5 h-5 text-white group-hover:scale-110 transition-transform duration-200" />
+                <Share className="mobile-icon-md text-white group-hover:scale-110 transition-transform duration-200" />
               </button>
             )}
 
             {/* Close Button */}
             <button
               onClick={onClose}
-              className="p-2 hover:bg-white/10 rounded-lg transition-colors duration-200 group"
+              className="space-responsive-sm hover:bg-white/10 rounded-lg transition-colors duration-200 group"
               title="Close"
             >
-              <X className="w-5 h-5 text-white group-hover:scale-110 transition-transform duration-200" />
+              <X className="mobile-icon-md text-white group-hover:scale-110 transition-transform duration-200" />
             </button>
           </div>
         </div>

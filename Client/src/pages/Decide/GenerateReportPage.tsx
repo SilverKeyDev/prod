@@ -49,13 +49,13 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={onToggle}
-        className="mobile-input text-sm flex items-center justify-between cursor-pointer hover:border-brown focus:border-brown focus:ring-brown/20 w-full"
+        className="mobile-input text-responsive-sm flex items-center justify-between cursor-pointer hover:border-brown focus:border-brown focus:ring-brown/20 w-full"
       >
         <span className="text-left">
           {selectedOption ? selectedOption.label : placeholder}
         </span>
         <ChevronDown
-          className={`w-4 h-4 transition-transform duration-200 ${
+          className={`mobile-icon-xs transition-transform duration-200 ${
             isOpen ? "rotate-180" : ""
           }`}
         />
@@ -70,7 +70,7 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
                 onChange(option.value);
                 onToggle();
               }}
-              className={`w-full px-3 py-2 text-left text-sm hover:bg-brown/5 transition-colors duration-150 ${
+              className={`w-full px-responsive-sm py-responsive-xs text-left text-responsive-sm hover:bg-brown/5 transition-colors duration-150 ${
                 index === 0 ? "first:rounded-t-lg" : ""
               } ${index === options.length - 1 ? "last:rounded-b-lg" : ""} ${
                 value === option.value
@@ -545,9 +545,9 @@ export default function GenerateReportPage() {
         title="Generate Property Report"
         subtitle="Create a comprehensive analysis for any property"
       />
-      <div className="mx-auto px-12 py-10 max-w-4xl">
+      <div className="mx-auto px-responsive-lg py-responsive-lg max-w-4xl">
 
-        <div className="mobile-card max-w-2xl mx-auto space-y-4 sm:space-y-6">
+        <div className="mobile-card max-w-2xl mx-auto space-y-responsive-sm">
           <div>
             <label
               htmlFor="report-type"
@@ -575,7 +575,7 @@ export default function GenerateReportPage() {
                 Customized for:
               </label>
               {clientsLoading ? (
-                <div className="mobile-input text-sm flex items-center justify-center">
+                <div className="mobile-input text-responsive-sm flex items-center justify-center">
                   <KeyTurnLoader message="Loading clients..." />
                 </div>
               ) : (
@@ -603,7 +603,7 @@ export default function GenerateReportPage() {
                 />
               )}
               {clients.length === 0 && !clientsLoading && (
-                <p className="text-sm text-gray-500 mt-2">
+                <p className="text-responsive-sm text-gray-500 mt-2">
                   No clients found. Please assign clients to your agent account.
                 </p>
               )}
@@ -611,7 +611,7 @@ export default function GenerateReportPage() {
           )}
 
           {reportType === "comparison" && (
-            <div className="bg-olive/10 border border-olive/30 rounded-lg p-3 sm:p-4">
+            <div className="bg-olive/10 border border-olive/30 rounded-lg space-responsive-sm">
               <div className="flex items-start space-x-2 sm:space-x-3">
                 <div className="text-olive">
                   <p className="font-medium text-sm sm:text-base mb-1">
@@ -628,7 +628,7 @@ export default function GenerateReportPage() {
           )}
 
           {reportType === "marketing" && (
-            <div className="bg-gold/10 border border-gold/30 rounded-lg p-3 sm:p-4">
+            <div className="bg-gold/10 border border-gold/30 rounded-lg space-responsive-sm">
               <div className="flex items-start space-x-2 sm:space-x-3">
                 <div className="text-gold">
                   <p className="font-medium text-sm sm:text-base mb-1">
@@ -649,7 +649,7 @@ export default function GenerateReportPage() {
           )}
 
           {reportType === "detailed" && (
-            <div className="bg-brown/10 border border-brown/30 rounded-lg p-3 sm:p-4">
+            <div className="bg-brown/10 border border-brown/30 rounded-lg space-responsive-sm">
               <div className="flex items-start space-x-2 sm:space-x-3">
                 <div className="text-brown">
                   <p className="font-medium text-sm sm:text-base mb-1">
@@ -707,8 +707,8 @@ export default function GenerateReportPage() {
             )}
 
             {!scriptsReady && !loadError && (
-              <p className="text-sm text-black/60 mt-2 flex items-center">
-                <Loader2 className="animate-spin h-4 w-4 mr-2" />
+              <p className="text-responsive-sm text-black/60 mt-2 flex items-center">
+                <Loader2 className="animate-spin mobile-icon-xs mr-2" />
                 Loading address autocomplete...
               </p>
             )}
@@ -723,7 +723,7 @@ export default function GenerateReportPage() {
                 Second Property Address
               </label>
               <div className="relative">
-                <MapPin className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-black/40 pointer-events-none z-10" />
+                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 mobile-icon-xs text-black/40 pointer-events-none z-10" />
                 <input
                   id="comparison-address-input"
                   ref={comparisonInputRef}
@@ -732,7 +732,7 @@ export default function GenerateReportPage() {
                   onChange={handleComparisonInputChange}
                   placeholder={scriptsReady ? "Search here" : "Loading..."}
                   disabled={!scriptsReady || isGenerating}
-                  className="w-full h-12 sm:h-14 pl-10 sm:pl-12 pr-3 sm:pr-4 rounded-lg border border-gray-300 text-xs sm:text-base focus:ring-2 focus:ring-olive focus:border-olive transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed touch-manipulation"
+                  className="w-full btn-responsive-md pl-10 pr-responsive-sm rounded-lg border border-gray-300 text-responsive-sm focus:ring-2 focus:ring-olive focus:border-olive transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed touch-manipulation"
                   autoComplete="off"
                 />
               </div>

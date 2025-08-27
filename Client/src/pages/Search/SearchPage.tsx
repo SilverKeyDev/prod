@@ -1670,15 +1670,15 @@ export default function SearchPage() {
       {/* Mobile Layout */}
       <div className="md:hidden flex flex-col h-[calc(100svh-80px)]">
         {/* Mobile Header - Small and Compact */}
-        <div className="flex-shrink-0 p-2 bg-white border-b border-gray-200">
-          <div className="flex items-center justify-between gap-2 min-w-0">
+        <div className="flex-shrink-0 space-responsive-xs bg-white border-b border-gray-200">
+          <div className="flex items-center justify-between gap-responsive-sm min-w-0">
             <div className="flex-1 min-w-0">
-              <span className="text-xs text-gray-600 truncate block">Search Properties</span>
+              <span className="text-responsive-xs text-gray-600 truncate block">Search Properties</span>
             </div>
-            <div className="flex gap-1 flex-shrink-0">
+            <div className="flex gap-responsive-xs flex-shrink-0">
               <button
                 onClick={() => navigate("/dashboard/personalization")}
-                className="inline-flex items-center px-2 py-1 bg-olive text-white rounded text-xs whitespace-nowrap hover:bg-olive/90 transition-colors"
+                className="inline-flex items-center px-responsive-sm py-responsive-xs bg-olive text-white rounded text-responsive-xs whitespace-nowrap hover:bg-olive/90 transition-colors"
               >
                 Preferences
               </button>
@@ -1694,7 +1694,7 @@ export default function SearchPage() {
                   }
                 }}
                 disabled={isSearching}
-                className="inline-flex items-center px-2 py-1 bg-gold text-black rounded text-xs whitespace-nowrap hover:bg-gold/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center px-responsive-xs py-responsive-xs bg-gold text-black rounded text-responsive-xs whitespace-nowrap hover:bg-gold/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-friendly"
               >
                 {isSearching ? "Searching..." : "Search"}
               </button>
@@ -1713,7 +1713,7 @@ export default function SearchPage() {
                   setShowPropertyModals(true);
                 }
               }}
-              className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+              className={`px-responsive-sm py-responsive-sm text-responsive-sm font-medium border-b-2 transition-colors ${
                 activeTab === "results"
                   ? "border-brown text-brown"
                   : "border-transparent text-gray-500 hover:text-gray-700"
@@ -1721,7 +1721,7 @@ export default function SearchPage() {
             >
               Search
               {searchResults.length > 0 && (
-                <span className="ml-2 px-2 py-0.5 bg-olive-light text-gray-800 text-xs rounded-full">
+                <span className="space-responsive-xs px-responsive-xs py-responsive-xs bg-olive-light text-gray-800 text-responsive-xs rounded-full">
                   {searchResults.length}
                 </span>
               )}
@@ -1734,7 +1734,7 @@ export default function SearchPage() {
                   setHasSearched(true);
                 }
               }}
-              className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+              className={`px-responsive-sm py-responsive-sm text-responsive-sm font-medium border-b-2 transition-colors ${
                 activeTab === "saved"
                   ? "border-brown text-brown"
                   : "border-transparent text-gray-500 hover:text-gray-700"
@@ -1742,7 +1742,7 @@ export default function SearchPage() {
             >
               Saved
               {savedHomes.length > 0 && (
-                <span className="ml-2 px-2 py-0.5 bg-olive-light text-gray-800 text-xs rounded-full">
+                <span className="space-responsive-xs px-responsive-xs py-responsive-xs bg-olive-light text-gray-800 text-responsive-xs rounded-full">
                   {savedHomes.length}
                 </span>
               )}
@@ -1750,10 +1750,10 @@ export default function SearchPage() {
           </div>
 
           {/* Mobile Property Carousel */}
-          <div className="p-2 sm:p-3">
+          <div className="space-responsive-xs sm:space-responsive-sm">
             {activeTab === "results" ? (
               searchResults.length > 0 ? (
-                <div className="flex gap-2 sm:gap-3 overflow-x-auto scrollbar-hide pb-2 justify-center sm:justify-start" style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
+                <div className="flex gap-responsive-xs sm:gap-responsive-sm overflow-x-auto scrollbar-hide pb-2 justify-center sm:justify-start" style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
                   {searchResults.slice(currentPage * PROPERTIES_PER_PAGE, (currentPage + 1) * PROPERTIES_PER_PAGE).map((property) => (
                     <div
                       key={property.id}
@@ -1772,13 +1772,13 @@ export default function SearchPage() {
                           />
                         </div>
                       )}
-                      <div className="p-2 sm:p-3">
-                        <h3 className="text-2xs sm:text-xs md:text-sm font-medium text-black line-clamp-1 mb-1 leading-tight truncate">
+                      <div className="space-responsive-xs">
+                        <h3 className="text-responsive-xs font-medium text-black line-clamp-1 leading-tight truncate">
                           {typeof property.address === "string" || typeof property.address === "number"
                             ? property.address
                             : "[Invalid address]"}
                         </h3>
-                        <p className="text-sm sm:text-base md:text-lg font-semibold text-brown mb-1 sm:mb-2 truncate">
+                        <p className="text-responsive-sm font-semibold text-brown truncate">
                           {typeof property.price === "string" || typeof property.price === "number"
                             ? property.price
                             : "[Invalid price]"}
@@ -1796,14 +1796,14 @@ export default function SearchPage() {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-6 sm:py-8 text-gray-500 px-4">
-                  <p className="text-sm sm:text-base">No search results yet.</p>
-                  <p className="text-xs sm:text-sm mt-1">Tap "Search Properties" to find homes.</p>
+                <div className="text-center py-responsive-md sm:py-responsive-lg text-gray-500 px-responsive-sm">
+                  <p className="text-responsive-sm sm:text-responsive-md">No search results yet.</p>
+                  <p className="text-responsive-xs sm:text-responsive-sm mt-1">Tap "Search Properties" to find homes.</p>
                 </div>
               )
             ) : (
               savedHomes.length > 0 ? (
-                <div className="flex gap-2 sm:gap-3 overflow-x-auto scrollbar-hide pb-2 justify-center sm:justify-start" style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
+                <div className="flex gap-responsive-xs sm:gap-responsive-sm overflow-x-auto scrollbar-hide pb-2 justify-center sm:justify-start" style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
                   {savedHomes.slice(currentPage * PROPERTIES_PER_PAGE, (currentPage + 1) * PROPERTIES_PER_PAGE).map((property) => (
                     <div
                       key={property.id}
@@ -1822,13 +1822,13 @@ export default function SearchPage() {
                           />
                         </div>
                       )}
-                      <div className="p-2 sm:p-3">
-                        <h3 className="text-2xs sm:text-xs md:text-sm font-medium text-black line-clamp-1 mb-1 leading-tight truncate">
+                      <div className="space-responsive-xs">
+                        <h3 className="text-responsive-xs font-medium text-black line-clamp-1 leading-tight truncate">
                           {typeof property.address === "string" || typeof property.address === "number"
                             ? property.address
                             : "[Invalid address]"}
                         </h3>
-                        <p className="text-sm sm:text-base md:text-lg font-semibold text-brown mb-1 sm:mb-2 truncate">
+                        <p className="text-responsive-sm font-semibold text-brown truncate">
                           {typeof property.price === "string" || typeof property.price === "number"
                             ? property.price
                             : "[Invalid price]"}
@@ -1846,9 +1846,9 @@ export default function SearchPage() {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-6 sm:py-8 text-gray-500 px-4">
-                  <p className="text-sm sm:text-base">No saved homes yet.</p>
-                  <p className="text-xs sm:text-sm mt-1">Save homes from search results.</p>
+                <div className="text-center py-responsive-md sm:py-responsive-lg text-gray-500 px-responsive-sm">
+                  <p className="text-responsive-sm sm:text-responsive-md">No saved homes yet.</p>
+                  <p className="text-responsive-xs sm:text-responsive-sm mt-1">Save homes from search results.</p>
                 </div>
               )
             )}
@@ -1860,7 +1860,7 @@ export default function SearchPage() {
           {/* Loading overlay - Only show when actively searching */}
           {isSearching && (
             <div className="absolute inset-0 z-20 w-full h-full flex items-center justify-center bg-gray-50">
-              <div className="flex flex-col items-center gap-4">
+              <div className="flex flex-col items-center gap-responsive-sm">
                 <KeyTurnLoader
                   message={searchStage || "Searching properties..."}
                 />
@@ -1878,20 +1878,20 @@ export default function SearchPage() {
 
             {/* Mobile Zoom Controls */}
             {!isSearching && (
-              <div className="absolute bottom-4 left-4 flex flex-col gap-1 z-10">
+              <div className="absolute bottom-4 left-4 flex flex-col gap-responsive-xs z-10">
                 <button
                   onClick={zoomIn}
-                  className="w-6 h-6 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 touch-friendly"
+                  className="mobile-icon-sm sm:mobile-icon-lg md:mobile-icon-xl bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 touch-friendly"
                   title="Zoom in"
                 >
-                  <span className="text-lg sm:text-lg md:text-xl font-bold leading-none">+</span>
+                  <span className="text-responsive-sm font-bold leading-none">+</span>
                 </button>
                 <button
                   onClick={zoomOut}
-                  className="w-6 h-6 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 touch-friendly"
+                  className="mobile-icon-sm sm:mobile-icon-lg md:mobile-icon-xl bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 touch-friendly"
                   title="Zoom out"
                 >
-                  <span className="text-lg sm:text-lg md:text-xl font-bold leading-none">−</span>
+                  <span className="text-responsive-sm font-bold leading-none">−</span>
                 </button>
               </div>
             )}
@@ -1901,7 +1901,7 @@ export default function SearchPage() {
       </div>
 
       {/* Desktop Layout */}
-      <div className="hidden md:flex gap-4 h-[calc(100vh-160px)]">
+      <div className="hidden md:flex gap-responsive-md h-[calc(100vh-160px)]">
         {/* Sidebar */}
         <div className="w-64 flex-shrink-0 flex flex-col">
           <div
@@ -1925,7 +1925,7 @@ export default function SearchPage() {
               >
                 Search
                 {searchResults.length > 0 && (
-                  <span className="ml-2 px-2 py-0.5 bg-olive-light text-gray-800 text-xs rounded-full">
+                  <span className="space-responsive-xs px-responsive-xs py-responsive-xs bg-olive-light text-gray-800 text-responsive-xs rounded-full">
                     {searchResults.length}
                   </span>
                 )}
@@ -1947,7 +1947,7 @@ export default function SearchPage() {
               >
                 Saved
                 {savedHomes.length > 0 && (
-                  <span className="ml-2 px-2 py-0.5 bg-olive-light text-gray-800 text-xs rounded-full">
+                  <span className="space-responsive-xs px-responsive-xs py-responsive-xs bg-olive-light text-gray-800 text-responsive-xs rounded-full">
                     {savedHomes.length}
                   </span>
                 )}
@@ -2004,15 +2004,15 @@ export default function SearchPage() {
                               </div>
                             )}
 
-                            <div className="p-3">
-                              <div className="flex items-start justify-between mb-2">
+                            <div className="space-responsive-xs">
+                              <div className="flex items-start justify-between gap-responsive-sm mb-2">
                                 <div className="flex-1">
                                   {/* Property Type and Status */}
-                                  <div className="flex items-center gap-2 mb-1">
+                                  <div className="flex items-center gap-responsive-sm mb-1">
                                     {property.propertyType &&
                                       property.propertyType.toLowerCase() !==
                                         "single_family" && (
-                                        <span className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded">
+                                        <span className="text-responsive-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded">
                                           {property.propertyType}
                                         </span>
                                       )}
@@ -2020,14 +2020,14 @@ export default function SearchPage() {
                                       "string" &&
                                       property.listingStatus.toLowerCase() !==
                                         "for_sale" && (
-                                        <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
+                                        <span className="text-responsive-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
                                           {property.listingStatus}
                                         </span>
                                       )}
                                   </div>
 
                                   {/* Address */}
-                                  <h3 className="text-sm font-medium text-black line-clamp-2 mb-1">
+                                  <h3 className="text-responsive-sm font-medium text-black line-clamp-2 mb-1">
                                     {typeof property.address === "string" ||
                                     typeof property.address === "number"
                                       ? property.address
@@ -2035,7 +2035,7 @@ export default function SearchPage() {
                                   </h3>
 
                                   {/* Price */}
-                                  <p className="text-lg font-semibold text-brown mb-2">
+                                  <p className="text-responsive-lg font-semibold text-brown mb-2">
                                     {typeof property.price === "string" ||
                                     typeof property.price === "number"
                                       ? property.price
@@ -2044,17 +2044,17 @@ export default function SearchPage() {
 
                                   {/* Property Details */}
                                   <div className="property-details-mobile mb-1">
-                                    <div className="flex items-center gap-1">
-                                      <Bed className="w-3 h-3 text-gray-500" />
+                                    <div className="flex items-center gap-responsive-xs">
+                                      <Bed className="mobile-icon-xs text-gray-500" />
                                       {property.bedrooms} beds
                                     </div>
-                                    <div className="flex items-center gap-1">
-                                      <Bath className="w-3 h-3 text-gray-500" />
+                                    <div className="flex items-center gap-responsive-xs">
+                                      <Bath className="mobile-icon-xs text-gray-500" />
                                       {property.bathrooms} baths
                                     </div>
                                     {property.sqft > 0 && (
-                                      <div className="flex items-center gap-1">
-                                        <Square className="w-3 h-3 text-gray-500" />
+                                      <div className="flex items-center gap-responsive-xs">
+                                        <Square className="mobile-icon-xs text-gray-500" />
                                         {Math.round(property.sqft).toLocaleString()} sqft
                                       </div>
                                     )}
@@ -2077,7 +2077,7 @@ export default function SearchPage() {
                                         >
                                           {score}/100
                                         </div>
-                                        <span className="text-xs text-gray-500">
+                                        <span className="text-responsive-xs text-gray-500">
                                           Match Score
                                         </span>
                                       </div>
@@ -2087,7 +2087,7 @@ export default function SearchPage() {
                                   {/* Lot Size */}
                                   {typeof property.lotSize === "string" &&
                                     property.lotSize && (
-                                      <div className="text-xs text-gray-500">
+                                      <div className="text-responsive-xs text-gray-500">
                                         Lot: {property.lotSize}
                                       </div>
                                     )}
@@ -2107,7 +2107,7 @@ export default function SearchPage() {
                     </div>
                   ) : (
                     <div className="text-center py-8 text-gray-500">
-                      <MapPin className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 mx-auto mb-2 text-gray-300" />
+                      <MapPin className="mobile-icon-lg mx-auto mb-2 text-gray-300" />
                       <p className="text-sm">
                         Click on the map to search for properties
                       </p>
@@ -2150,22 +2150,22 @@ export default function SearchPage() {
                             </div>
                           )}
 
-                          <div className="p-3">
-                            <div className="flex items-start justify-between mb-2">
+                          <div className="space-responsive-xs">
+                            <div className="flex items-start justify-between gap-responsive-sm mb-2">
                               <div className="flex-1">
                                 {/* Property Type and Status */}
                                 <div className="flex items-center gap-2 mb-1">
                                   {typeof property.propertyType === "string" &&
                                     property.propertyType.toLowerCase() !==
                                       "single_family" && (
-                                      <span className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded">
+                                      <span className="text-responsive-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded">
                                         {property.propertyType}
                                       </span>
                                     )}
                                 </div>
 
                                 {/* Address */}
-                                <h3 className="text-sm font-medium text-black line-clamp-2 mb-1">
+                                <h3 className="text-responsive-sm font-medium text-black line-clamp-2 mb-1">
                                   {typeof property.address === "string" ||
                                   typeof property.address === "number"
                                     ? property.address
@@ -2173,7 +2173,7 @@ export default function SearchPage() {
                                 </h3>
 
                                 {/* Price */}
-                                <p className="text-lg font-semibold text-brown mb-2">
+                                <p className="text-responsive-lg font-semibold text-brown mb-2">
                                   {typeof property.price === "string" ||
                                   typeof property.price === "number"
                                     ? property.price
@@ -2182,17 +2182,17 @@ export default function SearchPage() {
 
                                 {/* Property Details */}
                                 <div className="property-details-grid mb-1">
-                                  <div className="flex items-center gap-1">
-                                    <Bed className="w-3 h-3 text-gray-500" />
+                                  <div className="flex items-center gap-responsive-xs">
+                                    <Bed className="mobile-icon-xs text-gray-500" />
                                     {property.bedrooms} beds
                                   </div>
-                                  <div className="flex items-center gap-1">
-                                    <Bath className="w-3 h-3 text-gray-500" />
+                                  <div className="flex items-center gap-responsive-xs">
+                                    <Bath className="mobile-icon-xs text-gray-500" />
                                     {property.bathrooms} baths
                                   </div>
                                   {property.sqft > 0 && (
-                                    <div className="flex items-center gap-1">
-                                      <Square className="w-3 h-3 text-gray-500" />
+                                    <div className="flex items-center gap-responsive-xs">
+                                      <Square className="mobile-icon-xs text-gray-500" />
                                       {Math.round(property.sqft).toLocaleString()} sqft
                                     </div>
                                   )}

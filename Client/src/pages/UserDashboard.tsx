@@ -5,7 +5,6 @@ import DocumentCard, { DocumentData } from "../components/cards/DocumentCard";
 import Carousel from "../components/ui/Carousel";
 import TimelineChecklist from "../hooks/TimelineChecklist";
 import HomeCard, { HomeDescription } from "../components/cards/HomeCard";
-import PageHeader from "../components/ui/PageHeader";
 import CircularButton from "../components/ui/CircularButton";
 
 /*import PriceDropCard from "../components/PriceDropCard";
@@ -120,10 +119,6 @@ export default function UserDashboard() {
 
   return (
     <div className="min-h-screen bg-off-white">
-      <PageHeader
-        title="Dashboard"
-        subtitle="All the tools you need for a seamless purchasing experience."
-      />
 
       <div className="max-w-6xl mx-auto p-6">
         {/* Timeline Progress */}

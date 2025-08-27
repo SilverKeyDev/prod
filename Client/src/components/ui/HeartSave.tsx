@@ -51,17 +51,17 @@ const HeartSave: React.FC<HeartSaveProps> = ({
     }
   };
 
-  // Size configurations - mobile responsive
+  // Size configurations - using utilities.css classes
   const sizeClasses = {
-    sm: "w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6",
-    md: "w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7", 
-    lg: "w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8"
+    sm: "mobile-icon-xs",
+    md: "mobile-icon-sm", 
+    lg: "mobile-icon-md"
   };
 
   const buttonSizeClasses = {
-    sm: "p-1.5 sm:p-2 md:p-2.5",
-    md: "p-2 sm:p-2.5 md:p-3",
-    lg: "p-2.5 sm:p-3 md:p-3.5"
+    sm: "space-responsive-xs",
+    md: "space-responsive-sm",
+    lg: "space-responsive-md"
   };
 
   return (

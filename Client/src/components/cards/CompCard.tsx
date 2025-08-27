@@ -79,7 +79,7 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
       }}
       className={className}
       bottomContent={
-        <div className="space-y-2">
+        <div className="space-y-responsive-sm">
           {/* Secondary Address */}
           <AddressDisplay
             address={`${comp.address.city}, ${comp.address.state} ${comp.address.zipcode}`}
@@ -92,9 +92,9 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
           
           {/* Agent Info */}
           {comp.attributionInfo?.agentName && (
-            <div className="flex items-center gap-1">
-              <span className="text-2xs text-gray-500 flex-shrink-0">Agent:</span>
-              <span className="text-2xs font-medium text-navy truncate">
+            <div className="flex items-center gap-responsive-xs">
+              <span className="text-responsive-xs text-gray-500 flex-shrink-0">Agent:</span>
+              <span className="text-responsive-xs font-medium text-navy truncate">
                 {formatAgentName(comp.attributionInfo.agentName)}
               </span>
             </div>

@@ -130,7 +130,7 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={disabled ? undefined : onToggle}
-        className={`mobile-input text-sm flex items-center justify-between w-full ${
+        className={`mobile-input text-responsive-sm flex items-center justify-between w-full touch-friendly ${
           disabled
             ? "opacity-60 cursor-not-allowed"
             : "cursor-pointer hover:border-brown focus:border-brown focus:ring-brown/20"
@@ -143,7 +143,7 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
           {selectedOption ? selectedOption.label : placeholder}
         </span>
         <ChevronDown
-          className={`w-4 h-4 transition-transform duration-200 ${
+          className={`mobile-icon-xs transition-transform duration-200 ${
             isOpen ? "rotate-180" : ""
           }`}
         />
@@ -163,7 +163,7 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
               disabled={disabled}
               tabIndex={disabled ? -1 : 0}
               aria-disabled={disabled}
-              className={`w-full px-3 py-2 text-left text-sm transition-colors duration-150 ${
+              className={`w-full px-responsive-sm py-responsive-xs text-left text-responsive-sm transition-colors duration-150 touch-friendly ${
                 index === 0 ? "first:rounded-t-lg" : ""
               } ${index === options.length - 1 ? "last:rounded-b-lg" : ""} ${
                 value === option.value
@@ -233,20 +233,20 @@ const SortableReportSection: React.FC<SortableReportSectionProps> = ({
     <div
       ref={setNodeRef}
       style={style}
-      className={`flex items-center space-x-3 p-3 border rounded-lg transition-all duration-200 border-beige hover:bg-beige/10 hover:border-brown/30 ${
+      className={`flex items-center space-x-responsive-sm space-responsive-sm border rounded-lg transition-all duration-200 border-beige hover:bg-beige/10 hover:border-brown/30 ${
         !checked ? "opacity-60" : ""
       } ${isDragging ? "shadow-lg bg-white border-brown/50" : ""}`}
     >
       <div
         {...attributes}
         {...listeners}
-        className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 p-1 rounded hover:bg-gray-100 transition-colors"
+        className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 space-responsive-xs rounded hover:bg-gray-100 transition-colors"
         title="Drag to reorder"
       >
-        <GripVertical className="w-5 h-5" />
+        <GripVertical className="mobile-icon-sm" />
       </div>
 
-      <div className="flex items-center space-x-3 flex-1">
+      <div className="flex items-center space-x-responsive-sm flex-1">
         <div className="flex items-center space-x-2">
           {priority && (
             <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">
@@ -256,7 +256,7 @@ const SortableReportSection: React.FC<SortableReportSectionProps> = ({
 
           <label
             htmlFor={id}
-            className="flex items-center space-x-3 cursor-pointer flex-1"
+            className="flex items-center space-x-responsive-sm cursor-pointer flex-1"
           >
             <div className="relative">
               <input
@@ -946,7 +946,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
         </label>
         {isEditMode ? (
           <>
-            <div className="flex space-x-2 mb-3">
+            <div className="flex space-x-responsive-xs space-y-responsive-sm">
               <input
                 type="text"
                 value={onChange && value !== undefined ? value : inputValue}
@@ -962,9 +962,9 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                     onChange && value !== undefined ? value : inputValue;
                   handleAddTag(currentInputValue);
                 }}
-                className="px-4 py-2 bg-brown text-white rounded-lg hover:bg-brown/80 transition-colors touch-friendly flex items-center"
+                className="px-responsive-sm py-responsive-xs bg-brown text-white rounded-lg hover:bg-brown/80 transition-colors touch-friendly flex items-center"
               >
-                <Plus className="w-4 h-4" />
+                <Plus className="mobile-icon-xs" />
               </button>
             </div>
             {currentTags.length > 0 && (
@@ -978,9 +978,9 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                     <button
                       type="button"
                       onClick={() => removeTag(index)}
-                      className="ml-2 text-black/60 hover:text-black"
+                      className="ml-2 text-black/60 hover:text-black touch-friendly"
                     >
-                      <X className="w-3 h-3" />
+                      <X className="mobile-icon-xs" />
                     </button>
                   </span>
                 ))}
@@ -988,7 +988,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
             )}
           </>
         ) : (
-          <div className="p-3 min-h-[48px]">
+          <div className="space-responsive-sm min-h-[48px]">
             {currentTags.length > 0 ? (
               <div className="flex flex-wrap gap-2">
                 {currentTags.map((tag, index) => (
@@ -2297,7 +2297,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
               <>
                 <button
                   onClick={handleCancel}
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors touch-friendly text-sm"
+                  className="flex items-center gap-2 px-4 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors touch-friendly text-sm"
                 >
                   <X size={16} />
                   Cancel
@@ -2305,7 +2305,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                 <button
                   onClick={handleSaveChanges}
                   disabled={isSaving}
-                  className="flex items-center gap-2 px-4 py-2 bg-olive text-white rounded-lg hover:bg-olive/80 transition-colors disabled:opacity-50 touch-friendly text-sm"
+                  className="flex items-center gap-2 px-4 py-3 bg-olive text-white rounded-lg hover:bg-olive/80 transition-colors disabled:opacity-50 touch-friendly text-sm"
                 >
                   <Save size={16} />
                   {isSaving ? "Saving..." : "Save Changes"}

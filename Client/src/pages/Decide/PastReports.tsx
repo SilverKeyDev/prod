@@ -54,7 +54,7 @@ const ProgressBar: React.FC<ProgressBarProps> = ({ startTime }) => {
   return (
     <div className="w-full">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-xs text-gold font-medium">Generating...</span>
+        <span className="text-responsive-xs text-gold font-medium">Generating...</span>
         <span className="text-xs text-gold font-medium">
           {Math.round(progress)}%
         </span>
@@ -528,12 +528,12 @@ export default function PastReports() {
       )}
       {/* Delete Confirmation Modal */}
       {deleteModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl p-4 sm:p-6 max-w-md w-full mx-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 space-responsive-sm">
+          <div className="bg-white rounded-xl space-responsive-sm max-w-md w-full mx-4">
             <div className="text-center">
-              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+              <div className="mx-auto flex items-center justify-center mobile-icon-lg rounded-full bg-red-100 space-y-responsive-sm">
                 <svg
-                  className="h-6 w-6 text-red-600"
+                  className="mobile-icon-sm text-red-600"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -546,18 +546,18 @@ export default function PastReports() {
                   />
                 </svg>
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
+              <h3 className="text-responsive-lg font-medium text-gray-900 space-y-responsive-xs">
                 Delete Report
               </h3>
-              <p className="text-sm text-gray-500 mb-6">
+              <p className="text-responsive-sm text-gray-500 space-y-responsive-md">
                 Are you sure you want to delete this report? This action cannot
                 be undone.
               </p>
-              <div className="flex justify-center space-x-3">
+              <div className="flex justify-center gap-responsive-sm">
                 <button
                   type="button"
                   onClick={closeDeleteModal}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-black bg-white hover:bg-gray-50 hover:text-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brown-500 touch-friendly"
+                  className="px-responsive-sm py-responsive-xs border border-gray-300 rounded-md text-responsive-sm font-medium text-black bg-white hover:bg-gray-50 hover:text-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brown-500 touch-friendly"
                 >
                   Cancel
                 </button>
@@ -567,7 +567,7 @@ export default function PastReports() {
                     reportToDelete &&
                     handleDeleteReport(reportToDelete.id, reportToDelete.s3Key)
                   }
-                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 touch-friendly"
+                  className="px-responsive-sm py-responsive-xs border border-transparent rounded-md shadow-sm text-responsive-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 touch-friendly"
                 >
                   Delete
                 </button>
@@ -595,7 +595,7 @@ export default function PastReports() {
         subtitle="Manage and download your generated property reports"
       />
 
-      <div className="max-w-6xl mx-auto p-6">
+      <div className="max-w-6xl mx-auto space-responsive-md">
         <div className="flex justify-between items-center mb-6">
           <span className="text-sm text-black/60">
             {filteredReports.length} report
@@ -603,9 +603,9 @@ export default function PastReports() {
           </span>
         </div>
         <div className="mobile-card mb-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-responsive-sm sm:space-y-0">
             <div className="relative flex-1 sm:max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-black/40" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 mobile-icon-xs text-black/40" />
               <input
                 type="text"
                 value={searchTerm}
@@ -614,8 +614,8 @@ export default function PastReports() {
                 placeholder="Filter by address"
               />
             </div>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end space-y-3 sm:space-y-0 sm:space-x-4 flex-1 sm:max-w-md sm:flex-none">
-              <div className="hidden sm:flex items-center space-x-1 sm:space-x-2">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end space-y-responsive-sm sm:space-y-0 sm:gap-responsive-sm flex-1 sm:max-w-md sm:flex-none">
+              <div className="hidden sm:flex items-center gap-responsive-xs">
                 <button
                   onClick={() => setViewMode("grid")}
                   className={`p-2 rounded touch-friendly flex items-center justify-center ${
@@ -624,7 +624,7 @@ export default function PastReports() {
                       : "bg-beige text-white hover:bg-brown/80"
                   }`}
                 >
-                  <div className="grid grid-cols-2 gap-1 w-3 h-3 sm:w-4 sm:h-4">
+                  <div className="grid grid-cols-2 gap-1 mobile-icon-xs">
                     <div className="bg-current rounded-sm"></div>
                     <div className="bg-current rounded-sm"></div>
                     <div className="bg-current rounded-sm"></div>
@@ -639,7 +639,7 @@ export default function PastReports() {
                       : "bg-beige text-white hover:bg-brown/80"
                   }`}
                 >
-                  <div className="space-y-1 w-3 h-3 sm:w-4 sm:h-4">
+                  <div className="space-y-1 mobile-icon-xs">
                     <div className="bg-current rounded-sm h-0.5"></div>
                     <div className="bg-current rounded-sm h-0.5"></div>
                     <div className="bg-current rounded-sm h-0.5"></div>
@@ -651,7 +651,7 @@ export default function PastReports() {
               <button
                 onClick={handleRefresh}
                 disabled={isRefreshing || reportsLoading}
-                className={`hidden sm:flex p-2 rounded touch-friendly items-center justify-center transition-colors duration-200 ${
+                className={`hidden sm:flex space-responsive-xs rounded touch-friendly items-center justify-center transition-colors duration-200 ${
                   isRefreshing
                     ? "bg-gray-300 text-gray-600 cursor-not-allowed"
                     : "bg-gray-300 text-gray-600 hover:bg-gray-500 hover:text-white"
@@ -670,27 +670,27 @@ export default function PastReports() {
               </button>
               
               {/* Mobile: Sort dropdown with refresh button to the right */}
-              <div className="flex items-center gap-2 sm:hidden">
+              <div className="flex items-center gap-responsive-xs sm:hidden">
                 <div className="relative flex-1" ref={sortDropdownRef}>
                   <button
                     onClick={() => setSortDropdownOpen(!sortDropdownOpen)}
-                    className="mobile-input w-full text-sm flex items-center justify-between cursor-pointer hover:border-brown focus:border-brown focus:ring-brown/20"
+                    className="mobile-input w-full text-responsive-sm flex items-center justify-between cursor-pointer hover:border-brown focus:border-brown focus:ring-brown/20"
                   >
-                    <span className="flex items-center space-x-2">
+                    <span className="flex items-center gap-responsive-xs">
                       {sortBy === "date" ? (
                         <>
-                          <Calendar className="w-4 h-4" />
+                          <Calendar className="mobile-icon-xs" />
                           <span>Sort by Date</span>
                         </>
                       ) : (
                         <>
-                          <MapPin className="w-4 h-4" />
+                          <MapPin className="mobile-icon-xs" />
                           <span>Sort by Address</span>
                         </>
                       )}
                     </span>
                     <ChevronDown
-                      className={`w-4 h-4 transition-transform duration-200 ${
+                      className={`mobile-icon-xs transition-transform duration-200 ${
                         sortDropdownOpen ? "rotate-180" : ""
                       }`}
                     />

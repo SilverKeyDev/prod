@@ -81,22 +81,22 @@ export default function SignupPage({}: SignupPageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-off-white flex items-center justify-center px-4 py-8">
+    <div className="min-h-screen bg-off-white flex items-center justify-center px-responsive-sm py-responsive-md">
       <div className="w-full max-w-md">
         {/* Header */}
-        <div className="text-center mb-6 sm:mb-8">
-          <h2 className="text-xl sm:text-2xl font-serif text-black mb-2 flex items-center justify-center gap-2">
+        <div className="text-center space-y-responsive-md">
+          <h2 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-serif text-black space-y-responsive-xs flex items-center justify-center gap-responsive-xs">
             <MiniLogo size="md" />
             Create your account
           </h2>
         </div>
 
         {/* Signup Form */}
-        <form onSubmit={handleSubmit} className="card space-y-6">
+        <form onSubmit={handleSubmit} className="card space-y-responsive-md">
           {/* Home Button */}
           <AuthLink to="/" variant="back">
-            <ArrowLeft className="h-5 w-5 mr-2" />
-            <span className="text-xs font-medium">Back to Home</span>
+            <ArrowLeft className="mobile-icon-sm mr-2" />
+            <span className="text-responsive-xs font-medium">Back to Home</span>
           </AuthLink>
 
           <AuthInput
@@ -124,17 +124,17 @@ export default function SignupPage({}: SignupPageProps) {
           />
 
           <div className="mb-6">
-            <label className="block text-xs font-medium text-black mb-2">
+            <label className="block text-responsive-xs font-medium text-black space-y-responsive-xs">
               Password
             </label>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-black/40" />
+              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 mobile-icon-xs text-black/40" />
               <input
                 type="password"
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                className="input-field pl-10 h-12 text-sm border-gray-300 focus:border-brown focus:ring-brown/20"
+                className="input-field pl-10 btn-responsive-md text-responsive-sm border-gray-300 focus:border-brown focus:ring-brown/20"
                 placeholder="Enter password"
                 autoComplete="new-password"
                 required
@@ -148,11 +148,11 @@ export default function SignupPage({}: SignupPageProps) {
 
           {/* Phone */}
           <div className="mb-6">
-            <label className="block text-xs font-medium text-black mb-2">
+            <label className="block text-responsive-xs font-medium text-black space-y-responsive-xs">
               Phone number
             </label>
             <div className="relative">
-              <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-black/40 z-10" />
+              <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 mobile-icon-xs text-black/40 z-10" />
               <PhoneInput
                 international
                 defaultCountry="US"
@@ -201,8 +201,8 @@ export default function SignupPage({}: SignupPageProps) {
             Create account
           </AuthButton>
 
-          <div className="text-center text-xs sm:text-sm">
-            <span className="text-gray-600 sm:text-black/60">
+          <div className="text-center text-responsive-xs">
+            <span className="text-gray-600 text-responsive-xs">
               Already have an account?{" "}
             </span>
             <AuthLink

@@ -19,7 +19,7 @@ export default function AuthButton({
   variant = "primary",
   className = "",
 }: AuthButtonProps) {
-  const baseClasses = "w-full h-12 px-6 font-medium rounded-lg transition-all duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed";
+  const baseClasses = "w-full btn-responsive-md font-medium rounded-lg transition-all duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed touch-friendly";
   
   const variantClasses = {
     primary: "bg-olive hover:bg-olive/90 text-white shadow-sm hover:shadow-md",

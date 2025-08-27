@@ -67,32 +67,32 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-off-white flex items-center justify-center px-4 py-8">
+    <div className="min-h-screen bg-off-white flex items-center justify-center px-responsive-sm py-responsive-md">
       <div className="w-full max-w-md">
         {/* Header */}
-        <div className="text-center mb-8 sm:mb-12">
-          <h2 className="text-xl sm:text-2xl font-serif text-black mb-2 flex items-center justify-center gap-2">
+        <div className="text-center space-y-responsive-lg">
+          <h2 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-serif text-black space-y-responsive-xs flex items-center justify-center gap-responsive-xs">
             <MiniLogo size="md" />
             Welcome back
           </h2>
-          <p className="text-black/60 font-light text-xs sm:text-sm">
+          <p className="text-black/60 font-light text-responsive-xs">
             Generate premium property reports with AI
           </p>
         </div>
 
         {/* Error Message */}
         {error && (
-          <div className="mb-6 p-3 bg-red-50 text-red-600 text-sm rounded-md">
+          <div className="space-y-responsive-md space-responsive-sm bg-red-50 text-red-600 text-responsive-sm rounded-md">
             {error}
           </div>
         )}
 
         {/* Login Form */}
-        <form onSubmit={handleSubmit} className="card space-y-6">
+        <form onSubmit={handleSubmit} className="card space-y-responsive-md">
           {/* Home Button */}
           <AuthLink to="/" variant="back">
-            <ArrowLeft className="h-5 w-5 mr-2" />
-            <span className="text-xs font-medium">Back to Home</span>
+            <ArrowLeft className="mobile-icon-sm mr-2" />
+            <span className="text-responsive-xs font-medium">Back to Home</span>
           </AuthLink>
 
           <AuthInput
@@ -125,7 +125,7 @@ export default function LoginPage() {
             Sign in
           </AuthButton>
 
-          <div className="flex items-center justify-center gap-6 text-sm">
+          <div className="flex items-center justify-center gap-responsive-md text-responsive-sm">
             <AuthLink to="/signup" variant="inline">
               Create an account
             </AuthLink>

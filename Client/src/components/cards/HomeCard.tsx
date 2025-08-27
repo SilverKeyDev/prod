@@ -99,7 +99,7 @@ export default function HomeCard({
         loading={isLoading}
         onClick={handleViewDetails}
         topContent={
-          <div className="bg-white rounded-full p-1">
+          <div className="bg-white rounded-full space-responsive-xs">
             <HeartSave
               property={convertToProperty(home)}
               isSaved={isHomeSaved(home.home_id)}

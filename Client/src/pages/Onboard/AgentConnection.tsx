@@ -114,21 +114,21 @@ export default function AgentConnection() {
         subtitle="Connect with real estate agents and manage your professional relationships"
       />
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-responsive-sm sm:px-responsive-md lg:px-responsive-lg py-responsive-lg">
 
         {/* Agent Search Section */}
         {userProfile && !userProfile.is_agent && (
           <div className="mb-8">
             <div className="mobile-card">
-              <h3 className="text-lg font-medium text-black mb-4">
+              <h3 className="text-responsive-md font-medium text-black space-y-responsive-sm">
                 Find Your Agent
               </h3>
 
               {/* Search Input */}
-              <div className="space-y-4">
+              <div className="space-y-responsive-sm">
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Search className="h-4 w-4 text-gray-400" />
+                    <Search className="mobile-icon-xs text-gray-400" />
                   </div>
                   <input
                     type="text"
@@ -141,35 +141,35 @@ export default function AgentConnection() {
 
                 {/* Search Results */}
                 {agentSearchLoading && (
-                  <div className="text-sm text-gray-500 flex items-center">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-brown mr-2"></div>
+                  <div className="text-responsive-sm text-gray-500 flex items-center">
+                    <div className="animate-spin rounded-full mobile-icon-xs border-b-2 border-brown mr-2"></div>
                     Searching agents...
                   </div>
                 )}
 
                 {agents.length > 0 && (
-                  <div className="space-y-2 max-h-60 overflow-y-auto">
+                  <div className="space-y-responsive-xs max-h-60 overflow-y-auto">
                     {agents.map((agent) => (
                       <div
                         key={agent.id}
-                        className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                        className="flex items-center justify-between space-responsive-sm border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                       >
                         <div>
                           <h4 className="font-medium text-black">
                             {agent.name}
                           </h4>
-                          <p className="text-sm text-gray-600">{agent.email}</p>
+                          <p className="text-responsive-sm text-gray-600">{agent.email}</p>
                           {agent.phone && (
-                            <p className="text-sm text-gray-600">
+                            <p className="text-responsive-sm text-gray-600">
                               {agent.phone}
                             </p>
                           )}
                         </div>
                         <button
                           onClick={() => handleAssignAgent(agent)}
-                          className="flex items-center px-3 py-1 bg-brown text-white rounded-md hover:bg-brown/80 transition-colors text-sm"
+                          className="flex items-center px-responsive-sm py-responsive-xs bg-brown text-white rounded-md hover:bg-brown/80 transition-colors text-responsive-sm touch-friendly"
                         >
-                          <UserPlus className="w-4 h-4 mr-1" />
+                          <UserPlus className="mobile-icon-xs mr-1" />
                           Add
                         </button>
                       </div>
@@ -180,7 +180,7 @@ export default function AgentConnection() {
                 {agentSearchTerm &&
                   !agentSearchLoading &&
                   agents.length === 0 && (
-                    <div className="text-sm text-gray-500 text-center py-4">
+                    <div className="text-responsive-sm text-gray-500 text-center py-responsive-sm">
                       No agents found matching "{agentSearchTerm}"
                     </div>
                   )}
@@ -198,18 +198,18 @@ export default function AgentConnection() {
                 <UserPlus className="h-5 w-5 text-olive" />
                 Your Agents ({assignedAgents.length})
               </h3>
-              <div className="space-y-3">
+              <div className="space-y-responsive-sm">
                 {assignedAgents.map((agent) => (
                   <div
                     key={agent.id}
-                    className="bg-olive/5 border border-olive/20 rounded-lg p-4 hover:bg-olive/10 transition-colors"
+                    className="bg-olive/5 border border-olive/20 rounded-lg space-responsive-sm hover:bg-olive/10 transition-colors"
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <h4 className="font-semibold text-black mb-1">
+                        <h4 className="font-semibold text-black space-y-responsive-xs">
                           {agent.name}
                         </h4>
-                        <p className="text-sm text-gray-600 mb-1">
+                        <p className="text-responsive-sm text-gray-600 space-y-responsive-xs">
                           {agent.email}
                         </p>
                         {agent.phone && (
@@ -220,10 +220,10 @@ export default function AgentConnection() {
                       </div>
                       <button
                         onClick={() => handleRemoveAgentClick(agent)}
-                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                        className="space-responsive-xs text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors touch-friendly"
                         title="Remove agent"
                       >
-                        <X className="w-4 h-4" />
+                        <X className="mobile-icon-xs" />
                       </button>
                     </div>
                   </div>
@@ -235,9 +235,9 @@ export default function AgentConnection() {
 
         {/* Empty State for Non-Agents */}
         {userProfile && !userProfile.is_agent && assignedAgents.length === 0 && (
-          <div className="card text-center py-12">
-            <UserPlus className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-black mb-2">
+          <div className="card text-center py-responsive-xl">
+            <UserPlus className="mobile-icon-xl text-gray-400 mx-auto space-y-responsive-sm" />
+            <h3 className="text-responsive-md font-medium text-black space-y-responsive-xs">
               No Agents Connected
             </h3>
             <p className="text-gray-600 mb-4">
@@ -254,11 +254,11 @@ export default function AgentConnection() {
                 <UserPlus className="h-5 w-5 text-olive" />
                 Your Clients
               </h3>
-              <p className="text-gray-600 mb-4">
+              <p className="text-gray-600 space-y-responsive-sm">
                 As an agent, you can view and manage your client connections here.
               </p>
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <p className="text-sm text-blue-800">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg space-responsive-sm">
+                <p className="text-responsive-sm text-blue-800">
                   💡 <strong>Tip:</strong> Your clients can find and connect with you by searching for your name or email address.
                 </p>
               </div>
@@ -287,7 +287,7 @@ export default function AgentConnection() {
 
               {/* Dialog */}
               <div
-                className="relative z-[10000] w-full max-w-sm mx-auto transform overflow-hidden rounded-2xl bg-white p-6 text-left shadow-xl transition-all"
+                className="relative z-[10000] w-full max-w-sm mx-auto transform overflow-hidden rounded-2xl bg-white space-responsive-md text-left shadow-xl transition-all"
                 style={{ maxWidth: "320px" }}
               >
                 {/* Close button */}
@@ -302,11 +302,11 @@ export default function AgentConnection() {
                 {/* Content */}
                 <div className="flex items-start justify-center">
                   <div className="mt-3 text-center w-full">
-                    <h3 className="text-lg font-medium leading-6 text-gray-900">
+                    <h3 className="text-responsive-md font-medium leading-6 text-gray-900">
                       Success!
                     </h3>
                     <div className="mt-2">
-                      <p className="text-sm text-gray-500">
+                      <p className="text-responsive-sm text-gray-500">
                         Preferences updated successfully!
                       </p>
                     </div>

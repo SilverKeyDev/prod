@@ -310,11 +310,11 @@ const ClientIntelPage: React.FC = () => {
     return (
       <div className="min-h-screen bg-cream flex items-center justify-center">
         <div className="text-center">
-          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-black mb-2">
+          <AlertCircle className="mobile-icon-xl text-red-500 mx-auto space-y-responsive-sm" />
+          <h2 className="text-responsive-lg font-semibold text-black space-y-responsive-xs">
             Error Loading Client Data
           </h2>
-          <p className="text-gray-600 mb-4">{error}</p>
+          <p className="text-gray-600 space-y-responsive-sm">{error}</p>
           <button onClick={fetchClientData} className="btn-primary">
             Try Again
           </button>
@@ -332,14 +332,14 @@ const ClientIntelPage: React.FC = () => {
           subtitle="Manage and analyze your clients' preferences and data"
         />
         
-        <div className="container-responsive py-8">
+        <div className="container-responsive py-responsive-lg">
 
           {/* Filters and Search */}
           <div className="card mb-6">
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col sm:flex-row gap-responsive-sm">
               <div className="flex-1">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 mobile-icon-xs text-gray-400" />
                   <input
                     type="text"
                     placeholder="Search clients by name or email..."
@@ -354,9 +354,9 @@ const ClientIntelPage: React.FC = () => {
 
           {/* Client Table */}
           <div className="card overflow-hidden p-0">
-            <div className="px-3 sm:px-6 py-3 sm:py-4 border-b border-beige bg-cream/30">
+            <div className="px-responsive-sm sm:px-responsive-md py-responsive-sm sm:py-responsive-sm border-b border-beige bg-cream/30">
               <div className="flex items-center justify-between">
-                <h3 className="text-base sm:text-lg font-medium text-black">
+                <h3 className="text-responsive-md sm:text-responsive-md font-medium text-black">
                   Client List ({filteredClients.length})
                 </h3>
               </div>
@@ -388,16 +388,16 @@ const ClientIntelPage: React.FC = () => {
                     >
                       <td className="px-2 sm:px-4 py-2 sm:py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          <div className="flex-shrink-0 h-8 w-8 sm:h-10 sm:w-10">
-                            <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-cream flex items-center justify-center border border-beige">
-                              <User className="h-4 w-4 sm:h-5 sm:w-5 text-gold" />
+                          <div className="flex-shrink-0 mobile-icon-md sm:mobile-icon-lg">
+                            <div className="mobile-icon-md sm:mobile-icon-lg rounded-full bg-cream flex items-center justify-center border border-beige">
+                              <User className="mobile-icon-xs sm:mobile-icon-sm text-gold" />
                             </div>
                           </div>
                           <div className="ml-2 sm:ml-4 min-w-0 flex-1">
-                            <div className="text-2xs sm:text-sm font-medium text-black truncate">
+                            <div className="text-responsive-xs sm:text-responsive-sm font-medium text-black truncate">
                               {client.name}
                             </div>
-                            <div className="text-2xs sm:text-xs text-gray-500 truncate">
+                            <div className="text-responsive-xs sm:text-responsive-xs text-gray-500 truncate">
                               Joined:{" "}
                               {new Date(client.created_at).toLocaleDateString()}
                             </div>
@@ -405,15 +405,15 @@ const ClientIntelPage: React.FC = () => {
                         </div>
                       </td>
                       <td className="px-2 sm:px-4 py-2 sm:py-4 whitespace-nowrap">
-                        <div className="text-2xs sm:text-sm text-black flex items-center min-w-0">
-                          <Mail className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400 mr-1 sm:mr-2 flex-shrink-0" />
+                        <div className="text-responsive-xs sm:text-responsive-sm text-black flex items-center min-w-0">
+                          <Mail className="mobile-icon-xs sm:mobile-icon-xs text-gray-400 mr-1 sm:mr-2 flex-shrink-0" />
                           <span className="truncate">
                             {client.email}
                           </span>
                         </div>
                         {client.phone && (
-                          <div className="text-2xs sm:text-sm text-gray-500 flex items-center mt-1 min-w-0">
-                            <Phone className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400 mr-1 sm:mr-2 flex-shrink-0" />
+                          <div className="text-responsive-xs sm:text-responsive-sm text-gray-500 flex items-center mt-1 min-w-0">
+                            <Phone className="mobile-icon-xs sm:mobile-icon-xs text-gray-400 mr-1 sm:mr-2 flex-shrink-0" />
                             <span className="truncate">{client.phone}</span>
                           </div>
                         )}
@@ -422,15 +422,15 @@ const ClientIntelPage: React.FC = () => {
                         {client.has_preferences ? (
                           <button
                             onClick={() => handleViewDetails(client)}
-                            className="text-gold hover:text-gold-light flex items-center transition-colors font-medium"
+                            className="text-gold hover:text-gold-light flex items-center transition-colors font-medium touch-friendly"
                           >
-                            <Eye className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                            <Eye className="mobile-icon-xs sm:mobile-icon-xs mr-1" />
                             <span className="hidden sm:inline">View Details</span>
                             <span className="sm:hidden">View</span>
                           </button>
                         ) : (
-                          <span className="inline-flex items-center px-1.5 sm:px-2.5 py-0.5 rounded-full text-2xs sm:text-xs font-medium bg-yellow-100 text-yellow-800">
-                            <AlertCircle className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
+                          <span className="inline-flex items-center px-responsive-xs sm:px-responsive-xs py-responsive-xs rounded-full text-responsive-xs sm:text-responsive-xs font-medium bg-yellow-100 text-yellow-800">
+                            <AlertCircle className="mobile-icon-xs sm:mobile-icon-xs mr-1" />
                             <span className="hidden sm:inline">Needs Setup</span>
                             <span className="sm:hidden">Setup</span>
                           </span>
@@ -439,9 +439,9 @@ const ClientIntelPage: React.FC = () => {
                       <td className="px-2 sm:px-4 py-2 sm:py-4 whitespace-nowrap text-2xs sm:text-sm font-medium">
                         <button
                           onClick={() => handleActionPlan(client)}
-                          className="text-olive hover:text-olive-light flex items-center transition-colors font-medium"
+                          className="text-olive hover:text-olive-light flex items-center transition-colors font-medium touch-friendly"
                         >
-                          <Target className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                          <Target className="mobile-icon-xs sm:mobile-icon-xs mr-1" />
                           <span className="hidden sm:inline">Action Plan</span>
                           <span className="sm:hidden">Plan</span>
                         </button>
@@ -454,7 +454,7 @@ const ClientIntelPage: React.FC = () => {
 
             {filteredClients.length === 0 && (
               <div className="text-center py-12">
-                <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <Users className="mobile-icon-xl text-gray-400 mx-auto space-y-responsive-sm" />
                 <h3 className="text-lg font-medium text-black mb-2">
                   No clients found
                 </h3>

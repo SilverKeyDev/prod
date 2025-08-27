@@ -29,7 +29,7 @@ export default function NewMatchCard({ item }: NewMatchCardProps) {
   return (
     <div className="card-mobile overflow-hidden flex flex-col">
       {/* Image */}
-      <div className="w-full h-32 sm:h-36 md:h-40 bg-gray-100 overflow-hidden">
+      <div className="w-full bg-gray-100 overflow-hidden" style={{height: 'clamp(8rem, 12vw, 10rem)'}}>
         <img
           src={imageUrl || placeholder}
           alt={address}
@@ -39,18 +39,18 @@ export default function NewMatchCard({ item }: NewMatchCardProps) {
       </div>
 
       {/* Details */}
-      <div className="p-3 sm:p-4 flex-1 flex flex-col gap-1.5 sm:gap-2">
-        <div className="flex items-start justify-between gap-2">
-          <h3 className="font-semibold text-2xs sm:text-xs md:text-sm line-clamp-1 flex-1 truncate" title={address}>
+      <div className="space-responsive-sm flex-1 flex flex-col gap-responsive-sm">
+        <div className="flex items-start justify-between gap-responsive-sm">
+          <h3 className="font-semibold text-responsive-xs line-clamp-1 flex-1 truncate" title={address}>
             {address}
           </h3>
-          <div className="flex items-center gap-1 text-brown flex-shrink-0">
-            <Star size={14} className="sm:w-4 sm:h-4" />
-            <span className="font-medium text-2xs sm:text-xs whitespace-nowrap">{matchScore}/100</span>
+          <div className="flex items-center gap-responsive-xs text-brown flex-shrink-0">
+            <Star className="mobile-icon-sm" />
+            <span className="font-medium text-responsive-xs whitespace-nowrap">{matchScore}/100</span>
           </div>
         </div>
-        <p className="text-2xs sm:text-xs text-gray-600 truncate">Listed on {dateStr}</p>
-        <p className="text-2xs sm:text-xs text-gray-700 line-clamp-2">{reason}</p>
+        <p className="text-responsive-xs text-gray-600 truncate">Listed on {dateStr}</p>
+        <p className="text-responsive-xs text-gray-700 line-clamp-2">{reason}</p>
       </div>
     </div>
   );

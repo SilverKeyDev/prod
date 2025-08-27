@@ -28,7 +28,7 @@ export default function AIAssistant() {
   const [message, setMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Load AI assistant state from localStorage on mount
@@ -312,21 +312,26 @@ export default function AIAssistant() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto h-[calc(100vh-8rem)]">
+    <div className="max-w-7xl mx-auto h-[calc(100vh-8rem)] mt-8 md:mt-0">
       <div className="flex h-full shadow-lg rounded-xl overflow-hidden relative">
-        {/* Mobile Toggle Button */}
+        {/* Mobile Toggle Button - Top Left Position */}
         <button
           onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
-          className="md:hidden fixed top-1/2 left-2 z-50 bg-white border border-beige rounded-full p-2 shadow-lg transform -translate-y-1/2 transition-all duration-300"
+          className="md:hidden fixed top-20 left-2 z-50 bg-gradient-to-r from-olive to-olive-light border-2 border-white rounded-xl px-3 py-2 shadow-xl transform transition-all duration-300 hover:scale-105 active:scale-95"
           style={{
             left: isSidebarExpanded ? '18rem' : '0.5rem',
           }}
         >
-          {isSidebarExpanded ? (
-            <ChevronLeft className="h-4 w-4 text-black" />
-          ) : (
-            <ChevronRight className="h-4 w-4 text-black" />
-          )}
+          <div className="flex items-center gap-1">
+            {isSidebarExpanded ? (
+              <ChevronLeft className="mobile-icon-sm text-white" />
+            ) : (
+              <ChevronRight className="mobile-icon-sm text-white" />
+            )}
+            <span className="text-white text-xs font-medium">
+              {isSidebarExpanded ? 'Hide' : 'Chats'}
+            </span>
+          </div>
         </button>
 
         {/* Chat Sidebar */}
@@ -337,9 +342,9 @@ export default function AIAssistant() {
           absolute md:static z-40 h-full
         `}>
           {/* Fixed Header */}
-          <div className="p-4 border-b border-beige bg-white flex-shrink-0">
+          <div className="space-responsive-sm border-b border-beige bg-white flex-shrink-0">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-medium text-black flex items-center gap-2">
+              <h2 className="text-responsive-lg font-medium text-black flex items-center gap-responsive-xs">
                 <MiniLogo size="sm" />
                 AI Assistant
               </h2>
@@ -357,17 +362,17 @@ export default function AIAssistant() {
           {/* Scrollable Chat List */}
           <div className="flex-1 overflow-y-auto">
             {isLoading ? (
-              <div className="p-4 text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brown mx-auto mb-2"></div>
-                <p className="text-sm text-black/60">
+              <div className="space-responsive-sm text-center">
+                <div className="animate-spin rounded-full mobile-icon-md border-b-2 border-brown mx-auto space-y-responsive-xs"></div>
+                <p className="text-responsive-sm text-black/60">
                   Loading your property conversations...
                 </p>
               </div>
             ) : localChats.length === 0 ? (
-              <div className="p-4 text-center">
-                <MessageCircle className="h-12 w-12 text-black/30 mx-auto mb-4" />
-                <p className="text-sm text-black/60">No reports yet</p>
-                <p className="text-xs text-black/40 mt-1">
+              <div className="space-responsive-sm text-center">
+                <MessageCircle className="mobile-icon-xl text-black/30 mx-auto space-y-responsive-sm" />
+                <p className="text-responsive-sm text-black/60">No reports yet</p>
+                <p className="text-responsive-xs text-black/40 mt-1">
                   Generate a report to start chatting about properties.
                 </p>
               </div>
@@ -377,17 +382,17 @@ export default function AIAssistant() {
                   key={chat.id}
                   onClick={() => setActiveChatId(chat.id)}
                   className={`
-                  p-4 cursor-pointer transition-colors border-b border-beige/50 group hover:bg-beige/10
+                  space-responsive-sm cursor-pointer transition-colors border-b border-beige/50 group hover:bg-beige/10
                   ${activeChatId === chat.id ? "bg-beige/20" : ""}
                 `}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-black text-sm truncate mb-1">
+                      <h3 className="font-medium text-black text-responsive-sm truncate space-y-responsive-xs">
                         {chat.title}
                       </h3>
                       {chat.messages.length > 0 && (
-                        <p className="text-xs text-black/50 truncate">
+                        <p className="text-responsive-xs text-black/50 truncate">
                           {chat.messages[chat.messages.length - 1].content}
                         </p>
                       )}
@@ -412,34 +417,34 @@ export default function AIAssistant() {
           {activeChat ? (
             <>
               {/* Chat Header */}
-              <div className="p-4 border-b border-beige bg-white flex items-center justify-between">
-                <h3 className="font-medium text-black">{activeChat.title}</h3>
+              <div className="space-responsive-sm border-b border-beige bg-white flex items-center justify-between">
+                <h3 className="font-medium text-black text-responsive-md">{activeChat.title}</h3>
               </div>
 
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-hide">
+              <div className="flex-1 overflow-y-auto space-responsive-sm space-y-responsive-sm scrollbar-hide">
                 {activeChat.messages.length === 0 ? (
-                  <div className="text-center py-12">
-                    <div className="w-16 h-16 bg-beige/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <MessageCircle className="h-8 w-8 text-black/40" />
+                  <div className="text-center py-responsive-lg">
+                    <div className="mobile-icon-xl bg-beige/30 rounded-full flex items-center justify-center mx-auto space-y-responsive-sm">
+                      <MessageCircle className="mobile-icon-md text-black/40" />
                     </div>
-                    <h3 className="text-lg font-medium text-black mb-2">
+                    <h3 className="text-responsive-lg font-medium text-black space-y-responsive-xs">
                       Start a conversation
                     </h3>
-                    <p className="text-black/60 max-w-md mx-auto">Ask away!</p>
+                    <p className="text-responsive-sm text-black/60 max-w-md mx-auto">Ask away!</p>
                   </div>
                 ) : (
                   <>
                     {activeChat.messages.map((msg) => (
                       <div
                         key={msg.id}
-                        className={`flex items-center space-x-3 ${
+                        className={`flex items-center gap-responsive-sm ${
                           msg.role === "user" ? "justify-end" : "justify-start"
                         }`}
                       >
                         {msg.role === "assistant" && (
-                          <div className="w-8 h-8 bg-gold rounded-full flex items-center justify-center flex-shrink-0">
-                            <Bot className="h-4 w-4 text-black" />
+                          <div className="mobile-icon-md bg-gold rounded-full flex items-center justify-center flex-shrink-0">
+                            <Bot className="mobile-icon-xs text-black" />
                           </div>
                         )}
 
@@ -453,11 +458,11 @@ export default function AIAssistant() {
                           }
                         `}
                         >
-                          <p className="text-sm whitespace-pre-line">
+                          <p className="text-responsive-sm whitespace-pre-line">
                             {msg.content}
                           </p>
                           <p
-                            className={`text-xs mt-2 ${
+                            className={`text-responsive-xs mt-2 ${
                               msg.role === "user"
                                 ? "text-white/70"
                                 : "text-black/60"
@@ -468,20 +473,20 @@ export default function AIAssistant() {
                         </div>
 
                         {msg.role === "user" && (
-                          <div className="w-8 h-8 bg-beige rounded-full flex items-center justify-center flex-shrink-0">
-                            <UserIcon className="h-4 w-4 text-black" />
+                          <div className="mobile-icon-md bg-beige rounded-full flex items-center justify-center flex-shrink-0">
+                            <UserIcon className="mobile-icon-xs text-black" />
                           </div>
                         )}
                       </div>
                     ))}
 
                     {isTyping && (
-                      <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-gold rounded-full flex items-center justify-center flex-shrink-0">
-                          <Bot className="h-4 w-4 text-black" />
+                      <div className="flex items-center gap-responsive-sm">
+                        <div className="mobile-icon-md bg-gold rounded-full flex items-center justify-center flex-shrink-0">
+                          <Bot className="mobile-icon-xs text-black" />
                         </div>
-                        <div className="bg-white border border-beige rounded-xl px-4 py-3">
-                          <div className="flex space-x-1">
+                        <div className="bg-white border border-beige rounded-xl px-responsive-sm py-responsive-sm">
+                          <div className="flex gap-responsive-xs">
                             <div className="w-2 h-2 bg-navy/40 rounded-full animate-bounce"></div>
                             <div
                               className="w-2 h-2 bg-navy/40 rounded-full animate-bounce"
@@ -501,8 +506,8 @@ export default function AIAssistant() {
               </div>
 
               {/* Message Input */}
-              <div className="p-4 border-t border-beige bg-white">
-                <div className="flex items-stretch space-x-3">
+              <div className="space-responsive-sm border-t border-beige bg-white">
+                <div className="flex items-stretch gap-responsive-sm">
                   <div className="flex-1">
                     <textarea
                       value={message}
@@ -514,16 +519,16 @@ export default function AIAssistant() {
                         }
                       }}
                       placeholder="Ask about property pricing, market trends, or analysis..."
-                      className="input-field resize-none h-12 py-3 scrollbar-hide"
+                      className="input-field resize-none btn-responsive-md py-responsive-sm scrollbar-hide"
                       disabled={isTyping}
                     />
                   </div>
                   <button
                     onClick={sendMessage}
                     disabled={!message.trim() || isTyping}
-                    className="bg-olive hover:bg-olive-light text-white font-medium px-4 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center flex-shrink-0 self-stretch"
+                    className="bg-olive hover:bg-olive-light text-white font-medium px-responsive-sm rounded-lg transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center flex-shrink-0 self-stretch"
                   >
-                    <Send className="h-4 w-4" />
+                    <Send className="mobile-icon-xs" />
                   </button>
                 </div>
               </div>
@@ -531,11 +536,11 @@ export default function AIAssistant() {
           ) : (
             <div className="flex-1 flex items-center justify-center">
               <div className="text-center">
-                <MessageCircle className="h-12 w-12 text-black/40 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-black mb-2">
+                <MessageCircle className="mobile-icon-xl text-black/40 mx-auto space-y-responsive-sm" />
+                <h3 className="text-responsive-lg font-medium text-black space-y-responsive-xs">
                   No conversation selected
                 </h3>
-                <p className="text-black/60">
+                <p className="text-responsive-sm text-black/60">
                   Choose a conversation or start a new one
                 </p>
               </div>

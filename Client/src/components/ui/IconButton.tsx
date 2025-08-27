@@ -26,13 +26,13 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
     // Base styles that apply to all icon buttons
     const baseStyles = 'inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed';
 
-    // Size variants for icon buttons (square) - mobile responsive
+    // Size variants for icon buttons (square) - using utilities.css classes
     const sizeStyles = {
-      xs: 'w-8 h-8 sm:w-6 sm:h-6 text-xs',
-      sm: 'w-10 h-10 sm:w-8 sm:h-8 text-sm',
-      md: 'w-12 h-12 sm:w-10 sm:h-10 text-sm',
-      lg: 'w-14 h-14 sm:w-12 sm:h-12 text-base',
-      xl: 'w-18 h-18 sm:w-16 sm:h-16 text-lg'
+      xs: 'mobile-icon-xs text-responsive-xs',
+      sm: 'mobile-icon-sm text-responsive-xs',
+      md: 'mobile-icon-md text-responsive-sm',
+      lg: 'mobile-icon-lg text-responsive-sm',
+      xl: 'mobile-icon-xl text-responsive-md'
     };
 
     // Rounded variants

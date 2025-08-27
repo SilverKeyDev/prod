@@ -149,41 +149,40 @@ export default function SavedHomes() {
         subtitle="Your collection of favorite properties"
       />
       
-      <div className="max-w-6xl mx-auto p-6">
+      <div className="max-w-6xl mx-auto px-responsive-sm py-responsive-md">
 
       {/* Toolbar */}
-      <div className="flex items-center gap-4 mb-6">
+      <div className="flex items-center gap-responsive-sm space-y-responsive-md">
         {/* Search - adjustable width */}
         <div className="relative flex-1 min-w-0">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 mobile-icon-xs" />
           <input
             type="text"
             placeholder="Search saved homes..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brown/50"
+            className="w-full pl-9 px-responsive-sm py-responsive-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brown/50 touch-friendly"
           />
         </div>
 
         {/* View toggle - fixed width - hidden on mobile */}
         <button
           onClick={() => setViewMode(viewMode === "grid" ? "list" : "grid")}
-          className="hidden sm:flex flex-shrink-0 p-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+          className="hidden sm:flex flex-shrink-0 space-responsive-xs border border-gray-300 rounded-lg hover:bg-gray-50 touch-friendly"
           title="Toggle view"
         >
-          {viewMode === "grid" ? <List size={18} /> : <LayoutGrid size={18} />}
+          {viewMode === "grid" ? <List className="mobile-icon-sm" /> : <LayoutGrid className="mobile-icon-sm" />}
         </button>
 
         {/* Refresh - fixed width */}
         <button
           onClick={refresh}
-          className={`flex-shrink-0 p-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center ${
+          className={`flex-shrink-0 space-responsive-xs border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center touch-friendly ${
             refreshing || loading ? "cursor-not-allowed" : ""
           }`}
         >
           <RefreshCw
-            className={refreshing || loading ? "animate-spin" : ""}
-            size={18}
+            className={`mobile-icon-sm ${refreshing || loading ? "animate-spin" : ""}`}
           />
         </button>
       </div>
@@ -191,14 +190,14 @@ export default function SavedHomes() {
       {/* Content */}
       {filteredHomes.length === 0 ? (
         loading ? (
-          <div className="flex justify-center py-12">
+          <div className="flex justify-center py-responsive-lg">
             <KeyTurnLoader message="Loading saved homes..." />
           </div>
         ) : (
           <p>You have no saved homes yet.</p>
         )
       ) : viewMode === "grid" ? (
-        <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid gap-responsive-sm sm:gap-responsive-md grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filteredHomes.map((home: SavedHome) => (
             <HomeCard 
               key={home.home_id} 
@@ -210,7 +209,7 @@ export default function SavedHomes() {
           ))}
         </div>
       ) : (
-        <div className="space-y-4 mobile-container">
+        <div className="space-y-responsive-sm mobile-container">
           {filteredHomes.map((home: SavedHome) => (
             <HomeCard 
               key={home.home_id} 

@@ -96,15 +96,15 @@ export default function HomePage() {
         <RippleBackground />
       </div>
       {/* Header */}
-      <header className="w-full flex justify-between items-center p-4 border-b border-gray-200 bg-white relative z-10 shadow-lg">
+      <header className="w-full flex justify-between items-center space-responsive-sm border-b border-gray-200 bg-white relative z-10 shadow-lg">
         <KeyLogo size="xs" />
-        <div className="flex space-x-2 sm:space-x-4 text-sm font-medium">
-          <Link to="/login" className="hover:underline px-2 py-1">
+        <div className="flex gap-responsive-xs text-responsive-sm font-medium">
+          <Link to="/login" className="hover:underline px-responsive-xs py-1">
             Login
           </Link>
           <Link
             to="/signup"
-            className="bg-brown text-white px-3 py-1 rounded hover:bg-brown/90 transition-colors"
+            className="bg-brown text-white px-responsive-sm py-1 rounded hover:bg-brown/90 transition-colors"
           >
             Sign Up
           </Link>
@@ -112,7 +112,7 @@ export default function HomePage() {
       </header>
 
       {/* Hero Section */}
-      <main className="flex-1 flex flex-col items-center justify-center px-4 py-10 sm:py-20 relative">
+      <main className="flex-1 flex flex-col items-center justify-center px-responsive-sm py-responsive-lg relative">
         <div className="absolute inset-0 z-0 block sm:hidden">
           <RippleBackgroundMobile />
         </div>
@@ -120,17 +120,17 @@ export default function HomePage() {
           <RippleBackground />
         </div>
         <div className="relative z-10 max-w-3xl text-center w-full">
-          <div className="bg-white p-4 sm:p-6 rounded-lg shadow-lg">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-black font-bold mb-4">
+          <div className="bg-white space-responsive-md rounded-lg shadow-lg">
+            <h2 className="text-3xl md:text-3xl lg:text-4xl xl:text-5xl font-serif text-black font-bold space-y-responsive-sm mb-2 ">
               Discover a New Way to Buy
             </h2>
-            <p className="text-gray-600 mb-6 sm:mb-8 text-base sm:text-lg">
+            <p className="text-gray-600 space-y-responsive-md text-responsive-md">
               Onboard, Search, Decide, Negotiate, Close
             </p>
             <div className="mt-4 sm:mt-8">
               <button
                 onClick={() => setShowAuthModal(true)}
-                className="bg-olive text-white rounded-lg py-3 px-6 sm:px-8 font-semibold hover:bg-olive-light transition text-sm sm:text-base w-full sm:w-auto"
+                className="bg-olive text-white rounded-lg py-responsive-sm px-responsive-md font-semibold hover:bg-olive-light transition text-responsive-sm w-full sm:w-auto touch-friendly"
               >
                 Start Now
               </button>
@@ -139,63 +139,63 @@ export default function HomePage() {
         </div>
 
         {/* Feature Cards */}
-        <div className="relative z-12 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 mt-20 max-w-6xl">
+        <div className="relative z-12 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-responsive-sm mt-20 max-w-6xl">
           {[
             {
               title: "Find Properties",
               description:
                 "Select your preferences and let our AI find the best homes for you",
-              icon: <Building2 className="h-8 w-8 text-gray-500" />,
+              icon: <Building2 className="mobile-icon-lg text-gray-500" />,
             },
             {
               title: "Decide on a Home",
               description:
                 "Input the facts of homes into spreadsheets or reports and get detailed analysis of the neighborhood.",
-              icon: <BarChart2 className="h-8 w-8 text-gray-500" />,
+              icon: <BarChart2 className="mobile-icon-lg text-gray-500" />,
             },
             {
               title: "Negotiate",
               description:
                 "Analyze the market and home to draft a competitive offer and automate the associated paperwork.",
-              icon: <Lightbulb className="h-8 w-8 text-gray-500" />,
+              icon: <Lightbulb className="mobile-icon-lg text-gray-500" />,
             },
             {
               title: "Purchase",
               description:
                 "Use our timelines and paperwork to find and submit the appropriate paperwork, disclosures, etc, without paying legal fees.",
-              icon: <FolderLock className="h-8 w-8 text-gray-500" />,
+              icon: <FolderLock className="mobile-icon-lg text-gray-500" />,
             },
           ].map((f, i) => (
             <div
               key={i}
-              className="bg-white rounded-xl shadow-md hover:shadow-lg p-6 flex flex-col items-center text-center transition-all duration-200 hover:-translate-y-0.5 cursor-pointer"
+              className="bg-white rounded-xl shadow-md hover:shadow-lg space-responsive-md flex flex-col items-center text-center transition-all duration-200 hover:-translate-y-0.5 cursor-pointer touch-friendly"
             >
               <div className="mb-2">{f.icon}</div>
-              <h3 className="font-semibold text-black text-lg mb-2">
+              <h3 className="font-semibold text-black text-responsive-md space-y-responsive-xs">
                 {f.title}
               </h3>
-              <p className="text-gray-600 text-sm">{f.description}</p>
+              <p className="text-gray-600 text-responsive-sm">{f.description}</p>
             </div>
           ))}
         </div>
 
         {/* Footer Links */}
-        <div className="relative mt-10 flex flex-wrap justify-center items-center gap-4 sm:gap-8 text-sm text-center">
+        <div className="relative mt-10 flex flex-wrap justify-center items-center gap-responsive-sm text-responsive-sm text-center">
           <Link
             to="/privacy"
-            className="bg-white text-black px-4 py-2 rounded-lg shadow hover:shadow-md transition-colors duration-200"
+            className="bg-white text-black px-responsive-sm py-responsive-xs rounded-lg shadow hover:shadow-md transition-colors duration-200 touch-friendly"
           >
             Privacy Policy
           </Link>
           <Link
             to="/terms"
-            className="bg-white text-black px-4 py-2 rounded-lg shadow hover:shadow-md transition-colors duration-200"
+            className="bg-white text-black px-responsive-sm py-responsive-xs rounded-lg shadow hover:shadow-md transition-colors duration-200 touch-friendly"
           >
             Terms of Service
           </Link>
           <Link
             to="/contact"
-            className="bg-white text-black px-4 py-2 rounded-lg shadow hover:shadow-md transition-colors duration-200"
+            className="bg-white text-black px-responsive-sm py-responsive-xs rounded-lg shadow hover:shadow-md transition-colors duration-200 touch-friendly"
           >
             Contact Us
           </Link>
@@ -204,30 +204,30 @@ export default function HomePage() {
 
       {/* Auth Modal */}
       {showAuthModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow p-8 max-w-md w-full">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 space-responsive-sm">
+          <div className="bg-white rounded-2xl shadow space-responsive-lg max-w-md w-full">
             <div className="flex justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <Lock className="h-5 w-5 text-black" />
-                <span className="font-bold text-black">Account Required</span>
+              <div className="flex items-center gap-responsive-xs">
+                <Lock className="mobile-icon-sm text-black" />
+                <span className="font-bold text-responsive-sm text-black">Account Required</span>
               </div>
               <button onClick={() => setShowAuthModal(false)}>
-                <X className="h-5 w-5 text-black" />
+                <X className="mobile-icon-sm text-black" />
               </button>
             </div>
-            <p className="mb-6 text-center text-gray-600">
+            <p className="space-y-responsive-md text-center text-responsive-sm text-gray-600">
               Please log in or create an account to generate a report.
             </p>
-            <div className="flex gap-4">
+            <div className="flex gap-responsive-sm">
               <Link
                 to="/signup"
-                className="flex-1 bg-olive text-white hover:bg-olive-light rounded-lg py-3 text-center transition-colors"
+                className="flex-1 bg-olive text-white hover:bg-olive-light rounded-lg py-responsive-sm text-center text-responsive-sm transition-colors touch-friendly"
               >
                 Sign Up
               </Link>
               <Link
                 to="/login"
-                className="flex-1 border border-brown text-black hover:text-black hover:bg-brown/10 rounded-lg py-3 text-center transition-colors"
+                className="flex-1 border border-brown text-black hover:text-black hover:bg-brown/10 rounded-lg py-responsive-sm text-center text-responsive-sm transition-colors touch-friendly"
               >
                 Login
               </Link>

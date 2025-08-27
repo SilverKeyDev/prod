@@ -436,7 +436,7 @@ export default function CompareReportsPage() {
         title="Compare Reports"
         subtitle="Select two reports to compare side by side"
       />
-      <div className="mx-auto px-12 py-10 max-w-6xl overflow-x-auto">
+      <div className="mx-auto px-responsive-lg py-responsive-lg max-w-6xl overflow-x-auto">
         {/* Error Toast */}
         {showError && (
           <ErrorToast
@@ -457,33 +457,33 @@ export default function CompareReportsPage() {
 
         {/* Reports Selection */}
         <div className="mobile-card mb-20 sm:mb-8" style={{ minWidth: '800px' }}>
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 space-y-3 sm:space-y-0">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-responsive-sm sm:space-y-0 space-y-responsive-md">
             <div>
-              <h2 className="text-lg sm:text-xl font-medium text-black">
+              <h2 className="text-responsive-lg font-medium text-black">
                 Your Property Reports
               </h2>
-              <p className="text-xs sm:text-sm text-black/60 mt-1">
+              <p className="text-responsive-xs text-black/60 mt-1">
                 {selectedReports.length} of {reports.length} selected
               </p>
             </div>
-            <div className="flex items-center space-x-2 sm:space-x-3">
+            <div className="flex items-center gap-responsive-xs">
               <button
                 onClick={() => setSelectedReports([])}
                 disabled={selectedReports.length === 0}
-                className="flex items-center px-2 sm:px-4 py-2 text-sm sm:text-sm font-medium text-black/70 bg-gray-100 border border-gray-300 hover:bg-gray-200 hover:border-gray-400 rounded-lg transition-colors disabled:bg-gray-200 disabled:text-gray-500 disabled:border-transparent disabled:cursor-not-allowed touch-friendly min-w-[70px] sm:min-w-auto"
+                className="flex items-center px-responsive-xs py-responsive-xs text-responsive-sm font-medium text-black/70 bg-gray-100 border border-gray-300 hover:bg-gray-200 hover:border-gray-400 rounded-lg transition-colors disabled:bg-gray-200 disabled:text-gray-500 disabled:border-transparent disabled:cursor-not-allowed touch-friendly"
               >
-                <X className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                <span className="text-sm font-normal tracking-tight sm:inline">Clear</span>
+                <X className="mobile-icon-xs mr-responsive-xs" />
+                <span className="text-responsive-sm font-normal tracking-tight sm:inline">Clear</span>
               </button>
               <button
                 onClick={exportToExcel}
                 disabled={
                   selectedReports.length === 0 || comparisonTable.length === 0
                 }
-                className="flex items-center px-2 sm:px-4 py-2 text-sm sm:text-sm font-medium text-white bg-olive hover:bg-olive-light rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-friendly min-w-[90px] sm:min-w-auto"
+                className="flex items-center px-responsive-xs py-responsive-xs text-responsive-sm font-medium text-white bg-olive hover:bg-olive-light rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-friendly"
               >
-                <Download className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                <span className="text-sm font-normal tracking-tight sm:hidden">Export CSV</span>
+                <Download className="mobile-icon-xs mr-responsive-xs" />
+                <span className="text-responsive-sm font-normal tracking-tight sm:hidden">Export CSV</span>
                 <span className="hidden sm:inline">Export CSV</span>
               </button>
               <button
@@ -491,49 +491,49 @@ export default function CompareReportsPage() {
                 disabled={
                   selectedReports.length === 0 || comparisonTable.length === 0
                 }
-                className="flex items-center px-2 sm:px-4 py-2 text-sm sm:text-sm font-medium text-black bg-beige hover:bg-beige/80 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-friendly min-w-[80px] sm:min-w-auto"
+                className="flex items-center px-responsive-xs py-responsive-xs text-responsive-sm font-medium text-black bg-beige hover:bg-beige/80 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-friendly"
               >
-                <Share className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                <span className="text-sm font-normal tracking-tight sm:hidden">Share CSV</span>
+                <Share className="mobile-icon-xs mr-responsive-xs" />
+                <span className="text-responsive-sm font-normal tracking-tight sm:hidden">Share CSV</span>
                 <span className="hidden sm:inline">Share CSV</span>
               </button>
               <button
                 onClick={refreshReports}
                 disabled={isLoading}
-                className="flex items-center px-2 sm:px-4 py-2 text-sm sm:text-sm font-medium text-black bg-beige/30 hover:bg-beige/50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-friendly min-w-[80px] sm:min-w-auto"
+                className="flex items-center px-responsive-xs py-responsive-xs text-responsive-sm font-medium text-black bg-beige/30 hover:bg-beige/50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-friendly"
               >
                 <RefreshCw
-                  className={`h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 ${
+                  className={`mobile-icon-xs mr-responsive-xs ${
                     isLoading ? "animate-spin" : ""
                   }`}
                 />
-                <span className="text-sm font-normal tracking-tight sm:hidden">Refresh</span>
+                <span className="text-responsive-sm font-normal tracking-tight sm:hidden">Refresh</span>
                 <span className="hidden sm:inline">Refresh</span>
               </button>
             </div>
           </div>
 
           {isLoading ? (
-            <div className="flex justify-center items-center py-8 sm:py-12">
-              <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 animate-spin text-black" />
+            <div className="flex justify-center items-center py-responsive-lg">
+              <Loader2 className="mobile-icon-md animate-spin text-black" />
             </div>
           ) : compareReportsError ? (
-            <div className="text-center py-6 sm:py-8 text-black/60">
-              <p className="text-sm sm:text-base">No reports yet</p>
+            <div className="text-center py-responsive-md text-black/60">
+              <p className="text-responsive-sm">No reports yet</p>
             </div>
           ) : reports.length === 0 ? (
-            <div className="text-center py-8 sm:py-12">
-              <BarChart2 className="h-8 w-8 sm:h-12 sm:w-12 mx-auto text-black/30 mb-3 sm:mb-4" />
-              <h3 className="text-base sm:text-lg font-medium text-black mb-2">
+            <div className="text-center py-responsive-lg">
+              <BarChart2 className="mobile-icon-lg mx-auto text-black/30 space-y-responsive-sm" />
+              <h3 className="text-responsive-md font-medium text-black space-y-responsive-xs">
                 No reports found
               </h3>
-              <p className="text-sm sm:text-base text-black/60 mb-4 sm:mb-6 px-4">
+              <p className="text-responsive-sm text-black/60 space-y-responsive-sm px-responsive-sm">
                 Generate your first property report to get started
               </p>
             </div>
           ) : (
             <div
-              className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 ${
+              className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-responsive-sm ${
                 reports.length > 9 ? "overflow-y-auto custom-scrollbar" : ""
               }`}
               style={{
@@ -556,17 +556,17 @@ export default function CompareReportsPage() {
                     key={report.id}
                     onClick={(e) => toggleReportSelection(report, e)}
                     onMouseDown={(e) => e.preventDefault()} // Prevent focus/highlight on click
-                    className={`p-3 sm:p-4 border-2 rounded-xl sm:rounded-2xl cursor-pointer transition-all duration-200 select-none touch-manipulation ${
+                    className={`space-responsive-sm border-2 rounded-xl cursor-pointer transition-all duration-200 select-none touch-manipulation ${
                       isSelected
                         ? "border-olive bg-olive/5 sm:ring-2 sm:ring-olive/30"
                         : "border-gray-200 hover:border-olive/50 hover:bg-olive/5"
                     }`}
                   >
                     <div className="flex items-start">
-                      <div className="flex-1 min-w-0 pr-2 sm:pr-3">
-                        <div className="flex-1 min-w-0 pr-2 sm:pr-3">
+                      <div className="flex-1 min-w-0 pr-responsive-xs">
+                        <div className="flex-1 min-w-0 pr-responsive-xs">
                           <h3
-                            className="text-sm sm:text-base font-medium text-black leading-tight sm:leading-5 overflow-hidden"
+                            className="text-responsive-sm font-medium text-black leading-tight overflow-hidden"
                             title={report.address}
                             style={{
                               display: "-webkit-box",
@@ -582,11 +582,11 @@ export default function CompareReportsPage() {
                       </div>
                       <div className="flex-shrink-0">
                         {isSelected ? (
-                          <div className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5 rounded-full bg-olive flex items-center justify-center touch-manipulation select-none">
-                            <Check className="h-2 w-2 sm:h-2.5 sm:w-2.5 md:h-3 md:w-3 text-white" />
+                          <div className="mobile-icon-xs rounded-full bg-olive flex items-center justify-center touch-manipulation select-none">
+                            <Check className="w-2 h-2 text-white" />
                           </div>
                         ) : (
-                          <div className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5 rounded-full border-2 border-navy/30 touch-manipulation select-none" />
+                          <div className="mobile-icon-xs rounded-full border-2 border-navy/30 touch-manipulation select-none" />
                         )}
                       </div>
                     </div>
@@ -599,19 +599,19 @@ export default function CompareReportsPage() {
 
         {/* Row Omission Controls Button */}
         <div className="mobile-card mb-6">
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-3 sm:space-y-0">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-responsive-sm sm:space-y-0">
             <div>
-              <h3 className="text-lg font-medium text-black mb-1">
+              <h3 className="text-responsive-lg font-medium text-black space-y-responsive-xs">
                 Customize Comparison
               </h3>
-              <p className="text-sm text-black/60">
+              <p className="text-responsive-sm text-black/60">
                 Showing {visibleMetrics.length} of {ALL_METRIC_KEYS.length}{" "}
                 metrics
               </p>
             </div>
             <button
               onClick={() => setShowRowModal(true)}
-              className="flex items-center px-3 sm:px-4 py-2 text-sm font-medium text-white bg-brown hover:bg-brown/80 rounded-lg transition-colors touch-friendly min-w-[110px] sm:min-w-auto"
+              className="flex items-center px-responsive-sm py-responsive-xs text-responsive-sm font-medium text-white bg-brown hover:bg-brown/80 rounded-lg transition-colors touch-friendly"
             >
               <Settings className="h-4 w-4 mr-2" />
               <span className="text-sm font-normal tracking-tight">Manage Rows</span>

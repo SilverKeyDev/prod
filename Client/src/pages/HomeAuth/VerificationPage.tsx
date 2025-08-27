@@ -243,7 +243,7 @@ export default function VerificationPage() {
   };
 
   const renderCodeInputs = () => (
-    <div className="flex justify-center space-x-2 sm:space-x-3 mb-8">
+    <div className="flex justify-center gap-responsive-xs space-y-responsive-lg">
       {code.map((digit, index) => (
         <input
           key={index}
@@ -256,7 +256,7 @@ export default function VerificationPage() {
           onChange={(e) => handleCodeChange(e.target.value, index)}
           onPaste={(e) => handlePaste(e, index)}
           onKeyDown={(e) => handleKeyDown(e, index)}
-          className="w-8 h-10 sm:w-12 sm:h-16 text-xl sm:text-2xl text-center border-2 border-olive rounded-lg focus:outline-none focus:ring-2 focus:ring-olive focus:border-transparent font-bold"
+          className="mobile-icon-md btn-responsive-lg text-responsive-lg text-center border-2 border-olive rounded-lg focus:outline-none focus:ring-2 focus:ring-olive focus:border-transparent font-bold"
           disabled={loading}
         />
       ))}
@@ -264,26 +264,26 @@ export default function VerificationPage() {
   );
 
   return (
-    <div className="min-h-screen bg-off-white flex items-center justify-center px-4 py-8">
+    <div className="min-h-screen bg-off-white flex items-center justify-center px-responsive-sm py-responsive-md">
       <div className="w-full max-w-md">
         {/* Back Button */}
         <button
           onClick={handleBack}
-          className="flex items-center text-black/60 hover:text-black mb-6 transition-colors"
+          className="flex items-center text-black/60 hover:text-black space-y-responsive-md transition-colors"
         >
-          <ArrowLeft className="h-5 w-5 mr-1" />
+          <ArrowLeft className="mobile-icon-sm mr-1" />
           Back
         </button>
 
         {/* Header */}
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-serif text-black mb-2 flex items-center justify-center gap-2">
+        <div className="text-center space-y-responsive-lg">
+          <h2 className="text-responsive-xl font-serif text-black space-y-responsive-xs flex items-center justify-center gap-responsive-xs">
             <MiniLogo size="md" />
             {activeStep === "email"
               ? "Verify your email"
               : "Enter verification code"}
           </h2>
-          <p className="text-black/60 font-light">
+          <p className="text-black/60 font-light text-responsive-sm">
             {activeStep === "email"
               ? "We'll send you a code to verify your email"
               : `Enter the 6-digit code sent to ${email}`}
@@ -292,20 +292,20 @@ export default function VerificationPage() {
 
         {/* Error Message */}
         {error && (
-          <div className="mb-6 p-3 bg-red-50 text-red-600 text-sm rounded-md">
+          <div className="space-y-responsive-md space-responsive-sm bg-red-50 text-red-600 text-responsive-sm rounded-md">
             {error}
           </div>
         )}
 
         {/* Email Step */}
         {activeStep === "email" && (
-          <form onSubmit={handleEmailSubmit} className="space-y-6">
+          <form onSubmit={handleEmailSubmit} className="space-y-responsive-md">
             <div>
-              <label className="block text-sm font-medium text-black mb-2">
+              <label className="block text-responsive-sm font-medium text-black space-y-responsive-xs">
                 Email address
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-black/40" />
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 mobile-icon-sm text-black/40" />
                 <input
                   type="email"
                   value={email}
@@ -313,7 +313,7 @@ export default function VerificationPage() {
                     setEmail(e.target.value);
                     setError("");
                   }}
-                  className="input-field pl-10 w-full"
+                  className="input-field pl-10 w-full btn-responsive-md text-responsive-sm"
                   placeholder="Enter your email"
                   autoComplete="email"
                   required
@@ -340,10 +340,10 @@ export default function VerificationPage() {
 
         {/* Verification Code Step */}
         {activeStep === "code" && (
-          <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
+          <form onSubmit={(e) => e.preventDefault()} className="space-y-responsive-md">
             {renderCodeInputs()}
 
-            <div className="text-center text-sm text-black/60">
+            <div className="text-center text-responsive-sm text-black/60">
               Didn't receive a code?{" "}
               <button
                 type="button"
@@ -355,7 +355,7 @@ export default function VerificationPage() {
               >
                 {loading ? (
                   <span className="inline-flex items-center">
-                    <RefreshCw className="animate-spin h-3 w-3 mr-1" />
+                    <RefreshCw className="animate-spin mobile-icon-xs mr-1" />
                     Sending...
                   </span>
                 ) : canResend ? (

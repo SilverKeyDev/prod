@@ -95,11 +95,11 @@ const PreApproved: React.FC = () => {
 
   if (showIframe) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-6xl mx-auto px-4">
+      <div className="min-h-screen bg-gray-50 py-responsive-lg">
+        <div className="max-w-6xl mx-auto px-responsive-sm">
           <button
             onClick={() => setShowIframe(false)}
-            className="mb-4 px-4 py-2 bg-brown text-white rounded"
+            className="space-y-responsive-sm px-responsive-sm py-responsive-xs bg-brown text-white rounded touch-friendly"
           >
             Back to Form
           </button>
@@ -124,26 +124,26 @@ const PreApproved: React.FC = () => {
         title="Get Pre-Approved"
         subtitle="Connect with our lending partner to get pre-approved for a mortgage"
       />
-      <div className="max-w-2xl mx-auto px-4">
-        <form onSubmit={handleSubmit} className="bg-white p-8 rounded-lg space-y-4">
+      <div className="max-w-2xl mx-auto px-responsive-sm">
+        <form onSubmit={handleSubmit} className="bg-white space-responsive-lg rounded-lg space-y-responsive-sm">
           {error && (
-            <div className="p-3 rounded bg-red-50 text-red-700 text-sm">{error}</div>
+            <div className="space-responsive-sm rounded bg-red-50 text-red-700 text-responsive-sm">{error}</div>
           )}
 
           <label className="block">
-            <span className="text-sm text-navy/70">Full Name</span>
+            <span className="text-responsive-sm text-navy/70">Full Name</span>
             <input
               type="text"
               placeholder="Full Name"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="mt-1 w-full p-3 border rounded"
+              className="mt-1 w-full space-responsive-sm border rounded touch-friendly"
               required
             />
           </label>
 
           <label className="block">
-            <span className="text-sm text-navy/70">Monthly Income (before taxes)</span>
+            <span className="text-responsive-sm text-navy/70">Monthly Income (before taxes)</span>
             <input
               inputMode="decimal"
               placeholder="e.g., 7500"
@@ -151,13 +151,13 @@ const PreApproved: React.FC = () => {
               onChange={(e) =>
                 setFormData({ ...formData, income: sanitizeCurrencyNumber(e.target.value) })
               }
-              className="mt-1 w-full p-3 border rounded"
+              className="mt-1 w-full space-responsive-sm border rounded touch-friendly"
               required
             />
           </label>
 
           <label className="block">
-            <span className="text-sm text-navy/70">Credit Score</span>
+            <span className="text-responsive-sm text-navy/70">Credit Score</span>
             <input
               inputMode="numeric"
               placeholder="e.g., 740"
@@ -168,13 +168,13 @@ const PreApproved: React.FC = () => {
                   creditScore: e.target.value.replace(/[^\d]/g, "").slice(0, 3),
                 })
               }
-              className="mt-1 w-full p-3 border rounded"
+              className="mt-1 w-full space-responsive-sm border rounded touch-friendly"
               required
             />
           </label>
 
           <label className="block">
-            <span className="text-sm text-navy/70">Monthly Debts (payments)</span>
+            <span className="text-responsive-sm text-navy/70">Monthly Debts (payments)</span>
             <input
               inputMode="decimal"
               placeholder="e.g., 400"
@@ -182,7 +182,7 @@ const PreApproved: React.FC = () => {
               onChange={(e) =>
                 setFormData({ ...formData, debts: sanitizeCurrencyNumber(e.target.value) })
               }
-              className="mt-1 w-full p-3 border rounded"
+              className="mt-1 w-full space-responsive-sm border rounded touch-friendly"
               required
             />
           </label>
@@ -190,12 +190,12 @@ const PreApproved: React.FC = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-brown text-white py-3 rounded hover:bg-brown/90 disabled:opacity-60"
+            className="w-full bg-brown text-white py-responsive-sm rounded hover:bg-brown/90 disabled:opacity-60 touch-friendly"
           >
             {loading ? "Starting…" : "Start Pre-Approval"}
           </button>
 
-          <p className="text-xs text-navy/60">
+          <p className="text-responsive-xs text-navy/60">
             By continuing, you agree to share this information with our mortgage partner for the
             purpose of pre-approval. We do not store your SSN on our servers.
           </p>
