@@ -41,14 +41,14 @@ export default function PriceDropCard({ item }: PriceDropCardProps) {
 
       {/* Details */}
       <div className="p-3 sm:p-4 flex-1 flex flex-col gap-1.5 sm:gap-2">
-        <h3 className="font-semibold text-sm sm:text-base line-clamp-2" title={address}>
+        <h3 className="font-semibold text-2xs sm:text-xs md:text-sm line-clamp-1 truncate" title={address}>
           {address}
         </h3>
-        <div className="flex items-center gap-2 text-xs sm:text-sm text-red-600 font-medium">
-          <ArrowDownRight size={16} className="sm:w-[18px] sm:h-[18px] flex-shrink-0" />
-          <span>{percent}% price drop</span>
+        <div className="flex items-center gap-1 text-2xs sm:text-xs text-red-600 font-medium">
+          <ArrowDownRight size={14} className="sm:w-4 sm:h-4 flex-shrink-0" />
+          <span className="whitespace-nowrap">{percent}% price drop</span>
         </div>
-        <p className="text-xs sm:text-sm text-gray-700">
+        <p className="text-2xs sm:text-xs text-gray-700 truncate">
           {formatter.format(oldPrice)} → {formatter.format(newPrice)}
         </p>
       </div>

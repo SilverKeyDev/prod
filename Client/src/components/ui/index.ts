@@ -25,7 +25,7 @@ export { default as PageHeader } from './PageHeader';
 export { default as PriceRangeSlider } from './PriceRangeSlider';
 export { default as RippleBackground } from './RippleBackground';
 export { default as RippleBackgroundMobile } from './RippleBackgroundMobile';
-export { default as TimelineChecklist } from './TimelineChecklist';
+export { default as TimelineChecklist } from '../../hooks/TimelineChecklist';
 
 // Re-export types
 export type { ButtonProps } from './Button';

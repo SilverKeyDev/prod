@@ -1,16 +1,7 @@
 /* Base styles - Typography, colors, global resets */
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap');
 
-:root {
-  --color-navy: #1A1F36;
-  --color-beige: #D8CAB8;
-  --color-gold: #C0A161;
-  --color-off-white: #FAF9F6;
-  --color-navy-light: #2A3150;
-  --color-gold-light: #D4B572;
-  --color-brown: #9E8371;
-  --color-olive: #3E8E41;
-}
+/* CSS custom properties removed - using Tailwind config colors instead */
 
 @layer base {
   .hide-scrollbar,
@@ -25,8 +16,7 @@
 
   body {
     font-family: 'Inter', sans-serif;
-    background-color: var(--color-off-white);
-    color: var(--color-navy);
+    @apply bg-off-white text-navy;
     font-weight: 300;
     /* Improve mobile scrolling */
     -webkit-overflow-scrolling: touch;
@@ -49,21 +39,20 @@
   .font-sans {
     font-family: 'Inter', sans-serif;
   }
-}
+  /* Google Maps autocomplete styling - consistent with mobile rules */
+  .pac-container {
+    font-size: 12px !important;
+  }
 
-/* Google Maps autocomplete styling - consistent with mobile rules */
-.pac-container {
-  font-size: 12px !important;
-}
+  .pac-item {
+    font-size: 12px !important;
+  }
 
-.pac-item {
-  font-size: 12px !important;
-}
+  .pac-item-query {
+    font-size: 12px !important;
+  }
 
-.pac-item-query {
-  font-size: 12px !important;
-}
-
-.pac-matched {
-  font-size: 12px !important;
+  .pac-matched {
+    font-size: 12px !important;
+  }
 }

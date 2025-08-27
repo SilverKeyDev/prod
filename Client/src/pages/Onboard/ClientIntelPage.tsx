@@ -332,7 +332,7 @@ const ClientIntelPage: React.FC = () => {
           subtitle="Manage and analyze your clients' preferences and data"
         />
         
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="container-responsive py-8">
 
           {/* Filters and Search */}
           <div className="card mb-6">
@@ -354,28 +354,28 @@ const ClientIntelPage: React.FC = () => {
 
           {/* Client Table */}
           <div className="card overflow-hidden p-0">
-            <div className="px-6 py-4 border-b border-beige bg-cream/30">
+            <div className="px-3 sm:px-6 py-3 sm:py-4 border-b border-beige bg-cream/30">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-medium text-black">
+                <h3 className="text-base sm:text-lg font-medium text-black">
                   Client List ({filteredClients.length})
                 </h3>
               </div>
             </div>
 
             <div className="overflow-x-auto custom-scrollbar">
-              <table className="min-w-full divide-y divide-beige">
+              <table className="min-w-full divide-y divide-beige" style={{minWidth: '600px'}}>
                 <thead className="bg-cream/50">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-2xs sm:text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Client
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-2xs sm:text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Contact
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-2xs sm:text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Preferences
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-2xs sm:text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
@@ -386,61 +386,64 @@ const ClientIntelPage: React.FC = () => {
                       key={client.id}
                       className="hover:bg-cream/30 transition-colors"
                     >
-                      <td className="px-4 py-4 whitespace-nowrap">
+                      <td className="px-2 sm:px-4 py-2 sm:py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          <div className="flex-shrink-0 h-10 w-10">
-                            <div className="h-10 w-10 rounded-full bg-cream flex items-center justify-center border border-beige">
-                              <User className="h-5 w-5 text-gold" />
+                          <div className="flex-shrink-0 h-8 w-8 sm:h-10 sm:w-10">
+                            <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-cream flex items-center justify-center border border-beige">
+                              <User className="h-4 w-4 sm:h-5 sm:w-5 text-gold" />
                             </div>
                           </div>
-                          <div className="ml-4">
-                            <div className="text-sm font-medium text-black">
+                          <div className="ml-2 sm:ml-4 min-w-0 flex-1">
+                            <div className="text-2xs sm:text-sm font-medium text-black truncate">
                               {client.name}
                             </div>
-                            <div className="text-xs text-gray-500">
+                            <div className="text-2xs sm:text-xs text-gray-500 truncate">
                               Joined:{" "}
                               {new Date(client.created_at).toLocaleDateString()}
                             </div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <div className="text-sm text-black flex items-center">
-                          <Mail className="h-4 w-4 text-gray-400 mr-2" />
-                          <span className="truncate max-w-xs">
+                      <td className="px-2 sm:px-4 py-2 sm:py-4 whitespace-nowrap">
+                        <div className="text-2xs sm:text-sm text-black flex items-center min-w-0">
+                          <Mail className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400 mr-1 sm:mr-2 flex-shrink-0" />
+                          <span className="truncate">
                             {client.email}
                           </span>
                         </div>
                         {client.phone && (
-                          <div className="text-sm text-gray-500 flex items-center mt-1">
-                            <Phone className="h-4 w-4 text-gray-400 mr-2" />
-                            {client.phone}
+                          <div className="text-2xs sm:text-sm text-gray-500 flex items-center mt-1 min-w-0">
+                            <Phone className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400 mr-1 sm:mr-2 flex-shrink-0" />
+                            <span className="truncate">{client.phone}</span>
                           </div>
                         )}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
+                      <td className="px-2 sm:px-4 py-2 sm:py-4 whitespace-nowrap text-2xs sm:text-sm font-medium">
                         {client.has_preferences ? (
                           <button
                             onClick={() => handleViewDetails(client)}
                             className="text-gold hover:text-gold-light flex items-center transition-colors font-medium"
                           >
-                            <Eye className="h-4 w-4 mr-1" />
-                            View Details
+                            <Eye className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                            <span className="hidden sm:inline">View Details</span>
+                            <span className="sm:hidden">View</span>
                           </button>
                         ) : (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                            <AlertCircle className="h-3 w-3 mr-1" />
-                            Needs Setup
+                          <span className="inline-flex items-center px-1.5 sm:px-2.5 py-0.5 rounded-full text-2xs sm:text-xs font-medium bg-yellow-100 text-yellow-800">
+                            <AlertCircle className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
+                            <span className="hidden sm:inline">Needs Setup</span>
+                            <span className="sm:hidden">Setup</span>
                           </span>
                         )}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
+                      <td className="px-2 sm:px-4 py-2 sm:py-4 whitespace-nowrap text-2xs sm:text-sm font-medium">
                         <button
                           onClick={() => handleActionPlan(client)}
                           className="text-olive hover:text-olive-light flex items-center transition-colors font-medium"
                         >
-                          <Target className="h-4 w-4 mr-1" />
-                          Action Plan
+                          <Target className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                          <span className="hidden sm:inline">Action Plan</span>
+                          <span className="sm:hidden">Plan</span>
                         </button>
                       </td>
                     </tr>

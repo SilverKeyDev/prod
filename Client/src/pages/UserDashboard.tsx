@@ -3,9 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { apiRequest, favoriteHomesApi } from "../lib/api";
 import DocumentCard, { DocumentData } from "../components/cards/DocumentCard";
 import Carousel from "../components/ui/Carousel";
-import TimelineChecklist from "../components/ui/TimelineChecklist";
+import TimelineChecklist from "../hooks/TimelineChecklist";
 import HomeCard, { HomeDescription } from "../components/cards/HomeCard";
 import PageHeader from "../components/ui/PageHeader";
+import CircularButton from "../components/ui/CircularButton";
 
 /*import PriceDropCard from "../components/PriceDropCard";
 import NewMatchCard from "../components/NewMatchCard";
@@ -136,13 +137,12 @@ export default function UserDashboard() {
           <Carousel
             items={favoriteHomes}
             title={
-              <button
-                className="text-lg font-semibold border border-gray-brown text-gray-brown bg-transparent hover:bg-gray-brown/10 transition-colors cursor-pointer px-4 py-2 rounded underline underline-offset-4"
+              <CircularButton
                 onClick={handleSavedHomesClick}
                 title="Click to view all saved homes"
               >
                 Your Saved Homes
-              </button>
+              </CircularButton>
             }
             loading={favLoading}
             error={favError}
@@ -164,23 +164,18 @@ export default function UserDashboard() {
           <Carousel
             items={documents}
             title={
-              <button
-                className="text-lg font-semibold border border-gray-brown text-gray-brown bg-transparent hover:bg-gray-brown/10 transition-colors cursor-pointer px-4 py-2 rounded underline underline-offset-4"
+              <CircularButton
                 onClick={handleDocumentsClick}
                 title="Click to view all documents"
               >
                 Your Documents
-              </button>
+              </CircularButton>
             }
             loading={docsLoading}
             error={docsError}
             emptyMessage="Create your first document today"
             renderItem={(doc) => {
-              return (
-                <DocumentCard
-                  doc={doc}
-                />
-              );
+              return <DocumentCard doc={doc} />;
             }}
             getItemKey={(doc) => doc.id}
           />

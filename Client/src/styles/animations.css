@@ -10,10 +10,6 @@
   }
 }
 
-.fade-in {
-  animation: fadeIn 0.5s ease-out;
-}
-
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -25,88 +21,99 @@
   }
 }
 
+/* Consolidated fade-in animation - removed duplicate */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-out-left {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes scale-in {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes bounce-in {
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @layer utilities {
-  /* Keyframe animations */
-  @keyframes slide-in-left {
-    from {
-      transform: translateX(-100%);
-    }
-    to {
-      transform: translateX(0);
-    }
-  }
-
-  @keyframes slide-out-left {
-    from {
-      transform: translateX(0);
-    }
-    to {
-      transform: translateX(-100%);
-    }
-  }
-
-  @keyframes fade-in {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
-  }
-
-  @keyframes fade-out {
-    from {
-      opacity: 1;
-    }
-    to {
-      opacity: 0;
-    }
-  }
-
-  @keyframes scale-in {
-    from {
-      transform: scale(0.95);
-      opacity: 0;
-    }
-    to {
-      transform: scale(1);
-      opacity: 1;
-    }
-  }
-
-  @keyframes bounce-in {
-    0% {
-      transform: scale(0.3);
-      opacity: 0;
-    }
-    50% {
-      transform: scale(1.05);
-    }
-    70% {
-      transform: scale(0.9);
-    }
-    100% {
-      transform: scale(1);
-      opacity: 1;
-    }
-  }
-
-  @keyframes pulse {
-    0%, 100% {
-      opacity: 1;
-    }
-    50% {
-      opacity: 0.5;
-    }
-  }
-
-  @keyframes spin {
-    from {
-      transform: rotate(0deg);
-    }
-    to {
-      transform: rotate(360deg);
-    }
+  /* Utility classes for Mobile navigation patterns */
+  .mobile-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: white;
+    border-top: 1px solid #e5e7eb;
+    padding-bottom: env(safe-area-inset-bottom);
   }
 
   /* Animation utility classes */
@@ -120,6 +127,11 @@
 
   .animate-fade-in {
     animation: fade-in 0.2s ease-out;
+  }
+  
+  /* Alternative fadeIn with transform - use .animate-fadeIn for this version */
+  .animate-fadeIn {
+    animation: fadeIn 0.5s ease-out;
   }
 
   .animate-fade-out {
@@ -165,7 +177,7 @@
 
   /* Hover and focus animations */
   .hover-lift {
-    @apply transition-all duration-200;
+    transition: all 0.2s ease-in-out;
   }
 
   .hover-lift:hover {
@@ -174,7 +186,7 @@
   }
 
   .hover-scale {
-    @apply transition-transform duration-200;
+    transition: transform 0.2s ease-in-out;
   }
 
   .hover-scale:hover {
@@ -182,7 +194,7 @@
   }
 
   .hover-rotate {
-    @apply transition-transform duration-200;
+    transition: transform 0.2s ease-in-out;
   }
 
   .hover-rotate:hover {
@@ -191,7 +203,9 @@
 
   /* Loading states */
   .loading-skeleton {
-    @apply bg-gray-200 animate-pulse rounded;
+    background-color: #e5e7eb;
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    border-radius: 0.5rem;
   }
 
   .loading-shimmer {

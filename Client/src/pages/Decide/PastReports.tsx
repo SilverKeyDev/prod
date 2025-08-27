@@ -881,25 +881,9 @@ export default function PastReports() {
                     <div className="flex flex-col gap-2">
                       {report.status === "completed" && (
                         <>
-                          {/* Mobile: Download button at top, shorter */}
+                          {/* Mobile: Share, Delete, View buttons at top */}
                           <div className="sm:hidden">
-                            <button
-                              onClick={() =>
-                                handleDownloadDocument(
-                                  report.id,
-                                  report.address
-                                )
-                              }
-                              disabled={loadingUrls.has(report.id)}
-                              className="w-full btn-primary py-1 text-xs font-bold flex items-center justify-center disabled:opacity-50 touch-manipulation select-none"
-                            >
-                              <Download className="h-2.5 w-2.5 mr-1" />
-                              {loadingUrls.has(report.id)
-                                ? "Loading..."
-                                : "Download"}
-                            </button>
-                            {/* Share, Delete, View buttons side by side below */}
-                            <div className="flex gap-2 mt-2">
+                            <div className="flex gap-2 mb-2">
                               <button
                                 onClick={() => handleShareReport(report)}
                                 disabled={loadingUrls.has(report.id)}
@@ -930,6 +914,22 @@ export default function PastReports() {
                                 View
                               </button>
                             </div>
+                            {/* Download button below */}
+                            <button
+                              onClick={() =>
+                                handleDownloadDocument(
+                                  report.id,
+                                  report.address
+                                )
+                              }
+                              disabled={loadingUrls.has(report.id)}
+                              className="w-full btn-primary py-1 text-xs font-bold flex items-center justify-center disabled:opacity-50 touch-manipulation select-none"
+                            >
+                              <Download className="h-2.5 w-2.5 mr-1" />
+                              {loadingUrls.has(report.id)
+                                ? "Loading..."
+                                : "Download"}
+                            </button>
                           </div>
                           
                           {/* Desktop: Original layout */}

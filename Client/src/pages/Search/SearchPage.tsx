@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import { Bookmark, MapPin, ChevronLeft, ChevronRight } from "lucide-react";
+import { Bookmark, MapPin, ChevronLeft, ChevronRight, Bed, Bath, Square } from "lucide-react";
+import PropertyDetailsCompact from "../../components/ui/PropertyDetailsCompact";
 import { useNavigate } from "react-router-dom";
 import { favoriteHomesApi } from "../../lib/api";
 import HeartSave from "../../components/ui/HeartSave";
@@ -320,7 +321,8 @@ export default function SearchPage() {
     // Save the selected tab to localStorage
     localStorage.setItem("searchPageActiveTab", tab);
   };
-  const mapRef = useRef<HTMLDivElement>(null);
+  const mobileMapRef = useRef<HTMLDivElement>(null);
+  const desktopMapRef = useRef<HTMLDivElement>(null);
   const googleMapRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
   const polygonRef = useRef<google.maps.Polygon | null>(null);
@@ -432,18 +434,34 @@ export default function SearchPage() {
     return { fillColor, strokeColor };
   };
 
+  // Helper: which container is visible?
+  const getVisibleMapEl = () => {
+    const isDesktop = window.matchMedia('(min-width: 768px)').matches;
+    return isDesktop ? desktopMapRef.current : mobileMapRef.current;
+  };
+
   // Initialize Google Maps
   useEffect(() => {
     const initializeMap = () => {
-      if (!mapRef.current || !isGoogleMapsLoaded) return;
+      if (!isLocalStorageLoaded || !isGoogleMapsLoaded) return;
 
-      const map = createMap(mapRef.current);
+      const container = getVisibleMapEl();
+      if (!container) return;
+
+      const map = createMap(container);
       if (!map) {
         console.error("❌ Failed to create map");
         return;
       }
 
       googleMapRef.current = map;
+
+      // Force map resize after creation
+      setTimeout(() => {
+        if (window.google?.maps?.event && googleMapRef.current) {
+          window.google.maps.event.trigger(googleMapRef.current, 'resize');
+        }
+      }, 100);
 
       // ---------- Isochrone overlay logic (unchanged) ----------
       setTimeout(() => {
@@ -476,6 +494,34 @@ export default function SearchPage() {
       initializeMap();
     }
   }, [isLocalStorageLoaded, isGoogleMapsLoaded, createMap]);
+
+  // Handle resize/orientation changes
+  useEffect(() => {
+    const onResize = () => {
+      const container = getVisibleMapEl();
+      if (!container || !googleMapRef.current) return;
+      
+      // If the map was created in the hidden container, re-attach by recreating it
+      if (!container.contains(googleMapRef.current.getDiv())) {
+        const map = createMap(container);
+        if (map) {
+          googleMapRef.current = map;
+        }
+      }
+      
+      if (window.google?.maps?.event && googleMapRef.current) {
+        window.google.maps.event.trigger(googleMapRef.current, 'resize');
+      }
+    };
+    
+    window.addEventListener('resize', onResize);
+    window.addEventListener('orientationchange', onResize);
+    
+    return () => {
+      window.removeEventListener('resize', onResize);
+      window.removeEventListener('orientationchange', onResize);
+    };
+  }, [createMap]);
 
   // Handle property details search using the hook
   const handleViewPropertyDetails = async (property: SearchResult) => {
@@ -825,10 +871,10 @@ export default function SearchPage() {
               }));
             });
 
-            // Create individual polygon with gray styling
+            // Create individual polygon with brownish styling
             const individualPolygon = new google.maps.Polygon({
               paths: paths,
-              strokeColor: "#888888", // Gray color
+              strokeColor: "#8B7355", // Brownish color matching app theme
               strokeOpacity: 0.6,
               strokeWeight: 1,
               fillColor: "transparent",
@@ -1622,39 +1668,44 @@ export default function SearchPage() {
   return (
     <div className="max-w-7xl mx-auto">
       {/* Mobile Layout */}
-      <div className="md:hidden flex flex-col h-[calc(100vh-80px)]">
+      <div className="md:hidden flex flex-col h-[calc(100svh-80px)]">
         {/* Mobile Header - Small and Compact */}
-        <div className="flex-shrink-0 p-3 bg-white border-b border-gray-200">
-          <div className="flex gap-2">
-            <button
-              onClick={() => navigate("/dashboard/personalization")}
-              className="flex-1 px-3 py-2 btn-text-sm font-medium text-brown border border-brown rounded-lg hover:bg-brown hover:text-white transition-colors touch-friendly"
-            >
-              Preferences
-            </button>
-            <button
-              onClick={async () => {
-                try {
-                  setIsSearching(true);
-                  await fetchIsochronePolygon();
-                } catch (error) {
-                  console.error("Search failed:", error);
-                } finally {
-                  setIsSearching(false);
-                }
-              }}
-              disabled={isSearching}
-              className="flex-1 px-3 py-2 btn-text-sm font-medium text-white bg-brown rounded-lg hover:bg-brown-dark transition-colors touch-friendly disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isSearching ? "Searching..." : "Search Properties"}
-            </button>
+        <div className="flex-shrink-0 p-2 bg-white border-b border-gray-200">
+          <div className="flex items-center justify-between gap-2 min-w-0">
+            <div className="flex-1 min-w-0">
+              <span className="text-xs text-gray-600 truncate block">Search Properties</span>
+            </div>
+            <div className="flex gap-1 flex-shrink-0">
+              <button
+                onClick={() => navigate("/dashboard/personalization")}
+                className="inline-flex items-center px-2 py-1 bg-olive text-white rounded text-xs whitespace-nowrap hover:bg-olive/90 transition-colors"
+              >
+                Preferences
+              </button>
+              <button
+                onClick={async () => {
+                  try {
+                    setIsSearching(true);
+                    await fetchIsochronePolygon();
+                  } catch (error) {
+                    console.error("Search failed:", error);
+                  } finally {
+                    setIsSearching(false);
+                  }
+                }}
+                disabled={isSearching}
+                className="inline-flex items-center px-2 py-1 bg-gold text-black rounded text-xs whitespace-nowrap hover:bg-gold/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSearching ? "Searching..." : "Search"}
+              </button>
+            </div>
           </div>
         </div>
 
         {/* Mobile Carousel for Properties */}
         <div className="flex-shrink-0 bg-white border-b border-gray-200">
           {/* Tab Navigation */}
-          <div className="flex border-b border-gray-200">
+          <div className="flex justify-center border-b border-gray-200">
             <button
               onClick={() => {
                 handleTabChange("results");
@@ -1662,7 +1713,7 @@ export default function SearchPage() {
                   setShowPropertyModals(true);
                 }
               }}
-              className={`flex-1 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+              className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === "results"
                   ? "border-brown text-brown"
                   : "border-transparent text-gray-500 hover:text-gray-700"
@@ -1683,7 +1734,7 @@ export default function SearchPage() {
                   setHasSearched(true);
                 }
               }}
-              className={`flex-1 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+              className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === "saved"
                   ? "border-brown text-brown"
                   : "border-transparent text-gray-500 hover:text-gray-700"
@@ -1702,7 +1753,7 @@ export default function SearchPage() {
           <div className="p-2 sm:p-3">
             {activeTab === "results" ? (
               searchResults.length > 0 ? (
-                <div className="flex gap-2 sm:gap-3 overflow-x-auto scrollbar-hide pb-2" style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
+                <div className="flex gap-2 sm:gap-3 overflow-x-auto scrollbar-hide pb-2 justify-center sm:justify-start" style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
                   {searchResults.slice(currentPage * PROPERTIES_PER_PAGE, (currentPage + 1) * PROPERTIES_PER_PAGE).map((property) => (
                     <div
                       key={property.id}
@@ -1722,21 +1773,24 @@ export default function SearchPage() {
                         </div>
                       )}
                       <div className="p-2 sm:p-3">
-                        <h3 className="text-xs sm:text-sm font-medium text-black line-clamp-2 mb-1 leading-tight">
+                        <h3 className="text-2xs sm:text-xs md:text-sm font-medium text-black line-clamp-1 mb-1 leading-tight truncate">
                           {typeof property.address === "string" || typeof property.address === "number"
                             ? property.address
                             : "[Invalid address]"}
                         </h3>
-                        <p className="text-base sm:text-lg font-semibold text-brown mb-1 sm:mb-2">
+                        <p className="text-sm sm:text-base md:text-lg font-semibold text-brown mb-1 sm:mb-2 truncate">
                           {typeof property.price === "string" || typeof property.price === "number"
                             ? property.price
                             : "[Invalid price]"}
                         </p>
-                        <div className="grid grid-cols-3 gap-1 sm:gap-2 text-xs text-gray-600 w-[80%] sm:w-full mx-auto sm:mx-0">
-                          <div className="text-center">{property.bedrooms} beds</div>
-                          <div className="text-center">{property.bathrooms} baths</div>
-                          <div className="text-center">{property.sqft.toLocaleString()} sqft</div>
-                        </div>
+                        <PropertyDetailsCompact
+                          bedrooms={property.bedrooms}
+                          bathrooms={property.bathrooms}
+                          sqft={property.sqft}
+                          variant="horizontal"
+                          size="xs"
+                          showIcons={false}
+                        />
                       </div>
                     </div>
                   ))}
@@ -1749,7 +1803,7 @@ export default function SearchPage() {
               )
             ) : (
               savedHomes.length > 0 ? (
-                <div className="flex gap-2 sm:gap-3 overflow-x-auto scrollbar-hide pb-2" style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
+                <div className="flex gap-2 sm:gap-3 overflow-x-auto scrollbar-hide pb-2 justify-center sm:justify-start" style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
                   {savedHomes.slice(currentPage * PROPERTIES_PER_PAGE, (currentPage + 1) * PROPERTIES_PER_PAGE).map((property) => (
                     <div
                       key={property.id}
@@ -1769,21 +1823,24 @@ export default function SearchPage() {
                         </div>
                       )}
                       <div className="p-2 sm:p-3">
-                        <h3 className="text-xs sm:text-sm font-medium text-black line-clamp-2 mb-1 leading-tight">
+                        <h3 className="text-2xs sm:text-xs md:text-sm font-medium text-black line-clamp-1 mb-1 leading-tight truncate">
                           {typeof property.address === "string" || typeof property.address === "number"
                             ? property.address
                             : "[Invalid address]"}
                         </h3>
-                        <p className="text-base sm:text-lg font-semibold text-brown mb-1 sm:mb-2">
+                        <p className="text-sm sm:text-base md:text-lg font-semibold text-brown mb-1 sm:mb-2 truncate">
                           {typeof property.price === "string" || typeof property.price === "number"
                             ? property.price
                             : "[Invalid price]"}
                         </p>
-                        <div className="grid grid-cols-3 gap-1 sm:gap-2 text-xs text-gray-600 w-[80%] sm:w-full mx-auto sm:mx-0">
-                          <div className="text-center">{property.bedrooms} beds</div>
-                          <div className="text-center">{property.bathrooms} baths</div>
-                          <div className="text-center">{property.sqft.toLocaleString()} sqft</div>
-                        </div>
+                        <PropertyDetailsCompact
+                          bedrooms={property.bedrooms}
+                          bathrooms={property.bathrooms}
+                          sqft={property.sqft}
+                          variant="horizontal"
+                          size="xs"
+                          showIcons={false}
+                        />
                       </div>
                     </div>
                   ))}
@@ -1800,22 +1857,12 @@ export default function SearchPage() {
 
         {/* Mobile Map - Takes majority of screen */}
         <div className="flex-1 relative">
-          {/* Loading overlay */}
-          {(isSearching ||
-            (hasSearched &&
-              searchResults.length === 0 &&
-              savedHomes.length === 0) ||
-            (!hasSearched &&
-              searchResults.length === 0 &&
-              savedHomes.length === 0)) && (
+          {/* Loading overlay - Only show when actively searching */}
+          {isSearching && (
             <div className="absolute inset-0 z-20 w-full h-full flex items-center justify-center bg-gray-50">
               <div className="flex flex-col items-center gap-4">
                 <KeyTurnLoader
-                  message={
-                    isSearching
-                      ? searchStage || "Searching properties..."
-                      : "Loading map..."
-                  }
+                  message={searchStage || "Searching properties..."}
                 />
               </div>
             </div>
@@ -1824,7 +1871,7 @@ export default function SearchPage() {
           {/* Map container */}
           <div className="w-full h-full relative">
             <div
-              ref={mapRef}
+              ref={mobileMapRef}
               className="w-full h-full"
               style={{ minHeight: "100%" }}
             />
@@ -1834,53 +1881,21 @@ export default function SearchPage() {
               <div className="absolute bottom-4 left-4 flex flex-col gap-1 z-10">
                 <button
                   onClick={zoomIn}
-                  className="w-12 h-12 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 touch-friendly"
+                  className="w-6 h-6 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 touch-friendly"
                   title="Zoom in"
                 >
-                  <span className="text-xl font-bold leading-none">+</span>
+                  <span className="text-lg sm:text-lg md:text-xl font-bold leading-none">+</span>
                 </button>
                 <button
                   onClick={zoomOut}
-                  className="w-12 h-12 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 touch-friendly"
+                  className="w-6 h-6 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 touch-friendly"
                   title="Zoom out"
                 >
-                  <span className="text-xl font-bold leading-none">−</span>
+                  <span className="text-lg sm:text-lg md:text-xl font-bold leading-none">−</span>
                 </button>
               </div>
             )}
 
-            {/* Mobile Pagination Controls */}
-            {!isSearching &&
-              hasSearched &&
-              (activeTab === "results"
-                ? searchResults.length > PROPERTIES_PER_PAGE
-                : savedHomes.length > PROPERTIES_PER_PAGE) && (
-                <div className="absolute bottom-4 right-4 flex flex-row gap-1 z-10">
-                  <button
-                    onClick={() =>
-                      setCurrentPage(Math.max(0, currentPage - 1))
-                    }
-                    disabled={currentPage === 0}
-                    className="w-12 h-12 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 disabled:opacity-50 disabled:cursor-not-allowed touch-friendly"
-                    title="Previous properties"
-                  >
-                    <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 lg:w-8 lg:h-8" />
-                  </button>
-                  <button
-                    onClick={() => setCurrentPage(currentPage + 1)}
-                    disabled={
-                      (currentPage + 1) * PROPERTIES_PER_PAGE >=
-                      (activeTab === "results"
-                        ? searchResults.length
-                        : savedHomes.length)
-                    }
-                    className="w-12 h-12 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 disabled:opacity-50 disabled:cursor-not-allowed touch-friendly"
-                    title="Next properties"
-                  >
-                    <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 lg:w-8 lg:h-8" />
-                  </button>
-                </div>
-              )}
           </div>
         </div>
       </div>
@@ -2029,11 +2044,20 @@ export default function SearchPage() {
 
                                   {/* Property Details */}
                                   <div className="property-details-mobile mb-1">
-                                    <div>{property.bedrooms} beds</div>
-                                    <div>{property.bathrooms} baths</div>
-                                    <div>
-                                      {property.sqft.toLocaleString()} sqft
+                                    <div className="flex items-center gap-1">
+                                      <Bed className="w-3 h-3 text-gray-500" />
+                                      {property.bedrooms} beds
                                     </div>
+                                    <div className="flex items-center gap-1">
+                                      <Bath className="w-3 h-3 text-gray-500" />
+                                      {property.bathrooms} baths
+                                    </div>
+                                    {property.sqft > 0 && (
+                                      <div className="flex items-center gap-1">
+                                        <Square className="w-3 h-3 text-gray-500" />
+                                        {Math.round(property.sqft).toLocaleString()} sqft
+                                      </div>
+                                    )}
                                   </div>
 
                                   {/* Match Score */}
@@ -2158,11 +2182,18 @@ export default function SearchPage() {
 
                                 {/* Property Details */}
                                 <div className="property-details-grid mb-1">
-                                  <div>{property.bedrooms} beds</div>
-                                  <div>{property.bathrooms} baths</div>
+                                  <div className="flex items-center gap-1">
+                                    <Bed className="w-3 h-3 text-gray-500" />
+                                    {property.bedrooms} beds
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <Bath className="w-3 h-3 text-gray-500" />
+                                    {property.bathrooms} baths
+                                  </div>
                                   {property.sqft > 0 && (
-                                    <div>
-                                      {property.sqft.toLocaleString()} sqft
+                                    <div className="flex items-center gap-1">
+                                      <Square className="w-3 h-3 text-gray-500" />
+                                      {Math.round(property.sqft).toLocaleString()} sqft
                                     </div>
                                   )}
                                 </div>
@@ -2198,37 +2229,35 @@ export default function SearchPage() {
         <div className="flex-1 flex flex-col">
           {/* Search Instructions and Controls */}
           <div className="mobile-card mb-6 flex-shrink-0">
-            <div className="flex flex-col sm:flex-row gap-4 items-center">
-              <div className="flex-1">
-                <div className="flex items-center gap-3">
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">
-                      We use your preferences and important
-                      locations to surface the best properties &nbsp;
-                      <button
-                        onClick={() => navigate("/dashboard/personalization")}
-                        className="inline-flex items-center px-2 py-1 btn-text-sm font-medium text-brown border border-brown rounded hover:bg-brown hover:text-white transition-colors"
-                      >
-                        Preferences
-                      </button>
-                    </p>
-                  </div>
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium text-gray-900">
+                    We use your preferences and important
+                    locations to surface the best properties
+                  </p>
                 </div>
-              </div>
-              <button
-                onClick={async () => {
-                  try {
-                    setIsSearching(true);
-                    await fetchIsochronePolygon();
-                  } catch (error) {
-                    console.error("Search failed:", error);
-                  } finally {
-                    setIsSearching(false);
-                  }
-                }}
-                disabled={isSearching}
-                className="px-4 py-2 bg-gold text-black rounded-lg hover:bg-gold/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-              >
+                <div className="flex gap-2 flex-shrink-0">
+                  <button
+                    onClick={() => navigate("/dashboard/personalization")}
+                    className="inline-flex items-center px-4 py-2 bg-olive text-white rounded-lg hover:bg-olive/90 transition-colors flex-shrink-0"
+                  >
+                    Preferences
+                  </button>
+                  <button
+                    onClick={async () => {
+                      try {
+                        setIsSearching(true);
+                        await fetchIsochronePolygon();
+                      } catch (error) {
+                        console.error("Search failed:", error);
+                      } finally {
+                        setIsSearching(false);
+                      }
+                    }}
+                    disabled={isSearching}
+                    className="inline-flex items-center px-4 py-2 bg-gold text-black rounded-lg hover:bg-gold/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed gap-2 flex-shrink-0"
+                  >
                 {isSearching ? (
                   <KeyTurnLoader message="Searching..." />
                 ) : (
@@ -2250,6 +2279,8 @@ export default function SearchPage() {
                   </>
                 )}
               </button>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -2279,9 +2310,9 @@ export default function SearchPage() {
             {/* Map container - always present in DOM */}
             <div className="w-full h-full relative">
               <div
-                ref={mapRef}
+                ref={desktopMapRef}
                 className="w-full h-full rounded-lg"
-                style={{ minHeight: "100%" }}
+                style={{ minHeight: "400px" }}
               />
 
               {/* Custom Zoom Controls - hidden during search */}
@@ -2289,17 +2320,17 @@ export default function SearchPage() {
                 <div className="absolute bottom-12 left-8 flex flex-row gap-1 z-10">
                   <button
                     onClick={zoomIn}
-                    className="w-10 h-10 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20"
+                    className="w-8 h-8 lg:w-10 lg:h-10 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20"
                     title="Zoom in"
                   >
-                    <span className="text-lg font-bold leading-none">+</span>
+                    <span className="text-sm lg:text-lg font-bold leading-none">+</span>
                   </button>
                   <button
                     onClick={zoomOut}
-                    className="w-10 h-10 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20"
+                    className="w-8 h-8 lg:w-10 lg:h-10 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20"
                     title="Zoom out"
                   >
-                    <span className="text-lg font-bold leading-none">−</span>
+                    <span className="text-sm lg:text-lg font-bold leading-none">−</span>
                   </button>
                 </div>
               )}
@@ -2316,12 +2347,12 @@ export default function SearchPage() {
                         setCurrentPage(Math.max(0, currentPage - 1))
                       }
                       disabled={currentPage === 0}
-                      className="w-10 h-10 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-gray-700 disabled:hover:border-gray-300"
+                      className="w-8 h-8 lg:w-10 lg:h-10 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-gray-700 disabled:hover:border-gray-300"
                       title="Previous properties"
                     >
-                      <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 lg:w-7 lg:h-7" />
+                      <ChevronLeft className="w-3 h-3 lg:w-4 lg:h-4" />
                     </button>
-                    <div className="w-auto px-3 h-10 bg-white border border-gray-300 rounded-lg shadow-md flex items-center justify-center text-sm font-medium text-gray-700">
+                    <div className="w-auto px-2 lg:px-3 h-8 lg:h-10 bg-white border border-gray-300 rounded-lg shadow-md flex items-center justify-center text-xs lg:text-sm font-medium text-gray-700">
                       {Math.min(
                         (currentPage + 1) * PROPERTIES_PER_PAGE,
                         activeTab === "results"
@@ -2341,10 +2372,10 @@ export default function SearchPage() {
                           ? searchResults.length
                           : savedHomes.length)
                       }
-                      className="w-10 h-10 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-gray-700 disabled:hover:border-gray-300"
+                      className="w-8 h-8 lg:w-10 lg:h-10 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-gray-700 disabled:hover:border-gray-300"
                       title="Next properties"
                     >
-                      <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 lg:w-7 lg:h-7" />
+                      <ChevronRight className="w-3 h-3 lg:w-4 lg:h-4" />
                     </button>
                   </div>
                 )}

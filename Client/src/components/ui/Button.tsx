@@ -31,13 +31,13 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     // Base styles that apply to all buttons
     const baseStyles = 'inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed';
 
-    // Size variants
+    // Size variants - responsive
     const sizeStyles = {
-      xs: 'px-2 py-1 text-xs',
-      sm: 'px-3 py-1.5 text-sm',
-      md: 'px-4 py-2 text-sm',
-      lg: 'px-6 py-3 text-base',
-      xl: 'px-8 py-4 text-lg'
+      xs: 'btn-responsive-sm',
+      sm: 'btn-responsive-sm', 
+      md: 'btn-responsive-md',
+      lg: 'btn-responsive-lg',
+      xl: 'btn-responsive-lg'
     };
 
     // Rounded variants

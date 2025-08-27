@@ -1,5 +1,6 @@
 import React from 'react';
-import { MapPin, Bed, Bath, Square } from 'lucide-react';
+import { MapPin } from "lucide-react";
+import PropertyDetailsCompact from "./PropertyDetailsCompact";
 import BaseCard from './BaseCard';
 
 export interface PropertyCardProps {
@@ -86,15 +87,15 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
         {/* Status Badge */}
         {status && (
           <div className="absolute top-2 sm:top-3 left-2 sm:left-3">
-            <span className={`px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-xs font-medium ${status.className}`}>
+            <span className={`space-responsive-xs rounded-full text-responsive-xs font-medium ${status.className}`}>
               {status.text}
             </span>
           </div>
         )}
 
         {/* Price Badge */}
-        <div className={`absolute top-2 sm:top-3 ${pricePosition === 'top-left' ? 'left-2 sm:left-3' : 'right-2 sm:right-3'} bg-white/90 backdrop-blur-sm px-2 sm:px-3 py-0.5 sm:py-1 rounded-full`}>
-          <span className="text-xs sm:text-sm font-semibold text-navy">
+        <div className={`absolute top-2 sm:top-3 ${pricePosition === 'top-left' ? 'left-2 sm:left-3' : 'right-2 sm:right-3'} bg-white/90 backdrop-blur-sm space-responsive-xs rounded-full`}>
+          <span className="text-responsive-xs font-semibold text-navy">
             {formatPrice(price)}
           </span>
         </div>
@@ -108,46 +109,26 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
       </div>
 
       {/* Content Section */}
-      <div className="p-3 sm:p-4">
+      <div className="space-responsive-sm">
         {/* Address */}
-        <div className="flex items-start gap-2 mb-2 sm:mb-3">
-          <MapPin className="h-3 sm:h-4 w-3 sm:w-4 text-brown mt-0.5 flex-shrink-0" />
+        <div className="flex items-start gap-responsive-sm mb-2 sm:mb-3">
+          <MapPin className="mobile-icon-sm text-brown mt-0.5 flex-shrink-0" />
           <div>
-            <p className="text-xs sm:text-sm font-medium text-navy leading-tight line-clamp-2">
+            <p className="text-responsive-sm font-medium text-navy leading-tight line-clamp-2">
               {address}
             </p>
           </div>
         </div>
 
         {/* Property Details */}
-        {(bedrooms !== undefined || bathrooms !== undefined || sqft !== undefined) && (
-          <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-2 sm:mb-3">
-            {bedrooms !== undefined && (
-              <div className="flex items-center gap-1">
-                <Bed className="h-3 w-3 text-brown flex-shrink-0" />
-                <span className="btn-text-sm text-gray-600 truncate">
-                  {bedrooms} bed{bedrooms !== 1 ? 's' : ''}
-                </span>
-              </div>
-            )}
-            {bathrooms !== undefined && (
-              <div className="flex items-center gap-1">
-                <Bath className="h-3 w-3 text-brown flex-shrink-0" />
-                <span className="btn-text-sm text-gray-600 truncate">
-                  {bathrooms} bath{bathrooms !== 1 ? 's' : ''}
-                </span>
-              </div>
-            )}
-            {sqft !== undefined && sqft > 0 && (
-              <div className="flex items-center gap-1">
-                <Square className="h-3 w-3 text-brown flex-shrink-0" />
-                <span className="btn-text-sm text-gray-600 truncate">
-                  {sqft.toLocaleString()} sqft
-                </span>
-              </div>
-            )}
-          </div>
-        )}
+        <PropertyDetailsCompact
+          bedrooms={bedrooms}
+          bathrooms={bathrooms}
+          sqft={sqft}
+          variant="horizontal"
+          size="xs"
+          className="mb-2 sm:mb-3"
+        />
 
         {/* Additional Details */}
         {(propertyType || lotSize) && (

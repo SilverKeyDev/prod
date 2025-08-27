@@ -75,12 +75,12 @@ const BaseModal: React.FC<BaseModalProps> = ({
 
   // Size variants - mobile responsive
   const sizeStyles = {
-    xs: 'max-w-xs',
-    sm: 'max-w-sm',
-    md: 'max-w-md sm:max-w-lg',
-    lg: 'max-w-lg sm:max-w-xl',
-    xl: 'max-w-xl sm:max-w-2xl',
-    full: 'max-w-full mx-2 sm:mx-4'
+    xs: 'max-w-xs mx-responsive-sm',
+    sm: 'max-w-sm mx-responsive-sm',
+    md: 'max-w-md sm:max-w-lg mx-responsive-md',
+    lg: 'max-w-lg sm:max-w-xl mx-responsive-md',
+    xl: 'max-w-xl sm:max-w-2xl mx-responsive-lg',
+    full: 'max-w-full mx-responsive-sm'
   };
 
   const handleBackdropClick = (e: React.MouseEvent) => {

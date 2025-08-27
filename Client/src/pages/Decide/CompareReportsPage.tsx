@@ -470,43 +470,44 @@ export default function CompareReportsPage() {
               <button
                 onClick={() => setSelectedReports([])}
                 disabled={selectedReports.length === 0}
-                className="flex items-center px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-black/70 bg-gray-100 border border-gray-300 hover:bg-gray-200 hover:border-gray-400 rounded-lg transition-colors disabled:bg-gray-200 disabled:text-gray-500 disabled:border-transparent disabled:cursor-not-allowed touch-friendly"
+                className="flex items-center px-2 sm:px-4 py-2 text-sm sm:text-sm font-medium text-black/70 bg-gray-100 border border-gray-300 hover:bg-gray-200 hover:border-gray-400 rounded-lg transition-colors disabled:bg-gray-200 disabled:text-gray-500 disabled:border-transparent disabled:cursor-not-allowed touch-friendly min-w-[70px] sm:min-w-auto"
               >
                 <X className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                <span className="hidden sm:inline">Clear</span>
+                <span className="text-sm font-normal tracking-tight sm:inline">Clear</span>
               </button>
               <button
                 onClick={exportToExcel}
                 disabled={
                   selectedReports.length === 0 || comparisonTable.length === 0
                 }
-                className="flex items-center px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-white bg-olive hover:bg-olive-light rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-friendly"
+                className="flex items-center px-2 sm:px-4 py-2 text-sm sm:text-sm font-medium text-white bg-olive hover:bg-olive-light rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-friendly min-w-[90px] sm:min-w-auto"
               >
                 <Download className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                <span className="text-sm font-normal tracking-tight sm:hidden">Export CSV</span>
                 <span className="hidden sm:inline">Export CSV</span>
-                <span className="sm:hidden">CSV</span>
               </button>
               <button
                 onClick={shareCSV}
                 disabled={
                   selectedReports.length === 0 || comparisonTable.length === 0
                 }
-                className="flex items-center px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-black bg-beige hover:bg-beige/80 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-friendly"
+                className="flex items-center px-2 sm:px-4 py-2 text-sm sm:text-sm font-medium text-black bg-beige hover:bg-beige/80 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-friendly min-w-[80px] sm:min-w-auto"
               >
                 <Share className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                <span className="text-sm font-normal tracking-tight sm:hidden">Share CSV</span>
                 <span className="hidden sm:inline">Share CSV</span>
-                <span className="sm:hidden">Share</span>
               </button>
               <button
                 onClick={refreshReports}
                 disabled={isLoading}
-                className="flex items-center px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-black bg-beige/30 hover:bg-beige/50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-friendly"
+                className="flex items-center px-2 sm:px-4 py-2 text-sm sm:text-sm font-medium text-black bg-beige/30 hover:bg-beige/50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-friendly min-w-[80px] sm:min-w-auto"
               >
                 <RefreshCw
                   className={`h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 ${
                     isLoading ? "animate-spin" : ""
                   }`}
                 />
+                <span className="text-sm font-normal tracking-tight sm:hidden">Refresh</span>
                 <span className="hidden sm:inline">Refresh</span>
               </button>
             </div>
@@ -610,10 +611,10 @@ export default function CompareReportsPage() {
             </div>
             <button
               onClick={() => setShowRowModal(true)}
-              className="flex items-center px-4 py-2 text-sm font-medium text-white bg-brown hover:bg-brown/80 rounded-lg transition-colors touch-friendly"
+              className="flex items-center px-3 sm:px-4 py-2 text-sm font-medium text-white bg-brown hover:bg-brown/80 rounded-lg transition-colors touch-friendly min-w-[110px] sm:min-w-auto"
             >
               <Settings className="h-4 w-4 mr-2" />
-              Manage Rows
+              <span className="text-sm font-normal tracking-tight">Manage Rows</span>
             </button>
           </div>
         </div>
@@ -691,7 +692,7 @@ export default function CompareReportsPage() {
             </p>
             <button
               onClick={() => setSelectedReports([])}
-              className="mt-1 sm:mt-2 text-sm text-black/70 hover:text-black underline py-0.5 sm:py-1 touch-friendly"
+              className="mt-1 sm:mt-2 text-sm text-black/70 hover:text-black underline py-0.5 sm:py-1 touch-friendly font-normal tracking-tight"
             >
               Clear selection
             </button>

@@ -39,6 +39,7 @@ import OliveCheckbox from "../../components/ui/OliveCheckbox";
 import PriceRangeSlider from "../../components/ui/PriceRangeSlider";
 import ValidationWarning from "../../components/feedback/ValidationWarning";
 import { estimateAffordableHomePrice } from "../../lib/affordabilityCalculator";
+import PageHeader from "../../components/ui/PageHeader";
 
 // Extend window interface for Google Maps
 declare global {
@@ -93,7 +94,7 @@ interface OnboardingData {
 }
 
 const STEPS = [
-  { id: "reportcustomization", title: "Report Customization", icon: Building },
+  { id: "reportcustomization", title: "Priorities", icon: Building },
   { id: "demographics", title: "About You", icon: User },
   { id: "financial", title: "Financial Profile", icon: Building },
   { id: "housing", title: "Housing Preferences", icon: Home },
@@ -319,6 +320,9 @@ export default function PersonalizationPage() {
   const [homePriceResult, setHomePriceResult] = useState<any>(null);
   const [homePriceLoading, setHomePriceLoading] = useState(false);
   const [homePriceError, setHomePriceError] = useState<string | null>(null);
+  const [isAffordabilityCollapsed, setIsAffordabilityCollapsed] = useState(false);
+  const [showStickyButtons, setShowStickyButtons] = useState(false);
+  const saveButtonRef = useRef<HTMLDivElement>(null);
 
   // Generate explanation text for the home price calculation
   const generateExplanation = (result: any, data: OnboardingData) => {
@@ -613,7 +617,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
     }
   }, [userPreferences]);
 
-  // Track scroll position to update active section
+  // Track scroll position to update active section and sticky buttons
   useEffect(() => {
     const handleScroll = () => {
       const sections = STEPS.map((step) => step.id);
@@ -626,11 +630,24 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
           break;
         }
       }
+
+      // Check if original save button is visible on mobile
+      if (saveButtonRef.current && window.innerWidth < 640) {
+        const rect = saveButtonRef.current.getBoundingClientRect();
+        const isVisible = rect.bottom > 0 && rect.top < window.innerHeight;
+        setShowStickyButtons(!isVisible && isEditMode);
+      } else {
+        setShowStickyButtons(false);
+      }
     };
 
     window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+    window.addEventListener("resize", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleScroll);
+    };
+  }, [isEditMode]);
 
   // Use centralized Google Maps loading
   const { isLoaded: googleMapsLoaded, error: googleMapsError } = useGoogleMaps();
@@ -1279,12 +1296,30 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
               </div>
 
               {/* Home Price Calculation Results */}
-              <div className="col-span-1 md:col-span-2 mt-6 p-4 bg-white rounded-lg border border-olive">
-                <h3 className="text-lg font-medium text-olive mb-2">
-                  Estimated Home Affordability
-                </h3>
+              <div className={`col-span-1 md:col-span-2 mt-6 p-4 bg-white rounded-lg border border-olive ${
+                isAffordabilityCollapsed ? "pb-6" : ""
+              }`}>
+                <div 
+                  className={`flex items-center justify-between cursor-pointer p-2 -m-2 rounded-lg hover:bg-olive/5 transition-colors duration-150 ${
+                    isAffordabilityCollapsed ? "mb-2" : "mb-2"
+                  }`}
+                  onClick={() => setIsAffordabilityCollapsed(!isAffordabilityCollapsed)}
+                >
+                  <h3 className="text-lg font-medium text-olive">
+                    Estimated Home Affordability
+                  </h3>
+                  <ChevronDown
+                    className={`w-5 h-5 text-olive transition-transform duration-300 ease-in-out ${
+                      isAffordabilityCollapsed ? "rotate-180" : ""
+                    }`}
+                  />
+                </div>
 
-                {homePriceLoading ? (
+                <div className={`transition-all duration-300 ease-in-out overflow-hidden ${
+                  isAffordabilityCollapsed ? "max-h-0 opacity-0" : "max-h-[2000px] opacity-100"
+                }`}>
+                  <div className="pt-2">
+                    {homePriceLoading ? (
                   <div className="flex items-center justify-center py-4">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-olive"></div>
                     <span className="ml-2 text-sm text-black">
@@ -1481,6 +1516,8 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                     </p>
                   </div>
                 )}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -2088,7 +2125,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
           return (
             <div className="space-y-6">
               <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
-                Report Customization
+                Priorities
               </h2>
               <Loading message="Loading report customization options..." />
             </div>
@@ -2101,7 +2138,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
           return (
             <div className="space-y-6">
               <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
-                Report Customization
+                Priorities
               </h2>
               <Loading message="Loading report customization options..." />
             </div>
@@ -2111,7 +2148,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
         return (
           <div className="space-y-6">
             <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
-              Report Customization
+              Priorities
             </h2>
             <p className="text-gray-600 mb-4">
               {isEditMode
@@ -2225,14 +2262,22 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
 
   return (
     <div className="min-h-screen bg-off-white">
+      {/* Mobile Header - Only visible on mobile */}
+      <div className="sm:hidden">
+        <PageHeader 
+          title="Personalization" 
+          subtitle="Customize your preferences" 
+        />
+      </div>
+      
       <div className="max-w-7xl mx-auto mobile-padding">
         {/* Header with action buttons */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div className="w-[90%] sm:w-auto mx-auto sm:mx-0 text-center sm:text-left">
             <h1 className="text-xl sm:text-2xl md:text-3xl font-serif text-black mb-2">
-              Personalization Settings
+              <span className="hidden sm:inline">Personalization Settings</span>
             </h1>
-            <p className="text-sm sm:text-base text-gray-600">
+            <p className="text-sm sm:text-base text-gray-600 hidden sm:block">
               Customize your preferences to get more personalized reports and
               recommendations.
             </p>
@@ -2243,7 +2288,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
             {!isEditMode ? (
               <button
                 onClick={() => setIsEditMode(true)}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-olive text-white rounded-lg hover:bg-olive/80 transition-colors touch-friendly btn-text-sm"
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-olive text-white rounded-lg hover:bg-olive/80 transition-colors touch-friendly text-sm"
               >
                 <Edit size={16} />
                 Edit Preferences
@@ -2252,7 +2297,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
               <>
                 <button
                   onClick={handleCancel}
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors touch-friendly"
+                  className="flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors touch-friendly text-sm"
                 >
                   <X size={16} />
                   Cancel
@@ -2260,7 +2305,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                 <button
                   onClick={handleSaveChanges}
                   disabled={isSaving}
-                  className="flex items-center gap-2 px-4 py-2 bg-olive text-white rounded-lg hover:bg-olive/80 transition-colors disabled:opacity-50 touch-friendly"
+                  className="flex items-center gap-2 px-4 py-2 bg-olive text-white rounded-lg hover:bg-olive/80 transition-colors disabled:opacity-50 touch-friendly text-sm"
                 >
                   <Save size={16} />
                   {isSaving ? "Saving..." : "Save Changes"}
@@ -2271,35 +2316,58 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
         </div>
 
         {/* Mobile Action Buttons - Only visible on mobile */}
-        <div className="sm:hidden w-[90%] mx-auto mb-6">
+        <div ref={saveButtonRef} className="sm:hidden w-[90%] mx-auto mb-6">
           {!isEditMode ? (
             <button
               onClick={() => setIsEditMode(true)}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-olive text-white rounded-lg hover:bg-olive/80 transition-colors touch-friendly btn-text-sm"
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-olive text-white rounded-lg hover:bg-olive/80 transition-colors touch-friendly text-sm"
             >
               <Edit size={16} />
               Edit Preferences
             </button>
           ) : (
-            <div className="space-y-3">
+            <div className="flex gap-2">
               <button
                 onClick={handleCancel}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors touch-friendly"
+                className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors touch-friendly text-sm"
               >
-                <X size={16} />
+                <X size={14} />
                 Cancel
               </button>
               <button
                 onClick={handleSaveChanges}
                 disabled={isSaving}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-olive text-white rounded-lg hover:bg-olive/80 transition-colors disabled:opacity-50 touch-friendly"
+                className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-olive text-white rounded-lg hover:bg-olive/80 transition-colors disabled:opacity-50 touch-friendly text-sm"
               >
-                <Save size={16} />
-                {isSaving ? "Saving..." : "Save Changes"}
+                <Save size={14} />
+                {isSaving ? "Saving..." : "Save"}
               </button>
             </div>
           )}
         </div>
+
+        {/* Sticky Mobile Buttons - Show when scrolled past original buttons */}
+        {showStickyButtons && (
+          <div className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 p-3 sm:hidden">
+            <div className="flex gap-2 max-w-sm mx-auto">
+              <button
+                onClick={handleCancel}
+                className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors touch-friendly text-sm"
+              >
+                <X size={14} />
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveChanges}
+                disabled={isSaving}
+                className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-olive text-white rounded-lg hover:bg-olive/80 transition-colors disabled:opacity-50 touch-friendly text-sm"
+              >
+                <Save size={14} />
+                {isSaving ? "Saving..." : "Save"}
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Sidebar and Content Layout */}
         <div className="flex gap-8">
@@ -2314,17 +2382,17 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
               <div className="mb-6 space-y-2">
                 {!isEditMode ? (
                   <button
-                    onClick={() => setIsEditMode(true)}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-olive text-white rounded-lg hover:bg-olive/80 transition-colors touch-friendly btn-text-sm"
-                  >
-                    <Edit size={16} />
-                    Edit Preferences
-                  </button>
+                  onClick={() => setIsEditMode(true)}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-olive text-white rounded-lg hover:bg-olive/80 transition-colors touch-friendly text-sm"
+                >
+                  <Edit size={16} />
+                  Edit Preferences
+                </button>
                 ) : (
                   <>
                     <button
                       onClick={handleCancel}
-                      className="w-full flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors touch-friendly"
+                      className="w-full flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors touch-friendly text-sm"
                     >
                       <X size={16} />
                       Cancel
@@ -2332,7 +2400,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                     <button
                       onClick={handleSaveChanges}
                       disabled={isSaving}
-                      className="w-full flex items-center gap-2 px-4 py-2 bg-olive text-white rounded-lg hover:bg-olive/80 transition-colors disabled:opacity-50 touch-friendly"
+                      className="w-full flex items-center gap-2 px-4 py-2 bg-olive text-white rounded-lg hover:bg-olive/80 transition-colors disabled:opacity-50 touch-friendly text-sm"
                     >
                       <Save size={16} />
                       {isSaving ? "Saving..." : "Save Changes"}

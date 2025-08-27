@@ -130,13 +130,13 @@ const TimelineChecklist: React.FC<TimelineChecklistProps> = ({
                     <StepIcon className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 lg:w-6 lg:h-6" color="white" />
                   </Link>
 
-                  {/* Step name */}
-                  <span className="text-[8px] sm:text-xs md:text-sm mt-0.5 sm:mt-1 text-brown-dark capitalize select-none text-center px-0.5 sm:px-1 truncate max-w-full">
+                  {/* Step name - hidden on mobile */}
+                  <span className="hidden sm:inline text-[8px] sm:text-xs md:text-sm mt-0.5 sm:mt-1 text-brown-dark capitalize select-none text-center px-0.5 sm:px-1 truncate max-w-full">
                     {step.name}
                   </span>
 
-                  {/* Substeps container: responsive width */}
-                  <div className="mt-0.5 sm:mt-1 md:mt-2 flex justify-center gap-0.5 sm:gap-1 md:gap-2 flex-wrap max-w-full">
+                  {/* Substeps container: responsive width - hidden on mobile */}
+                  <div className="hidden sm:flex mt-0.5 sm:mt-1 md:mt-2 justify-center gap-0.5 sm:gap-1 md:gap-2 flex-wrap max-w-full">
                     {step.subSteps.map((sub) => {
                       const SubIcon: LucideIcon = sub.icon;
                       const isActiveSub = location.pathname === sub.href;

@@ -170,7 +170,7 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
                       `${home.beds} bed, ${home.baths} bath` : 
                       'Property details'
                     }
-                    {home.sqft && Number(home.sqft) > 0 && ` • ${home.sqft} sqft`}
+                    {home.sqft && Number(home.sqft) > 0 && ` • ${Math.round(Number(home.sqft)).toLocaleString()} sqft`}
                     {home.price && ` • ${home.price}`}
                   </div>
                 </button>

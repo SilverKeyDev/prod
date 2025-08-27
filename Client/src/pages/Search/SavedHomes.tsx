@@ -165,10 +165,10 @@ export default function SavedHomes() {
           />
         </div>
 
-        {/* View toggle - fixed width */}
+        {/* View toggle - fixed width - hidden on mobile */}
         <button
           onClick={() => setViewMode(viewMode === "grid" ? "list" : "grid")}
-          className="flex-shrink-0 p-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+          className="hidden sm:flex flex-shrink-0 p-2 border border-gray-300 rounded-lg hover:bg-gray-50"
           title="Toggle view"
         >
           {viewMode === "grid" ? <List size={18} /> : <LayoutGrid size={18} />}

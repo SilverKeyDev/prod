@@ -418,7 +418,7 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({ property, o
               {/* Compact Action Buttons */}
               <button 
                 onClick={handleGenerateFullReport}
-                className="bg-olive-light text-white py-2 px-2 sm:py-1.5 sm:px-3 rounded text-xs font-medium hover:bg-olive-light/80 transition-colors touch-manipulation hidden sm:block h-8"
+                className="bg-olive-light text-white py-1 px-1.5 sm:py-1.5 sm:px-2 md:px-3 rounded text-2xs sm:text-xs font-medium hover:bg-olive-light/80 transition-colors touch-manipulation hidden sm:block h-7 sm:h-8 whitespace-nowrap"
               >
                 Generate Full Report
               </button>
@@ -432,10 +432,10 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({ property, o
               
               <button 
                 onClick={handleGoToZillow}
-                className="border border-blue-600 text-blue-600 py-2 px-2 sm:py-1.5 sm:px-3 rounded text-xs font-medium hover:bg-blue-50 transition-colors flex items-center gap-1 touch-manipulation h-8"
+                className="border border-blue-600 text-blue-600 py-1 px-1.5 sm:py-1.5 sm:px-2 md:px-3 rounded text-2xs sm:text-xs font-medium hover:bg-blue-50 transition-colors flex items-center gap-1 touch-manipulation h-7 sm:h-8 whitespace-nowrap"
                 title="View on Zillow"
               >
-                <ExternalLink className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 lg:w-6 lg:h-6" />
+                <ExternalLink className="w-3 h-3 sm:w-4 sm:h-4" />
                 <span className="hidden sm:inline">Zillow</span>
               </button>
               
@@ -569,7 +569,7 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({ property, o
               <div className="text-3xl font-bold text-brown mb-4">
                 {formatPrice(property.price)}
               </div>
-              <div className="grid grid-cols-3 gap-4 mb-6">
+              <div className={`grid gap-4 mb-6 ${property.sqft && property.sqft > 0 ? 'grid-cols-3' : 'grid-cols-2 justify-center'}`}>
                 <div className="text-center p-3 bg-gray-50 rounded-lg">
                   <div className="text-2xl font-bold text-black">
                     {property.bedrooms}
@@ -582,12 +582,14 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({ property, o
                   </div>
                   <div className="text-sm text-gray-600">Bathrooms</div>
                 </div>
-                <div className="text-center p-3 bg-gray-50 rounded-lg">
-                  <div className="text-2xl font-bold text-black">
-                    {property.sqft.toLocaleString()}
+                {property.sqft && property.sqft > 0 && (
+                  <div className="text-center p-3 bg-gray-50 rounded-lg">
+                    <div className="text-2xl font-bold text-black">
+                      {Math.round(property.sqft).toLocaleString()}
+                    </div>
+                    <div className="text-sm text-gray-600">Sq Ft</div>
                   </div>
-                  <div className="text-sm text-gray-600">Sq Ft</div>
-                </div>
+                )}
               </div>
               
               {/* Additional Property Stats */}

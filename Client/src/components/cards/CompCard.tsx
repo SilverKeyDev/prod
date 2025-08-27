@@ -92,9 +92,9 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
           
           {/* Agent Info */}
           {comp.attributionInfo?.agentName && (
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-500">Agent:</span>
-              <span className="text-xs font-medium text-navy">
+            <div className="flex items-center gap-1">
+              <span className="text-2xs text-gray-500 flex-shrink-0">Agent:</span>
+              <span className="text-2xs font-medium text-navy truncate">
                 {formatAgentName(comp.attributionInfo.agentName)}
               </span>
             </div>

@@ -74,7 +74,11 @@ interface OnboardingData {
   deal_breakers?: string[];
 
   // Location & Housing
-  important_locations?: { name: string; address: string; commute_tolerance?: number }[];
+  important_locations?: {
+    name: string;
+    address: string;
+    commute_tolerance?: number;
+  }[];
   walkability_importance?: string;
   // Communication
   communication_frequency?: string;
@@ -112,14 +116,18 @@ const REPORT_SECTIONS = [
 ];
 
 // Helper component for required field labels
-const RequiredLabel: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+const RequiredLabel: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => (
   <label className="block text-sm font-medium text-black mb-2">
     {children}
   </label>
 );
 
 // Helper component for optional field labels
-const OptionalLabel: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+const OptionalLabel: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => (
   <label className="block text-sm font-medium text-black mb-2">
     {children}
   </label>
@@ -611,7 +619,8 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
   }, [openDropdowns]);
 
   // Use centralized Google Maps loading
-  const { isLoaded: googleMapsLoaded, error: googleMapsError } = useGoogleMaps();
+  const { isLoaded: googleMapsLoaded, error: googleMapsError } =
+    useGoogleMaps();
 
   // Update scriptsReady based on centralized Google Maps loading
   useEffect(() => {
@@ -643,7 +652,11 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
   };
 
   // Validation function to check if all required fields are filled
-  const validateFormData = (): { isValid: boolean; missingFields: string[]; errors: string[] } => {
+  const validateFormData = (): {
+    isValid: boolean;
+    missingFields: string[];
+    errors: string[];
+  } => {
     const missingFields: string[] = [];
     const errors: string[] = [];
 
@@ -668,7 +681,10 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
     if (!formData.home_budget || formData.home_budget <= 0) {
       missingFields.push("Home budget");
     }
-    if (!formData.credit_score_range || formData.credit_score_range.trim() === "") {
+    if (
+      !formData.credit_score_range ||
+      formData.credit_score_range.trim() === ""
+    ) {
       missingFields.push("Credit score range");
     }
     if (!formData.down_payment || formData.down_payment < 0) {
@@ -676,7 +692,10 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
     }
 
     // Housing - Required fields
-    if (!formData.preferred_housing_type || formData.preferred_housing_type.trim() === "") {
+    if (
+      !formData.preferred_housing_type ||
+      formData.preferred_housing_type.trim() === ""
+    ) {
       missingFields.push("Preferred housing type");
     }
     if (!formData.preferred_bedrooms || formData.preferred_bedrooms <= 0) {
@@ -685,21 +704,36 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
     if (!formData.preferred_bathrooms || formData.preferred_bathrooms <= 0) {
       missingFields.push("Preferred bathrooms");
     }
-    if (!formData.preferred_lot_size || formData.preferred_lot_size.trim() === "") {
+    if (
+      !formData.preferred_lot_size ||
+      formData.preferred_lot_size.trim() === ""
+    ) {
       missingFields.push("Preferred lot size");
     }
-    if (!formData.preferred_home_age || formData.preferred_home_age.trim() === "") {
+    if (
+      !formData.preferred_home_age ||
+      formData.preferred_home_age.trim() === ""
+    ) {
       missingFields.push("Preferred home age");
     }
-    if (!formData.renovation_preference || formData.renovation_preference.trim() === "") {
+    if (
+      !formData.renovation_preference ||
+      formData.renovation_preference.trim() === ""
+    ) {
       missingFields.push("Renovation preference");
     }
-    if (!formData.intended_property_use || formData.intended_property_use.trim() === "") {
+    if (
+      !formData.intended_property_use ||
+      formData.intended_property_use.trim() === ""
+    ) {
       missingFields.push("Intended property use");
     }
 
     // Location - Required fields
-    if (!formData.important_locations || formData.important_locations.length === 0) {
+    if (
+      !formData.important_locations ||
+      formData.important_locations.length === 0
+    ) {
       missingFields.push("At least one important location");
     } else {
       // Validate each important location has required fields
@@ -711,20 +745,31 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
           missingFields.push(`Important location ${index + 1} address`);
         }
         if (!location.commute_tolerance || location.commute_tolerance <= 0) {
-          missingFields.push(`Important location ${index + 1} commute tolerance`);
+          missingFields.push(
+            `Important location ${index + 1} commute tolerance`
+          );
         }
       });
     }
-    
-    if (!formData.walkability_importance || formData.walkability_importance.trim() === "") {
+
+    if (
+      !formData.walkability_importance ||
+      formData.walkability_importance.trim() === ""
+    ) {
       missingFields.push("Walkability importance");
     }
 
     // Communication - Required fields
-    if (!formData.communication_frequency || formData.communication_frequency.trim() === "") {
+    if (
+      !formData.communication_frequency ||
+      formData.communication_frequency.trim() === ""
+    ) {
       missingFields.push("Communication frequency");
     }
-    if (!formData.information_detail_level || formData.information_detail_level.trim() === "") {
+    if (
+      !formData.information_detail_level ||
+      formData.information_detail_level.trim() === ""
+    ) {
       missingFields.push("Information detail level");
     }
     if (!formData.has_buyers_agent || formData.has_buyers_agent.trim() === "") {
@@ -732,31 +777,38 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
     }
 
     // Report Customization - At least one section must be selected
-    if (!formData.report_section_priorities || formData.report_section_priorities.length === 0) {
+    if (
+      !formData.report_section_priorities ||
+      formData.report_section_priorities.length === 0
+    ) {
       missingFields.push("At least one report section");
     }
 
     // Additional validation rules
-    if (formData.down_payment && formData.home_budget && formData.down_payment > formData.home_budget) {
+    if (
+      formData.down_payment &&
+      formData.home_budget &&
+      formData.down_payment > formData.home_budget
+    ) {
       errors.push("Down payment cannot be higher than home budget.");
     }
 
     return {
       isValid: missingFields.length === 0 && errors.length === 0,
       missingFields,
-      errors
+      errors,
     };
   };
 
   const handleSubmit = async () => {
     // Validate form data before submission
     const validation = validateFormData();
-    
+
     if (!validation.isValid) {
       // Show the custom validation warning component
       setValidationResult({
         missingFields: validation.missingFields,
-        errors: validation.errors
+        errors: validation.errors,
       });
       setShowValidationWarning(true);
       return;
@@ -766,7 +818,6 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
     try {
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
       const idToken = localStorage.getItem("id_token");
-
 
       const requestUrl = `${apiBaseUrl}/api/v1/preferences`;
 
@@ -789,8 +840,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
         try {
           const errorText = await response.text();
           errorDetails = errorText;
-        } catch (e) {
-        }
+        } catch (e) {}
 
         const errorMessage = `HTTP error! status: ${response.status} - ${response.statusText}. Details: ${errorDetails}`;
         console.error("[OnboardingPage] Request failed:", errorMessage);
@@ -842,20 +892,44 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
   // Handler for reviewing information from validation warning
   const handleReviewInformation = () => {
     setShowValidationWarning(false);
-    
+
     // Navigate to the first missing field's section if possible
     const firstMissingField = validationResult.missingFields[0];
     if (firstMissingField) {
       // Try to determine which step contains the missing field and navigate there
-      if (firstMissingField.includes("Age") || firstMissingField.includes("Gender") || firstMissingField.includes("Occupation") || firstMissingField.includes("Pet")) {
+      if (
+        firstMissingField.includes("Age") ||
+        firstMissingField.includes("Gender") ||
+        firstMissingField.includes("Occupation") ||
+        firstMissingField.includes("Pet")
+      ) {
         setCurrentStep(0); // Demographics
-      } else if (firstMissingField.includes("income") || firstMissingField.includes("budget") || firstMissingField.includes("credit") || firstMissingField.includes("payment")) {
+      } else if (
+        firstMissingField.includes("income") ||
+        firstMissingField.includes("budget") ||
+        firstMissingField.includes("credit") ||
+        firstMissingField.includes("payment")
+      ) {
         setCurrentStep(1); // Financial
-      } else if (firstMissingField.includes("housing") || firstMissingField.includes("bedroom") || firstMissingField.includes("bathroom") || firstMissingField.includes("lot") || firstMissingField.includes("home") || firstMissingField.includes("renovation") || firstMissingField.includes("property")) {
+      } else if (
+        firstMissingField.includes("housing") ||
+        firstMissingField.includes("bedroom") ||
+        firstMissingField.includes("bathroom") ||
+        firstMissingField.includes("lot") ||
+        firstMissingField.includes("home") ||
+        firstMissingField.includes("renovation") ||
+        firstMissingField.includes("property")
+      ) {
         setCurrentStep(2); // Housing
-      } else if (firstMissingField.includes("location") || firstMissingField.includes("walkability")) {
+      } else if (
+        firstMissingField.includes("location") ||
+        firstMissingField.includes("walkability")
+      ) {
         setCurrentStep(3); // Location
-      } else if (firstMissingField.includes("communication") || firstMissingField.includes("agent")) {
+      } else if (
+        firstMissingField.includes("communication") ||
+        firstMissingField.includes("agent")
+      ) {
         setCurrentStep(4); // Communication
       } else if (firstMissingField.includes("report")) {
         setCurrentStep(5); // Report Customization
@@ -947,7 +1021,8 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="w-4/5 mx-auto">
                 <label className="block text-xs font-normal text-black mb-1 text-center w-full">
-                  Gross Annual Income (after debts) <span className="text-red-500">*</span>
+                  Gross Annual Income (after debts){" "}
+                  <span className="text-red-500">*</span>
                 </label>
                 <PriceRangeSlider
                   tickValues={[
@@ -1255,7 +1330,9 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
               Housing Preferences
             </h2>
             <p className="text-sm text-black/60 mb-6">
-              Tell us about your ideal home. These preferences help our AI understand what features and characteristics matter most to you when matching properties to your lifestyle and needs.
+              Tell us about your ideal home. These preferences help our AI
+              understand what features and characteristics matter most to you
+              when matching properties to your lifestyle and needs.
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1503,7 +1580,11 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   Important Locations
                 </label>
                 <p className="text-xs text-black/60 mb-4">
-                  Add locations important to you (workplace, gym, family, etc.). We use these to create travel time maps and find properties within your commute tolerance. Each location helps our AI match you with homes that fit your lifestyle and daily routines.
+                  Add locations important to you (workplace, gym, family, etc.).
+                  We use these to create travel time maps and find properties
+                  within your commute tolerance. Each location helps our AI
+                  match you with homes that fit your lifestyle and daily
+                  routines.
                 </p>
                 <ImportantLocationsInput
                   locations={formData.important_locations || []}
@@ -1638,7 +1719,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
           return (
             <div className="space-y-6">
               <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
-                Report Customization
+                Priorities
               </h2>
               <p className="text-gray-600">
                 Loading report customization options...
@@ -1653,7 +1734,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
           return (
             <div className="space-y-6">
               <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
-                Report Customization
+                Priorities
               </h2>
               <p className="text-gray-600">
                 Loading report customization options...
@@ -1665,7 +1746,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
         return (
           <div className="space-y-6">
             <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
-              Report Customization
+              Priorities
             </h2>
             <p className="text-gray-600 mb-4">
               Choose which sections to include in your property reports. All
@@ -1833,34 +1914,39 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
 
       {/* Progress Bar */}
       <div className="mobile-card mb-6">
-        <div className="flex items-center justify-between overflow-x-auto scrollbar-hide">
+        <div className="flex items-center justify-between overflow-x-auto scrollbar-hide px-1 sm:px-2">
           {STEPS.map((step, index) => {
             const Icon = step.icon;
             const isActive = index === currentStep;
             const isCompleted = index < currentStep;
 
             return (
-              <div key={step.id} className="flex items-center min-w-0">
-                <button
-                  onClick={() => goToStep(index)}
-                  className={`flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full flex-shrink-0 transition-colors hover:scale-105 transform transition-transform ${
-                    isCompleted
-                      ? "bg-olive text-white hover:bg-olive/80"
-                      : isActive
-                      ? "bg-brown text-white hover:bg-brown/80"
-                      : "bg-beige text-black/60 hover:bg-beige/80"
-                  }`}
-                  title={step.title}
-                >
-                  {isCompleted ? (
-                    <Check className="w-4 h-4 sm:w-5 sm:h-5" />
-                  ) : (
-                    <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
-                  )}
-                </button>
+              <div key={step.id} className="flex items-center min-w-0 flex-1">
+                <div className="flex flex-col items-center flex-shrink-0">
+                  <button
+                    onClick={() => goToStep(index)}
+                    className={`flex items-center justify-center w-6 h-6 xs:w-7 xs:h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 rounded-full transition-colors hover:scale-105 transform transition-transform ${
+                      isCompleted
+                        ? "bg-olive text-white hover:bg-olive/80"
+                        : isActive
+                        ? "bg-brown text-white hover:bg-brown/80"
+                        : "bg-beige text-black/60 hover:bg-beige/80"
+                    }`}
+                    title={step.title}
+                  >
+                    {isCompleted ? (
+                      <Check className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" />
+                    ) : (
+                      <Icon className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" />
+                    )}
+                  </button>
+                  <span className="text-[8px] xs:text-[9px] sm:text-[10px] md:text-xs text-center text-black/60 mt-1 max-w-[60px] xs:max-w-[70px] sm:max-w-[80px] md:max-w-none leading-tight">
+                    {step.title}
+                  </span>
+                </div>
                 {index < STEPS.length - 1 && (
                   <div
-                    className={`ml-4 w-16 sm:w-32 h-1 flex-shrink-0 ${
+                    className={`mx-1 xs:mx-2 sm:mx-3 md:mx-4 flex-1 h-0.5 sm:h-1 min-w-[8px] xs:min-w-[12px] sm:min-w-[16px] md:min-w-[24px] ${
                       isCompleted ? "bg-olive" : "bg-beige"
                     }`}
                   />
@@ -1880,32 +1966,41 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
           <button
             onClick={prevStep}
             disabled={currentStep === 0}
-            className={`flex items-center justify-center px-6 py-3 rounded-lg font-medium transition-all duration-200 touch-friendly ${
+            className={`flex items-center justify-center px-3 xs:px-4 sm:px-6 py-2 xs:py-2.5 sm:py-3 rounded-lg font-medium transition-all duration-200 touch-friendly ${
               currentStep === 0
                 ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                 : "bg-white border border-brown text-black hover:bg-brown hover:text-white"
             }`}
           >
-            <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-            Previous
+            <ChevronLeft className="w-3 h-3 xs:w-4 xs:h-4 sm:w-5 sm:h-5 mr-1 xs:mr-2" />
+            <span className="hidden xs:inline text-xs xs:text-sm sm:text-base">
+              Previous
+            </span>
           </button>
 
           {currentStep === STEPS.length - 1 ? (
             <button
               onClick={handleSubmit}
               disabled={loading}
-              className="flex items-center justify-center px-6 py-3 bg-olive text-white rounded-lg hover:bg-olive/80 disabled:opacity-50 font-medium transition-all duration-200 touch-friendly"
+              className="flex items-center justify-center px-3 xs:px-4 sm:px-6 py-2 xs:py-2.5 sm:py-3 bg-olive text-white rounded-lg hover:bg-olive/80 disabled:opacity-50 font-medium transition-all duration-200 touch-friendly"
             >
-              {loading ? "Saving..." : "Complete Setup"}
-              {!loading && <Check className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />}
+              <span className="hidden xs:inline text-xs xs:text-sm sm:text-base">
+                {loading ? "Saving..." : "Complete Setup"}
+              </span>
+              <span className="xs:hidden text-xs">Done</span>
+              {!loading && (
+                <Check className="w-3 h-3 xs:w-4 xs:h-4 sm:w-5 sm:h-5 ml-1 xs:ml-2" />
+              )}
             </button>
           ) : (
             <button
               onClick={nextStep}
-              className="flex items-center justify-center px-6 py-3 bg-brown text-white rounded-lg hover:bg-brown/80 font-medium transition-all duration-200 touch-friendly"
+              className="flex items-center justify-center px-3 xs:px-4 sm:px-6 py-2 xs:py-2.5 sm:py-3 bg-brown text-white rounded-lg hover:bg-brown/80 font-medium transition-all duration-200 touch-friendly"
             >
-              Next
-              <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
+              <span className="hidden xs:inline text-xs xs:text-sm sm:text-base">
+                Next
+              </span>
+              <ChevronRight className="w-3 h-3 xs:w-4 xs:h-4 sm:w-5 sm:h-5 ml-1 xs:ml-2" />
             </button>
           )}
         </div>

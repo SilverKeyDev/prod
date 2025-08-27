@@ -73,7 +73,7 @@ const PriceRangeSlider: React.FC<PriceRangeSliderProps> = ({
               style={{ left: `${leftPercent}%` }}
             >
               <div className="h-2 w-0.5 bg-gray-300 mx-auto"></div>
-              <div className="text-[8px] sm:text-[10px] text-gray-500 mt-1 whitespace-nowrap">
+              <div className="text-[6px] xs:text-[7px] sm:text-[8px] md:text-[9px] lg:text-[10px] text-gray-500 mt-1 whitespace-nowrap">
                 {index === tickValues.length - 1 ? `${formattedValue(val)}+` : formattedValue(val)}
               </div>
             </div>

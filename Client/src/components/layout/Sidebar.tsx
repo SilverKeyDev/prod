@@ -352,7 +352,7 @@ export default function Sidebar({
           </div>
 
           {/* Navigation - Scrollable middle section */}
-          <div className="flex-1 overflow-y-auto min-h-0">
+          <div className="flex-1 overflow-y-auto min-h-0 scrollbar-hide">
             <nav className="mt-4 pb-4">
               {Object.entries(getNavigation(userProfile?.is_agent)).map(
                 ([categoryKey, category]: [string, NavCategory]) => (
@@ -384,16 +384,16 @@ export default function Sidebar({
                         {/* Category Header */}
                         <button
                           onClick={() => toggleCategory(categoryKey)}
-                          className={`w-full flex items-center justify-between px-4 py-3 transition-all duration-200 font-medium text-white touch-friendly relative group ${
+                          className={`w-full flex items-center transition-all duration-200 font-medium text-white touch-friendly relative group ${
                             isCategoryActive(category.items)
                               ? "bg-brown-light/70 text-white font-semibold hover:bg-brown-light/80"
                               : "text-white/70 hover:bg-brown-light/30 hover:text-beige hover:-translate-y-0.5 active:bg-brown-light/20 active:text-beige"
                           } ${
-                            !expanded ? "justify-center" : ""
+                            !expanded ? "justify-center px-4 py-3" : "justify-between px-4 py-3"
                           }`}
                           title={!expanded ? category.name : ""}
                         >
-                          <div className="flex items-center">
+                          <div className={`flex items-center ${!expanded ? "" : ""}`}>
                             <div className={`${
                               !expanded && openCategories[categoryKey] 
                                 ? "w-8 h-8 bg-gold/20 rounded-full flex items-center justify-center" 
@@ -429,10 +429,12 @@ export default function Sidebar({
                               <Link
                                 key={item.name}
                                 to={item.href}
-                                className={`flex items-center px-4 py-2 transition-all duration-200 font-medium text-white touch-friendly ${
+                                className={`flex items-center transition-all duration-200 font-medium text-white touch-friendly ${
                                   isActive(item.href)
                                     ? "bg-brown-light text-white font-semibold hover:bg-brown-light/80"
                                     : "text-white/50 hover:bg-brown-light/50 hover:text-beige hover:-translate-y-0.5 active:bg-brown-light/30 active:text-beige"
+                                } ${
+                                  !expanded ? "justify-center px-4 py-2" : "px-4 py-2"
                                 }`}
                               >
                                 <item.icon
@@ -465,9 +467,11 @@ export default function Sidebar({
           <div className="flex-shrink-0 border-t border-brown-light p-4">
             <button
               onClick={handleLogoutClick}
-              className="flex items-center px-4 py-3 text-white hover:bg-brown-light/50 hover:text-beige hover:-translate-y-0.5 active:text-beige rounded-lg w-full touch-friendly transition-all duration-200"
+              className={`flex items-center text-white hover:bg-brown-light/50 hover:text-beige hover:-translate-y-0.5 active:text-beige rounded-lg w-full touch-friendly transition-all duration-200 ${
+                !expanded ? "justify-center px-4 py-3" : "px-4 py-3"
+              }`}
             >
-              <LogOut className="w-6 h-6 mr-3" />
+              <LogOut className={`w-6 h-6 ${expanded ? "mr-3" : ""}`} />
               <span className={expanded ? "block" : "hidden"}>Logout</span>
             </button>
 

@@ -5,6 +5,8 @@ import {
   Bot,
   MessageCircle,
   User as UserIcon,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { useChats } from "../../context";
 import { Chat } from "../../context/utils";
@@ -26,6 +28,7 @@ export default function AIAssistant() {
   const [message, setMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Load AI assistant state from localStorage on mount
@@ -310,9 +313,29 @@ export default function AIAssistant() {
 
   return (
     <div className="max-w-7xl mx-auto h-[calc(100vh-8rem)]">
-      <div className="flex h-full shadow-lg rounded-xl overflow-hidden">
+      <div className="flex h-full shadow-lg rounded-xl overflow-hidden relative">
+        {/* Mobile Toggle Button */}
+        <button
+          onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
+          className="md:hidden fixed top-1/2 left-2 z-50 bg-white border border-beige rounded-full p-2 shadow-lg transform -translate-y-1/2 transition-all duration-300"
+          style={{
+            left: isSidebarExpanded ? '18rem' : '0.5rem',
+          }}
+        >
+          {isSidebarExpanded ? (
+            <ChevronLeft className="h-4 w-4 text-black" />
+          ) : (
+            <ChevronRight className="h-4 w-4 text-black" />
+          )}
+        </button>
+
         {/* Chat Sidebar */}
-        <div className="w-80 border-r border-beige bg-white rounded-l-xl flex flex-col">
+        <div className={`
+          w-80 border-r border-beige bg-white rounded-l-xl flex flex-col transition-all duration-300 ease-in-out
+          md:relative md:translate-x-0
+          ${isSidebarExpanded ? 'translate-x-0' : '-translate-x-full'}
+          absolute md:static z-40 h-full
+        `}>
           {/* Fixed Header */}
           <div className="p-4 border-b border-beige bg-white flex-shrink-0">
             <div className="flex items-center justify-between mb-4">
@@ -376,8 +399,16 @@ export default function AIAssistant() {
           </div>
         </div>
 
+        {/* Overlay for mobile when sidebar is open */}
+        {isSidebarExpanded && (
+          <div 
+            className="md:hidden fixed inset-0 bg-black/50 z-30"
+            onClick={() => setIsSidebarExpanded(false)}
+          />
+        )}
+
         {/* Chat Area */}
-        <div className="flex-1 flex flex-col bg-off-white rounded-r-xl">
+        <div className="flex-1 flex flex-col bg-off-white rounded-r-xl relative z-10">
           {activeChat ? (
             <>
               {/* Chat Header */}

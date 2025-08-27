@@ -106,9 +106,9 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({
     {
       key: 'sqft',
       value: sqft,
-      label: `${sqft?.toLocaleString() || 0} sqft`,
+      label: `${Math.round(sqft || 0).toLocaleString()} sqft`,
       icon: <Square className={`${currentSizeStyles.icon} text-brown`} />,
-      show: sqft !== undefined
+      show: sqft !== undefined && sqft > 0
     },
     {
       key: 'propertyType',

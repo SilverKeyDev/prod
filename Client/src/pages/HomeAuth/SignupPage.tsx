@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Mail, Lock, User as UserIcon, Phone, ArrowLeft } from "lucide-react";
 import { authApi } from "../../lib/api";
 import PhoneInput from "react-phone-number-input";
@@ -9,6 +9,10 @@ import {
   usePasswordValidation,
 } from "../../components/feedback/PasswordValidation";
 import MiniLogo from "../../components/ui/MiniLogo";
+import AuthInput from "../../components/ui/AuthInput";
+import AuthButton from "../../components/ui/AuthButton";
+import AuthLink from "../../components/ui/AuthLink";
+import AuthFooter from "../../components/ui/AuthFooter";
 
 interface SignupPageProps {}
 
@@ -81,75 +85,56 @@ export default function SignupPage({}: SignupPageProps) {
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-6 sm:mb-8">
-          <h2 className="text-2xl sm:text-3xl font-serif text-black mb-2 flex items-center justify-center gap-2">
+          <h2 className="text-xl sm:text-2xl font-serif text-black mb-2 flex items-center justify-center gap-2">
             <MiniLogo size="md" />
             Create your account
           </h2>
         </div>
 
         {/* Signup Form */}
-        <form onSubmit={handleSubmit} className="card space-y-4 sm:space-y-5">
+        <form onSubmit={handleSubmit} className="card space-y-6">
           {/* Home Button */}
-          <Link
-            to="/"
-            className="inline-flex items-center text-black/60 hover:text-black transition-colors"
-          >
+          <AuthLink to="/" variant="back">
             <ArrowLeft className="h-5 w-5 mr-2" />
-            <span className="text-sm font-medium">Back to Home</span>
-          </Link>
-          {/* Name */}
-          <div>
-            <label className="block text-sm font-medium text-black mb-2">
-              Full name
-            </label>
-            <div className="relative">
-              <UserIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 lg:h-7 lg:w-7 text-black/40" />
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                className="input-field pl-10 h-12 sm:h-10 md:h-12 lg:h-14 text-base sm:text-sm md:text-base lg:text-lg placeholder:text-base placeholder:sm:text-sm placeholder:md:text-base placeholder:lg:text-lg"
-                placeholder="Enter your full name"
-                autoComplete="name"
-                required
-              />
-            </div>
-          </div>
+            <span className="text-xs font-medium">Back to Home</span>
+          </AuthLink>
 
-          {/* Email */}
-          <div>
-            <label className="block text-sm font-medium text-black mb-2">
-              Email address
-            </label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 lg:h-7 lg:w-7 text-black/40" />
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                className="input-field pl-10 h-12 sm:h-10 md:h-12 lg:h-14 text-base sm:text-sm md:text-base lg:text-lg"
-                placeholder="Enter your email"
-                autoComplete="email"
-                required
-              />
-            </div>
-          </div>
+          <AuthInput
+            label="Full name"
+            type="text"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            placeholder="Enter your full name"
+            icon={UserIcon}
+            autoComplete="name"
+            required
+          />
 
-          {/* Password */}
-          <div>
-            <label className="block text-sm font-medium text-black mb-2">
+          <AuthInput
+            label="Email address"
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            placeholder="Enter your email"
+            icon={Mail}
+            autoComplete="email"
+            required
+          />
+
+          <div className="mb-6">
+            <label className="block text-xs font-medium text-black mb-2">
               Password
             </label>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 lg:h-7 lg:w-7 text-black/40" />
+              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-black/40" />
               <input
                 type="password"
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                className="input-field pl-10 h-12 sm:h-10 md:h-12 lg:h-14 text-base sm:text-sm md:text-base lg:text-lg"
+                className="input-field pl-10 h-12 text-sm border-gray-300 focus:border-brown focus:ring-brown/20"
                 placeholder="Enter password"
                 autoComplete="new-password"
                 required
@@ -162,12 +147,12 @@ export default function SignupPage({}: SignupPageProps) {
           </div>
 
           {/* Phone */}
-          <div>
-            <label className="block text-sm font-medium text-black mb-2">
+          <div className="mb-6">
+            <label className="block text-xs font-medium text-black mb-2">
               Phone number
             </label>
             <div className="relative">
-              <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 lg:h-7 lg:w-7 text-black/40 z-10" />
+              <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-black/40 z-10" />
               <PhoneInput
                 international
                 defaultCountry="US"
@@ -182,38 +167,17 @@ export default function SignupPage({}: SignupPageProps) {
                   padding: 0.75rem 0.75rem 0.75rem 2.5rem;
                   border: 1px solid #d1d5db;
                   border-radius: 0.5rem;
-                  font-size: 1rem;
+                  font-size: 0.875rem;
                   line-height: 1.25rem;
                   background-color: white;
                   transition: border-color 0.15s ease-in-out,
                     box-shadow 0.15s ease-in-out;
                   height: 3rem;
                 }
-                @media (min-width: 640px) {
-                  .phone-input {
-                    padding: 0.5rem 0.75rem 0.5rem 2.5rem;
-                    font-size: 0.875rem;
-                    height: 2.5rem;
-                  }
-                }
-                @media (min-width: 768px) {
-                  .phone-input {
-                    padding: 0.75rem 0.75rem 0.75rem 2.5rem;
-                    font-size: 1rem;
-                    height: 3rem;
-                  }
-                }
-                @media (min-width: 1024px) {
-                  .phone-input {
-                    padding: 1rem 0.75rem 1rem 2.5rem;
-                    font-size: 1.125rem;
-                    height: 3.5rem;
-                  }
-                }
                 .phone-input:focus {
                   outline: none;
-                  border-color: #4a3228;
-                  box-shadow: 0 0 0 2px rgba(74, 50, 40, 0.2);
+                  border-color: #92400e;
+                  box-shadow: 0 0 0 2px rgba(146, 64, 14, 0.2);
                 }
                 .PhoneInputCountry {
                   margin-right: 0.5rem;
@@ -229,59 +193,28 @@ export default function SignupPage({}: SignupPageProps) {
           </div>
 
           {/* Submit */}
-          <button
+          <AuthButton
             type="submit"
+            loading={loading}
             disabled={loading}
-            className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed h-12 sm:h-10 text-base sm:text-sm font-semibold"
           >
-            {loading ? (
-              <div className="shimmer w-20 h-5 rounded mx-auto"></div>
-            ) : (
-              "Create account"
-            )}
-          </button>
+            Create account
+          </AuthButton>
 
-          <div className="text-center text-sm sm:text-base">
+          <div className="text-center text-xs sm:text-sm">
             <span className="text-gray-600 sm:text-black/60">
               Already have an account?{" "}
             </span>
-            <Link
+            <AuthLink
               to="/login"
               className="text-brown hover:text-brown/80 hover:underline underline-offset-4 transition-colors"
             >
               Sign in
-            </Link>
+            </AuthLink>
           </div>
         </form>
 
-        {/* Footer Links */}
-        <div className="mt-4 pt-6 border-t border-gray-100">
-          <div className="flex flex-col items-center justify-center gap-4 text-sm text-center">
-            <div className="flex flex-wrap items-center justify-center gap-6 text-black/60">
-              <Link
-                to="/privacy"
-                className="hover:text-black transition-colors hover:underline underline-offset-4 decoration-brown/40"
-              >
-                Privacy Policy
-              </Link>
-              <Link
-                to="/terms"
-                className="hover:text-black transition-colors hover:underline underline-offset-4 decoration-brown/40"
-              >
-                Terms of Service
-              </Link>
-              <Link
-                to="/contact"
-                className="hover:text-black transition-colors hover:underline underline-offset-4 decoration-brown/40"
-              >
-                Contact Us
-              </Link>
-            </div>
-            <p className="text-xs text-black/40">
-              © {new Date().getFullYear()} SilverKey. All rights reserved.
-            </p>
-          </div>
-        </div>
+        <AuthFooter />
       </div>
     </div>
   );

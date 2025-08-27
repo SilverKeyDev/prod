@@ -1,7 +1,7 @@
 /* Mobile-specific styles and overrides */
 
 @layer utilities {
-  /* Mobile input zoom prevention */
+  /* Mobile input zoom prevention - prioritize zoom prevention over responsive sizing */
   input[type="text"],
   input[type="email"],
   input[type="password"],
@@ -14,12 +14,17 @@
     font-size: 16px !important;
   }
 
-  /* Specific smaller inputs */
+  /* Specific smaller inputs that can safely use smaller fonts without zoom */
   @media screen and (max-width: 768px) {
-    #address-input,
-    .mobile-input,
+    #address-input.safe-small,
+    .mobile-input.safe-small,
     .pac-container,
     .pac-item {
+      font-size: 14px !important;
+    }
+    
+    /* Only use 12px for very specific cases where zoom is handled */
+    .mobile-input.compact {
       font-size: 12px !important;
     }
   }
@@ -41,11 +46,9 @@
     @apply block lg:hidden;
   }
 
-  /* Touch-friendly sizing */
+  /* Touch-friendly sizing - consolidated definition */
   .touch-friendly {
-    min-height: 44px;
-    min-width: 44px;
-    touch-action: manipulation;
+    @apply min-h-touch min-w-touch touch-manipulation select-none p-2 rounded-lg hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150;
   }
 
   .touch-target {
@@ -54,7 +57,13 @@
 
   /* Mobile navigation patterns */
   .mobile-nav {
-    @apply fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 safe-bottom;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: white;
+    border-top: 1px solid #e5e7eb;
+    padding-bottom: env(safe-area-inset-bottom);
   }
 
   .mobile-nav-item {
@@ -103,10 +112,7 @@
     @apply w-full py-3 px-4 bg-brown text-white rounded-lg font-medium text-base touch-friendly;
   }
 
-  /* Mobile card patterns */
-  .mobile-card {
-    @apply bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4;
-  }
+  /* Mobile card patterns - using components.css definition */
 
   .mobile-card-header {
     @apply flex items-center justify-between mb-3;
@@ -154,9 +160,7 @@
     @apply space-y-4 sm:space-y-6 lg:space-y-8;
   }
 
-  .mobile-gap {
-    @apply gap-4 sm:gap-6 lg:gap-8;
-  }
+  /* mobile-gap moved to utilities.css to avoid duplication */
 
   /* Mobile text utilities */
   .mobile-text-xs {
@@ -234,18 +238,23 @@
     @apply w-10 h-10 sm:w-12 sm:h-12 rounded-full;
   }
 
-  /* Mobile button patterns */
-  .mobile-button-primary {
+  /* Mobile button patterns - standardized with btn-* naming */
+  .btn-mobile-primary {
     @apply mobile-form-button bg-brown hover:bg-brown/90 active:bg-brown/80;
   }
 
-  .mobile-button-secondary {
+  .btn-mobile-secondary {
     @apply mobile-form-button bg-gray-100 text-gray-900 hover:bg-gray-200 active:bg-gray-300;
   }
 
-  .mobile-button-outline {
+  .btn-mobile-outline {
     @apply mobile-form-button bg-transparent border-2 border-brown text-brown hover:bg-brown hover:text-white;
   }
+  
+  /* Legacy aliases - deprecated, use btn-mobile-* instead */
+  .mobile-button-primary { @apply btn-mobile-primary; }
+  .mobile-button-secondary { @apply btn-mobile-secondary; }
+  .mobile-button-outline { @apply btn-mobile-outline; }
 
   /* Mobile icon utilities */
   .mobile-icon-xs {
@@ -294,6 +303,12 @@
     }
     
     .mobile-safe-area {
+      /* Fallbacks for older browsers */
+      padding-top: 0;
+      padding-bottom: 0;
+      padding-left: 0;
+      padding-right: 0;
+      /* Modern safe area insets */
       padding-top: env(safe-area-inset-top);
       padding-bottom: env(safe-area-inset-bottom);
       padding-left: env(safe-area-inset-left);
@@ -323,38 +338,39 @@
     }
   }
 
-  /* Mobile text scaling - targeted approach */
+  /* Mobile text scaling - non-conflicting approach */
   @media (max-width: 640px) {
-    /* Scale down headings */
-    h1 { font-size: 1.5rem !important; line-height: 2rem !important; }
-    h2 { font-size: 1.25rem !important; line-height: 1.75rem !important; }
-    h3 { font-size: 1.125rem !important; line-height: 1.75rem !important; }
-    h4 { font-size: 1rem !important; line-height: 1.5rem !important; }
-    h5 { font-size: 0.875rem !important; line-height: 1.25rem !important; }
-    h6 { font-size: 0.75rem !important; line-height: 1rem !important; }
+    /* Only override elements that don't have responsive classes */
+    h1:not([class*="text-"]) { font-size: 1.5rem; line-height: 2rem; }
+    h2:not([class*="text-"]) { font-size: 1.25rem; line-height: 1.75rem; }
+    h3:not([class*="text-"]) { font-size: 1.125rem; line-height: 1.75rem; }
+    h4:not([class*="text-"]) { font-size: 1rem; line-height: 1.5rem; }
+    h5:not([class*="text-"]) { font-size: 0.875rem; line-height: 1.25rem; }
+    h6:not([class*="text-"]) { font-size: 0.75rem; line-height: 1rem; }
     
-    /* Scale down Tailwind text classes */
-    .text-4xl { font-size: 1.875rem !important; line-height: 2.25rem !important; }
-    .text-3xl { font-size: 1.5rem !important; line-height: 2rem !important; }
-    .text-2xl { font-size: 1.25rem !important; line-height: 1.75rem !important; }
-    .text-xl { font-size: 1.125rem !important; line-height: 1.75rem !important; }
-    .text-lg { font-size: 1rem !important; line-height: 1.5rem !important; }
-    .text-base { font-size: 0.875rem !important; line-height: 1.25rem !important; }
-    .text-sm { font-size: 0.75rem !important; line-height: 1rem !important; }
-    .text-xs { font-size: 0.625rem !important; line-height: 0.875rem !important; }
+    /* Only scale buttons without responsive classes */
+    button:not([class*="text-"]):not(input):not(.mobile-input):not(.input-field) { 
+      font-size: 0.75rem; 
+    }
     
-    /* Scale down buttons and labels - but NOT inputs (handled above) */
-    button:not(.mobile-input) { font-size: 0.75rem !important; }
-    select:not(.mobile-input) { font-size: 0.75rem !important; }
-    textarea:not(.mobile-input) { font-size: 0.75rem !important; }
-    label { font-size: 0.75rem !important; }
+    /* Only scale labels without responsive classes */
+    label:not([class*="text-"]):not(.input-label) { 
+      font-size: 0.75rem; 
+    }
     
-    /* Scale down common text elements */
-    p { font-size: 0.875rem !important; line-height: 1.25rem !important; }
+    /* Exception: buttons that are actually input elements should maintain 16px */
+    input[type="button"],
+    input[type="submit"],
+    input[type="reset"] {
+      font-size: 16px !important;
+    }
     
-    /* Scale down table text */
-    table { font-size: 0.75rem !important; }
-    th { font-size: 0.75rem !important; }
-    td { font-size: 0.75rem !important; }
+    /* Only scale paragraphs without responsive classes */
+    p:not([class*="text-"]) { font-size: 0.875rem; line-height: 1.25rem; }
+    
+    /* Only scale table text without responsive classes */
+    table:not([class*="text-"]) { font-size: 0.75rem; }
+    th:not([class*="text-"]) { font-size: 0.75rem; }
+    td:not([class*="text-"]) { font-size: 0.75rem; }
   }
 }
