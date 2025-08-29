@@ -1,6 +1,6 @@
 import { useState, ReactNode, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import KeyTurnLoader from "./KeyTurnLoader";
+import KeyTurnLoader from "../base/KeyTurnLoader";
 
 interface CarouselProps<T> {
   /**
@@ -106,13 +106,13 @@ export default function Carousel<T>({
       {/* Header with title and navigation */}
       <div className="flex items-center justify-between mb-3 sm:mb-4">
         {typeof title === 'string' ? (
-          <h2 className="text-lg sm:text-xl md:text-2xl font-semibold">{title}</h2>
+          <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-brand-primary">{title}</h2>
         ) : (
           <div>{title}</div>
         )}
         {items.length > effectiveItemsPerPage && (
           <div className="flex items-center gap-1 sm:gap-2">
-            <span className="text-xs sm:text-sm text-gray-500 hidden sm:block">
+            <span className="text-xs sm:text-sm text-neutral-500 hidden sm:block">
               {isMobile ? `${currentIndex + 1} of ${items.length}` : `${currentIndex + 1}-${Math.min(currentIndex + effectiveItemsPerPage, items.length)} of ${items.length}`}
             </span>
             <div className="flex gap-1">
@@ -121,8 +121,8 @@ export default function Carousel<T>({
                 disabled={!canGoToPrevious}
                 className={`p-1.5 sm:p-2 rounded-full border transition touch-manipulation ${
                   canGoToPrevious
-                    ? 'border-brown text-brown hover:bg-brown hover:text-white active:scale-95'
-                    : 'border-gray-300 text-gray-300 cursor-not-allowed'
+                    ? 'border-brand-accent text-brand-accent hover:bg-brand-accent hover:text-white active:scale-95'
+                    : 'border-neutral-300 text-neutral-300 cursor-not-allowed'
                 }`}
               >
                 <ChevronLeft size={16} className="sm:w-5 sm:h-5" />
@@ -132,8 +132,8 @@ export default function Carousel<T>({
                 disabled={!canGoToNext}
                 className={`p-1.5 sm:p-2 rounded-full border transition touch-manipulation ${
                   canGoToNext
-                    ? 'border-brown text-brown hover:bg-brown hover:text-white active:scale-95'
-                    : 'border-gray-300 text-gray-300 cursor-not-allowed'
+                    ? 'border-brand-accent text-brand-accent hover:bg-brand-accent hover:text-white active:scale-95'
+                    : 'border-neutral-300 text-neutral-300 cursor-not-allowed'
                 }`}
               >
                 <ChevronRight size={16} className="sm:w-5 sm:h-5" />
@@ -149,9 +149,9 @@ export default function Carousel<T>({
           <KeyTurnLoader message="Loading..." />
         </div>
       ) : error ? (
-        <p className="text-sm sm:text-base text-gray-500 text-center py-4">{emptyMessage}</p>
+        <p className="text-sm sm:text-base text-neutral-500 text-center py-4">{emptyMessage}</p>
       ) : items.length === 0 ? (
-        <p className="text-sm sm:text-base text-gray-500 text-center py-4">{emptyMessage}</p>
+        <p className="text-sm sm:text-base text-neutral-500 text-center py-4">{emptyMessage}</p>
       ) : (
         <div className="relative">
           {/* Desktop: horizontal scroll layout */}
@@ -175,10 +175,10 @@ export default function Carousel<T>({
                 <button
                   onClick={goToPrevious}
                   disabled={!canGoToPrevious}
-                  className={`absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white shadow-lg border transition touch-manipulation z-10 ${
+                  className={`absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-neutral-50 shadow-lg border transition touch-manipulation z-10 ${
                     canGoToPrevious
-                      ? 'border-brown text-brown hover:bg-brown hover:text-white active:scale-95'
-                      : 'border-gray-300 text-gray-300 cursor-not-allowed'
+                      ? 'border-brand-accent text-brand-accent hover:bg-brand-accent hover:text-white active:scale-95'
+                      : 'border-neutral-300 text-neutral-300 cursor-not-allowed'
                   }`}
                 >
                   <ChevronLeft size={20} />
@@ -186,10 +186,10 @@ export default function Carousel<T>({
                 <button
                   onClick={goToNext}
                   disabled={!canGoToNext}
-                  className={`absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white shadow-lg border transition touch-manipulation z-10 ${
+                  className={`absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-neutral-50 shadow-lg border transition touch-manipulation z-10 ${
                     canGoToNext
-                      ? 'border-brown text-brown hover:bg-brown hover:text-white active:scale-95'
-                      : 'border-gray-300 text-gray-300 cursor-not-allowed'
+                      ? 'border-brand-accent text-brand-accent hover:bg-brand-accent hover:text-white active:scale-95'
+                      : 'border-neutral-300 text-neutral-300 cursor-not-allowed'
                   }`}
                 >
                   <ChevronRight size={20} />
@@ -206,8 +206,8 @@ export default function Carousel<T>({
                     onClick={() => goToIndex(index)}
                     className={`w-2 h-2 rounded-full transition touch-manipulation ${
                       index === currentIndex
-                        ? 'bg-brown'
-                        : 'bg-gray-300 hover:bg-gray-400'
+                        ? 'bg-brand-accent'
+                        : 'bg-neutral-300 hover:bg-neutral-400'
                     }`}
                   />
                 ))}

@@ -1,7 +1,7 @@
 import { formatFilenameToAddress, truncateText } from "../../lib/addressFormat";
 import PropertyDetailsModal from "../modals/PropertyDetailsModal";
 import { PropertyCard, Button } from "../ui";
-import HeartSave from "../ui/HeartSave";
+import HeartSave from "../ui/cards/HeartSave";
 import {
   usePropertyDetails,
   type Property,

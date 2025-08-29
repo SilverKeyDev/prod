@@ -20,8 +20,8 @@ import {
 import ErrorToast from "../../components/feedback/ErrorToast";
 import SuccessToast from "../../components/feedback/SuccessToast";
 import { useBilling } from "../../context";
-import Loading from "../../components/ui/Loading";
-import PageHeader from "../../components/ui/PageHeader";
+import Loading from "../../components/ui/base/Loading";
+import PageHeader from "../../components/ui/base/PageHeader";
 
 interface Plan {
   id: string;

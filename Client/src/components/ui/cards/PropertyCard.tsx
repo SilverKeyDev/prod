@@ -1,7 +1,7 @@
 import React from 'react';
 import { MapPin } from "lucide-react";
 import PropertyDetailsCompact from "./PropertyDetailsCompact";
-import BaseCard from './BaseCard';
+import BaseCard from '../base/BaseCard';
 
 export interface PropertyCardProps {
   /** Property image URL */
@@ -77,12 +77,14 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
     >
       {/* Image Section */}
       <div className="relative h-32 sm:h-40 md:h-48 overflow-hidden">
-        <img
-          src={imageUrl || placeholder}
-          alt={address}
-          className="w-full h-full object-cover"
-          loading="lazy"
-        />
+        <div className="image-overlay w-full h-full">
+          <img
+            src={imageUrl || placeholder}
+            alt={address}
+            className="property-image w-full h-full object-cover"
+            loading="lazy"
+          />
+        </div>
 
         {/* Status Badge */}
         {status && (
@@ -94,8 +96,8 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
         )}
 
         {/* Price Badge */}
-        <div className={`absolute top-2 sm:top-3 ${pricePosition === 'top-left' ? 'left-2 sm:left-3' : 'right-2 sm:right-3'} bg-white/90 backdrop-blur-sm space-responsive-xs rounded-full`}>
-          <span className="text-responsive-xs font-semibold text-navy">
+        <div className={`absolute top-2 sm:top-3 ${pricePosition === 'top-left' ? 'left-2 sm:left-3' : 'right-2 sm:right-3'} bg-neutral-50/95 backdrop-blur-sm space-responsive-xs rounded-full border border-neutral-200/50`}>
+          <span className="text-responsive-xs font-semibold text-brand-primary">
             {formatPrice(price)}
           </span>
         </div>
@@ -112,9 +114,9 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
       <div className="space-responsive-sm">
         {/* Address */}
         <div className="flex items-start gap-responsive-sm mb-2 sm:mb-3">
-          <MapPin className="mobile-icon-sm text-brown mt-0.5 flex-shrink-0" />
+          <MapPin className="mobile-icon-sm text-brand-accent mt-0.5 flex-shrink-0" />
           <div>
-            <p className="text-responsive-sm font-medium text-navy leading-tight line-clamp-2">
+            <p className="text-responsive-sm font-medium text-brand-primary leading-tight line-clamp-2">
               {address}
             </p>
           </div>
@@ -136,8 +138,8 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
             {/* Property Type */}
             {propertyType && (
               <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-500 flex-shrink-0">Type:</span>
-                <span className="text-xs font-medium text-navy truncate">
+                <span className="text-xs text-neutral-500 flex-shrink-0">Type:</span>
+                <span className="text-xs font-medium text-brand-primary truncate">
                   {propertyType
                     .replace(/_/g, " ")
                     .toLowerCase()
@@ -149,8 +151,8 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
             {/* Lot Size */}
             {lotSize && (
               <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-500 flex-shrink-0">Lot:</span>
-                <span className="text-xs font-medium text-navy truncate">
+                <span className="text-xs text-neutral-500 flex-shrink-0">Lot:</span>
+                <span className="text-xs font-medium text-brand-primary truncate">
                   {lotSize}
                 </span>
               </div>

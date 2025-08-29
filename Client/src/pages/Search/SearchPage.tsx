@@ -1,13 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import { Bookmark, MapPin, ChevronLeft, ChevronRight, Bed, Bath, Square } from "lucide-react";
-import PropertyDetailsCompact from "../../components/ui/PropertyDetailsCompact";
+import PropertyDetailsCompact from "../../components/ui/cards/PropertyDetailsCompact";
 import { useNavigate } from "react-router-dom";
 import { favoriteHomesApi } from "../../lib/api";
-import HeartSave from "../../components/ui/HeartSave";
+import HeartSave from "../../components/ui/cards/HeartSave";
 import PropertyDetailsModal from "../../components/modals/PropertyDetailsModal";
 import { searchZillowByPolygon, LatLng } from "../../lib/searchApi";
 import { usePropertyDetails } from "../../hooks/usePropertyDetails";
-import KeyTurnLoader from "../../components/ui/KeyTurnLoader";
+import KeyTurnLoader from "../../components/ui/base/KeyTurnLoader";
 import { checkAuthAndRedirect, getAuthToken } from "../../lib/authUtils";
 import { useGoogleMaps } from "../../context/GoogleMapsContext";
 
@@ -1677,7 +1677,7 @@ export default function SearchPage() {
             </div>
             <div className="flex gap-responsive-xs flex-shrink-0">
               <button
-                onClick={() => navigate("/dashboard/personalization")}
+                onClick={() => navigate("/personalization")}
                 className="inline-flex items-center px-responsive-sm py-responsive-xs bg-olive text-white rounded text-responsive-xs whitespace-nowrap hover:bg-olive/90 transition-colors"
               >
                 Preferences
@@ -2239,7 +2239,7 @@ export default function SearchPage() {
                 </div>
                 <div className="flex gap-2 flex-shrink-0">
                   <button
-                    onClick={() => navigate("/dashboard/personalization")}
+                    onClick={() => navigate("/personalization")}
                     className="inline-flex items-center px-4 py-2 bg-olive text-white rounded-lg hover:bg-olive/90 transition-colors flex-shrink-0"
                   >
                     Preferences

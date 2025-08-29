@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { X, Search, UserPlus } from "lucide-react";
 import { usePreferences, useUser, useAgent, Agent } from "../../context";
-import PageHeader from "../../components/ui/PageHeader";
+import PageHeader from "../../components/ui/base/PageHeader";
 
 export default function AgentConnection() {
   const { refreshUserPreferences } = usePreferences();

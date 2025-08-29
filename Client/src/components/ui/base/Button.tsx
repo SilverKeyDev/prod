@@ -50,16 +50,16 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       full: 'rounded-full'
     };
 
-    // Color variants
+    // Color variants - muted design system
     const variantStyles = {
-      primary: 'bg-brown text-white hover:bg-brown/90 focus:ring-brown/20 disabled:bg-brown/50 disabled:text-white/70',
-      secondary: 'bg-beige text-brown hover:bg-beige/80 focus:ring-beige/20 disabled:bg-beige/50 disabled:text-brown/50',
-      outline: 'border border-brown text-brown bg-white hover:bg-brown hover:text-white focus:ring-brown/20 disabled:border-brown/30 disabled:text-brown/30 disabled:hover:bg-white disabled:hover:text-brown/30',
-      ghost: 'text-brown hover:bg-brown/10 focus:ring-brown/20 disabled:text-brown/30 disabled:hover:bg-transparent',
+      primary: 'bg-brand-accent text-white hover:bg-brand-accent/90 focus:ring-brand-accent/20 disabled:bg-brand-accent/50 disabled:text-white/70',
+      secondary: 'bg-brand-tertiary text-brand-primary hover:bg-brand-tertiary/80 focus:ring-brand-tertiary/20 disabled:bg-brand-tertiary/50 disabled:text-brand-primary/50',
+      outline: 'border border-brand-accent text-brand-accent bg-neutral-50 hover:bg-brand-accent hover:text-white focus:ring-brand-accent/20 disabled:border-brand-accent/30 disabled:text-brand-accent/30 disabled:hover:bg-neutral-50 disabled:hover:text-brand-accent/30',
+      ghost: 'text-brand-accent hover:bg-brand-accent/10 focus:ring-brand-accent/20 disabled:text-brand-accent/30 disabled:hover:bg-transparent',
       danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500/20 disabled:bg-red-600/50 disabled:text-white/70',
-      success: 'bg-olive text-white hover:bg-olive/90 focus:ring-olive/20 disabled:bg-olive/50 disabled:text-white/70',
-      warning: 'bg-gold text-white hover:bg-gold/90 focus:ring-gold/20 disabled:bg-gold/50 disabled:text-white/70',
-      info: 'bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500/20 disabled:bg-gray-600/50 disabled:text-white/70'
+      success: 'bg-brand-secondary text-white hover:bg-brand-secondary/90 focus:ring-brand-secondary/20 disabled:bg-brand-secondary/50 disabled:text-white/70',
+      warning: 'bg-gold-muted text-white hover:bg-gold-muted/90 focus:ring-gold-muted/20 disabled:bg-gold-muted/50 disabled:text-white/70',
+      info: 'bg-neutral-600 text-white hover:bg-neutral-700 focus:ring-neutral-500/20 disabled:bg-neutral-600/50 disabled:text-white/70'
     };
 
     // Touch-friendly class for mobile

@@ -1,6 +1,6 @@
 import { useState, ReactNode } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import KeyTurnLoader from "./KeyTurnLoader";
+import KeyTurnLoader from "../base/KeyTurnLoader";
 
 interface MobileCarouselProps<T> {
   /**

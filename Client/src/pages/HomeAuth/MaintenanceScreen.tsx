@@ -1,26 +1,17 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import KeyLogo from "../../components/ui/KeyLogo";
-import RippleBackground from "../../components/ui/RippleBackground";
-import RippleBackgroundMobile from "../../components/ui/RippleBackgroundMobile";
+import KeyLogo from "../../components/ui/base/KeyLogo";
+import RippleBackground from "../../components/ui/homeauth/RippleBackground";
 
 const MaintenanceScreen: React.FC = () => (
   <div className="min-h-screen bg-white flex flex-col hide-scrollbar">
-    <div className="block sm:hidden">
-      <RippleBackgroundMobile />
-    </div>
-    <div className="hidden sm:block">
-      <RippleBackground />
-    </div>
+    <RippleBackground />
     {/* Header */}
     <header className="w-full flex justify-between items-center space-responsive-sm border-b border-gray-200 bg-white relative z-10 shadow-lg">
       <KeyLogo size="xs" />
     </header>
     <main className="flex-1 flex flex-col items-center justify-center px-responsive-sm py-responsive-lg relative">
-      <div className="absolute inset-0 z-0 block sm:hidden">
-        <RippleBackgroundMobile />
-      </div>
-      <div className="absolute inset-0 z-0 hidden sm:block">
+      <div className="absolute inset-0 z-0">
         <RippleBackground />
       </div>
       <div className="relative z-10 max-w-3xl text-center w-full">

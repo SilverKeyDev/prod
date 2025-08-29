@@ -7,6 +7,8 @@ import {
   useMemo,
   ReactNode,
 } from "react";
+import ClientIntelPage from "../pages/Onboard/ClientIntelPage.tsx";
+import AgentConnection from "../pages/Onboard/AgentConnection.tsx";
 import {
   Agent,
   UserProfile,
@@ -42,6 +44,8 @@ interface AgentContextType {
   refreshAgentData: () => Promise<void>;
   refreshClientList: () => Promise<void>;
   clearSearchResults: () => void;
+  isAgent: () => boolean;
+  getAgentConnectionComponent: () => JSX.Element | null;
 }
 
 /* =========================
@@ -296,6 +300,22 @@ export function AgentProvider({ children }: AgentProviderProps) {
     setSearchError(null);
   }, []);
 
+  // Helper function to determine if user is an agent
+  const isAgent = useCallback(() => {
+    return clientList.length > 0 || user?.user_type === 'agent';
+  }, [clientList.length, user?.user_type]);
+
+  // Function to get the appropriate component based on user type
+  const getAgentConnectionComponent = useCallback(() => {
+    if (isAgent()) {
+      // Agent sees Client Information
+      return <ClientIntelPage />;
+    } else {
+      // Client sees Agent Connection
+      return <AgentConnection />;
+    }
+  }, [isAgent]);
+
   /* =========================
      Effects
      ========================= */
@@ -304,7 +324,6 @@ export function AgentProvider({ children }: AgentProviderProps) {
   useEffect(() => {
     const enabled = authReady && !!user?.id && (
       routeStartsWith('/agent') ||
-      routeStartsWith('/dashboard/agent') ||
       routeStartsWith('/profile')
     );
     
@@ -361,12 +380,15 @@ export function AgentProvider({ children }: AgentProviderProps) {
     refreshAgentData,
     refreshClientList,
     clearSearchResults,
+    isAgent,
+    getAgentConnectionComponent,
   }), [
     assignedAgent, clientList, agentSearchResults,
     agentLoading, clientsLoading, searchLoading,
     agentError, clientsError, searchError,
     searchAgents, assignAgent, removeAgent,
     refreshAgentData, refreshClientList, clearSearchResults,
+    isAgent, getAgentConnectionComponent,
   ]);
 
   return <AgentContext.Provider value={value}>{children}</AgentContext.Provider>;

@@ -456,7 +456,6 @@ export function NegotiationProvider({ children }: NegotiationProviderProps) {
   // Gate initial load based on auth readiness and relevant routes
   useEffect(() => {
     const enabled = authReady && !!user?.id && (
-      routeStartsWith('/dashboard/negotiation') ||
       routeStartsWith('/negotiation') ||
       routeStartsWith('/offers')
     );

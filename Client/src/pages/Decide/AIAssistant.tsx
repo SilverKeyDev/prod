@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { useChats } from "../../context";
 import { Chat } from "../../context/utils";
-import MiniLogo from "../../components/ui/MiniLogo";
+import MiniLogo from "../../components/ui/base/MiniLogo";
 
 interface ChatMessage {
   id: string;
@@ -351,7 +351,7 @@ export default function AIAssistant() {
             </div>
             <p className="text-sm text-black/60">
               <button 
-                onClick={() => navigate('/dashboard/generate-report')}
+                onClick={() => navigate('/generate-report')}
                 className="font-bold underline hover:text-brown transition-colors cursor-pointer"
               >
                 Generate a report

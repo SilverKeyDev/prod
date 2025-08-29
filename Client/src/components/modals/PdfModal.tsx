@@ -1,6 +1,6 @@
 import { useRef, useEffect } from "react";
 import { Download, Share, X } from "lucide-react";
-import MiniLogo from "../ui/MiniLogo";
+import MiniLogo from "../ui/base/MiniLogo";
 import { formatFilenameToAddress } from "../../lib/addressFormat";
 
 export interface PdfModalProps {

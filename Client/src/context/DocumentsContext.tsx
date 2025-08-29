@@ -431,10 +431,8 @@ export function DocumentsProvider({ children }: DocumentsProviderProps) {
   // Gate initial load based on auth readiness and relevant routes
   useEffect(() => {
     const enabled = authReady && !!user?.id && (
-      routeStartsWith('/dashboard/documents') ||
       routeStartsWith('/documents') ||
-      routeStartsWith('/dashboard/negotiation') || // Negotiation may need documents
-      routeStartsWith('/negotiation')
+      routeStartsWith('/negotiation') // Negotiation may need documents
     );
     
     if (enabled) {
@@ -449,9 +447,7 @@ export function DocumentsProvider({ children }: DocumentsProviderProps) {
       if (e.key === "id_token") {
         if (e.newValue) {
           // Only refresh if on relevant routes
-          const enabled = routeStartsWith('/dashboard/documents') ||
-                          routeStartsWith('/documents') ||
-                          routeStartsWith('/dashboard/negotiation') ||
+          const enabled = routeStartsWith('/documents') ||
                           routeStartsWith('/negotiation');
           
           if (enabled) {

@@ -4,8 +4,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapPin, ChevronDown, Loader2, AlertCircle } from "lucide-react";
 import { useUser, useGoogleMaps } from "../../context";
-import PageHeader from "../../components/ui/PageHeader";
-import KeyTurnLoader from "../../components/ui/KeyTurnLoader";
+import PageHeader from "../../components/ui/base/PageHeader";
+import KeyTurnLoader from "../../components/ui/base/KeyTurnLoader";
 
 declare global {
   interface Window {
@@ -500,7 +500,7 @@ export default function GenerateReportPage() {
 
     // Wait for the 0.5 second delay, then navigate
     await delayPromise;
-    navigate("/dashboard/reports"); // ✅ happens after delay, regardless of fetch result
+    navigate("/reports"); // ✅ happens after delay, regardless of fetch result
 
     try {
       const res = await fetchPromise;

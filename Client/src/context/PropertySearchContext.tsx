@@ -418,7 +418,6 @@ export function PropertySearchProvider({ children }: PropertySearchProviderProps
   useEffect(() => {
     const enabled = authReady && !!user?.id && (
       routeStartsWith('/search') ||
-      routeStartsWith('/dashboard/search') ||
       routeStartsWith('/properties')
     );
     

@@ -97,19 +97,19 @@ export default function DocumentCard({ doc }: DocumentCardProps) {
           onClose={closePdfModal}
         />
       )}
-      <div className="card-mobile space-responsive-sm">
+      <div className="muted-card space-responsive-sm">
       {/* Header with icon and status */}
       <div className="flex items-start justify-between gap-responsive-sm mb-2 sm:mb-3">
         <div className="flex items-center gap-responsive-sm flex-1 min-w-0">
-          <div className="flex-shrink-0 text-brown">
+          <div className="flex-shrink-0 text-brand-accent">
             <FileText className="mobile-icon-md" />
           </div>
           <div className="flex-1 overflow-hidden">
-            <p className="font-medium text-responsive-xs leading-tight line-clamp-1 truncate" title={fullDisplayName}>
+            <p className="font-medium text-responsive-xs leading-tight line-clamp-1 truncate text-brand-primary" title={fullDisplayName}>
               {fullDisplayName}
             </p>
             {doc.report_type && (
-              <p className="text-responsive-xs text-gray-500 capitalize mt-0.5 truncate">
+              <p className="text-responsive-xs text-neutral-500 capitalize mt-0.5 truncate">
                 {doc.report_type} Report
               </p>
             )}
@@ -119,11 +119,11 @@ export default function DocumentCard({ doc }: DocumentCardProps) {
         <button
           onClick={handleDownload}
           disabled={isLoading}
-          className="flex-shrink-0 space-responsive-xs text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
+          className="flex-shrink-0 space-responsive-xs text-neutral-400 hover:text-neutral-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
           title="Download"
         >
           {isLoading ? (
-            <div className="mobile-icon-xs border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+            <div className="mobile-icon-xs border-2 border-neutral-300 border-t-neutral-600 rounded-full animate-spin" />
           ) : (
             <Download className="mobile-icon-sm" />
           )}
@@ -132,8 +132,8 @@ export default function DocumentCard({ doc }: DocumentCardProps) {
 
       {/* Creation date */}
       <div className="flex items-center gap-responsive-sm mb-3 sm:mb-4">
-        <Calendar className="mobile-icon-xs text-gray-400 flex-shrink-0" />
-        <p className="text-responsive-xs text-gray-600">
+        <Calendar className="mobile-icon-xs text-neutral-400 flex-shrink-0" />
+        <p className="text-responsive-xs text-neutral-600">
           Created {formatDate(doc.created_at)}
         </p>
       </div>
@@ -142,7 +142,7 @@ export default function DocumentCard({ doc }: DocumentCardProps) {
       <button
         onClick={handleView}
         disabled={isLoading}
-        className="w-full inline-flex items-center justify-center px-responsive-sm py-responsive-xs bg-gold text-white font-medium btn-text-responsive rounded-lg hover:bg-gold/90 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed touch-friendly whitespace-nowrap"
+        className="muted-button-primary w-full inline-flex items-center justify-center px-responsive-sm py-responsive-xs font-medium btn-text-responsive rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed touch-friendly whitespace-nowrap"
       >
         {isLoading ? (
           <>

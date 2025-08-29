@@ -27,13 +27,13 @@ const BaseCard = forwardRef<HTMLDivElement, BaseCardProps>(
     ref
   ) => {
     // Base styles that apply to all cards
-    const baseStyles = 'bg-white transition-all duration-200';
+    const baseStyles = 'bg-neutral-50 transition-all duration-200';
 
     // Variant styles
     const variantStyles = {
-      default: 'border border-beige/40',
+      default: 'border border-neutral-200/50',
       elevated: 'border-0',
-      outlined: 'border-2 border-beige',
+      outlined: 'border-2 border-neutral-300',
       flat: 'border-0 shadow-none'
     };
 
@@ -55,7 +55,7 @@ const BaseCard = forwardRef<HTMLDivElement, BaseCardProps>(
       xl: 'rounded-xl'
     };
 
-    // Shadow variants
+    // Shadow variants - muted shadows
     const shadowStyles = {
       none: 'shadow-none',
       sm: 'shadow-sm',
@@ -64,8 +64,8 @@ const BaseCard = forwardRef<HTMLDivElement, BaseCardProps>(
       xl: 'shadow-xl'
     };
 
-    // Hover effects
-    const hoverStyles = hover ? 'hover:shadow-md' : '';
+    // Hover effects - muted hover
+    const hoverStyles = hover ? 'hover:shadow-md hover:border-neutral-300/50' : '';
 
     // Interactive styles
     const interactiveStyles = interactive ? 'cursor-pointer hover:shadow-lg hover:scale-[1.02]' : '';

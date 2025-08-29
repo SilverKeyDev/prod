@@ -299,4 +299,104 @@
   .tap-highlight-none {
     -webkit-tap-highlight-color: transparent;
   }
+
+  /* Muted Image System */
+  .muted-img {
+    filter: saturate(0.85) brightness(0.95);
+    transition: filter 0.3s ease, transform 0.3s ease;
+  }
+
+  .muted-img:hover {
+    filter: saturate(1.05) brightness(1.05);
+    transform: scale(1.01);
+  }
+
+  /* Property Image Styling */
+  .property-image {
+    filter: saturate(0.85) brightness(0.95);
+    mix-blend-mode: multiply;
+    border-radius: 0.75rem;
+    transition: filter 0.3s ease, transform 0.3s ease;
+  }
+
+  .property-image:hover {
+    filter: saturate(1.05) brightness(1.05);
+    transform: scale(1.01);
+  }
+
+  /* Global Image Overlay System */
+  .image-overlay {
+    position: relative;
+  }
+
+  .image-overlay::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(240, 240, 240, 0.15);
+    mix-blend-mode: soft-light;
+    pointer-events: none;
+    border-radius: inherit;
+  }
+
+  .overlay-soft {
+    @apply relative;
+  }
+
+  .overlay-soft::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    @apply bg-neutral-100/20;
+    mix-blend-mode: soft-light;
+    pointer-events: none;
+    border-radius: inherit;
+  }
+
+  /* Muted Card System */
+  .muted-card {
+    @apply bg-neutral-50 border border-neutral-200/50 shadow-sm;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+
+  .muted-card:hover {
+    @apply shadow-md border-neutral-300/50;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  }
+
+  /* Muted Button System */
+  .muted-button {
+    @apply bg-neutral-100 text-neutral-700 border border-neutral-200/50;
+    transition: all 0.2s ease;
+  }
+
+  .muted-button:hover {
+    @apply bg-neutral-200 text-neutral-800 border-neutral-300/50;
+  }
+
+  .muted-button-primary {
+    @apply bg-brand-accent text-white border border-brand-accent/50;
+    transition: all 0.2s ease;
+  }
+
+  .muted-button-primary:hover {
+    background: hsl(25, 22%, 40%);
+    border-color: hsl(25, 22%, 35%);
+  }
+
+  /* Autofill Styling */
+  .autofill-muted:-webkit-autofill,
+  .autofill-muted:-webkit-autofill:hover,
+  .autofill-muted:-webkit-autofill:focus,
+  .autofill-muted:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px hsl(45, 25%, 92%) inset !important;
+    -webkit-text-fill-color: rgba(0, 0, 0, 0.4) !important;
+    caret-color: rgba(0, 0, 0, 0.4) !important;
+  }
+
+  /* Firefox autofill */
+  .autofill-muted:-moz-autofill {
+    background-color: hsl(45, 25%, 92%) !important;
+    color: rgba(0, 0, 0, 0.4) !important;
+  }
 }

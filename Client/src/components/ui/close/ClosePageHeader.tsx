@@ -1,4 +1,4 @@
-import MiniLogo from "./MiniLogo";
+import MiniLogo from "../base/MiniLogo";
 
 interface ClosePageHeaderProps {
   title: string;

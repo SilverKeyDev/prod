@@ -13,8 +13,8 @@ import {
   Target,
 } from "lucide-react";
 
-import KeyTurnLoader from "../../components/ui/KeyTurnLoader";
-import PageHeader from "../../components/ui/PageHeader";
+import KeyTurnLoader from "../../components/ui/base/KeyTurnLoader";
+import PageHeader from "../../components/ui/base/PageHeader";
 
 // Custom scrollbar styles matching CompareReportsPage
 const scrollbarStyles = `

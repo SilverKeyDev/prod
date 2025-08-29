@@ -12,6 +12,7 @@ interface AuthInputProps {
   autoComplete?: string;
   required?: boolean;
   className?: string;
+  textSize?: "xs" | "sm" | "base" | "lg";
 }
 
 export default function AuthInput({
@@ -25,10 +26,11 @@ export default function AuthInput({
   autoComplete,
   required = false,
   className = "",
+  textSize = "xs",
 }: AuthInputProps) {
   return (
-    <div className={`space-y-responsive-sm ${className}`}>
-      <label className="block text-responsive-xs font-medium text-black">
+    <div className={`space-y-1 ${className}`}>
+      <label className="block text-responsive-sm font-semibold text-black/60">
         {label}
       </label>
       <div className="relative">
@@ -40,7 +42,7 @@ export default function AuthInput({
           name={name}
           value={value}
           onChange={onChange}
-          className={`input-field ${Icon ? 'pl-10' : 'space-responsive-sm'} btn-responsive-md text-responsive-xs border-gray-300 focus:border-brown focus:ring-brown/20`}
+          className={`input-field ${Icon ? 'pl-10' : 'space-responsive-sm'} btn-responsive-md text-responsive-${textSize} text-black/40 border-gray-300 focus:border-brown focus:ring-brown/20 placeholder:font-light autofill-muted`}
           placeholder={placeholder}
           autoComplete={autoComplete}
           required={required}

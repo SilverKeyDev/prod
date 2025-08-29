@@ -1,13 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
 import { favoriteHomesApi } from "../../lib/api";
 import HomeCard from "../../components/cards/HomeCard";
-import PageHeader from "../../components/ui/PageHeader";
+import PageHeader from "../../components/ui/base/PageHeader";
 import ErrorToast from "../../components/feedback/ErrorToast";
 import { Search, RefreshCw, LayoutGrid, List } from "lucide-react";
 import { useSavedHomes } from "../../context";
 import { SavedHome } from "../../context/utils";
 import PropertyDetailsModal from "../../components/modals/PropertyDetailsModal";
-import KeyTurnLoader from "../../components/ui/KeyTurnLoader";
+import KeyTurnLoader from "../../components/ui/base/KeyTurnLoader";
 
 export default function SavedHomes() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");

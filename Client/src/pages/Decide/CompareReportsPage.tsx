@@ -15,7 +15,7 @@ import SuccessToast from "../../components/feedback/SuccessToast";
 import { useCompareReports } from "../../context";
 import { Report } from "../../context/utils";
 import { formatFilenameToAddress } from "../../lib/addressFormat";
-import PageHeader from "../../components/ui/PageHeader";
+import PageHeader from "../../components/ui/base/PageHeader";
 
 
 const ALL_METRIC_KEYS: string[] = [

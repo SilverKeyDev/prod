@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import PageHeader from "../../components/ui/PageHeader";
+import PageHeader from "../../components/ui/base/PageHeader";
 import { usePreferences, useUser } from "../../context";
 
 type FormData = {
@@ -68,7 +68,7 @@ const PreApproved: React.FC = () => {
           monthly_debts: Number(debts),
           credit_score: Number(creditScore),
           // Optional: include a postback/return URL so provider can redirect back
-          return_url: `${window.location.origin}/dashboard/get-preapproved?status=done`,
+          return_url: `${window.location.origin}/get-preapproved?status=done`,
           metadata: {
             source: "silverkey",
             user_id: userProfile?.id ?? null,

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
-import FavoriteHomesDropdown from "../../components/ui/FavoriteHomesDropdown";
-import PageHeader from "../../components/ui/PageHeader";
+import FavoriteHomesDropdown from "../../components/ui/base/FavoriteHomesDropdown";
+import PageHeader from "../../components/ui/base/PageHeader";
 // import { useNegotiation } from "../../context";
 import {
   FileText,
@@ -44,7 +44,7 @@ const OfferDraftPage: React.FC = () => {
 
   // Tab state
   const [activeTab, setActiveTab] = useState(0);
-  
+
   // Local form state (for future implementation)
   // const [formData, setFormData] = useState({
   //   propertyId: '',
@@ -65,12 +65,12 @@ const OfferDraftPage: React.FC = () => {
     2: useRef<HTMLDivElement>(null),
     3: useRef<HTMLDivElement>(null),
   };
-  
+
   // Form handlers for future UI implementation
   // const updateFormField = (field: string, value: any) => {
   //   setFormData(prev => ({ ...prev, [field]: value }));
   // };
-  
+
   // const handleSaveDraft = async () => {
   //   try {
   //     await saveOfferDraft({
@@ -88,7 +88,7 @@ const OfferDraftPage: React.FC = () => {
   //     console.error('Error saving draft:', error);
   //   }
   // };
-  
+
   // const handleSubmitOffer = async () => {
   //   try {
   //     await submitOffer(formData.propertyId);
@@ -761,7 +761,7 @@ const OfferDraftPage: React.FC = () => {
         title="Draft Your Offer"
         subtitle="Create a comprehensive offer package with all necessary details"
       />
-      
+
       <div className="mx-auto px-responsive-lg py-responsive-lg max-w-6xl">
         {/* Favorite Homes Dropdown */}
         <div className="bg-white rounded-xl shadow-sm space-responsive-md space-y-responsive-md border border-beige/40">
@@ -776,549 +776,559 @@ const OfferDraftPage: React.FC = () => {
           </div>
         </div>
 
-      {/* Tab Navigation */}
-      <div className="bg-white border-b border-beige/40 sticky top-0 z-10 mx-2">
-        <div className="mx-auto px-responsive-lg">
-          <div className="flex overflow-x-auto scrollbar-hide">
-            {tabs.map((tab) => {
-              const IconComponent = tab.icon;
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => scrollToSection(tab.id)}
-                  className={`flex items-center gap-responsive-sm px-responsive-sm py-responsive-sm text-responsive-sm font-medium whitespace-nowrap border-b-2 transition-colors duration-200 min-w-fit touch-friendly ${
-                    activeTab === tab.id
-                      ? "border-brown text-brown bg-brown/5"
-                      : "border-transparent text-navy/70 hover:text-navy hover:border-beige"
-                  }`}
-                >
-                  <IconComponent className="mobile-icon-xs" />
-                  <span className="hidden lg:inline">{tab.title}</span>
-                  <span className="lg:hidden">{tab.shortTitle}</span>
-                </button>
-              );
-            })}
+        {/* Tab Navigation */}
+        <div className="bg-white border-b border-beige/40 sticky top-0 z-10 mx-2">
+          <div className="mx-auto px-responsive-lg">
+            <div className="flex overflow-x-auto scrollbar-hide">
+              {tabs.map((tab) => {
+                const IconComponent = tab.icon;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => scrollToSection(tab.id)}
+                    className={`flex items-center gap-responsive-sm px-responsive-sm py-responsive-sm text-responsive-sm font-medium whitespace-nowrap border-b-2 transition-colors duration-200 min-w-fit touch-friendly ${
+                      activeTab === tab.id
+                        ? "border-brown text-brown bg-brown/5"
+                        : "border-transparent text-navy/70 hover:text-navy hover:border-beige"
+                    }`}
+                  >
+                    <IconComponent className="mobile-icon-xs" />
+                    <span className="hidden lg:inline">{tab.title}</span>
+                    <span className="lg:hidden">{tab.shortTitle}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="mx-auto px-responsive-lg py-responsive-lg">
-        <form onSubmit={handleSubmit}>
-          {/* 1. Purchase Offer / Agreement */}
-          <div ref={sectionRefs[0]} className={sectionBox}>
-            <div className={sectionTitle}>
-              <FileText className="mobile-icon-sm text-brown" />
-              Signed Purchase Offer
-            </div>
-            <div className={infoBox}>
-              This is the formal, legally binding contract that outlines the exact terms of your offer to buy the property — 
-              including price, contingencies, closing date, earnest money, and included/excluded items.  
-              <br />
-              <span className="italic">
-                Must be signed by all buyers and reviewed by your agent or a real estate attorney before delivery to the seller.
-              </span>
-            </div>
-            <div className={warningBox}>
-              <div className="flex items-start gap-2">
-                <X className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
-                <div>
-                  <strong>You Don’t Send a Signed Purchase Offer</strong>
-                  <div className="mt-2">
-                    <div className="flex items-center gap-2 mb-1">
-                      <CheckCircle className="h-4 w-4 text-olive" />
-                      <span className="font-medium">Only if:</span>
-                    </div>
-                    <ul className="list-disc pl-6 mb-2 space-y-1">
-                      <li>
-                        You’re still negotiating basic terms verbally or through email/text before formalizing in writing
-                      </li>
-                      <li>
-                        You’re making a non-binding letter of intent first to gauge seller interest
-                      </li>
-                      <li>
-                        Your agent or attorney advises waiting until certain disclosures or inspections are provided
-                      </li>
-                    </ul>
-                    <div className="flex items-start gap-2">
-                      <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
-                      <span>
-                        In most cases, sending a signed purchase offer promptly gives your offer legal weight and shows serious intent.
-                      </span>
+        {/* Main Content */}
+        <div className="mx-auto px-responsive-lg py-responsive-lg">
+          <form onSubmit={handleSubmit}>
+            {/* 1. Purchase Offer / Agreement */}
+            <div ref={sectionRefs[0]} className={sectionBox}>
+              <div className={sectionTitle}>
+                <FileText className="mobile-icon-sm text-brown" />
+                Signed Purchase Offer
+              </div>
+              <div className={infoBox}>
+                This is the formal, legally binding contract that outlines the
+                exact terms of your offer to buy the property — including price,
+                contingencies, closing date, earnest money, and
+                included/excluded items.
+                <br />
+                <span className="italic">
+                  Must be signed by all buyers and reviewed by your agent or a
+                  real estate attorney before delivery to the seller.
+                </span>
+              </div>
+              <div className={warningBox}>
+                <div className="flex items-start gap-2">
+                  <X className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <strong>You Don’t Send a Signed Purchase Offer</strong>
+                    <div className="mt-2">
+                      <div className="flex items-center gap-2 mb-1">
+                        <CheckCircle className="h-4 w-4 text-olive" />
+                        <span className="font-medium">Only if:</span>
+                      </div>
+                      <ul className="list-disc pl-6 mb-2 space-y-1">
+                        <li>
+                          You’re still negotiating basic terms verbally or
+                          through email/text before formalizing in writing
+                        </li>
+                        <li>
+                          You’re making a non-binding letter of intent first to
+                          gauge seller interest
+                        </li>
+                        <li>
+                          Your agent or attorney advises waiting until certain
+                          disclosures or inspections are provided
+                        </li>
+                      </ul>
+                      <div className="flex items-start gap-2">
+                        <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                        <span>
+                          In most cases, sending a signed purchase offer
+                          promptly gives your offer legal weight and shows
+                          serious intent.
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-            <label className={label}>Offer Price ($)</label>
-            <input
-              className={input}
-              type="number"
-              min="0"
-              value={offer.price}
-              onChange={(e) => handleChange(e, "price")}
-              placeholder="Enter your offer price"
-              required
-            />
-            <label className={label}>Contingencies</label>
-            <textarea
-              className={textarea}
-              value={offer.contingencies}
-              onChange={(e) => handleChange(e, "contingencies")}
-              placeholder="e.g., Financing, Inspection, Appraisal"
-              required
-            />
-            <label className={label}>Closing Date</label>
-            <input
-              className={input}
-              type="date"
-              value={offer.closingDate}
-              onChange={(e) => handleChange(e, "closingDate")}
-              required
-            />
-            <label className={label}>Earnest Money Amount ($)</label>
-            <input
-              className={input}
-              type="number"
-              min="0"
-              value={offer.earnestMoney}
-              onChange={(e) => handleChange(e, "earnestMoney")}
-              placeholder="e.g., 5000"
-              required
-            />
-            <label className={label}>What's Included</label>
-            <textarea
-              className={textarea}
-              value={offer.inclusions}
-              onChange={(e) => handleChange(e, "inclusions")}
-              placeholder="e.g., Appliances, Window Treatments"
-            />
-            <label className={label}>What's Excluded</label>
-            <textarea
-              className={textarea}
-              value={offer.exclusions}
-              onChange={(e) => handleChange(e, "exclusions")}
-              placeholder="e.g., Seller's personal property"
-            />
-            <label className={label}>
-              <Upload className="inline mobile-icon-xs mr-1" />
-              Upload Signed Agreement (PDF)
-            </label>
-            <input
-              className={fileInput}
-              type="file"
-              accept="application/pdf"
-              onChange={(e) => handleFile(e, "signedAgreement")}
-              required
-            />
-            <label className={label}>
-              <Upload className="inline mobile-icon-xs mr-1" />
-              Upload Signature(s) (if separate)
-            </label>
-            <input
-              className={fileInput}
-              type="file"
-              accept="image/*,application/pdf"
-              onChange={(e) => handleFile(e, "signature")}
-            />
+              <label className={label}>Offer Price ($)</label>
+              <input
+                className={input}
+                type="number"
+                min="0"
+                value={offer.price}
+                onChange={(e) => handleChange(e, "price")}
+                placeholder="Enter your offer price"
+                required
+              />
+              <label className={label}>Contingencies</label>
+              <textarea
+                className={textarea}
+                value={offer.contingencies}
+                onChange={(e) => handleChange(e, "contingencies")}
+                placeholder="e.g., Financing, Inspection, Appraisal"
+                required
+              />
+              <label className={label}>Closing Date</label>
+              <input
+                className={input}
+                type="date"
+                value={offer.closingDate}
+                onChange={(e) => handleChange(e, "closingDate")}
+                required
+              />
+              <label className={label}>Earnest Money Amount ($)</label>
+              <input
+                className={input}
+                type="number"
+                min="0"
+                value={offer.earnestMoney}
+                onChange={(e) => handleChange(e, "earnestMoney")}
+                placeholder="e.g., 5000"
+                required
+              />
+              <label className={label}>What's Included</label>
+              <textarea
+                className={textarea}
+                value={offer.inclusions}
+                onChange={(e) => handleChange(e, "inclusions")}
+                placeholder="e.g., Appliances, Window Treatments"
+              />
+              <label className={label}>What's Excluded</label>
+              <textarea
+                className={textarea}
+                value={offer.exclusions}
+                onChange={(e) => handleChange(e, "exclusions")}
+                placeholder="e.g., Seller's personal property"
+              />
+              <label className={label}>
+                <Upload className="inline mobile-icon-xs mr-1" />
+                Upload Signed Agreement (PDF)
+              </label>
+              <input
+                className={fileInput}
+                type="file"
+                accept="application/pdf"
+                onChange={(e) => handleFile(e, "signedAgreement")}
+                required
+              />
+              <label className={label}>
+                <Upload className="inline mobile-icon-xs mr-1" />
+                Upload Signature(s) (if separate)
+              </label>
+              <input
+                className={fileInput}
+                type="file"
+                accept="image/*,application/pdf"
+                onChange={(e) => handleFile(e, "signature")}
+              />
 
-            {/* Section Action Buttons */}
-            <div className="flex gap-3 mt-6 pt-4 border-t border-beige/30">
-              <button
-                type="button"
-                className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2 ${
-                  !sectionValidation.purchaseAgreement
-                    ? "bg-gray-400 text-gray-600 cursor-not-allowed"
-                    : "bg-brown text-white hover:bg-brown/90"
-                }`}
-                onClick={generatePurchaseAgreement}
-                disabled={
-                  loadingStates.purchaseAgreement ||
-                  !sectionValidation.purchaseAgreement
-                }
-              >
-                {loadingStates.purchaseAgreement ? (
-                  <Loader2 className="mobile-icon-xs animate-spin" />
-                ) : (
-                  <FileCheck className="mobile-icon-xs" />
-                )}
-                {loadingStates.purchaseAgreement
-                  ? "Generating..."
-                  : "Generate Agreement"}
-              </button>
-            </div>
-          </div>
-
-          {/* 2. Mortgage Pre-Approval or Proof of Funds */}
-          <div ref={sectionRefs[1]} className={sectionBox}>
-            <div className={sectionTitle}>
-              <CreditCard className="mobile-icon-sm text-brown" />
-              Mortgage Pre-Approval / Proof of Funds
-            </div>
-            <div className={infoBox}>
-              Must be a formal letter from your lender (not just
-              pre-qualification).
-              <br />
-              <span className="italic">
-                If paying cash, upload a recent bank statement with account
-                number redacted.
-              </span>
-            </div>
-            <div className={warningBox}>
-              <div className="flex items-start gap-2">
-                <X className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
-                <div>
-                  <strong>You Don't Send a Pre-Approval</strong>
-                  <div className="mt-2">
-                    <div className="flex items-center gap-2 mb-1">
-                      <CheckCircle className="h-4 w-4 text-olive" />
-                      <span className="font-medium">Only if:</span>
-                    </div>
-                    <ul className="list-disc pl-6 mb-2 space-y-1">
-                      <li>
-                        You're making a cash offer and will send proof of funds
-                        instead
-                      </li>
-                      <li>
-                        You're waiting on pre-approval but want to signal intent
-                        early
-                      </li>
-                      <li>
-                        You're negotiating a deal off-market where financing is
-                        already known to the seller (e.g., parent selling to
-                        child)
-                      </li>
-                    </ul>
-                    <div className="flex items-start gap-responsive-xs">
-                      <AlertTriangle className="mobile-icon-xs text-red-500 mt-0.5 flex-shrink-0" />
-                      <span>
-                        If you're financing and don't send this, your offer may
-                        not be taken seriously.
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <label className={label}>
-              <Upload className="inline mobile-icon-xs mr-1" />
-              Upload Pre-Approval Letter (PDF)
-            </label>
-            <input
-              className={fileInput}
-              type="file"
-              accept="application/pdf"
-              onChange={(e) => handleFile(e, "preApproval")}
-            />
-            <label className={label}>
-              <Upload className="inline mobile-icon-xs mr-1" />
-              Or Upload Proof of Funds (PDF or Image)
-            </label>
-            <input
-              className={fileInput}
-              type="file"
-              accept="application/pdf,image/*"
-              onChange={(e) => handleFile(e, "proofOfFunds")}
-            />
-
-            {/* Section Action Buttons */}
-            <div className="flex gap-3 mt-6 pt-4 border-t border-beige/30">
-              <button
-                type="button"
-                className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2 ${
-                  !sectionValidation.preApproval
-                    ? "bg-gray-400 text-gray-600 cursor-not-allowed"
-                    : "bg-brown text-white hover:bg-brown/90"
-                }`}
-                onClick={generatePreApprovalLetter}
-                disabled={
-                  loadingStates.preApprovalLetter ||
-                  !sectionValidation.preApproval
-                }
-              >
-                {loadingStates.preApprovalLetter ? (
-                  <Loader2 className="mobile-icon-xs animate-spin" />
-                ) : (
-                  <FileCheck className="mobile-icon-xs" />
-                )}
-                {loadingStates.preApprovalLetter
-                  ? "Generating..."
-                  : "Generate Pre-Approval"}
-              </button>
-            </div>
-          </div>
-
-          {/* 3. Earnest Money Instructions */}
-          <div ref={sectionRefs[2]} className={sectionBox}>
-            <div className={sectionTitle}>
-              <DollarSign className="h-5 w-5 text-brown" />
-              Earnest Money Instructions
-            </div>
-            <div className={infoBox}>
-              You don’t send the money yet. Explain how much you’re putting
-              down, who will hold it in escrow, and the timeline for payment
-              (e.g., within 3 business days of acceptance).
-            </div>
-            <div className={warningBox}>
-              <div className="flex items-start gap-2">
-                <X className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
-                <div>
-                  <strong>You Don't Send Earnest Money Info</strong>
-                  <div className="mt-2">
-                    <div className="flex items-center gap-2 mb-1">
-                      <CheckCircle className="h-4 w-4 text-olive" />
-                      <span className="font-medium">Only if:</span>
-                    </div>
-                    <ul className="list-disc pl-6 mb-2 space-y-1">
-                      <li>
-                        You're waiting to agree on terms first before putting
-                        money at risk
-                      </li>
-                      <li>
-                        You're in a hot market and want to speed up the offer,
-                        with the understanding that earnest money will come
-                        after acceptance
-                      </li>
-                      <li>
-                        Seller hasn't specified where it should be held
-                        (escrow/title)
-                      </li>
-                    </ul>
-                    <div className="flex items-start gap-2">
-                      <CheckCircle className="h-4 w-4 text-olive mt-0.5 flex-shrink-0" />
-                      <span>
-                        You should still mention your intent to send earnest
-                        money upon acceptance.
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <label className={label}>Earnest Money Amount</label>
-            <input
-              className={input}
-              type="text"
-              value={offer.earnestMoneyAmount}
-              onChange={(e) => handleChange(e, "earnestMoneyAmount")}
-              placeholder="e.g., 1% of purchase price or $5,000"
-              required
-            />
-            <label className={label}>Escrow Holder</label>
-            <input
-              className={input}
-              type="text"
-              value={offer.escrowHolder}
-              onChange={(e) => handleChange(e, "escrowHolder")}
-              placeholder="e.g., Title Company Name"
-              required
-            />
-            <label className={label}>Timeline for Payment</label>
-            <input
-              className={input}
-              type="text"
-              value={offer.earnestTimeline}
-              onChange={(e) => handleChange(e, "earnestTimeline")}
-              placeholder="e.g., Within 3 business days of acceptance"
-              required
-            />
-            <label className={label}>
-              Additional Earnest Money Instructions (optional)
-            </label>
-            <textarea
-              className={textarea}
-              value={offer.earnestInstructions}
-              onChange={(e) => handleChange(e, "earnestInstructions")}
-              placeholder="Any special instructions or notes"
-            />
-
-            {/* Section Action Buttons */}
-            <div className="flex gap-3 mt-6 pt-4 border-t border-beige/30">
-              <button
-                type="button"
-                className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2 ${
-                  !sectionValidation.earnestMoney
-                    ? "bg-gray-400 text-gray-600 cursor-not-allowed"
-                    : "bg-brown text-white hover:bg-brown/90"
-                }`}
-                onClick={generateEarnestMoneyInstructions}
-                disabled={
-                  loadingStates.earnestMoneyInstructions ||
-                  !sectionValidation.earnestMoney
-                }
-              >
-                {loadingStates.earnestMoneyInstructions ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <FileCheck className="h-4 w-4" />
-                )}
-                {loadingStates.earnestMoneyInstructions
-                  ? "Generating..."
-                  : "Generate Instructions"}
-              </button>
-            </div>
-          </div>
-
-          {/* 4. (Optional) Buyer Cover Letter */}
-          <div ref={sectionRefs[3]} className={sectionBox}>
-            <div className={sectionTitle}>
-              <Heart className="h-5 w-5 text-brown" />
-              Buyer Cover Letter (Optional)
-            </div>
-            <div className={infoBox}>
-              Write a short, authentic note about why you love the home and
-              neighborhood. <br />
-              <span className="italic">
-                Do not include any information about protected classes (Fair
-                Housing compliance).
-              </span>
-            </div>
-            <div className={warningBox}>
-              <div className="flex items-start gap-2">
-                <X className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
-                <div>
-                  <strong>You Don't Send a Cover Letter ("Love Letter")</strong>
-                  <div className="mt-2">
-                    <div className="flex items-center gap-2 mb-1">
-                      <CheckCircle className="h-4 w-4 text-olive" />
-                      <span className="font-medium">Usually skipped if:</span>
-                    </div>
-                    <ul className="list-disc pl-6 mb-2 space-y-1">
-                      <li>
-                        The seller's agent explicitly forbids it due to Fair
-                        Housing laws
-                      </li>
-                      <li>
-                        It's a highly competitive market where letters are
-                        discouraged
-                      </li>
-                      <li>You prefer to keep things strictly professional</li>
-                    </ul>
-                    <div className="flex items-start gap-2">
-                      <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
-                      <span>
-                        These are always optional, and in some states,
-                        discouraged or banned for ethical reasons.
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <label className={label}>Your Letter</label>
-            <textarea
-              className={textarea}
-              value={offer.coverLetter}
-              onChange={(e) => handleChange(e, "coverLetter")}
-              placeholder="Share your story (optional)"
-            />
-
-            {/* Section Action Buttons */}
-            <div className="flex gap-3 mt-6 pt-4 border-t border-beige/30">
-              <button
-                type="button"
-                className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2 ${
-                  !sectionValidation.coverLetter
-                    ? "bg-gray-400 text-gray-600 cursor-not-allowed"
-                    : "bg-brown text-white hover:bg-brown/90"
-                }`}
-                onClick={generateCoverLetter}
-                disabled={
-                  loadingStates.coverLetter || !sectionValidation.coverLetter
-                }
-              >
-                {loadingStates.coverLetter ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <FileCheck className="h-4 w-4" />
-                )}
-                {loadingStates.coverLetter
-                  ? "Generating..."
-                  : "Generate Cover Letter"}
-              </button>
-            </div>
-          </div>
-
-          {/* Overall Action Buttons */}
-          <div className="bg-white rounded-xl shadow-sm p-6 mt-8 border border-beige/40">
-            <h3 className="text-lg font-semibold text-navy mb-4">
-              Complete Offer Package
-            </h3>
-            <div className="flex flex-wrap gap-4 justify-center">
-              <button
-                type="button"
-                className={`px-6 py-3 rounded-lg font-semibold transition-colors duration-200 flex items-center gap-2 ${
-                  !validateAllSections().isValid
-                    ? "bg-gray-400 text-gray-600 cursor-not-allowed"
-                    : "bg-brown text-white hover:bg-brown/90"
-                }`}
-                onClick={generateAllDocuments}
-                disabled={
-                  loadingStates.allDocuments || !validateAllSections().isValid
-                }
-              >
-                {loadingStates.allDocuments ? (
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                ) : (
-                  <FileCheck className="h-5 w-5" />
-                )}
-                {loadingStates.allDocuments
-                  ? "Generating All..."
-                  : "Generate All Documents"}
-              </button>
-              <button className={button} type="submit">
-                <Download className="h-5 w-5" />
-                Download All Documents
-              </button>
-              <button
-                type="button"
-                className="bg-red-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-700 transition-colors duration-200 flex items-center gap-2"
-                onClick={() => {
-                  if (
-                    window.confirm(
-                      "Are you sure you want to clear all draft data? This cannot be undone."
-                    )
-                  ) {
-                    clearDraftOfferData();
-                    // Reset form state
-                    setOffer({
-                      price: "",
-                      contingencies: "",
-                      closingDate: "",
-                      earnestMoney: "",
-                      inclusions: "",
-                      exclusions: "",
-                      signedAgreement: null,
-                      signature: null,
-                      preApproval: null,
-                      earnestMoneyAmount: "",
-                      escrowHolder: "",
-                      earnestTimeline: "",
-                      earnestInstructions: "",
-                      proofOfFunds: null,
-                      coverLetter: "",
-                    });
-                    setSelectedHome(null);
-                    alert("Draft data cleared successfully!");
+              {/* Section Action Buttons */}
+              <div className="flex gap-3 mt-6 pt-4 border-t border-beige/30">
+                <button
+                  type="button"
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2 ${
+                    !sectionValidation.purchaseAgreement
+                      ? "bg-gray-400 text-gray-600 cursor-not-allowed"
+                      : "bg-brown text-white hover:bg-brown/90"
+                  }`}
+                  onClick={generatePurchaseAgreement}
+                  disabled={
+                    loadingStates.purchaseAgreement ||
+                    !sectionValidation.purchaseAgreement
                   }
-                }}
-              >
-                <X className="h-4 w-4" />
-                Clear Draft
-              </button>
-              <button
-                type="button"
-                className="bg-navy text-white px-6 py-3 rounded-lg font-semibold hover:bg-navy/90 transition-colors duration-200 flex items-center gap-2"
-                onClick={() => alert("Email All Documents functionality")}
-              >
-                <Mail className="h-5 w-5" />
-                Email All Documents
-              </button>
+                >
+                  {loadingStates.purchaseAgreement ? (
+                    <Loader2 className="mobile-icon-xs animate-spin" />
+                  ) : (
+                    <FileCheck className="mobile-icon-xs" />
+                  )}
+                  {loadingStates.purchaseAgreement
+                    ? "Generating..."
+                    : "Generate Agreement"}
+                </button>
+              </div>
             </div>
-          </div>
-        </form>
-      </div>
+
+            {/* 2. Mortgage Pre-Approval or Proof of Funds */}
+            <div ref={sectionRefs[1]} className={sectionBox}>
+              <div className={sectionTitle}>
+                <CreditCard className="mobile-icon-sm text-brown" />
+                Mortgage Pre-Approval / Proof of Funds
+              </div>
+              <div className={infoBox}>
+                Must be a formal letter from your lender (not just
+                pre-qualification).
+                <br />
+                <span className="italic">
+                  If paying cash, upload a recent bank statement with account
+                  number redacted.
+                </span>
+              </div>
+              <div className={warningBox}>
+                <div className="flex items-start gap-2">
+                  <X className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <strong>You Don't Send a Pre-Approval</strong>
+                    <div className="mt-2">
+                      <div className="flex items-center gap-2 mb-1">
+                        <CheckCircle className="h-4 w-4 text-olive" />
+                        <span className="font-medium">Only if:</span>
+                      </div>
+                      <ul className="list-disc pl-6 mb-2 space-y-1">
+                        <li>
+                          You're making a cash offer and will send proof of
+                          funds instead
+                        </li>
+                        <li>
+                          You're waiting on pre-approval but want to signal
+                          intent early
+                        </li>
+                        <li>
+                          You're negotiating a deal off-market where financing
+                          is already known to the seller (e.g., parent selling
+                          to child)
+                        </li>
+                      </ul>
+                      <div className="flex items-start gap-responsive-xs">
+                        <AlertTriangle className="mobile-icon-xs text-red-500 mt-0.5 flex-shrink-0" />
+                        <span>
+                          If you're financing and don't send this, your offer
+                          may not be taken seriously.
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <label className={label}>
+                <Upload className="inline mobile-icon-xs mr-1" />
+                Upload Pre-Approval Letter (PDF)
+              </label>
+              <input
+                className={fileInput}
+                type="file"
+                accept="application/pdf"
+                onChange={(e) => handleFile(e, "preApproval")}
+              />
+              <label className={label}>
+                <Upload className="inline mobile-icon-xs mr-1" />
+                Or Upload Proof of Funds (PDF or Image)
+              </label>
+              <input
+                className={fileInput}
+                type="file"
+                accept="application/pdf,image/*"
+                onChange={(e) => handleFile(e, "proofOfFunds")}
+              />
+
+              {/* Section Action Buttons */}
+              <div className="flex gap-3 mt-6 pt-4 border-t border-beige/30">
+                <button
+                  type="button"
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2 ${
+                    !sectionValidation.preApproval
+                      ? "bg-gray-400 text-gray-600 cursor-not-allowed"
+                      : "bg-brown text-white hover:bg-brown/90"
+                  }`}
+                  onClick={generatePreApprovalLetter}
+                  disabled={
+                    loadingStates.preApprovalLetter ||
+                    !sectionValidation.preApproval
+                  }
+                >
+                  {loadingStates.preApprovalLetter ? (
+                    <Loader2 className="mobile-icon-xs animate-spin" />
+                  ) : (
+                    <FileCheck className="mobile-icon-xs" />
+                  )}
+                  {loadingStates.preApprovalLetter
+                    ? "Generating..."
+                    : "Generate Pre-Approval"}
+                </button>
+              </div>
+            </div>
+
+            {/* 3. Earnest Money Instructions */}
+            <div ref={sectionRefs[2]} className={sectionBox}>
+              <div className={sectionTitle}>
+                <DollarSign className="h-5 w-5 text-brown" />
+                Earnest Money Instructions
+              </div>
+              <div className={infoBox}>
+                You don’t send the money yet. Explain how much you’re putting
+                down, who will hold it in escrow, and the timeline for payment
+                (e.g., within 3 business days of acceptance).
+              </div>
+              <div className={warningBox}>
+                <div className="flex items-start gap-2">
+                  <X className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <strong>You Don't Send Earnest Money Info</strong>
+                    <div className="mt-2">
+                      <div className="flex items-center gap-2 mb-1">
+                        <CheckCircle className="h-4 w-4 text-olive" />
+                        <span className="font-medium">Only if:</span>
+                      </div>
+                      <ul className="list-disc pl-6 mb-2 space-y-1">
+                        <li>
+                          You're waiting to agree on terms first before putting
+                          money at risk
+                        </li>
+                        <li>
+                          You're in a hot market and want to speed up the offer,
+                          with the understanding that earnest money will come
+                          after acceptance
+                        </li>
+                        <li>
+                          Seller hasn't specified where it should be held
+                          (escrow/title)
+                        </li>
+                      </ul>
+                      <div className="flex items-start gap-2">
+                        <CheckCircle className="h-4 w-4 text-olive mt-0.5 flex-shrink-0" />
+                        <span>
+                          You should still mention your intent to send earnest
+                          money upon acceptance.
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <label className={label}>Earnest Money Amount</label>
+              <input
+                className={input}
+                type="text"
+                value={offer.earnestMoneyAmount}
+                onChange={(e) => handleChange(e, "earnestMoneyAmount")}
+                placeholder="e.g., 1% of purchase price or $5,000"
+                required
+              />
+              <label className={label}>Escrow Holder</label>
+              <input
+                className={input}
+                type="text"
+                value={offer.escrowHolder}
+                onChange={(e) => handleChange(e, "escrowHolder")}
+                placeholder="e.g., Title Company Name"
+                required
+              />
+              <label className={label}>Timeline for Payment</label>
+              <input
+                className={input}
+                type="text"
+                value={offer.earnestTimeline}
+                onChange={(e) => handleChange(e, "earnestTimeline")}
+                placeholder="e.g., Within 3 business days of acceptance"
+                required
+              />
+              <label className={label}>
+                Additional Earnest Money Instructions (optional)
+              </label>
+              <textarea
+                className={textarea}
+                value={offer.earnestInstructions}
+                onChange={(e) => handleChange(e, "earnestInstructions")}
+                placeholder="Any special instructions or notes"
+              />
+
+              {/* Section Action Buttons */}
+              <div className="flex gap-3 mt-6 pt-4 border-t border-beige/30">
+                <button
+                  type="button"
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2 ${
+                    !sectionValidation.earnestMoney
+                      ? "bg-gray-400 text-gray-600 cursor-not-allowed"
+                      : "bg-brown text-white hover:bg-brown/90"
+                  }`}
+                  onClick={generateEarnestMoneyInstructions}
+                  disabled={
+                    loadingStates.earnestMoneyInstructions ||
+                    !sectionValidation.earnestMoney
+                  }
+                >
+                  {loadingStates.earnestMoneyInstructions ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <FileCheck className="h-4 w-4" />
+                  )}
+                  {loadingStates.earnestMoneyInstructions
+                    ? "Generating..."
+                    : "Generate Instructions"}
+                </button>
+              </div>
+            </div>
+
+            {/* 4. (Optional) Buyer Cover Letter */}
+            <div ref={sectionRefs[3]} className={sectionBox}>
+              <div className={sectionTitle}>
+                <Heart className="h-5 w-5 text-brown" />
+                Buyer Cover Letter (Optional)
+              </div>
+              <div className={infoBox}>
+                Write a short, authentic note about why you love the home and
+                neighborhood. <br />
+                <span className="italic">
+                  Do not include any information about protected classes (Fair
+                  Housing compliance).
+                </span>
+              </div>
+              <div className={warningBox}>
+                <div className="flex items-start gap-2">
+                  <X className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <strong>
+                      You Don't Send a Cover Letter ("Love Letter")
+                    </strong>
+                    <div className="mt-2">
+                      <div className="flex items-center gap-2 mb-1">
+                        <CheckCircle className="h-4 w-4 text-olive" />
+                        <span className="font-medium">Usually skipped if:</span>
+                      </div>
+                      <ul className="list-disc pl-6 mb-2 space-y-1">
+                        <li>
+                          The seller's agent explicitly forbids it due to Fair
+                          Housing laws
+                        </li>
+                        <li>
+                          It's a highly competitive market where letters are
+                          discouraged
+                        </li>
+                        <li>You prefer to keep things strictly professional</li>
+                      </ul>
+                      <div className="flex items-start gap-2">
+                        <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                        <span>
+                          These are always optional, and in some states,
+                          discouraged or banned for ethical reasons.
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <label className={label}>Your Letter</label>
+              <textarea
+                className={textarea}
+                value={offer.coverLetter}
+                onChange={(e) => handleChange(e, "coverLetter")}
+                placeholder="Share your story (optional)"
+              />
+
+              {/* Section Action Buttons */}
+              <div className="flex gap-3 mt-6 pt-4 border-t border-beige/30">
+                <button
+                  type="button"
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2 ${
+                    !sectionValidation.coverLetter
+                      ? "bg-gray-400 text-gray-600 cursor-not-allowed"
+                      : "bg-brown text-white hover:bg-brown/90"
+                  }`}
+                  onClick={generateCoverLetter}
+                  disabled={
+                    loadingStates.coverLetter || !sectionValidation.coverLetter
+                  }
+                >
+                  {loadingStates.coverLetter ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <FileCheck className="h-4 w-4" />
+                  )}
+                  {loadingStates.coverLetter
+                    ? "Generating..."
+                    : "Generate Cover Letter"}
+                </button>
+              </div>
+            </div>
+
+            {/* Overall Action Buttons */}
+            <div className="bg-white rounded-xl shadow-sm p-6 mt-8 border border-beige/40">
+              <h3 className="text-lg font-semibold text-navy mb-4">
+                Complete Offer Package
+              </h3>
+              <div className="flex flex-wrap gap-4 justify-center">
+                <button
+                  type="button"
+                  className={`px-6 py-3 rounded-lg font-semibold transition-colors duration-200 flex items-center gap-2 ${
+                    !validateAllSections().isValid
+                      ? "bg-gray-400 text-gray-600 cursor-not-allowed"
+                      : "bg-brown text-white hover:bg-brown/90"
+                  }`}
+                  onClick={generateAllDocuments}
+                  disabled={
+                    loadingStates.allDocuments || !validateAllSections().isValid
+                  }
+                >
+                  {loadingStates.allDocuments ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    <FileCheck className="h-5 w-5" />
+                  )}
+                  {loadingStates.allDocuments
+                    ? "Generating All..."
+                    : "Generate All Documents"}
+                </button>
+                <button className={button} type="submit">
+                  <Download className="h-5 w-5" />
+                  Download All Documents
+                </button>
+                <button
+                  type="button"
+                  className="bg-red-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-700 transition-colors duration-200 flex items-center gap-2"
+                  onClick={() => {
+                    if (
+                      window.confirm(
+                        "Are you sure you want to clear all draft data? This cannot be undone."
+                      )
+                    ) {
+                      clearDraftOfferData();
+                      // Reset form state
+                      setOffer({
+                        price: "",
+                        contingencies: "",
+                        closingDate: "",
+                        earnestMoney: "",
+                        inclusions: "",
+                        exclusions: "",
+                        signedAgreement: null,
+                        signature: null,
+                        preApproval: null,
+                        earnestMoneyAmount: "",
+                        escrowHolder: "",
+                        earnestTimeline: "",
+                        earnestInstructions: "",
+                        proofOfFunds: null,
+                        coverLetter: "",
+                      });
+                      setSelectedHome(null);
+                      alert("Draft data cleared successfully!");
+                    }
+                  }}
+                >
+                  <X className="h-4 w-4" />
+                  Clear Draft
+                </button>
+                <button
+                  type="button"
+                  className="bg-navy text-white px-6 py-3 rounded-lg font-semibold hover:bg-navy/90 transition-colors duration-200 flex items-center gap-2"
+                  onClick={() => alert("Email All Documents functionality")}
+                >
+                  <Mail className="h-5 w-5" />
+                  Email All Documents
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );

@@ -1,17 +1,201 @@
 import { useState, useEffect } from "react";
 import MaintenanceScreen from "./pages/HomeAuth/MaintenanceScreen";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import LoginPage from "./pages/HomeAuth/LoginPage";
 import SignupPage from "./pages/HomeAuth/SignupPage";
 import ResetPasswordPage from "./pages/HomeAuth/ResetPasswordPage";
 import HomePage from "./pages/HomeAuth/HomePage.tsx";
-import Dashboard from "./components/layout/Dashboard.tsx";
+import DashboardLayout from "./components/layout/DashboardLayout.tsx";
 import VerificationPage from "./pages/HomeAuth/VerificationPage";
 import OnboardingPage from "./pages/HomeAuth/OnboardingPage";
 import PrivacyPolicy from "./pages/HomeAuth/PrivacyPolicy.tsx";
 import TermsOfService from "./pages/HomeAuth/TermsOfService.tsx";
 import ContactUs from "./pages/HomeAuth/ContactUs.tsx";
 import { AppProviders, UserProfile } from "./context";
+
+// Inner component that uses useLocation
+function AppRoutes({ user, handleLogout }: { user: UserProfile | null; handleLogout: () => void }) {
+  const location = useLocation();
+  
+  return (
+    <Routes>
+      {/* Root route - always show homepage */}
+      <Route path="/" element={<HomePage />} />
+      
+      {/* Public Routes */}
+      <Route path="/signup" element={<SignupPage />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/forgot-password" element={<ResetPasswordPage />} />
+      <Route path="/onboarding" element={<OnboardingPage />} />
+      <Route path="/verification" element={<VerificationPage />} />
+      <Route path="/privacy" element={<PrivacyPolicy />} />
+      <Route path="/terms" element={<TermsOfService />} />
+      <Route path="/contact" element={<ContactUs />} />
+
+      {/* Protected Routes */}
+      <Route
+        path="/dashboard/*"
+        element={
+          user ? (
+            <DashboardLayout user={user} onLogout={handleLogout} />
+          ) : (
+            <Navigate to="/login" state={{ from: location }} replace />
+          )
+        }
+      />
+      <Route
+        path="/search/*"
+        element={
+          user ? (
+            <DashboardLayout user={user} onLogout={handleLogout} />
+          ) : (
+            <Navigate to="/login" state={{ from: location }} replace />
+          )
+        }
+      />
+      <Route
+        path="/saved/*"
+        element={
+          user ? (
+            <DashboardLayout user={user} onLogout={handleLogout} />
+          ) : (
+            <Navigate to="/login" state={{ from: location }} replace />
+          )
+        }
+      />
+      <Route
+        path="/reports/*"
+        element={
+          user ? (
+            <DashboardLayout user={user} onLogout={handleLogout} />
+          ) : (
+            <Navigate to="/login" state={{ from: location }} replace />
+          )
+        }
+      />
+      <Route
+        path="/generate-report/*"
+        element={
+          user ? (
+            <DashboardLayout user={user} onLogout={handleLogout} />
+          ) : (
+            <Navigate to="/login" state={{ from: location }} replace />
+          )
+        }
+      />
+      <Route
+        path="/compare-reports/*"
+        element={
+          user ? (
+            <DashboardLayout user={user} onLogout={handleLogout} />
+          ) : (
+            <Navigate to="/login" state={{ from: location }} replace />
+          )
+        }
+      />
+      <Route
+        path="/ai-assistant/*"
+        element={
+          user ? (
+            <DashboardLayout user={user} onLogout={handleLogout} />
+          ) : (
+            <Navigate to="/login" state={{ from: location }} replace />
+          )
+        }
+      />
+      <Route
+        path="/personalization/*"
+        element={
+          user ? (
+            <DashboardLayout user={user} onLogout={handleLogout} />
+          ) : (
+            <Navigate to="/login" state={{ from: location }} replace />
+          )
+        }
+      />
+      <Route
+        path="/subscription/*"
+        element={
+          user ? (
+            <DashboardLayout user={user} onLogout={handleLogout} />
+          ) : (
+            <Navigate to="/login" state={{ from: location }} replace />
+          )
+        }
+      />
+      <Route
+        path="/negotiation-strategy/*"
+        element={
+          user ? (
+            <DashboardLayout user={user} onLogout={handleLogout} />
+          ) : (
+            <Navigate to="/login" state={{ from: location }} replace />
+          )
+        }
+      />
+      <Route
+        path="/escrow-legal-logistics/*"
+        element={
+          user ? (
+            <DashboardLayout user={user} onLogout={handleLogout} />
+          ) : (
+            <Navigate to="/login" state={{ from: location }} replace />
+          )
+        }
+      />
+      <Route
+        path="/inspections-due-diligence/*"
+        element={
+          user ? (
+            <DashboardLayout user={user} onLogout={handleLogout} />
+          ) : (
+            <Navigate to="/login" state={{ from: location }} replace />
+          )
+        }
+      />
+      <Route
+        path="/financing-insurance/*"
+        element={
+          user ? (
+            <DashboardLayout user={user} onLogout={handleLogout} />
+          ) : (
+            <Navigate to="/login" state={{ from: location }} replace />
+          )
+        }
+      />
+      <Route
+        path="/closing-moving-in/*"
+        element={
+          user ? (
+            <DashboardLayout user={user} onLogout={handleLogout} />
+          ) : (
+            <Navigate to="/login" state={{ from: location }} replace />
+          )
+        }
+      />
+      <Route
+        path="/client-information/*"
+        element={
+          user ? (
+            <DashboardLayout user={user} onLogout={handleLogout} />
+          ) : (
+            <Navigate to="/login" state={{ from: location }} replace />
+          )
+        }
+      />
+      <Route
+        path="/agent-connection/*"
+        element={
+          user ? (
+            <DashboardLayout user={user} onLogout={handleLogout} />
+          ) : (
+            <Navigate to="/login" state={{ from: location }} replace />
+          )
+        }
+      />
+    </Routes>
+  );
+}
 
 function App() {
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -103,30 +287,7 @@ function App() {
           <MaintenanceScreen />
         ) : (
           <div className="min-h-screen bg-off-white">
-            <Routes>
-              {/* Public Routes */}
-              <Route path="/" element={<HomePage />} />
-              <Route path="/signup" element={<SignupPage />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/forgot-password" element={<ResetPasswordPage />} />
-              <Route path="/onboarding" element={<OnboardingPage />} />
-              <Route path="/verification" element={<VerificationPage />} />
-              <Route path="/privacy" element={<PrivacyPolicy />} />
-              <Route path="/terms" element={<TermsOfService />} />
-              <Route path="/contact" element={<ContactUs />} />
-
-              {/* Protected Route */}
-              <Route
-                path="/dashboard/*"
-                element={
-                  user ? (
-                    <Dashboard user={user} onLogout={handleLogout} />
-                  ) : (
-                    <Navigate to="/login" />
-                  )
-                }
-              />
-            </Routes>
+            <AppRoutes user={user} handleLogout={handleLogout} />
           </div>
         )}
       </BrowserRouter>

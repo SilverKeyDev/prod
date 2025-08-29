@@ -15,7 +15,7 @@ import SuccessToast from "../../components/feedback/SuccessToast";
 import { useReports } from "../../context";
 import { Report } from "../../context/utils";
 import { formatFilenameToAddress } from "../../lib/addressFormat";
-import PageHeader from "../../components/ui/PageHeader";
+import PageHeader from "../../components/ui/base/PageHeader";
 import { useDocumentActions } from "../../hooks/useDocumentActions";
 import PdfModal from "../../components/modals/PdfModal";
 

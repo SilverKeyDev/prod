@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CheckCircle, AlertTriangle, MapPin, GraduationCap, Shield, ExternalLink, Star, Home, User, Phone } from 'lucide-react';
-import HeartSave from '../ui/HeartSave';
+import HeartSave from '../ui/cards/HeartSave';
 
 // Import SearchResult interface from SearchPage
 interface SearchResult {
@@ -263,7 +263,7 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({ property, o
       localStorage.setItem('generateReportState', JSON.stringify(generateReportState));
       
       // Navigate to the generate report page
-      navigate('/dashboard/generate-report');
+      navigate('/generate-report');
     }
   };
   

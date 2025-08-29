@@ -1,4 +1,8 @@
-export default function KeyTurnLoader({ message = "Unlocking..." }: { message?: string }) {
+export default function KeyTurnLoader({
+  message = "Unlocking...",
+}: {
+  message?: string;
+}) {
   const keyframeStyles = `
     @keyframes turnKey {
       0% { transform: rotate(0deg); }
@@ -15,10 +19,10 @@ export default function KeyTurnLoader({ message = "Unlocking..." }: { message?: 
   `;
 
   const containerStyle: React.CSSProperties = {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '15px',
-    animation: 'fadeIn 0.5s ease-in-out',
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "15px",
+    animation: "fadeIn 0.5s ease-in-out",
   };
 
   const keyStyle: React.CSSProperties = {

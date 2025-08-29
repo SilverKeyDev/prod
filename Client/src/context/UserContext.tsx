@@ -155,13 +155,13 @@ export function UserProvider({ children }: UserProviderProps) {
   // Gate initial load based on auth readiness and relevant routes
   useEffect(() => {
     const profileEnabled = authReady && !!user?.id && (
-      routeStartsWith('/dashboard') ||
+      routeStartsWith('/') ||
       routeStartsWith('/profile') ||
       routeStartsWith('/personalization')
     );
     
     const preferencesEnabled = authReady && !!user?.id && (
-      routeStartsWith('/dashboard') ||
+      routeStartsWith('/') ||
       routeStartsWith('/personalization') ||
       routeStartsWith('/onboarding') ||
       routeStartsWith('/generate') // Report generation needs preferences
@@ -182,10 +182,10 @@ export function UserProvider({ children }: UserProviderProps) {
       if (e.key === "id_token") {
         if (e.newValue) {
           // Only refresh if on relevant routes
-          const profileEnabled = routeStartsWith('/dashboard') ||
+          const profileEnabled = routeStartsWith('/') ||
                                  routeStartsWith('/profile') ||
                                  routeStartsWith('/personalization');
-          const preferencesEnabled = routeStartsWith('/dashboard') ||
+          const preferencesEnabled = routeStartsWith('/') ||
                                      routeStartsWith('/personalization') ||
                                      routeStartsWith('/onboarding') ||
                                      routeStartsWith('/generate');

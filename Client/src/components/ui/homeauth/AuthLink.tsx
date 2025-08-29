@@ -17,7 +17,7 @@ export default function AuthLink({
   const baseClasses = "transition-colors";
   
   const variantClasses = {
-    footer: "text-black/60 hover:text-black hover:underline underline-offset-4 decoration-brown/40 text-xs sm:text-sm",
+    footer: "text-black/60 hover:text-black text-xs sm:text-sm px-responsive-sm transition-all duration-200",
     inline: "text-gray-600 hover:text-gray-800 text-xs sm:text-sm",
     back: "inline-flex items-center text-black/60 hover:text-black mb-4"
   };
@@ -25,7 +25,7 @@ export default function AuthLink({
   return (
     <Link
       to={to}
-      className={`${baseClasses} ${variantClasses[variant]} ${className}`}
+      className={`${baseClasses} ${variantClasses[variant]} ${className} hover:underline underline-offset-2 decoration-1`}
     >
       {children}
     </Link>

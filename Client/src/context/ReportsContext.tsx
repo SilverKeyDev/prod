@@ -161,13 +161,11 @@ export function ReportsProvider({ children }: ReportsProviderProps) {
   // Gate initial load based on auth readiness and relevant routes
   useEffect(() => {
     const reportsEnabled = authReady && !!user?.id && (
-      routeStartsWith('/dashboard/reports') || 
       routeStartsWith('/reports') ||
-      routeStartsWith('/dashboard') // Dashboard may show reports summary
+      routeStartsWith('/') // Dashboard may show reports summary
     );
     
     const compareEnabled = authReady && !!user?.id && (
-      routeStartsWith('/dashboard/compare') ||
       routeStartsWith('/compare')
     );
     
@@ -186,11 +184,9 @@ export function ReportsProvider({ children }: ReportsProviderProps) {
       if (e.key === "id_token") {
         if (e.newValue) {
           // Only refresh if on relevant routes
-          const reportsEnabled = routeStartsWith('/dashboard/reports') || 
-                                 routeStartsWith('/reports') ||
-                                 routeStartsWith('/dashboard');
-          const compareEnabled = routeStartsWith('/dashboard/compare') ||
-                                routeStartsWith('/compare');
+          const reportsEnabled = routeStartsWith('/reports') ||
+                                 routeStartsWith('/');
+          const compareEnabled = routeStartsWith('/compare');
           
           if (reportsEnabled) refreshReports();
           if (compareEnabled) refreshCompareReports();
@@ -212,11 +208,9 @@ export function ReportsProvider({ children }: ReportsProviderProps) {
   // Listen for report generation events - only refresh if on relevant routes
   useEffect(() => {
     const handler = () => {
-      const reportsEnabled = routeStartsWith('/dashboard/reports') || 
-                             routeStartsWith('/reports') ||
-                             routeStartsWith('/dashboard');
-      const compareEnabled = routeStartsWith('/dashboard/compare') ||
-                            routeStartsWith('/compare');
+      const reportsEnabled = routeStartsWith('/reports') ||
+                             routeStartsWith('/');
+      const compareEnabled = routeStartsWith('/compare');
       
       if (reportsEnabled) refreshReports();
       if (compareEnabled) refreshCompareReports();

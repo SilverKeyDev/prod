@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Mail, Lock, User as UserIcon, Phone, ArrowLeft } from "lucide-react";
+import { Mail, Lock, User as UserIcon, Phone } from "lucide-react";
 import { authApi } from "../../lib/api";
 import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
@@ -8,11 +8,10 @@ import {
   PasswordValidation,
   usePasswordValidation,
 } from "../../components/feedback/PasswordValidation";
-import MiniLogo from "../../components/ui/MiniLogo";
-import AuthInput from "../../components/ui/AuthInput";
-import AuthButton from "../../components/ui/AuthButton";
-import AuthLink from "../../components/ui/AuthLink";
-import AuthFooter from "../../components/ui/AuthFooter";
+import AuthInput from "../../components/ui/homeauth/AuthInput";
+import AuthButton from "../../components/ui/homeauth/AuthButton";
+import AuthLink from "../../components/ui/homeauth/AuthLink";
+import AuthPageLayout from "../../components/layout/AuthPageLayout";
 
 interface SignupPageProps {}
 
@@ -81,141 +80,87 @@ export default function SignupPage({}: SignupPageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-off-white flex items-center justify-center px-responsive-sm py-responsive-md">
-      <div className="w-full max-w-md">
-        {/* Header */}
-        <div className="text-center space-y-responsive-md">
-          <h2 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-serif text-black space-y-responsive-xs flex items-center justify-center gap-responsive-xs">
-            <MiniLogo size="md" />
-            Create your account
-          </h2>
+    <AuthPageLayout 
+      title="Create your account" 
+      subtitle="Join thousands of users making smarter property decisions"
+      logoSize="lg"
+      variant="wide"
+    >
+      {/* Signup Form */}
+      <form onSubmit={handleSubmit} className="card space-y-responsive-md">
+
+        <AuthInput
+          label="Full name"
+          type="text"
+          name="name"
+          value={formData.name}
+          onChange={handleChange}
+          placeholder="Enter your full name"
+          icon={UserIcon}
+          autoComplete="name"
+          required
+        />
+
+        <AuthInput
+          label="Email address"
+          type="email"
+          name="email"
+          value={formData.email}
+          onChange={handleChange}
+          placeholder="Enter your email"
+          icon={Mail}
+          autoComplete="email"
+          required
+        />
+
+        <div className="space-y-1">
+          <AuthInput
+            label="Password"
+            type="password"
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+            placeholder="Enter password"
+            icon={Lock}
+            autoComplete="new-password"
+            required
+          />
+          <PasswordValidation
+            password={formData.password}
+            showValidation={formData.password.length > 0}
+          />
         </div>
 
-        {/* Signup Form */}
-        <form onSubmit={handleSubmit} className="card space-y-responsive-md">
-          {/* Home Button */}
-          <AuthLink to="/" variant="back">
-            <ArrowLeft className="mobile-icon-sm mr-2" />
-            <span className="text-responsive-xs font-medium">Back to Home</span>
-          </AuthLink>
-
-          <AuthInput
-            label="Full name"
-            type="text"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            placeholder="Enter your full name"
-            icon={UserIcon}
-            autoComplete="name"
-            required
-          />
-
-          <AuthInput
-            label="Email address"
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            placeholder="Enter your email"
-            icon={Mail}
-            autoComplete="email"
-            required
-          />
-
-          <div className="mb-6">
-            <label className="block text-responsive-xs font-medium text-black space-y-responsive-xs">
-              Password
-            </label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 mobile-icon-xs text-black/40" />
-              <input
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                className="input-field pl-10 btn-responsive-md text-responsive-sm border-gray-300 focus:border-brown focus:ring-brown/20"
-                placeholder="Enter password"
-                autoComplete="new-password"
-                required
-              />
-            </div>
-            <PasswordValidation
-              password={formData.password}
-              showValidation={formData.password.length > 0}
+        {/* Phone */}
+        <div className="space-y-1">
+          <label className="block text-responsive-sm font-semibold text-black/60">
+            Phone number
+          </label>
+          <div className="relative">
+            <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 mobile-icon-xs text-black/40 z-10" />
+            <PhoneInput
+              international
+              defaultCountry="US"
+              value={phoneValue}
+              onChange={setPhoneValue}
+              placeholder="Enter phone number"
+              className="input-field pl-10 btn-responsive-md text-responsive-xs border-gray-300 focus:border-brown focus:ring-brown/20 placeholder:font-light"
             />
           </div>
+        </div>
 
-          {/* Phone */}
-          <div className="mb-6">
-            <label className="block text-responsive-xs font-medium text-black space-y-responsive-xs">
-              Phone number
-            </label>
-            <div className="relative">
-              <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 mobile-icon-xs text-black/40 z-10" />
-              <PhoneInput
-                international
-                defaultCountry="US"
-                value={phoneValue}
-                onChange={setPhoneValue}
-                placeholder="Enter phone number"
-                className="phone-input"
-              />
-              <style>{`
-                .phone-input {
-                  width: 100%;
-                  padding: 0.75rem 0.75rem 0.75rem 2.5rem;
-                  border: 1px solid #d1d5db;
-                  border-radius: 0.5rem;
-                  font-size: 0.875rem;
-                  line-height: 1.25rem;
-                  background-color: white;
-                  transition: border-color 0.15s ease-in-out,
-                    box-shadow 0.15s ease-in-out;
-                  height: 3rem;
-                }
-                .phone-input:focus {
-                  outline: none;
-                  border-color: #92400e;
-                  box-shadow: 0 0 0 2px rgba(146, 64, 14, 0.2);
-                }
-                .PhoneInputCountry {
-                  margin-right: 0.5rem;
-                }
-                .PhoneInputInput {
-                  border: none;
-                  outline: none;
-                  width: 100%;
-                  padding: 0.5rem 0;
-                }
-              `}</style>
-            </div>
-          </div>
+        {/* Submit */}
+        <AuthButton type="submit" loading={loading} disabled={loading}>
+          Create account
+        </AuthButton>
 
-          {/* Submit */}
-          <AuthButton
-            type="submit"
-            loading={loading}
-            disabled={loading}
-          >
-            Create account
-          </AuthButton>
-
-          <div className="text-center text-responsive-xs">
-            <span className="text-gray-600 text-responsive-xs">
-              Already have an account?{" "}
-            </span>
-            <AuthLink
-              to="/login"
-              className="text-brown hover:text-brown/80 hover:underline underline-offset-4 transition-colors"
-            >
-              Sign in
-            </AuthLink>
-          </div>
-        </form>
-
-        <AuthFooter />
-      </div>
-    </div>
+        <div className="text-center text-signup-mid">
+          <span className="text-gray-600 text-signup-mid">Already have an account?</span><AuthLink
+            to="/login"
+            className="text-brown hover:text-brown/80 hover:underline underline-offset-4 transition-colors"
+          >Sign in</AuthLink>
+        </div>
+      </form>
+    </AuthPageLayout>
   );
 }

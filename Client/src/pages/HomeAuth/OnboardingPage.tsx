@@ -1,21 +1,16 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useGoogleMaps } from "../../context";
-import { estimateAffordableHomePrice } from "../../lib/affordabilityCalculator";
 import {
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
-  ChevronDown,
-  Check,
-  User,
-  Home,
-  MapPin,
-  Building,
-  MessageSquare,
+  GripVertical,
   Plus,
   X,
-  GripVertical,
+  Check,
 } from "lucide-react";
+import KeyLogo from "/logo.png";
 import {
   DndContext,
   closestCenter,
@@ -30,14 +25,40 @@ import {
   SortableContext,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
-  useSortable,
 } from "@dnd-kit/sortable";
+import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import ImportantLocationsInput from "../../components/ui/ImportantLocationsInput";
-import KeyLogo from "../../components/ui/KeyLogo";
-import OliveCheckbox from "../../components/ui/OliveCheckbox";
-import PriceRangeSlider from "../../components/ui/PriceRangeSlider";
+import ImportantLocationsInput from "../../components/ui/onboardpersonalize/ImportantLocationsInput";
+import Loading from "../../components/ui/base/Loading";
+import OliveCheckbox from "../../components/ui/base/OliveCheckbox";
+import PriceRangeSlider from "../../components/ui/onboardpersonalize/PriceRangeSlider";
 import ValidationWarning from "../../components/feedback/ValidationWarning";
+import OnboardPersonalizeInput from "../../components/ui/onboardpersonalize/OnboardPersonalizeInput";
+import OnboardPersonalizeDropdown from "../../components/ui/onboardpersonalize/OnboardPersonalizeDropdown";
+import { RequiredLabel, OptionalLabel } from "../../components/ui/onboardpersonalize/OnboardPersonalizeLabel";
+import OnboardingHeader from "../../components/ui/onboardpersonalize/OnboardingHeader";
+import HomePriceEstimate from "../../components/ui/onboardpersonalize/HomePriceEstimate";
+import { estimateAffordableHomePrice } from "../../lib/affordabilityCalculator";
+import {
+  OnboardingData,
+  ONBOARDING_STEPS,
+  DEFAULT_REPORT_SECTIONS,
+  GENDER_OPTIONS,
+  PETS_OPTIONS,
+  CREDIT_SCORE_OPTIONS,
+  HOUSING_TYPE_OPTIONS,
+  LOT_SIZE_OPTIONS,
+  WALKABILITY_OPTIONS,
+  COMMUNICATION_FREQUENCY_OPTIONS,
+  INFORMATION_DETAIL_OPTIONS,
+  BUYERS_AGENT_OPTIONS,
+  HOME_AGE_OPTIONS,
+  RENOVATION_PREFERENCE_OPTIONS,
+  PROPERTY_USE_OPTIONS,
+  validateFormData,
+  SECTION_TITLES,
+  FIELD_LABELS
+} from "../../lib/onboard";
 
 // Extend window interface for Google Maps
 declare global {
@@ -46,92 +67,11 @@ declare global {
   }
 }
 
-interface OnboardingData {
-  // Demographics
-  pets?: string;
-  age?: number;
-  gender?: string;
-  occupation?: string;
 
-  // Financial
-  gross_income?: number;
-  home_budget?: number;
-  credit_score_range?: string;
-  down_payment?: number;
-  ideal_zip_code?: string;
+const STEPS = ONBOARDING_STEPS;
 
-  // Home Buying Process
-  preferred_housing_type?: string;
-  preferred_bathrooms?: number;
-  preferred_bedrooms?: number;
-  preferred_lot_size?: string;
-  preferred_home_age?: string;
-  preferred_architectural_style?: string;
-  renovation_preference?: string;
-  intended_property_use?: string;
-  architectural_style_preference?: string;
-  preferred_home_features?: string[];
-  deal_breakers?: string[];
+const REPORT_SECTIONS = DEFAULT_REPORT_SECTIONS;
 
-  // Location & Housing
-  important_locations?: {
-    name: string;
-    address: string;
-    commute_tolerance?: number;
-  }[];
-  walkability_importance?: string;
-  // Communication
-  communication_frequency?: string;
-  information_detail_level?: string;
-  has_buyers_agent?: string; // 'yes' | 'no'
-  looking_for_buyers_agent?: boolean;
-
-  // Report Customization
-  report_section_priorities?: string[];
-}
-
-const STEPS = [
-  { id: "demographics", title: "About You", icon: User },
-  { id: "financial", title: "Financial Profile", icon: Building },
-  { id: "housing", title: "Housing Preferences", icon: Home },
-  { id: "location", title: "Location Preferences", icon: MapPin },
-  { id: "communication", title: "Communication", icon: MessageSquare },
-  { id: "reportcustomization", title: "Report Customization", icon: Check },
-];
-
-const REPORT_SECTIONS = [
-  { key: "neighborhood_overview", label: "Neighborhood Overview" },
-  { key: "safety", label: "Safety & Crime" },
-  { key: "culture_and_events", label: "Culture & Events" },
-  { key: "social_character", label: "Social Character" },
-  { key: "local_amenities", label: "Local Amenities" },
-  { key: "commute", label: "Commute & Transportation" },
-  { key: "family_friendly", label: "Family-Friendly Features" },
-  { key: "nightlife_and_dating", label: "Nightlife & Dating" },
-  { key: "development", label: "Development & Growth" },
-  { key: "environment_utilities", label: "Environment & Utilities" },
-  { key: "financial_information", label: "Cost of Living & Finances" },
-  { key: "schools", label: "Schools & Education" },
-  { key: "extra_tips", label: "Extra Tips & Insights" },
-];
-
-// Helper component for required field labels
-const RequiredLabel: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => (
-  <label className="block text-sm font-medium text-black mb-2">
-    {children}
-  </label>
-);
-
-// Helper component for optional field labels
-const OptionalLabel: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => (
-  <label className="block text-sm font-medium text-black mb-2">
-    {children}
-  </label>
-);
 
 // Sortable Report Section Component
 interface SortableReportSectionProps {
@@ -275,7 +215,7 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={onToggle}
-        className="mobile-input text-responsive-sm flex items-center justify-between cursor-pointer hover:border-brown focus:border-brown focus:ring-brown/20 w-full touch-friendly"
+        className="mobile-input text-xs sm:text-sm md:text-base text-gray-700 flex items-center justify-between cursor-pointer hover:border-brown focus:border-brown focus:ring-brown/20 w-full touch-friendly"
       >
         <span className="text-left">
           {selectedOption ? selectedOption.label : placeholder}
@@ -296,12 +236,12 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
                 onChange(option.value);
                 onToggle();
               }}
-              className={`w-full px-responsive-sm py-responsive-xs text-left text-responsive-sm hover:bg-brown/5 transition-colors duration-150 touch-friendly ${
+              className={`w-full px-responsive-sm py-responsive-xs text-left text-xs sm:text-sm md:text-base hover:bg-brown/5 transition-colors duration-150 touch-friendly ${
                 index === 0 ? "first:rounded-t-lg" : ""
               } ${index === options.length - 1 ? "last:rounded-b-lg" : ""} ${
                 value === option.value
                   ? "bg-brown/10 text-brown font-medium"
-                  : "text-black"
+                  : "text-gray-700"
               }`}
             >
               {option.label}
@@ -323,9 +263,6 @@ export default function OnboardingPage() {
   const [loading, setLoading] = useState(false);
   const [scriptsReady, setScriptsReady] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [homePriceResult, setHomePriceResult] = useState<any>(null);
-  const [homePriceLoading, setHomePriceLoading] = useState(false);
-  const [homePriceError, setHomePriceError] = useState<string | null>(null);
   const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>(
     {}
   );
@@ -337,7 +274,129 @@ export default function OnboardingPage() {
     missingFields: string[];
     errors: string[];
   }>({ missingFields: [], errors: [] });
+  
+  // Home price calculation state
+  const [homePriceLoading, setHomePriceLoading] = useState(false);
+  const [homePriceError, setHomePriceError] = useState<string | null>(null);
+  const [homePriceResult, setHomePriceResult] = useState<any>(null);
+  const [showHomePriceDetails, setShowHomePriceDetails] = useState(false);
+  const [isAffordabilityCollapsed, setIsAffordabilityCollapsed] = useState(false);
   const navigate = useNavigate();
+
+  // Generate explanation text for the home price calculation
+  const generateExplanation = (result: any, data: OnboardingData) => {
+    // Calculate down payment percent for display
+    const downPaymentPercent =
+      result.maxHomePrice > 0
+        ? ((result.downPayment / result.maxHomePrice) * 100).toFixed(1)
+        : "-";
+
+    return `Based on your gross annual income of $${data.gross_income?.toLocaleString()}, credit score range, and a down payment of $${data.down_payment?.toLocaleString()} (${downPaymentPercent}% of home price), we estimate you can afford a home up to $${result.maxHomePrice.toLocaleString()}.
+
+This estimate is calculated using a debt-to-income (DTI) approach: your maximum allowable monthly housing cost is determined as a percentage of your gross monthly income, in line with common DTI limits. We then backsolve for the highest home price you can afford, factoring in principal, interest, property taxes, homeowner's insurance, and any required PMI.
+
+Key assumptions used:
+- **Interest Rate:** ${
+      typeof result.interestRate === "number"
+        ? (result.interestRate * 100).toFixed(2)
+        : "-"
+    }%
+- **Property Tax Rate:** ${
+      typeof result.propertyTaxRate === "number"
+        ? (result.propertyTaxRate * 100).toFixed(2)
+        : "-"
+    }%
+- **PMI Rate:** ${
+      typeof result.pmiRate === "number"
+        ? (result.pmiRate * 100).toFixed(2)
+        : "-"
+    }%
+
+Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleString()} includes principal, interest, property taxes, homeowner's insurance, and PMI (if applicable). This approach gives you a realistic maximum home price based on your income and debts—not just a budget cap.`;
+  };
+
+  const calculateHomePrice = async () => {
+    // Check if we have all required data
+    if (!formData.gross_income || !formData.ideal_zip_code) {
+      return;
+    }
+
+    try {
+      setHomePriceLoading(true);
+      setHomePriceError(null);
+
+      // Map credit score range to a numeric value
+      let creditScore = 700; // Default to good credit
+      switch (formData.credit_score_range) {
+        case "poor":
+          creditScore = 550;
+          break;
+        case "fair":
+          creditScore = 630;
+          break;
+        case "good":
+          creditScore = 700;
+          break;
+        case "very_good":
+          creditScore = 770;
+          break;
+        case "excellent":
+          creditScore = 800;
+          break;
+      }
+
+      // Calculate down payment percentage based on savings
+      const downPaymentAmount = formData.down_payment || 50000;
+
+      const result = await estimateAffordableHomePrice({
+        grossAnnualIncome: formData.gross_income || 0,
+        creditScore,
+        zipCode: formData.ideal_zip_code || "",
+        downPayment: downPaymentAmount,
+      });
+
+      if ("error" in result) {
+        setHomePriceError(result.error);
+        setHomePriceResult(null);
+      } else {
+        setHomePriceResult({
+          ...result,
+          explanation: generateExplanation(result, formData),
+        });
+      }
+    } catch (error) {
+      setHomePriceError(
+        error instanceof Error
+          ? error.message
+          : "Failed to calculate home price"
+      );
+      setHomePriceResult(null);
+    } finally {
+      setHomePriceLoading(false);
+    }
+  };
+
+  // Trigger home price calculation when relevant form data changes
+  useEffect(() => {
+    // Only calculate if we're on the financial section
+    if (currentStep !== 1) return;
+
+    // Check if we have the required data
+    if (
+      formData.gross_income &&
+      formData.ideal_zip_code &&
+      formData.credit_score_range &&
+      formData.down_payment
+    ) {
+      calculateHomePrice();
+    }
+  }, [
+    formData.gross_income,
+    formData.ideal_zip_code,
+    formData.credit_score_range,
+    formData.down_payment,
+    currentStep,
+  ]);
 
   // Drag and drop sensors
   const sensors = useSensors(
@@ -463,119 +522,13 @@ export default function OnboardingPage() {
   }, [formData]);
 
   // Trigger home price calculation when relevant form data changes
-  useEffect(() => {
-    // Only calculate if we're on the financial step
-    if (STEPS[currentStep].id !== "financial") return;
-
-    // Only calculate if we have the minimum required data
-    if (formData.gross_income && formData.ideal_zip_code) {
-      calculateHomePrice();
-    }
-  }, [
-    formData.gross_income,
-    formData.credit_score_range,
-    formData.ideal_zip_code,
-    currentStep,
-  ]);
 
   // Update form data with new value
   const updateFormData = (field: keyof OnboardingData, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  // Calculate home price based on form data
-  const calculateHomePrice = async () => {
-    // Check if we have all required data
-    if (!formData.gross_income || !formData.ideal_zip_code) {
-      return;
-    }
 
-    try {
-      setHomePriceLoading(true);
-      setHomePriceError(null);
-
-      // Map credit score range to a numeric value
-      let creditScore = 700; // Default to good credit
-      switch (formData.credit_score_range) {
-        case "poor":
-          creditScore = 550;
-          break;
-        case "fair":
-          creditScore = 630;
-          break;
-        case "good":
-          creditScore = 700;
-          break;
-        case "very_good":
-          creditScore = 770;
-          break;
-        case "excellent":
-          creditScore = 800;
-          break;
-      }
-
-      // Calculate down payment percentage based on savings
-      const downPaymentAmount = formData.down_payment || 50000;
-
-      const result = await estimateAffordableHomePrice({
-        grossAnnualIncome: formData.gross_income || 0,
-        creditScore,
-        zipCode: formData.ideal_zip_code || "",
-        downPayment: downPaymentAmount,
-      });
-
-      if ("error" in result) {
-        setHomePriceError(result.error);
-        setHomePriceResult(null);
-      } else {
-        setHomePriceResult({
-          ...result,
-          explanation: generateExplanation(result, formData),
-        });
-      }
-    } catch (error) {
-      setHomePriceError(
-        error instanceof Error
-          ? error.message
-          : "Failed to calculate home price"
-      );
-      setHomePriceResult(null);
-    } finally {
-      setHomePriceLoading(false);
-    }
-  };
-
-  // Generate explanation text for the home price calculation
-  const generateExplanation = (result: any, data: OnboardingData) => {
-    // Calculate down payment percent for display
-    const downPaymentPercent =
-      result.maxHomePrice > 0
-        ? ((result.downPayment / result.maxHomePrice) * 100).toFixed(1)
-        : "-";
-
-    return `Based on your gross annual income of $${data.gross_income?.toLocaleString()}, credit score range, and a down payment of $${data.down_payment?.toLocaleString()} (${downPaymentPercent}% of home price), we estimate you can afford a home up to $${result.maxHomePrice.toLocaleString()}.
-
-This estimate is calculated using a debt-to-income (DTI) approach: your maximum allowable monthly housing cost is determined as a percentage of your gross monthly income, in line with common DTI limits. We then backsolve for the highest home price you can afford, factoring in principal, interest, property taxes, homeowner's insurance, and any required PMI.
-
-Key assumptions used:
-- **Interest Rate:** ${
-      typeof result.interestRate === "number"
-        ? (result.interestRate * 100).toFixed(2)
-        : "-"
-    }%
-- **Property Tax Rate:** ${
-      typeof result.propertyTaxRate === "number"
-        ? result.propertyTaxRate.toFixed(2)
-        : "-"
-    }%
-- **DTI Used:** ${
-      typeof result.dtiUsed === "number"
-        ? (result.dtiUsed * 100).toFixed(0)
-        : "-"
-    }%
-
-Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleString()} includes principal, interest, property taxes, homeowner's insurance, and PMI (if applicable). This approach gives you a realistic maximum home price based on your income and debts—not just a budget cap.`;
-  };
 
   // Dropdown utility functions
   const toggleDropdown = (fieldName: string) => {
@@ -651,158 +604,10 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
     setCurrentStep(stepIndex);
   };
 
-  // Validation function to check if all required fields are filled
-  const validateFormData = (): {
-    isValid: boolean;
-    missingFields: string[];
-    errors: string[];
-  } => {
-    const missingFields: string[] = [];
-    const errors: string[] = [];
-
-    // Demographics - Required fields
-    if (!formData.age || formData.age <= 0) {
-      missingFields.push("Age");
-    }
-    if (!formData.gender || formData.gender.trim() === "") {
-      missingFields.push("Gender");
-    }
-    if (!formData.occupation || formData.occupation.trim() === "") {
-      missingFields.push("Occupation");
-    }
-    if (!formData.pets || formData.pets.trim() === "") {
-      missingFields.push("Pet ownership status");
-    }
-
-    // Financial - Required fields
-    if (!formData.gross_income || formData.gross_income <= 0) {
-      missingFields.push("Gross income");
-    }
-    if (!formData.home_budget || formData.home_budget <= 0) {
-      missingFields.push("Home budget");
-    }
-    if (
-      !formData.credit_score_range ||
-      formData.credit_score_range.trim() === ""
-    ) {
-      missingFields.push("Credit score range");
-    }
-    if (!formData.down_payment || formData.down_payment < 0) {
-      missingFields.push("Down payment");
-    }
-
-    // Housing - Required fields
-    if (
-      !formData.preferred_housing_type ||
-      formData.preferred_housing_type.trim() === ""
-    ) {
-      missingFields.push("Preferred housing type");
-    }
-    if (!formData.preferred_bedrooms || formData.preferred_bedrooms <= 0) {
-      missingFields.push("Preferred bedrooms");
-    }
-    if (!formData.preferred_bathrooms || formData.preferred_bathrooms <= 0) {
-      missingFields.push("Preferred bathrooms");
-    }
-    if (
-      !formData.preferred_lot_size ||
-      formData.preferred_lot_size.trim() === ""
-    ) {
-      missingFields.push("Preferred lot size");
-    }
-    if (
-      !formData.preferred_home_age ||
-      formData.preferred_home_age.trim() === ""
-    ) {
-      missingFields.push("Preferred home age");
-    }
-    if (
-      !formData.renovation_preference ||
-      formData.renovation_preference.trim() === ""
-    ) {
-      missingFields.push("Renovation preference");
-    }
-    if (
-      !formData.intended_property_use ||
-      formData.intended_property_use.trim() === ""
-    ) {
-      missingFields.push("Intended property use");
-    }
-
-    // Location - Required fields
-    if (
-      !formData.important_locations ||
-      formData.important_locations.length === 0
-    ) {
-      missingFields.push("At least one important location");
-    } else {
-      // Validate each important location has required fields
-      formData.important_locations.forEach((location, index) => {
-        if (!location.name || location.name.trim() === "") {
-          missingFields.push(`Important location ${index + 1} name`);
-        }
-        if (!location.address || location.address.trim() === "") {
-          missingFields.push(`Important location ${index + 1} address`);
-        }
-        if (!location.commute_tolerance || location.commute_tolerance <= 0) {
-          missingFields.push(
-            `Important location ${index + 1} commute tolerance`
-          );
-        }
-      });
-    }
-
-    if (
-      !formData.walkability_importance ||
-      formData.walkability_importance.trim() === ""
-    ) {
-      missingFields.push("Walkability importance");
-    }
-
-    // Communication - Required fields
-    if (
-      !formData.communication_frequency ||
-      formData.communication_frequency.trim() === ""
-    ) {
-      missingFields.push("Communication frequency");
-    }
-    if (
-      !formData.information_detail_level ||
-      formData.information_detail_level.trim() === ""
-    ) {
-      missingFields.push("Information detail level");
-    }
-    if (!formData.has_buyers_agent || formData.has_buyers_agent.trim() === "") {
-      missingFields.push("Buyers agent status");
-    }
-
-    // Report Customization - At least one section must be selected
-    if (
-      !formData.report_section_priorities ||
-      formData.report_section_priorities.length === 0
-    ) {
-      missingFields.push("At least one report section");
-    }
-
-    // Additional validation rules
-    if (
-      formData.down_payment &&
-      formData.home_budget &&
-      formData.down_payment > formData.home_budget
-    ) {
-      errors.push("Down payment cannot be higher than home budget.");
-    }
-
-    return {
-      isValid: missingFields.length === 0 && errors.length === 0,
-      missingFields,
-      errors,
-    };
-  };
 
   const handleSubmit = async () => {
     // Validate form data before submission
-    const validation = validateFormData();
+    const validation = validateFormData(formData);
 
     if (!validation.isValid) {
       // Show the custom validation warning component
@@ -944,36 +749,32 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
       case "demographics":
         return (
           <div className="space-y-6">
-            <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
+            <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-serif text-black mb-4 sm:mb-6">
               Tell us about yourself
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <RequiredLabel>Age</RequiredLabel>
-                <input
+                <OnboardPersonalizeInput
                   type="number"
-                  value={formData.age || ""}
+                  value={formData.age?.toString() || ""}
                   onChange={(e) =>
                     updateFormData("age", parseInt(e.target.value) || undefined)
                   }
-                  className="mobile-input"
                   placeholder="Enter your age"
+                  min={18}
+                  max={100}
                 />
               </div>
 
               <div>
                 <RequiredLabel>Gender</RequiredLabel>
-                <CustomDropdown
+                <OnboardPersonalizeDropdown
                   value={formData.gender || ""}
                   onChange={(value) => updateFormData("gender", value)}
-                  options={[
-                    { value: "male", label: "Male" },
-                    { value: "female", label: "Female" },
-                    { value: "non-binary", label: "Non-binary" },
-                    { value: "prefer_not_to_say", label: "Prefer not to say" },
-                  ]}
-                  placeholder="Select..."
+                  options={GENDER_OPTIONS}
+                  placeholder="Select gender"
                   isOpen={openDropdowns.gender || false}
                   onToggle={() => toggleDropdown("gender")}
                   dropdownRef={getDropdownRef("gender")}
@@ -981,30 +782,25 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
               </div>
 
               <div>
-                <RequiredLabel>Do you have pets?</RequiredLabel>
-                <CustomDropdown
-                  value={formData.pets || ""}
-                  onChange={(value) => updateFormData("pets", value)}
-                  options={[
-                    { value: "yes", label: "Yes" },
-                    { value: "no", label: "No" },
-                    { value: "prefer_not_to_say", label: "Prefer not to say" },
-                  ]}
-                  placeholder="Select..."
-                  isOpen={openDropdowns.pets || false}
-                  onToggle={() => toggleDropdown("pets")}
-                  dropdownRef={getDropdownRef("pets")}
+                <RequiredLabel>Occupation</RequiredLabel>
+                <OnboardPersonalizeInput
+                  type="text"
+                  value={formData.occupation || ""}
+                  onChange={(e) => updateFormData("occupation", e.target.value)}
+                  placeholder="Your job title"
                 />
               </div>
 
               <div>
-                <RequiredLabel>Occupation</RequiredLabel>
-                <input
-                  type="text"
-                  value={formData.occupation || ""}
-                  onChange={(e) => updateFormData("occupation", e.target.value)}
-                  className="mobile-input"
-                  placeholder="Your job title"
+                <OptionalLabel>Pet Ownership Status</OptionalLabel>
+                <OnboardPersonalizeDropdown
+                  value={formData.pets || ""}
+                  onChange={(value) => updateFormData("pets", value)}
+                  options={PETS_OPTIONS}
+                  placeholder="Select pet status"
+                  isOpen={openDropdowns.pets || false}
+                  onToggle={() => toggleDropdown("pets")}
+                  dropdownRef={getDropdownRef("pets")}
                 />
               </div>
             </div>
@@ -1014,15 +810,14 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
       case "financial":
         return (
           <div className="space-y-6">
-            <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
-              Financial Information
+            <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-serif text-black mb-4 sm:mb-6">
+              {SECTION_TITLES.FINANCIAL_PROFILE}
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="w-4/5 mx-auto">
-                <label className="block text-xs font-normal text-black mb-1 text-center w-full">
-                  Gross Annual Income (after debts){" "}
-                  <span className="text-red-500">*</span>
+                <label className="block text-xs sm:text-sm md:text-base font-normal text-gray-700 mb-1 text-center w-full">
+                  {FIELD_LABELS.GROSS_INCOME} (after debts)
                 </label>
                 <PriceRangeSlider
                   tickValues={[
@@ -1040,8 +835,8 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
               </div>
 
               <div className="w-4/5 mx-auto">
-                <label className="block text-xs font-normal text-black mb-1 text-center w-full">
-                  Down Payment <span className="text-red-500">*</span>
+                <label className="block text-xs sm:text-sm md:text-base font-normal text-gray-700 mb-1 text-center w-full">
+                  {FIELD_LABELS.DOWN_PAYMENT}
                 </label>
                 <PriceRangeSlider
                   tickValues={[
@@ -1060,36 +855,29 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
 
               <div>
                 <OptionalLabel>
-                  <span className="text-center block">Ideal Zip Code</span>
+                  <span className="text-center block">{FIELD_LABELS.IDEAL_ZIP_CODE}</span>
                 </OptionalLabel>
-                <input
+                <OnboardPersonalizeInput
                   type="text"
                   value={formData.ideal_zip_code || ""}
                   onChange={(e) =>
                     updateFormData("ideal_zip_code", e.target.value)
                   }
-                  className="mobile-input"
                   placeholder="Enter zip code"
                 />
               </div>
 
               <div>
-                <RequiredLabel>
-                  <span className="text-center block">Credit Score Range</span>
-                </RequiredLabel>
-                <CustomDropdown
+                <OptionalLabel>
+                  <span className="text-center block">{FIELD_LABELS.CREDIT_SCORE_RANGE}</span>
+                </OptionalLabel>
+                <OnboardPersonalizeDropdown
                   value={formData.credit_score_range || ""}
                   onChange={(value) =>
                     updateFormData("credit_score_range", value)
                   }
-                  options={[
-                    { value: "poor", label: "Poor (300-579)" },
-                    { value: "fair", label: "Fair (580-669)" },
-                    { value: "good", label: "Good (670-739)" },
-                    { value: "very_good", label: "Very Good (740-799)" },
-                    { value: "excellent", label: "Excellent (800-850)" },
-                  ]}
-                  placeholder="Select..."
+                  options={CREDIT_SCORE_OPTIONS}
+                  placeholder="Select credit score range"
                   isOpen={openDropdowns.credit_score_range || false}
                   onToggle={() => toggleDropdown("credit_score_range")}
                   dropdownRef={getDropdownRef("credit_score_range")}
@@ -1097,8 +885,8 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
               </div>
 
               <div className="col-span-1 md:col-span-2 flex flex-col items-center">
-                <label className="block text-responsive-xl font-bold text-black space-y-responsive-xs text-center w-full">
-                  Home Budget
+                <label className="block text-responsive-xl font-bold text-gray-700 space-y-responsive-xs text-center w-full">
+                  {FIELD_LABELS.HOME_BUDGET} <span className="text-rose-500">*</span>
                 </label>
                 <PriceRangeSlider
                   tickValues={[
@@ -1116,20 +904,38 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
               </div>
 
               {/* Home Price Calculation Results */}
-              <div className="col-span-1 md:col-span-2 mt-6 space-responsive-sm bg-white rounded-lg border border-olive">
-                <h3 className="text-responsive-md font-medium text-olive space-y-responsive-xs">
-                  Estimated Home Affordability
-                </h3>
+              <div className={`col-span-1 md:col-span-2 mt-6 p-4 bg-white rounded-lg border border-olive ${
+                isAffordabilityCollapsed ? "pb-6" : ""
+              }`}>
+                <div 
+                  className={`flex items-center justify-between cursor-pointer p-2 -m-2 rounded-lg hover:bg-olive/5 transition-colors duration-150 ${
+                    isAffordabilityCollapsed ? "mb-2" : "mb-2"
+                  }`}
+                  onClick={() => setIsAffordabilityCollapsed(!isAffordabilityCollapsed)}
+                >
+                  <h3 className="text-lg font-medium text-olive">
+                    Estimated Home Affordability
+                  </h3>
+                  <ChevronDown
+                    className={`w-5 h-5 text-olive transition-transform duration-300 ease-in-out ${
+                      isAffordabilityCollapsed ? "rotate-180" : ""
+                    }`}
+                  />
+                </div>
 
-                {homePriceLoading ? (
-                  <div className="flex items-center justify-center py-responsive-sm">
-                    <div className="animate-spin rounded-full mobile-icon-md border-b-2 border-olive"></div>
-                    <span className="ml-2 text-responsive-sm text-black">
+                <div className={`transition-all duration-300 ease-in-out overflow-hidden ${
+                  isAffordabilityCollapsed ? "max-h-0 opacity-0" : "max-h-[2000px] opacity-100"
+                }`}>
+                  <div className="pt-2">
+                    {homePriceLoading ? (
+                  <div className="flex items-center justify-center py-4">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-olive"></div>
+                    <span className="ml-2 text-sm text-black">
                       Calculating affordability...
                     </span>
                   </div>
                 ) : homePriceError ? (
-                  <div className="text-black text-responsive-sm py-responsive-xs">
+                  <div className="text-black text-sm py-2">
                     <p className="font-medium">
                       Unable to calculate affordability:
                     </p>
@@ -1140,16 +946,20 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                     </p>
                   </div>
                 ) : homePriceResult ? (
-                  <div className="space-y-responsive-sm">
-                    <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 gap-responsive-sm">
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <p className="text-responsive-sm text-black">Maximum Home Price</p>
-                        <p className="text-xl font-bold text-olive">
-                          ${homePriceResult.maxHomePrice.toLocaleString()}
-                        </p>
+                        <div className="text-center p-4 sm:p-6">
+                          <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-olive mb-2">
+                            ${homePriceResult.maxHomePrice.toLocaleString()}
+                          </div>
+                          <div className="text-xs sm:text-sm md:text-base text-gray-600 mb-4">
+                            Maximum recommended home price
+                          </div>
+                        </div>
                       </div>
                       <div>
-                        <p className="text-responsive-sm text-black">Monthly Payment</p>
+                        <p className="text-sm text-black">Monthly Payment</p>
                         <p className="text-xl font-bold text-olive">
                           $
                           {homePriceResult.totalMonthlyHousingCost.toLocaleString()}
@@ -1159,8 +969,9 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                     </div>
 
                     <div className="text-sm text-black bg-white p-3 rounded border border-olive/30">
-                      <p className="font-medium mb-2">
-                        How We Calculated This:
+                      <p className="text-xs sm:text-sm md:text-base text-gray-600 mb-4">
+                        Based on your income and financial profile, here's what you
+                        might afford:
                       </p>
                       <div className="bg-[#EAD9B3] bg-opacity-20 p-3 rounded font-mono text-black space-y-1">
                         <p>
@@ -1298,14 +1109,12 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                     {homePriceResult.warnings?.length > 0 && (
                       <div className="mt-2">
                         <p className="text-sm font-medium text-olive mt-2">
-                          Important Considerations:
+                          Important Notes:
                         </p>
-                        <ul className="list-disc list-inside text-sm text-black pl-2">
-                          {homePriceResult.warnings.map(
-                            (warning: string, i: number) => (
-                              <li key={i}>{warning}</li>
-                            )
-                          )}
+                        <ul className="text-sm text-black list-disc list-inside mt-1 space-y-1">
+                          {homePriceResult.warnings.map((warning: string, index: number) => (
+                            <li key={index}>{warning}</li>
+                          ))}
                         </ul>
                       </div>
                     )}
@@ -1318,6 +1127,8 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                     </p>
                   </div>
                 )}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -1327,7 +1138,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
         return (
           <div className="space-y-6">
             <h2 className="text-xl sm:text-2xl font-serif text-black mb-2">
-              Housing Preferences
+              {SECTION_TITLES.HOUSING_PREFERENCES}
             </h2>
             <p className="text-sm text-black/60 mb-6">
               Tell us about your ideal home. These preferences help our AI
@@ -1337,21 +1148,13 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Desired Housing Type
-                </label>
-                <CustomDropdown
+                <RequiredLabel>{FIELD_LABELS.PREFERRED_HOUSING_TYPE}</RequiredLabel>
+                <OnboardPersonalizeDropdown
                   value={formData.preferred_housing_type || ""}
                   onChange={(value) =>
                     updateFormData("preferred_housing_type", value)
                   }
-                  options={[
-                    { value: "single_family", label: "Single Family Home" },
-                    { value: "condo", label: "Condominium" },
-                    { value: "townhouse", label: "Townhouse" },
-                    { value: "apartment", label: "Apartment" },
-                    { value: "duplex", label: "Duplex" },
-                  ]}
+                  options={HOUSING_TYPE_OPTIONS}
                   placeholder="Select..."
                   isOpen={openDropdowns.desired_housing_type || false}
                   onToggle={() => toggleDropdown("desired_housing_type")}
@@ -1360,61 +1163,48 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Preferred Bedrooms
-                </label>
-                <input
+                <RequiredLabel>{FIELD_LABELS.PREFERRED_BEDROOMS}</RequiredLabel>
+                <OnboardPersonalizeInput
                   type="number"
-                  value={formData.preferred_bedrooms || ""}
+                  value={formData.preferred_bedrooms?.toString() || ""}
                   onChange={(e) =>
                     updateFormData(
                       "preferred_bedrooms",
                       parseInt(e.target.value) || undefined
                     )
                   }
-                  className="mobile-input"
-                  min="1"
-                  max="10"
+                  min={1}
+                  max={10}
                   placeholder="Number of bedrooms"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Preferred Bathrooms
-                </label>
-                <input
+                <RequiredLabel>{FIELD_LABELS.PREFERRED_BATHROOMS}</RequiredLabel>
+                <OnboardPersonalizeInput
                   type="number"
-                  value={formData.preferred_bathrooms || ""}
+                  value={formData.preferred_bathrooms?.toString() || ""}
                   onChange={(e) =>
                     updateFormData(
                       "preferred_bathrooms",
-                      parseInt(e.target.value) || undefined
+                      parseFloat(e.target.value) || undefined
                     )
                   }
-                  className="mobile-input"
-                  min="1"
-                  max="10"
-                  step="0.5"
+                  min={1}
+                  max={10}
+                  step={0.5}
                   placeholder="Number of bathrooms"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Preferred Lot Size
-                </label>
-                <CustomDropdown
+                <OptionalLabel>Preferred Lot Size</OptionalLabel>
+                <OnboardPersonalizeDropdown
                   value={formData.preferred_lot_size || ""}
                   onChange={(value) =>
                     updateFormData("preferred_lot_size", value)
                   }
-                  options={[
-                    { value: "small", label: "Small (under 0.25 acres)" },
-                    { value: "medium", label: "Medium (0.25 - 0.5 acres)" },
-                    { value: "large", label: "Large (0.5 - 1 acre)" },
-                    { value: "very_large", label: "Very Large (1+ acres)" },
-                  ]}
+                  options={LOT_SIZE_OPTIONS}
                   placeholder="Select..."
                   isOpen={openDropdowns.preferred_lot_size || false}
                   onToggle={() => toggleDropdown("preferred_lot_size")}
@@ -1423,7 +1213,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-black mb-2">
+                <label className="block text-xs sm:text-sm md:text-base font-medium text-gray-700 mb-2">
                   Preferred Home Age
                 </label>
                 <CustomDropdown
@@ -1431,16 +1221,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   onChange={(value) =>
                     updateFormData("preferred_home_age", value)
                   }
-                  options={[
-                    { value: "new", label: "New (0-5 years)" },
-                    { value: "recent", label: "Recent (5-15 years)" },
-                    {
-                      value: "established",
-                      label: "Established (15-30 years)",
-                    },
-                    { value: "mature", label: "Mature (30-50 years)" },
-                    { value: "historic", label: "Historic (50+ years)" },
-                  ]}
+                  options={HOME_AGE_OPTIONS}
                   placeholder="Select..."
                   isOpen={openDropdowns.preferred_home_age || false}
                   onToggle={() => toggleDropdown("preferred_home_age")}
@@ -1449,7 +1230,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-black mb-2">
+                <label className="block text-xs sm:text-sm md:text-base font-medium text-gray-700 mb-2">
                   Preferred Architectural Style
                 </label>
                 <CustomDropdown
@@ -1457,16 +1238,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   onChange={(value) =>
                     updateFormData("preferred_architectural_style", value)
                   }
-                  options={[
-                    { value: "modern", label: "Modern" },
-                    { value: "traditional", label: "Traditional" },
-                    { value: "colonial", label: "Colonial" },
-                    { value: "ranch", label: "Ranch" },
-                    { value: "craftsman", label: "Craftsman" },
-                    { value: "victorian", label: "Victorian" },
-                    { value: "mediterranean", label: "Mediterranean" },
-                    { value: "contemporary", label: "Contemporary" },
-                  ]}
+                  options={COMMUNICATION_FREQUENCY_OPTIONS}
                   placeholder="Select..."
                   isOpen={openDropdowns.preferred_architectural_style || false}
                   onToggle={() =>
@@ -1485,12 +1257,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   onChange={(value) =>
                     updateFormData("renovation_preference", value)
                   }
-                  options={[
-                    { value: "none", label: "None - Move-in Ready" },
-                    { value: "minor", label: "Minor Cosmetic Updates" },
-                    { value: "major", label: "Major Renovations" },
-                    { value: "complete", label: "Complete Renovation" },
-                  ]}
+                  options={RENOVATION_PREFERENCE_OPTIONS}
                   placeholder="Select..."
                   isOpen={openDropdowns.renovation_preference || false}
                   onToggle={() => toggleDropdown("renovation_preference")}
@@ -1507,12 +1274,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   onChange={(value) =>
                     updateFormData("intended_property_use", value)
                   }
-                  options={[
-                    { value: "primary", label: "Primary Residence" },
-                    { value: "investment", label: "Investment Property" },
-                    { value: "vacation", label: "Vacation Home" },
-                    { value: "rental", label: "Rental Property" },
-                  ]}
+                  options={PROPERTY_USE_OPTIONS}
                   placeholder="Select..."
                   isOpen={openDropdowns.intended_property_use || false}
                   onToggle={() => toggleDropdown("intended_property_use")}
@@ -1549,22 +1311,13 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
 
             <div className="grid grid-cols-1 gap-4 sm:gap-6">
               <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Walkability Importance
-                </label>
-                <CustomDropdown
+                <RequiredLabel>Walkability Importance</RequiredLabel>
+                <OnboardPersonalizeDropdown
                   value={formData.walkability_importance || ""}
                   onChange={(value) =>
                     updateFormData("walkability_importance", value)
                   }
-                  options={[
-                    { value: "very_important", label: "Very Important" },
-                    {
-                      value: "somewhat_important",
-                      label: "Somewhat Important",
-                    },
-                    { value: "not_important", label: "Not Important" },
-                  ]}
+                  options={WALKABILITY_OPTIONS}
                   placeholder="Select..."
                   isOpen={openDropdowns.walkability_importance || false}
                   onToggle={() => toggleDropdown("walkability_importance")}
@@ -1573,24 +1326,43 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
               </div>
             </div>
 
-            {/* Important Locations for Commute */}
-            <div className="flex flex-col md:flex-row gap-6 w-full">
-              <div className="flex-1">
-                <label className="block text-sm font-medium text-black mb-2">
-                  Important Locations
-                </label>
-                <p className="text-xs text-black/60 mb-4">
-                  Add locations important to you (workplace, gym, family, etc.).
-                  We use these to create travel time maps and find properties
-                  within your commute tolerance. Each location helps our AI
-                  match you with homes that fit your lifestyle and daily
-                  routines.
+            {/* Home Price Estimate Section */}
+            <HomePriceEstimate
+              homePriceLoading={homePriceLoading}
+              homePriceError={homePriceError}
+              homePriceResult={homePriceResult}
+              showHomePriceDetails={showHomePriceDetails}
+              setShowHomePriceDetails={setShowHomePriceDetails}
+              formData={formData}
+            />
+          </div>
+        );
+
+      case "location":
+        return (
+          <div className="space-y-6">
+            <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-serif text-black mb-4 sm:mb-6">
+              {SECTION_TITLES.LOCATION_PREFERENCES}
+            </h2>
+
+            <div className="space-y-6">
+              <div>
+                <OptionalLabel>
+                  <span className="text-center block">
+                    Tell us about important places in your life and daily
+                    routines.
+                  </span>
+                </OptionalLabel>
+                <p className="text-xs sm:text-sm md:text-base text-black/60 mb-4">
+                  Add locations like work, family, or places you visit regularly.
+                  We'll help you find homes with reasonable commute times to
+                  these important places in your daily routines.
                 </p>
                 <ImportantLocationsInput
                   locations={formData.important_locations || []}
-                  onChange={(locations) =>
-                    updateFormData("important_locations", locations)
-                  }
+                  onChange={(locations: { name: string; address: string; commute_tolerance?: number }[]) => {
+                    updateFormData("important_locations", locations);
+                  }}
                   scriptsReady={scriptsReady}
                 />
                 {loadError && (
@@ -1604,25 +1376,19 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
       case "communication":
         return (
           <div className="space-y-6">
-            <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
-              Communication Preferences
+            <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-serif text-black mb-4 sm:mb-6">
+              {SECTION_TITLES.COMMUNICATION_PREFERENCES}
             </h2>
 
             {/* Communication Preference */}
             <div>
-              <label className="block text-sm font-medium text-black mb-2">
-                Communication Frequency
-              </label>
-              <CustomDropdown
+              <RequiredLabel>{FIELD_LABELS.COMMUNICATION_FREQUENCY}</RequiredLabel>
+              <OnboardPersonalizeDropdown
                 value={formData.communication_frequency || ""}
                 onChange={(value) =>
                   updateFormData("communication_frequency", value)
                 }
-                options={[
-                  { value: "frequent", label: "Frequent updates" },
-                  { value: "milestone", label: "Milestone updates" },
-                  { value: "minimal", label: "Minimal contact" },
-                ]}
+                options={COMMUNICATION_FREQUENCY_OPTIONS}
                 placeholder="Select..."
                 isOpen={openDropdowns.communication_frequency || false}
                 onToggle={() => toggleDropdown("communication_frequency")}
@@ -1632,20 +1398,13 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
 
             {/* Information Detail Level */}
             <div>
-              <label className="block text-sm font-medium text-black mb-2">
-                Information Detail Level
-              </label>
-              <CustomDropdown
+              <RequiredLabel>Information Detail Level</RequiredLabel>
+              <OnboardPersonalizeDropdown
                 value={formData.information_detail_level || ""}
                 onChange={(value) =>
                   updateFormData("information_detail_level", value)
                 }
-                options={[
-                  { value: "brief", label: "Brief" },
-                  { value: "moderate", label: "Moderate" },
-                  { value: "detailed", label: "Detailed" },
-                  { value: "comprehensive", label: "Comprehensive" },
-                ]}
+                options={INFORMATION_DETAIL_OPTIONS}
                 placeholder="Select..."
                 isOpen={openDropdowns.information_detail_level || false}
                 onToggle={() => toggleDropdown("information_detail_level")}
@@ -1656,7 +1415,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Buyer's Agent Dropdown */}
               <div>
-                <label className="block text-sm font-medium text-black mb-2">
+                <label className="block text-xs sm:text-sm md:text-base font-medium text-black mb-2">
                   Do you currently have a buyer's agent?
                 </label>
                 <CustomDropdown
@@ -1664,10 +1423,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   onChange={(value) =>
                     updateFormData("has_buyers_agent", value)
                   }
-                  options={[
-                    { value: "yes", label: "Yes" },
-                    { value: "no", label: "No" },
-                  ]}
+                  options={BUYERS_AGENT_OPTIONS}
                   placeholder="Select..."
                   isOpen={openDropdowns.has_buyers_agent || false}
                   onToggle={() => toggleDropdown("has_buyers_agent")}
@@ -1718,12 +1474,10 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
         if (loading) {
           return (
             <div className="space-y-6">
-              <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
+              <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-serif text-black mb-4 sm:mb-6">
                 Priorities
               </h2>
-              <p className="text-gray-600">
-                Loading report customization options...
-              </p>
+              <Loading message="Loading report customization options..." />
             </div>
           );
         }
@@ -1733,25 +1487,21 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
         if (!orderedSections || orderedSections.length === 0) {
           return (
             <div className="space-y-6">
-              <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
+              <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-serif text-black mb-4 sm:mb-6">
                 Priorities
               </h2>
-              <p className="text-gray-600">
-                Loading report customization options...
-              </p>
+              <Loading message="Loading report customization options..." />
             </div>
           );
         }
 
         return (
           <div className="space-y-6">
-            <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
+            <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-serif text-black mb-4 sm:mb-6">
               Priorities
             </h2>
-            <p className="text-gray-600 mb-4">
-              Choose which sections to include in your property reports. All
-              sections are enabled by default, but you can customize them to
-              focus on what matters most to you.
+            <p className="text-xs sm:text-sm md:text-base text-gray-600 mb-4">
+              Customize your report sections below:
             </p>
 
             <DndContext
@@ -1769,13 +1519,16 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
               >
                 <div className="space-y-2">
                   {orderedSections?.map((section) => {
-                    if (!section || !section.key || !section.label) return null;
+                    if (!section || !section.key || !section.label)
+                      return null;
 
-                    const priorities = formData.report_section_priorities || [];
+                    const priorities =
+                      formData.report_section_priorities || [];
                     const priorityIndex = priorities.indexOf(section.key);
-                    // Section is checked if it's in the priorities array
                     const isChecked = priorityIndex !== -1;
-                    const priority = isChecked ? priorityIndex + 1 : undefined;
+                    const priority = isChecked
+                      ? priorityIndex + 1
+                      : undefined;
 
                     return (
                       <SortableReportSection
@@ -1783,11 +1536,10 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                         id={section.key}
                         label={section.label}
                         checked={isChecked}
-                        priority={priority}
                         onToggle={(checked) => {
-                          // Only update priorities array (no boolean fields)
                           handleReportSectionToggle(section.key, checked);
                         }}
+                        priority={priority}
                       />
                     );
                   })}
@@ -1891,116 +1643,64 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
   );
 
   return (
-    <div className="max-w-7xl mx-auto mobile-padding">
+    <div className="w-full max-w-[90vw] mx-auto px-4 sm:px-6 lg:px-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-4 sm:mt-6 mb-3 sm:mb-4">
-        <div className="flex items-center gap-3">
-          <KeyLogo size="sm" />
+      <div className="flex items-center justify-between mt-4 sm:mt-6 mb-3 sm:mb-4">
+        <div className="flex items-center">
+          <img src={KeyLogo} alt="SilverKey Logo" className="h-6 sm:h-8 md:h-10" />
         </div>
-        <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3 mt-4 sm:mt-0">
-          <span className="text-sm text-black/60">
+        <div className="flex items-center">
+          <span className="text-xs sm:text-sm md:text-base text-black/60 whitespace-nowrap">
             Step {currentStep + 1} of {STEPS.length}
           </span>
         </div>
       </div>
 
-      {/* Description */}
-      <div className="mb-4">
-        <p className="text-sm sm:text-base text-black/60">
-          Information you give helps your agent and SilverKey serve you, but all
-          fields are optional!
-        </p>
-      </div>
 
       {/* Progress Bar */}
-      <div className="mobile-card mb-6">
-        <div className="flex items-center justify-between overflow-x-auto scrollbar-hide px-1 sm:px-2">
-          {STEPS.map((step, index) => {
-            const Icon = step.icon;
-            const isActive = index === currentStep;
-            const isCompleted = index < currentStep;
-
-            return (
-              <div key={step.id} className="flex items-center min-w-0 flex-1">
-                <div className="flex flex-col items-center flex-shrink-0">
-                  <button
-                    onClick={() => goToStep(index)}
-                    className={`flex items-center justify-center w-6 h-6 xs:w-7 xs:h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 rounded-full transition-colors hover:scale-105 transform transition-transform ${
-                      isCompleted
-                        ? "bg-olive text-white hover:bg-olive/80"
-                        : isActive
-                        ? "bg-brown text-white hover:bg-brown/80"
-                        : "bg-beige text-black/60 hover:bg-beige/80"
-                    }`}
-                    title={step.title}
-                  >
-                    {isCompleted ? (
-                      <Check className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" />
-                    ) : (
-                      <Icon className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" />
-                    )}
-                  </button>
-                  <span className="text-[8px] xs:text-[9px] sm:text-[10px] md:text-xs text-center text-black/60 mt-1 max-w-[60px] xs:max-w-[70px] sm:max-w-[80px] md:max-w-none leading-tight">
-                    {step.title}
-                  </span>
-                </div>
-                {index < STEPS.length - 1 && (
-                  <div
-                    className={`mx-1 xs:mx-2 sm:mx-3 md:mx-4 flex-1 h-0.5 sm:h-1 min-w-[8px] xs:min-w-[12px] sm:min-w-[16px] md:min-w-[24px] ${
-                      isCompleted ? "bg-olive" : "bg-beige"
-                    }`}
-                  />
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
+      <OnboardingHeader
+        steps={STEPS}
+        currentStep={currentStep}
+        onStepClick={goToStep}
+      />
 
       {/* Step Content */}
       <div className="mobile-card">
         {renderStepContent()}
 
         {/* Navigation Buttons */}
-        <div className="flex flex-col sm:flex-row sm:justify-between space-y-3 sm:space-y-0 mt-8 pt-6 border-t border-beige/30">
+        <div className="flex justify-between items-center mt-8 pt-6 border-t border-beige/30">
           <button
             onClick={prevStep}
             disabled={currentStep === 0}
-            className={`flex items-center justify-center px-3 xs:px-4 sm:px-6 py-2 xs:py-2.5 sm:py-3 rounded-lg font-medium transition-all duration-200 touch-friendly ${
+            className={`flex items-center justify-center px-3 py-2 rounded-lg font-medium transition-all duration-200 text-sm ${
               currentStep === 0
                 ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                 : "bg-white border border-brown text-black hover:bg-brown hover:text-white"
             }`}
           >
-            <ChevronLeft className="w-3 h-3 xs:w-4 xs:h-4 sm:w-5 sm:h-5 mr-1 xs:mr-2" />
-            <span className="hidden xs:inline text-xs xs:text-sm sm:text-base">
-              Previous
-            </span>
+            <ChevronLeft className="w-4 h-4 mr-1" />
+            <span>Previous</span>
           </button>
 
           {currentStep === STEPS.length - 1 ? (
             <button
               onClick={handleSubmit}
               disabled={loading}
-              className="flex items-center justify-center px-3 xs:px-4 sm:px-6 py-2 xs:py-2.5 sm:py-3 bg-olive text-white rounded-lg hover:bg-olive/80 disabled:opacity-50 font-medium transition-all duration-200 touch-friendly"
+              className="flex items-center justify-center px-3 py-2 bg-olive text-white rounded-lg hover:bg-olive/80 disabled:opacity-50 font-medium transition-all duration-200 text-sm"
             >
-              <span className="hidden xs:inline text-xs xs:text-sm sm:text-base">
-                {loading ? "Saving..." : "Complete Setup"}
-              </span>
-              <span className="xs:hidden text-xs">Done</span>
+              <span>{loading ? "Saving..." : "Complete Setup"}</span>
               {!loading && (
-                <Check className="w-3 h-3 xs:w-4 xs:h-4 sm:w-5 sm:h-5 ml-1 xs:ml-2" />
+                <Check className="w-4 h-4 ml-1" />
               )}
             </button>
           ) : (
             <button
               onClick={nextStep}
-              className="flex items-center justify-center px-3 xs:px-4 sm:px-6 py-2 xs:py-2.5 sm:py-3 bg-brown text-white rounded-lg hover:bg-brown/80 font-medium transition-all duration-200 touch-friendly"
+              className="flex items-center justify-center px-3 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 font-medium transition-all duration-200 text-sm"
             >
-              <span className="hidden xs:inline text-xs xs:text-sm sm:text-base">
-                Next
-              </span>
-              <ChevronRight className="w-3 h-3 xs:w-4 xs:h-4 sm:w-5 sm:h-5 ml-1 xs:ml-2" />
+              <span>Next</span>
+              <ChevronRight className="w-4 h-4 ml-1" />
             </button>
           )}
         </div>

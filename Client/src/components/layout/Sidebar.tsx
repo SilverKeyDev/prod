@@ -29,7 +29,8 @@ import { useState } from "react";
 import ConfirmationDialog from "../modals/ConfirmationDialog";
 
 import { useUser } from "../../context";
-import MiniLogo from "../ui/MiniLogo";
+import { useAgent } from "../../context/AgentContext";
+import MiniLogo from "../ui/base/MiniLogo";
 interface SidebarProps {
   user?: UserProfile; // make user optional to prevent crash
   onLogout: () => void;
@@ -66,17 +67,17 @@ const navigationStructure: NavigationStructure = {
     items: [
       {
         name: "Personalization",
-        href: "/dashboard/personalization",
+        href: "/personalization",
         icon: UserIcon,
       },
       /*{
         name: "Get PreApproved",
-        href: "/dashboard/get-preapproved",
+        href: "/get-preapproved",
         icon: BadgeCheck,
       },*/
       {
         name: "Subscription",
-        href: "/dashboard/subscription",
+        href: "/subscription",
         icon: CreditCard,
       },
     ],
@@ -85,8 +86,8 @@ const navigationStructure: NavigationStructure = {
     name: "Search",
     icon: Search,
     items: [
-      { name: "Search", href: "/dashboard/search", icon: Search },
-      { name: "Saved Homes", href: "/dashboard/saved", icon: Bookmark },
+      { name: "Search", href: "/search", icon: Search },
+      { name: "Saved Homes", href: "/saved", icon: Bookmark },
     ],
   },
   decide: {
@@ -95,18 +96,18 @@ const navigationStructure: NavigationStructure = {
     items: [
       {
         name: "Generate Report",
-        href: "/dashboard/generate-report",
+        href: "/generate-report",
         icon: FilePlus,
       },
-      { name: "Past Reports", href: "/dashboard/reports", icon: FileText },
+      { name: "Past Reports", href: "/reports", icon: FileText },
       {
         name: "Compare Reports",
-        href: "/dashboard/compare-reports",
+        href: "/compare-reports",
         icon: BarChart2,
       },
       {
         name: "AI Assistant",
-        href: "/dashboard/ai-assistant",
+        href: "/ai-assistant",
         icon: MessageCircle,
       },
     ],
@@ -117,7 +118,7 @@ const navigationStructure: NavigationStructure = {
     items: [
       {
         name: "Negotiation Strategy",
-        href: "/dashboard/negotiation-strategy",
+        href: "/negotiation-strategy",
         icon: Brain,
       },
       /*{ name: "Draft Offer", href: "/dashboard/draft-offer", icon: FileText },*/
@@ -129,22 +130,22 @@ const navigationStructure: NavigationStructure = {
     items: [
       {
         name: "Escrow & Legal",
-        href: "/dashboard/escrow-legal-logistics",
+        href: "/escrow-legal-logistics",
         icon: Scale,
       }, // represents legal/balance
       {
         name: "Inspections & Due Diligence",
-        href: "/dashboard/inspections-due-diligence",
+        href: "/inspections-due-diligence",
         icon: ShieldCheck,
       }, // safety/verification
       {
         name: "Financing & Insurance",
-        href: "/dashboard/financing-insurance",
+        href: "/financing-insurance",
         icon: Building2,
       }, // financial institution
       {
         name: "Closing & Move-In",
-        href: "/dashboard/closing-moving-in",
+        href: "/closing-moving-in",
         icon: KeyRound,
       }, // handing over the key
     ],
@@ -192,14 +193,14 @@ const getNavigation = (isAgent?: boolean): NavigationStructure => {
     // For agents, show "Client Information"
     navigation.onboard.items.push({
       name: "Client Information",
-      href: "/dashboard/client-information",
+      href: "/client-information",
       icon: Users,
     });
   } else {
     // For regular users, show "Agent Connection"
     navigation.onboard.items.push({
       name: "Agent Connection",
-      href: "/dashboard/agent-connection",
+      href: "/agent-connection",
       icon: Users,
     });
   }
@@ -216,6 +217,7 @@ export default function Sidebar({
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   // Use userProfile from UserContext for all user info
   const { userProfile, loading: userProfileLoading } = useUser();
+  const { isAgent } = useAgent();
   const isLoading = userProfileLoading;
   const [openCategories, setOpenCategories] = useState<Record<string, boolean>>(
     {
@@ -354,15 +356,15 @@ export default function Sidebar({
           {/* Navigation - Scrollable middle section */}
           <div className="flex-1 overflow-y-auto min-h-0 scrollbar-hide">
             <nav className="mt-4 pb-4">
-              {Object.entries(getNavigation(userProfile?.is_agent)).map(
+              {Object.entries(getNavigation(isAgent())).map(
                 ([categoryKey, category]: [string, NavCategory]) => (
                   <div key={categoryKey}>
                     {/* Render certain categories as direct links (search, dashboard) */}
                     {categoryKey === "dashboard" ? (
                       <Link
-                        to={category.items[0]?.href || "/dashboard"}
+                        to={category.items[0]?.href || "/"}
                         className={`w-full flex items-center px-4 py-3 transition-all duration-200 font-medium text-white touch-friendly ${
-                          isActive("/dashboard")
+                          isActive("/")
                             ? "bg-brown-light/70 text-white font-semibold hover:bg-brown-light/80"
                             : "text-white/70 hover:bg-brown-light/30 hover:text-beige hover:-translate-y-0.5 active:bg-brown-light/20 active:text-beige"
                         } ${

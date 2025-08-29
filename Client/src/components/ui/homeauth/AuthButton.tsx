@@ -34,7 +34,24 @@ export default function AuthButton({
       className={`${baseClasses} ${variantClasses[variant]} ${className}`}
     >
       {loading ? (
-        <div className="shimmer w-16 h-5 rounded mx-auto"></div>
+        <div className="flex items-center justify-center">
+          <svg
+            className="animate-spin"
+            width="24"
+            height="24"
+            viewBox="0 0 64 64"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            {/* Key head */}
+            <circle cx="20" cy="32" r="8" stroke="#F5F5DC" strokeWidth="4" fill="#F5F5DC" />
+            {/* Shaft */}
+            <rect x="28" y="30" width="24" height="4" fill="#F5F5DC" rx="2" />
+            {/* Teeth */}
+            <rect x="52" y="30" width="4" height="8" fill="#F5F5DC" rx="1" />
+            <rect x="56" y="30" width="4" height="6" fill="#F5F5DC" rx="1" />
+          </svg>
+        </div>
       ) : (
         children
       )}

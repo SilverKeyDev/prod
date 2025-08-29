@@ -33,13 +33,37 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { apiRequest } from "../../lib/api";
 import { usePreferences } from "../../context";
-import ImportantLocationsInput from "../../components/ui/ImportantLocationsInput";
-import Loading from "../../components/ui/Loading";
-import OliveCheckbox from "../../components/ui/OliveCheckbox";
-import PriceRangeSlider from "../../components/ui/PriceRangeSlider";
-import ValidationWarning from "../../components/feedback/ValidationWarning";
+import OnboardPersonalizeInput from "../../components/ui/onboardpersonalize/OnboardPersonalizeInput";
+import OnboardPersonalizeDropdown from "../../components/ui/onboardpersonalize/OnboardPersonalizeDropdown";
+import { RequiredLabel, OptionalLabel } from "../../components/ui/onboardpersonalize/OnboardPersonalizeLabel";
+import PriceRangeSlider from "../../components/ui/onboardpersonalize/PriceRangeSlider";
+import ImportantLocationsInput from "../../components/ui/onboardpersonalize/ImportantLocationsInput";
+import HomePriceEstimate from "../../components/ui/onboardpersonalize/HomePriceEstimate";
 import { estimateAffordableHomePrice } from "../../lib/affordabilityCalculator";
-import PageHeader from "../../components/ui/PageHeader";
+import PageHeader from "../../components/ui/base/PageHeader";
+import Loading from "../../components/ui/base/Loading";
+import OliveCheckbox from "../../components/ui/base/OliveCheckbox";
+import ValidationWarning from "../../components/feedback/ValidationWarning";
+import {
+  OnboardingData,
+  validateFormData,
+  SECTION_TITLES,
+  FIELD_LABELS,
+  DEFAULT_REPORT_SECTIONS,
+  GENDER_OPTIONS,
+  PETS_OPTIONS,
+  CREDIT_SCORE_OPTIONS,
+  HOUSING_TYPE_OPTIONS,
+  LOT_SIZE_OPTIONS,
+  WALKABILITY_OPTIONS,
+  COMMUNICATION_FREQUENCY_OPTIONS,
+  INFORMATION_DETAIL_OPTIONS,
+  BUYERS_AGENT_OPTIONS,
+  HOME_AGE_OPTIONS,
+  RENOVATION_PREFERENCE_OPTIONS,
+  PROPERTY_USE_OPTIONS,
+} from "../../lib/onboard";
+import HomePriceCalculator from "../../components/ui/onboardpersonalize/HomePriceCalculator";
 
 // Extend window interface for Google Maps
 declare global {
@@ -48,58 +72,23 @@ declare global {
   }
 }
 
-interface OnboardingData {
-  // Metadata
-  preferences_version?: string;
-  
-  // Demographics
-  pets?: string;
-  age?: number;
-  gender?: string;
-  occupation?: string;
-
-  // Financial
-  gross_income?: number;
-  home_budget?: number;
-  credit_score_range?: string;
-  down_payment?: number;
-  ideal_zip_code?: string;
-
-  // Home Buying Process
-  preferred_housing_type?: string;
-  preferred_bathrooms?: number;
-  preferred_bedrooms?: number;
-  preferred_lot_size?: string;
-  preferred_home_age?: string;
-  preferred_architectural_style?: string;
-  preferred_home_features?: string[];
-  renovation_preference?: string;
-  intended_property_use?: string;
-  architectural_style_preference?: string;
-  deal_breakers?: string[];
-
-  // Location & Housing
-  preferred_regions?: { name: string; address: string }[];
-  important_locations?: { name: string; address: string; commute_tolerance?: number }[];
-  walkability_importance?: string;
-
-  // Communication
-  communication_frequency?: string;
-  information_detail_level?: string;
-  has_buyers_agent?: string; // 'yes' | 'no'
-  looking_for_buyers_agent?: boolean;
-
-  // Report Customization
-  report_section_priorities?: string[];
-}
+// OnboardingData interface is now imported from shared lib/onboard
 
 const STEPS = [
-  { id: "reportcustomization", title: "Priorities", icon: Building },
-  { id: "demographics", title: "About You", icon: User },
-  { id: "financial", title: "Financial Profile", icon: Building },
-  { id: "housing", title: "Housing Preferences", icon: Home },
-  { id: "location", title: "Location Preferences", icon: MapPin },
-  { id: "communication", title: "Communication", icon: MessageSquare },
+  {
+    id: "reportcustomization",
+    title: SECTION_TITLES.REPORT_CUSTOMIZATION,
+    icon: Building,
+  },
+  { id: "demographics", title: SECTION_TITLES.DEMOGRAPHICS, icon: User },
+  { id: "financial", title: SECTION_TITLES.FINANCIAL_PROFILE, icon: Building },
+  { id: "housing", title: SECTION_TITLES.HOUSING_PREFERENCES, icon: Home },
+  { id: "location", title: SECTION_TITLES.LOCATION_PREFERENCES, icon: MapPin },
+  {
+    id: "communication",
+    title: SECTION_TITLES.COMMUNICATION_PREFERENCES,
+    icon: MessageSquare,
+  },
 ];
 
 // Custom dropdown component matching PastReports implementation
@@ -320,7 +309,7 @@ export default function PersonalizationPage() {
   const [homePriceResult, setHomePriceResult] = useState<any>(null);
   const [homePriceLoading, setHomePriceLoading] = useState(false);
   const [homePriceError, setHomePriceError] = useState<string | null>(null);
-  const [isAffordabilityCollapsed, setIsAffordabilityCollapsed] = useState(false);
+  const [showHomePriceDetails, setShowHomePriceDetails] = useState(false);
   const [showStickyButtons, setShowStickyButtons] = useState(false);
   const saveButtonRef = useRef<HTMLDivElement>(null);
 
@@ -650,7 +639,8 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
   }, [isEditMode]);
 
   // Use centralized Google Maps loading
-  const { isLoaded: googleMapsLoaded, error: googleMapsError } = useGoogleMaps();
+  const { isLoaded: googleMapsLoaded, error: googleMapsError } =
+    useGoogleMaps();
 
   // Update scriptsReady based on centralized Google Maps loading
   useEffect(() => {
@@ -685,7 +675,11 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
   };
 
   // Validation function to check if all required fields are filled
-  const validateFormData = (): { isValid: boolean; missingFields: string[]; errors: string[] } => {
+  const validateFormData = (): {
+    isValid: boolean;
+    missingFields: string[];
+    errors: string[];
+  } => {
     const missingFields: string[] = [];
     const errors: string[] = [];
 
@@ -710,7 +704,10 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
     if (!formData.home_budget || formData.home_budget <= 0) {
       missingFields.push("Home budget");
     }
-    if (!formData.credit_score_range || formData.credit_score_range.trim() === "") {
+    if (
+      !formData.credit_score_range ||
+      formData.credit_score_range.trim() === ""
+    ) {
       missingFields.push("Credit score range");
     }
     if (!formData.down_payment || formData.down_payment < 0) {
@@ -718,7 +715,10 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
     }
 
     // Housing - Required fields
-    if (!formData.preferred_housing_type || formData.preferred_housing_type.trim() === "") {
+    if (
+      !formData.preferred_housing_type ||
+      formData.preferred_housing_type.trim() === ""
+    ) {
       missingFields.push("Preferred housing type");
     }
     if (!formData.preferred_bedrooms || formData.preferred_bedrooms <= 0) {
@@ -727,21 +727,36 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
     if (!formData.preferred_bathrooms || formData.preferred_bathrooms <= 0) {
       missingFields.push("Preferred bathrooms");
     }
-    if (!formData.preferred_lot_size || formData.preferred_lot_size.trim() === "") {
+    if (
+      !formData.preferred_lot_size ||
+      formData.preferred_lot_size.trim() === ""
+    ) {
       missingFields.push("Preferred lot size");
     }
-    if (!formData.preferred_home_age || formData.preferred_home_age.trim() === "") {
+    if (
+      !formData.preferred_home_age ||
+      formData.preferred_home_age.trim() === ""
+    ) {
       missingFields.push("Preferred home age");
     }
-    if (!formData.renovation_preference || formData.renovation_preference.trim() === "") {
+    if (
+      !formData.renovation_preference ||
+      formData.renovation_preference.trim() === ""
+    ) {
       missingFields.push("Renovation preference");
     }
-    if (!formData.intended_property_use || formData.intended_property_use.trim() === "") {
+    if (
+      !formData.intended_property_use ||
+      formData.intended_property_use.trim() === ""
+    ) {
       missingFields.push("Intended property use");
     }
 
     // Location - Required fields
-    if (!formData.important_locations || formData.important_locations.length === 0) {
+    if (
+      !formData.important_locations ||
+      formData.important_locations.length === 0
+    ) {
       missingFields.push("At least one important location");
     } else {
       // Validate each important location has required fields
@@ -753,20 +768,31 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
           missingFields.push(`Important location ${index + 1} address`);
         }
         if (!location.commute_tolerance || location.commute_tolerance <= 0) {
-          missingFields.push(`Important location ${index + 1} commute tolerance`);
+          missingFields.push(
+            `Important location ${index + 1} commute tolerance`
+          );
         }
       });
     }
-    
-    if (!formData.walkability_importance || formData.walkability_importance.trim() === "") {
+
+    if (
+      !formData.walkability_importance ||
+      formData.walkability_importance.trim() === ""
+    ) {
       missingFields.push("Walkability importance");
     }
 
     // Communication - Required fields
-    if (!formData.communication_frequency || formData.communication_frequency.trim() === "") {
+    if (
+      !formData.communication_frequency ||
+      formData.communication_frequency.trim() === ""
+    ) {
       missingFields.push("Communication frequency");
     }
-    if (!formData.information_detail_level || formData.information_detail_level.trim() === "") {
+    if (
+      !formData.information_detail_level ||
+      formData.information_detail_level.trim() === ""
+    ) {
       missingFields.push("Information detail level");
     }
     if (!formData.has_buyers_agent || formData.has_buyers_agent.trim() === "") {
@@ -774,31 +800,38 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
     }
 
     // Report Customization - At least one section must be selected
-    if (!formData.report_section_priorities || formData.report_section_priorities.length === 0) {
+    if (
+      !formData.report_section_priorities ||
+      formData.report_section_priorities.length === 0
+    ) {
       missingFields.push("At least one report section");
     }
 
     // Additional validation rules
-    if (formData.down_payment && formData.home_budget && formData.down_payment > formData.home_budget) {
+    if (
+      formData.down_payment &&
+      formData.home_budget &&
+      formData.down_payment > formData.home_budget
+    ) {
       errors.push("Down payment cannot be higher than home budget.");
     }
 
     return {
       isValid: missingFields.length === 0 && errors.length === 0,
       missingFields,
-      errors
+      errors,
     };
   };
 
   const handleSaveChanges = async () => {
     // Validate form data before saving
     const validation = validateFormData();
-    
+
     if (!validation.isValid) {
       // Show the custom validation warning component
       setValidationResult({
         missingFields: validation.missingFields,
-        errors: validation.errors
+        errors: validation.errors,
       });
       setShowValidationWarning(true);
       return;
@@ -808,15 +841,15 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
       setIsSaving(true);
 
       // Increment version for this update
-      const currentVersion = formData.preferences_version || '1.0';
-      const versionParts = currentVersion.split('.');
+      const currentVersion = formData.preferences_version || "1.0";
+      const versionParts = currentVersion.split(".");
       const majorVersion = parseInt(versionParts[0]) || 1;
       const minorVersion = parseInt(versionParts[1]) || 0;
       const newVersion = `${majorVersion}.${minorVersion + 1}`;
-      
+
       const dataToSave = {
         ...formData,
-        preferences_version: newVersion
+        preferences_version: newVersion,
       };
 
       await apiRequest("/api/v1/preferences", {
@@ -854,22 +887,46 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
   // Handler for reviewing information from validation warning
   const handleReviewInformation = () => {
     setShowValidationWarning(false);
-    
+
     // Navigate to the first missing field's section if possible
     const firstMissingField = validationResult.missingFields[0];
     if (firstMissingField) {
       // Try to determine which section contains the missing field and navigate there
       if (firstMissingField.includes("report")) {
         setActiveSection("reportcustomization");
-      } else if (firstMissingField.includes("Age") || firstMissingField.includes("Gender") || firstMissingField.includes("Occupation") || firstMissingField.includes("Pet")) {
+      } else if (
+        firstMissingField.includes("Age") ||
+        firstMissingField.includes("Gender") ||
+        firstMissingField.includes("Occupation") ||
+        firstMissingField.includes("Pet")
+      ) {
         setActiveSection("demographics");
-      } else if (firstMissingField.includes("income") || firstMissingField.includes("budget") || firstMissingField.includes("credit") || firstMissingField.includes("payment")) {
+      } else if (
+        firstMissingField.includes("income") ||
+        firstMissingField.includes("budget") ||
+        firstMissingField.includes("credit") ||
+        firstMissingField.includes("payment")
+      ) {
         setActiveSection("financial");
-      } else if (firstMissingField.includes("housing") || firstMissingField.includes("bedroom") || firstMissingField.includes("bathroom") || firstMissingField.includes("lot") || firstMissingField.includes("home") || firstMissingField.includes("renovation") || firstMissingField.includes("property")) {
+      } else if (
+        firstMissingField.includes("housing") ||
+        firstMissingField.includes("bedroom") ||
+        firstMissingField.includes("bathroom") ||
+        firstMissingField.includes("lot") ||
+        firstMissingField.includes("home") ||
+        firstMissingField.includes("renovation") ||
+        firstMissingField.includes("property")
+      ) {
         setActiveSection("housing");
-      } else if (firstMissingField.includes("location") || firstMissingField.includes("walkability")) {
+      } else if (
+        firstMissingField.includes("location") ||
+        firstMissingField.includes("walkability")
+      ) {
         setActiveSection("location");
-      } else if (firstMissingField.includes("communication") || firstMissingField.includes("agent")) {
+      } else if (
+        firstMissingField.includes("communication") ||
+        firstMissingField.includes("agent")
+      ) {
         setActiveSection("communication");
       }
     }
@@ -1162,7 +1219,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="w-4/5 mx-auto">
                 <label className="block text-xs font-normal text-black mb-1 text-center w-full">
-                Gross Annual Income (after debts)
+                  Gross Annual Income (after debts)
                 </label>
                 {isEditMode ? (
                   <PriceRangeSlider
@@ -1233,7 +1290,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
 
               <div>
                 <label className="block text-sm font-medium text-black mb-2 text-center">
-                  Credit Score Range
+                  {FIELD_LABELS.CREDIT_SCORE_RANGE}
                 </label>
                 {isEditMode ? (
                   <CustomDropdown
@@ -1256,15 +1313,10 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                 ) : (
                   <div className="mobile-input bg-gray-50 text-center">
                     {formData.credit_score_range
-                      ? [
-                          { value: "poor", label: "Poor (300-579)" },
-                          { value: "fair", label: "Fair (580-669)" },
-                          { value: "good", label: "Good (670-739)" },
-                          { value: "very_good", label: "Very Good (740-799)" },
-                          { value: "excellent", label: "Excellent (800-850)" },
-                        ].find(
-                          (opt) => opt.value === formData.credit_score_range
-                        )?.label
+                      ? CREDIT_SCORE_OPTIONS.find(
+                          (option) =>
+                            option.value === formData.credit_score_range
+                        )?.label || "Not specified"
                       : "Not specified"}
                   </div>
                 )}
@@ -1296,228 +1348,15 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
               </div>
 
               {/* Home Price Calculation Results */}
-              <div className={`col-span-1 md:col-span-2 mt-6 p-4 bg-white rounded-lg border border-olive ${
-                isAffordabilityCollapsed ? "pb-6" : ""
-              }`}>
-                <div 
-                  className={`flex items-center justify-between cursor-pointer p-2 -m-2 rounded-lg hover:bg-olive/5 transition-colors duration-150 ${
-                    isAffordabilityCollapsed ? "mb-2" : "mb-2"
-                  }`}
-                  onClick={() => setIsAffordabilityCollapsed(!isAffordabilityCollapsed)}
-                >
-                  <h3 className="text-lg font-medium text-olive">
-                    Estimated Home Affordability
-                  </h3>
-                  <ChevronDown
-                    className={`w-5 h-5 text-olive transition-transform duration-300 ease-in-out ${
-                      isAffordabilityCollapsed ? "rotate-180" : ""
-                    }`}
-                  />
-                </div>
-
-                <div className={`transition-all duration-300 ease-in-out overflow-hidden ${
-                  isAffordabilityCollapsed ? "max-h-0 opacity-0" : "max-h-[2000px] opacity-100"
-                }`}>
-                  <div className="pt-2">
-                    {homePriceLoading ? (
-                  <div className="flex items-center justify-center py-4">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-olive"></div>
-                    <span className="ml-2 text-sm text-black">
-                      Calculating affordability...
-                    </span>
-                  </div>
-                ) : homePriceError ? (
-                  <div className="text-black text-sm py-2">
-                    <p className="font-medium">
-                      Unable to calculate affordability:
-                    </p>
-                    <p>{homePriceError}</p>
-                    <p className="mt-2">
-                      Please ensure you've entered your income, zip code, and
-                      other financial details.
-                    </p>
-                  </div>
-                ) : homePriceResult ? (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-sm text-black">Maximum Home Price</p>
-                        <p className="text-xl font-bold text-olive">
-                          ${homePriceResult.maxHomePrice.toLocaleString()}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-black">Monthly Payment</p>
-                        <p className="text-xl font-bold text-olive">
-                          $
-                          {homePriceResult.totalMonthlyHousingCost.toLocaleString()}
-                          /mo
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="text-sm text-black bg-white p-3 rounded border border-olive/30">
-                      <p className="font-medium mb-2">
-                        How We Calculated This:
-                      </p>
-                      <div className="bg-[#EAD9B3] bg-opacity-20 p-3 rounded font-mono text-black space-y-1">
-                        <p>
-                          1. <strong>Monthly Income</strong> = Gross Annual
-                          Income ÷ 12
-                        </p>
-                        <p className="ml-4">
-                          = ${homePriceResult.netAnnualIncome.toLocaleString()}{" "}
-                          ÷ 12 ={" "}
-                          <strong>
-                            $
-                            {(
-                              homePriceResult.netAnnualIncome / 12
-                            ).toLocaleString(undefined, {
-                              maximumFractionDigits: 0,
-                            })}
-                          </strong>
-                        </p>
-
-                        <p>
-                          2. <strong>Max Monthly Housing Cost</strong> = Monthly
-                          Income × DTI Ratio
-                        </p>
-                        <p className="ml-4">
-                          = $
-                          {(
-                            homePriceResult.netAnnualIncome / 12
-                          ).toLocaleString()}{" "}
-                          × {(homePriceResult.dtiUsed / 100).toFixed(2)} ={" "}
-                          <strong>
-                            $
-                            {Math.round(
-                              (homePriceResult.netAnnualIncome / 12) *
-                                (homePriceResult.dtiUsed / 100)
-                            ).toLocaleString()}
-                          </strong>
-                        </p>
-
-                        <p>
-                          3. <strong>Mortgage Payment</strong> = P × r × (1 + r)
-                          <sup>n</sup> ÷ ((1 + r)<sup>n</sup> - 1)
-                        </p>
-                        <p className="ml-4">Where:</p>
-                        <p className="ml-8">
-                          P = $
-                          {Math.round(
-                            homePriceResult.loanAmount
-                          ).toLocaleString()}
-                        </p>
-                        <p className="ml-8">
-                          r ={" "}
-                          {(homePriceResult.interestRate / 100 / 12).toFixed(4)}{" "}
-                          (monthly interest)
-                        </p>
-                        <p className="ml-8">
-                          n = {30 * 12} months (30-year loan)
-                        </p>
-                        <p className="ml-4">
-                          →{" "}
-                          <strong>
-                            Monthly Mortgage = $
-                            {homePriceResult.monthlyMortgage.toLocaleString()}
-                          </strong>
-                        </p>
-
-                        <p>
-                          4. <strong>Property Tax</strong> = Home Price × Tax
-                          Rate ÷ 12
-                        </p>
-                        <p className="ml-4">
-                          = ${homePriceResult.maxHomePrice.toLocaleString()} ×{" "}
-                          {(homePriceResult.propertyTaxRate * 100).toFixed(2)}%
-                          ÷ 12
-                        </p>
-
-                        <p>
-                          5. <strong>Home Insurance</strong> = Home Price ×
-                          0.50% ÷ 12
-                        </p>
-                        <p className="ml-4">
-                          = ${homePriceResult.maxHomePrice.toLocaleString()} ×
-                          0.005 ÷ 12
-                        </p>
-
-                        {homePriceResult.monthlyPMI > 0 && (
-                          <>
-                            <p>
-                              6.{" "}
-                              <strong>PMI (Private Mortgage Insurance)</strong>{" "}
-                              = Loan × PMI Rate ÷ 12
-                            </p>
-                            <p className="ml-4">
-                              PMI Rate ≈{" "}
-                              {(
-                                ((homePriceResult.monthlyPMI * 12) /
-                                  homePriceResult.loanAmount) *
-                                100
-                              ).toFixed(2)}
-                              %
-                            </p>
-                            <p className="ml-4">
-                              →{" "}
-                              <strong>
-                                Monthly PMI = $
-                                {homePriceResult.monthlyPMI.toLocaleString()}
-                              </strong>
-                            </p>
-                          </>
-                        )}
-                      </div>
-
-                      <p className="mt-4 font-medium">
-                        Why This Formula Matters:
-                      </p>
-                      <p>
-                        This estimate uses a{" "}
-                        <strong>Debt-to-Income (DTI)</strong> ratio of{" "}
-                        <strong>{homePriceResult.dtiUsed.toFixed(1)}%</strong>,
-                        which reflects current lending guidelines. It ensures
-                        your total monthly housing cost—including mortgage,
-                        taxes, insurance, and PMI—stays within what lenders
-                        generally approve based on your income and debt load.
-                      </p>
-                      <p>
-                        We include estimated <strong>property taxes</strong>{" "}
-                        (based on ZIP code{" "}
-                        <strong>{formData.ideal_zip_code}</strong>),{" "}
-                        <strong>insurance</strong> costs, and{" "}
-                        <strong>PMI</strong> if your down payment is under 20%.
-                        These are factored into your maximum affordable home
-                        price using smart search logic.
-                      </p>
-                    </div>
-
-                    {homePriceResult.warnings?.length > 0 && (
-                      <div className="mt-2">
-                        <p className="text-sm font-medium text-olive mt-2">
-                          Important Considerations:
-                        </p>
-                        <ul className="list-disc list-inside text-sm text-black pl-2">
-                          {homePriceResult.warnings.map(
-                            (warning: string, i: number) => (
-                              <li key={i}>{warning}</li>
-                            )
-                          )}
-                        </ul>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="text-sm text-black py-2">
-                    <p>
-                      Enter your income, zip code, and other financial details
-                      to see your estimated home affordability.
-                    </p>
-                  </div>
-                )}
-                  </div>
-                </div>
+              <div className="col-span-1 md:col-span-2 mt-6">
+                <HomePriceEstimate
+                  homePriceLoading={homePriceLoading}
+                  homePriceError={homePriceError}
+                  homePriceResult={homePriceResult}
+                  showHomePriceDetails={showHomePriceDetails}
+                  setShowHomePriceDetails={setShowHomePriceDetails}
+                  formData={formData}
+                />
               </div>
             </div>
           </div>
@@ -1527,16 +1366,18 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
         return (
           <div className="space-y-6">
             <h2 className="text-xl sm:text-2xl font-serif text-black mb-2">
-              Housing Preferences
+              {SECTION_TITLES.HOUSING_PREFERENCES}
             </h2>
             <p className="text-sm text-black/60 mb-6">
-              Tell us about your ideal home. These preferences help our AI understand what features and characteristics matter most to you when matching properties to your lifestyle and needs.
+              Tell us about your ideal home. These preferences help our AI
+              understand what features and characteristics matter most to you
+              when matching properties to your lifestyle and needs.
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
-                  Desired Housing Type
+                  {FIELD_LABELS.PREFERRED_HOUSING_TYPE}
                 </label>
                 {isEditMode ? (
                   <CustomDropdown
@@ -1544,13 +1385,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                     onChange={(value) =>
                       updateFormData("preferred_housing_type", value)
                     }
-                    options={[
-                      { value: "single_family", label: "Single Family Home" },
-                      { value: "condo", label: "Condominium" },
-                      { value: "townhouse", label: "Townhouse" },
-                      { value: "apartment", label: "Apartment" },
-                      { value: "duplex", label: "Duplex" },
-                    ]}
+                    options={HOUSING_TYPE_OPTIONS}
                     placeholder="Select..."
                     isOpen={openDropdowns.desired_housing_type || false}
                     onToggle={() => toggleDropdown("desired_housing_type")}
@@ -1559,18 +1394,10 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                 ) : (
                   <div className="mobile-input bg-gray-50">
                     {formData.preferred_housing_type
-                      ? [
-                          {
-                            value: "single_family",
-                            label: "Single Family Home",
-                          },
-                          { value: "condo", label: "Condominium" },
-                          { value: "townhouse", label: "Townhouse" },
-                          { value: "apartment", label: "Apartment" },
-                          { value: "duplex", label: "Duplex" },
-                        ].find(
-                          (opt) => opt.value === formData.preferred_housing_type
-                        )?.label
+                      ? HOUSING_TYPE_OPTIONS.find(
+                          (option) =>
+                            option.value === formData.preferred_housing_type
+                        )?.label || "Not specified"
                       : "Not specified"}
                   </div>
                 )}
@@ -1922,7 +1749,11 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   Important Locations
                 </label>
                 <p className="text-xs text-black/60 mb-4">
-                  Add locations important to you (workplace, gym, family, etc.). We use these to create travel time maps and find properties within your commute tolerance. Each location helps our AI match you with homes that fit your lifestyle and daily routines.
+                  Add locations important to you (workplace, gym, family, etc.).
+                  We use these to create travel time maps and find properties
+                  within your commute tolerance. Each location helps our AI
+                  match you with homes that fit your lifestyle and daily
+                  routines.
                 </p>
                 <ImportantLocationsInput
                   locations={formData.important_locations || []}
@@ -1944,13 +1775,13 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
         return (
           <div className="space-y-6">
             <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
-              Communication Preferences
+              {SECTION_TITLES.COMMUNICATION_PREFERENCES}
             </h2>
 
             {/* Communication Preference */}
             <div>
               <label className="block text-sm font-medium text-black mb-2">
-                Communication Frequency
+                {FIELD_LABELS.COMMUNICATION_FREQUENCY}
               </label>
               {isEditMode ? (
                 <CustomDropdown
@@ -1958,11 +1789,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   onChange={(value) =>
                     updateFormData("communication_frequency", value)
                   }
-                  options={[
-                    { value: "frequent", label: "Frequent updates" },
-                    { value: "milestone", label: "Milestone updates" },
-                    { value: "minimal", label: "Minimal contact" },
-                  ]}
+                  options={COMMUNICATION_FREQUENCY_OPTIONS}
                   placeholder="Select..."
                   isOpen={openDropdowns.communication_frequency || false}
                   onToggle={() => toggleDropdown("communication_frequency")}
@@ -1971,13 +1798,10 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
               ) : (
                 <div className="mobile-input bg-gray-50">
                   {formData.communication_frequency
-                    ? [
-                        { value: "frequent", label: "Frequent updates" },
-                        { value: "milestone", label: "Milestone updates" },
-                        { value: "minimal", label: "Minimal contact" },
-                      ].find(
-                        (opt) => opt.value === formData.communication_frequency
-                      )?.label
+                    ? COMMUNICATION_FREQUENCY_OPTIONS.find(
+                        (option) =>
+                          option.value === formData.communication_frequency
+                      )?.label || "Not specified"
                     : "Not specified"}
                 </div>
               )}
@@ -2264,12 +2088,12 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
     <div className="min-h-screen bg-off-white">
       {/* Mobile Header - Only visible on mobile */}
       <div className="sm:hidden">
-        <PageHeader 
-          title="Personalization" 
-          subtitle="Customize your preferences" 
+        <PageHeader
+          title="Personalization"
+          subtitle="Customize your preferences"
         />
       </div>
-      
+
       <div className="max-w-7xl mx-auto mobile-padding">
         {/* Header with action buttons */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
@@ -2382,12 +2206,12 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
               <div className="mb-6 space-y-2">
                 {!isEditMode ? (
                   <button
-                  onClick={() => setIsEditMode(true)}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-olive text-white rounded-lg hover:bg-olive/80 transition-colors touch-friendly text-sm"
-                >
-                  <Edit size={16} />
-                  Edit Preferences
-                </button>
+                    onClick={() => setIsEditMode(true)}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-olive text-white rounded-lg hover:bg-olive/80 transition-colors touch-friendly text-sm"
+                  >
+                    <Edit size={16} />
+                    Edit Preferences
+                  </button>
                 ) : (
                   <>
                     <button
@@ -2436,7 +2260,11 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
           <div className="flex-1 w-full">
             <div className="space-y-8">
               {STEPS.map((step) => (
-                <div key={step.id} id={step.id} className="mobile-card w-[90%] sm:w-full mx-auto sm:mx-0">
+                <div
+                  key={step.id}
+                  id={step.id}
+                  className="mobile-card w-[90%] sm:w-full mx-auto sm:mx-0"
+                >
                   {renderSectionContent(step.id)}
                 </div>
               ))}

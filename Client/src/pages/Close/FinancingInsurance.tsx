@@ -1,81 +1,6 @@
-import { useEffect, useState } from "react";
-import { apiRequest } from "../../lib/api";
-import { CheckSquare } from "lucide-react";
-import ChecklistCheckbox from "../../components/ui/ChecklistCheckbox";
-import ClosePageHeader from "../../components/ui/ClosePageHeader";
-
-const sectionBox =
-  "bg-white rounded-xl shadow-sm p-6 mb-6 border border-beige/40";
-const sectionTitle =
-  "text-lg font-semibold text-navy flex items-center gap-3 mb-4";
-const checkboxContainer = "flex items-start gap-3 mb-5";
-const itemLabel = "font-medium text-navy";
-const itemExplanation =
-  "text-navy/80 text-sm mt-1 transition-opacity duration-300 ease-in-out";
-
-interface ResourceLink {
-  label: string;
-  href?: string;
-}
-
-interface ChecklistItem {
-  id: number;
-  label: string;
-  explanation: string;
-  bullets?: string[];
-  tip?: string;
-  resource?: ResourceLink;
-}
+import CloseLayout, { ChecklistItem } from "../../components/layout/CloseLayout";
 
 export default function FinancingInsurance() {
-  const [checked, setChecked] = useState<{ [id: number]: boolean }>({});
-  const [loading, setLoading] = useState(false);
-
-  const idsFromChecked = (state: { [id: number]: boolean }) =>
-    Object.entries(state)
-      .filter(([_, v]) => v)
-      .map(([k]) => Number(k));
-
-  // fetch existing checklist
-  const fetchChecklist = async () => {
-    try {
-      setLoading(true);
-      const res = await apiRequest<number[]>("/api/v1/user/financing");
-      if (res.success && Array.isArray(res.data)) {
-        const mapping: { [id: number]: boolean } = {};
-        res.data.forEach((id) => (mapping[id] = true));
-        setChecked(mapping);
-      }
-    } catch (err) {
-      console.error("❌ Failed to fetch insurance checklist", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const updateChecklist = async (newState: { [id: number]: boolean }) => {
-    try {
-      const body = idsFromChecked(newState);
-      await apiRequest("/api/v1/user/financing", {
-        method: "PUT",
-        body: JSON.stringify(body),
-      });
-    } catch (err) {
-      console.error("❌ Failed to update insurance checklist", err);
-    }
-  };
-
-  const toggle = (id: number) =>
-    setChecked((prev) => {
-      const next = { ...prev, [id]: !prev[id] };
-      updateChecklist(next);
-      return next;
-    });
-
-  useEffect(() => {
-    fetchChecklist();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const items: ChecklistItem[] = [
     {
@@ -206,43 +131,14 @@ export default function FinancingInsurance() {
     },
   ];
 
-  const completedCount = Object.values(checked).filter(Boolean).length;
-  const total = items.length;
-
   return (
-    <div className="min-h-screen bg-off-white">
-      <ClosePageHeader
-        title="Financing & Insurance Checklist"
-        subtitle="Stay on top of your loan and insurance tasks"
-        completedCount={completedCount}
-        totalCount={total}
-        loading={loading}
-      />
-
-      {/* Checklist */}
-      <div className="mx-auto px-12 py-10 max-w-4xl">
-        {loading && <p className="mb-4">Loading checklist…</p>}
-        <div className={sectionBox}>
-          <div className={sectionTitle}>
-            <CheckSquare className="h-5 w-5 text-brown" />
-            Loan & Insurance Tasks
-          </div>
-          <fieldset>
-            <legend className="sr-only">Checklist</legend>
-            {items.map((item) => (
-              <ChecklistCheckbox
-                key={item.id}
-                item={item}
-                checked={!!checked[item.id]}
-                onToggle={() => toggle(item.id)}
-                itemLabelClass={itemLabel}
-                itemExplanationClass={itemExplanation}
-                checkboxContainerClass={checkboxContainer}
-              />
-            ))}
-          </fieldset>
-        </div>
-      </div>
-    </div>
+    <CloseLayout
+      title="Financing & Insurance Checklist"
+      subtitle="Stay on top of your loan and insurance tasks"
+      sectionTitle="Loan & Insurance Tasks"
+      apiEndpoint="/api/v1/user/financing"
+      items={items}
+      showMinLoadingText={true}
+    />
   );
 }
