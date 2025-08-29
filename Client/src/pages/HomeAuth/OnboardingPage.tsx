@@ -87,7 +87,7 @@ export default function OnboardingPage() {
   const [homePriceLoading, setHomePriceLoading] = useState(false);
   const [homePriceError, setHomePriceError] = useState<string | null>(null);
   const [homePriceResult, setHomePriceResult] = useState<any>(null);
-  const [isAffordabilityCollapsed, setIsAffordabilityCollapsed] = useState(true);
+  const [isAffordabilityCollapsed, setIsAffordabilityCollapsed] = useState(false);
   const navigate = useNavigate();
 
 
@@ -665,12 +665,12 @@ export default function OnboardingPage() {
                     {homePriceLoading ? (
                   <div className="flex items-center justify-center py-4">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-olive"></div>
-                    <span className="ml-2 text-sm text-black">
+                    <span className="ml-2 text-xs sm:text-sm text-black">
                       Calculating affordability...
                     </span>
                   </div>
                 ) : homePriceError ? (
-                  <div className="text-black text-sm py-2">
+                  <div className="text-black text-xs sm:text-sm py-2">
                     <p className="font-medium">
                       Unable to calculate affordability:
                     </p>
@@ -694,8 +694,8 @@ export default function OnboardingPage() {
                         </div>
                       </div>
                       <div>
-                        <p className="text-sm text-black">Monthly Payment</p>
-                        <p className="text-xl font-bold text-olive">
+                        <p className="text-xs sm:text-sm text-black">Monthly Payment</p>
+                        <p className="text-lg sm:text-xl font-bold text-olive">
                           $
                           {homePriceResult.totalMonthlyHousingCost.toLocaleString()}
                           /mo
@@ -703,12 +703,12 @@ export default function OnboardingPage() {
                       </div>
                     </div>
 
-                    <div className="text-sm text-black bg-white p-3 rounded border border-olive/30">
+                    <div className="text-xs sm:text-sm text-black bg-white p-3 rounded border border-olive/30">
                       <p className="text-xs sm:text-sm md:text-base text-gray-600 mb-4">
                         Based on your income and financial profile, here's what you
                         might afford:
                       </p>
-                      <div className="bg-[#EAD9B3] bg-opacity-20 p-3 rounded font-mono text-black space-y-1">
+                      <div className="bg-[#EAD9B3] bg-opacity-20 p-2 sm:p-3 rounded font-mono text-xs sm:text-sm text-black space-y-1">
                         <p>
                           1. <strong>Monthly Income</strong> = Gross Annual
                           Income ÷ 12
@@ -843,10 +843,10 @@ export default function OnboardingPage() {
 
                     {homePriceResult.warnings?.length > 0 && (
                       <div className="mt-2">
-                        <p className="text-sm font-medium text-olive mt-2">
+                        <p className="text-xs sm:text-sm font-medium text-olive mt-2">
                           Important Notes:
                         </p>
-                        <ul className="text-sm text-black list-disc list-inside mt-1 space-y-1">
+                        <ul className="text-xs sm:text-sm text-black list-disc list-inside mt-1 space-y-1">
                           {homePriceResult.warnings.map((warning: string, index: number) => (
                             <li key={index}>{warning}</li>
                           ))}
@@ -855,7 +855,7 @@ export default function OnboardingPage() {
                     )}
                   </div>
                 ) : (
-                  <div className="text-sm text-black py-2">
+                  <div className="text-xs sm:text-sm text-black py-2">
                     <p>
                       Enter your income, zip code, and other financial details
                       to see your estimated home affordability.
@@ -1014,7 +1014,7 @@ export default function OnboardingPage() {
                 <OnboardPersonalizeTagInput
                   value={(formData.preferred_home_features as string[]) || []}
                   onChange={(value) => updateFormData("preferred_home_features", value)}
-                  placeholder="Enter feature and click + to add (e.g., garage, pool, fireplace)"
+                  placeholder="e.g., garage, pool, fireplace"
                 />
               </div>
 
@@ -1023,7 +1023,7 @@ export default function OnboardingPage() {
                 <OnboardPersonalizeTagInput
                   value={(formData.deal_breakers as string[]) || []}
                   onChange={(value) => updateFormData("deal_breakers", value)}
-                  placeholder="Add deal breakers (e.g., No parking, Busy road, Old plumbing)"
+                  placeholder="e.g., No parking, Busy road, Old plumbing"
                 />
               </div>
             </div>
@@ -1178,7 +1178,7 @@ export default function OnboardingPage() {
 
 
   return (
-    <div className="w-full max-w-[90vw] mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="w-full max-w-[90vw] mx-auto px-4 sm:px-6 lg:px-8 pb-20 sm:pb-8">
       {/* Header */}
       <div className="flex items-center justify-between mt-4 sm:mt-6 mb-3 sm:mb-4">
         <div className="flex items-center">
@@ -1201,51 +1201,53 @@ export default function OnboardingPage() {
 
       {/* Step Content */}
       <div className="bg-white rounded-2xl shadow-sm mx-auto max-w-[85vw] overflow-hidden">
-        <div className="mobile-card">
+        <div className="mobile-card pb-8 sm:pb-12">
         {renderStepContent()}
 
         {/* Navigation Buttons */}
-        <div className="flex justify-between items-center mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-beige/30">
-          {/* Previous Button - positioned at 1/4 width */}
-          <div className="flex justify-center" style={{ width: '50%', marginLeft: '-12.5%' }}>
-            <button
-              onClick={prevStep}
-              disabled={currentStep === 0}
-              className={`flex items-center justify-center px-3 py-2 sm:px-3 sm:py-2 md:px-4 md:py-2 rounded-lg font-medium transition-all duration-200 text-xs sm:text-sm w-20 sm:w-20 md:w-24 ${
-                currentStep === 0
-                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
-            >
-              <ChevronLeft className={`w-4 h-4 sm:w-5 sm:h-5 mr-2 ${
-                currentStep === 0 ? "text-gray-500" : "text-gray-800"
-              }`} />
-              <span>Previous</span>
-            </button>
-          </div>
+        <div className="relative mt-8 sm:mt-10 pt-6 sm:pt-8 border-t border-beige/30 px-4 sm:px-6">
+          <div className="flex items-center justify-between w-full">
+            {/* Previous Button - anchored at 25% width */}
+            <div className="absolute left-1/4 transform -translate-x-1/2">
+              <button
+                onClick={prevStep}
+                disabled={currentStep === 0}
+                className={`flex items-center justify-center px-3 py-2 sm:px-4 sm:py-2 md:px-5 md:py-3 rounded-lg font-medium transition-all duration-200 text-xs sm:text-sm w-[100px] sm:w-[110px] ${
+                  currentStep === 0
+                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                }`}
+              >
+                <ChevronLeft className={`w-4 h-4 sm:w-5 sm:h-5 mr-1 ${
+                  currentStep === 0 ? "text-gray-500" : "text-gray-800"
+                }`} />
+                <span>Previous</span>
+              </button>
+            </div>
 
-          {/* Next/Complete Button - positioned at 3/4 width */}
-          <div className="flex justify-center" style={{ width: '50%', marginRight: '-12.5%' }}>
-            {currentStep === STEPS.length - 1 ? (
-              <button
-                onClick={handleSubmit}
-                disabled={loading}
-                className="flex items-center justify-center px-3 py-2 sm:px-3 sm:py-2 md:px-4 md:py-2 bg-olive text-white rounded-lg hover:bg-olive/80 disabled:opacity-50 font-bold transition-all duration-200 text-xs sm:text-sm w-20 sm:w-20 md:w-24"
-              >
-                <span>{loading ? "Saving..." : "Complete"}</span>
-                {!loading && (
-                  <Check className="w-3 h-3 sm:w-4 sm:h-4 ml-1" />
-                )}
-              </button>
-            ) : (
-              <button
-                onClick={nextStep}
-                className="flex items-center justify-center px-3 py-2 sm:px-3 sm:py-2 md:px-4 md:py-2 bg-olive/30 text-olive rounded-lg hover:bg-olive/40 font-bold transition-all duration-200 text-xs sm:text-sm w-20 sm:w-20 md:w-24"
-              >
-                <span>Next</span>
-                <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 ml-1" />
-              </button>
-            )}
+            {/* Next/Complete Button - anchored at 75% width */}
+            <div className="absolute left-3/4 transform -translate-x-1/2">
+              {currentStep === STEPS.length - 1 ? (
+                <button
+                  onClick={handleSubmit}
+                  disabled={loading}
+                  className="flex items-center justify-center px-3 py-2 sm:px-4 sm:py-2 md:px-5 md:py-3 bg-olive text-white rounded-lg hover:bg-olive/80 disabled:opacity-50 font-bold transition-all duration-200 text-xs sm:text-sm w-[100px] sm:w-[110px]"
+                >
+                  <span>{loading ? "Saving..." : "Complete"}</span>
+                  {!loading && (
+                    <Check className="w-3 h-3 sm:w-4 sm:h-4 ml-1" />
+                  )}
+                </button>
+              ) : (
+                <button
+                  onClick={nextStep}
+                  className="flex items-center justify-center px-3 py-2 sm:px-4 sm:py-2 md:px-5 md:py-3 bg-olive/60 text-white rounded-lg hover:bg-olive/70 font-bold transition-all duration-200 text-xs sm:text-sm w-[100px] sm:w-[110px]"
+                >
+                  <span>Next</span>
+                  <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 ml-1" />
+                </button>
+              )}
+            </div>
           </div>
         </div>
         </div>

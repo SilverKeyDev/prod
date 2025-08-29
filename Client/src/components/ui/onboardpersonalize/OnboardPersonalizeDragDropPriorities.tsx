@@ -69,23 +69,23 @@ const SortableReportSection: React.FC<SortableReportSectionProps> = ({
     <div
       ref={setNodeRef}
       style={style}
-      className={`flex items-center space-x-3 p-3 bg-gray-50 border border-gray-300 rounded-lg ${
+      className={`flex items-center space-x-2 p-2 bg-gray-50 border border-gray-300 rounded-lg ${
         !checked ? "opacity-60" : ""
       } ${isDragging ? "shadow-lg bg-white border-brown/50" : ""}`}
     >
       <div
         {...attributes}
         {...listeners}
-        className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 p-2 rounded hover:bg-gray-100 transition-colors touch-manipulation select-none"
+        className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 p-1 rounded hover:bg-gray-100 transition-colors touch-manipulation select-none"
         title="Drag to reorder"
         style={{ touchAction: 'none' }}
       >
-        <GripVertical className="w-5 h-5" />
+        <GripVertical className="w-4 h-4" />
       </div>
 
       <div className="flex items-center space-x-2">
         {priority && (
-          <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">
+          <span className="text-xs font-medium text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">
             {priority}
           </span>
         )}
@@ -103,7 +103,7 @@ const SortableReportSection: React.FC<SortableReportSectionProps> = ({
               className="sr-only"
             />
             <div
-              className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all duration-200 ${
+              className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all duration-200 ${
                 checked
                   ? "bg-brown border-brown text-white shadow-sm"
                   : "border-gray-300 bg-gray-100"
@@ -111,7 +111,7 @@ const SortableReportSection: React.FC<SortableReportSectionProps> = ({
             >
               {checked && (
                 <svg
-                  className="w-3 h-3"
+                  className="w-2.5 h-2.5"
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
@@ -124,7 +124,7 @@ const SortableReportSection: React.FC<SortableReportSectionProps> = ({
               )}
             </div>
           </div>
-          <span className="text-sm font-medium text-gray-700 flex-1">
+          <span className="text-xs font-medium text-gray-700 flex-1">
             {label}
           </span>
         </label>
@@ -176,10 +176,10 @@ const OnboardPersonalizeDragDropPriorities: React.FC<
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
+      <h2 className="text-lg sm:text-xl font-serif text-black mb-4">
         Priorities
       </h2>
-      <p className="text-gray-600 mb-4">
+      <p className="text-sm text-gray-600 mb-3">
         {isEditMode
           ? "Customize your report sections below:"
           : "Choose which sections to include in your property reports. All sections are enabled by default, but you can customize them to focus on what matters most to you."}
@@ -197,7 +197,7 @@ const OnboardPersonalizeDragDropPriorities: React.FC<
           }
           strategy={verticalListSortingStrategy}
         >
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3" style={{ touchAction: 'manipulation' }}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2" style={{ touchAction: 'manipulation' }}>
             {orderedSections?.map((section) => {
               if (!section || !section.key || !section.label) return null;
 
@@ -220,20 +220,20 @@ const OnboardPersonalizeDragDropPriorities: React.FC<
               ) : (
                 <div
                   key={section.key}
-                  className={`flex items-center space-x-3 p-3 bg-gray-50 border border-gray-300 rounded-lg ${
+                  className={`flex items-center space-x-2 p-2 bg-gray-50 border border-gray-300 rounded-lg ${
                     !isChecked ? "opacity-60" : ""
                   }`}
                 >
                   <div className="flex items-center space-x-2">
                     {priority && (
-                      <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                      <span className="text-xs font-medium text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">
                         {priority}
                       </span>
                     )}
 
                     <div className="relative">
                       <div
-                        className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all duration-200 ${
+                        className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all duration-200 ${
                           isChecked
                             ? "bg-brown border-brown text-white shadow-sm"
                             : "border-gray-300 bg-gray-100"
@@ -241,7 +241,7 @@ const OnboardPersonalizeDragDropPriorities: React.FC<
                       >
                         {isChecked && (
                           <svg
-                            className="w-3 h-3"
+                            className="w-2.5 h-2.5"
                             fill="currentColor"
                             viewBox="0 0 20 20"
                           >
@@ -254,7 +254,7 @@ const OnboardPersonalizeDragDropPriorities: React.FC<
                         )}
                       </div>
                     </div>
-                    <span className="text-sm font-medium text-gray-700 flex-1">
+                    <span className="text-xs font-medium text-gray-700 flex-1">
                       {section.label}
                     </span>
                   </div>

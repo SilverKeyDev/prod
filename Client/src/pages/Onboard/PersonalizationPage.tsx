@@ -1522,7 +1522,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                     key="preferred_home_features"
                     field="preferred_home_features"
                     label="Preferred Home Features"
-                    placeholder="Enter feature and click + to add (e.g., garage, pool, fireplace)"
+                    placeholder="e.g., garage, pool, fireplace"
                   />
                 </div>
                 <div className="md:col-span-2">
@@ -1530,7 +1530,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                     key="deal_breakers"
                     field="deal_breakers"
                     label="Deal Breakers"
-                    placeholder="Add deal breakers (e.g., No parking, Busy road, Old plumbing)"
+                    placeholder="e.g., No parking, Busy road, Old plumbing"
                   />
                 </div>
               </div>
