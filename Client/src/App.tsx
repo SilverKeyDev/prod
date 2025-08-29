@@ -200,39 +200,12 @@ function AppRoutes({ user, handleLogout }: { user: UserProfile | null; handleLog
 function App() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [maintenance, setMaintenance] = useState(false);
+  const [maintenance] = useState(true); // Force maintenance mode
 
-  // Health check
+  // Health check - disabled to force maintenance mode
   useEffect(() => {
-    let isMounted = true;
-    fetch("/healthz", { method: "GET" })
-      .then((res) => {
-        if (!res.ok) {
-          console.error("/healthz responded with status:", res.status);
-          throw new Error("Healthz failed with status: " + res.status);
-        }
-        return res.json();
-      })
-      .then((data) => {
-        if (isMounted) {
-          if (data && data.status === "ok") {
-            setMaintenance(false);
-          } else {
-            setMaintenance(true);
-            console.warn("/healthz returned unexpected data:");
-          }
-        }
-      })
-      .catch((err) => {
-        if (isMounted) {
-          setMaintenance(true);
-          console.error("Error fetching /healthz:", err);
-        }
-      })
-      .finally(() => {
-        if (isMounted) setLoading(false);
-      });
-    return () => { isMounted = false; };
+    // Skip health check and just set loading to false
+    setLoading(false);
   }, []);
 
   useEffect(() => {

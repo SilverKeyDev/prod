@@ -42,14 +42,11 @@ export const DEFAULT_REPORT_SECTIONS = [
 // Shared section titles and labels
 export const SECTION_TITLES = {
   DEMOGRAPHICS: "Demographics",
-  FINANCIAL_PROFILE: "Financial Profile", 
-  HOUSING_PREFERENCES: "Housing Preferences",
-  LOCATION_PREFERENCES: "Location Preferences",
-  COMMUNICATION_PREFERENCES: "Communication Preferences",
-  LIFESTYLE: "Lifestyle",
-  REAL_ESTATE_EXPERIENCE: "Real Estate Experience",
-  PERSONAL_INSIGHTS: "Personal Insights",
-  REPORT_CUSTOMIZATION: "Report Customization",
+  FINANCIAL_PROFILE: "Finances", 
+  HOUSING_PREFERENCES: "Housing", 
+  LOCATION_PREFERENCES: "Location",
+  COMMUNICATION_PREFERENCES: "Communication",
+  REPORT_CUSTOMIZATION: "Priorities",
 } as const;
 
 // Shared field labels

@@ -1,44 +1,31 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { useGoogleMaps } from "../../context";
+import { useGoogleMaps } from "../../context/GoogleMapsContext";
 import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  GripVertical,
-  Plus,
-  X,
   Check,
 } from "lucide-react";
 import KeyLogo from "/logo.png";
 import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
   DragEndEvent,
 } from "@dnd-kit/core";
 import {
   arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 import ImportantLocationsInput from "../../components/ui/onboardpersonalize/ImportantLocationsInput";
 import Loading from "../../components/ui/base/Loading";
-import OliveCheckbox from "../../components/ui/base/OliveCheckbox";
 import PriceRangeSlider from "../../components/ui/onboardpersonalize/PriceRangeSlider";
 import ValidationWarning from "../../components/feedback/ValidationWarning";
 import OnboardPersonalizeInput from "../../components/ui/onboardpersonalize/OnboardPersonalizeInput";
 import OnboardPersonalizeDropdown from "../../components/ui/onboardpersonalize/OnboardPersonalizeDropdown";
+import OnboardPersonalizeTagInput from "../../components/ui/onboardpersonalize/OnboardPersonalizeTagInput";
 import { RequiredLabel, OptionalLabel } from "../../components/ui/onboardpersonalize/OnboardPersonalizeLabel";
 import OnboardingHeader from "../../components/ui/onboardpersonalize/OnboardingHeader";
-import HomePriceEstimate from "../../components/ui/onboardpersonalize/HomePriceEstimate";
-import { estimateAffordableHomePrice } from "../../lib/affordabilityCalculator";
+import OnboardPersonalizeDragDropPriorities from "../../components/ui/onboardpersonalize/OnboardPersonalizeDragDropPriorities";
+import OnboardPersonalizeBuyersAgent from "../../components/ui/onboardpersonalize/OnboardPersonalizeBuyersAgent";
+import { calculateAffordableHomePrice } from "../../lib/onboard/homePriceCalculation";
 import {
   OnboardingData,
   ONBOARDING_STEPS,
@@ -51,7 +38,6 @@ import {
   WALKABILITY_OPTIONS,
   COMMUNICATION_FREQUENCY_OPTIONS,
   INFORMATION_DETAIL_OPTIONS,
-  BUYERS_AGENT_OPTIONS,
   HOME_AGE_OPTIONS,
   RENOVATION_PREFERENCE_OPTIONS,
   PROPERTY_USE_OPTIONS,
@@ -73,191 +59,13 @@ const STEPS = ONBOARDING_STEPS;
 const REPORT_SECTIONS = DEFAULT_REPORT_SECTIONS;
 
 
-// Sortable Report Section Component
-interface SortableReportSectionProps {
-  id: string;
-  label: string;
-  checked: boolean;
-  priority?: number;
-  onToggle: (checked: boolean) => void;
-}
 
-const SortableReportSection: React.FC<SortableReportSectionProps> = ({
-  id,
-  label,
-  checked,
-  priority,
-  onToggle,
-}) => {
-  // Safety checks for props
-  if (
-    !id ||
-    !label ||
-    typeof checked !== "boolean" ||
-    typeof onToggle !== "function"
-  ) {
-    console.warn("SortableReportSection received invalid props:", {
-      id,
-      label,
-      checked,
-      onToggle,
-    });
-    return null;
-  }
-
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition: isDragging ? "none" : transition,
-    zIndex: isDragging ? 1000 : "auto",
-  };
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className={`flex items-center space-x-responsive-sm space-responsive-sm border rounded-lg transition-all duration-200 border-beige hover:bg-beige/10 hover:border-brown/30 ${
-        !checked ? "opacity-60" : ""
-      } ${isDragging ? "shadow-lg bg-white border-brown/50" : ""}`}
-    >
-      <div
-        {...attributes}
-        {...listeners}
-        className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 space-responsive-xs rounded hover:bg-gray-100 transition-colors"
-        title="Drag to reorder"
-      >
-        <GripVertical className="mobile-icon-sm" />
-      </div>
-
-      <div className="flex items-center space-x-responsive-sm flex-1">
-        <div className="flex items-center space-x-responsive-xs">
-          {priority && (
-            <span className="text-responsive-xs font-medium text-gray-500 bg-gray-100 px-responsive-xs py-responsive-xs rounded">
-              {priority}
-            </span>
-          )}
-
-          <label
-            htmlFor={id}
-            className="flex items-center space-x-responsive-sm cursor-pointer flex-1"
-          >
-            <div className="relative">
-              <input
-                type="checkbox"
-                id={id}
-                checked={checked}
-                onChange={(e) => onToggle(e.target.checked)}
-                className="sr-only"
-              />
-              <div
-                className={`mobile-icon-sm rounded border-2 flex items-center justify-center transition-all duration-200 ${
-                  checked
-                    ? "bg-brown border-brown text-white shadow-sm"
-                    : "border-beige hover:border-brown/50 bg-white"
-                }`}
-              >
-                {checked && (
-                  <svg
-                    className="mobile-icon-xs"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                )}
-              </div>
-            </div>
-            <span className="text-responsive-sm font-medium text-gray-700 flex-1">
-              {label}
-            </span>
-          </label>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Custom dropdown component matching PastReports implementation
-interface CustomDropdownProps {
-  value: string;
-  onChange: (value: string) => void;
-  options: { value: string; label: string }[];
-  placeholder: string;
-  isOpen: boolean;
-  onToggle: () => void;
-  dropdownRef: React.RefObject<HTMLDivElement>;
-}
-
-const CustomDropdown: React.FC<CustomDropdownProps> = ({
-  value,
-  onChange,
-  options,
-  placeholder,
-  isOpen,
-  onToggle,
-  dropdownRef,
-}) => {
-  const selectedOption = options.find((opt) => opt.value === value);
-
-  return (
-    <div className="relative" ref={dropdownRef}>
-      <button
-        onClick={onToggle}
-        className="mobile-input text-xs sm:text-sm md:text-base text-gray-700 flex items-center justify-between cursor-pointer hover:border-brown focus:border-brown focus:ring-brown/20 w-full touch-friendly"
-      >
-        <span className="text-left">
-          {selectedOption ? selectedOption.label : placeholder}
-        </span>
-        <ChevronDown
-          className={`mobile-icon-xs transition-transform duration-200 ${
-            isOpen ? "rotate-180" : ""
-          }`}
-        />
-      </button>
-
-      {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-beige rounded-lg shadow-lg z-50">
-          {options.map((option, index) => (
-            <button
-              key={option.value}
-              onClick={() => {
-                onChange(option.value);
-                onToggle();
-              }}
-              className={`w-full px-responsive-sm py-responsive-xs text-left text-xs sm:text-sm md:text-base hover:bg-brown/5 transition-colors duration-150 touch-friendly ${
-                index === 0 ? "first:rounded-t-lg" : ""
-              } ${index === options.length - 1 ? "last:rounded-b-lg" : ""} ${
-                value === option.value
-                  ? "bg-brown/10 text-brown font-medium"
-                  : "text-gray-700"
-              }`}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
 
 export default function OnboardingPage() {
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<OnboardingData>({
-    // Initialize report customization with only Neighborhood Overview checked by default
-    report_section_priorities: ["neighborhood_overview"],
+    // Initialize report customization with empty array - users will select their own priorities
+    report_section_priorities: [],
     important_locations: [],
   });
   const [loading, setLoading] = useState(false);
@@ -279,41 +87,9 @@ export default function OnboardingPage() {
   const [homePriceLoading, setHomePriceLoading] = useState(false);
   const [homePriceError, setHomePriceError] = useState<string | null>(null);
   const [homePriceResult, setHomePriceResult] = useState<any>(null);
-  const [showHomePriceDetails, setShowHomePriceDetails] = useState(false);
-  const [isAffordabilityCollapsed, setIsAffordabilityCollapsed] = useState(false);
+  const [isAffordabilityCollapsed, setIsAffordabilityCollapsed] = useState(true);
   const navigate = useNavigate();
 
-  // Generate explanation text for the home price calculation
-  const generateExplanation = (result: any, data: OnboardingData) => {
-    // Calculate down payment percent for display
-    const downPaymentPercent =
-      result.maxHomePrice > 0
-        ? ((result.downPayment / result.maxHomePrice) * 100).toFixed(1)
-        : "-";
-
-    return `Based on your gross annual income of $${data.gross_income?.toLocaleString()}, credit score range, and a down payment of $${data.down_payment?.toLocaleString()} (${downPaymentPercent}% of home price), we estimate you can afford a home up to $${result.maxHomePrice.toLocaleString()}.
-
-This estimate is calculated using a debt-to-income (DTI) approach: your maximum allowable monthly housing cost is determined as a percentage of your gross monthly income, in line with common DTI limits. We then backsolve for the highest home price you can afford, factoring in principal, interest, property taxes, homeowner's insurance, and any required PMI.
-
-Key assumptions used:
-- **Interest Rate:** ${
-      typeof result.interestRate === "number"
-        ? (result.interestRate * 100).toFixed(2)
-        : "-"
-    }%
-- **Property Tax Rate:** ${
-      typeof result.propertyTaxRate === "number"
-        ? (result.propertyTaxRate * 100).toFixed(2)
-        : "-"
-    }%
-- **PMI Rate:** ${
-      typeof result.pmiRate === "number"
-        ? (result.pmiRate * 100).toFixed(2)
-        : "-"
-    }%
-
-Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleString()} includes principal, interest, property taxes, homeowner's insurance, and PMI (if applicable). This approach gives you a realistic maximum home price based on your income and debts—not just a budget cap.`;
-  };
 
   const calculateHomePrice = async () => {
     // Check if we have all required data
@@ -325,44 +101,14 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
       setHomePriceLoading(true);
       setHomePriceError(null);
 
-      // Map credit score range to a numeric value
-      let creditScore = 700; // Default to good credit
-      switch (formData.credit_score_range) {
-        case "poor":
-          creditScore = 550;
-          break;
-        case "fair":
-          creditScore = 630;
-          break;
-        case "good":
-          creditScore = 700;
-          break;
-        case "very_good":
-          creditScore = 770;
-          break;
-        case "excellent":
-          creditScore = 800;
-          break;
-      }
 
-      // Calculate down payment percentage based on savings
-      const downPaymentAmount = formData.down_payment || 50000;
-
-      const result = await estimateAffordableHomePrice({
-        grossAnnualIncome: formData.gross_income || 0,
-        creditScore,
-        zipCode: formData.ideal_zip_code || "",
-        downPayment: downPaymentAmount,
-      });
+      const result = await calculateAffordableHomePrice(formData);
 
       if ("error" in result) {
         setHomePriceError(result.error);
         setHomePriceResult(null);
       } else {
-        setHomePriceResult({
-          ...result,
-          explanation: generateExplanation(result, formData),
-        });
+        setHomePriceResult(result);
       }
     } catch (error) {
       setHomePriceError(
@@ -398,17 +144,6 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
     currentStep,
   ]);
 
-  // Drag and drop sensors
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 3, // Start dragging after 3px movement
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
 
   // Get ordered report sections based on user preferences
   const getOrderedReportSections = () => {
@@ -1156,9 +891,9 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   }
                   options={HOUSING_TYPE_OPTIONS}
                   placeholder="Select..."
-                  isOpen={openDropdowns.desired_housing_type || false}
-                  onToggle={() => toggleDropdown("desired_housing_type")}
-                  dropdownRef={getDropdownRef("desired_housing_type")}
+                  isOpen={openDropdowns.preferred_housing_type || false}
+                  onToggle={() => toggleDropdown("preferred_housing_type")}
+                  dropdownRef={getDropdownRef("preferred_housing_type")}
                 />
               </div>
 
@@ -1213,10 +948,8 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
               </div>
 
               <div>
-                <label className="block text-xs sm:text-sm md:text-base font-medium text-gray-700 mb-2">
-                  Preferred Home Age
-                </label>
-                <CustomDropdown
+                <OptionalLabel>Preferred Home Age</OptionalLabel>
+                <OnboardPersonalizeDropdown
                   value={formData.preferred_home_age || ""}
                   onChange={(value) =>
                     updateFormData("preferred_home_age", value)
@@ -1230,10 +963,8 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
               </div>
 
               <div>
-                <label className="block text-xs sm:text-sm md:text-base font-medium text-gray-700 mb-2">
-                  Preferred Architectural Style
-                </label>
-                <CustomDropdown
+                <OptionalLabel>Preferred Architectural Style</OptionalLabel>
+                <OnboardPersonalizeDropdown
                   value={formData.preferred_architectural_style || ""}
                   onChange={(value) =>
                     updateFormData("preferred_architectural_style", value)
@@ -1249,10 +980,8 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Renovation Willingness
-                </label>
-                <CustomDropdown
+                <OptionalLabel>Renovation Willingness</OptionalLabel>
+                <OnboardPersonalizeDropdown
                   value={formData.renovation_preference || ""}
                   onChange={(value) =>
                     updateFormData("renovation_preference", value)
@@ -1266,10 +995,8 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Intended Property Use
-                </label>
-                <CustomDropdown
+                <OptionalLabel>Intended Property Use</OptionalLabel>
+                <OnboardPersonalizeDropdown
                   value={formData.intended_property_use || ""}
                   onChange={(value) =>
                     updateFormData("intended_property_use", value)
@@ -1282,21 +1009,22 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                 />
               </div>
 
-              <div className="md:col-span-2">
-                <TagInput
-                  key="preferred_home_features"
-                  field="preferred_home_features"
-                  label="Preferred Home Features"
+              <div>
+                <OptionalLabel>Preferred Home Features</OptionalLabel>
+                <OnboardPersonalizeTagInput
+                  value={(formData.preferred_home_features as string[]) || []}
+                  onChange={(value) => updateFormData("preferred_home_features", value)}
                   placeholder="Enter feature and click + to add (e.g., garage, pool, fireplace)"
                 />
-                <div className="md:col-span-2">
-                  <TagInput
-                    key="deal_breakers"
-                    field="deal_breakers"
-                    label="Deal Breakers"
-                    placeholder="Add deal breakers (e.g., No parking, Busy road, Old plumbing)"
-                  />
-                </div>
+              </div>
+
+              <div>
+                <OptionalLabel>Deal Breakers</OptionalLabel>
+                <OnboardPersonalizeTagInput
+                  value={(formData.deal_breakers as string[]) || []}
+                  onChange={(value) => updateFormData("deal_breakers", value)}
+                  placeholder="Add deal breakers (e.g., No parking, Busy road, Old plumbing)"
+                />
               </div>
             </div>
           </div>
@@ -1311,7 +1039,10 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
 
             <div className="grid grid-cols-1 gap-4 sm:gap-6">
               <div>
-                <RequiredLabel>Walkability Importance</RequiredLabel>
+                <OptionalLabel>Walkability Importance</OptionalLabel>
+                <p className="text-xs sm:text-sm md:text-base text-black/60 mb-4">
+                  How important is it to walk to nearby amenities? Used to filter neighborhoods in search results.
+                </p>
                 <OnboardPersonalizeDropdown
                   value={formData.walkability_importance || ""}
                   onChange={(value) =>
@@ -1326,52 +1057,28 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
               </div>
             </div>
 
-            {/* Home Price Estimate Section */}
-            <HomePriceEstimate
-              homePriceLoading={homePriceLoading}
-              homePriceError={homePriceError}
-              homePriceResult={homePriceResult}
-              showHomePriceDetails={showHomePriceDetails}
-              setShowHomePriceDetails={setShowHomePriceDetails}
-              formData={formData}
-            />
-          </div>
-        );
-
-      case "location":
-        return (
-          <div className="space-y-6">
-            <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-serif text-black mb-4 sm:mb-6">
-              {SECTION_TITLES.LOCATION_PREFERENCES}
-            </h2>
-
-            <div className="space-y-6">
-              <div>
-                <OptionalLabel>
-                  <span className="text-center block">
-                    Tell us about important places in your life and daily
-                    routines.
-                  </span>
-                </OptionalLabel>
-                <p className="text-xs sm:text-sm md:text-base text-black/60 mb-4">
-                  Add locations like work, family, or places you visit regularly.
-                  We'll help you find homes with reasonable commute times to
-                  these important places in your daily routines.
-                </p>
-                <ImportantLocationsInput
-                  locations={formData.important_locations || []}
-                  onChange={(locations: { name: string; address: string; commute_tolerance?: number }[]) => {
-                    updateFormData("important_locations", locations);
-                  }}
-                  scriptsReady={scriptsReady}
-                />
-                {loadError && (
-                  <p className="text-red-500 text-xs mt-2">{loadError}</p>
-                )}
-              </div>
+            {/* Important Locations Section */}
+            <div>
+              <RequiredLabel>
+                Important Locations
+              </RequiredLabel>
+              <p className="text-xs sm:text-sm md:text-base text-black/60 mb-4">
+                Add work, family, or frequently visited places. We'll find homes with reasonable commute times to these locations.
+              </p>
+              <ImportantLocationsInput
+                locations={formData.important_locations || []}
+                onChange={(locations: { name: string; address: string; commute_tolerance?: number }[]) => {
+                  updateFormData("important_locations", locations);
+                }}
+                scriptsReady={scriptsReady}
+              />
+              {loadError && (
+                <p className="text-red-500 text-xs mt-2">{loadError}</p>
+              )}
             </div>
           </div>
         );
+
 
       case "communication":
         return (
@@ -1412,61 +1119,19 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Buyer's Agent Dropdown */}
-              <div>
-                <label className="block text-xs sm:text-sm md:text-base font-medium text-black mb-2">
-                  Do you currently have a buyer's agent?
-                </label>
-                <CustomDropdown
-                  value={formData.has_buyers_agent ?? ""}
-                  onChange={(value) =>
-                    updateFormData("has_buyers_agent", value)
-                  }
-                  options={BUYERS_AGENT_OPTIONS}
-                  placeholder="Select..."
-                  isOpen={openDropdowns.has_buyers_agent || false}
-                  onToggle={() => toggleDropdown("has_buyers_agent")}
-                  dropdownRef={getDropdownRef("has_buyers_agent")}
-                />
-              </div>
-
-              {/* Show checkbox if user does NOT have a buyer's agent */}
-              {formData.has_buyers_agent === "no" && (
-                <div className="flex flex-col justify-center items-center h-full w-full md:mt-2">
-                  <label
-                    htmlFor="onboard-looking-buyers-agent"
-                    className="flex items-center gap-3 text-sm font-medium text-black cursor-pointer"
-                  >
-                    <input
-                      type="checkbox"
-                      id="onboard-looking-buyers-agent"
-                      className="sr-only peer"
-                      checked={!!formData.looking_for_buyers_agent}
-                      onChange={() =>
-                        updateFormData(
-                          "looking_for_buyers_agent",
-                          !formData.looking_for_buyers_agent
-                        )
-                      }
-                      aria-label="I am looking for a buyer's agent"
-                    />
-                    <OliveCheckbox
-                      checked={!!formData.looking_for_buyers_agent}
-                      onToggle={() =>
-                        updateFormData(
-                          "looking_for_buyers_agent",
-                          !formData.looking_for_buyers_agent
-                        )
-                      }
-                    />
-                    <span className="select-none">
-                      I am looking for a buyer's agent
-                    </span>
-                  </label>
-                </div>
-              )}
-            </div>
+            <OnboardPersonalizeBuyersAgent
+              hasBuyersAgent={formData.has_buyers_agent ?? ""}
+              lookingForBuyersAgent={!!formData.looking_for_buyers_agent}
+              onHasBuyersAgentChange={(value) =>
+                updateFormData("has_buyers_agent", value)
+              }
+              onLookingForBuyersAgentChange={(value) =>
+                updateFormData("looking_for_buyers_agent", value)
+              }
+              isOpen={openDropdowns.has_buyers_agent || false}
+              onToggle={() => toggleDropdown("has_buyers_agent")}
+              dropdownRef={getDropdownRef("has_buyers_agent")}
+            />
           </div>
         );
 
@@ -1496,57 +1161,14 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
         }
 
         return (
-          <div className="space-y-6">
-            <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-serif text-black mb-4 sm:mb-6">
-              Priorities
-            </h2>
-            <p className="text-xs sm:text-sm md:text-base text-gray-600 mb-4">
-              Customize your report sections below:
-            </p>
-
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleDragEnd}
-            >
-              <SortableContext
-                items={
-                  orderedSections
-                    ?.map((section) => section?.key)
-                    .filter(Boolean) || []
-                }
-                strategy={verticalListSortingStrategy}
-              >
-                <div className="space-y-2">
-                  {orderedSections?.map((section) => {
-                    if (!section || !section.key || !section.label)
-                      return null;
-
-                    const priorities =
-                      formData.report_section_priorities || [];
-                    const priorityIndex = priorities.indexOf(section.key);
-                    const isChecked = priorityIndex !== -1;
-                    const priority = isChecked
-                      ? priorityIndex + 1
-                      : undefined;
-
-                    return (
-                      <SortableReportSection
-                        key={section.key}
-                        id={section.key}
-                        label={section.label}
-                        checked={isChecked}
-                        onToggle={(checked) => {
-                          handleReportSectionToggle(section.key, checked);
-                        }}
-                        priority={priority}
-                      />
-                    );
-                  })}
-                </div>
-              </SortableContext>
-            </DndContext>
-          </div>
+          <OnboardPersonalizeDragDropPriorities
+            isEditMode={true}
+            isLoading={false}
+            orderedSections={orderedSections}
+            formData={formData}
+            onDragEnd={handleDragEnd}
+            onToggle={handleReportSectionToggle}
+          />
         );
 
       default:
@@ -1554,93 +1176,6 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
     }
   };
 
-  // Self-contained TagInput component that manages its own state
-  const TagInput = React.memo(
-    ({
-      field,
-      label,
-      placeholder,
-    }: {
-      field: keyof OnboardingData;
-      label: string;
-      placeholder: string;
-    }) => {
-      const [draftText, setDraftText] = React.useState("");
-      const currentTags = (formData[field] as string[]) || [];
-
-      const handleAddTag = (value: string) => {
-        if (!value.trim()) return;
-        const currentArray = (formData[field] as string[]) || [];
-        if (!currentArray.includes(value.trim())) {
-          updateFormData(field, [...currentArray, value.trim()]);
-        }
-        setDraftText("");
-      };
-
-      const handleRemoveTag = (valueToRemove: string) => {
-        const currentArray = (formData[field] as string[]) || [];
-        updateFormData(
-          field,
-          currentArray.filter((item) => item !== valueToRemove)
-        );
-      };
-
-      const handleKeyPress = (e: React.KeyboardEvent) => {
-        if (e.key === "Enter") {
-          e.preventDefault();
-          handleAddTag(draftText);
-        }
-      };
-
-      const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setDraftText(e.target.value);
-      };
-
-      return (
-        <div>
-          <label className="block text-sm font-medium text-black mb-2">
-            {label}
-          </label>
-          <div className="flex space-x-2 mb-3">
-            <input
-              type="text"
-              value={draftText}
-              onChange={handleInputChange}
-              onKeyPress={handleKeyPress}
-              className="mobile-input flex-1"
-              placeholder={placeholder}
-            />
-            <button
-              type="button"
-              onClick={() => handleAddTag(draftText)}
-              className="px-4 py-2 bg-brown text-white rounded-lg hover:bg-brown/80 transition-colors touch-friendly flex items-center"
-            >
-              <Plus className="w-4 h-4" />
-            </button>
-          </div>
-          {currentTags.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {currentTags.map((tag, index) => (
-                <span
-                  key={index}
-                  className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-beige text-black"
-                >
-                  {tag}
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveTag(tag)}
-                    className="ml-2 text-black/60 hover:text-black"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
-      );
-    }
-  );
 
   return (
     <div className="w-full max-w-[90vw] mx-auto px-4 sm:px-6 lg:px-8">
@@ -1665,44 +1200,54 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
       />
 
       {/* Step Content */}
-      <div className="mobile-card">
+      <div className="bg-white rounded-2xl shadow-sm mx-auto max-w-[85vw] overflow-hidden">
+        <div className="mobile-card">
         {renderStepContent()}
 
         {/* Navigation Buttons */}
-        <div className="flex justify-between items-center mt-8 pt-6 border-t border-beige/30">
-          <button
-            onClick={prevStep}
-            disabled={currentStep === 0}
-            className={`flex items-center justify-center px-3 py-2 rounded-lg font-medium transition-all duration-200 text-sm ${
-              currentStep === 0
-                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                : "bg-white border border-brown text-black hover:bg-brown hover:text-white"
-            }`}
-          >
-            <ChevronLeft className="w-4 h-4 mr-1" />
-            <span>Previous</span>
-          </button>
+        <div className="flex justify-between items-center mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-beige/30">
+          {/* Previous Button - positioned at 1/4 width */}
+          <div className="flex justify-center" style={{ width: '50%', marginLeft: '-12.5%' }}>
+            <button
+              onClick={prevStep}
+              disabled={currentStep === 0}
+              className={`flex items-center justify-center px-3 py-2 sm:px-3 sm:py-2 md:px-4 md:py-2 rounded-lg font-medium transition-all duration-200 text-xs sm:text-sm w-20 sm:w-20 md:w-24 ${
+                currentStep === 0
+                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              }`}
+            >
+              <ChevronLeft className={`w-4 h-4 sm:w-5 sm:h-5 mr-2 ${
+                currentStep === 0 ? "text-gray-500" : "text-gray-800"
+              }`} />
+              <span>Previous</span>
+            </button>
+          </div>
 
-          {currentStep === STEPS.length - 1 ? (
-            <button
-              onClick={handleSubmit}
-              disabled={loading}
-              className="flex items-center justify-center px-3 py-2 bg-olive text-white rounded-lg hover:bg-olive/80 disabled:opacity-50 font-medium transition-all duration-200 text-sm"
-            >
-              <span>{loading ? "Saving..." : "Complete Setup"}</span>
-              {!loading && (
-                <Check className="w-4 h-4 ml-1" />
-              )}
-            </button>
-          ) : (
-            <button
-              onClick={nextStep}
-              className="flex items-center justify-center px-3 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 font-medium transition-all duration-200 text-sm"
-            >
-              <span>Next</span>
-              <ChevronRight className="w-4 h-4 ml-1" />
-            </button>
-          )}
+          {/* Next/Complete Button - positioned at 3/4 width */}
+          <div className="flex justify-center" style={{ width: '50%', marginRight: '-12.5%' }}>
+            {currentStep === STEPS.length - 1 ? (
+              <button
+                onClick={handleSubmit}
+                disabled={loading}
+                className="flex items-center justify-center px-3 py-2 sm:px-3 sm:py-2 md:px-4 md:py-2 bg-olive text-white rounded-lg hover:bg-olive/80 disabled:opacity-50 font-bold transition-all duration-200 text-xs sm:text-sm w-20 sm:w-20 md:w-24"
+              >
+                <span>{loading ? "Saving..." : "Complete"}</span>
+                {!loading && (
+                  <Check className="w-3 h-3 sm:w-4 sm:h-4 ml-1" />
+                )}
+              </button>
+            ) : (
+              <button
+                onClick={nextStep}
+                className="flex items-center justify-center px-3 py-2 sm:px-3 sm:py-2 md:px-4 md:py-2 bg-olive/30 text-olive rounded-lg hover:bg-olive/40 font-bold transition-all duration-200 text-xs sm:text-sm w-20 sm:w-20 md:w-24"
+              >
+                <span>Next</span>
+                <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 ml-1" />
+              </button>
+            )}
+          </div>
+        </div>
         </div>
       </div>
 

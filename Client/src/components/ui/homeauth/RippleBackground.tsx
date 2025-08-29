@@ -30,11 +30,10 @@ export default function RippleBackground() {
 
       // Dynamically calculate particle count based on screen area
       const baseParticleCount = 260;
-      const baseArea = window.innerWidth * window.innerHeight;
+      const baseArea = 1920 * 1080; // Fixed base area for consistent scaling
+      const currentArea = canvas.width * canvas.height;
       const particleDensity = baseParticleCount / baseArea;
-      const particleCount = Math.floor(
-        particleDensity * canvas.width * canvas.height
-      );
+      const particleCount = Math.max(50, Math.floor(particleDensity * currentArea));
 
       // Re-initialize particles after resize
       particles.current = Array.from({ length: particleCount }, () => ({

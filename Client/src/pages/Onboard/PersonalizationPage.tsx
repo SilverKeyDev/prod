@@ -12,30 +12,15 @@ import {
   MessageSquare,
   ChevronDown,
   Plus,
-  GripVertical,
 } from "lucide-react";
 import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
   DragEndEvent,
 } from "@dnd-kit/core";
 import {
   arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 import { apiRequest } from "../../lib/api";
 import { usePreferences } from "../../context";
-import OnboardPersonalizeInput from "../../components/ui/onboardpersonalize/OnboardPersonalizeInput";
-import OnboardPersonalizeDropdown from "../../components/ui/onboardpersonalize/OnboardPersonalizeDropdown";
-import { RequiredLabel, OptionalLabel } from "../../components/ui/onboardpersonalize/OnboardPersonalizeLabel";
 import PriceRangeSlider from "../../components/ui/onboardpersonalize/PriceRangeSlider";
 import ImportantLocationsInput from "../../components/ui/onboardpersonalize/ImportantLocationsInput";
 import HomePriceEstimate from "../../components/ui/onboardpersonalize/HomePriceEstimate";
@@ -44,26 +29,15 @@ import PageHeader from "../../components/ui/base/PageHeader";
 import Loading from "../../components/ui/base/Loading";
 import OliveCheckbox from "../../components/ui/base/OliveCheckbox";
 import ValidationWarning from "../../components/feedback/ValidationWarning";
+import OnboardPersonalizeDragDropPriorities from "../../components/ui/onboardpersonalize/OnboardPersonalizeDragDropPriorities";
 import {
   OnboardingData,
-  validateFormData,
   SECTION_TITLES,
   FIELD_LABELS,
-  DEFAULT_REPORT_SECTIONS,
-  GENDER_OPTIONS,
-  PETS_OPTIONS,
   CREDIT_SCORE_OPTIONS,
   HOUSING_TYPE_OPTIONS,
-  LOT_SIZE_OPTIONS,
-  WALKABILITY_OPTIONS,
   COMMUNICATION_FREQUENCY_OPTIONS,
-  INFORMATION_DETAIL_OPTIONS,
-  BUYERS_AGENT_OPTIONS,
-  HOME_AGE_OPTIONS,
-  RENOVATION_PREFERENCE_OPTIONS,
-  PROPERTY_USE_OPTIONS,
 } from "../../lib/onboard";
-import HomePriceCalculator from "../../components/ui/onboardpersonalize/HomePriceCalculator";
 
 // Extend window interface for Google Maps
 declare global {
@@ -71,8 +45,6 @@ declare global {
     google?: any;
   }
 }
-
-// OnboardingData interface is now imported from shared lib/onboard
 
 const STEPS = [
   {
@@ -171,121 +143,6 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
   );
 };
 
-// Sortable Report Section Component
-interface SortableReportSectionProps {
-  id: string;
-  label: string;
-  checked: boolean;
-  onToggle: (checked: boolean) => void;
-  priority?: number;
-}
-
-const SortableReportSection: React.FC<SortableReportSectionProps> = ({
-  id,
-  label,
-  checked,
-  onToggle,
-  priority,
-}) => {
-  // Safety checks for props
-  if (
-    !id ||
-    !label ||
-    typeof checked !== "boolean" ||
-    typeof onToggle !== "function"
-  ) {
-    console.warn("SortableReportSection received invalid props:", {
-      id,
-      label,
-      checked,
-      onToggle,
-    });
-    return null;
-  }
-
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition: isDragging ? "none" : transition,
-    zIndex: isDragging ? 1000 : "auto",
-  };
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className={`flex items-center space-x-responsive-sm space-responsive-sm border rounded-lg transition-all duration-200 border-beige hover:bg-beige/10 hover:border-brown/30 ${
-        !checked ? "opacity-60" : ""
-      } ${isDragging ? "shadow-lg bg-white border-brown/50" : ""}`}
-    >
-      <div
-        {...attributes}
-        {...listeners}
-        className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 space-responsive-xs rounded hover:bg-gray-100 transition-colors"
-        title="Drag to reorder"
-      >
-        <GripVertical className="mobile-icon-sm" />
-      </div>
-
-      <div className="flex items-center space-x-responsive-sm flex-1">
-        <div className="flex items-center space-x-2">
-          {priority && (
-            <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">
-              {priority}
-            </span>
-          )}
-
-          <label
-            htmlFor={id}
-            className="flex items-center space-x-responsive-sm cursor-pointer flex-1"
-          >
-            <div className="relative">
-              <input
-                type="checkbox"
-                id={id}
-                checked={checked}
-                onChange={(e) => onToggle(e.target.checked)}
-                className="sr-only"
-              />
-              <div
-                className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all duration-200 ${
-                  checked
-                    ? "bg-brown border-brown text-white shadow-sm"
-                    : "border-beige hover:border-brown/50 bg-white"
-                }`}
-              >
-                {checked && (
-                  <svg
-                    className="w-3 h-3"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                )}
-              </div>
-            </div>
-            <span className="text-sm font-medium text-gray-700 flex-1">
-              {label}
-            </span>
-          </label>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 export default function PersonalizationPage() {
   const { userPreferences, refreshUserPreferences } = usePreferences();
@@ -406,17 +263,6 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
     }
   };
 
-  // Drag and drop sensors
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 3, // Start dragging after 3px movement
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
 
   // Default report sections with their labels
   const defaultReportSections = [
@@ -1970,116 +1816,14 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
         }
 
         return (
-          <div className="space-y-6">
-            <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
-              Priorities
-            </h2>
-            <p className="text-gray-600 mb-4">
-              {isEditMode
-                ? "Customize your report sections below:"
-                : "Choose which sections to include in your property reports. All sections are enabled by default, but you can customize them to focus on what matters most to you."}
-            </p>
-
-            {isEditMode ? (
-              <DndContext
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                onDragEnd={handleDragEnd}
-              >
-                <SortableContext
-                  items={
-                    orderedSections
-                      ?.map((section) => section?.key)
-                      .filter(Boolean) || []
-                  }
-                  strategy={verticalListSortingStrategy}
-                >
-                  <div className="space-y-2">
-                    {orderedSections?.map((section) => {
-                      if (!section || !section.key || !section.label)
-                        return null;
-
-                      const priorities =
-                        formData.report_section_priorities || [];
-                      const priorityIndex = priorities.indexOf(section.key);
-                      const isChecked = priorityIndex !== -1;
-                      const priority = isChecked
-                        ? priorityIndex + 1
-                        : undefined;
-
-                      return (
-                        <SortableReportSection
-                          key={section.key}
-                          id={section.key}
-                          label={section.label}
-                          checked={isChecked}
-                          onToggle={(checked) => {
-                            handleReportSectionToggle(section.key, checked);
-                          }}
-                          priority={priority}
-                        />
-                      );
-                    })}
-                  </div>
-                </SortableContext>
-              </DndContext>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {orderedSections?.map((section) => {
-                  if (!section || !section.key || !section.label) return null;
-
-                  const priorities = formData.report_section_priorities || [];
-                  const priorityIndex = priorities.indexOf(section.key);
-                  const isChecked = priorityIndex !== -1;
-                  const priority = isChecked ? priorityIndex + 1 : undefined;
-
-                  return (
-                    <div
-                      key={section.key}
-                      className={`flex items-center space-x-3 p-3 bg-gray-50 border border-gray-300 rounded-lg ${
-                        !isChecked ? "opacity-60" : ""
-                      }`}
-                    >
-                      <div className="flex items-center space-x-2">
-                        {priority && (
-                          <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                            {priority}
-                          </span>
-                        )}
-
-                        <div className="relative">
-                          <div
-                            className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all duration-200 ${
-                              isChecked
-                                ? "bg-brown border-brown text-white shadow-sm"
-                                : "border-gray-300 bg-gray-100"
-                            }`}
-                          >
-                            {isChecked && (
-                              <svg
-                                className="w-3 h-3"
-                                fill="currentColor"
-                                viewBox="0 0 20 20"
-                              >
-                                <path
-                                  fillRule="evenodd"
-                                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                  clipRule="evenodd"
-                                />
-                              </svg>
-                            )}
-                          </div>
-                        </div>
-                        <span className="text-sm font-medium text-gray-700 flex-1">
-                          {section.label}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+          <OnboardPersonalizeDragDropPriorities
+            isEditMode={isEditMode}
+            isLoading={false}
+            orderedSections={orderedSections}
+            formData={formData}
+            onDragEnd={handleDragEnd}
+            onToggle={handleReportSectionToggle}
+          />
         );
     }
   };
@@ -2115,7 +1859,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                 className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-olive text-white rounded-lg hover:bg-olive/80 transition-colors touch-friendly text-sm"
               >
                 <Edit size={16} />
-                Edit Preferences
+                Edit 
               </button>
             ) : (
               <>
@@ -2147,7 +1891,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
               className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-olive text-white rounded-lg hover:bg-olive/80 transition-colors touch-friendly text-sm"
             >
               <Edit size={16} />
-              Edit Preferences
+              Edit
             </button>
           ) : (
             <div className="flex gap-2">
@@ -2207,10 +1951,10 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                 {!isEditMode ? (
                   <button
                     onClick={() => setIsEditMode(true)}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-olive text-white rounded-lg hover:bg-olive/80 transition-colors touch-friendly text-sm"
+                    className="w-full flex items-center justify-center gap-2 px-8 py-6 bg-olive text-white rounded-lg hover:bg-olive/80 transition-colors touch-friendly text-sm"
                   >
                     <Edit size={16} />
-                    Edit Preferences
+                    Edit
                   </button>
                 ) : (
                   <>

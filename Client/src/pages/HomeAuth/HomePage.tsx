@@ -88,7 +88,6 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col hide-scrollbar">
-      <RippleBackground />
       {/* Header */}
       <header className="w-full flex justify-between items-center px-responsive-sm py-2 sm:py-3 border-b border-gray-200 bg-white fixed top-0 left-0 right-0 z-50 shadow-lg">
         <KeyLogo size="sm" />

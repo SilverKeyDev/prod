@@ -1,18 +1,21 @@
 /* Mobile-specific styles and overrides */
 
 @layer utilities {
-  /* Mobile input zoom prevention - prioritize zoom prevention over responsive sizing */
-  input[type="text"],
-  input[type="email"],
-  input[type="password"],
-  input[type="number"],
-  input[type="tel"],
-  input[type="url"],
-  input[type="search"],
-  textarea,
-  select {
+  /* Mobile input zoom prevention - only apply to inputs without responsive text classes */
+  input[type="text"]:not([class*="text-"]),
+  input[type="email"]:not([class*="text-"]),
+  input[type="password"]:not([class*="text-"]),
+  input[type="number"]:not([class*="text-"]),
+  input[type="tel"]:not([class*="text-"]),
+  input[type="url"]:not([class*="text-"]),
+  input[type="search"]:not([class*="text-"]),
+  textarea:not([class*="text-"]),
+  select:not([class*="text-"]) {
     font-size: 16px !important;
   }
+  
+  /* For inputs WITH responsive text classes, allow Tailwind classes to work naturally */
+  /* Remove !important override to let responsive classes function properly */
 
   /* Specific smaller inputs that can safely use smaller fonts without zoom */
   @media screen and (max-width: 768px) {

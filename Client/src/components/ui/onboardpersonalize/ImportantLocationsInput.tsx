@@ -176,7 +176,7 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
               value={locationName}
               onChange={(e) => setLocationName(e.target.value)}
               placeholder="e.g., Work, Mom's House, Gym"
-              className="w-full h-12 px-3 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-olive focus:border-olive transition-colors"
+              className="w-full h-12 px-3 rounded-lg border border-gray-300 text-gray-600 text-xs sm:text-sm md:text-base text-left leading-tight focus:ring-2 focus:ring-olive focus:border-olive transition-colors"
               autoComplete="off"
             />
           </div>
@@ -195,7 +195,7 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
                 onChange={handleAddressInputChange}
                 placeholder={scriptsReady ? "Search for address..." : "Loading..."}
                 disabled={!scriptsReady}
-                className="w-full h-12 pl-10 pr-3 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-olive focus:border-olive transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed"
+                className="w-full h-12 pl-10 pr-3 rounded-lg border border-gray-300 text-gray-600 text-xs sm:text-sm md:text-base text-left leading-tight focus:ring-2 focus:ring-olive focus:border-olive transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed disabled:text-gray-400"
                 autoComplete="off"
               />
             </div>
@@ -207,7 +207,7 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
                   <li
                     key={idx}
                     onClick={() => handleSelect(s)}
-                    className="px-3 py-2 cursor-pointer hover:bg-gray-100 text-sm border-b border-gray-100 last:border-b-0"
+                    className="px-3 py-2 cursor-pointer hover:bg-gray-100 border-b border-gray-100 last:border-b-0 text-gray-600 text-xs sm:text-sm md:text-base text-left leading-tight"
                   >
                     {s.description}
                   </li>
@@ -228,7 +228,7 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
               placeholder="30"
               min="5"
               max="180"
-              className="w-full h-12 px-3 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-olive focus:border-olive transition-colors"
+              className="w-full h-12 px-3 rounded-lg border border-gray-300 text-gray-600 text-xs sm:text-sm md:text-base text-left leading-tight focus:ring-2 focus:ring-olive focus:border-olive transition-colors"
               autoComplete="off"
             />
             <p className="text-xs text-gray-500 mt-1">

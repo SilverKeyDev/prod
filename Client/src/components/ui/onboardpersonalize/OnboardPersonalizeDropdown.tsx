@@ -1,5 +1,6 @@
 import React from 'react';
 import { ChevronDown } from 'lucide-react';
+import OnboardPersonalizeDropdownStyles from './OnboardPersonalizeDropdownStyles';
 
 interface DropdownOption {
   value: string;
@@ -33,52 +34,44 @@ const OnboardPersonalizeDropdown: React.FC<OnboardPersonalizeDropdownProps> = ({
 
   return (
     <div className={`relative ${className}`} ref={dropdownRef}>
-      <button
-        onClick={onToggle}
+      {/* Main dropdown trigger */}
+      <OnboardPersonalizeDropdownStyles
+        type="trigger"
         disabled={disabled}
-        className={`
-          w-full h-12 px-4 border border-beige rounded-lg
-          bg-white text-gray-600 text-xs sm:text-sm md:text-base text-left
-          leading-tight
-          focus:outline-none focus:ring-2 focus:ring-brown/20 focus:border-brown
-          hover:border-brown/50
-          disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed
-          transition-all duration-200
-          mobile-input
-          flex items-center justify-between cursor-pointer touch-friendly
-        `}
+        isOpen={isOpen}
+        onClick={onToggle}
       >
-        <span className="text-left truncate">
-          {selectedOption ? selectedOption.label : placeholder}
+        <span className={!selectedOption ? 'text-gray-400' : ''}>
+          {selectedOption ? selectedOption.label : placeholder || 'Select your ...'}
         </span>
         <ChevronDown
           className={`w-4 h-4 shrink-0 transition-transform duration-200 ${
             isOpen ? 'rotate-180' : ''
           } ${disabled ? 'text-gray-400' : 'text-gray-500'}`}
         />
-      </button>
+      </OnboardPersonalizeDropdownStyles>
 
+      {/* Dropdown options */}
       {isOpen && !disabled && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-beige rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
-          {options.map((option, index) => (
-            <button
-              key={option.value}
-              onClick={() => {
-                onChange(option.value);
-                onToggle();
-              }}
-              className={`
-                w-full px-4 py-3 text-left text-xs sm:text-sm md:text-base text-gray-600
-                hover:bg-brown/5 transition-colors duration-150 touch-friendly
-                ${index === 0 ? 'first:rounded-t-lg' : ''}
-                ${index === options.length - 1 ? 'last:rounded-b-lg' : ''}
-                ${value === option.value ? 'bg-brown/10 text-brown font-medium' : 'text-gray-600'}
-              `}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
+        <OnboardPersonalizeDropdownStyles type="container">
+          {options.map((option, index) => {
+            const isSelected = value === option.value;
+            return (
+              <OnboardPersonalizeDropdownStyles
+                key={option.value}
+                type="option"
+                isSelected={isSelected}
+                isFirstOption={index === 0}
+                onClick={() => {
+                  onChange(option.value);
+                  onToggle();
+                }}
+              >
+                {option.label}
+              </OnboardPersonalizeDropdownStyles>
+            );
+          })}
+        </OnboardPersonalizeDropdownStyles>
       )}
     </div>
   );
