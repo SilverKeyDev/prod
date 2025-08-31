@@ -1,6 +1,6 @@
 import React from 'react';
 import BaseCard from './BaseCard';
-import { CardAddressDisplay, CardPropertyDetails } from './base';
+import { CardAddressDisplay, CardPropertyDetails, CardMatchScore } from './base';
 import { StyledImage } from './base/CardImageStyles';
 
 export interface PropertyCardProps {
@@ -8,6 +8,8 @@ export interface PropertyCardProps {
   imageUrl?: string;
   /** Property address */
   address: string;
+  /** Match score (0-100) */
+  score?: number;
   /** Property price */
   price: string;
   /** Property details */
@@ -36,12 +38,14 @@ export interface PropertyCardProps {
   onClick?: () => void;
   /** Custom styling */
   className?: string;
+  showScore?: boolean;
 }
 
 const PropertyCard: React.FC<PropertyCardProps> = ({
   imageUrl,
   address,
   price,
+  score,
   bedrooms,
   bathrooms,
   sqft,
@@ -54,7 +58,8 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
   bottomContent,
   loading = false,
   onClick,
-  className = ''
+  className = '',
+  showScore = true
 }) => {
   const placeholder = '/api/placeholder/400/300';
 
@@ -111,15 +116,22 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
       </div>
       
       <div className="card-content-spacing">
-        <CardAddressDisplay 
-          address={address} 
-          size="sm" 
-          className={pricePosition === 'below-address' ? "mb-2" : "mb-2 sm:mb-3"} 
-        />
+        {/* Address row: full width + single-line truncate */}
+        <div className="w-full">
+          <CardAddressDisplay 
+            address={address}
+            size="sm"
+            className={
+              pricePosition === 'below-address'
+                ? 'mb-0 block w-full overflow-hidden text-ellipsis whitespace-nowrap'
+                : 'mb-1 block w-full overflow-hidden text-ellipsis whitespace-nowrap'
+            }
+          />
+        </div>
         
-        {/* Price and Heart Section - similar to PropertyDetailsModal */}
+        {/* Price and Heart Section - when price goes below address */}
         {pricePosition === 'below-address' && (
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between mb-1">
             <div className="text-lg sm:text-xl font-bold text-brown">
               {formatPrice(price)}
             </div>
@@ -131,20 +143,24 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
           </div>
         )}
         
-        <CardPropertyDetails 
-          bedrooms={bedrooms} 
-          bathrooms={bathrooms} 
-          sqft={sqft} 
-          variant="horizontal" 
-          size="xs" 
-          className="mb-2 sm:mb-3" 
-        />
+        <div className="flex items-center justify-between mb-2 sm:mb-3">
+          <CardPropertyDetails 
+            bedrooms={bedrooms} 
+            bathrooms={bathrooms} 
+            sqft={sqft} 
+            lotSize={lotSize}
+            variant="horizontal" 
+            size="xs" 
+          />
+          {showScore && score !== undefined && (
+            <CardMatchScore score={score} size="xs" />
+          )}
+        </div>
         
-        {/* Additional Details */}
-        {(propertyType || lotSize) && (
-          <div className="flex flex-wrap gap-2 text-responsive-xs text-gray-500 mb-2 sm:mb-3">
-            {propertyType && <span>{propertyType}</span>}
-            {lotSize && <span>Lot: {lotSize}</span>}
+        {/* Property Type */}
+        {propertyType && (
+          <div className="text-responsive-xs text-gray-500 mb-2 sm:mb-3">
+            <span>{propertyType}</span>
           </div>
         )}
         

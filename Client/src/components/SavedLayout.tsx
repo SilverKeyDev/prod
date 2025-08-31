@@ -1,9 +1,9 @@
-import React, { useRef } from 'react';
-import { Search, RefreshCw, Calendar, MapPin, ChevronDown } from 'lucide-react';
-import { Card } from './ui/base';
+import React, { useRef } from "react";
+import { Search, RefreshCw, Calendar, MapPin, ChevronDown } from "lucide-react";
+import { Card } from "./ui/base";
 
-export type ViewMode = 'grid' | 'list';
-export type SortBy = 'date' | 'address';
+export type ViewMode = "grid" | "list";
+export type SortBy = "date" | "address";
 
 interface SavedLayoutProps {
   searchTerm: string;
@@ -26,10 +26,10 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
   searchTerm,
   onSearchChange,
   searchPlaceholder = "Filter by address",
-  viewMode = 'grid',
+  viewMode = "grid",
   onViewModeChange,
   showViewToggle = true,
-  sortBy = 'date',
+  sortBy = "date",
   onSortChange,
   showSort = true,
   onRefresh,
@@ -44,13 +44,16 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
   // Close dropdown when clicking outside
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (sortDropdownRef.current && !sortDropdownRef.current.contains(event.target as Node)) {
+      if (
+        sortDropdownRef.current &&
+        !sortDropdownRef.current.contains(event.target as Node)
+      ) {
         setSortDropdownOpen(false);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const handleRefresh = () => {
@@ -117,7 +120,7 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
             )}
 
             {/* Sort dropdown */}
-            {showSort && onSortChange && (
+            {/*{showSort && onSortChange && (
               <div className="relative" ref={sortDropdownRef}>
                 <button
                   onClick={() => setSortDropdownOpen(!sortDropdownOpen)}
@@ -133,7 +136,7 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
                     ) : (
                       <>
                         <MapPin className="w-4 h-4 shrink-0" />
-                        <span className="hidden sm:inline">Sort by Address</span>
+                        <span className="hidden sm:inline">Address</span>
                         <span className="sm:hidden">Address</span>
                       </>
                     )}
@@ -159,7 +162,7 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
                       }`}
                     >
                       <Calendar className="w-4 h-4" />
-                      <span>Sort by Date</span>
+                      <span>Date</span>
                     </button>
                     <button
                       onClick={() => {
@@ -173,7 +176,7 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
                       }`}
                     >
                       <MapPin className="w-4 h-4" />
-                      <span>Sort by Address</span>
+                      <span>Address</span>
                     </button>
                   </div>
                 )}
@@ -191,9 +194,7 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
                     : "bg-gray-300 text-gray-600 hover:bg-gray-500 hover:text-white"
                 }`}
                 title={
-                  isRefreshing || isLoading
-                    ? "Refreshing..."
-                    : refreshTitle
+                  isRefreshing || isLoading ? "Refreshing..." : refreshTitle
                 }
               >
                 <RefreshCw

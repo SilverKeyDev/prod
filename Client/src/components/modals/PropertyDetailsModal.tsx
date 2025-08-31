@@ -12,7 +12,7 @@ import {
   User,
   Phone,
 } from "lucide-react";
-import { CardHeartSave, StyledImage } from "../cards/base";
+import { StyledImage } from "../cards/base";
 import Card from "../ui/base/Card";
 
 // Import SearchResult interface from SearchPage
@@ -462,50 +462,71 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
             </div>
 
             <div className="flex items-center gap-responsive-xs flex-shrink-0">
-              {/* Compact Action Buttons */}
+              {/* Compact Action Buttons - All Same Height */}
               <button
                 onClick={handleGenerateFullReport}
-                className="bg-olive-light text-white py-responsive-xs px-responsive-sm rounded text-responsive-xs font-medium hover:bg-olive-light/80 transition-colors touch-manipulation hidden sm:block h-7 sm:h-8 whitespace-nowrap"
+                className="bg-olive-light text-white py-2 px-3 rounded text-responsive-xs font-medium hover:bg-olive-light/80 transition-colors touch-manipulation hidden sm:flex items-center h-10 whitespace-nowrap"
               >
                 Generate Full Report
               </button>
               <button
                 onClick={handleGenerateFullReport}
-                className="bg-olive-light text-white space-responsive-sm rounded text-responsive-xs font-medium hover:bg-olive-light/80 transition-colors touch-manipulation sm:hidden"
+                className="bg-olive-light text-white p-2 rounded text-responsive-xs font-medium hover:bg-olive-light/80 transition-colors touch-manipulation sm:hidden flex items-center justify-center h-10 w-10"
                 title="Generate Full Report"
               >
-                <Home className="mobile-icon-sm" />
+                <Home className="w-4 h-4" />
               </button>
 
               <button
                 onClick={handleGoToZillow}
-                className="border border-blue-600 text-blue-600 py-responsive-xs px-responsive-sm rounded text-responsive-xs font-medium hover:bg-blue-50 transition-colors flex items-center gap-responsive-xs touch-manipulation h-7 sm:h-8 whitespace-nowrap"
+                className="border border-blue-600 text-blue-600 py-2 px-3 rounded text-responsive-xs font-medium hover:bg-blue-50 transition-colors flex items-center gap-2 touch-manipulation h-10 whitespace-nowrap"
                 title="View on Zillow"
               >
-                <ExternalLink className="mobile-icon-xs" />
+                <ExternalLink className="w-4 h-4" />
                 <span className="hidden sm:inline">Zillow</span>
               </button>
 
-              <CardHeartSave
-                property={property}
-                isSaved={isHomeSaved(property.id)}
-                onSave={saveHome}
-                onRemove={removeSavedHome}
-                size="md"
-                ariaLabel={
+              <button
+                onClick={() => {
+                  if (isHomeSaved(property.id)) {
+                    removeSavedHome(property.id);
+                  } else {
+                    saveHome(property);
+                  }
+                }}
+                className={`border rounded p-2 transition-colors flex items-center justify-center h-10 w-10 touch-manipulation ${
+                  isHomeSaved(property.id)
+                    ? "border-red-500 text-red-500 hover:bg-red-50"
+                    : "border-gray-300 text-gray-600 hover:bg-gray-50"
+                }`}
+                aria-label={
                   isHomeSaved(property.id)
                     ? "Remove from saved"
                     : "Save property"
                 }
-              />
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill={isHomeSaved(property.id) ? "currentColor" : "none"}
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                  />
+                </svg>
+              </button>
 
               <button
                 onClick={onClose}
-                className="space-responsive-sm hover:bg-gray-100 rounded-full transition-colors touch-manipulation"
+                className="p-2 hover:bg-gray-100 rounded transition-colors touch-manipulation flex items-center justify-center h-10 w-10"
                 aria-label="Close modal"
               >
                 <svg
-                  className="mobile-icon-sm text-gray-500 hover:text-gray-700"
+                  className="w-4 h-4 text-gray-500 hover:text-gray-700"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -1356,26 +1377,28 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
                             return (
                               <Card key={index}>
                                 <div className="flex justify-between items-center">
-                                  <div>
-                                    <span className="text-brown/80 font-medium">
-                                      {commute.location_name || commute.name}
-                                    </span>
-                                    <p className="text-xs text-brown/60 mt-1 truncate">
-                                      {commute.location_address ||
-                                        commute.address}
-                                    </p>
-                                  </div>
-                                  <div className="text-right">
-                                    <span
-                                      className={`font-medium px-2 py-1 rounded ${colorClass}`}
-                                    >
-                                      {commute.travel_time || "N/A"}
-                                    </span>
-                                    {tolerance && (
-                                      <p className="text-xs text-brown/60 mt-1">
-                                        Target: {tolerance} min
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-brown/80 font-medium truncate">
+                                        {commute.location_name || commute.name}
+                                      </span>
+                                      <span
+                                        className={`font-medium px-2 py-1 rounded ml-2 flex-shrink-0 ${colorClass}`}
+                                      >
+                                        {commute.travel_time || "N/A"}
+                                      </span>
+                                    </div>
+                                    <div className="flex items-center justify-between mt-1">
+                                      <p className="text-xs text-brown/60 truncate flex-1">
+                                        {commute.location_address ||
+                                          commute.address}
                                       </p>
-                                    )}
+                                      {tolerance && (
+                                        <p className="text-xs text-brown/60 ml-2 flex-shrink-0">
+                                          Target: {tolerance} min
+                                        </p>
+                                      )}
+                                    </div>
                                   </div>
                                 </div>
                               </Card>

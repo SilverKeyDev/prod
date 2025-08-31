@@ -6,9 +6,20 @@ export class HttpError extends Error {
   constructor(
     public status: number,
     public url: string,
-    public bodyPreview: string
+    public bodyPreview: string,
+    public parsedBody?: any
   ) {
     super(`HTTP ${status} for ${url}`);
+  }
+}
+
+export class AuthenticationError extends Error {
+  constructor(
+    public errorCode: string,
+    public message: string,
+    public status: number
+  ) {
+    super(`Authentication error: ${errorCode} - ${message}`);
   }
 }
 
@@ -40,7 +51,32 @@ export async function fetchJson<T>(url: string, opts: FetchJsonOpts = {}): Promi
 
     // Handle non-OK responses
     if (!res.ok && !acceptStatuses.includes(res.status)) {
-      throw new HttpError(res.status, url, raw.slice(0, 600));
+      // Try to parse JSON to check for authentication errors
+      let parsedBody;
+      try {
+        if (contentType.includes('application/json') && raw.trim()) {
+          parsedBody = JSON.parse(raw);
+          
+          // Check for authentication errors that should trigger logout
+          if (res.status === 401 && parsedBody?.error) {
+            const authErrorCodes = ['TOKEN_EXPIRED', 'INVALID_TOKEN', 'UNAUTHORIZED'];
+            if (authErrorCodes.includes(parsedBody.error)) {
+              throw new AuthenticationError(
+                parsedBody.error,
+                parsedBody.message || 'Authentication required',
+                res.status
+              );
+            }
+          }
+        }
+      } catch (parseError) {
+        // If JSON parsing fails, continue with regular HttpError
+        if (parseError instanceof AuthenticationError) {
+          throw parseError;
+        }
+      }
+      
+      throw new HttpError(res.status, url, raw.slice(0, 600), parsedBody);
     }
 
     // Handle non-JSON responses
@@ -75,6 +111,11 @@ export async function fetchJson<T>(url: string, opts: FetchJsonOpts = {}): Promi
       throw error;
     }
     
+    // Re-throw AuthenticationError as-is
+    if (error instanceof AuthenticationError) {
+      throw error;
+    }
+    
     // Wrap other errors
     throw new Error(`Network error for ${url}: ${error instanceof Error ? error.message : String(error)}`);
   }
@@ -84,7 +125,9 @@ export async function fetchJson<T>(url: string, opts: FetchJsonOpts = {}): Promi
  * Logs HTTP errors in a user-friendly way
  */
 export function logHttp(scope: string, e: unknown) {
-  if (e instanceof HttpError) {
+  if (e instanceof AuthenticationError) {
+    console.warn(`[${scope}] Authentication error: ${e.errorCode} - ${e.message}`);
+  } else if (e instanceof HttpError) {
     console.warn(`[${scope}] ${e.message}`, { 
       status: e.status, 
       url: e.url, 
@@ -95,6 +138,37 @@ export function logHttp(scope: string, e: unknown) {
   } else {
     console.error(`[${scope}] Unexpected error:`, e);
   }
+}
+
+/**
+ * Checks if an error is an authentication error that should trigger logout
+ */
+export function isAuthenticationError(error: any): boolean {
+  return error instanceof AuthenticationError;
+}
+
+/**
+ * Handles authentication errors by clearing tokens and redirecting to login
+ */
+export function handleAuthenticationError(error: AuthenticationError) {
+  console.warn(`🔒 Authentication error detected: ${error.errorCode} - ${error.message}`);
+  
+  // Clear all auth tokens
+  localStorage.removeItem('id_token');
+  localStorage.removeItem('access_token');
+  localStorage.removeItem('token');
+  
+  // Dispatch custom event for contexts to handle
+  window.dispatchEvent(new CustomEvent('authenticationError', {
+    detail: { errorCode: error.errorCode, message: error.message }
+  }));
+  
+  // Redirect to login after a brief delay to allow cleanup
+  setTimeout(() => {
+    if (typeof window !== 'undefined') {
+      window.location.href = '/login';
+    }
+  }, 100);
 }
 
 /* =========================

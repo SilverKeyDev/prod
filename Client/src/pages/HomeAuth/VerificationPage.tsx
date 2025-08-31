@@ -328,12 +328,7 @@ export default function VerificationPage() {
               className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
-                <div className="flex items-center justify-center">
-                  <div className="mr-2">
-                    <KeyTurnLoader message="" />
-                  </div>
-                  Sending...
-                </div>
+                <KeyTurnLoader message="Sending..." />
               ) : (
                 "Send verification code"
               )}
@@ -343,7 +338,10 @@ export default function VerificationPage() {
 
         {/* Verification Code Step */}
         {activeStep === "code" && (
-          <form onSubmit={(e) => e.preventDefault()} className="space-y-responsive-md">
+          <form
+            onSubmit={(e) => e.preventDefault()}
+            className="space-y-responsive-md"
+          >
             {renderCodeInputs()}
 
             <div className="text-center text-responsive-sm text-black/60">

@@ -22,6 +22,8 @@ import {
   isAbortError,
   getAuthToken,
   routeStartsWith,
+  isAuthenticationError,
+  handleAuthenticationError,
 } from "../lib/fetchUtils";
 import { useAuth } from "./AuthContext";
 
@@ -99,6 +101,10 @@ export function ReportsProvider({ children }: ReportsProviderProps) {
       }
     } catch (e: any) {
       if (!isAbortError(e)) {
+        if (isAuthenticationError(e)) {
+          handleAuthenticationError(e);
+          return; // Don't set error state, user will be redirected
+        }
         logHttp('reports', e);
         setReportsError(e?.message ?? "Failed to fetch reports");
         setReports([]); // Safe fallback
@@ -138,6 +144,10 @@ export function ReportsProvider({ children }: ReportsProviderProps) {
       }
     } catch (e: any) {
       if (!isAbortError(e)) {
+        if (isAuthenticationError(e)) {
+          handleAuthenticationError(e);
+          return; // Don't set error state, user will be redirected
+        }
         logHttp('compare-reports', e);
         setCompareReportsError(e?.message ?? "Failed to fetch compare reports");
         setCompareReports([]); // Safe fallback

@@ -349,7 +349,7 @@ export default function Sidebar({
             {/* Toggle Button */}
             <button
               onClick={onToggleExpanded}
-              className="p-2 text-white hover:text-white ml-auto touch-friendly"
+              className="p-2 text-white/70 hover:bg-brown-light/30 hover:text-beige hover:-translate-y-0.5 active:bg-brown-light/20 active:text-beige ml-auto touch-friendly rounded-lg transition-all duration-200"
               aria-label="Toggle sidebar"
             >
               <svg

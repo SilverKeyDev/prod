@@ -160,6 +160,9 @@ export default function Dashboard() {
           loading={favLoading}
           error={favError}
           emptyMessage="Save your first home today"
+          minCardWidth={320}
+          maxCardWidth={400}
+          cardGap={16}
           renderItem={(home) => (
             <HomeCard
               home={home}
@@ -187,7 +190,6 @@ export default function Dashboard() {
           loading={reportsLoading}
           error={null}
           emptyMessage="Generate your first property report to get started"
-          cardSizing="responsive"
           minCardWidth={320}
           maxCardWidth={400}
           renderItem={(report) => (

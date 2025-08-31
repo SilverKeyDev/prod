@@ -8,10 +8,6 @@ export interface CardCarouselProps<T> {
    */
   items: T[];
   /**
-   * Number of items to show per page (desktop)
-   */
-  itemsPerPage?: number;
-  /**
    * Function to render each item
    */
   renderItem: (item: T, index: number) => ReactNode;
@@ -32,15 +28,11 @@ export interface CardCarouselProps<T> {
    */
   emptyMessage?: string;
   /**
-   * Card sizing strategy
-   */
-  cardSizing?: 'fixed' | 'responsive' | 'fill';
-  /**
-   * Minimum card width in pixels (for responsive/fill modes)
+   * Minimum card width in pixels - determines how many cards fit
    */
   minCardWidth?: number;
   /**
-   * Maximum card width in pixels (for responsive/fill modes)
+   * Maximum card width in pixels - limits card expansion
    */
   maxCardWidth?: number;
   /**
@@ -63,13 +55,11 @@ export interface CardCarouselProps<T> {
  */
 export default function CardCarousel<T>({
   items,
-  itemsPerPage = 3,
   renderItem,
   getItemKey,
   loading = false,
   error = null,
   emptyMessage = "No items to display",
-  cardSizing = 'responsive',
   minCardWidth = 280,
   maxCardWidth = 400,
   cardGap = 16,
@@ -77,8 +67,8 @@ export default function CardCarousel<T>({
   embeddedButton
 }: CardCarouselProps<T>) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [containerWidth, setContainerWidth] = useState(0);
-  const [calculatedItemsPerPage, setCalculatedItemsPerPage] = useState(itemsPerPage);
+  const [, setContainerWidth] = useState(0);
+  const [calculatedItemsPerPage, setCalculatedItemsPerPage] = useState(1);
   const [isMobile, setIsMobile] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -99,45 +89,19 @@ export default function CardCarousel<T>({
         return;
       }
       
-      if (cardSizing === 'fixed') {
-        setCalculatedItemsPerPage(itemsPerPage);
-        return;
-      }
+      // Calculate how many cards can fit based on container width and card constraints
+      // Always try to fit as many cards as possible within the available space
+      const maxItems = Math.floor((availableWidth + cardGap) / (minCardWidth + cardGap));
+      const optimalItemsPerPage = Math.max(1, Math.min(maxItems, items.length));
       
-      // Calculate optimal number of items based on container width
-      const totalGapWidth = (itemsPerPage - 1) * cardGap;
-      const availableCardWidth = availableWidth - totalGapWidth;
-      
-      if (cardSizing === 'fill') {
-        // Fill mode: use all available space, always fill the container width
-        const maxPossibleItems = Math.min(items.length, itemsPerPage);
-        const idealCardWidth = availableCardWidth / maxPossibleItems;
-        
-        if (idealCardWidth >= minCardWidth) {
-          // Use the maximum items that fit, up to itemsPerPage or total items
-          setCalculatedItemsPerPage(maxPossibleItems);
-        } else {
-          // Reduce items to maintain minimum width
-          const maxItems = Math.floor((availableWidth + cardGap) / (minCardWidth + cardGap));
-          setCalculatedItemsPerPage(Math.max(1, Math.min(maxItems, items.length)));
-        }
-      } else {
-        // Responsive mode: find optimal balance
-        const idealCardWidth = (availableCardWidth) / itemsPerPage;
-        if (idealCardWidth < minCardWidth) {
-          const maxItems = Math.floor((availableWidth + cardGap) / (minCardWidth + cardGap));
-          setCalculatedItemsPerPage(Math.max(1, maxItems));
-        } else {
-          setCalculatedItemsPerPage(itemsPerPage);
-        }
-      }
+      setCalculatedItemsPerPage(optimalItemsPerPage);
     };
     
     calculateDimensions();
     window.addEventListener('resize', calculateDimensions);
     
     return () => window.removeEventListener('resize', calculateDimensions);
-  }, [cardSizing, itemsPerPage, minCardWidth, maxCardWidth, cardGap, items.length]);
+  }, [minCardWidth, cardGap, items.length]);
 
   // Use calculated items per page
   const effectiveItemsPerPage = calculatedItemsPerPage;
@@ -164,27 +128,7 @@ export default function CardCarousel<T>({
 
   const visibleItems = items.slice(currentIndex, currentIndex + effectiveItemsPerPage);
   
-  // Calculate card width based on container and sizing strategy
-  const getCardWidth = () => {
-    if (isMobile) return 'w-[80%]';
-    
-    if (cardSizing === 'fixed') {
-      return 'w-80'; // Fixed 320px width
-    }
-    
-    if (!containerWidth) return 'w-80';
-    
-    const totalGapWidth = (effectiveItemsPerPage - 1) * cardGap;
-    const availableCardWidth = containerWidth - totalGapWidth;
-    const cardWidth = Math.floor(availableCardWidth / effectiveItemsPerPage);
-    
-    // Ensure consistent width within min/max bounds
-    const constrainedWidth = Math.max(minCardWidth, Math.min(maxCardWidth || cardWidth, cardWidth));
-    
-    return constrainedWidth;
-  };
   
-  const cardWidthClass = getCardWidth();
 
   return (
     <div className="my-4 sm:my-6 md:my-8" ref={containerRef}>
@@ -195,8 +139,8 @@ export default function CardCarousel<T>({
           {embeddedButton}
         </div>
         
-        {/* Right side: Navigation controls */}
-        {items.length > effectiveItemsPerPage && (
+        {/* Right side: Navigation controls - Always show arrows */}
+        {items.length > 0 && (
           <div className="flex items-center gap-1">
             <button
               onClick={goToPrevious}
@@ -235,9 +179,9 @@ export default function CardCarousel<T>({
         <p className="text-responsive-sm text-neutral-500 text-center py-4">{emptyMessage}</p>
       ) : (
         <div className="relative">
-          {/* Desktop: calculated width layout */}
+          {/* Desktop: full width layout with proper alignment */}
           <div 
-            className={`${isMobile ? 'hidden' : 'flex overflow-x-auto scrollbar-hide pb-2'}`} 
+            className={`${isMobile ? 'hidden' : 'flex pb-2'}`} 
             style={{
               scrollbarWidth: 'none', 
               msOverflowStyle: 'none',
@@ -248,9 +192,8 @@ export default function CardCarousel<T>({
               return (
                 <div 
                   key={getItemKey(item, currentIndex + index)} 
-                  className="flex-shrink-0"
+                  className="flex-1 min-w-0"
                   style={{
-                    width: typeof cardWidthClass === 'number' ? `${cardWidthClass}px` : undefined,
                     minWidth: `${minCardWidth}px`,
                     maxWidth: maxCardWidth ? `${maxCardWidth}px` : undefined
                   }}

@@ -152,7 +152,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
         <>
           <div className="flex-grow pt-4">
             <div className="flex items-start justify-between">
-              <div className="flex-1 mt-6 mb-6">
+              <div className="flex-1 mt-1.5 mb-6">
                 <h3
                   className="text-sm sm:text-base font-medium text-black overflow-hidden"
                   title={formatFilenameToAddress(report.address)}
@@ -162,7 +162,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
                     WebkitBoxOrient: "vertical" as const,
                     wordBreak: "break-word",
                     hyphens: "auto",
-                    minHeight: "2.5rem", // Reserve space for 2 lines at text-sm/base
+                    minHeight: "3rem", // Reserve space for 2 lines at text-sm/base
                   }}
                 >
                   {formatFilenameToAddress(report.address)}
@@ -184,7 +184,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
                 WebkitBoxOrient: "vertical" as const,
                 wordBreak: "break-word",
                 hyphens: "auto",
-                minHeight: "2.5rem", // Reserve space for 2 lines
+                minHeight: "2.4rem", // Reserve space for 2 lines
               }}
             >
               {formatFilenameToAddress(report.address)}

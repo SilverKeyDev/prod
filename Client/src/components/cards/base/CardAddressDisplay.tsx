@@ -60,9 +60,9 @@ const CardAddressDisplay: React.FC<CardAddressDisplayProps> = ({
 
   // Layout variants
   const layoutStyles = {
-    default: 'flex items-start gap-responsive-sm',
-    compact: 'flex items-center gap-responsive-xs',
-    detailed: 'flex items-start gap-responsive-sm'
+    default: 'flex items-start gap-1',
+    compact: 'flex items-center gap-1',
+    detailed: 'flex items-start gap-1'
   };
 
   const currentSizeStyles = sizeStyles[size];
@@ -89,11 +89,11 @@ const CardAddressDisplay: React.FC<CardAddressDisplayProps> = ({
           title={address}
           style={{
             display: "-webkit-box",
-            WebkitLineClamp: 2,
+            WebkitLineClamp: variant === 'compact' ? 1 : 2,
             WebkitBoxOrient: "vertical" as const,
             wordBreak: "break-word",
             hyphens: "auto",
-            minHeight: currentSizeStyles.minHeight, // Consistent height scaling
+            minHeight: variant === 'compact' ? 'auto' : currentSizeStyles.minHeight,
           }}
         >
           {address}

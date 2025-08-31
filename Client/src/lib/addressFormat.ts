@@ -199,3 +199,31 @@ export function formatSquareFootage(value: number, units?: string): string {
     return `${Math.round(value).toLocaleString()} ${units?.toLowerCase() || 'sqft'}`;
   }
 }
+
+/**
+ * Formats lot size from various input formats.
+ */
+export function formatLotSize(lotSize: string | number | undefined): string {
+  if (!lotSize) return "N/A";
+  
+  if (typeof lotSize === 'number') {
+    return formatSquareFootage(lotSize, 'sqft');
+  }
+  
+  if (typeof lotSize === 'string') {
+    // If it already contains units, return as-is
+    if (lotSize.toLowerCase().includes('acre') || lotSize.toLowerCase().includes('sqft')) {
+      return lotSize;
+    }
+    
+    // Try to parse as number and format
+    const numValue = parseFloat(lotSize.replace(/[^\d.]/g, ''));
+    if (!isNaN(numValue)) {
+      return formatSquareFootage(numValue, 'sqft');
+    }
+    
+    return lotSize;
+  }
+  
+  return "N/A";
+}

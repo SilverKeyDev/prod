@@ -6,15 +6,25 @@ export default function KeyTurnLoader({
   const keyframeStyles = `
     @keyframes turnKey {
       0% { transform: rotate(0deg); }
-      25% { transform: rotate(20deg); }
+      12.5% { transform: rotate(15deg); }
+      25% { transform: rotate(30deg); }
+      37.5% { transform: rotate(15deg); }
       50% { transform: rotate(0deg); }
-      75% { transform: rotate(-20deg); }
+      62.5% { transform: rotate(-15deg); }
+      75% { transform: rotate(-30deg); }
+      87.5% { transform: rotate(-15deg); }
       100% { transform: rotate(0deg); }
     }
     
     @keyframes fadeIn {
-      from { opacity: 0; transform: scale(0.9); }
+      from { opacity: 0; transform: scale(0.95); }
       to { opacity: 1; transform: scale(1); }
+    }
+    
+    @keyframes shimmer {
+      0% { filter: brightness(1) saturate(1); }
+      50% { filter: brightness(1.1) saturate(1.2); }
+      100% { filter: brightness(1) saturate(1); }
     }
   `;
 
@@ -26,16 +36,17 @@ export default function KeyTurnLoader({
   };
 
   const keyStyle: React.CSSProperties = {
-    animation: 'turnKey 1.6s infinite ease-in-out',
-    transformOrigin: '20px 32px', // pivot at center of key head
+    animation: "turnKey 2.4s infinite cubic-bezier(0.4, 0, 0.2, 1), shimmer 3s infinite ease-in-out",
+    transformOrigin: "20px 32px", // pivot at center of key head
+    willChange: "transform, filter",
   };
 
   const textStyle: React.CSSProperties = {
-    fontSize: '0.875rem',
-    color: '#6C584C',
-    fontFamily: 'inherit',
+    fontSize: "0.875rem",
+    color: "#6C584C",
+    fontFamily: "inherit",
     opacity: 0.9,
-    whiteSpace: 'nowrap',
+    whiteSpace: "nowrap",
   };
 
   return (
@@ -51,7 +62,14 @@ export default function KeyTurnLoader({
           xmlns="http://www.w3.org/2000/svg"
         >
           {/* Key head */}
-          <circle cx="20" cy="32" r="8" stroke="#6C584C" strokeWidth="4" fill="#D8CAB8" />
+          <circle
+            cx="20"
+            cy="32"
+            r="8"
+            stroke="#6C584C"
+            strokeWidth="4"
+            fill="#D8CAB8"
+          />
           {/* Shaft */}
           <rect x="28" y="30" width="24" height="4" fill="#6C584C" rx="2" />
           {/* Teeth */}

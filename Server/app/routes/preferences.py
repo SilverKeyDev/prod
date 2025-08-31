@@ -22,6 +22,9 @@ def create_or_update_preferences():
         if not user:
             logger.warning("🚫 Unauthorized request: user not found in token")
             return jsonify({'error': 'Unauthorized', 'success': False}), 401
+    except SecurityException as se:
+        logger.warning(f"🔐 Security exception in create_or_update_preferences: {se.error_tuple}")
+        return security_error_response(se.error_tuple)
     except Exception as e:
         logger.error(f"🔥 Failed to get current user: {str(e)}", exc_info=True)
         return jsonify({'success': False, 'error': 'Authorization failure'}), 500
@@ -135,6 +138,9 @@ def get_preferences():
         if not user:
             logger.warning("🚫 Unauthorized request: user not found in token")
             return jsonify({'error': 'Unauthorized', 'success': False}), 401
+    except SecurityException as se:
+        logger.warning(f"🔐 Security exception in get_preferences: {se.error_tuple}")
+        return security_error_response(se.error_tuple)
     except Exception as e:
         logger.error(f"🔥 Failed to get current user: {str(e)}", exc_info=True)
         return jsonify({'success': False, 'error': 'Authorization failure'}), 500

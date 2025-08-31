@@ -13,6 +13,7 @@ import {
   favoriteHomesApi,
   mapHomeUniversalToSavedHome,
 } from "./utils";
+import { isAuthenticationError, handleAuthenticationError } from '../lib/fetchUtils';
 
 /* =========================
    Types
@@ -61,6 +62,10 @@ export function SavedHomesProvider({ children }: SavedHomesProviderProps) {
         throw new Error(response.error || "Failed to load favorite homes");
       }
     } catch (e: any) {
+      if (isAuthenticationError(e)) {
+        handleAuthenticationError(e);
+        return; // User will be redirected
+      }
       console.error("Failed to fetch saved homes:", e);
       setSavedHomesError(e?.message ?? "Failed to fetch saved homes");
     } finally {

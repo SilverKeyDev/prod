@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bed, Bath } from 'lucide-react';
+import { Bed, Bath, MapPin } from 'lucide-react';
 import CardSquareFootage from './CardSquareFootage';
 
 export interface CardPropertyDetailsProps {
@@ -9,6 +9,8 @@ export interface CardPropertyDetailsProps {
   bathrooms?: number;
   /** Square footage */
   sqft?: number;
+  /** Lot size */
+  lotSize?: string;
   /** Display variant */
   variant?: 'horizontal' | 'vertical' | 'grid' | 'modal';
   /** Text size */
@@ -23,6 +25,7 @@ const CardPropertyDetails: React.FC<CardPropertyDetailsProps> = ({
   bedrooms,
   bathrooms,
   sqft,
+  lotSize,
   variant = 'horizontal',
   size = 'sm',
   showIcons = true,
@@ -69,7 +72,7 @@ const CardPropertyDetails: React.FC<CardPropertyDetailsProps> = ({
     className
   ].filter(Boolean).join(' ');
 
-  if (bedrooms === undefined && bathrooms === undefined && sqft === undefined) return null;
+  if (bedrooms === undefined && bathrooms === undefined && sqft === undefined && !lotSize) return null;
 
   return (
     <div className={containerClasses}>
@@ -100,6 +103,15 @@ const CardPropertyDetails: React.FC<CardPropertyDetailsProps> = ({
         textColor="text-gray-600"
         iconColor="text-brown"
       />
+      
+      {lotSize && (
+        <div className="flex items-center flex-shrink-0">
+          {showIcons && <MapPin className={`${currentSizeStyles.icon} text-brown mr-1 flex-shrink-0`} />}
+          <span className={`${currentSizeStyles.text} text-gray-600 whitespace-nowrap`}>
+            {lotSize}
+          </span>
+        </div>
+      )}
     </div>
   );
 };

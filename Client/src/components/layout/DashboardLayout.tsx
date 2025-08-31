@@ -56,12 +56,16 @@ export default function DashboardLayout({
 
     // Page-specific width overrides (percentage values)
     if (path.startsWith("/dashboard")) return 90; // Dashboard needs more space for cards
-    if (path.startsWith("/compare-reports")) return 95; // Comparison table needs full width
     if (path.startsWith("/search")) return 100; // Map needs full width
-    if (path.startsWith("/reports")) return 90; // Reports grid needs more space
 
     // Default to the passed maxWidth parameter or 85%
     return maxWidth;
+  };
+
+  // Get header-specific width configuration (standardized to match generate-report)
+  const getHeaderMaxWidth = (): number => {
+    // Use consistent 85% width for all headers to match generate-report
+    return 85;
   };
 
   // Get header configuration based on current route
@@ -236,11 +240,44 @@ export default function DashboardLayout({
             : "ml-16" // Desktop collapsed (w-16 = 64px)
         }`}
       >
-        {/* Global Header Rendering with 10% larger container */}
-        {renderHeader() && (
+        {/* Mobile Header Bar - Fixed at top to prevent overlapping */}
+        {isMobile && renderHeader() && (
+          <div className="fixed top-0 left-0 right-0 z-40 bg-white shadow-sm">
+            <div className="flex items-center gap-responsive-sm px-responsive-sm py-responsive-xs">
+              {/* Mobile Sidebar Toggle Button */}
+              <button
+                onClick={() => setSidebarExpanded(!sidebarExpanded)}
+                className="p-2 bg-brown text-white rounded-lg shadow hover:bg-brown-light hover:text-beige active:text-beige transition-all duration-200 touch-friendly flex-shrink-0"
+                aria-label="Toggle sidebar"
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
+                </svg>
+              </button>
+
+              {/* PageHeader Component with proper margin */}
+              <div className="flex-1 min-w-0">
+                {renderHeader()}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Desktop Header Rendering with consistent width */}
+        {!isMobile && renderHeader() && (
           <div
             className="mt-4 sm:mt-6 lg:mt-8 mx-auto"
-            style={{ maxWidth: `${getPageMaxWidth() * 1.04}%` }}
+            style={{ maxWidth: `${getHeaderMaxWidth() * 1.04}%` }}
           >
             {renderHeader()}
           </div>
@@ -248,7 +285,9 @@ export default function DashboardLayout({
 
         {/* Content area with centralized width parameter */}
         <div
-          className={`mx-auto ${isMobile ? "p-2 sm:p-4" : "p-4 sm:p-6 lg:p-8"}`}
+          className={`mx-auto ${
+            isMobile ? "p-2 sm:p-4 pt-20" : "p-4 sm:p-6 lg:p-8"
+          }`}
           style={{ maxWidth: `${getPageMaxWidth()}%` }}
         >
           {/* Render component based on current path */}

@@ -19,6 +19,8 @@ import {
   createAuthHeaders,
   getAuthToken,
   routeStartsWith,
+  isAuthenticationError,
+  handleAuthenticationError,
 } from "../lib/fetchUtils";
 import { useAuth } from "./AuthContext";
 
@@ -126,9 +128,13 @@ export function UserProvider({ children }: UserProviderProps) {
       } else {
         throw new Error("Failed to fetch user preferences");
       }
-    } catch (e: any) {
-      logHttp('user-preferences', e);
-      setPreferencesError(e?.message ?? "Failed to fetch user preferences");
+    } catch (error) {
+      if (isAuthenticationError(error)) {
+        handleAuthenticationError(error as any);
+        return; // User will be redirected
+      }
+      logHttp('user-preferences', error);
+      setPreferencesError((error as any)?.message ?? "Failed to fetch user preferences");
       setUserPreferences(null); // Safe fallback
     } finally {
       setPreferencesLoading(false);

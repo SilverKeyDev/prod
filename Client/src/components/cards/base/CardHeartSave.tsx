@@ -14,10 +14,10 @@ export interface CardHeartSaveProps {
 }
 
 const CIRCLE_SIZE: Record<NonNullable<CardHeartSaveProps["size"]>, string> = {
-  xs: "w-7 h-7",
-  sm: "w-8 h-8",
-  md: "w-10 h-10",
-  lg: "w-12 h-12",
+  xs: "w-8 h-8",
+  sm: "w-9 h-9",
+  md: "w-11 h-11",
+  lg: "w-13 h-13",
 };
 
 const ICON_SIZE_FALLBACK: Record<NonNullable<CardHeartSaveProps["size"]>, string> = {

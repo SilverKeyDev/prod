@@ -99,6 +99,9 @@ export default function HomeCard({
         pricePosition="below-address"
         loading={isLoading}
         onClick={handleViewDetails}
+        cardType="searchpage"
+        score={home.score}
+        showScore={false}
         topContent={
           <CardHeartSave
             property={convertToProperty(home)}
@@ -112,7 +115,7 @@ export default function HomeCard({
           <CardViewDetailsButton
             onClick={handleViewDetails}
             loading={isLoading}
-            size="md"
+            size="sm"
             variant="primary"
             fullWidth
             text="View Details"

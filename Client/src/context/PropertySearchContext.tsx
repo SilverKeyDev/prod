@@ -21,6 +21,8 @@ import {
   isAbortError,
   getAuthToken,
   routeStartsWith,
+  isAuthenticationError,
+  handleAuthenticationError,
 } from "../lib/fetchUtils";
 import { useAuth } from "./AuthContext";
 
@@ -119,6 +121,10 @@ export function PropertySearchProvider({ children }: PropertySearchProviderProps
       }
     } catch (e: any) {
       if (!isAbortError(e)) {
+        if (isAuthenticationError(e)) {
+          handleAuthenticationError(e);
+          return; // User will be redirected
+        }
         console.error("Failed to search properties", e);
         setSearchError(e?.message ?? "Failed to search properties");
       }
@@ -160,6 +166,10 @@ export function PropertySearchProvider({ children }: PropertySearchProviderProps
       }
     } catch (e: any) {
       if (!isAbortError(e)) {
+        if (isAuthenticationError(e)) {
+          handleAuthenticationError(e);
+          return; // User will be redirected
+        }
         console.error("Failed to fetch search history", e);
         setHistoryError(e?.message ?? "Failed to fetch search history");
         setSearchHistory([]); // Safe fallback
@@ -207,6 +217,10 @@ export function PropertySearchProvider({ children }: PropertySearchProviderProps
       }
     } catch (e: any) {
       if (!isAbortError(e)) {
+        if (isAuthenticationError(e)) {
+          handleAuthenticationError(e);
+          return; // User will be redirected
+        }
         console.error("Failed to fetch saved searches", e);
         setSavedSearchesError(e?.message ?? "Failed to fetch saved searches");
         setSavedSearches([]); // Safe fallback
@@ -249,6 +263,10 @@ export function PropertySearchProvider({ children }: PropertySearchProviderProps
       }
     } catch (e: any) {
       if (!isAbortError(e)) {
+        if (isAuthenticationError(e)) {
+          handleAuthenticationError(e);
+          return; // User will be redirected
+        }
         console.error("Failed to fetch isochrones", e);
         setIsochronesError(e?.message ?? "Failed to fetch isochrones");
         setIsochrones([]); // Safe fallback
@@ -291,6 +309,10 @@ export function PropertySearchProvider({ children }: PropertySearchProviderProps
       }
     } catch (e: any) {
       if (!isAbortError(e)) {
+        if (isAuthenticationError(e)) {
+          handleAuthenticationError(e);
+          return; // User will be redirected
+        }
         console.error("Failed to save search", e);
         throw e;
       }
@@ -320,6 +342,10 @@ export function PropertySearchProvider({ children }: PropertySearchProviderProps
       }
     } catch (e: any) {
       if (!isAbortError(e)) {
+        if (isAuthenticationError(e)) {
+          handleAuthenticationError(e);
+          return; // User will be redirected
+        }
         console.error("Failed to delete search", e);
         throw e;
       }
@@ -357,6 +383,10 @@ export function PropertySearchProvider({ children }: PropertySearchProviderProps
       }
     } catch (e: any) {
       if (!isAbortError(e)) {
+        if (isAuthenticationError(e)) {
+          handleAuthenticationError(e);
+          return; // User will be redirected
+        }
         console.error("Failed to generate isochrone", e);
         setIsochronesError(e?.message ?? "Failed to generate isochrone");
       }

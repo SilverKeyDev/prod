@@ -281,9 +281,7 @@ export default function NegotiationStrategy() {
                 disabled={!selectedHome || isLoading}
               >
                 {isLoading ? (
-                  <>
-                    <KeyTurnLoader />
-                  </>
+                  <KeyTurnLoader message="Generating Strategy..." />
                 ) : (
                   <>
                     <Lightbulb className="mobile-icon-sm" />
@@ -338,8 +336,6 @@ export default function NegotiationStrategy() {
                 emptyMessage="No comparable properties found"
                 renderItem={(comp) => <CompCard comp={comp} />}
                 getItemKey={(comp) => comp.zpid.toString()}
-                itemsPerPage={3}
-                cardSizing="responsive"
                 minCardWidth={280}
                 maxCardWidth={380}
               />

@@ -1,4 +1,4 @@
-import { fetchJson, logHttp, createAuthHeaders, HttpError } from './fetchUtils';
+import { fetchJson, logHttp, createAuthHeaders, HttpError, isAuthenticationError, handleAuthenticationError } from './fetchUtils';
 
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
@@ -74,13 +74,14 @@ export async function apiRequest<T = any>(
 
     // Handle explicit error responses
     if (data?.error === 'TOKEN_EXPIRED' || data?.status === 401) {
-      try {
-        localStorage.removeItem('id_token');
-        localStorage.removeItem('access_token');
-      } catch (_) {
-        /* ignore */
-      }
-      window.location.href = '/login';
+      // Use centralized authentication error handling
+      const { AuthenticationError } = await import('./fetchUtils');
+      const authError = new AuthenticationError(
+        data?.error || 'TOKEN_EXPIRED',
+        data?.message || 'Session expired',
+        401
+      );
+      handleAuthenticationError(authError);
       return {
         success: false,
         error: 'TOKEN_EXPIRED',
@@ -104,34 +105,31 @@ export async function apiRequest<T = any>(
       ...data,
     };
   } catch (error) {
-    if (error instanceof HttpError) {
-      // Handle HTTP errors gracefully
-      if (error.status === 401) {
-        try {
-          localStorage.removeItem('id_token');
-          localStorage.removeItem('access_token');
-        } catch (_) {
-          /* ignore */
-        }
-        window.location.href = '/login';
-        return {
-          success: false,
-          error: 'TOKEN_EXPIRED',
-          message: 'Session expired. Redirecting to login.'
-        } as ApiResponse<T>;
-      }
-      
+    // Handle authentication errors with centralized handler
+    if (isAuthenticationError(error)) {
+      handleAuthenticationError(error as any);
       return {
         success: false,
-        error: `HTTP ${error.status}: ${error.message}`,
-      };
+        error: 'TOKEN_EXPIRED',
+        message: 'Session expired. Redirecting to login.'
+      } as ApiResponse<T>;
     }
     
-    logHttp('api-request', error);
+    logHttp('api', error);
+    
+    if (error instanceof HttpError) {
+      return {
+        success: false,
+        error: `HTTP_${error.status}`,
+        message: `Request failed with status ${error.status}`,
+      } as ApiResponse<T>;
+    }
+    
     return {
       success: false,
-      error: 'Network error. Please check your connection.',
-    };
+      error: 'NETWORK_ERROR',
+      message: error instanceof Error ? error.message : 'Network request failed',
+    } as ApiResponse<T>;
   }
 }
 

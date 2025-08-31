@@ -10,12 +10,8 @@ import {
   MapPin,
   MessageSquare,
 } from "lucide-react";
-import {
-  DragEndEvent,
-} from "@dnd-kit/core";
-import {
-  arrayMove,
-} from "@dnd-kit/sortable";
+import { DragEndEvent } from "@dnd-kit/core";
+import { arrayMove } from "@dnd-kit/sortable";
 import { apiRequest } from "../../lib/api";
 import { usePreferences } from "../../context";
 import Card from "../../components/ui/base/Card";
@@ -63,8 +59,6 @@ const STEPS = [
     icon: MessageSquare,
   },
 ];
-
-
 
 export default function PersonalizationPage() {
   const { userPreferences, refreshUserPreferences } = usePreferences();
@@ -147,7 +141,6 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
       setHomePriceLoading(false);
     }
   };
-
 
   // Default report sections with their labels
   const defaultReportSections = [
@@ -275,9 +268,6 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
       }
     }
   };
-
-
-
 
   // Refresh data when page loads to ensure latest updates
   useEffect(() => {
@@ -519,7 +509,11 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
     if (!validation.isValid) {
       // Show the custom validation warning component
       // Validation warning would be shown here
-      console.warn('Validation failed:', validation.missingFields, validation.errors);
+      console.warn(
+        "Validation failed:",
+        validation.missingFields,
+        validation.errors
+      );
       return;
     }
 
@@ -552,7 +546,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
       setOriginalData(updatedFormData);
       setIsEditMode(false);
       // Success dialog would be shown here
-      console.log('Preferences saved successfully');
+      console.log("Preferences saved successfully");
     } catch (error) {
       console.error("Failed to update preferences:", error);
       alert("Failed to update preferences. Please try again.");
@@ -719,8 +713,8 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
             </Title>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="w-4/5 mx-auto">
-                <label className="block text-xs font-normal text-black mb-1 text-center w-full">
+              <div>
+                <label className="block text-sm font-medium text-black mb-2">
                   Gross Annual Income (after debts)
                 </label>
                 {isEditMode ? (
@@ -738,14 +732,16 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                     className="mt-2"
                   />
                 ) : (
-                  <div className="mobile-input bg-gray-50 text-center mt-2">
-                    ${(formData.gross_income || 0).toLocaleString()}
+                  <div className="mobile-input bg-gray-50 text-center">
+                    {formData.gross_income
+                      ? `$${formData.gross_income.toLocaleString()}`
+                      : "Not specified"}
                   </div>
                 )}
               </div>
 
-              <div className="w-4/5 mx-auto">
-                <label className="block text-xs font-normal text-black mb-1 text-center w-full">
+              <div>
+                <label className="block text-sm font-medium text-black mb-2">
                   Down Payment
                 </label>
                 {isEditMode ? (
@@ -763,8 +759,10 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                     className="mt-2"
                   />
                 ) : (
-                  <div className="mobile-input bg-gray-50 text-center mt-2">
-                    ${(formData.down_payment || 0).toLocaleString()}
+                  <div className="mobile-input bg-gray-50 text-center">
+                    {formData.down_payment
+                      ? `$${formData.down_payment.toLocaleString()}`
+                      : "Not specified"}
                   </div>
                 )}
               </div>
@@ -1143,8 +1141,12 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                       Preferred Home Features
                     </label>
                     <OnPerTagInput
-                      value={(formData.preferred_home_features as string[]) || []}
-                      onChange={(value: string[]) => updateFormData("preferred_home_features", value)}
+                      value={
+                        (formData.preferred_home_features as string[]) || []
+                      }
+                      onChange={(value: string[]) =>
+                        updateFormData("preferred_home_features", value)
+                      }
                       placeholder="e.g., garage, pool, fireplace"
                     />
                   </div>
@@ -1156,7 +1158,9 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                     </label>
                     <OnPerTagInput
                       value={(formData.deal_breakers as string[]) || []}
-                      onChange={(value: string[]) => updateFormData("deal_breakers", value)}
+                      onChange={(value: string[]) =>
+                        updateFormData("deal_breakers", value)
+                      }
                       placeholder="e.g., No parking, Busy road, Old plumbing"
                     />
                   </div>
@@ -1319,7 +1323,9 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                 {isEditMode ? (
                   <Dropdown
                     value={formData.has_buyers_agent ?? ""}
-                    onChange={(value) => updateFormData("has_buyers_agent", value)}
+                    onChange={(value) =>
+                      updateFormData("has_buyers_agent", value)
+                    }
                     options={[
                       { value: "yes", label: "Yes" },
                       { value: "no", label: "No" },
@@ -1546,47 +1552,51 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                     </button>
                   ) : (
                     <div className="space-y-2">
-                    <button
-                      onClick={handleSaveChanges}
-                      disabled={isSaving}
-                      className="w-full flex items-center justify-center gap-2 px-8 py-6 bg-olive text-white rounded-lg hover:bg-olive/80 transition-colors touch-friendly text-sm disabled:opacity-50"
-                    >
-                      <Save className="w-4 h-4" />
-                      {isSaving ? "Saving..." : "Save Changes"}
-                    </button>
-                    <button
-                      onClick={handleCancel}
-                      className="w-full flex items-center justify-center gap-2 px-8 py-6 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors touch-friendly text-sm"
-                    >
-                      <X className="w-4 h-4" />
-                      Cancel
-                    </button>
+                      <button
+                        onClick={handleSaveChanges}
+                        disabled={isSaving}
+                        className="w-full flex items-center justify-center gap-2 px-8 py-6 bg-olive text-white rounded-lg hover:bg-olive/80 transition-colors touch-friendly text-sm disabled:opacity-50"
+                      >
+                        <Save className="w-4 h-4" />
+                        {isSaving ? "Saving..." : "Save Changes"}
+                      </button>
+                      <button
+                        onClick={handleCancel}
+                        className="w-full flex items-center justify-center gap-2 px-8 py-6 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors touch-friendly text-sm"
+                      >
+                        <X className="w-4 h-4" />
+                        Cancel
+                      </button>
                     </div>
                   )}
-              </div>
+                </div>
 
-              {/* Navigation */}
-              <div className="space-y-1">
-                {STEPS.map((step) => (
-                  <button
-                    key={step.id}
-                    onClick={() => scrollToSection(step.id)}
-                    className={`w-full text-left px-4 py-3 rounded-lg transition-colors text-sm ${
-                      activeSection === step.id
-                        ? "bg-brown text-white"
-                        : "text-black hover:bg-beige/20"
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <step.icon className="w-4 h-4 flex-shrink-0" />
-                      <span className="truncate">{step.title}</span>
+                {/* Navigation */}
+                <div className="space-y-1">
+                  {STEPS.map((step, index) => (
+                    <div key={step.id}>
+                      <button
+                        onClick={() => scrollToSection(step.id)}
+                        className={`w-full text-left px-4 py-3 rounded-lg transition-colors text-sm ${
+                          activeSection === step.id
+                            ? "bg-gold/20 text-brown border border-gold/30"
+                            : "text-black hover:bg-gold/10"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <step.icon className="w-4 h-4 flex-shrink-0" />
+                          <span className="truncate">{step.title}</span>
+                        </div>
+                      </button>
+                      {index < STEPS.length - 1 && (
+                        <div className="border-b border-gray-200 my-1"></div>
+                      )}
                     </div>
-                  </button>
-                ))}
-              </div>
-            </Card>
+                  ))}
+                </div>
+              </Card>
+            </div>
           </div>
-        </div>
 
           {/* Main Content */}
           <div className="flex-1 w-full">
@@ -1606,4 +1616,4 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
       </div>
     </div>
   );
-};
+}

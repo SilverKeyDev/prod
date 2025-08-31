@@ -1832,7 +1832,6 @@ export default function SearchPage() {
                     getItemKey={(property: SearchResult, _index: number) =>
                       property.id
                     }
-                    itemsPerPage={PROPERTIES_PER_PAGE}
                   />
                 </>
               ) : (
@@ -1878,7 +1877,6 @@ export default function SearchPage() {
                 getItemKey={(property: SearchResult, _index: number) =>
                   property.id
                 }
-                itemsPerPage={PROPERTIES_PER_PAGE}
               />
             ) : (
               <div className="text-center py-responsive-md sm:py-responsive-lg text-gray-500 px-responsive-sm">
@@ -2006,17 +2004,6 @@ export default function SearchPage() {
                 <div className="h-full">
                   {searchResults.length > 0 ? (
                     <div className="h-full flex flex-col">
-                      {/* Pagination Info */}
-                      {searchResults.length > PROPERTIES_PER_PAGE && (
-                        <div className="text-xs text-gray-600 mb-3 px-1 flex-shrink-0">
-                          Showing {currentPage * PROPERTIES_PER_PAGE + 1}-
-                          {Math.min(
-                            (currentPage + 1) * PROPERTIES_PER_PAGE,
-                            searchResults.length
-                          )}{" "}
-                          of {searchResults.length} properties on map
-                        </div>
-                      )}
                       <div className="flex-1 overflow-y-auto scrollbar-hide space-y-3 pr-2">
                         {searchResults.map((property) => (
                           <div
@@ -2031,7 +2018,7 @@ export default function SearchPage() {
                             {/* Loading overlay */}
                             {isLoadingPropertyDetails && (
                               <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-10 rounded-lg">
-                                <KeyTurnLoader />
+                                <KeyTurnLoader message="Loading details..." />
                               </div>
                             )}
                             {/* Property Image */}
@@ -2094,9 +2081,10 @@ export default function SearchPage() {
                                     bedrooms={property.bedrooms}
                                     bathrooms={property.bathrooms}
                                     sqft={property.sqft}
+                                    lotSize={property.lotSize}
                                     variant="horizontal"
                                     size="xs"
-                                    className="mb-1"
+                                    className="mb-2 sm:mb-3"
                                   />
                                 </div>
                                 <CardHeartSave
@@ -2139,7 +2127,7 @@ export default function SearchPage() {
                           {/* Loading overlay */}
                           {isLoadingPropertyDetails && (
                             <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-10 rounded-lg">
-                              <KeyTurnLoader />
+                              <KeyTurnLoader message="Loading details..." />
                             </div>
                           )}
                           {/* Property Image */}
@@ -2193,9 +2181,10 @@ export default function SearchPage() {
                                   bedrooms={property.bedrooms}
                                   bathrooms={property.bathrooms}
                                   sqft={property.sqft}
+                                  lotSize={property.lotSize}
                                   variant="horizontal"
                                   size="xs"
-                                  className="mb-2"
+                                  className="mb-2 sm:mb-3"
                                 />
                               </div>
                               <CardHeartSave

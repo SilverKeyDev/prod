@@ -7,8 +7,8 @@ import {
   Share,
   Settings,
   X,
+  RefreshCw,
 } from "lucide-react";
-import KeyTurnLoader from "../../components/ui/base/KeyTurnLoader";
 import ErrorToast from "../../components/feedback/ErrorToast";
 import SuccessToast from "../../components/feedback/SuccessToast";
 import { Title, Subtitle, Card } from "../../components/ui/base";
@@ -299,6 +299,9 @@ export default function CompareReportsPage() {
     e.preventDefault();
     e.stopPropagation();
 
+    // Set loading state when toggling selection since it triggers comparison fetch
+    setIsLoading(true);
+
     setSelectedReports((prev) => {
       const isSelected = prev.some((r) => r.id === report.id);
       if (isSelected) {
@@ -419,6 +422,8 @@ export default function CompareReportsPage() {
 
   const refreshReports = async () => {
     try {
+      setIsLoading(true);
+      await refreshCompareReports();
       setToastMessage("Reports refreshed successfully");
       setShowSuccess(true);
     } catch (error) {
@@ -428,6 +433,8 @@ export default function CompareReportsPage() {
         error instanceof Error ? error.message : "Failed to refresh reports"
       );
       setShowError(true);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -454,23 +461,23 @@ export default function CompareReportsPage() {
 
         {/* Reports Selection */}
         <Card className="mb-20 sm:mb-8">
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-responsive-sm sm:space-y-0 space-y-responsive-md">
-            <div>
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-6 sm:space-y-0 mb-3">
+            <div className="hidden sm:block">
               <Title size="md" className="font-medium">
                 Your Property Reports
               </Title>
-              <Subtitle size="xs" muted className="mt-1">
+              <Subtitle size="xs" muted className="mt-1 mb-2">
                 {selectedReports.length} of {reports.length} selected
               </Subtitle>
             </div>
-            <div className="flex items-center gap-responsive-xs">
+            <div className="flex items-center justify-between sm:justify-start w-full sm:w-auto gap-2 sm:gap-3">
               <button
                 onClick={() => setSelectedReports([])}
                 disabled={selectedReports.length === 0}
-                className="flex items-center px-responsive-xs py-responsive-xs text-responsive-sm font-medium text-black/70 bg-gray-100 border border-gray-300 hover:bg-gray-200 hover:border-gray-400 rounded-lg transition-colors disabled:bg-gray-200 disabled:text-gray-500 disabled:border-transparent disabled:cursor-not-allowed touch-friendly"
+                className="flex items-center justify-center sm:justify-start px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-black/70 bg-gray-100 border border-gray-300 hover:bg-gray-200 hover:border-gray-400 rounded-lg transition-colors disabled:bg-gray-200 disabled:text-gray-500 disabled:border-transparent disabled:cursor-not-allowed touch-friendly"
               >
-                <X className="mobile-icon-xs mr-responsive-xs" />
-                <span className="text-responsive-sm font-normal tracking-tight sm:inline">
+                <X className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                <span className="ml-2 text-xs sm:text-sm font-normal tracking-tight">
                   Clear
                 </span>
               </button>
@@ -479,52 +486,39 @@ export default function CompareReportsPage() {
                 disabled={
                   selectedReports.length === 0 || comparisonTable.length === 0
                 }
-                className="flex items-center px-responsive-xs py-responsive-xs text-responsive-sm font-medium text-white bg-olive hover:bg-olive-light rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-friendly"
+                className="flex items-center justify-center sm:justify-start px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white bg-olive hover:bg-olive-light rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-friendly"
               >
-                <Download className="mobile-icon-xs mr-responsive-xs" />
-                <span className="text-responsive-sm font-normal tracking-tight sm:hidden">
-                  Export CSV
-                </span>
-                <span className="hidden sm:inline">Export CSV</span>
+                <Download className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                <span className="ml-2 text-xs sm:text-sm">Export</span>
               </button>
               <button
                 onClick={shareCSV}
                 disabled={
                   selectedReports.length === 0 || comparisonTable.length === 0
                 }
-                className="flex items-center px-responsive-xs py-responsive-xs text-responsive-sm font-medium text-black bg-beige hover:bg-beige/80 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-friendly"
+                className="flex items-center justify-center sm:justify-start px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-gray-100 bg-beige hover:bg-beige/80 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-friendly"
               >
-                <Share className="mobile-icon-xs mr-responsive-xs" />
-                <span className="text-responsive-sm font-normal tracking-tight sm:hidden">
-                  Share CSV
-                </span>
-                <span className="hidden sm:inline">Share CSV</span>
+                <Share className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                <span className="ml-2 text-xs sm:text-sm">Share</span>
               </button>
               <button
                 onClick={refreshReports}
                 disabled={isLoading}
-                className="flex items-center px-responsive-xs py-responsive-xs text-responsive-sm font-medium text-black bg-beige/30 hover:bg-beige/50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-friendly"
+                className="flex items-center justify-center sm:justify-start px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-black/70 bg-beige/30 hover:bg-beige/50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-friendly"
               >
                 {isLoading ? (
-                  <div className="mr-responsive-xs">
-                    <KeyTurnLoader message="" />
-                  </div>
+                  <RefreshCw className="w-3 h-3 sm:w-3.5 sm:h-3.5 animate-spin" />
                 ) : (
-                  <div className="mobile-icon-xs mr-responsive-xs" />
+                  <RefreshCw className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                 )}
-                <span className="text-responsive-sm font-normal tracking-tight sm:hidden">
-                  Refresh
-                </span>
-                <span className="hidden sm:inline">Refresh</span>
+                {!isLoading && (
+                  <span className="ml-2 text-xs sm:text-sm">Refresh</span>
+                )}
               </button>
             </div>
           </div>
 
-          {isLoading ? (
-            <div className="flex justify-center items-center py-responsive-lg">
-              <KeyTurnLoader message="Loading comparison..." />
-            </div>
-          ) : compareReportsError ? (
+          {compareReportsError ? (
             <div className="text-center py-responsive-md text-black/60">
               <p className="text-responsive-sm">No reports yet</p>
             </div>
@@ -564,19 +558,25 @@ export default function CompareReportsPage() {
                 return (
                   <div
                     key={report.id}
-                    onClick={(e) => toggleReportSelection(report, e)}
+                    onClick={(e) => {
+                      if (!isLoading) {
+                        toggleReportSelection(report, e);
+                      }
+                    }}
                     onMouseDown={(e) => e.preventDefault()} // Prevent focus/highlight on click
-                    className={`space-responsive-sm border-2 rounded-xl cursor-pointer transition-all duration-200 select-none touch-manipulation ${
-                      isSelected
+                    className={`p-2 sm:p-3 border-2 rounded-xl cursor-pointer transition-all duration-200 select-none touch-manipulation ${
+                      isLoading
+                        ? "opacity-50 cursor-wait"
+                        : isSelected
                         ? "border-olive bg-olive/5 sm:ring-2 sm:ring-olive/30"
                         : "border-gray-200 hover:border-olive/50 hover:bg-olive/5"
                     }`}
                   >
                     <div className="flex items-start">
-                      <div className="flex-1 min-w-0 pr-responsive-xs">
-                        <div className="flex-1 min-w-0 pr-responsive-xs">
+                      <div className="flex-1 min-w-0 pr-2">
+                        <div className="flex-1 min-w-0 pr-2">
                           <h3
-                            className="text-responsive-sm font-medium text-black leading-tight overflow-hidden"
+                            className="text-xs sm:text-sm font-medium text-black leading-tight overflow-hidden"
                             title={report.address}
                             style={{
                               display: "-webkit-box",
@@ -608,13 +608,13 @@ export default function CompareReportsPage() {
         </Card>
 
         {/* Row Omission Controls Button */}
-        <Card className="mb-6">
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-responsive-sm sm:space-y-0">
+        <Card className="mb-6 mt-8">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-4 sm:space-y-0">
             <div>
-              <Title size="md" className="font-medium space-y-responsive-xs">
+              <Title size="md" className="font-medium">
                 Customize Comparison
               </Title>
-              <Subtitle size="sm" muted>
+              <Subtitle size="sm" muted className="mt-1">
                 Showing {visibleMetrics.length} of {ALL_METRIC_KEYS.length}{" "}
                 metrics
               </Subtitle>
@@ -640,7 +640,10 @@ export default function CompareReportsPage() {
             >
               <thead className="bg-beige/30">
                 <tr>
-                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-left font-semibold text-black sticky left-0 bg-beige/30 text-xs">
+                  <th
+                    className="px-2 sm:px-4 py-2 sm:py-3 text-left font-semibold text-black sticky left-0 bg-beige/30 text-xs"
+                    style={{ width: "25%" }}
+                  >
                     Metric
                   </th>
                   {selectedReports.map((r) => {
@@ -664,7 +667,10 @@ export default function CompareReportsPage() {
               <tbody>
                 {visibleMetrics.map((metric: string) => (
                   <tr key={metric} className="even:bg-white odd:bg-beige/10">
-                    <td className="px-2 sm:px-4 py-2 font-medium text-black sticky left-0 bg-white/80 backdrop-blur text-xs">
+                    <td
+                      className="px-2 sm:px-4 py-2 font-medium text-black sticky left-0 bg-white/80 backdrop-blur text-xs"
+                      style={{ width: "25%" }}
+                    >
                       {metric}
                     </td>
                     {selectedReports.map((r) => {

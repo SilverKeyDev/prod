@@ -4,7 +4,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { NavigateFunction } from 'react-router-dom';
-import { fetchJson, logHttp, createAuthHeaders } from './fetchUtils';
+import { fetchJson, logHttp, createAuthHeaders, isAuthenticationError, handleAuthenticationError } from './fetchUtils';
 
 export interface AuthState {
   user: any | null;
@@ -44,6 +44,10 @@ export function useAuthState(): AuthState {
         setUser(null);
       }
     } catch (error) {
+      if (isAuthenticationError(error)) {
+        handleAuthenticationError(error as any);
+        return; // User will be redirected
+      }
       logHttp('auth', error);
       // On error, assume not authenticated
       localStorage.removeItem('id_token');

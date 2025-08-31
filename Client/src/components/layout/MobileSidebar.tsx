@@ -22,7 +22,6 @@ import {
   KeyRound,
   Bookmark,
   ClipboardList,
-  Menu,
 } from "lucide-react";
 import { UserProfile } from "../../context";
 import { useState } from "react";
@@ -246,18 +245,9 @@ export default function MobileSidebar({
     return items.some((item) => isActive(item.href));
   };
 
-  // When collapsed, only show the toggle button in top left corner
+  // When collapsed, don't render anything (toggle is handled by DashboardLayout header)
   if (!expanded) {
-    return (
-      <button
-        onClick={onToggleExpanded}
-        className="fixed top-4 left-4 z-50 p-3 bg-brown text-white rounded-lg shadow-lg hover:bg-brown-light hover:text-beige active:text-beige transition-all duration-300 ease-in-out transform hover:scale-105 touch-friendly"
-        aria-label="Open sidebar"
-        style={{ position: 'fixed', top: '1rem', left: '1rem' }}
-      >
-        <Menu className="w-6 h-6" />
-      </button>
-    );
+    return null;
   }
 
   // When expanded, show full sidebar with backdrop

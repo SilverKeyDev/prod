@@ -1,6 +1,6 @@
-import React from 'react';
-import { Eye } from 'lucide-react';
-import KeyTurnLoader from '../../ui/base/KeyTurnLoader';
+import React from "react";
+import { Eye } from "lucide-react";
+import KeyTurnLoader from "../../ui/base/KeyTurnLoader";
 
 export interface CardViewDetailsButtonProps {
   /** Click handler */
@@ -8,9 +8,9 @@ export interface CardViewDetailsButtonProps {
   /** Loading state */
   loading?: boolean;
   /** Button size */
-  size?: 'sm' | 'md' | 'lg';
+  size?: "sm" | "md" | "lg";
   /** Button variant */
-  variant?: 'primary' | 'secondary' | 'muted';
+  variant?: "primary" | "secondary" | "muted";
   /** Full width button */
   fullWidth?: boolean;
   /** Button text */
@@ -26,54 +26,58 @@ export interface CardViewDetailsButtonProps {
 const CardViewDetailsButton: React.FC<CardViewDetailsButtonProps> = ({
   onClick,
   loading = false,
-  size = 'md',
-  variant = 'primary',
+  size = "md",
+  variant = "primary",
   fullWidth = false,
-  text = 'View Details',
+  text = "View Details",
   showIcon = true,
   disabled = false,
-  className = ''
+  className = "",
 }) => {
   // Size variants using utilities.css classes
   const sizeStyles = {
     sm: {
-      padding: 'px-responsive-sm py-responsive-xs',
-      text: 'btn-text-responsive',
-      icon: 'mobile-icon-xs'
+      padding: "px-responsive-sm py-responsive-xs",
+      text: "btn-text-responsive",
+      icon: "mobile-icon-xs",
     },
     md: {
-      padding: 'px-responsive-md py-responsive-sm',
-      text: 'btn-text-responsive',
-      icon: 'mobile-icon-sm'
+      padding: "px-responsive-md py-responsive-sm",
+      text: "btn-text-responsive",
+      icon: "mobile-icon-sm",
     },
     lg: {
-      padding: 'px-responsive-lg py-responsive-md',
-      text: 'text-responsive-md',
-      icon: 'mobile-icon-md'
-    }
+      padding: "px-responsive-lg py-responsive-md",
+      text: "text-responsive-md",
+      icon: "mobile-icon-md",
+    },
   };
 
   // Variant styles
   const variantStyles = {
-    primary: 'bg-brown text-white hover:bg-brown/90 border-brown',
-    secondary: 'bg-white text-brown border-brown hover:bg-brown/5',
-    muted: 'muted-button-primary'
+    primary: "bg-brown text-white hover:bg-brown/90 border-brown",
+    secondary: "bg-white text-brown border-brown hover:bg-brown/5",
+    muted: "muted-button-primary",
   };
 
   const currentSizeStyles = sizeStyles[size];
   const currentVariantStyles = variantStyles[variant];
 
   const buttonClasses = [
-    'inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200',
-    'border touch-friendly disabled:opacity-50 disabled:cursor-not-allowed',
+    "inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200",
+    "border touch-friendly disabled:opacity-50 disabled:cursor-not-allowed",
     currentSizeStyles.padding,
     currentSizeStyles.text,
     currentVariantStyles,
-    fullWidth ? 'w-full' : '',
-    className
-  ].filter(Boolean).join(' ');
+    fullWidth ? "w-full" : "",
+    className,
+  ]
+    .filter(Boolean)
+    .join(" ");
 
-  const iconClasses = `${currentSizeStyles.icon} ${showIcon && text ? 'mr-1 sm:mr-2' : ''}`;
+  const iconClasses = `${currentSizeStyles.icon} ${
+    showIcon && text ? "mr-1 sm:mr-2" : ""
+  }`;
 
   return (
     <button
@@ -82,12 +86,11 @@ const CardViewDetailsButton: React.FC<CardViewDetailsButtonProps> = ({
       className={buttonClasses}
     >
       {loading ? (
-        <>
-          <div className={text ? 'mr-1 sm:mr-2' : ''}>
-            <KeyTurnLoader message="" />
-          </div>
-          {text && <span>Loading...</span>}
-        </>
+        <div style={{ 
+          transform: size === "sm" ? "scale(0.75)" : size === "lg" ? "scale(1.25)" : "scale(1)" 
+        }}>
+          <KeyTurnLoader message="Loading..." />
+        </div>
       ) : (
         <>
           {showIcon && <Eye className={iconClasses} />}
