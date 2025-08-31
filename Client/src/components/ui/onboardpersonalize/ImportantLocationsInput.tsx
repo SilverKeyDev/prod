@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
-import { MapPin, Plus, X } from "lucide-react";
+import { MapPin, Plus, X, Clock } from "lucide-react";
+import Input from "../base/Input";
 
 interface ImportantLocation {
   name: string;
@@ -166,39 +167,31 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
           ) : (
         <div className="space-y-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
           {/* Location Name Input */}
-          <div>
-            <label className="block text-sm font-medium text-black mb-2">
-              Location Name
-            </label>
-            <input
-              ref={nameInputRef}
-              type="text"
-              value={locationName}
-              onChange={(e) => setLocationName(e.target.value)}
-              placeholder="e.g., Work, Mom's House, Gym"
-              className="w-full h-12 px-3 rounded-lg border border-gray-300 text-gray-600 text-xs sm:text-sm md:text-base text-left leading-tight focus:ring-2 focus:ring-olive focus:border-olive transition-colors"
-              autoComplete="off"
-            />
-          </div>
+          <Input
+            ref={nameInputRef}
+            label="Location Name"
+            type="text"
+            value={locationName}
+            onChange={(e) => setLocationName(e.target.value)}
+            placeholder="e.g., Work, Mom's House, Gym"
+            autoComplete="off"
+            size="md"
+          />
 
           {/* Address Input with Autocomplete */}
           <div className="relative">
-            <label className="block text-sm font-medium text-black mb-2">
-              Address
-            </label>
-            <div className="relative">
-              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-black/40 pointer-events-none z-10" />
-              <input
-                ref={addressInputRef}
-                type="text"
-                value={locationAddress}
-                onChange={handleAddressInputChange}
-                placeholder={scriptsReady ? "Search for address..." : "Loading..."}
-                disabled={!scriptsReady}
-                className="w-full h-12 pl-10 pr-3 rounded-lg border border-gray-300 text-gray-600 text-xs sm:text-sm md:text-base text-left leading-tight focus:ring-2 focus:ring-olive focus:border-olive transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed disabled:text-gray-400"
-                autoComplete="off"
-              />
-            </div>
+            <Input
+              ref={addressInputRef}
+              label="Address"
+              type="text"
+              value={locationAddress}
+              onChange={handleAddressInputChange}
+              placeholder={scriptsReady ? "Search for address..." : "Loading..."}
+              disabled={!scriptsReady}
+              leftIcon={<MapPin className="h-4 w-4" />}
+              autoComplete="off"
+              size="md"
+            />
 
             {/* Address Suggestions */}
             {suggestions.length > 0 && (
@@ -217,24 +210,19 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
           </div>
 
           {/* Commute Tolerance Input */}
-          <div>
-            <label className="block text-sm font-medium text-black mb-2">
-              Max Commute Time (minutes)
-            </label>
-            <input
-              type="number"
-              value={commuteTime}
-              onChange={(e) => setCommuteTime(parseInt(e.target.value) || 30)}
-              placeholder="30"
-              min="5"
-              max="180"
-              className="w-full h-12 px-3 rounded-lg border border-gray-300 text-gray-600 text-xs sm:text-sm md:text-base text-left leading-tight focus:ring-2 focus:ring-olive focus:border-olive transition-colors"
-              autoComplete="off"
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Maximum acceptable commute time to this location
-            </p>
-          </div>
+          <Input
+            label="Max Commute Time (minutes)"
+            type="number"
+            value={commuteTime}
+            onChange={(e) => setCommuteTime(parseInt(e.target.value) || 30)}
+            placeholder="30"
+            min="5"
+            max="180"
+            leftIcon={<Clock className="h-4 w-4" />}
+            autoComplete="off"
+            size="md"
+            helperText="Maximum acceptable commute time to this location"
+          />
 
           {/* Action Buttons */}
           <div className="flex space-x-3">

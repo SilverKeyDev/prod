@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
 import { Lightbulb, Home, Download, Share2 } from "lucide-react";
-import PageHeader from "../../components/ui/base/PageHeader";
 import FavoriteHomesDropdown from "../../components/ui/base/FavoriteHomesDropdown";
 import Loading from "../../components/ui/base/Loading";
 import KeyTurnLoader from "../../components/ui/base/KeyTurnLoader";
-import Carousel from "../../components/ui/cards/Carousel";
+import { CardCarousel } from "../../components/cards/base";
 import CompCard, { CompData } from "../../components/cards/CompCard";
 
 const sectionBox =
@@ -250,14 +249,10 @@ export default function NegotiationStrategy() {
   };
 
   return (
-    <div className="min-h-screen bg-off-white">
-      <PageHeader
-        title="Negotiation Strategy"
-        subtitle="AI-powered insights to help you craft the perfect offer"
-      />
+    <div>
 
       {/* Main Content */}
-      <div className="mx-auto px-responsive-lg py-responsive-lg max-w-6xl">
+      <div>
         {/* Home selector */}
         <div className={sectionBox}>
           <div className={sectionTitle}>
@@ -266,24 +261,18 @@ export default function NegotiationStrategy() {
           </div>
           <label className={label}>Choose from Your Favorite Homes</label>
 
-          <div className="flex flex-col sm:flex-row items-center gap-responsive-sm space-y-responsive-md">
-            <div
-              className="flex-1 min-w-0 w-full sm:w-auto"
-              style={{ maxWidth: "70%" }}
-            >
+          <div className="flex items-stretch gap-responsive-sm">
+            <div className="flex-1 min-w-0">
               <FavoriteHomesDropdown
                 selectedHome={selectedHome}
                 onHomeSelect={handleHomeSelection}
                 placeholder="Select a favorite home for strategy generation"
               />
             </div>
-            <div
-              className="flex-shrink-0 w-full sm:w-auto"
-              style={{ maxWidth: "30%" }}
-            >
+            <div className="flex-shrink-0">
               <button
                 type="button"
-                className={`${button} w-full btn-responsive-md ${
+                className={`${button} h-full btn-responsive-md whitespace-nowrap ${
                   isLoading || !selectedHome
                     ? "opacity-50 cursor-not-allowed"
                     : ""
@@ -332,27 +321,27 @@ export default function NegotiationStrategy() {
           </div>
         )}
 
-        {/* Property Comparables Carousel */}
+        {/* Property Comparables CardCarousel */}
         {compsData &&
           compsData.success &&
           compsData.data?.comps &&
           !isLoading && (
             <div className="my-responsive-lg">
-              <Carousel
+              <div className={sectionTitle}>
+                <Home className="mobile-icon-sm text-brown" />
+                Property Comparables
+              </div>
+              <CardCarousel
                 items={compsData.data.comps as CompData[]}
-                title={
-                  <div className={sectionTitle}>
-                    <Home className="mobile-icon-sm text-brown" />
-                    Property Comparables
-                  </div>
-                }
                 loading={false}
                 error={null}
                 emptyMessage="No comparable properties found"
                 renderItem={(comp) => <CompCard comp={comp} />}
                 getItemKey={(comp) => comp.zpid.toString()}
                 itemsPerPage={3}
-                itemWidth="w-80"
+                cardSizing="responsive"
+                minCardWidth={280}
+                maxCardWidth={380}
               />
             </div>
           )}

@@ -128,7 +128,6 @@ export default function InspectionsChecklist() {
       apiEndpoint="/api/v1/user/insurance"
       items={items}
       showLoadingScreen={true}
-      containerClassName="mx-auto px-12 py-4 max-w-4xl"
     />
   );
 }

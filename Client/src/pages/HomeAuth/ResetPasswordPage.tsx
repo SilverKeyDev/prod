@@ -7,7 +7,7 @@ import {
   PasswordValidation,
   usePasswordValidation,
 } from "../../components/feedback/PasswordValidation";
-import AuthInput from "../../components/ui/homeauth/AuthInput";
+import Input from "../../components/ui/base/Input";
 import AuthButton from "../../components/ui/homeauth/AuthButton";
 import AuthLink from "../../components/ui/homeauth/AuthLink";
 import AuthPageLayout from "../../components/layout/AuthPageLayout";
@@ -117,50 +117,56 @@ export default function ResetPasswordPage() {
 
         {step === "request" ? (
           // Step 1: Request reset code
-          <AuthInput
+          <Input
             label="Email address"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Enter your email"
-            icon={Mail}
+            leftIcon={<Mail className="w-4 h-4" />}
             autoComplete="username"
             required
+            variant="mobile"
+            className="autofill-gold"
           />
         ) : (
           // Step 2: Reset password with code
           <>
-            <AuthInput
+            <Input
               label="Email address"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email"
-              icon={Mail}
+              leftIcon={<Mail className="w-4 h-4" />}
               autoComplete="username"
-              required
+              variant="mobile"
+              className="autofill-gold"
             />
 
-            <AuthInput
+            <Input
               label="Verification code"
               type="text"
               value={code}
               onChange={(e) => setCode(e.target.value)}
               placeholder="Enter verification code"
-              icon={Key}
-              required
+              leftIcon={<Key className="w-4 h-4" />}
+              variant="mobile"
+              className="autofill-gold"
             />
 
             <div className="space-y-1">
-              <AuthInput
+              <Input
                 label="New password"
                 type="password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="Enter new password"
-                icon={Lock}
+                leftIcon={<Lock className="w-4 h-4" />}
                 autoComplete="new-password"
-                required
+                variant="mobile"
+                showPasswordToggle
+                className="autofill-gold"
               />
               <PasswordValidation
                 password={newPassword}
@@ -168,15 +174,17 @@ export default function ResetPasswordPage() {
               />
             </div>
 
-            <AuthInput
+            <Input
               label="Confirm new password"
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Confirm new password"
-              icon={Lock}
+              leftIcon={<Lock className="w-4 h-4" />}
               autoComplete="new-password"
-              required
+              variant="mobile"
+              showPasswordToggle
+              className="autofill-gold"
             />
           </>
         )}

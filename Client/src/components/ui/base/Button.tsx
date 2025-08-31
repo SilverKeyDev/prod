@@ -1,8 +1,8 @@
 import React, { forwardRef } from 'react';
-import { Loader2 } from 'lucide-react';
+import KeyTurnLoader from './KeyTurnLoader';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'success' | 'warning' | 'info';
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'success' | 'warning' | 'info' | 'filter' | 'sort';
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   loading?: boolean;
   icon?: React.ReactNode;
@@ -59,7 +59,9 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500/20 disabled:bg-red-600/50 disabled:text-white/70',
       success: 'bg-brand-secondary text-white hover:bg-brand-secondary/90 focus:ring-brand-secondary/20 disabled:bg-brand-secondary/50 disabled:text-white/70',
       warning: 'bg-gold-muted text-white hover:bg-gold-muted/90 focus:ring-gold-muted/20 disabled:bg-gold-muted/50 disabled:text-white/70',
-      info: 'bg-neutral-600 text-white hover:bg-neutral-700 focus:ring-neutral-500/20 disabled:bg-neutral-600/50 disabled:text-white/70'
+      info: 'bg-neutral-600 text-white hover:bg-neutral-700 focus:ring-neutral-500/20 disabled:bg-neutral-600/50 disabled:text-white/70',
+      filter: 'border border-beige text-gray-600 bg-white hover:bg-brown/5 hover:border-brown focus:ring-brown/20 focus:border-brown disabled:bg-gray-50 disabled:text-gray-400',
+      sort: 'border border-beige text-gray-600 bg-white hover:bg-brown/5 hover:border-brown focus:ring-brown/20 focus:border-brown disabled:bg-gray-50 disabled:text-gray-400'
     };
 
     // Touch-friendly class for mobile
@@ -90,7 +92,9 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       >
         {loading && (
-          <Loader2 className={`w-4 h-4 animate-spin ${children ? 'mr-2' : ''}`} />
+          <div className={children ? 'mr-2' : ''}>
+            <KeyTurnLoader message="" />
+          </div>
         )}
         {!loading && icon && iconPosition === 'left' && (
           <span className={iconSpacing}>{icon}</span>

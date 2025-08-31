@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { apiRequest } from "../../../lib/api";
 import { ChevronDown, Home } from "lucide-react";
+import KeyTurnLoader from "./KeyTurnLoader";
 
 interface FavoriteHome {
   user_id: string;
@@ -55,10 +56,10 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
             price: home.price,
             image_url: home.image_url,
             created_at: home.created_at,
-            updated_at: home.updated_at
+            updated_at: home.updated_at,
           }));
           setFavoriteHomes(homes);
-        } 
+        }
       } catch (error) {
         console.error("Error fetching favorite homes:", error);
         setFavoriteHomes([]);
@@ -104,23 +105,22 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
     <div className={`relative ${className}`} ref={dropdownRef}>
       <button
         onClick={toggleDropdown}
-        className={`flex items-center gap-3 px-4 py-2 border border-beige rounded-lg bg-white hover:border-brown focus:border-brown focus:ring-2 focus:ring-brown/20 transition-colors duration-200 w-full ${className}`}
+        className={`flex items-center gap-3 px-4 h-12 border border-beige rounded-lg bg-white hover:border-brown focus:border-brown focus:ring-2 focus:ring-brown/20 transition-colors duration-200 w-full ${className}`}
         disabled={disabled || loadingHomes}
       >
         <Home className="h-4 w-4 text-brown" />
         <div className="flex-1 text-left">
           {loadingHomes ? (
-            <span className="text-gray-500">Loading homes...</span>
+            <KeyTurnLoader message="Loading homes..." />
           ) : selectedHome ? (
             <div>
               <div className="text-sm font-medium text-navy">
                 {selectedHome.address}
               </div>
               <div className="btn-text-sm text-gray-500">
-                {selectedHome.beds && selectedHome.baths ? 
-                  `${selectedHome.beds} bed, ${selectedHome.baths} bath` : 
-                  'Selected Property'
-                }
+                {selectedHome.beds && selectedHome.baths
+                  ? `${selectedHome.beds} bed, ${selectedHome.baths} bath`
+                  : "Selected Property"}
                 {selectedHome.price && ` • ${selectedHome.price}`}
               </div>
             </div>
@@ -166,11 +166,14 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
                 >
                   <div className="font-medium">{home.address}</div>
                   <div className="btn-text-sm text-gray-500 mt-1 truncate">
-                    {home.beds && home.baths ? 
-                      `${home.beds} bed, ${home.baths} bath` : 
-                      'Property details'
-                    }
-                    {home.sqft && Number(home.sqft) > 0 && ` • ${Math.round(Number(home.sqft)).toLocaleString()} sqft`}
+                    {home.beds && home.baths
+                      ? `${home.beds} bed, ${home.baths} bath`
+                      : "Property details"}
+                    {home.sqft &&
+                      Number(home.sqft) > 0 &&
+                      ` • ${Math.round(
+                        Number(home.sqft)
+                      ).toLocaleString()} sqft`}
                     {home.price && ` • ${home.price}`}
                   </div>
                 </button>

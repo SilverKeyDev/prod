@@ -1,6 +1,12 @@
-import { FileText, Calendar, Download, Eye } from "lucide-react";
+import { FileText } from "lucide-react";
 import { useDocumentActions } from "../../hooks/useDocumentActions";
 import PdfModal from "../modals/PdfModal";
+import {
+  CardDownloadButton,
+  CardViewButton,
+  CardHeader,
+  CardDateDisplay,
+} from "./base";
 
 export interface DocumentData {
   id: string;
@@ -40,29 +46,21 @@ export default function DocumentCard({ doc }: DocumentCardProps) {
     closePdfModal,
   } = useDocumentActions();
 
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return "Unknown";
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
-
   // Extract address from primary_address or fallback to filename
   const extractAddressFromFilename = (filename: string): string => {
     // Remove file extension and user ID prefix
-    const nameWithoutExt = filename.replace(/\.pdf$/, '');
-    const parts = nameWithoutExt.split('_');
-    
+    const nameWithoutExt = filename.replace(/\.pdf$/, "");
+    const parts = nameWithoutExt.split("_");
+
     // Skip the first part (user ID hash) and rejoin the rest
     if (parts.length > 1) {
-      return parts.slice(1).join(' ').replace(/_/g, ' ');
+      return parts.slice(1).join(" ").replace(/_/g, " ");
     }
     return filename;
   };
 
-  const primaryAddress = doc.primary_address || extractAddressFromFilename(doc.filename);
+  const primaryAddress =
+    doc.primary_address || extractAddressFromFilename(doc.filename);
   let displayName = "";
 
   // If comparison report, format as 'Comparison: primary v comparison'
@@ -97,65 +95,42 @@ export default function DocumentCard({ doc }: DocumentCardProps) {
           onClose={closePdfModal}
         />
       )}
-      <div className="muted-card space-responsive-sm">
-      {/* Header with icon and status */}
-      <div className="flex items-start justify-between gap-responsive-sm mb-2 sm:mb-3">
-        <div className="flex items-center gap-responsive-sm flex-1 min-w-0">
-          <div className="flex-shrink-0 text-brand-accent">
-            <FileText className="mobile-icon-md" />
-          </div>
-          <div className="flex-1 overflow-hidden">
-            <p className="font-medium text-responsive-xs leading-tight line-clamp-1 truncate text-brand-primary" title={fullDisplayName}>
-              {fullDisplayName}
-            </p>
-            {doc.report_type && (
-              <p className="text-responsive-xs text-neutral-500 capitalize mt-0.5 truncate">
-                {doc.report_type} Report
-              </p>
-            )}
-          </div>
-        </div>
-        {/* Download button in top right */}
-        <button
-          onClick={handleDownload}
-          disabled={isLoading}
-          className="flex-shrink-0 space-responsive-xs text-neutral-400 hover:text-neutral-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
-          title="Download"
-        >
-          {isLoading ? (
-            <div className="mobile-icon-xs border-2 border-neutral-300 border-t-neutral-600 rounded-full animate-spin" />
-          ) : (
-            <Download className="mobile-icon-sm" />
-          )}
-        </button>
-      </div>
+      <div className="card-standard card-header-spacing">
+        {/* Header with icon and status */}
+        <CardHeader
+          icon={FileText}
+          title={fullDisplayName}
+          subtitle={doc.report_type ? `${doc.report_type} Report` : undefined}
+          action={
+            <CardDownloadButton
+              onClick={handleDownload}
+              loading={isLoading}
+              size="sm"
+              variant="ghost"
+              showIcon={true}
+              text=""
+            />
+          }
+        />
 
-      {/* Creation date */}
-      <div className="flex items-center gap-responsive-sm mb-3 sm:mb-4">
-        <Calendar className="mobile-icon-xs text-neutral-400 flex-shrink-0" />
-        <p className="text-responsive-xs text-neutral-600">
-          Created {formatDate(doc.created_at)}
-        </p>
-      </div>
+        {/* Creation date */}
+        <CardDateDisplay
+          date={doc.created_at}
+          label="Created"
+          size="xs"
+          className="mb-3 sm:mb-4"
+        />
 
-      {/* View Document button */}
-      <button
-        onClick={handleView}
-        disabled={isLoading}
-        className="muted-button-primary w-full inline-flex items-center justify-center px-responsive-sm py-responsive-xs font-medium btn-text-responsive rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed touch-friendly whitespace-nowrap"
-      >
-        {isLoading ? (
-          <>
-            <div className="mobile-icon-xs border-2 border-white/30 border-t-white rounded-full animate-spin mr-1 sm:mr-2" />
-            <span>Loading...</span>
-          </>
-        ) : (
-          <>
-            <Eye className="mobile-icon-xs mr-1 sm:mr-2" />
-            <span>View Document</span>
-          </>
-        )}
-      </button>
+        {/* View Document button */}
+        <CardViewButton
+          onClick={handleView}
+          loading={isLoading}
+          size="md"
+          variant="muted"
+          text="View Document"
+          iconType="eye"
+          className="w-full"
+        />
       </div>
     </>
   );

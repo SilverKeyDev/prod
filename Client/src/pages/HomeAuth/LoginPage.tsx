@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Mail, Lock } from "lucide-react";
 import { authApi } from "../../lib/api";
 import AuthPageLayout from "../../components/layout/AuthPageLayout";
-import AuthInput from "../../components/ui/homeauth/AuthInput";
+import Input from "../../components/ui/base/Input";
 import AuthButton from "../../components/ui/homeauth/AuthButton";
 import AuthLink from "../../components/ui/homeauth/AuthLink";
 
@@ -81,26 +81,31 @@ export default function LoginPage() {
       {/* Login Form */}
       <form onSubmit={handleSubmit} className="card space-y-responsive-md">
 
-        <AuthInput
-          label="Email address"
+        <Input
+          label="Email"
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="Enter your email"
-          icon={Mail}
-          autoComplete="username"
-          required
+          leftIcon={<Mail className="w-4 h-4" />}
+          name="email"
+          autoComplete="email"
+          variant="mobile"
+          className="autofill-gold"
         />
 
-        <AuthInput
+        <Input
           label="Password"
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="Enter your password"
-          icon={Lock}
+          leftIcon={<Lock className="w-4 h-4" />}
+          name="password"
           autoComplete="current-password"
-          required
+          variant="mobile"
+          showPasswordToggle
+          className="autofill-gold"
         />
 
         <AuthButton type="submit" loading={loading} disabled={loading}>

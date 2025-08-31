@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import PageHeader from "../../components/ui/base/PageHeader";
 import { usePreferences, useUser } from "../../context";
+import { User, DollarSign, CreditCard, Calculator } from "lucide-react";
+import Input from "../../components/ui/base/Input";
 
 type FormData = {
   name: string;
@@ -120,72 +121,60 @@ const PreApproved: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-off-white">
-      <PageHeader
-        title="Get Pre-Approved"
-        subtitle="Connect with our lending partner to get pre-approved for a mortgage"
-      />
       <div className="max-w-2xl mx-auto px-responsive-sm">
         <form onSubmit={handleSubmit} className="bg-white space-responsive-lg rounded-lg space-y-responsive-sm">
           {error && (
             <div className="space-responsive-sm rounded bg-red-50 text-red-700 text-responsive-sm">{error}</div>
           )}
 
-          <label className="block">
-            <span className="text-responsive-sm text-navy/70">Full Name</span>
-            <input
-              type="text"
-              placeholder="Full Name"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="mt-1 w-full space-responsive-sm border rounded touch-friendly"
-              required
-            />
-          </label>
+          <Input
+            label="Full Name"
+            type="text"
+            placeholder="Full Name"
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            leftIcon={<User className="w-4 h-4" />}
+            required
+          />
 
-          <label className="block">
-            <span className="text-responsive-sm text-navy/70">Monthly Income (before taxes)</span>
-            <input
-              inputMode="decimal"
-              placeholder="e.g., 7500"
-              value={formData.income}
-              onChange={(e) =>
-                setFormData({ ...formData, income: sanitizeCurrencyNumber(e.target.value) })
-              }
-              className="mt-1 w-full space-responsive-sm border rounded touch-friendly"
-              required
-            />
-          </label>
+          <Input
+            label="Monthly Income (before taxes)"
+            inputMode="decimal"
+            placeholder="e.g., 7500"
+            value={formData.income}
+            onChange={(e) =>
+              setFormData({ ...formData, income: sanitizeCurrencyNumber(e.target.value) })
+            }
+            leftIcon={<DollarSign className="w-4 h-4" />}
+            required
+          />
 
-          <label className="block">
-            <span className="text-responsive-sm text-navy/70">Credit Score</span>
-            <input
-              inputMode="numeric"
-              placeholder="e.g., 740"
-              value={formData.creditScore}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  creditScore: e.target.value.replace(/[^\d]/g, "").slice(0, 3),
-                })
-              }
-              className="mt-1 w-full space-responsive-sm border rounded touch-friendly"
-              required
-            />
-          </label>
+          <Input
+            label="Credit Score"
+            inputMode="numeric"
+            placeholder="e.g., 740"
+            value={formData.creditScore}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                creditScore: e.target.value.replace(/[^\d]/g, "").slice(0, 3),
+              })
+            }
+            leftIcon={<CreditCard className="w-4 h-4" />}
+            required
+          />
 
-          <label className="block">
-            <span className="text-responsive-sm text-navy/70">Monthly Debts (payments)</span>
-            <input
-              inputMode="decimal"
-              placeholder="e.g., 400"
-              value={formData.debts}
-              onChange={(e) =>
-                setFormData({ ...formData, debts: sanitizeCurrencyNumber(e.target.value) })
-              }
-              className="mt-1 w-full space-responsive-sm border rounded touch-friendly"
-              required
-            />
-          </label>
+          <Input
+            label="Monthly Debts (payments)"
+            inputMode="decimal"
+            placeholder="e.g., 400"
+            value={formData.debts}
+            onChange={(e) =>
+              setFormData({ ...formData, debts: sanitizeCurrencyNumber(e.target.value) })
+            }
+            leftIcon={<Calculator className="w-4 h-4" />}
+            required
+          />
 
           <button
             type="submit"

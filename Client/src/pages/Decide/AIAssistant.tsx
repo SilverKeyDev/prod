@@ -8,9 +8,11 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import KeyTurnLoader from "../../components/ui/base/KeyTurnLoader";
 import { useChats } from "../../context";
 import { Chat } from "../../context/utils";
 import MiniLogo from "../../components/ui/base/MiniLogo";
+import Button from "../../components/ui/base/Button";
 
 interface ChatMessage {
   id: string;
@@ -18,7 +20,6 @@ interface ChatMessage {
   role: "user" | "assistant";
   timestamp: Date;
 }
-
 
 export default function AIAssistant() {
   const navigate = useNavigate();
@@ -124,7 +125,6 @@ export default function AIAssistant() {
       }
     }
   }, [activeChatId]);
-
 
   // Load chat history for a specific chat
   const loadChatHistory = async (chatId: string) => {
@@ -342,9 +342,9 @@ export default function AIAssistant() {
           absolute md:static z-40 h-full
         `}>
           {/* Fixed Header */}
-          <div className="space-responsive-sm border-b border-beige bg-white flex-shrink-0">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-responsive-lg font-medium text-black flex items-center gap-responsive-xs">
+          <div className="p-3 border-b border-beige bg-white flex-shrink-0">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-lg font-medium text-black flex items-center gap-2">
                 <MiniLogo size="sm" />
                 AI Assistant
               </h2>
@@ -362,17 +362,16 @@ export default function AIAssistant() {
           {/* Scrollable Chat List */}
           <div className="flex-1 overflow-y-auto">
             {isLoading ? (
-              <div className="space-responsive-sm text-center">
-                <div className="animate-spin rounded-full mobile-icon-md border-b-2 border-brown mx-auto space-y-responsive-xs"></div>
-                <p className="text-responsive-sm text-black/60">
-                  Loading your property conversations...
-                </p>
+              <div className="p-3 text-center">
+                <div className="mb-2">
+                  <KeyTurnLoader message="Loading your property conversations..." />
+                </div>
               </div>
             ) : localChats.length === 0 ? (
-              <div className="space-responsive-sm text-center">
-                <MessageCircle className="mobile-icon-xl text-black/30 mx-auto space-y-responsive-sm" />
-                <p className="text-responsive-sm text-black/60">No reports yet</p>
-                <p className="text-responsive-xs text-black/40 mt-1">
+              <div className="p-3 text-center">
+                <MessageCircle className="w-12 h-12 text-black/30 mx-auto mb-3" />
+                <p className="text-sm text-black/60">No reports yet</p>
+                <p className="text-xs text-black/40 mt-1">
                   Generate a report to start chatting about properties.
                 </p>
               </div>
@@ -382,17 +381,17 @@ export default function AIAssistant() {
                   key={chat.id}
                   onClick={() => setActiveChatId(chat.id)}
                   className={`
-                  space-responsive-sm cursor-pointer transition-colors border-b border-beige/50 group hover:bg-beige/10
+                  p-3 cursor-pointer transition-colors border-b border-beige/50 group hover:bg-beige/10
                   ${activeChatId === chat.id ? "bg-beige/20" : ""}
                 `}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-black text-responsive-sm truncate space-y-responsive-xs">
+                      <h3 className="font-medium text-black text-sm truncate mb-1">
                         {chat.title}
                       </h3>
                       {chat.messages.length > 0 && (
-                        <p className="text-responsive-xs text-black/50 truncate">
+                        <p className="text-xs text-black/50 truncate">
                           {chat.messages[chat.messages.length - 1].content}
                         </p>
                       )}
@@ -417,34 +416,34 @@ export default function AIAssistant() {
           {activeChat ? (
             <>
               {/* Chat Header */}
-              <div className="space-responsive-sm border-b border-beige bg-white flex items-center justify-between">
-                <h3 className="font-medium text-black text-responsive-md">{activeChat.title}</h3>
+              <div className="p-3 border-b border-beige bg-white flex items-center justify-between">
+                <h3 className="font-medium text-black text-base">{activeChat.title}</h3>
               </div>
 
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto space-responsive-sm space-y-responsive-sm scrollbar-hide">
+              <div className="flex-1 overflow-y-auto p-3 space-y-3 scrollbar-hide">
                 {activeChat.messages.length === 0 ? (
-                  <div className="text-center py-responsive-lg">
-                    <div className="mobile-icon-xl bg-beige/30 rounded-full flex items-center justify-center mx-auto space-y-responsive-sm">
-                      <MessageCircle className="mobile-icon-md text-black/40" />
+                  <div className="text-center py-8">
+                    <div className="w-16 h-16 bg-beige/30 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <MessageCircle className="w-8 h-8 text-black/40" />
                     </div>
-                    <h3 className="text-responsive-lg font-medium text-black space-y-responsive-xs">
+                    <h3 className="text-lg font-medium text-black mb-2">
                       Start a conversation
                     </h3>
-                    <p className="text-responsive-sm text-black/60 max-w-md mx-auto">Ask away!</p>
+                    <p className="text-sm text-black/60 max-w-md mx-auto">Ask away!</p>
                   </div>
                 ) : (
                   <>
                     {activeChat.messages.map((msg) => (
                       <div
                         key={msg.id}
-                        className={`flex items-center gap-responsive-sm ${
+                        className={`flex items-center gap-2 ${
                           msg.role === "user" ? "justify-end" : "justify-start"
                         }`}
                       >
                         {msg.role === "assistant" && (
-                          <div className="mobile-icon-md bg-gold rounded-full flex items-center justify-center flex-shrink-0">
-                            <Bot className="mobile-icon-xs text-black" />
+                          <div className="w-8 h-8 bg-gold rounded-full flex items-center justify-center flex-shrink-0">
+                            <Bot className="w-4 h-4 text-black" />
                           </div>
                         )}
 
@@ -458,11 +457,11 @@ export default function AIAssistant() {
                           }
                         `}
                         >
-                          <p className="text-responsive-sm whitespace-pre-line">
+                          <p className="text-sm whitespace-pre-line">
                             {msg.content}
                           </p>
                           <p
-                            className={`text-responsive-xs mt-2 ${
+                            className={`text-xs mt-2 ${
                               msg.role === "user"
                                 ? "text-white/70"
                                 : "text-black/60"
@@ -473,20 +472,20 @@ export default function AIAssistant() {
                         </div>
 
                         {msg.role === "user" && (
-                          <div className="mobile-icon-md bg-beige rounded-full flex items-center justify-center flex-shrink-0">
-                            <UserIcon className="mobile-icon-xs text-black" />
+                          <div className="w-8 h-8 bg-beige rounded-full flex items-center justify-center flex-shrink-0">
+                            <UserIcon className="w-4 h-4 text-black" />
                           </div>
                         )}
                       </div>
                     ))}
 
                     {isTyping && (
-                      <div className="flex items-center gap-responsive-sm">
-                        <div className="mobile-icon-md bg-gold rounded-full flex items-center justify-center flex-shrink-0">
-                          <Bot className="mobile-icon-xs text-black" />
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 bg-gold rounded-full flex items-center justify-center flex-shrink-0">
+                          <Bot className="w-4 h-4 text-black" />
                         </div>
-                        <div className="bg-white border border-beige rounded-xl px-responsive-sm py-responsive-sm">
-                          <div className="flex gap-responsive-xs">
+                        <div className="bg-white border border-beige rounded-xl px-3 py-2">
+                          <div className="flex gap-1">
                             <div className="w-2 h-2 bg-navy/40 rounded-full animate-bounce"></div>
                             <div
                               className="w-2 h-2 bg-navy/40 rounded-full animate-bounce"
@@ -506,8 +505,8 @@ export default function AIAssistant() {
               </div>
 
               {/* Message Input */}
-              <div className="space-responsive-sm border-t border-beige bg-white">
-                <div className="flex items-stretch gap-responsive-sm">
+              <div className="p-3 border-t border-beige bg-white">
+                <div className="flex items-stretch gap-2">
                   <div className="flex-1">
                     <textarea
                       value={message}
@@ -519,28 +518,30 @@ export default function AIAssistant() {
                         }
                       }}
                       placeholder="Ask about property pricing, market trends, or analysis..."
-                      className="input-field resize-none btn-responsive-md py-responsive-sm scrollbar-hide"
+                      className="w-full border border-beige rounded-lg px-3 py-2 resize-none h-10 focus:outline-none focus:ring-2 focus:ring-brown/20 focus:border-brown transition-colors duration-150 scrollbar-hide"
                       disabled={isTyping}
                     />
                   </div>
-                  <button
+                  <Button
                     onClick={sendMessage}
                     disabled={!message.trim() || isTyping}
-                    className="bg-olive hover:bg-olive-light text-white font-medium px-responsive-sm rounded-lg transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center flex-shrink-0 self-stretch"
+                    variant="primary"
+                    size="sm"
+                    className="h-10 px-3 self-stretch"
                   >
-                    <Send className="mobile-icon-xs" />
-                  </button>
+                    <Send className="w-4 h-4" />
+                  </Button>
                 </div>
               </div>
             </>
           ) : (
             <div className="flex-1 flex items-center justify-center">
               <div className="text-center">
-                <MessageCircle className="mobile-icon-xl text-black/40 mx-auto space-y-responsive-sm" />
-                <h3 className="text-responsive-lg font-medium text-black space-y-responsive-xs">
+                <MessageCircle className="w-16 h-16 text-black/40 mx-auto mb-3" />
+                <h3 className="text-lg font-medium text-black mb-2">
                   No conversation selected
                 </h3>
-                <p className="text-responsive-sm text-black/60">
+                <p className="text-sm text-black/60">
                   Choose a conversation or start a new one
                 </p>
               </div>

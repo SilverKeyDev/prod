@@ -84,6 +84,39 @@
   .container-fluid-responsive {
     @apply w-full px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16;
   }
+
+  /* Header-Content Width Matching System */
+  .header-content-match {
+    /* Base responsive padding to match content containers */
+    @apply mx-responsive-sm my-responsive-sm;
+  }
+
+  /* Header width variants that match common content container max-widths */
+  .header-match-2xl { max-width: calc(42rem + 2 * theme('spacing.4')); } /* max-w-2xl + padding */
+  .header-match-3xl { max-width: calc(48rem + 2 * theme('spacing.4')); } /* max-w-3xl + padding */
+  .header-match-4xl { max-width: calc(56rem + 2 * theme('spacing.4')); } /* max-w-4xl + padding */
+  .header-match-5xl { max-width: calc(64rem + 2 * theme('spacing.4')); } /* max-w-5xl + padding */
+  .header-match-6xl { max-width: calc(72rem + 2 * theme('spacing.4')); } /* max-w-6xl + padding */
+  .header-match-7xl { max-width: calc(80rem + 2 * theme('spacing.4')); } /* max-w-7xl + padding */
+
+  /* Responsive padding adjustments for header matching */
+  @media (min-width: 640px) {
+    .header-match-2xl { max-width: calc(42rem + 2 * theme('spacing.6')); }
+    .header-match-3xl { max-width: calc(48rem + 2 * theme('spacing.6')); }
+    .header-match-4xl { max-width: calc(56rem + 2 * theme('spacing.6')); }
+    .header-match-5xl { max-width: calc(64rem + 2 * theme('spacing.6')); }
+    .header-match-6xl { max-width: calc(72rem + 2 * theme('spacing.6')); }
+    .header-match-7xl { max-width: calc(80rem + 2 * theme('spacing.6')); }
+  }
+
+  @media (min-width: 1024px) {
+    .header-match-2xl { max-width: calc(42rem + 2 * theme('spacing.8')); }
+    .header-match-3xl { max-width: calc(48rem + 2 * theme('spacing.8')); }
+    .header-match-4xl { max-width: calc(56rem + 2 * theme('spacing.8')); }
+    .header-match-5xl { max-width: calc(64rem + 2 * theme('spacing.8')); }
+    .header-match-6xl { max-width: calc(72rem + 2 * theme('spacing.8')); }
+    .header-match-7xl { max-width: calc(80rem + 2 * theme('spacing.8')); }
+  }
   /* Safe area insets for mobile devices with notches - with fallbacks */
   .safe-top {
     padding-top: 0; /* Fallback */
@@ -204,17 +237,74 @@
 
   /* Mobile-first utilities - removed duplicate .mobile-card (kept in components.css) */
 
-  /* Responsive container patterns */
-  .mobile-container {
-    @apply w-[80%] sm:w-full mx-auto sm:mx-0;
-  }
-
+  /* Standardized Card System */
+  /* Base card styles */
   .card-base {
     @apply border rounded-lg shadow-sm bg-white hover:shadow-md transition;
   }
 
+  /* Standardized card widths - removed fixed widths to use centralized system */
+  .card-width-standard {
+    @apply max-w-sm;
+  }
+
+  .card-width-wide {
+    @apply max-w-md;
+  }
+
+  .card-width-full {
+    @apply w-full;
+  }
+
+  /* Standardized card containers */
+  .card-standard {
+    @apply card-base card-width-standard;
+  }
+
+  .card-wide {
+    @apply card-base card-width-wide;
+  }
+
+  .card-full {
+    @apply card-base card-width-full;
+  }
+
+  /* Standardized card header spacing - removed width constraints to use centralized system */
+  .card-header-spacing {
+    @apply space-responsive-sm;
+  }
+
+  .card-content-spacing {
+    @apply space-responsive-sm;
+  }
+
+  /* Standardized header and layout widths - removed width constraints to use centralized system */
+  .header-content-match {
+    /* Width now handled by DashboardLayout centralized system */
+  }
+
+  /* Header match classes - removed width constraints to use centralized system */
+  .header-match-2xl,
+  .header-match-3xl,
+  .header-match-4xl,
+  .header-match-5xl,
+  .header-match-6xl,
+  .header-match-7xl {
+    /* Width now handled by DashboardLayout centralized system */
+  }
+
+  /* Page layout standardization - removed width constraints to use centralized system */
+  .page-layout-standard {
+    /* Width now handled by DashboardLayout centralized system */
+  }
+
+  /* Legacy support - will be deprecated */
+  .mobile-container {
+    @apply max-w-sm;
+  }
+
   .card-mobile {
-    @apply card-base mobile-container;
+    @apply card-standard;
   }
 
   /* Property details grid */
@@ -384,19 +474,36 @@
     border-color: hsl(25, 22%, 35%);
   }
 
-  /* Autofill Styling */
+  /* Autofill Styling - Light Brown/Gold Theme */
   .autofill-muted:-webkit-autofill,
   .autofill-muted:-webkit-autofill:hover,
   .autofill-muted:-webkit-autofill:focus,
   .autofill-muted:-webkit-autofill:active {
-    -webkit-box-shadow: 0 0 0 30px hsl(45, 25%, 92%) inset !important;
-    -webkit-text-fill-color: rgba(0, 0, 0, 0.4) !important;
-    caret-color: rgba(0, 0, 0, 0.4) !important;
+    -webkit-box-shadow: 0 0 0 30px hsl(35, 35%, 88%) inset !important;
+    -webkit-text-fill-color: hsl(25, 22%, 35%) !important;
+    caret-color: hsl(25, 22%, 35%) !important;
   }
 
   /* Firefox autofill */
   .autofill-muted:-moz-autofill {
-    background-color: hsl(45, 25%, 92%) !important;
-    color: rgba(0, 0, 0, 0.4) !important;
+    background-color: hsl(35, 35%, 88%) !important;
+    color: hsl(25, 22%, 35%) !important;
+  }
+
+  /* Gold Autofill Styling for Auth Pages */
+  .autofill-gold:-webkit-autofill,
+  .autofill-gold:-webkit-autofill:hover,
+  .autofill-gold:-webkit-autofill:focus,
+  .autofill-gold:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px hsl(42, 45%, 92%) inset !important;
+    -webkit-text-fill-color: hsl(25, 25%, 30%) !important;
+    caret-color: hsl(25, 25%, 30%) !important;
+    transition: background-color 5000s ease-in-out 0s;
+  }
+
+  /* Firefox gold autofill */
+  .autofill-gold:-moz-autofill {
+    background-color: hsl(42, 45%, 92%) !important;
+    color: hsl(25, 25%, 30%) !important;
   }
 }

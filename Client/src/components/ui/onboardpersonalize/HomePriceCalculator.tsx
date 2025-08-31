@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { OnboardingData } from "../../../lib/onboard/types";
 import { calculateAffordableHomePrice, HomePriceResult } from "../../../lib/onboard/homePriceCalculation";
+import KeyTurnLoader from "../base/KeyTurnLoader";
 
 interface HomePriceCalculatorProps {
   formData: OnboardingData;
@@ -71,8 +72,7 @@ const HomePriceCalculator: React.FC<HomePriceCalculatorProps> = ({
       
       {homePriceLoading && (
         <div className="flex items-center space-x-2">
-          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-          <span className="text-blue-700">Calculating your affordable home price...</span>
+          <KeyTurnLoader message="Calculating your affordable home price..." />
         </div>
       )}
 

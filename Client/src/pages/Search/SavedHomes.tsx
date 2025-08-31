@@ -1,16 +1,15 @@
 import { useState, useEffect, useCallback } from "react";
 import { favoriteHomesApi } from "../../lib/api";
 import HomeCard from "../../components/cards/HomeCard";
-import PageHeader from "../../components/ui/base/PageHeader";
 import ErrorToast from "../../components/feedback/ErrorToast";
-import { Search, RefreshCw, LayoutGrid, List } from "lucide-react";
 import { useSavedHomes } from "../../context";
 import { SavedHome } from "../../context/utils";
 import PropertyDetailsModal from "../../components/modals/PropertyDetailsModal";
 import KeyTurnLoader from "../../components/ui/base/KeyTurnLoader";
+import SavedLayout, { ViewMode } from "../../components/SavedLayout";
 
 export default function SavedHomes() {
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [searchTerm, setSearchTerm] = useState("");
   const [refreshing, setRefreshing] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState<any>(null);
@@ -143,49 +142,24 @@ export default function SavedHomes() {
   ) : null;
 
   return (
-    <div className="min-h-screen bg-off-white">
-      <PageHeader
-        title="Saved Homes"
-        subtitle="Your collection of favorite properties"
-      />
+    <div>
       
-      <div className="max-w-6xl mx-auto px-responsive-sm py-responsive-md">
+      <div className="space-y-8">
 
-      {/* Toolbar */}
-      <div className="flex items-center gap-responsive-sm space-y-responsive-md">
-        {/* Search - adjustable width */}
-        <div className="relative flex-1 min-w-0">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 mobile-icon-xs" />
-          <input
-            type="text"
-            placeholder="Search saved homes..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 px-responsive-sm py-responsive-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brown/50 touch-friendly"
-          />
-        </div>
-
-        {/* View toggle - fixed width - hidden on mobile */}
-        <button
-          onClick={() => setViewMode(viewMode === "grid" ? "list" : "grid")}
-          className="hidden sm:flex flex-shrink-0 space-responsive-xs border border-gray-300 rounded-lg hover:bg-gray-50 touch-friendly"
-          title="Toggle view"
-        >
-          {viewMode === "grid" ? <List className="mobile-icon-sm" /> : <LayoutGrid className="mobile-icon-sm" />}
-        </button>
-
-        {/* Refresh - fixed width */}
-        <button
-          onClick={refresh}
-          className={`flex-shrink-0 space-responsive-xs border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center touch-friendly ${
-            refreshing || loading ? "cursor-not-allowed" : ""
-          }`}
-        >
-          <RefreshCw
-            className={`mobile-icon-sm ${refreshing || loading ? "animate-spin" : ""}`}
-          />
-        </button>
-      </div>
+      <SavedLayout
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Search saved homes..."
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+        showViewToggle={false}
+        showSort={false}
+        onRefresh={refresh}
+        isRefreshing={refreshing}
+        isLoading={loading}
+        refreshTitle="Refresh saved homes"
+        rightText={`${filteredHomes.length} saved`}
+      />
 
       {/* Content */}
       {filteredHomes.length === 0 ? (
@@ -194,10 +168,12 @@ export default function SavedHomes() {
             <KeyTurnLoader message="Loading saved homes..." />
           </div>
         ) : (
-          <p>You have no saved homes yet.</p>
+          <div className="text-center py-12">
+            <p className="text-gray-600">You have no saved homes yet.</p>
+          </div>
         )
       ) : viewMode === "grid" ? (
-        <div className="grid gap-responsive-sm sm:gap-responsive-md grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid gap-6 sm:gap-8 grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filteredHomes.map((home: SavedHome) => (
             <HomeCard 
               key={home.home_id} 
@@ -209,7 +185,7 @@ export default function SavedHomes() {
           ))}
         </div>
       ) : (
-        <div className="space-y-responsive-sm mobile-container">
+        <div className="space-y-6 mobile-container">
           {filteredHomes.map((home: SavedHome) => (
             <HomeCard 
               key={home.home_id} 

@@ -5,7 +5,8 @@ import {
   formatAgentName, 
   formatLotSize 
 } from "../../lib/addressFormat";
-import { PropertyCard, AddressDisplay } from "../ui";
+import { PropertyCard } from "../ui";
+import { CardAddressDisplay, CardAgentInfo } from "./base";
 
 export interface CompData {
   address: {
@@ -81,7 +82,7 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
       bottomContent={
         <div className="space-y-responsive-sm">
           {/* Secondary Address */}
-          <AddressDisplay
+          <CardAddressDisplay
             address={`${comp.address.city}, ${comp.address.state} ${comp.address.zipcode}`}
             region={comp.parentRegion?.name}
             variant="compact"
@@ -92,12 +93,12 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
           
           {/* Agent Info */}
           {comp.attributionInfo?.agentName && (
-            <div className="flex items-center gap-responsive-xs">
-              <span className="text-responsive-xs text-gray-500 flex-shrink-0">Agent:</span>
-              <span className="text-responsive-xs font-medium text-navy truncate">
-                {formatAgentName(comp.attributionInfo.agentName)}
-              </span>
-            </div>
+            <CardAgentInfo
+              agentName={formatAgentName(comp.attributionInfo.agentName)}
+              brokerName={comp.attributionInfo?.brokerName}
+              size="xs"
+              showIcon={false}
+            />
           )}
         </div>
       }

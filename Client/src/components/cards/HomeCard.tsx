@@ -1,7 +1,8 @@
 import { formatFilenameToAddress, truncateText } from "../../lib/addressFormat";
 import PropertyDetailsModal from "../modals/PropertyDetailsModal";
-import { PropertyCard, Button } from "../ui";
-import HeartSave from "../ui/cards/HeartSave";
+import { PropertyCard } from "../ui";
+import { CardHeartSave } from "./base";
+import { CardViewDetailsButton } from "./base";
 import {
   usePropertyDetails,
   type Property,
@@ -95,31 +96,27 @@ export default function HomeCard({
         sqft={home.sqft}
         propertyType={home.propertyType}
         lotSize={home.lot_size}
-        pricePosition="top-left"
+        pricePosition="below-address"
         loading={isLoading}
         onClick={handleViewDetails}
         topContent={
-          <div className="bg-white rounded-full space-responsive-xs">
-            <HeartSave
-              property={convertToProperty(home)}
-              isSaved={isHomeSaved(home.home_id)}
-              onSave={onSave}
-              onRemove={onRemove}
-              size="sm"
-            />
-          </div>
+          <CardHeartSave
+            property={convertToProperty(home)}
+            isSaved={isHomeSaved(home.home_id)}
+            onSave={onSave}
+            onRemove={onRemove}
+            size="sm"
+          />
         }
         bottomContent={
-          <Button
+          <CardViewDetailsButton
             onClick={handleViewDetails}
-            disabled={isLoading}
             loading={isLoading}
-            variant="primary"
             size="md"
+            variant="primary"
             fullWidth
-          >
-            View Details
-          </Button>
+            text="View Details"
+          />
         }
       />
 

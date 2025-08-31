@@ -1,16 +1,9 @@
 import { useState, useEffect } from "react";
-import {
-  Lock,
-  X,
-  Building2,
-  BarChart2,
-  Lightbulb,
-  FolderLock,
-} from "lucide-react";
+import { Building2, BarChart2, Lightbulb, FolderLock, X, Lock } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useGoogleMaps } from "../../context";
+import KeyLogo from "/logo.png";
 import RippleBackground from "../../components/ui/homeauth/RippleBackground";
-import KeyLogo from "../../components/ui/base/KeyLogo";
+// Remove Google Maps import for now to fix compilation
 
 interface Suggestion {
   description: string;
@@ -32,8 +25,9 @@ export default function HomePage() {
   const [, setLoadError] = useState<string | null>(null);
   const [hasSelected, ] = useState(false);
 
-  // Use centralized Google Maps loading
-  const { isLoaded: googleMapsLoaded, error: googleMapsError } = useGoogleMaps();
+  // Temporarily disable Google Maps functionality
+  const googleMapsLoaded = false;
+  const googleMapsError = null;
 
   // Update scriptsReady based on centralized Google Maps loading
   useEffect(() => {
@@ -90,7 +84,7 @@ export default function HomePage() {
     <div className="min-h-screen bg-white flex flex-col hide-scrollbar">
       {/* Header */}
       <header className="w-full flex justify-between items-center px-responsive-sm py-2 sm:py-3 border-b border-gray-200 bg-white fixed top-0 left-0 right-0 z-50 shadow-lg">
-        <KeyLogo size="sm" />
+        <img src={KeyLogo} alt="SilverKey Logo" className="h-8 w-auto" />
         <div className="flex gap-1.5 sm:gap-2 text-responsive-sm font-medium">
           <Link to="/login" className="hover:underline px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 rounded-md">
             Login
@@ -113,11 +107,11 @@ export default function HomePage() {
           <RippleBackground />
         </div>
         <div className="relative z-10 max-w-3xl text-center w-4/5 sm:w-full mx-auto">
-          <div className="bg-white space-responsive-md rounded-lg shadow-lg">
-            <h2 className="text-3xl md:text-3xl lg:text-4xl xl:text-5xl font-serif text-black font-bold space-y-responsive-sm mb-2 ">
+          <div className="bg-white p-6 sm:p-8 rounded-lg shadow-lg">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 text-gray-900">
               Discover a New Way to Buy
-            </h2>
-            <p className="text-gray-600 space-y-responsive-md text-responsive-lg">
+            </h1>
+            <p className="text-lg sm:text-xl text-gray-600 mb-6">
               Onboard, Search, Decide, Negotiate, Close
             </p>
             <div className="mt-4 sm:mt-8">
@@ -161,13 +155,13 @@ export default function HomePage() {
           ].map((f, i) => (
             <div
               key={i}
-              className="bg-white rounded-xl shadow-md hover:shadow-lg space-responsive-md flex flex-col items-center text-center transition-all duration-200 hover:-translate-y-0.5 cursor-pointer touch-friendly"
+              className="bg-white rounded-xl shadow-md hover:shadow-lg p-4 sm:p-6 flex flex-col items-center text-center transition-all duration-200 hover:-translate-y-0.5 cursor-pointer touch-friendly"
             >
               <div className="mb-2">{f.icon}</div>
               <h3 className="font-semibold text-black text-responsive-md mb-3 w-[87%]">
                 {f.title}
               </h3>
-              <p className="text-gray-600 text-responsive-xs w-[87%]">{f.description}</p>
+              <p className="text-gray-600 text-xs sm:text-sm w-[87%]">{f.description}</p>
             </div>
           ))}
         </div>

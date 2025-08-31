@@ -3,9 +3,9 @@ import { apiRequest } from "../../lib/api";
 import { CheckSquare } from "lucide-react";
 import ChecklistCheckbox from "../ui/base/ChecklistCheckbox";
 import ClosePageHeader from "../ui/close/ClosePageHeader";
+import Card from "../ui/base/Card";
 
-// Shared CSS classes
-const sectionBox = "bg-white rounded-xl shadow-sm p-6 mb-6 border border-beige/40";
+// Shared CSS classes - now using Card component instead
 const sectionTitle = "text-lg font-semibold text-navy flex items-center gap-3 mb-4";
 const checkboxContainer = "flex items-start gap-3 mb-5";
 const itemLabel = "font-medium text-navy";
@@ -46,7 +46,7 @@ export default function CloseLayout({
   items,
   children,
   showLoadingScreen = false,
-  containerClassName = "mx-auto px-12 py-10 max-w-4xl",
+  containerClassName = "py-10",
   showMinLoadingText = false
 }: CloseLayoutProps) {
   const [checked, setChecked] = useState<{ [id: number]: boolean }>({});
@@ -109,14 +109,14 @@ export default function CloseLayout({
   // Show loading screen for pages that need it
   if (loading && showLoadingScreen) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-off-white text-navy">
+      <div className="flex items-center justify-center bg-off-white text-navy">
         Loading checklist...
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-off-white">
+    <div className="bg-off-white">
       <ClosePageHeader
         title={title}
         subtitle={subtitle}
@@ -132,7 +132,8 @@ export default function CloseLayout({
       <div className={containerClassName}>
         {loading && showMinLoadingText && <p className="mb-4">Loading checklist…</p>}
         
-        <div className={sectionBox}>
+        <div className="w-[92%] mx-auto">
+          <Card className="mb-6" padding="lg">
           <div className={sectionTitle}>
             <CheckSquare className="h-5 w-5 text-brown" />
             {sectionTitleText}
@@ -152,6 +153,7 @@ export default function CloseLayout({
               />
             ))}
           </fieldset>
+        </Card>
         </div>
       </div>
     </div>

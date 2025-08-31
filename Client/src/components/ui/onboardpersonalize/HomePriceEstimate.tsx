@@ -10,39 +10,24 @@ interface HomePriceResult {
   pmiRate?: number;
 }
 
-interface FormData {
-  down_payment?: number;
-}
 
 interface HomePriceEstimateProps {
   homePriceLoading: boolean;
   homePriceError: string | null;
   homePriceResult: HomePriceResult | null;
-  showHomePriceDetails: boolean;
-  setShowHomePriceDetails: (show: boolean) => void;
-  formData: FormData;
 }
 
 const HomePriceEstimate: React.FC<HomePriceEstimateProps> = ({
   homePriceLoading,
   homePriceError,
   homePriceResult,
-  showHomePriceDetails,
-  setShowHomePriceDetails,
-  formData,
 }) => {
   return (
     <div className="mt-8 p-4 sm:p-6 bg-gray-50 rounded-lg border border-gray-200">
-      <div className="flex items-center justify-between mb-4">
+      <div className="mb-4">
         <h3 className="text-base sm:text-lg md:text-xl font-semibold text-gray-900">
           Estimated Home Price Range
         </h3>
-        <button
-          onClick={() => setShowHomePriceDetails(!showHomePriceDetails)}
-          className="text-olive hover:text-olive/80 text-sm font-medium"
-        >
-          {showHomePriceDetails ? "Hide Details" : "Show Details"}
-        </button>
       </div>
 
       {homePriceLoading ? (
@@ -126,42 +111,6 @@ const HomePriceEstimate: React.FC<HomePriceEstimateProps> = ({
               </p>
             </div>
 
-            {showHomePriceDetails && (
-              <div className="mt-4 p-3 bg-gray-50 rounded text-xs space-y-2">
-                <h4 className="font-semibold text-gray-800">
-                  Calculation Details:
-                </h4>
-                <div className="space-y-1 text-gray-700">
-                  <p>
-                    • Interest Rate:{" "}
-                    {typeof homePriceResult.interestRate === "number"
-                      ? (homePriceResult.interestRate * 100).toFixed(2)
-                      : "-"}
-                    %
-                  </p>
-                  <p>
-                    • Property Tax Rate:{" "}
-                    {typeof homePriceResult.propertyTaxRate === "number"
-                      ? (
-                          homePriceResult.propertyTaxRate * 100
-                        ).toFixed(2)
-                      : "-"}
-                    %
-                  </p>
-                  <p>
-                    • PMI Rate:{" "}
-                    {typeof homePriceResult.pmiRate === "number"
-                      ? (homePriceResult.pmiRate * 100).toFixed(2)
-                      : "-"}
-                    %
-                  </p>
-                  <p>
-                    • Down Payment: $
-                    {(formData.down_payment || 0).toLocaleString()}
-                  </p>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       ) : (

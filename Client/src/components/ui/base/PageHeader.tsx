@@ -1,38 +1,47 @@
 import MiniLogo from "./MiniLogo";
+import Card from "./Card";
 
 interface PageHeaderProps {
   title: string;
   subtitle?: string;
+  contentWidth?: "2xl" | "3xl" | "4xl" | "5xl" | "6xl" | "7xl";
 }
 
-export default function PageHeader({
-  title,
-  subtitle,
-}: PageHeaderProps) {
+export default function PageHeader({ title, subtitle }: PageHeaderProps) {
   return (
     <>
       {/* Desktop Header */}
-      <div className="hidden sm:block bg-white border-b border-beige/40 rounded-t-2xl mx-responsive-sm my-responsive-sm relative z-30" style={{ maxWidth: '80vw' }}>
-        <div className="mx-auto px-responsive-sm py-responsive-sm max-w-full">
-          <div className="flex items-center gap-responsive-sm">
-            <MiniLogo size="lg" />
-            <div className="min-w-0 flex-1">
-              <h1 className="heading-responsive-md text-navy truncate">{title}</h1>
-              {subtitle && <p className="text-responsive-sm text-navy/70 truncate">{subtitle}</p>}
-            </div>
+      <Card
+        className="hidden sm:block border-b border-beige/40 rounded-t-2xl rounded-b-none relative z-30"
+        padding="sm"
+      >
+        <div className="flex items-center gap-responsive-sm">
+          <MiniLogo size="lg" />
+          <div className="min-w-0 flex-1">
+            <h1 className="heading-responsive-md text-navy truncate">
+              {title}
+            </h1>
+            {subtitle && (
+              <p className="text-responsive-sm text-navy/70 truncate">
+                {subtitle}
+              </p>
+            )}
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* Mobile Header */}
-      <div className="sm:hidden bg-white border-b border-beige/40 rounded-t-2xl ml-16 mr-4 my-responsive-sm relative z-30">
-        <div className="space-responsive-xs">
-          <div className="flex items-center justify-center gap-2">
-            <MiniLogo size="md" />
-            <h1 className="heading-responsive-sm text-navy text-center">{title}</h1>
-          </div>
+      <Card
+        className="sm:hidden border-b border-beige/40 rounded-t-2xl rounded-b-none relative z-30"
+        padding="sm"
+      >
+        <div className="flex items-center justify-center gap-2">
+          <MiniLogo size="md" />
+          <h1 className="heading-responsive-sm text-navy text-center">
+            {title}
+          </h1>
         </div>
-      </div>
+      </Card>
     </>
   );
 }

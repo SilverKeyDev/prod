@@ -2,17 +2,17 @@ import { useState, useEffect } from "react";
 import { useSearchParams, useLocation } from "react-router-dom";
 import {
   Check,
+  CheckCircle,
+  AlertCircle,
+  CreditCard,
+  DollarSign,
   Zap,
   Crown,
   Building,
-  CreditCard,
-  DollarSign,
-  Loader2,
   Clock,
-  CheckCircle,
-  AlertCircle,
   Settings,
 } from "lucide-react";
+import KeyTurnLoader from "../../components/ui/base/KeyTurnLoader";
 import {
   useStripePayment,
   useStripePortal,
@@ -20,8 +20,6 @@ import {
 import ErrorToast from "../../components/feedback/ErrorToast";
 import SuccessToast from "../../components/feedback/SuccessToast";
 import { useBilling } from "../../context";
-import Loading from "../../components/ui/base/Loading";
-import PageHeader from "../../components/ui/base/PageHeader";
 
 interface Plan {
   id: string;
@@ -108,15 +106,11 @@ export default function Subscription() {
   };
 
   return (
-    <div className="min-h-screen bg-off-white">
-      <PageHeader
-        title="Subscription & Billing"
-        subtitle=" Choose the perfect plan for your real estate business needs"
-      />
+    <div className="w-full px-0">
 
       {/* Notification from redirect */}
       {notificationMessage && (
-        <div className="bg-yellow-50 border-l-4 border-yellow-400 space-responsive-sm space-y-responsive-lg">
+        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
           <div className="flex">
             <div className="flex-shrink-0">
               <AlertCircle
@@ -150,10 +144,10 @@ export default function Subscription() {
       )}
 
       {/* Billing & Usage Summary */}
-      <div className="card space-y-responsive-sm lg:space-y-responsive-md">
+      <div className="card space-y-6 mb-8">
         {/* Mobile Layout */}
-        <div className="sm:hidden space-y-responsive-sm lg:space-y-responsive-sm">
-          <div className="grid grid-cols-1 gap-responsive-sm">
+        <div className="sm:hidden space-y-4">
+          <div className="grid grid-cols-1 gap-4">
             {/* Your Plan - Mobile */}
             <div className="flex flex-col items-center text-center">
               <h2 className="text-responsive-sm sm:text-responsive-md lg:text-responsive-lg font-medium text-black">
@@ -173,26 +167,26 @@ export default function Subscription() {
 
             {/* Status - Mobile */}
             {billingInfo?.subscription && (
-              <div className="flex items-center justify-center space-responsive-xs">
+              <div className="flex items-center justify-center gap-2">
                 <span
-                  className={`px-responsive-sm py-responsive-xs rounded-full text-responsive-sm font-medium ${
+                  className={`px-3 py-1 rounded-full text-sm font-medium ${
                     billingInfo.subscription.status === "active"
                       ? "bg-green-100 text-green-800"
                       : "bg-yellow-100 text-yellow-800"
                   }`}
                 >
                   {billingInfo.subscription.status === "active" ? (
-                    <span className="flex items-center">
-                      <CheckCircle className="mobile-icon-xs space-responsive-xs" /> Active
+                    <span className="flex items-center gap-1">
+                      <CheckCircle className="w-4 h-4" /> Active
                     </span>
                   ) : (
-                    <span className="flex items-center">
-                      <Clock className="mobile-icon-xs space-responsive-xs" /> Inactive
+                    <span className="flex items-center gap-1">
+                      <Clock className="w-4 h-4" /> Inactive
                     </span>
                   )}
                 </span>
                 {billingInfo.subscription.cancel_at_period_end && (
-                  <span className="px-responsive-sm py-responsive-xs bg-red-100 text-red-800 text-responsive-sm font-medium rounded-full">
+                  <span className="px-3 py-1 bg-red-100 text-red-800 text-sm font-medium rounded-full">
                     Cancels at period end
                   </span>
                 )}
@@ -201,10 +195,10 @@ export default function Subscription() {
           </div>
         </div>
 
-        {/* Systematic Grid Layout - Desktop (matches Plan Details and Pricing below) */}
-        <div className="hidden sm:grid sm:grid-cols-1 md:grid-cols-2 gap-responsive-sm lg:gap-responsive-sm space-y-responsive-sm lg:space-y-responsive-sm">
+        {/* Desktop Layout */}
+        <div className="hidden sm:grid sm:grid-cols-2 gap-6">
           {/* Your Plan - Desktop */}
-          <div className="p-4 rounded-xl flex flex-col items-center justify-center text-center">
+          <div className="p-6 rounded-xl bg-gradient-to-br from-navy/5 to-navy/10 flex flex-col items-center justify-center text-center h-full">
             {billingInfo?.subscription?.plan_id ? (
               <div className="space-y-2 w-full">
                 <div>
@@ -227,31 +221,31 @@ export default function Subscription() {
           </div>
 
           {/* Status - Desktop */}
-          <div className="p-4 rounded-xl flex flex-col items-center justify-center text-center">
+          <div className="p-6 rounded-xl bg-gradient-to-br from-green-50 to-green-100 flex flex-col items-center justify-center text-center h-full">
             {billingInfo?.subscription ? (
               <div className="space-y-2 w-full">
-                <div className="flex items-center justify-center space-responsive-xs">
+                <div className="flex items-center justify-center gap-2">
                   <span
-                    className={`px-responsive-sm py-responsive-xs rounded-full text-responsive-sm font-medium ${
+                    className={`px-3 py-1 rounded-full text-sm font-medium ${
                       billingInfo.subscription.status === "active"
                         ? "bg-green-100 text-green-800"
                         : "bg-yellow-100 text-yellow-800"
                     }`}
                   >
                     {billingInfo.subscription.status === "active" ? (
-                      <span className="flex items-center">
-                        <CheckCircle className="mobile-icon-xs space-responsive-xs" /> Active
+                      <span className="flex items-center gap-1">
+                        <CheckCircle className="w-4 h-4" /> Active
                       </span>
                     ) : (
-                      <span className="flex items-center">
-                        <Clock className="mobile-icon-xs space-responsive-xs" /> Inactive
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-4 h-4" /> Inactive
                       </span>
                     )}
                   </span>
                 </div>
                 {billingInfo.subscription.cancel_at_period_end && (
                   <div className="flex justify-center">
-                    <span className="px-responsive-sm py-responsive-xs bg-red-100 text-red-800 text-responsive-sm font-medium rounded-full">
+                    <span className="px-3 py-1 bg-red-100 text-red-800 text-sm font-medium rounded-full">
                       Cancels at period end
                     </span>
                   </div>
@@ -267,11 +261,11 @@ export default function Subscription() {
 
         {isLoading ? (
           <div className="flex justify-center items-center py-12">
-            <Loading message="Loading billing information..." />
+            <KeyTurnLoader message="Loading subscription plans..." />
           </div>
         ) : billingError ? (
-          <div className="bg-red-50 space-responsive-sm rounded-lg flex items-start">
-            <AlertCircle className="mobile-icon-sm text-red-500 space-responsive-sm mt-0.5 flex-shrink-0" />
+          <div className="bg-red-50 p-4 rounded-lg flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
             <div>
               <h3 className="text-responsive-sm font-medium text-red-800">
                 Error loading billing information
@@ -287,17 +281,17 @@ export default function Subscription() {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-responsive-sm lg:gap-responsive-sm space-y-responsive-sm lg:space-y-responsive-sm">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Plan Details */}
               {billingInfo?.subscription?.plan_id ? (
-                <div className="bg-gradient-to-br from-navy/5 to-navy/10 space-responsive-sm rounded-xl">
-                  <div className="flex items-center justify-between space-y-responsive-sm">
+                <div className="bg-gradient-to-br from-navy/5 to-navy/10 p-6 rounded-xl h-full">
+                  <div className="flex items-center justify-between mb-4">
                     <h4 className="font-medium text-black text-responsive-sm">
                       Plan Details
                     </h4>
                     <CreditCard className="mobile-icon-sm text-black" />
                   </div>
-                  <div className="space-y-responsive-xs">
+                  <div className="space-y-3">
                     <div>
                       <p className="text-responsive-xs text-black/60">Current Plan</p>
                       <p className="font-medium text-responsive-sm">
@@ -346,7 +340,7 @@ export default function Subscription() {
                   </div>
                 </div>
               ) : (
-                <div className="bg-gradient-to-br from-navy/5 to-navy/10 space-responsive-sm rounded-xl flex flex-col items-center justify-center text-center">
+                <div className="bg-gradient-to-br from-navy/5 to-navy/10 p-6 rounded-xl flex flex-col items-center justify-center text-center h-full">
                   <Clock className="mobile-icon-lg text-black/40 space-y-responsive-xs" />
                   <h3 className="text-responsive-sm sm:text-responsive-md font-medium text-black space-y-responsive-xs">
                     No active subscription
@@ -358,7 +352,7 @@ export default function Subscription() {
               )}
 
               {/* Price */}
-              <div className="bg-gradient-to-br from-green-50 to-green-100 space-responsive-sm rounded-xl flex flex-col">
+              <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl flex flex-col h-full">
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="font-medium text-black text-responsive-sm">Pricing</h4>
                   <DollarSign className="mobile-icon-sm text-green-600" />
@@ -407,9 +401,9 @@ export default function Subscription() {
                       <button
                         onClick={handlePortal}
                         disabled={portalLoading}
-                        className="w-full text-black hover:text-gray-700 px-responsive-sm py-responsive-xs text-responsive-xs font-medium transition-colors flex items-center justify-center touch-friendly"
+                        className="w-full bg-gradient-to-br from-navy/5 to-navy/10 text-black hover:bg-navy/20 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center touch-friendly border border-navy/20 hover:shadow-md disabled:opacity-50"
                       >
-                        <Settings className="mobile-icon-xs space-responsive-xs" />
+                        <Settings className="w-4 h-4 mr-2" />
                         {portalLoading ? "Loading..." : "Manage Subscription"}
                       </button>
                     </div>
@@ -423,7 +417,7 @@ export default function Subscription() {
       {/* Plans */}
       <div
         id="plans"
-        className="grid grid-cols-1 md:grid-cols-2 gap-responsive-sm lg:gap-responsive-sm"
+        className="grid grid-cols-1 md:grid-cols-2 gap-4 scale-90 origin-top"
       >
         {filteredPlans.map((plan) => {
           const displayPrice = plan.price;
@@ -444,45 +438,47 @@ export default function Subscription() {
                 </div>
               )}
 
-              <div className="text-center space-y-responsive-sm">
+              <div className="text-center space-y-4">
                 <div
-                  className={`mobile-icon-lg rounded-full flex items-center justify-center mx-auto space-y-responsive-sm ${
+                  className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto ${
                     plan.popular
                       ? "bg-gold text-black"
                       : "bg-black/10 text-black"
                   }`}
                 >
-                  <div className="mobile-icon-md">{getPlanIcon(plan.id)}</div>
+                  <div className="w-6 h-6">{getPlanIcon(plan.id)}</div>
                 </div>
 
-                <h3 className="text-responsive-md sm:text-responsive-lg font-medium text-black space-y-responsive-xs">
+                <h3 className="text-lg font-medium text-black">
                   {plan.name}
                 </h3>
 
-                <div className="space-y-responsive-sm">
-                  <span className="text-responsive-lg sm:text-responsive-xl lg:text-responsive-2xl font-bold text-black">
-                    ${displayPrice.toFixed(2)}
-                  </span>
-                  <span className="text-black/60 text-responsive-sm">
-                    {plan.interval === "year"
-                      ? "/year"
-                      : plan.interval === "month"
-                      ? "/month"
-                      : ""}
-                  </span>
+                <div className="space-y-1">
+                  <div className="flex items-baseline justify-center gap-1">
+                    <span className="text-2xl font-bold text-black">
+                      ${displayPrice.toFixed(2)}
+                    </span>
+                    <span className="text-black/60 text-sm">
+                      {plan.interval === "year"
+                        ? "/year"
+                        : plan.interval === "month"
+                        ? "/month"
+                        : ""}
+                    </span>
+                  </div>
                   {plan.interval === "year" && (
-                    <div className="text-responsive-xs text-green-600 font-medium">
+                    <div className="text-xs text-green-600 font-medium">
                       Save 17% vs monthly
                     </div>
                   )}
                 </div>
               </div>
 
-              <ul className="space-y-responsive-xs space-y-responsive-md flex-grow">
+              <ul className="space-y-3 flex-grow my-6">
                 {plan.features.map((feature, index) => (
-                  <li key={index} className="flex items-start">
-                    <Check className="mobile-icon-xs text-green-600 space-responsive-xs mt-0.5 flex-shrink-0" />
-                    <span className="text-black/80 text-responsive-xs">{feature}</span>
+                  <li key={index} className="flex items-start gap-2">
+                    <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                    <span className="text-black/80 text-sm">{feature}</span>
                   </li>
                 ))}
               </ul>
@@ -490,7 +486,7 @@ export default function Subscription() {
               <button
                 onClick={() => handleSubscription(plan.id)}
                 disabled={subscriptionLoading}
-                className={`w-full py-responsive-sm lg:py-responsive-sm rounded-lg font-medium transition-all flex items-center justify-center touch-friendly text-responsive-sm sm:text-responsive-md ${
+                className={`w-full py-3 rounded-lg font-medium transition-all flex items-center justify-center h-12 text-sm ${
                   plan.popular
                     ? "bg-olive text-white hover:bg-olive-light hover:text-white hover:font-bold border border-transparent"
                     : "bg-transparent border border-brown text-black hover:bg-brown hover:text-white"
@@ -498,7 +494,9 @@ export default function Subscription() {
               >
                 {subscriptionLoading ? (
                   <>
-                    <Loader2 className="animate-spin space-responsive-xs mobile-icon-xs" />
+                    <div className="mr-2">
+                      <KeyTurnLoader message="" />
+                    </div>
                     Processing...
                   </>
                 ) : (

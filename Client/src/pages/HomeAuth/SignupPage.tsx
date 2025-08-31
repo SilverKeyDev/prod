@@ -8,7 +8,7 @@ import {
   PasswordValidation,
   usePasswordValidation,
 } from "../../components/feedback/PasswordValidation";
-import AuthInput from "../../components/ui/homeauth/AuthInput";
+import Input from "../../components/ui/base/Input";
 import AuthButton from "../../components/ui/homeauth/AuthButton";
 import AuthLink from "../../components/ui/homeauth/AuthLink";
 import AuthPageLayout from "../../components/layout/AuthPageLayout";
@@ -72,13 +72,6 @@ export default function SignupPage({}: SignupPageProps) {
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
-  };
-
   return (
     <AuthPageLayout 
       title="Create your account" 
@@ -89,41 +82,53 @@ export default function SignupPage({}: SignupPageProps) {
       {/* Signup Form */}
       <form onSubmit={handleSubmit} className="card space-y-responsive-md">
 
-        <AuthInput
-          label="Full name"
+        <Input
+          label="Full Name"
           type="text"
-          name="name"
           value={formData.name}
-          onChange={handleChange}
+          onChange={(e) =>
+            setFormData({ ...formData, name: e.target.value })
+          }
           placeholder="Enter your full name"
-          icon={UserIcon}
+          leftIcon={<UserIcon className="w-4 h-4" />}
+          name="name"
           autoComplete="name"
           required
+          variant="mobile"
+          className="autofill-gold"
         />
 
-        <AuthInput
-          label="Email address"
+        <Input
+          label="Email"
           type="email"
-          name="email"
           value={formData.email}
-          onChange={handleChange}
+          onChange={(e) =>
+            setFormData({ ...formData, email: e.target.value })
+          }
           placeholder="Enter your email"
-          icon={Mail}
+          leftIcon={<Mail className="w-4 h-4" />}
+          name="email"
           autoComplete="email"
           required
+          variant="mobile"
+          className="autofill-gold"
         />
 
         <div className="space-y-1">
-          <AuthInput
+          <Input
             label="Password"
             type="password"
-            name="password"
             value={formData.password}
-            onChange={handleChange}
-            placeholder="Enter password"
-            icon={Lock}
+            onChange={(e) =>
+              setFormData({ ...formData, password: e.target.value })
+            }
+            placeholder="Create a password"
+            leftIcon={<Lock className="w-4 h-4" />}
+            name="password"
             autoComplete="new-password"
-            required
+            variant="mobile"
+            showPasswordToggle
+            className="autofill-gold"
           />
           <PasswordValidation
             password={formData.password}
@@ -133,18 +138,18 @@ export default function SignupPage({}: SignupPageProps) {
 
         {/* Phone */}
         <div className="space-y-1">
-          <label className="block text-responsive-sm font-semibold text-black/60">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
             Phone number
           </label>
           <div className="relative">
-            <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 mobile-icon-xs text-black/40 z-10" />
+            <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 z-10" />
             <PhoneInput
               international
               defaultCountry="US"
               value={phoneValue}
               onChange={setPhoneValue}
               placeholder="Enter phone number"
-              className="input-field pl-10 btn-responsive-md text-responsive-xs border-gray-300 focus:border-brown focus:ring-brown/20 placeholder:font-light"
+              className="w-full h-12 px-4 pl-10 border border-beige rounded-lg bg-white hover:bg-brown/5 focus:ring-2 focus:ring-brown/20 focus:border-brown focus:outline-none transition-all duration-200 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400 text-gray-600 text-xs sm:text-sm md:text-base text-left leading-tight touch-friendly mobile-input autofill-gold"
             />
           </div>
         </div>

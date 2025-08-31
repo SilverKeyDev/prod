@@ -1,30 +1,26 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { ChevronLeft, ChevronRight, Check, ChevronDown } from "lucide-react";
+import Card from "../../components/ui/base/Card";
 import { useGoogleMaps } from "../../context/GoogleMapsContext";
-import {
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  Check,
-} from "lucide-react";
 import KeyLogo from "/logo.png";
-import {
-  DragEndEvent,
-} from "@dnd-kit/core";
-import {
-  arrayMove,
-} from "@dnd-kit/sortable";
+import { DragEndEvent } from "@dnd-kit/core";
+import { arrayMove } from "@dnd-kit/sortable";
 import ImportantLocationsInput from "../../components/ui/onboardpersonalize/ImportantLocationsInput";
 import Loading from "../../components/ui/base/Loading";
 import PriceRangeSlider from "../../components/ui/onboardpersonalize/PriceRangeSlider";
 import ValidationWarning from "../../components/feedback/ValidationWarning";
-import OnboardPersonalizeInput from "../../components/ui/onboardpersonalize/OnboardPersonalizeInput";
-import OnboardPersonalizeDropdown from "../../components/ui/onboardpersonalize/OnboardPersonalizeDropdown";
-import OnboardPersonalizeTagInput from "../../components/ui/onboardpersonalize/OnboardPersonalizeTagInput";
-import { RequiredLabel, OptionalLabel } from "../../components/ui/onboardpersonalize/OnboardPersonalizeLabel";
+import Input from "../../components/ui/base/Input";
+import Dropdown from "../../components/ui/base/Dropdown";
+import { Title, Subtitle } from "../../components/ui/base";
+import OnPerTagInput from "../../components/ui/onboardpersonalize/OnPerTagInput";
+import {
+  RequiredLabel,
+  OptionalLabel,
+} from "../../components/ui/onboardpersonalize/OnPerLabel";
 import OnboardingHeader from "../../components/ui/onboardpersonalize/OnboardingHeader";
-import OnboardPersonalizeDragDropPriorities from "../../components/ui/onboardpersonalize/OnboardPersonalizeDragDropPriorities";
-import OnboardPersonalizeBuyersAgent from "../../components/ui/onboardpersonalize/OnboardPersonalizeBuyersAgent";
+import OnPerDragDropPriorities from "../../components/ui/onboardpersonalize/OnPerDragDropPriorities";
+import OnPerBuyersAgent from "../../components/ui/onboardpersonalize/OnPerBuyersAgent";
 import { calculateAffordableHomePrice } from "../../lib/onboard/homePriceCalculation";
 import {
   OnboardingData,
@@ -43,7 +39,7 @@ import {
   PROPERTY_USE_OPTIONS,
   validateFormData,
   SECTION_TITLES,
-  FIELD_LABELS
+  FIELD_LABELS,
 } from "../../lib/onboard";
 
 // Extend window interface for Google Maps
@@ -53,13 +49,9 @@ declare global {
   }
 }
 
-
 const STEPS = ONBOARDING_STEPS;
 
 const REPORT_SECTIONS = DEFAULT_REPORT_SECTIONS;
-
-
-
 
 export default function OnboardingPage() {
   const [currentStep, setCurrentStep] = useState(0);
@@ -71,25 +63,19 @@ export default function OnboardingPage() {
   const [loading, setLoading] = useState(false);
   const [scriptsReady, setScriptsReady] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>(
-    {}
-  );
-  const dropdownRefs = useRef<Record<string, React.RefObject<HTMLDivElement>>>(
-    {}
-  );
   const [showValidationWarning, setShowValidationWarning] = useState(false);
   const [validationResult, setValidationResult] = useState<{
     missingFields: string[];
     errors: string[];
   }>({ missingFields: [], errors: [] });
-  
+
   // Home price calculation state
   const [homePriceLoading, setHomePriceLoading] = useState(false);
   const [homePriceError, setHomePriceError] = useState<string | null>(null);
   const [homePriceResult, setHomePriceResult] = useState<any>(null);
-  const [isAffordabilityCollapsed, setIsAffordabilityCollapsed] = useState(false);
+  const [isAffordabilityCollapsed, setIsAffordabilityCollapsed] =
+    useState(false);
   const navigate = useNavigate();
-
 
   const calculateHomePrice = async () => {
     // Check if we have all required data
@@ -100,7 +86,6 @@ export default function OnboardingPage() {
     try {
       setHomePriceLoading(true);
       setHomePriceError(null);
-
 
       const result = await calculateAffordableHomePrice(formData);
 
@@ -143,7 +128,6 @@ export default function OnboardingPage() {
     formData.down_payment,
     currentStep,
   ]);
-
 
   // Get ordered report sections based on user preferences
   const getOrderedReportSections = () => {
@@ -263,49 +247,6 @@ export default function OnboardingPage() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-
-
-  // Dropdown utility functions
-  const toggleDropdown = (fieldName: string) => {
-    setOpenDropdowns((prev) => ({
-      ...prev,
-      [fieldName]: !prev[fieldName],
-    }));
-  };
-
-  const getDropdownRef = (fieldName: string) => {
-    if (!dropdownRefs.current[fieldName]) {
-      dropdownRefs.current[fieldName] = React.createRef<HTMLDivElement>();
-    }
-    return dropdownRefs.current[fieldName];
-  };
-
-  // Close all dropdowns when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Node;
-      let shouldClose = true;
-
-      Object.entries(dropdownRefs.current).forEach(([_fieldName, ref]) => {
-        if (ref.current && ref.current.contains(target)) {
-          shouldClose = false;
-        }
-      });
-
-      if (
-        shouldClose &&
-        Object.keys(openDropdowns).some((key) => openDropdowns[key])
-      ) {
-        setOpenDropdowns({});
-      }
-    };
-
-    document.addEventListener("click", handleClickOutside);
-    return () => {
-      document.removeEventListener("click", handleClickOutside);
-    };
-  }, [openDropdowns]);
-
   // Use centralized Google Maps loading
   const { isLoaded: googleMapsLoaded, error: googleMapsError } =
     useGoogleMaps();
@@ -338,7 +279,6 @@ export default function OnboardingPage() {
   const goToStep = (stepIndex: number) => {
     setCurrentStep(stepIndex);
   };
-
 
   const handleSubmit = async () => {
     // Validate form data before submission
@@ -484,14 +424,15 @@ export default function OnboardingPage() {
       case "demographics":
         return (
           <div className="space-y-6">
-            <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-serif text-black mb-4 sm:mb-6">
+            <Title size="lg" className="mb-4 sm:mb-6">
               Tell us about yourself
-            </h2>
+            </Title>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <RequiredLabel>Age</RequiredLabel>
-                <OnboardPersonalizeInput
+                <Input
+                  variant="mobile"
                   type="number"
                   value={formData.age?.toString() || ""}
                   onChange={(e) =>
@@ -505,20 +446,18 @@ export default function OnboardingPage() {
 
               <div>
                 <RequiredLabel>Gender</RequiredLabel>
-                <OnboardPersonalizeDropdown
+                <Dropdown
                   value={formData.gender || ""}
                   onChange={(value) => updateFormData("gender", value)}
                   options={GENDER_OPTIONS}
                   placeholder="Select gender"
-                  isOpen={openDropdowns.gender || false}
-                  onToggle={() => toggleDropdown("gender")}
-                  dropdownRef={getDropdownRef("gender")}
                 />
               </div>
 
               <div>
                 <RequiredLabel>Occupation</RequiredLabel>
-                <OnboardPersonalizeInput
+                <Input
+                  variant="mobile"
                   type="text"
                   value={formData.occupation || ""}
                   onChange={(e) => updateFormData("occupation", e.target.value)}
@@ -528,14 +467,11 @@ export default function OnboardingPage() {
 
               <div>
                 <OptionalLabel>Pet Ownership Status</OptionalLabel>
-                <OnboardPersonalizeDropdown
+                <Dropdown
                   value={formData.pets || ""}
                   onChange={(value) => updateFormData("pets", value)}
                   options={PETS_OPTIONS}
                   placeholder="Select pet status"
-                  isOpen={openDropdowns.pets || false}
-                  onToggle={() => toggleDropdown("pets")}
-                  dropdownRef={getDropdownRef("pets")}
                 />
               </div>
             </div>
@@ -545,9 +481,9 @@ export default function OnboardingPage() {
       case "financial":
         return (
           <div className="space-y-6">
-            <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-serif text-black mb-4 sm:mb-6">
+            <Title size="lg" className="mb-4 sm:mb-6">
               {SECTION_TITLES.FINANCIAL_PROFILE}
-            </h2>
+            </Title>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="w-4/5 mx-auto">
@@ -590,9 +526,12 @@ export default function OnboardingPage() {
 
               <div>
                 <OptionalLabel>
-                  <span className="text-center block">{FIELD_LABELS.IDEAL_ZIP_CODE}</span>
+                  <span className="text-center block">
+                    {FIELD_LABELS.IDEAL_ZIP_CODE}
+                  </span>
                 </OptionalLabel>
-                <OnboardPersonalizeInput
+                <Input
+                  variant="mobile"
                   type="text"
                   value={formData.ideal_zip_code || ""}
                   onChange={(e) =>
@@ -604,24 +543,24 @@ export default function OnboardingPage() {
 
               <div>
                 <OptionalLabel>
-                  <span className="text-center block">{FIELD_LABELS.CREDIT_SCORE_RANGE}</span>
+                  <span className="text-center block">
+                    {FIELD_LABELS.CREDIT_SCORE_RANGE}
+                  </span>
                 </OptionalLabel>
-                <OnboardPersonalizeDropdown
+                <Dropdown
                   value={formData.credit_score_range || ""}
                   onChange={(value) =>
                     updateFormData("credit_score_range", value)
                   }
                   options={CREDIT_SCORE_OPTIONS}
                   placeholder="Select credit score range"
-                  isOpen={openDropdowns.credit_score_range || false}
-                  onToggle={() => toggleDropdown("credit_score_range")}
-                  dropdownRef={getDropdownRef("credit_score_range")}
                 />
               </div>
 
               <div className="col-span-1 md:col-span-2 flex flex-col items-center">
                 <label className="block text-responsive-xl font-bold text-gray-700 space-y-responsive-xs text-center w-full">
-                  {FIELD_LABELS.HOME_BUDGET} <span className="text-rose-500">*</span>
+                  {FIELD_LABELS.HOME_BUDGET}{" "}
+                  <span className="text-rose-500">*</span>
                 </label>
                 <PriceRangeSlider
                   tickValues={[
@@ -639,14 +578,18 @@ export default function OnboardingPage() {
               </div>
 
               {/* Home Price Calculation Results */}
-              <div className={`col-span-1 md:col-span-2 mt-6 p-4 bg-white rounded-lg border border-olive ${
-                isAffordabilityCollapsed ? "pb-6" : ""
-              }`}>
-                <div 
+              <div
+                className={`col-span-1 md:col-span-2 mt-6 p-4 bg-white rounded-lg border border-olive ${
+                  isAffordabilityCollapsed ? "pb-6" : ""
+                }`}
+              >
+                <div
                   className={`flex items-center justify-between cursor-pointer p-2 -m-2 rounded-lg hover:bg-olive/5 transition-colors duration-150 ${
                     isAffordabilityCollapsed ? "mb-2" : "mb-2"
                   }`}
-                  onClick={() => setIsAffordabilityCollapsed(!isAffordabilityCollapsed)}
+                  onClick={() =>
+                    setIsAffordabilityCollapsed(!isAffordabilityCollapsed)
+                  }
                 >
                   <h3 className="text-lg font-medium text-olive">
                     Estimated Home Affordability
@@ -658,210 +601,232 @@ export default function OnboardingPage() {
                   />
                 </div>
 
-                <div className={`transition-all duration-300 ease-in-out overflow-hidden ${
-                  isAffordabilityCollapsed ? "max-h-0 opacity-0" : "max-h-[2000px] opacity-100"
-                }`}>
+                <div
+                  className={`transition-all duration-300 ease-in-out overflow-hidden ${
+                    isAffordabilityCollapsed
+                      ? "max-h-0 opacity-0"
+                      : "max-h-[2000px] opacity-100"
+                  }`}
+                >
                   <div className="pt-2">
                     {homePriceLoading ? (
-                  <div className="flex items-center justify-center py-4">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-olive"></div>
-                    <span className="ml-2 text-xs sm:text-sm text-black">
-                      Calculating affordability...
-                    </span>
-                  </div>
-                ) : homePriceError ? (
-                  <div className="text-black text-xs sm:text-sm py-2">
-                    <p className="font-medium">
-                      Unable to calculate affordability:
-                    </p>
-                    <p>{homePriceError}</p>
-                    <p className="mt-2">
-                      Please ensure you've entered your income, zip code, and
-                      other financial details.
-                    </p>
-                  </div>
-                ) : homePriceResult ? (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <div className="text-center p-4 sm:p-6">
-                          <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-olive mb-2">
-                            ${homePriceResult.maxHomePrice.toLocaleString()}
+                      <div className="flex items-center justify-center py-4">
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-olive"></div>
+                        <span className="ml-2 text-xs sm:text-sm text-black">
+                          Calculating affordability...
+                        </span>
+                      </div>
+                    ) : homePriceError ? (
+                      <div className="text-black text-xs sm:text-sm py-2">
+                        <p className="font-medium">
+                          Unable to calculate affordability:
+                        </p>
+                        <p>{homePriceError}</p>
+                        <p className="mt-2">
+                          Please ensure you've entered your income, zip code,
+                          and other financial details.
+                        </p>
+                      </div>
+                    ) : homePriceResult ? (
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <div className="text-center p-4 sm:p-6">
+                              <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-olive mb-2">
+                                ${homePriceResult.maxHomePrice.toLocaleString()}
+                              </div>
+                              <div className="text-xs sm:text-sm md:text-base text-gray-600 mb-4">
+                                Maximum recommended home price
+                              </div>
+                            </div>
                           </div>
-                          <div className="text-xs sm:text-sm md:text-base text-gray-600 mb-4">
-                            Maximum recommended home price
+                          <div>
+                            <p className="text-xs sm:text-sm text-black">
+                              Monthly Payment
+                            </p>
+                            <p className="text-lg sm:text-xl font-bold text-olive">
+                              $
+                              {homePriceResult.totalMonthlyHousingCost.toLocaleString()}
+                              /mo
+                            </p>
                           </div>
                         </div>
-                      </div>
-                      <div>
-                        <p className="text-xs sm:text-sm text-black">Monthly Payment</p>
-                        <p className="text-lg sm:text-xl font-bold text-olive">
-                          $
-                          {homePriceResult.totalMonthlyHousingCost.toLocaleString()}
-                          /mo
-                        </p>
-                      </div>
-                    </div>
 
-                    <div className="text-xs sm:text-sm text-black bg-white p-3 rounded border border-olive/30">
-                      <p className="text-xs sm:text-sm md:text-base text-gray-600 mb-4">
-                        Based on your income and financial profile, here's what you
-                        might afford:
-                      </p>
-                      <div className="bg-[#EAD9B3] bg-opacity-20 p-2 sm:p-3 rounded font-mono text-xs sm:text-sm text-black space-y-1">
-                        <p>
-                          1. <strong>Monthly Income</strong> = Gross Annual
-                          Income ÷ 12
-                        </p>
-                        <p className="ml-4">
-                          = ${homePriceResult.netAnnualIncome.toLocaleString()}{" "}
-                          ÷ 12 ={" "}
-                          <strong>
-                            $
-                            {(
-                              homePriceResult.netAnnualIncome / 12
-                            ).toLocaleString(undefined, {
-                              maximumFractionDigits: 0,
-                            })}
-                          </strong>
-                        </p>
-
-                        <p>
-                          2. <strong>Max Monthly Housing Cost</strong> = Monthly
-                          Income × DTI Ratio
-                        </p>
-                        <p className="ml-4">
-                          = $
-                          {(
-                            homePriceResult.netAnnualIncome / 12
-                          ).toLocaleString()}{" "}
-                          × {(homePriceResult.dtiUsed / 100).toFixed(2)} ={" "}
-                          <strong>
-                            $
-                            {Math.round(
-                              (homePriceResult.netAnnualIncome / 12) *
-                                (homePriceResult.dtiUsed / 100)
-                            ).toLocaleString()}
-                          </strong>
-                        </p>
-
-                        <p>
-                          3. <strong>Mortgage Payment</strong> = P × r × (1 + r)
-                          <sup>n</sup> ÷ ((1 + r)<sup>n</sup> - 1)
-                        </p>
-                        <p className="ml-4">Where:</p>
-                        <p className="ml-8">
-                          P = $
-                          {Math.round(
-                            homePriceResult.loanAmount
-                          ).toLocaleString()}
-                        </p>
-                        <p className="ml-8">
-                          r ={" "}
-                          {(homePriceResult.interestRate / 100 / 12).toFixed(4)}{" "}
-                          (monthly interest)
-                        </p>
-                        <p className="ml-8">
-                          n = {30 * 12} months (30-year loan)
-                        </p>
-                        <p className="ml-4">
-                          →{" "}
-                          <strong>
-                            Monthly Mortgage = $
-                            {homePriceResult.monthlyMortgage.toLocaleString()}
-                          </strong>
-                        </p>
-
-                        <p>
-                          4. <strong>Property Tax</strong> = Home Price × Tax
-                          Rate ÷ 12
-                        </p>
-                        <p className="ml-4">
-                          = ${homePriceResult.maxHomePrice.toLocaleString()} ×{" "}
-                          {(homePriceResult.propertyTaxRate * 100).toFixed(2)}%
-                          ÷ 12
-                        </p>
-
-                        <p>
-                          5. <strong>Home Insurance</strong> = Home Price ×
-                          0.50% ÷ 12
-                        </p>
-                        <p className="ml-4">
-                          = ${homePriceResult.maxHomePrice.toLocaleString()} ×
-                          0.005 ÷ 12
-                        </p>
-
-                        {homePriceResult.monthlyPMI > 0 && (
-                          <>
+                        <div className="text-xs sm:text-sm text-black bg-white p-3 rounded border border-olive/30">
+                          <p className="text-xs sm:text-sm md:text-base text-gray-600 mb-4">
+                            Based on your income and financial profile, here's
+                            what you might afford:
+                          </p>
+                          <div className="bg-[#EAD9B3] bg-opacity-20 p-2 sm:p-3 rounded font-mono text-xs sm:text-sm text-black space-y-1">
                             <p>
-                              6.{" "}
-                              <strong>PMI (Private Mortgage Insurance)</strong>{" "}
-                              = Loan × PMI Rate ÷ 12
+                              1. <strong>Monthly Income</strong> = Gross Annual
+                              Income ÷ 12
                             </p>
                             <p className="ml-4">
-                              PMI Rate ≈{" "}
+                              = $
+                              {homePriceResult.netAnnualIncome.toLocaleString()}{" "}
+                              ÷ 12 ={" "}
+                              <strong>
+                                $
+                                {(
+                                  homePriceResult.netAnnualIncome / 12
+                                ).toLocaleString(undefined, {
+                                  maximumFractionDigits: 0,
+                                })}
+                              </strong>
+                            </p>
+
+                            <p>
+                              2. <strong>Max Monthly Housing Cost</strong> =
+                              Monthly Income × DTI Ratio
+                            </p>
+                            <p className="ml-4">
+                              = $
                               {(
-                                ((homePriceResult.monthlyPMI * 12) /
-                                  homePriceResult.loanAmount) *
-                                100
-                              ).toFixed(2)}
-                              %
+                                homePriceResult.netAnnualIncome / 12
+                              ).toLocaleString()}{" "}
+                              × {(homePriceResult.dtiUsed / 100).toFixed(2)} ={" "}
+                              <strong>
+                                $
+                                {Math.round(
+                                  (homePriceResult.netAnnualIncome / 12) *
+                                    (homePriceResult.dtiUsed / 100)
+                                ).toLocaleString()}
+                              </strong>
+                            </p>
+
+                            <p>
+                              3. <strong>Mortgage Payment</strong> = P × r × (1
+                              + r)
+                              <sup>n</sup> ÷ ((1 + r)<sup>n</sup> - 1)
+                            </p>
+                            <p className="ml-4">Where:</p>
+                            <p className="ml-8">
+                              P = $
+                              {Math.round(
+                                homePriceResult.loanAmount
+                              ).toLocaleString()}
+                            </p>
+                            <p className="ml-8">
+                              r ={" "}
+                              {(
+                                homePriceResult.interestRate /
+                                100 /
+                                12
+                              ).toFixed(4)}{" "}
+                              (monthly interest)
+                            </p>
+                            <p className="ml-8">
+                              n = {30 * 12} months (30-year loan)
                             </p>
                             <p className="ml-4">
                               →{" "}
                               <strong>
-                                Monthly PMI = $
-                                {homePriceResult.monthlyPMI.toLocaleString()}
+                                Monthly Mortgage = $
+                                {homePriceResult.monthlyMortgage.toLocaleString()}
                               </strong>
                             </p>
-                          </>
+
+                            <p>
+                              4. <strong>Property Tax</strong> = Home Price ×
+                              Tax Rate ÷ 12
+                            </p>
+                            <p className="ml-4">
+                              = ${homePriceResult.maxHomePrice.toLocaleString()}{" "}
+                              ×{" "}
+                              {(homePriceResult.propertyTaxRate * 100).toFixed(
+                                2
+                              )}
+                              % ÷ 12
+                            </p>
+
+                            <p>
+                              5. <strong>Home Insurance</strong> = Home Price ×
+                              0.50% ÷ 12
+                            </p>
+                            <p className="ml-4">
+                              = ${homePriceResult.maxHomePrice.toLocaleString()}{" "}
+                              × 0.005 ÷ 12
+                            </p>
+
+                            {homePriceResult.monthlyPMI > 0 && (
+                              <>
+                                <p>
+                                  6.{" "}
+                                  <strong>
+                                    PMI (Private Mortgage Insurance)
+                                  </strong>{" "}
+                                  = Loan × PMI Rate ÷ 12
+                                </p>
+                                <p className="ml-4">
+                                  PMI Rate ≈{" "}
+                                  {(
+                                    ((homePriceResult.monthlyPMI * 12) /
+                                      homePriceResult.loanAmount) *
+                                    100
+                                  ).toFixed(2)}
+                                  %
+                                </p>
+                                <p className="ml-4">
+                                  →{" "}
+                                  <strong>
+                                    Monthly PMI = $
+                                    {homePriceResult.monthlyPMI.toLocaleString()}
+                                  </strong>
+                                </p>
+                              </>
+                            )}
+                          </div>
+
+                          <p className="mt-4 font-medium">
+                            Why This Formula Matters:
+                          </p>
+                          <p>
+                            This estimate uses a{" "}
+                            <strong>Debt-to-Income (DTI)</strong> ratio of{" "}
+                            <strong>
+                              {homePriceResult.dtiUsed.toFixed(1)}%
+                            </strong>
+                            , which reflects current lending guidelines. It
+                            ensures your total monthly housing cost—including
+                            mortgage, taxes, insurance, and PMI—stays within
+                            what lenders generally approve based on your income
+                            and debt load.
+                          </p>
+                          <p>
+                            We include estimated <strong>property taxes</strong>{" "}
+                            (based on ZIP code{" "}
+                            <strong>{formData.ideal_zip_code}</strong>),{" "}
+                            <strong>insurance</strong> costs, and{" "}
+                            <strong>PMI</strong> if your down payment is under
+                            20%. These are factored into your maximum affordable
+                            home price using smart search logic.
+                          </p>
+                        </div>
+
+                        {homePriceResult.warnings?.length > 0 && (
+                          <div className="mt-2">
+                            <p className="text-xs sm:text-sm font-medium text-olive mt-2">
+                              Important Notes:
+                            </p>
+                            <ul className="text-xs sm:text-sm text-black list-disc list-inside mt-1 space-y-1">
+                              {homePriceResult.warnings.map(
+                                (warning: string, index: number) => (
+                                  <li key={index}>{warning}</li>
+                                )
+                              )}
+                            </ul>
+                          </div>
                         )}
                       </div>
-
-                      <p className="mt-4 font-medium">
-                        Why This Formula Matters:
-                      </p>
-                      <p>
-                        This estimate uses a{" "}
-                        <strong>Debt-to-Income (DTI)</strong> ratio of{" "}
-                        <strong>{homePriceResult.dtiUsed.toFixed(1)}%</strong>,
-                        which reflects current lending guidelines. It ensures
-                        your total monthly housing cost—including mortgage,
-                        taxes, insurance, and PMI—stays within what lenders
-                        generally approve based on your income and debt load.
-                      </p>
-                      <p>
-                        We include estimated <strong>property taxes</strong>{" "}
-                        (based on ZIP code{" "}
-                        <strong>{formData.ideal_zip_code}</strong>),{" "}
-                        <strong>insurance</strong> costs, and{" "}
-                        <strong>PMI</strong> if your down payment is under 20%.
-                        These are factored into your maximum affordable home
-                        price using smart search logic.
-                      </p>
-                    </div>
-
-                    {homePriceResult.warnings?.length > 0 && (
-                      <div className="mt-2">
-                        <p className="text-xs sm:text-sm font-medium text-olive mt-2">
-                          Important Notes:
+                    ) : (
+                      <div className="text-xs sm:text-sm text-black py-2">
+                        <p>
+                          Enter your income, zip code, and other financial
+                          details to see your estimated home affordability.
                         </p>
-                        <ul className="text-xs sm:text-sm text-black list-disc list-inside mt-1 space-y-1">
-                          {homePriceResult.warnings.map((warning: string, index: number) => (
-                            <li key={index}>{warning}</li>
-                          ))}
-                        </ul>
                       </div>
                     )}
-                  </div>
-                ) : (
-                  <div className="text-xs sm:text-sm text-black py-2">
-                    <p>
-                      Enter your income, zip code, and other financial details
-                      to see your estimated home affordability.
-                    </p>
-                  </div>
-                )}
                   </div>
                 </div>
               </div>
@@ -872,34 +837,34 @@ export default function OnboardingPage() {
       case "housing":
         return (
           <div className="space-y-6">
-            <h2 className="text-xl sm:text-2xl font-serif text-black mb-2">
+            <Title size="md" className="mb-2">
               {SECTION_TITLES.HOUSING_PREFERENCES}
-            </h2>
-            <p className="text-sm text-black/60 mb-6">
+            </Title>
+            <Subtitle size="sm" muted className="mb-6">
               Tell us about your ideal home. These preferences help our AI
               understand what features and characteristics matter most to you
               when matching properties to your lifestyle and needs.
-            </p>
+            </Subtitle>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <RequiredLabel>{FIELD_LABELS.PREFERRED_HOUSING_TYPE}</RequiredLabel>
-                <OnboardPersonalizeDropdown
+                <RequiredLabel>
+                  {FIELD_LABELS.PREFERRED_HOUSING_TYPE}
+                </RequiredLabel>
+                <Dropdown
                   value={formData.preferred_housing_type || ""}
                   onChange={(value) =>
                     updateFormData("preferred_housing_type", value)
                   }
                   options={HOUSING_TYPE_OPTIONS}
                   placeholder="Select..."
-                  isOpen={openDropdowns.preferred_housing_type || false}
-                  onToggle={() => toggleDropdown("preferred_housing_type")}
-                  dropdownRef={getDropdownRef("preferred_housing_type")}
                 />
               </div>
 
               <div>
                 <RequiredLabel>{FIELD_LABELS.PREFERRED_BEDROOMS}</RequiredLabel>
-                <OnboardPersonalizeInput
+                <Input
+                  variant="mobile"
                   type="number"
                   value={formData.preferred_bedrooms?.toString() || ""}
                   onChange={(e) =>
@@ -915,8 +880,11 @@ export default function OnboardingPage() {
               </div>
 
               <div>
-                <RequiredLabel>{FIELD_LABELS.PREFERRED_BATHROOMS}</RequiredLabel>
-                <OnboardPersonalizeInput
+                <RequiredLabel>
+                  {FIELD_LABELS.PREFERRED_BATHROOMS}
+                </RequiredLabel>
+                <Input
+                  variant="mobile"
                   type="number"
                   value={formData.preferred_bathrooms?.toString() || ""}
                   onChange={(e) =>
@@ -934,95 +902,82 @@ export default function OnboardingPage() {
 
               <div>
                 <OptionalLabel>Preferred Lot Size</OptionalLabel>
-                <OnboardPersonalizeDropdown
+                <Dropdown
                   value={formData.preferred_lot_size || ""}
                   onChange={(value) =>
                     updateFormData("preferred_lot_size", value)
                   }
                   options={LOT_SIZE_OPTIONS}
                   placeholder="Select..."
-                  isOpen={openDropdowns.preferred_lot_size || false}
-                  onToggle={() => toggleDropdown("preferred_lot_size")}
-                  dropdownRef={getDropdownRef("preferred_lot_size")}
                 />
               </div>
 
               <div>
                 <OptionalLabel>Preferred Home Age</OptionalLabel>
-                <OnboardPersonalizeDropdown
+                <Dropdown
                   value={formData.preferred_home_age || ""}
                   onChange={(value) =>
                     updateFormData("preferred_home_age", value)
                   }
                   options={HOME_AGE_OPTIONS}
                   placeholder="Select..."
-                  isOpen={openDropdowns.preferred_home_age || false}
-                  onToggle={() => toggleDropdown("preferred_home_age")}
-                  dropdownRef={getDropdownRef("preferred_home_age")}
                 />
               </div>
 
               <div>
                 <OptionalLabel>Preferred Architectural Style</OptionalLabel>
-                <OnboardPersonalizeDropdown
+                <Dropdown
                   value={formData.preferred_architectural_style || ""}
                   onChange={(value) =>
                     updateFormData("preferred_architectural_style", value)
                   }
                   options={COMMUNICATION_FREQUENCY_OPTIONS}
                   placeholder="Select..."
-                  isOpen={openDropdowns.preferred_architectural_style || false}
-                  onToggle={() =>
-                    toggleDropdown("preferred_architectural_style")
-                  }
-                  dropdownRef={getDropdownRef("preferred_architectural_style")}
                 />
               </div>
 
               <div>
                 <OptionalLabel>Renovation Willingness</OptionalLabel>
-                <OnboardPersonalizeDropdown
+                <Dropdown
                   value={formData.renovation_preference || ""}
                   onChange={(value) =>
                     updateFormData("renovation_preference", value)
                   }
                   options={RENOVATION_PREFERENCE_OPTIONS}
                   placeholder="Select..."
-                  isOpen={openDropdowns.renovation_preference || false}
-                  onToggle={() => toggleDropdown("renovation_preference")}
-                  dropdownRef={getDropdownRef("renovation_preference")}
                 />
               </div>
 
               <div>
                 <OptionalLabel>Intended Property Use</OptionalLabel>
-                <OnboardPersonalizeDropdown
+                <Dropdown
                   value={formData.intended_property_use || ""}
                   onChange={(value) =>
                     updateFormData("intended_property_use", value)
                   }
                   options={PROPERTY_USE_OPTIONS}
                   placeholder="Select..."
-                  isOpen={openDropdowns.intended_property_use || false}
-                  onToggle={() => toggleDropdown("intended_property_use")}
-                  dropdownRef={getDropdownRef("intended_property_use")}
                 />
               </div>
 
               <div>
                 <OptionalLabel>Preferred Home Features</OptionalLabel>
-                <OnboardPersonalizeTagInput
+                <OnPerTagInput
                   value={(formData.preferred_home_features as string[]) || []}
-                  onChange={(value) => updateFormData("preferred_home_features", value)}
+                  onChange={(value: string[]) =>
+                    updateFormData("preferred_home_features", value)
+                  }
                   placeholder="e.g., garage, pool, fireplace"
                 />
               </div>
 
               <div>
                 <OptionalLabel>Deal Breakers</OptionalLabel>
-                <OnboardPersonalizeTagInput
+                <OnPerTagInput
                   value={(formData.deal_breakers as string[]) || []}
-                  onChange={(value) => updateFormData("deal_breakers", value)}
+                  onChange={(value: string[]) =>
+                    updateFormData("deal_breakers", value)
+                  }
                   placeholder="e.g., No parking, Busy road, Old plumbing"
                 />
               </div>
@@ -1033,41 +988,44 @@ export default function OnboardingPage() {
       case "location":
         return (
           <div className="space-y-6">
-            <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
+            <Title size="md" className="mb-6">
               Location Preferences
-            </h2>
+            </Title>
 
             <div className="grid grid-cols-1 gap-4 sm:gap-6">
               <div>
                 <OptionalLabel>Walkability Importance</OptionalLabel>
                 <p className="text-xs sm:text-sm md:text-base text-black/60 mb-4">
-                  How important is it to walk to nearby amenities? Used to filter neighborhoods in search results.
+                  How important is it to walk to nearby amenities? Used to
+                  filter neighborhoods in search results.
                 </p>
-                <OnboardPersonalizeDropdown
+                <Dropdown
                   value={formData.walkability_importance || ""}
                   onChange={(value) =>
                     updateFormData("walkability_importance", value)
                   }
                   options={WALKABILITY_OPTIONS}
                   placeholder="Select..."
-                  isOpen={openDropdowns.walkability_importance || false}
-                  onToggle={() => toggleDropdown("walkability_importance")}
-                  dropdownRef={getDropdownRef("walkability_importance")}
                 />
               </div>
             </div>
 
             {/* Important Locations Section */}
             <div>
-              <RequiredLabel>
-                Important Locations
-              </RequiredLabel>
+              <RequiredLabel>Important Locations</RequiredLabel>
               <p className="text-xs sm:text-sm md:text-base text-black/60 mb-4">
-                Add work, family, or frequently visited places. We'll find homes with reasonable commute times to these locations.
+                Add work, family, or frequently visited places. We'll find homes
+                with reasonable commute times to these locations.
               </p>
               <ImportantLocationsInput
                 locations={formData.important_locations || []}
-                onChange={(locations: { name: string; address: string; commute_tolerance?: number }[]) => {
+                onChange={(
+                  locations: {
+                    name: string;
+                    address: string;
+                    commute_tolerance?: number;
+                  }[]
+                ) => {
                   updateFormData("important_locations", locations);
                 }}
                 scriptsReady={scriptsReady}
@@ -1079,58 +1037,50 @@ export default function OnboardingPage() {
           </div>
         );
 
-
       case "communication":
         return (
           <div className="space-y-6">
-            <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-serif text-black mb-4 sm:mb-6">
+            <Title size="lg" className="mb-4 sm:mb-6">
               {SECTION_TITLES.COMMUNICATION_PREFERENCES}
-            </h2>
+            </Title>
 
             {/* Communication Preference */}
             <div>
-              <RequiredLabel>{FIELD_LABELS.COMMUNICATION_FREQUENCY}</RequiredLabel>
-              <OnboardPersonalizeDropdown
+              <RequiredLabel>
+                {FIELD_LABELS.COMMUNICATION_FREQUENCY}
+              </RequiredLabel>
+              <Dropdown
                 value={formData.communication_frequency || ""}
                 onChange={(value) =>
                   updateFormData("communication_frequency", value)
                 }
                 options={COMMUNICATION_FREQUENCY_OPTIONS}
                 placeholder="Select..."
-                isOpen={openDropdowns.communication_frequency || false}
-                onToggle={() => toggleDropdown("communication_frequency")}
-                dropdownRef={getDropdownRef("communication_frequency")}
               />
             </div>
 
             {/* Information Detail Level */}
             <div>
               <RequiredLabel>Information Detail Level</RequiredLabel>
-              <OnboardPersonalizeDropdown
+              <Dropdown
                 value={formData.information_detail_level || ""}
                 onChange={(value) =>
                   updateFormData("information_detail_level", value)
                 }
                 options={INFORMATION_DETAIL_OPTIONS}
                 placeholder="Select..."
-                isOpen={openDropdowns.information_detail_level || false}
-                onToggle={() => toggleDropdown("information_detail_level")}
-                dropdownRef={getDropdownRef("information_detail_level")}
               />
             </div>
 
-            <OnboardPersonalizeBuyersAgent
+            <OnPerBuyersAgent
               hasBuyersAgent={formData.has_buyers_agent ?? ""}
               lookingForBuyersAgent={!!formData.looking_for_buyers_agent}
-              onHasBuyersAgentChange={(value) =>
+              onHasBuyersAgentChange={(value: string) =>
                 updateFormData("has_buyers_agent", value)
               }
-              onLookingForBuyersAgentChange={(value) =>
+              onLookingForBuyersAgentChange={(value: boolean) =>
                 updateFormData("looking_for_buyers_agent", value)
               }
-              isOpen={openDropdowns.has_buyers_agent || false}
-              onToggle={() => toggleDropdown("has_buyers_agent")}
-              dropdownRef={getDropdownRef("has_buyers_agent")}
             />
           </div>
         );
@@ -1139,9 +1089,9 @@ export default function OnboardingPage() {
         if (loading) {
           return (
             <div className="space-y-6">
-              <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-serif text-black mb-4 sm:mb-6">
+              <Title size="lg" className="mb-4 sm:mb-6">
                 Priorities
-              </h2>
+              </Title>
               <Loading message="Loading report customization options..." />
             </div>
           );
@@ -1152,16 +1102,16 @@ export default function OnboardingPage() {
         if (!orderedSections || orderedSections.length === 0) {
           return (
             <div className="space-y-6">
-              <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-serif text-black mb-4 sm:mb-6">
+              <Title size="lg" className="mb-4 sm:mb-6">
                 Priorities
-              </h2>
+              </Title>
               <Loading message="Loading report customization options..." />
             </div>
           );
         }
 
         return (
-          <OnboardPersonalizeDragDropPriorities
+          <OnPerDragDropPriorities
             isEditMode={true}
             isLoading={false}
             orderedSections={orderedSections}
@@ -1176,13 +1126,16 @@ export default function OnboardingPage() {
     }
   };
 
-
   return (
     <div className="w-full max-w-[90vw] mx-auto px-4 sm:px-6 lg:px-8 pb-20 sm:pb-8">
       {/* Header */}
       <div className="flex items-center justify-between mt-4 sm:mt-6 mb-3 sm:mb-4">
         <div className="flex items-center">
-          <img src={KeyLogo} alt="SilverKey Logo" className="h-6 sm:h-8 md:h-10" />
+          <img
+            src={KeyLogo}
+            alt="SilverKey Logo"
+            className="h-6 sm:h-8 md:h-10"
+          />
         </div>
         <div className="flex items-center">
           <span className="text-xs sm:text-sm md:text-base text-black/60 whitespace-nowrap">
@@ -1190,7 +1143,6 @@ export default function OnboardingPage() {
           </span>
         </div>
       </div>
-
 
       {/* Progress Bar */}
       <OnboardingHeader
@@ -1201,56 +1153,58 @@ export default function OnboardingPage() {
 
       {/* Step Content */}
       <div className="bg-white rounded-2xl shadow-sm mx-auto max-w-[85vw] overflow-hidden">
-        <div className="mobile-card pb-8 sm:pb-12">
-        {renderStepContent()}
+        <Card className="pb-8 sm:pb-12">
+          {renderStepContent()}
 
-        {/* Navigation Buttons */}
-        <div className="relative mt-8 sm:mt-10 pt-6 sm:pt-8 border-t border-beige/30 px-4 sm:px-6">
-          <div className="flex items-center justify-between w-full">
-            {/* Previous Button - anchored at 25% width */}
-            <div className="absolute left-1/4 transform -translate-x-1/2">
-              <button
-                onClick={prevStep}
-                disabled={currentStep === 0}
-                className={`flex items-center justify-center px-3 py-2 sm:px-4 sm:py-2 md:px-5 md:py-3 rounded-lg font-medium transition-all duration-200 text-xs sm:text-sm w-[100px] sm:w-[110px] ${
-                  currentStep === 0
-                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                }`}
-              >
-                <ChevronLeft className={`w-4 h-4 sm:w-5 sm:h-5 mr-1 ${
-                  currentStep === 0 ? "text-gray-500" : "text-gray-800"
-                }`} />
-                <span>Previous</span>
-              </button>
-            </div>
+          {/* Navigation Buttons */}
+          <div className="relative mt-8 sm:mt-10 pt-6 sm:pt-8 pb-1 sm:pb-2 border-t border-beige/30 px-4 sm:px-6">
+            <div className="flex items-center justify-between w-full">
+              {/* Previous Button - anchored at 25% width */}
+              <div className="absolute left-1/4 transform -translate-x-1/2">
+                <button
+                  onClick={prevStep}
+                  disabled={currentStep === 0}
+                  className={`flex items-center justify-center px-3 py-2 sm:px-4 sm:py-2 md:px-5 md:py-3 rounded-lg font-medium transition-all duration-200 text-xs sm:text-sm w-[100px] sm:w-[110px] ${
+                    currentStep === 0
+                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  }`}
+                >
+                  <ChevronLeft
+                    className={`w-4 h-4 sm:w-5 sm:h-5 mr-1 ${
+                      currentStep === 0 ? "text-gray-500" : "text-gray-800"
+                    }`}
+                  />
+                  <span>Previous</span>
+                </button>
+              </div>
 
-            {/* Next/Complete Button - anchored at 75% width */}
-            <div className="absolute left-3/4 transform -translate-x-1/2">
-              {currentStep === STEPS.length - 1 ? (
-                <button
-                  onClick={handleSubmit}
-                  disabled={loading}
-                  className="flex items-center justify-center px-3 py-2 sm:px-4 sm:py-2 md:px-5 md:py-3 bg-olive text-white rounded-lg hover:bg-olive/80 disabled:opacity-50 font-bold transition-all duration-200 text-xs sm:text-sm w-[100px] sm:w-[110px]"
-                >
-                  <span>{loading ? "Saving..." : "Complete"}</span>
-                  {!loading && (
-                    <Check className="w-3 h-3 sm:w-4 sm:h-4 ml-1" />
-                  )}
-                </button>
-              ) : (
-                <button
-                  onClick={nextStep}
-                  className="flex items-center justify-center px-3 py-2 sm:px-4 sm:py-2 md:px-5 md:py-3 bg-olive/60 text-white rounded-lg hover:bg-olive/70 font-bold transition-all duration-200 text-xs sm:text-sm w-[100px] sm:w-[110px]"
-                >
-                  <span>Next</span>
-                  <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 ml-1" />
-                </button>
-              )}
+              {/* Next/Complete Button - anchored at 75% width */}
+              <div className="absolute left-3/4 transform -translate-x-1/2">
+                {currentStep === STEPS.length - 1 ? (
+                  <button
+                    onClick={handleSubmit}
+                    disabled={loading}
+                    className="flex items-center justify-center px-3 py-2 sm:px-4 sm:py-2 md:px-5 md:py-3 bg-olive text-white rounded-lg hover:bg-olive/80 disabled:opacity-50 font-bold transition-all duration-200 text-xs sm:text-sm w-[100px] sm:w-[110px]"
+                  >
+                    <span>{loading ? "Saving..." : "Complete"}</span>
+                    {!loading && (
+                      <Check className="w-3 h-3 sm:w-4 sm:h-4 ml-1" />
+                    )}
+                  </button>
+                ) : (
+                  <button
+                    onClick={nextStep}
+                    className="flex items-center justify-center px-3 py-2 sm:px-4 sm:py-2 md:px-5 md:py-3 bg-olive/60 text-white rounded-lg hover:bg-olive/70 font-bold transition-all duration-200 text-xs sm:text-sm w-[100px] sm:w-[110px]"
+                  >
+                    <span>Next</span>
+                    <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 ml-1" />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-        </div>
+        </Card>
       </div>
 
       {/* Validation Warning Modal */}

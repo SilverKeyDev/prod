@@ -12,9 +12,9 @@ import {
   Check,
   Target,
 } from "lucide-react";
+import Input from "../../components/ui/base/Input";
 
 import KeyTurnLoader from "../../components/ui/base/KeyTurnLoader";
-import PageHeader from "../../components/ui/base/PageHeader";
 
 // Custom scrollbar styles matching CompareReportsPage
 const scrollbarStyles = `
@@ -327,10 +327,6 @@ const ClientIntelPage: React.FC = () => {
     <>
       <style>{scrollbarStyles}</style>
       <div className="min-h-screen bg-off-white">
-        <PageHeader
-          title="Client Intel"
-          subtitle="Manage and analyze your clients' preferences and data"
-        />
         
         <div className="container-responsive py-responsive-lg">
 
@@ -338,16 +334,14 @@ const ClientIntelPage: React.FC = () => {
           <div className="card mb-6">
             <div className="flex flex-col sm:flex-row gap-responsive-sm">
               <div className="flex-1">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 mobile-icon-xs text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="Search clients by name or email..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="mobile-input pl-10"
-                  />
-                </div>
+                <Input
+                  type="text"
+                  placeholder="Search clients by name or email..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  leftIcon={<Search className="mobile-icon-xs" />}
+                  variant="search"
+                />
               </div>
             </div>
           </div>

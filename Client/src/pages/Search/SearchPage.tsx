@@ -1,9 +1,15 @@
 import { useState, useEffect, useRef } from "react";
-import { Bookmark, MapPin, ChevronLeft, ChevronRight, Bed, Bath, Square } from "lucide-react";
-import PropertyDetailsCompact from "../../components/ui/cards/PropertyDetailsCompact";
+import { Bookmark, MapPin, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  CardImageContainer,
+  CardPropertyDetails,
+  CardMatchScore,
+  CardHeartSave,
+  CardCarousel,
+} from "../../components/cards/base";
+import { PropertyCard, SearchResultsSummaryCard } from "../../components/cards";
 import { useNavigate } from "react-router-dom";
 import { favoriteHomesApi } from "../../lib/api";
-import HeartSave from "../../components/ui/cards/HeartSave";
 import PropertyDetailsModal from "../../components/modals/PropertyDetailsModal";
 import { searchZillowByPolygon, LatLng } from "../../lib/searchApi";
 import { usePropertyDetails } from "../../hooks/usePropertyDetails";
@@ -436,7 +442,7 @@ export default function SearchPage() {
 
   // Helper: which container is visible?
   const getVisibleMapEl = () => {
-    const isDesktop = window.matchMedia('(min-width: 768px)').matches;
+    const isDesktop = window.matchMedia("(min-width: 768px)").matches;
     return isDesktop ? desktopMapRef.current : mobileMapRef.current;
   };
 
@@ -459,7 +465,7 @@ export default function SearchPage() {
       // Force map resize after creation
       setTimeout(() => {
         if (window.google?.maps?.event && googleMapRef.current) {
-          window.google.maps.event.trigger(googleMapRef.current, 'resize');
+          window.google.maps.event.trigger(googleMapRef.current, "resize");
         }
       }, 100);
 
@@ -500,7 +506,7 @@ export default function SearchPage() {
     const onResize = () => {
       const container = getVisibleMapEl();
       if (!container || !googleMapRef.current) return;
-      
+
       // If the map was created in the hidden container, re-attach by recreating it
       if (!container.contains(googleMapRef.current.getDiv())) {
         const map = createMap(container);
@@ -508,18 +514,18 @@ export default function SearchPage() {
           googleMapRef.current = map;
         }
       }
-      
+
       if (window.google?.maps?.event && googleMapRef.current) {
-        window.google.maps.event.trigger(googleMapRef.current, 'resize');
+        window.google.maps.event.trigger(googleMapRef.current, "resize");
       }
     };
-    
-    window.addEventListener('resize', onResize);
-    window.addEventListener('orientationchange', onResize);
-    
+
+    window.addEventListener("resize", onResize);
+    window.addEventListener("orientationchange", onResize);
+
     return () => {
-      window.removeEventListener('resize', onResize);
-      window.removeEventListener('orientationchange', onResize);
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("orientationchange", onResize);
     };
   }, [createMap]);
 
@@ -553,6 +559,29 @@ export default function SearchPage() {
     };
   }, [searchResults, savedHomes, activeTab, handleViewPropertyDetails]);
 
+  // Auto-zoom to selected property when it changes
+  useEffect(() => {
+    if (selectedProperty && googleMapRef.current) {
+      const map = googleMapRef.current;
+      const propertyPosition = new google.maps.LatLng(
+        selectedProperty.lat,
+        selectedProperty.lng
+      );
+
+      // Center the map on the selected property
+      map.setCenter(propertyPosition);
+
+      // Calculate zoom level to make property area take up 0.35 of map height
+      // This is approximately zoom level 17-18 for residential properties
+      const targetZoom = 17;
+      map.setZoom(targetZoom);
+
+      console.log(
+        `🎯 Auto-zoomed to property at ${selectedProperty.lat}, ${selectedProperty.lng} with zoom ${targetZoom}`
+      );
+    }
+  }, [selectedProperty]);
+
   // Update markers when activeTab changes or when hasSearched/showPropertyModals changes
   useEffect(() => {
     if (googleMapRef.current && hasSearched && showPropertyModals) {
@@ -569,14 +598,7 @@ export default function SearchPage() {
       });
       markersRef.current = [];
     }
-  }, [
-    activeTab,
-    searchResults.length, // Only depend on length to avoid re-renders on same data
-    savedHomes.length,    // Only depend on length to avoid re-renders on same data
-    showPropertyModals,
-    hasSearched,
-    currentPage,
-  ]);
+  }, [activeTab, hasSearched, showPropertyModals, searchResults, savedHomes]);
 
   // Fetch isochrone polygon from backend for map population only (no property search)
   const fetchIsochroneForMapOnly = async () => {
@@ -1018,8 +1040,8 @@ export default function SearchPage() {
         this.div.style.transform = "translate(-50%, calc(-100% - 2px))";
         this.div.style.pointerEvents = "auto";
         // Safely set content using textContent to prevent XSS
-        this.div.textContent = '';
-        const tempDiv = document.createElement('div');
+        this.div.textContent = "";
+        const tempDiv = document.createElement("div");
         tempDiv.innerHTML = contentHTML;
         // Only append if content is safe (basic validation)
         if (tempDiv.textContent || tempDiv.innerText) {
@@ -1363,21 +1385,24 @@ export default function SearchPage() {
         height: 32px;
         cursor: pointer;
       `;
-      
+
       // Create SVG element safely without innerHTML
       const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
       svg.setAttribute("width", "24");
       svg.setAttribute("height", "32");
       svg.setAttribute("viewBox", "0 0 24 32");
-      
-      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+
+      const path = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "path"
+      );
       path.setAttribute("d", BASE_PIN_PATH);
       path.setAttribute("fill", fillColor);
       path.setAttribute("stroke", strokeColor);
       path.setAttribute("stroke-width", "1.75");
       path.setAttribute("stroke-opacity", "0.9");
       path.setAttribute("fill-opacity", "0.9");
-      
+
       svg.appendChild(path);
       markerElement.appendChild(svg);
 
@@ -1575,13 +1600,12 @@ export default function SearchPage() {
             const newSavedHomes = [...prev, property];
             return newSavedHomes;
           });
-        } 
+        }
 
         // Update favorite addresses from backend response
         if (response.data?.favorites) {
           setFavoriteAddresses(response.data.favorites);
         }
-
       } else {
         console.error("❌ Backend API returned failure:", response.error);
         console.error("🏠 ===== HOME SAVE OPERATION FAILED (FRONTEND) =====");
@@ -1609,7 +1633,7 @@ export default function SearchPage() {
         console.error("🗑️ ===== HOME UNSAVE OPERATION FAILED (FRONTEND) =====");
         return;
       }
-      
+
       const response = await favoriteHomesApi.removeFavorite(property.address);
 
       if (response.success) {
@@ -1666,14 +1690,16 @@ export default function SearchPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <div>
       {/* Mobile Layout */}
       <div className="md:hidden flex flex-col h-[calc(100svh-80px)]">
         {/* Mobile Header - Small and Compact */}
         <div className="flex-shrink-0 space-responsive-xs bg-white border-b border-gray-200">
           <div className="flex items-center justify-between gap-responsive-sm min-w-0">
             <div className="flex-1 min-w-0">
-              <span className="text-responsive-xs text-gray-600 truncate block">Search Properties</span>
+              <span className="text-responsive-xs text-gray-600 truncate block">
+                Search Properties
+              </span>
             </div>
             <div className="flex gap-responsive-xs flex-shrink-0">
               <button
@@ -1719,12 +1745,14 @@ export default function SearchPage() {
                   : "border-transparent text-gray-500 hover:text-gray-700"
               }`}
             >
-              Search
-              {searchResults.length > 0 && (
-                <span className="space-responsive-xs px-responsive-xs py-responsive-xs bg-olive-light text-gray-800 text-responsive-xs rounded-full">
-                  {searchResults.length}
-                </span>
-              )}
+              <div className="flex items-center gap-2">
+                <span>Search</span>
+                {searchResults.length > 0 && (
+                  <span className="w-5 h-5 bg-olive text-white text-xs rounded-full flex items-center justify-center font-medium">
+                    {searchResults.length}
+                  </span>
+                )}
+              </div>
             </button>
             <button
               onClick={() => {
@@ -1740,12 +1768,14 @@ export default function SearchPage() {
                   : "border-transparent text-gray-500 hover:text-gray-700"
               }`}
             >
-              Saved
-              {savedHomes.length > 0 && (
-                <span className="space-responsive-xs px-responsive-xs py-responsive-xs bg-olive-light text-gray-800 text-responsive-xs rounded-full">
-                  {savedHomes.length}
-                </span>
-              )}
+              <div className="flex items-center gap-2">
+                <span>Saved</span>
+                {savedHomes.length > 0 && (
+                  <span className="w-5 h-5 bg-olive text-white text-xs rounded-full flex items-center justify-center font-medium">
+                    {savedHomes.length}
+                  </span>
+                )}
+              </div>
             </button>
           </div>
 
@@ -1753,104 +1783,112 @@ export default function SearchPage() {
           <div className="space-responsive-xs sm:space-responsive-sm">
             {activeTab === "results" ? (
               searchResults.length > 0 ? (
-                <div className="flex gap-responsive-xs sm:gap-responsive-sm overflow-x-auto scrollbar-hide pb-2 justify-center sm:justify-start" style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
-                  {searchResults.slice(currentPage * PROPERTIES_PER_PAGE, (currentPage + 1) * PROPERTIES_PER_PAGE).map((property) => (
-                    <div
-                      key={property.id}
-                      className="flex-shrink-0 w-56 sm:w-64 border rounded-lg cursor-pointer transition-all overflow-hidden bg-white hover:shadow-md active:scale-95 touch-manipulation"
-                      onClick={() => handleViewPropertyDetails(property)}
-                    >
-                      {property.imageUrl && (
-                        <div className="w-full h-28 sm:h-32 bg-gray-200 overflow-hidden rounded-t-lg">
-                          <img
-                            src={property.imageUrl}
-                            alt={property.address}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src = "/default-home.jpg";
-                            }}
-                          />
-                        </div>
-                      )}
-                      <div className="space-responsive-xs">
-                        <h3 className="text-responsive-xs font-medium text-black line-clamp-1 leading-tight truncate">
-                          {typeof property.address === "string" || typeof property.address === "number"
-                            ? property.address
-                            : "[Invalid address]"}
-                        </h3>
-                        <p className="text-responsive-sm font-semibold text-brown truncate">
-                          {typeof property.price === "string" || typeof property.price === "number"
-                            ? property.price
-                            : "[Invalid price]"}
-                        </p>
-                        <PropertyDetailsCompact
-                          bedrooms={property.bedrooms}
-                          bathrooms={property.bathrooms}
-                          sqft={property.sqft}
-                          variant="horizontal"
-                          size="xs"
-                          showIcons={false}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <>
+                  <SearchResultsSummaryCard
+                    totalResults={searchResults.length}
+                    averageScore={
+                      searchResults.length > 0
+                        ? Math.round(
+                            searchResults.reduce(
+                              (sum, prop) => sum + (prop._score || 0),
+                              0
+                            ) / searchResults.length
+                          )
+                        : undefined
+                    }
+                    className="mb-4"
+                  />
+                  <CardCarousel
+                    items={searchResults.slice(
+                      currentPage * PROPERTIES_PER_PAGE,
+                      (currentPage + 1) * PROPERTIES_PER_PAGE
+                    )}
+                    renderItem={(property: SearchResult, _index: number) => (
+                      <PropertyCard
+                        imageUrl={property.imageUrl}
+                        address={
+                          typeof property.address === "string" ||
+                          typeof property.address === "number"
+                            ? property.address.toString()
+                            : "[Invalid address]"
+                        }
+                        price={
+                          typeof property.price === "string" ||
+                          typeof property.price === "number"
+                            ? property.price.toString()
+                            : "[Invalid price]"
+                        }
+                        bedrooms={property.bedrooms}
+                        bathrooms={property.bathrooms}
+                        sqft={property.sqft}
+                        isSaved={isHomeSaved(property.id)}
+                        onSave={() => saveHome(property)}
+                        onViewDetails={() =>
+                          handleViewPropertyDetails(property)
+                        }
+                        cardType="searchpage"
+                      />
+                    )}
+                    getItemKey={(property: SearchResult, _index: number) =>
+                      property.id
+                    }
+                    itemsPerPage={PROPERTIES_PER_PAGE}
+                  />
+                </>
               ) : (
                 <div className="text-center py-responsive-md sm:py-responsive-lg text-gray-500 px-responsive-sm">
-                  <p className="text-responsive-sm sm:text-responsive-md">No search results yet.</p>
-                  <p className="text-responsive-xs sm:text-responsive-sm mt-1">Tap "Search Properties" to find homes.</p>
+                  <p className="text-responsive-sm sm:text-responsive-md">
+                    No search results yet.
+                  </p>
+                  <p className="text-responsive-xs sm:text-responsive-sm mt-1">
+                    Tap "Search Properties" to find homes.
+                  </p>
                 </div>
               )
+            ) : savedHomes.length > 0 ? (
+              <CardCarousel
+                items={savedHomes.slice(
+                  currentPage * PROPERTIES_PER_PAGE,
+                  (currentPage + 1) * PROPERTIES_PER_PAGE
+                )}
+                renderItem={(property: SearchResult, _index: number) => (
+                  <PropertyCard
+                    imageUrl={property.imageUrl}
+                    address={
+                      typeof property.address === "string" ||
+                      typeof property.address === "number"
+                        ? property.address.toString()
+                        : "[Invalid address]"
+                    }
+                    price={
+                      typeof property.price === "string" ||
+                      typeof property.price === "number"
+                        ? property.price.toString()
+                        : "[Invalid price]"
+                    }
+                    bedrooms={property.bedrooms}
+                    bathrooms={property.bathrooms}
+                    sqft={property.sqft}
+                    isSaved={true}
+                    onSave={() => saveHome(property)}
+                    onViewDetails={() => handleViewPropertyDetails(property)}
+                    cardType="searchpage"
+                  />
+                )}
+                getItemKey={(property: SearchResult, _index: number) =>
+                  property.id
+                }
+                itemsPerPage={PROPERTIES_PER_PAGE}
+              />
             ) : (
-              savedHomes.length > 0 ? (
-                <div className="flex gap-responsive-xs sm:gap-responsive-sm overflow-x-auto scrollbar-hide pb-2 justify-center sm:justify-start" style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
-                  {savedHomes.slice(currentPage * PROPERTIES_PER_PAGE, (currentPage + 1) * PROPERTIES_PER_PAGE).map((property) => (
-                    <div
-                      key={property.id}
-                      className="flex-shrink-0 w-56 sm:w-64 border rounded-lg cursor-pointer transition-all overflow-hidden bg-white hover:shadow-md active:scale-95 touch-manipulation"
-                      onClick={() => handleViewPropertyDetails(property)}
-                    >
-                      {property.imageUrl && (
-                        <div className="w-full h-28 sm:h-32 bg-gray-200 overflow-hidden rounded-t-lg">
-                          <img
-                            src={property.imageUrl}
-                            alt={property.address}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src = "/default-home.jpg";
-                            }}
-                          />
-                        </div>
-                      )}
-                      <div className="space-responsive-xs">
-                        <h3 className="text-responsive-xs font-medium text-black line-clamp-1 leading-tight truncate">
-                          {typeof property.address === "string" || typeof property.address === "number"
-                            ? property.address
-                            : "[Invalid address]"}
-                        </h3>
-                        <p className="text-responsive-sm font-semibold text-brown truncate">
-                          {typeof property.price === "string" || typeof property.price === "number"
-                            ? property.price
-                            : "[Invalid price]"}
-                        </p>
-                        <PropertyDetailsCompact
-                          bedrooms={property.bedrooms}
-                          bathrooms={property.bathrooms}
-                          sqft={property.sqft}
-                          variant="horizontal"
-                          size="xs"
-                          showIcons={false}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-responsive-md sm:py-responsive-lg text-gray-500 px-responsive-sm">
-                  <p className="text-responsive-sm sm:text-responsive-md">No saved homes yet.</p>
-                  <p className="text-responsive-xs sm:text-responsive-sm mt-1">Save homes from search results.</p>
-                </div>
-              )
+              <div className="text-center py-responsive-md sm:py-responsive-lg text-gray-500 px-responsive-sm">
+                <p className="text-responsive-sm sm:text-responsive-md">
+                  No saved homes yet.
+                </p>
+                <p className="text-responsive-xs sm:text-responsive-sm mt-1">
+                  Save homes from search results.
+                </p>
+              </div>
             )}
           </div>
         </div>
@@ -1884,18 +1922,21 @@ export default function SearchPage() {
                   className="mobile-icon-sm sm:mobile-icon-lg md:mobile-icon-xl bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 touch-friendly"
                   title="Zoom in"
                 >
-                  <span className="text-responsive-sm font-bold leading-none">+</span>
+                  <span className="text-responsive-sm font-bold leading-none">
+                    +
+                  </span>
                 </button>
                 <button
                   onClick={zoomOut}
                   className="mobile-icon-sm sm:mobile-icon-lg md:mobile-icon-xl bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 touch-friendly"
                   title="Zoom out"
                 >
-                  <span className="text-responsive-sm font-bold leading-none">−</span>
+                  <span className="text-responsive-sm font-bold leading-none">
+                    −
+                  </span>
                 </button>
               </div>
             )}
-
           </div>
         </div>
       </div>
@@ -1905,7 +1946,7 @@ export default function SearchPage() {
         {/* Sidebar */}
         <div className="w-64 flex-shrink-0 flex flex-col">
           <div
-            className="mobile-card flex flex-col"
+            className="flex flex-col bg-white border border-gray-200 rounded-lg p-4"
             style={{ height: "calc(100vh - 160px)" }}
           >
             {/* Tab Navigation */}
@@ -1923,12 +1964,14 @@ export default function SearchPage() {
                     : "border-transparent text-gray-500 hover:text-gray-700"
                 }`}
               >
-                Search
-                {searchResults.length > 0 && (
-                  <span className="space-responsive-xs px-responsive-xs py-responsive-xs bg-olive-light text-gray-800 text-responsive-xs rounded-full">
-                    {searchResults.length}
-                  </span>
-                )}
+                <div className="flex items-center gap-2">
+                  <span>Search</span>
+                  {searchResults.length > 0 && (
+                    <span className="w-5 h-5 bg-olive text-white text-xs rounded-full flex items-center justify-center font-medium">
+                      {searchResults.length}
+                    </span>
+                  )}
+                </div>
               </button>
               <button
                 onClick={() => {
@@ -1945,12 +1988,14 @@ export default function SearchPage() {
                     : "border-transparent text-gray-500 hover:text-gray-700"
                 }`}
               >
-                Saved
-                {savedHomes.length > 0 && (
-                  <span className="space-responsive-xs px-responsive-xs py-responsive-xs bg-olive-light text-gray-800 text-responsive-xs rounded-full">
-                    {savedHomes.length}
-                  </span>
-                )}
+                <div className="flex items-center gap-2">
+                  <span>Saved</span>
+                  {savedHomes.length > 0 && (
+                    <span className="w-5 h-5 bg-olive text-white text-xs rounded-full flex items-center justify-center font-medium">
+                      {savedHomes.length}
+                    </span>
+                  )}
+                </div>
               </button>
             </div>
 
@@ -1976,7 +2021,7 @@ export default function SearchPage() {
                         {searchResults.map((property) => (
                           <div
                             key={property.id}
-                            className={`border rounded-lg cursor-pointer transition-all overflow-hidden relative ${
+                            className={`w-full border rounded-lg cursor-pointer transition-all overflow-hidden relative ${
                               selectedProperty?.id === property.id
                                 ? "border-brown bg-brown/5"
                                 : "border-gray-200 hover:border-brown/50 hover:bg-gray-50"
@@ -1990,23 +2035,16 @@ export default function SearchPage() {
                               </div>
                             )}
                             {/* Property Image */}
-                            {property.imageUrl && (
-                              <div className="w-full h-32 bg-gray-200 overflow-hidden">
-                                <img
-                                  src={property.imageUrl}
-                                  alt={property.address}
-                                  className="w-full h-full object-cover"
-                                  onError={(e) => {
-                                    (e.target as HTMLImageElement).src =
-                                      "/default-home.jpg";
-                                  }}
-                                />
-                              </div>
-                            )}
+                            <CardImageContainer
+                              imageUrl={property.imageUrl}
+                              alt={property.address || "Property image"}
+                              height="sm"
+                              imageVariant="professional"
+                            />
 
-                            <div className="space-responsive-xs">
-                              <div className="flex items-start justify-between gap-responsive-sm mb-2">
-                                <div className="flex-1">
+                            <div className="p-3">
+                              <div className="flex items-start justify-between gap-2 mb-2">
+                                <div className="flex-1 min-w-0">
                                   {/* Property Type and Status */}
                                   <div className="flex items-center gap-responsive-sm mb-1">
                                     {property.propertyType &&
@@ -2034,65 +2072,34 @@ export default function SearchPage() {
                                       : "[Invalid address]"}
                                   </h3>
 
-                                  {/* Price */}
-                                  <p className="text-responsive-lg font-semibold text-brown mb-2">
-                                    {typeof property.price === "string" ||
-                                    typeof property.price === "number"
-                                      ? property.price
-                                      : "[Invalid price]"}
-                                  </p>
-
-                                  {/* Property Details */}
-                                  <div className="property-details-mobile mb-1">
-                                    <div className="flex items-center gap-responsive-xs">
-                                      <Bed className="mobile-icon-xs text-gray-500" />
-                                      {property.bedrooms} beds
-                                    </div>
-                                    <div className="flex items-center gap-responsive-xs">
-                                      <Bath className="mobile-icon-xs text-gray-500" />
-                                      {property.bathrooms} baths
-                                    </div>
-                                    {property.sqft > 0 && (
-                                      <div className="flex items-center gap-responsive-xs">
-                                        <Square className="mobile-icon-xs text-gray-500" />
-                                        {Math.round(property.sqft).toLocaleString()} sqft
-                                      </div>
-                                    )}
+                                  {/* Price and Match Score */}
+                                  <div className="flex items-center justify-between mb-2">
+                                    <p className="text-responsive-lg font-semibold text-brown flex-1 truncate">
+                                      {typeof property.price === "string" ||
+                                      typeof property.price === "number"
+                                        ? property.price
+                                        : "[Invalid price]"}
+                                    </p>
+                                    <CardMatchScore
+                                      score={calculatePropertyScore(property)}
+                                      size="xs"
+                                      showIcon={false}
+                                      useColorStyling={true}
+                                      className="ml-2"
+                                    />
                                   </div>
 
-                                  {/* Match Score */}
-                                  {(() => {
-                                    const score =
-                                      calculatePropertyScore(property);
-                                    const { fillColor, strokeColor } =
-                                      getScoreBasedPinColor(score);
-                                    return (
-                                      <div className="flex items-center gap-2 mb-1">
-                                        <div
-                                          className="px-2 py-1 rounded text-xs font-semibold"
-                                          style={{
-                                            backgroundColor: fillColor,
-                                            color: strokeColor,
-                                          }}
-                                        >
-                                          {score}/100
-                                        </div>
-                                        <span className="text-responsive-xs text-gray-500">
-                                          Match Score
-                                        </span>
-                                      </div>
-                                    );
-                                  })()}
-
-                                  {/* Lot Size */}
-                                  {typeof property.lotSize === "string" &&
-                                    property.lotSize && (
-                                      <div className="text-responsive-xs text-gray-500">
-                                        Lot: {property.lotSize}
-                                      </div>
-                                    )}
+                                  {/* Property Details */}
+                                  <CardPropertyDetails
+                                    bedrooms={property.bedrooms}
+                                    bathrooms={property.bathrooms}
+                                    sqft={property.sqft}
+                                    variant="horizontal"
+                                    size="xs"
+                                    className="mb-1"
+                                  />
                                 </div>
-                                <HeartSave
+                                <CardHeartSave
                                   property={property}
                                   isSaved={isHomeSaved(property.id)}
                                   onSave={saveHome}
@@ -2136,19 +2143,13 @@ export default function SearchPage() {
                             </div>
                           )}
                           {/* Property Image */}
-                          {property.imageUrl && (
-                            <div className="w-full h-32 bg-gray-200 overflow-hidden">
-                              <img
-                                src={property.imageUrl}
-                                alt={property.address}
-                                className="w-full h-full object-cover"
-                                onError={(e) => {
-                                  (e.target as HTMLImageElement).src =
-                                    "/default-home.jpg";
-                                }}
-                              />
-                            </div>
-                          )}
+                          <CardImageContainer
+                            imageUrl={property.imageUrl}
+                            alt={property.address || "Property image"}
+                            height="responsive"
+                            imageVariant="professional"
+                            className="rounded-t-lg"
+                          />
 
                           <div className="space-responsive-xs">
                             <div className="flex items-start justify-between gap-responsive-sm mb-2">
@@ -2172,33 +2173,32 @@ export default function SearchPage() {
                                     : "[Invalid address]"}
                                 </h3>
 
-                                {/* Price */}
-                                <p className="text-responsive-lg font-semibold text-brown mb-2">
-                                  {typeof property.price === "string" ||
-                                  typeof property.price === "number"
-                                    ? property.price
-                                    : "[Invalid price]"}
-                                </p>
+                                {/* Price and Match Score */}
+                                <div className="flex items-center justify-between mb-2">
+                                  <p className="text-responsive-lg font-semibold text-brown">
+                                    {typeof property.price === "string" ||
+                                    typeof property.price === "number"
+                                      ? property.price
+                                      : "[Invalid price]"}
+                                  </p>
+                                  <CardMatchScore
+                                    score={calculatePropertyScore(property)}
+                                    size="sm"
+                                    useColorStyling={true}
+                                  />
+                                </div>
 
                                 {/* Property Details */}
-                                <div className="property-details-grid mb-1">
-                                  <div className="flex items-center gap-responsive-xs">
-                                    <Bed className="mobile-icon-xs text-gray-500" />
-                                    {property.bedrooms} beds
-                                  </div>
-                                  <div className="flex items-center gap-responsive-xs">
-                                    <Bath className="mobile-icon-xs text-gray-500" />
-                                    {property.bathrooms} baths
-                                  </div>
-                                  {property.sqft > 0 && (
-                                    <div className="flex items-center gap-responsive-xs">
-                                      <Square className="mobile-icon-xs text-gray-500" />
-                                      {Math.round(property.sqft).toLocaleString()} sqft
-                                    </div>
-                                  )}
-                                </div>
+                                <CardPropertyDetails
+                                  bedrooms={property.bedrooms}
+                                  bathrooms={property.bathrooms}
+                                  sqft={property.sqft}
+                                  variant="horizontal"
+                                  size="xs"
+                                  className="mb-2"
+                                />
                               </div>
-                              <HeartSave
+                              <CardHeartSave
                                 property={property}
                                 isSaved={true}
                                 onSave={saveHome}
@@ -2228,13 +2228,13 @@ export default function SearchPage() {
         {/* Main Content */}
         <div className="flex-1 flex flex-col">
           {/* Search Instructions and Controls */}
-          <div className="mobile-card mb-6 flex-shrink-0">
+          <div className="mb-6 flex-shrink-0 bg-white border border-gray-200 rounded-lg p-4">
             <div className="flex flex-col gap-4">
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="text-sm font-medium text-gray-900">
-                    We use your preferences and important
-                    locations to surface the best properties
+                    We use your preferences and important locations to surface
+                    the best properties
                   </p>
                 </div>
                 <div className="flex gap-2 flex-shrink-0">
@@ -2258,34 +2258,34 @@ export default function SearchPage() {
                     disabled={isSearching}
                     className="inline-flex items-center px-4 py-2 bg-gold text-black rounded-lg hover:bg-gold/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed gap-2 flex-shrink-0"
                   >
-                {isSearching ? (
-                  <KeyTurnLoader message="Searching..." />
-                ) : (
-                  <>
-                    <svg
-                      className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 lg:w-6 lg:h-6"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                      />
-                    </svg>
-                    Search Properties
-                  </>
-                )}
-              </button>
+                    {isSearching ? (
+                      <KeyTurnLoader message="Searching..." />
+                    ) : (
+                      <>
+                        <svg
+                          className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 lg:w-6 lg:h-6"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                          />
+                        </svg>
+                        Search Properties
+                      </>
+                    )}
+                  </button>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Desktop Map - Takes remaining height */}
-          <div className="mobile-card flex-1 p-0 relative">
+          <div className="flex-1 relative bg-white border border-gray-200 rounded-lg overflow-hidden">
             {/* Loading overlay - shows until at least one property is available on map */}
             {(isSearching ||
               (hasSearched &&
@@ -2323,14 +2323,18 @@ export default function SearchPage() {
                     className="w-8 h-8 lg:w-10 lg:h-10 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20"
                     title="Zoom in"
                   >
-                    <span className="text-sm lg:text-lg font-bold leading-none">+</span>
+                    <span className="text-sm lg:text-lg font-bold leading-none">
+                      +
+                    </span>
                   </button>
                   <button
                     onClick={zoomOut}
                     className="w-8 h-8 lg:w-10 lg:h-10 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20"
                     title="Zoom out"
                   >
-                    <span className="text-sm lg:text-lg font-bold leading-none">−</span>
+                    <span className="text-sm lg:text-lg font-bold leading-none">
+                      −
+                    </span>
                   </button>
                 </div>
               )}

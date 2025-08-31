@@ -1,4 +1,4 @@
-import { Star } from "lucide-react";
+import { CardAddressDisplay, CardMatchScore, CardImageContainer, CardContentContainer } from "./base";
 
 interface NewMatch {
   address: string;
@@ -24,34 +24,32 @@ export default function NewMatchCard({ item }: NewMatchCardProps) {
     year: "numeric",
   });
 
-  const placeholder = "https://placehold.co/600x400?text=No+Image";
-
   return (
-    <div className="card-mobile overflow-hidden flex flex-col">
+    <div className="card-standard overflow-hidden flex flex-col">
       {/* Image */}
-      <div className="w-full bg-gray-100 overflow-hidden" style={{height: 'clamp(8rem, 12vw, 10rem)'}}>
-        <img
-          src={imageUrl || placeholder}
-          alt={address}
-          className="object-cover w-full h-full"
-          loading="lazy"
-        />
-      </div>
+      <CardImageContainer
+        imageUrl={imageUrl}
+        alt={address}
+        height="responsive"
+      />
 
       {/* Details */}
-      <div className="space-responsive-sm flex-1 flex flex-col gap-responsive-sm">
+      <CardContentContainer padding="sm" className="flex-1 flex flex-col gap-responsive-sm card-content-spacing">
         <div className="flex items-start justify-between gap-responsive-sm">
-          <h3 className="font-semibold text-responsive-xs line-clamp-1 flex-1 truncate" title={address}>
-            {address}
-          </h3>
-          <div className="flex items-center gap-responsive-xs text-brown flex-shrink-0">
-            <Star className="mobile-icon-sm" />
-            <span className="font-medium text-responsive-xs whitespace-nowrap">{matchScore}/100</span>
-          </div>
+          <CardAddressDisplay
+            address={address}
+            size="xs"
+            showIcon={false}
+            className="flex-1"
+          />
+          <CardMatchScore
+            score={matchScore}
+            size="sm"
+          />
         </div>
         <p className="text-responsive-xs text-gray-600 truncate">Listed on {dateStr}</p>
         <p className="text-responsive-xs text-gray-700 line-clamp-2">{reason}</p>
-      </div>
+      </CardContentContainer>
     </div>
   );
 }

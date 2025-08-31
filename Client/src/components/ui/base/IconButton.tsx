@@ -1,5 +1,5 @@
 import React, { forwardRef } from 'react';
-import { Loader2 } from 'lucide-react';
+import KeyTurnLoader from './KeyTurnLoader';
 
 export interface IconButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'success' | 'warning' | 'info';
@@ -78,7 +78,7 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
         {...props}
       >
         {loading ? (
-          <Loader2 className="w-4 h-4 animate-spin" />
+          <KeyTurnLoader message="" />
         ) : (
           icon
         )}

@@ -200,7 +200,7 @@ function AppRoutes({ user, handleLogout }: { user: UserProfile | null; handleLog
 function App() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [maintenance, setMaintenance] = useState(true); // Force maintenance mode
+  const [maintenance, setMaintenance] = useState(false); // Only show maintenance if health check fails
 
   // Health check
   useEffect(() => {

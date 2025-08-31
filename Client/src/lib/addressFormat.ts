@@ -191,10 +191,11 @@ export function formatAgentName(name: string): string {
  * Formats lot size with proper decimal places.
  * Acres: 2 decimal places, Square footage: 0 decimal places.
  */
-export function formatLotSize(value: number, units: string): string {
+export function formatSquareFootage(value: number, units?: string): string {
   if (units?.toLowerCase().includes('acre')) {
     return `${value.toFixed(2)} ${units.toLowerCase()}`;
   } else {
+    // Always round to integer and format with commas for consistency
     return `${Math.round(value).toLocaleString()} ${units?.toLowerCase() || 'sqft'}`;
   }
 }

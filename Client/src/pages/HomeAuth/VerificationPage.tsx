@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Mail, ArrowLeft, RefreshCw } from "lucide-react";
+import { Mail, ArrowLeft } from "lucide-react";
+import KeyTurnLoader from "../../components/ui/base/KeyTurnLoader";
 import { authApi } from "../../lib/api";
 import MiniLogo from "../../components/ui/base/MiniLogo";
+import Input from "../../components/ui/base/Input";
 
 interface LocationState {
   email?: string;
@@ -304,21 +306,20 @@ export default function VerificationPage() {
               <label className="block text-responsive-sm font-medium text-black space-y-responsive-xs">
                 Email address
               </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 mobile-icon-sm text-black/40" />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                    setError("");
-                  }}
-                  className="input-field pl-10 w-full btn-responsive-md text-responsive-sm"
-                  placeholder="Enter your email"
-                  autoComplete="email"
-                  required
-                />
-              </div>
+              <Input
+                type="email"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setError("");
+                }}
+                placeholder="Enter your email"
+                leftIcon={<Mail className="mobile-icon-sm" />}
+                autoComplete="email"
+                required
+                variant="mobile"
+                size="md"
+              />
             </div>
 
             <button
@@ -328,7 +329,9 @@ export default function VerificationPage() {
             >
               {loading ? (
                 <div className="flex items-center justify-center">
-                  <RefreshCw className="animate-spin h-5 w-5 mr-2" />
+                  <div className="mr-2">
+                    <KeyTurnLoader message="" />
+                  </div>
                   Sending...
                 </div>
               ) : (
@@ -355,7 +358,9 @@ export default function VerificationPage() {
               >
                 {loading ? (
                   <span className="inline-flex items-center">
-                    <RefreshCw className="animate-spin mobile-icon-xs mr-1" />
+                    <div className="mr-1">
+                      <KeyTurnLoader message="" />
+                    </div>
                     Sending...
                   </span>
                 ) : canResend ? (
@@ -374,7 +379,9 @@ export default function VerificationPage() {
             >
               {loading ? (
                 <div className="flex items-center justify-center">
-                  <RefreshCw className="animate-spin h-5 w-5 mr-2" />
+                  <div className="mr-2">
+                    <KeyTurnLoader message="" />
+                  </div>
                   Verifying...
                 </div>
               ) : (

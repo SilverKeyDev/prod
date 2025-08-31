@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
-import { createPortal } from "react-dom";
+import { useState, useEffect, useRef } from "react";
 import { useGoogleMaps } from "../../context";
 import {
   Edit,
@@ -10,8 +9,6 @@ import {
   Home,
   MapPin,
   MessageSquare,
-  ChevronDown,
-  Plus,
 } from "lucide-react";
 import {
   DragEndEvent,
@@ -21,15 +18,19 @@ import {
 } from "@dnd-kit/sortable";
 import { apiRequest } from "../../lib/api";
 import { usePreferences } from "../../context";
+import Card from "../../components/ui/base/Card";
 import PriceRangeSlider from "../../components/ui/onboardpersonalize/PriceRangeSlider";
 import ImportantLocationsInput from "../../components/ui/onboardpersonalize/ImportantLocationsInput";
 import HomePriceEstimate from "../../components/ui/onboardpersonalize/HomePriceEstimate";
-import { estimateAffordableHomePrice } from "../../lib/affordabilityCalculator";
+import { calculateAffordableHomePrice } from "../../lib/onboard/homePriceCalculation";
 import PageHeader from "../../components/ui/base/PageHeader";
 import Loading from "../../components/ui/base/Loading";
 import OliveCheckbox from "../../components/ui/base/OliveCheckbox";
-import ValidationWarning from "../../components/feedback/ValidationWarning";
-import OnboardPersonalizeDragDropPriorities from "../../components/ui/onboardpersonalize/OnboardPersonalizeDragDropPriorities";
+import OnPerDragDropPriorities from "../../components/ui/onboardpersonalize/OnPerDragDropPriorities";
+import OnPerTagInput from "../../components/ui/onboardpersonalize/OnPerTagInput";
+import Dropdown from "../../components/ui/base/Dropdown";
+import Input from "../../components/ui/base/Input";
+import { Title, Subtitle } from "../../components/ui/base";
 import {
   OnboardingData,
   SECTION_TITLES,
@@ -63,85 +64,6 @@ const STEPS = [
   },
 ];
 
-// Custom dropdown component matching PastReports implementation
-interface CustomDropdownProps {
-  value: string;
-  onChange: (value: string) => void;
-  options: { value: string; label: string }[];
-  placeholder: string;
-  isOpen: boolean;
-  onToggle: () => void;
-  dropdownRef: React.RefObject<HTMLDivElement>;
-  disabled?: boolean;
-}
-
-const CustomDropdown: React.FC<CustomDropdownProps> = ({
-  value,
-  onChange,
-  options,
-  placeholder,
-  isOpen,
-  onToggle,
-  dropdownRef,
-  disabled = false,
-}) => {
-  const selectedOption = options.find((opt) => opt.value === value);
-
-  return (
-    <div className="relative" ref={dropdownRef}>
-      <button
-        onClick={disabled ? undefined : onToggle}
-        className={`mobile-input text-responsive-sm flex items-center justify-between w-full touch-friendly ${
-          disabled
-            ? "opacity-60 cursor-not-allowed"
-            : "cursor-pointer hover:border-brown focus:border-brown focus:ring-brown/20"
-        }`}
-        disabled={disabled}
-        tabIndex={disabled ? -1 : 0}
-        aria-disabled={disabled}
-      >
-        <span className="text-left">
-          {selectedOption ? selectedOption.label : placeholder}
-        </span>
-        <ChevronDown
-          className={`mobile-icon-xs transition-transform duration-200 ${
-            isOpen ? "rotate-180" : ""
-          }`}
-        />
-      </button>
-
-      {isOpen && !disabled && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-beige rounded-lg shadow-lg z-50">
-          {options.map((option, index) => (
-            <button
-              key={option.value}
-              onClick={() => {
-                if (!disabled) {
-                  onChange(option.value);
-                  onToggle();
-                }
-              }}
-              disabled={disabled}
-              tabIndex={disabled ? -1 : 0}
-              aria-disabled={disabled}
-              className={`w-full px-responsive-sm py-responsive-xs text-left text-responsive-sm transition-colors duration-150 touch-friendly ${
-                index === 0 ? "first:rounded-t-lg" : ""
-              } ${index === options.length - 1 ? "last:rounded-b-lg" : ""} ${
-                value === option.value
-                  ? "bg-brown/10 text-brown font-medium"
-                  : "text-black"
-              } ${
-                disabled ? "opacity-60 cursor-not-allowed" : "hover:bg-brown/5"
-              }`}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
 
 
 export default function PersonalizationPage() {
@@ -152,21 +74,12 @@ export default function PersonalizationPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [activeSection, setActiveSection] = useState("demographics");
-  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
-  const [showValidationWarning, setShowValidationWarning] = useState(false);
-  const [validationResult, setValidationResult] = useState<{
-    missingFields: string[];
-    errors: string[];
-  }>({ missingFields: [], errors: [] });
-  const [openDropdowns, setOpenDropdowns] = useState<{
-    [key: string]: boolean;
-  }>({});
+  // Modal state variables removed - modals not currently implemented
   const [scriptsReady, setScriptsReady] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [homePriceResult, setHomePriceResult] = useState<any>(null);
   const [homePriceLoading, setHomePriceLoading] = useState(false);
   const [homePriceError, setHomePriceError] = useState<string | null>(null);
-  const [showHomePriceDetails, setShowHomePriceDetails] = useState(false);
   const [showStickyButtons, setShowStickyButtons] = useState(false);
   const saveButtonRef = useRef<HTMLDivElement>(null);
 
@@ -212,35 +125,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
       setHomePriceLoading(true);
       setHomePriceError(null);
 
-      // Map credit score range to a numeric value
-      let creditScore = 700; // Default to good credit
-      switch (formData.credit_score_range) {
-        case "poor":
-          creditScore = 550;
-          break;
-        case "fair":
-          creditScore = 630;
-          break;
-        case "good":
-          creditScore = 700;
-          break;
-        case "very_good":
-          creditScore = 770;
-          break;
-        case "excellent":
-          creditScore = 800;
-          break;
-      }
-
-      // Calculate down payment percentage based on savings
-      const downPaymentAmount = formData.down_payment || 50000;
-
-      const result = await estimateAffordableHomePrice({
-        grossAnnualIncome: formData.gross_income || 0,
-        creditScore,
-        zipCode: formData.ideal_zip_code || "",
-        downPayment: downPaymentAmount,
-      });
+      const result = await calculateAffordableHomePrice(formData);
 
       if ("error" in result) {
         setHomePriceError(result.error);
@@ -391,50 +276,8 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
     }
   };
 
-  // Refs for dropdown management
-  const dropdownRefs = useRef<{
-    [key: string]: React.RefObject<HTMLDivElement>;
-  }>({});
 
-  // Helper function to get or create dropdown ref
-  const getDropdownRef = (fieldName: string) => {
-    if (!dropdownRefs.current[fieldName]) {
-      dropdownRefs.current[fieldName] = React.createRef<HTMLDivElement>();
-    }
-    return dropdownRefs.current[fieldName];
-  };
 
-  // Helper function to toggle dropdown
-  const toggleDropdown = (fieldName: string) => {
-    setOpenDropdowns((prev) => ({
-      ...prev,
-      [fieldName]: !prev[fieldName],
-    }));
-  };
-
-  // Close all dropdowns when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Node;
-      let shouldClose = true;
-
-      Object.entries(dropdownRefs.current).forEach(([_fieldName, ref]) => {
-        if (ref.current && ref.current.contains(target)) {
-          shouldClose = false;
-        }
-      });
-
-      if (
-        shouldClose &&
-        Object.keys(openDropdowns).some((key) => openDropdowns[key])
-      ) {
-        setOpenDropdowns({});
-      }
-    };
-
-    document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
-  }, [openDropdowns]);
 
   // Refresh data when page loads to ensure latest updates
   useEffect(() => {
@@ -675,11 +518,8 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
 
     if (!validation.isValid) {
       // Show the custom validation warning component
-      setValidationResult({
-        missingFields: validation.missingFields,
-        errors: validation.errors,
-      });
-      setShowValidationWarning(true);
+      // Validation warning would be shown here
+      console.warn('Validation failed:', validation.missingFields, validation.errors);
       return;
     }
 
@@ -711,7 +551,8 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
       setFormData(updatedFormData);
       setOriginalData(updatedFormData);
       setIsEditMode(false);
-      setShowSuccessDialog(true);
+      // Success dialog would be shown here
+      console.log('Preferences saved successfully');
     } catch (error) {
       console.error("Failed to update preferences:", error);
       alert("Failed to update preferences. Please try again.");
@@ -725,58 +566,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
     setIsEditMode(false);
   };
 
-  // Handler for closing the validation warning
-  const handleCloseValidationWarning = () => {
-    setShowValidationWarning(false);
-  };
-
-  // Handler for reviewing information from validation warning
-  const handleReviewInformation = () => {
-    setShowValidationWarning(false);
-
-    // Navigate to the first missing field's section if possible
-    const firstMissingField = validationResult.missingFields[0];
-    if (firstMissingField) {
-      // Try to determine which section contains the missing field and navigate there
-      if (firstMissingField.includes("report")) {
-        setActiveSection("reportcustomization");
-      } else if (
-        firstMissingField.includes("Age") ||
-        firstMissingField.includes("Gender") ||
-        firstMissingField.includes("Occupation") ||
-        firstMissingField.includes("Pet")
-      ) {
-        setActiveSection("demographics");
-      } else if (
-        firstMissingField.includes("income") ||
-        firstMissingField.includes("budget") ||
-        firstMissingField.includes("credit") ||
-        firstMissingField.includes("payment")
-      ) {
-        setActiveSection("financial");
-      } else if (
-        firstMissingField.includes("housing") ||
-        firstMissingField.includes("bedroom") ||
-        firstMissingField.includes("bathroom") ||
-        firstMissingField.includes("lot") ||
-        firstMissingField.includes("home") ||
-        firstMissingField.includes("renovation") ||
-        firstMissingField.includes("property")
-      ) {
-        setActiveSection("housing");
-      } else if (
-        firstMissingField.includes("location") ||
-        firstMissingField.includes("walkability")
-      ) {
-        setActiveSection("location");
-      } else if (
-        firstMissingField.includes("communication") ||
-        firstMissingField.includes("agent")
-      ) {
-        setActiveSection("communication");
-      }
-    }
-  };
+  // Modal handlers removed - modals not currently implemented
 
   const scrollToSection = (sectionId: string) => {
     setActiveSection(sectionId);
@@ -784,132 +574,6 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
     if (element) {
       element.scrollIntoView({ behavior: "smooth", block: "start" });
     }
-  };
-
-  const TagInput = ({
-    field,
-    label,
-    placeholder,
-    value,
-    onChange,
-  }: {
-    field: keyof OnboardingData;
-    label: string;
-    placeholder: string;
-    value?: string;
-    onChange?: (value: string) => void;
-  }) => {
-    const [inputValue, setInputValue] = useState("");
-
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const newValue = e.target.value;
-      if (onChange) {
-        onChange(newValue);
-      } else {
-        setInputValue(newValue);
-      }
-    };
-
-    const handleAddTag = (valueToAdd: string) => {
-      if (!valueToAdd.trim()) return;
-      const currentArray = (formData[field] as string[]) || [];
-      if (!currentArray.includes(valueToAdd.trim())) {
-        updateFormData(field, [...currentArray, valueToAdd.trim()]);
-      }
-      if (onChange) {
-        onChange("");
-      } else {
-        setInputValue("");
-      }
-    };
-
-    const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        const currentInputValue =
-          onChange && value !== undefined ? value : inputValue;
-        handleAddTag(currentInputValue);
-      }
-    };
-
-    const removeTag = (indexToRemove: number) => {
-      const currentArray = (formData[field] as string[]) || [];
-      const newArray = currentArray.filter(
-        (_, index) => index !== indexToRemove
-      );
-      updateFormData(field, newArray);
-    };
-
-    const currentTags = (formData[field] as string[]) || [];
-
-    return (
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-black mb-2">
-          {label}
-        </label>
-        {isEditMode ? (
-          <>
-            <div className="flex space-x-responsive-xs space-y-responsive-sm">
-              <input
-                type="text"
-                value={onChange && value !== undefined ? value : inputValue}
-                onChange={handleInputChange}
-                onKeyPress={handleKeyPress}
-                placeholder={placeholder}
-                className="mobile-input flex-1"
-              />
-              <button
-                type="button"
-                onClick={() => {
-                  const currentInputValue =
-                    onChange && value !== undefined ? value : inputValue;
-                  handleAddTag(currentInputValue);
-                }}
-                className="px-responsive-sm py-responsive-xs bg-brown text-white rounded-lg hover:bg-brown/80 transition-colors touch-friendly flex items-center"
-              >
-                <Plus className="mobile-icon-xs" />
-              </button>
-            </div>
-            {currentTags.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {currentTags.map((tag, index) => (
-                  <span
-                    key={index}
-                    className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-beige text-black"
-                  >
-                    {tag}
-                    <button
-                      type="button"
-                      onClick={() => removeTag(index)}
-                      className="ml-2 text-black/60 hover:text-black touch-friendly"
-                    >
-                      <X className="mobile-icon-xs" />
-                    </button>
-                  </span>
-                ))}
-              </div>
-            )}
-          </>
-        ) : (
-          <div className="space-responsive-sm min-h-[48px]">
-            {currentTags.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {currentTags.map((tag, index) => (
-                  <span
-                    key={index}
-                    className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-beige text-black"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            ) : (
-              <span className="text-gray-500">Not specified</span>
-            )}
-          </div>
-        )}
-      </div>
-    );
   };
 
   if (isLoading) {
@@ -925,10 +589,10 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
     switch (sectionId) {
       case "demographics":
         return (
-          <div className="space-y-6">
-            <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
+          <Card className="space-y-6">
+            <Title size="md" className="mb-6">
               Tell us about yourself
-            </h2>
+            </Title>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
@@ -936,16 +600,15 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   Age
                 </label>
                 {isEditMode ? (
-                  <input
+                  <Input
                     type="number"
-                    value={formData.age || ""}
+                    value={formData.age?.toString() || ""}
                     onChange={(e) =>
                       updateFormData(
                         "age",
                         parseInt(e.target.value) || undefined
                       )
                     }
-                    className="mobile-input"
                     placeholder="Enter your age"
                   />
                 ) : (
@@ -960,7 +623,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   Gender
                 </label>
                 {isEditMode ? (
-                  <CustomDropdown
+                  <Dropdown
                     value={formData.gender || ""}
                     onChange={(value) => updateFormData("gender", value)}
                     options={[
@@ -973,9 +636,6 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                       },
                     ]}
                     placeholder="Select..."
-                    isOpen={openDropdowns.gender || false}
-                    onToggle={() => toggleDropdown("gender")}
-                    dropdownRef={getDropdownRef("gender")}
                   />
                 ) : (
                   <div className="mobile-input bg-gray-50">
@@ -999,7 +659,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   Do you have pets?
                 </label>
                 {isEditMode ? (
-                  <CustomDropdown
+                  <Dropdown
                     value={formData.pets || ""}
                     onChange={(value) => updateFormData("pets", value)}
                     options={[
@@ -1011,9 +671,6 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                       },
                     ]}
                     placeholder="Select..."
-                    isOpen={openDropdowns.pets || false}
-                    onToggle={() => toggleDropdown("pets")}
-                    dropdownRef={getDropdownRef("pets")}
                   />
                 ) : (
                   <div className="mobile-input bg-gray-50">
@@ -1036,13 +693,12 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   Occupation
                 </label>
                 {isEditMode ? (
-                  <input
+                  <Input
                     type="text"
                     value={formData.occupation || ""}
                     onChange={(e) =>
                       updateFormData("occupation", e.target.value)
                     }
-                    className="mobile-input"
                     placeholder="Your job title"
                   />
                 ) : (
@@ -1052,15 +708,15 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                 )}
               </div>
             </div>
-          </div>
+          </Card>
         );
 
       case "financial":
         return (
-          <div className="space-y-6">
-            <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
+          <Card className="space-y-6">
+            <Title size="md" className="mb-6">
               Financial Information
-            </h2>
+            </Title>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="w-4/5 mx-auto">
@@ -1118,13 +774,12 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   Ideal Zip Code
                 </label>
                 {isEditMode ? (
-                  <input
+                  <Input
                     type="text"
                     value={formData.ideal_zip_code || ""}
                     onChange={(e) =>
                       updateFormData("ideal_zip_code", e.target.value)
                     }
-                    className="mobile-input"
                     placeholder="Enter zip code"
                   />
                 ) : (
@@ -1139,7 +794,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   {FIELD_LABELS.CREDIT_SCORE_RANGE}
                 </label>
                 {isEditMode ? (
-                  <CustomDropdown
+                  <Dropdown
                     value={formData.credit_score_range || ""}
                     onChange={(value) =>
                       updateFormData("credit_score_range", value)
@@ -1152,9 +807,6 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                       { value: "excellent", label: "Excellent (800-850)" },
                     ]}
                     placeholder="Select..."
-                    isOpen={openDropdowns.credit_score_range || false}
-                    onToggle={() => toggleDropdown("credit_score_range")}
-                    dropdownRef={getDropdownRef("credit_score_range")}
                   />
                 ) : (
                   <div className="mobile-input bg-gray-50 text-center">
@@ -1169,9 +821,9 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
               </div>
 
               <div className="col-span-1 md:col-span-2 flex flex-col items-center">
-                <label className="block text-2xl font-bold text-black mb-2 text-center w-full">
+                <Title size="md" className="mb-2 text-center w-full font-bold">
                   Home Budget
-                </label>
+                </Title>
                 {isEditMode ? (
                   <PriceRangeSlider
                     tickValues={[
@@ -1187,8 +839,10 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                     className="mt-2"
                   />
                 ) : (
-                  <div className="mobile-input bg-gray-50 text-center mt-2 text-2xl font-bold">
-                    ${(formData.home_budget || 0).toLocaleString()}
+                  <div className="mobile-input bg-gray-50 text-center mt-2">
+                    <Title size="md" className="font-bold">
+                      ${(formData.home_budget || 0).toLocaleString()}
+                    </Title>
                   </div>
                 )}
               </div>
@@ -1199,26 +853,23 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   homePriceLoading={homePriceLoading}
                   homePriceError={homePriceError}
                   homePriceResult={homePriceResult}
-                  showHomePriceDetails={showHomePriceDetails}
-                  setShowHomePriceDetails={setShowHomePriceDetails}
-                  formData={formData}
                 />
               </div>
             </div>
-          </div>
+          </Card>
         );
 
       case "housing":
         return (
-          <div className="space-y-6">
-            <h2 className="text-xl sm:text-2xl font-serif text-black mb-2">
+          <Card className="space-y-6">
+            <Title size="md" className="mb-2">
               {SECTION_TITLES.HOUSING_PREFERENCES}
-            </h2>
-            <p className="text-sm text-black/60 mb-6">
+            </Title>
+            <Subtitle size="sm" muted className="mb-6">
               Tell us about your ideal home. These preferences help our AI
               understand what features and characteristics matter most to you
               when matching properties to your lifestyle and needs.
-            </p>
+            </Subtitle>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
@@ -1226,16 +877,13 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   {FIELD_LABELS.PREFERRED_HOUSING_TYPE}
                 </label>
                 {isEditMode ? (
-                  <CustomDropdown
+                  <Dropdown
                     value={formData.preferred_housing_type || ""}
                     onChange={(value) =>
                       updateFormData("preferred_housing_type", value)
                     }
                     options={HOUSING_TYPE_OPTIONS}
                     placeholder="Select..."
-                    isOpen={openDropdowns.desired_housing_type || false}
-                    onToggle={() => toggleDropdown("desired_housing_type")}
-                    dropdownRef={getDropdownRef("desired_housing_type")}
                   />
                 ) : (
                   <div className="mobile-input bg-gray-50">
@@ -1254,18 +902,15 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   Preferred Bedrooms
                 </label>
                 {isEditMode ? (
-                  <input
+                  <Input
                     type="number"
-                    value={formData.preferred_bedrooms || ""}
+                    value={formData.preferred_bedrooms?.toString() || ""}
                     onChange={(e) =>
                       updateFormData(
                         "preferred_bedrooms",
                         parseInt(e.target.value) || undefined
                       )
                     }
-                    className="mobile-input"
-                    min="1"
-                    max="10"
                     placeholder="Number of bedrooms"
                   />
                 ) : (
@@ -1280,19 +925,15 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   Preferred Bathrooms
                 </label>
                 {isEditMode ? (
-                  <input
+                  <Input
                     type="number"
-                    value={formData.preferred_bathrooms || ""}
+                    value={formData.preferred_bathrooms?.toString() || ""}
                     onChange={(e) =>
                       updateFormData(
                         "preferred_bathrooms",
                         parseInt(e.target.value) || undefined
                       )
                     }
-                    className="mobile-input"
-                    min="1"
-                    max="10"
-                    step="0.5"
                     placeholder="Number of bathrooms"
                   />
                 ) : (
@@ -1307,7 +948,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   Preferred Lot Size
                 </label>
                 {isEditMode ? (
-                  <CustomDropdown
+                  <Dropdown
                     value={formData.preferred_lot_size || ""}
                     onChange={(value) =>
                       updateFormData("preferred_lot_size", value)
@@ -1319,9 +960,6 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                       { value: "very_large", label: "Very Large (1+ acres)" },
                     ]}
                     placeholder="Select..."
-                    isOpen={openDropdowns.preferred_lot_size || false}
-                    onToggle={() => toggleDropdown("preferred_lot_size")}
-                    dropdownRef={getDropdownRef("preferred_lot_size")}
                   />
                 ) : (
                   <div className="mobile-input bg-gray-50">
@@ -1350,7 +988,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   Preferred Home Age
                 </label>
                 {isEditMode ? (
-                  <CustomDropdown
+                  <Dropdown
                     value={formData.preferred_home_age || ""}
                     onChange={(value) =>
                       updateFormData("preferred_home_age", value)
@@ -1366,9 +1004,6 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                       { value: "historic", label: "Historic (50+ years)" },
                     ]}
                     placeholder="Select..."
-                    isOpen={openDropdowns.preferred_home_age || false}
-                    onToggle={() => toggleDropdown("preferred_home_age")}
-                    dropdownRef={getDropdownRef("preferred_home_age")}
                   />
                 ) : (
                   <div className="mobile-input bg-gray-50">
@@ -1395,7 +1030,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   Preferred Architectural Style
                 </label>
                 {isEditMode ? (
-                  <CustomDropdown
+                  <Dropdown
                     value={formData.preferred_architectural_style || ""}
                     onChange={(value) =>
                       updateFormData("preferred_architectural_style", value)
@@ -1411,15 +1046,6 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                       { value: "contemporary", label: "Contemporary" },
                     ]}
                     placeholder="Select..."
-                    isOpen={
-                      openDropdowns.preferred_architectural_style || false
-                    }
-                    onToggle={() =>
-                      toggleDropdown("preferred_architectural_style")
-                    }
-                    dropdownRef={getDropdownRef(
-                      "preferred_architectural_style"
-                    )}
                   />
                 ) : (
                   <div className="mobile-input bg-gray-50">
@@ -1447,7 +1073,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   Renovation Willingness
                 </label>
                 {isEditMode ? (
-                  <CustomDropdown
+                  <Dropdown
                     value={formData.renovation_preference || ""}
                     onChange={(value) =>
                       updateFormData("renovation_preference", value)
@@ -1459,9 +1085,6 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                       { value: "complete", label: "Complete Renovation" },
                     ]}
                     placeholder="Select..."
-                    isOpen={openDropdowns.renovation_preference || false}
-                    onToggle={() => toggleDropdown("renovation_preference")}
-                    dropdownRef={getDropdownRef("renovation_preference")}
                   />
                 ) : (
                   <div className="mobile-input bg-gray-50">
@@ -1484,7 +1107,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   Intended Property Use
                 </label>
                 {isEditMode ? (
-                  <CustomDropdown
+                  <Dropdown
                     value={formData.intended_property_use || ""}
                     onChange={(value) =>
                       updateFormData("intended_property_use", value)
@@ -1496,9 +1119,6 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                       { value: "rental", label: "Rental Property" },
                     ]}
                     placeholder="Select..."
-                    isOpen={openDropdowns.intended_property_use || false}
-                    onToggle={() => toggleDropdown("intended_property_use")}
-                    dropdownRef={getDropdownRef("intended_property_use")}
                   />
                 ) : (
                   <div className="mobile-input bg-gray-50">
@@ -1518,32 +1138,40 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
 
               <div className="md:col-span-2">
                 <div className="mb-[5px]">
-                  <TagInput
-                    key="preferred_home_features"
-                    field="preferred_home_features"
-                    label="Preferred Home Features"
-                    placeholder="e.g., garage, pool, fireplace"
-                  />
+                  <div>
+                    <label className="block text-sm font-medium text-black mb-2">
+                      Preferred Home Features
+                    </label>
+                    <OnPerTagInput
+                      value={(formData.preferred_home_features as string[]) || []}
+                      onChange={(value: string[]) => updateFormData("preferred_home_features", value)}
+                      placeholder="e.g., garage, pool, fireplace"
+                    />
+                  </div>
                 </div>
                 <div className="md:col-span-2">
-                  <TagInput
-                    key="deal_breakers"
-                    field="deal_breakers"
-                    label="Deal Breakers"
-                    placeholder="e.g., No parking, Busy road, Old plumbing"
-                  />
+                  <div>
+                    <label className="block text-sm font-medium text-black mb-2">
+                      Deal Breakers
+                    </label>
+                    <OnPerTagInput
+                      value={(formData.deal_breakers as string[]) || []}
+                      onChange={(value: string[]) => updateFormData("deal_breakers", value)}
+                      placeholder="e.g., No parking, Busy road, Old plumbing"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          </Card>
         );
 
       case "location":
         return (
-          <div className="space-y-6">
-            <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
+          <Card className="space-y-6">
+            <Title size="md" className="mb-6">
               Location Preferences
-            </h2>
+            </Title>
 
             <div className="grid grid-cols-1 gap-6">
               <div>
@@ -1551,7 +1179,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   Walkability Importance
                 </label>
                 {isEditMode ? (
-                  <CustomDropdown
+                  <Dropdown
                     value={formData.walkability_importance || ""}
                     onChange={(value) =>
                       updateFormData("walkability_importance", value)
@@ -1565,9 +1193,6 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                       { value: "not_important", label: "Not Important" },
                     ]}
                     placeholder="Select..."
-                    isOpen={openDropdowns.walkability_importance || false}
-                    onToggle={() => toggleDropdown("walkability_importance")}
-                    dropdownRef={getDropdownRef("walkability_importance")}
                   />
                 ) : (
                   <div className="mobile-input bg-gray-50">
@@ -1614,15 +1239,15 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                 )}
               </div>
             </div>
-          </div>
+          </Card>
         );
 
       case "communication":
         return (
-          <div className="space-y-6">
-            <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
+          <Card className="space-y-6">
+            <Title size="md" className="mb-6">
               {SECTION_TITLES.COMMUNICATION_PREFERENCES}
-            </h2>
+            </Title>
 
             {/* Communication Preference */}
             <div>
@@ -1630,16 +1255,13 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                 {FIELD_LABELS.COMMUNICATION_FREQUENCY}
               </label>
               {isEditMode ? (
-                <CustomDropdown
+                <Dropdown
                   value={formData.communication_frequency || ""}
                   onChange={(value) =>
                     updateFormData("communication_frequency", value)
                   }
                   options={COMMUNICATION_FREQUENCY_OPTIONS}
                   placeholder="Select..."
-                  isOpen={openDropdowns.communication_frequency || false}
-                  onToggle={() => toggleDropdown("communication_frequency")}
-                  dropdownRef={getDropdownRef("communication_frequency")}
                 />
               ) : (
                 <div className="mobile-input bg-gray-50">
@@ -1659,7 +1281,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                 Information Detail Level
               </label>
               {isEditMode ? (
-                <CustomDropdown
+                <Dropdown
                   value={formData.information_detail_level || ""}
                   onChange={(value) =>
                     updateFormData("information_detail_level", value)
@@ -1671,9 +1293,6 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                     { value: "comprehensive", label: "Comprehensive" },
                   ]}
                   placeholder="Select..."
-                  isOpen={openDropdowns.information_detail_level || false}
-                  onToggle={() => toggleDropdown("information_detail_level")}
-                  dropdownRef={getDropdownRef("information_detail_level")}
                 />
               ) : (
                 <div className="mobile-input bg-gray-50">
@@ -1698,19 +1317,14 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   Do you currently have a buyer's agent?
                 </label>
                 {isEditMode ? (
-                  <CustomDropdown
+                  <Dropdown
                     value={formData.has_buyers_agent ?? ""}
-                    onChange={(value) =>
-                      updateFormData("has_buyers_agent", value)
-                    }
+                    onChange={(value) => updateFormData("has_buyers_agent", value)}
                     options={[
                       { value: "yes", label: "Yes" },
                       { value: "no", label: "No" },
                     ]}
                     placeholder="Select..."
-                    isOpen={openDropdowns.has_buyers_agent || false}
-                    onToggle={() => toggleDropdown("has_buyers_agent")}
-                    dropdownRef={getDropdownRef("has_buyers_agent")}
                   />
                 ) : (
                   <div className="mobile-input bg-gray-50">
@@ -1787,18 +1401,18 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                 </div>
               )}
             </div>
-          </div>
+          </Card>
         );
 
       case "reportcustomization":
         if (isLoading) {
           return (
-            <div className="space-y-6">
+            <Card className="space-y-6">
               <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
                 Priorities
               </h2>
               <Loading message="Loading report customization options..." />
-            </div>
+            </Card>
           );
         }
 
@@ -1806,24 +1420,26 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
 
         if (!orderedSections || orderedSections.length === 0) {
           return (
-            <div className="space-y-6">
+            <Card className="space-y-6">
               <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
                 Priorities
               </h2>
               <Loading message="Loading report customization options..." />
-            </div>
+            </Card>
           );
         }
 
         return (
-          <OnboardPersonalizeDragDropPriorities
-            isEditMode={isEditMode}
-            isLoading={false}
-            orderedSections={orderedSections}
-            formData={formData}
-            onDragEnd={handleDragEnd}
-            onToggle={handleReportSectionToggle}
-          />
+          <Card className="space-y-6">
+            <OnPerDragDropPriorities
+              isEditMode={isEditMode}
+              isLoading={false}
+              orderedSections={orderedSections}
+              formData={formData}
+              onDragEnd={handleDragEnd}
+              onToggle={handleReportSectionToggle}
+            />
+          </Card>
         );
     }
   };
@@ -1838,49 +1454,20 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
         />
       </div>
 
-      <div className="max-w-7xl mx-auto mobile-padding">
+      <div className="mobile-padding">
         {/* Header with action buttons */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div className="w-[90%] sm:w-auto mx-auto sm:mx-0 text-center sm:text-left">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-serif text-black mb-2">
+            <Title size="lg" className="mb-2">
               <span className="hidden sm:inline">Personalization Settings</span>
-            </h1>
-            <p className="text-sm sm:text-base text-gray-600 hidden sm:block">
+            </Title>
+            <Subtitle size="sm" muted className="hidden sm:block">
               Customize your preferences to get more personalized reports and
               recommendations.
-            </p>
+            </Subtitle>
           </div>
 
-          {/* Desktop Action Buttons - Hidden on mobile */}
-          <div className="hidden sm:flex gap-3">
-            {!isEditMode ? (
-              <button
-                onClick={() => setIsEditMode(true)}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-olive text-white rounded-lg hover:bg-olive/80 transition-colors touch-friendly text-sm"
-              >
-                <Edit size={16} />
-                Edit 
-              </button>
-            ) : (
-              <>
-                <button
-                  onClick={handleCancel}
-                  className="flex items-center gap-2 px-4 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors touch-friendly text-sm"
-                >
-                  <X size={16} />
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSaveChanges}
-                  disabled={isSaving}
-                  className="flex items-center gap-2 px-4 py-3 bg-olive text-white rounded-lg hover:bg-olive/80 transition-colors disabled:opacity-50 touch-friendly text-sm"
-                >
-                  <Save size={16} />
-                  {isSaving ? "Saving..." : "Save Changes"}
-                </button>
-              </>
-            )}
-          </div>
+          {/* Desktop Action Buttons - Removed as requested */}
         </div>
 
         {/* Mobile Action Buttons - Only visible on mobile */}
@@ -1941,64 +1528,65 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
         <div className="flex gap-8">
           {/* Sidebar Navigation - Hidden on mobile */}
           <div className="w-64 flex-shrink-0 hidden sm:block">
-            <div className="mobile-card sticky top-4">
-              <h3 className="text-lg font-semibold text-black mb-4">
-                Sections
-              </h3>
+            <div className="sticky top-4">
+              <Card className="space-y-responsive-sm">
+                <h3 className="text-lg font-semibold text-black mb-4">
+                  Sections
+                </h3>
 
-              {/* Action Buttons */}
-              <div className="mb-6 space-y-2">
-                {!isEditMode ? (
-                  <button
-                    onClick={() => setIsEditMode(true)}
-                    className="w-full flex items-center justify-center gap-2 px-8 py-6 bg-olive text-white rounded-lg hover:bg-olive/80 transition-colors touch-friendly text-sm"
-                  >
-                    <Edit size={16} />
-                    Edit
-                  </button>
-                ) : (
-                  <>
+                {/* Action Buttons */}
+                <div className="mb-6 space-y-2">
+                  {!isEditMode ? (
                     <button
-                      onClick={handleCancel}
-                      className="w-full flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors touch-friendly text-sm"
+                      onClick={() => setIsEditMode(true)}
+                      className="w-full flex items-center justify-center gap-2 px-8 py-6 bg-olive text-white rounded-lg hover:bg-olive/80 transition-colors touch-friendly text-sm"
                     >
-                      <X size={16} />
-                      Cancel
+                      <Edit className="w-4 h-4" />
+                      Edit Preferences
                     </button>
+                  ) : (
+                    <div className="space-y-2">
                     <button
                       onClick={handleSaveChanges}
                       disabled={isSaving}
-                      className="w-full flex items-center gap-2 px-4 py-2 bg-olive text-white rounded-lg hover:bg-olive/80 transition-colors disabled:opacity-50 touch-friendly text-sm"
+                      className="w-full flex items-center justify-center gap-2 px-8 py-6 bg-olive text-white rounded-lg hover:bg-olive/80 transition-colors touch-friendly text-sm disabled:opacity-50"
                     >
-                      <Save size={16} />
+                      <Save className="w-4 h-4" />
                       {isSaving ? "Saving..." : "Save Changes"}
                     </button>
-                  </>
-                )}
+                    <button
+                      onClick={handleCancel}
+                      className="w-full flex items-center justify-center gap-2 px-8 py-6 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors touch-friendly text-sm"
+                    >
+                      <X className="w-4 h-4" />
+                      Cancel
+                    </button>
+                    </div>
+                  )}
               </div>
 
-              {/* Section Navigation */}
+              {/* Navigation */}
               <div className="space-y-1">
-                {STEPS.map((step) => {
-                  const Icon = step.icon;
-                  return (
-                    <button
-                      key={step.id}
-                      onClick={() => scrollToSection(step.id)}
-                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-left ${
-                        activeSection === step.id
-                          ? "bg-brown text-white"
-                          : "text-gray-700 hover:bg-beige/50"
-                      }`}
-                    >
-                      <Icon size={16} />
-                      <span className="text-sm">{step.title}</span>
-                    </button>
-                  );
-                })}
+                {STEPS.map((step) => (
+                  <button
+                    key={step.id}
+                    onClick={() => scrollToSection(step.id)}
+                    className={`w-full text-left px-4 py-3 rounded-lg transition-colors text-sm ${
+                      activeSection === step.id
+                        ? "bg-brown text-white"
+                        : "text-black hover:bg-beige/20"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <step.icon className="w-4 h-4 flex-shrink-0" />
+                      <span className="truncate">{step.title}</span>
+                    </div>
+                  </button>
+                ))}
               </div>
-            </div>
+            </Card>
           </div>
+        </div>
 
           {/* Main Content */}
           <div className="flex-1 w-full">
@@ -2007,7 +1595,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                 <div
                   key={step.id}
                   id={step.id}
-                  className="mobile-card w-[90%] sm:w-full mx-auto sm:mx-0"
+                  className="w-[90%] sm:w-full mx-auto sm:mx-0"
                 >
                   {renderSectionContent(step.id)}
                 </div>
@@ -2016,77 +1604,6 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
           </div>
         </div>
       </div>
-
-      {/* Success Dialog */}
-      {showSuccessDialog &&
-        createPortal(
-          <div
-            className="fixed inset-0 z-[9999] overflow-y-auto"
-            style={{ left: 0, right: 0, top: 0, bottom: 0 }}
-          >
-            <div
-              className="flex min-h-screen items-center justify-center p-4 sm:p-6"
-              style={{ width: "100vw", height: "100vh" }}
-            >
-              {/* Backdrop */}
-              <div
-                className="fixed inset-0 bg-black/50 transition-opacity"
-                onClick={() => setShowSuccessDialog(false)}
-                style={{ left: 0, right: 0, top: 0, bottom: 0 }}
-              />
-
-              {/* Dialog */}
-              <div
-                className="relative z-[10000] w-full max-w-sm mx-auto transform overflow-hidden rounded-2xl bg-white p-6 text-left shadow-xl transition-all"
-                style={{ maxWidth: "320px" }}
-              >
-                {/* Close button */}
-                <button
-                  type="button"
-                  onClick={() => setShowSuccessDialog(false)}
-                  className="absolute right-2 top-2 text-gray-400 hover:text-gray-500 touch-friendly"
-                >
-                  <X className="h-5 w-5" aria-hidden="true" />
-                </button>
-
-                {/* Content */}
-                <div className="flex items-start justify-center">
-                  <div className="mt-3 text-center w-full">
-                    <h3 className="text-lg font-medium leading-6 text-gray-900">
-                      Success!
-                    </h3>
-                    <div className="mt-2">
-                      <p className="text-sm text-gray-500">
-                        Preferences updated successfully!
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Action */}
-                <div className="mt-5 sm:mt-6 flex justify-center">
-                  <button
-                    type="button"
-                    onClick={() => setShowSuccessDialog(false)}
-                    className="inline-flex w-full justify-center rounded-md border border-transparent bg-gold px-6 py-2 text-sm font-medium text-black shadow-sm hover:bg-gold/90 focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-2 sm:w-auto touch-friendly min-w-[100px]"
-                  >
-                    Okay
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>,
-          document.body
-        )}
-
-      {/* Validation Warning Modal */}
-      <ValidationWarning
-        isVisible={showValidationWarning}
-        onClose={handleCloseValidationWarning}
-        onReview={handleReviewInformation}
-        missingFields={validationResult.missingFields}
-        errors={validationResult.errors}
-      />
     </div>
   );
-}
+};

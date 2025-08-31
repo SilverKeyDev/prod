@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
+import { Search } from "lucide-react";
+import KeyTurnLoader from "../../components/ui/base/KeyTurnLoader";
 import { createPortal } from "react-dom";
-import { X, Search, UserPlus } from "lucide-react";
+import { X, UserPlus } from "lucide-react";
+import Card from "../../components/ui/base/Card";
 import { usePreferences, useUser, useAgent, Agent } from "../../context";
-import PageHeader from "../../components/ui/base/PageHeader";
+import Input from "../../components/ui/base/Input";
 
 export default function AgentConnection() {
   const { refreshUserPreferences } = usePreferences();
@@ -109,40 +112,34 @@ export default function AgentConnection() {
 
   return (
     <div className="min-h-screen bg-off-white">
-      <PageHeader
-        title="Agent Connection"
-        subtitle="Connect with real estate agents and manage your professional relationships"
-      />
       
-      <div className="max-w-7xl mx-auto px-responsive-sm sm:px-responsive-md lg:px-responsive-lg py-responsive-lg">
+      <div className="px-responsive-sm sm:px-responsive-md lg:px-responsive-lg py-responsive-lg">
 
         {/* Agent Search Section */}
         {userProfile && !userProfile.is_agent && (
           <div className="mb-8">
-            <div className="mobile-card">
+            <Card>
               <h3 className="text-responsive-md font-medium text-black space-y-responsive-sm">
                 Find Your Agent
               </h3>
 
               {/* Search Input */}
               <div className="space-y-responsive-sm">
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Search className="mobile-icon-xs text-gray-400" />
-                  </div>
-                  <input
-                    type="text"
-                    value={agentSearchTerm}
-                    onChange={(e) => handleAgentSearch(e.target.value)}
-                    placeholder="Search agents by name or email..."
-                    className="mobile-input pl-10 hover:border-brown focus:border-brown focus:ring-brown/20"
-                  />
-                </div>
+                <Input
+                  type="text"
+                  value={agentSearchTerm}
+                  onChange={(e) => handleAgentSearch(e.target.value)}
+                  placeholder="Search agents by name or email..."
+                  leftIcon={<Search className="mobile-icon-xs" />}
+                  variant="search"
+                />
 
                 {/* Search Results */}
                 {agentSearchLoading && (
                   <div className="text-responsive-sm text-gray-500 flex items-center">
-                    <div className="animate-spin rounded-full mobile-icon-xs border-b-2 border-brown mr-2"></div>
+                    <div className="mr-2">
+                      <KeyTurnLoader message="" />
+                    </div>
                     Searching agents...
                   </div>
                 )}
@@ -186,7 +183,7 @@ export default function AgentConnection() {
                   )}
 
               </div>
-            </div>
+            </Card>
           </div>
         )}
 
@@ -243,26 +240,6 @@ export default function AgentConnection() {
             <p className="text-gray-600 mb-4">
               Search for agents above to connect with real estate professionals who can help you find your perfect home.
             </p>
-          </div>
-        )}
-
-        {/* Agent View - Show Client List */}
-        {userProfile && userProfile.is_agent && (
-          <div className="mb-8">
-            <div className="card">
-              <h3 className="text-lg font-medium text-black mb-4 flex items-center gap-2">
-                <UserPlus className="h-5 w-5 text-olive" />
-                Your Clients
-              </h3>
-              <p className="text-gray-600 space-y-responsive-sm">
-                As an agent, you can view and manage your client connections here.
-              </p>
-              <div className="bg-blue-50 border border-blue-200 rounded-lg space-responsive-sm">
-                <p className="text-responsive-sm text-blue-800">
-                  💡 <strong>Tip:</strong> Your clients can find and connect with you by searching for your name or email address.
-                </p>
-              </div>
-            </div>
           </div>
         )}
       </div>

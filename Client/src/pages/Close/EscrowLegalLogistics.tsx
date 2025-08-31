@@ -140,7 +140,6 @@ export default function EscrowLegalLogistics() {
       sectionTitle="Legal & Title Tasks"
       apiEndpoint="/api/v1/user/escrow"
       items={items}
-      containerClassName="max-w-3xl mx-auto py-8"
     />
   );
 }

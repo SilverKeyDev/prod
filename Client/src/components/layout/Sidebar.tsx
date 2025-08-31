@@ -215,6 +215,23 @@ export default function Sidebar({
   isMobile = false,
 }: SidebarProps) {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  
+  // Consistent hover styles for all sidebar buttons
+  const getButtonStyles = (isActive: boolean) => {
+    const baseStyles = "w-full flex items-center py-3 transition-all duration-200 font-medium text-white touch-friendly rounded-lg";
+    const activeStyles = "bg-brown-light/70 text-white font-semibold hover:bg-brown-light/80";
+    const inactiveStyles = "text-white/70 hover:bg-brown-light/30 hover:text-beige hover:-translate-y-0.5 active:bg-brown-light/20 active:text-beige";
+    
+    return `${baseStyles} ${isActive ? activeStyles : inactiveStyles}`;
+  };
+  
+  const getSubItemStyles = (isActive: boolean) => {
+    const baseStyles = "flex items-center transition-all duration-200 font-medium text-white touch-friendly rounded-lg";
+    const activeStyles = "bg-brown-light text-white font-semibold hover:bg-brown-light/80";
+    const inactiveStyles = "text-white/50 hover:bg-brown-light/50 hover:text-beige hover:-translate-y-0.5 active:bg-brown-light/30 active:text-beige";
+    
+    return `${baseStyles} ${isActive ? activeStyles : inactiveStyles}`;
+  };
   // Use userProfile from UserContext for all user info
   const { userProfile, loading: userProfileLoading } = useUser();
   const { isAgent } = useAgent();
@@ -278,8 +295,8 @@ export default function Sidebar({
         className={`
           fixed top-0 left-0 h-full bg-brown text-white z-sidebar transition-all duration-300 ease-in-out safe-top
           ${isMobile 
-            ? `w-80 ${expanded ? 'translate-x-0' : '-translate-x-full'}` 
-            : `${expanded ? 'w-64' : 'w-16'}`
+            ? `w-80 ${expanded ? 'translate-x-0' : '-translate-x-full'} px-4` 
+            : `${expanded ? 'w-64 px-4' : 'w-16 px-2'}`
           }
         `}
       >
@@ -291,7 +308,7 @@ export default function Sidebar({
           }}
         >
           {/* Header with Logo and Toggle Button */}
-          <div className="flex-shrink-0 p-2 flex justify-between items-center">
+          <div className="flex-shrink-0 py-2 flex justify-between items-center">
             {/* Logo */}
             <div
               className="text-white flex items-center"
@@ -299,7 +316,7 @@ export default function Sidebar({
             >
               {/* User Info (only when expanded) */}
               {expanded && (
-                <div className="flex-shrink-0 p-4">
+                <div className="flex-shrink-0 py-4">
                   {isLoading ? (
                     <div className="animate-pulse space-y-3">
                       <div className="flex items-center space-x-4">
@@ -312,10 +329,10 @@ export default function Sidebar({
                     </div>
                   ) : (
                     <div className="flex items-center">
-                      <div style={{ filter: "brightness(0) invert(1)" }}>
+                      <div style={{ filter: "brightness(0) invert(1)" }} className="ml-1">
                         <MiniLogo className="w-6 h-6" />
                       </div>
-                      <div className="ml-4">
+                      <div className="ml-3">
                         <p className="text-sm font-medium text-white line-clamp-1">
                           {userProfile?.name ?? "Unknown User"}
                         </p>
@@ -363,18 +380,14 @@ export default function Sidebar({
                     {categoryKey === "dashboard" ? (
                       <Link
                         to={category.items[0]?.href || "/"}
-                        className={`w-full flex items-center px-4 py-3 transition-all duration-200 font-medium text-white touch-friendly ${
-                          isActive("/")
-                            ? "bg-brown-light/70 text-white font-semibold hover:bg-brown-light/80"
-                            : "text-white/70 hover:bg-brown-light/30 hover:text-beige hover:-translate-y-0.5 active:bg-brown-light/20 active:text-beige"
-                        } ${
-                          !expanded ? "justify-center" : ""
-                        }`}
+                        className={`${getButtonStyles(isActive("/"))} ${
+                            !expanded ? "justify-center" : ""
+                          }`}
                         title={!expanded ? category.name : ""}
                       >
                         <category.icon
                           className={`w-6 h-6 transition-all duration-200 ${
-                            expanded ? "mr-4" : ""
+                            expanded ? "mr-3" : ""
                           }`}
                         />
                         <span className={expanded ? "block" : "hidden"}>
@@ -386,12 +399,8 @@ export default function Sidebar({
                         {/* Category Header */}
                         <button
                           onClick={() => toggleCategory(categoryKey)}
-                          className={`w-full flex items-center transition-all duration-200 font-medium text-white touch-friendly relative group ${
-                            isCategoryActive(category.items)
-                              ? "bg-brown-light/70 text-white font-semibold hover:bg-brown-light/80"
-                              : "text-white/70 hover:bg-brown-light/30 hover:text-beige hover:-translate-y-0.5 active:bg-brown-light/20 active:text-beige"
-                          } ${
-                            !expanded ? "justify-center px-4 py-3" : "justify-between px-4 py-3"
+                          className={`${getButtonStyles(isCategoryActive(category.items))} relative group ${
+                            !expanded ? "justify-center" : "justify-between"
                           }`}
                           title={!expanded ? category.name : ""}
                         >
@@ -403,7 +412,7 @@ export default function Sidebar({
                             }`}>
                               <category.icon
                                 className={`w-6 h-6 transition-all duration-200 ${
-                                  expanded ? "mr-4" : ""
+                                  expanded ? "mr-3" : ""
                                 } ${
                                   !expanded && openCategories[categoryKey] ? "text-gold" : ""
                                 }`}
@@ -426,17 +435,13 @@ export default function Sidebar({
 
                         {/* Category Items */}
                         {openCategories[categoryKey] && (
-                          <div className={`${expanded ? "ml-4" : ""}`}>
+                          <div className={`${expanded ? "ml-3 mt-2 space-y-1" : ""}`}>
                             {category.items.map((item) => (
                               <Link
                                 key={item.name}
                                 to={item.href}
-                                className={`flex items-center transition-all duration-200 font-medium text-white touch-friendly ${
-                                  isActive(item.href)
-                                    ? "bg-brown-light text-white font-semibold hover:bg-brown-light/80"
-                                    : "text-white/50 hover:bg-brown-light/50 hover:text-beige hover:-translate-y-0.5 active:bg-brown-light/30 active:text-beige"
-                                } ${
-                                  !expanded ? "justify-center px-4 py-2" : "px-4 py-2"
+                                className={`${getSubItemStyles(isActive(item.href))} ${
+                                  !expanded ? "justify-center py-2" : "py-2"
                                 }`}
                               >
                                 <item.icon
@@ -466,11 +471,11 @@ export default function Sidebar({
           </div>
 
           {/* Logout - Always visible at bottom */}
-          <div className="flex-shrink-0 border-t border-brown-light p-4">
+          <div className="flex-shrink-0 border-t border-brown-light py-4">
             <button
               onClick={handleLogoutClick}
-              className={`flex items-center text-white hover:bg-brown-light/50 hover:text-beige hover:-translate-y-0.5 active:text-beige rounded-lg w-full touch-friendly transition-all duration-200 ${
-                !expanded ? "justify-center px-4 py-3" : "px-4 py-3"
+              className={`${getButtonStyles(false).replace('text-white/70', 'text-white')} ${
+                !expanded ? "justify-center py-3" : "py-3"
               }`}
             >
               <LogOut className={`w-6 h-6 ${expanded ? "mr-3" : ""}`} />

@@ -1,26 +1,37 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { apiRequest, favoriteHomesApi } from "../lib/api";
-import DocumentCard, { DocumentData } from "../components/cards/DocumentCard";
-import Carousel from "../components/ui/cards/Carousel";
-import TimelineChecklist from "../hooks/TimelineChecklist";
+import { favoriteHomesApi } from "../lib/api";
+import ReportCard from "../components/cards/ReportCard";
+import { useReports } from "../context";
+import { Report } from "../context/utils";
+import { CardCarousel } from "../components/cards/base";
+import TimelineChecklist from "../components/ui/dashboard/DashboardButtonHeader";
 import HomeCard, { HomeDescription } from "../components/cards/HomeCard";
-import PageHeader from "../components/ui/base/PageHeader";
+// Card component available but not used in this file yet
 import CircularButton from "../components/ui/base/CircularButton";
-
-/*import PriceDropCard from "../components/PriceDropCard";
-import NewMatchCard from "../components/NewMatchCard";
-*/
+import { useDocumentActions } from "../hooks/useDocumentActions";
+import PdfModal from "../components/modals/PdfModal";
 
 export default function Dashboard() {
   const navigate = useNavigate();
   // 🆕 Fetch favorite homes
   const [favoriteHomes, setFavoriteHomes] = useState<HomeDescription[]>([]);
-  const [documents, setDocuments] = useState<DocumentData[]>([]);
   const [favLoading, setFavLoading] = useState(true);
-  const [docsLoading, setDocsLoading] = useState(true);
   const [favError, setFavError] = useState<string | null>(null);
-  const [docsError, setDocsError] = useState<string | null>(null);
+
+  // Use preloaded report data from context
+  const { reports, loading: reportsLoading, refreshReports } = useReports();
+
+  // Use centralized document actions
+  const {
+    loadingUrls,
+    handleViewDocument,
+    handleDownloadDocument,
+    handleShareDocument,
+    currentPdf,
+    currentDocumentName,
+    closePdfModal,
+  } = useDocumentActions();
 
   // Helper function to check if a home is saved
   const isHomeSaved = (homeId: string): boolean => {
@@ -97,89 +108,103 @@ export default function Dashboard() {
       setFavLoading(false);
     };
 
-    const fetchDocs = async () => {
-      setDocsLoading(true);
-      setDocsError(null);
-      const res = await apiRequest("/api/v1/report/documents");
-      if (res.success) {
-        if (res.documents) {
-          setDocuments(res.documents as DocumentData[]);
-        } else {
-          // Successful but no documents field -> none saved yet
-          setDocuments([]);
-        }
-      } else {
-        setDocsError(res.error || "Failed to load documents");
-      }
-      setDocsLoading(false);
-    };
-
     fetchFavs();
-    fetchDocs();
-  }, []);
+    // Refresh reports when dashboard loads
+    refreshReports();
+  }, [refreshReports]);
+
+  // Share individual report using centralized function
+  const handleShareReport = useCallback(
+    async (report: Report) => {
+      await handleShareDocument(report.address);
+      // Handle success/error feedback here if needed
+    },
+    [handleShareDocument]
+  );
+
+  // Handle delete - redirect to PastReports for full functionality
+  const handleDeleteReport = useCallback(
+    async (_reportId: string, _s3Key: string | null | undefined) => {
+      // Navigate to PastReports where delete functionality is fully implemented
+      navigate("/reports");
+    },
+    [navigate]
+  );
 
   return (
-    <div className="min-h-screen bg-off-white">
-      <PageHeader
-        title="Dashboard"
-        subtitle="All the tools you need for a seamless purchasing experience."
-      />
+    <div>
+      {currentPdf && (
+        <PdfModal
+          currentPdf={currentPdf}
+          currentReportAddress={currentDocumentName}
+          onClose={closePdfModal}
+        />
+      )}
+      {/* Timeline Progress - Full Width */}
+      <div className="mb-8 -mx-4 sm:-mx-6 lg:-mx-8">
+        <TimelineChecklist variant="horizontal" completedStepKey="search" />
+      </div>
 
-      <div className="max-w-6xl mx-auto p-6">
-        {/* Timeline Progress */}
-        <div className="mb-8">
-          <TimelineChecklist variant="horizontal" completedStepKey="search" />{" "}
-          {/* TODO: dynamic */}
-        </div>
+      {/* Favorite Homes */}
+      <div className="mt-12">
+        <CardCarousel
+          items={favoriteHomes}
+          embeddedButton={
+            <CircularButton
+              onClick={handleSavedHomesClick}
+              title="Click to view all saved homes"
+            >
+              Your Saved Homes
+            </CircularButton>
+          }
+          loading={favLoading}
+          error={favError}
+          emptyMessage="Save your first home today"
+          renderItem={(home) => (
+            <HomeCard
+              home={home}
+              isHomeSaved={isHomeSaved}
+              onSave={handleSaveHome}
+              onRemove={handleRemoveHome}
+            />
+          )}
+          getItemKey={(home) => home.home_id}
+        />
+      </div>
 
-        {/* Favorite Homes */}
-        <div className="mt-12">
-          <Carousel
-            items={favoriteHomes}
-            title={
-              <CircularButton
-                onClick={handleSavedHomesClick}
-                title="Click to view all saved homes"
-              >
-                Your Saved Homes
-              </CircularButton>
-            }
-            loading={favLoading}
-            error={favError}
-            emptyMessage="Save your first home today"
-            renderItem={(home) => (
-              <HomeCard
-                home={home}
-                isHomeSaved={isHomeSaved}
-                onSave={handleSaveHome}
-                onRemove={handleRemoveHome}
+      {/* Recent Reports */}
+      <div className="my-8">
+        <CardCarousel
+          items={reports}
+          embeddedButton={
+            <CircularButton
+              onClick={handleDocumentsClick}
+              title="Click to view all reports"
+            >
+              Your Reports
+            </CircularButton>
+          }
+          loading={reportsLoading}
+          error={null}
+          emptyMessage="Generate your first property report to get started"
+          cardSizing="responsive"
+          minCardWidth={320}
+          maxCardWidth={400}
+          renderItem={(report) => (
+            <div>
+              <ReportCard
+                report={report}
+                loadingUrls={loadingUrls}
+                viewMode="grid"
+                onView={handleViewDocument}
+                onDownload={handleDownloadDocument}
+                onShare={() => handleShareReport(report)}
+                onDelete={handleDeleteReport}
               />
-            )}
-            getItemKey={(home) => home.home_id}
-          />
-        </div>
-
-        {/* Documents */}
-        <div className="my-8">
-          <Carousel
-            items={documents}
-            title={
-              <CircularButton
-                onClick={handleDocumentsClick}
-                title="Click to view all documents"
-              >
-                Your Documents
-              </CircularButton>
-            }
-            loading={docsLoading}
-            error={docsError}
-            emptyMessage="Create your first document today"
-            renderItem={(doc) => {
-              return <DocumentCard doc={doc} />;
-            }}
-            getItemKey={(doc) => doc.id}
-          />
-        </div>
+            </div>
+          )}
+          getItemKey={(report) => report.id}
+        />
       </div>
     </div>
   );

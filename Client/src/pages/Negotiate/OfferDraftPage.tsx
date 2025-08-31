@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
 import FavoriteHomesDropdown from "../../components/ui/base/FavoriteHomesDropdown";
-import PageHeader from "../../components/ui/base/PageHeader";
 // import { useNegotiation } from "../../context";
 import {
   FileText,
@@ -14,8 +13,8 @@ import {
   Download,
   Mail,
   FileCheck,
-  Loader2,
 } from "lucide-react";
+import Input from "../../components/ui/base/Input";
 
 const sectionBox =
   "bg-white rounded-xl shadow-sm p-6 mb-6 border border-beige/40";
@@ -26,8 +25,6 @@ const infoBox =
 const warningBox =
   "bg-amber-50/50 border border-amber-200/30 text-navy/70 text-xs p-3 rounded-lg mb-3";
 const label = "block text-navy font-medium mb-2";
-const input =
-  "w-full border border-beige rounded-lg px-3 py-2 mb-3 focus:outline-none focus:ring-2 focus:ring-olive focus:border-olive transition-colors";
 const textarea =
   "w-full border border-beige rounded-lg px-3 py-2 mb-3 min-h-[80px] focus:outline-none focus:ring-2 focus:ring-olive focus:border-olive transition-colors resize-vertical";
 const fileInput =
@@ -757,12 +754,7 @@ const OfferDraftPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-off-white">
-      <PageHeader
-        title="Draft Your Offer"
-        subtitle="Create a comprehensive offer package with all necessary details"
-      />
-
-      <div className="mx-auto px-responsive-lg py-responsive-lg max-w-6xl">
+      <div className="px-responsive-lg py-responsive-lg">
         {/* Favorite Homes Dropdown */}
         <div className="bg-white rounded-xl shadow-sm space-responsive-md space-y-responsive-md border border-beige/40">
           <div className="flex justify-center w-full">
@@ -859,14 +851,14 @@ const OfferDraftPage: React.FC = () => {
                   </div>
                 </div>
               </div>
-              <label className={label}>Offer Price ($)</label>
-              <input
-                className={input}
+              <Input
+                label="Offer Price ($)"
                 type="number"
                 min="0"
                 value={offer.price}
                 onChange={(e) => handleChange(e, "price")}
                 placeholder="Enter your offer price"
+                leftIcon={<DollarSign className="w-4 h-4" />}
                 required
               />
               <label className={label}>Contingencies</label>
@@ -877,21 +869,20 @@ const OfferDraftPage: React.FC = () => {
                 placeholder="e.g., Financing, Inspection, Appraisal"
                 required
               />
-              <label className={label}>Closing Date</label>
-              <input
-                className={input}
+              <Input
+                label="Closing Date"
                 type="date"
                 value={offer.closingDate}
                 onChange={(e) => handleChange(e, "closingDate")}
                 required
               />
-              <label className={label}>Earnest Money Amount ($)</label>
-              <input
-                className={input}
+              <Input
+                label="Earnest Money Amount ($)"
                 type="number"
                 min="0"
                 value={offer.earnestMoney}
                 onChange={(e) => handleChange(e, "earnestMoney")}
+                leftIcon={<DollarSign className="w-4 h-4" />}
                 placeholder="e.g., 5000"
                 required
               />
@@ -947,7 +938,7 @@ const OfferDraftPage: React.FC = () => {
                   }
                 >
                   {loadingStates.purchaseAgreement ? (
-                    <Loader2 className="mobile-icon-xs animate-spin" />
+                    <div className="mobile-icon-xs animate-spin border-2 border-current border-t-transparent rounded-full" />
                   ) : (
                     <FileCheck className="mobile-icon-xs" />
                   )}
@@ -1046,7 +1037,7 @@ const OfferDraftPage: React.FC = () => {
                   }
                 >
                   {loadingStates.preApprovalLetter ? (
-                    <Loader2 className="mobile-icon-xs animate-spin" />
+                    <div className="mobile-icon-xs animate-spin border-2 border-current border-t-transparent rounded-full" />
                   ) : (
                     <FileCheck className="mobile-icon-xs" />
                   )}
@@ -1104,27 +1095,25 @@ const OfferDraftPage: React.FC = () => {
                   </div>
                 </div>
               </div>
-              <label className={label}>Earnest Money Amount</label>
-              <input
-                className={input}
+              <Input
+                label="Earnest Money Amount"
                 type="text"
                 value={offer.earnestMoneyAmount}
                 onChange={(e) => handleChange(e, "earnestMoneyAmount")}
                 placeholder="e.g., 1% of purchase price or $5,000"
+                leftIcon={<DollarSign className="w-4 h-4" />}
                 required
               />
-              <label className={label}>Escrow Holder</label>
-              <input
-                className={input}
+              <Input
+                label="Escrow Holder"
                 type="text"
                 value={offer.escrowHolder}
                 onChange={(e) => handleChange(e, "escrowHolder")}
                 placeholder="e.g., Title Company Name"
                 required
               />
-              <label className={label}>Timeline for Payment</label>
-              <input
-                className={input}
+              <Input
+                label="Timeline for Payment"
                 type="text"
                 value={offer.earnestTimeline}
                 onChange={(e) => handleChange(e, "earnestTimeline")}
@@ -1157,7 +1146,7 @@ const OfferDraftPage: React.FC = () => {
                   }
                 >
                   {loadingStates.earnestMoneyInstructions ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <div className="h-4 w-4 animate-spin border-2 border-current border-t-transparent rounded-full" />
                   ) : (
                     <FileCheck className="h-4 w-4" />
                   )}
@@ -1239,7 +1228,7 @@ const OfferDraftPage: React.FC = () => {
                   }
                 >
                   {loadingStates.coverLetter ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <div className="h-4 w-4 animate-spin border-2 border-current border-t-transparent rounded-full" />
                   ) : (
                     <FileCheck className="h-4 w-4" />
                   )}
@@ -1269,7 +1258,7 @@ const OfferDraftPage: React.FC = () => {
                   }
                 >
                   {loadingStates.allDocuments ? (
-                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <div className="h-5 w-5 animate-spin border-2 border-current border-t-transparent rounded-full" />
                   ) : (
                     <FileCheck className="h-5 w-5" />
                   )}

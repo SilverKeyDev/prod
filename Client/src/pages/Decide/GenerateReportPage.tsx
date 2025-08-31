@@ -2,10 +2,11 @@ export {};
 
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { MapPin, ChevronDown, Loader2, AlertCircle } from "lucide-react";
+import { MapPin, ChevronDown, AlertCircle } from "lucide-react";
 import { useUser, useGoogleMaps } from "../../context";
-import PageHeader from "../../components/ui/base/PageHeader";
 import KeyTurnLoader from "../../components/ui/base/KeyTurnLoader";
+import Input from "../../components/ui/base/Input";
+import { Card } from "../../components/ui/base";
 
 declare global {
   interface Window {
@@ -228,7 +229,8 @@ export default function GenerateReportPage() {
   }, [userProfile?.is_agent, userProfile?.id, selectedClientId]);
 
   // Use centralized Google Maps loading
-  const { isLoaded: googleMapsLoaded, error: googleMapsError } = useGoogleMaps();
+  const { isLoaded: googleMapsLoaded, error: googleMapsError } =
+    useGoogleMaps();
 
   // Update scriptsReady based on centralized Google Maps loading
   useEffect(() => {
@@ -257,7 +259,7 @@ export default function GenerateReportPage() {
         const request = {
           input: address,
           sessionToken,
-          includedRegionCodes: ['US'],
+          includedRegionCodes: ["US"],
         };
 
         const { suggestions: fetched } =
@@ -300,7 +302,7 @@ export default function GenerateReportPage() {
         const request = {
           input: comparisonAddress,
           sessionToken,
-          includedRegionCodes: ['US'],
+          includedRegionCodes: ["US"],
         };
 
         const { suggestions: fetched } =
@@ -383,7 +385,6 @@ export default function GenerateReportPage() {
 
   // Start polling for report completion using PastReports polling function
   const setupReportCompletionListener = (documentId: string) => {
-
     try {
       // Try to call the polling function from PastReports
       if ((window as any).pollForReportCompletion) {
@@ -396,7 +397,6 @@ export default function GenerateReportPage() {
           );
         }
       } else {
-
         // PastReports component might not be mounted yet, retry a few times
         let retryCount = 0;
         const maxRetries = 20; // Try for 10 seconds (20 * 500ms)
@@ -540,14 +540,9 @@ export default function GenerateReportPage() {
     (userProfile?.is_agent && !selectedClientId);
 
   return (
-    <div className="min-h-screen bg-off-white">
-      <PageHeader
-        title="Generate Property Report"
-        subtitle="Create a comprehensive analysis for any property"
-      />
-      <div className="mx-auto px-responsive-lg py-responsive-lg max-w-4xl">
-
-        <div className="mobile-card max-w-2xl mx-auto space-y-responsive-sm">
+    <div>
+      <div>
+        <Card className="space-y-responsive-sm">
           <div>
             <label
               htmlFor="report-type"
@@ -677,20 +672,19 @@ export default function GenerateReportPage() {
                 ? "First Property Address"
                 : "Property Address"}
             </label>
-            <div className="relative">
-              <MapPin className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-black/40 pointer-events-none z-10" />
-              <input
-                id="address-input"
-                ref={inputRef}
-                type="text"
-                value={address}
-                onChange={handleInputChange}
-                placeholder={scriptsReady ? "Search here" : "Loading..."}
-                disabled={!scriptsReady || isGenerating}
-                className="w-full h-12 sm:h-14 pl-10 sm:pl-12 pr-3 sm:pr-4 rounded-lg border border-gray-300 text-xs sm:text-base focus:ring-2 focus:ring-olive focus:border-olive transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed touch-manipulation"
-                autoComplete="off"
-              />
-            </div>
+            <Input
+              id="address-input"
+              ref={inputRef}
+              type="text"
+              value={address}
+              onChange={handleInputChange}
+              placeholder={scriptsReady ? "Search here" : "Loading..."}
+              disabled={!scriptsReady || isGenerating}
+              leftIcon={<MapPin className="h-4 w-4 sm:h-5 sm:w-5" />}
+              size="lg"
+              autoComplete="off"
+              className="touch-manipulation"
+            />
 
             {suggestions.length > 0 && (
               <ul className="border mt-2 rounded-md overflow-hidden shadow-sm bg-white z-50 relative max-h-60 overflow-y-auto">
@@ -708,7 +702,7 @@ export default function GenerateReportPage() {
 
             {!scriptsReady && !loadError && (
               <p className="text-responsive-sm text-black/60 mt-2 flex items-center">
-                <Loader2 className="animate-spin mobile-icon-xs mr-2" />
+                <div className="animate-spin mobile-icon-xs mr-2 border-2 border-current border-t-transparent rounded-full" />
                 Loading address autocomplete...
               </p>
             )}
@@ -722,20 +716,19 @@ export default function GenerateReportPage() {
               >
                 Second Property Address
               </label>
-              <div className="relative">
-                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 mobile-icon-xs text-black/40 pointer-events-none z-10" />
-                <input
-                  id="comparison-address-input"
-                  ref={comparisonInputRef}
-                  type="text"
-                  value={comparisonAddress}
-                  onChange={handleComparisonInputChange}
-                  placeholder={scriptsReady ? "Search here" : "Loading..."}
-                  disabled={!scriptsReady || isGenerating}
-                  className="w-full btn-responsive-md pl-10 pr-responsive-sm rounded-lg border border-gray-300 text-responsive-sm focus:ring-2 focus:ring-olive focus:border-olive transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed touch-manipulation"
-                  autoComplete="off"
-                />
-              </div>
+              <Input
+                id="comparison-address-input"
+                ref={comparisonInputRef}
+                type="text"
+                value={comparisonAddress}
+                onChange={handleComparisonInputChange}
+                placeholder={scriptsReady ? "Search here" : "Loading..."}
+                disabled={!scriptsReady || isGenerating}
+                leftIcon={<MapPin className="mobile-icon-xs" />}
+                size="md"
+                autoComplete="off"
+                className="touch-manipulation"
+              />
 
               {comparisonSuggestions.length > 0 && (
                 <ul className="border mt-2 rounded-md overflow-hidden shadow-sm bg-white z-50 relative max-h-60 overflow-y-auto">
@@ -782,7 +775,7 @@ export default function GenerateReportPage() {
               </span>
             )}
           </button>
-        </div>
+        </Card>
       </div>
     </div>
   );

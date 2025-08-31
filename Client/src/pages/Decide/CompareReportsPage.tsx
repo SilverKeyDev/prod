@@ -2,21 +2,19 @@ import { useState, useEffect } from "react";
 
 import {
   Check,
-  Loader2,
   BarChart2,
-  RefreshCw,
   Download,
   Share,
   Settings,
   X,
 } from "lucide-react";
+import KeyTurnLoader from "../../components/ui/base/KeyTurnLoader";
 import ErrorToast from "../../components/feedback/ErrorToast";
 import SuccessToast from "../../components/feedback/SuccessToast";
+import { Title, Subtitle, Card } from "../../components/ui/base";
 import { useCompareReports } from "../../context";
 import { Report } from "../../context/utils";
 import { formatFilenameToAddress } from "../../lib/addressFormat";
-import PageHeader from "../../components/ui/base/PageHeader";
-
 
 const ALL_METRIC_KEYS: string[] = [
   // Property Data
@@ -129,8 +127,11 @@ const ALL_METRIC_KEYS: string[] = [
 
 export default function CompareReportsPage() {
   // Use preloaded data from context
-  const { compareReports, error: compareReportsError, refreshCompareReports } =
-    useCompareReports();
+  const {
+    compareReports,
+    error: compareReportsError,
+    refreshCompareReports,
+  } = useCompareReports();
 
   // Refresh data when page loads to ensure latest updates
   useEffect(() => {
@@ -431,12 +432,8 @@ export default function CompareReportsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-off-white">
-      <PageHeader
-        title="Compare Reports"
-        subtitle="Select two reports to compare side by side"
-      />
-      <div className="mx-auto px-responsive-lg py-responsive-lg max-w-6xl overflow-x-auto">
+    <div>
+      <div className="overflow-x-auto">
         {/* Error Toast */}
         {showError && (
           <ErrorToast
@@ -456,15 +453,15 @@ export default function CompareReportsPage() {
         )}
 
         {/* Reports Selection */}
-        <div className="mobile-card mb-20 sm:mb-8" style={{ minWidth: '800px' }}>
+        <Card className="mb-20 sm:mb-8">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-responsive-sm sm:space-y-0 space-y-responsive-md">
             <div>
-              <h2 className="text-responsive-lg font-medium text-black">
+              <Title size="md" className="font-medium">
                 Your Property Reports
-              </h2>
-              <p className="text-responsive-xs text-black/60 mt-1">
+              </Title>
+              <Subtitle size="xs" muted className="mt-1">
                 {selectedReports.length} of {reports.length} selected
-              </p>
+              </Subtitle>
             </div>
             <div className="flex items-center gap-responsive-xs">
               <button
@@ -473,7 +470,9 @@ export default function CompareReportsPage() {
                 className="flex items-center px-responsive-xs py-responsive-xs text-responsive-sm font-medium text-black/70 bg-gray-100 border border-gray-300 hover:bg-gray-200 hover:border-gray-400 rounded-lg transition-colors disabled:bg-gray-200 disabled:text-gray-500 disabled:border-transparent disabled:cursor-not-allowed touch-friendly"
               >
                 <X className="mobile-icon-xs mr-responsive-xs" />
-                <span className="text-responsive-sm font-normal tracking-tight sm:inline">Clear</span>
+                <span className="text-responsive-sm font-normal tracking-tight sm:inline">
+                  Clear
+                </span>
               </button>
               <button
                 onClick={exportToExcel}
@@ -483,7 +482,9 @@ export default function CompareReportsPage() {
                 className="flex items-center px-responsive-xs py-responsive-xs text-responsive-sm font-medium text-white bg-olive hover:bg-olive-light rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-friendly"
               >
                 <Download className="mobile-icon-xs mr-responsive-xs" />
-                <span className="text-responsive-sm font-normal tracking-tight sm:hidden">Export CSV</span>
+                <span className="text-responsive-sm font-normal tracking-tight sm:hidden">
+                  Export CSV
+                </span>
                 <span className="hidden sm:inline">Export CSV</span>
               </button>
               <button
@@ -494,7 +495,9 @@ export default function CompareReportsPage() {
                 className="flex items-center px-responsive-xs py-responsive-xs text-responsive-sm font-medium text-black bg-beige hover:bg-beige/80 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-friendly"
               >
                 <Share className="mobile-icon-xs mr-responsive-xs" />
-                <span className="text-responsive-sm font-normal tracking-tight sm:hidden">Share CSV</span>
+                <span className="text-responsive-sm font-normal tracking-tight sm:hidden">
+                  Share CSV
+                </span>
                 <span className="hidden sm:inline">Share CSV</span>
               </button>
               <button
@@ -502,12 +505,16 @@ export default function CompareReportsPage() {
                 disabled={isLoading}
                 className="flex items-center px-responsive-xs py-responsive-xs text-responsive-sm font-medium text-black bg-beige/30 hover:bg-beige/50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-friendly"
               >
-                <RefreshCw
-                  className={`mobile-icon-xs mr-responsive-xs ${
-                    isLoading ? "animate-spin" : ""
-                  }`}
-                />
-                <span className="text-responsive-sm font-normal tracking-tight sm:hidden">Refresh</span>
+                {isLoading ? (
+                  <div className="mr-responsive-xs">
+                    <KeyTurnLoader message="" />
+                  </div>
+                ) : (
+                  <div className="mobile-icon-xs mr-responsive-xs" />
+                )}
+                <span className="text-responsive-sm font-normal tracking-tight sm:hidden">
+                  Refresh
+                </span>
                 <span className="hidden sm:inline">Refresh</span>
               </button>
             </div>
@@ -515,7 +522,7 @@ export default function CompareReportsPage() {
 
           {isLoading ? (
             <div className="flex justify-center items-center py-responsive-lg">
-              <Loader2 className="mobile-icon-md animate-spin text-black" />
+              <KeyTurnLoader message="Loading comparison..." />
             </div>
           ) : compareReportsError ? (
             <div className="text-center py-responsive-md text-black/60">
@@ -524,12 +531,16 @@ export default function CompareReportsPage() {
           ) : reports.length === 0 ? (
             <div className="text-center py-responsive-lg">
               <BarChart2 className="mobile-icon-lg mx-auto text-black/30 space-y-responsive-sm" />
-              <h3 className="text-responsive-md font-medium text-black space-y-responsive-xs">
+              <Title size="sm" className="font-medium space-y-responsive-xs">
                 No reports found
-              </h3>
-              <p className="text-responsive-sm text-black/60 space-y-responsive-sm px-responsive-sm">
+              </Title>
+              <Subtitle
+                size="sm"
+                muted
+                className="space-y-responsive-sm px-responsive-sm"
+              >
                 Generate your first property report to get started
-              </p>
+              </Subtitle>
             </div>
           ) : (
             <div
@@ -544,7 +555,6 @@ export default function CompareReportsPage() {
                       scrollbarColor: "#E8D5B560 #f3f4f6",
                     }
                   : {}),
-                minWidth: '750px'
               }}
             >
               {reports.map((report: Report) => {
@@ -595,34 +605,39 @@ export default function CompareReportsPage() {
               })}
             </div>
           )}
-        </div>
+        </Card>
 
         {/* Row Omission Controls Button */}
-        <div className="mobile-card mb-6">
+        <Card className="mb-6">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-responsive-sm sm:space-y-0">
             <div>
-              <h3 className="text-responsive-lg font-medium text-black space-y-responsive-xs">
+              <Title size="md" className="font-medium space-y-responsive-xs">
                 Customize Comparison
-              </h3>
-              <p className="text-responsive-sm text-black/60">
+              </Title>
+              <Subtitle size="sm" muted>
                 Showing {visibleMetrics.length} of {ALL_METRIC_KEYS.length}{" "}
                 metrics
-              </p>
+              </Subtitle>
             </div>
             <button
               onClick={() => setShowRowModal(true)}
               className="flex items-center px-responsive-sm py-responsive-xs text-responsive-sm font-medium text-white bg-brown hover:bg-brown/80 rounded-lg transition-colors touch-friendly"
             >
               <Settings className="h-4 w-4 mr-2" />
-              <span className="text-sm font-normal tracking-tight">Manage Rows</span>
+              <span className="text-sm font-normal tracking-tight">
+                Manage Rows
+              </span>
             </button>
           </div>
-        </div>
+        </Card>
 
         {/* Comparison Table */}
         {selectedReports.length > 0 && (
-          <div className="mt-6 sm:mt-10 w-full overflow-x-auto scrollbar-hide border rounded-lg" style={{ minWidth: '800px' }}>
-            <table className="w-full text-xs border-collapse" style={{ minWidth: '800px', tableLayout: 'fixed' }}>
+          <div className="mt-6 sm:mt-10 w-full overflow-x-auto scrollbar-hide border rounded-lg">
+            <table
+              className="w-full text-xs border-collapse"
+              style={{ tableLayout: "fixed" }}
+            >
               <thead className="bg-beige/30">
                 <tr>
                   <th className="px-2 sm:px-4 py-2 sm:py-3 text-left font-semibold text-black sticky left-0 bg-beige/30 text-xs">
@@ -706,12 +721,12 @@ export default function CompareReportsPage() {
               {/* Modal Header */}
               <div className="flex items-center justify-between p-6 border-b border-gray-200">
                 <div>
-                  <h2 className="text-xl font-semibold text-black">
+                  <Title size="md" className="font-semibold">
                     Manage Comparison Rows
-                  </h2>
-                  <p className="text-sm text-black/60 mt-1">
+                  </Title>
+                  <Subtitle size="xs" muted className="mt-1">
                     Select which metrics to include in your comparison table
-                  </p>
+                  </Subtitle>
                 </div>
                 <button
                   onClick={() => setShowRowModal(false)}
