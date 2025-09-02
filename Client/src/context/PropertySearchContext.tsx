@@ -58,13 +58,17 @@ interface PropertySearchContextType {
    Context
    ========================= */
 
-const PropertySearchContext = createContext<PropertySearchContextType | undefined>(undefined);
+const PropertySearchContext = createContext<
+  PropertySearchContextType | undefined
+>(undefined);
 
 interface PropertySearchProviderProps {
   children: ReactNode;
 }
 
-export function PropertySearchProvider({ children }: PropertySearchProviderProps) {
+export function PropertySearchProvider({
+  children,
+}: PropertySearchProviderProps) {
   const { abortAll, withAbort } = useMemo(() => createAbortManager(), []);
   const { user, authReady } = useAuth();
 
@@ -72,7 +76,8 @@ export function PropertySearchProvider({ children }: PropertySearchProviderProps
   const [searchResults, setSearchResults] = useState<Property[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
-  const [currentSearchQuery, setCurrentSearchQuery] = useState<SearchQuery | null>(null);
+  const [currentSearchQuery, setCurrentSearchQuery] =
+    useState<SearchQuery | null>(null);
 
   // Search history state
   const [searchHistory, setSearchHistory] = useState<SearchQuery[]>([]);
@@ -82,7 +87,9 @@ export function PropertySearchProvider({ children }: PropertySearchProviderProps
   // Saved searches state
   const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([]);
   const [savedSearchesLoading, setSavedSearchesLoading] = useState(false);
-  const [savedSearchesError, setSavedSearchesError] = useState<string | null>(null);
+  const [savedSearchesError, setSavedSearchesError] = useState<string | null>(
+    null
+  );
 
   // Isochrones state
   const [isochrones, setIsochrones] = useState<IsochroneData[]>([]);
@@ -93,45 +100,49 @@ export function PropertySearchProvider({ children }: PropertySearchProviderProps
      Fetchers
      ========================= */
 
-  const executeSearch = useCallback(async (params: SearchQuery, signal?: AbortSignal) => {
-    const token = getAuthToken();
-    if (!token) return;
+  const executeSearch = useCallback(
+    async (params: SearchQuery, signal?: AbortSignal) => {
+      const token = getAuthToken();
+      if (!token) return;
 
-    setSearchLoading(true);
-    setSearchError(null);
-    setCurrentSearchQuery(params);
+      setSearchLoading(true);
+      setSearchError(null);
+      setCurrentSearchQuery(params);
 
-    try {
-      const json = await fetchJson<{ success: boolean; properties?: Property[]; error?: string }>(
-        `${BASE_URL}/api/v1/search/properties`,
-        {
+      try {
+        const json = await fetchJson<{
+          success: boolean;
+          properties?: Property[];
+          error?: string;
+        }>(`${BASE_URL}/api/v1/search/properties`, {
           method: "POST",
           mode: "cors",
           headers: createAuthHeaders(token),
           credentials: "include",
           body: JSON.stringify(params),
-          signal
-        }
-      );
+          signal,
+        });
 
-      if (json.success && json.properties) {
-        setSearchResults(json.properties);
-      } else {
-        throw new Error(json.error || "Failed to search properties");
-      }
-    } catch (e: any) {
-      if (!isAbortError(e)) {
-        if (isAuthenticationError(e)) {
-          handleAuthenticationError(e);
-          return; // User will be redirected
+        if (json.success && json.properties) {
+          setSearchResults(json.properties);
+        } else {
+          throw new Error(json.error || "Failed to search properties");
         }
-        console.error("Failed to search properties", e);
-        setSearchError(e?.message ?? "Failed to search properties");
+      } catch (e: any) {
+        if (!isAbortError(e)) {
+          if (isAuthenticationError(e)) {
+            handleAuthenticationError(e);
+            return; // User will be redirected
+          }
+          console.error("Failed to search properties", e);
+          setSearchError(e?.message ?? "Failed to search properties");
+        }
+      } finally {
+        setSearchLoading(false);
       }
-    } finally {
-      setSearchLoading(false);
-    }
-  }, []);
+    },
+    []
+  );
 
   const fetchSearchHistory = useCallback(async (signal?: AbortSignal) => {
     const token = getAuthToken();
@@ -141,23 +152,26 @@ export function PropertySearchProvider({ children }: PropertySearchProviderProps
     setHistoryError(null);
 
     try {
-      const json = await fetchJson<{ success: boolean; searches?: SearchQuery[]; error?: string }>(
-        `${BASE_URL}/api/v1/search/history`,
-        { 
-          method: "GET", 
-          mode: "cors", 
-          headers: createAuthHeaders(token), 
-          credentials: "include",
-          signal,
-          acceptStatuses: [404]
-        }
-      );
+      const json = await fetchJson<{
+        success: boolean;
+        searches?: SearchQuery[];
+        error?: string;
+      }>(`${BASE_URL}/api/v1/search/history`, {
+        method: "GET",
+        mode: "cors",
+        headers: createAuthHeaders(token),
+        credentials: "include",
+        signal,
+        acceptStatuses: [404],
+      });
 
       if (json.success && json.searches) {
-        setSearchHistory(json.searches.map(s => ({
-          ...s,
-          created_at: new Date(s.created_at)
-        })));
+        setSearchHistory(
+          json.searches.map((s) => ({
+            ...s,
+            created_at: new Date(s.created_at),
+          }))
+        );
       } else if (json === undefined) {
         // 404 response, treat as empty
         setSearchHistory([]);
@@ -187,28 +201,31 @@ export function PropertySearchProvider({ children }: PropertySearchProviderProps
     setSavedSearchesError(null);
 
     try {
-      const json = await fetchJson<{ success: boolean; saved_searches?: SavedSearch[]; error?: string }>(
-        `${BASE_URL}/api/v1/search/saved`,
-        { 
-          method: "GET", 
-          mode: "cors", 
-          headers: createAuthHeaders(token), 
-          credentials: "include",
-          signal,
-          acceptStatuses: [404]
-        }
-      );
+      const json = await fetchJson<{
+        success: boolean;
+        saved_searches?: SavedSearch[];
+        error?: string;
+      }>(`${BASE_URL}/api/v1/search/saved`, {
+        method: "GET",
+        mode: "cors",
+        headers: createAuthHeaders(token),
+        credentials: "include",
+        signal,
+        acceptStatuses: [404],
+      });
 
       if (json.success && json.saved_searches) {
-        setSavedSearches(json.saved_searches.map(s => ({
-          ...s,
-          created_at: new Date(s.created_at),
-          last_run: s.last_run ? new Date(s.last_run) : undefined,
-          query: {
-            ...s.query,
-            created_at: new Date(s.query.created_at)
-          }
-        })));
+        setSavedSearches(
+          json.saved_searches.map((s) => ({
+            ...s,
+            created_at: new Date(s.created_at),
+            last_run: s.last_run ? new Date(s.last_run) : undefined,
+            query: {
+              ...s.query,
+              created_at: new Date(s.query.created_at),
+            },
+          }))
+        );
       } else if (json === undefined) {
         // 404 response, treat as empty
         setSavedSearches([]);
@@ -238,23 +255,26 @@ export function PropertySearchProvider({ children }: PropertySearchProviderProps
     setIsochronesError(null);
 
     try {
-      const json = await fetchJson<{ success: boolean; isochrones?: IsochroneData[]; error?: string }>(
-        `${BASE_URL}/api/v1/search/isochrones`,
-        { 
-          method: "GET", 
-          mode: "cors", 
-          headers: createAuthHeaders(token), 
-          credentials: "include",
-          signal,
-          acceptStatuses: [404]
-        }
-      );
+      const json = await fetchJson<{
+        success: boolean;
+        isochrones?: IsochroneData[];
+        error?: string;
+      }>(`${BASE_URL}/api/v1/search/isochrones`, {
+        method: "GET",
+        mode: "cors",
+        headers: createAuthHeaders(token),
+        credentials: "include",
+        signal,
+        acceptStatuses: [404],
+      });
 
       if (json && json.success && json.isochrones) {
-        setIsochrones(json.isochrones.map(i => ({
-          ...i,
-          created_at: new Date(i.created_at)
-        })));
+        setIsochrones(
+          json.isochrones.map((i) => ({
+            ...i,
+            created_at: new Date(i.created_at),
+          }))
+        );
       } else if (json === undefined || json === null) {
         // 404 response or null response, treat as empty
         setIsochrones([]);
@@ -276,161 +296,175 @@ export function PropertySearchProvider({ children }: PropertySearchProviderProps
     }
   }, []);
 
-  const performSaveSearch = useCallback(async (search: SearchQuery, signal?: AbortSignal) => {
-    const token = getAuthToken();
-    if (!token) return;
+  const performSaveSearch = useCallback(
+    async (search: SearchQuery, signal?: AbortSignal) => {
+      const token = getAuthToken();
+      if (!token) return;
 
-    try {
-      const json = await fetchJson<{ success: boolean; saved_search?: SavedSearch; error?: string }>(
-        `${BASE_URL}/api/v1/search/save`,
-        {
+      try {
+        const json = await fetchJson<{
+          success: boolean;
+          saved_search?: SavedSearch;
+          error?: string;
+        }>(`${BASE_URL}/api/v1/search/save`, {
           method: "POST",
           mode: "cors",
           headers: createAuthHeaders(token),
           credentials: "include",
           body: JSON.stringify(search),
-          signal
-        }
-      );
+          signal,
+        });
 
-      if (json.success && json.saved_search) {
-        const newSavedSearch = {
-          ...json.saved_search,
-          created_at: new Date(json.saved_search.created_at),
-          last_run: json.saved_search.last_run ? new Date(json.saved_search.last_run) : undefined,
-          query: {
-            ...json.saved_search.query,
-            created_at: new Date(json.saved_search.query.created_at)
+        if (json.success && json.saved_search) {
+          const newSavedSearch = {
+            ...json.saved_search,
+            created_at: new Date(json.saved_search.created_at),
+            last_run: json.saved_search.last_run
+              ? new Date(json.saved_search.last_run)
+              : undefined,
+            query: {
+              ...json.saved_search.query,
+              created_at: new Date(json.saved_search.query.created_at),
+            },
+          };
+          setSavedSearches((prev) => [...prev, newSavedSearch]);
+        } else {
+          throw new Error(json.error || "Failed to save search");
+        }
+      } catch (e: any) {
+        if (!isAbortError(e)) {
+          if (isAuthenticationError(e)) {
+            handleAuthenticationError(e);
+            return; // User will be redirected
           }
-        };
-        setSavedSearches(prev => [...prev, newSavedSearch]);
-      } else {
-        throw new Error(json.error || "Failed to save search");
-      }
-    } catch (e: any) {
-      if (!isAbortError(e)) {
-        if (isAuthenticationError(e)) {
-          handleAuthenticationError(e);
-          return; // User will be redirected
+          console.error("Failed to save search", e);
+          throw e;
         }
-        console.error("Failed to save search", e);
-        throw e;
       }
-    }
-  }, []);
+    },
+    []
+  );
 
-  const performDeleteSearch = useCallback(async (searchId: string, signal?: AbortSignal) => {
-    const token = getAuthToken();
-    if (!token) return;
+  const performDeleteSearch = useCallback(
+    async (searchId: string, signal?: AbortSignal) => {
+      const token = getAuthToken();
+      if (!token) return;
 
-    try {
-      const json = await fetchJson<{ success: boolean; error?: string }>(
-        `${BASE_URL}/api/v1/search/saved/${searchId}`,
-        {
-          method: "DELETE",
-          mode: "cors",
-          headers: createAuthHeaders(token),
-          credentials: "include",
-          signal
+      try {
+        const json = await fetchJson<{ success: boolean; error?: string }>(
+          `${BASE_URL}/api/v1/search/saved/${searchId}`,
+          {
+            method: "DELETE",
+            mode: "cors",
+            headers: createAuthHeaders(token),
+            credentials: "include",
+            signal,
+          }
+        );
+
+        if (json.success) {
+          setSavedSearches((prev) => prev.filter((s) => s.id !== searchId));
+        } else {
+          throw new Error(json.error || "Failed to delete search");
         }
-      );
-
-      if (json.success) {
-        setSavedSearches(prev => prev.filter(s => s.id !== searchId));
-      } else {
-        throw new Error(json.error || "Failed to delete search");
-      }
-    } catch (e: any) {
-      if (!isAbortError(e)) {
-        if (isAuthenticationError(e)) {
-          handleAuthenticationError(e);
-          return; // User will be redirected
+      } catch (e: any) {
+        if (!isAbortError(e)) {
+          if (isAuthenticationError(e)) {
+            handleAuthenticationError(e);
+            return; // User will be redirected
+          }
+          console.error("Failed to delete search", e);
+          throw e;
         }
-        console.error("Failed to delete search", e);
-        throw e;
       }
-    }
-  }, []);
+    },
+    []
+  );
 
-  const performGenerateIsochrone = useCallback(async (location: string, minutes: number, signal?: AbortSignal) => {
-    const token = getAuthToken();
-    if (!token) return;
+  const performGenerateIsochrone = useCallback(
+    async (location: string, minutes: number, signal?: AbortSignal) => {
+      const token = getAuthToken();
+      if (!token) return;
 
-    setIsochronesLoading(true);
-    setIsochronesError(null);
+      setIsochronesLoading(true);
+      setIsochronesError(null);
 
-    try {
-      const json = await fetchJson<{ success: boolean; isochrone?: IsochroneData; error?: string }>(
-        `${BASE_URL}/api/v1/search/isochrone`,
-        {
+      try {
+        const json = await fetchJson<{
+          success: boolean;
+          isochrone?: IsochroneData;
+          error?: string;
+        }>(`${BASE_URL}/api/v1/search/isochrone`, {
           method: "POST",
           mode: "cors",
           headers: createAuthHeaders(token),
           credentials: "include",
           body: JSON.stringify({ location, minutes }),
-          signal
-        }
-      );
+          signal,
+        });
 
-      if (json.success && json.isochrone) {
-        const newIsochrone = {
-          ...json.isochrone,
-          created_at: new Date(json.isochrone.created_at)
-        };
-        setIsochrones(prev => [...prev, newIsochrone]);
-      } else {
-        throw new Error(json.error || "Failed to generate isochrone");
-      }
-    } catch (e: any) {
-      if (!isAbortError(e)) {
-        if (isAuthenticationError(e)) {
-          handleAuthenticationError(e);
-          return; // User will be redirected
+        if (json.success && json.isochrone) {
+          const newIsochrone = {
+            ...json.isochrone,
+            created_at: new Date(json.isochrone.created_at),
+          };
+          setIsochrones((prev) => [...prev, newIsochrone]);
+        } else {
+          throw new Error(json.error || "Failed to generate isochrone");
         }
-        console.error("Failed to generate isochrone", e);
-        setIsochronesError(e?.message ?? "Failed to generate isochrone");
+      } catch (e: any) {
+        if (!isAbortError(e)) {
+          if (isAuthenticationError(e)) {
+            handleAuthenticationError(e);
+            return; // User will be redirected
+          }
+          console.error("Failed to generate isochrone", e);
+          setIsochronesError(e?.message ?? "Failed to generate isochrone");
+        }
+      } finally {
+        setIsochronesLoading(false);
       }
-    } finally {
-      setIsochronesLoading(false);
-    }
-  }, []);
+    },
+    []
+  );
 
   /* =========================
      Public functions
      ========================= */
 
-  const performSearch = useCallback((params: SearchQuery) => 
-    withAbort((s) => executeSearch(params, s)), 
+  const performSearch = useCallback(
+    (params: SearchQuery) => withAbort((s) => executeSearch(params, s)),
     [withAbort, executeSearch]
   );
 
-  const saveSearch = useCallback((search: SearchQuery) => 
-    withAbort((s) => performSaveSearch(search, s)), 
+  const saveSearch = useCallback(
+    (search: SearchQuery) => withAbort((s) => performSaveSearch(search, s)),
     [withAbort, performSaveSearch]
   );
 
-  const deleteSearch = useCallback((searchId: string) => 
-    withAbort((s) => performDeleteSearch(searchId, s)), 
+  const deleteSearch = useCallback(
+    (searchId: string) => withAbort((s) => performDeleteSearch(searchId, s)),
     [withAbort, performDeleteSearch]
   );
 
-  const refreshSearchHistory = useCallback(() => 
-    withAbort((s) => fetchSearchHistory(s)), 
+  const refreshSearchHistory = useCallback(
+    () => withAbort((s) => fetchSearchHistory(s)),
     [withAbort, fetchSearchHistory]
   );
 
-  const refreshSavedSearches = useCallback(() => 
-    withAbort((s) => fetchSavedSearches(s)), 
+  const refreshSavedSearches = useCallback(
+    () => withAbort((s) => fetchSavedSearches(s)),
     [withAbort, fetchSavedSearches]
   );
 
-  const refreshIsochrones = useCallback(() => 
-    withAbort((s) => fetchIsochrones(s)), 
+  const refreshIsochrones = useCallback(
+    () => withAbort((s) => fetchIsochrones(s)),
     [withAbort, fetchIsochrones]
   );
 
-  const generateIsochrone = useCallback((location: string, minutes: number) => 
-    withAbort((s) => performGenerateIsochrone(location, minutes, s)), 
+  const generateIsochrone = useCallback(
+    (location: string, minutes: number) =>
+      withAbort((s) => performGenerateIsochrone(location, minutes, s)),
     [withAbort, performGenerateIsochrone]
   );
 
@@ -446,17 +480,23 @@ export function PropertySearchProvider({ children }: PropertySearchProviderProps
 
   // Gate initial load based on auth readiness and relevant routes
   useEffect(() => {
-    const enabled = authReady && !!user?.id && (
-      routeStartsWith('/search') ||
-      routeStartsWith('/properties')
-    );
-    
+    const enabled =
+      authReady &&
+      !!user?.id &&
+      (routeStartsWith("/search") || routeStartsWith("/properties"));
+
     if (enabled) {
       refreshSearchHistory();
       refreshSavedSearches();
       refreshIsochrones();
     }
-  }, [authReady, user?.id, refreshSearchHistory, refreshSavedSearches, refreshIsochrones]);
+  }, [
+    authReady,
+    user?.id,
+    refreshSearchHistory,
+    refreshSavedSearches,
+    refreshIsochrones,
+  ]);
 
   // Cross-tab auth changes
   useEffect(() => {
@@ -493,38 +533,60 @@ export function PropertySearchProvider({ children }: PropertySearchProviderProps
      Memoized value
      ========================= */
 
-  const value = useMemo<PropertySearchContextType>(() => ({
-    searchResults,
-    searchHistory,
-    savedSearches,
-    isochrones,
-    searchLoading,
-    historyLoading,
-    savedSearchesLoading,
-    isochronesLoading,
-    searchError,
-    historyError,
-    savedSearchesError,
-    isochronesError,
-    currentSearchQuery,
-    performSearch,
-    saveSearch,
-    deleteSearch,
-    refreshSearchHistory,
-    refreshSavedSearches,
-    refreshIsochrones,
-    clearSearchResults,
-    generateIsochrone,
-  }), [
-    searchResults, searchHistory, savedSearches, isochrones,
-    searchLoading, historyLoading, savedSearchesLoading, isochronesLoading,
-    searchError, historyError, savedSearchesError, isochronesError,
-    currentSearchQuery, performSearch, saveSearch, deleteSearch,
-    refreshSearchHistory, refreshSavedSearches, refreshIsochrones,
-    clearSearchResults, generateIsochrone,
-  ]);
+  const value = useMemo<PropertySearchContextType>(
+    () => ({
+      searchResults,
+      searchHistory,
+      savedSearches,
+      isochrones,
+      searchLoading,
+      historyLoading,
+      savedSearchesLoading,
+      isochronesLoading,
+      searchError,
+      historyError,
+      savedSearchesError,
+      isochronesError,
+      currentSearchQuery,
+      performSearch,
+      saveSearch,
+      deleteSearch,
+      refreshSearchHistory,
+      refreshSavedSearches,
+      refreshIsochrones,
+      clearSearchResults,
+      generateIsochrone,
+    }),
+    [
+      searchResults,
+      searchHistory,
+      savedSearches,
+      isochrones,
+      searchLoading,
+      historyLoading,
+      savedSearchesLoading,
+      isochronesLoading,
+      searchError,
+      historyError,
+      savedSearchesError,
+      isochronesError,
+      currentSearchQuery,
+      performSearch,
+      saveSearch,
+      deleteSearch,
+      refreshSearchHistory,
+      refreshSavedSearches,
+      refreshIsochrones,
+      clearSearchResults,
+      generateIsochrone,
+    ]
+  );
 
-  return <PropertySearchContext.Provider value={value}>{children}</PropertySearchContext.Provider>;
+  return (
+    <PropertySearchContext.Provider value={value}>
+      {children}
+    </PropertySearchContext.Provider>
+  );
 }
 
 /* =========================
@@ -533,6 +595,9 @@ export function PropertySearchProvider({ children }: PropertySearchProviderProps
 
 export function usePropertySearch() {
   const ctx = useContext(PropertySearchContext);
-  if (!ctx) throw new Error("usePropertySearch must be used within a PropertySearchProvider");
+  if (!ctx)
+    throw new Error(
+      "usePropertySearch must be used within a PropertySearchProvider"
+    );
   return ctx;
 }

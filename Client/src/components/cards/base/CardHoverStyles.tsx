@@ -26,7 +26,7 @@ export function getCardHoverClasses(): string {
  * Get card hover styles for interactive cards
  */
 export function getInteractiveCardClasses(): string {
-  return `cursor-pointer ${getCardHoverClasses()}`;
+  return `cursor-pointer hover:cursor-pointer ${getCardHoverClasses()}`;
 }
 
 /**

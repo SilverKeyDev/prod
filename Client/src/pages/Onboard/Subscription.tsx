@@ -215,30 +215,34 @@ export default function Subscription() {
                       </div>
                     </div>
                     
-                    {/* Plan Info - Single Line */}
-                    <div className="py-1.5 text-responsive-xs font-medium">
-                      <span className="text-black">Plan: </span>
-                      <span className="text-gray-500">{(() => {
-                        const plan = plans.find(
-                          (p) => p.id === billingInfo.subscription?.plan_id
-                        );
-                        return plan ? plan.name : "Custom Plan";
-                      })()}</span>
-                      <span className="text-black"> • Billing cycle: </span>
-                      <span className="text-gray-500">{(() => {
-                        const plan = plans.find(
-                          (p) => p.id === billingInfo.subscription?.plan_id
-                        );
-                        if (!plan) return "One-time";
-                        return plan.interval === "month"
-                          ? "Monthly"
-                          : plan.interval === "year"
-                          ? "Yearly"
-                          : "One-time";
-                      })()}</span>
+                    {/* Plan Info - Flex Wrap */}
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 py-1.5 text-responsive-xs font-medium">
+                      <span className="whitespace-nowrap">
+                        <span className="text-black">• Plan: </span>
+                        <span className="text-gray-500">{(() => {
+                          const plan = plans.find(
+                            (p) => p.id === billingInfo.subscription?.plan_id
+                          );
+                          return plan ? plan.name : "Custom Plan";
+                        })()}</span>
+                      </span>
+                      <span className="whitespace-nowrap">
+                        <span className="text-black">• Billing cycle: </span>
+                        <span className="text-gray-500">{(() => {
+                          const plan = plans.find(
+                            (p) => p.id === billingInfo.subscription?.plan_id
+                          );
+                          if (!plan) return "One-time";
+                          return plan.interval === "month"
+                            ? "Monthly"
+                            : plan.interval === "year"
+                            ? "Yearly"
+                            : "One-time";
+                        })()}</span>
+                      </span>
                       {billingInfo.subscription.current_period_end && (
-                        <>
-                          <span className="text-black"> • Next billing date: </span>
+                        <span className="whitespace-nowrap">
+                          <span className="text-black">• Next billing date: </span>
                           <span className="text-gray-500">{new Date(
                             billingInfo.subscription.current_period_end
                           ).toLocaleDateString("en-US", {
@@ -246,7 +250,7 @@ export default function Subscription() {
                             day: "numeric",
                             year: "numeric",
                           })}</span>
-                        </>
+                        </span>
                       )}
                     </div>
                     
@@ -307,29 +311,33 @@ export default function Subscription() {
                       </div>
                     </div>
                     
-                    <div className="text-responsive-sm font-medium">
-                      <span className="text-black">Plan: </span>
-                      <span className="text-gray-500">{(() => {
-                        const plan = plans.find(
-                          (p) => p.id === billingInfo.subscription?.plan_id
-                        );
-                        return plan ? plan.name : "Custom Plan";
-                      })()}</span>
-                      <span className="text-black"> • Billing cycle: </span>
-                      <span className="text-gray-500">{(() => {
-                        const plan = plans.find(
-                          (p) => p.id === billingInfo.subscription?.plan_id
-                        );
-                        if (!plan) return "One-time";
-                        return plan.interval === "month"
-                          ? "Monthly"
-                          : plan.interval === "year"
-                          ? "Yearly"
-                          : "One-time";
-                      })()}</span>
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-responsive-sm font-medium">
+                      <span className="whitespace-nowrap">
+                        <span className="text-black">• Plan: </span>
+                        <span className="text-gray-500">{(() => {
+                          const plan = plans.find(
+                            (p) => p.id === billingInfo.subscription?.plan_id
+                          );
+                          return plan ? plan.name : "Custom Plan";
+                        })()}</span>
+                      </span>
+                      <span className="whitespace-nowrap">
+                        <span className="text-black">• Billing cycle: </span>
+                        <span className="text-gray-500">{(() => {
+                          const plan = plans.find(
+                            (p) => p.id === billingInfo.subscription?.plan_id
+                          );
+                          if (!plan) return "One-time";
+                          return plan.interval === "month"
+                            ? "Monthly"
+                            : plan.interval === "year"
+                            ? "Yearly"
+                            : "One-time";
+                        })()}</span>
+                      </span>
                       {billingInfo.subscription.current_period_end && (
-                        <>
-                          <span className="text-black"> • Next billing date: </span>
+                        <span className="whitespace-nowrap">
+                          <span className="text-black">• Next billing date: </span>
                           <span className="text-gray-500">{new Date(
                             billingInfo.subscription.current_period_end
                           ).toLocaleDateString("en-US", {
@@ -337,7 +345,7 @@ export default function Subscription() {
                             day: "numeric",
                             year: "numeric",
                           })}</span>
-                        </>
+                        </span>
                       )}
                     </div>
                   </div>

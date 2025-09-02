@@ -125,7 +125,6 @@ export default function ResetPasswordPage() {
             placeholder="Enter your email"
             leftIcon={<Mail className="w-4 h-4" />}
             autoComplete="username"
-            required
             variant="mobile"
             className="autofill-gold"
           />

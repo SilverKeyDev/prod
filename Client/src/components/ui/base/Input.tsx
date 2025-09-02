@@ -15,6 +15,7 @@ export interface InputProps
   onClear?: () => void;
   helperText?: string;
   showPasswordToggle?: boolean;
+  customInput?: React.ReactElement;
   // Enhanced icon support
   iconSize?: "xs" | "sm" | "md" | "lg";
   iconColor?: string;
@@ -35,6 +36,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
       onClear,
       helperText,
       showPasswordToggle,
+      customInput,
       className = "",
       type = "text",
       value,
@@ -94,10 +96,8 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
       getSharedInputTextStyles(),
       errorStyles,
       disabledStyles,
-      leftIcon ? "pl-10 sm:pl-11 md:pl-12" : "",
-      rightIcon || clearable || showPasswordToggle
-        ? "pr-10 sm:pr-11 md:pr-12"
-        : "",
+      leftIcon ? "has-left-icon" : "",
+      rightIcon || clearable || showPasswordToggle ? "has-right-icon" : "",
       className,
     ]
       .filter(Boolean)
@@ -129,16 +129,23 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           {leftIcon && <div className={iconClasses.left}>{leftIcon}</div>}
 
           {/* Input Field */}
-          <input
-            ref={ref}
-            type={internalType}
-            value={value}
-            onChange={onChange}
-            disabled={disabled}
-            placeholder={placeholder}
-            className={inputClasses}
-            {...props}
-          />
+          {customInput ? (
+            React.cloneElement(customInput, {
+              className: inputClasses,
+              ...props,
+            })
+          ) : (
+            <input
+              ref={ref}
+              type={internalType}
+              value={value}
+              onChange={onChange}
+              disabled={disabled}
+              placeholder={placeholder}
+              className={inputClasses}
+              {...props}
+            />
+          )}
 
           {/* Right Icons */}
           <div className={iconClasses.right}>

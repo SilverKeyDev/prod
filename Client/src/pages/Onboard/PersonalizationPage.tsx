@@ -1,5 +1,7 @@
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useGoogleMaps } from "../../context";
+import { usePreferences } from "../../context";
+import Card from "../../components/ui/base/Card";
 import {
   Edit,
   Save,
@@ -9,17 +11,15 @@ import {
   Home,
   MapPin,
   MessageSquare,
+  ListOrdered,
 } from "lucide-react";
 import { DragEndEvent } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 import { apiRequest } from "../../lib/api";
-import { usePreferences } from "../../context";
-import Card from "../../components/ui/base/Card";
 import PriceRangeSlider from "../../components/ui/onboardpersonalize/PriceRangeSlider";
 import ImportantLocationsInput from "../../components/ui/onboardpersonalize/ImportantLocationsInput";
 import HomePriceEstimate from "../../components/ui/onboardpersonalize/HomePriceEstimate";
 import { calculateAffordableHomePrice } from "../../lib/onboard/homePriceCalculation";
-import PageHeader from "../../components/ui/base/PageHeader";
 import Loading from "../../components/ui/base/Loading";
 import OliveCheckbox from "../../components/ui/base/OliveCheckbox";
 import OnPerDragDropPriorities from "../../components/ui/onboardpersonalize/OnPerDragDropPriorities";
@@ -27,6 +27,7 @@ import OnPerTagInput from "../../components/ui/onboardpersonalize/OnPerTagInput"
 import Dropdown from "../../components/ui/base/Dropdown";
 import Input from "../../components/ui/base/Input";
 import { Title, Subtitle } from "../../components/ui/base";
+import PersonalizationMobileHeader from "../../components/ui/onboardpersonalize/PersonalizationMobileHeader";
 import {
   OnboardingData,
   SECTION_TITLES,
@@ -43,11 +44,17 @@ declare global {
   }
 }
 
+interface PersonalizationPageProps {
+  setMobileHeaderActions: React.Dispatch<
+    React.SetStateAction<React.ReactNode | null>
+  >;
+}
+
 const STEPS = [
   {
     id: "reportcustomization",
     title: SECTION_TITLES.REPORT_CUSTOMIZATION,
-    icon: Building,
+    icon: ListOrdered,
   },
   { id: "demographics", title: SECTION_TITLES.DEMOGRAPHICS, icon: User },
   { id: "financial", title: SECTION_TITLES.FINANCIAL_PROFILE, icon: Building },
@@ -60,7 +67,9 @@ const STEPS = [
   },
 ];
 
-export default function PersonalizationPage() {
+export default function PersonalizationPage({
+  setMobileHeaderActions,
+}: PersonalizationPageProps) {
   const { userPreferences, refreshUserPreferences } = usePreferences();
   const [formData, setFormData] = useState<OnboardingData>({});
   const [originalData, setOriginalData] = useState<OnboardingData>({});
@@ -74,7 +83,6 @@ export default function PersonalizationPage() {
   const [homePriceResult, setHomePriceResult] = useState<any>(null);
   const [homePriceLoading, setHomePriceLoading] = useState(false);
   const [homePriceError, setHomePriceError] = useState<string | null>(null);
-  const [showStickyButtons, setShowStickyButtons] = useState(false);
   const saveButtonRef = useRef<HTMLDivElement>(null);
 
   // Generate explanation text for the home price calculation
@@ -202,6 +210,13 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
 
   // Trigger home price calculation when relevant form data changes
   useEffect(() => {
+    // Cleanup actions when component unmounts
+    return () => {
+      setMobileHeaderActions(null);
+    };
+  }, []);
+
+  useEffect(() => {
     // Only calculate if we're on the financial section
     if (activeSection !== "financial") return;
 
@@ -285,8 +300,24 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
     }
   }, [userPreferences]);
 
-  // Track scroll position to update active section and sticky buttons
+  // Track scroll position to update active section and manage mobile header
   useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 1024) {
+        setMobileHeaderActions(
+          <PersonalizationMobileHeader
+            isEditMode={isEditMode}
+            isSaving={isSaving}
+            onEdit={() => setIsEditMode(true)}
+            onCancel={handleCancel}
+            onSave={handleSaveChanges}
+          />
+        );
+      } else {
+        setMobileHeaderActions(null);
+      }
+    };
+
     const handleScroll = () => {
       const sections = STEPS.map((step) => step.id);
       const scrollPosition = window.scrollY + 200; // Offset for header
@@ -298,24 +329,18 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
           break;
         }
       }
-
-      // Check if original save button is visible on mobile
-      if (saveButtonRef.current && window.innerWidth < 640) {
-        const rect = saveButtonRef.current.getBoundingClientRect();
-        const isVisible = rect.bottom > 0 && rect.top < window.innerHeight;
-        setShowStickyButtons(!isVisible && isEditMode);
-      } else {
-        setShowStickyButtons(false);
-      }
     };
+
+    // Initial check
+    handleResize();
 
     window.addEventListener("scroll", handleScroll);
-    window.addEventListener("resize", handleScroll);
+    window.addEventListener("resize", handleResize);
     return () => {
       window.removeEventListener("scroll", handleScroll);
-      window.removeEventListener("resize", handleScroll);
+      window.removeEventListener("resize", handleResize);
     };
-  }, [isEditMode]);
+  }, [isEditMode, isSaving]);
 
   // Use centralized Google Maps loading
   const { isLoaded: googleMapsLoaded, error: googleMapsError } =
@@ -1451,167 +1476,99 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
   };
 
   return (
-    <div className="min-h-screen bg-off-white">
-      {/* Mobile Header - Only visible on mobile */}
-      <div className="sm:hidden">
-        <PageHeader
-          title="Personalization"
-          subtitle="Customize your preferences"
-        />
-      </div>
+    <div className="bg-off-white min-h-screen">
+      <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 pb-1">
+        <div className="flex flex-row gap-2 md:gap-8">
+          {/* Sidebar */}
+          <aside className="w-12 md:w-64 sticky top-24 md:top-4 self-start">
+            <Card className="space-y-2">
+              <div className="px-3 py-2">
+                <h2 className="text-lg font-semibold text-black hidden lg:block">Priorities</h2>
+              </div>
 
-      <div className="mobile-padding">
-        {/* Header with action buttons */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-          <div className="w-[90%] sm:w-auto mx-auto sm:mx-0 text-center sm:text-left">
-            <Title size="lg" className="mb-2">
-              <span className="hidden sm:inline">Personalization Settings</span>
-            </Title>
-            <Subtitle size="sm" muted className="hidden sm:block">
-              Customize your preferences to get more personalized reports and
-              recommendations.
-            </Subtitle>
-          </div>
-
-          {/* Desktop Action Buttons - Removed as requested */}
-        </div>
-
-        {/* Mobile Action Buttons - Only visible on mobile */}
-        <div ref={saveButtonRef} className="sm:hidden w-[90%] mx-auto mb-6">
-          {!isEditMode ? (
-            <button
-              onClick={() => setIsEditMode(true)}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-olive text-white rounded-lg hover:bg-olive/80 transition-colors touch-friendly text-sm"
-            >
-              <Edit size={16} />
-              Edit
-            </button>
-          ) : (
-            <div className="flex gap-2">
-              <button
-                onClick={handleCancel}
-                className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors touch-friendly text-sm"
-              >
-                <X size={14} />
-                Cancel
-              </button>
-              <button
-                onClick={handleSaveChanges}
-                disabled={isSaving}
-                className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-olive text-white rounded-lg hover:bg-olive/80 transition-colors disabled:opacity-50 touch-friendly text-sm"
-              >
-                <Save size={14} />
-                {isSaving ? "Saving..." : "Save"}
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Sticky Mobile Buttons - Show when scrolled past original buttons */}
-        {showStickyButtons && (
-          <div className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 p-3 sm:hidden">
-            <div className="flex gap-2 max-w-sm mx-auto">
-              <button
-                onClick={handleCancel}
-                className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors touch-friendly text-sm"
-              >
-                <X size={14} />
-                Cancel
-              </button>
-              <button
-                onClick={handleSaveChanges}
-                disabled={isSaving}
-                className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-olive text-white rounded-lg hover:bg-olive/80 transition-colors disabled:opacity-50 touch-friendly text-sm"
-              >
-                <Save size={14} />
-                {isSaving ? "Saving..." : "Save"}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Sidebar and Content Layout */}
-        <div className="flex gap-8">
-          {/* Sidebar Navigation - Hidden on mobile */}
-          <div className="w-64 flex-shrink-0 hidden sm:block">
-            <div className="sticky top-4">
-              <Card className="space-y-responsive-sm">
-                <h3 className="text-lg font-semibold text-black mb-4">
-                  Sections
-                </h3>
-
-                {/* Action Buttons */}
-                <div className="mb-6 space-y-2">
-                  {!isEditMode ? (
+              {/* Edit/Save Buttons - Hidden on small screens */}
+              <div className="px-3 py-2 hidden md:block">
+                {!isEditMode ? (
+                  <button
+                    onClick={() => setIsEditMode(true)}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2 text-lg font-medium text-white bg-olive rounded-lg hover:bg-olive-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-olive"
+                  >
+                    <Edit className="w-5 h-5" />
+                    Edit
+                  </button>
+                ) : (
+                  <div className="flex flex-col space-y-2">
                     <button
-                      onClick={() => setIsEditMode(true)}
-                      className="w-full flex items-center justify-center gap-2 px-8 py-6 bg-olive text-white rounded-lg hover:bg-olive/80 transition-colors touch-friendly text-sm"
+                      onClick={handleSaveChanges}
+                      disabled={isSaving}
+                      className="w-full flex items-center justify-center gap-2 px-4 py-2 text-lg font-medium text-white bg-olive rounded-lg hover:bg-olive-dark disabled:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-olive"
                     >
-                      <Edit className="w-4 h-4" />
-                      Edit Preferences
+                      <Save className="w-5 h-5" />
+                      {isSaving ? "Saving..." : "Save"}
                     </button>
-                  ) : (
-                    <div className="space-y-2">
-                      <button
-                        onClick={handleSaveChanges}
-                        disabled={isSaving}
-                        className="w-full flex items-center justify-center gap-2 px-8 py-6 bg-olive text-white rounded-lg hover:bg-olive/80 transition-colors touch-friendly text-sm disabled:opacity-50"
-                      >
-                        <Save className="w-4 h-4" />
-                        {isSaving ? "Saving..." : "Save Changes"}
-                      </button>
-                      <button
-                        onClick={handleCancel}
-                        className="w-full flex items-center justify-center gap-2 px-8 py-6 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors touch-friendly text-sm"
-                      >
-                        <X className="w-4 h-4" />
-                        Cancel
-                      </button>
-                    </div>
-                  )}
-                </div>
+                    <button
+                      onClick={handleCancel}
+                      className="w-full flex items-center justify-center gap-2 px-4 py-2 text-lg font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400"
+                    >
+                      <X className="w-5 h-5" />
+                      Cancel
+                    </button>
+                  </div>
+                )}
+              </div>
 
-                {/* Navigation */}
-                <div className="space-y-1">
-                  {STEPS.map((step, index) => (
-                    <div key={step.id}>
-                      <button
-                        onClick={() => scrollToSection(step.id)}
-                        className={`w-full text-left px-4 py-3 rounded-lg transition-colors text-sm ${
-                          activeSection === step.id
-                            ? "bg-gold/20 text-brown border border-gold/30"
-                            : "text-black hover:bg-gold/10"
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <step.icon className="w-4 h-4 flex-shrink-0" />
-                          <span className="truncate">{step.title}</span>
-                        </div>
-                      </button>
-                      {index < STEPS.length - 1 && (
-                        <div className="border-b border-gray-200 my-1"></div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </Card>
-            </div>
-          </div>
-
-          {/* Main Content */}
-          <div className="flex-1 w-full">
-            <div className="space-y-8">
+              {/* Navigation Links */}
               {STEPS.map((step) => (
-                <div
+                <button
                   key={step.id}
-                  id={step.id}
-                  className="w-[90%] sm:w-full mx-auto sm:mx-0"
+                  onClick={() => scrollToSection(step.id)}
+                  className={`w-full justify-center md:justify-start md:text-left px-3 py-2 rounded-lg transition-colors flex items-center md:gap-3 ${
+                    activeSection === step.id
+                      ? "bg-gold text-gray-800"
+                      : "hover:bg-gold-lighter"
+                  }`}
                 >
-                  {renderSectionContent(step.id)}
-                </div>
+                  <step.icon
+                    size={20}
+                    className={`flex-shrink-0 ${
+                      activeSection === step.id ? "text-gray-800" : "text-gray-500"
+                    }`}
+                  />
+                  <span className="hidden md:inline">{step.title}</span>
+                </button>
               ))}
+            </Card>
+          </aside>
+
+          {/* Main Content Area */}
+          <main className="flex-1 space-y-8">
+            {STEPS.map((step) => (
+              <section id={step.id} key={step.id}>
+                {renderSectionContent(step.id)}
+              </section>
+            ))}
+
+            {/* Save/Cancel buttons at the bottom for desktop (hidden on mobile) */}
+            <div ref={saveButtonRef} className="hidden md:flex justify-end items-center gap-4 pt-4">
+              {isEditMode && (
+                <>
+                  <button
+                    onClick={handleCancel}
+                    className="px-6 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSaveChanges}
+                    disabled={isSaving}
+                    className="px-6 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 disabled:bg-gray-400"
+                  >
+                    {isSaving ? "Saving..." : "Save Changes"}
+                  </button>
+                </>
+              )}
             </div>
-          </div>
+          </main>
         </div>
       </div>
     </div>

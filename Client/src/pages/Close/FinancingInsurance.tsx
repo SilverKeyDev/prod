@@ -1,6 +1,18 @@
 import CloseLayout, { ChecklistItem } from "../../components/layout/CloseLayout";
 
-export default function FinancingInsurance() {
+interface ClosePageHeaderData {
+  title: string;
+  subtitle: string;
+  completedCount: number;
+  totalCount: number;
+  loading: boolean;
+}
+
+interface FinancingInsuranceProps {
+  setClosePageHeaderData: React.Dispatch<React.SetStateAction<ClosePageHeaderData | null>>;
+}
+
+export default function FinancingInsurance({ setClosePageHeaderData }: FinancingInsuranceProps) {
 
   const items: ChecklistItem[] = [
     {
@@ -13,7 +25,7 @@ export default function FinancingInsurance() {
         "Respond quickly to document or explanation requests.",
       ],
       resource: {
-        label: "Mortgage Application Document Checklist",
+        label: "Mortgage Application Document",
         href: "https://www.investopedia.com/articles/pf/12/mortgage-loan-documents.asp",
       },
     },
@@ -139,6 +151,7 @@ export default function FinancingInsurance() {
       apiEndpoint="/api/v1/user/financing"
       items={items}
       showMinLoadingText={true}
+      setClosePageHeaderData={setClosePageHeaderData}
     />
   );
 }

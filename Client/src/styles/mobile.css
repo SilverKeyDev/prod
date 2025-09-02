@@ -34,11 +34,11 @@
 
   /* Mobile-first breakpoint utilities */
   .mobile-only {
-    @apply block sm:hidden;
+    @apply block lg:hidden;
   }
 
   .desktop-only {
-    @apply hidden sm:block;
+    @apply hidden lg:block;
   }
 
   .tablet-up {

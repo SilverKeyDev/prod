@@ -92,33 +92,33 @@ const PdfModal: React.FC<PdfModalProps> = ({
 
           {/* Action Buttons */}
           <div className="flex items-center gap-responsive-sm">
-            {/* Download Button */}
+            {/* Download Button (Desktop only) */}
             <button
               onClick={handleDownload}
-              className="space-responsive-sm hover:bg-white/10 rounded-lg transition-colors duration-200 group"
+              className="hidden sm:flex p-2 hover:bg-white/10 rounded-lg transition-colors duration-200 group"
               title="Download PDF"
             >
-              <Download className="mobile-icon-md text-white group-hover:scale-110 transition-transform duration-200" />
+              <Download className="h-6 w-6 text-white group-hover:scale-110 transition-transform duration-200" />
             </button>
 
-            {/* Share Button */}
+            {/* Share Button (Desktop only) */}
             {onShare && (
               <button
                 onClick={onShare}
-                className="space-responsive-sm hover:bg-white/10 rounded-lg transition-colors duration-200 group"
+                className="hidden sm:flex p-2 hover:bg-white/10 rounded-lg transition-colors duration-200 group"
                 title="Share Report"
               >
-                <Share className="mobile-icon-md text-white group-hover:scale-110 transition-transform duration-200" />
+                <Share className="h-6 w-6 text-white group-hover:scale-110 transition-transform duration-200" />
               </button>
             )}
 
-            {/* Close Button */}
+            {/* Close Button (Visible on all screens) */}
             <button
               onClick={onClose}
-              className="space-responsive-sm hover:bg-white/10 rounded-lg transition-colors duration-200 group"
+              className="p-2 hover:bg-white/10 rounded-lg transition-colors duration-200 group"
               title="Close"
             >
-              <X className="mobile-icon-md text-white group-hover:scale-110 transition-transform duration-200" />
+              <X className="h-6 w-6 text-white group-hover:scale-110 transition-transform duration-200" />
             </button>
           </div>
         </div>

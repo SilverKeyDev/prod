@@ -1,9 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useMemo, ReactNode, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import MobileSidebar from "./MobileSidebar";
 import { useAgent } from "../../context/AgentContext";
 import PageHeader from "../ui/base/PageHeader";
+import MobileTopBar from "../ui/base/MobileTopBar";
+import TimelineChecklist from "../ui/dashboard/DashboardButtonHeader";
+import ClosePageHeader from "../ui/close/ClosePageHeader";
 // import { useNotifications } from "../../context";
 import GenerateReportPage from "../../pages/Decide/GenerateReportPage.tsx";
 import PastReports from "../../pages/Decide/PastReports.tsx";
@@ -29,266 +32,270 @@ interface HeaderConfig {
   subtitle?: string;
 }
 
+interface ClosePageHeaderData {
+  title: string;
+  subtitle: string;
+  completedCount: number;
+  totalCount: number;
+  loading: boolean;
+}
+
 interface DashboardProps {
   user?: UserProfile;
   onLogout: () => void;
   header?: HeaderConfig;
+  mobileHeader?: React.ReactNode; // Allow passing a custom mobile header
   maxWidth?: number; // Percentage value (e.g., 85 for 85%)
 }
+
+// Page-specific width configuration
+interface PageWidthConfig {
+  [path: string]: number; // Percentage values
+}
+
+const PAGE_WIDTH_CONFIG: PageWidthConfig = {
+  "/search": 100,
+  "/compare-reports": 90,
+  "/generate-report": 75,
+};
 
 export default function DashboardLayout({
   user,
   onLogout,
   header,
-  maxWidth = 85,
+  mobileHeader,
+  maxWidth = 85, // Default to 85% if not specified
 }: DashboardProps) {
+  const [mobileHeaderActions, setMobileHeaderActions] =
+    useState<ReactNode | null>(null);
+  const [closePageHeaderData, setClosePageHeaderData] =
+    useState<ClosePageHeaderData | null>(null);
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
-  const [isMobile, setIsMobile] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(false);
   const location = useLocation();
   const { getAgentConnectionComponent } = useAgent();
+
+  // Track screen size for responsive width application
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsDesktop(window.innerWidth >= 1024);
+    };
+    
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
 
   // Use NotificationsContext for activity feed (for future notification badge)
   // const { unreadCount } = useNotifications();
 
   // Get page-specific width configuration based on current route
-  const getPageMaxWidth = (): number => {
+  const getPageWidth = (): number => {
     const path = location.pathname;
 
-    // Page-specific width overrides (percentage values)
-    if (path.startsWith("/dashboard")) return 90; // Dashboard needs more space for cards
-    if (path.startsWith("/search")) return 100; // Map needs full width
+    // Find matching page configuration
+    const configPath = Object.keys(PAGE_WIDTH_CONFIG).find((configPath) =>
+      path.startsWith(configPath)
+    );
 
-    // Default to the passed maxWidth parameter or 85%
-    return maxWidth;
+    // Use page-specific width or default to maxWidth (defaulting to 85)
+    return configPath ? PAGE_WIDTH_CONFIG[configPath] : (maxWidth || 85);
   };
 
-  // Get header-specific width configuration (standardized to match generate-report)
-  const getHeaderMaxWidth = (): number => {
-    // Use consistent 85% width for all headers to match generate-report
-    return 85;
-  };
-
-  // Get header configuration based on current route
-  const getHeaderConfig = (): HeaderConfig | undefined => {
-    // If header prop is provided, use it (allows override)
+  const config = useMemo(() => {
+    const path = location.pathname;
     if (header) return header;
 
-    // Default header configurations based on route
-    const path = location.pathname;
-
     if (path.startsWith("/escrow-legal-logistics")) {
-      return { type: "none" };
-    }
-
-    if (path.startsWith("/inspections-due-diligence")) {
-      return { type: "none" };
-    }
-
-    if (path.startsWith("/financing-insurance")) {
-      return { type: "none" };
-    }
-
-    if (path.startsWith("/closing-moving-in")) {
-      return { type: "none" };
-    }
-
-    if (path.startsWith("/generate-report")) {
-      return {
-        type: "rheader",
-        title: "Generate Report",
-        subtitle: "Create detailed property analysis",
-      };
-    }
-
-    if (path.startsWith("/reports")) {
-      return {
-        type: "rheader",
-        title: "Past Reports",
-        subtitle: "Manage and download your generated property reports",
-      };
-    }
-
-    if (path.startsWith("/search")) {
-      return { type: "none" };
-    }
-
-    if (path.startsWith("/ai-assistant")) {
-      return { type: "none" };
-    }
-
-    if (path.startsWith("/personalization")) {
-      return { type: "none" };
-    }
-
-    if (path.startsWith("/negotiation-strategy")) {
-      return {
-        type: "rheader",
-        title: "Negotiation Strategy",
-        subtitle: "Plan your offer approach",
-      };
-    }
-
-    if (path.startsWith("/draft-offer")) {
-      return {
-        type: "rheader",
-        title: "Draft Offer",
-        subtitle: "Create your property offer",
-      };
-    }
-
-    if (path.startsWith("/subscription")) {
-      return {
-        type: "rheader",
-        title: "Subscription",
-        subtitle: "Manage your subscription and billing",
-      };
-    }
-
-    if (
+      return { type: "none", title: "Escrow & Legal" };
+    } else if (path.startsWith("/inspections-due-diligence")) {
+      return { type: "none", title: "Inspections" };
+    } else if (path.startsWith("/financing-insurance")) {
+      return { type: "none", title: "Financing & Insurance" };
+    } else if (path.startsWith("/closing-moving-in")) {
+      return { type: "none", title: "Closing" };
+    } else if (path.startsWith("/generate-report")) {
+      return { type: "rheader", title: "Generate Report", subtitle: "Create comprehensive property analysis reports" };
+    } else if (path.startsWith("/reports")) {
+      return { type: "rheader", title: "Past Reports", subtitle: "View and manage your previous property reports" };
+    } else if (path.startsWith("/search")) {
+      return { type: "none", title: "Search" };
+    } else if (path.startsWith("/ai-assistant")) {
+      return { type: "none", title: "AI Assistant" };
+    } else if (path.startsWith("/personalization")) {
+      return { type: "rheader", title: "Personalization", subtitle: "Customize your home search preferences" };
+    } else if (path.startsWith("/negotiation-strategy")) {
+      return { type: "rheader", title: "Negotiation Strategy", subtitle: "Develop winning strategies for your offers" };
+    } else if (path.startsWith("/draft-offer")) {
+      return { type: "rheader", title: "Draft Offer", subtitle: "Create compelling offers for your target properties" };
+    } else if (path.startsWith("/subscription")) {
+      return { type: "rheader", title: "Subscription", subtitle: "Manage your SilverKey membership and billing" };
+    } else if (
       path.startsWith("/agent-connection") ||
       path.startsWith("/client-information")
     ) {
-      return {
-        type: "rheader",
-        title: "Agent Connection",
-        subtitle: "Connect with real estate professionals",
-      };
+      return { type: "rheader", title: "Agent Connection", subtitle: "Connect with real estate professionals" };
+    } else if (path.startsWith("/saved")) {
+      return { type: "rheader", title: "Saved Homes", subtitle: "Your bookmarked properties and favorites" };
+    } else if (path.startsWith("/compare-reports")) {
+      return { type: "rheader", title: "Compare Reports", subtitle: "Side-by-side analysis of multiple properties" };
+    } else {
+      return { type: "none", title: "Dashboard" };
+    }
+  }, [location.pathname, header]);
+
+  const headerContent = useMemo(() => {
+    const path = location.pathname;
+
+    // Use ClosePageHeader for Close pages
+    if (
+      closePageHeaderData &&
+      (path.startsWith("/escrow-legal-logistics") ||
+        path.startsWith("/inspections-due-diligence") ||
+        path.startsWith("/financing-insurance") ||
+        path.startsWith("/closing-moving-in"))
+    ) {
+      return (
+        <ClosePageHeader
+          title={closePageHeaderData.title}
+          subtitle={closePageHeaderData.subtitle}
+          completedCount={closePageHeaderData.completedCount}
+          totalCount={closePageHeaderData.totalCount}
+          loading={closePageHeaderData.loading}
+        />
+      );
     }
 
-    if (path.startsWith("/saved")) {
-      return {
-        type: "rheader",
-        title: "Saved Homes",
-        subtitle: "View your saved properties",
-      };
+    if (config?.type === "rheader" && config.title) {
+      return <PageHeader title={config.title} subtitle={config.subtitle} />;
     }
+    return null;
+  }, [config, closePageHeaderData, location.pathname]);
 
-    if (path.startsWith("/compare-reports")) {
-      return {
-        type: "rheader",
-        title: "Compare Reports",
-        subtitle: "Compare property analysis reports",
-      };
-    }
-
-    // Default to no header for dashboard and other pages
-    return { type: "none" };
+  const mobileOverrides: { [key: string]: React.ReactNode } = {
+    // Example: "/search": <SearchHeaderComponent />,
   };
 
-  // Check if screen is mobile size
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 1024); // lg breakpoint
-      // Close sidebar on mobile by default
-      if (window.innerWidth < 1024) {
-        setSidebarExpanded(false);
-      }
-    };
+  const mobileHeaderContent = useMemo(() => {
+    const path = location.pathname;
 
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
-
-  // Render header component based on type
-  const renderHeader = () => {
-    const headerConfig = getHeaderConfig();
-    if (!headerConfig || headerConfig.type === "none") return null;
-
-    switch (headerConfig.type) {
-      case "rheader":
-        return (
-          <PageHeader
-            title={headerConfig.title || "Default Title"}
-            subtitle={headerConfig.subtitle}
-          />
-        );
-      default:
-        return null;
+    // Always prioritize actions if they are set
+    if (mobileHeaderActions) {
+      return mobileHeaderActions;
     }
-  };
+
+    // Check for Close pages first - render ClosePageHeader if data is available
+    if (
+      closePageHeaderData &&
+      (path.startsWith("/escrow-legal-logistics") ||
+        path.startsWith("/inspections-due-diligence") ||
+        path.startsWith("/financing-insurance") ||
+        path.startsWith("/closing-moving-in"))
+    ) {
+      return (
+        <ClosePageHeader
+          title={closePageHeaderData.title}
+          subtitle={closePageHeaderData.subtitle}
+          completedCount={closePageHeaderData.completedCount}
+          totalCount={closePageHeaderData.totalCount}
+          loading={closePageHeaderData.loading}
+        />
+      );
+    }
+
+    // For the dashboard, use the timeline checklist as the header
+    if (path.startsWith("/dashboard")) {
+      return (
+        <TimelineChecklist variant="horizontal" completedStepKey="search" />
+      );
+    }
+
+    // For personalization, ensure no other header content is shown when actions are not present
+    if (path === "/personalization") {
+      return null;
+    }
+
+    // Prioritize the explicitly passed mobileHeader component for other pages
+    if (mobileHeader) {
+      return mobileHeader;
+    }
+
+    const override = Object.keys(mobileOverrides).find((key) =>
+      path.startsWith(key)
+    );
+    if (override) return mobileOverrides[override];
+
+    if (config?.title) {
+      return <PageHeader title={config.title} />;
+    }
+
+    return null;
+  }, [
+    location.pathname,
+    config,
+    mobileOverrides,
+    mobileHeader,
+    mobileHeaderActions,
+    closePageHeaderData,
+  ]);
 
   return (
     <div className="min-h-screen bg-off-white flex">
-      {/* Desktop Sidebar */}
-      {!isMobile && (
+      {/* Desktop Sidebar - Hidden on mobile */}
+      <div className="hidden lg:block">
         <Sidebar
           user={user}
           onLogout={onLogout}
           expanded={sidebarExpanded}
           onToggleExpanded={() => setSidebarExpanded(!sidebarExpanded)}
-          isMobile={false}
         />
-      )}
+      </div>
 
-      {/* Mobile Sidebar */}
-      {isMobile && (
+      {/* Mobile Sidebar - Hidden on desktop */}
+      <div className="block lg:hidden">
         <MobileSidebar
           user={user}
           onLogout={onLogout}
           expanded={sidebarExpanded}
           onToggleExpanded={() => setSidebarExpanded(!sidebarExpanded)}
         />
-      )}
+      </div>
 
       <main
-        className={`flex-1 transition-all duration-200 ${
-          isMobile
-            ? "ml-0" // No margin on mobile (MobileSidebar handles positioning)
-            : sidebarExpanded
-            ? "ml-64" // Desktop expanded (w-64 = 256px)
-            : "ml-16" // Desktop collapsed (w-16 = 64px)
+        className={`flex-1 transition-all duration-200 ml-0 ${
+          sidebarExpanded ? "lg:ml-64" : "lg:ml-16"
         }`}
       >
-        {/* Mobile Header Bar - Fixed at top to prevent overlapping */}
-        {isMobile && renderHeader() && (
-          <div className="fixed top-0 left-0 right-0 z-40 bg-white shadow-sm">
-            <div className="flex items-center gap-responsive-sm px-responsive-sm py-responsive-xs">
-              {/* Mobile Sidebar Toggle Button */}
-              <button
-                onClick={() => setSidebarExpanded(!sidebarExpanded)}
-                className="p-2 bg-brown text-white rounded-lg shadow hover:bg-brown-light hover:text-beige active:text-beige transition-all duration-200 touch-friendly flex-shrink-0"
-                aria-label="Toggle sidebar"
-              >
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
-                </svg>
-              </button>
-
-              {/* PageHeader Component with proper margin */}
-              <div className="flex-1 min-w-0">
-                {renderHeader()}
-              </div>
+        {/* Mobile Header - Hidden on desktop */}
+        <div className="lg:hidden">
+          <MobileTopBar sidebarExpanded={sidebarExpanded}>
+            <div className="w-10 mr-4" />
+            <div className="flex-grow text-center flex items-center justify-center">
+              {mobileHeaderContent}
             </div>
-          </div>
-        )}
+            <div className="w-6" />
+          </MobileTopBar>
+        </div>
 
         {/* Desktop Header Rendering with consistent width */}
-        {!isMobile && renderHeader() && (
-          <div
-            className="mt-4 sm:mt-6 lg:mt-8 mx-auto"
-            style={{ maxWidth: `${getHeaderMaxWidth() * 1.04}%` }}
-          >
-            {renderHeader()}
-          </div>
-        )}
+        <div className="hidden lg:block mt-4 sm:mt-6 lg:mt-8 mx-auto">
+          {headerContent}
+        </div>
 
         {/* Content area with centralized width parameter */}
         <div
-          className={`mx-auto ${
-            isMobile ? "p-2 sm:p-4 pt-20" : "p-4 sm:p-6 lg:p-8"
+          className={`mx-auto p-4 sm:p-6 lg:p-8 w-full ${
+            location.pathname.startsWith("/escrow-legal-logistics") ||
+            location.pathname.startsWith("/inspections-due-diligence") ||
+            location.pathname.startsWith("/financing-insurance") ||
+            location.pathname.startsWith("/closing-moving-in")
+              ? "pt-16 lg:pt-8"
+              : "pt-28 lg:pt-8"
           }`}
-          style={{ maxWidth: `${getPageMaxWidth()}%` }}
+          style={{
+            maxWidth: isDesktop ? `${getPageWidth()}vw` : '100%'
+          }}
         >
           {/* Render component based on current path */}
           {location.pathname.startsWith("/generate-report") && (
@@ -298,10 +305,14 @@ export default function DashboardLayout({
           {location.pathname.startsWith("/compare-reports") && (
             <CompareReportsPage />
           )}
-          {location.pathname.startsWith("/search") && <SearchPage />}
+          {location.pathname.startsWith("/search") && (
+            <SearchPage setMobileHeaderActions={setMobileHeaderActions} />
+          )}
           {location.pathname.startsWith("/ai-assistant") && <AIAssistant />}
           {location.pathname.startsWith("/personalization") && (
-            <PersonalizationPage />
+            <PersonalizationPage
+              setMobileHeaderActions={setMobileHeaderActions}
+            />
           )}
           {location.pathname.startsWith("/subscription") && <Subscription />}
           {(location.pathname.startsWith("/client-information") ||
@@ -312,16 +323,22 @@ export default function DashboardLayout({
             <NegotiationStrategy />
           )}
           {location.pathname.startsWith("/escrow-legal-logistics") && (
-            <EscrowLegalLogistics />
+            <EscrowLegalLogistics
+              setClosePageHeaderData={setClosePageHeaderData}
+            />
           )}
           {location.pathname.startsWith("/inspections-due-diligence") && (
-            <InspectionsDueDiligence />
+            <InspectionsDueDiligence
+              setClosePageHeaderData={setClosePageHeaderData}
+            />
           )}
           {location.pathname.startsWith("/financing-insurance") && (
-            <FinancingInsurance />
+            <FinancingInsurance
+              setClosePageHeaderData={setClosePageHeaderData}
+            />
           )}
           {location.pathname.startsWith("/closing-moving-in") && (
-            <ClosingMovingIn />
+            <ClosingMovingIn setClosePageHeaderData={setClosePageHeaderData} />
           )}
           {location.pathname.startsWith("/saved") && <SavedHomes />}
           {location.pathname.startsWith("/dashboard") && <DashboardPage />}

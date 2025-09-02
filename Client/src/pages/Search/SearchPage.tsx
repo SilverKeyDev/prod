@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from "react";
-import { Bookmark, MapPin, ChevronLeft, ChevronRight } from "lucide-react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { Bookmark, MapPin, ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from "lucide-react";
 import {
   CardImageContainer,
   CardPropertyDetails,
@@ -7,7 +7,7 @@ import {
   CardHeartSave,
   CardCarousel,
 } from "../../components/cards/base";
-import { PropertyCard, SearchResultsSummaryCard } from "../../components/cards";
+import { PropertyCard } from "../../components/cards";
 import { useNavigate } from "react-router-dom";
 import { favoriteHomesApi } from "../../lib/api";
 import PropertyDetailsModal from "../../components/modals/PropertyDetailsModal";
@@ -16,6 +16,7 @@ import { usePropertyDetails } from "../../hooks/usePropertyDetails";
 import KeyTurnLoader from "../../components/ui/base/KeyTurnLoader";
 import { checkAuthAndRedirect, getAuthToken } from "../../lib/authUtils";
 import { useGoogleMaps } from "../../context/GoogleMapsContext";
+import SearchMobileHeader from "../../components/ui/search/SearchMobileHeader";
 
 interface SearchResult {
   id: string;
@@ -198,7 +199,13 @@ const userPreferences: UserPreferences = {
   lifestyle: "Family",
 };
 
-export default function SearchPage() {
+interface SearchPageProps {
+  setMobileHeaderActions: React.Dispatch<
+    React.SetStateAction<React.ReactNode | null>
+  >;
+}
+
+export default function SearchPage({ setMobileHeaderActions }: SearchPageProps) {
   const navigate = useNavigate();
   const { isLoaded: isGoogleMapsLoaded, createMap } = useGoogleMaps();
   // selectedLocation state removed - no longer needed without map click search
@@ -225,7 +232,19 @@ export default function SearchPage() {
   const [isUpdatingMarkers, setIsUpdatingMarkers] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const [showPropertyModals, setShowPropertyModals] = useState(false);
+  const [isCarouselCollapsed, setIsCarouselCollapsed] = useState(false);
   const PROPERTIES_PER_PAGE = 1;
+
+  // Mobile header button handlers
+  const handlePreferences = useCallback(() => {
+    navigate('/dashboard/personalization');
+  }, [navigate]);
+
+  const handleSearch = useCallback(() => {
+    if (!isSearching) {
+      fetchIsochronePolygon();
+    }
+  }, [isSearching]);
 
   // Load search results from localStorage or run fresh search based on preferences version
   useEffect(() => {
@@ -296,6 +315,42 @@ export default function SearchPage() {
 
     initializeSearchResults();
   }, []); // Empty dependency array - only run on mount
+
+  // Mobile header actions setup
+  useEffect(() => {
+    // Cleanup actions when component unmounts
+    return () => {
+      setMobileHeaderActions(null);
+    };
+  }, [setMobileHeaderActions]);
+
+  // Handle mobile header actions based on screen size
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 1024) {
+        setMobileHeaderActions(
+          <SearchMobileHeader
+            onPreferences={handlePreferences}
+            onSearch={handleSearch}
+            isSearching={isSearching}
+          />
+        );
+      } else {
+        setMobileHeaderActions(null);
+      }
+    };
+
+    // Set initial state
+    handleResize();
+
+    // Add event listener
+    window.addEventListener('resize', handleResize);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [setMobileHeaderActions, handlePreferences, handleSearch, isSearching]);
 
   // Global function to open property modal from info window
   useEffect(() => {
@@ -1693,45 +1748,11 @@ export default function SearchPage() {
     <div>
       {/* Mobile Layout */}
       <div className="md:hidden flex flex-col h-[calc(100svh-80px)]">
-        {/* Mobile Header - Small and Compact */}
-        <div className="flex-shrink-0 space-responsive-xs bg-white border-b border-gray-200">
-          <div className="flex items-center justify-between gap-responsive-sm min-w-0">
-            <div className="flex-1 min-w-0">
-              <span className="text-responsive-xs text-gray-600 truncate block">
-                Search Properties
-              </span>
-            </div>
-            <div className="flex gap-responsive-xs flex-shrink-0">
-              <button
-                onClick={() => navigate("/personalization")}
-                className="inline-flex items-center px-responsive-sm py-responsive-xs bg-olive text-white rounded text-responsive-xs whitespace-nowrap hover:bg-olive/90 transition-colors"
-              >
-                Preferences
-              </button>
-              <button
-                onClick={async () => {
-                  try {
-                    setIsSearching(true);
-                    await fetchIsochronePolygon();
-                  } catch (error) {
-                    console.error("Search failed:", error);
-                  } finally {
-                    setIsSearching(false);
-                  }
-                }}
-                disabled={isSearching}
-                className="inline-flex items-center px-responsive-xs py-responsive-xs bg-gold text-black rounded text-responsive-xs whitespace-nowrap hover:bg-gold/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-friendly"
-              >
-                {isSearching ? "Searching..." : "Search"}
-              </button>
-            </div>
-          </div>
-        </div>
-
+        
         {/* Mobile Carousel for Properties */}
         <div className="flex-shrink-0 bg-white border-b border-gray-200">
           {/* Tab Navigation */}
-          <div className="flex justify-center border-b border-gray-200">
+          <div className="flex justify-center items-center border-b border-gray-200">
             <button
               onClick={() => {
                 handleTabChange("results");
@@ -1757,9 +1778,10 @@ export default function SearchPage() {
             <button
               onClick={() => {
                 handleTabChange("saved");
+                // For saved homes, we can show modals even without searching since these are user's saved properties
                 if (savedHomes.length > 0) {
                   setShowPropertyModals(true);
-                  setHasSearched(true);
+                  setHasSearched(true); // Allow saved homes to be viewed
                 }
               }}
               className={`px-responsive-sm py-responsive-sm text-responsive-sm font-medium border-b-2 transition-colors ${
@@ -1777,27 +1799,31 @@ export default function SearchPage() {
                 )}
               </div>
             </button>
+            
+            {/* Collapse/Expand Button */}
+            <button
+              onClick={() => setIsCarouselCollapsed(!isCarouselCollapsed)}
+              className="ml-2 p-1 text-gray-500 hover:text-gray-700 transition-colors cursor-help-hint"
+              title={isCarouselCollapsed ? "Expand carousel" : "Collapse carousel"}
+            >
+              {isCarouselCollapsed ? (
+                <ChevronDown className="w-4 h-4" />
+              ) : (
+                <ChevronUp className="w-4 h-4" />
+              )}
+            </button>
           </div>
 
           {/* Mobile Property Carousel */}
-          <div className="space-responsive-xs sm:space-responsive-sm">
+          <div 
+            className={`overflow-hidden transition-all duration-300 ease-in-out ${
+              isCarouselCollapsed ? 'max-h-0' : 'max-h-96'
+            }`}
+          >
+            <div className="">
             {activeTab === "results" ? (
               searchResults.length > 0 ? (
                 <>
-                  <SearchResultsSummaryCard
-                    totalResults={searchResults.length}
-                    averageScore={
-                      searchResults.length > 0
-                        ? Math.round(
-                            searchResults.reduce(
-                              (sum, prop) => sum + (prop._score || 0),
-                              0
-                            ) / searchResults.length
-                          )
-                        : undefined
-                    }
-                    className="mb-4"
-                  />
                   <CardCarousel
                     items={searchResults.slice(
                       currentPage * PROPERTIES_PER_PAGE,
@@ -1888,6 +1914,7 @@ export default function SearchPage() {
                 </p>
               </div>
             )}
+            </div>
           </div>
         </div>
 
@@ -1905,7 +1932,7 @@ export default function SearchPage() {
           )}
 
           {/* Map container */}
-          <div className="w-full h-full relative">
+          <div className="w-full h-full relative rounded-t-2xl overflow-hidden">
             <div
               ref={mobileMapRef}
               className="w-full h-full"
@@ -1917,7 +1944,7 @@ export default function SearchPage() {
               <div className="absolute bottom-4 left-4 flex flex-col gap-responsive-xs z-10">
                 <button
                   onClick={zoomIn}
-                  className="mobile-icon-sm sm:mobile-icon-lg md:mobile-icon-xl bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 touch-friendly"
+                  className="mobile-icon-sm sm:mobile-icon-lg md:mobile-icon-xl bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 touch-friendly cursor-zoom"
                   title="Zoom in"
                 >
                   <span className="text-responsive-sm font-bold leading-none">
@@ -1926,7 +1953,7 @@ export default function SearchPage() {
                 </button>
                 <button
                   onClick={zoomOut}
-                  className="mobile-icon-sm sm:mobile-icon-lg md:mobile-icon-xl bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 touch-friendly"
+                  className="mobile-icon-sm sm:mobile-icon-lg md:mobile-icon-xl bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 touch-friendly cursor-zoom"
                   title="Zoom out"
                 >
                   <span className="text-responsive-sm font-bold leading-none">
@@ -2161,19 +2188,14 @@ export default function SearchPage() {
                                     : "[Invalid address]"}
                                 </h3>
 
-                                {/* Price and Match Score */}
-                                <div className="flex items-center justify-between mb-2">
+                                {/* Price */}
+                                <div className="mb-2">
                                   <p className="text-responsive-lg font-semibold text-brown">
                                     {typeof property.price === "string" ||
                                     typeof property.price === "number"
                                       ? property.price
                                       : "[Invalid price]"}
                                   </p>
-                                  <CardMatchScore
-                                    score={calculatePropertyScore(property)}
-                                    size="sm"
-                                    useColorStyling={true}
-                                  />
                                 </div>
 
                                 {/* Property Details */}
@@ -2187,13 +2209,6 @@ export default function SearchPage() {
                                   className="mb-2 sm:mb-3"
                                 />
                               </div>
-                              <CardHeartSave
-                                property={property}
-                                isSaved={true}
-                                onSave={saveHome}
-                                onRemove={removeSavedHome}
-                                size="sm"
-                              />
                             </div>
                           </div>
                         </div>
@@ -2217,7 +2232,7 @@ export default function SearchPage() {
         {/* Main Content */}
         <div className="flex-1 flex flex-col">
           {/* Search Instructions and Controls */}
-          <div className="mb-6 flex-shrink-0 bg-white border border-gray-200 rounded-lg p-4">
+          <div className="hidden md:block mb-6 flex-shrink-0 bg-white border border-gray-200 rounded-lg p-4">
             <div className="flex flex-col gap-4">
               <div className="flex items-center justify-between gap-3">
                 <div>
@@ -2309,7 +2324,7 @@ export default function SearchPage() {
                 <div className="absolute bottom-12 left-8 flex flex-row gap-1 z-10">
                   <button
                     onClick={zoomIn}
-                    className="w-8 h-8 lg:w-10 lg:h-10 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20"
+                    className="w-8 h-8 lg:w-10 lg:h-10 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 cursor-zoom"
                     title="Zoom in"
                   >
                     <span className="text-sm lg:text-lg font-bold leading-none">
@@ -2318,7 +2333,7 @@ export default function SearchPage() {
                   </button>
                   <button
                     onClick={zoomOut}
-                    className="w-8 h-8 lg:w-10 lg:h-10 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20"
+                    className="w-8 h-8 lg:w-10 lg:h-10 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 cursor-zoom"
                     title="Zoom out"
                   >
                     <span className="text-sm lg:text-lg font-bold leading-none">
@@ -2340,7 +2355,7 @@ export default function SearchPage() {
                         setCurrentPage(Math.max(0, currentPage - 1))
                       }
                       disabled={currentPage === 0}
-                      className="w-8 h-8 lg:w-10 lg:h-10 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-gray-700 disabled:hover:border-gray-300"
+                      className="w-8 h-8 lg:w-10 lg:h-10 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-gray-700 disabled:hover:border-gray-300 cursor-pointer"
                       title="Previous properties"
                     >
                       <ChevronLeft className="w-3 h-3 lg:w-4 lg:h-4" />
@@ -2365,7 +2380,7 @@ export default function SearchPage() {
                           ? searchResults.length
                           : savedHomes.length)
                       }
-                      className="w-8 h-8 lg:w-10 lg:h-10 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-gray-700 disabled:hover:border-gray-300"
+                      className="w-8 h-8 lg:w-10 lg:h-10 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-gray-700 disabled:hover:border-gray-300 cursor-pointer"
                       title="Next properties"
                     >
                       <ChevronRight className="w-3 h-3 lg:w-4 lg:h-4" />

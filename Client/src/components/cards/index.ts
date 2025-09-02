@@ -9,7 +9,6 @@ export { default as HomeCard } from './HomeCard';
 export { default as NewMatchCard } from './NewMatchCard';
 export { default as PriceDropCard } from './PriceDropCard';
 export { default as PropertyCard } from './PropertyCard';
-export { default as SearchResultsSummaryCard } from './SearchResultsSummaryCard';
 
 // Standardized card elements
 export * from './base';
@@ -21,4 +20,3 @@ export type { DocumentData } from './DocumentCard';
 export type { FilterCardProps } from './FilterCard';
 export type { HomeDescription } from './HomeCard';
 export type { PropertyCardProps } from './PropertyCard';
-export type { SearchResultsSummaryCardProps } from './SearchResultsSummaryCard';

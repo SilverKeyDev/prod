@@ -76,7 +76,7 @@ const SortableReportSection: React.FC<SortableReportSectionProps> = ({
       <div
         {...attributes}
         {...listeners}
-        className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 p-1 rounded hover:bg-gray-100 transition-colors touch-manipulation select-none"
+        className="cursor-drag text-gray-400 hover:text-gray-600 p-1 rounded hover:bg-gray-100 transition-colors touch-manipulation select-none"
         title="Drag to reorder"
         style={{ touchAction: 'none' }}
       >

@@ -45,7 +45,6 @@ export const PasswordValidation: React.FC<PasswordValidationProps> = ({
 
   return (
     <div className="mt-3 space-responsive-sm bg-olive/10 rounded-lg border border-olive/30">
-      <p className="text-responsive-sm font-medium text-black mb-2">Password requirements:</p>
       <div className="space-y-responsive-xs">
         {validationRules.map((rule) => {
           const isValid = rule.test(password);

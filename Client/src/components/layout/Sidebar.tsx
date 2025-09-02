@@ -30,13 +30,15 @@ import ConfirmationDialog from "../modals/ConfirmationDialog";
 
 import { useUser } from "../../context";
 import { useAgent } from "../../context/AgentContext";
-import MiniLogo from "../ui/base/MiniLogo";
+import WhiteLogo from "../ui/base/WhiteLogo";
+import { getButtonStyles, getSubItemStyles } from "./sidebarStyles";
 interface SidebarProps {
   user?: UserProfile; // make user optional to prevent crash
   onLogout: () => void;
   expanded: boolean;
   onToggleExpanded: () => void;
   isMobile?: boolean;
+  onLinkClick?: () => void;
 }
 
 // Define types for navigation items and structure
@@ -212,26 +214,10 @@ export default function Sidebar({
   onLogout,
   expanded,
   onToggleExpanded,
-  isMobile = false,
+  isMobile,
+  onLinkClick,
 }: SidebarProps) {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  
-  // Consistent hover styles for all sidebar buttons
-  const getButtonStyles = (isActive: boolean) => {
-    const baseStyles = "w-full flex items-center py-3 transition-all duration-200 font-medium text-white touch-friendly rounded-lg";
-    const activeStyles = "bg-brown-light/70 text-white font-semibold hover:bg-brown-light/80";
-    const inactiveStyles = "text-white/70 hover:bg-brown-light/30 hover:text-beige hover:-translate-y-0.5 active:bg-brown-light/20 active:text-beige";
-    
-    return `${baseStyles} ${isActive ? activeStyles : inactiveStyles}`;
-  };
-  
-  const getSubItemStyles = (isActive: boolean) => {
-    const baseStyles = "flex items-center transition-all duration-200 font-medium text-white touch-friendly rounded-lg";
-    const activeStyles = "bg-brown-light text-white font-semibold hover:bg-brown-light/80";
-    const inactiveStyles = "text-white/50 hover:bg-brown-light/50 hover:text-beige hover:-translate-y-0.5 active:bg-brown-light/30 active:text-beige";
-    
-    return `${baseStyles} ${isActive ? activeStyles : inactiveStyles}`;
-  };
   // Use userProfile from UserContext for all user info
   const { userProfile, loading: userProfileLoading } = useUser();
   const { isAgent } = useAgent();
@@ -282,29 +268,18 @@ export default function Sidebar({
 
   return (
     <>
-      {/* Mobile backdrop */}
-      {isMobile && expanded && (
-        <div
-          className="mobile-backdrop"
-          onClick={onToggleExpanded}
-        />
-      )}
-
       {/* Sidebar */}
       <div
         className={`
-          fixed top-0 left-0 h-full bg-brown text-white z-sidebar transition-all duration-300 ease-in-out safe-top
-          ${isMobile 
-            ? `w-80 ${expanded ? 'translate-x-0' : '-translate-x-full'} px-4` 
-            : `${expanded ? 'w-64 px-4' : 'w-16 px-2'}`
-          }
+          fixed top-0 left-0 h-full bg-brown text-white z-sidebar transition-all duration-300 ease-in-out safe-top rounded-b-xl
+          ${expanded ? 'w-64 px-4' : 'w-16 px-2'}
         `}
       >
         <div
           className="h-full flex flex-col overflow-hidden line-clamp-1"
           style={{
-            height: isMobile ? "100vh" : "100%",
-            maxHeight: isMobile ? "100vh" : "100%",
+            height: "100%",
+            maxHeight: "100%",
           }}
         >
           {/* Header with Logo and Toggle Button */}
@@ -329,9 +304,7 @@ export default function Sidebar({
                     </div>
                   ) : (
                     <div className="flex items-center">
-                      <div style={{ filter: "brightness(0) invert(1)" }} className="ml-1">
-                        <MiniLogo className="w-6 h-6" />
-                      </div>
+                      <WhiteLogo size="sm" className="ml-1" />
                       <div className="ml-3">
                         <p className="text-sm font-medium text-white line-clamp-1">
                           {userProfile?.name ?? "Unknown User"}
@@ -346,28 +319,30 @@ export default function Sidebar({
               )}
             </div>
 
-            {/* Toggle Button */}
-            <button
-              onClick={onToggleExpanded}
-              className="p-2 text-white/70 hover:bg-brown-light/30 hover:text-beige hover:-translate-y-0.5 active:bg-brown-light/20 active:text-beige ml-auto touch-friendly rounded-lg transition-all duration-200"
-              aria-label="Toggle sidebar"
-            >
-              <svg
-                className={`w-6 h-6 transform ${
-                  expanded ? "rotate-180" : "rotate-0"
-                } transition-transform duration-200`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+            {/* Toggle Button - Hidden on mobile */}
+            {!isMobile && (
+              <button
+                onClick={onToggleExpanded}
+                className="p-2 text-white/70 hover:bg-brown-light/30 hover:text-beige hover:-translate-y-0.5 active:bg-brown-light/20 active:text-beige ml-auto touch-friendly rounded-lg transition-all duration-200 cursor-pointer"
+                aria-label="Toggle sidebar"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
-            </button>
+                <svg
+                  className={`w-6 h-6 transform ${
+                    expanded ? "rotate-180" : "rotate-0"
+                  } transition-transform duration-200`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </button>
+            )}
           </div>
 
           {/* Navigation - Scrollable middle section */}
@@ -380,6 +355,7 @@ export default function Sidebar({
                     {categoryKey === "dashboard" ? (
                       <Link
                         to={category.items[0]?.href || "/"}
+                        onClick={onLinkClick}
                         className={`${getButtonStyles(isActive("/"))} ${
                             !expanded ? "justify-center" : ""
                           }`}
@@ -401,7 +377,7 @@ export default function Sidebar({
                           onClick={() => toggleCategory(categoryKey)}
                           className={`${getButtonStyles(isCategoryActive(category.items))} relative group ${
                             !expanded ? "justify-center" : "justify-between"
-                          }`}
+                          } cursor-pointer`}
                           title={!expanded ? category.name : ""}
                         >
                           <div className={`flex items-center ${!expanded ? "" : ""}`}>
@@ -425,7 +401,7 @@ export default function Sidebar({
                           {!expanded && openCategories[categoryKey] && (
                             <div className="absolute right-1 top-1 w-2 h-2 bg-gold rounded-full"></div>
                           )}
-                          {expanded && !isMobile &&
+                          {expanded &&
                             (openCategories[categoryKey] ? (
                               <ChevronDown className="w-5 h-5" />
                             ) : (
@@ -440,6 +416,7 @@ export default function Sidebar({
                               <Link
                                 key={item.name}
                                 to={item.href}
+                                onClick={onLinkClick}
                                 className={`${getSubItemStyles(isActive(item.href))} ${
                                   !expanded ? "justify-center py-2" : "py-2"
                                 }`}
@@ -476,7 +453,7 @@ export default function Sidebar({
               onClick={handleLogoutClick}
               className={`${getButtonStyles(false).replace('text-white/70', 'text-white')} ${
                 !expanded ? "justify-center py-3" : "py-3"
-              }`}
+              } cursor-pointer`}
             >
               <LogOut className={`w-6 h-6 ${expanded ? "mr-3" : ""}`} />
               <span className={expanded ? "block" : "hidden"}>Logout</span>

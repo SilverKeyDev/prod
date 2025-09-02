@@ -507,7 +507,7 @@ export default function AIAssistant() {
               {/* Message Input */}
               <div className="p-3 border-t border-beige bg-white">
                 <div className="flex items-stretch gap-2">
-                  <div className="flex-1">
+                  <div className="flex-1 flex-grow flex items-center">
                     <textarea
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
@@ -518,18 +518,18 @@ export default function AIAssistant() {
                         }
                       }}
                       placeholder="Ask about property pricing, market trends, or analysis..."
-                      className="w-full border border-beige rounded-lg px-3 py-2 resize-none h-10 focus:outline-none focus:ring-2 focus:ring-brown/20 focus:border-brown transition-colors duration-150 scrollbar-hide"
+                      className="w-full h-full border border-beige rounded-lg px-3 py-2.5 md:py-3 resize-none focus:outline-none focus:ring-2 focus:ring-brown/20 focus:border-brown transition-colors duration-150 scrollbar-hide text-sm md:text-base"
                       disabled={isTyping}
+                      rows={1}
                     />
                   </div>
                   <Button
                     onClick={sendMessage}
                     disabled={!message.trim() || isTyping}
                     variant="primary"
-                    size="sm"
-                    className="h-10 px-3 self-stretch"
+                    className="px-4 self-stretch"
                   >
-                    <Send className="w-4 h-4" />
+                    <Send className="w-4 h-4 md:w-5 md:h-5" />
                   </Button>
                 </div>
               </div>

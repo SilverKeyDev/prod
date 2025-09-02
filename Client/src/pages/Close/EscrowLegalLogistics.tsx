@@ -1,6 +1,18 @@
 import CloseLayout, { ChecklistItem } from "../../components/layout/CloseLayout";
 
-export default function EscrowLegalLogistics() {
+interface ClosePageHeaderData {
+  title: string;
+  subtitle: string;
+  completedCount: number;
+  totalCount: number;
+  loading: boolean;
+}
+
+interface EscrowLegalLogisticsProps {
+  setClosePageHeaderData: React.Dispatch<React.SetStateAction<ClosePageHeaderData | null>>;
+}
+
+export default function EscrowLegalLogistics({ setClosePageHeaderData }: EscrowLegalLogisticsProps) {
 
   const items: ChecklistItem[] = [
     {
@@ -135,11 +147,12 @@ export default function EscrowLegalLogistics() {
 
   return (
     <CloseLayout
-      title="Escrow & Legal Checklist"
+      title="Escrow & Legal"
       subtitle="Stay on top of the escrow and legal process"
       sectionTitle="Legal & Title Tasks"
       apiEndpoint="/api/v1/user/escrow"
       items={items}
+      setClosePageHeaderData={setClosePageHeaderData}
     />
   );
 }

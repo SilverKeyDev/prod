@@ -1,6 +1,18 @@
 import CloseLayout, { ChecklistItem } from "../../components/layout/CloseLayout";
 
-export default function InspectionsChecklist() {
+interface ClosePageHeaderData {
+  title: string;
+  subtitle: string;
+  completedCount: number;
+  totalCount: number;
+  loading: boolean;
+}
+
+interface InspectionsDueDiligenceProps {
+  setClosePageHeaderData: React.Dispatch<React.SetStateAction<ClosePageHeaderData | null>>;
+}
+
+export default function InspectionsChecklist({ setClosePageHeaderData }: InspectionsDueDiligenceProps) {
   
   const items: ChecklistItem[] = [
     {
@@ -122,12 +134,13 @@ export default function InspectionsChecklist() {
 
   return (
     <CloseLayout
-      title="Inspection & Due Diligence Checklist"
+      title="Inspection & Due Diligence"
       subtitle="Follow these steps to make an informed decision before closing"
       sectionTitle="To-Do Items"
       apiEndpoint="/api/v1/user/insurance"
       items={items}
       showLoadingScreen={true}
+      setClosePageHeaderData={setClosePageHeaderData}
     />
   );
 }

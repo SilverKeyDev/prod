@@ -184,7 +184,7 @@ function Dropdown<T = any>({
           type="button"
           onClick={handleToggle}
           disabled={disabled}
-          className={buttonClasses}
+          className={`${buttonClasses} ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}
         >
           <span className="flex items-center gap-2 truncate">
             {selectedOption?.icon}
@@ -200,7 +200,7 @@ function Dropdown<T = any>({
               <button
                 type="button"
                 onClick={handleClear}
-                className="p-1 hover:bg-gray-100 rounded transition-colors"
+                className="p-1 hover:bg-gray-100 rounded transition-colors cursor-pointer"
                 tabIndex={-1}
               >
                 ×

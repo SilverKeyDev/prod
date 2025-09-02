@@ -3,7 +3,11 @@ import { loadStripe } from '@stripe/stripe-js';
 import { apiRequest } from '../lib/api';
 
 // Initialize Stripe with your publishable key
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || '');
+// Conditionally load Stripe only on HTTPS to avoid errors in local HTTP dev
+const stripePromise =
+  window.location.protocol === 'https:'
+    ? loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || '')
+    : Promise.resolve(null);
 
 export const useStripePayment = () => {
   const [loading, setLoading] = useState(false);

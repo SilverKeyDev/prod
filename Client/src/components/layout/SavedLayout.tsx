@@ -1,6 +1,6 @@
-import React, { useRef } from "react";
-import { Search, RefreshCw, Calendar, MapPin, ChevronDown } from "lucide-react";
-import { Card } from "./ui/base";
+import React from "react";
+import { Search, RefreshCw } from "lucide-react";
+import { Card } from "../ui/base";
 
 export type ViewMode = "grid" | "list";
 export type SortBy = "date" | "address";
@@ -12,9 +12,6 @@ interface SavedLayoutProps {
   viewMode?: ViewMode;
   onViewModeChange?: (mode: ViewMode) => void;
   showViewToggle?: boolean;
-  sortBy?: SortBy;
-  onSortChange?: (sort: SortBy) => void;
-  showSort?: boolean;
   onRefresh?: () => void;
   isRefreshing?: boolean;
   isLoading?: boolean;
@@ -29,32 +26,12 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
   viewMode = "grid",
   onViewModeChange,
   showViewToggle = true,
-  sortBy = "date",
-  onSortChange,
-  showSort = true,
   onRefresh,
   isRefreshing = false,
   isLoading = false,
   refreshTitle = "Refresh",
   rightText,
 }) => {
-  const [sortDropdownOpen, setSortDropdownOpen] = React.useState(false);
-  const sortDropdownRef = useRef<HTMLDivElement>(null);
-
-  // Close dropdown when clicking outside
-  React.useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        sortDropdownRef.current &&
-        !sortDropdownRef.current.contains(event.target as Node)
-      ) {
-        setSortDropdownOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   const handleRefresh = () => {
     if (onRefresh && !isRefreshing && !isLoading) {
@@ -119,69 +96,6 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
               </div>
             )}
 
-            {/* Sort dropdown */}
-            {/*{showSort && onSortChange && (
-              <div className="relative" ref={sortDropdownRef}>
-                <button
-                  onClick={() => setSortDropdownOpen(!sortDropdownOpen)}
-                  className="px-3 py-2.5 border border-gray-300 rounded-lg bg-white text-sm flex items-center justify-between min-w-[120px] max-w-[140px] cursor-pointer hover:border-brown focus:border-brown focus:ring-brown/20 focus:outline-none"
-                >
-                  <span className="flex items-center gap-1.5 truncate">
-                    {sortBy === "date" ? (
-                      <>
-                        <Calendar className="w-4 h-4 shrink-0" />
-                        <span className="hidden sm:inline">Sort by Date</span>
-                        <span className="sm:hidden">Date</span>
-                      </>
-                    ) : (
-                      <>
-                        <MapPin className="w-4 h-4 shrink-0" />
-                        <span className="hidden sm:inline">Address</span>
-                        <span className="sm:hidden">Address</span>
-                      </>
-                    )}
-                  </span>
-                  <ChevronDown
-                    className={`w-4 h-4 shrink-0 transition-transform duration-200 ${
-                      sortDropdownOpen ? "rotate-180" : ""
-                    }`}
-                  />
-                </button>
-
-                {sortDropdownOpen && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-beige rounded-lg shadow-lg z-50">
-                    <button
-                      onClick={() => {
-                        onSortChange("date");
-                        setSortDropdownOpen(false);
-                      }}
-                      className={`w-full px-3 py-2 text-left text-sm hover:bg-brown/5 flex items-center space-x-2 first:rounded-t-lg transition-colors duration-150 ${
-                        sortBy === "date"
-                          ? "bg-brown/10 text-brown font-medium"
-                          : "text-black"
-                      }`}
-                    >
-                      <Calendar className="w-4 h-4" />
-                      <span>Date</span>
-                    </button>
-                    <button
-                      onClick={() => {
-                        onSortChange("address");
-                        setSortDropdownOpen(false);
-                      }}
-                      className={`w-full px-3 py-2 text-left text-sm hover:bg-brown/5 flex items-center space-x-2 last:rounded-b-lg transition-colors duration-150 ${
-                        sortBy === "address"
-                          ? "bg-brown/10 text-brown font-medium"
-                          : "text-black"
-                      }`}
-                    >
-                      <MapPin className="w-4 h-4" />
-                      <span>Address</span>
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
 
             {/* Refresh button */}
             {onRefresh && (

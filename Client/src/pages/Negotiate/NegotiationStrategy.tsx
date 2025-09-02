@@ -272,7 +272,7 @@ export default function NegotiationStrategy() {
             <div className="flex-shrink-0">
               <button
                 type="button"
-                className={`${button} h-full btn-responsive-md whitespace-nowrap ${
+                className={`${button} h-full whitespace-nowrap ${
                   isLoading || !selectedHome
                     ? "opacity-50 cursor-not-allowed"
                     : ""

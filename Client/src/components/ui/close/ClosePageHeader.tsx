@@ -19,16 +19,24 @@ export default function ClosePageHeader({
   return (
     <>
       {/* Desktop Header */}
-      <Card className="hidden sm:block border-b border-beige/40 rounded-t-2xl rounded-b-none relative z-30" padding="sm">
+      <div className="hidden sm:block sm:max-w-[90vw] sm:mx-auto sm:px-4 md:px-6 lg:px-8">
+        <Card
+          className="border-b border-beige/40 rounded-t-2xl rounded-b-none relative z-30"
+          padding="sm"
+        >
         <div className="flex items-center gap-responsive-sm">
           <MiniLogo size="md" className="sm:hidden" />
           <MiniLogo size="lg" className="hidden sm:block" />
           <div className="min-w-0 flex-1">
-            <h1 className="heading-responsive-md text-navy truncate">{title}</h1>
-            <p className="text-responsive-sm text-navy/70 truncate">{subtitle}</p>
+            <h1 className="heading-responsive-md text-navy truncate">
+              {title}
+            </h1>
+            <p className="text-responsive-sm text-navy/70 truncate">
+              {subtitle}
+            </p>
           </div>
         </div>
-        
+
         {/* Progress Bar */}
         {!loading && (
           <div className="mt-4">
@@ -43,21 +51,27 @@ export default function ClosePageHeader({
             </div>
           </div>
         )}
-      </Card>
+        </Card>
+      </div>
 
       {/* Mobile Header */}
-      <Card className="sm:hidden border-b border-beige/40 rounded-t-2xl rounded-b-none relative z-30" padding="sm">
-        <div className="flex items-center justify-center">
-          <h1 className="heading-responsive-sm text-navy text-center">{title}</h1>
+      <Card
+        className="sm:hidden border-b border-beige/40 rounded-2xl relative z-30"
+        padding="sm"
+      >
+        <div className="flex items-center gap-2">
+          <MiniLogo size="sm" />
+          <div className="min-w-0 flex-1">
+            <h1 className="text-xs font-semibold text-navy truncate">
+              {title}
+            </h1>
+          </div>
         </div>
-        
+
         {/* Progress Bar */}
         {!loading && (
-          <div className="mt-3">
-            <p className="text-xs text-navy/70 mb-2 text-center">
-              {completedCount} of {totalCount} completed
-            </p>
-            <div className="w-full h-1.5 bg-beige/30 rounded">
+          <div className="mt-1">
+            <div className="w-full h-1 bg-beige/30 rounded">
               <div
                 className="h-full bg-olive rounded transition-all duration-500"
                 style={{ width: `${(completedCount / totalCount) * 100}%` }}

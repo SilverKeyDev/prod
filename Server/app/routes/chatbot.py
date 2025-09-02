@@ -74,44 +74,39 @@ def chat_for_address(report_id):
             logger.error(f"[CHAT_ROUTE] Error storing chat summary: {str(prefs_error)}")
             # Continue with chat processing even if summary storage fails
 
-        address = report_id.replace("_", " ").replace(".pdf", "") if report_id else "Unknown Address"
+        # Fetch the PDF document from the database to get the correct address and S3 path
+        from app.models.pdf_document import PDFDocument
+        pdf_doc = PDFDocument.query.filter_by(id=report_id, user_id=user_id).first()
+
+        if not pdf_doc:
+            logger.warning(f"[CHAT_ROUTE] PDF document not found for report_id: {report_id}, user_id: {user_id}")
+            return jsonify({"error": f"Report not found: {report_id}"}), 404
+
+        # Use the address from the database record as the source of truth
+        address = pdf_doc.address if pdf_doc.address else "Unknown Address"
 
         # Fetch complete report data from S3
         report_data = None
         try:
-            # Find the PDF document in database to get the correct S3 path
-            from app.models.pdf_document import PDFDocument
-            pdf_doc = PDFDocument.query.filter_by(id=report_id, user_id=user_id).first()
-            
-            if not pdf_doc:
-                logger.warning(f"[CHAT_ROUTE] PDF document not found for report_id: {report_id}, user_id: {user_id}")
-                raise Exception(f"Report not found: {report_id}")
-            
-            # Construct S3 key for the JSON report data using the simplified tree structure
             pdf_path = pdf_doc.file_path
             if '/' in pdf_path:
-                # New tree structure: userid/reports/type/filename.pdf -> userid/json/type/filename.json
                 path_parts = pdf_path.split('/')
-                if len(path_parts) >= 3 and path_parts[1] == 'reports':
-                    user_id = path_parts[0]
+                if len(path_parts) >= 4 and path_parts[1] == 'reports':
+                    user_id_from_path = path_parts[0]
                     report_type = path_parts[2]
                     pdf_filename = path_parts[3]
-                    json_s3_key = f"{user_id}/json/{report_type}/{pdf_filename.removesuffix('.pdf')}.json"
+                    json_s3_key = f"{user_id_from_path}/json/{report_type}/{pdf_filename.removesuffix('.pdf')}.json"
                 else:
-                    # Fallback for unexpected structure
-                    json_s3_key = pdf_path.replace('.pdf', '.json')
+                    json_s3_key = pdf_path.replace('/reports/', '/json/').replace('.pdf', '.json')
             else:
-                # Old flat structure fallback
                 json_s3_key = pdf_path.replace('.pdf', '.json')
-                        
+
             from app.services.report_comparator import _download_json_from_s3
             report_data = _download_json_from_s3(json_s3_key)
-            
+
         except Exception as report_error:
             logger.warning(f"[CHAT_ROUTE] Failed to fetch full report data: {str(report_error)}")
-            # Fallback to basic metadata if full report unavailable
             report_data = {
-                "report_id": report_id,
                 "address": address,
                 "type": "property_report",
                 "status": "completed",

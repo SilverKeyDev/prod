@@ -106,7 +106,10 @@ export default function HomePage() {
         <div className="absolute inset-0 z-0">
           <RippleBackground />
         </div>
-        <div className="relative z-10 max-w-3xl text-center w-4/5 sm:w-full mx-auto">
+
+        {/* Centered Content Wrapper */}
+        <div className="relative z-10 flex flex-col items-center w-full max-w-[85%] mx-auto">
+          <div className="max-w-3xl text-center w-full mx-auto">
           <div className="bg-white p-6 sm:p-8 rounded-lg shadow-lg">
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 text-gray-900">
               Discover a New Way to Buy
@@ -126,7 +129,7 @@ export default function HomePage() {
         </div>
 
         {/* Feature Cards */}
-        <div className="relative z-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-responsive-sm mt-20 max-w-6xl w-4/5 sm:w-full mx-auto">
+          <div className="relative z-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-responsive-sm mt-20 max-w-6xl w-full mx-auto">
           {[
             {
               title: "Find Properties",
@@ -155,7 +158,7 @@ export default function HomePage() {
           ].map((f, i) => (
             <div
               key={i}
-              className="bg-white rounded-xl shadow-md hover:shadow-lg p-4 sm:p-6 flex flex-col items-center text-center transition-all duration-200 hover:-translate-y-0.5 cursor-pointer touch-friendly"
+              className="bg-white rounded-xl shadow-md hover:shadow-lg p-4 sm:p-5 flex flex-col items-center text-center transition-all duration-200 hover:-translate-y-0.5 cursor-pointer touch-friendly"
             >
               <div className="mb-2">{f.icon}</div>
               <h3 className="font-semibold text-black text-responsive-md mb-3 w-[87%]">
@@ -167,7 +170,7 @@ export default function HomePage() {
         </div>
 
         {/* Footer Links */}
-        <div className="relative mt-10 flex flex-wrap justify-center items-center gap-responsive-sm text-responsive-xs text-center">
+          <div className="relative mt-10 flex flex-wrap justify-center items-center gap-responsive-sm text-responsive-xs text-center">
           <Link
             to="/privacy"
             className="bg-white text-black px-responsive-xl py-responsive-xs rounded-lg shadow hover:shadow-md transition-all duration-200 touch-friendly flex items-center justify-center text-gray-600 hover:text-gray-800"
@@ -192,6 +195,7 @@ export default function HomePage() {
               Contact Us
             </span>
           </Link>
+          </div>
         </div>
       </main>
 

@@ -1,6 +1,18 @@
 import CloseLayout, { ChecklistItem } from "../../components/layout/CloseLayout";
 
-export default function ClosingMovingIn() {
+interface ClosePageHeaderData {
+  title: string;
+  subtitle: string;
+  completedCount: number;
+  totalCount: number;
+  loading: boolean;
+}
+
+interface ClosingMovingInProps {
+  setClosePageHeaderData: React.Dispatch<React.SetStateAction<ClosePageHeaderData | null>>;
+}
+
+export default function ClosingMovingIn({ setClosePageHeaderData }: ClosingMovingInProps) {
 
   const items: ChecklistItem[] = [
     {
@@ -154,12 +166,13 @@ export default function ClosingMovingIn() {
 
   return (
     <CloseLayout
-      title="Closing & Moving In Checklist"
+      title="Closing & Moving In"
       subtitle="Track your progress toward a smooth transition into your new home"
       sectionTitle="To-Do Items"
       apiEndpoint="/api/v1/user/closing"
       items={items}
       showLoadingScreen={true}
+      setClosePageHeaderData={setClosePageHeaderData}
     />
   );
 }

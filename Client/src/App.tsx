@@ -1,6 +1,12 @@
 import { useState, useEffect } from "react";
 import MaintenanceScreen from "./pages/HomeAuth/MaintenanceScreen";
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+} from "react-router-dom";
 import LoginPage from "./pages/HomeAuth/LoginPage";
 import SignupPage from "./pages/HomeAuth/SignupPage";
 import ResetPasswordPage from "./pages/HomeAuth/ResetPasswordPage";
@@ -14,14 +20,20 @@ import ContactUs from "./pages/HomeAuth/ContactUs.tsx";
 import { AppProviders, UserProfile } from "./context";
 
 // Inner component that uses useLocation
-function AppRoutes({ user, handleLogout }: { user: UserProfile | null; handleLogout: () => void }) {
+function AppRoutes({
+  user,
+  handleLogout,
+}: {
+  user: UserProfile | null;
+  handleLogout: () => void;
+}) {
   const location = useLocation();
-  
+
   return (
     <Routes>
       {/* Root route - always show homepage */}
       <Route path="/" element={<HomePage />} />
-      
+
       {/* Public Routes */}
       <Route path="/signup" element={<SignupPage />} />
       <Route path="/login" element={<LoginPage />} />
@@ -232,7 +244,9 @@ function App() {
       .finally(() => {
         if (isMounted) setLoading(false);
       });
-    return () => { isMounted = false; };
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -278,7 +292,9 @@ function App() {
 
   return (
     <AppProviders>
-      <BrowserRouter future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
+      <BrowserRouter
+        future={{ v7_relativeSplatPath: true, v7_startTransition: true }}
+      >
         {loading ? (
           <div className="min-h-screen bg-off-white flex items-center justify-center">
             <div className="shimmer w-32 h-8 rounded-lg"></div>

@@ -105,7 +105,7 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
     <div className={`relative ${className}`} ref={dropdownRef}>
       <button
         onClick={toggleDropdown}
-        className={`flex items-center gap-3 px-4 h-12 border border-beige rounded-lg bg-white hover:border-brown focus:border-brown focus:ring-2 focus:ring-brown/20 transition-colors duration-200 w-full ${className}`}
+        className={`flex items-center gap-3 px-6 py-4 h-full border border-beige rounded-lg bg-white hover:border-brown focus:border-brown focus:ring-2 focus:ring-brown/20 transition-colors duration-200 w-full ${className}`}
         disabled={disabled || loadingHomes}
       >
         <Home className="h-4 w-4 text-brown" />

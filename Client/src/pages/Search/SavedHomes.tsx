@@ -6,7 +6,7 @@ import { useSavedHomes } from "../../context";
 import { SavedHome } from "../../context/utils";
 import PropertyDetailsModal from "../../components/modals/PropertyDetailsModal";
 import KeyTurnLoader from "../../components/ui/base/KeyTurnLoader";
-import SavedLayout, { ViewMode } from "../../components/SavedLayout";
+import SavedLayout, { ViewMode } from "../../components/layout/SavedLayout";
 
 export default function SavedHomes() {
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
@@ -153,7 +153,6 @@ export default function SavedHomes() {
         viewMode={viewMode}
         onViewModeChange={setViewMode}
         showViewToggle={false}
-        showSort={false}
         onRefresh={refresh}
         isRefreshing={refreshing}
         isLoading={loading}

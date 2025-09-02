@@ -40,6 +40,7 @@ export default {
         gold: {
           DEFAULT: "#D2C3A1",
           light: "#D2C3A1",
+          lighter: 'hsl(45, 30%, 80%)',
           muted: 'hsl(45, 20%, 70%)',       // Low saturation gold
         },
         // Muted Neutrals

@@ -4,13 +4,12 @@ import { favoriteHomesApi } from "../lib/api";
 import ReportCard from "../components/cards/ReportCard";
 import { useReports } from "../context";
 import { Report } from "../context/utils";
-import { CardCarousel } from "../components/cards/base";
-import TimelineChecklist from "../components/ui/dashboard/DashboardButtonHeader";
 import HomeCard, { HomeDescription } from "../components/cards/HomeCard";
-// Card component available but not used in this file yet
 import CircularButton from "../components/ui/base/CircularButton";
 import { useDocumentActions } from "../hooks/useDocumentActions";
 import PdfModal from "../components/modals/PdfModal";
+import { CardCarousel } from "../components/cards/base";
+import TimelineChecklist from "../components/ui/dashboard/DashboardButtonHeader";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -132,7 +131,7 @@ export default function Dashboard() {
   );
 
   return (
-    <div>
+    <div className="-mt-8">
       {currentPdf && (
         <PdfModal
           currentPdf={currentPdf}
@@ -140,8 +139,8 @@ export default function Dashboard() {
           onClose={closePdfModal}
         />
       )}
-      {/* Timeline Progress - Full Width */}
-      <div className="mb-8 -mx-4 sm:-mx-6 lg:-mx-8">
+      {/* Timeline Progress - Full Width (hidden on mobile) */}
+      <div className="hidden lg:block mb-8 -mx-4 sm:-mx-6 lg:-mx-8">
         <TimelineChecklist variant="horizontal" completedStepKey="search" />
       </div>
 

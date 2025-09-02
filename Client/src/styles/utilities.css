@@ -390,6 +390,31 @@
     -webkit-tap-highlight-color: transparent;
   }
 
+  /* Cursor Utilities */
+  .cursor-interactive {
+    @apply cursor-pointer hover:cursor-pointer;
+  }
+
+  .cursor-drag {
+    @apply cursor-grab active:cursor-grabbing;
+  }
+
+  .cursor-disabled {
+    @apply cursor-not-allowed;
+  }
+
+  .cursor-help-hint {
+    @apply cursor-help;
+  }
+
+  .cursor-resize-handle {
+    @apply cursor-col-resize;
+  }
+
+  .cursor-zoom {
+    @apply cursor-zoom-in hover:cursor-zoom-out;
+  }
+
   /* Muted Image System */
   .muted-img {
     filter: saturate(0.85) brightness(0.95);

@@ -316,7 +316,6 @@ export default function VerificationPage() {
                 placeholder="Enter your email"
                 leftIcon={<Mail className="mobile-icon-sm" />}
                 autoComplete="email"
-                required
                 variant="mobile"
                 size="md"
               />

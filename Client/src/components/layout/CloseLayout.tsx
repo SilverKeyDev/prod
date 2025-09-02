@@ -2,7 +2,6 @@ import { useState, useEffect, ReactNode } from "react";
 import { apiRequest } from "../../lib/api";
 import { CheckSquare } from "lucide-react";
 import ChecklistCheckbox from "../ui/base/ChecklistCheckbox";
-import ClosePageHeader from "../ui/close/ClosePageHeader";
 import Card from "../ui/base/Card";
 
 // Shared CSS classes - now using Card component instead
@@ -26,6 +25,14 @@ export interface ChecklistItem {
   resource?: ResourceLink;
 }
 
+interface ClosePageHeaderData {
+  title: string;
+  subtitle: string;
+  completedCount: number;
+  totalCount: number;
+  loading: boolean;
+}
+
 interface CloseLayoutProps {
   title: string;
   subtitle: string;
@@ -36,6 +43,7 @@ interface CloseLayoutProps {
   showLoadingScreen?: boolean;
   containerClassName?: string;
   showMinLoadingText?: boolean;
+  setClosePageHeaderData?: React.Dispatch<React.SetStateAction<ClosePageHeaderData | null>>;
 }
 
 export default function CloseLayout({
@@ -47,7 +55,8 @@ export default function CloseLayout({
   children,
   showLoadingScreen = false,
   containerClassName = "py-10",
-  showMinLoadingText = false
+  showMinLoadingText = false,
+  setClosePageHeaderData
 }: CloseLayoutProps) {
   const [checked, setChecked] = useState<{ [id: number]: boolean }>({});
   const [loading, setLoading] = useState(false);
@@ -102,9 +111,31 @@ export default function CloseLayout({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Calculate completion stats
-  const completedCount = Object.values(checked).filter(Boolean).length;
-  const total = items.length;
+  // Update header data when checklist state changes
+  useEffect(() => {
+    if (setClosePageHeaderData) {
+      const completedCount = Object.values(checked).filter(Boolean).length;
+      const totalCount = items.length;
+      
+      setClosePageHeaderData({
+        title,
+        subtitle,
+        completedCount,
+        totalCount,
+        loading
+      });
+    }
+  }, [checked, loading, title, subtitle, items.length, setClosePageHeaderData]);
+
+  // Cleanup header data when component unmounts
+  useEffect(() => {
+    return () => {
+      if (setClosePageHeaderData) {
+        setClosePageHeaderData(null);
+      }
+    };
+  }, [setClosePageHeaderData]);
+
 
   // Show loading screen for pages that need it
   if (loading && showLoadingScreen) {
@@ -117,14 +148,6 @@ export default function CloseLayout({
 
   return (
     <div className="bg-off-white">
-      <ClosePageHeader
-        title={title}
-        subtitle={subtitle}
-        completedCount={completedCount}
-        totalCount={total}
-        loading={loading}
-      />
-
       {/* Custom content before checklist */}
       {children}
 

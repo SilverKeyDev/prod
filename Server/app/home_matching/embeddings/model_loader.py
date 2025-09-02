@@ -9,6 +9,9 @@ from typing import List, Optional, Dict, Any
 from sentence_transformers import SentenceTransformer
 import logging
 
+# Suppress verbose logging from sentence-transformers
+logging.getLogger('sentence_transformers').setLevel(logging.WARNING)
+
 from ..config.settings import (
     EMBEDDING_MODEL, OPENAI_KEY, PERPLEXITY_API_KEY,
     EMBEDDING_DIMENSION
