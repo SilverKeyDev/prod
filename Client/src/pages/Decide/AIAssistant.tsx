@@ -5,8 +5,10 @@ import {
   Bot,
   MessageCircle,
   User as UserIcon,
+  Menu,
   ChevronLeft,
   ChevronRight,
+  ArrowLeft,
 } from "lucide-react";
 import KeyTurnLoader from "../../components/ui/base/KeyTurnLoader";
 import { useChats } from "../../context";
@@ -29,7 +31,10 @@ export default function AIAssistant() {
   const [message, setMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
+
+  // Default: sidebar NOT extended (collapsed) on both mobile and desktop
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Load AI assistant state from localStorage on mount
@@ -38,30 +43,31 @@ export default function AIAssistant() {
     if (savedState) {
       try {
         const parsed = JSON.parse(savedState);
-        // Validate that activeChatId is a proper UUID format (not filename-based)
-        if (parsed.activeChatId && parsed.activeChatId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+        if (
+          parsed.activeChatId &&
+          parsed.activeChatId.match(
+            /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+          )
+        ) {
           setActiveChatId(parsed.activeChatId);
         } else if (parsed.activeChatId) {
-          console.warn("Clearing invalid activeChatId from localStorage:", parsed.activeChatId);
+          console.warn(
+            "Clearing invalid activeChatId from localStorage:",
+            parsed.activeChatId
+          );
           localStorage.removeItem("aiAssistantState");
         }
-        if (parsed.message) {
-          setMessage(parsed.message);
-        }
-      } catch (e) {
+        if (parsed.message) setMessage(parsed.message);
+      } catch {
         console.warn("Invalid AI assistant state data");
         localStorage.removeItem("aiAssistantState");
       }
     }
   }, []);
 
-  // Save AI assistant state to localStorage when it changes
+  // Save AI assistant state
   useEffect(() => {
-    const stateToSave = {
-      activeChatId,
-      message,
-      isTyping,
-    };
+    const stateToSave = { activeChatId, message, isTyping };
     localStorage.setItem("aiAssistantState", JSON.stringify(stateToSave));
   }, [activeChatId, message, isTyping]);
 
@@ -75,20 +81,18 @@ export default function AIAssistant() {
   const loadChatsFromContext = () => {
     try {
       if (chats && chats.length > 0) {
-        // Preserve existing messages from localChats when updating from context
         const updatedChats = chats.map((contextChat: Chat) => {
           const existingChat = localChats.find(
             (chat: Chat) => chat.id === contextChat.id
           );
           return {
             ...contextChat,
-            messages: existingChat ? existingChat.messages : [], // Preserve existing messages
+            messages: existingChat ? existingChat.messages : [],
           };
         });
 
         setLocalChats(updatedChats);
 
-        // Set first chat as active if none selected
         if (!activeChatId && updatedChats.length > 0) {
           setActiveChatId(updatedChats[0].id);
         }
@@ -102,14 +106,14 @@ export default function AIAssistant() {
     }
   };
 
-  // Refresh data when page loads to ensure latest updates
+  // Refresh on mount
   useEffect(() => {
     refreshChats();
   }, [refreshChats]);
 
   useEffect(() => {
-    // Always call loadChatsFromContext when chats data changes (including when it's empty)
     loadChatsFromContext();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chats]);
 
   useEffect(() => {
@@ -124,17 +128,18 @@ export default function AIAssistant() {
         loadChatHistory(activeChatId);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeChatId]);
 
-  // Load chat history for a specific chat
   const loadChatHistory = async (chatId: string) => {
     try {
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
       const idToken = localStorage.getItem("id_token");
 
-      // Remove .json extension if present in chatId for chat history API
-      const cleanChatId = chatId.endsWith('.json') ? chatId.slice(0, -5) : chatId;
-      
+      const cleanChatId = chatId.endsWith(".json")
+        ? chatId.slice(0, -5)
+        : chatId;
+
       const response = await fetch(
         `${apiBaseUrl}/api/v1/chat/history/${cleanChatId}`,
         {
@@ -158,13 +163,11 @@ export default function AIAssistant() {
           timestamp: new Date(msg.timestamp),
         }));
 
-        // Update the chat with loaded messages
         setLocalChats((prevChats) =>
           prevChats.map((c: Chat) =>
             c.id === activeChatId ? { ...c, messages } : c
           )
         );
-
       } else {
         console.error(
           `[AI_ASSISTANT] Failed to load chat history - Status: ${response.status}`
@@ -181,7 +184,6 @@ export default function AIAssistant() {
   };
 
   const sendMessage = async () => {
-
     if (!message.trim() || !activeChat) {
       console.warn(`[AI_ASSISTANT] Send message aborted:`, {
         hasMessage: !!message.trim(),
@@ -200,7 +202,6 @@ export default function AIAssistant() {
       timestamp: new Date(),
     };
 
-    // Add user message immediately
     setLocalChats((prev: Chat[]) =>
       prev.map((chat) =>
         chat.id === activeChatId
@@ -215,10 +216,10 @@ export default function AIAssistant() {
     try {
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
       const idToken = localStorage.getItem("id_token");
+      const cleanActiveChatId = activeChatId.endsWith(".json")
+        ? activeChatId.slice(0, -5)
+        : activeChatId;
 
-      // Remove .json extension if present in activeChatId for chat API
-      const cleanActiveChatId = activeChatId.endsWith('.json') ? activeChatId.slice(0, -5) : activeChatId;
-      
       const response = await fetch(
         `${apiBaseUrl}/api/v1/chat/address/${cleanActiveChatId}`,
         {
@@ -229,9 +230,7 @@ export default function AIAssistant() {
             Accept: "application/json",
             Authorization: `Bearer ${idToken}`,
           },
-          body: JSON.stringify({
-            message: userMessage,
-          }),
+          body: JSON.stringify({ message: userMessage }),
         }
       );
 
@@ -252,13 +251,11 @@ export default function AIAssistant() {
               : chat
           )
         );
-
       } else {
         console.error(
           `[AI_ASSISTANT] Chat API error - Status: ${response.status}`
         );
 
-        // Handle error response
         const errorData = await response
           .json()
           .catch(() => ({ error: "Unknown error" }));
@@ -314,33 +311,16 @@ export default function AIAssistant() {
   return (
     <div className="max-w-7xl mx-auto h-[calc(100vh-8rem)] mt-8 md:mt-0">
       <div className="flex h-full shadow-lg rounded-xl overflow-hidden relative">
-        {/* Mobile Toggle Button - Top Left Position */}
-        <button
-          onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
-          className="md:hidden fixed top-20 left-2 z-50 bg-gradient-to-r from-olive to-olive-light border-2 border-white rounded-xl px-3 py-2 shadow-xl transform transition-all duration-300 hover:scale-105 active:scale-95"
-          style={{
-            left: isSidebarExpanded ? '18rem' : '0.5rem',
-          }}
+        {/* Sidebar (Chat list) */}
+        <aside
+          className={`
+            w-80 border-r border-beige bg-white rounded-l-xl flex flex-col transition-transform duration-300 ease-in-out
+            md:relative md:translate-x-0
+            ${isSidebarExpanded ? "translate-x-0" : "-translate-x-full"}
+            absolute md:static z-40 h-full
+          `}
+          aria-hidden={!isSidebarExpanded && window.innerWidth < 768}
         >
-          <div className="flex items-center gap-1">
-            {isSidebarExpanded ? (
-              <ChevronLeft className="mobile-icon-sm text-white" />
-            ) : (
-              <ChevronRight className="mobile-icon-sm text-white" />
-            )}
-            <span className="text-white text-xs font-medium">
-              {isSidebarExpanded ? 'Hide' : 'Chats'}
-            </span>
-          </div>
-        </button>
-
-        {/* Chat Sidebar */}
-        <div className={`
-          w-80 border-r border-beige bg-white rounded-l-xl flex flex-col transition-all duration-300 ease-in-out
-          md:relative md:translate-x-0
-          ${isSidebarExpanded ? 'translate-x-0' : '-translate-x-full'}
-          absolute md:static z-40 h-full
-        `}>
           {/* Fixed Header */}
           <div className="p-3 border-b border-beige bg-white flex-shrink-0">
             <div className="flex items-center justify-between mb-2">
@@ -348,14 +328,27 @@ export default function AIAssistant() {
                 <MiniLogo size="sm" />
                 AI Assistant
               </h2>
+
+              {/* DESKTOP-ONLY side arrow button to collapse when extended */}
+              {isSidebarExpanded && (
+                <button
+                  onClick={() => setIsSidebarExpanded(false)}
+                  className="hidden md:inline-flex items-center justify-center bg-white border border-beige rounded-lg px-2 py-1 hover:bg-beige/10 transition"
+                  aria-label="Collapse chat list"
+                  aria-expanded={isSidebarExpanded}
+                >
+                  <ChevronLeft className="w-4 h-4 text-black" />
+                </button>
+              )}
             </div>
             <p className="text-sm text-black/60">
-              <button 
-                onClick={() => navigate('/generate-report')}
+              <button
+                onClick={() => navigate("/generate-report")}
                 className="font-bold underline hover:text-brown transition-colors cursor-pointer"
               >
                 Generate a report
-              </button> to be able to ask questions about your future home 
+              </button>{" "}
+              to be able to ask questions about your future home
             </p>
           </div>
 
@@ -379,11 +372,14 @@ export default function AIAssistant() {
               localChats.map((chat: Chat) => (
                 <div
                   key={chat.id}
-                  onClick={() => setActiveChatId(chat.id)}
+                  onClick={() => {
+                    setActiveChatId(chat.id);
+                    if (window.innerWidth < 768) setIsSidebarExpanded(false);
+                  }}
                   className={`
-                  p-3 cursor-pointer transition-colors border-b border-beige/50 group hover:bg-beige/10
-                  ${activeChatId === chat.id ? "bg-beige/20" : ""}
-                `}
+                    p-3 cursor-pointer transition-colors border-b border-beige/50 group hover:bg-beige/10
+                    ${activeChatId === chat.id ? "bg-beige/20" : ""}
+                  `}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1 min-w-0">
@@ -401,154 +397,184 @@ export default function AIAssistant() {
               ))
             )}
           </div>
-        </div>
+        </aside>
 
         {/* Overlay for mobile when sidebar is open */}
         {isSidebarExpanded && (
-          <div 
+          <div
             className="md:hidden fixed inset-0 bg-black/50 z-30"
             onClick={() => setIsSidebarExpanded(false)}
           />
         )}
 
-        {/* Chat Area */}
-        <div className="flex-1 flex flex-col bg-off-white rounded-r-xl relative z-10">
-          {activeChat ? (
-            <>
-              {/* Chat Header */}
-              <div className="p-3 border-b border-beige bg-white flex items-center justify-between">
-                <h3 className="font-medium text-black text-base">{activeChat.title}</h3>
-              </div>
-
-              {/* Messages */}
-              <div className="flex-1 overflow-y-auto p-3 space-y-3 scrollbar-hide">
-                {activeChat.messages.length === 0 ? (
-                  <div className="text-center py-8">
-                    <div className="w-16 h-16 bg-beige/30 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <MessageCircle className="w-8 h-8 text-black/40" />
-                    </div>
-                    <h3 className="text-lg font-medium text-black mb-2">
-                      Start a conversation
-                    </h3>
-                    <p className="text-sm text-black/60 max-w-md mx-auto">Ask away!</p>
-                  </div>
+        {/* Main Chat Section */}
+        <section className="flex-1 flex flex-col bg-white rounded-r-xl">
+          {/* Chat Header (title + mobile menu button in the same line) */}
+          <div className="p-3 border-b border-beige bg-white flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {/* MOBILE-ONLY MENU/BACK BUTTON (no background color, ChatGPT-like) */}
+              <button
+                onClick={() => setIsSidebarExpanded((v) => !v)}
+                className="md:hidden inline-flex items-center justify-center rounded-lg p-2 focus:outline-none"
+                aria-label={isSidebarExpanded ? "Close chat list" : "Open chat list"}
+                aria-expanded={isSidebarExpanded}
+              >
+                {isSidebarExpanded ? (
+                  <ArrowLeft className="w-5 h-5 text-black" />
                 ) : (
-                  <>
-                    {activeChat.messages.map((msg) => (
-                      <div
-                        key={msg.id}
-                        className={`flex items-center gap-2 ${
-                          msg.role === "user" ? "justify-end" : "justify-start"
-                        }`}
-                      >
-                        {msg.role === "assistant" && (
-                          <div className="w-8 h-8 bg-gold rounded-full flex items-center justify-center flex-shrink-0">
-                            <Bot className="w-4 h-4 text-black" />
-                          </div>
-                        )}
-
-                        <div
-                          className={`
-                          max-w-lg rounded-xl px-4 py-3
-                          ${
-                            msg.role === "user"
-                              ? "bg-olive text-white"
-                              : "bg-gray-100 text-black"
-                          }
-                        `}
-                        >
-                          <p className="text-sm whitespace-pre-line">
-                            {msg.content}
-                          </p>
-                          <p
-                            className={`text-xs mt-2 ${
-                              msg.role === "user"
-                                ? "text-white/70"
-                                : "text-black/60"
-                            }`}
-                          >
-                            {formatTime(msg.timestamp)}
-                          </p>
-                        </div>
-
-                        {msg.role === "user" && (
-                          <div className="w-8 h-8 bg-beige rounded-full flex items-center justify-center flex-shrink-0">
-                            <UserIcon className="w-4 h-4 text-black" />
-                          </div>
-                        )}
-                      </div>
-                    ))}
-
-                    {isTyping && (
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-gold rounded-full flex items-center justify-center flex-shrink-0">
-                          <Bot className="w-4 h-4 text-black" />
-                        </div>
-                        <div className="bg-white border border-beige rounded-xl px-3 py-2">
-                          <div className="flex gap-1">
-                            <div className="w-2 h-2 bg-navy/40 rounded-full animate-bounce"></div>
-                            <div
-                              className="w-2 h-2 bg-navy/40 rounded-full animate-bounce"
-                              style={{ animationDelay: "0.1s" }}
-                            ></div>
-                            <div
-                              className="w-2 h-2 bg-navy/40 rounded-full animate-bounce"
-                              style={{ animationDelay: "0.2s" }}
-                            ></div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </>
+                  <Menu className="w-5 h-5 text-black" />
                 )}
-                <div ref={messagesEndRef} />
-              </div>
+              </button>
 
-              {/* Message Input */}
-              <div className="p-3 border-t border-beige bg-white">
-                <div className="flex items-stretch gap-2">
-                  <div className="flex-1 flex-grow flex items-center">
-                    <textarea
-                      value={message}
-                      onChange={(e) => setMessage(e.target.value)}
-                      onKeyPress={(e) => {
-                        if (e.key === "Enter" && !e.shiftKey) {
-                          e.preventDefault();
-                          sendMessage();
-                        }
-                      }}
-                      placeholder="Ask about property pricing, market trends, or analysis..."
-                      className="w-full h-full border border-beige rounded-lg px-3 py-2.5 md:py-3 resize-none focus:outline-none focus:ring-2 focus:ring-brown/20 focus:border-brown transition-colors duration-150 scrollbar-hide text-sm md:text-base"
-                      disabled={isTyping}
-                      rows={1}
-                    />
-                  </div>
-                  <Button
-                    onClick={sendMessage}
-                    disabled={!message.trim() || isTyping}
-                    variant="primary"
-                    className="px-4 self-stretch"
-                  >
-                    <Send className="w-4 h-4 md:w-5 md:h-5" />
-                  </Button>
+              <h3 className="text-lg font-medium text-black">
+                {activeChat ? activeChat.title : "AI Assistant"}
+              </h3>
+            </div>
+
+            {/* DESKTOP expand button when collapsed */}
+            {!isSidebarExpanded && (
+              <button
+                onClick={() => setIsSidebarExpanded(true)}
+                className="hidden md:inline-flex items-center justify-center bg-white border border-beige rounded-lg px-2 py-1 hover:bg-beige/10 transition"
+                aria-label="Expand chat list"
+                aria-expanded={isSidebarExpanded}
+              >
+                <ChevronRight className="w-4 h-4 text-black" />
+              </button>
+            )}
+
+            {/* Placeholder to keep spacing consistent when expanded (desktop) */}
+            {isSidebarExpanded && <div className="hidden md:block w-6" />}
+          </div>
+
+          {/* Messages */}
+          <div className="flex-1 overflow-y-auto p-3 space-y-3 scrollbar-hide">
+            {!activeChat ? (
+              <div className="flex-1 flex items-center justify-center">
+                <div className="text-center">
+                  <MessageCircle className="w-16 h-16 text-black/40 mx-auto mb-3" />
+                  <h3 className="text-lg font-medium text-black mb-2">
+                    No conversation selected
+                  </h3>
+                  <p className="text-sm text-black/60">
+                    Choose a conversation or start a new one
+                  </p>
                 </div>
               </div>
-            </>
-          ) : (
-            <div className="flex-1 flex items-center justify-center">
-              <div className="text-center">
-                <MessageCircle className="w-16 h-16 text-black/40 mx-auto mb-3" />
+            ) : activeChat.messages.length === 0 ? (
+              <div className="text-center py-8">
+                <div className="w-16 h-16 bg-beige/30 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <MessageCircle className="w-8 h-8 text-black/40" />
+                </div>
                 <h3 className="text-lg font-medium text-black mb-2">
-                  No conversation selected
+                  Start a conversation
                 </h3>
-                <p className="text-sm text-black/60">
-                  Choose a conversation or start a new one
+                <p className="text-sm text-black/60 max-w-md mx-auto">
+                  Ask away!
                 </p>
               </div>
-            </div>
-          )}
-        </div>
+            ) : (
+              <>
+                {activeChat.messages.map((msg) => (
+                  <div
+                    key={msg.id}
+                    className={`flex items-center gap-2 ${
+                      msg.role === "user" ? "justify-end" : "justify-start"
+                    }`}
+                  >
+                    {msg.role === "assistant" && (
+                      <div className="w-8 h-8 bg-gold rounded-full flex items-center justify-center flex-shrink-0">
+                        <Bot className="w-4 h-4 text-black" />
+                      </div>
+                    )}
 
+                    <div
+                      className={`
+                        max-w-lg rounded-xl px-4 py-3
+                        ${
+                          msg.role === "user"
+                            ? "bg-olive text-white"
+                            : "bg-gray-100 text-black"
+                        }
+                      `}
+                    >
+                      <p className="text-sm whitespace-pre-line">
+                        {msg.content}
+                      </p>
+                      <p
+                        className={`text-xs mt-2 ${
+                          msg.role === "user"
+                            ? "text-white/70"
+                            : "text-black/60"
+                        }`}
+                      >
+                        {formatTime(msg.timestamp)}
+                      </p>
+                    </div>
+
+                    {msg.role === "user" && (
+                      <div className="w-8 h-8 bg-beige rounded-full flex items-center justify-center flex-shrink-0">
+                        <UserIcon className="w-4 h-4 text-black" />
+                      </div>
+                    )}
+                  </div>
+                ))}
+
+                {isTyping && (
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 bg-gold rounded-full flex items-center justify-center flex-shrink-0">
+                      <Bot className="w-4 h-4 text-black" />
+                    </div>
+                    <div className="bg-white border border-beige rounded-xl px-3 py-2">
+                      <div className="flex gap-1">
+                        <div className="w-2 h-2 bg-navy/40 rounded-full animate-bounce"></div>
+                        <div
+                          className="w-2 h-2 bg-navy/40 rounded-full animate-bounce"
+                          style={{ animationDelay: "0.1s" }}
+                        ></div>
+                        <div
+                          className="w-2 h-2 bg-navy/40 rounded-full animate-bounce"
+                          style={{ animationDelay: "0.2s" }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Message Input */}
+          <div className="p-3 border-t border-beige bg-white">
+            <div className="flex items-stretch gap-2">
+              <div className="flex-1 flex-grow flex items-center">
+                <textarea
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      sendMessage();
+                    }
+                  }}
+                  placeholder="Ask about this prooperty!"
+                  className="w-full h-full border border-beige rounded-lg px-3 py-2.5 md:py-3 resize-none focus:outline-none focus:ring-2 focus:ring-brown/20 focus:border-brown transition-colors duration-150 scrollbar-hide text-sm md:text-base"
+                  disabled={isTyping}
+                  rows={1}
+                />
+              </div>
+              <Button
+                onClick={sendMessage}
+                disabled={!message.trim() || isTyping}
+                variant="primary"
+                className="px-4 self-stretch"
+              >
+                <Send className="w-4 h-4 md:w-5 md:h-5" />
+              </Button>
+            </div>
+          </div>
+        </section>
       </div>
     </div>
   );

@@ -598,9 +598,9 @@ export default function GenerateReportPage() {
                 />
               )}
               {clients.length === 0 && !clientsLoading && (
-                <p className="text-responsive-sm text-gray-500 mt-2">
+                <div className="text-responsive-sm text-gray-500 mt-2">
                   No clients found. Please assign clients to your agent account.
-                </p>
+                </div>
               )}
             </div>
           )}
@@ -609,14 +609,14 @@ export default function GenerateReportPage() {
             <div className="bg-olive/10 border border-olive/30 rounded-lg space-responsive-sm">
               <div className="flex items-start space-x-2 sm:space-x-3">
                 <div className="text-olive">
-                  <p className="font-medium text-sm sm:text-base mb-1">
+                  <div className="font-medium text-sm sm:text-base mb-1">
                     Comparison Report
-                  </p>
-                  <p className="text-xs sm:text-sm">
+                  </div>
+                  <div className="text-xs sm:text-sm">
                     Compare two properties side-by-side with detailed analysis
                     of neighborhoods, amenities, market trends, and key
                     differences to help you make an informed decision.
-                  </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -626,10 +626,10 @@ export default function GenerateReportPage() {
             <div className="bg-gold/10 border border-gold/30 rounded-lg space-responsive-sm">
               <div className="flex items-start space-x-2 sm:space-x-3">
                 <div className="text-gold">
-                  <p className="font-medium text-sm sm:text-base mb-1">
+                  <div className="font-medium text-sm sm:text-base mb-1">
                     Marketing Material
-                  </p>
-                  <p className="text-xs sm:text-sm">
+                  </div>
+                  <div className="text-xs sm:text-sm">
                     Generate personalized marketing materials tailored to your
                     client's specific preferences and needs. This report
                     leverages your client's demographic data, lifestyle
@@ -637,7 +637,7 @@ export default function GenerateReportPage() {
                     property descriptions, targeted market insights, and
                     customized selling points that resonate with their unique
                     situation and decision-making factors.
-                  </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -647,17 +647,17 @@ export default function GenerateReportPage() {
             <div className="bg-brown/10 border border-brown/30 rounded-lg space-responsive-sm">
               <div className="flex items-start space-x-2 sm:space-x-3">
                 <div className="text-brown">
-                  <p className="font-medium text-sm sm:text-base mb-1">
+                  <div className="font-medium text-sm sm:text-base mb-1">
                     Detailed Report
-                  </p>
-                  <p className="text-xs sm:text-sm">
+                  </div>
+                  <div className="text-xs sm:text-sm">
                     Generate a comprehensive neighborhood analysis with detailed
                     insights into demographics, safety, amenities, schools,
                     transportation, and lifestyle factors. This personalized
                     report is tailored to your specific preferences and
                     priorities, providing in-depth information to help you make
                     an informed decision about the property and area.
-                  </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -701,10 +701,10 @@ export default function GenerateReportPage() {
             )}
 
             {!scriptsReady && !loadError && (
-              <p className="text-responsive-sm text-black/60 mt-2 flex items-center">
+              <div className="text-responsive-sm text-black/60 mt-2 flex items-center">
                 <div className="animate-spin mobile-icon-xs mr-2 border-2 border-current border-t-transparent rounded-full" />
                 Loading address autocomplete...
-              </p>
+              </div>
             )}
           </div>
 
@@ -750,8 +750,8 @@ export default function GenerateReportPage() {
             <div className="bg-red-50 border border-red-200 rounded-lg p-3 sm:p-4 flex items-start space-x-2 sm:space-x-3">
               <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-red-500 flex-shrink-0 mt-0.5" />
               <div className="text-red-700">
-                <p className="font-medium text-sm sm:text-base">Error</p>
-                <p className="text-xs sm:text-sm">{error || loadError}</p>
+                <div className="font-medium text-sm sm:text-base">Error</div>
+                <div className="text-xs sm:text-sm">{error || loadError}</div>
               </div>
             </div>
           )}

@@ -124,6 +124,8 @@ export default function ResetPasswordPage() {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Enter your email"
             leftIcon={<Mail className="w-4 h-4" />}
+            name="email"
+            id="email-request"
             autoComplete="username"
             variant="mobile"
             className="autofill-gold"
@@ -138,6 +140,8 @@ export default function ResetPasswordPage() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email"
               leftIcon={<Mail className="w-4 h-4" />}
+              name="email"
+              id="email-request"
               autoComplete="username"
               variant="mobile"
               className="autofill-gold"
@@ -150,6 +154,8 @@ export default function ResetPasswordPage() {
               onChange={(e) => setCode(e.target.value)}
               placeholder="Enter verification code"
               leftIcon={<Key className="w-4 h-4" />}
+              name="code"
+              id="verification-code"
               variant="mobile"
               className="autofill-gold"
             />
@@ -162,6 +168,8 @@ export default function ResetPasswordPage() {
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="Enter new password"
                 leftIcon={<Lock className="w-4 h-4" />}
+                name="new-password"
+                id="new-password"
                 autoComplete="new-password"
                 variant="mobile"
                 showPasswordToggle
@@ -180,6 +188,8 @@ export default function ResetPasswordPage() {
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Confirm new password"
               leftIcon={<Lock className="w-4 h-4" />}
+              name="confirm-password"
+              id="confirm-password"
               autoComplete="new-password"
               variant="mobile"
               showPasswordToggle
@@ -197,7 +207,7 @@ export default function ResetPasswordPage() {
           <span className="text-gray-600 text-responsive-xs">Remember your password?</span><AuthLink
             to="/login"
             className="text-brown hover:text-brown/80 hover:underline underline-offset-4 transition-colors"
-          >Sign in</AuthLink>
+          >Login</AuthLink>
         </div>
       </form>
 

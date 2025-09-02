@@ -89,6 +89,7 @@ export default function LoginPage() {
           placeholder="Enter your email"
           leftIcon={<Mail className="w-4 h-4" />}
           name="email"
+          id="email"
           autoComplete="email"
           variant="mobile"
           className="autofill-gold"
@@ -102,6 +103,7 @@ export default function LoginPage() {
           placeholder="Enter your password"
           leftIcon={<Lock className="w-4 h-4" />}
           name="password"
+          id="password"
           autoComplete="current-password"
           variant="mobile"
           showPasswordToggle
@@ -109,7 +111,7 @@ export default function LoginPage() {
         />
 
         <AuthButton type="submit" loading={loading} disabled={loading}>
-          Sign in
+          Login
         </AuthButton>
 
         <div className="flex items-center justify-center gap-responsive-md text-responsive-sm">
