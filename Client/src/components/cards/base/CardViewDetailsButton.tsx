@@ -29,7 +29,7 @@ const CardViewDetailsButton: React.FC<CardViewDetailsButtonProps> = ({
   size = "md",
   variant = "primary",
   fullWidth = false,
-  text = "View Details",
+  text = "==Unlock",
   showIcon = true,
   disabled = false,
   className = "",
@@ -79,9 +79,14 @@ const CardViewDetailsButton: React.FC<CardViewDetailsButtonProps> = ({
     showIcon && text ? "mr-1 sm:mr-2" : ""
   }`;
 
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent event from bubbling up to parent card
+    onClick();
+  };
+
   return (
     <button
-      onClick={onClick}
+      onClick={handleClick}
       disabled={disabled || loading}
       className={buttonClasses}
     >

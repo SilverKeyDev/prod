@@ -5,8 +5,7 @@ import {
   formatAgentName, 
   formatLotSize 
 } from "../../lib/addressFormat";
-import { PropertyCard } from "../ui";
-import { CardAddressDisplay, CardAgentInfo } from "./base";
+import { Bed, Bath, Square, MapPin, User, Building } from "lucide-react";
 
 export interface CompData {
   address: {
@@ -51,57 +50,105 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
   const imageUrl = comp.miniCardPhotos?.[0]?.url || '/defaut-home.jpg';
 
   // Format lot size for display
-  const lotSizeDisplay = comp.lotAreaValue 
-    ? formatLotSize(comp.lotAreaValue, comp.lotAreaUnits || 'acres')
-    : 'not provided';
-
-  // Format agent info for additional details
-  const additionalDetails = [];
-  if (comp.lotAreaValue) {
-    additionalDetails.push(`Lot: ${lotSizeDisplay}`);
-  }
-  if (comp.attributionInfo?.agentName) {
-    additionalDetails.push(`Agent: ${formatAgentName(comp.attributionInfo.agentName)}`);
-  }
+  const lotSizeDisplay = comp.lotAreaValue && comp.lotAreaValue >= 100
+    ? formatLotSize(comp.lotAreaValue)
+    : comp.lotAreaValue && comp.lotAreaValue < 100
+    ? "N/A"
+    : null;
 
   return (
-    <PropertyCard
-      imageUrl={imageUrl}
-      address={comp.address.streetAddress}
-      price={formatPrice(comp.price, comp.currency)}
-      bedrooms={comp.bedrooms}
-      bathrooms={comp.bathrooms}
-      sqft={comp.livingArea}
-      propertyType={comp.homeType}
-      lotSize={lotSizeDisplay}
-      status={{
-        text: formatHomeStatus(comp.homeStatus),
-        className: getStatusColor(comp.homeStatus)
-      }}
-      className={className}
-      bottomContent={
-        <div className="space-y-responsive-sm">
-          {/* Secondary Address */}
-          <CardAddressDisplay
-            address={`${comp.address.city}, ${comp.address.state} ${comp.address.zipcode}`}
-            region={comp.parentRegion?.name}
-            variant="compact"
-            size="xs"
-            showIcon={false}
-            className="text-gray-600"
-          />
+    <div className={`bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden flex flex-col ${className}`}>
+      {/* Image Section */}
+      <div className="relative h-32 sm:h-40 md:h-48">
+        <img
+          src={imageUrl}
+          alt={comp.address.streetAddress}
+          className="w-full h-full object-cover"
+        />
+        
+        {/* Price and Status Row */}
+        <div className="absolute top-2 left-2 right-2 flex items-center justify-between">
+          {/* Price Badge - reduced padding */}
+          <div className="bg-neutral-50/95 backdrop-blur-sm px-2 py-1 rounded-full border border-neutral-200/50">
+            <span className="text-xs font-semibold text-brand-primary">
+              {formatPrice(comp.price, comp.currency)}
+            </span>
+          </div>
           
-          {/* Agent Info */}
-          {comp.attributionInfo?.agentName && (
-            <CardAgentInfo
-              agentName={formatAgentName(comp.attributionInfo.agentName)}
-              brokerName={comp.attributionInfo?.brokerName}
-              size="xs"
-              showIcon={false}
-            />
-          )}
+          {/* Recently Sold Badge - reduced padding, aligned in same row */}
+          <div className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(comp.homeStatus)}`}>
+            {formatHomeStatus(comp.homeStatus)}
+          </div>
         </div>
-      }
-    />
+      </div>
+      
+      {/* Content Section */}
+      <div className="p-3 flex-1 flex flex-col">
+        {/* Address */}
+        <div className="mb-3 text-left">
+          <div className="flex items-center gap-1 mb-1">
+            <MapPin className="w-3 h-3 text-brown flex-shrink-0" />
+            <h3 className="text-sm font-medium text-brown truncate">
+              {comp.address.streetAddress}
+            </h3>
+          </div>
+          <p className="text-xs text-brown/80 truncate ml-4">
+            {comp.address.city}, {comp.address.state} {comp.address.zipcode}
+          </p>
+        </div>
+        
+        {/* Property Details - Try to fit on same line, wrap if needed */}
+        <div className="mb-3 text-left">
+          <div className="flex flex-wrap gap-x-4 gap-y-2">
+            {comp.bedrooms > 0 && (
+              <div className="flex items-center gap-1">
+                <Bed className="w-3 h-3 text-brown flex-shrink-0" />
+                <span className="text-xs text-brown whitespace-nowrap">{comp.bedrooms} bed{comp.bedrooms !== 1 ? 's' : ''}</span>
+              </div>
+            )}
+            {comp.bathrooms > 0 && (
+              <div className="flex items-center gap-1">
+                <Bath className="w-3 h-3 text-brown flex-shrink-0" />
+                <span className="text-xs text-brown whitespace-nowrap">{comp.bathrooms} bath{comp.bathrooms !== 1 ? 's' : ''}</span>
+              </div>
+            )}
+            {comp.livingArea > 0 && (
+              <div className="flex items-center gap-1">
+                <Square className="w-3 h-3 text-brown flex-shrink-0" />
+                <span className="text-xs text-brown whitespace-nowrap">{Math.round(comp.livingArea).toLocaleString()} sqft</span>
+              </div>
+            )}
+          </div>
+        </div>
+        
+        {/* Lot Size - underneath bed/bath/sqft */}
+        {lotSizeDisplay && (
+          <div className="flex items-center gap-1 mb-3 text-left">
+            <MapPin className="w-3 h-3 text-brown flex-shrink-0" />
+            <span className="text-xs text-brown whitespace-nowrap">Lot: {lotSizeDisplay}</span>
+          </div>
+        )}
+        
+        {/* Agent and Brokerage Info */}
+        {comp.attributionInfo?.agentName && (
+          <div className="space-y-2 text-left mt-auto">
+            <div className="flex items-center gap-1">
+              <User className="w-3 h-3 text-brown flex-shrink-0" />
+              <span className="text-xs text-brown whitespace-nowrap">
+                Agent: {formatAgentName(comp.attributionInfo.agentName)}
+              </span>
+            </div>
+            {comp.attributionInfo?.brokerName && (
+              <div className="flex items-center gap-1">
+                <Building className="w-3 h-3 text-brown flex-shrink-0" />
+                <span className="text-xs text-brown whitespace-nowrap">
+                  {comp.attributionInfo.brokerName}
+                </span>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

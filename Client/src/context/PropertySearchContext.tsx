@@ -110,16 +110,39 @@ export function PropertySearchProvider({
       setCurrentSearchQuery(params);
 
       try {
+        // Get user preferences for the search
+        const userPrefsResponse = await fetchJson<{
+          success: boolean;
+          preferences?: any;
+          error?: string;
+        }>(`${BASE_URL}/api/v1/preferences`, {
+          method: "GET",
+          mode: "cors",
+          headers: createAuthHeaders(token),
+          credentials: "include",
+          signal,
+        });
+
+        if (!userPrefsResponse?.success || !userPrefsResponse.preferences) {
+          throw new Error("Failed to fetch user preferences for search");
+        }
+
+        // Prepare search payload with user preferences
+        const searchPayload = {
+          user_preferences: userPrefsResponse.preferences,
+          perBucketPages: 20
+        };
+
         const json = await fetchJson<{
           success: boolean;
           properties?: Property[];
           error?: string;
-        }>(`${BASE_URL}/api/v1/search/properties`, {
+        }>(`${BASE_URL}/api/v1/search/properties-by-polygon`, {
           method: "POST",
           mode: "cors",
           headers: createAuthHeaders(token),
           credentials: "include",
-          body: JSON.stringify(params),
+          body: JSON.stringify(searchPayload),
           signal,
         });
 
@@ -144,103 +167,32 @@ export function PropertySearchProvider({
     []
   );
 
-  const fetchSearchHistory = useCallback(async (signal?: AbortSignal) => {
-    const token = getAuthToken();
-    if (!token) return;
-
+  const fetchSearchHistory = useCallback(async (_signal?: AbortSignal) => {
     setHistoryLoading(true);
     setHistoryError(null);
 
     try {
-      const json = await fetchJson<{
-        success: boolean;
-        searches?: SearchQuery[];
-        error?: string;
-      }>(`${BASE_URL}/api/v1/search/history`, {
-        method: "GET",
-        mode: "cors",
-        headers: createAuthHeaders(token),
-        credentials: "include",
-        signal,
-        acceptStatuses: [404],
-      });
-
-      if (json.success && json.searches) {
-        setSearchHistory(
-          json.searches.map((s) => ({
-            ...s,
-            created_at: new Date(s.created_at),
-          }))
-        );
-      } else if (json === undefined) {
-        // 404 response, treat as empty
-        setSearchHistory([]);
-      } else {
-        throw new Error(json.error || "Failed to fetch search history");
-      }
-    } catch (e: any) {
-      if (!isAbortError(e)) {
-        if (isAuthenticationError(e)) {
-          handleAuthenticationError(e);
-          return; // User will be redirected
-        }
-        console.error("Failed to fetch search history", e);
-        setHistoryError(e?.message ?? "Failed to fetch search history");
-        setSearchHistory([]); // Safe fallback
+      // Search history endpoint doesn't exist yet, return empty array
+      setSearchHistory([]);
+    } catch (error) {
+      if (error instanceof Error && error.name !== "AbortError") {
+        setHistoryError(error.message);
       }
     } finally {
       setHistoryLoading(false);
     }
   }, []);
 
-  const fetchSavedSearches = useCallback(async (signal?: AbortSignal) => {
-    const token = getAuthToken();
-    if (!token) return;
-
+  const fetchSavedSearches = useCallback(async (_signal?: AbortSignal) => {
     setSavedSearchesLoading(true);
     setSavedSearchesError(null);
 
     try {
-      const json = await fetchJson<{
-        success: boolean;
-        saved_searches?: SavedSearch[];
-        error?: string;
-      }>(`${BASE_URL}/api/v1/search/saved`, {
-        method: "GET",
-        mode: "cors",
-        headers: createAuthHeaders(token),
-        credentials: "include",
-        signal,
-        acceptStatuses: [404],
-      });
-
-      if (json.success && json.saved_searches) {
-        setSavedSearches(
-          json.saved_searches.map((s) => ({
-            ...s,
-            created_at: new Date(s.created_at),
-            last_run: s.last_run ? new Date(s.last_run) : undefined,
-            query: {
-              ...s.query,
-              created_at: new Date(s.query.created_at),
-            },
-          }))
-        );
-      } else if (json === undefined) {
-        // 404 response, treat as empty
-        setSavedSearches([]);
-      } else {
-        throw new Error(json.error || "Failed to fetch saved searches");
-      }
-    } catch (e: any) {
-      if (!isAbortError(e)) {
-        if (isAuthenticationError(e)) {
-          handleAuthenticationError(e);
-          return; // User will be redirected
-        }
-        console.error("Failed to fetch saved searches", e);
-        setSavedSearchesError(e?.message ?? "Failed to fetch saved searches");
-        setSavedSearches([]); // Safe fallback
+      // Saved searches endpoint doesn't exist yet, return empty array
+      setSavedSearches([]);
+    } catch (error) {
+      if (error instanceof Error && error.name !== "AbortError") {
+        setSavedSearchesError(error.message);
       }
     } finally {
       setSavedSearchesLoading(false);
@@ -257,9 +209,16 @@ export function PropertySearchProvider({
     try {
       const json = await fetchJson<{
         success: boolean;
-        isochrones?: IsochroneData[];
+        data?: {
+          isochrone?: any;
+          individual_isochrones?: any[];
+          center?: any;
+          locations?: any[];
+          commute_tolerance?: number;
+          mode?: string;
+        };
         error?: string;
-      }>(`${BASE_URL}/api/v1/search/isochrones`, {
+      }>(`${BASE_URL}/api/v1/search/isochrone`, {
         method: "GET",
         mode: "cors",
         headers: createAuthHeaders(token),
@@ -268,13 +227,21 @@ export function PropertySearchProvider({
         acceptStatuses: [404],
       });
 
-      if (json && json.success && json.isochrones) {
-        setIsochrones(
-          json.isochrones.map((i) => ({
-            ...i,
-            created_at: new Date(i.created_at),
-          }))
-        );
+      if (json && json.success && json.data) {
+        // Convert the backend response to match IsochroneData interface
+        const isochroneData: IsochroneData = {
+          id: 'current',
+          location: {
+            name: json.data.center?.name || 'Current Location',
+            address: json.data.center?.address || '',
+            lat: json.data.center?.lat || 0,
+            lng: json.data.center?.lon || 0
+          },
+          commute_time: json.data.commute_tolerance || 30,
+          polygon: json.data.isochrone || null,
+          created_at: new Date()
+        };
+        setIsochrones([isochroneData]);
       } else if (json === undefined || json === null) {
         // 404 response or null response, treat as empty
         setIsochrones([]);

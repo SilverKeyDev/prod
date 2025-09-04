@@ -942,9 +942,11 @@ const OfferDraftPage: React.FC = () => {
                   ) : (
                     <FileCheck className="mobile-icon-xs" />
                   )}
-                  {loadingStates.purchaseAgreement
-                    ? "Generating..."
-                    : "Generate Agreement"}
+                  <span className="text-responsive-xs">
+                    {loadingStates.purchaseAgreement
+                      ? "Generating..."
+                      : "Generate Agreement"}
+                  </span>
                 </button>
               </div>
             </div>
@@ -1041,9 +1043,11 @@ const OfferDraftPage: React.FC = () => {
                   ) : (
                     <FileCheck className="mobile-icon-xs" />
                   )}
-                  {loadingStates.preApprovalLetter
-                    ? "Generating..."
-                    : "Generate Pre-Approval"}
+                  <span className="text-responsive-xs">
+                    {loadingStates.preApprovalLetter
+                      ? "Generating..."
+                      : "Generate Pre-Approval"}
+                  </span>
                 </button>
               </div>
             </div>
@@ -1150,9 +1154,11 @@ const OfferDraftPage: React.FC = () => {
                   ) : (
                     <FileCheck className="h-4 w-4" />
                   )}
-                  {loadingStates.earnestMoneyInstructions
-                    ? "Generating..."
-                    : "Generate Instructions"}
+                  <span className="text-responsive-xs">
+                    {loadingStates.earnestMoneyInstructions
+                      ? "Generating..."
+                      : "Generate Instructions"}
+                  </span>
                 </button>
               </div>
             </div>
@@ -1232,9 +1238,11 @@ const OfferDraftPage: React.FC = () => {
                   ) : (
                     <FileCheck className="h-4 w-4" />
                   )}
-                  {loadingStates.coverLetter
-                    ? "Generating..."
-                    : "Generate Cover Letter"}
+                  <span className="text-responsive-xs">
+                    {loadingStates.coverLetter
+                      ? "Generating..."
+                      : "Generate Cover Letter"}
+                  </span>
                 </button>
               </div>
             </div>
@@ -1262,13 +1270,15 @@ const OfferDraftPage: React.FC = () => {
                   ) : (
                     <FileCheck className="h-5 w-5" />
                   )}
-                  {loadingStates.allDocuments
-                    ? "Generating All..."
-                    : "Generate All Documents"}
+                  <span className="text-responsive-xs">
+                    {loadingStates.allDocuments
+                      ? "Generating All..."
+                      : "Generate All Documents"}
+                  </span>
                 </button>
                 <button className={button} type="submit">
                   <Download className="h-5 w-5" />
-                  Download All Documents
+                  <span className="text-responsive-xs">Download All Documents</span>
                 </button>
                 <button
                   type="button"
@@ -1304,7 +1314,7 @@ const OfferDraftPage: React.FC = () => {
                   }}
                 >
                   <X className="h-4 w-4" />
-                  Clear Draft
+                  <span className="text-responsive-xs">Clear Draft</span>
                 </button>
                 <button
                   type="button"
@@ -1312,7 +1322,7 @@ const OfferDraftPage: React.FC = () => {
                   onClick={() => alert("Email All Documents functionality")}
                 >
                   <Mail className="h-5 w-5" />
-                  Email All Documents
+                  <span className="text-responsive-xs">Email All Documents</span>
                 </button>
               </div>
             </div>

@@ -1482,16 +1482,13 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
           {/* Sidebar */}
           <aside className="w-12 md:w-64 sticky top-24 md:top-4 self-start">
             <Card className="space-y-2">
-              <div className="px-3 py-2">
-                <h2 className="text-lg font-semibold text-black hidden lg:block">Priorities</h2>
-              </div>
 
               {/* Edit/Save Buttons - Hidden on small screens */}
-              <div className="px-3 py-2 hidden md:block">
+              <div className="hidden md:block mb-8">
                 {!isEditMode ? (
                   <button
                     onClick={() => setIsEditMode(true)}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-2 text-lg font-medium text-white bg-olive rounded-lg hover:bg-olive-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-olive"
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2 text-lg font-medium text-white bg-olive rounded-lg hover:bg-olive-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-olive"
                   >
                     <Edit className="w-5 h-5" />
                     Edit
@@ -1501,14 +1498,14 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                     <button
                       onClick={handleSaveChanges}
                       disabled={isSaving}
-                      className="w-full flex items-center justify-center gap-2 px-4 py-2 text-lg font-medium text-white bg-olive rounded-lg hover:bg-olive-dark disabled:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-olive"
+                      className="w-full flex items-center justify-center gap-2 px-3 py-2 text-lg font-medium text-white bg-olive rounded-lg hover:bg-olive-dark disabled:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-olive"
                     >
                       <Save className="w-5 h-5" />
                       {isSaving ? "Saving..." : "Save"}
                     </button>
                     <button
                       onClick={handleCancel}
-                      className="w-full flex items-center justify-center gap-2 px-4 py-2 text-lg font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400"
+                      className="w-full flex items-center justify-center gap-2 px-3 py-2 text-lg font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400"
                     >
                       <X className="w-5 h-5" />
                       Cancel
@@ -1531,7 +1528,9 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   <step.icon
                     size={20}
                     className={`flex-shrink-0 ${
-                      activeSection === step.id ? "text-gray-800" : "text-gray-500"
+                      activeSection === step.id
+                        ? "text-gray-800"
+                        : "text-gray-500"
                     }`}
                   />
                   <span className="hidden md:inline">{step.title}</span>
@@ -1549,7 +1548,10 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
             ))}
 
             {/* Save/Cancel buttons at the bottom for desktop (hidden on mobile) */}
-            <div ref={saveButtonRef} className="hidden md:flex justify-end items-center gap-4 pt-4">
+            <div
+              ref={saveButtonRef}
+              className="hidden md:flex justify-end items-center gap-4 pt-4"
+            >
               {isEditMode && (
                 <>
                   <button

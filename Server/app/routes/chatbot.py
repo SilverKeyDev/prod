@@ -82,8 +82,11 @@ def chat_for_address(report_id):
             logger.warning(f"[CHAT_ROUTE] PDF document not found for report_id: {report_id}, user_id: {user_id}")
             return jsonify({"error": f"Report not found: {report_id}"}), 404
 
-        # Use the address from the database record as the source of truth
-        address = pdf_doc.address if pdf_doc.address else "Unknown Address"
+        # Use the primary_address from the database record as the source of truth
+        address = getattr(pdf_doc, 'primary_address', None) or "Unknown Address"
+        
+        if not pdf_doc.primary_address:
+            logger.warning(f"[CHAT_ROUTE] PDF document {report_id} has no primary_address set")
 
         # Fetch complete report data from S3
         report_data = None

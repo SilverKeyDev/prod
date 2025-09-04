@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
 import { Lightbulb, Home, Download, Share2 } from "lucide-react";
 import FavoriteHomesDropdown from "../../components/ui/base/FavoriteHomesDropdown";
 import Loading from "../../components/ui/base/Loading";
 import KeyTurnLoader from "../../components/ui/base/KeyTurnLoader";
+import Card from "../../components/ui/base/Card";
 import { CardCarousel } from "../../components/cards/base";
 import CompCard, { CompData } from "../../components/cards/CompCard";
+import { useNegotiation } from "../../context/NegotiationContext";
 
 const sectionBox =
   "bg-white rounded-xl shadow-sm p-6 mb-6 border border-beige/40";
@@ -15,238 +16,18 @@ const button =
   "bg-olive text-white px-6 py-3 rounded-lg font-semibold hover:bg-olive-light transition-colors duration-200 flex items-center gap-2";
 
 export default function NegotiationStrategy() {
-  const [selectedHome, setSelectedHome] = useState<any>(null);
-  const [strategyData, setStrategyData] = useState<any>(null);
-  const [compsData, setCompsData] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    selectedHome,
+    strategyData,
+    compsData,
+    isLoading,
+    error,
+    handleHomeSelection,
+    handleGenerate,
+    handleDownloadJson,
+    handleShareJson,
+  } = useNegotiation();
 
-  // Load saved data from localStorage on component mount
-  useEffect(() => {
-    const savedStrategy = localStorage.getItem("negotiationStrategy");
-    const savedHome = localStorage.getItem("negotiationSelectedHome");
-    const savedComps = localStorage.getItem("negotiationComps");
-
-    if (savedStrategy) {
-      try {
-        const parsedStrategy = JSON.parse(savedStrategy);
-        setStrategyData(parsedStrategy);
-      } catch (error) {
-        console.error(
-          "❌ [NEGOTIATION] Failed to parse saved strategy data:",
-          error
-        );
-        localStorage.removeItem("negotiationStrategy");
-      }
-    }
-    if (savedHome) {
-      try {
-        const parsedHome = JSON.parse(savedHome);
-        setSelectedHome(parsedHome);
-      } catch (error) {
-        console.error(
-          "❌ [NEGOTIATION] Failed to parse saved home data:",
-          error
-        );
-        localStorage.removeItem("negotiationSelectedHome");
-      }
-    }
-
-    if (savedComps) {
-      try {
-        const parsedComps = JSON.parse(savedComps);
-        setCompsData(parsedComps);
-      } catch (error) {
-        console.error(
-          "❌ [NEGOTIATION] Failed to parse saved comps data:",
-          error
-        );
-        localStorage.removeItem("negotiationComps");
-      }
-    }
-  }, []);
-
-  const handleGenerate = async () => {
-    if (!selectedHome) return;
-
-    setIsLoading(true);
-    setError(null);
-    setStrategyData(null);
-    setCompsData(null);
-
-    try {
-      // Get authentication token
-      const idToken = localStorage.getItem("id_token");
-      if (!idToken) {
-        throw new Error("Authentication required. Please log in.");
-      }
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || "";
-      const address =
-        selectedHome.address ||
-        selectedHome.full_address ||
-        selectedHome.location;
-
-      // Make both API calls concurrently
-      const [strategyRes, compsRes] = await Promise.all([
-        fetch(`${baseUrl}/api/v1/offer/generate-strategy`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${idToken}`,
-          },
-          body: JSON.stringify({
-            address: address,
-          }),
-        }),
-        fetch(
-          `${baseUrl}/api/v1/search/propertyComps?address=${encodeURIComponent(
-            address
-          )}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${idToken}`,
-            },
-          }
-        ),
-      ]);
-
-      const [strategyResponseData, compsResponseData] = await Promise.all([
-        strategyRes.json(),
-        compsRes.json(),
-      ]);
-
-      // Check strategy response
-      if (!strategyRes.ok) {
-        throw new Error(
-          strategyResponseData.error ||
-            `Strategy API error! status: ${strategyRes.status}`
-        );
-      }
-
-      if (!strategyResponseData.success) {
-        throw new Error(
-          strategyResponseData.error || "Failed to generate strategy"
-        );
-      }
-
-      // Check comps response (log but don't fail if comps fails)
-      if (!compsRes.ok) {
-        console.warn(
-          "Property comps API failed:",
-          compsRes.status,
-          compsResponseData
-        );
-      }
-
-      // Parse the strategy data from the AI response
-      const parsedStrategyData = strategyResponseData.strategy;
-
-      // Store the complete strategy data from the AI response
-      // This will display ALL fields returned by the AI
-      setStrategyData(parsedStrategyData || {});
-
-      // Store the property comps data
-      setCompsData(compsResponseData || {});
-
-      // Save strategy data, comps data, and selected home to localStorage
-      localStorage.setItem(
-        "negotiationStrategy",
-        JSON.stringify(parsedStrategyData || {})
-      );
-      localStorage.setItem(
-        "negotiationComps",
-        JSON.stringify(compsResponseData || {})
-      );
-      localStorage.setItem(
-        "negotiationSelectedHome",
-        JSON.stringify(selectedHome)
-      );
-    } catch (err) {
-      console.error("Error generating negotiation strategy:", err);
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Failed to generate strategy. Please try again."
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Handle home selection from dropdown
-  const handleHomeSelection = (home: any) => {
-    setSelectedHome(home);
-    setStrategyData(null); // Reset strategy when home changes
-    setCompsData(null); // Reset comps when home changes
-
-    // Save the newly selected home to localStorage
-    localStorage.setItem("negotiationSelectedHome", JSON.stringify(home));
-
-    // Clear saved strategy and comps since we're selecting a different home
-    localStorage.removeItem("negotiationStrategy");
-    localStorage.removeItem("negotiationComps");
-  };
-
-  // Handle JSON download
-  const handleDownloadJson = () => {
-    if (!strategyData) return;
-
-    const dataStr = JSON.stringify(strategyData, null, 2);
-    const dataBlob = new Blob([dataStr], { type: "application/json" });
-    const url = URL.createObjectURL(dataBlob);
-
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `negotiation-strategy-${
-      selectedHome?.address?.replace(/[^a-zA-Z0-9]/g, "-") || "strategy"
-    }.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  };
-
-  // Handle JSON sharing
-  const handleShareJson = async () => {
-    if (!strategyData) return;
-
-    const dataStr = JSON.stringify(strategyData, null, 2);
-
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: "Negotiation Strategy",
-          text: `Negotiation strategy for ${
-            selectedHome?.address || "property"
-          }`,
-          files: [
-            new File([dataStr], "negotiation-strategy.json", {
-              type: "application/json",
-            }),
-          ],
-        });
-      } catch (err) {
-        // Fallback to clipboard
-        handleCopyToClipboard(dataStr);
-      }
-    } else {
-      // Fallback for browsers without Web Share API
-      handleCopyToClipboard(dataStr);
-    }
-  };
-
-  // Fallback function to copy JSON to clipboard
-  const handleCopyToClipboard = async (dataStr: string) => {
-    try {
-      await navigator.clipboard.writeText(dataStr);
-      alert("Strategy JSON copied to clipboard!");
-    } catch (err) {
-      console.error("Failed to copy to clipboard:", err);
-      alert("Failed to share. Please try downloading instead.");
-    }
-  };
 
   return (
     <div>
@@ -309,12 +90,6 @@ export default function NegotiationStrategy() {
             <div className="text-red-600 text-center text-responsive-sm">
               <p className="font-semibold mb-2">Error Generating Strategy</p>
               <p className="text-responsive-sm">{error}</p>
-              <button
-                onClick={() => setError(null)}
-                className="mt-3 text-red-500 hover:text-red-700 underline text-responsive-sm"
-              >
-                Dismiss
-              </button>
             </div>
           </div>
         )}
@@ -325,10 +100,6 @@ export default function NegotiationStrategy() {
           compsData.data?.comps &&
           !isLoading && (
             <div className="my-responsive-lg">
-              <div className={sectionTitle}>
-                <Home className="mobile-icon-sm text-brown" />
-                Property Comparables
-              </div>
               <CardCarousel
                 items={compsData.data.comps as CompData[]}
                 loading={false}
@@ -362,28 +133,37 @@ export default function NegotiationStrategy() {
         {/* Strategy output - Dynamic display of all AI fields */}
         {strategyData && !isLoading && (
           <div className="space-y-responsive-md">
-            {/* Header with Download and Share buttons */}
-            <div className="flex justify-between items-center space-y-responsive-md">
-              <h2 className="text-responsive-lg font-semibold text-navy">
-                Your Negotiation Strategy
-              </h2>
-              <div className="flex gap-responsive-sm">
-                <button
-                  onClick={() => handleDownloadJson()}
-                  className="bg-brown text-white px-responsive-sm py-responsive-xs rounded-lg font-medium hover:bg-brown/90 transition-colors duration-200 flex items-center gap-responsive-xs touch-friendly"
-                >
-                  <Download className="mobile-icon-xs" />
-                  Download JSON
-                </button>
-                <button
-                  onClick={() => handleShareJson()}
-                  className="bg-olive text-white px-responsive-sm py-responsive-xs rounded-lg font-medium hover:bg-olive-light transition-colors duration-200 flex items-center gap-responsive-xs touch-friendly"
-                >
-                  <Share2 className="mobile-icon-xs" />
-                  Share
-                </button>
+            {/* Header with Download and Share buttons wrapped in Card */}
+            <Card padding="md" shadow="sm" hover={false}>
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-3">
+                  <img 
+                    src="/minilogo.png" 
+                    alt="SilverKey" 
+                    className="w-8 h-8 object-contain"
+                  />
+                  <h2 className="text-responsive-lg font-semibold text-navy">
+                    Your Negotiation Strategy
+                  </h2>
+                </div>
+                <div className="flex gap-responsive-sm">
+                  <button
+                    onClick={handleDownloadJson}
+                    className="bg-brown text-white px-responsive-sm py-responsive-xs rounded-lg font-medium hover:bg-brown/90 transition-colors duration-200 flex items-center gap-responsive-xs touch-friendly"
+                  >
+                    <Download className="mobile-icon-xs" />
+                    Download JSON
+                  </button>
+                  <button
+                    onClick={handleShareJson}
+                    className="bg-olive text-white px-responsive-sm py-responsive-xs rounded-lg font-medium hover:bg-olive-light transition-colors duration-200 flex items-center gap-responsive-xs touch-friendly"
+                  >
+                    <Share2 className="mobile-icon-xs" />
+                    Share
+                  </button>
+                </div>
               </div>
-            </div>
+            </Card>
             {Object.entries(strategyData).map(([key, value]) => {
               // Skip empty or null values
               if (
@@ -410,14 +190,18 @@ export default function NegotiationStrategy() {
               const formatValue = (val: any): JSX.Element | string => {
                 if (typeof val === "object" && val !== null) {
                   if (Array.isArray(val)) {
-                    // Format arrays as clean bullet points
+                    // Format arrays as clean bullet points with modern styling
                     return (
-                      <ul className="list-disc list-inside space-y-responsive-xs ml-2">
+                      <ul className="space-y-2 ml-2">
                         {val.map((item, idx) => (
                           <li
                             key={idx}
-                            className="text-responsive-sm text-navy/80"
+                            className="text-responsive-sm text-navy/80 flex items-start gap-2"
                           >
+                            <span className="text-brown flex-shrink-0 flex items-center h-5">
+                              <span className="w-2 h-px bg-brown"></span>
+                            </span>
+                            <span>
                             {typeof item === "object" && item !== null
                               ? // Handle objects properly - extract meaningful content
                                 Object.entries(item)
@@ -435,6 +219,7 @@ export default function NegotiationStrategy() {
                                       word.slice(1).toLowerCase()
                                   )
                                   .join(" ")}
+                            </span>
                           </li>
                         ))}
                       </ul>
@@ -442,7 +227,7 @@ export default function NegotiationStrategy() {
                   } else {
                     // For objects, create clean structured display without JSON
                     return (
-                      <div className="space-y-responsive-sm">
+                      <div className="space-y-2">
                         {Object.entries(val).map(([subKey, subValue]) => {
                           // Format the sub-key nicely
                           const formattedKey = subKey
@@ -458,21 +243,25 @@ export default function NegotiationStrategy() {
                           return (
                             <div
                               key={subKey}
-                              className="bg-gray-50/50 rounded-lg space-responsive-sm border-l-4 border-brown/30"
+                              className="bg-gray-50/50 rounded-lg p-3 border-l-4 border-brown/30"
                             >
-                              <div className="text-responsive-sm font-semibold text-brown space-y-responsive-xs">
+                              <div className="text-responsive-sm font-semibold text-brown mb-2">
                                 {formattedKey}
                               </div>
                               <div className="text-responsive-sm text-navy/80">
                                 {typeof subValue === "object" &&
                                 subValue !== null ? (
                                   Array.isArray(subValue) ? (
-                                    <ul className="list-disc list-inside space-y-responsive-xs ml-2">
+                                    <ul className="space-y-2 ml-2">
                                       {subValue.map((item, idx) => (
                                         <li
                                           key={idx}
-                                          className="text-responsive-sm"
+                                          className="text-responsive-sm flex items-start gap-2"
                                         >
+                                          <span className="text-brown flex-shrink-0 flex items-center h-5">
+                                            <span className="w-2 h-px bg-brown"></span>
+                                          </span>
+                                          <span>
                                           {typeof item === "object"
                                             ? Object.entries(item)
                                                 .map(
@@ -490,37 +279,42 @@ export default function NegotiationStrategy() {
                                                   /([a-z])([A-Z])/g,
                                                   "$1 $2"
                                                 )}
+                                          </span>
                                         </li>
                                       ))}
                                     </ul>
                                   ) : (
-                                    // Nested objects - display as key-value pairs
-                                    <div className="space-y-responsive-xs">
+                                    // Nested objects - display as key-value pairs with bullets
+                                    <div className="space-y-2">
                                       {Object.entries(subValue).map(
                                         ([nestedKey, nestedValue]) => (
                                           <div
                                             key={nestedKey}
-                                            className="text-responsive-xs bg-white/70 space-responsive-xs rounded"
+                                            className="text-responsive-xs flex items-start gap-2"
                                           >
-                                            <span className="font-medium text-brown/80">
-                                              {nestedKey
-                                                .replace(/_/g, " ")
-                                                .replace(
-                                                  /([a-z])([A-Z])/g,
-                                                  "$1 $2"
-                                                )
-                                                .split(" ")
-                                                .map(
-                                                  (word) =>
-                                                    word
-                                                      .charAt(0)
-                                                      .toUpperCase() +
-                                                    word.slice(1)
-                                                )
-                                                .join(" ")}
-                                              :
-                                            </span>{" "}
-                                            <span className="text-navy/70">
+                                            <span className="text-brown flex-shrink-0 flex items-center h-5">
+                                              <span className="w-2 h-px bg-brown"></span>
+                                            </span>
+                                            <div className="flex-1">
+                                              <span className="font-medium text-brown/80">
+                                                {nestedKey
+                                                  .replace(/_/g, " ")
+                                                  .replace(
+                                                    /([a-z])([A-Z])/g,
+                                                    "$1 $2"
+                                                  )
+                                                  .split(" ")
+                                                  .map(
+                                                    (word) =>
+                                                      word
+                                                        .charAt(0)
+                                                        .toUpperCase() +
+                                                      word.slice(1)
+                                                  )
+                                                  .join(" ")}
+                                                :
+                                              </span>{" "}
+                                              <span className="text-navy/70">
                                               {typeof nestedValue === "boolean"
                                                 ? nestedValue
                                                   ? "Yes"
@@ -539,7 +333,8 @@ export default function NegotiationStrategy() {
                                                       /([a-z])([A-Z])/g,
                                                       "$1 $2"
                                                     ) || "Not specified"}
-                                            </span>
+                                              </span>
+                                            </div>
                                           </div>
                                         )
                                       )}

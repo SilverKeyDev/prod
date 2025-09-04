@@ -19,14 +19,13 @@ export default function ClosePageHeader({
   return (
     <>
       {/* Desktop Header */}
-      <div className="hidden sm:block sm:max-w-[90vw] sm:mx-auto sm:px-4 md:px-6 lg:px-8">
+      <div className="hidden lg:block lg:max-w-[90vw] lg:mx-auto lg:px-4 xl:px-6 2xl:px-8">
         <Card
           className="border-b border-beige/40 rounded-t-2xl rounded-b-none relative z-30"
           padding="sm"
         >
         <div className="flex items-center gap-responsive-sm">
-          <MiniLogo size="md" className="sm:hidden" />
-          <MiniLogo size="lg" className="hidden sm:block" />
+          <MiniLogo size="lg" />
           <div className="min-w-0 flex-1">
             <h1 className="heading-responsive-md text-navy truncate">
               {title}
@@ -55,31 +54,35 @@ export default function ClosePageHeader({
       </div>
 
       {/* Mobile Header */}
-      <Card
-        className="sm:hidden border-b border-beige/40 rounded-2xl relative z-30"
-        padding="sm"
-      >
-        <div className="flex items-center gap-2">
-          <MiniLogo size="sm" />
-          <div className="min-w-0 flex-1">
-            <h1 className="text-xs font-semibold text-navy truncate">
-              {title}
-            </h1>
-          </div>
-        </div>
-
-        {/* Progress Bar */}
-        {!loading && (
-          <div className="mt-1">
-            <div className="w-full h-1 bg-beige/30 rounded">
-              <div
-                className="h-full bg-olive rounded transition-all duration-500"
-                style={{ width: `${(completedCount / totalCount) * 100}%` }}
-              />
+      <div className="lg:hidden w-3/4 mx-auto">
+        <Card
+          className="border-b border-beige/40 rounded-2xl relative z-30"
+          padding="sm"
+        >
+          <div className="flex items-center justify-start gap-3">
+            <div className="flex-shrink-0">
+              <MiniLogo size="md" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <h1 className="text-base font-semibold text-navy truncate">
+                {title}
+              </h1>
             </div>
           </div>
-        )}
-      </Card>
+
+          {/* Progress Bar */}
+          {!loading && (
+            <div className="mt-1">
+              <div className="w-full h-1 bg-beige/30 rounded">
+                <div
+                  className="h-full bg-olive rounded transition-all duration-500"
+                  style={{ width: `${(completedCount / totalCount) * 100}%` }}
+                />
+              </div>
+            </div>
+          )}
+        </Card>
+      </div>
     </>
   );
 }

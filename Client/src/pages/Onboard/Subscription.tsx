@@ -311,7 +311,7 @@ export default function Subscription() {
                       </div>
                     </div>
                     
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-responsive-sm font-medium">
+                    <div className="flex flex-wrap items-center justify-between gap-y-1 text-responsive-sm font-medium">
                       <span className="whitespace-nowrap">
                         <span className="text-black">• Plan: </span>
                         <span className="text-gray-500">{(() => {
@@ -366,7 +366,7 @@ export default function Subscription() {
         </div>
 
       {/* Plans */}
-      <div id="plans" className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div id="plans" className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
         {filteredPlans.map((plan) => {
           const displayPrice = plan.price;
 
@@ -374,7 +374,7 @@ export default function Subscription() {
             <div
               key={plan.id}
               className={`
-                relative card transition-all duration-200 hover:shadow-lg flex flex-col
+                relative card transition-all duration-200 hover:shadow-lg flex flex-col max-w-sm mx-auto w-full
                 ${plan.popular ? "ring-2 ring-gold shadow-lg" : ""}
               `}
             >

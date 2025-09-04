@@ -14,8 +14,16 @@
   display: none; /* Chrome, Safari, Opera */
 }
 
+  /* Base styles */
+  html, body, #root { 
+    height: 100%; 
+  }
+
+  html {
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
   body {
-    font-family: 'Inter', sans-serif;
     @apply bg-off-white text-navy;
     font-weight: 300;
     /* Improve mobile scrolling */

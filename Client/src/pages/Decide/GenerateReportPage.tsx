@@ -19,12 +19,6 @@ interface Suggestion {
   placePrediction: any;
 }
 
-interface ClientInfo {
-  id: string;
-  name: string;
-  email: string;
-}
-
 interface CustomDropdownProps {
   value: string;
   onChange: (value: string) => void;
@@ -93,7 +87,6 @@ export default function GenerateReportPage() {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const comparisonInputRef = useRef<HTMLInputElement | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const clientDropdownRef = useRef<HTMLDivElement>(null);
 
   const { userProfile } = useUser();
 
@@ -112,9 +105,6 @@ export default function GenerateReportPage() {
   const [reportType, setReportType] = useState("detailed");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [selectedClientId, setSelectedClientId] = useState<string>("");
-  const [clients, setClients] = useState<ClientInfo[]>([]);
-  const [clientsLoading, setClientsLoading] = useState(false);
-  const [isClientDropdownOpen, setIsClientDropdownOpen] = useState(false);
 
   // Load generate report state from localStorage on mount
   useEffect(() => {
@@ -132,9 +122,6 @@ export default function GenerateReportPage() {
         }
         if (parsed.reportType) {
           setReportType(parsed.reportType);
-        }
-        if (parsed.selectedClientId) {
-          setSelectedClientId(parsed.selectedClientId);
         }
       } catch (e) {
         console.warn("Invalid generate report state data");
@@ -165,61 +152,6 @@ export default function GenerateReportPage() {
         ]
       : []),
   ];
-
-  // Fetch clients for agents and set default selection
-  useEffect(() => {
-    const fetchClients = async () => {
-      if (!userProfile?.is_agent) {
-        return;
-      }
-
-      setClientsLoading(true);
-      try {
-        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
-        const idToken = localStorage.getItem("id_token");
-
-        const response = await fetch(
-          `${apiBaseUrl}/api/v1/preferences/clients`,
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${idToken}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-
-        if (response.ok) {
-          const data = await response.json();
-          if (data.success && data.user_information) {
-            const clientList: ClientInfo[] = data.user_information.map(
-              (user: any) => ({
-                id: user.id,
-                name: user.name || user.email,
-                email: user.email,
-              })
-            );
-            setClients(clientList);
-          } else {
-            console.warn(
-              "⚠️ FRONTEND: API response missing expected data structure"
-            );
-          }
-        } else {
-          console.error(
-            "❌ FRONTEND: Failed to fetch clients:",
-            response.statusText
-          );
-        }
-      } catch (error) {
-        console.error("💥 FRONTEND: Error fetching clients:", error);
-      } finally {
-        setClientsLoading(false);
-      }
-    };
-
-    fetchClients();
-  }, [userProfile?.is_agent]);
 
   // Set default client selection to agent themselves
   useEffect(() => {
@@ -325,29 +257,6 @@ export default function GenerateReportPage() {
     const debounce = setTimeout(fetchComparisonSuggestions, 200);
     return () => clearTimeout(debounce);
   }, [comparisonAddress, scriptsReady, hasSelectedComparison, reportType]);
-
-  // Close dropdowns when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setIsDropdownOpen(false);
-      }
-      if (
-        clientDropdownRef.current &&
-        !clientDropdownRef.current.contains(event.target as Node)
-      ) {
-        setIsClientDropdownOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setHasSelected(false);
@@ -561,49 +470,7 @@ export default function GenerateReportPage() {
             />
           </div>
 
-          {userProfile?.is_agent && (
-            <div>
-              <label
-                htmlFor="client-select"
-                className="block text-sm sm:text-lg font-medium text-black mb-2 sm:mb-3"
-              >
-                Customized for:
-              </label>
-              {clientsLoading ? (
-                <div className="mobile-input text-responsive-sm flex items-center justify-center">
-                  <KeyTurnLoader message="Loading clients..." />
-                </div>
-              ) : (
-                <CustomDropdown
-                  value={selectedClientId}
-                  onChange={setSelectedClientId}
-                  options={[
-                    // Agent themselves as first option
-                    {
-                      value: userProfile?.id || "",
-                      label: `${userProfile?.name || userProfile?.email} (You)`,
-                    },
-                    // Then all clients
-                    ...clients.map((client) => ({
-                      value: client.id,
-                      label: `${client.name} (${client.email})`,
-                    })),
-                  ]}
-                  placeholder="Select a client"
-                  isOpen={isClientDropdownOpen}
-                  onToggle={() =>
-                    setIsClientDropdownOpen(!isClientDropdownOpen)
-                  }
-                  dropdownRef={clientDropdownRef}
-                />
-              )}
-              {clients.length === 0 && !clientsLoading && (
-                <div className="text-responsive-sm text-gray-500 mt-2">
-                  No clients found. Please assign clients to your agent account.
-                </div>
-              )}
-            </div>
-          )}
+          
 
           {reportType === "comparison" && (
             <div className="bg-olive/10 border border-olive/30 rounded-lg space-responsive-sm">

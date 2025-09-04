@@ -8,6 +8,9 @@ import requests
 import os
 import redis
 import time
+import json
+import re
+from typing import Dict, Any, List, Optional, Tuple
 from urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
 from ..utils.locationPolygon import isochrone_union_for_addresses
@@ -1189,15 +1192,8 @@ def get_isochrone():
                 "error": "USER_NOT_FOUND",
                 "message": "User not found"
             }), 404
-    except tuple as error_tuple:
-        # Handle SecurityError tuples
-        from app.utils.security import security_error_response
-        if len(error_tuple) == 3:
-            return security_error_response(error_tuple)
-        else:
-            current_app.logger.error(f"[ISOCHRONE] ❌ Invalid SecurityError tuple: {error_tuple}")
-            return jsonify({"success": False, "error": "AUTH_ERROR", "message": "Authentication failed"}), 401
     except Exception as auth_error:
+        # Handle SecurityError and other authentication errors
         current_app.logger.error(f"[ISOCHRONE] ❌ Authentication error: {str(auth_error)}")
         return jsonify({"success": False, "error": "AUTH_ERROR", "message": "Authentication failed"}), 401
 
@@ -1245,17 +1241,45 @@ def get_isochrone():
                 "message": "No important locations found in user preferences"
             }), 400
 
-        # Prepare address and commute tolerance pairs for all locations
+        # Prepare address and commute tolerance pairs for all locations and geocode them
         addresses_and_minutes = []
+        geocoded_locations = []
+        primary_location = important_locations[0]  # Use first location as primary for backward compatibility
+        primary_address = primary_location.get('address', '')
+        primary_name = primary_location.get('name', 'Primary Location')
         
-        for i, location in enumerate(important_locations):
+        # Use the Google Maps geocoding function defined in this file
+        
+        for location in important_locations:
             address = location.get('address')
-            if not address:
-                continue
+            commute_tolerance = location.get('commute_tolerance', 30)
+            name = location.get('name', 'Unknown Location')
             
-            # Get commute tolerance from the location (in minutes)
-            commute_tolerance = location.get('commute_tolerance', 30)            
-            addresses_and_minutes.append((address, commute_tolerance))
+            if address and address.strip():
+                addresses_and_minutes.append((address.strip(), commute_tolerance))
+                
+                # Geocode the address to get coordinates using Google Maps API
+                coords = geocode_address(address.strip())
+                if coords:
+                    lat, lng = coords
+                    geocoded_locations.append({
+                        "name": name,
+                        "address": address.strip(),
+                        "commute_tolerance": commute_tolerance,
+                        "lat": lat,
+                        "lng": lng
+                    })
+                else:
+                    current_app.logger.error(f"[ISOCHRONE] ❌ Failed to geocode {name} at {address}")
+                    # Add location with null coordinates to maintain consistency
+                    geocoded_locations.append({
+                        "name": name,
+                        "address": address.strip(),
+                        "commute_tolerance": commute_tolerance,
+                        "lat": None,
+                        "lng": None
+                    })
+                    current_app.logger.warning(f"[ISOCHRONE] ⚠️ Added {name} with null coordinates due to geocoding failure")
         
         if not addresses_and_minutes:
             return jsonify({
@@ -1323,14 +1347,7 @@ def get_isochrone():
                     "address": primary_address,
                     "name": primary_name
                 },
-                "locations": [
-                    {
-                        "name": loc.get('name', f'Location {i+1}'),
-                        "address": loc.get('address'),
-                        "commute_tolerance": loc.get('commute_tolerance', 30)
-                    }
-                    for i, loc in enumerate(important_locations)
-                ],
+                "locations": geocoded_locations,
                 "commute_tolerance": primary_location.get('commute_tolerance', 30),  # Primary location's tolerance for backward compatibility
                 "mode": "drive"
             }

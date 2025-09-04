@@ -510,6 +510,7 @@ def delete_report(report_id):
     try:
         # Log request data
         data = request.get_json() or {}
+        s3_key = data.get('s3_key') or data.get('file_path')
         
         # Delete from S3 if s3_key is provided and s3_client is available
         if s3_key:

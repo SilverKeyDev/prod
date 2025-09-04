@@ -14,7 +14,22 @@ const MobileTopBar: React.FC<MobileTopBarProps> = ({ children, sidebarExpanded }
           : "translate-y-0 opacity-100"
       }`}
     >
-      <div className="relative flex items-center justify-between w-full h-12">{children}</div>
+      <div className="relative flex items-center w-full min-h-12">
+        {/* Sidebar button area - reserve space */}
+        <div className="w-16 flex-shrink-0" />
+        
+        {/* Children content area - centered between sidebar and right edge */}
+        {children && (
+          <div 
+            className="flex-1 flex items-center justify-center"
+            style={{
+              marginTop: '0vh'
+            }}
+          >
+            {children}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

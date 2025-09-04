@@ -7,7 +7,6 @@ import {
   User as UserIcon,
   Menu,
   ChevronLeft,
-  ChevronRight,
   ArrowLeft,
 } from "lucide-react";
 import KeyTurnLoader from "../../components/ui/base/KeyTurnLoader";
@@ -314,7 +313,7 @@ export default function AIAssistant() {
         {/* Sidebar (Chat list) */}
         <aside
           className={`
-            w-80 border-r border-beige bg-white rounded-l-xl flex flex-col transition-transform duration-300 ease-in-out
+            w-80 border-r border-beige bg-white rounded-xl flex flex-col transition-transform duration-300 ease-in-out
             md:relative md:translate-x-0
             ${isSidebarExpanded ? "translate-x-0" : "-translate-x-full"}
             absolute md:static z-40 h-full
@@ -322,18 +321,18 @@ export default function AIAssistant() {
           aria-hidden={!isSidebarExpanded && window.innerWidth < 768}
         >
           {/* Fixed Header */}
-          <div className="p-3 border-b border-beige bg-white flex-shrink-0">
+          <div className="p-3 border-b border-beige bg-white flex-shrink-0 rounded-t-xl">
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-lg font-medium text-black flex items-center gap-2">
                 <MiniLogo size="sm" />
                 AI Assistant
               </h2>
 
-              {/* DESKTOP-ONLY side arrow button to collapse when extended */}
+              {/* TABLET/MOBILE side arrow button to collapse when extended */}
               {isSidebarExpanded && (
                 <button
                   onClick={() => setIsSidebarExpanded(false)}
-                  className="hidden md:inline-flex items-center justify-center bg-white border border-beige rounded-lg px-2 py-1 hover:bg-beige/10 transition"
+                  className="lg:hidden inline-flex items-center justify-center bg-white border border-beige rounded-lg px-2 py-1 hover:bg-beige/10 transition"
                   aria-label="Collapse chat list"
                   aria-expanded={isSidebarExpanded}
                 >
@@ -431,20 +430,6 @@ export default function AIAssistant() {
               </h3>
             </div>
 
-            {/* DESKTOP expand button when collapsed */}
-            {!isSidebarExpanded && (
-              <button
-                onClick={() => setIsSidebarExpanded(true)}
-                className="hidden md:inline-flex items-center justify-center bg-white border border-beige rounded-lg px-2 py-1 hover:bg-beige/10 transition"
-                aria-label="Expand chat list"
-                aria-expanded={isSidebarExpanded}
-              >
-                <ChevronRight className="w-4 h-4 text-black" />
-              </button>
-            )}
-
-            {/* Placeholder to keep spacing consistent when expanded (desktop) */}
-            {isSidebarExpanded && <div className="hidden md:block w-6" />}
           </div>
 
           {/* Messages */}

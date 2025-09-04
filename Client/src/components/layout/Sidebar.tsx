@@ -9,9 +9,7 @@ import {
   ChevronRight,
   LogOut,
   User as UserIcon,
-  CreditCard,
   MessageCircle,
-  Users,
   Brain,
   Handshake,
   Home,
@@ -28,8 +26,7 @@ import { UserProfile } from "../../context";
 import { useState } from "react";
 import ConfirmationDialog from "../modals/ConfirmationDialog";
 
-import { useUser } from "../../context";
-import { useAgent } from "../../context/AgentContext";
+import { useUser } from "../../context/UserContext";
 import WhiteLogo from "../ui/base/WhiteLogo";
 import { getButtonStyles, getSubItemStyles } from "./sidebarStyles";
 interface SidebarProps {
@@ -71,16 +68,6 @@ const navigationStructure: NavigationStructure = {
         name: "Personalization",
         href: "/personalization",
         icon: UserIcon,
-      },
-      /*{
-        name: "Get PreApproved",
-        href: "/get-preapproved",
-        icon: BadgeCheck,
-      },*/
-      {
-        name: "Subscription",
-        href: "/subscription",
-        icon: CreditCard,
       },
     ],
   },
@@ -155,7 +142,7 @@ const navigationStructure: NavigationStructure = {
 };
 
 // Function to generate navigation array based on user type
-const getNavigation = (isAgent?: boolean): NavigationStructure => {
+const getNavigation = (): NavigationStructure => {
   // Create a proper copy of the navigation structure
   const navigation: NavigationStructure = {
     dashboard: {
@@ -190,23 +177,6 @@ const getNavigation = (isAgent?: boolean): NavigationStructure => {
     },
   };
 
-  // Add user-specific items
-  if (isAgent) {
-    // For agents, show "Client Information"
-    navigation.onboard.items.push({
-      name: "Client Information",
-      href: "/client-information",
-      icon: Users,
-    });
-  } else {
-    // For regular users, show "Agent Connection"
-    navigation.onboard.items.push({
-      name: "Agent Connection",
-      href: "/agent-connection",
-      icon: Users,
-    });
-  }
-
   return navigation;
 };
 
@@ -220,7 +190,6 @@ export default function Sidebar({
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   // Use userProfile from UserContext for all user info
   const { userProfile, loading: userProfileLoading } = useUser();
-  const { isAgent } = useAgent();
   const isLoading = userProfileLoading;
   const [openCategories, setOpenCategories] = useState<Record<string, boolean>>(
     {
@@ -271,7 +240,7 @@ export default function Sidebar({
       {/* Sidebar */}
       <div
         className={`
-          fixed top-0 left-0 h-full bg-brown text-white z-sidebar transition-all duration-300 ease-in-out safe-top rounded-b-xl
+          fixed top-0 left-0 h-full bg-brown text-white z-sidebar transition-all duration-300 ease-in-out safe-top
           ${expanded ? 'w-64 px-4' : 'w-16 px-2'}
         `}
       >
@@ -348,7 +317,7 @@ export default function Sidebar({
           {/* Navigation - Scrollable middle section */}
           <div className="flex-1 overflow-y-auto min-h-0 scrollbar-hide">
             <nav className="mt-4 pb-4">
-              {Object.entries(getNavigation(isAgent())).map(
+              {Object.entries(getNavigation()).map(
                 ([categoryKey, category]: [string, NavCategory]) => (
                   <div key={categoryKey}>
                     {/* Render certain categories as direct links (search, dashboard) */}

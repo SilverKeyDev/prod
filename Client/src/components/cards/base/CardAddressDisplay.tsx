@@ -36,25 +36,25 @@ const CardAddressDisplay: React.FC<CardAddressDisplayProps> = ({
       primary: 'text-xs sm:text-sm',
       secondary: 'text-xs',
       icon: 'h-3 w-3 sm:h-4 sm:w-4',
-      minHeight: '2rem' // Reserve space for 2 lines at xs/sm
+      minHeight: '1.5rem' // Minimal space for xs/sm
     },
     sm: {
       primary: 'text-sm sm:text-base',
       secondary: 'text-xs sm:text-sm',
       icon: 'h-3 w-3 sm:h-4 sm:w-4',
-      minHeight: '2.5rem' // Reserve space for 2 lines at sm/base
+      minHeight: '1.75rem' // Minimal space for sm/base
     },
     md: {
       primary: 'text-base sm:text-lg',
       secondary: 'text-sm sm:text-base',
       icon: 'h-4 w-4 sm:h-5 sm:w-5',
-      minHeight: '3rem' // Reserve space for 2 lines at base/lg
+      minHeight: '2rem' // Minimal space for base/lg
     },
     lg: {
       primary: 'text-lg sm:text-xl',
       secondary: 'text-base sm:text-lg',
       icon: 'h-5 w-5 sm:h-6 sm:w-6',
-      minHeight: '3.5rem' // Reserve space for 2 lines at lg/xl
+      minHeight: '2.25rem' // Minimal space for lg/xl
     }
   };
 
@@ -84,8 +84,8 @@ const CardAddressDisplay: React.FC<CardAddressDisplayProps> = ({
       
       <div className="flex-1 min-w-0">
         {/* Primary Address */}
-        <h3 
-          className={`${currentSizeStyles.primary} font-medium text-black mb-1 overflow-hidden leading-5`}
+        <div 
+          className={`${currentSizeStyles.primary} font-medium text-black mb-0 overflow-hidden leading-5`}
           title={address}
           style={{
             display: "-webkit-box",
@@ -97,7 +97,7 @@ const CardAddressDisplay: React.FC<CardAddressDisplayProps> = ({
           }}
         >
           {address}
-        </h3>
+        </div>
         
         {/* Secondary Address */}
         {secondaryAddress && (

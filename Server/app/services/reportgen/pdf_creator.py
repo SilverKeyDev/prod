@@ -289,7 +289,6 @@ def _create_pdf(report: dict, address: str, filename: str, comparison_address: s
             logger.warning("⚠️ No charts cached for rendering")
             
         doc.build(elements)
-        doc.build(elements)
         pdf_data = pdf_buffer.getvalue()
         pdf_buffer.close()
 

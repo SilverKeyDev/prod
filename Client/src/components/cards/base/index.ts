@@ -1,7 +1,6 @@
 // Base card components
 export { default as CardAddressDisplay } from './CardAddressDisplay';
 export { default as CardPropertyDetails } from './CardPropertyDetails';
-export { default as CardSquareFootage } from './CardSquareFootage';
 export { default as CardViewDetailsButton } from './CardViewDetailsButton';
 export { default as CardViewButton } from './CardViewButton';
 export { default as CardDownloadButton } from './CardDownloadButton';
@@ -25,7 +24,6 @@ export { default as CardAgentInfo } from './CardAgentInfo';
 // Export types
 export type { CardAddressDisplayProps } from './CardAddressDisplay';
 export type { CardPropertyDetailsProps } from './CardPropertyDetails';
-export type { CardSquareFootageProps } from './CardSquareFootage';
 export type { CardViewDetailsButtonProps } from './CardViewDetailsButton';
 export type { CardViewButtonProps } from './CardViewButton';
 export type { CardDownloadButtonProps } from './CardDownloadButton';

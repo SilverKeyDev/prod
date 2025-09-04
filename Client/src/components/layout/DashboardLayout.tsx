@@ -11,7 +11,7 @@ import ClosePageHeader from "../ui/close/ClosePageHeader";
 import GenerateReportPage from "../../pages/Decide/GenerateReportPage.tsx";
 import PastReports from "../../pages/Decide/PastReports.tsx";
 import CompareReportsPage from "../../pages/Decide/CompareReportsPage.tsx";
-import SearchPage from "../../pages/Search/SearchPage.tsx";
+import SearchPage from "../../pages/Search/SearchPage";
 import PersonalizationPage from "../../pages/Onboard/PersonalizationPage.tsx";
 import Subscription from "../../pages/Onboard/Subscription.tsx";
 import AIAssistant from "../../pages/Decide/AIAssistant.tsx";
@@ -57,6 +57,7 @@ const PAGE_WIDTH_CONFIG: PageWidthConfig = {
   "/search": 100,
   "/compare-reports": 90,
   "/generate-report": 75,
+  "/dashboard": 85,
 };
 
 export default function DashboardLayout({
@@ -80,11 +81,11 @@ export default function DashboardLayout({
     const checkScreenSize = () => {
       setIsDesktop(window.innerWidth >= 1024);
     };
-    
+
     checkScreenSize();
-    window.addEventListener('resize', checkScreenSize);
-    
-    return () => window.removeEventListener('resize', checkScreenSize);
+    window.addEventListener("resize", checkScreenSize);
+
+    return () => window.removeEventListener("resize", checkScreenSize);
   }, []);
 
   // Use NotificationsContext for activity feed (for future notification badge)
@@ -100,7 +101,7 @@ export default function DashboardLayout({
     );
 
     // Use page-specific width or default to maxWidth (defaulting to 85)
-    return configPath ? PAGE_WIDTH_CONFIG[configPath] : (maxWidth || 85);
+    return configPath ? PAGE_WIDTH_CONFIG[configPath] : maxWidth || 85;
   };
 
   const config = useMemo(() => {
@@ -116,30 +117,66 @@ export default function DashboardLayout({
     } else if (path.startsWith("/closing-moving-in")) {
       return { type: "none", title: "Closing" };
     } else if (path.startsWith("/generate-report")) {
-      return { type: "rheader", title: "Generate Report", subtitle: "Create comprehensive property analysis reports" };
+      return {
+        type: "rheader",
+        title: "Generate Report",
+        subtitle: "Create comprehensive property analysis reports",
+      };
     } else if (path.startsWith("/reports")) {
-      return { type: "rheader", title: "Past Reports", subtitle: "View and manage your previous property reports" };
+      return {
+        type: "rheader",
+        title: "Past Reports",
+        subtitle: "View and manage your previous property reports",
+      };
     } else if (path.startsWith("/search")) {
       return { type: "none", title: "Search" };
     } else if (path.startsWith("/ai-assistant")) {
       return { type: "none", title: "AI Assistant" };
     } else if (path.startsWith("/personalization")) {
-      return { type: "rheader", title: "Personalization", subtitle: "Customize your home search preferences" };
+      return {
+        type: "rheader",
+        title: "Personalization",
+        subtitle: "Customize your home search preferences",
+      };
     } else if (path.startsWith("/negotiation-strategy")) {
-      return { type: "rheader", title: "Negotiation Strategy", subtitle: "Develop winning strategies for your offers" };
+      return {
+        type: "rheader",
+        title: "Negotiation Strategy",
+        subtitle: "Develop winning strategies for your offers",
+      };
     } else if (path.startsWith("/draft-offer")) {
-      return { type: "rheader", title: "Draft Offer", subtitle: "Create compelling offers for your target properties" };
+      return {
+        type: "rheader",
+        title: "Draft Offer",
+        subtitle: "Create compelling offers for your target properties",
+      };
     } else if (path.startsWith("/subscription")) {
-      return { type: "rheader", title: "Subscription", subtitle: "Manage your SilverKey membership and billing" };
+      return {
+        type: "rheader",
+        title: "Subscription",
+        subtitle: "Manage your SilverKey membership and billing",
+      };
     } else if (
       path.startsWith("/agent-connection") ||
       path.startsWith("/client-information")
     ) {
-      return { type: "rheader", title: "Agent Connection", subtitle: "Connect with real estate professionals" };
+      return {
+        type: "rheader",
+        title: "Agent Connection",
+        subtitle: "Connect with real estate professionals",
+      };
     } else if (path.startsWith("/saved")) {
-      return { type: "rheader", title: "Saved Homes", subtitle: "Your bookmarked properties and favorites" };
+      return {
+        type: "rheader",
+        title: "Saved Homes",
+        subtitle: "Your bookmarked properties and favorites",
+      };
     } else if (path.startsWith("/compare-reports")) {
-      return { type: "rheader", title: "Compare Reports", subtitle: "Side-by-side analysis of multiple properties" };
+      return {
+        type: "rheader",
+        title: "Compare Reports",
+        subtitle: "Side-by-side analysis of multiple properties",
+      };
     } else {
       return { type: "none", title: "Dashboard" };
     }
@@ -270,31 +307,39 @@ export default function DashboardLayout({
         {/* Mobile Header - Hidden on desktop */}
         <div className="lg:hidden">
           <MobileTopBar sidebarExpanded={sidebarExpanded}>
-            <div className="w-10 mr-4" />
             <div className="flex-grow text-center flex items-center justify-center">
               {mobileHeaderContent}
             </div>
-            <div className="w-6" />
           </MobileTopBar>
+          {/* Spacer div to prevent content from being covered by fixed MobileTopBar */}
+          <div
+            className={`transition-all duration-300 ease-in-out ${
+              sidebarExpanded ? "h-0" : "h-20"
+            }`}
+          />
         </div>
 
-        {/* Desktop Header Rendering with consistent width */}
-        <div className="hidden lg:block mt-4 sm:mt-6 lg:mt-8 mx-auto">
-          {headerContent}
-        </div>
+        {/* Desktop Header Rendering with consistent width - Hidden on mobile */}
+        {!location.pathname.startsWith("/search") && (
+          <div className="hidden lg:block pt-8">{headerContent}</div>
+        )}
 
         {/* Content area with centralized width parameter */}
         <div
-          className={`mx-auto p-4 sm:p-6 lg:p-8 w-full ${
-            location.pathname.startsWith("/escrow-legal-logistics") ||
-            location.pathname.startsWith("/inspections-due-diligence") ||
-            location.pathname.startsWith("/financing-insurance") ||
-            location.pathname.startsWith("/closing-moving-in")
-              ? "pt-16 lg:pt-8"
-              : "pt-28 lg:pt-8"
+          className={`mx-auto w-full ${
+            location.pathname.startsWith("/search")
+              ? "h-[calc(100vh-80px)] lg:h-[calc(100vh-0px)]" // Full height for search page
+              : `p-4 sm:p-6 lg:p-8 ${
+                  location.pathname.startsWith("/escrow-legal-logistics") ||
+                  location.pathname.startsWith("/inspections-due-diligence") ||
+                  location.pathname.startsWith("/financing-insurance") ||
+                  location.pathname.startsWith("/closing-moving-in")
+                    ? ""
+                    : "lg:pt-8"
+                }`
           }`}
           style={{
-            maxWidth: isDesktop ? `${getPageWidth()}vw` : '100%'
+            maxWidth: isDesktop ? `${getPageWidth()}vw` : "100%",
           }}
         >
           {/* Render component based on current path */}

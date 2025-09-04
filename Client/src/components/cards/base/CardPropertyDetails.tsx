@@ -1,6 +1,5 @@
 import React from 'react';
-import { Bed, Bath, MapPin } from 'lucide-react';
-import CardSquareFootage from './CardSquareFootage';
+import { Bed, Bath, Square } from 'lucide-react';
 
 export interface CardPropertyDetailsProps {
   /** Number of bedrooms */
@@ -13,10 +12,10 @@ export interface CardPropertyDetailsProps {
   lotSize?: string;
   /** Display variant */
   variant?: 'horizontal' | 'vertical' | 'grid' | 'modal';
-  /** Text size */
-  size?: 'xs' | 'sm' | 'md' | 'lg';
   /** Whether to show icons */
   showIcons?: boolean;
+  /** Whether to hide square footage */
+  hideSquareFootage?: boolean;
   /** Additional className */
   className?: string;
 }
@@ -27,48 +26,66 @@ const CardPropertyDetails: React.FC<CardPropertyDetailsProps> = ({
   sqft,
   lotSize,
   variant = 'horizontal',
-  size = 'sm',
   showIcons = true,
+  hideSquareFootage = false,
   className = ''
 }) => {
-  // Size variants using utilities.css classes with scaling support
+  // Dynamic size calculation based on content length for optimal single-line fit
+  const calculateOptimalSize = () => {
+    const contentCount = [bedrooms, bathrooms, hideSquareFootage ? undefined : sqft].filter(val => val !== undefined && val > 0).length;
+    
+    // Aggressive scaling - prioritize fitting everything in one line
+    if (contentCount >= 3) return 'xs';  // All three items - smallest
+    if (contentCount === 2) return 'sm'; // Two items - medium
+    return 'lg'; // Single item - can be largest
+  };
+
+  const optimalSize = calculateOptimalSize();
+
+  // Size variants optimized for single-line fit with 1px margins and text scaling
   const sizeStyles = {
     xs: {
-      text: 'text-xs sm:text-sm',
-      icon: 'w-3 h-3 sm:w-3.5 sm:h-3.5',
-      gap: 'gap-1 sm:gap-1.5'
+      text: 'text-[10px] sm:text-xs', // Very small text for tight fit
+      icon: 'w-2.5 h-2.5 sm:w-3 sm:h-3',
+      gap: 'gap-0.5 sm:gap-1',
+      spacing: 'px-[1px]' // 1px margin on each side
     },
     sm: {
-      text: 'text-sm sm:text-base',
-      icon: 'w-3.5 h-3.5 sm:w-4 sm:h-4',
-      gap: 'gap-1.5 sm:gap-2'
+      text: 'text-xs sm:text-sm', // Small text for medium fit
+      icon: 'w-3 h-3 sm:w-3.5 sm:h-3.5',
+      gap: 'gap-1 sm:gap-1.5',
+      spacing: 'px-[1px]' // 1px margin on each side
     },
     md: {
-      text: 'text-base sm:text-lg',
-      icon: 'w-4 h-4 sm:w-5 sm:h-5',
-      gap: 'gap-2 sm:gap-2.5'
+      text: 'text-sm sm:text-base', // Medium text for comfortable fit
+      icon: 'w-3.5 h-3.5 sm:w-4 sm:h-4',
+      gap: 'gap-1.5 sm:gap-2',
+      spacing: 'px-[1px]' // 1px margin on each side
     },
     lg: {
-      text: 'text-lg sm:text-xl',
-      icon: 'w-5 h-5 sm:w-6 sm:h-6',
-      gap: 'gap-2.5 sm:gap-3'
+      text: 'text-base sm:text-lg', // Larger text for single item
+      icon: 'w-4 h-4 sm:w-5 sm:h-5',
+      gap: 'gap-2 sm:gap-2.5',
+      spacing: 'px-[1px]' // 1px margin on each side
     }
   };
 
-  // Layout variants - ensuring rigid single-row structure
+  // Centered single-row layout for all variants
   const layoutStyles = {
-    horizontal: 'flex items-center flex-nowrap',
-    vertical: 'flex items-center flex-nowrap', // Changed to single row
-    grid: 'flex items-center flex-nowrap',      // Changed to single row
-    modal: 'flex items-center flex-nowrap'     // Changed to single row
+    horizontal: 'flex items-center justify-center flex-nowrap',
+    vertical: 'flex items-center justify-center flex-nowrap',
+    grid: 'flex items-center justify-center flex-nowrap',
+    modal: 'flex items-center justify-center flex-nowrap'
   };
 
-  const currentSizeStyles = sizeStyles[size];
+  const currentSizeStyles = sizeStyles[optimalSize];
   const currentLayoutStyles = layoutStyles[variant];
 
   const containerClasses = [
     currentLayoutStyles,
     currentSizeStyles.gap,
+    currentSizeStyles.spacing,
+    'w-full min-w-0', // Ensure full width for centering and prevent overflow
     className
   ].filter(Boolean).join(' ');
 
@@ -94,22 +111,28 @@ const CardPropertyDetails: React.FC<CardPropertyDetailsProps> = ({
         </div>
       )}
       
-      <CardSquareFootage 
-        sqft={sqft}
-        variant={variant === 'modal' ? 'modal' : 'default'}
-        size={size}
-        showIcon={showIcons}
-        showSuffix={variant !== 'modal'}
-        textColor="text-gray-600"
-        iconColor="text-brown"
-      />
-      
-      {lotSize && (
+      {/* Square Footage - Inline Implementation */}
+      {sqft && sqft > 0 && !hideSquareFootage && (
         <div className="flex items-center flex-shrink-0">
-          {showIcons && <MapPin className={`${currentSizeStyles.icon} text-brown mr-1 flex-shrink-0`} />}
-          <span className={`${currentSizeStyles.text} text-gray-600 whitespace-nowrap`}>
-            {lotSize}
-          </span>
+          {variant === 'modal' ? (
+            <div className="text-center">
+              <div className={`font-bold ${currentSizeStyles.text} text-gray-600`}>
+                {Math.round(sqft).toLocaleString()}
+              </div>
+              <div className="text-sm text-gray-600 mt-1">
+                Sq Ft
+              </div>
+            </div>
+          ) : (
+            <>
+              {showIcons && (
+                <Square className={`${currentSizeStyles.icon} text-brown mr-1 flex-shrink-0`} />
+              )}
+              <span className={`${currentSizeStyles.text} text-gray-600 whitespace-nowrap`}>
+                {Math.round(sqft).toLocaleString()} sqft
+              </span>
+            </>
+          )}
         </div>
       )}
     </div>

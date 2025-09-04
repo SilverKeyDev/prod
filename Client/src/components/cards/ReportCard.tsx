@@ -1,15 +1,15 @@
-import React from 'react';
-import { Card } from '../ui/base';
-import { Eye, Download, Share, Trash2, Clock } from 'lucide-react';
-import { Report } from '../../context/utils';
-import { formatFilenameToAddress } from '../../lib/addressFormat';
-import ActionButton from '../ui/decide/ActionButton';
-import { getInteractiveCardClasses } from './base/CardHoverStyles';
-import CardPriceBubble from './base/CardPriceBubble';
+import React from "react";
+import { Card } from "../ui/base";
+import { Eye, Download, Share, Trash2, Clock } from "lucide-react";
+import { Report } from "../../context/utils";
+import { formatFilenameToAddress } from "../../lib/addressFormat";
+import ActionButton from "../ui/decide/ActionButton";
+import { getInteractiveCardClasses } from "./base/CardHoverStyles";
+import CardPriceBubble from "./base/CardPriceBubble";
 
 export interface ReportCardProps {
   report: Report;
-  viewMode: 'grid' | 'list';
+  viewMode: "grid" | "list";
   onView: (id: string, address: string) => void;
   onDownload: (id: string, address: string) => void;
   onShare: (report: Report) => void;
@@ -51,7 +51,6 @@ const ReportCard: React.FC<ReportCardProps> = ({
         return status;
     }
   };
-
 
   return (
     <Card
@@ -121,26 +120,69 @@ const ReportCard: React.FC<ReportCardProps> = ({
         )}
 
         <div className="mt-auto pt-4">
-        {report.status === 'completed' &&
-          (viewMode === 'grid' ? (
-            <div className="flex flex-col gap-2">
-              <ActionButton
-                onClick={() => onView(report.id, report.address)}
-                disabled={loadingUrls.has(report.id)}
-                icon={<Eye />}
-                text="View"
-                colorClasses="bg-olive-muted hover:bg-olive-light text-white"
-                className="w-full"
-              />
-              <div className="flex gap-2">
+          {report.status === "completed" &&
+            (viewMode === "grid" ? (
+              <div className="flex flex-col gap-2">
+                <ActionButton
+                  onClick={() => onView(report.id, report.address)}
+                  disabled={loadingUrls.has(report.id)}
+                  icon={<Eye />}
+                  text="View"
+                  colorClasses="bg-olive-muted hover:bg-olive-light text-white"
+                  className="w-full"
+                />
+                <div className="flex gap-2">
+                  <ActionButton
+                    onClick={() => onDownload(report.id, report.address)}
+                    disabled={loadingUrls.has(report.id)}
+                    icon={<Download />}
+                    text="Download"
+                    colorClasses="bg-brown-muted hover:bg-brown/90 text-white"
+                    className="flex-1 min-w-0"
+                    hideTextOnMobile
+                  />
+                  <ActionButton
+                    onClick={() => onShare(report)}
+                    disabled={loadingUrls.has(report.id)}
+                    icon={<Share />}
+                    text="Share"
+                    colorClasses="bg-gold hover:bg-gold/90 text-white"
+                    className="flex-1 min-w-0"
+                    hideTextOnMobile
+                  />
+                  <ActionButton
+                    onClick={() => {
+                      if (report.s3Key) {
+                        onDelete(report.id, report.s3Key);
+                      }
+                    }}
+                    disabled={loadingUrls.has(report.id) || !report.s3Key}
+                    icon={<Trash2 />}
+                    colorClasses="bg-transparent hover:bg-danger/10 text-danger border border-danger"
+                    title="Delete report"
+                    className="flex-1 min-w-0 sm:flex-initial sm:w-auto"
+                    hideTextOnMobile
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
                 <ActionButton
                   onClick={() => onDownload(report.id, report.address)}
                   disabled={loadingUrls.has(report.id)}
                   icon={<Download />}
                   text="Download"
                   colorClasses="bg-brown-muted hover:bg-brown/90 text-white"
-                  className="flex-1 min-w-0"
+                  className="flex-1"
                   hideTextOnMobile
+                />
+                <ActionButton
+                  onClick={() => onView(report.id, report.address)}
+                  disabled={loadingUrls.has(report.id)}
+                  icon={<Eye />}
+                  text="View"
+                  colorClasses="bg-olive-muted hover:bg-olive-light text-white"
+                  className="flex-1"
                 />
                 <ActionButton
                   onClick={() => onShare(report)}
@@ -148,7 +190,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
                   icon={<Share />}
                   text="Share"
                   colorClasses="bg-gold hover:bg-gold/90 text-white"
-                  className="flex-1 min-w-0"
+                  className="flex-1"
                   hideTextOnMobile
                 />
                 <ActionButton
@@ -161,83 +203,42 @@ const ReportCard: React.FC<ReportCardProps> = ({
                   icon={<Trash2 />}
                   colorClasses="bg-transparent hover:bg-danger/10 text-danger border border-danger"
                   title="Delete report"
-                  className="flex-1 min-w-0 sm:flex-initial sm:w-auto"
+                  className="sm:flex-initial sm:w-auto"
                   hideTextOnMobile
                 />
               </div>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2">
-              <ActionButton
-                onClick={() => onDownload(report.id, report.address)}
-                disabled={loadingUrls.has(report.id)}
-                icon={<Download />}
-                text="Download"
-                colorClasses="bg-brown-muted hover:bg-brown/90 text-white"
-                className="flex-1"
-                hideTextOnMobile
-              />
-              <ActionButton
-                onClick={() => onView(report.id, report.address)}
-                disabled={loadingUrls.has(report.id)}
-                icon={<Eye />}
-                text="View"
-                colorClasses="bg-olive-muted hover:bg-olive-light text-white"
-                className="flex-1"
-              />
-              <ActionButton
-                onClick={() => onShare(report)}
-                disabled={loadingUrls.has(report.id)}
-                icon={<Share />}
-                text="Share"
-                colorClasses="bg-gold hover:bg-gold/90 text-white"
-                className="flex-1"
-                hideTextOnMobile
-              />
-              <ActionButton
-                onClick={() => {
-                  if (report.s3Key) {
-                    onDelete(report.id, report.s3Key);
-                  }
-                }}
-                disabled={loadingUrls.has(report.id) || !report.s3Key}
-                icon={<Trash2 />}
-                colorClasses="bg-transparent hover:bg-danger/10 text-danger border border-danger"
-                title="Delete report"
-                className="sm:flex-initial sm:w-auto"
-                hideTextOnMobile
-              />
-            </div>
-          ))}
+            ))}
 
-        {report.status === 'generating' && (
-          <div
-            className={viewMode === "grid" ? "w-full py-2" : "w-full space-y-2"}
-          >
-            {/* Placeholder for a progress bar */}
-            <div className="w-full bg-gray-200 rounded-full h-2.5">
-              <div
-                className="bg-primary h-2.5 rounded-full"
-                style={{ width: `50%` }}
-              ></div>
-            </div>
-          </div>
-        )}
-        {report.status === "error" && (
-          <button
-            onClick={() => {
-              if (report.s3Key) {
-                onDelete(report.id, report.s3Key);
+          {report.status === "generating" && (
+            <div
+              className={
+                viewMode === "grid" ? "w-full py-2" : "w-full space-y-2"
               }
-            }}
-            disabled={loadingUrls.has(report.id) || !report.s3Key}
-            className="w-full btn-danger flex items-center justify-center"
-          >
-            <Trash2 className="h-4 w-4 mr-1" />
-            Delete
-          </button>
-        )}
-      </div>
+            >
+              {/* Placeholder for a progress bar */}
+              <div className="w-full bg-gray-200 rounded-full h-2.5">
+                <div
+                  className="bg-primary h-2.5 rounded-full"
+                  style={{ width: `50%` }}
+                ></div>
+              </div>
+            </div>
+          )}
+          {report.status === "error" && (
+            <button
+              onClick={() => {
+                if (report.s3Key) {
+                  onDelete(report.id, report.s3Key);
+                }
+              }}
+              disabled={loadingUrls.has(report.id) || !report.s3Key}
+              className="w-full btn-danger flex items-center justify-center"
+            >
+              <Trash2 className="h-4 w-4 mr-1" />
+              Delete
+            </button>
+          )}
+        </div>
       </div>
     </Card>
   );

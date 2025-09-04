@@ -8,7 +8,7 @@ import Card from "../ui/base/Card";
 const sectionTitle = "text-lg font-semibold text-navy flex items-center gap-3 mb-4";
 const checkboxContainer = "flex items-start gap-3 mb-5";
 const itemLabel = "font-medium text-navy";
-const itemExplanation = "text-navy/80 text-sm mt-1 transition-opacity duration-300 ease-in-out";
+const itemExplanation = "text-navy/80 text-base mt-1 transition-opacity duration-300 ease-in-out";
 
 // Shared interfaces
 export interface ResourceLink {
@@ -54,7 +54,7 @@ export default function CloseLayout({
   items,
   children,
   showLoadingScreen = false,
-  containerClassName = "py-10",
+  containerClassName = "py-0",
   showMinLoadingText = false,
   setClosePageHeaderData
 }: CloseLayoutProps) {

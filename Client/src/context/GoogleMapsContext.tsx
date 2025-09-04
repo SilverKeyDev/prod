@@ -1,4 +1,10 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from "react";
 
 interface GoogleMapsContextType {
   isLoaded: boolean;
@@ -17,7 +23,7 @@ const GoogleMapsContext = createContext<GoogleMapsContextType>({
 export const useGoogleMaps = () => {
   const context = useContext(GoogleMapsContext);
   if (!context) {
-    throw new Error('useGoogleMaps must be used within a GoogleMapsProvider');
+    throw new Error("useGoogleMaps must be used within a GoogleMapsProvider");
   }
   return context;
 };
@@ -36,8 +42,14 @@ export function GoogleMapsProvider({ children }: GoogleMapsProviderProps) {
   const MAP_ID = import.meta.env.VITE_GOOGLE_MAPS_ID;
 
   const createMap = (container: HTMLElement): google.maps.Map | null => {
-    if (!isLoaded || !window.google?.maps) {
+    if (!isLoaded || !window.google?.maps?.Map) {
       console.error("Google Maps not loaded yet");
+      return null;
+    }
+
+    // Additional safety check for required APIs
+    if (!window.google?.maps?.ControlPosition || !window.google?.maps?.MapTypeControlStyle) {
+      console.error("Google Maps APIs not fully loaded - missing ControlPosition or MapTypeControlStyle");
       return null;
     }
 
@@ -46,13 +58,15 @@ export function GoogleMapsProvider({ children }: GoogleMapsProviderProps) {
         center: { lat: 33.75, lng: -84.39 }, // Default Atlanta center
         zoom: 12, // Default zoom, will be overridden by fitBounds
         mapId: MAP_ID ?? undefined, // ✅ Map ID for cloud styling
-        mapTypeControl: true,
-        mapTypeControlOptions: {
-          style: window.google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
-          position: window.google.maps.ControlPosition.TOP_RIGHT,
-          mapTypeIds: ["roadmap", "satellite"], // styling affects roadmap only
-        },
+        mapTypeControl: false,
+        streetViewControl: false,
+        fullscreenControl: false,
+        zoomControl: false,
+        scaleControl: false,
+        rotateControl: false,
+        keyboardShortcuts: false,
         gestureHandling: "greedy",
+        disableDefaultUI: true, // Hide all default UI elements including watermarks
         // Note: NO styles array - using mapId for cloud styling
         // Note: NO mapTypeId override - let cloud styling control the default
       });
@@ -65,17 +79,19 @@ export function GoogleMapsProvider({ children }: GoogleMapsProviderProps) {
   };
 
   useEffect(() => {
-    // Check if Google Maps is already loaded
-    if (window.google?.maps) {
+    // Check if Google Maps is already loaded with all required APIs
+    if (window.google?.maps?.Map && window.google?.maps?.ControlPosition && window.google?.maps?.MapTypeControlStyle) {
       setIsLoaded(true);
       return;
     }
 
     // More comprehensive check for existing Google Maps scripts
-    const existingScripts = document.querySelectorAll('script[src*="maps.googleapis.com"], script[src*="maps.google.com"]');
+    const existingScripts = document.querySelectorAll(
+      'script[src*="maps.googleapis.com"], script[src*="maps.google.com"]'
+    );
     if (existingScripts.length > 0) {
       const checkLoaded = () => {
-        if (window.google?.maps) {
+        if (window.google?.maps?.Map && window.google?.maps?.ControlPosition && window.google?.maps?.MapTypeControlStyle) {
           setIsLoaded(true);
         } else {
           setTimeout(checkLoaded, 100);
@@ -114,7 +130,9 @@ export function GoogleMapsProvider({ children }: GoogleMapsProviderProps) {
         });
 
         if (!response.ok) {
-          throw new Error(`Failed to fetch Google Maps script URL: ${response.status}`);
+          throw new Error(
+            `Failed to fetch Google Maps script URL: ${response.status}`
+          );
         }
 
         const data = await response.json();
@@ -125,20 +143,28 @@ export function GoogleMapsProvider({ children }: GoogleMapsProviderProps) {
         setScriptUrl(data.script_url);
 
         // Double-check no script was added while we were fetching the URL
-        const scriptsAfterFetch = document.querySelectorAll('script[src*="maps.googleapis.com"], script[src*="maps.google.com"]');
+        const scriptsAfterFetch = document.querySelectorAll(
+          'script[src*="maps.googleapis.com"], script[src*="maps.google.com"]'
+        );
         if (scriptsAfterFetch.length > 0) {
           setIsLoading(false);
           return;
         }
 
-        // Normalize script URL for vector maps and libraries
+        // Optimize script URL for faster loading
         const url = new URL(data.script_url);
-        const libs = new Set((url.searchParams.get("libraries") || "").split(",").filter(Boolean));
+        const libs = new Set(
+          (url.searchParams.get("libraries") || "").split(",").filter(Boolean)
+        );
         libs.add("marker"); // needed for AdvancedMarkerElement overlays
-        // libs.add("places"); // only if you use Places
         url.searchParams.set("libraries", Array.from(libs).join(","));
-        if (!url.searchParams.get("v")) url.searchParams.set("v", "weekly");
-        // Do NOT add map_ids= in script URL; pass mapId only via MapOptions
+        
+        // Use beta version for better performance
+        url.searchParams.set("v", "beta");
+        
+        // Add loading optimization parameters
+        url.searchParams.set("loading", "async");
+        
         const finalScriptUrl = url.toString();
 
         // Load Google Maps script
@@ -146,57 +172,65 @@ export function GoogleMapsProvider({ children }: GoogleMapsProviderProps) {
         script.src = finalScriptUrl;
         script.async = true;
         script.defer = true;
-        script.id = 'google-maps-api'; // Add unique ID to prevent duplicates
+        script.id = "google-maps-api"; // Add unique ID to prevent duplicates
 
         script.onload = async () => {
-          // Wait for core Google Maps API to be ready (don't wait for Places)
+          // Optimized readiness check with shorter intervals
           let attempts = 0;
-          const maxAttempts = 50; // 5 seconds max wait time
-          
+          const maxAttempts = 30; // 3 seconds max wait time
+
           const checkReady = () => {
             attempts++;
-            if (window.google?.maps?.Map) {
+            if (window.google?.maps?.Map && window.google?.maps?.ControlPosition && window.google?.maps?.MapTypeControlStyle) {
               setIsLoaded(true);
               setIsLoading(false);
-              
-              // Optionally import libraries after core API is ready
-              if (window.google?.maps?.importLibrary) {
-                window.google.maps.importLibrary("marker").catch((err: unknown) => 
-                  console.warn("Failed to import marker library:", err)
-                );
 
+              // Preload marker library immediately for faster map creation
+              if (window.google?.maps?.importLibrary) {
+                window.google.maps
+                  .importLibrary("marker")
+                  .catch((err: unknown) =>
+                    console.warn("Failed to import marker library:", err)
+                  );
               }
             } else if (attempts >= maxAttempts) {
-              console.error("❌ Google Maps initialization timeout after 5 seconds");
-              setError("Google Maps initialization timeout. Please refresh the page.");
+              console.error(
+                "❌ Google Maps initialization timeout after 3 seconds"
+              );
+              setError(
+                "Google Maps initialization timeout. Please refresh the page."
+              );
               setIsLoading(false);
             } else {
-              setTimeout(checkReady, 100);
+              setTimeout(checkReady, 50); // Reduced from 100ms to 50ms
             }
           };
-          
+
           // Start checking immediately
           checkReady();
         };
 
         script.onerror = () => {
-          console.error('Failed to load Google Maps script');
-          setError("Failed to load Google Maps script. Please check your API key or internet connection.");
+          console.error("Failed to load Google Maps script");
+          setError(
+            "Failed to load Google Maps script. Please check your API key or internet connection."
+          );
           setIsLoading(false);
         };
 
         // Final check before adding to DOM
-        const finalCheck = document.getElementById('google-maps-api');
+        const finalCheck = document.getElementById("google-maps-api");
         if (finalCheck) {
           setIsLoading(false);
           return;
         }
 
         document.head.appendChild(script);
-
       } catch (err) {
         console.error("Error loading Google Maps:", err);
-        setError(err instanceof Error ? err.message : "Failed to load Google Maps");
+        setError(
+          err instanceof Error ? err.message : "Failed to load Google Maps"
+        );
         setIsLoading(false);
       }
     };
@@ -209,7 +243,7 @@ export function GoogleMapsProvider({ children }: GoogleMapsProviderProps) {
       if (idToken && !isLoaded && !error) {
         loadGoogleMaps();
       }
-    }, 100); // Check every 2 seconds
+    }, 2000); // Check every 2 seconds
 
     return () => {
       clearInterval(retryInterval);
@@ -217,7 +251,9 @@ export function GoogleMapsProvider({ children }: GoogleMapsProviderProps) {
   }, [isLoaded, error, isLoading]);
 
   return (
-    <GoogleMapsContext.Provider value={{ isLoaded, error, scriptUrl, createMap }}>
+    <GoogleMapsContext.Provider
+      value={{ isLoaded, error, scriptUrl, createMap }}
+    >
       {children}
     </GoogleMapsContext.Provider>
   );

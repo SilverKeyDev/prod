@@ -68,11 +68,11 @@ export const FIELD_LABELS = {
   
   // Housing
   PREFERRED_HOUSING_TYPE: "Desired Housing Type",
-  PREFERRED_BEDROOMS: "Preferred Bedrooms",
-  PREFERRED_BATHROOMS: "Preferred Bathrooms",
-  PREFERRED_LOT_SIZE: "Preferred Lot Size",
-  PREFERRED_HOME_AGE: "Preferred Home Age",
-  PREFERRED_ARCHITECTURAL_STYLE: "Preferred Architectural Style",
+  PREFERRED_BEDROOMS: "Bedrooms",
+  PREFERRED_BATHROOMS: "Bathrooms",
+  PREFERRED_LOT_SIZE: "Lot Size",
+  PREFERRED_HOME_AGE: "Home Age",
+  PREFERRED_ARCHITECTURAL_STYLE: "Architectural Style",
   RENOVATION_PREFERENCE: "Renovation Willingness",
   INTENDED_PROPERTY_USE: "Intended Property Use",
   

@@ -3,55 +3,27 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Loading } from "../../ui";
 
 export interface CardCarouselProps<T> {
-  /**
-   * Array of items to display in the carousel
-   */
   items: T[];
-  /**
-   * Function to render each item
-   */
   renderItem: (item: T, index: number) => ReactNode;
-  /**
-   * Function to get unique key for each item
-   */
   getItemKey: (item: T, index: number) => string;
-  /**
-   * Loading state
-   */
   loading?: boolean;
-  /**
-   * Error state
-   */
   error?: string | null;
-  /**
-   * Empty state message
-   */
   emptyMessage?: string;
-  /**
-   * Minimum card width in pixels - determines how many cards fit
-   */
   minCardWidth?: number;
-  /**
-   * Maximum card width in pixels - limits card expansion
-   */
   maxCardWidth?: number;
-  /**
-   * Gap between cards in pixels
-   */
   cardGap?: number;
-  /**
-   * Show dots indicator on mobile
-   */
   showDots?: boolean;
-  /**
-   * Optional embedded button to display alongside navigation buttons
-   */
   embeddedButton?: ReactNode;
 }
 
 /**
- * Reusable carousel component for displaying items in a horizontal scrolling layout
- * with navigation arrows and pagination info.
+ * Carousel that:
+ * - Never shows partial cards (full-page pagination)
+ * - Cards stretch to fill space
+ * - Slightly increased spacing between cards
+ * - On load/resize, max card width = 90% of viewport width
+ * - Cards are centered **only on mobile (<640px)**, never on desktop
+ * - Amount of cards never increases if screensize decreases
  */
 export default function CardCarousel<T>({
   items,
@@ -61,117 +33,136 @@ export default function CardCarousel<T>({
   error = null,
   emptyMessage = "No items to display",
   minCardWidth = 280,
-  maxCardWidth = 400,
+  maxCardWidth = 0,
   cardGap = 16,
   showDots = true,
   embeddedButton,
 }: CardCarouselProps<T>) {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [, setContainerWidth] = useState(0);
-  const [calculatedItemsPerPage, setCalculatedItemsPerPage] = useState(1);
+  const MOBILE_BREAKPOINT_PX = 640;
+
+  const [pageIndex, setPageIndex] = useState(0);
+  const [itemsPerPage, setItemsPerPage] = useState(1);
+  const [maxItemsPerPage, setMaxItemsPerPage] = useState(1);
   const [isMobile, setIsMobile] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
+
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Calculate optimal card sizing based on container width
+  const effectiveGap = Math.round(cardGap * 1.15);
+  const totalPages = Math.max(1, Math.ceil(items.length / itemsPerPage));
+
+  // Keep page in bounds
   useEffect(() => {
-    const calculateDimensions = () => {
+    setPageIndex((prevPage) => Math.min(Math.max(0, prevPage), totalPages - 1));
+  }, [totalPages]);
+
+  // Calculate layout on mount and resize
+  useEffect(() => {
+    const calculateLayout = () => {
       if (!containerRef.current) return;
 
-      const containerRect = containerRef.current.getBoundingClientRect();
-      const availableWidth = containerRect.width;
-      setContainerWidth(availableWidth);
+      const containerWidth = containerRef.current.getBoundingClientRect().width;
+      const mobile = window.innerWidth < MOBILE_BREAKPOINT_PX;
+      setIsMobile(mobile);
 
-      const isMobileScreen = window.innerWidth < 768;
-      setIsMobile(isMobileScreen);
-
-      if (isMobileScreen) {
-        setCalculatedItemsPerPage(1);
+      if (mobile) {
+        setItemsPerPage(1);
         return;
       }
 
-      // Calculate how many cards can fit based on container width and card constraints
-      // Always try to fit as many cards as possible within the available space
-      const maxItems = Math.floor(
-        (availableWidth + cardGap) / (minCardWidth + cardGap)
-      );
-      const optimalItemsPerPage = Math.max(1, Math.min(maxItems, items.length));
+      // Desktop: calculate how many cards can fit
+      let maxFit = 1;
+      for (let i = 1; i <= items.length; i++) {
+        const totalGapWidth = effectiveGap * (i - 1);
+        const requiredWidth = minCardWidth * i + totalGapWidth;
+        if (requiredWidth <= containerWidth) {
+          maxFit = i;
+        } else {
+          break;
+        }
+      }
 
-      setCalculatedItemsPerPage(optimalItemsPerPage);
+      const newItemsPerPage = Math.max(1, Math.min(maxFit, items.length));
+      
+      // Prevent increasing items per page after initial calculation
+      if (maxItemsPerPage === 1) {
+        // First calculation
+        setMaxItemsPerPage(newItemsPerPage);
+        setItemsPerPage(newItemsPerPage);
+      } else {
+        // Subsequent calculations - can only stay same or decrease
+        const finalItemsPerPage = Math.min(newItemsPerPage, maxItemsPerPage);
+        setItemsPerPage(finalItemsPerPage);
+      }
     };
 
-    calculateDimensions();
-    window.addEventListener("resize", calculateDimensions);
+    const handleResize = () => {
+      setTimeout(calculateLayout, 100);
+    };
 
-    return () => window.removeEventListener("resize", calculateDimensions);
-  }, [minCardWidth, cardGap, items.length]);
+    calculateLayout();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [items.length, minCardWidth, effectiveGap, maxItemsPerPage]);
 
-  // Use calculated items per page
-  const effectiveItemsPerPage = calculatedItemsPerPage;
+  // Navigation
+  const canGoPrev = pageIndex > 0 && !isAnimating;
+  const canGoNext = pageIndex < totalPages - 1 && !isAnimating;
 
-  // Navigation logic
-  const canGoToPrevious = currentIndex > 0;
-  const canGoToNext = currentIndex + effectiveItemsPerPage < items.length;
-
-  const goToPrevious = () => {
-    if (canGoToPrevious) {
-      setCurrentIndex(Math.max(0, currentIndex - effectiveItemsPerPage));
-    }
+  const navigate = (newPage: number) => {
+    if (isAnimating || newPage === pageIndex || newPage < 0 || newPage >= totalPages) return;
+    
+    setIsAnimating(true);
+    setPageIndex(newPage);
+    setTimeout(() => setIsAnimating(false), 300);
   };
 
-  const goToNext = () => {
-    if (canGoToNext) {
-      setCurrentIndex(
-        Math.min(
-          items.length - effectiveItemsPerPage,
-          currentIndex + effectiveItemsPerPage
-        )
-      );
-    }
-  };
+  const goPrev = () => canGoPrev && navigate(pageIndex - 1);
+  const goNext = () => canGoNext && navigate(pageIndex + 1);
+  const goToPage = (page: number) => navigate(page);
 
-  const goToIndex = (index: number) => {
-    setCurrentIndex(index);
-  };
+  // Create pages
+  const pages = [];
+  for (let i = 0; i < items.length; i += itemsPerPage) {
+    pages.push(items.slice(i, i + itemsPerPage));
+  }
 
-  const visibleItems = items.slice(
-    currentIndex,
-    currentIndex + effectiveItemsPerPage
-  );
+  const viewportMaxWidth = typeof window !== "undefined" ? Math.floor(window.innerWidth * 0.9) : 400;
+  const cardMaxWidth = maxCardWidth && maxCardWidth > 0 
+    ? Math.min(maxCardWidth, viewportMaxWidth) 
+    : viewportMaxWidth;
 
   return (
-    <div className="my-4 sm:my-6 md:my-8" ref={containerRef}>
-      {/* Header with embedded button on left and navigation on right */}
-      <div className="flex items-center justify-between mb-3 sm:mb-4 w-full min-w-0">
-        {/* Left side: Embedded button */}
-        <div className="flex items-center h-10 text-responsive-sm whitespace-nowrap overflow-hidden">{embeddedButton}</div>
-
-        {/* Right side: Navigation controls - Always show arrows */}
-        {items.length > 0 && (
-          <div className="flex items-center gap-1">
-            <button
-              onClick={goToPrevious}
-              disabled={!canGoToPrevious}
-              className={`p-2 h-8 w-8 rounded-lg transition-all duration-200 ease-out touch-manipulation flex items-center justify-center ${
-                canGoToPrevious
-                  ? "bg-brown/5 text-brown hover:bg-brown hover:text-white shadow-sm hover:shadow-md"
-                  : "bg-gray-50 text-gray-300 cursor-not-allowed"
-              }`}
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <button
-              onClick={goToNext}
-              disabled={!canGoToNext}
-              className={`p-2 h-8 w-8 rounded-lg transition-all duration-200 ease-out touch-manipulation flex items-center justify-center ${
-                canGoToNext
-                  ? "bg-brown/5 text-brown hover:bg-brown hover:text-white shadow-sm hover:shadow-md"
-                  : "bg-gray-50 text-gray-300 cursor-not-allowed"
-              }`}
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-        )}
+    <div className={`${isMobile ? 'my-0' : 'lg:my-4'} mx-4`} ref={containerRef}>
+      {/* Header */}
+      <div className={`flex items-center justify-between w-full min-w-0 ${isMobile ? 'mb-0' : 'mb-3 sm:mb-4'}`}>
+        <div className="flex items-center h-10 text-responsive-sm whitespace-nowrap overflow-hidden">
+          {embeddedButton}
+        </div>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={goPrev}
+            disabled={!canGoPrev}
+            className={`p-2 h-8 w-8 rounded-lg transition-all duration-200 flex items-center justify-center ${
+              canGoPrev
+                ? "bg-brown/5 text-brown hover:bg-brown hover:text-white"
+                : "bg-gray-50 text-gray-300 cursor-not-allowed"
+            } ${isAnimating ? "opacity-50" : ""}`}
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <button
+            onClick={goNext}
+            disabled={!canGoNext}
+            className={`p-2 h-8 w-8 rounded-lg transition-all duration-200 flex items-center justify-center ${
+              canGoNext
+                ? "bg-brown/5 text-brown hover:bg-brown hover:text-white"
+                : "bg-gray-50 text-gray-300 cursor-not-allowed"
+            } ${isAnimating ? "opacity-50" : ""}`}
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       {/* Content */}
@@ -181,61 +172,97 @@ export default function CardCarousel<T>({
         </div>
       ) : error ? (
         <p className="text-responsive-sm text-neutral-500 text-center py-4">
-          {emptyMessage}
+          {error}
         </p>
       ) : items.length === 0 ? (
         <p className="text-responsive-sm text-neutral-500 text-center py-4">
           {emptyMessage}
         </p>
       ) : (
-        <div className="relative">
-          {/* Desktop: full width layout with proper alignment */}
-          <div
-            className={`${isMobile ? "hidden" : "flex pb-2"}`}
-            style={{
-              scrollbarWidth: "none",
-              msOverflowStyle: "none",
-              gap: `${cardGap}px`,
-            }}
-          >
-            {visibleItems.map((item, index) => {
-              return (
-                <div
-                  key={getItemKey(item, currentIndex + index)}
-                  className="flex-1 min-w-0"
-                  style={{
-                    minWidth: `${minCardWidth}px`,
-                    maxWidth: maxCardWidth ? `${maxCardWidth}px` : undefined,
-                  }}
-                >
-                  {renderItem(item, currentIndex + index)}
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Mobile: single item with overlay navigation */}
-          <div className={`${isMobile ? "block" : "hidden"} relative`}>
-            <div className="w-[80%] mx-auto">
-              {renderItem(visibleItems[0], currentIndex)}
-            </div>
-            {/* Mobile dot indicators */}
-            {showDots && items.length > 1 && (
-              <div className="flex justify-center gap-responsive-xs mt-4">
-                {items.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => goToIndex(index)}
-                    className={`w-2 h-2 rounded-full transition touch-manipulation ${
-                      index === currentIndex
-                        ? "bg-brand-accent"
-                        : "bg-neutral-300 hover:bg-neutral-400"
-                    }`}
-                  />
+        <div className="relative overflow-hidden">
+          {/* Desktop */}
+          {!isMobile && (
+            <div className="overflow-hidden">
+              <div
+                className="flex transition-transform duration-300 ease-out"
+                style={{
+                  transform: `translateX(-${pageIndex * 100}%)`,
+                }}
+              >
+                {pages.map((page, pIdx) => (
+                  <div
+                    key={`page-${pIdx}`}
+                    className="w-full flex-shrink-0 flex"
+                    style={{ gap: `${effectiveGap}px` }}
+                  >
+                    {page.map((item, idx) => {
+                      const globalIndex = pIdx * itemsPerPage + idx;
+                      const cardWidth = `calc((100% - ${effectiveGap * (page.length - 1)}px) / ${page.length})`;
+                      return (
+                        <div
+                          key={getItemKey(item, globalIndex)}
+                          className="flex-shrink-0"
+                          style={{
+                            width: cardWidth,
+                            maxWidth: `${cardMaxWidth}px`,
+                          }}
+                        >
+                          {renderItem(item, globalIndex)}
+                        </div>
+                      );
+                    })}
+                  </div>
                 ))}
               </div>
-            )}
-          </div>
+            </div>
+          )}
+
+          {/* Mobile */}
+          {isMobile && (
+            <div>
+              <div className="overflow-hidden">
+                <div
+                  className="flex transition-transform duration-300 ease-out"
+                  style={{
+                    transform: `translateX(-${pageIndex * 100}%)`,
+                  }}
+                >
+                  {pages.map((page, pIdx) => (
+                    <div
+                      key={`mobile-page-${pIdx}`}
+                      className="w-full flex-shrink-0 flex justify-center px-4"
+                    >
+                      {page[0] && (
+                        <div 
+                          className="w-full" 
+                          style={{ maxWidth: `${cardMaxWidth}px` }}
+                        >
+                          {renderItem(page[0], pIdx * itemsPerPage)}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {showDots && totalPages > 1 && (
+                <div className="flex justify-center gap-2 mt-4">
+                  {Array.from({ length: totalPages }).map((_, i) => (
+                    <button
+                      key={`dot-${i}`}
+                      onClick={() => goToPage(i)}
+                      disabled={isAnimating}
+                      className={`w-2 h-2 rounded-full transition-all duration-200 ${
+                        i === pageIndex
+                          ? "bg-brand-accent scale-125"
+                          : "bg-neutral-300 hover:bg-neutral-400"
+                      } ${isAnimating ? "opacity-50" : ""}`}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>

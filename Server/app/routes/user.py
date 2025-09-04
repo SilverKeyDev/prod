@@ -282,10 +282,65 @@ def add_favorite_home():
             return jsonify({'success': False, 'error': 'Address is required and must be a string'}), 400
 
         from app.models.home_universal import HomeUniversal
-        home_universal = HomeUniversal.query.filter_by(user_id=str(user.id), address=address).first()
-        if home_universal:
-            current_app.logger.warning(f"⚠️ Home already exists in favorites: {address}")
-            return jsonify({'success': False, 'error': 'Home is already in favorites'}), 400
+        from app.utils.address_format import normalize_address
+        
+        # Log the incoming request data for debugging
+        current_app.logger.info(f"🏠 Adding home to favorites - Full request data: {data}")
+        current_app.logger.info(f"📍 Target address from request: '{address}'")
+        current_app.logger.info(f"🔍 Target address type: {type(address)}")
+        current_app.logger.info(f"🔍 Target address length: {len(address) if address else 'None'}")
+        current_app.logger.info(f"🔍 Target address repr: {repr(address)}")
+        
+        # Check for duplicate using normalized address matching
+        normalized_target = normalize_address(address)
+        current_app.logger.info(f"🔄 Normalized target address: '{normalized_target}'")
+        current_app.logger.info(f"🔍 Normalized target type: {type(normalized_target)}")
+        current_app.logger.info(f"🔍 Normalized target length: {len(normalized_target) if normalized_target else 'None'}")
+        current_app.logger.info(f"🔍 Normalized target repr: {repr(normalized_target)}")
+        
+        existing_homes = HomeUniversal.query.filter_by(user_id=str(user.id)).all()
+        current_app.logger.info(f"📋 Found {len(existing_homes)} existing homes for user {user.id}")
+        
+        for i, existing_home in enumerate(existing_homes):
+            if existing_home.address:
+                current_app.logger.info(f"🔍 Existing home #{i+1} raw data:")
+                current_app.logger.info(f"   📍 Raw address: '{existing_home.address}'")
+                current_app.logger.info(f"   🔍 Address type: {type(existing_home.address)}")
+                current_app.logger.info(f"   🔍 Address length: {len(existing_home.address) if existing_home.address else 'None'}")
+                current_app.logger.info(f"   🔍 Address repr: {repr(existing_home.address)}")
+                current_app.logger.info(f"   🏠 Home User ID: {existing_home.user_id}")
+                current_app.logger.info(f"   📅 Created: {existing_home.created_at}")
+                
+                normalized_existing = normalize_address(existing_home.address)
+                current_app.logger.info(f"   🔄 Normalized: '{normalized_existing}'")
+                current_app.logger.info(f"   🔍 Normalized type: {type(normalized_existing)}")
+                current_app.logger.info(f"   🔍 Normalized length: {len(normalized_existing) if normalized_existing else 'None'}")
+                current_app.logger.info(f"   🔍 Normalized repr: {repr(normalized_existing)}")
+                
+                # Character-by-character comparison for debugging
+                if normalized_target == normalized_existing:
+                    current_app.logger.warning(f"⚠️ Home already exists in favorites: {address}")
+                    current_app.logger.warning(f"   📍 Target address: '{address}' → normalized: '{normalized_target}'")
+                    current_app.logger.warning(f"   🏠 Existing address: '{existing_home.address}' → normalized: '{normalized_existing}'")
+                    current_app.logger.warning(f"   ✅ Normalized addresses match exactly")
+                    current_app.logger.warning(f"   🔍 String equality check: {normalized_target == normalized_existing}")
+                    current_app.logger.warning(f"   🔍 Hash comparison: target={hash(normalized_target)}, existing={hash(normalized_existing)}")
+                    return jsonify({'success': False, 'error': 'Home is already in favorites'}), 400
+                else:
+                    current_app.logger.debug(f"   ❌ No match: '{normalized_target}' != '{normalized_existing}'")
+                    # Show character differences for debugging
+                    if len(normalized_target) != len(normalized_existing):
+                        current_app.logger.debug(f"   📏 Length difference: target={len(normalized_target)}, existing={len(normalized_existing)}")
+                    else:
+                        # Find first differing character
+                        for j, (c1, c2) in enumerate(zip(normalized_target, normalized_existing)):
+                            if c1 != c2:
+                                current_app.logger.debug(f"   🔍 First difference at position {j}: '{c1}' vs '{c2}'")
+                                current_app.logger.debug(f"   🔍 Target substring: '{normalized_target[max(0,j-5):j+6]}'")
+                                current_app.logger.debug(f"   🔍 Existing substring: '{normalized_existing[max(0,j-5):j+6]}'")
+                                break
+            else:
+                current_app.logger.debug(f"🔍 Skipping existing home #{i+1}: no address stored (ID: {existing_home.id})")
         
         image_url = home.get('image_url', '') or home.get('imageUrl', '')
         

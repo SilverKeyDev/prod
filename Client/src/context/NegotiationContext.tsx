@@ -8,45 +8,24 @@ import {
   ReactNode,
 } from "react";
 import {
-  Strategy,
-  OfferDraft,
-  OfferHistory,
-  BASE_URL,
-} from "./utils";
-import {
-  fetchJson,
-  createAuthHeaders,
   createAbortManager,
-  isAbortError,
-  getAuthToken,
-  routeStartsWith,
 } from "../lib/fetchUtils";
-import { useAuth } from "./AuthContext";
 
 /* =========================
    Types
    ========================= */
 
 interface NegotiationContextType {
-  offerDrafts: OfferDraft[];
-  negotiationStrategies: Strategy[];
-  offerHistory: OfferHistory[];
-  currentOffer: OfferDraft | null;
-  draftsLoading: boolean;
-  strategiesLoading: boolean;
-  historyLoading: boolean;
-  draftsError: string | null;
-  strategiesError: string | null;
-  historyError: string | null;
-  saveOfferDraft: (draft: Partial<OfferDraft>) => Promise<OfferDraft>;
-  updateOfferDraft: (id: string, updates: Partial<OfferDraft>) => Promise<OfferDraft>;
-  deleteOfferDraft: (id: string) => Promise<void>;
-  submitOffer: (offerId: string) => Promise<void>;
-  generateStrategy: (propertyAddress: string, strategyType: Strategy['strategy_type']) => Promise<Strategy>;
-  refreshOfferDrafts: () => Promise<void>;
-  refreshStrategies: () => Promise<void>;
-  refreshOfferHistory: () => Promise<void>;
-  setCurrentOffer: (offer: OfferDraft | null) => void;
+  // Enhanced strategy generation with localStorage persistence
+  selectedHome: any | null;
+  strategyData: any | null;
+  compsData: any | null;
+  isLoading: boolean;
+  error: string | null;
+  handleHomeSelection: (home: any) => void;
+  handleGenerate: () => Promise<void>;
+  handleDownloadJson: () => void;
+  handleShareJson: () => Promise<void>;
 }
 
 /* =========================
@@ -60,438 +39,298 @@ interface NegotiationProviderProps {
 }
 
 export function NegotiationProvider({ children }: NegotiationProviderProps) {
-  const { abortAll, withAbort } = useMemo(() => createAbortManager(), []);
-  const { user, authReady } = useAuth();
+  const { abortAll } = useMemo(() => createAbortManager(), []);
 
-  // Offer drafts state
-  const [offerDrafts, setOfferDrafts] = useState<OfferDraft[]>([]);
-  const [draftsLoading, setDraftsLoading] = useState(false);
-  const [draftsError, setDraftsError] = useState<string | null>(null);
 
-  // Strategies state
-  const [negotiationStrategies, setNegotiationStrategies] = useState<Strategy[]>([]);
-  const [strategiesLoading, setStrategiesLoading] = useState(false);
-  const [strategiesError, setStrategiesError] = useState<string | null>(null);
+  // Enhanced strategy generation state with localStorage persistence
+  const [selectedHome, setSelectedHome] = useState<any | null>(null);
+  const [strategyData, setStrategyData] = useState<any | null>(null);
+  const [compsData, setCompsData] = useState<any | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Offer history state
-  const [offerHistory, setOfferHistory] = useState<OfferHistory[]>([]);
-  const [historyLoading, setHistoryLoading] = useState(false);
-  const [historyError, setHistoryError] = useState<string | null>(null);
 
-  // Current offer state
-  const [currentOffer, setCurrentOffer] = useState<OfferDraft | null>(null);
 
-  /* =========================
-     Fetchers
-     ========================= */
+  // Handle home selection from dropdown
+  const handleHomeSelection = useCallback((home: any) => {
+    setSelectedHome(home);
+    setStrategyData(null); // Reset strategy when home changes
+    setCompsData(null); // Reset comps when home changes
 
-  const fetchOfferDrafts = useCallback(async (signal?: AbortSignal) => {
-    const token = getAuthToken();
-    if (!token) return;
+    // Save the newly selected home to localStorage
+    localStorage.setItem("negotiationSelectedHome", JSON.stringify(home));
 
-    setDraftsLoading(true);
-    setDraftsError(null);
-
-    try {
-      const json = await fetchJson<{ success: boolean; drafts?: OfferDraft[]; error?: string }>(
-        `${BASE_URL}/api/v1/negotiation/drafts`,
-        { 
-          method: "GET", 
-          mode: "cors", 
-          headers: createAuthHeaders(token), 
-          credentials: "include",
-          signal,
-          acceptStatuses: [404]
-        }
-      );
-
-      if (json.success && json.drafts) {
-        setOfferDrafts(json.drafts.map(draft => ({
-          ...draft,
-          created_at: new Date(draft.created_at),
-          updated_at: new Date(draft.updated_at),
-        })));
-      } else if (json === undefined) {
-        // 404 response, treat as empty
-        setOfferDrafts([]);
-      } else {
-        throw new Error(json.error || "Failed to fetch offer drafts");
-      }
-    } catch (e: any) {
-      if (!isAbortError(e)) {
-        console.error("Failed to fetch offer drafts", e);
-        setDraftsError(e?.message ?? "Failed to fetch offer drafts");
-        setOfferDrafts([]); // Safe fallback
-      }
-    } finally {
-      setDraftsLoading(false);
-    }
+    // Clear saved strategy and comps since we're selecting a different home
+    localStorage.removeItem("negotiationStrategy");
+    localStorage.removeItem("negotiationComps");
   }, []);
 
-  const fetchStrategies = useCallback(async (signal?: AbortSignal) => {
-    const token = getAuthToken();
-    if (!token) return;
+  // Enhanced strategy generation with localStorage persistence
+  const handleGenerate = async () => {
+    if (!selectedHome) return;
 
-    setStrategiesLoading(true);
-    setStrategiesError(null);
-
-    try {
-      const json = await fetchJson<{ success: boolean; strategies?: Strategy[]; error?: string }>(
-        `${BASE_URL}/api/v1/negotiation/strategies`,
-        { 
-          method: "GET", 
-          mode: "cors", 
-          headers: createAuthHeaders(token), 
-          credentials: "include",
-          signal,
-          acceptStatuses: [404]
-        }
-      );
-
-      if (json.success && json.strategies) {
-        setNegotiationStrategies(json.strategies.map(strategy => ({
-          ...strategy,
-          created_at: new Date(strategy.created_at),
-        })));
-      } else if (json === undefined) {
-        // 404 response, treat as empty
-        setNegotiationStrategies([]);
-      } else {
-        throw new Error(json.error || "Failed to fetch strategies");
-      }
-    } catch (e: any) {
-      if (!isAbortError(e)) {
-        console.error("Failed to fetch strategies", e);
-        setStrategiesError(e?.message ?? "Failed to fetch strategies");
-        setNegotiationStrategies([]); // Safe fallback
-      }
-    } finally {
-      setStrategiesLoading(false);
-    }
-  }, []);
-
-  const fetchOfferHistory = useCallback(async (signal?: AbortSignal) => {
-    const token = getAuthToken();
-    if (!token) return;
-
-    setHistoryLoading(true);
-    setHistoryError(null);
+    setIsLoading(true);
+    setError(null);
+    setStrategyData(null);
+    setCompsData(null);
 
     try {
-      const json = await fetchJson<{ success: boolean; history?: OfferHistory[]; error?: string }>(
-        `${BASE_URL}/api/v1/negotiation/history`,
-        { 
-          method: "GET", 
-          mode: "cors", 
-          headers: createAuthHeaders(token), 
-          credentials: "include",
-          signal,
-          acceptStatuses: [404]
-        }
-      );
-
-      if (json.success && json.history) {
-        setOfferHistory(json.history.map(item => ({
-          ...item,
-          submitted_at: new Date(item.submitted_at),
-          response_date: item.response_date ? new Date(item.response_date) : undefined,
-        })));
-      } else if (json === undefined) {
-        // 404 response, treat as empty
-        setOfferHistory([]);
-      } else {
-        throw new Error(json.error || "Failed to fetch offer history");
+      // Get authentication token
+      const idToken = localStorage.getItem("id_token");
+      console.log("🔐 [NEGOTIATION] Token available:", !!idToken);
+      if (!idToken) {
+        throw new Error("Authentication required. Please log in.");
       }
-    } catch (e: any) {
-      if (!isAbortError(e)) {
-        console.error("Failed to fetch offer history", e);
-        setHistoryError(e?.message ?? "Failed to fetch offer history");
-        setOfferHistory([]); // Safe fallback
-      }
-    } finally {
-      setHistoryLoading(false);
-    }
-  }, []);
+      
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || "";
+      const address =
+        selectedHome.address ||
+        selectedHome.full_address ||
+        selectedHome.location;
 
-  const performSaveOfferDraft = useCallback(async (draft: Partial<OfferDraft>, signal?: AbortSignal): Promise<OfferDraft> => {
-    const token = getAuthToken();
-    if (!token) throw new Error("No authentication token");
+      console.log("🏠 [NEGOTIATION] Generating strategy for address:", address);
+      console.log("🌐 [NEGOTIATION] API Base URL:", baseUrl);
+      console.log("📋 [NEGOTIATION] Selected home data:", selectedHome);
 
-    try {
-      const json = await fetchJson<{ success: boolean; draft?: OfferDraft; error?: string }>(
-        `${BASE_URL}/api/v1/negotiation/drafts`,
-        {
+      const strategyUrl = `${baseUrl}/api/v1/offer/generate-strategy`;
+      const compsUrl = `${baseUrl}/api/v1/search/propertyComps?address=${encodeURIComponent(address)}`;
+      
+      console.log("📡 [NEGOTIATION] Strategy API URL:", strategyUrl);
+      console.log("📡 [NEGOTIATION] Comps API URL:", compsUrl);
+
+      // Make both API calls concurrently
+      console.log("🚀 [NEGOTIATION] Starting API calls...");
+      const [strategyRes, compsRes] = await Promise.all([
+        fetch(strategyUrl, {
           method: "POST",
-          mode: "cors",
-          headers: createAuthHeaders(token),
-          credentials: "include",
-          body: JSON.stringify(draft),
-          signal
-        }
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${idToken}`,
+          },
+          body: JSON.stringify({
+            address: address,
+          }),
+        }),
+        fetch(compsUrl, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${idToken}`,
+          },
+        }),
+      ]);
+
+      console.log("📊 [NEGOTIATION] Strategy response status:", strategyRes.status);
+      console.log("📊 [NEGOTIATION] Strategy response headers:", Object.fromEntries(strategyRes.headers.entries()));
+      console.log("📊 [NEGOTIATION] Comps response status:", compsRes.status);
+      console.log("📊 [NEGOTIATION] Comps response headers:", Object.fromEntries(compsRes.headers.entries()));
+
+      // Check content type before parsing JSON
+      const strategyContentType = strategyRes.headers.get("content-type");
+      const compsContentType = compsRes.headers.get("content-type");
+      
+      console.log("📄 [NEGOTIATION] Strategy content-type:", strategyContentType);
+      console.log("📄 [NEGOTIATION] Comps content-type:", compsContentType);
+
+      // Get response text first to debug what we're receiving
+      const strategyText = await strategyRes.text();
+      const compsText = await compsRes.text();
+
+      console.log("📝 [NEGOTIATION] Strategy response text (first 500 chars):", strategyText.substring(0, 500));
+      console.log("📝 [NEGOTIATION] Comps response text (first 500 chars):", compsText.substring(0, 500));
+
+      // Parse JSON responses
+      let strategyResponseData, compsResponseData;
+      
+      try {
+        strategyResponseData = JSON.parse(strategyText);
+        console.log("✅ [NEGOTIATION] Strategy JSON parsed successfully:", strategyResponseData);
+      } catch (parseError) {
+        console.error("❌ [NEGOTIATION] Failed to parse strategy response as JSON:", parseError);
+        console.error("❌ [NEGOTIATION] Raw strategy response:", strategyText);
+        throw new Error(`Strategy API returned invalid JSON. Status: ${strategyRes.status}. Response: ${strategyText.substring(0, 200)}...`);
+      }
+
+      try {
+        compsResponseData = JSON.parse(compsText);
+        console.log("✅ [NEGOTIATION] Comps JSON parsed successfully:", compsResponseData);
+      } catch (parseError) {
+        console.error("❌ [NEGOTIATION] Failed to parse comps response as JSON:", parseError);
+        console.error("❌ [NEGOTIATION] Raw comps response:", compsText);
+        // Don't throw for comps parsing error, just log it
+        compsResponseData = { error: "Failed to parse comps response" };
+      }
+
+      // Check strategy response
+      if (!strategyRes.ok) {
+        console.error("❌ [NEGOTIATION] Strategy API error:", strategyRes.status, strategyResponseData);
+        throw new Error(
+          strategyResponseData.error ||
+            `Strategy API error! status: ${strategyRes.status}`
+        );
+      }
+
+      if (!strategyResponseData.success) {
+        console.error("❌ [NEGOTIATION] Strategy generation failed:", strategyResponseData);
+        throw new Error(
+          strategyResponseData.error || "Failed to generate strategy"
+        );
+      }
+
+      // Check comps response (log but don't fail if comps fails)
+      if (!compsRes.ok) {
+        console.warn("⚠️ [NEGOTIATION] Property comps API failed:", compsRes.status, compsResponseData);
+      }
+
+      // Parse the strategy data from the AI response
+      const parsedStrategyData = strategyResponseData.strategy;
+      console.log("🎯 [NEGOTIATION] Parsed strategy data:", parsedStrategyData);
+
+      // Store the complete strategy data from the AI response
+      // This will display ALL fields returned by the AI
+      setStrategyData(parsedStrategyData || {});
+
+      // Store the property comps data
+      setCompsData(compsResponseData || {});
+
+      // Save strategy data, comps data, and selected home to localStorage
+      localStorage.setItem(
+        "negotiationStrategy",
+        JSON.stringify(parsedStrategyData || {})
+      );
+      localStorage.setItem(
+        "negotiationComps",
+        JSON.stringify(compsResponseData || {})
+      );
+      localStorage.setItem(
+        "negotiationSelectedHome",
+        JSON.stringify(selectedHome)
       );
 
-      if (json.success && json.draft) {
-        const newDraft = {
-          ...json.draft,
-          created_at: new Date(json.draft.created_at),
-          updated_at: new Date(json.draft.updated_at),
-        };
-        setOfferDrafts(prev => [...prev, newDraft]);
-        return newDraft;
-      } else {
-        throw new Error(json.error || "Failed to save offer draft");
-      }
-    } catch (e: any) {
-      if (!isAbortError(e)) {
-        console.error("Failed to save offer draft", e);
-        throw e;
-      }
-      throw e;
-    }
-  }, []);
-
-  const performUpdateOfferDraft = useCallback(async (id: string, updates: Partial<OfferDraft>, signal?: AbortSignal): Promise<OfferDraft> => {
-    const token = getAuthToken();
-    if (!token) throw new Error("No authentication token");
-
-    try {
-      const json = await fetchJson<{ success: boolean; draft?: OfferDraft; error?: string }>(
-        `${BASE_URL}/api/v1/negotiation/drafts/${id}`,
-        {
-          method: "PUT",
-          mode: "cors",
-          headers: createAuthHeaders(token),
-          credentials: "include",
-          body: JSON.stringify(updates),
-          signal
-        }
+      console.log("💾 [NEGOTIATION] Data saved to localStorage successfully");
+    } catch (err) {
+      console.error("❌ [NEGOTIATION] Error generating negotiation strategy:", err);
+      console.error("❌ [NEGOTIATION] Error stack:", err instanceof Error ? err.stack : 'No stack trace');
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to generate strategy. Please try again."
       );
-
-      if (json.success && json.draft) {
-        const updatedDraft = {
-          ...json.draft,
-          created_at: new Date(json.draft.created_at),
-          updated_at: new Date(json.draft.updated_at),
-        };
-        setOfferDrafts(prev => prev.map(draft => 
-          draft.id === id ? updatedDraft : draft
-        ));
-        if (currentOffer?.id === id) {
-          setCurrentOffer(updatedDraft);
-        }
-        return updatedDraft;
-      } else {
-        throw new Error(json.error || "Failed to update offer draft");
-      }
-    } catch (e: any) {
-      if (!isAbortError(e)) {
-        console.error("Failed to update offer draft", e);
-        throw e;
-      }
-      throw e;
-    }
-  }, [currentOffer]);
-
-  const performDeleteOfferDraft = useCallback(async (id: string, signal?: AbortSignal) => {
-    const token = getAuthToken();
-    if (!token) return;
-
-    try {
-      const json = await fetchJson<{ success: boolean; error?: string }>(
-        `${BASE_URL}/api/v1/negotiation/drafts/${id}`,
-        {
-          method: "DELETE",
-          mode: "cors",
-          headers: createAuthHeaders(token),
-          credentials: "include",
-          signal
-        }
-      );
-
-      if (json.success) {
-        setOfferDrafts(prev => prev.filter(draft => draft.id !== id));
-        if (currentOffer?.id === id) {
-          setCurrentOffer(null);
-        }
-      } else {
-        throw new Error(json.error || "Failed to delete offer draft");
-      }
-    } catch (e: any) {
-      if (!isAbortError(e)) {
-        console.error("Failed to delete offer draft", e);
-        throw e;
-      }
-    }
-  }, [currentOffer]);
-
-  const performSubmitOffer = useCallback(async (offerId: string, signal?: AbortSignal) => {
-    const token = getAuthToken();
-    if (!token) return;
-
-    try {
-      const json = await fetchJson<{ success: boolean; error?: string }>(
-        `${BASE_URL}/api/v1/negotiation/submit/${offerId}`,
-        {
-          method: "POST",
-          mode: "cors",
-          headers: createAuthHeaders(token),
-          credentials: "include",
-          signal
-        }
-      );
-
-      if (json.success) {
-        // Update the draft status to submitted
-        setOfferDrafts(prev => prev.map(draft => 
-          draft.id === offerId 
-            ? { ...draft, status: 'submitted' as const, updated_at: new Date() }
-            : draft
-        ));
-        if (currentOffer?.id === offerId) {
-          setCurrentOffer(prev => prev ? { ...prev, status: 'submitted', updated_at: new Date() } : null);
-        }
-        // Refresh offer history to get the new submission
-        refreshOfferHistory();
-      } else {
-        throw new Error(json.error || "Failed to submit offer");
-      }
-    } catch (e: any) {
-      if (!isAbortError(e)) {
-        console.error("Failed to submit offer", e);
-        throw e;
-      }
-    }
-  }, [currentOffer]);
-
-  const performGenerateStrategy = useCallback(async (propertyAddress: string, strategyType: Strategy['strategy_type'], signal?: AbortSignal): Promise<Strategy> => {
-    const token = getAuthToken();
-    if (!token) throw new Error("No authentication token");
-
-    setStrategiesLoading(true);
-    setStrategiesError(null);
-
-    try {
-      const json = await fetchJson<{ success: boolean; strategy?: Strategy; error?: string }>(
-        `${BASE_URL}/api/v1/negotiation/generate-strategy`,
-        {
-          method: "POST",
-          mode: "cors",
-          headers: createAuthHeaders(token),
-          credentials: "include",
-          body: JSON.stringify({ property_address: propertyAddress, strategy_type: strategyType }),
-          signal
-        }
-      );
-
-      if (json.success && json.strategy) {
-        const newStrategy = {
-          ...json.strategy,
-          created_at: new Date(json.strategy.created_at),
-        };
-        setNegotiationStrategies(prev => [...prev, newStrategy]);
-        return newStrategy;
-      } else {
-        throw new Error(json.error || "Failed to generate strategy");
-      }
-    } catch (e: any) {
-      if (!isAbortError(e)) {
-        console.error("Failed to generate strategy", e);
-        setStrategiesError(e?.message ?? "Failed to generate strategy");
-        throw e;
-      }
-      throw e;
     } finally {
-      setStrategiesLoading(false);
+      setIsLoading(false);
+      console.log("🏁 [NEGOTIATION] Strategy generation process completed");
+    }
+  };
+
+  // Handle JSON download
+  const handleDownloadJson = useCallback(() => {
+    if (!strategyData) return;
+
+    const dataStr = JSON.stringify(strategyData, null, 2);
+    const dataBlob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(dataBlob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `negotiation-strategy-${
+      selectedHome?.address?.replace(/[^a-zA-Z0-9]/g, "-") || "strategy"
+    }.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }, [strategyData, selectedHome]);
+
+  // Handle JSON sharing
+  const handleShareJson = useCallback(async () => {
+    if (!strategyData) return;
+
+    const dataStr = JSON.stringify(strategyData, null, 2);
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "Negotiation Strategy",
+          text: `Negotiation strategy for ${
+            selectedHome?.address || "property"
+          }`,
+          files: [
+            new File([dataStr], "negotiation-strategy.json", {
+              type: "application/json",
+            }),
+          ],
+        });
+      } catch (err) {
+        // Fallback to clipboard
+        handleCopyToClipboard(dataStr);
+      }
+    } else {
+      // Fallback for browsers without Web Share API
+      handleCopyToClipboard(dataStr);
+    }
+  }, [strategyData, selectedHome]);
+
+  // Fallback function to copy JSON to clipboard
+  const handleCopyToClipboard = useCallback(async (dataStr: string) => {
+    try {
+      await navigator.clipboard.writeText(dataStr);
+      alert("Strategy JSON copied to clipboard!");
+    } catch (err) {
+      console.error("Failed to copy to clipboard:", err);
+      alert("Failed to share. Please try downloading instead.");
     }
   }, []);
-
-  /* =========================
-     Public functions
-     ========================= */
-
-  const saveOfferDraft = useCallback((draft: Partial<OfferDraft>) => 
-    withAbort((s) => performSaveOfferDraft(draft, s)), 
-    [withAbort, performSaveOfferDraft]
-  );
-
-  const updateOfferDraft = useCallback((id: string, updates: Partial<OfferDraft>) => 
-    withAbort((s) => performUpdateOfferDraft(id, updates, s)), 
-    [withAbort, performUpdateOfferDraft]
-  );
-
-  const deleteOfferDraft = useCallback((id: string) => 
-    withAbort((s) => performDeleteOfferDraft(id, s)), 
-    [withAbort, performDeleteOfferDraft]
-  );
-
-  const submitOffer = useCallback((offerId: string) => 
-    withAbort((s) => performSubmitOffer(offerId, s)), 
-    [withAbort, performSubmitOffer]
-  );
-
-  const generateStrategy = useCallback((propertyAddress: string, strategyType: Strategy['strategy_type']) => 
-    withAbort((s) => performGenerateStrategy(propertyAddress, strategyType, s)), 
-    [withAbort, performGenerateStrategy]
-  );
-
-  const refreshOfferDrafts = useCallback(() => 
-    withAbort((s) => fetchOfferDrafts(s)), 
-    [withAbort, fetchOfferDrafts]
-  );
-
-  const refreshStrategies = useCallback(() => 
-    withAbort((s) => fetchStrategies(s)), 
-    [withAbort, fetchStrategies]
-  );
-
-  const refreshOfferHistory = useCallback(() => 
-    withAbort((s) => fetchOfferHistory(s)), 
-    [withAbort, fetchOfferHistory]
-  );
 
   /* =========================
      Effects
      ========================= */
 
-  // Gate initial load based on auth readiness and relevant routes
+  // Load saved data from localStorage on component mount
   useEffect(() => {
-    const enabled = authReady && !!user?.id && (
-      routeStartsWith('/negotiation') ||
-      routeStartsWith('/offers')
-    );
-    
-    if (enabled) {
-      refreshStrategies();
-      refreshOfferDrafts();
-      refreshOfferHistory();
-    }
-  }, [authReady, user?.id, refreshStrategies, refreshOfferDrafts, refreshOfferHistory]);
+    const savedStrategy = localStorage.getItem("negotiationStrategy");
+    const savedHome = localStorage.getItem("negotiationSelectedHome");
+    const savedComps = localStorage.getItem("negotiationComps");
 
-  // Cross-tab auth changes
-  useEffect(() => {
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === "id_token") {
-        if (e.newValue) {
-          refreshOfferDrafts();
-          refreshStrategies();
-          refreshOfferHistory();
-        } else {
-          // Clear everything
-          setOfferDrafts([]);
-          setNegotiationStrategies([]);
-          setOfferHistory([]);
-          setCurrentOffer(null);
-          setDraftsError(null);
-          setStrategiesError(null);
-          setHistoryError(null);
-          abortAll();
-        }
+    if (savedStrategy) {
+      try {
+        const parsedStrategy = JSON.parse(savedStrategy);
+        setStrategyData(parsedStrategy);
+      } catch (error) {
+        console.error(
+          "❌ [NEGOTIATION] Failed to parse saved strategy data:",
+          error
+        );
+        localStorage.removeItem("negotiationStrategy");
       }
-    };
+    }
+    if (savedHome) {
+      try {
+        const parsedHome = JSON.parse(savedHome);
+        setSelectedHome(parsedHome);
+      } catch (error) {
+        console.error(
+          "❌ [NEGOTIATION] Failed to parse saved home data:",
+          error
+        );
+        localStorage.removeItem("negotiationSelectedHome");
+      }
+    }
 
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, [refreshOfferDrafts, refreshStrategies, refreshOfferHistory, abortAll]);
+    if (savedComps) {
+      try {
+        const parsedComps = JSON.parse(savedComps);
+        setCompsData(parsedComps);
+      } catch (error) {
+        console.error(
+          "❌ [NEGOTIATION] Failed to parse saved comps data:",
+          error
+        );
+        localStorage.removeItem("negotiationComps");
+      }
+    }
+  }, []);
+
+
 
   // Cleanup on unmount
   useEffect(() => () => abortAll(), [abortAll]);
@@ -501,32 +340,18 @@ export function NegotiationProvider({ children }: NegotiationProviderProps) {
      ========================= */
 
   const value = useMemo<NegotiationContextType>(() => ({
-    offerDrafts,
-    negotiationStrategies,
-    offerHistory,
-    currentOffer,
-    draftsLoading,
-    strategiesLoading,
-    historyLoading,
-    draftsError,
-    strategiesError,
-    historyError,
-    saveOfferDraft,
-    updateOfferDraft,
-    deleteOfferDraft,
-    submitOffer,
-    generateStrategy,
-    refreshOfferDrafts,
-    refreshStrategies,
-    refreshOfferHistory,
-    setCurrentOffer,
+    selectedHome,
+    strategyData,
+    compsData,
+    isLoading,
+    error,
+    handleHomeSelection,
+    handleGenerate,
+    handleDownloadJson,
+    handleShareJson,
   }), [
-    offerDrafts, negotiationStrategies, offerHistory, currentOffer,
-    draftsLoading, strategiesLoading, historyLoading,
-    draftsError, strategiesError, historyError,
-    saveOfferDraft, updateOfferDraft, deleteOfferDraft,
-    submitOffer, generateStrategy, refreshOfferDrafts,
-    refreshStrategies, refreshOfferHistory,
+    selectedHome, strategyData, compsData, isLoading, error,
+    handleHomeSelection, handleGenerate, handleDownloadJson, handleShareJson,
   ]);
 
   return <NegotiationContext.Provider value={value}>{children}</NegotiationContext.Provider>;

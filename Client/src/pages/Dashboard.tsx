@@ -5,11 +5,14 @@ import ReportCard from "../components/cards/ReportCard";
 import { useReports } from "../context";
 import { Report } from "../context/utils";
 import HomeCard, { HomeDescription } from "../components/cards/HomeCard";
-import CircularButton from "../components/ui/base/CircularButton";
+import NavigationButton from "../components/ui/base/NavigationButton";
 import { useDocumentActions } from "../hooks/useDocumentActions";
 import PdfModal from "../components/modals/PdfModal";
 import { CardCarousel } from "../components/cards/base";
 import TimelineChecklist from "../components/ui/dashboard/DashboardButtonHeader";
+import ErrorToast from "../components/feedback/ErrorToast";
+import SuccessToast from "../components/feedback/SuccessToast";
+import DeleteModal from "../components/modals/DeleteModal";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -20,6 +23,17 @@ export default function Dashboard() {
 
   // Use preloaded report data from context
   const { reports, loading: reportsLoading, refreshReports } = useReports();
+
+  // Delete modal and feedback states (matching PastReports)
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [reportToDelete, setReportToDelete] = useState<{
+    id: string;
+    s3Key: string | null | undefined;
+  } | null>(null);
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
   // Use centralized document actions
   const {
@@ -63,11 +77,11 @@ export default function Dashboard() {
 
   // Navigation handlers
   const handleSavedHomesClick = () => {
-    navigate("/dashboard/search");
+    navigate("/saved");
   };
 
   const handleDocumentsClick = () => {
-    navigate("/dashboard/reports");
+    navigate("/reports");
   };
 
   useEffect(() => {
@@ -115,20 +129,313 @@ export default function Dashboard() {
   // Share individual report using centralized function
   const handleShareReport = useCallback(
     async (report: Report) => {
-      await handleShareDocument(report.address);
-      // Handle success/error feedback here if needed
+      const result = await handleShareDocument(report.address);
+
+      if (result.success) {
+        setSuccessMessage(result.message);
+        setShowSuccess(true);
+      } else {
+        setErrorMessage(result.message);
+        setShowError(true);
+      }
     },
     [handleShareDocument]
   );
 
-  // Handle delete - redirect to PastReports for full functionality
-  const handleDeleteReport = useCallback(
-    async (_reportId: string, _s3Key: string | null | undefined) => {
-      // Navigate to PastReports where delete functionality is fully implemented
-      navigate("/reports");
+  const openDeleteModal = (
+    reportId: string,
+    s3Key: string | null | undefined
+  ) => {
+    setReportToDelete({ id: reportId, s3Key });
+    setDeleteModalOpen(true);
+  };
+
+  const closeDeleteModal = () => {
+    setDeleteModalOpen(false);
+    setReportToDelete(null);
+  };
+
+  const handleDeleteReport = async (
+    reportId: string,
+    s3Key: string | null | undefined
+  ) => {
+    if (!reportId) {
+      console.error("[DELETE] Error: No report ID provided");
+      return;
+    }
+
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+    try {
+      // Prepare the S3 key
+      let processedS3Key = s3Key;
+      if (s3Key) {
+        if (s3Key.startsWith("http")) {
+          try {
+            const url = new URL(s3Key);
+            processedS3Key = url.pathname.substring(1); // Remove leading slash
+          } catch (e) {
+            console.warn(`[DELETE] Failed to parse URL ${s3Key}:`, e);
+          }
+        } else {
+          processedS3Key = s3Key;
+        }
+      } else {
+        console.warn(
+          "[DELETE] No S3 key provided, will only delete from in-memory storage"
+        );
+      }
+
+      const baseUrl = API_BASE_URL || "";
+      const endpoint = `${baseUrl}/api/v1/report/${reportId}`;
+
+      const res = await fetch(endpoint, {
+        method: "DELETE",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ s3Key: processedS3Key }),
+      });
+
+      const responseData = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(
+          responseData.error || `HTTP error! status: ${res.status}`
+        );
+      }
+
+      closeDeleteModal();
+      setSuccessMessage("Report deleted successfully");
+      setShowSuccess(true);
+
+      // Refresh the reports list
+      await refreshReports();
+    } catch (error) {
+      console.error("[DELETE] Error deleting report:", {
+        error,
+        reportId,
+        s3Key,
+        stack: error instanceof Error ? error.stack : "No stack trace",
+      });
+
+      setErrorMessage(
+        error instanceof Error ? error.message : "Failed to delete report"
+      );
+      setShowError(true);
+    }
+  };
+
+  // Polling functionality (matching PastReports)
+  const pollForReportCompletion = useCallback(
+    async (documentId: string) => {
+      const pollInterval = 1000; // 1 second
+      const maxAttempts = 120; // 10 minutes
+      let attempts = 0;
+      const startTime = Date.now();
+      let consecutiveErrors = 0;
+      const maxConsecutiveErrors = 5;
+
+      const idToken = localStorage.getItem("id_token");
+      if (!idToken) {
+        console.error(`[Dashboard] ❌ No auth token found`);
+        return;
+      }
+
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+      let lastReportSnapshot: string | null = null;
+
+      // Step 1: Initial check
+      try {
+        const initialResponse = await fetch(
+          `${apiBaseUrl}/api/v1/report/poll/${documentId}`,
+          {
+            method: "GET",
+            mode: "cors",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+              Authorization: `Bearer ${idToken}`,
+            },
+            credentials: "include",
+          }
+        );
+
+        if (!initialResponse.ok) {
+          console.error(
+            `[Dashboard] ❌ Initial poll failed with status: ${initialResponse.status}`
+          );
+          return;
+        }
+
+        const initialData = await initialResponse.json();
+
+        if (initialData.success && initialData.report) {
+          lastReportSnapshot = JSON.stringify(initialData.report);
+
+          if (
+            initialData.report.status === "completed" ||
+            initialData.report.status === "error"
+          ) {
+            await refreshReports();
+            window.dispatchEvent(new CustomEvent("reportGenerated"));
+            return;
+          }
+        } else if (initialData.success && !initialData.report) {
+          lastReportSnapshot = null;
+        } else {
+          console.error(
+            `[Dashboard] ❌ Initial poll failed:`,
+            initialData.error
+          );
+          return;
+        }
+      } catch (err) {
+        console.error(`[Dashboard] ❌ Error during initial poll:`, err);
+        return;
+      }
+
+      // Step 2: Polling loop
+      const pollForCompletion = async (): Promise<void> => {
+        attempts++;
+        const elapsedTime = Math.round((Date.now() - startTime) / 1000);
+
+        try {
+          const response = await fetch(
+            `${apiBaseUrl}/api/v1/report/poll/${documentId}`,
+            {
+              method: "GET",
+              mode: "cors",
+              headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+                Authorization: `Bearer ${idToken}`,
+              },
+              credentials: "include",
+            }
+          );
+
+          if (!response.ok) {
+            consecutiveErrors++;
+            console.error(
+              `[Dashboard] ❌ Poll error: ${response.status} ${response.statusText} (${consecutiveErrors}/${maxConsecutiveErrors})`
+            );
+
+            if (consecutiveErrors >= maxConsecutiveErrors) {
+              console.error(
+                `[Dashboard] 🚫 Too many consecutive errors (${consecutiveErrors}), aborting poll`
+              );
+              return;
+            }
+
+            if (attempts < maxAttempts) {
+              setTimeout(pollForCompletion, pollInterval);
+            }
+            return;
+          }
+
+          const data = await response.json();
+          consecutiveErrors = 0; // Reset error counter on success
+
+          if (!data.success) {
+            console.error(`[Dashboard] ❌ Poll API error:`, data.error);
+            if (attempts < maxAttempts) {
+              setTimeout(pollForCompletion, pollInterval);
+            }
+            return;
+          }
+
+          // Handle case where report is not found (null)
+          if (!data.report) {
+            if (lastReportSnapshot !== null) {
+              await refreshReports();
+              window.dispatchEvent(new CustomEvent("reportGenerated"));
+              return;
+            }
+
+            if (attempts < maxAttempts) {
+              setTimeout(pollForCompletion, pollInterval);
+            } else {
+              console.warn(
+                `[Dashboard] ⚠️ TIMEOUT - Report never appeared after ${
+                  elapsedTime / 60
+                } mins`
+              );
+            }
+            return;
+          }
+
+          // Compare report snapshots for changes
+          const currentReportSnapshot = JSON.stringify(data.report);
+          const hasChanged = currentReportSnapshot !== lastReportSnapshot;
+
+          // Check for completion or significant changes
+          if (
+            data.report.status === "completed" ||
+            data.report.status === "error" ||
+            hasChanged
+          ) {
+            await refreshReports();
+            window.dispatchEvent(new CustomEvent("reportGenerated"));
+            return;
+          }
+
+          // Update snapshot for next comparison
+          lastReportSnapshot = currentReportSnapshot;
+
+          if (attempts < maxAttempts) {
+            setTimeout(pollForCompletion, pollInterval);
+          } else {
+            console.warn(
+              `[Dashboard] ⚠️ TIMEOUT after ${
+                elapsedTime / 60
+              } mins — Report still ${data.report.status}`
+            );
+          }
+        } catch (error) {
+          consecutiveErrors++;
+          console.error(
+            `[Dashboard] ❌ Polling exception (${consecutiveErrors}/${maxConsecutiveErrors}):`,
+            error
+          );
+
+          if (consecutiveErrors >= maxConsecutiveErrors) {
+            console.error(
+              `[Dashboard] 🚫 Too many consecutive errors, aborting poll`
+            );
+            return;
+          }
+
+          if (attempts < maxAttempts) {
+            setTimeout(pollForCompletion, pollInterval);
+          }
+        }
+      };
+      setTimeout(pollForCompletion, pollInterval);
     },
-    [navigate]
+    [refreshReports]
   );
+
+  // Event listeners and global function exposure (matching PastReports)
+  useEffect(() => {
+    // Event listener setup - data is already preloaded by context
+    const handleReportGenerated = () => {
+      refreshReports();
+    };
+
+    window.addEventListener("reportGenerated", handleReportGenerated);
+
+    // Expose polling function globally for GenerateReportPage to call
+    (window as any).pollForReportCompletion = pollForReportCompletion;
+
+    // Cleanup on unmount
+    return () => {
+      window.removeEventListener("reportGenerated", handleReportGenerated);
+      // Clean up global function references
+      delete (window as any).pollForReportCompletion;
+    };
+  }, [pollForReportCompletion]);
 
   return (
     <div className="-mt-8">
@@ -137,6 +444,28 @@ export default function Dashboard() {
           currentPdf={currentPdf}
           currentReportAddress={currentDocumentName}
           onClose={closePdfModal}
+        />
+      )}
+      <DeleteModal
+        isOpen={deleteModalOpen}
+        onClose={closeDeleteModal}
+        onConfirm={() =>
+          reportToDelete &&
+          handleDeleteReport(reportToDelete.id, reportToDelete.s3Key)
+        }
+      />
+      {showError && (
+        <ErrorToast
+          message={errorMessage}
+          onClose={() => setShowError(false)}
+          duration={5000}
+        />
+      )}
+      {showSuccess && (
+        <SuccessToast
+          message={successMessage}
+          onClose={() => setShowSuccess(false)}
+          duration={3000}
         />
       )}
       {/* Timeline Progress - Full Width (hidden on mobile) */}
@@ -149,12 +478,13 @@ export default function Dashboard() {
         <CardCarousel
           items={favoriteHomes}
           embeddedButton={
-            <CircularButton
+            <NavigationButton
               onClick={handleSavedHomesClick}
-              title="Click to view all saved homes"
+              size="md"
+              arrowType="chevron"
             >
               Your Saved Homes
-            </CircularButton>
+            </NavigationButton>
           }
           loading={favLoading}
           error={favError}
@@ -179,12 +509,13 @@ export default function Dashboard() {
         <CardCarousel
           items={reports}
           embeddedButton={
-            <CircularButton
+            <NavigationButton
               onClick={handleDocumentsClick}
-              title="Click to view all reports"
+              size="md"
+              arrowType="chevron"
             >
               Your Reports
-            </CircularButton>
+            </NavigationButton>
           }
           loading={reportsLoading}
           error={null}
@@ -200,7 +531,7 @@ export default function Dashboard() {
                 onView={handleViewDocument}
                 onDownload={handleDownloadDocument}
                 onShare={() => handleShareReport(report)}
-                onDelete={handleDeleteReport}
+                onDelete={openDeleteModal}
               />
             </div>
           )}

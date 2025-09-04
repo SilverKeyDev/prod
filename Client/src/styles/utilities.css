@@ -245,7 +245,7 @@
 
   /* Standardized card widths - removed fixed widths to use centralized system */
   .card-width-standard {
-    @apply max-w-sm;
+    @apply w-full max-w-sm mx-auto;
   }
 
   .card-width-wide {

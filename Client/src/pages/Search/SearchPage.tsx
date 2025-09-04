@@ -1,5 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Bookmark, MapPin, ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from "lucide-react";
+import {
+  Bookmark,
+  MapPin,
+  ChevronLeft,
+  ChevronRight,
+  ChevronUp,
+  ChevronDown,
+} from "lucide-react";
 import {
   CardImageContainer,
   CardPropertyDetails,
@@ -8,15 +15,23 @@ import {
   CardCarousel,
 } from "../../components/cards/base";
 import { PropertyCard } from "../../components/cards";
+import { renderMapPropertyCard } from "../../components/cards/MapPropertyCard";
 import { useNavigate } from "react-router-dom";
 import { favoriteHomesApi } from "../../lib/api";
 import PropertyDetailsModal from "../../components/modals/PropertyDetailsModal";
 import { searchZillowByPolygon, LatLng } from "../../lib/searchApi";
 import { usePropertyDetails } from "../../hooks/usePropertyDetails";
-import KeyTurnLoader from "../../components/ui/base/KeyTurnLoader";
 import { checkAuthAndRedirect, getAuthToken } from "../../lib/authUtils";
 import { useGoogleMaps } from "../../context/GoogleMapsContext";
 import SearchMobileHeader from "../../components/ui/search/SearchMobileHeader";
+import SearchHeader from "../../components/ui/search/SearchHeader";
+import { useMapZoomController } from "../../components/ui/search/map/MapZoomController";
+import {
+  injectBounceAnimationCSS,
+  setupMarkerClickWithBounce,
+} from "../../components/ui/search/map/markerBounceUtils";
+import { getScoreBasedPinColor } from "../../components/ui/search/map/markerUtils";
+import KeyTurnLoader from "../../components/ui/base/KeyTurnLoader";
 
 interface SearchResult {
   id: string;
@@ -205,7 +220,9 @@ interface SearchPageProps {
   >;
 }
 
-export default function SearchPage({ setMobileHeaderActions }: SearchPageProps) {
+export default function SearchPage({
+  setMobileHeaderActions,
+}: SearchPageProps) {
   const navigate = useNavigate();
   const { isLoaded: isGoogleMapsLoaded, createMap } = useGoogleMaps();
   // selectedLocation state removed - no longer needed without map click search
@@ -237,7 +254,7 @@ export default function SearchPage({ setMobileHeaderActions }: SearchPageProps) 
 
   // Mobile header button handlers
   const handlePreferences = useCallback(() => {
-    navigate('/dashboard/personalization');
+    navigate("/dashboard/personalization");
   }, [navigate]);
 
   const handleSearch = useCallback(() => {
@@ -344,11 +361,11 @@ export default function SearchPage({ setMobileHeaderActions }: SearchPageProps) 
     handleResize();
 
     // Add event listener
-    window.addEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
 
     // Cleanup
     return () => {
-      window.removeEventListener('resize', handleResize);
+      window.removeEventListener("resize", handleResize);
     };
   }, [setMobileHeaderActions, handlePreferences, handleSearch, isSearching]);
 
@@ -367,13 +384,7 @@ export default function SearchPage({ setMobileHeaderActions }: SearchPageProps) 
       delete (window as any).openPropertyModal;
     };
   }, [searchResults, savedHomes]);
-  const [activeTab, setActiveTab] = useState<"results" | "saved">(() => {
-    // Load last active tab from localStorage, default to "results"
-    const savedTab = localStorage.getItem("searchPageActiveTab");
-    return savedTab === "results" || savedTab === "saved"
-      ? savedTab
-      : "results";
-  });
+  const [activeTab, setActiveTab] = useState<"results" | "saved">("results");
 
   // Reset to first page when switching tabs and save to localStorage
   const handleTabChange = (tab: "results" | "saved") => {
@@ -396,6 +407,11 @@ export default function SearchPage({ setMobileHeaderActions }: SearchPageProps) 
   const calculatePropertyScore = (property: SearchResult) => {
     return property._score || 0; // Backend ML score (0-100 integer)
   };
+
+  // Initialize bounce animation CSS on component mount
+  useEffect(() => {
+    injectBounceAnimationCSS();
+  }, []);
 
   // Save search results to localStorage with preferences version
   const saveSearchResultsToLocalStorage = async (results: SearchResult[]) => {
@@ -461,38 +477,6 @@ export default function SearchPage({ setMobileHeaderActions }: SearchPageProps) 
       );
     }
     return null;
-  };
-
-  // Get pin color based on property score (gradient from very dark faded green to very dark faded red)
-  const getScoreBasedPinColor = (
-    score: number
-  ): { fillColor: string; strokeColor: string } => {
-    const normalizedScore = Math.max(0, Math.min(100, score)) / 100;
-
-    const highColor = { r: 123, g: 158, b: 124 }; // #7B9E7C
-    const midColor = { r: 240, g: 233, b: 210 }; // #F0E9D2
-    const lowColor = { r: 216, g: 140, b: 140 }; // #D88C8C
-
-    let r: number, g: number, b: number;
-
-    if (normalizedScore >= 0.5) {
-      const t = (normalizedScore - 0.5) * 2;
-      r = Math.round(midColor.r + (highColor.r - midColor.r) * t);
-      g = Math.round(midColor.g + (highColor.g - midColor.g) * t);
-      b = Math.round(midColor.b + (highColor.b - midColor.b) * t);
-    } else {
-      const t = normalizedScore * 2;
-      r = Math.round(lowColor.r + (midColor.r - lowColor.r) * t);
-      g = Math.round(lowColor.g + (midColor.g - lowColor.g) * t);
-      b = Math.round(lowColor.b + (midColor.b - lowColor.b) * t);
-    }
-
-    const fillColor = `rgb(${r}, ${g}, ${b})`;
-    const strokeColor = `rgb(${Math.round(r * 0.75)}, ${Math.round(
-      g * 0.75
-    )}, ${Math.round(b * 0.75)})`;
-
-    return { fillColor, strokeColor };
   };
 
   // Helper: which container is visible?
@@ -586,7 +570,13 @@ export default function SearchPage({ setMobileHeaderActions }: SearchPageProps) 
 
   // Handle property details search using the hook
   const handleViewPropertyDetails = async (property: SearchResult) => {
-    await fetchPropertyDetails(property);
+    // Map SearchResult to Property format for the hook
+    const propertyForDetails = {
+      ...property,
+      latitude: property.lat,
+      longitude: property.lng,
+    };
+    await fetchPropertyDetails(propertyForDetails as any);
   };
 
   // Create window function for map modal "View Details" buttons
@@ -614,21 +604,30 @@ export default function SearchPage({ setMobileHeaderActions }: SearchPageProps) 
     };
   }, [searchResults, savedHomes, activeTab, handleViewPropertyDetails]);
 
+  // Initialize MapZoomController
+  const mapZoomController = useMapZoomController({
+    googleMapRef,
+    activeTab,
+    searchResults: searchResults as any,
+    savedHomes: savedHomes as any,
+    currentPage,
+  });
+
   // Auto-zoom to selected property when it changes
   useEffect(() => {
     if (selectedProperty && googleMapRef.current) {
+      // Use MapZoomController for consistent zoom behavior
       const map = googleMapRef.current;
       const propertyPosition = new google.maps.LatLng(
         selectedProperty.lat,
         selectedProperty.lng
       );
 
-      // Center the map on the selected property
+      // Center the map on the selected property with slight offset
       map.setCenter(propertyPosition);
 
-      // Calculate zoom level to make property area take up 0.35 of map height
-      // This is approximately zoom level 17-18 for residential properties
-      const targetZoom = 17;
+      // Use a higher zoom level for property details view
+      const targetZoom = 13;
       map.setZoom(targetZoom);
 
       console.log(
@@ -637,12 +636,15 @@ export default function SearchPage({ setMobileHeaderActions }: SearchPageProps) 
     }
   }, [selectedProperty]);
 
-  // Update markers when activeTab changes or when hasSearched/showPropertyModals changes
+  // Update markers when activeTab, currentPage changes or when hasSearched/showPropertyModals changes
   useEffect(() => {
     if (googleMapRef.current && hasSearched && showPropertyModals) {
-      // Show only properties from the currently selected tab
-      const currentData = activeTab === "results" ? searchResults : savedHomes;
-      updateMapMarkers(currentData);
+      // Show only properties from the currently selected tab and current page
+      const allData = activeTab === "results" ? searchResults : savedHomes;
+      const startIndex = currentPage * PROPERTIES_PER_PAGE;
+      const endIndex = startIndex + PROPERTIES_PER_PAGE;
+      const currentPageData = allData.slice(startIndex, endIndex);
+      updateMapMarkers(currentPageData);
     } else if (googleMapRef.current && (!hasSearched || !showPropertyModals)) {
       // Clear all markers when user hasn't searched yet or property modals should not be shown
       markersRef.current.forEach((marker) => {
@@ -653,7 +655,14 @@ export default function SearchPage({ setMobileHeaderActions }: SearchPageProps) 
       });
       markersRef.current = [];
     }
-  }, [activeTab, hasSearched, showPropertyModals, searchResults, savedHomes]);
+  }, [
+    activeTab,
+    currentPage,
+    hasSearched,
+    showPropertyModals,
+    searchResults,
+    savedHomes,
+  ]);
 
   // Fetch isochrone polygon from backend for map population only (no property search)
   const fetchIsochroneForMapOnly = async () => {
@@ -1016,10 +1025,8 @@ export default function SearchPage({ setMobileHeaderActions }: SearchPageProps) 
       // Add some padding to the bounds
       setTimeout(() => {
         if (googleMapRef.current) {
-          const currentZoom = googleMapRef.current.getZoom();
-          if (currentZoom && currentZoom > 15) {
-            googleMapRef.current.setZoom(15); // Max zoom for better visibility
-          }
+          // Use MapZoomController for consistent zoom behavior
+          focusOnCurrentProperty();
         }
       }, 100);
     } catch (error) {
@@ -1187,6 +1194,18 @@ export default function SearchPage({ setMobileHeaderActions }: SearchPageProps) 
         content: markerElement,
       });
 
+      // Add bounce animation click handler for important location markers
+      setupMarkerClickWithBounce(marker, () => {
+        console.log(`🎯 Important location clicked: ${name} at ${address}`);
+        // Optional: Add custom behavior for important location clicks
+        // For example, you could center the map on this location or show details
+        if (googleMapRef.current) {
+          googleMapRef.current.panTo(position);
+          // Use MapZoomController for consistent zoom behavior
+          resetToDefaultZoom();
+        }
+      });
+
       const commuteTime =
         loc.commute_tolerance ?? isochroneData.commute_tolerance ?? 30;
       const bubbleHTML = `
@@ -1340,42 +1359,6 @@ export default function SearchPage({ setMobileHeaderActions }: SearchPageProps) 
     loadSavedHomes();
   }, []); // Run once on mount
 
-  // Adaptive zoom function to fit all housing markers
-  const fitMapToMarkers = (properties: SearchResult[]) => {
-    if (!googleMapRef.current || properties.length === 0) {
-      return;
-    }
-
-    const bounds = new google.maps.LatLngBounds();
-
-    // Add all property locations to bounds
-    properties.forEach((property) => {
-      bounds.extend(new google.maps.LatLng(property.lat, property.lng));
-    });
-
-    googleMapRef.current.fitBounds(bounds, {
-      top: 50,
-      right: 50,
-      bottom: 50,
-      left: 320, // Extra padding for sidebar
-    });
-    // Set reasonable zoom limits
-    const listener = google.maps.event.addListener(
-      googleMapRef.current,
-      "bounds_changed",
-      () => {
-        const currentZoom = googleMapRef.current!.getZoom();
-
-        if (currentZoom && currentZoom > 16) {
-          googleMapRef.current!.setZoom(16); // Max zoom for readability
-        } else if (currentZoom && currentZoom < 10) {
-          googleMapRef.current!.setZoom(10); // Min zoom to avoid being too far out
-        }
-        google.maps.event.removeListener(listener);
-      }
-    );
-  };
-
   // Update map markers
   const updateMapMarkers = async (results: SearchResult[]) => {
     if (!googleMapRef.current) return;
@@ -1441,12 +1424,6 @@ export default function SearchPage({ setMobileHeaderActions }: SearchPageProps) 
         cursor: pointer;
       `;
 
-      // Create SVG element safely without innerHTML
-      const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-      svg.setAttribute("width", "24");
-      svg.setAttribute("height", "32");
-      svg.setAttribute("viewBox", "0 0 24 32");
-
       const path = document.createElementNS(
         "http://www.w3.org/2000/svg",
         "path"
@@ -1458,9 +1435,6 @@ export default function SearchPage({ setMobileHeaderActions }: SearchPageProps) 
       path.setAttribute("stroke-opacity", "0.9");
       path.setAttribute("fill-opacity", "0.9");
 
-      svg.appendChild(path);
-      markerElement.appendChild(svg);
-
       // Create the marker
       const marker = new AdvancedMarkerElement({
         map: googleMapRef.current,
@@ -1469,121 +1443,40 @@ export default function SearchPage({ setMobileHeaderActions }: SearchPageProps) 
         content: markerElement,
       });
 
-      // Create always-visible property overlay
+      // Create property overlay using MapPropertyCard component
       const overlayDiv = document.createElement("div");
       overlayDiv.style.cssText = `
         position: absolute;
-        padding: 6px;
-        width: 140px;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        line-height: 1.2;
-        background-color: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(4px);
-        border-radius: 6px;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.2);
-        border: 1px solid rgba(0,0,0,0.1);
         transform: translate(-50%, -100%);
         margin-top: -8px;
         z-index: 1000;
         pointer-events: auto;
       `;
 
-      // Conditionally include match score section only for non-saved homes
-      const matchScoreSection = isSaved
-        ? ""
-        : `
-        <div style="
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          margin-bottom: 8px;
-        ">
-          <div style="
-            background: ${fillColor};
-            color: ${strokeColor};
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 10px;
-            font-weight: 600;
-          ">${score}/100</div>
-          <div style="
-            font-size: 9px;
-            color: #6b7280;
-          ">Match Score</div>
-        </div>`;
+      // Convert SearchResult to MapPropertyCard format
+      const propertyData = {
+        id: result.id,
+        address: result.address,
+        price: result.price,
+        bedrooms: result.bedrooms,
+        bathrooms: result.bathrooms,
+        sqft: result.sqft,
+        lotSize: result.lotSize,
+        propertyType: result.propertyType,
+        lat: result.lat,
+        lng: result.lng,
+        images: result.imageUrl ? [result.imageUrl] : undefined,
+        calculatedScore: score,
+      };
 
-      // Create overlay content safely using DOM methods
-      overlayDiv.innerHTML = `
-        <style>
-          .gm-style-cc { display: none !important; }
-          .gm-style .gm-style-cc { display: none !important; }
-          .gm-style-mtc { display: none !important; }
-          .gmnoprint { display: none !important; }
-          .gm-bundled-control { display: none !important; }
-          .gm-fullscreen-control { display: none !important; }
-          .gm-svpc { display: none !important; }
-          [title="View on Google Maps"] { display: none !important; }
-          a[href*="maps.google.com"] { display: none !important; }
-          .gm-style .gm-style-iw-tc::after { display: none !important; }
-        </style>
-        <img src="${
-          result.imageUrl || "/default-home.jpg"
-        }" alt="Property" style="
-          width: 100%;
-          height: 60px;
-          object-fit: cover;
-          border-radius: 4px;
-          margin-bottom: 6px;
-        " onerror="this.src='/default-home.jpg'" />
-        <div style="
-          font-size: 11px;
-          font-weight: 600;
-          color: #1f2937;
-          margin-bottom: 4px;
-          line-height: 1.3;
-        ">${result.address}</div>
-        <div style="
-          font-size: 13px;
-          font-weight: 700;
-          color: #A47551;
-          margin-bottom: 6px;
-        ">${result.price}</div>
-        ${matchScoreSection}
-        <button 
-          onclick="
-            // Show loading state
-            this.style.cursor = 'not-allowed';
-            this.style.opacity = '0.8';
-            this.disabled = true;
-            
-            // Add keyframe animation if not already added
-            if (!document.getElementById('mapModalKeyframes')) {
-              const style = document.createElement('style');
-              style.id = 'mapModalKeyframes';
-              style.textContent = '@keyframes turnKey { 0% { transform: rotate(0deg); } 25% { transform: rotate(20deg); } 50% { transform: rotate(0deg); } 75% { transform: rotate(-20deg); } 100% { transform: rotate(0deg); } }';
-              document.head.appendChild(style);
-            }
-            
-            window.openPropertyModal('${result.id}');
-          "
-          style="
-            width: 100%;
-            background: #A47551;
-            color: white;
-            border: none;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 9px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-          "
-          onmouseover="if (!this.disabled) this.style.background='#8b5a3c'"
-          onmouseout="if (!this.disabled) this.style.background='#A47551'"
-        >
-          View Details
-        </button>
-      `;
+      // Render MapPropertyCard into the overlay div
+      renderMapPropertyCard(overlayDiv, {
+        property: propertyData,
+        isSaved: isSaved,
+        onSave: () => saveHome(result),
+        onUnsave: () => removeSavedHome(result.id),
+        showScore: !isSaved, // Only show score for non-saved homes
+      });
 
       // Create custom overlay
       class PropertyOverlay extends google.maps.OverlayView {
@@ -1632,9 +1525,18 @@ export default function SearchPage({ setMobileHeaderActions }: SearchPageProps) 
       markersRef.current.push(marker);
     });
 
-    // Fit map to show all housing markers with adaptive zoom
+    // Fit map to show current page markers with adaptive zoom
     if (results.length > 0) {
-      fitMapToMarkers(results);
+      // Focus on the first property in the current page results
+      const firstProperty = results[0];
+      if (firstProperty && googleMapRef.current) {
+        const center = {
+          lat: firstProperty.lat + 0.002, // Offset slightly north
+          lng: firstProperty.lng,
+        };
+        googleMapRef.current.setCenter(center);
+        googleMapRef.current.setZoom(13);
+      }
     }
 
     // Reset processing flag
@@ -1727,28 +1629,14 @@ export default function SearchPage({ setMobileHeaderActions }: SearchPageProps) 
     );
   };
 
-  // Zoom functions
-  const zoomIn = () => {
-    if (googleMapRef.current) {
-      const currentZoom = googleMapRef.current.getZoom() || 12;
-      const newZoom = currentZoom + 1;
-      googleMapRef.current.setZoom(newZoom);
-    }
-  };
-
-  const zoomOut = () => {
-    if (googleMapRef.current) {
-      const currentZoom = googleMapRef.current.getZoom() || 12;
-      const newZoom = currentZoom - 1;
-      googleMapRef.current.setZoom(newZoom);
-    }
-  };
+  // Use zoom functions from MapZoomController
+  const { zoomIn, zoomOut, resetToDefaultZoom, focusOnCurrentProperty } =
+    mapZoomController;
 
   return (
-    <div>
+    <div className="h-full">
       {/* Mobile Layout */}
-      <div className="md:hidden flex flex-col h-[calc(100svh-80px)]">
-        
+      <div className="md:hidden flex flex-col h-full">
         {/* Mobile Carousel for Properties */}
         <div className="flex-shrink-0 bg-white border-b border-gray-200">
           {/* Tab Navigation */}
@@ -1799,12 +1687,14 @@ export default function SearchPage({ setMobileHeaderActions }: SearchPageProps) 
                 )}
               </div>
             </button>
-            
+
             {/* Collapse/Expand Button */}
             <button
               onClick={() => setIsCarouselCollapsed(!isCarouselCollapsed)}
               className="ml-2 p-1 text-gray-500 hover:text-gray-700 transition-colors cursor-help-hint"
-              title={isCarouselCollapsed ? "Expand carousel" : "Collapse carousel"}
+              title={
+                isCarouselCollapsed ? "Expand carousel" : "Collapse carousel"
+              }
             >
               {isCarouselCollapsed ? (
                 <ChevronDown className="w-4 h-4" />
@@ -1815,105 +1705,105 @@ export default function SearchPage({ setMobileHeaderActions }: SearchPageProps) 
           </div>
 
           {/* Mobile Property Carousel */}
-          <div 
+          <div
             className={`overflow-hidden transition-all duration-300 ease-in-out ${
-              isCarouselCollapsed ? 'max-h-0' : 'max-h-96'
+              isCarouselCollapsed ? "max-h-0" : "max-h-96"
             }`}
           >
             <div className="">
-            {activeTab === "results" ? (
-              searchResults.length > 0 ? (
-                <>
-                  <CardCarousel
-                    items={searchResults.slice(
-                      currentPage * PROPERTIES_PER_PAGE,
-                      (currentPage + 1) * PROPERTIES_PER_PAGE
-                    )}
-                    renderItem={(property: SearchResult, _index: number) => (
-                      <PropertyCard
-                        imageUrl={property.imageUrl}
-                        address={
-                          typeof property.address === "string" ||
-                          typeof property.address === "number"
-                            ? property.address.toString()
-                            : "[Invalid address]"
-                        }
-                        price={
-                          typeof property.price === "string" ||
-                          typeof property.price === "number"
-                            ? property.price.toString()
-                            : "[Invalid price]"
-                        }
-                        bedrooms={property.bedrooms}
-                        bathrooms={property.bathrooms}
-                        sqft={property.sqft}
-                        isSaved={isHomeSaved(property.id)}
-                        onSave={() => saveHome(property)}
-                        onViewDetails={() =>
-                          handleViewPropertyDetails(property)
-                        }
-                        cardType="searchpage"
-                      />
-                    )}
-                    getItemKey={(property: SearchResult, _index: number) =>
-                      property.id
-                    }
-                  />
-                </>
+              {activeTab === "results" ? (
+                searchResults.length > 0 ? (
+                  <>
+                    <CardCarousel
+                      items={searchResults.slice(
+                        currentPage * PROPERTIES_PER_PAGE,
+                        (currentPage + 1) * PROPERTIES_PER_PAGE
+                      )}
+                      renderItem={(property: SearchResult, _index: number) => (
+                        <PropertyCard
+                          imageUrl={property.imageUrl}
+                          address={
+                            typeof property.address === "string" ||
+                            typeof property.address === "number"
+                              ? property.address.toString()
+                              : "[Invalid address]"
+                          }
+                          price={
+                            typeof property.price === "string" ||
+                            typeof property.price === "number"
+                              ? property.price.toString()
+                              : "[Invalid price]"
+                          }
+                          bedrooms={property.bedrooms}
+                          bathrooms={property.bathrooms}
+                          sqft={property.sqft}
+                          isSaved={isHomeSaved(property.id)}
+                          onSave={() => saveHome(property)}
+                          onViewDetails={() =>
+                            handleViewPropertyDetails(property)
+                          }
+                          cardType="searchpage"
+                        />
+                      )}
+                      getItemKey={(property: SearchResult, _index: number) =>
+                        property.id
+                      }
+                    />
+                  </>
+                ) : (
+                  <div className="text-center py-responsive-md sm:py-responsive-lg text-gray-500 px-responsive-sm">
+                    <p className="text-responsive-sm sm:text-responsive-md">
+                      No search results yet.
+                    </p>
+                    <p className="text-responsive-xs sm:text-responsive-sm mt-1">
+                      Tap "Search Properties" to find homes.
+                    </p>
+                  </div>
+                )
+              ) : savedHomes.length > 0 ? (
+                <CardCarousel
+                  items={savedHomes.slice(
+                    currentPage * PROPERTIES_PER_PAGE,
+                    (currentPage + 1) * PROPERTIES_PER_PAGE
+                  )}
+                  renderItem={(property: SearchResult, _index: number) => (
+                    <PropertyCard
+                      imageUrl={property.imageUrl}
+                      address={
+                        typeof property.address === "string" ||
+                        typeof property.address === "number"
+                          ? property.address.toString()
+                          : "[Invalid address]"
+                      }
+                      price={
+                        typeof property.price === "string" ||
+                        typeof property.price === "number"
+                          ? property.price.toString()
+                          : "[Invalid price]"
+                      }
+                      bedrooms={property.bedrooms}
+                      bathrooms={property.bathrooms}
+                      sqft={property.sqft}
+                      isSaved={true}
+                      onSave={() => saveHome(property)}
+                      onViewDetails={() => handleViewPropertyDetails(property)}
+                      cardType="searchpage"
+                    />
+                  )}
+                  getItemKey={(property: SearchResult, _index: number) =>
+                    property.id
+                  }
+                />
               ) : (
                 <div className="text-center py-responsive-md sm:py-responsive-lg text-gray-500 px-responsive-sm">
                   <p className="text-responsive-sm sm:text-responsive-md">
-                    No search results yet.
+                    No saved homes yet.
                   </p>
                   <p className="text-responsive-xs sm:text-responsive-sm mt-1">
-                    Tap "Search Properties" to find homes.
+                    Save homes from search results.
                   </p>
                 </div>
-              )
-            ) : savedHomes.length > 0 ? (
-              <CardCarousel
-                items={savedHomes.slice(
-                  currentPage * PROPERTIES_PER_PAGE,
-                  (currentPage + 1) * PROPERTIES_PER_PAGE
-                )}
-                renderItem={(property: SearchResult, _index: number) => (
-                  <PropertyCard
-                    imageUrl={property.imageUrl}
-                    address={
-                      typeof property.address === "string" ||
-                      typeof property.address === "number"
-                        ? property.address.toString()
-                        : "[Invalid address]"
-                    }
-                    price={
-                      typeof property.price === "string" ||
-                      typeof property.price === "number"
-                        ? property.price.toString()
-                        : "[Invalid price]"
-                    }
-                    bedrooms={property.bedrooms}
-                    bathrooms={property.bathrooms}
-                    sqft={property.sqft}
-                    isSaved={true}
-                    onSave={() => saveHome(property)}
-                    onViewDetails={() => handleViewPropertyDetails(property)}
-                    cardType="searchpage"
-                  />
-                )}
-                getItemKey={(property: SearchResult, _index: number) =>
-                  property.id
-                }
-              />
-            ) : (
-              <div className="text-center py-responsive-md sm:py-responsive-lg text-gray-500 px-responsive-sm">
-                <p className="text-responsive-sm sm:text-responsive-md">
-                  No saved homes yet.
-                </p>
-                <p className="text-responsive-xs sm:text-responsive-sm mt-1">
-                  Save homes from search results.
-                </p>
-              </div>
-            )}
+              )}
             </div>
           </div>
         </div>
@@ -1939,41 +1829,85 @@ export default function SearchPage({ setMobileHeaderActions }: SearchPageProps) 
               style={{ minHeight: "100%" }}
             />
 
-            {/* Mobile Zoom Controls */}
+            {/* Mobile Map Controls */}
             {!isSearching && (
-              <div className="absolute bottom-4 left-4 flex flex-col gap-responsive-xs z-10">
-                <button
-                  onClick={zoomIn}
-                  className="mobile-icon-sm sm:mobile-icon-lg md:mobile-icon-xl bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 touch-friendly cursor-zoom"
-                  title="Zoom in"
-                >
-                  <span className="text-responsive-sm font-bold leading-none">
-                    +
-                  </span>
-                </button>
-                <button
-                  onClick={zoomOut}
-                  className="mobile-icon-sm sm:mobile-icon-lg md:mobile-icon-xl bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 touch-friendly cursor-zoom"
-                  title="Zoom out"
-                >
-                  <span className="text-responsive-sm font-bold leading-none">
-                    −
-                  </span>
-                </button>
-              </div>
+              <>
+                {/* Mobile Zoom Controls */}
+                <div className="absolute bottom-4 left-4 flex flex-col gap-responsive-xs z-10">
+                  <button
+                    onClick={zoomIn}
+                    className="mobile-icon-sm sm:mobile-icon-lg md:mobile-icon-xl bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 touch-friendly cursor-zoom"
+                    title="Zoom in"
+                  >
+                    <span className="text-responsive-sm font-bold leading-none">
+                      +
+                    </span>
+                  </button>
+                  <button
+                    onClick={zoomOut}
+                    className="mobile-icon-sm sm:mobile-icon-lg md:mobile-icon-xl bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 touch-friendly cursor-zoom"
+                    title="Zoom out"
+                  >
+                    <span className="text-responsive-sm font-bold leading-none">
+                      −
+                    </span>
+                  </button>
+                </div>
+
+                {/* Mobile Property Navigation Controls */}
+                {hasSearched &&
+                  (activeTab === "results"
+                    ? searchResults.length > PROPERTIES_PER_PAGE
+                    : savedHomes.length > PROPERTIES_PER_PAGE) && (
+                    <div className="absolute bottom-4 right-4 flex flex-row gap-responsive-xs z-10">
+                      <button
+                        onClick={() =>
+                          setCurrentPage(Math.max(0, currentPage - 1))
+                        }
+                        disabled={currentPage === 0}
+                        className="mobile-icon-sm sm:mobile-icon-lg md:mobile-icon-xl bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-gray-700 disabled:hover:border-gray-300 touch-friendly"
+                        title="Previous property"
+                      >
+                        <ChevronLeft className="w-3 h-3 sm:w-4 sm:h-4" />
+                      </button>
+                      <div className="mobile-icon-sm sm:mobile-icon-lg md:mobile-icon-xl bg-white border border-gray-300 rounded-lg shadow-md flex items-center justify-center text-xs sm:text-sm font-medium text-gray-700 px-2">
+                        {Math.min(
+                          (currentPage + 1) * PROPERTIES_PER_PAGE,
+                          activeTab === "results"
+                            ? searchResults.length
+                            : savedHomes.length
+                        )}
+                        <span className="mx-1">/</span>
+                        {activeTab === "results"
+                          ? searchResults.length
+                          : savedHomes.length}
+                      </div>
+                      <button
+                        onClick={() => setCurrentPage(currentPage + 1)}
+                        disabled={
+                          (currentPage + 1) * PROPERTIES_PER_PAGE >=
+                          (activeTab === "results"
+                            ? searchResults.length
+                            : savedHomes.length)
+                        }
+                        className="mobile-icon-sm sm:mobile-icon-lg md:mobile-icon-xl bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-gray-700 disabled:hover:border-gray-300 touch-friendly"
+                        title="Next property"
+                      >
+                        <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />
+                      </button>
+                    </div>
+                  )}
+              </>
             )}
           </div>
         </div>
       </div>
 
       {/* Desktop Layout */}
-      <div className="hidden md:flex gap-responsive-md h-[calc(100vh-160px)]">
+      <div className="hidden md:flex gap-responsive-md h-full">
         {/* Sidebar */}
         <div className="w-64 flex-shrink-0 flex flex-col">
-          <div
-            className="flex flex-col bg-white border border-gray-200 rounded-lg p-4"
-            style={{ height: "calc(100vh - 160px)" }}
-          >
+          <div className="flex flex-col bg-white border border-gray-200 rounded-lg p-4 h-full">
             {/* Tab Navigation */}
             <div className="flex border-b border-gray-200 mb-4 flex-shrink-0">
               <button
@@ -2059,24 +1993,6 @@ export default function SearchPage({ setMobileHeaderActions }: SearchPageProps) 
                             <div className="p-3">
                               <div className="flex items-start justify-between gap-2 mb-2">
                                 <div className="flex-1 min-w-0">
-                                  {/* Property Type and Status */}
-                                  <div className="flex items-center gap-responsive-sm mb-1">
-                                    {property.propertyType &&
-                                      property.propertyType.toLowerCase() !==
-                                        "single_family" && (
-                                        <span className="text-responsive-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded">
-                                          {property.propertyType}
-                                        </span>
-                                      )}
-                                    {typeof property.listingStatus ===
-                                      "string" &&
-                                      property.listingStatus.toLowerCase() !==
-                                        "for_sale" && (
-                                        <span className="text-responsive-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
-                                          {property.listingStatus}
-                                        </span>
-                                      )}
-                                  </div>
 
                                   {/* Address */}
                                   <h3 className="text-responsive-sm font-medium text-black line-clamp-2 mb-1">
@@ -2087,8 +2003,8 @@ export default function SearchPage({ setMobileHeaderActions }: SearchPageProps) 
                                   </h3>
 
                                   {/* Price and Match Score */}
-                                  <div className="flex items-center justify-between mb-2">
-                                    <p className="text-responsive-lg font-semibold text-brown flex-1 truncate">
+                                  <div className="flex justify-left">
+                                    <p className="text-responsive-sm font-semibold text-brown flex-1">
                                       {typeof property.price === "string" ||
                                       typeof property.price === "number"
                                         ? property.price
@@ -2097,7 +2013,6 @@ export default function SearchPage({ setMobileHeaderActions }: SearchPageProps) 
                                     <CardMatchScore
                                       score={calculatePropertyScore(property)}
                                       size="xs"
-                                      showIcon={false}
                                       useColorStyling={true}
                                       className="ml-2"
                                     />
@@ -2110,7 +2025,6 @@ export default function SearchPage({ setMobileHeaderActions }: SearchPageProps) 
                                     sqft={property.sqft}
                                     lotSize={property.lotSize}
                                     variant="horizontal"
-                                    size="xs"
                                     className="mb-2 sm:mb-3"
                                   />
                                 </div>
@@ -2205,7 +2119,6 @@ export default function SearchPage({ setMobileHeaderActions }: SearchPageProps) 
                                   sqft={property.sqft}
                                   lotSize={property.lotSize}
                                   variant="horizontal"
-                                  size="xs"
                                   className="mb-2 sm:mb-3"
                                 />
                               </div>
@@ -2231,61 +2144,22 @@ export default function SearchPage({ setMobileHeaderActions }: SearchPageProps) 
 
         {/* Main Content */}
         <div className="flex-1 flex flex-col">
-          {/* Search Instructions and Controls */}
-          <div className="hidden md:block mb-6 flex-shrink-0 bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-sm font-medium text-gray-900">
-                    We use your preferences and important locations to surface
-                    the best properties
-                  </p>
-                </div>
-                <div className="flex gap-2 flex-shrink-0">
-                  <button
-                    onClick={() => navigate("/personalization")}
-                    className="inline-flex items-center px-4 py-2 bg-olive text-white rounded-lg hover:bg-olive/90 transition-colors flex-shrink-0"
-                  >
-                    Preferences
-                  </button>
-                  <button
-                    onClick={async () => {
-                      try {
-                        setIsSearching(true);
-                        await fetchIsochronePolygon();
-                      } catch (error) {
-                        console.error("Search failed:", error);
-                      } finally {
-                        setIsSearching(false);
-                      }
-                    }}
-                    disabled={isSearching}
-                    className="inline-flex items-center px-4 py-2 bg-gold text-black rounded-lg hover:bg-gold/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed gap-2 flex-shrink-0"
-                  >
-                    {isSearching ? (
-                      <KeyTurnLoader message="Searching..." />
-                    ) : (
-                      <>
-                        <svg
-                          className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 lg:w-6 lg:h-6"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                          />
-                        </svg>
-                        Search Properties
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
-            </div>
+          {/* Search Header */}
+          <div className="hidden lg:block">
+            <SearchHeader
+              onUpdatePreferences={() => navigate("/dashboard/personalization")}
+              onSearchProperties={async () => {
+                try {
+                  setIsSearching(true);
+                  await fetchIsochronePolygon();
+                } catch (error) {
+                  console.error("Search failed:", error);
+                } finally {
+                  setIsSearching(false);
+                }
+              }}
+              isSearching={isSearching}
+            />
           </div>
 
           {/* Desktop Map - Takes remaining height */}
@@ -2319,74 +2193,76 @@ export default function SearchPage({ setMobileHeaderActions }: SearchPageProps) 
                 style={{ minHeight: "400px" }}
               />
 
-              {/* Custom Zoom Controls - hidden during search */}
+              {/* Desktop Map Controls - hidden during search */}
               {!isSearching && (
-                <div className="absolute bottom-12 left-8 flex flex-row gap-1 z-10">
-                  <button
-                    onClick={zoomIn}
-                    className="w-8 h-8 lg:w-10 lg:h-10 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 cursor-zoom"
-                    title="Zoom in"
-                  >
-                    <span className="text-sm lg:text-lg font-bold leading-none">
-                      +
-                    </span>
-                  </button>
-                  <button
-                    onClick={zoomOut}
-                    className="w-8 h-8 lg:w-10 lg:h-10 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 cursor-zoom"
-                    title="Zoom out"
-                  >
-                    <span className="text-sm lg:text-lg font-bold leading-none">
-                      −
-                    </span>
-                  </button>
-                </div>
-              )}
-
-              {/* Property Pagination Controls - hidden during search */}
-              {!isSearching &&
-                hasSearched &&
-                (activeTab === "results"
-                  ? searchResults.length > PROPERTIES_PER_PAGE
-                  : savedHomes.length > PROPERTIES_PER_PAGE) && (
-                  <div className="absolute bottom-12 right-8 flex flex-row gap-1 z-10">
+                <>
+                  {/* Custom Zoom Controls */}
+                  <div className="absolute bottom-12 left-8 flex flex-row gap-1 z-10">
                     <button
-                      onClick={() =>
-                        setCurrentPage(Math.max(0, currentPage - 1))
-                      }
-                      disabled={currentPage === 0}
-                      className="w-8 h-8 lg:w-10 lg:h-10 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-gray-700 disabled:hover:border-gray-300 cursor-pointer"
-                      title="Previous properties"
+                      onClick={zoomIn}
+                      className="w-8 h-8 lg:w-10 lg:h-10 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 cursor-zoom"
+                      title="Zoom in"
                     >
-                      <ChevronLeft className="w-3 h-3 lg:w-4 lg:h-4" />
+                      <span className="text-sm lg:text-lg font-bold leading-none">
+                        +
+                      </span>
                     </button>
-                    <div className="w-auto px-2 lg:px-3 h-8 lg:h-10 bg-white border border-gray-300 rounded-lg shadow-md flex items-center justify-center text-xs lg:text-sm font-medium text-gray-700">
-                      {Math.min(
-                        (currentPage + 1) * PROPERTIES_PER_PAGE,
-                        activeTab === "results"
-                          ? searchResults.length
-                          : savedHomes.length
-                      )}{" "}
-                      of{" "}
-                      {activeTab === "results"
-                        ? searchResults.length
-                        : savedHomes.length}
-                    </div>
                     <button
-                      onClick={() => setCurrentPage(currentPage + 1)}
-                      disabled={
-                        (currentPage + 1) * PROPERTIES_PER_PAGE >=
-                        (activeTab === "results"
-                          ? searchResults.length
-                          : savedHomes.length)
-                      }
-                      className="w-8 h-8 lg:w-10 lg:h-10 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-gray-700 disabled:hover:border-gray-300 cursor-pointer"
-                      title="Next properties"
+                      onClick={zoomOut}
+                      className="w-8 h-8 lg:w-10 lg:h-10 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 cursor-zoom"
+                      title="Zoom out"
                     >
-                      <ChevronRight className="w-3 h-3 lg:w-4 lg:h-4" />
+                      <span className="text-sm lg:text-lg font-bold leading-none">
+                        −
+                      </span>
                     </button>
                   </div>
-                )}
+
+                  {/* Property Navigation Controls */}
+                  {hasSearched &&
+                    (activeTab === "results"
+                      ? searchResults.length > PROPERTIES_PER_PAGE
+                      : savedHomes.length > PROPERTIES_PER_PAGE) && (
+                      <div className="absolute bottom-12 right-8 flex flex-row gap-1 z-10">
+                        <button
+                          onClick={() =>
+                            setCurrentPage(Math.max(0, currentPage - 1))
+                          }
+                          disabled={currentPage === 0}
+                          className="w-8 h-8 lg:w-10 lg:h-10 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-gray-700 disabled:hover:border-gray-300 cursor-pointer"
+                          title="Previous properties"
+                        >
+                          <ChevronLeft className="w-3 h-3 lg:w-4 lg:h-4" />
+                        </button>
+                        <div className="w-auto px-2 lg:px-3 h-8 lg:h-10 bg-white border border-gray-300 rounded-lg shadow-md flex items-center justify-center text-xs lg:text-sm font-medium text-gray-700">
+                          {Math.min(
+                            (currentPage + 1) * PROPERTIES_PER_PAGE,
+                            activeTab === "results"
+                              ? searchResults.length
+                              : savedHomes.length
+                          )}{" "}
+                          of{" "}
+                          {activeTab === "results"
+                            ? searchResults.length
+                            : savedHomes.length}
+                        </div>
+                        <button
+                          onClick={() => setCurrentPage(currentPage + 1)}
+                          disabled={
+                            (currentPage + 1) * PROPERTIES_PER_PAGE >=
+                            (activeTab === "results"
+                              ? searchResults.length
+                              : savedHomes.length)
+                          }
+                          className="w-8 h-8 lg:w-10 lg:h-10 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-gray-700 disabled:hover:border-gray-300 cursor-pointer"
+                          title="Next properties"
+                        >
+                          <ChevronRight className="w-3 h-3 lg:w-4 lg:h-4" />
+                        </button>
+                      </div>
+                    )}
+                </>
+              )}
             </div>
           </div>
         </div>

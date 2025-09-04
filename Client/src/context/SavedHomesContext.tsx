@@ -13,6 +13,7 @@ import {
   favoriteHomesApi,
   mapHomeUniversalToSavedHome,
 } from "./utils";
+import { SearchResult } from '../types/search';
 import { isAuthenticationError, handleAuthenticationError } from '../lib/fetchUtils';
 
 /* =========================
@@ -24,6 +25,8 @@ interface SavedHomesContextType {
   savedHomesLoading: boolean;
   savedHomesError: string | null;
   refreshSavedHomes: () => Promise<void>;
+  saveHome: (property: SearchResult) => Promise<void>;
+  removeSavedHome: (propertyId: string) => Promise<void>;
 }
 
 /* =========================
@@ -74,10 +77,43 @@ export function SavedHomesProvider({ children }: SavedHomesProviderProps) {
   }, []);
 
   /* =========================
-     Public refresh function
+     Public methods
      ========================= */
 
   const refreshSavedHomes = useCallback(() => fetchSavedHomes(), [fetchSavedHomes]);
+
+  const saveHome = useCallback(async (property: SearchResult) => {
+    try {
+      const response = await favoriteHomesApi.addFavorite(property);
+      if (response.success) {
+        await refreshSavedHomes();
+      } else {
+        throw new Error(response.error || "Failed to save home");
+      }
+    } catch (error) {
+      console.error("Error adding favorite:", error);
+      throw error;
+    }
+  }, [refreshSavedHomes]);
+
+  const removeSavedHome = useCallback(async (propertyId: string) => {
+    try {
+      const property = savedHomes.find((home) => home.id === propertyId);
+      if (!property) {
+        console.error("Property not found");
+        return;
+      }
+      if (!property.address) {
+        console.error("Property address not found");
+        return;
+      }
+      await favoriteHomesApi.removeFavorite(property.address);
+      await refreshSavedHomes();
+    } catch (error) {
+      console.error("Error removing favorite:", error);
+      throw error;
+    }
+  }, [savedHomes, refreshSavedHomes]);
 
   /* =========================
      Effects
@@ -118,7 +154,9 @@ export function SavedHomesProvider({ children }: SavedHomesProviderProps) {
     savedHomesLoading,
     savedHomesError,
     refreshSavedHomes,
-  }), [savedHomes, savedHomesLoading, savedHomesError, refreshSavedHomes]);
+    saveHome,
+    removeSavedHome,
+  }), [savedHomes, savedHomesLoading, savedHomesError, refreshSavedHomes, saveHome, removeSavedHome]);
 
   return <SavedHomesContext.Provider value={value}>{children}</SavedHomesContext.Provider>;
 }
@@ -135,5 +173,7 @@ export function useSavedHomes() {
     loading: ctx.savedHomesLoading,
     error: ctx.savedHomesError,
     refreshSavedHomes: ctx.refreshSavedHomes,
+    saveHome: ctx.saveHome,
+    removeSavedHome: ctx.removeSavedHome,
   };
 }

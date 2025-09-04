@@ -10,6 +10,8 @@ export interface Property {
   sqft: number;
   lat: number;
   lng: number;
+  latitude: number;
+  longitude: number;
   images?: string[];
   [key: string]: any;
 }

@@ -195,6 +195,22 @@ export async function searchZillowByPolygon(
       throw new Error("Malformed response from server.");
     }
 
+    // Log score field analysis for debugging
+    if (data.properties.length > 0) {
+      const sampleProperty = data.properties[0];
+      const scoreFields = Object.keys(sampleProperty).filter(k => 
+        k.toLowerCase().includes('score') || k.toLowerCase().includes('match')
+      );
+      console.log("[POLYGON_SEARCH] 📊 Backend response analysis:", {
+        totalProperties: data.properties.length,
+        samplePropertyKeys: Object.keys(sampleProperty).slice(0, 10),
+        scoreRelatedFields: scoreFields,
+        hasScore: '_score' in sampleProperty,
+        scoreValue: sampleProperty._score,
+        responseTime: `${responseTime}ms`
+      });
+    }
+
     return data;
   } catch (err: any) {
     const totalTime = Date.now() - startTime;

@@ -17,7 +17,6 @@ export interface PropertyCardProps {
   bathrooms?: number;
   sqft?: number;
   lotSize?: string;
-  propertyType?: string;
   status?: { text: string; className: string };
   /** Card actions */
   onSave?: () => void;
@@ -39,6 +38,12 @@ export interface PropertyCardProps {
   /** Custom styling */
   className?: string;
   showScore?: boolean;
+  /** Whether to hide square footage */
+  hideSquareFootage?: boolean;
+  /** Whether to show triangle pointer for map cards */
+  showTrianglePointer?: boolean;
+  /** Whether this card is displayed on the map */
+  isOnMap?: boolean;
 }
 
 const PropertyCard: React.FC<PropertyCardProps> = ({
@@ -49,7 +54,6 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
   bedrooms,
   bathrooms,
   sqft,
-  propertyType,
   lotSize,
   status,
   cardType = 'regular',
@@ -59,7 +63,10 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
   loading = false,
   onClick,
   className = '',
-  showScore = true
+  showScore = true,
+  hideSquareFootage = false,
+  showTrianglePointer = false,
+  isOnMap = false
 }) => {
   const placeholder = '/api/placeholder/400/300';
 
@@ -80,60 +87,73 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
       className={className} 
       onClick={onClick}
     >
-      <div className="relative h-32 sm:h-40 md:h-48 overflow-hidden">
-        <StyledImage
-          src={imageUrl}
-          alt={address}
-          variant="professional"
-          placeholder={placeholder}
-          className="w-full h-full"
-        />
-        
-        {/* Status Badge */}
-        {status && (
-          <div className="absolute top-2 sm:top-3 left-2 sm:left-3">
-            <span className={`space-responsive-xs rounded-full text-responsive-xs font-medium ${status.className}`}>
-              {status.text}
-            </span>
-          </div>
-        )}
-        
-        {/* Price Badge - only show if not below-address */}
-        {pricePosition !== 'below-address' && (
-          <div className={`absolute top-2 sm:top-3 ${pricePosition === 'top-left' ? 'left-2 sm:left-3' : 'right-2 sm:right-3'} bg-neutral-50/95 backdrop-blur-sm space-responsive-xs rounded-full border border-neutral-200/50`}>
-            <span className="text-responsive-xs font-semibold text-brand-primary">
-              {formatPrice(price)}
-            </span>
-          </div>
-        )}
-        
-        {/* Top Content (e.g., HeartSave) - only show if price not below-address */}
-        {topContent && pricePosition !== 'below-address' && (
-          <div className={`absolute top-2 sm:top-3 ${pricePosition === 'top-left' ? 'right-2 sm:right-3' : 'left-2 sm:left-3'}`}>
-            {topContent}
-          </div>
-        )}
-      </div>
-      
-      <div className="card-content-spacing">
-        {/* Address row: full width + single-line truncate */}
-        <div className="w-full">
-          <CardAddressDisplay 
-            address={address}
-            size="sm"
-            className={
-              pricePosition === 'below-address'
-                ? 'mb-0 block w-full overflow-hidden text-ellipsis whitespace-nowrap'
-                : 'mb-1 block w-full overflow-hidden text-ellipsis whitespace-nowrap'
-            }
+      {/* Image container - only render if imageUrl is provided */}
+      {imageUrl && (
+        <div className={`relative overflow-hidden ${cardType === 'searchpage' ? 'h-24 sm:h-28 md:h-32' : 'h-32 sm:h-40 md:h-48'}`}>
+          <StyledImage
+            src={imageUrl}
+            alt={address}
+            variant="professional"
+            placeholder={placeholder}
+            className="w-full h-full"
           />
+          
+          {/* Status Badge */}
+          {status && (
+            <div className="absolute top-3 sm:top-4 left-3 sm:left-4">
+              <span className={`px-2 py-1 sm:px-3 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium ${status.className}`}>
+                {status.text}
+              </span>
+            </div>
+          )}
+          
+          {/* Price Badge - only show if not below-address */}
+          {pricePosition !== 'below-address' && (
+            <div className={`absolute top-3 sm:top-4 ${pricePosition === 'top-left' ? 'left-3 sm:left-4' : 'right-3 sm:right-4'} bg-neutral-50/95 backdrop-blur-sm px-2 py-1 sm:px-3 sm:py-1.5 rounded-full border border-neutral-200/50`}>
+              <span className="text-xs sm:text-sm font-semibold text-brand-primary">
+                {formatPrice(price)}
+              </span>
+            </div>
+          )}
+          
+          {/* Top Content (e.g., HeartSave) - only show if price not below-address */}
+          {topContent && pricePosition !== 'below-address' && (
+            <div className={`absolute top-3 sm:top-4 ${pricePosition === 'top-left' ? 'right-3 sm:right-4' : 'left-3 sm:left-4'}`}>
+              {topContent}
+            </div>
+          )}
         </div>
+      )}
+      
+      <div className="p-3 sm:p-4 space-y-2 sm:space-y-3">
+        {/* Address row: full width + proper truncate - hide on map */}
+        {!isOnMap && (
+          <div className="w-full">
+            <CardAddressDisplay 
+              address={address}
+              size="sm"
+              variant="compact"
+              className={
+                pricePosition === 'below-address'
+                  ? 'mb-0 w-full'
+                  : 'mb-1 w-full'
+              }
+            />
+          </div>
+        )}
         
         {/* Price and Heart Section - when price goes below address */}
         {pricePosition === 'below-address' && (
-          <div className="flex items-center justify-between mb-1">
-            <div className="text-lg sm:text-xl font-bold text-brown">
-              {formatPrice(price)}
+          <div className="flex items-center w-full gap-2">
+            <div className="flex items-center gap-2 flex-1">
+              <div className="text-lg sm:text-xl font-bold text-brown">
+                {formatPrice(price)}
+              </div>
+              {showScore && score !== undefined && (
+                <div className="mr-[2px]">
+                  <CardMatchScore score={score} size="xs" useColorStyling={true} />
+                </div>
+              )}
             </div>
             {topContent && (
               <div className="flex-shrink-0">
@@ -143,34 +163,37 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
           </div>
         )}
         
-        <div className="flex items-center justify-between mb-2 sm:mb-3">
+        <div className="flex items-center">
           <CardPropertyDetails 
             bedrooms={bedrooms} 
             bathrooms={bathrooms} 
             sqft={sqft} 
             lotSize={lotSize}
-            variant="horizontal" 
-            size="xs" 
+            variant="horizontal"
+            hideSquareFootage={hideSquareFootage || isOnMap}
           />
-          {showScore && score !== undefined && (
-            <CardMatchScore score={score} size="xs" />
-          )}
         </div>
-        
-        {/* Property Type */}
-        {propertyType && (
-          <div className="text-responsive-xs text-gray-500 mb-2 sm:mb-3">
-            <span>{propertyType}</span>
-          </div>
-        )}
         
         {/* Bottom Content */}
         {bottomContent && (
-          <div className="mt-3">
+          <div>
             {bottomContent}
           </div>
         )}
       </div>
+      
+      {/* Triangle Pointer for Map Cards - 8px tall, full width */}
+      {showTrianglePointer && (
+        <div className="w-full relative" style={{ height: '8px' }}>
+          <div 
+            className="absolute top-0 left-0 w-full bg-white shadow-sm"
+            style={{
+              height: '8px',
+              clipPath: 'polygon(0 0, 100% 0, 50% 100%)'
+            }}
+          />
+        </div>
+      )}
     </BaseCard>
   );
 };

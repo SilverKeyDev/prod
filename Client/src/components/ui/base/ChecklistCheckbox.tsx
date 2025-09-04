@@ -59,7 +59,7 @@ const ChecklistCheckbox: React.FC<ChecklistCheckboxProps> = ({
           <div>
             <p className={itemExplanationClass}>{item.explanation}</p>
             {item.bullets && (
-              <ul className="list-disc list-inside text-navy/70 ml-4 mt-2 space-y-1">
+              <ul className="list-disc list-inside text-navy/70 text-sm ml-4 mt-2 space-y-1">
                 {item.bullets.map((b, idx) => (
                   <li key={idx}>{b}</li>
                 ))}

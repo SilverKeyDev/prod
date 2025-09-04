@@ -1,14 +1,10 @@
-import { Star } from 'lucide-react';
-
 interface CardMatchScoreProps {
   /** Match score (0-100) */
   score: number;
   /** Maximum score (default 100) */
   maxScore?: number;
   /** Size variant */
-  size?: 'xs' | 'sm' | 'md';
-  /** Show star icon */
-  showIcon?: boolean;
+  size?: "xs" | "sm" | "md";
   /** Use color-based styling */
   useColorStyling?: boolean;
   /** Additional className */
@@ -16,37 +12,32 @@ interface CardMatchScoreProps {
 }
 
 /**
- * Reusable card match score display with star icon
+ * Reusable card match score display
  */
 export default function CardMatchScore({
   score,
   maxScore = 100,
-  size = 'sm',
-  showIcon = true,
+  size = "sm",
   useColorStyling = false,
-  className = ''
+  className = "",
 }: CardMatchScoreProps) {
   const getSizeClasses = () => {
     switch (size) {
-      case 'xs':
+      case "xs":
         return {
-          icon: 'mobile-icon-xs',
-          text: 'text-responsive-xs'
+          text: "text-responsive-xs",
         };
-      case 'sm':
+      case "sm":
         return {
-          icon: 'mobile-icon-sm',
-          text: 'text-responsive-xs'
+          text: "text-responsive-xs",
         };
-      case 'md':
+      case "md":
         return {
-          icon: 'mobile-icon-md',
-          text: 'text-responsive-sm'
+          text: "text-responsive-sm",
         };
       default:
         return {
-          icon: 'mobile-icon-sm',
-          text: 'text-responsive-xs'
+          text: "text-responsive-xs",
         };
     }
   };
@@ -72,7 +63,9 @@ export default function CardMatchScore({
     }
 
     const fillColor = `rgb(${r}, ${g}, ${b})`;
-    const strokeColor = `rgb(${Math.round(r * 0.75)}, ${Math.round(g * 0.75)}, ${Math.round(b * 0.75)})`;
+    const strokeColor = `rgb(${Math.round(r * 0.75)}, ${Math.round(
+      g * 0.75
+    )}, ${Math.round(b * 0.75)})`;
     return { fillColor, strokeColor };
   };
 
@@ -81,13 +74,14 @@ export default function CardMatchScore({
 
   if (useColorStyling && colors) {
     return (
-      <div className={`flex items-center gap-responsive-xs flex-shrink-0 ${className}`}>
-        {showIcon && <Star className={sizeClasses.icon} style={{ color: colors.strokeColor }} />}
-        <span 
+      <div
+        className={`flex items-center gap-responsive-xs flex-shrink-0 ${className}`}
+      >
+        <span
           className={`font-medium ${sizeClasses.text} whitespace-nowrap px-2 py-1 rounded`}
           style={{
             backgroundColor: colors.fillColor,
-            color: colors.strokeColor
+            color: colors.strokeColor,
           }}
         >
           {score}/{maxScore}
@@ -97,8 +91,9 @@ export default function CardMatchScore({
   }
 
   return (
-    <div className={`flex items-center gap-responsive-xs text-brown flex-shrink-0 ${className}`}>
-      {showIcon && <Star className={sizeClasses.icon} />}
+    <div
+      className={`flex items-center gap-responsive-xs text-brown flex-shrink-0 ${className}`}
+    >
       <span className={`font-medium ${sizeClasses.text} whitespace-nowrap`}>
         {score}/{maxScore}
       </span>

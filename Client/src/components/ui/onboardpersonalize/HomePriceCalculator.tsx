@@ -88,9 +88,6 @@ const HomePriceCalculator: React.FC<HomePriceCalculatorProps> = ({
             <div className="text-2xl font-bold text-green-600 mb-2">
               ${homePriceResult.maxHomePrice.toLocaleString()}
             </div>
-            <div className="text-sm text-gray-600">
-              Estimated monthly payment: ${homePriceResult.totalMonthlyHousingCost.toLocaleString()}
-            </div>
           </div>
           
           <details className="text-sm">

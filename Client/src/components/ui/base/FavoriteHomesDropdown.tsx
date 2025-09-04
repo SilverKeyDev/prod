@@ -105,7 +105,7 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
     <div className={`relative ${className}`} ref={dropdownRef}>
       <button
         onClick={toggleDropdown}
-        className={`flex items-center gap-3 px-6 py-4 h-full border border-beige rounded-lg bg-white hover:border-brown focus:border-brown focus:ring-2 focus:ring-brown/20 transition-colors duration-200 w-full ${className}`}
+        className={`flex items-center gap-2 px-2 py-2 lg:px-3 lg:py-3 h-full border border-beige rounded-lg bg-white hover:border-brown focus:border-brown focus:ring-2 focus:ring-brown/20 transition-colors duration-200 w-full ${className}`}
         disabled={disabled || loadingHomes}
       >
         <Home className="h-4 w-4 text-brown" />
@@ -114,10 +114,19 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
             <KeyTurnLoader message="Loading homes..." />
           ) : selectedHome ? (
             <div>
-              <div className="text-sm font-medium text-navy">
-                {selectedHome.address}
+              <div className="text-responsive-xs font-medium text-navy">
+                <span className="block sm:hidden">
+                  {(() => {
+                    const address = selectedHome.address;
+                    const lastCommaIndex = address.lastIndexOf(',');
+                    return lastCommaIndex > 0 ? address.substring(0, lastCommaIndex) : address;
+                  })()}
+                </span>
+                <span className="hidden sm:block">
+                  {selectedHome.address}
+                </span>
               </div>
-              <div className="btn-text-sm text-gray-500">
+              <div className="text-responsive-xs text-gray-500 hidden sm:block">
                 {selectedHome.beds && selectedHome.baths
                   ? `${selectedHome.beds} bed, ${selectedHome.baths} bath`
                   : "Selected Property"}
@@ -126,8 +135,8 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
             </div>
           ) : (
             <div>
-              <div className="text-sm text-gray-500">{placeholder}</div>
-              <div className="text-xs text-gray-400">
+              <div className="text-responsive-xs text-gray-500">{placeholder}</div>
+              <div className="text-responsive-xs text-gray-400 hidden sm:block">
                 Choose from your saved properties
               </div>
             </div>
@@ -143,7 +152,7 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
       {isDropdownOpen && !loadingHomes && !disabled && (
         <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-beige rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto">
           {favoriteHomes.length === 0 ? (
-            <div className="px-4 py-3 text-sm text-gray-500 text-center">
+            <div className="px-3 py-2 text-sm text-gray-500 text-center">
               No favorite homes found
             </div>
           ) : (
@@ -152,7 +161,7 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
                 <button
                   key={home.address}
                   onClick={() => handleHomeSelection(home)}
-                  className={`w-full px-4 py-3 text-left text-sm transition-colors duration-150 ${
+                  className={`w-full px-3 py-2 text-left text-sm transition-colors duration-150 ${
                     index === 0 ? "first:rounded-t-lg" : ""
                   } ${
                     index === favoriteHomes.length - 1
@@ -164,8 +173,19 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
                       : "text-black hover:bg-brown/5"
                   }`}
                 >
-                  <div className="font-medium">{home.address}</div>
-                  <div className="btn-text-sm text-gray-500 mt-1 truncate">
+                  <div className="font-medium text-responsive-xs">
+                    <span className="block sm:hidden">
+                      {(() => {
+                        const address = home.address;
+                        const lastCommaIndex = address.lastIndexOf(',');
+                        return lastCommaIndex > 0 ? address.substring(0, lastCommaIndex) : address;
+                      })()}
+                    </span>
+                    <span className="hidden sm:block">
+                      {home.address}
+                    </span>
+                  </div>
+                  <div className="text-responsive-xs text-gray-500 mt-1 hidden sm:block">
                     {home.beds && home.baths
                       ? `${home.beds} bed, ${home.baths} bath`
                       : "Property details"}

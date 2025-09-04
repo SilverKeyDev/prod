@@ -4,11 +4,10 @@ export { default as BaseCard } from './BaseCard';
 // Card components
 export { default as CompCard } from './CompCard';
 export { default as DocumentCard } from './DocumentCard';
-export { default as FilterCard } from './FilterCard';
-export { default as HomeCard } from './HomeCard';
-export { default as NewMatchCard } from './NewMatchCard';
-export { default as PriceDropCard } from './PriceDropCard';
 export { default as PropertyCard } from './PropertyCard';
+export { default as HomeCard } from './HomeCard';
+export { default as MapPropertyCard, renderMapPropertyCard } from './MapPropertyCard';
+export { default as PriceDropCard } from './PriceDropCard';
 
 // Standardized card elements
 export * from './base';

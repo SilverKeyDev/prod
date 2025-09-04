@@ -2,6 +2,12 @@ import { apiRequest, favoriteHomesApi } from "../lib/api";
 import { formatFilenameToAddress } from "../lib/addressFormat";
 
 /* =========================
+   API Configuration
+   ========================= */
+
+export const BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
+
+/* =========================
    Types
    ========================= */
 
@@ -353,8 +359,6 @@ export type ApiResponse<T> = ApiSuccess<T> | ApiError;
 /* =========================
    Shared Utilities
    ========================= */
-
-export const BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
 
 export function getIdToken(): string | null {
   return localStorage.getItem("id_token");

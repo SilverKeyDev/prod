@@ -120,6 +120,7 @@ def create_app(config=None):
     from .routes.maps import maps_bp
     from .routes.search import search_bp
     from .routes.secure_upload import secure_upload_bp
+    from .routes.offer import offer_bp
 
     app.register_blueprint(report_bp)
     app.register_blueprint(dashboard_bp)
@@ -132,6 +133,7 @@ def create_app(config=None):
     app.register_blueprint(maps_bp)
     app.register_blueprint(search_bp)
     app.register_blueprint(secure_upload_bp)
+    app.register_blueprint(offer_bp)
 
     # Health check endpoint
     @app.route('/healthz', methods=['GET'])

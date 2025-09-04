@@ -7,7 +7,8 @@ class HomeUniversal(db.Model):
 
     __tablename__ = "home_universal"
 
-    user_id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = db.Column(db.String(36), nullable=False)
     address = db.Column(db.String(500))
     beds = db.Column(db.String(36))
     baths = db.Column(db.String(36))
@@ -24,6 +25,7 @@ class HomeUniversal(db.Model):
 
     def to_dict(self):
         return {
+            "id": self.id,
             "user_id": self.user_id,
             "address": self.address,
             "beds": self.beds,
