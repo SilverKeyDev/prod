@@ -68,10 +68,19 @@ class SecureLogger {
   private currentLevel: number;
   private isProduction: boolean;
   private isProcessing: boolean = false;
+  private originalConsole: any;
 
   constructor() {
     this.isProduction = import.meta.env.PROD;
     this.currentLevel = this.isProduction ? LOG_LEVELS.WARN : LOG_LEVELS.DEBUG;
+    // Store original console methods before they get overridden
+    this.originalConsole = {
+      log: console.log.bind(console),
+      info: console.info.bind(console),
+      warn: console.warn.bind(console),
+      error: console.error.bind(console),
+      debug: console.debug.bind(console),
+    };
   }
 
   /**
@@ -181,8 +190,12 @@ class SecureLogger {
    */
   debug(scope: string, message: string, data?: any): void {
     if (this.currentLevel <= LOG_LEVELS.DEBUG) {
-      const formatted = this.formatMessage('DEBUG', scope, message, data);
-      console.debug(formatted);
+      try {
+        const formatted = this.formatMessage('DEBUG', scope, message, data);
+        this.originalConsole.debug(formatted);
+      } catch (error) {
+        this.originalConsole.error('SecureLogger debug error:', error);
+      }
     }
   }
 
@@ -191,8 +204,12 @@ class SecureLogger {
    */
   info(scope: string, message: string, data?: any): void {
     if (this.currentLevel <= LOG_LEVELS.INFO) {
-      const formatted = this.formatMessage('INFO', scope, message, data);
-      console.info(formatted);
+      try {
+        const formatted = this.formatMessage('INFO', scope, message, data);
+        this.originalConsole.info(formatted);
+      } catch (error) {
+        this.originalConsole.error('SecureLogger info error:', error);
+      }
     }
   }
 
@@ -201,8 +218,12 @@ class SecureLogger {
    */
   warn(scope: string, message: string, data?: any): void {
     if (this.currentLevel <= LOG_LEVELS.WARN) {
-      const formatted = this.formatMessage('WARN', scope, message, data);
-      console.warn(formatted);
+      try {
+        const formatted = this.formatMessage('WARN', scope, message, data);
+        this.originalConsole.warn(formatted);
+      } catch (error) {
+        this.originalConsole.error('SecureLogger warn error:', error);
+      }
     }
   }
 
@@ -211,19 +232,23 @@ class SecureLogger {
    */
   error(scope: string, message: string, error?: any): void {
     if (this.currentLevel <= LOG_LEVELS.ERROR) {
-      let errorData = error;
-      
-      // Handle Error objects
-      if (error instanceof Error) {
-        errorData = {
-          name: error.name,
-          message: error.message,
-          stack: this.isProduction ? '[REDACTED]' : error.stack,
-        };
+      try {
+        let errorData = error;
+        
+        // Handle Error objects
+        if (error instanceof Error) {
+          errorData = {
+            name: error.name,
+            message: error.message,
+            stack: this.isProduction ? '[REDACTED]' : error.stack,
+          };
+        }
+        
+        const formatted = this.formatMessage('ERROR', scope, message, errorData);
+        this.originalConsole.error(formatted);
+      } catch (error) {
+        this.originalConsole.error('SecureLogger error error:', error);
       }
-      
-      const formatted = this.formatMessage('ERROR', scope, message, errorData);
-      console.error(formatted);
     }
   }
 
@@ -231,13 +256,17 @@ class SecureLogger {
    * Security event logging (always logs)
    */
   security(scope: string, event: string, data?: any): void {
-    const scrubbedData = data ? this.scrubPII(data) : undefined;
-    const formatted = this.formatMessage('SECURITY', scope, `🔒 ${event}`, scrubbedData);
-    console.warn(formatted);
-    
-    // In production, could send to security monitoring service
-    if (this.isProduction) {
-      this.sendToSecurityMonitoring(scope, event, scrubbedData);
+    try {
+      const scrubbedData = data ? this.scrubPII(data) : undefined;
+      const formatted = this.formatMessage('SECURITY', scope, `🔒 ${event}`, scrubbedData);
+      this.originalConsole.warn(formatted);
+      
+      // In production, could send to security monitoring service
+      if (this.isProduction) {
+        this.sendToSecurityMonitoring(scope, event, scrubbedData);
+      }
+    } catch (error) {
+      this.originalConsole.error('SecureLogger security error:', error);
     }
   }
 
@@ -294,12 +323,56 @@ export const log = {
 if (import.meta.env.PROD) {
   const originalConsole = { ...console };
   
-  console.log = (...args) => secureLogger.info('CONSOLE', args.join(' '));
-  console.info = (...args) => secureLogger.info('CONSOLE', args.join(' '));
-  console.warn = (...args) => secureLogger.warn('CONSOLE', args.join(' '));
-  console.error = (...args) => secureLogger.error('CONSOLE', args.join(' '));
-  console.debug = (...args) => secureLogger.debug('CONSOLE', args.join(' '));
+  // Use original console methods in the logger to prevent recursion
+  const safeConsole = {
+    log: originalConsole.log.bind(originalConsole),
+    info: originalConsole.info.bind(originalConsole),
+    warn: originalConsole.warn.bind(originalConsole),
+    error: originalConsole.error.bind(originalConsole),
+    debug: originalConsole.debug.bind(originalConsole),
+  };
+  
+  console.log = (...args) => {
+    try {
+      secureLogger.info('CONSOLE', args.join(' '));
+    } catch (error) {
+      safeConsole.error('SecureLogger error:', error);
+    }
+  };
+  
+  console.info = (...args) => {
+    try {
+      secureLogger.info('CONSOLE', args.join(' '));
+    } catch (error) {
+      safeConsole.error('SecureLogger error:', error);
+    }
+  };
+  
+  console.warn = (...args) => {
+    try {
+      secureLogger.warn('CONSOLE', args.join(' '));
+    } catch (error) {
+      safeConsole.error('SecureLogger error:', error);
+    }
+  };
+  
+  console.error = (...args) => {
+    try {
+      secureLogger.error('CONSOLE', args.join(' '));
+    } catch (error) {
+      safeConsole.error('SecureLogger error:', error);
+    }
+  };
+  
+  console.debug = (...args) => {
+    try {
+      secureLogger.debug('CONSOLE', args.join(' '));
+    } catch (error) {
+      safeConsole.error('SecureLogger error:', error);
+    }
+  };
   
   // Keep original methods available for emergency debugging
   (window as any).__originalConsole = originalConsole;
+  (window as any).__safeConsole = safeConsole;
 }
