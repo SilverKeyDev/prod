@@ -9,11 +9,11 @@ import {
   ChevronLeft,
   ArrowLeft,
 } from "lucide-react";
-import KeyTurnLoader from "../../components/ui/base/KeyTurnLoader";
+import KeyTurnLoader from "../../components/ui/loading/KeyTurnLoader";
 import { useChats } from "../../context";
-import { Chat } from "../../context/utils";
-import MiniLogo from "../../components/ui/base/MiniLogo";
-import Button from "../../components/ui/base/Button";
+import { Chat } from "../../types";
+import MiniLogo from "../../components/ui/asset/MiniLogo";
+import Button from "../../components/ui/button/Button";
 
 interface ChatMessage {
   id: string;
@@ -24,7 +24,7 @@ interface ChatMessage {
 
 export default function AIAssistant() {
   const navigate = useNavigate();
-  const { chats, refreshChats } = useChats();
+  const { chats, refreshChats, sendMessage: contextSendMessage, getChatHistory } = useChats();
   const [localChats, setLocalChats] = useState<Chat[]>([]);
   const [activeChatId, setActiveChatId] = useState<string>("");
   const [message, setMessage] = useState("");
@@ -42,19 +42,8 @@ export default function AIAssistant() {
     if (savedState) {
       try {
         const parsed = JSON.parse(savedState);
-        if (
-          parsed.activeChatId &&
-          parsed.activeChatId.match(
-            /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-          )
-        ) {
+        if (parsed.activeChatId && typeof parsed.activeChatId === 'string') {
           setActiveChatId(parsed.activeChatId);
-        } else if (parsed.activeChatId) {
-          console.warn(
-            "Clearing invalid activeChatId from localStorage:",
-            parsed.activeChatId
-          );
-          localStorage.removeItem("aiAssistantState");
         }
         if (parsed.message) setMessage(parsed.message);
       } catch {
@@ -132,48 +121,19 @@ export default function AIAssistant() {
 
   const loadChatHistory = async (chatId: string) => {
     try {
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
-      const idToken = localStorage.getItem("id_token");
+      const data = await getChatHistory(chatId);
+      const messages: ChatMessage[] = data.messages.map((msg: any) => ({
+        id: msg.id,
+        content: msg.message,
+        role: msg.role as "user" | "assistant",
+        timestamp: new Date(msg.timestamp),
+      }));
 
-      const cleanChatId = chatId.endsWith(".json")
-        ? chatId.slice(0, -5)
-        : chatId;
-
-      const response = await fetch(
-        `${apiBaseUrl}/api/v1/chat/history/${cleanChatId}`,
-        {
-          method: "GET",
-          mode: "cors",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-            Authorization: `Bearer ${idToken}`,
-          },
-        }
+      setLocalChats((prevChats) =>
+        prevChats.map((c: Chat) =>
+          c.id === activeChatId ? { ...c, messages } : c
+        )
       );
-
-      if (response.ok) {
-        const data = await response.json();
-
-        const messages: ChatMessage[] = data.messages.map((msg: any) => ({
-          id: msg.id,
-          content: msg.message,
-          role: msg.role as "user" | "assistant",
-          timestamp: new Date(msg.timestamp),
-        }));
-
-        setLocalChats((prevChats) =>
-          prevChats.map((c: Chat) =>
-            c.id === activeChatId ? { ...c, messages } : c
-          )
-        );
-      } else {
-        console.error(
-          `[AI_ASSISTANT] Failed to load chat history - Status: ${response.status}`
-        );
-        const errorText = await response.text();
-        console.error(`[AI_ASSISTANT] Error response:`, errorText);
-      }
     } catch (error) {
       console.error(
         `[AI_ASSISTANT] Failed to load chat history for ${chatId}:`,
@@ -213,70 +173,22 @@ export default function AIAssistant() {
     setIsTyping(true);
 
     try {
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
-      const idToken = localStorage.getItem("id_token");
-      const cleanActiveChatId = activeChatId.endsWith(".json")
-        ? activeChatId.slice(0, -5)
-        : activeChatId;
+      const data = await contextSendMessage(activeChatId, userMessage);
 
-      const response = await fetch(
-        `${apiBaseUrl}/api/v1/chat/address/${cleanActiveChatId}`,
-        {
-          method: "POST",
-          mode: "cors",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-            Authorization: `Bearer ${idToken}`,
-          },
-          body: JSON.stringify({ message: userMessage }),
-        }
+      const aiResponse: ChatMessage = {
+        id: data.message_id || (Date.now() + 1).toString(),
+        content: data.response,
+        role: "assistant",
+        timestamp: new Date(),
+      };
+
+      setLocalChats((prev: Chat[]) =>
+        prev.map((chat) =>
+          chat.id === activeChatId
+            ? { ...chat, messages: [...chat.messages, aiResponse] }
+            : chat
+        )
       );
-
-      if (response.ok) {
-        const data = await response.json();
-
-        const aiResponse: ChatMessage = {
-          id: data.message_id || (Date.now() + 1).toString(),
-          content: data.response,
-          role: "assistant",
-          timestamp: new Date(),
-        };
-
-        setLocalChats((prev: Chat[]) =>
-          prev.map((chat) =>
-            chat.id === activeChatId
-              ? { ...chat, messages: [...chat.messages, aiResponse] }
-              : chat
-          )
-        );
-      } else {
-        console.error(
-          `[AI_ASSISTANT] Chat API error - Status: ${response.status}`
-        );
-
-        const errorData = await response
-          .json()
-          .catch(() => ({ error: "Unknown error" }));
-        console.error(`[AI_ASSISTANT] Error response data:`, errorData);
-
-        const errorMessage: ChatMessage = {
-          id: (Date.now() + 1).toString(),
-          content: `Sorry, I encountered an error: ${
-            errorData.error || "Please try again."
-          }`,
-          role: "assistant",
-          timestamp: new Date(),
-        };
-
-        setLocalChats((prev: Chat[]) =>
-          prev.map((chat) =>
-            chat.id === activeChatId
-              ? { ...chat, messages: [...chat.messages, errorMessage] }
-              : chat
-          )
-        );
-      }
     } catch (error) {
       console.error(`[AI_ASSISTANT] Network error sending message:`, error);
       const errorMessage: ChatMessage = {
@@ -318,7 +230,7 @@ export default function AIAssistant() {
             ${isSidebarExpanded ? "translate-x-0" : "-translate-x-full"}
             absolute md:static z-40 h-full
           `}
-          aria-hidden={!isSidebarExpanded && window.innerWidth < 768}
+          aria-hidden={!isSidebarExpanded}
         >
           {/* Fixed Header */}
           <div className="p-3 border-b border-beige bg-white flex-shrink-0 rounded-t-xl">
@@ -373,7 +285,8 @@ export default function AIAssistant() {
                   key={chat.id}
                   onClick={() => {
                     setActiveChatId(chat.id);
-                    if (window.innerWidth < 768) setIsSidebarExpanded(false);
+                    // Close sidebar on mobile after selecting chat
+                    setIsSidebarExpanded(false);
                   }}
                   className={`
                     p-3 cursor-pointer transition-colors border-b border-beige/50 group hover:bg-beige/10
@@ -415,7 +328,9 @@ export default function AIAssistant() {
               <button
                 onClick={() => setIsSidebarExpanded((v) => !v)}
                 className="md:hidden inline-flex items-center justify-center rounded-lg p-2 focus:outline-none"
-                aria-label={isSidebarExpanded ? "Close chat list" : "Open chat list"}
+                aria-label={
+                  isSidebarExpanded ? "Close chat list" : "Open chat list"
+                }
                 aria-expanded={isSidebarExpanded}
               >
                 {isSidebarExpanded ? (
@@ -429,7 +344,6 @@ export default function AIAssistant() {
                 {activeChat ? activeChat.title : "AI Assistant"}
               </h3>
             </div>
-
           </div>
 
           {/* Messages */}

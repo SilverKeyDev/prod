@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useRef } from "react";
-import { useGoogleMaps } from "../../context";
-import { usePreferences } from "../../context";
-import Card from "../../components/ui/base/Card";
+// React imports
+import React, { useState, useEffect } from "react";
+
+// Third-party libraries
+import { DragEndEvent } from "@dnd-kit/core";
+
+// Third-party UI icons
 import {
-  Edit,
-  Save,
-  X,
   User,
   Building,
   Home,
@@ -13,21 +13,31 @@ import {
   MessageSquare,
   ListOrdered,
 } from "lucide-react";
-import { DragEndEvent } from "@dnd-kit/core";
-import { arrayMove } from "@dnd-kit/sortable";
-import { apiRequest } from "../../lib/api";
-import PriceRangeSlider from "../../components/ui/onboardpersonalize/PriceRangeSlider";
-import ImportantLocationsInput from "../../components/ui/onboardpersonalize/ImportantLocationsInput";
-import HomePriceEstimate from "../../components/ui/onboardpersonalize/HomePriceEstimate";
-import { calculateAffordableHomePrice } from "../../lib/onboard/homePriceCalculation";
-import Loading from "../../components/ui/base/Loading";
-import OliveCheckbox from "../../components/ui/base/OliveCheckbox";
-import OnPerDragDropPriorities from "../../components/ui/onboardpersonalize/OnPerDragDropPriorities";
-import OnPerTagInput from "../../components/ui/onboardpersonalize/OnPerTagInput";
-import Dropdown from "../../components/ui/base/Dropdown";
-import Input from "../../components/ui/base/Input";
-import { Title, Subtitle } from "../../components/ui/base";
-import PersonalizationMobileHeader from "../../components/ui/onboardpersonalize/PersonalizationMobileHeader";
+
+// Context providers
+import { useGoogleMaps } from "../../context";
+import { usePreferences } from "../../context";
+
+// UI Components
+import Card from "../../components/layout/Card";
+import { Loading, OliveCheckbox, Dropdown, Input, Title, Subtitle } from "../../components/ui";
+
+// Feature components
+import PriceRangeSlider from "../../features/onboardpersonalize/PriceRangeSlider";
+import ImportantLocationsInput from "../../features/onboardpersonalize/ImportantLocationsInput";
+import HomePriceEstimate from "../../features/onboardpersonalize/HomePriceEstimate";
+import OnPerDragDropPriorities from "../../features/onboardpersonalize/OnPerDragDropPriorities";
+import OnPerTagInput from "../../features/onboardpersonalize/OnPerTagInput";
+import Label from "../../features/onboardpersonalize/Label";
+import PersonalizationMobileHeader from "../../features/onboardpersonalize/PersonalizationMobileHeader";
+
+// Utility functions
+import { handleDragEnd as handleDragEndUtil } from "../../features/onboardpersonalize/utils/dragEndHandler";
+import { handleSubmit as handleSubmitUtil } from "../../features/onboardpersonalize/utils/submitHandler";
+import { validateOnboardingData } from "../../features/onboardpersonalize/utils/validation";
+import { calculateAffordableHomePrice } from "../../features/onboardpersonalize/utils/homePriceCalculation";
+import PersonalizationSidebar from "../../features/onboardpersonalize/PersonalizationSidebar";
+import useMobile from "../../hooks/useMobile";
 import {
   OnboardingData,
   SECTION_TITLES,
@@ -35,7 +45,8 @@ import {
   CREDIT_SCORE_OPTIONS,
   HOUSING_TYPE_OPTIONS,
   COMMUNICATION_FREQUENCY_OPTIONS,
-} from "../../lib/onboard";
+} from "../../features/onboardpersonalize/utils/constants";
+import AlignedRow from "../../components/layout/AlignedRow";
 
 // Extend window interface for Google Maps
 declare global {
@@ -83,7 +94,8 @@ export default function PersonalizationPage({
   const [homePriceResult, setHomePriceResult] = useState<any>(null);
   const [homePriceLoading, setHomePriceLoading] = useState(false);
   const [homePriceError, setHomePriceError] = useState<string | null>(null);
-  const saveButtonRef = useRef<HTMLDivElement>(null);
+  const [isAffordabilityCollapsed, setIsAffordabilityCollapsed] =
+    useState(false);
 
   // Generate explanation text for the home price calculation
   const generateExplanation = (result: any, data: OnboardingData) => {
@@ -234,32 +246,12 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
 
   // Handle drag end for reordering
   const handleDragEnd = (event: DragEndEvent) => {
-    try {
-      const { active, over } = event;
-
-      if (!active || !over || !active.id || !over.id || active.id === over.id)
-        return;
-
-      const sections = getOrderedReportSections();
-      const oldIndex = sections.findIndex(
-        (section) => section.key === active.id
-      );
-      const newIndex = sections.findIndex((section) => section.key === over.id);
-
-      if (oldIndex === -1 || newIndex === -1) return;
-
-      const currentPriorities = formData.report_section_priorities || [];
-      const reorderedSections = arrayMove(sections, oldIndex, newIndex);
-
-      // Only include sections that were previously selected (in priorities)
-      const newPriorities = reorderedSections
-        .filter((section) => currentPriorities.includes(section.key))
-        .map((section) => section.key);
-
-      updateFormData("report_section_priorities", newPriorities);
-    } catch (error) {
-      console.error("Error in handleDragEnd:", error);
-    }
+    handleDragEndUtil({
+      event,
+      getOrderedReportSections,
+      formData,
+      updateFormData,
+    });
   };
 
   // Handle checkbox toggle for report sections
@@ -300,24 +292,8 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
     }
   }, [userPreferences]);
 
-  // Track scroll position to update active section and manage mobile header
+  // Track scroll position to update active section
   useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth < 1024) {
-        setMobileHeaderActions(
-          <PersonalizationMobileHeader
-            isEditMode={isEditMode}
-            isSaving={isSaving}
-            onEdit={() => setIsEditMode(true)}
-            onCancel={handleCancel}
-            onSave={handleSaveChanges}
-          />
-        );
-      } else {
-        setMobileHeaderActions(null);
-      }
-    };
-
     const handleScroll = () => {
       const sections = STEPS.map((step) => step.id);
       const scrollPosition = window.scrollY + 200; // Offset for header
@@ -331,16 +307,11 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
       }
     };
 
-    // Initial check
-    handleResize();
-
     window.addEventListener("scroll", handleScroll);
-    window.addEventListener("resize", handleResize);
     return () => {
       window.removeEventListener("scroll", handleScroll);
-      window.removeEventListener("resize", handleResize);
     };
-  }, [isEditMode, isSaving]);
+  }, []);
 
   // Use centralized Google Maps loading
   const { isLoaded: googleMapsLoaded, error: googleMapsError } =
@@ -374,216 +345,68 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
     }
   };
 
-  const updateFormData = (field: keyof OnboardingData, value: any) => {
+  const updateFormData = (field: string | number | symbol, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  // Validation function to check if all required fields are filled
-  const validateFormData = (): {
-    isValid: boolean;
-    missingFields: string[];
-    errors: string[];
-  } => {
-    const missingFields: string[] = [];
-    const errors: string[] = [];
-
-    // Demographics - Required fields
-    if (!formData.age || formData.age <= 0) {
-      missingFields.push("Age");
-    }
-    if (!formData.gender || formData.gender.trim() === "") {
-      missingFields.push("Gender");
-    }
-    if (!formData.occupation || formData.occupation.trim() === "") {
-      missingFields.push("Occupation");
-    }
-    if (!formData.pets || formData.pets.trim() === "") {
-      missingFields.push("Pet ownership status");
-    }
-
-    // Financial - Required fields
-    if (!formData.gross_income || formData.gross_income <= 0) {
-      missingFields.push("Gross income");
-    }
-    if (!formData.home_budget || formData.home_budget <= 0) {
-      missingFields.push("Home budget");
-    }
-    if (
-      !formData.credit_score_range ||
-      formData.credit_score_range.trim() === ""
-    ) {
-      missingFields.push("Credit score range");
-    }
-    if (!formData.down_payment || formData.down_payment < 0) {
-      missingFields.push("Down payment");
-    }
-
-    // Housing - Required fields
-    if (
-      !formData.preferred_housing_type ||
-      formData.preferred_housing_type.trim() === ""
-    ) {
-      missingFields.push("Preferred housing type");
-    }
-    if (!formData.preferred_bedrooms || formData.preferred_bedrooms <= 0) {
-      missingFields.push("Preferred bedrooms");
-    }
-    if (!formData.preferred_bathrooms || formData.preferred_bathrooms <= 0) {
-      missingFields.push("Preferred bathrooms");
-    }
-    if (
-      !formData.preferred_lot_size ||
-      formData.preferred_lot_size.trim() === ""
-    ) {
-      missingFields.push("Preferred lot size");
-    }
-    if (
-      !formData.preferred_home_age ||
-      formData.preferred_home_age.trim() === ""
-    ) {
-      missingFields.push("Preferred home age");
-    }
-    if (
-      !formData.renovation_preference ||
-      formData.renovation_preference.trim() === ""
-    ) {
-      missingFields.push("Renovation preference");
-    }
-    if (
-      !formData.intended_property_use ||
-      formData.intended_property_use.trim() === ""
-    ) {
-      missingFields.push("Intended property use");
-    }
-
-    // Location - Required fields
-    if (
-      !formData.important_locations ||
-      formData.important_locations.length === 0
-    ) {
-      missingFields.push("At least one important location");
-    } else {
-      // Validate each important location has required fields
-      formData.important_locations.forEach((location, index) => {
-        if (!location.name || location.name.trim() === "") {
-          missingFields.push(`Important location ${index + 1} name`);
-        }
-        if (!location.address || location.address.trim() === "") {
-          missingFields.push(`Important location ${index + 1} address`);
-        }
-        if (!location.commute_tolerance || location.commute_tolerance <= 0) {
-          missingFields.push(
-            `Important location ${index + 1} commute tolerance`
-          );
-        }
-      });
-    }
-
-    if (
-      !formData.walkability_importance ||
-      formData.walkability_importance.trim() === ""
-    ) {
-      missingFields.push("Walkability importance");
-    }
-
-    // Communication - Required fields
-    if (
-      !formData.communication_frequency ||
-      formData.communication_frequency.trim() === ""
-    ) {
-      missingFields.push("Communication frequency");
-    }
-    if (
-      !formData.information_detail_level ||
-      formData.information_detail_level.trim() === ""
-    ) {
-      missingFields.push("Information detail level");
-    }
-    if (!formData.has_buyers_agent || formData.has_buyers_agent.trim() === "") {
-      missingFields.push("Buyers agent status");
-    }
-
-    // Report Customization - At least one section must be selected
-    if (
-      !formData.report_section_priorities ||
-      formData.report_section_priorities.length === 0
-    ) {
-      missingFields.push("At least one report section");
-    }
-
-    // Additional validation rules
-    if (
-      formData.down_payment &&
-      formData.home_budget &&
-      formData.down_payment > formData.home_budget
-    ) {
-      errors.push("Down payment cannot be higher than home budget.");
-    }
-
-    return {
-      isValid: missingFields.length === 0 && errors.length === 0,
-      missingFields,
-      errors,
-    };
-  };
-
   const handleSaveChanges = async () => {
-    // Validate form data before saving
-    const validation = validateFormData();
+    // Increment version for this update
+    const currentVersion = formData.preferences_version || "1.0";
+    const versionParts = currentVersion.split(".");
+    const majorVersion = parseInt(versionParts[0]) || 1;
+    const minorVersion = parseInt(versionParts[1]) || 0;
+    const newVersion = `${majorVersion}.${minorVersion + 1}`;
 
-    if (!validation.isValid) {
-      // Show the custom validation warning component
-      // Validation warning would be shown here
-      console.warn(
-        "Validation failed:",
-        validation.missingFields,
-        validation.errors
-      );
-      return;
-    }
+    const dataToSave = {
+      ...formData,
+      preferences_version: newVersion,
+    };
 
-    try {
-      setIsSaving(true);
-
-      // Increment version for this update
-      const currentVersion = formData.preferences_version || "1.0";
-      const versionParts = currentVersion.split(".");
-      const majorVersion = parseInt(versionParts[0]) || 1;
-      const minorVersion = parseInt(versionParts[1]) || 0;
-      const newVersion = `${majorVersion}.${minorVersion + 1}`;
-
-      const dataToSave = {
-        ...formData,
-        preferences_version: newVersion,
-      };
-
-      await apiRequest("/api/v1/preferences", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(dataToSave),
-      });
-
-      // Update local state with new version
-      const updatedFormData = { ...formData, preferences_version: newVersion };
-      setFormData(updatedFormData);
-      setOriginalData(updatedFormData);
-      setIsEditMode(false);
-      // Success dialog would be shown here
-      console.log("Preferences saved successfully");
-    } catch (error) {
-      console.error("Failed to update preferences:", error);
-      alert("Failed to update preferences. Please try again.");
-    } finally {
-      setIsSaving(false);
-    }
+    await handleSubmitUtil({
+      formData: dataToSave,
+      setLoading: setIsSaving,
+      validateFunction: validateOnboardingData,
+      onSuccess: () => {
+        // Update local state with new version
+        const updatedFormData = {
+          ...formData,
+          preferences_version: newVersion,
+        };
+        setFormData(updatedFormData);
+        setOriginalData(updatedFormData);
+        setIsEditMode(false);
+        console.log("Preferences saved successfully");
+      },
+      onError: (error) => {
+        console.error("Failed to update preferences:", error);
+        alert("Failed to update preferences. Please try again.");
+      },
+    });
   };
 
   const handleCancel = () => {
     setFormData(originalData);
     setIsEditMode(false);
   };
+
+  // Handle mobile header actions based on screen size
+  const isMobile = useMobile();
+
+  useEffect(() => {
+    if (isMobile) {
+      setMobileHeaderActions(
+        <PersonalizationMobileHeader
+          isEditMode={isEditMode}
+          isSaving={isSaving}
+          onEdit={() => setIsEditMode(true)}
+          onCancel={handleCancel}
+          onSave={handleSaveChanges}
+        />
+      );
+    } else {
+      setMobileHeaderActions(null);
+    }
+  }, [isMobile, isEditMode, isSaving]);
 
   // Modal handlers removed - modals not currently implemented
 
@@ -613,120 +436,122 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
               Tell us about yourself
             </Title>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Age
-                </label>
-                {isEditMode ? (
-                  <Input
-                    type="number"
-                    value={formData.age?.toString() || ""}
-                    onChange={(e) =>
-                      updateFormData(
-                        "age",
-                        parseInt(e.target.value) || undefined
-                      )
-                    }
-                    placeholder="Enter your age"
-                  />
-                ) : (
-                  <div className="mobile-input bg-gray-50">
-                    {formData.age || "Not specified"}
-                  </div>
-                )}
-              </div>
+            <AlignedRow
+              breakIntoRows="md"
+              gap="lg"
+              justify="start"
+              items={[
+                {
+                  title: <Label>Age</Label>,
+                  content: isEditMode ? (
+                    <Input
+                      type="number"
+                      value={formData.age?.toString() || ""}
+                      onChange={(e) =>
+                        updateFormData(
+                          "age",
+                          parseInt(e.target.value) || undefined
+                        )
+                      }
+                      placeholder="Enter your age"
+                    />
+                  ) : (
+                    <div className="mobile-input bg-gray-50">
+                      {formData.age || "Not specified"}
+                    </div>
+                  ),
+                },
+                {
+                  title: <Label>Gender</Label>,
+                  content: isEditMode ? (
+                    <Dropdown
+                      value={formData.gender || ""}
+                      onChange={(value) => updateFormData("gender", value)}
+                      options={[
+                        { value: "male", label: "Male" },
+                        { value: "female", label: "Female" },
+                        { value: "non-binary", label: "Non-binary" },
+                        {
+                          value: "prefer_not_to_say",
+                          label: "Prefer not to say",
+                        },
+                      ]}
+                      placeholder="Select..."
+                    />
+                  ) : (
+                    <div className="mobile-input bg-gray-50">
+                      {formData.gender
+                        ? [
+                            { value: "male", label: "Male" },
+                            { value: "female", label: "Female" },
+                            { value: "non-binary", label: "Non-binary" },
+                            {
+                              value: "prefer_not_to_say",
+                              label: "Prefer not to say",
+                            },
+                          ].find((opt) => opt.value === formData.gender)?.label
+                        : "Not specified"}
+                    </div>
+                  ),
+                },
+              ]}
+            />
 
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Gender
-                </label>
-                {isEditMode ? (
-                  <Dropdown
-                    value={formData.gender || ""}
-                    onChange={(value) => updateFormData("gender", value)}
-                    options={[
-                      { value: "male", label: "Male" },
-                      { value: "female", label: "Female" },
-                      { value: "non-binary", label: "Non-binary" },
-                      {
-                        value: "prefer_not_to_say",
-                        label: "Prefer not to say",
-                      },
-                    ]}
-                    placeholder="Select..."
-                  />
-                ) : (
-                  <div className="mobile-input bg-gray-50">
-                    {formData.gender
-                      ? [
-                          { value: "male", label: "Male" },
-                          { value: "female", label: "Female" },
-                          { value: "non-binary", label: "Non-binary" },
-                          {
-                            value: "prefer_not_to_say",
-                            label: "Prefer not to say",
-                          },
-                        ].find((opt) => opt.value === formData.gender)?.label
-                      : "Not specified"}
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Do you have pets?
-                </label>
-                {isEditMode ? (
-                  <Dropdown
-                    value={formData.pets || ""}
-                    onChange={(value) => updateFormData("pets", value)}
-                    options={[
-                      { value: "yes", label: "Yes" },
-                      { value: "no", label: "No" },
-                      {
-                        value: "prefer_not_to_say",
-                        label: "Prefer not to say",
-                      },
-                    ]}
-                    placeholder="Select..."
-                  />
-                ) : (
-                  <div className="mobile-input bg-gray-50">
-                    {formData.pets
-                      ? [
-                          { value: "yes", label: "Yes" },
-                          { value: "no", label: "No" },
-                          {
-                            value: "prefer_not_to_say",
-                            label: "Prefer not to say",
-                          },
-                        ].find((opt) => opt.value === formData.pets)?.label
-                      : "Not specified"}
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Occupation
-                </label>
-                {isEditMode ? (
-                  <Input
-                    type="text"
-                    value={formData.occupation || ""}
-                    onChange={(e) =>
-                      updateFormData("occupation", e.target.value)
-                    }
-                    placeholder="Your job title"
-                  />
-                ) : (
-                  <div className="mobile-input bg-gray-50">
-                    {formData.occupation || "Not specified"}
-                  </div>
-                )}
-              </div>
-            </div>
+            <AlignedRow
+              breakIntoRows="md"
+              gap="lg"
+              justify="start"
+              items={[
+                {
+                  title: <Label>Do you have pets?</Label>,
+                  content: isEditMode ? (
+                    <Dropdown
+                      value={formData.pets || ""}
+                      onChange={(value) => updateFormData("pets", value)}
+                      options={[
+                        { value: "yes", label: "Yes" },
+                        { value: "no", label: "No" },
+                        {
+                          value: "prefer_not_to_say",
+                          label: "Prefer not to say",
+                        },
+                      ]}
+                      placeholder="Select..."
+                    />
+                  ) : (
+                    <div className="mobile-input bg-gray-50">
+                      {formData.pets
+                        ? [
+                            { value: "yes", label: "Yes" },
+                            { value: "no", label: "No" },
+                            {
+                              value: "prefer_not_to_say",
+                              label: "Prefer not to say",
+                            },
+                          ].find((opt) => opt.value === formData.pets)?.label
+                        : "Not specified"}
+                    </div>
+                  ),
+                },
+                {
+                  title: <Label>Occupation</Label>,
+                  content: isEditMode ? (
+                    <Input
+                      type="text"
+                      value={formData.occupation || ""}
+                      onChange={(e) =>
+                        updateFormData("occupation", e.target.value)
+                      }
+                      placeholder="Your job title"
+                    />
+                  ) : (
+                    <div className="mobile-input bg-gray-50">
+                      {formData.occupation || "Not specified"}
+                    </div>
+                  ),
+                },
+              ]}
+            />
           </Card>
         );
 
@@ -737,112 +562,116 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
               Financial Information
             </Title>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Gross Annual Income (after debts)
-                </label>
-                {isEditMode ? (
-                  <PriceRangeSlider
-                    tickValues={[
-                      50000, 100000, 200000, 300000, 500000, 750000, 1000000,
-                    ]}
-                    value={formData.gross_income || 100000}
-                    onChange={(value) => {
-                      // Round to nearest $5,000 increment
-                      const roundedValue = Math.round(value / 5000) * 5000;
-                      updateFormData("gross_income", roundedValue);
-                    }}
-                    formatPrefix="$"
-                    className="mt-2"
-                  />
-                ) : (
-                  <div className="mobile-input bg-gray-50 text-center">
-                    {formData.gross_income
-                      ? `$${formData.gross_income.toLocaleString()}`
-                      : "Not specified"}
-                  </div>
-                )}
-              </div>
+            <AlignedRow
+              breakIntoRows="md"
+              gap="lg"
+              justify="start"
+              items={[
+                {
+                  title: <Label>Gross Annual Income (after debts)</Label>,
+                  content: isEditMode ? (
+                    <PriceRangeSlider
+                      tickValues={[
+                        50000, 100000, 200000, 300000, 500000, 750000, 1000000,
+                      ]}
+                      value={formData.gross_income || 100000}
+                      onChange={(value) => {
+                        // Round to nearest $5,000 increment
+                        const roundedValue = Math.round(value / 5000) * 5000;
+                        updateFormData("gross_income", roundedValue);
+                      }}
+                      formatPrefix="$"
+                      className="mt-2"
+                    />
+                  ) : (
+                    <div className="mobile-input bg-gray-50 text-center">
+                      {formData.gross_income
+                        ? `$${formData.gross_income.toLocaleString()}`
+                        : "Not specified"}
+                    </div>
+                  ),
+                },
+                {
+                  title: <Label>Down Payment</Label>,
+                  content: isEditMode ? (
+                    <PriceRangeSlider
+                      tickValues={[
+                        100000, 250000, 500000, 1000000, 2000000, 5000000,
+                      ]}
+                      value={formData.down_payment || 100000}
+                      onChange={(value) => {
+                        // Round to nearest $5,000 increment
+                        const roundedValue = Math.round(value / 5000) * 5000;
+                        updateFormData("down_payment", roundedValue);
+                      }}
+                      formatPrefix="$"
+                      className="mt-2"
+                    />
+                  ) : (
+                    <div className="mobile-input bg-gray-50 text-center">
+                      {formData.down_payment
+                        ? `$${formData.down_payment.toLocaleString()}`
+                        : "Not specified"}
+                    </div>
+                  ),
+                },
+              ]}
+            />
 
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Down Payment
-                </label>
-                {isEditMode ? (
-                  <PriceRangeSlider
-                    tickValues={[
-                      100000, 250000, 500000, 1000000, 2000000, 5000000,
-                    ]}
-                    value={formData.down_payment || 100000}
-                    onChange={(value) => {
-                      // Round to nearest $5,000 increment
-                      const roundedValue = Math.round(value / 5000) * 5000;
-                      updateFormData("down_payment", roundedValue);
-                    }}
-                    formatPrefix="$"
-                    className="mt-2"
-                  />
-                ) : (
-                  <div className="mobile-input bg-gray-50 text-center">
-                    {formData.down_payment
-                      ? `$${formData.down_payment.toLocaleString()}`
-                      : "Not specified"}
-                  </div>
-                )}
-              </div>
+            <AlignedRow
+              breakIntoRows="md"
+              gap="lg"
+              justify="evenly"
+              items={[
+                {
+                  title: <Label>Ideal Zip Code</Label>,
+                  content: isEditMode ? (
+                    <Input
+                      type="text"
+                      value={formData.ideal_zip_code || ""}
+                      onChange={(e) =>
+                        updateFormData("ideal_zip_code", e.target.value)
+                      }
+                      placeholder="Enter zip code"
+                    />
+                  ) : (
+                    <div className="mobile-input bg-gray-50">
+                      {formData.ideal_zip_code || "Not specified"}
+                    </div>
+                  ),
+                },
+                {
+                  title: <Label>{FIELD_LABELS.CREDIT_SCORE_RANGE}</Label>,
+                  content: isEditMode ? (
+                    <Dropdown
+                      value={formData.credit_score_range || ""}
+                      onChange={(value) =>
+                        updateFormData("credit_score_range", value)
+                      }
+                      options={[
+                        { value: "poor", label: "Poor (300-579)" },
+                        { value: "fair", label: "Fair (580-669)" },
+                        { value: "good", label: "Good (670-739)" },
+                        { value: "very_good", label: "Very Good (740-799)" },
+                        { value: "excellent", label: "Excellent (800-850)" },
+                      ]}
+                      placeholder="Select..."
+                    />
+                  ) : (
+                    <div className="mobile-input bg-gray-50">
+                      {formData.credit_score_range
+                        ? CREDIT_SCORE_OPTIONS.find(
+                            (option) =>
+                              option.value === formData.credit_score_range
+                          )?.label || "Not specified"
+                        : "Not specified"}
+                    </div>
+                  ),
+                },
+              ]}
+            />
 
-              <div>
-                <label className="block text-sm font-medium text-black mb-2 text-center">
-                  Ideal Zip Code
-                </label>
-                {isEditMode ? (
-                  <Input
-                    type="text"
-                    value={formData.ideal_zip_code || ""}
-                    onChange={(e) =>
-                      updateFormData("ideal_zip_code", e.target.value)
-                    }
-                    placeholder="Enter zip code"
-                  />
-                ) : (
-                  <div className="mobile-input bg-gray-50 text-center">
-                    {formData.ideal_zip_code || "Not specified"}
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-black mb-2 text-center">
-                  {FIELD_LABELS.CREDIT_SCORE_RANGE}
-                </label>
-                {isEditMode ? (
-                  <Dropdown
-                    value={formData.credit_score_range || ""}
-                    onChange={(value) =>
-                      updateFormData("credit_score_range", value)
-                    }
-                    options={[
-                      { value: "poor", label: "Poor (300-579)" },
-                      { value: "fair", label: "Fair (580-669)" },
-                      { value: "good", label: "Good (670-739)" },
-                      { value: "very_good", label: "Very Good (740-799)" },
-                      { value: "excellent", label: "Excellent (800-850)" },
-                    ]}
-                    placeholder="Select..."
-                  />
-                ) : (
-                  <div className="mobile-input bg-gray-50 text-center">
-                    {formData.credit_score_range
-                      ? CREDIT_SCORE_OPTIONS.find(
-                          (option) =>
-                            option.value === formData.credit_score_range
-                        )?.label || "Not specified"
-                      : "Not specified"}
-                  </div>
-                )}
-              </div>
-
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
               <div className="col-span-1 md:col-span-2 flex flex-col items-center">
                 <Title size="md" className="mb-2 text-center w-full font-bold">
                   Home Budget
@@ -870,14 +699,14 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                 )}
               </div>
 
-              {/* Home Price Calculation Results */}
-              <div className="col-span-1 md:col-span-2 mt-6">
-                <HomePriceEstimate
-                  homePriceLoading={homePriceLoading}
-                  homePriceError={homePriceError}
-                  homePriceResult={homePriceResult}
-                />
-              </div>
+              <HomePriceEstimate
+                homePriceLoading={homePriceLoading}
+                homePriceError={homePriceError}
+                homePriceResult={homePriceResult}
+                isAffordabilityCollapsed={isAffordabilityCollapsed}
+                setIsAffordabilityCollapsed={setIsAffordabilityCollapsed}
+                idealZipCode={formData.ideal_zip_code}
+              />
             </div>
           </Card>
         );
@@ -894,302 +723,311 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
               when matching properties to your lifestyle and needs.
             </Subtitle>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  {FIELD_LABELS.PREFERRED_HOUSING_TYPE}
-                </label>
-                {isEditMode ? (
-                  <Dropdown
-                    value={formData.preferred_housing_type || ""}
-                    onChange={(value) =>
-                      updateFormData("preferred_housing_type", value)
-                    }
-                    options={HOUSING_TYPE_OPTIONS}
-                    placeholder="Select..."
-                  />
-                ) : (
-                  <div className="mobile-input bg-gray-50">
-                    {formData.preferred_housing_type
-                      ? HOUSING_TYPE_OPTIONS.find(
-                          (option) =>
-                            option.value === formData.preferred_housing_type
-                        )?.label || "Not specified"
-                      : "Not specified"}
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Preferred Bedrooms
-                </label>
-                {isEditMode ? (
-                  <Input
-                    type="number"
-                    value={formData.preferred_bedrooms?.toString() || ""}
-                    onChange={(e) =>
-                      updateFormData(
-                        "preferred_bedrooms",
-                        parseInt(e.target.value) || undefined
-                      )
-                    }
-                    placeholder="Number of bedrooms"
-                  />
-                ) : (
-                  <div className="mobile-input bg-gray-50">
-                    {formData.preferred_bedrooms || "Not specified"}
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Preferred Bathrooms
-                </label>
-                {isEditMode ? (
-                  <Input
-                    type="number"
-                    value={formData.preferred_bathrooms?.toString() || ""}
-                    onChange={(e) =>
-                      updateFormData(
-                        "preferred_bathrooms",
-                        parseInt(e.target.value) || undefined
-                      )
-                    }
-                    placeholder="Number of bathrooms"
-                  />
-                ) : (
-                  <div className="mobile-input bg-gray-50">
-                    {formData.preferred_bathrooms || "Not specified"}
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Preferred Lot Size
-                </label>
-                {isEditMode ? (
-                  <Dropdown
-                    value={formData.preferred_lot_size || ""}
-                    onChange={(value) =>
-                      updateFormData("preferred_lot_size", value)
-                    }
-                    options={[
-                      { value: "small", label: "Small (under 0.25 acres)" },
-                      { value: "medium", label: "Medium (0.25 - 0.5 acres)" },
-                      { value: "large", label: "Large (0.5 - 1 acre)" },
-                      { value: "very_large", label: "Very Large (1+ acres)" },
-                    ]}
-                    placeholder="Select..."
-                  />
-                ) : (
-                  <div className="mobile-input bg-gray-50">
-                    {formData.preferred_lot_size
-                      ? [
-                          { value: "small", label: "Small (under 0.25 acres)" },
-                          {
-                            value: "medium",
-                            label: "Medium (0.25 - 0.5 acres)",
-                          },
-                          { value: "large", label: "Large (0.5 - 1 acre)" },
-                          {
-                            value: "very_large",
-                            label: "Very Large (1+ acres)",
-                          },
-                        ].find(
-                          (opt) => opt.value === formData.preferred_lot_size
-                        )?.label
-                      : "Not specified"}
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Preferred Home Age
-                </label>
-                {isEditMode ? (
-                  <Dropdown
-                    value={formData.preferred_home_age || ""}
-                    onChange={(value) =>
-                      updateFormData("preferred_home_age", value)
-                    }
-                    options={[
-                      { value: "new", label: "New (0-5 years)" },
-                      { value: "recent", label: "Recent (5-15 years)" },
-                      {
-                        value: "established",
-                        label: "Established (15-30 years)",
-                      },
-                      { value: "mature", label: "Mature (30-50 years)" },
-                      { value: "historic", label: "Historic (50+ years)" },
-                    ]}
-                    placeholder="Select..."
-                  />
-                ) : (
-                  <div className="mobile-input bg-gray-50">
-                    {formData.preferred_home_age
-                      ? [
-                          { value: "new", label: "New (0-5 years)" },
-                          { value: "recent", label: "Recent (5-15 years)" },
-                          {
-                            value: "established",
-                            label: "Established (15-30 years)",
-                          },
-                          { value: "mature", label: "Mature (30-50 years)" },
-                          { value: "historic", label: "Historic (50+ years)" },
-                        ].find(
-                          (opt) => opt.value === formData.preferred_home_age
-                        )?.label
-                      : "Not specified"}
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Preferred Architectural Style
-                </label>
-                {isEditMode ? (
-                  <Dropdown
-                    value={formData.preferred_architectural_style || ""}
-                    onChange={(value) =>
-                      updateFormData("preferred_architectural_style", value)
-                    }
-                    options={[
-                      { value: "modern", label: "Modern" },
-                      { value: "traditional", label: "Traditional" },
-                      { value: "colonial", label: "Colonial" },
-                      { value: "ranch", label: "Ranch" },
-                      { value: "craftsman", label: "Craftsman" },
-                      { value: "victorian", label: "Victorian" },
-                      { value: "mediterranean", label: "Mediterranean" },
-                      { value: "contemporary", label: "Contemporary" },
-                    ]}
-                    placeholder="Select..."
-                  />
-                ) : (
-                  <div className="mobile-input bg-gray-50">
-                    {formData.preferred_architectural_style
-                      ? [
-                          { value: "modern", label: "Modern" },
-                          { value: "traditional", label: "Traditional" },
-                          { value: "colonial", label: "Colonial" },
-                          { value: "ranch", label: "Ranch" },
-                          { value: "craftsman", label: "Craftsman" },
-                          { value: "victorian", label: "Victorian" },
-                          { value: "mediterranean", label: "Mediterranean" },
-                          { value: "contemporary", label: "Contemporary" },
-                        ].find(
-                          (opt) =>
-                            opt.value === formData.preferred_architectural_style
-                        )?.label
-                      : "Not specified"}
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Renovation Willingness
-                </label>
-                {isEditMode ? (
-                  <Dropdown
-                    value={formData.renovation_preference || ""}
-                    onChange={(value) =>
-                      updateFormData("renovation_preference", value)
-                    }
-                    options={[
-                      { value: "none", label: "None - Move-in Ready" },
-                      { value: "minor", label: "Minor Cosmetic Updates" },
-                      { value: "major", label: "Major Renovations" },
-                      { value: "complete", label: "Complete Renovation" },
-                    ]}
-                    placeholder="Select..."
-                  />
-                ) : (
-                  <div className="mobile-input bg-gray-50">
-                    {formData.renovation_preference
-                      ? [
-                          { value: "none", label: "None - Move-in Ready" },
-                          { value: "minor", label: "Minor Cosmetic Updates" },
-                          { value: "major", label: "Major Renovations" },
-                          { value: "complete", label: "Complete Renovation" },
-                        ].find(
-                          (opt) => opt.value === formData.renovation_preference
-                        )?.label
-                      : "Not specified"}
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Intended Property Use
-                </label>
-                {isEditMode ? (
-                  <Dropdown
-                    value={formData.intended_property_use || ""}
-                    onChange={(value) =>
-                      updateFormData("intended_property_use", value)
-                    }
-                    options={[
-                      { value: "primary", label: "Primary Residence" },
-                      { value: "investment", label: "Investment Property" },
-                      { value: "vacation", label: "Vacation Home" },
-                      { value: "rental", label: "Rental Property" },
-                    ]}
-                    placeholder="Select..."
-                  />
-                ) : (
-                  <div className="mobile-input bg-gray-50">
-                    {formData.intended_property_use
-                      ? [
-                          { value: "primary", label: "Primary Residence" },
-                          { value: "investment", label: "Investment Property" },
-                          { value: "vacation", label: "Vacation Home" },
-                          { value: "rental", label: "Rental Property" },
-                        ].find(
-                          (opt) => opt.value === formData.intended_property_use
-                        )?.label
-                      : "Not specified"}
-                  </div>
-                )}
-              </div>
-
-              <div className="md:col-span-2">
-                <div className="mb-[5px]">
-                  <div>
-                    <label className="block text-sm font-medium text-black mb-2">
-                      Preferred Home Features
-                    </label>
-                    <OnPerTagInput
-                      value={
-                        (formData.preferred_home_features as string[]) || []
+            <AlignedRow
+              breakIntoRows="md"
+              gap="lg"
+              justify="start"
+              items={[
+                {
+                  title: <Label>{FIELD_LABELS.PREFERRED_HOUSING_TYPE}</Label>,
+                  content: isEditMode ? (
+                    <Dropdown
+                      value={formData.preferred_housing_type || ""}
+                      onChange={(value) =>
+                        updateFormData("preferred_housing_type", value)
                       }
-                      onChange={(value: string[]) =>
-                        updateFormData("preferred_home_features", value)
-                      }
-                      placeholder="e.g., garage, pool, fireplace"
+                      options={HOUSING_TYPE_OPTIONS}
+                      placeholder="Select..."
                     />
-                  </div>
-                </div>
-                <div className="md:col-span-2">
-                  <div>
-                    <label className="block text-sm font-medium text-black mb-2">
-                      Deal Breakers
-                    </label>
-                    <OnPerTagInput
-                      value={(formData.deal_breakers as string[]) || []}
-                      onChange={(value: string[]) =>
-                        updateFormData("deal_breakers", value)
+                  ) : (
+                    <div className="mobile-input bg-gray-50">
+                      {formData.preferred_housing_type
+                        ? HOUSING_TYPE_OPTIONS.find(
+                            (option) =>
+                              option.value === formData.preferred_housing_type
+                          )?.label || "Not specified"
+                        : "Not specified"}
+                    </div>
+                  ),
+                },
+                {
+                  title: <Label>Preferred Bedrooms</Label>,
+                  content: isEditMode ? (
+                    <Input
+                      type="number"
+                      value={formData.preferred_bedrooms?.toString() || ""}
+                      onChange={(e) =>
+                        updateFormData(
+                          "preferred_bedrooms",
+                          parseInt(e.target.value) || undefined
+                        )
                       }
-                      placeholder="e.g., No parking, Busy road, Old plumbing"
+                      placeholder="Number of bedrooms"
                     />
-                  </div>
-                </div>
+                  ) : (
+                    <div className="mobile-input bg-gray-50">
+                      {formData.preferred_bedrooms || "Not specified"}
+                    </div>
+                  ),
+                },
+              ]}
+            />
+
+            <AlignedRow
+              breakIntoRows="md"
+              gap="lg"
+              justify="start"
+              items={[
+                {
+                  title: <Label>Preferred Bathrooms</Label>,
+                  content: isEditMode ? (
+                    <Input
+                      type="number"
+                      value={formData.preferred_bathrooms?.toString() || ""}
+                      onChange={(e) =>
+                        updateFormData(
+                          "preferred_bathrooms",
+                          parseInt(e.target.value) || undefined
+                        )
+                      }
+                      placeholder="Number of bathrooms"
+                    />
+                  ) : (
+                    <div className="mobile-input bg-gray-50">
+                      {formData.preferred_bathrooms || "Not specified"}
+                    </div>
+                  ),
+                },
+                {
+                  title: <Label>Preferred Lot Size</Label>,
+                  content: isEditMode ? (
+                    <Dropdown
+                      value={formData.preferred_lot_size || ""}
+                      onChange={(value) =>
+                        updateFormData("preferred_lot_size", value)
+                      }
+                      options={[
+                        { value: "small", label: "Small (under 0.25 acres)" },
+                        { value: "medium", label: "Medium (0.25 - 0.5 acres)" },
+                        { value: "large", label: "Large (0.5 - 1 acre)" },
+                        { value: "very_large", label: "Very Large (1+ acres)" },
+                      ]}
+                      placeholder="Select..."
+                    />
+                  ) : (
+                    <div className="mobile-input bg-gray-50">
+                      {formData.preferred_lot_size
+                        ? [
+                            {
+                              value: "small",
+                              label: "Small (under 0.25 acres)",
+                            },
+                            {
+                              value: "medium",
+                              label: "Medium (0.25 - 0.5 acres)",
+                            },
+                            { value: "large", label: "Large (0.5 - 1 acre)" },
+                            {
+                              value: "very_large",
+                              label: "Very Large (1+ acres)",
+                            },
+                          ].find(
+                            (opt) => opt.value === formData.preferred_lot_size
+                          )?.label
+                        : "Not specified"}
+                    </div>
+                  ),
+                },
+              ]}
+            />
+
+            <AlignedRow
+              breakIntoRows="md"
+              gap="lg"
+              justify="start"
+              items={[
+                {
+                  title: <Label>Preferred Home Age</Label>,
+                  content: isEditMode ? (
+                    <Dropdown
+                      value={formData.preferred_home_age || ""}
+                      onChange={(value) =>
+                        updateFormData("preferred_home_age", value)
+                      }
+                      options={[
+                        { value: "new", label: "New (0-5 years)" },
+                        { value: "recent", label: "Recent (5-15 years)" },
+                        {
+                          value: "established",
+                          label: "Established (15-30 years)",
+                        },
+                        { value: "mature", label: "Mature (30-50 years)" },
+                        { value: "historic", label: "Historic (50+ years)" },
+                      ]}
+                      placeholder="Select..."
+                    />
+                  ) : (
+                    <div className="mobile-input bg-gray-50">
+                      {formData.preferred_home_age
+                        ? [
+                            { value: "new", label: "New (0-5 years)" },
+                            { value: "recent", label: "Recent (5-15 years)" },
+                            {
+                              value: "established",
+                              label: "Established (15-30 years)",
+                            },
+                            { value: "mature", label: "Mature (30-50 years)" },
+                            {
+                              value: "historic",
+                              label: "Historic (50+ years)",
+                            },
+                          ].find(
+                            (opt) => opt.value === formData.preferred_home_age
+                          )?.label
+                        : "Not specified"}
+                    </div>
+                  ),
+                },
+                {
+                  title: <Label>Preferred Architectural Style</Label>,
+                  content: isEditMode ? (
+                    <Dropdown
+                      value={formData.preferred_architectural_style || ""}
+                      onChange={(value) =>
+                        updateFormData("preferred_architectural_style", value)
+                      }
+                      options={[
+                        { value: "modern", label: "Modern" },
+                        { value: "traditional", label: "Traditional" },
+                        { value: "colonial", label: "Colonial" },
+                        { value: "ranch", label: "Ranch" },
+                        { value: "craftsman", label: "Craftsman" },
+                        { value: "victorian", label: "Victorian" },
+                        { value: "mediterranean", label: "Mediterranean" },
+                        { value: "contemporary", label: "Contemporary" },
+                      ]}
+                      placeholder="Select..."
+                    />
+                  ) : (
+                    <div className="mobile-input bg-gray-50">
+                      {formData.preferred_architectural_style
+                        ? [
+                            { value: "modern", label: "Modern" },
+                            { value: "traditional", label: "Traditional" },
+                            { value: "colonial", label: "Colonial" },
+                            { value: "ranch", label: "Ranch" },
+                            { value: "craftsman", label: "Craftsman" },
+                            { value: "victorian", label: "Victorian" },
+                            { value: "mediterranean", label: "Mediterranean" },
+                            { value: "contemporary", label: "Contemporary" },
+                          ].find(
+                            (opt) =>
+                              opt.value ===
+                              formData.preferred_architectural_style
+                          )?.label
+                        : "Not specified"}
+                    </div>
+                  ),
+                },
+              ]}
+            />
+
+            <AlignedRow
+              breakIntoRows="md"
+              gap="lg"
+              justify="start"
+              items={[
+                {
+                  title: <Label>Renovation Willingness</Label>,
+                  content: isEditMode ? (
+                    <Dropdown
+                      value={formData.renovation_preference || ""}
+                      onChange={(value) =>
+                        updateFormData("renovation_preference", value)
+                      }
+                      options={[
+                        { value: "none", label: "None - Move-in Ready" },
+                        { value: "minor", label: "Minor Cosmetic Updates" },
+                        { value: "major", label: "Major Renovations" },
+                        { value: "complete", label: "Complete Renovation" },
+                      ]}
+                      placeholder="Select..."
+                    />
+                  ) : (
+                    <div className="mobile-input bg-gray-50">
+                      {formData.renovation_preference
+                        ? [
+                            { value: "none", label: "None - Move-in Ready" },
+                            { value: "minor", label: "Minor Cosmetic Updates" },
+                            { value: "major", label: "Major Renovations" },
+                            { value: "complete", label: "Complete Renovation" },
+                          ].find(
+                            (opt) =>
+                              opt.value === formData.renovation_preference
+                          )?.label
+                        : "Not specified"}
+                    </div>
+                  ),
+                },
+                {
+                  title: <Label>Intended Property Use</Label>,
+                  content: isEditMode ? (
+                    <Dropdown
+                      value={formData.intended_property_use || ""}
+                      onChange={(value) =>
+                        updateFormData("intended_property_use", value)
+                      }
+                      options={[
+                        { value: "primary", label: "Primary Residence" },
+                        { value: "investment", label: "Investment Property" },
+                        { value: "vacation", label: "Vacation Home" },
+                        { value: "rental", label: "Rental Property" },
+                      ]}
+                      placeholder="Select..."
+                    />
+                  ) : (
+                    <div className="mobile-input bg-gray-50">
+                      {formData.intended_property_use
+                        ? [
+                            { value: "primary", label: "Primary Residence" },
+                            {
+                              value: "investment",
+                              label: "Investment Property",
+                            },
+                            { value: "vacation", label: "Vacation Home" },
+                            { value: "rental", label: "Rental Property" },
+                          ].find(
+                            (opt) =>
+                              opt.value === formData.intended_property_use
+                          )?.label
+                        : "Not specified"}
+                    </div>
+                  ),
+                },
+              ]}
+            />
+
+            <div className="space-y-6">
+              <div>
+                <Label>Preferred Home Features</Label>
+                <OnPerTagInput
+                  value={(formData.preferred_home_features as string[]) || []}
+                  onChange={(value: string[]) =>
+                    updateFormData("preferred_home_features", value)
+                  }
+                  placeholder="e.g., garage, pool, fireplace"
+                />
+              </div>
+
+              <div>
+                <Label>Deal Breakers</Label>
+                <OnPerTagInput
+                  value={(formData.deal_breakers as string[]) || []}
+                  onChange={(value: string[]) =>
+                    updateFormData("deal_breakers", value)
+                  }
+                  placeholder="e.g., No parking, Busy road, Old plumbing"
+                />
               </div>
             </div>
           </Card>
@@ -1204,9 +1042,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
 
             <div className="grid grid-cols-1 gap-6">
               <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Walkability Importance
-                </label>
+                <Label>Walkability Importance</Label>
                 {isEditMode ? (
                   <Dropdown
                     value={formData.walkability_importance || ""}
@@ -1245,9 +1081,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
             {/* Important Locations for Commute */}
             <div className="flex flex-col md:flex-row gap-6 w-full">
               <div className="flex-1">
-                <label className="block text-sm font-medium text-black mb-2">
-                  Important Locations
-                </label>
+                <Label>Important Locations</Label>
                 <p className="text-xs text-black/60 mb-4">
                   Add locations important to you (workplace, gym, family, etc.).
                   We use these to create travel time maps and find properties
@@ -1280,9 +1114,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
 
             {/* Communication Preference */}
             <div>
-              <label className="block text-sm font-medium text-black mb-2">
-                {FIELD_LABELS.COMMUNICATION_FREQUENCY}
-              </label>
+              <Label>{FIELD_LABELS.COMMUNICATION_FREQUENCY}</Label>
               {isEditMode ? (
                 <Dropdown
                   value={formData.communication_frequency || ""}
@@ -1306,9 +1138,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
 
             {/* Information Detail Level */}
             <div>
-              <label className="block text-sm font-medium text-black mb-2">
-                Information Detail Level
-              </label>
+              <Label>Information Detail Level</Label>
               {isEditMode ? (
                 <Dropdown
                   value={formData.information_detail_level || ""}
@@ -1339,99 +1169,115 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
               )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Buyer's Agent Dropdown */}
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Do you currently have a buyer's agent?
-                </label>
-                {isEditMode ? (
-                  <Dropdown
-                    value={formData.has_buyers_agent ?? ""}
-                    onChange={(value) =>
-                      updateFormData("has_buyers_agent", value)
-                    }
-                    options={[
-                      { value: "yes", label: "Yes" },
-                      { value: "no", label: "No" },
-                    ]}
-                    placeholder="Select..."
-                  />
-                ) : (
-                  <div className="mobile-input bg-gray-50">
-                    {formData.has_buyers_agent
-                      ? [
-                          { value: "yes", label: "Yes" },
-                          { value: "no", label: "No" },
-                        ].find((opt) => opt.value === formData.has_buyers_agent)
-                          ?.label
-                      : "Not specified"}
-                  </div>
-                )}
-              </div>
-
-              {/* Show checkbox if user does NOT have a buyer's agent */}
-              {formData.has_buyers_agent === "no" && (
-                <div className="flex flex-col justify-center items-center h-full w-full md:mt-2">
-                  <label
-                    htmlFor="looking-buyers-agent"
-                    className="flex items-center gap-3 text-sm font-medium text-black cursor-pointer"
-                  >
-                    {isEditMode ? (
-                      <>
-                        <input
-                          type="checkbox"
-                          id="looking-buyers-agent"
-                          className="sr-only"
-                          checked={!!formData.looking_for_buyers_agent}
-                          onChange={() =>
-                            updateFormData(
-                              "looking_for_buyers_agent",
-                              !formData.looking_for_buyers_agent
-                            )
-                          }
-                          aria-label="I am looking for a buyer's agent"
-                        />
-                        <OliveCheckbox
-                          checked={!!formData.looking_for_buyers_agent}
-                          onToggle={() =>
-                            updateFormData(
-                              "looking_for_buyers_agent",
-                              !formData.looking_for_buyers_agent
-                            )
-                          }
-                        />
-                      </>
+            <AlignedRow
+              breakIntoRows="md"
+              gap="lg"
+              justify="start"
+              items={[
+                {
+                  title: <Label>Do you currently have a buyer's agent?</Label>,
+                  content: isEditMode ? (
+                    <Dropdown
+                      value={formData.has_buyers_agent ?? ""}
+                      onChange={(value) =>
+                        updateFormData("has_buyers_agent", value)
+                      }
+                      options={[
+                        { value: "yes", label: "Yes" },
+                        { value: "no", label: "No" },
+                      ]}
+                      placeholder="Select..."
+                    />
+                  ) : (
+                    <div className="mobile-input bg-gray-50">
+                      {formData.has_buyers_agent
+                        ? [
+                            { value: "yes", label: "Yes" },
+                            { value: "no", label: "No" },
+                          ].find(
+                            (opt) => opt.value === formData.has_buyers_agent
+                          )?.label
+                        : "Not specified"}
+                    </div>
+                  ),
+                },
+                {
+                  title:
+                    formData.has_buyers_agent === "no" ? (
+                      <Label>Looking for Agent?</Label>
                     ) : (
-                      <div
-                        className={`h-5 w-5 rounded border flex items-center justify-center ${
-                          formData.looking_for_buyers_agent
-                            ? "bg-olive border-olive"
-                            : "border-gray-300 bg-gray-50"
-                        }`}
-                      >
-                        {formData.looking_for_buyers_agent && (
-                          <svg
-                            className="w-4 h-4 text-gray-600"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                        )}
+                      <div className="block text-sm font-medium text-transparent mb-2">
+                        &nbsp;
                       </div>
-                    )}
-                    <span className="select-none">
-                      I am looking for a buyer's agent
-                    </span>
-                  </label>
-                </div>
-              )}
-            </div>
+                    ),
+                  content:
+                    formData.has_buyers_agent === "no" ? (
+                      <div className="flex items-center h-full">
+                        <label
+                          htmlFor="looking-buyers-agent"
+                          className="flex items-center gap-3 text-sm font-medium text-black cursor-pointer"
+                        >
+                          {isEditMode ? (
+                            <>
+                              <input
+                                type="checkbox"
+                                id="looking-buyers-agent"
+                                className="sr-only"
+                                checked={!!formData.looking_for_buyers_agent}
+                                onChange={() =>
+                                  updateFormData(
+                                    "looking_for_buyers_agent",
+                                    !formData.looking_for_buyers_agent
+                                  )
+                                }
+                                aria-label="I am looking for a buyer's agent"
+                              />
+                              <OliveCheckbox
+                                checked={!!formData.looking_for_buyers_agent}
+                                onToggle={() =>
+                                  updateFormData(
+                                    "looking_for_buyers_agent",
+                                    !formData.looking_for_buyers_agent
+                                  )
+                                }
+                              />
+                            </>
+                          ) : (
+                            <div
+                              className={`h-5 w-5 rounded border flex items-center justify-center ${
+                                formData.looking_for_buyers_agent
+                                  ? "bg-olive border-olive"
+                                  : "border-gray-300 bg-gray-50"
+                              }`}
+                            >
+                              {formData.looking_for_buyers_agent && (
+                                <svg
+                                  className="w-4 h-4 text-gray-600"
+                                  fill="currentColor"
+                                  viewBox="0 0 20 20"
+                                >
+                                  <path
+                                    fillRule="evenodd"
+                                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                    clipRule="evenodd"
+                                  />
+                                </svg>
+                              )}
+                            </div>
+                          )}
+                          <span className="select-none">
+                            I am looking for a buyer's agent
+                          </span>
+                        </label>
+                      </div>
+                    ) : (
+                      <div className="mobile-input bg-gray-50 opacity-0">
+                        &nbsp;
+                      </div>
+                    ),
+                },
+              ]}
+            />
           </Card>
         );
 
@@ -1480,64 +1326,15 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
       <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 pb-1">
         <div className="flex flex-row gap-2 md:gap-8">
           {/* Sidebar */}
-          <aside className="w-12 md:w-64 sticky top-24 md:top-4 self-start">
-            <Card className="space-y-2">
-
-              {/* Edit/Save Buttons - Hidden on small screens */}
-              <div className="hidden md:block mb-8">
-                {!isEditMode ? (
-                  <button
-                    onClick={() => setIsEditMode(true)}
-                    className="w-full flex items-center justify-center gap-2 px-3 py-2 text-lg font-medium text-white bg-olive rounded-lg hover:bg-olive-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-olive"
-                  >
-                    <Edit className="w-5 h-5" />
-                    Edit
-                  </button>
-                ) : (
-                  <div className="flex flex-col space-y-2">
-                    <button
-                      onClick={handleSaveChanges}
-                      disabled={isSaving}
-                      className="w-full flex items-center justify-center gap-2 px-3 py-2 text-lg font-medium text-white bg-olive rounded-lg hover:bg-olive-dark disabled:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-olive"
-                    >
-                      <Save className="w-5 h-5" />
-                      {isSaving ? "Saving..." : "Save"}
-                    </button>
-                    <button
-                      onClick={handleCancel}
-                      className="w-full flex items-center justify-center gap-2 px-3 py-2 text-lg font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400"
-                    >
-                      <X className="w-5 h-5" />
-                      Cancel
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* Navigation Links */}
-              {STEPS.map((step) => (
-                <button
-                  key={step.id}
-                  onClick={() => scrollToSection(step.id)}
-                  className={`w-full justify-center md:justify-start md:text-left px-3 py-2 rounded-lg transition-colors flex items-center md:gap-3 ${
-                    activeSection === step.id
-                      ? "bg-gold text-gray-800"
-                      : "hover:bg-gold-lighter"
-                  }`}
-                >
-                  <step.icon
-                    size={20}
-                    className={`flex-shrink-0 ${
-                      activeSection === step.id
-                        ? "text-gray-800"
-                        : "text-gray-500"
-                    }`}
-                  />
-                  <span className="hidden md:inline">{step.title}</span>
-                </button>
-              ))}
-            </Card>
-          </aside>
+          <PersonalizationSidebar
+            activeSection={activeSection}
+            isEditMode={isEditMode}
+            isSaving={isSaving}
+            onEdit={() => setIsEditMode(true)}
+            onSave={handleSaveChanges}
+            onCancel={handleCancel}
+            onScrollToSection={scrollToSection}
+          />
 
           {/* Main Content Area */}
           <main className="flex-1 space-y-8">
@@ -1546,30 +1343,6 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                 {renderSectionContent(step.id)}
               </section>
             ))}
-
-            {/* Save/Cancel buttons at the bottom for desktop (hidden on mobile) */}
-            <div
-              ref={saveButtonRef}
-              className="hidden md:flex justify-end items-center gap-4 pt-4"
-            >
-              {isEditMode && (
-                <>
-                  <button
-                    onClick={handleCancel}
-                    className="px-6 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleSaveChanges}
-                    disabled={isSaving}
-                    className="px-6 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 disabled:bg-gray-400"
-                  >
-                    {isSaving ? "Saving..." : "Save Changes"}
-                  </button>
-                </>
-              )}
-            </div>
           </main>
         </div>
       </div>

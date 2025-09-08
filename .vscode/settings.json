@@ -1,0 +1,17 @@
+{
+    "css.lint.unknownAtRules": "ignore",
+    "scss.lint.unknownAtRules": "ignore",
+    "less.lint.unknownAtRules": "ignore",
+  
+    "files.associations": {
+      "*.css": "postcss"
+    },
+  
+    "stylelint.validate": ["css", "postcss", "scss"],
+    "editor.codeActionsOnSave": {
+      "source.fixAll.stylelint": "explicit"
+    },
+  
+    "css.validate": false,
+    "json.validate.enable": false,
+  }  

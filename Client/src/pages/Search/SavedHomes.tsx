@@ -1,86 +1,102 @@
 import { useState, useEffect, useCallback } from "react";
-import { favoriteHomesApi } from "../../lib/api";
+import { userApi } from "../../api";
 import { PropertyCard } from "../../components/cards";
 import {
   CardHeartSave,
   CardViewDetailsButton,
 } from "../../components/cards/base";
 import ErrorToast from "../../components/feedback/ErrorToast";
-import { useSavedHomes } from "../../context";
-import { SavedHome } from "../../context/utils";
+import { SavedHome } from "../../types";
 import PropertyDetailsModal from "../../components/modals/PropertyDetailsModal";
-import KeyTurnLoader from "../../components/ui/base/KeyTurnLoader";
-import SavedLayout, { ViewMode } from "../../components/layout/SavedLayout";
+import { KeyTurnLoader } from "../../components/ui";
+import SavedLayout, { ViewMode } from "../../app/layouts//SavedLayout";
 
 export default function SavedHomes() {
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [searchTerm, setSearchTerm] = useState("");
   const [refreshing, setRefreshing] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState<any>(null);
+  const [homes, setHomes] = useState<SavedHome[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const {
-    savedHomes: homes,
-    loading,
-    error,
-    refreshSavedHomes,
-  } = useSavedHomes();
+  // Fetch saved homes using userApi.getFavoriteHomes() - copied from Dashboard
+  const fetchSavedHomes = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await userApi.getFavoriteHomes();
+      if (res.success) {
+        // Backend returns { favorites: HomeUniversal[] } where each is an object
+        const rawHomes = res.favorites || [];
+        // Map HomeUniversal fields to SavedHome for compatibility
+        const homeObjects: SavedHome[] = rawHomes.map(
+          (home: any, index: number) => ({
+            home_id: home.address || `home_${index}_${Date.now()}`,
+            description: home.address || "",
+            address: home.address || "",
+            price: home.price || "",
+            bedrooms: parseInt(home.beds) || 0,
+            bathrooms: parseInt(home.baths) || 0,
+            sqft: parseInt(home.sqft) || 0,
+            lot_size: home.lot_size || "",
+            image_url: home.image_url || undefined,
+            lat: home.lat || 0,
+            lng: home.lng || 0,
+            // Any other HomeUniversal fields can be passed through
+            ...home,
+          })
+        );
+        setHomes(homeObjects);
+      } else {
+        setError(res.error || "Failed to load favorite homes");
+      }
+    } catch (error) {
+      setError("Failed to load favorite homes");
+    }
+    setLoading(false);
+  }, []);
 
-  // Refresh saved homes when page loads (dashboard pattern)
+  // Load saved homes when page loads
   useEffect(() => {
-    refreshSavedHomes();
+    fetchSavedHomes();
     // Optionally expose refresh in dev
     // @ts-ignore
-    window.refreshFavorites = refreshSavedHomes;
-  }, [refreshSavedHomes]);
+    window.refreshFavorites = fetchSavedHomes;
+  }, [fetchSavedHomes]);
 
   const refresh = async () => {
     setRefreshing(true);
-    await refreshSavedHomes();
+    await fetchSavedHomes();
     setRefreshing(false);
   };
 
-  // Save a home to favorites
+  // Save a home to favorites - use exact same format as working Dashboard
   const saveHome = useCallback(
     async (home: SavedHome) => {
       try {
-        const response = await favoriteHomesApi.addFavorite(home);
-
-        if (response.success) {
-          await refreshSavedHomes();
-        } else {
-          throw new Error(response.error || "Failed to save home");
-        }
+        await userApi.addFavoriteHome({ home });
+        // Force refresh like Dashboard does
+        window.location.reload();
       } catch (error) {
         console.error("Error saving home:", error);
       }
     },
-    [refreshSavedHomes]
+    []
   );
 
-  // Remove a home from favorites
+  // Remove a home from favorites - use exact same format as working Dashboard
   const removeSavedHome = useCallback(
     async (homeId: string) => {
       try {
-        const home = homes.find((h: SavedHome) => h.home_id === homeId);
-
-        if (!home) {
-          throw new Error("Home not found");
-        }
-
-        const response = await favoriteHomesApi.removeFavorite(
-          home.address || home.home_id
-        );
-
-        if (response.success) {
-          await refreshSavedHomes();
-        } else {
-          throw new Error(response.error || "Failed to remove home");
-        }
+        await userApi.removeFavoriteHome({ address: homeId });
+        // Refresh the page like Dashboard does
+        window.location.reload();
       } catch (error) {
-        console.error("Error removing home:", error);
+        console.error("Error removing home from favorites:", error);
       }
     },
-    [homes, refreshSavedHomes]
+    []
   );
 
   // Check if a home is saved (for modal)
@@ -98,56 +114,32 @@ export default function SavedHomes() {
     [homes]
   );
 
-  // Save home for modal - convert property to saved home format
+  // Save home for modal - use exact same format as working Dashboard
   const saveHomeForModal = useCallback(
     async (property: any) => {
-      // Convert the property object to the format expected by saveHome
-      const homeToSave = {
-        ...property,
-        home_id: property.id || property.zpid || property.home_id,
-        address: property.address,
-        price: property.price,
-        bedrooms: property.bedrooms,
-        bathrooms: property.bathrooms,
-        sqft: property.sqft,
-        lat: property.lat,
-        lng: property.lng,
-        image_url: property.images?.[0] || property.imageUrl,
-        description: property.description || property.address,
-      };
-      await saveHome(homeToSave);
-    },
-    [saveHome]
-  );
-
-  // Remove saved home for modal - handle different ID formats
-  const removeSavedHomeForModal = useCallback(
-    async (homeId: string) => {
-      // Find the saved home by any matching ID format
-      const sortedHomes = [...filteredHomes].sort(
-        (a: SavedHome, b: SavedHome) => {
-          if (a.home_id === homeId) return -1;
-          if (b.home_id === homeId) return 1;
-          return 0;
-        }
-      );
-      const savedHome = sortedHomes.find(
-        (home: SavedHome) =>
-          home.home_id === homeId ||
-          home.id === homeId ||
-          home.zpid === homeId ||
-          home.zpid?.toString() === homeId ||
-          home.address === homeId
-      );
-
-      if (savedHome) {
-        await removeSavedHome(savedHome.home_id);
-      } else {
-        // Fallback: try to remove using the provided ID
-        await removeSavedHome(homeId);
+      try {
+        await userApi.addFavoriteHome({ home: property });
+        // Force refresh like Dashboard does
+        window.location.reload();
+      } catch (error) {
+        console.error("Error saving home:", error);
       }
     },
-    [homes, removeSavedHome]
+    []
+  );
+
+  // Remove saved home for modal - use exact same format as working Dashboard
+  const removeSavedHomeForModal = useCallback(
+    async (homeId: string) => {
+      try {
+        await userApi.removeFavoriteHome({ address: homeId });
+        // Force refresh like Dashboard does
+        window.location.reload();
+      } catch (error) {
+        console.error("Error removing home from favorites:", error);
+      }
+    },
+    []
   );
 
   const filteredHomes = homes.filter((h: SavedHome) => {
@@ -195,6 +187,7 @@ export default function SavedHomes() {
             {filteredHomes.map((home: SavedHome) => (
               <PropertyCard
                 key={home.home_id}
+                id={home.home_id}
                 imageUrl={home.image_url}
                 address={
                   typeof home.address === "string" ||
@@ -264,6 +257,7 @@ export default function SavedHomes() {
             {filteredHomes.map((home: SavedHome) => (
               <PropertyCard
                 key={home.home_id}
+                id={home.home_id}
                 imageUrl={home.image_url}
                 address={
                   typeof home.address === "string" ||
@@ -322,7 +316,7 @@ export default function SavedHomes() {
                     size="sm"
                     variant="primary"
                     fullWidth
-                    text="View Details"
+                    text="Unlock"
                   />
                 }
               />

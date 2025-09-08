@@ -1,20 +1,23 @@
-import React, { useState, useRef, useEffect } from "react";
-import FavoriteHomesDropdown from "../../components/ui/base/FavoriteHomesDropdown";
-// import { useNegotiation } from "../../context";
+import React, { useState, useRef } from "react";
+import { FavoriteHomesDropdown, Input } from "../../components/ui";
+import { useLocalStorage } from "../../hooks/useLocalStorage";
 import {
   FileText,
   CreditCard,
   DollarSign,
-  Heart,
   Upload,
-  AlertTriangle,
-  CheckCircle,
-  X,
   Download,
+  CheckCircle,
   Mail,
+  Heart,
+  X,
+  AlertTriangle,
   FileCheck,
 } from "lucide-react";
-import Input from "../../components/ui/base/Input";
+import { offerApi } from "../../api";
+import { processImage, isValidImageFile, ProcessedImage } from "../../lib/security/imageProcessor";
+import { log } from "../../lib/security/secureLogger";
+import { captureError, reportSecurityEvent } from "../../lib/security/errorReporting";
 
 const sectionBox =
   "bg-white rounded-xl shadow-sm p-6 mb-6 border border-beige/40";
@@ -33,68 +36,13 @@ const button =
   "bg-olive text-white px-6 py-3 rounded-lg font-semibold hover:bg-olive-light transition-colors duration-200 flex items-center gap-2";
 
 const OfferDraftPage: React.FC = () => {
-  // Use NegotiationContext for offer management (for future implementation)
-  // const {
-  //   saveOfferDraft,
-  //   submitOffer
-  // } = useNegotiation();
-
-  // Tab state
   const [activeTab, setActiveTab] = useState(0);
-
-  // Local form state (for future implementation)
-  // const [formData, setFormData] = useState({
-  //   propertyId: '',
-  //   offerPrice: '',
-  //   earnestMoney: '',
-  //   downPayment: '',
-  //   financingType: 'conventional',
-  //   inspectionPeriod: '10',
-  //   closingDate: '',
-  //   contingencies: [] as string[],
-  //   additionalTerms: ''
-  // });
-
-  // Refs for scrolling to sections
   const sectionRefs = {
     0: useRef<HTMLDivElement>(null),
     1: useRef<HTMLDivElement>(null),
     2: useRef<HTMLDivElement>(null),
     3: useRef<HTMLDivElement>(null),
   };
-
-  // Form handlers for future UI implementation
-  // const updateFormField = (field: string, value: any) => {
-  //   setFormData(prev => ({ ...prev, [field]: value }));
-  // };
-
-  // const handleSaveDraft = async () => {
-  //   try {
-  //     await saveOfferDraft({
-  //       property_id: formData.propertyId,
-  //       offer_price: parseFloat(formData.offerPrice),
-  //       earnest_money: parseFloat(formData.earnestMoney),
-  //       down_payment: parseFloat(formData.downPayment),
-  //       financing_type: formData.financingType,
-  //       inspection_period: parseInt(formData.inspectionPeriod),
-  //       closing_date: formData.closingDate,
-  //       special_terms: formData.additionalTerms,
-  //       status: 'draft'
-  //     });
-  //   } catch (error) {
-  //     console.error('Error saving draft:', error);
-  //   }
-  // };
-
-  // const handleSubmitOffer = async () => {
-  //   try {
-  //     await submitOffer(formData.propertyId);
-  //   } catch (error) {
-  //     console.error('Error submitting offer:', error);
-  //   }
-  // };
-
-  // Tab configuration
   const tabs = [
     {
       id: 0,
@@ -135,60 +83,66 @@ const OfferDraftPage: React.FC = () => {
     }
   };
 
-  // localStorage key for draft offer data
-  const DRAFT_OFFER_STORAGE_KEY = "silverkey_draft_offer_data";
-
-  // Initialize state from localStorage or defaults
-  const initializeOfferState = () => {
-    try {
-      const savedData = localStorage.getItem(DRAFT_OFFER_STORAGE_KEY);
-      if (savedData) {
-        const parsed = JSON.parse(savedData);
-        // Only restore text fields, not file uploads for security reasons
-        return {
-          price: parsed.price || "",
-          contingencies: parsed.contingencies || "",
-          closingDate: parsed.closingDate || "",
-          earnestMoney: parsed.earnestMoney || "",
-          inclusions: parsed.inclusions || "",
-          exclusions: parsed.exclusions || "",
-          signedAgreement: null as File | null, // Don't restore files
-          signature: null as File | null,
-          preApproval: null as File | null,
-          earnestMoneyAmount: parsed.earnestMoneyAmount || "",
-          escrowHolder: parsed.escrowHolder || "",
-          earnestTimeline: parsed.earnestTimeline || "",
-          earnestInstructions: parsed.earnestInstructions || "",
-          proofOfFunds: null as File | null, // Don't restore files
-          coverLetter: parsed.coverLetter || "",
-        };
-      }
-    } catch (error) {
-      console.warn("Failed to load draft offer data from localStorage:", error);
-    }
-
-    // Return default state if localStorage is empty or failed
-    return {
-      price: "",
-      contingencies: "",
-      closingDate: "",
-      earnestMoney: "",
-      inclusions: "",
-      exclusions: "",
-      signedAgreement: null as File | null,
-      signature: null as File | null,
-      preApproval: null as File | null,
-      earnestMoneyAmount: "",
-      escrowHolder: "",
-      earnestTimeline: "",
-      earnestInstructions: "",
-      proofOfFunds: null as File | null,
-      coverLetter: "",
-    };
+  // Define offer data type (excluding files for security)
+  type OfferData = {
+    price: string;
+    contingencies: string;
+    closingDate: string;
+    earnestMoney: string;
+    inclusions: string;
+    exclusions: string;
+    earnestMoneyAmount: string;
+    escrowHolder: string;
+    earnestTimeline: string;
+    earnestInstructions: string;
+    coverLetter: string;
   };
 
-  // State for all form fields with localStorage initialization
-  const [offer, setOffer] = useState(initializeOfferState);
+  // Default offer state
+  const defaultOfferData: OfferData = {
+    price: "",
+    contingencies: "",
+    closingDate: "",
+    earnestMoney: "",
+    inclusions: "",
+    exclusions: "",
+    earnestMoneyAmount: "",
+    escrowHolder: "",
+    earnestTimeline: "",
+    earnestInstructions: "",
+    coverLetter: "",
+  };
+
+  // Use centralized localStorage hooks for persistence
+  const { value: offerData, setValue: setOfferData } = useLocalStorage<OfferData>('silverkey_draft_offer_data', defaultOfferData);
+  
+  // File state (not persisted for security reasons)
+  const [fileUploads, setFileUploads] = useState({
+    signedAgreement: null as File | null,
+    signature: null as File | null,
+    preApproval: null as File | null,
+    proofOfFunds: null as File | null,
+  });
+
+  // Combined offer state for backward compatibility
+  const offer = {
+    ...offerData,
+    ...fileUploads,
+  };
+
+  const setOffer = (updater: any) => {
+    if (typeof updater === 'function') {
+      const newState = updater(offer);
+      // Separate text data from files
+      const { signedAgreement, signature, preApproval, proofOfFunds, ...textData } = newState;
+      setOfferData(textData);
+      setFileUploads({ signedAgreement, signature, preApproval, proofOfFunds });
+    } else {
+      const { signedAgreement, signature, preApproval, proofOfFunds, ...textData } = updater;
+      setOfferData(textData);
+      setFileUploads({ signedAgreement, signature, preApproval, proofOfFunds });
+    }
+  };
 
   // Loading states for document generation
   const [loadingStates, setLoadingStates] = useState({
@@ -199,29 +153,8 @@ const OfferDraftPage: React.FC = () => {
     allDocuments: false,
   });
 
-  // Generated documents state
-  const [, setGeneratedDocuments] = useState({
-    purchaseAgreement: null as any,
-    preApprovalLetter: null as any,
-    earnestMoneyInstructions: null as any,
-    coverLetter: null as any,
-  });
-
-  // Initialize selected home from localStorage
-  const initializeSelectedHome = () => {
-    try {
-      const savedHome = localStorage.getItem(
-        "silverkey_draft_offer_selected_home"
-      );
-      return savedHome ? JSON.parse(savedHome) : null;
-    } catch (error) {
-      console.warn("Failed to load selected home from localStorage:", error);
-      return null;
-    }
-  };
-
-  // Selected home state
-  const [selectedHome, setSelectedHome] = useState<any>(initializeSelectedHome);
+  // Use centralized localStorage hook for selected home
+  const { value: selectedHome, setValue: setSelectedHome } = useLocalStorage<any>('silverkey_draft_offer_selected_home', null);
 
   // Validation state for visual feedback
   const [sectionValidation, setSectionValidation] = useState<{
@@ -233,74 +166,85 @@ const OfferDraftPage: React.FC = () => {
     coverLetter: false,
   });
 
-  // Save offer data to localStorage (excluding files for security)
-  const saveToLocalStorage = (offerData: typeof offer) => {
-    try {
-      const dataToSave = {
-        price: offerData.price,
-        contingencies: offerData.contingencies,
-        closingDate: offerData.closingDate,
-        earnestMoney: offerData.earnestMoney,
-        inclusions: offerData.inclusions,
-        exclusions: offerData.exclusions,
-        earnestMoneyAmount: offerData.earnestMoneyAmount,
-        escrowHolder: offerData.escrowHolder,
-        earnestTimeline: offerData.earnestTimeline,
-        earnestInstructions: offerData.earnestInstructions,
-        coverLetter: offerData.coverLetter,
-        // Note: File uploads are not saved for security reasons
-      };
-      localStorage.setItem(DRAFT_OFFER_STORAGE_KEY, JSON.stringify(dataToSave));
-    } catch (error) {
-      console.error("Failed to save draft offer data to localStorage:", error);
-    }
-  };
-
-  // Save selected home to localStorage
-  const saveSelectedHomeToLocalStorage = (home: any) => {
-    try {
-      localStorage.setItem(
-        "silverkey_draft_offer_selected_home",
-        JSON.stringify(home)
-      );
-    } catch (error) {
-      console.error("Failed to save selected home to localStorage:", error);
-    }
-  };
-
   // Clear localStorage data (useful for cleanup)
   const clearDraftOfferData = () => {
-    try {
-      localStorage.removeItem(DRAFT_OFFER_STORAGE_KEY);
-      localStorage.removeItem("silverkey_draft_offer_selected_home");
-    } catch (error) {
-      console.error(
-        "Failed to clear draft offer data from localStorage:",
-        error
-      );
-    }
+    setOfferData(defaultOfferData);
+    setSelectedHome(null);
+    setFileUploads({
+      signedAgreement: null,
+      signature: null,
+      preApproval: null,
+      proofOfFunds: null,
+    });
   };
 
-  // Auto-save effect - runs whenever offer state changes
-  useEffect(() => {
-    saveToLocalStorage(offer);
-  }, [offer]);
+  // Note: Auto-save is handled automatically by useLocalStorage hooks
+  // No useEffect needed for persistence
 
-  // Auto-save selected home whenever it changes
-  useEffect(() => {
-    if (selectedHome) {
-      saveSelectedHomeToLocalStorage(selectedHome);
-    }
-  }, [selectedHome]);
+  // Secure file handling with EXIF stripping for images
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>, field: string) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-  // File change handler (files are not saved to localStorage for security)
-  const handleFile = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    key: keyof typeof offer
-  ) => {
-    if (e.target.files && e.target.files[0]) {
-      setOffer((prev) => ({ ...prev, [key]: e.target.files![0] }));
-      setTimeout(updateSectionValidation, 100);
+    try {
+      log.security('OFFER_DRAFT', 'File upload attempt', { 
+        fileName: file.name, 
+        fileType: file.type, 
+        fileSize: file.size,
+        field 
+      });
+
+      // Process images to strip EXIF data
+      if (isValidImageFile(file)) {
+        log.info('OFFER_DRAFT', 'Processing image file for security', { fileName: file.name });
+        
+        const processed: ProcessedImage = await processImage(file, {
+          maxWidth: 2048,
+          maxHeight: 2048,
+          quality: 0.9,
+          stripAllMetadata: true
+        });
+
+        if (processed.warnings.length > 0) {
+          log.warn('OFFER_DRAFT', 'Image processing warnings', { 
+            fileName: file.name, 
+            warnings: processed.warnings 
+          });
+        }
+
+        log.security('OFFER_DRAFT', 'Image processed successfully', {
+          originalSize: processed.originalSize,
+          processedSize: processed.processedSize,
+          metadataRemoved: processed.metadataRemoved
+        });
+
+        setOffer((prev: typeof offer) => ({ ...prev, [field]: processed.file }));
+      } else {
+        // For non-image files (PDFs), use as-is but log the upload
+        log.info('OFFER_DRAFT', 'Non-image file uploaded', { 
+          fileName: file.name, 
+          fileType: file.type 
+        });
+        setOffer((prev: typeof offer) => ({ ...prev, [field]: file }));
+      }
+
+      reportSecurityEvent({
+        type: 'data_access',
+        severity: 'low',
+        description: 'File uploaded in offer draft',
+        metadata: { fileName: file.name, fileType: file.type, field }
+      });
+
+    } catch (error) {
+      log.error('OFFER_DRAFT', 'File processing failed', error);
+      captureError(error, { 
+        context: 'handleFile', 
+        fileName: file.name, 
+        field 
+      });
+      
+      // Show user-friendly error
+      alert('Failed to process file. Please try again or contact support.');
     }
   };
 
@@ -310,9 +254,8 @@ const OfferDraftPage: React.FC = () => {
     key: keyof typeof offer
   ) => {
     const newValue = e.target.value;
-    setOffer((prev) => {
+    setOffer((prev: typeof offer) => {
       const updated = { ...prev, [key]: newValue };
-      // Auto-save will be triggered by useEffect
       return updated;
     });
     // Update validation state when form changes
@@ -473,11 +416,6 @@ const OfferDraftPage: React.FC = () => {
     });
   };
 
-  // API helper function to get auth token
-  const getAuthToken = () => {
-    return localStorage.getItem("token") || "";
-  };
-
   // API function to generate purchase agreement
   const generatePurchaseAgreement = async () => {
     // Validate section before generating
@@ -490,41 +428,27 @@ const OfferDraftPage: React.FC = () => {
     setLoadingStates((prev) => ({ ...prev, purchaseAgreement: true }));
 
     try {
-      const response = await fetch("/api/v1/offer/purchase-agreement", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${getAuthToken()}`,
+      const data = await offerApi.generatePurchaseAgreement({
+        property_address: "123 Main St, City, State 12345", // TODO: Get from form
+        offer_price: parseInt(offer.price) || 0,
+        earnest_money: parseInt(offer.earnestMoney) || 0,
+        closing_date: offer.closingDate,
+        contingencies: offer.contingencies
+          .split(",")
+          .map((c: string) => c.trim())
+          .filter(Boolean),
+        exclusions: offer.exclusions
+          .split(",")
+          .map((e: string) => e.trim())
+          .filter(Boolean),
+        buyer_info: {
+          name: "John Doe", // TODO: Get from user profile
+          email: "john@example.com", // TODO: Get from user profile
+          phone: "555-0123", // TODO: Get from user profile
         },
-        body: JSON.stringify({
-          property_address: "123 Main St, City, State 12345", // TODO: Get from form
-          offer_price: parseInt(offer.price) || 0,
-          earnest_money: parseInt(offer.earnestMoney) || 0,
-          closing_date: offer.closingDate,
-          contingencies: offer.contingencies
-            .split(",")
-            .map((c: string) => c.trim())
-            .filter(Boolean),
-          inclusions: offer.inclusions
-            .split(",")
-            .map((i: string) => i.trim())
-            .filter(Boolean),
-          exclusions: offer.exclusions
-            .split(",")
-            .map((e: string) => e.trim())
-            .filter(Boolean),
-          buyer_info: {
-            name: "John Doe", // TODO: Get from user profile
-            email: "john@example.com", // TODO: Get from user profile
-            phone: "555-0123", // TODO: Get from user profile
-          },
-        }),
       });
 
-      const data = await response.json();
-
       if (data.success) {
-        setGeneratedDocuments((prev) => ({ ...prev, purchaseAgreement: data }));
         alert(
           `Purchase Agreement generated successfully! Document ID: ${data.document_id}`
         );
@@ -551,35 +475,14 @@ const OfferDraftPage: React.FC = () => {
     setLoadingStates((prev) => ({ ...prev, preApprovalLetter: true }));
 
     try {
-      const response = await fetch("/api/v1/offer/pre-approval-letter", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${getAuthToken()}`,
-        },
-        body: JSON.stringify({
-          document_type: "pre_approval",
-          loan_amount: parseInt(offer.price) * 0.8 || 0, // Assume 20% down payment
-          loan_type: "conventional",
-          interest_rate: 6.5,
-          lender_info: {
-            name: "ABC Mortgage Company",
-            loan_officer: "Jane Smith",
-            phone: "555-0456",
-            email: "jane@abcmortgage.com",
-          },
-          buyer_info: {
-            name: "John Doe", // TODO: Get from user profile
-            income: 80000, // TODO: Get from form
-            credit_score: 750, // TODO: Get from form
-          },
-        }),
+      const data = await offerApi.generatePreApprovalLetter({
+        buyer_name: "John Doe", // TODO: Get from user profile
+        loan_amount: parseInt(offer.earnestMoney) || 0, // TODO: Add loan amount field
+        property_address: "123 Main St, City, State 12345", // TODO: Get from form
+        loan_type: "conventional", // TODO: Add loan type field
       });
 
-      const data = await response.json();
-
       if (data.success) {
-        setGeneratedDocuments((prev) => ({ ...prev, preApprovalLetter: data }));
         alert(
           `Pre-Approval Letter generated successfully! Document ID: ${data.document_id}`
         );
@@ -606,41 +509,13 @@ const OfferDraftPage: React.FC = () => {
     setLoadingStates((prev) => ({ ...prev, earnestMoneyInstructions: true }));
 
     try {
-      const response = await fetch("/api/v1/offer/earnest-money-instructions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${getAuthToken()}`,
-        },
-        body: JSON.stringify({
-          earnest_money_amount:
-            parseInt(offer.earnestMoneyAmount) ||
-            parseInt(offer.earnestMoney) ||
-            0,
-          escrow_holder: {
-            company_name: offer.escrowHolder || "ABC Title Company",
-            contact_person: "Sarah Johnson",
-            phone: "555-0789",
-            email: "sarah@abctitle.com",
-            address: "456 Title St, City, State 12345",
-          },
-          deposit_timeline: offer.earnestTimeline || "within 3 business days",
-          property_address: "123 Main St, City, State 12345", // TODO: Get from form
-          buyer_info: {
-            name: "John Doe", // TODO: Get from user profile
-            phone: "555-0123",
-            email: "john@example.com",
-          },
-        }),
+      const data = await offerApi.generateEarnestMoneyInstructions({
+        property_address: "123 Main St, City, State 12345", // TODO: Get from form
+        earnest_amount: parseInt(offer.earnestMoney) || 0,
+        escrow_company: "TBD Escrow Company", // TODO: Add escrow company field
       });
 
-      const data = await response.json();
-
       if (data.success) {
-        setGeneratedDocuments((prev) => ({
-          ...prev,
-          earnestMoneyInstructions: data,
-        }));
         alert(
           `Earnest Money Instructions generated successfully! Document ID: ${data.document_id}`
         );
@@ -670,39 +545,17 @@ const OfferDraftPage: React.FC = () => {
     setLoadingStates((prev) => ({ ...prev, coverLetter: true }));
 
     try {
-      const response = await fetch("/api/v1/offer/cover-letter", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${getAuthToken()}`,
-        },
-        body: JSON.stringify({
-          property_address: "123 Main St, City, State 12345", // TODO: Get from form
-          seller_name: "Jane Smith", // TODO: Get from form
-          buyer_info: {
-            name: "John Doe", // TODO: Get from user profile
-            family_size: 2,
-            occupation: "Software Engineer",
-            why_this_home:
-              offer.coverLetter ||
-              "We love the neighborhood and the beautiful garden",
-            personal_story:
-              "This would be our first home together as newlyweds",
-          },
-          offer_highlights: {
-            offer_price: parseInt(offer.price) || 0,
-            down_payment_percent: 20,
-            closing_flexibility: true,
-            pre_approved: true,
-          },
-          tone: "warm",
-        }),
+      const data = await offerApi.generateCoverLetter({
+        property_address: "123 Main St, City, State 12345", // TODO: Get from form
+        buyer_story: "This would be our first home together as newlyweds",
+        offer_highlights: [
+          "Strong offer price",
+          "Pre-approved financing",
+          "Flexible closing",
+        ],
       });
 
-      const data = await response.json();
-
       if (data.success) {
-        setGeneratedDocuments((prev) => ({ ...prev, coverLetter: data }));
         alert(
           `Cover Letter generated successfully! Document ID: ${data.document_id}`
         );
@@ -1278,7 +1131,9 @@ const OfferDraftPage: React.FC = () => {
                 </button>
                 <button className={button} type="submit">
                   <Download className="h-5 w-5" />
-                  <span className="text-responsive-xs">Download All Documents</span>
+                  <span className="text-responsive-xs">
+                    Download All Documents
+                  </span>
                 </button>
                 <button
                   type="button"
@@ -1322,7 +1177,9 @@ const OfferDraftPage: React.FC = () => {
                   onClick={() => alert("Email All Documents functionality")}
                 >
                   <Mail className="h-5 w-5" />
-                  <span className="text-responsive-xs">Email All Documents</span>
+                  <span className="text-responsive-xs">
+                    Email All Documents
+                  </span>
                 </button>
               </div>
             </div>

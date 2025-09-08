@@ -12,9 +12,8 @@ import {
   Check,
   Target,
 } from "lucide-react";
-import Input from "../../components/ui/base/Input";
-
-import KeyTurnLoader from "../../components/ui/base/KeyTurnLoader";
+import { Input, KeyTurnLoader } from "../../components/ui";
+import { preferencesApi, apiPost } from "../../api";
 
 // Custom scrollbar styles matching CompareReportsPage
 const scrollbarStyles = `
@@ -49,16 +48,11 @@ interface ClientData {
   preferences: any;
 }
 
-interface ClientIntelResponse {
-  success: boolean;
-  preferences: any[];
-  user_information: any[];
-}
 
 const ClientIntelPage: React.FC = () => {
   const [clientData, setClientData] = useState<ClientData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterBy] = useState<
     "all" | "with_preferences" | "without_preferences"
@@ -80,40 +74,24 @@ const ClientIntelPage: React.FC = () => {
   const fetchClientData = async () => {
     try {
       setLoading(true);
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "";
-      const idToken = localStorage.getItem("id_token");
-
-      const response = await fetch(`${apiBaseUrl}/api/v1/preferences/clients`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${idToken}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      const data: ClientIntelResponse = await response.json();
-
-      if (data.success) {
-        // Combine user information with preferences data
-        const combinedData: ClientData[] = data.user_information.map(
-          (user: any, index: number) => {
-            const preferences = data.preferences[index] || null;
-            return {
-              id: user.id,
-              name: user.name,
-              email: user.email,
-              phone: user.phone,
-              created_at: user.created_at,
-              has_preferences: preferences !== null,
-              preferences: preferences,
-            };
-          }
-        );
-        setClientData(combinedData);
+      const data = await preferencesApi.getClients();
+      if (data.success && data.clients) {
+        // Map ClientInfo to ClientData format
+        const mappedData: ClientData[] = data.clients.map((client) => ({
+          id: client.id,
+          name: client.name,
+          email: client.email,
+          phone: "", // Not available in ClientInfo
+          created_at: "", // Not available in ClientInfo
+          has_preferences: !!client.preferences,
+          preferences: client.preferences || null,
+        }));
+        setClientData(mappedData);
+      } else {
+        console.error("Failed to fetch client data:", data.message || data.error);
       }
-    } catch (err) {
-      setError("Network error occurred");
-      console.error("Error fetching client data:", err);
+    } catch (error) {
+      console.error("Error fetching client data:", error);
     } finally {
       setLoading(false);
     }
@@ -152,32 +130,11 @@ const ClientIntelPage: React.FC = () => {
     setShowActionPlanModal(true);
 
     try {
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "";
-      const idToken = localStorage.getItem("id_token");
-
-      const response = await fetch(
-        `${apiBaseUrl}/api/v1/preferences/action-plan/${client.id}`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${idToken}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      const data = await response.json();
-
+      const data = await apiPost(`/api/v1/preferences/action-plan/${client.id}`);
       if (data.success) {
-        setActionPlanData({
-          client_name: data.client_name,
-          action_plan: data.action_plan,
-          generated_at: data.generated_at,
-        });
+        setActionPlanData(data.action_plan || "Action plan generated successfully!");
       } else {
-        console.error("Failed to generate action plan:", data.error);
-        alert(`Failed to generate action plan: ${data.error}`);
-        setShowActionPlanModal(false);
+        console.error("Failed to generate action plan:", data.message || data.error);
       }
     } catch (error) {
       console.error("Error generating action plan:", error);
@@ -327,9 +284,7 @@ const ClientIntelPage: React.FC = () => {
     <>
       <style>{scrollbarStyles}</style>
       <div className="min-h-screen bg-off-white">
-        
-        <div className="container-responsive py-responsive-lg">
-
+        <div className="py-responsive-lg">
           {/* Filters and Search */}
           <div className="card mb-6">
             <div className="flex flex-col sm:flex-row gap-responsive-sm">
@@ -357,7 +312,10 @@ const ClientIntelPage: React.FC = () => {
             </div>
 
             <div className="overflow-x-auto custom-scrollbar">
-              <table className="min-w-full divide-y divide-beige" style={{minWidth: '600px'}}>
+              <table
+                className="min-w-full divide-y divide-beige"
+                style={{ minWidth: "600px" }}
+              >
                 <thead className="bg-cream/50">
                   <tr>
                     <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-2xs sm:text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -401,9 +359,7 @@ const ClientIntelPage: React.FC = () => {
                       <td className="px-2 sm:px-4 py-2 sm:py-4 whitespace-nowrap">
                         <div className="text-responsive-xs sm:text-responsive-sm text-black flex items-center min-w-0">
                           <Mail className="mobile-icon-xs sm:mobile-icon-xs text-gray-400 mr-1 sm:mr-2 flex-shrink-0" />
-                          <span className="truncate">
-                            {client.email}
-                          </span>
+                          <span className="truncate">{client.email}</span>
                         </div>
                         {client.phone && (
                           <div className="text-responsive-xs sm:text-responsive-sm text-gray-500 flex items-center mt-1 min-w-0">
@@ -419,13 +375,15 @@ const ClientIntelPage: React.FC = () => {
                             className="text-gold hover:text-gold-light flex items-center transition-colors font-medium touch-friendly"
                           >
                             <Eye className="mobile-icon-xs sm:mobile-icon-xs mr-1" />
-                            <span className="hidden sm:inline">View Details</span>
+                            <span className="hidden sm:inline">Unlock</span>
                             <span className="sm:hidden">View</span>
                           </button>
                         ) : (
                           <span className="inline-flex items-center px-responsive-xs sm:px-responsive-xs py-responsive-xs rounded-full text-responsive-xs sm:text-responsive-xs font-medium bg-yellow-100 text-yellow-800">
                             <AlertCircle className="mobile-icon-xs sm:mobile-icon-xs mr-1" />
-                            <span className="hidden sm:inline">Needs Setup</span>
+                            <span className="hidden sm:inline">
+                              Needs Setup
+                            </span>
                             <span className="sm:hidden">Setup</span>
                           </span>
                         )}
@@ -724,7 +682,6 @@ const UserPreferencesTable: React.FC<UserPreferencesTableProps> = ({
   ];
 
   const renderSection = (title: string, data: any) => {
-
     if (!data || typeof data !== "object") {
       return null;
     }
@@ -762,7 +719,6 @@ const UserPreferencesTable: React.FC<UserPreferencesTableProps> = ({
 
     // Special styling for Report Customization section
     if (isReportCustomization) {
-
       // Handle the actual data structure: {report_section_priorities: [array of sections]}
       const prioritizedSections = data.report_section_priorities || [];
 

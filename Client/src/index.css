@@ -4,115 +4,12 @@
 @import './styles/utilities.css';
 @import './styles/animations.css';
 @import './styles/mobile.css';
+@import './styles/maps.css';
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-  /* Hide Google Maps UI elements */
-  .gm-style-cc,
-  .gm-style .gm-style-cc,
-  .gm-style-mtc,
-  .gm-bundled-control,
-  .gm-control-active,
-  .gmnoprint,
-  .gm-style .gmnoprint,
-  .gm-style-pbc,
-  .gm-style .gm-style-pbc,
-  .gm-style .gm-svpc,
-  .gm-style-pbt,
-  .gm-style .gm-style-pbt,
-  .gm-style .gm-style-pdt,
-  .gm-style-pdt,
-  .gm-style .gm-style-pdt > div,
-  .gm-style-pdt > div,
-  .gm-style .gm-style-pdt > div > div,
-  .gm-style-pdt > div > div,
-  .gm-style .gm-style-pdt > div > div > div,
-  .gm-style-pdt > div > div > div,
-  .gm-style .gm-style-pdt > div > div > div > div,
-  .gm-style-pdt > div > div > div > div,
-  .gm-style .gm-style-pdt > div > div > div > div > div,
-  .gm-style-pdt > div > div > div > div > div,
-  .gm-style .gm-style-pdt > div > div > div > div > div > div,
-  .gm-style-pdt > div > div > div > div > div > div,
-  .gm-style .gm-style-pdt > div > div > div > div > div > div > div,
-  .gm-style-pdt > div > div > div > div > div > div > div,
-  .gm-style .gm-style-pdt > div > div > div > div > div > div > div > div,
-  .gm-style-pdt > div > div > div > div > div > div > div > div,
-  .gm-style .gm-style-pdt > div > div > div > div > div > div > div > div > div,
-  .gm-style-pdt > div > div > div > div > div > div > div > div > div,
-  .gm-style .gm-style-pdt > div > div > div > div > div > div > div > div > div > div,
-  .gm-style-pdt > div > div > div > div > div > div > div > div > div > div,
-  .gm-style .gm-style-pdt > div > div > div > div > div > div > div > div > div > div > div,
-  .gm-style-pdt > div > div > div > div > div > div > div > div > div > div > div,
-  .gm-style .gm-style-pdt > div > div > div > div > div > div > div > div > div > div > div > div,
-  .gm-style-pdt > div > div > div > div > div > div > div > div > div > div > div > div,
-  .gm-style .gm-style-pdt > div > div > div > div > div > div > div > div > div > div > div > div > div,
-  .gm-style-pdt > div > div > div > div > div > div > div > div > div > div > div > div > div,
-  .gm-style .gm-style-pdt > div > div > div > div > div > div > div > div > div > div > div > div > div > div,
-  .gm-style-pdt > div > div > div > div > div > div > div > div > div > div > div > div > div > div,
-  .gm-style .gm-style-pdt > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div,
-  .gm-style-pdt > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div,
-  .gm-style .gm-style-pdt > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div,
-  .gm-style-pdt > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div,
-  .gm-style .gm-style-pdt > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div,
-  .gm-style-pdt > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div,
-  .gm-style .gm-style-pdt > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div,
-  .gm-style-pdt > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div,
-  .gm-style .gm-style-pdt > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div,
-  .gm-style-pdt > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div,
-  .gm-style .gm-style-pdt > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div,
-  .gm-style-pdt > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div,
-  .gm-style .gm-style-pdt > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div,
-  .gm-style-pdt > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div,
-  .gm-style .gm-style-pdt > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div,
-  .gm-style-pdt > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div,
-  .gm-style .gm-style-pdt > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div,
-  .gm-style-pdt > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div,
-  .gm-style .gm-style-pdt > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div,
-  .gm-style-pdt > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div,
-  .gm-style .gm-style-pdt > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div,
-  .gm-style-pdt > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div,
-  .gm-style .gm-style-pdt > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div,
-  .gm-style-pdt > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div,
-  .gm-style .gm-style-pdt > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div,
-  .gm-style-pdt > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div,
-  .gm-style .gm-style-pdt > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div,
-  .gm-style-pdt > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div,
-  .gm-style .gm-style-pdt > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div,
-  .gm-style-pdt > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div,
-  .gm-style .gm-style-pdt > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div,
-  .gm-style-pdt > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div {
-    display: none !important;
-  }
 
-  /* Hide keyboard shortcuts overlay */
-  .gm-style .gm-style-iw,
-  .gm-style .gm-style-iw-c,
-  .gm-style .gm-style-iw-d,
-  .gm-style .gm-style-iw-t,
-  .gm-style .gm-style-iw-tc {
-    display: none !important;
-  }
-
-  /* Hide "Map Data" and attribution */
-  .gm-style .gm-style-cc span,
-  .gm-style .gm-style-cc a,
-  .gm-style .gm-style-cc button,
-  .gm-style .gm-style-cc div {
-    display: none !important;
-  }
-
-  /* Hide pegman (street view guy) */
-  .gm-svpc,
-  .gm-style .gm-svpc {
-    display: none !important;
-  }
-
-  /* Additional cleanup for any remaining UI elements */
-  .gm-style > div:last-child {
-    display: none !important;
-  }
 }

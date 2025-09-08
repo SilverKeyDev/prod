@@ -1,73 +1,59 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Mail, Lock } from "lucide-react";
-import { authApi } from "../../lib/api";
-import AuthPageLayout from "../../components/layout/AuthPageLayout";
-import Input from "../../components/ui/base/Input";
-import AuthButton from "../../components/ui/homeauth/AuthButton";
-import AuthLink from "../../components/ui/homeauth/AuthLink";
+import { useSecureAuth } from "../../hooks/useSecureAuth";
+import AuthPageLayout from "../../features/homeauth/AuthPageLayout";
+import { Input } from "../../components/ui";
+import AuthButton from "../../features/homeauth/AuthButton";
+import AuthLink from "../../features/homeauth/AuthLink";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Clear any existing auth data when login page loads
-  useEffect(() => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("id_token");
+  // Use secure authentication hook
+  const { login, isLoading, error, clearError } = useSecureAuth();
 
-    // Dispatch auth change event to update App component state
-    window.dispatchEvent(new Event("authChange"));
-  }, []);
+  // Only clear auth data if user is not authenticated and there are stale tokens
+  useEffect(() => {
+    // Check if user is already authenticated via secure auth hook
+    const hasValidAuth = (window as any).getSecureAccessToken && (window as any).getSecureAccessToken();
+    
+    // Only clear tokens if there's no valid authentication
+    if (!hasValidAuth) {
+      const hasTokens = sessionStorage.getItem('refresh_token') || 
+                       localStorage.getItem('access_token') || 
+                       localStorage.getItem('id_token') ||
+                       localStorage.getItem('user');
+      
+      if (hasTokens) {
+        // Clear stale tokens
+        sessionStorage.removeItem('refresh_token');
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('id_token');
+        localStorage.removeItem('user');
+        clearError();
+      }
+    }
+  }, [clearError]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setError("");
+    clearError();
 
-    try {
-      const { success, error, data } = await authApi.login(email, password);
+    const success = await login(email, password);
 
-      if (!success) {
-        throw new Error(error || "Login failed");
-      }
-
-      // Store user data in local storage
-      if (data?.user) {
-        localStorage.setItem("user", JSON.stringify(data.user));
-      }
-
-      // Store access token if available
-      if (data?.access_token) {
-        localStorage.setItem("access_token", data.access_token);
-      }
-
-      if (data?.id_token) {
-        localStorage.setItem("id_token", data.id_token);
-      }
-
-      // Dispatch auth change event to update App component state
-      window.dispatchEvent(new Event("authChange"));
-
+    if (success) {
       // Get the intended destination from location state or default to dashboard
       const from = (location.state as any)?.from?.pathname || "/dashboard";
-      
+
+      console.log('🔐 [LOGIN] Login successful, navigating to:', from);
       // Navigate to intended destination or dashboard
       navigate(from, { replace: true });
-    } catch (error: unknown) {
-      console.error("Login error:", error);
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Login failed. Please try again.";
-      setError(errorMessage);
-    } finally {
-      setLoading(false);
+    } else {
+      console.log('🔐 [LOGIN] Login failed, staying on login page');
     }
   };
 
@@ -76,11 +62,10 @@ export default function LoginPage() {
       title="Welcome back"
       subtitle="Generate premium property reports with AI"
       logoSize="lg"
-      error={error}
+      error={error || undefined}
     >
       {/* Login Form */}
       <form onSubmit={handleSubmit} className="card space-y-responsive-md">
-
         <Input
           label="Email"
           type="email"
@@ -110,7 +95,7 @@ export default function LoginPage() {
           className="autofill-gold"
         />
 
-        <AuthButton type="submit" loading={loading} disabled={loading}>
+        <AuthButton type="submit" loading={isLoading} disabled={isLoading}>
           Login
         </AuthButton>
 

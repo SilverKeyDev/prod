@@ -12,7 +12,7 @@ import {
   Phone,
 } from "lucide-react";
 import { StyledImage } from "../cards/base";
-import Card from "../ui/base/Card";
+import Card from "../layout/Card";
 import { SearchResult } from "../../types/search";
 import { Property } from "../../hooks/usePropertyDetails";
 
@@ -20,7 +20,7 @@ interface PropertyDetailsModalProps {
   property: Property | SearchResult | null;
   onClose: () => void;
   isHomeSaved: (id: string) => boolean;
-  saveHome: (property: Property | SearchResult) => void;
+  saveHome: (property: Property | SearchResult) => Promise<void> | void;
   removeSavedHome: (id: string) => void;
   onGenerateReport?: (address: string) => void;
 }
@@ -493,7 +493,8 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
                     </span>
                   </div>
                 )}
-                {((property as any).garageSpaces || (property as any).parking) && (
+                {((property as any).garageSpaces ||
+                  (property as any).parking) && (
                   <div className="flex justify-between">
                     <span className="text-gray-600">Parking:</span>
                     <span className="font-medium">
@@ -517,7 +518,8 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
                   <div className="flex justify-between">
                     <span className="text-gray-600">Estimate:</span>
                     <span className="font-medium">
-                      ${((property as any).zestimate as number).toLocaleString()}
+                      $
+                      {((property as any).zestimate as number).toLocaleString()}
                     </span>
                   </div>
                 )}
@@ -525,7 +527,11 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
                   <div className="flex justify-between">
                     <span className="text-gray-600">Rent Estimate:</span>
                     <span className="font-medium">
-                      ${((property as any).rentZestimate as number).toLocaleString()}/month
+                      $
+                      {(
+                        (property as any).rentZestimate as number
+                      ).toLocaleString()}
+                      /month
                     </span>
                   </div>
                 )}
@@ -549,23 +555,36 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
                     <div className="space-y-3">
                       <div>
                         {(() => {
-                          const roiText = ((property as any).property_analysis?.roi_explanation || "") as string;
+                          const roiText = ((property as any).property_analysis
+                            ?.roi_explanation || "") as string;
                           const sentences = roiText
                             .split(/[.!?]+/)
                             .map((s) => s.trim())
                             .filter((s) => s.length > 0);
 
-                          if (sentences.length === 0) return <p className="text-brown/80 text-sm leading-relaxed">No investment analysis available.</p>;
+                          if (sentences.length === 0)
+                            return (
+                              <p className="text-brown/80 text-sm leading-relaxed">
+                                No investment analysis available.
+                              </p>
+                            );
                           const summary = sentences[0] + ".";
-                          const bullets = sentences.slice(1).filter((s) => s.length > 10);
+                          const bullets = sentences
+                            .slice(1)
+                            .filter((s) => s.length > 10);
 
                           return (
                             <div>
-                              <p className="text-brown/80 text-sm leading-relaxed mb-3">{summary}</p>
+                              <p className="text-brown/80 text-sm leading-relaxed mb-3">
+                                {summary}
+                              </p>
                               {bullets.length > 0 && (
                                 <ul className="space-y-2">
                                   {bullets.map((point, i) => (
-                                    <li key={i} className="text-brown/80 text-sm leading-relaxed">
+                                    <li
+                                      key={i}
+                                      className="text-brown/80 text-sm leading-relaxed"
+                                    >
                                       {point.trim()}.
                                     </li>
                                   ))}
@@ -630,7 +649,9 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
               <div>
                 <div className="flex items-center gap-2 mb-4">
                   <User className="w-5 h-5 text-brown" />
-                  <h3 className="text-lg font-semibold text-brown">Listing Agent</h3>
+                  <h3 className="text-lg font-semibold text-brown">
+                    Listing Agent
+                  </h3>
                 </div>
                 <div className="bg-beige/10 border border-beige/40 rounded-lg p-4">
                   <div className="flex items-start space-x-4">
@@ -638,19 +659,25 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
                       {(property as any).listed_by?.image_url ? (
                         <img
                           src={(property as any).listed_by.image_url}
-                          alt={(property as any).listed_by.display_name || "Listing Agent"}
+                          alt={
+                            (property as any).listed_by.display_name ||
+                            "Listing Agent"
+                          }
                           className="w-full h-full object-cover"
                           onError={(e) => {
                             const t = e.target as HTMLImageElement;
                             t.style.display = "none";
-                            const fallback = t.nextElementSibling as HTMLElement;
+                            const fallback =
+                              t.nextElementSibling as HTMLElement;
                             if (fallback) fallback.style.display = "flex";
                           }}
                         />
                       ) : null}
                       <div
                         className={`w-full h-full items-center justify-center ${
-                          (property as any).listed_by?.image_url ? "hidden" : "flex"
+                          (property as any).listed_by?.image_url
+                            ? "hidden"
+                            : "flex"
                         }`}
                       >
                         <User className="w-8 h-8 text-brown/40" />
@@ -675,7 +702,12 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
                               const { areacode, prefix, number } = ph;
                               if (areacode && prefix && number)
                                 return `(${areacode}) ${prefix}-${number}`;
-                              return areacode || prefix || number || "Phone available";
+                              return (
+                                areacode ||
+                                prefix ||
+                                number ||
+                                "Phone available"
+                              );
                             })()}
                           </span>
                         </div>
@@ -689,51 +721,68 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <GraduationCap className="w-5 h-5 text-brown" />
-                <h3 className="text-lg font-semibold text-brown">Nearby Schools</h3>
+                <h3 className="text-lg font-semibold text-brown">
+                  Nearby Schools
+                </h3>
               </div>
               <div className="space-y-3">
-                {(property as any).schools && (property as any).schools.length > 0 ? (
-                  (property as any).schools.slice(0, 6).map((school: any, idx: number) => (
-                    <div key={idx} className="bg-beige/10 border border-beige/40 rounded-lg p-4">
-                      <div className="flex justify-between items-center mb-2">
-                        <h4 className="font-medium text-brown">
-                          {school.name || "Unknown School"}
-                        </h4>
-                        {typeof school.rating === "number" && (
-                          <span
-                            className={`px-2 py-1 rounded text-sm font-medium border ${
-                              school.rating >= 8
-                                ? "bg-olive/20 text-olive border-olive/30"
-                                : school.rating >= 6
-                                ? "bg-amber-50 text-amber-600 border-amber-200"
-                                : "bg-red-50 text-red-600 border-red-200"
-                            }`}
-                          >
-                            {school.rating}/10
-                          </span>
-                        )}
-                      </div>
-                      <div className="text-sm text-brown/70 space-y-1">
-                        {typeof school.distance === "number" && (
-                          <p>{school.distance.toFixed(1)} miles</p>
-                        )}
-                        <div className="flex items-center gap-2 flex-wrap">
-                          {school.type && <span>{school.type}</span>}
-                          {school.grades && <span>• Grades {school.grades}</span>}
-                          {school.level && <span>• {school.level}</span>}
+                {(property as any).schools &&
+                (property as any).schools.length > 0 ? (
+                  (property as any).schools
+                    .slice(0, 6)
+                    .map((school: any, idx: number) => (
+                      <div
+                        key={idx}
+                        className="bg-beige/10 border border-beige/40 rounded-lg p-4"
+                      >
+                        <div className="flex justify-between items-center mb-2">
+                          <h4 className="font-medium text-brown">
+                            {school.name || "Unknown School"}
+                          </h4>
+                          {typeof school.rating === "number" && (
+                            <span
+                              className={`px-2 py-1 rounded text-sm font-medium border ${
+                                school.rating >= 8
+                                  ? "bg-olive/20 text-olive border-olive/30"
+                                  : school.rating >= 6
+                                  ? "bg-amber-50 text-amber-600 border-amber-200"
+                                  : "bg-red-50 text-red-600 border-red-200"
+                              }`}
+                            >
+                              {school.rating}/10
+                            </span>
+                          )}
                         </div>
-                        {school.studentsPerTeacher && (
-                          <p>Student/Teacher Ratio: {school.studentsPerTeacher}:1</p>
-                        )}
-                        {school.isAssigned && (
-                          <p className="text-blue-600 font-medium">Assigned School</p>
-                        )}
+                        <div className="text-sm text-brown/70 space-y-1">
+                          {typeof school.distance === "number" && (
+                            <p>{school.distance.toFixed(1)} miles</p>
+                          )}
+                          <div className="flex items-center gap-2 flex-wrap">
+                            {school.type && <span>{school.type}</span>}
+                            {school.grades && (
+                              <span>• Grades {school.grades}</span>
+                            )}
+                            {school.level && <span>• {school.level}</span>}
+                          </div>
+                          {school.studentsPerTeacher && (
+                            <p>
+                              Student/Teacher Ratio: {school.studentsPerTeacher}
+                              :1
+                            </p>
+                          )}
+                          {school.isAssigned && (
+                            <p className="text-blue-600 font-medium">
+                              Assigned School
+                            </p>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))
+                    ))
                 ) : (
                   <div className="bg-beige/10 border border-beige/40 rounded-lg p-4">
-                    <p className="text-brown/70">No school information available.</p>
+                    <p className="text-brown/70">
+                      No school information available.
+                    </p>
                   </div>
                 )}
               </div>
@@ -745,53 +794,57 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
             <div className="mb-8">
               <div className="flex items-center gap-2 mb-4">
                 <Star className="w-5 h-5 text-brown" />
-                <h3 className="text-lg font-semibold text-brown">Property Features</h3>
+                <h3 className="text-lg font-semibold text-brown">
+                  Property Features
+                </h3>
               </div>
 
               <div className="bg-beige/20 border border-beige rounded-lg p-6">
                 {/* AI-detected from images */}
-                {(property as any).image_features?.clean?.length > 0 && !(
-                  property as any).image_features?.error && (
-                  <div className="mb-4">
-                    <h4 className="text-brown font-semibold text-sm mb-2">
-                      AI-Detected Features from Photos
-                    </h4>
-                    <div className="text-brown/70 text-xs leading-relaxed">
-                      {(property as any).image_features.clean.map(
-                        (feature: string, i: number) => (
-                          <span key={i} className="inline-block">
-                            {feature.trim()}
-                            {i < (property as any).image_features.clean.length - 1 && (
-                              <span className="text-brown/40 mx-2">•</span>
-                            )}
-                          </span>
-                        )
-                      )}
+                {(property as any).image_features?.clean?.length > 0 &&
+                  !(property as any).image_features?.error && (
+                    <div className="mb-4">
+                      <h4 className="text-brown font-semibold text-sm mb-2">
+                        AI-Detected Features from Photos
+                      </h4>
+                      <div className="text-brown/70 text-xs leading-relaxed">
+                        {(property as any).image_features.clean.map(
+                          (feature: string, i: number) => (
+                            <span key={i} className="inline-block">
+                              {feature.trim()}
+                              {i <
+                                (property as any).image_features.clean.length -
+                                  1 && (
+                                <span className="text-brown/40 mx-2">•</span>
+                              )}
+                            </span>
+                          )
+                        )}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
                 <div className="space-y-4">
                   {typeof (property as any).features === "object" ? (
-                    Object.entries((property as any).features as Record<string, string[]>).map(
-                      ([category, list]) => (
-                        <div key={category}>
-                          <h4 className="text-brown font-semibold text-sm mb-2">
-                            {category}
-                          </h4>
-                          <div className="text-brown/70 text-xs leading-relaxed">
-                            {list.map((f, i) => (
-                              <span key={i} className="inline-block">
-                                {f.trim()}
-                                {i < list.length - 1 && (
-                                  <span className="text-brown/40 mx-2">•</span>
-                                )}
-                              </span>
-                            ))}
-                          </div>
+                    Object.entries(
+                      (property as any).features as Record<string, string[]>
+                    ).map(([category, list]) => (
+                      <div key={category}>
+                        <h4 className="text-brown font-semibold text-sm mb-2">
+                          {category}
+                        </h4>
+                        <div className="text-brown/70 text-xs leading-relaxed">
+                          {list.map((f, i) => (
+                            <span key={i} className="inline-block">
+                              {f.trim()}
+                              {i < list.length - 1 && (
+                                <span className="text-brown/40 mx-2">•</span>
+                              )}
+                            </span>
+                          ))}
                         </div>
-                      )
-                    )
+                      </div>
+                    ))
                   ) : (
                     <div className="text-brown/60 text-sm text-center py-4">
                       No detailed features available
@@ -803,168 +856,233 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
           )}
 
           {/* AI Property Analysis */}
-          {(property as any).property_analysis && !(property as any).property_analysis?.error && (
-            <div className="mb-8">
-              <div className="flex items-center gap-2 mb-4">
-                <AlertTriangle className="w-5 h-5 text-brown" />
-                <h3 className="text-lg font-semibold text-brown">AI Property Analysis</h3>
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                {/* Pros */}
-                <div>
-                  <div className="flex items-center gap-2 mb-4">
-                    <CheckCircle className="w-5 h-5 text-olive" />
-                    <h3 className="text-lg font-semibold text-olive">Pros for You</h3>
-                  </div>
-                  <div className="space-y-3">
-                    {(property as any).property_analysis?.pros?.map((pro: string, i: number) => (
-                      <div key={i} className="bg-olive/10 border border-olive/30 rounded-lg p-4">
-                        <h4 className="font-medium text-olive mb-1">Property Advantage</h4>
-                        <p className="text-sm text-brown/80">{pro}</p>
-                      </div>
-                    ))}
-                  </div>
+          {(property as any).property_analysis &&
+            !(property as any).property_analysis?.error && (
+              <div className="mb-8">
+                <div className="flex items-center gap-2 mb-4">
+                  <AlertTriangle className="w-5 h-5 text-brown" />
+                  <h3 className="text-lg font-semibold text-brown">
+                    AI Property Analysis
+                  </h3>
                 </div>
-                {/* Cons */}
-                <div>
-                  <div className="flex items-center gap-2 mb-4">
-                    <AlertTriangle className="w-5 h-5 text-amber-600" />
-                    <h3 className="text-lg font-semibold text-amber-600">Considerations</h3>
-                  </div>
-                  <div className="space-y-3">
-                    {(property as any).property_analysis?.cons?.map((con: string, i: number) => (
-                      <div key={i} className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                        <h4 className="font-medium text-amber-600 mb-1">Consideration</h4>
-                        <p className="text-sm text-brown/70">{con}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
 
-              {/* Crime & Gentrification (if provided) */}
-              {(property as any).property_analysis?.crime_stats && (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                  {/* Pros */}
                   <div>
                     <div className="flex items-center gap-2 mb-4">
-                      <Shield className="w-5 h-5 text-brown" />
-                      <h3 className="text-lg font-semibold text-brown">
-                        Crime & Safety Analysis
+                      <CheckCircle className="w-5 h-5 text-olive" />
+                      <h3 className="text-lg font-semibold text-olive">
+                        Pros for You
                       </h3>
                     </div>
-                    <div className="space-y-4">
-                      <div className="bg-beige/10 border border-beige/40 rounded-lg p-4">
-                        <div className="flex justify-between items-center mb-6">
-                          <h4 className="font-medium text-brown">Overall Safety Score</h4>
-                          <span className="bg-olive/20 text-olive border border-olive/30 px-3 py-1 rounded-full text-sm font-medium">
-                            {(property as any).property_analysis.crime_stats.overall_safety_score}
-                          </span>
-                        </div>
-                        <div className="space-y-3 ml-2.5 text-xs">
-                          <div className="flex">
-                            <span className="text-brown/70">Crime Rate</span>
-                            <span className="text-olive ml-2">
-                              {(property as any).property_analysis.crime_stats.crime_rate}
-                            </span>
+                    <div className="space-y-3">
+                      {(property as any).property_analysis?.pros?.map(
+                        (pro: string, i: number) => (
+                          <div
+                            key={i}
+                            className="bg-olive/10 border border-olive/30 rounded-lg p-4"
+                          >
+                            <h4 className="font-medium text-olive mb-1">
+                              Property Advantage
+                            </h4>
+                            <p className="text-sm text-brown/80">{pro}</p>
                           </div>
-                          <div className="flex">
-                            <span className="text-brown/70">Trend</span>
-                            <span className="ml-2 text-olive">
-                              {(property as any).property_analysis.crime_stats.recent_trends}
-                            </span>
-                          </div>
-                          <div className="flex">
-                            <span className="text-brown/70">Data Source</span>
-                            <span className="text-olive ml-2">
-                              {(property as any).property_analysis.crime_stats.data_source}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {(property as any).property_analysis.crime_stats.specific_concerns?.length >
-                        0 && (
-                        <div className="bg-beige/10 border border-beige/40 rounded-lg p-4">
-                          <h4 className="font-medium text-brown mb-2">Specific Concerns</h4>
-                          <div className="space-y-1 text-sm text-brown/70">
-                            {(property as any).property_analysis.crime_stats.specific_concerns.map(
-                              (c: string, i: number) => <p key={i}>{c}</p>
-                            )}
-                          </div>
-                        </div>
+                        )
                       )}
                     </div>
                   </div>
+                  {/* Cons */}
+                  <div>
+                    <div className="flex items-center gap-2 mb-4">
+                      <AlertTriangle className="w-5 h-5 text-amber-600" />
+                      <h3 className="text-lg font-semibold text-amber-600">
+                        Considerations
+                      </h3>
+                    </div>
+                    <div className="space-y-3">
+                      {(property as any).property_analysis?.cons?.map(
+                        (con: string, i: number) => (
+                          <div
+                            key={i}
+                            className="bg-amber-50 border border-amber-200 rounded-lg p-4"
+                          >
+                            <h4 className="font-medium text-amber-600 mb-1">
+                              Consideration
+                            </h4>
+                            <p className="text-sm text-brown/70">{con}</p>
+                          </div>
+                        )
+                      )}
+                    </div>
+                  </div>
+                </div>
 
-                  {(property as any).property_analysis?.gentrification_index && (
+                {/* Crime & Gentrification (if provided) */}
+                {(property as any).property_analysis?.crime_stats && (
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                     <div>
                       <div className="flex items-center gap-2 mb-4">
-                        <Home className="w-5 h-5 text-brown" />
+                        <Shield className="w-5 h-5 text-brown" />
                         <h3 className="text-lg font-semibold text-brown">
-                          Gentrification Analysis
+                          Crime & Safety Analysis
                         </h3>
                       </div>
                       <div className="space-y-4">
                         <div className="bg-beige/10 border border-beige/40 rounded-lg p-4">
                           <div className="flex justify-between items-center mb-6">
-                            <h4 className="font-medium text-brown">Gentrification Score</h4>
+                            <h4 className="font-medium text-brown">
+                              Overall Safety Score
+                            </h4>
                             <span className="bg-olive/20 text-olive border border-olive/30 px-3 py-1 rounded-full text-sm font-medium">
-                              {(property as any).property_analysis.gentrification_index.score}
+                              {
+                                (property as any).property_analysis.crime_stats
+                                  .overall_safety_score
+                              }
                             </span>
                           </div>
                           <div className="space-y-3 ml-2.5 text-xs">
                             <div className="flex">
-                              <span className="text-brown/70">Trend</span>
-                              <span className="ml-2 text-olive">
-                                {(property as any).property_analysis.gentrification_index.trend}
-                              </span>
-                            </div>
-                            <div className="flex">
-                              <span className="text-brown/70">Timeline</span>
-                              <span className="text-olive ml-2">
-                                {(property as any).property_analysis.gentrification_index.timeline}
-                              </span>
-                            </div>
-                            <div className="flex">
-                              <span className="text-brown/70">Property Value Impact</span>
+                              <span className="text-brown/70">Crime Rate</span>
                               <span className="text-olive ml-2">
                                 {
-                                  (property as any).property_analysis.gentrification_index
-                                    .impact_on_property_value
+                                  (property as any).property_analysis
+                                    .crime_stats.crime_rate
+                                }
+                              </span>
+                            </div>
+                            <div className="flex">
+                              <span className="text-brown/70">Trend</span>
+                              <span className="ml-2 text-olive">
+                                {
+                                  (property as any).property_analysis
+                                    .crime_stats.recent_trends
+                                }
+                              </span>
+                            </div>
+                            <div className="flex">
+                              <span className="text-brown/70">Data Source</span>
+                              <span className="text-olive ml-2">
+                                {
+                                  (property as any).property_analysis
+                                    .crime_stats.data_source
                                 }
                               </span>
                             </div>
                           </div>
                         </div>
 
-                        {(property as any).property_analysis.gentrification_index.indicators
-                          ?.length > 0 && (
+                        {(property as any).property_analysis.crime_stats
+                          .specific_concerns?.length > 0 && (
                           <div className="bg-beige/10 border border-beige/40 rounded-lg p-4">
-                            <h4 className="font-medium text-brown mb-2">Key Indicators</h4>
+                            <h4 className="font-medium text-brown mb-2">
+                              Specific Concerns
+                            </h4>
                             <div className="space-y-1 text-sm text-brown/70">
-                              {(property as any).property_analysis.gentrification_index.indicators.map(
-                                (ind: string, i: number) => <p key={i}>{ind}</p>
+                              {(
+                                property as any
+                              ).property_analysis.crime_stats.specific_concerns.map(
+                                (c: string, i: number) => (
+                                  <p key={i}>{c}</p>
+                                )
                               )}
                             </div>
                           </div>
                         )}
                       </div>
                     </div>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
+
+                    {(property as any).property_analysis
+                      ?.gentrification_index && (
+                      <div>
+                        <div className="flex items-center gap-2 mb-4">
+                          <Home className="w-5 h-5 text-brown" />
+                          <h3 className="text-lg font-semibold text-brown">
+                            Gentrification Analysis
+                          </h3>
+                        </div>
+                        <div className="space-y-4">
+                          <div className="bg-beige/10 border border-beige/40 rounded-lg p-4">
+                            <div className="flex justify-between items-center mb-6">
+                              <h4 className="font-medium text-brown">
+                                Gentrification Score
+                              </h4>
+                              <span className="bg-olive/20 text-olive border border-olive/30 px-3 py-1 rounded-full text-sm font-medium">
+                                {
+                                  (property as any).property_analysis
+                                    .gentrification_index.score
+                                }
+                              </span>
+                            </div>
+                            <div className="space-y-3 ml-2.5 text-xs">
+                              <div className="flex">
+                                <span className="text-brown/70">Trend</span>
+                                <span className="ml-2 text-olive">
+                                  {
+                                    (property as any).property_analysis
+                                      .gentrification_index.trend
+                                  }
+                                </span>
+                              </div>
+                              <div className="flex">
+                                <span className="text-brown/70">Timeline</span>
+                                <span className="text-olive ml-2">
+                                  {
+                                    (property as any).property_analysis
+                                      .gentrification_index.timeline
+                                  }
+                                </span>
+                              </div>
+                              <div className="flex">
+                                <span className="text-brown/70">
+                                  Property Value Impact
+                                </span>
+                                <span className="text-olive ml-2">
+                                  {
+                                    (property as any).property_analysis
+                                      .gentrification_index
+                                      .impact_on_property_value
+                                  }
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {(property as any).property_analysis
+                            .gentrification_index.indicators?.length > 0 && (
+                            <div className="bg-beige/10 border border-beige/40 rounded-lg p-4">
+                              <h4 className="font-medium text-brown mb-2">
+                                Key Indicators
+                              </h4>
+                              <div className="space-y-1 text-sm text-brown/70">
+                                {(
+                                  property as any
+                                ).property_analysis.gentrification_index.indicators.map(
+                                  (ind: string, i: number) => (
+                                    <p key={i}>{ind}</p>
+                                  )
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
           {(property as any).property_analysis?.error && (
             <div className="mb-8">
               <div className="flex items-center gap-2 mb-4">
                 <AlertTriangle className="w-5 h-5 text-brown" />
-                <h3 className="text-lg font-semibold text-brown">AI Property Analysis</h3>
+                <h3 className="text-lg font-semibold text-brown">
+                  AI Property Analysis
+                </h3>
               </div>
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                 <p className="text-yellow-800 text-sm">
-                  Property analysis is temporarily unavailable. Please try again later.
+                  Property analysis is temporarily unavailable. Please try again
+                  later.
                 </p>
               </div>
             </div>
@@ -975,7 +1093,9 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
             <div className="mb-8">
               <div className="flex items-center gap-2 mb-4">
                 <MapPin className="w-5 h-5 text-brown" />
-                <h3 className="text-lg font-semibold text-brown">Commute Information</h3>
+                <h3 className="text-lg font-semibold text-brown">
+                  Commute Information
+                </h3>
               </div>
 
               <div className="bg-beige/20 border border-beige rounded-lg p-6">
@@ -994,14 +1114,17 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
                               onError={(e) => {
                                 const t = e.target as HTMLImageElement;
                                 t.style.display = "none";
-                                const fallback = t.nextElementSibling as HTMLElement;
+                                const fallback =
+                                  t.nextElementSibling as HTMLElement;
                                 if (fallback) fallback.style.display = "flex";
                               }}
                             />
                             <div className="hidden h-full items-center justify-center text-center text-brown/60">
                               <div>
                                 <MapPin className="w-12 h-12 mx-auto mb-3 text-brown/40" />
-                                <p className="text-brown font-medium">Map unavailable</p>
+                                <p className="text-brown font-medium">
+                                  Map unavailable
+                                </p>
                                 <p className="text-sm text-brown/60 mt-1">
                                   Unable to load commute map
                                 </p>
@@ -1014,7 +1137,9 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
                           <div className="aspect-square w-full flex items-center justify-center">
                             <div className="text-center text-brown/60">
                               <MapPin className="w-12 h-12 mx-auto mb-3 text-brown/40" />
-                              <p className="text-brown font-medium">Commute Map</p>
+                              <p className="text-brown font-medium">
+                                Commute Map
+                              </p>
                               <p className="text-sm text-brown/60 mt-1">
                                 Map generation in progress...
                               </p>
@@ -1033,7 +1158,10 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
                         const tolerance = c.commute_tolerance;
 
                         let colorClass = "text-olive bg-olive/10";
-                        if (typeof travelTimeMinutes === "number" && typeof tolerance === "number") {
+                        if (
+                          typeof travelTimeMinutes === "number" &&
+                          typeof tolerance === "number"
+                        ) {
                           if (travelTimeMinutes > tolerance * 1.2) {
                             colorClass = "text-red-600 bg-red-50";
                           } else if (travelTimeMinutes > tolerance) {
@@ -1083,7 +1211,9 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
                     )}
                     {(property as any).commute_data?.commute_distance && (
                       <p>
-                        <strong className="text-brown">Commute Distance:</strong>{" "}
+                        <strong className="text-brown">
+                          Commute Distance:
+                        </strong>{" "}
                         {(property as any).commute_data.commute_distance} miles
                       </p>
                     )}

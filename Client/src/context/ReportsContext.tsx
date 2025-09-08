@@ -10,22 +10,20 @@ import {
 import {
   Report,
   CompareReport,
-  BASE_URL,
+} from "../types";
+import {
   deserializeReport,
   deserializeCompareReport,
 } from "./utils";
 import {
-  fetchJson,
-  logHttp,
-  createAuthHeaders,
   createAbortManager,
   isAbortError,
-  getAuthToken,
   routeStartsWith,
   isAuthenticationError,
   handleAuthenticationError,
-} from "../lib/fetchUtils";
-import { useAuth } from "./AuthContext";
+} from "../api/utils/index";
+import { reportApi } from "../api";
+import { useAuth } from "../app/providers";
 
 /* =========================
    Types
@@ -36,7 +34,7 @@ interface ReportsContextType {
   reportsLoading: boolean;
   reportsError: string | null;
   refreshReports: () => Promise<void>;
-  
+
   compareReports: CompareReport[];
   compareReportsLoading: boolean;
   compareReportsError: string | null;
@@ -56,7 +54,7 @@ interface ReportsProviderProps {
 export function ReportsProvider({ children }: ReportsProviderProps) {
   const { abortAll, withAbort } = useMemo(() => createAbortManager(), []);
   const { user, authReady } = useAuth();
-  
+
   // Reports state
   const [reports, setReports] = useState<Report[]>([]);
   const [reportsLoading, setReportsLoading] = useState(false);
@@ -65,82 +63,51 @@ export function ReportsProvider({ children }: ReportsProviderProps) {
   // Compare Reports state
   const [compareReports, setCompareReports] = useState<CompareReport[]>([]);
   const [compareReportsLoading, setCompareReportsLoading] = useState(false);
-  const [compareReportsError, setCompareReportsError] = useState<string | null>(null);
+  const [compareReportsError, setCompareReportsError] = useState<string | null>(
+    null
+  );
 
   /* =========================
      Fetchers
      ========================= */
 
-  const fetchReports = useCallback(async (signal?: AbortSignal) => {
-    const token = getAuthToken();
-    if (!token) return;
-    
+  const fetchReports = useCallback(async (_signal?: AbortSignal) => {
     setReportsLoading(true);
     setReportsError(null);
-    
+
     try {
-      const json = await fetchJson<{ success: boolean; reports?: any[]; error?: string }>(
-        `${BASE_URL}/api/v1/report/all`,
-        { 
-          method: "POST", 
-          mode: "cors", 
-          headers: createAuthHeaders(token), 
-          credentials: "include",
-          signal,
-          acceptStatuses: [404]
-        }
-      );
-      
-      if (json?.success && json.reports) {
-        setReports(json.reports.map(deserializeReport));
-      } else if (json === undefined) {
-        // 404 response, treat as empty
-        setReports([]);
+      const response = await reportApi.getAll();
+      if (response.success && response.reports) {
+        setReports(response.reports.map(deserializeReport));
       } else {
-        throw new Error(json?.error || "Failed to fetch reports");
+        setReports([]);
       }
     } catch (e: any) {
       if (!isAbortError(e)) {
         if (isAuthenticationError(e)) {
           handleAuthenticationError(e);
-          return; // Don't set error state, user will be redirected
+          return;
         }
-        logHttp('reports', e);
+        console.error("Failed to fetch reports", e);
         setReportsError(e?.message ?? "Failed to fetch reports");
-        setReports([]); // Safe fallback
+        setReports([]);
       }
     } finally {
       setReportsLoading(false);
     }
   }, []);
 
-  const fetchCompareReports = useCallback(async (signal?: AbortSignal) => {
-    const token = getAuthToken();
-    if (!token) return;
-    
+  const fetchCompareReports = useCallback(async (_signal?: AbortSignal) => {
     setCompareReportsLoading(true);
     setCompareReportsError(null);
-    
+
     try {
-      const json = await fetchJson<{ success: boolean; reports?: any[]; error?: string }>(
-        `${BASE_URL}/api/v1/report/almostall`,
-        { 
-          method: "GET", 
-          mode: "cors", 
-          headers: createAuthHeaders(token), 
-          credentials: "include",
-          signal,
-          acceptStatuses: [404] // Treat 404 as empty reports
-        }
-      );
-      
-      if (json?.success && json.reports) {
-        setCompareReports(json.reports.map(deserializeCompareReport));
-      } else if (json === undefined) {
-        // 404 response, treat as empty
-        setCompareReports([]);
+      // Using getAll for compare reports as well since almostall endpoint may not exist
+      const response = await reportApi.getAll();
+      if (response.success && response.reports) {
+        setCompareReports(response.reports.map(deserializeCompareReport));
       } else {
-        throw new Error(json?.error || "Failed to fetch compare reports");
+        setCompareReports([]);
       }
     } catch (e: any) {
       if (!isAbortError(e)) {
@@ -148,7 +115,7 @@ export function ReportsProvider({ children }: ReportsProviderProps) {
           handleAuthenticationError(e);
           return; // Don't set error state, user will be redirected
         }
-        logHttp('compare-reports', e);
+        console.error("Failed to fetch compare reports", e);
         setCompareReportsError(e?.message ?? "Failed to fetch compare reports");
         setCompareReports([]); // Safe fallback
       }
@@ -161,8 +128,14 @@ export function ReportsProvider({ children }: ReportsProviderProps) {
      Public refresh functions
      ========================= */
 
-  const refreshReports = useCallback(() => withAbort((s) => fetchReports(s)), [withAbort, fetchReports]);
-  const refreshCompareReports = useCallback(() => withAbort((s) => fetchCompareReports(s)), [withAbort, fetchCompareReports]);
+  const refreshReports = useCallback(
+    () => withAbort((s) => fetchReports(s)),
+    [withAbort, fetchReports]
+  );
+  const refreshCompareReports = useCallback(
+    () => withAbort((s) => fetchCompareReports(s)),
+    [withAbort, fetchCompareReports]
+  );
 
   /* =========================
      Effects
@@ -170,19 +143,18 @@ export function ReportsProvider({ children }: ReportsProviderProps) {
 
   // Gate initial load based on auth readiness and relevant routes
   useEffect(() => {
-    const reportsEnabled = authReady && !!user?.id && (
-      routeStartsWith('/reports') ||
-      routeStartsWith('/') // Dashboard may show reports summary
-    );
-    
-    const compareEnabled = authReady && !!user?.id && (
-      routeStartsWith('/compare')
-    );
-    
+    const reportsEnabled =
+      authReady &&
+      !!user?.id &&
+      (routeStartsWith("/reports") || routeStartsWith("/")); // Dashboard may show reports summary
+
+    const compareEnabled =
+      authReady && !!user?.id && routeStartsWith("/compare");
+
     if (reportsEnabled) {
       refreshReports();
     }
-    
+
     if (compareEnabled) {
       refreshCompareReports();
     }
@@ -194,10 +166,10 @@ export function ReportsProvider({ children }: ReportsProviderProps) {
       if (e.key === "id_token") {
         if (e.newValue) {
           // Only refresh if on relevant routes
-          const reportsEnabled = routeStartsWith('/reports') ||
-                                 routeStartsWith('/');
-          const compareEnabled = routeStartsWith('/compare');
-          
+          const reportsEnabled =
+            routeStartsWith("/reports") || routeStartsWith("/");
+          const compareEnabled = routeStartsWith("/compare");
+
           if (reportsEnabled) refreshReports();
           if (compareEnabled) refreshCompareReports();
         } else {
@@ -210,7 +182,7 @@ export function ReportsProvider({ children }: ReportsProviderProps) {
         }
       }
     };
-    
+
     window.addEventListener("storage", handleStorageChange);
     return () => window.removeEventListener("storage", handleStorageChange);
   }, [refreshReports, refreshCompareReports, abortAll]);
@@ -218,14 +190,14 @@ export function ReportsProvider({ children }: ReportsProviderProps) {
   // Listen for report generation events - only refresh if on relevant routes
   useEffect(() => {
     const handler = () => {
-      const reportsEnabled = routeStartsWith('/reports') ||
-                             routeStartsWith('/');
-      const compareEnabled = routeStartsWith('/compare');
-      
+      const reportsEnabled =
+        routeStartsWith("/reports") || routeStartsWith("/");
+      const compareEnabled = routeStartsWith("/compare");
+
       if (reportsEnabled) refreshReports();
       if (compareEnabled) refreshCompareReports();
     };
-    
+
     window.addEventListener("reportGenerated", handler);
     return () => window.removeEventListener("reportGenerated", handler);
   }, [refreshReports, refreshCompareReports]);
@@ -237,22 +209,33 @@ export function ReportsProvider({ children }: ReportsProviderProps) {
      Memoized value
      ========================= */
 
-  const value = useMemo<ReportsContextType>(() => ({
-    reports,
-    reportsLoading,
-    reportsError,
-    refreshReports,
-    
-    compareReports,
-    compareReportsLoading,
-    compareReportsError,
-    refreshCompareReports,
-  }), [
-    reports, reportsLoading, reportsError, refreshReports,
-    compareReports, compareReportsLoading, compareReportsError, refreshCompareReports,
-  ]);
+  const value = useMemo<ReportsContextType>(
+    () => ({
+      reports,
+      reportsLoading,
+      reportsError,
+      refreshReports,
 
-  return <ReportsContext.Provider value={value}>{children}</ReportsContext.Provider>;
+      compareReports,
+      compareReportsLoading,
+      compareReportsError,
+      refreshCompareReports,
+    }),
+    [
+      reports,
+      reportsLoading,
+      reportsError,
+      refreshReports,
+      compareReports,
+      compareReportsLoading,
+      compareReportsError,
+      refreshCompareReports,
+    ]
+  );
+
+  return (
+    <ReportsContext.Provider value={value}>{children}</ReportsContext.Provider>
+  );
 }
 
 /* =========================
@@ -272,7 +255,8 @@ export function useReports() {
 
 export function useCompareReports() {
   const ctx = useContext(ReportsContext);
-  if (!ctx) throw new Error("useCompareReports must be used within a ReportsProvider");
+  if (!ctx)
+    throw new Error("useCompareReports must be used within a ReportsProvider");
   return {
     compareReports: ctx.compareReports,
     loading: ctx.compareReportsLoading,

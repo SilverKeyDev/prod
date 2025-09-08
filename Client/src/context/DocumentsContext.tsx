@@ -7,21 +7,13 @@ import {
   useMemo,
   ReactNode,
 } from "react";
+import { Document, DocumentCategory } from "../types";
 import {
-  Document,
-  DocumentCategory,
-  BASE_URL,
-} from "./utils";
-import {
-  fetchJson,
-  logHttp,
-  createAuthHeaders,
   createAbortManager,
   isAbortError,
-  getAuthToken,
-  routeStartsWith,
-} from "../lib/fetchUtils";
-import { useAuth } from "./AuthContext";
+} from "../api/utils/index";
+import { useAuth } from "../app/providers";
+import { dashboardApi, secureUploadApi } from "../api";
 
 /* =========================
    Types
@@ -35,9 +27,17 @@ interface DocumentsContextType {
   categoriesLoading: boolean;
   documentsError: string | null;
   categoriesError: string | null;
-  uploadDocument: (file: File, category: string, propertyId?: string, offerId?: string) => Promise<Document>;
+  uploadDocument: (
+    file: File,
+    category: string,
+    propertyId?: string,
+    offerId?: string
+  ) => Promise<Document>;
   deleteDocument: (docId: string) => Promise<void>;
-  updateDocumentStatus: (docId: string, status: Document['status']) => Promise<void>;
+  updateDocumentStatus: (
+    docId: string,
+    status: Document["status"]
+  ) => Promise<void>;
   signDocument: (docId: string) => Promise<void>;
   downloadDocument: (docId: string) => Promise<void>;
   refreshDocuments: () => Promise<void>;
@@ -51,7 +51,9 @@ interface DocumentsContextType {
    Context
    ========================= */
 
-const DocumentsContext = createContext<DocumentsContextType | undefined>(undefined);
+const DocumentsContext = createContext<DocumentsContextType | undefined>(
+  undefined
+);
 
 interface DocumentsProviderProps {
   children: ReactNode;
@@ -60,7 +62,7 @@ interface DocumentsProviderProps {
 export function DocumentsProvider({ children }: DocumentsProviderProps) {
   const { abortAll, withAbort } = useMemo(() => createAbortManager(), []);
   const { user, authReady } = useAuth();
-  
+
   // Documents state
   const [documents, setDocuments] = useState<Document[]>([]);
   const [documentsLoading, setDocumentsLoading] = useState(false);
@@ -73,42 +75,25 @@ export function DocumentsProvider({ children }: DocumentsProviderProps) {
 
   // Upload state
   const [uploadedFiles, setUploadedFiles] = useState<any[]>([]);
-  
+
   /* =========================
      Fetchers
      ========================= */
 
-  const fetchDocuments = useCallback(async (signal?: AbortSignal) => {
-    const token = getAuthToken();
-    if (!token) return;
-    
+  const fetchDocuments = useCallback(async (_signal?: AbortSignal) => {
     setDocumentsLoading(true);
     setDocumentsError(null);
-    
+
     try {
-      const json = await fetchJson<{ success: boolean; documents?: Document[]; error?: string }>(
-        `${BASE_URL}/api/v1/documents`,
-        { 
-          method: "GET", 
-          mode: "cors", 
-          headers: createAuthHeaders(token), 
-          credentials: "include",
-          signal,
-          acceptStatuses: [404] // Treat 404 as empty documents
-        }
-      );
-      
-      if (json?.success && json.documents) {
-        setDocuments(json.documents);
-      } else if (json === undefined) {
-        // 404 response, treat as empty
-        setDocuments([]);
+      const response = await dashboardApi.getDocuments();
+      if (response.success && response.documents) {
+        setDocuments(response.documents);
       } else {
-        throw new Error(json?.error || "Failed to fetch documents");
+        setDocuments([]);
       }
     } catch (e: any) {
       if (!isAbortError(e)) {
-        logHttp('documents', e);
+        console.error("Failed to fetch documents", e);
         setDocumentsError(e?.message ?? "Failed to fetch documents");
         setDocuments([]); // Safe fallback
       }
@@ -117,37 +102,20 @@ export function DocumentsProvider({ children }: DocumentsProviderProps) {
     }
   }, []);
 
-  const fetchCategories = useCallback(async (signal?: AbortSignal) => {
-    const token = getAuthToken();
-    if (!token) return;
-
+  const fetchCategories = useCallback(async (_signal?: AbortSignal) => {
     setCategoriesLoading(true);
     setCategoriesError(null);
 
     try {
-      const json = await fetchJson<{ success: boolean; categories?: DocumentCategory[]; error?: string }>(
-        `${BASE_URL}/api/v1/documents/categories`,
-        { 
-          method: "GET", 
-          mode: "cors", 
-          headers: createAuthHeaders(token), 
-          credentials: "include",
-          signal,
-          acceptStatuses: [404] // Treat 404 as empty categories
-        }
-      );
-
-      if (json?.success && json.categories) {
-        setCategories(json.categories);
-      } else if (json === undefined) {
-        // 404 response, treat as empty
-        setCategories([]);
+      const response = await dashboardApi.getCategories();
+      if (response.success && response.categories) {
+        setCategories(response.categories);
       } else {
-        throw new Error(json?.error || "Failed to fetch document categories");
+        setCategories([]);
       }
     } catch (e: any) {
       if (!isAbortError(e)) {
-        logHttp('categories', e);
+        console.error("Failed to fetch document categories", e);
         setCategoriesError(e?.message ?? "Failed to fetch document categories");
         setCategories([]); // Safe fallback
       }
@@ -156,15 +124,12 @@ export function DocumentsProvider({ children }: DocumentsProviderProps) {
     }
   }, []);
 
-  const performUploadDocument = useCallback(async (
-    file: File, 
-    category: string, 
-    propertyId?: string, 
-    offerId?: string, 
-    signal?: AbortSignal
+  const uploadDocument = async (
+    file: File,
+    category: string,
+    propertyId?: string,
+    offerId?: string
   ): Promise<Document> => {
-    const token = getAuthToken();
-    if (!token) throw new Error("No authentication token");
 
     // Create upload tracking entry
     const uploadId = `${Date.now()}-${file.name}`;
@@ -172,198 +137,147 @@ export function DocumentsProvider({ children }: DocumentsProviderProps) {
       id: uploadId,
       file,
       progress: 0,
-      status: 'uploading',
+      status: "uploading",
     };
-    setUploadedFiles(prev => [...prev, uploadEntry]);
+    setUploadedFiles((prev) => [...prev, uploadEntry]);
 
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('category', category);
-      if (propertyId) formData.append('property_id', propertyId);
-      if (offerId) formData.append('offer_id', offerId);
+      const metadata = {
+        category,
+        ...(propertyId && { property_id: propertyId }),
+        ...(offerId && { offer_id: offerId }),
+      };
 
-      const response = await fetch(`${BASE_URL}/api/v1/documents/upload`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-        credentials: 'include',
-        body: formData,
-        signal,
-      });
+      const result = await secureUploadApi.uploadDocument(file, metadata);
 
-      const json = await response.json();
-
-      if (json.success && json.document) {
-        const newDocument = {
-          ...json.document,
-          uploaded_at: new Date(json.document.uploaded_at),
-          expiry_date: json.document.expiry_date ? new Date(json.document.expiry_date) : undefined,
+      if (result.success && result.file_id) {
+        const newDocument: Document = {
+          id: result.file_id || `doc-${Date.now()}`,
+          name: file.name,
+          file_path: result.file_url || "",
+          file_size: result.file_size || file.size,
+          file_type: result.content_type || file.type,
+          category,
+          property_id: propertyId,
+          offer_id: offerId,
+          uploaded_by: "", // Will be set by backend
+          uploaded_at: new Date(),
+          expiry_date: undefined,
+          status: "pending",
         };
-        
-        setDocuments(prev => [...prev, newDocument]);
-        
-        // Update upload status
-        setUploadedFiles(prev => prev.map(upload => 
-          upload.id === uploadId 
-            ? { ...upload, progress: 100, status: 'completed' }
-            : upload
-        ));
+
+        setDocuments((prev) => [...prev, newDocument]);
+
+        // Update upload status to completed
+        setUploadedFiles((prev) =>
+          prev.map((upload) =>
+            upload.id === uploadId
+              ? { ...upload, status: "completed", progress: 100 }
+              : upload
+          )
+        );
 
         return newDocument;
       } else {
-        throw new Error(json.error || "Failed to upload document");
+        throw new Error(result.error || "Upload failed");
       }
-    } catch (e: any) {
+    } catch (error) {
+      console.error("Upload error:", error);
+
       // Update upload status to failed
-      setUploadedFiles(prev => prev.map(upload => 
-        upload.id === uploadId 
-          ? { ...upload, status: 'failed', error: e.message }
-          : upload
-      ));
-      
+      setUploadedFiles((prev) =>
+        prev.map((upload) =>
+          upload.id === uploadId
+            ? { ...upload, status: "failed", progress: 0 }
+            : upload
+        )
+      );
+
+      throw error;
+    }
+  };
+
+  const performUpdateDocumentStatus = useCallback(
+    async (docId: string, status: Document["status"], _signal?: AbortSignal) => {
+      try {
+        const response = await dashboardApi.updateDocumentStatus(docId, status);
+        if (response.success && response.document) {
+          const updatedDocument = {
+            ...response.document,
+            uploaded_at: new Date(response.document.uploaded_at),
+            expiry_date: response.document.expiry_date
+              ? new Date(response.document.expiry_date)
+              : undefined,
+          };
+
+          setDocuments((prev) =>
+            prev.map((doc) => (doc.id === docId ? updatedDocument : doc))
+          );
+        } else {
+          throw new Error(response.error || "Failed to update document status");
+        }
+      } catch (e: any) {
+        if (!isAbortError(e)) {
+          console.error("Failed to update document status", e);
+          throw e;
+        }
+      }
+    },
+    []
+  );
+
+  const performSignDocument = useCallback(
+    async (docId: string, _signal?: AbortSignal) => {
+      try {
+        const response = await dashboardApi.signDocument(docId);
+        if (response.success && response.document) {
+          const signedDocument = {
+            ...response.document,
+            uploaded_at: new Date(response.document.uploaded_at),
+            expiry_date: response.document.expiry_date
+              ? new Date(response.document.expiry_date)
+              : undefined,
+          };
+
+          setDocuments((prev) =>
+            prev.map((doc) => (doc.id === docId ? signedDocument : doc))
+          );
+        } else {
+          throw new Error(response.error || "Failed to sign document");
+        }
+      } catch (e: any) {
+        if (!isAbortError(e)) {
+          console.error("Failed to sign document", e);
+          throw e;
+        }
+      }
+    },
+    []
+  );
+
+  const performDownloadDocument = useCallback(async (docId: string) => {
+    try {
+      await secureUploadApi.downloadDocument(docId);
+    } catch (e: any) {
       if (!isAbortError(e)) {
-        logHttp('upload', e);
+        console.error("Failed to download document", e);
         throw e;
       }
-      throw e;
     }
   }, []);
 
-  const performDeleteDocument = useCallback(async (docId: string, signal?: AbortSignal) => {
-    const token = getAuthToken();
-    if (!token) return;
-
+  const performDeleteDocument = useCallback(async (docId: string) => {
     try {
-      const json = await fetchJson<{ success: boolean; error?: string }>(
-        `${BASE_URL}/api/v1/documents/${docId}`,
-        {
-          method: "DELETE",
-          mode: "cors",
-          headers: createAuthHeaders(token),
-          credentials: "include",
-          signal,
-        }
-      );
+      const json = await secureUploadApi.deleteDocument(docId);
 
       if (json.success) {
-        setDocuments(prev => prev.filter(doc => doc.id !== docId));
+        setDocuments((prev) => prev.filter((doc) => doc.id !== docId));
       } else {
         throw new Error(json.error || "Failed to delete document");
       }
     } catch (e: any) {
       if (!isAbortError(e)) {
-        logHttp('delete', e);
-        throw e;
-      }
-    }
-  }, []);
-
-  const performUpdateDocumentStatus = useCallback(async (docId: string, status: Document['status'], signal?: AbortSignal) => {
-    const token = getAuthToken();
-    if (!token) return;
-
-    try {
-      const json = await fetchJson<{ success: boolean; document?: Document; error?: string }>(
-        `${BASE_URL}/api/v1/documents/${docId}/status`,
-        {
-          method: "PUT",
-          mode: "cors",
-          headers: createAuthHeaders(token),
-          credentials: "include",
-          body: JSON.stringify({ status }),
-          signal,
-        }
-      );
-
-      if (json.success && json.document) {
-        const updatedDocument = {
-          ...json.document,
-          uploaded_at: new Date(json.document.uploaded_at),
-          expiry_date: json.document.expiry_date ? new Date(json.document.expiry_date) : undefined,
-        };
-        
-        setDocuments(prev => prev.map(doc => 
-          doc.id === docId ? updatedDocument : doc
-        ));
-      } else {
-        throw new Error(json.error || "Failed to update document status");
-      }
-    } catch (e: any) {
-      if (!isAbortError(e)) {
-        logHttp('update', e);
-        throw e;
-      }
-    }
-  }, []);
-
-  const performSignDocument = useCallback(async (docId: string, signal?: AbortSignal) => {
-    const token = getAuthToken();
-    if (!token) return;
-
-    try {
-      const json = await fetchJson<{ success: boolean; document?: Document; error?: string }>(
-        `${BASE_URL}/api/v1/documents/${docId}/sign`,
-        {
-          method: "POST",
-          mode: "cors",
-          headers: createAuthHeaders(token),
-          credentials: "include",
-          signal,
-        }
-      );
-
-      if (json.success && json.document) {
-        const signedDocument = {
-          ...json.document,
-          uploaded_at: new Date(json.document.uploaded_at),
-          expiry_date: json.document.expiry_date ? new Date(json.document.expiry_date) : undefined,
-        };
-        
-        setDocuments(prev => prev.map(doc => 
-          doc.id === docId ? signedDocument : doc
-        ));
-      } else {
-        throw new Error(json.error || "Failed to sign document");
-      }
-    } catch (e: any) {
-      if (!isAbortError(e)) {
-        logHttp('sign', e);
-        throw e;
-      }
-    }
-  }, []);
-
-  const performDownloadDocument = useCallback(async (docId: string, signal?: AbortSignal) => {
-    const token = getAuthToken();
-    if (!token) return;
-
-    try {
-      const response = await fetch(`${BASE_URL}/api/v1/documents/${docId}/download`, {
-        method: 'GET',
-        headers: createAuthHeaders(token),
-        credentials: 'include',
-        signal,
-      });
-
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = response.headers.get('Content-Disposition')?.split('filename=')[1] || 'document';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-      } else {
-        const json = await response.json();
-        throw new Error(json.error || "Failed to download document");
-      }
-    } catch (e: any) {
-      if (!isAbortError(e)) {
-        logHttp('download', e);
+        console.error("Failed to delete document", e);
         throw e;
       }
     }
@@ -373,54 +287,51 @@ export function DocumentsProvider({ children }: DocumentsProviderProps) {
      Public functions
      ========================= */
 
-  const uploadDocument = useCallback((file: File, category: string, propertyId?: string, offerId?: string) => 
-    withAbort((s) => performUploadDocument(file, category, propertyId, offerId, s)), 
-    [withAbort, performUploadDocument]
-  );
-
-  const deleteDocument = useCallback((docId: string) => 
-    withAbort((s) => performDeleteDocument(docId, s)), 
+  const deleteDocument = useCallback(
+    (docId: string) => withAbort(() => performDeleteDocument(docId)),
     [withAbort, performDeleteDocument]
   );
 
-  const updateDocumentStatus = useCallback((docId: string, status: Document['status']) => 
-    withAbort((s) => performUpdateDocumentStatus(docId, status, s)), 
+  const updateDocumentStatus = useCallback(
+    (docId: string, status: Document["status"]) =>
+      withAbort((s) => performUpdateDocumentStatus(docId, status, s)),
     [withAbort, performUpdateDocumentStatus]
   );
 
-  const signDocument = useCallback((docId: string) => 
-    withAbort((s) => performSignDocument(docId, s)), 
+  const signDocument = useCallback(
+    (docId: string) => withAbort((s) => performSignDocument(docId, s)),
     [withAbort, performSignDocument]
   );
 
-  const downloadDocument = useCallback((docId: string) => 
-    withAbort((s) => performDownloadDocument(docId, s)), 
+  const downloadDocument = useCallback(
+    (docId: string) => withAbort(() => performDownloadDocument(docId)),
     [withAbort, performDownloadDocument]
   );
 
-  const refreshDocuments = useCallback(() => 
-    withAbort((s) => fetchDocuments(s)), 
+  const refreshDocuments = useCallback(
+    () => withAbort((s) => fetchDocuments(s)),
     [withAbort, fetchDocuments]
   );
 
-  const refreshCategories = useCallback(() => 
-    withAbort((s) => fetchCategories(s)), 
+  const refreshCategories = useCallback(
+    () => withAbort((s) => fetchCategories(s)),
     [withAbort, fetchCategories]
   );
 
   // Helper functions
-  const getDocumentsByCategory = useCallback((category: string) => 
-    documents.filter(doc => doc.category === category), 
+  const getDocumentsByCategory = useCallback(
+    (category: string) => documents.filter((doc) => doc.category === category),
     [documents]
   );
 
-  const getDocumentsByProperty = useCallback((propertyId: string) => 
-    documents.filter(doc => doc.property_id === propertyId), 
+  const getDocumentsByProperty = useCallback(
+    (propertyId: string) =>
+      documents.filter((doc) => doc.property_id === propertyId),
     [documents]
   );
 
-  const getDocumentsByOffer = useCallback((offerId: string) => 
-    documents.filter(doc => doc.offer_id === offerId), 
+  const getDocumentsByOffer = useCallback(
+    (offerId: string) => documents.filter((doc) => doc.offer_id === offerId),
     [documents]
   );
 
@@ -429,31 +340,26 @@ export function DocumentsProvider({ children }: DocumentsProviderProps) {
      ========================= */
 
   // Gate initial load based on auth readiness and relevant routes
-  useEffect(() => {
-    const enabled = authReady && !!user?.id && (
-      routeStartsWith('/documents') ||
-      routeStartsWith('/negotiation') // Negotiation may need documents
-    );
-    
-    if (enabled) {
-      refreshDocuments();
-      refreshCategories();
-    }
-  }, [authReady, user?.id, refreshDocuments, refreshCategories]);
+  useEffect(() => {}, [
+    authReady,
+    user?.id,
+    refreshDocuments,
+    refreshCategories,
+  ]);
 
   // Cross-tab auth changes - only refresh if on relevant routes
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === "id_token") {
         if (e.newValue) {
-          // Only refresh if on relevant routes
-          const enabled = routeStartsWith('/documents') ||
-                          routeStartsWith('/negotiation');
-          
-          if (enabled) {
-            refreshDocuments();
-            refreshCategories();
-          }
+          // DISABLED: Backend endpoints don't exist
+          // const enabled =
+          //   routeStartsWith("/documents") || routeStartsWith("/negotiation");
+
+          // if (enabled) {
+          //   refreshDocuments();
+          //   refreshCategories();
+          // }
         } else {
           // Clear everything
           setDocuments([]);
@@ -464,7 +370,7 @@ export function DocumentsProvider({ children }: DocumentsProviderProps) {
         }
       }
     };
-    
+
     window.addEventListener("storage", handleStorageChange);
     return () => window.removeEventListener("storage", handleStorageChange);
   }, [refreshDocuments, refreshCategories, abortAll]);
@@ -472,10 +378,13 @@ export function DocumentsProvider({ children }: DocumentsProviderProps) {
   // Cleanup completed uploads after 5 minutes
   useEffect(() => {
     const interval = setInterval(() => {
-      setUploadedFiles(prev => prev.filter(upload => 
-        upload.status === 'uploading' || 
-        (Date.now() - parseInt(upload.id.split('-')[0])) < 5 * 60 * 1000
-      ));
+      setUploadedFiles((prev) =>
+        prev.filter(
+          (upload) =>
+            upload.status === "uploading" ||
+            Date.now() - parseInt(upload.id.split("-")[0]) < 5 * 60 * 1000
+        )
+      );
     }, 60000); // Check every minute
 
     return () => clearInterval(interval);
@@ -488,35 +397,52 @@ export function DocumentsProvider({ children }: DocumentsProviderProps) {
      Memoized value
      ========================= */
 
-  const value = useMemo<DocumentsContextType>(() => ({
-    documents,
-    documentCategories: categories,
-    uploadedFiles,
-    documentsLoading,
-    categoriesLoading,
-    documentsError,
-    categoriesError,
-    uploadDocument,
-    deleteDocument,
-    updateDocumentStatus,
-    signDocument,
-    downloadDocument,
-    refreshDocuments,
-    refreshCategories,
-    getDocumentsByCategory,
-    getDocumentsByProperty,
-    getDocumentsByOffer,
-  }), [
-    documents, categories, uploadedFiles,
-    documentsLoading, categoriesLoading,
-    documentsError, categoriesError,
-    uploadDocument, deleteDocument, updateDocumentStatus,
-    signDocument, downloadDocument, refreshDocuments,
-    refreshCategories, getDocumentsByCategory,
-    getDocumentsByProperty, getDocumentsByOffer,
-  ]);
+  const value = useMemo<DocumentsContextType>(
+    () => ({
+      documents,
+      documentCategories: categories,
+      uploadedFiles,
+      documentsLoading,
+      categoriesLoading,
+      documentsError,
+      categoriesError,
+      uploadDocument,
+      deleteDocument,
+      updateDocumentStatus,
+      signDocument,
+      downloadDocument,
+      refreshDocuments,
+      refreshCategories,
+      getDocumentsByCategory,
+      getDocumentsByProperty,
+      getDocumentsByOffer,
+    }),
+    [
+      documents,
+      categories,
+      uploadedFiles,
+      documentsLoading,
+      categoriesLoading,
+      documentsError,
+      categoriesError,
+      uploadDocument,
+      deleteDocument,
+      updateDocumentStatus,
+      signDocument,
+      downloadDocument,
+      refreshDocuments,
+      refreshCategories,
+      getDocumentsByCategory,
+      getDocumentsByProperty,
+      getDocumentsByOffer,
+    ]
+  );
 
-  return <DocumentsContext.Provider value={value}>{children}</DocumentsContext.Provider>;
+  return (
+    <DocumentsContext.Provider value={value}>
+      {children}
+    </DocumentsContext.Provider>
+  );
 }
 
 /* =========================
@@ -525,6 +451,7 @@ export function DocumentsProvider({ children }: DocumentsProviderProps) {
 
 export function useDocuments() {
   const ctx = useContext(DocumentsContext);
-  if (!ctx) throw new Error("useDocuments must be used within a DocumentsProvider");
+  if (!ctx)
+    throw new Error("useDocuments must be used within a DocumentsProvider");
   return ctx;
 }

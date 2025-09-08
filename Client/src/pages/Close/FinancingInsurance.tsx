@@ -1,4 +1,4 @@
-import CloseLayout, { ChecklistItem } from "../../components/layout/CloseLayout";
+import CloseLayout, { ChecklistItem } from "../../features/close/CloseLayout";
 
 interface ClosePageHeaderData {
   title: string;
@@ -9,11 +9,14 @@ interface ClosePageHeaderData {
 }
 
 interface FinancingInsuranceProps {
-  setClosePageHeaderData: React.Dispatch<React.SetStateAction<ClosePageHeaderData | null>>;
+  setClosePageHeaderData: React.Dispatch<
+    React.SetStateAction<ClosePageHeaderData | null>
+  >;
 }
 
-export default function FinancingInsurance({ setClosePageHeaderData }: FinancingInsuranceProps) {
-
+export default function FinancingInsurance({
+  setClosePageHeaderData,
+}: FinancingInsuranceProps) {
   const items: ChecklistItem[] = [
     {
       id: 1,

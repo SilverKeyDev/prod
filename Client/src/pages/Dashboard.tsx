@@ -1,18 +1,38 @@
+// React imports
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { favoriteHomesApi } from "../lib/api";
-import ReportCard from "../components/cards/ReportCard";
+
+// API clients
+import { userApi, reportApi } from "../api";
+
+// Types
+import { Report } from "../types";
+import { HomeDescription } from "../components/cards/HomeCard";
+
+// Context providers
 import { useReports } from "../context";
-import { Report } from "../context/utils";
-import HomeCard, { HomeDescription } from "../components/cards/HomeCard";
-import NavigationButton from "../components/ui/base/NavigationButton";
+
+// Hooks
 import { useDocumentActions } from "../hooks/useDocumentActions";
-import PdfModal from "../components/modals/PdfModal";
+
+// UI Components
+import { NavigationButton } from "../components/ui";
 import { CardCarousel } from "../components/cards/base";
-import TimelineChecklist from "../components/ui/dashboard/DashboardButtonHeader";
+
+// Card components
+import ReportCard from "../components/cards/ReportCard";
+import HomeCard from "../components/cards/HomeCard";
+
+// Modal components
+import PdfModal from "../components/modals/PdfModal";
+import DeleteModal from "../components/modals/DeleteModal";
+
+// Feedback components
 import ErrorToast from "../components/feedback/ErrorToast";
 import SuccessToast from "../components/feedback/SuccessToast";
-import DeleteModal from "../components/modals/DeleteModal";
+
+// Feature components
+import TimelineChecklist from "../features/dashboard/DashboardButtonHeader";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -54,7 +74,7 @@ export default function Dashboard() {
   // Handle saving a home
   const handleSaveHome = async (property: any) => {
     try {
-      await favoriteHomesApi.addFavorite(property);
+      await userApi.addFavoriteHome({ home: property });
       // Refresh the saved homes list - we'll trigger a re-fetch via useEffect
       window.location.reload();
     } catch (error) {
@@ -65,7 +85,7 @@ export default function Dashboard() {
   // Handle removing a saved home
   const handleRemoveHome = async (homeId: string) => {
     try {
-      await favoriteHomesApi.removeFavorite(homeId);
+      await userApi.removeFavoriteHome({ address: homeId });
       // Update local state by removing the home
       setFavoriteHomes((prev) =>
         prev.filter((home) => home.home_id !== homeId)
@@ -89,7 +109,7 @@ export default function Dashboard() {
       setFavLoading(true);
       setFavError(null);
       try {
-        const res = await favoriteHomesApi.getFavorites();
+        const res = await userApi.getFavoriteHomes();
         if (res.success) {
           // Backend returns { favorites: HomeUniversal[] } where each is an object
           const rawHomes = res.favorites || [];
@@ -129,7 +149,7 @@ export default function Dashboard() {
   // Share individual report using centralized function
   const handleShareReport = useCallback(
     async (report: Report) => {
-      const result = await handleShareDocument(report.address);
+      const result = await handleShareDocument(report.id, report.address);
 
       if (result.success) {
         setSuccessMessage(result.message);
@@ -164,47 +184,14 @@ export default function Dashboard() {
       return;
     }
 
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
     try {
-      // Prepare the S3 key
-      let processedS3Key = s3Key;
-      if (s3Key) {
-        if (s3Key.startsWith("http")) {
-          try {
-            const url = new URL(s3Key);
-            processedS3Key = url.pathname.substring(1); // Remove leading slash
-          } catch (e) {
-            console.warn(`[DELETE] Failed to parse URL ${s3Key}:`, e);
-          }
-        } else {
-          processedS3Key = s3Key;
-        }
-      } else {
+      if (!s3Key) {
         console.warn(
           "[DELETE] No S3 key provided, will only delete from in-memory storage"
         );
       }
 
-      const baseUrl = API_BASE_URL || "";
-      const endpoint = `${baseUrl}/api/v1/report/${reportId}`;
-
-      const res = await fetch(endpoint, {
-        method: "DELETE",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ s3Key: processedS3Key }),
-      });
-
-      const responseData = await res.json().catch(() => ({}));
-
-      if (!res.ok) {
-        throw new Error(
-          responseData.error || `HTTP error! status: ${res.status}`
-        );
-      }
+      await reportApi.delete(reportId, s3Key || undefined);
 
       closeDeleteModal();
       setSuccessMessage("Report deleted successfully");
@@ -243,33 +230,11 @@ export default function Dashboard() {
         return;
       }
 
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
       let lastReportSnapshot: string | null = null;
 
       // Step 1: Initial check
       try {
-        const initialResponse = await fetch(
-          `${apiBaseUrl}/api/v1/report/poll/${documentId}`,
-          {
-            method: "GET",
-            mode: "cors",
-            headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json",
-              Authorization: `Bearer ${idToken}`,
-            },
-            credentials: "include",
-          }
-        );
-
-        if (!initialResponse.ok) {
-          console.error(
-            `[Dashboard] ❌ Initial poll failed with status: ${initialResponse.status}`
-          );
-          return;
-        }
-
-        const initialData = await initialResponse.json();
+        const initialData = await reportApi.poll(documentId);
 
         if (initialData.success && initialData.report) {
           lastReportSnapshot = JSON.stringify(initialData.report);
@@ -286,8 +251,7 @@ export default function Dashboard() {
           lastReportSnapshot = null;
         } else {
           console.error(
-            `[Dashboard] ❌ Initial poll failed:`,
-            initialData.error
+            `[Dashboard] ❌ Initial poll failed: No report data received`
           );
           return;
         }
@@ -302,24 +266,12 @@ export default function Dashboard() {
         const elapsedTime = Math.round((Date.now() - startTime) / 1000);
 
         try {
-          const response = await fetch(
-            `${apiBaseUrl}/api/v1/report/poll/${documentId}`,
-            {
-              method: "GET",
-              mode: "cors",
-              headers: {
-                "Content-Type": "application/json",
-                Accept: "application/json",
-                Authorization: `Bearer ${idToken}`,
-              },
-              credentials: "include",
-            }
-          );
+          const data = await reportApi.poll(documentId);
 
-          if (!response.ok) {
+          if (!data.success) {
             consecutiveErrors++;
             console.error(
-              `[Dashboard] ❌ Poll error: ${response.status} ${response.statusText} (${consecutiveErrors}/${maxConsecutiveErrors})`
+              `[Dashboard] ❌ Poll error: API returned unsuccessful response (${consecutiveErrors}/${maxConsecutiveErrors})`
             );
 
             if (consecutiveErrors >= maxConsecutiveErrors) {
@@ -334,17 +286,7 @@ export default function Dashboard() {
             }
             return;
           }
-
-          const data = await response.json();
           consecutiveErrors = 0; // Reset error counter on success
-
-          if (!data.success) {
-            console.error(`[Dashboard] ❌ Poll API error:`, data.error);
-            if (attempts < maxAttempts) {
-              setTimeout(pollForCompletion, pollInterval);
-            }
-            return;
-          }
 
           // Handle case where report is not found (null)
           if (!data.report) {
@@ -474,7 +416,7 @@ export default function Dashboard() {
       </div>
 
       {/* Favorite Homes */}
-      <div className="mt-12">
+      <div className="my-8">
         <CardCarousel
           items={favoriteHomes}
           embeddedButton={
@@ -489,9 +431,6 @@ export default function Dashboard() {
           loading={favLoading}
           error={favError}
           emptyMessage="Save your first home today"
-          minCardWidth={320}
-          maxCardWidth={400}
-          cardGap={16}
           renderItem={(home) => (
             <HomeCard
               home={home}
@@ -501,6 +440,10 @@ export default function Dashboard() {
             />
           )}
           getItemKey={(home) => home.home_id}
+          cardMinWidth={280}
+          cardGap={16}
+          infiniteLoop={false}
+          ariaLabel="Saved homes carousel"
         />
       </div>
 
@@ -520,22 +463,22 @@ export default function Dashboard() {
           loading={reportsLoading}
           error={null}
           emptyMessage="Generate your first property report to get started"
-          minCardWidth={320}
-          maxCardWidth={400}
           renderItem={(report) => (
-            <div>
-              <ReportCard
-                report={report}
-                loadingUrls={loadingUrls}
-                viewMode="grid"
-                onView={handleViewDocument}
-                onDownload={handleDownloadDocument}
-                onShare={() => handleShareReport(report)}
-                onDelete={openDeleteModal}
-              />
-            </div>
+            <ReportCard
+              report={report}
+              loadingUrls={loadingUrls}
+              viewMode="grid"
+              onView={handleViewDocument}
+              onDownload={handleDownloadDocument}
+              onShare={() => handleShareReport(report)}
+              onDelete={openDeleteModal}
+            />
           )}
           getItemKey={(report) => report.id}
+          cardMinWidth={280}
+          cardGap={16}
+          infiniteLoop={false}
+          ariaLabel="Recent reports carousel"
         />
       </div>
     </div>

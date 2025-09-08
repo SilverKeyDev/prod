@@ -1,6 +1,6 @@
 import React from "react";
 import { Eye } from "lucide-react";
-import KeyTurnLoader from "../../ui/base/KeyTurnLoader";
+import KeyTurnLoader from "../../ui/loading/KeyTurnLoader";
 
 export interface CardViewDetailsButtonProps {
   /** Click handler */
@@ -91,9 +91,16 @@ const CardViewDetailsButton: React.FC<CardViewDetailsButtonProps> = ({
       className={buttonClasses}
     >
       {loading ? (
-        <div style={{ 
-          transform: size === "sm" ? "scale(0.75)" : size === "lg" ? "scale(1.25)" : "scale(1)" 
-        }}>
+        <div
+          style={{
+            transform:
+              size === "sm"
+                ? "scale(0.75)"
+                : size === "lg"
+                ? "scale(1.25)"
+                : "scale(1)",
+          }}
+        >
           <KeyTurnLoader message="Loading..." />
         </div>
       ) : (

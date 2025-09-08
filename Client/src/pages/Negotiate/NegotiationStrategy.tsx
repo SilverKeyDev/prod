@@ -1,19 +1,15 @@
 import { Lightbulb, Home, Download, Share2 } from "lucide-react";
-import FavoriteHomesDropdown from "../../components/ui/base/FavoriteHomesDropdown";
-import Loading from "../../components/ui/base/Loading";
-import KeyTurnLoader from "../../components/ui/base/KeyTurnLoader";
-import Card from "../../components/ui/base/Card";
+import {
+  FavoriteHomesDropdown,
+  Loading,
+  Button,
+  Subtitle,
+} from "../../components/ui";
+import { Card, AlignedRow } from "../../components/layout";
+import { SectionBox, SectionTitle } from "../../features/negotiate";
 import { CardCarousel } from "../../components/cards/base";
 import CompCard, { CompData } from "../../components/cards/CompCard";
 import { useNegotiation } from "../../context/NegotiationContext";
-
-const sectionBox =
-  "bg-white rounded-xl shadow-sm p-6 mb-6 border border-beige/40";
-const sectionTitle =
-  "text-lg font-semibold text-navy flex items-center gap-3 mb-4";
-const label = "block text-navy font-medium mb-2";
-const button =
-  "bg-olive text-white px-6 py-3 rounded-lg font-semibold hover:bg-olive-light transition-colors duration-200 flex items-center gap-2";
 
 export default function NegotiationStrategy() {
   const {
@@ -28,70 +24,55 @@ export default function NegotiationStrategy() {
     handleShareJson,
   } = useNegotiation();
 
-
   return (
     <div>
-
       {/* Main Content */}
       <div>
         {/* Home selector */}
-        <div className={sectionBox}>
-          <div className={sectionTitle}>
-            <Home className="mobile-icon-sm text-brown" />
+        <SectionBox>
+          <SectionTitle icon={<Home className="mobile-icon-sm text-brown" />}>
             Select a Home
-          </div>
-          <label className={label}>Choose from Your Favorite Homes</label>
+          </SectionTitle>
+          <Subtitle>Choose from Your Favorite Homes</Subtitle>
 
-          <div className="flex items-stretch gap-responsive-sm">
-            <div className="flex-1 min-w-0">
-              <FavoriteHomesDropdown
-                selectedHome={selectedHome}
-                onHomeSelect={handleHomeSelection}
-                placeholder="Select a favorite home for strategy generation"
-              />
-            </div>
-            <div className="flex-shrink-0">
-              <button
-                type="button"
-                className={`${button} h-full whitespace-nowrap ${
-                  isLoading || !selectedHome
-                    ? "opacity-50 cursor-not-allowed"
-                    : ""
-                }`}
-                onClick={handleGenerate}
-                disabled={!selectedHome || isLoading}
-              >
-                {isLoading ? (
-                  <KeyTurnLoader message="Generating Strategy..." />
-                ) : (
-                  <>
-                    <Lightbulb className="mobile-icon-sm" />
-                    <span className="hidden sm:inline">Generate Strategy</span>
-                    <span className="sm:hidden">Generate</span>
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
+          <AlignedRow gap="sm" justify="start" widths={[80, 20]}>
+            <FavoriteHomesDropdown
+              selectedHome={selectedHome}
+              onHomeSelect={handleHomeSelection}
+              placeholder="Select a favorite home for strategy generation"
+            />
+            <Button
+              variant="olive"
+              size="md"
+              loading={isLoading}
+              icon={<Lightbulb className="mobile-icon-sm" />}
+              onClick={handleGenerate}
+              disabled={!selectedHome || isLoading}
+              className="h-full whitespace-nowrap"
+            >
+              <span className="hidden md:inline">Generate</span>
+              <span className="md:hidden">Generate</span>
+            </Button>
+          </AlignedRow>
+        </SectionBox>
 
         {/* Loading state */}
         {isLoading && (
-          <div className={sectionBox}>
+          <SectionBox>
             <div className="flex justify-center">
               <Loading message="Generating your personalized negotiation strategy..." />
             </div>
-          </div>
+          </SectionBox>
         )}
 
         {/* Error display */}
         {error && (
-          <div className={`${sectionBox} border-red-200 bg-red-50`}>
+          <SectionBox className="border-red-200 bg-red-50">
             <div className="text-red-600 text-center text-responsive-sm">
               <p className="font-semibold mb-2">Error Generating Strategy</p>
               <p className="text-responsive-sm">{error}</p>
             </div>
-          </div>
+          </SectionBox>
         )}
 
         {/* Property Comparables CardCarousel */}
@@ -107,8 +88,11 @@ export default function NegotiationStrategy() {
                 emptyMessage="No comparable properties found"
                 renderItem={(comp) => <CompCard comp={comp} />}
                 getItemKey={(comp) => comp.zpid.toString()}
-                minCardWidth={280}
-                maxCardWidth={380}
+                showDots={true}
+                cardMinWidth={280}
+                cardGap={16}
+                infiniteLoop={false}
+                ariaLabel="Property comparables carousel"
               />
             </div>
           )}
@@ -117,17 +101,18 @@ export default function NegotiationStrategy() {
         {compsData &&
           (!compsData.success || !compsData.data?.comps) &&
           !isLoading && (
-            <div className={sectionBox}>
-              <div className={sectionTitle}>
-                <Home className="mobile-icon-sm text-brown" />
+            <SectionBox>
+              <SectionTitle
+                icon={<Home className="mobile-icon-sm text-brown" />}
+              >
                 Property Comparables - Debug Response
-              </div>
+              </SectionTitle>
               <div className="bg-gray-900 text-green-400 space-responsive-sm rounded-lg overflow-auto max-h-96 font-mono text-responsive-sm">
                 <pre className="whitespace-pre-wrap break-words">
                   {JSON.stringify(compsData, null, 2)}
                 </pre>
               </div>
-            </div>
+            </SectionBox>
           )}
 
         {/* Strategy output - Dynamic display of all AI fields */}
@@ -137,30 +122,30 @@ export default function NegotiationStrategy() {
             <Card padding="md" shadow="sm" hover={false}>
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-3">
-                  <img 
-                    src="/minilogo.png" 
-                    alt="SilverKey" 
+                  <img
+                    src="/minilogo.png"
+                    alt="SilverKey"
                     className="w-8 h-8 object-contain"
                   />
-                  <h2 className="text-responsive-lg font-semibold text-navy">
-                    Your Negotiation Strategy
-                  </h2>
                 </div>
                 <div className="flex gap-responsive-sm">
-                  <button
+                  <Button
+                    variant="primary"
+                    size="sm"
                     onClick={handleDownloadJson}
-                    className="bg-brown text-white px-responsive-sm py-responsive-xs rounded-lg font-medium hover:bg-brown/90 transition-colors duration-200 flex items-center gap-responsive-xs touch-friendly"
+                    icon={<Download className="mobile-icon-xs" />}
+                    className="bg-brown hover:bg-brown/90"
                   >
-                    <Download className="mobile-icon-xs" />
                     Download JSON
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    variant="olive"
+                    size="sm"
                     onClick={handleShareJson}
-                    className="bg-olive text-white px-responsive-sm py-responsive-xs rounded-lg font-medium hover:bg-olive-light transition-colors duration-200 flex items-center gap-responsive-xs touch-friendly"
+                    icon={<Share2 className="mobile-icon-xs" />}
                   >
-                    <Share2 className="mobile-icon-xs" />
                     Share
-                  </button>
+                  </Button>
                 </div>
               </div>
             </Card>
@@ -202,23 +187,23 @@ export default function NegotiationStrategy() {
                               <span className="w-2 h-px bg-brown"></span>
                             </span>
                             <span>
-                            {typeof item === "object" && item !== null
-                              ? // Handle objects properly - extract meaningful content
-                                Object.entries(item)
-                                  .map(([k, v]) => `${k}: ${v}`)
-                                  .join(", ")
-                                  .replace(/_/g, " ")
-                              : // Handle strings and primitives
-                                String(item)
-                                  .replace(/_/g, " ")
-                                  .replace(/([a-z])([A-Z])/g, "$1 $2")
-                                  .split(" ")
-                                  .map(
-                                    (word: string) =>
-                                      word.charAt(0).toUpperCase() +
-                                      word.slice(1).toLowerCase()
-                                  )
-                                  .join(" ")}
+                              {typeof item === "object" && item !== null
+                                ? // Handle objects properly - extract meaningful content
+                                  Object.entries(item)
+                                    .map(([k, v]) => `${k}: ${v}`)
+                                    .join(", ")
+                                    .replace(/_/g, " ")
+                                : // Handle strings and primitives
+                                  String(item)
+                                    .replace(/_/g, " ")
+                                    .replace(/([a-z])([A-Z])/g, "$1 $2")
+                                    .split(" ")
+                                    .map(
+                                      (word: string) =>
+                                        word.charAt(0).toUpperCase() +
+                                        word.slice(1).toLowerCase()
+                                    )
+                                    .join(" ")}
                             </span>
                           </li>
                         ))}
@@ -262,23 +247,23 @@ export default function NegotiationStrategy() {
                                             <span className="w-2 h-px bg-brown"></span>
                                           </span>
                                           <span>
-                                          {typeof item === "object"
-                                            ? Object.entries(item)
-                                                .map(
-                                                  ([k, v]) =>
-                                                    `${k.replace(
-                                                      /_/g,
-                                                      " "
-                                                    )}: ${v}`
-                                                )
-                                                .join(", ")
-                                            : item
-                                                .toString()
-                                                .replace(/_/g, " ")
-                                                .replace(
-                                                  /([a-z])([A-Z])/g,
-                                                  "$1 $2"
-                                                )}
+                                            {typeof item === "object"
+                                              ? Object.entries(item)
+                                                  .map(
+                                                    ([k, v]) =>
+                                                      `${k.replace(
+                                                        /_/g,
+                                                        " "
+                                                      )}: ${v}`
+                                                  )
+                                                  .join(", ")
+                                              : item
+                                                  .toString()
+                                                  .replace(/_/g, " ")
+                                                  .replace(
+                                                    /([a-z])([A-Z])/g,
+                                                    "$1 $2"
+                                                  )}
                                           </span>
                                         </li>
                                       ))}
@@ -315,24 +300,25 @@ export default function NegotiationStrategy() {
                                                 :
                                               </span>{" "}
                                               <span className="text-navy/70">
-                                              {typeof nestedValue === "boolean"
-                                                ? nestedValue
-                                                  ? "Yes"
-                                                  : "No"
-                                                : typeof nestedValue ===
-                                                  "number"
-                                                ? nestedValue.toLocaleString()
-                                                : Array.isArray(nestedValue)
-                                                ? nestedValue
-                                                    .join(", ")
-                                                    .replace(/_/g, " ")
-                                                : nestedValue
-                                                    ?.toString()
-                                                    .replace(/_/g, " ")
-                                                    .replace(
-                                                      /([a-z])([A-Z])/g,
-                                                      "$1 $2"
-                                                    ) || "Not specified"}
+                                                {typeof nestedValue ===
+                                                "boolean"
+                                                  ? nestedValue
+                                                    ? "Yes"
+                                                    : "No"
+                                                  : typeof nestedValue ===
+                                                    "number"
+                                                  ? nestedValue.toLocaleString()
+                                                  : Array.isArray(nestedValue)
+                                                  ? nestedValue
+                                                      .join(", ")
+                                                      .replace(/_/g, " ")
+                                                  : nestedValue
+                                                      ?.toString()
+                                                      .replace(/_/g, " ")
+                                                      .replace(
+                                                        /([a-z])([A-Z])/g,
+                                                        "$1 $2"
+                                                      ) || "Not specified"}
                                               </span>
                                             </div>
                                           </div>
@@ -403,7 +389,7 @@ export default function NegotiationStrategy() {
               const formattedValue = formatValue(value);
 
               return (
-                <div key={key} className={sectionBox}>
+                <SectionBox key={key}>
                   <div className="text-navy/80">
                     {typeof formattedValue === "string" ? (
                       <p className="text-sm leading-relaxed">
@@ -413,7 +399,7 @@ export default function NegotiationStrategy() {
                       <div>{formattedValue}</div>
                     )}
                   </div>
-                </div>
+                </SectionBox>
               );
             })}
           </div>

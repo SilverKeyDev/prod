@@ -1,27 +1,25 @@
 import { useState, useEffect, useCallback } from "react";
 import { MapPin } from "lucide-react";
-import SavedLayout, { ViewMode } from "../../components/layout/SavedLayout";
+import SavedLayout, { ViewMode } from "../../app/layouts//SavedLayout";
 import ErrorToast from "../../components/feedback/ErrorToast";
 import SuccessToast from "../../components/feedback/SuccessToast";
 import DeleteModal from "../../components/modals/DeleteModal";
 import { useReports } from "../../context";
-import { Report } from "../../context/utils";
 import { useDocumentActions } from "../../hooks/useDocumentActions";
 import PdfModal from "../../components/modals/PdfModal";
 import ReportCard from "../../components/cards/ReportCard";
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+import useMobile from "../../hooks/useMobile";
+import { reportApi } from "../../api";
+import { Report } from "../../types";
 
 export default function PastReports() {
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Use preloaded data from context
+  // Use preloaded report data from context (same as Dashboard)
   const { reports, loading: reportsLoading, refreshReports } = useReports();
 
-  // Debug: Log the actual report data structure
-  useEffect(() => {}, [reports]);
 
   // Use centralized document actions
   const {
@@ -39,11 +37,13 @@ export default function PastReports() {
     refreshReports();
   }, [refreshReports]);
 
-  // Handle refresh button click with loading state
+  // Handle refresh button click with loading state (using context)
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
       await refreshReports();
+    } catch (error) {
+      console.error('Failed to refresh reports:', error);
     } finally {
       setIsRefreshing(false);
     }
@@ -59,10 +59,10 @@ export default function PastReports() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
 
-  // Share individual report using centralized function
+  // Share individual report using centralized function (same as Dashboard)
   const handleShareReport = useCallback(
     async (report: Report) => {
-      const result = await handleShareDocument(report.address);
+      const result = await handleShareDocument(report.id, report.address);
 
       if (result.success) {
         setSuccessMessage(result.message);
@@ -98,44 +98,13 @@ export default function PastReports() {
     }
 
     try {
-      // Prepare the S3 key
-      let processedS3Key = s3Key;
-      if (s3Key) {
-        if (s3Key.startsWith("http")) {
-          try {
-            const url = new URL(s3Key);
-            processedS3Key = url.pathname.substring(1); // Remove leading slash
-          } catch (e) {
-            console.warn(`[DELETE] Failed to parse URL ${s3Key}:`, e);
-          }
-        } else {
-          processedS3Key = s3Key;
-        }
-      } else {
+      if (!s3Key) {
         console.warn(
           "[DELETE] No S3 key provided, will only delete from in-memory storage"
         );
       }
 
-      const baseUrl = API_BASE_URL || "";
-      const endpoint = `${baseUrl}/api/v1/report/${reportId}`;
-
-      const res = await fetch(endpoint, {
-        method: "DELETE",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ s3Key: processedS3Key }),
-      });
-
-      const responseData = await res.json().catch(() => ({}));
-
-      if (!res.ok) {
-        throw new Error(
-          responseData.error || `HTTP error! status: ${res.status}`
-        );
-      }
+      await reportApi.delete(reportId, s3Key || undefined);
 
       closeDeleteModal();
       setSuccessMessage("Report deleted successfully");
@@ -159,12 +128,12 @@ export default function PastReports() {
   };
 
   const filteredReports = reports.filter((report: Report) =>
-    report.address.toLowerCase().includes(searchTerm.toLowerCase())
+    report.address?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const sortedReports = [...filteredReports].sort((a, b) => {
     // Sort by date, newest first
-    return b.generatedAt.getTime() - a.generatedAt.getTime();
+    return new Date(b.generatedAt).getTime() - new Date(a.generatedAt).getTime();
   });
 
   const pollForReportCompletion = useCallback(
@@ -182,52 +151,38 @@ export default function PastReports() {
         return;
       }
 
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
       let lastReportSnapshot: string | null = null;
 
       // Step 1: Initial check
       try {
-        const initialResponse = await fetch(
-          `${apiBaseUrl}/api/v1/report/poll/${documentId}`,
-          {
-            method: "GET",
-            mode: "cors",
-            headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json",
-              Authorization: `Bearer ${idToken}`,
-            },
-            credentials: "include",
-          }
-        );
+        const initialResponse = await reportApi.poll(documentId);
 
-        if (!initialResponse.ok) {
+        if (!initialResponse.success) {
           console.error(
-            `[PastReports] ❌ Initial poll failed with status: ${initialResponse.status}`
+            `[PastReports] ❌ Poll failed:`, initialResponse.error
           );
           return;
         }
 
-        const initialData = await initialResponse.json();
+        const data = initialResponse;
 
-        if (initialData.success && initialData.report) {
-          lastReportSnapshot = JSON.stringify(initialData.report);
+        if (data.success && data.report) {
+          lastReportSnapshot = JSON.stringify(data.report);
 
           if (
-            initialData.report.status === "completed" ||
-            initialData.report.status === "error"
+            data.report.status === "completed" ||
+            data.report.status === "error"
           ) {
-            await handleRefresh();
+            await refreshReports();
             window.dispatchEvent(new CustomEvent("reportGenerated"));
             return;
           }
-        } else if (initialData.success && !initialData.report) {
-          lastReportSnapshot = null;
+        } else if (data.success && !data.report) {
           lastReportSnapshot = null;
         } else {
           console.error(
             `[PastReports] ❌ Initial poll failed:`,
-            initialData.error
+            data.error
           );
           return;
         }
@@ -242,24 +197,12 @@ export default function PastReports() {
         const elapsedTime = Math.round((Date.now() - startTime) / 1000);
 
         try {
-          const response = await fetch(
-            `${apiBaseUrl}/api/v1/report/poll/${documentId}`,
-            {
-              method: "GET",
-              mode: "cors",
-              headers: {
-                "Content-Type": "application/json",
-                Accept: "application/json",
-                Authorization: `Bearer ${idToken}`,
-              },
-              credentials: "include",
-            }
-          );
+          const response = await reportApi.poll(documentId);
 
-          if (!response.ok) {
+          if (!response.success) {
             consecutiveErrors++;
             console.error(
-              `[PastReports] ❌ Poll error: ${response.status} ${response.statusText} (${consecutiveErrors}/${maxConsecutiveErrors})`
+              `[PastReports] ❌ Poll error: ${response.error} (${consecutiveErrors}/${maxConsecutiveErrors})`
             );
 
             if (consecutiveErrors >= maxConsecutiveErrors) {
@@ -275,7 +218,7 @@ export default function PastReports() {
             return;
           }
 
-          const data = await response.json();
+          const data = response;
           consecutiveErrors = 0; // Reset error counter on success
 
           if (!data.success) {
@@ -289,7 +232,7 @@ export default function PastReports() {
           // Handle case where report is not found (null)
           if (!data.report) {
             if (lastReportSnapshot !== null) {
-              await handleRefresh();
+              await refreshReports();
               window.dispatchEvent(new CustomEvent("reportGenerated"));
               return;
             }
@@ -316,7 +259,7 @@ export default function PastReports() {
             data.report.status === "error" ||
             hasChanged
           ) {
-            await handleRefresh();
+            await refreshReports();
             window.dispatchEvent(new CustomEvent("reportGenerated"));
             return;
           }
@@ -381,27 +324,16 @@ export default function PastReports() {
   }, [handleRefresh, pollForReportCompletion]);
 
   // Force grid mode on mobile
+  const isSmallMobile = useMobile("(max-width: 640px)");
+
   useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth < 640) {
-        // sm breakpoint
-        setViewMode("grid");
-      }
-    };
-
-    // Set initial state
-    handleResize();
-
-    // Listen for window resize
-    window.addEventListener("resize", handleResize);
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
+    if (isSmallMobile) {
+      setViewMode("grid");
+    }
+  }, [isSmallMobile]);
 
   return (
-    <div className="mobile-padding">
+    <div>
       {currentPdf && (
         <PdfModal
           currentPdf={currentPdf}
@@ -441,7 +373,7 @@ export default function PastReports() {
         showViewToggle={true}
         onRefresh={handleRefresh}
         isRefreshing={isRefreshing}
-        isLoading={reportsLoading}
+        isLoading={reportsLoading || isRefreshing}
         refreshTitle="Refresh reports"
         rightText={`${filteredReports.length} report${
           filteredReports.length !== 1 ? "s" : ""

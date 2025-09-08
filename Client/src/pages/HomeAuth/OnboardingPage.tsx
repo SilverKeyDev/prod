@@ -1,27 +1,38 @@
+// React imports
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Check, ChevronDown } from "lucide-react";
-import Card from "../../components/ui/base/Card";
-import { useGoogleMaps } from "../../context/GoogleMapsContext";
-import KeyLogo from "/logo.png";
+
+// Third-party libraries
 import { DragEndEvent } from "@dnd-kit/core";
-import { arrayMove } from "@dnd-kit/sortable";
-import ImportantLocationsInput from "../../components/ui/onboardpersonalize/ImportantLocationsInput";
-import Loading from "../../components/ui/base/Loading";
-import PriceRangeSlider from "../../components/ui/onboardpersonalize/PriceRangeSlider";
-import ValidationWarning from "../../components/feedback/ValidationWarning";
-import Input from "../../components/ui/base/Input";
-import Dropdown from "../../components/ui/base/Dropdown";
-import { Title, Subtitle } from "../../components/ui/base";
-import OnPerTagInput from "../../components/ui/onboardpersonalize/OnPerTagInput";
+
+// Assets
+import KeyLogo from "/logo.png";
+
+// Context providers
+import { useGoogleMaps } from "../../context/GoogleMapsContext";
+
+// UI Components
+import Card from "../../components/layout/Card";
+import { Loading, Input, Dropdown, Title, Subtitle, NavigationButtons } from "../../components/ui";
+import { ValidationWarning } from "../../components/feedback";
+
+// Feature components
+import ImportantLocationsInput from "../../features/onboardpersonalize/ImportantLocationsInput";
+import PriceRangeSlider from "../../features/onboardpersonalize/PriceRangeSlider";
+import OnPerTagInput from "../../features/onboardpersonalize/OnPerTagInput";
 import {
   RequiredLabel,
   OptionalLabel,
-} from "../../components/ui/onboardpersonalize/OnPerLabel";
-import OnboardingHeader from "../../components/ui/onboardpersonalize/OnboardingHeader";
-import OnPerDragDropPriorities from "../../components/ui/onboardpersonalize/OnPerDragDropPriorities";
-import OnPerBuyersAgent from "../../components/ui/onboardpersonalize/OnPerBuyersAgent";
-import { calculateAffordableHomePrice } from "../../lib/onboard/homePriceCalculation";
+} from "../../features/onboardpersonalize/OnPerLabel";
+import OnboardingHeader from "../../features/onboardpersonalize/OnboardingHeader";
+import OnPerDragDropPriorities from "../../features/onboardpersonalize/OnPerDragDropPriorities";
+import OnPerBuyersAgent from "../../features/onboardpersonalize/OnPerBuyersAgent";
+import HomePriceEstimate from "../../features/onboardpersonalize/HomePriceEstimate";
+
+// Utility functions
+import { handleDragEnd as handleDragEndUtil } from "../../features/onboardpersonalize/utils/dragEndHandler";
+import { handleSubmit as handleSubmitUtil } from "../../features/onboardpersonalize/utils/submitHandler";
+import { calculateAffordableHomePrice } from "../../features/onboardpersonalize/utils/homePriceCalculation";
 import {
   OnboardingData,
   ONBOARDING_STEPS,
@@ -37,10 +48,9 @@ import {
   HOME_AGE_OPTIONS,
   RENOVATION_PREFERENCE_OPTIONS,
   PROPERTY_USE_OPTIONS,
-  validateFormData,
   SECTION_TITLES,
   FIELD_LABELS,
-} from "../../lib/onboard";
+} from "../../features/onboardpersonalize/utils/constants";
 
 // Extend window interface for Google Maps
 declare global {
@@ -172,32 +182,12 @@ export default function OnboardingPage() {
 
   // Handle drag end for reordering
   const handleDragEnd = (event: DragEndEvent) => {
-    try {
-      const { active, over } = event;
-
-      if (!active || !over || !active.id || !over.id || active.id === over.id)
-        return;
-
-      const sections = getOrderedReportSections();
-      const oldIndex = sections.findIndex(
-        (section) => section.key === active.id
-      );
-      const newIndex = sections.findIndex((section) => section.key === over.id);
-
-      if (oldIndex === -1 || newIndex === -1) return;
-
-      const currentPriorities = formData.report_section_priorities || [];
-      const reorderedSections = arrayMove(sections, oldIndex, newIndex);
-
-      // Only include sections that were previously selected (in priorities)
-      const newPriorities = reorderedSections
-        .filter((section) => currentPriorities.includes(section.key))
-        .map((section) => section.key);
-
-      updateFormData("report_section_priorities", newPriorities);
-    } catch (error) {
-      console.error("Error in handleDragEnd:", error);
-    }
+    handleDragEndUtil({
+      event,
+      getOrderedReportSections,
+      formData,
+      updateFormData,
+    });
   };
 
   // Handle checkbox toggle for report sections
@@ -243,7 +233,7 @@ export default function OnboardingPage() {
   // Trigger home price calculation when relevant form data changes
 
   // Update form data with new value
-  const updateFormData = (field: keyof OnboardingData, value: any) => {
+  const updateFormData = (field: string | number | symbol, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -281,87 +271,13 @@ export default function OnboardingPage() {
   };
 
   const handleSubmit = async () => {
-    // Validate form data before submission
-    const validation = validateFormData(formData);
-
-    if (!validation.isValid) {
-      // Show the custom validation warning component
-      setValidationResult({
-        missingFields: validation.missingFields,
-        errors: validation.errors,
-      });
-      setShowValidationWarning(true);
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
-      const idToken = localStorage.getItem("id_token");
-
-      const requestUrl = `${apiBaseUrl}/api/v1/preferences`;
-
-      const requestHeaders = {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-        Authorization: `Bearer ${idToken}`,
-      };
-
-      const response = await fetch(requestUrl, {
-        method: "POST",
-        mode: "cors",
-        headers: requestHeaders,
-        body: JSON.stringify(formData),
-      });
-
-      if (!response.ok) {
-        // Try to get error details from response body
-        let errorDetails = "No additional error details";
-        try {
-          const errorText = await response.text();
-          errorDetails = errorText;
-        } catch (e) {}
-
-        const errorMessage = `HTTP error! status: ${response.status} - ${response.statusText}. Details: ${errorDetails}`;
-        console.error("[OnboardingPage] Request failed:", errorMessage);
-        throw new Error(errorMessage);
-      }
-
-      const result = await response.json();
-
-      if (result.success || result.document_id) {
-        localStorage.removeItem("onboardingDraft");
-        navigate("/dashboard");
-      } else {
-        const errorMsg = result.error || "Failed to generate report";
-        console.error(
-          "[OnboardingPage] Server returned unsuccessful result:",
-          result
-        );
-        throw new Error(errorMsg);
-      }
-    } catch (error) {
-      console.error("[OnboardingPage] Error in handleSubmit:", error);
-      console.error(
-        "[OnboardingPage] Error stack:",
-        error instanceof Error ? error.stack : "No stack trace"
-      );
-
-      // More user-friendly error message
-      let userMessage = "Failed to generate report. Please try again.";
-      if (error instanceof Error && error.message.includes("500")) {
-        userMessage =
-          "Server error occurred. Please check your information and try again.";
-      } else if (error instanceof Error && error.message.includes("401")) {
-        userMessage = "Authentication error. Please log in again.";
-      } else if (error instanceof Error && error.message.includes("403")) {
-        userMessage = "Access denied. Please check your permissions.";
-      }
-
-      alert(userMessage);
-    } finally {
-      setLoading(false);
-    }
+    await handleSubmitUtil({
+      formData,
+      setLoading,
+      setValidationResult,
+      setShowValidationWarning,
+      navigate,
+    });
   };
 
   // Handler for closing the validation warning
@@ -577,259 +493,14 @@ export default function OnboardingPage() {
                 />
               </div>
 
-              {/* Home Price Calculation Results */}
-              <div
-                className={`col-span-1 md:col-span-2 mt-6 p-4 bg-white rounded-lg border border-olive ${
-                  isAffordabilityCollapsed ? "pb-6" : ""
-                }`}
-              >
-                <div
-                  className={`flex items-center justify-between cursor-pointer p-2 -m-2 rounded-lg hover:bg-olive/5 transition-colors duration-150 ${
-                    isAffordabilityCollapsed ? "mb-2" : "mb-2"
-                  }`}
-                  onClick={() =>
-                    setIsAffordabilityCollapsed(!isAffordabilityCollapsed)
-                  }
-                >
-                  <h3 className="text-lg font-medium text-olive">
-                    Estimated Home Affordability
-                  </h3>
-                  <ChevronDown
-                    className={`w-5 h-5 text-olive transition-transform duration-300 ease-in-out ${
-                      isAffordabilityCollapsed ? "rotate-180" : ""
-                    }`}
-                  />
-                </div>
-
-                <div
-                  className={`transition-all duration-300 ease-in-out overflow-hidden ${
-                    isAffordabilityCollapsed
-                      ? "max-h-0 opacity-0"
-                      : "max-h-[2000px] opacity-100"
-                  }`}
-                >
-                  <div className="pt-2">
-                    {homePriceLoading ? (
-                      <div className="flex items-center justify-center py-4">
-                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-olive"></div>
-                        <span className="ml-2 text-xs sm:text-sm text-black">
-                          Calculating affordability...
-                        </span>
-                      </div>
-                    ) : homePriceError ? (
-                      <div className="text-black text-xs sm:text-sm py-2">
-                        <p className="font-medium">
-                          Unable to calculate affordability:
-                        </p>
-                        <p>{homePriceError}</p>
-                        <p className="mt-2">
-                          Please ensure you've entered your income, zip code,
-                          and other financial details.
-                        </p>
-                      </div>
-                    ) : homePriceResult ? (
-                      <div className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <div className="text-center p-4 sm:p-6">
-                              <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-olive mb-2">
-                                ${homePriceResult.maxHomePrice.toLocaleString()}
-                              </div>
-                              <div className="text-xs sm:text-sm md:text-base text-gray-600 mb-4">
-                                Maximum recommended home price
-                              </div>
-                            </div>
-                          </div>
-                          <div>
-                            <p className="text-xs sm:text-sm text-black">
-                              Monthly Payment
-                            </p>
-                            <p className="text-lg sm:text-xl font-bold text-olive">
-                              $
-                              {homePriceResult.totalMonthlyHousingCost.toLocaleString()}
-                              /mo
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="text-xs sm:text-sm text-black bg-white p-3 rounded border border-olive/30">
-                          <p className="text-xs sm:text-sm md:text-base text-gray-600 mb-4">
-                            Based on your income and financial profile, here's
-                            what you might afford:
-                          </p>
-                          <div className="bg-[#EAD9B3] bg-opacity-20 p-2 sm:p-3 rounded font-mono text-xs sm:text-sm text-black space-y-1">
-                            <p>
-                              1. <strong>Monthly Income</strong> = Gross Annual
-                              Income ÷ 12
-                            </p>
-                            <p className="ml-4">
-                              = $
-                              {homePriceResult.netAnnualIncome.toLocaleString()}{" "}
-                              ÷ 12 ={" "}
-                              <strong>
-                                $
-                                {(
-                                  homePriceResult.netAnnualIncome / 12
-                                ).toLocaleString(undefined, {
-                                  maximumFractionDigits: 0,
-                                })}
-                              </strong>
-                            </p>
-
-                            <p>
-                              2. <strong>Max Monthly Housing Cost</strong> =
-                              Monthly Income × DTI Ratio
-                            </p>
-                            <p className="ml-4">
-                              = $
-                              {(
-                                homePriceResult.netAnnualIncome / 12
-                              ).toLocaleString()}{" "}
-                              × {(homePriceResult.dtiUsed / 100).toFixed(2)} ={" "}
-                              <strong>
-                                $
-                                {Math.round(
-                                  (homePriceResult.netAnnualIncome / 12) *
-                                    (homePriceResult.dtiUsed / 100)
-                                ).toLocaleString()}
-                              </strong>
-                            </p>
-
-                            <p>
-                              3. <strong>Mortgage Payment</strong> = P × r × (1
-                              + r)
-                              <sup>n</sup> ÷ ((1 + r)<sup>n</sup> - 1)
-                            </p>
-                            <p className="ml-4">Where:</p>
-                            <p className="ml-8">
-                              P = $
-                              {Math.round(
-                                homePriceResult.loanAmount
-                              ).toLocaleString()}
-                            </p>
-                            <p className="ml-8">
-                              r ={" "}
-                              {(
-                                homePriceResult.interestRate /
-                                100 /
-                                12
-                              ).toFixed(4)}{" "}
-                              (monthly interest)
-                            </p>
-                            <p className="ml-8">
-                              n = {30 * 12} months (30-year loan)
-                            </p>
-                            <p className="ml-4">
-                              →{" "}
-                              <strong>
-                                Monthly Mortgage = $
-                                {homePriceResult.monthlyMortgage.toLocaleString()}
-                              </strong>
-                            </p>
-
-                            <p>
-                              4. <strong>Property Tax</strong> = Home Price ×
-                              Tax Rate ÷ 12
-                            </p>
-                            <p className="ml-4">
-                              = ${homePriceResult.maxHomePrice.toLocaleString()}{" "}
-                              ×{" "}
-                              {(homePriceResult.propertyTaxRate * 100).toFixed(
-                                2
-                              )}
-                              % ÷ 12
-                            </p>
-
-                            <p>
-                              5. <strong>Home Insurance</strong> = Home Price ×
-                              0.50% ÷ 12
-                            </p>
-                            <p className="ml-4">
-                              = ${homePriceResult.maxHomePrice.toLocaleString()}{" "}
-                              × 0.005 ÷ 12
-                            </p>
-
-                            {homePriceResult.monthlyPMI > 0 && (
-                              <>
-                                <p>
-                                  6.{" "}
-                                  <strong>
-                                    PMI (Private Mortgage Insurance)
-                                  </strong>{" "}
-                                  = Loan × PMI Rate ÷ 12
-                                </p>
-                                <p className="ml-4">
-                                  PMI Rate ≈{" "}
-                                  {(
-                                    ((homePriceResult.monthlyPMI * 12) /
-                                      homePriceResult.loanAmount) *
-                                    100
-                                  ).toFixed(2)}
-                                  %
-                                </p>
-                                <p className="ml-4">
-                                  →{" "}
-                                  <strong>
-                                    Monthly PMI = $
-                                    {homePriceResult.monthlyPMI.toLocaleString()}
-                                  </strong>
-                                </p>
-                              </>
-                            )}
-                          </div>
-
-                          <p className="mt-4 font-medium">
-                            Why This Formula Matters:
-                          </p>
-                          <p>
-                            This estimate uses a{" "}
-                            <strong>Debt-to-Income (DTI)</strong> ratio of{" "}
-                            <strong>
-                              {homePriceResult.dtiUsed.toFixed(1)}%
-                            </strong>
-                            , which reflects current lending guidelines. It
-                            ensures your total monthly housing cost—including
-                            mortgage, taxes, insurance, and PMI—stays within
-                            what lenders generally approve based on your income
-                            and debt load.
-                          </p>
-                          <p>
-                            We include estimated <strong>property taxes</strong>{" "}
-                            (based on ZIP code{" "}
-                            <strong>{formData.ideal_zip_code}</strong>),{" "}
-                            <strong>insurance</strong> costs, and{" "}
-                            <strong>PMI</strong> if your down payment is under
-                            20%. These are factored into your maximum affordable
-                            home price using smart search logic.
-                          </p>
-                        </div>
-
-                        {homePriceResult.warnings?.length > 0 && (
-                          <div className="mt-2">
-                            <p className="text-xs sm:text-sm font-medium text-olive mt-2">
-                              Important Notes:
-                            </p>
-                            <ul className="text-xs sm:text-sm text-black list-disc list-inside mt-1 space-y-1">
-                              {homePriceResult.warnings.map(
-                                (warning: string, index: number) => (
-                                  <li key={index}>{warning}</li>
-                                )
-                              )}
-                            </ul>
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="text-xs sm:text-sm text-black py-2">
-                        <p>
-                          Enter your income, zip code, and other financial
-                          details to see your estimated home affordability.
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
+              <HomePriceEstimate
+                homePriceLoading={homePriceLoading}
+                homePriceError={homePriceError}
+                homePriceResult={homePriceResult}
+                isAffordabilityCollapsed={isAffordabilityCollapsed}
+                setIsAffordabilityCollapsed={setIsAffordabilityCollapsed}
+                idealZipCode={formData.ideal_zip_code}
+              />
             </div>
           </div>
         );
@@ -1157,52 +828,17 @@ export default function OnboardingPage() {
           {renderStepContent()}
 
           {/* Navigation Buttons */}
-          <div className="relative mt-8 sm:mt-10 pt-6 sm:pt-8 pb-1 sm:pb-2 border-t border-beige/30 px-4 sm:px-6">
-            <div className="flex items-center justify-between w-full">
-              {/* Previous Button - anchored at 25% width */}
-              <div className="absolute left-1/4 transform -translate-x-1/2">
-                <button
-                  onClick={prevStep}
-                  disabled={currentStep === 0}
-                  className={`flex items-center justify-center px-3 py-2 sm:px-4 sm:py-2 md:px-5 md:py-3 rounded-lg font-medium transition-all duration-200 text-xs sm:text-sm w-[100px] sm:w-[110px] ${
-                    currentStep === 0
-                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                  }`}
-                >
-                  <ChevronLeft
-                    className={`w-4 h-4 sm:w-5 sm:h-5 mr-1 ${
-                      currentStep === 0 ? "text-gray-500" : "text-gray-800"
-                    }`}
-                  />
-                  <span>Previous</span>
-                </button>
-              </div>
-
-              {/* Next/Complete Button - anchored at 75% width */}
-              <div className="absolute left-3/4 transform -translate-x-1/2">
-                {currentStep === STEPS.length - 1 ? (
-                  <button
-                    onClick={handleSubmit}
-                    disabled={loading}
-                    className="flex items-center justify-center px-3 py-2 sm:px-4 sm:py-2 md:px-5 md:py-3 bg-olive text-white rounded-lg hover:bg-olive/80 disabled:opacity-50 font-bold transition-all duration-200 text-xs sm:text-sm w-[100px] sm:w-[110px]"
-                  >
-                    <span>{loading ? "Saving..." : "Complete"}</span>
-                    {!loading && (
-                      <Check className="w-3 h-3 sm:w-4 sm:h-4 ml-1" />
-                    )}
-                  </button>
-                ) : (
-                  <button
-                    onClick={nextStep}
-                    className="flex items-center justify-center px-3 py-2 sm:px-4 sm:py-2 md:px-5 md:py-3 bg-olive/60 text-white rounded-lg hover:bg-olive/70 font-bold transition-all duration-200 text-xs sm:text-sm w-[100px] sm:w-[110px]"
-                  >
-                    <span>Next</span>
-                    <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 ml-1" />
-                  </button>
-                )}
-              </div>
-            </div>
+          <div className="mt-8 sm:mt-10 pt-6 sm:pt-8 pb-1 sm:pb-2 border-t border-beige/30 px-4 sm:px-6">
+            <NavigationButtons
+              currentStep={currentStep}
+              totalSteps={STEPS.length}
+              onPrevious={prevStep}
+              onNext={nextStep}
+              onSubmit={handleSubmit}
+              loading={loading}
+              layout="centered"
+              size="md"
+            />
           </div>
         </Card>
       </div>

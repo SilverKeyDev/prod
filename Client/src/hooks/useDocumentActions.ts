@@ -1,175 +1,175 @@
+// Generic PDF modal and file download utilities - reusable logic without business nouns
 import { useState, useCallback } from 'react';
-import { createAuthHeaders } from '../lib/fetchUtils';
+import { reportApi } from '../api';
+import { useModal } from './useModal';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
-export interface DocumentActionHooks {
-  loadingUrls: Set<string>;
-  handleViewDocument: (documentId: string, documentName?: string) => Promise<void>;
-  handleDownloadDocument: (documentId: string, documentName: string) => Promise<void>;
-  handleShareDocument: (documentName: string) => Promise<{ success: boolean; message: string }>;
-  openPdfModal: (pdfUrl: string, documentName?: string) => void;
-  closePdfModal: () => void;
+export interface PdfModalHooks {
   currentPdf: string | null;
   currentDocumentName: string | null;
+  isOpen: boolean;
+  openModal: () => void;
+  closeModal: () => void;
+  toggleModal: () => void;
+  getFreshViewUrl: (documentId: string) => Promise<string | null>;
+  getFreshDownloadUrl: (documentId: string) => Promise<string | null>;
+  downloadDocument: (documentId: string, documentName: string) => Promise<void>;
+  shareDocument: (documentId: string, documentName: string) => Promise<{ success: boolean; message: string }>;
+  downloadFile: (url: string, filename: string) => void;
+  openPdfModal: (pdfUrl: string, documentName?: string) => void;
+  closePdfModal: () => void;
+  loadingUrls: Set<string>;
+  handleViewDocument: (documentId: string, documentName: string) => Promise<void>;
+  handleDownloadDocument: (documentId: string, documentName: string) => Promise<void>;
+  handleShareDocument: (documentId: string, documentName: string) => Promise<{ success: boolean; message: string }>;
 }
 
-export const useDocumentActions = (): DocumentActionHooks => {
-  const [loadingUrls, setLoadingUrls] = useState<Set<string>>(new Set());
+export const usePdfModal = (): PdfModalHooks => {
   const [currentPdf, setCurrentPdf] = useState<string | null>(null);
   const [currentDocumentName, setCurrentDocumentName] = useState<string | null>(null);
+  const [loadingUrls, setLoadingUrls] = useState<Set<string>>(new Set());
+  const { isOpen, open, close, toggle } = useModal();
 
-  const getFreshViewUrl = async (documentId: string): Promise<string | null> => {
+  // File download functionality - moved from useFileDownload
+  const downloadFile = useCallback((url: string, filename: string) => {
     try {
-      setLoadingUrls((prev) => new Set(prev).add(documentId));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", filename);
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
 
-      const baseUrl = API_BASE_URL || "";
-      const url = `${baseUrl}/api/v1/report/${documentId}/view-url`;
-      
-      const res = await fetch(url, {
-        headers: createAuthHeaders(),
-        credentials: "include",
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to get view URL");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error("Download failed:", error);
+      try {
+        window.open(url, '_blank', 'noopener,noreferrer');
+      } catch (fallbackError) {
+        console.error("Fallback download failed:", fallbackError);
       }
+    }
+  }, []);
 
-      const data = await res.json();
-      if (data.success && data.viewUrl) {
-        return data.viewUrl;
-      }
-
-      return null;
+  const getFreshViewUrl = useCallback(async (documentId: string): Promise<string | null> => {
+    try {
+      const response = await reportApi.getViewUrl(documentId);
+      return response.success ? response.viewUrl || null : null;
     } catch (err) {
       console.error("Failed to get fresh view URL", err);
       return null;
-    } finally {
-      setLoadingUrls((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(documentId);
-        return newSet;
-      });
     }
-  };
+  }, []);
 
-  const getFreshDownloadUrl = async (documentId: string): Promise<string | null> => {
+  const getFreshDownloadUrl = useCallback(async (documentId: string): Promise<string | null> => {
     try {
-      setLoadingUrls((prev) => new Set(prev).add(documentId));
-
-      const baseUrl = API_BASE_URL || "";
-      const res = await fetch(`${baseUrl}/api/v1/report/${documentId}/download-url`, {
-        headers: createAuthHeaders(),
-        credentials: "include",
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to get download URL");
-      }
-
-      const data = await res.json();
-      if (data.success && data.downloadUrl) {
-        return data.downloadUrl;
-      }
-
-      return null;
+      const response = await reportApi.getDownloadUrl(documentId);
+      return response.success ? response.downloadUrl || null : null;
     } catch (err) {
       console.error("Failed to get fresh download URL", err);
       return null;
+    }
+  }, []);
+
+  const downloadDocument = useCallback(async (documentId: string, documentName: string) => {
+    setLoadingUrls(prev => new Set(prev).add(documentId));
+    try {
+      const downloadUrl = await getFreshDownloadUrl(documentId);
+      if (downloadUrl) {
+        const filename = `${documentName.replace(/[^a-z0-9]/gi, "_").toLowerCase()}.pdf`;
+        downloadFile(downloadUrl, filename);
+      } else {
+        console.error("Failed to get PDF download URL");
+      }
     } finally {
-      setLoadingUrls((prev) => {
+      setLoadingUrls(prev => {
         const newSet = new Set(prev);
         newSet.delete(documentId);
         return newSet;
       });
     }
-  };
+  }, [getFreshDownloadUrl, downloadFile]);
 
-  const handleViewDocument = useCallback(async (documentId: string, documentName?: string) => {
-    const pdfUrl = await getFreshViewUrl(documentId);
-
-    if (pdfUrl) {
-      openPdfModal(pdfUrl, documentName);
-    } else {
-      console.error("Failed to get PDF view URL");
-    }
-  }, []);
-
-  const handleDownloadDocument = useCallback(async (documentId: string, documentName: string) => {
-    const pdfUrl = await getFreshDownloadUrl(documentId);
-
-    if (pdfUrl) {
-      try {
-        const link = document.createElement("a");
-        link.href = pdfUrl;
-        link.setAttribute(
-          "download",
-          `${documentName.replace(/[^a-z0-9]/gi, "_").toLowerCase()}.pdf`
-        );
-        link.target = "_blank";
-        link.rel = "noopener noreferrer";
-
-        // Append to DOM to ensure download triggers
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      } catch (error) {
-        console.error("Download failed:", error);
-        // If programmatic download fails, open in new tab as fallback
-        try {
-          window.open(pdfUrl, '_blank', 'noopener,noreferrer');
-        } catch (fallbackError) {
-          console.error("Fallback download failed:", fallbackError);
-        }
-      }
-    } else {
-      console.error("Failed to get PDF download URL");
-    }
-  }, []);
-
-  const handleShareDocument = useCallback(async (documentName: string): Promise<{ success: boolean; message: string }> => {
-    try {
-      // Format the document name for sharing
-      const shareText = `Property Report - ${documentName
-        .replace(/_/g, " ")
-        .slice(0, -18)
-        .trim()}`;
-
-      if (navigator.clipboard) {
-        await navigator.clipboard.writeText(shareText);
-        return { success: true, message: "Report info copied to clipboard" };
-      } else {
-        return { success: false, message: "Sharing not supported on this device" };
-      }
-    } catch (error) {
-      console.error("Share failed:", error);
-      return {
-        success: false,
-        message: error instanceof Error ? error.message : "Failed to share report"
-      };
-    }
+  const shareDocument = useCallback(async (documentId: string, documentName: string) => {
+    return await reportApi.shareDocument(documentId, documentName);
   }, []);
 
   const openPdfModal = useCallback((pdfUrl: string, documentName?: string) => {
     setCurrentPdf(pdfUrl);
     setCurrentDocumentName(documentName || null);
-    document.body.style.overflow = "hidden";
-  }, []);
+    open();
+  }, [open]);
+
+  const handleViewDocument = useCallback(async (documentId: string, documentName: string) => {
+    setLoadingUrls(prev => new Set(prev).add(documentId));
+    try {
+      const pdfUrl = await getFreshViewUrl(documentId);
+      if (pdfUrl) {
+        openPdfModal(pdfUrl, documentName);
+      } else {
+        console.error("Failed to get PDF view URL for document:", documentId);
+        // Show user-friendly error message
+        alert("Unable to view document. Please try again later.");
+      }
+    } catch (error) {
+      console.error("Error viewing document:", error);
+      alert("Error viewing document. Please try again later.");
+    } finally {
+      setLoadingUrls(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(documentId);
+        return newSet;
+      });
+    }
+  }, [getFreshViewUrl, openPdfModal]);
+
+  const handleDownloadDocument = useCallback(async (documentId: string, documentName: string) => {
+    try {
+      await downloadDocument(documentId, documentName);
+    } catch (error) {
+      console.error("Error downloading document:", error);
+      alert("Error downloading document. Please try again later.");
+    }
+  }, [downloadDocument]);
+
+  const handleShareDocument = useCallback(async (documentId: string, documentName: string) => {
+    try {
+      return await shareDocument(documentId, documentName);
+    } catch (error) {
+      console.error("Error sharing document:", error);
+      return {
+        success: false,
+        message: "Error sharing document. Please try again later."
+      };
+    }
+  }, [shareDocument]);
 
   const closePdfModal = useCallback(() => {
     setCurrentPdf(null);
     setCurrentDocumentName(null);
-    document.body.style.overflow = "auto";
-  }, []);
+    close();
+  }, [close]);
 
   return {
+    currentPdf,
+    currentDocumentName,
+    isOpen,
+    openModal: open,
+    closeModal: close,
+    toggleModal: toggle,
+    getFreshViewUrl,
+    getFreshDownloadUrl,
+    downloadDocument,
+    shareDocument,
+    downloadFile,
+    openPdfModal,
+    closePdfModal,
     loadingUrls,
     handleViewDocument,
     handleDownloadDocument,
     handleShareDocument,
-    openPdfModal,
-    closePdfModal,
-    currentPdf,
-    currentDocumentName,
   };
 };
+
+// Legacy export for backward compatibility
+export const useDocumentActions = usePdfModal;

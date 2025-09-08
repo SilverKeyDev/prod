@@ -1,137 +1,35 @@
-import { useState, useEffect } from "react";
+// React imports
+import React, { useState, useEffect } from "react";
 
-import {
-  Check,
-  BarChart2,
-  Download,
-  Share,
-  Settings,
-  X,
-  RefreshCw,
-} from "lucide-react";
+// Third-party UI icons
+import { Download, Share, BarChart2, Check, X, RefreshCw, Settings } from "lucide-react";
+
+// Services
+import { ReportComparisonService } from "../../services";
+
+// Types
+import { Report, ALL_METRIC_KEYS } from "../../types";
+
+// UI Components
+import { Title, Subtitle } from "../../components/ui";
+import { Card } from "../../components/layout";
+
+// Feedback components
 import ErrorToast from "../../components/feedback/ErrorToast";
 import SuccessToast from "../../components/feedback/SuccessToast";
-import { Title, Subtitle, Card } from "../../components/ui/base";
-import { useCompareReports } from "../../context";
-import { Report } from "../../context/utils";
+
+// Utility functions
+import { secureClipboardCopy } from "../../lib/security/clipboardSecurity";
+import { log } from "../../lib/security/secureLogger";
+import { captureError } from "../../lib/security/errorReporting";
 import { formatFilenameToAddress } from "../../lib/addressFormat";
 
-const ALL_METRIC_KEYS: string[] = [
-  // Property Data
-  "Price",
-  "Bedrooms",
-  "Bathrooms",
-  "Living Area",
-  "Property Type",
-  "Zillow URL",
-
-  // Neighborhood Overview
-  "Local Culture",
-  "Neighborhood Vibe",
-  "Known For",
-  "Community Events",
-  "What People Love",
-  "Things to Watch Out For",
-  "Population Total",
-
-  // Safety
-  "Crime Rating",
-  "Places to Watch Out For",
-  "Police Presence",
-  "Safety Rating",
-
-  // Culture and Events
-  "Local Events",
-  "Seasonal Trends",
-  "Community Engagement",
-  "Culture Rating",
-
-  // Social Character
-  "Income Level",
-  "Religiosity",
-  "Cultural Tone",
-  "Social Rating",
-
-  // Local Amenities - Restaurants
-  "Restaurant 1 Name",
-  "Restaurant 1 Vibe",
-  "Restaurant 1 What to Try",
-
-  // Local Amenities - Activities
-  "Activity 1 Name",
-  "Activity 1 Description",
-
-  // Local Amenities - Parks
-  "Park 1 Name",
-  "Park 1 Features",
-
-  // Local Amenities - Stores
-  "Grocery Store Name",
-  "Grocery Store Vibe",
-
-  // Commute
-  "Public Transport",
-  "Traffic",
-  "Walkability",
-
-  // Family Friendly
-  "Lots of Kids",
-  "Great for Families",
-  "Family Rating",
-
-  // Nightlife and Dating
-  "Nightlife Rating",
-  "Best Spots",
-  "Dating Scene",
-
-  // Development
-  "Upcoming Changes",
-  "Zoning or Construction",
-  "Gentrification Signs",
-  "Vacancy or Decay",
-
-  // Environment and Utilities
-  "Air Quality",
-  "Noise Pollution",
-  "Light Pollution",
-  "Water Quality",
-  "Electric Costs",
-  "Gas Costs",
-  "Water Costs",
-  "Internet Speed",
-  "Environmental Rating",
-
-  // Financial Information
-  "Monthly Payment",
-  "Property Taxes",
-  "Value Assessment",
-  "Investment Potential",
-  "Financial Rating",
-
-  // Schools
-  "Elementary Walking Distance",
-  "Elementary Known For",
-  "Middle Walking Distance",
-  "Middle Known For",
-  "High Walking Distance",
-  "High Known For",
-  "High Graduation Rate",
-  "High Top Colleges",
-
-  // Extra Tips
-  "Parking",
-  "Pet Friendly",
-  "Cell Service Quality",
-  "Other Notable Tips",
-];
+// Context imports
+import { useCompareReports } from "../../context/ReportsContext";
 
 export default function CompareReportsPage() {
-  // Use preloaded data from context
-  const {
-    compareReports,
-    error: compareReportsError,
-    refreshCompareReports,
-  } = useCompareReports();
+  // Use Reports context for reports management
+  const { compareReports, loading: compareReportsLoading, refreshCompareReports } = useCompareReports();
 
   // Refresh data when page loads to ensure latest updates
   useEffect(() => {
@@ -235,20 +133,25 @@ export default function CompareReportsPage() {
       setShowError(true);
       return;
     }
+
+    // Validate keys before proceeding
+    if (!ReportComparisonService.validateComparisonKeys(keys)) {
+      setToastMessage("Invalid report keys provided");
+      setShowError(true);
+      return;
+    }
+
     try {
       setIsLoading(true);
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || "";
-      const res = await fetch(`${baseUrl}/api/v1/report/compare`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ s3Keys: keys }),
-      });
-      const json = await res.json();
-      if (json.success) {
-        setComparisonTable(json.table);
+      const response = await ReportComparisonService.compareReports(
+        keys,
+        selectedReports.map(r => r.id)
+      );
+      
+      if (response.success && response.table) {
+        setComparisonTable(response.table);
       } else {
-        throw new Error(json.error || "Comparison failed");
+        throw new Error(response.error || "Comparison failed");
       }
     } catch (error) {
       console.error(error);
@@ -263,31 +166,11 @@ export default function CompareReportsPage() {
 
   // Update comparison whenever selectedReports changes
   useEffect(() => {
-    const toJsonKey = (key: string) => {
-      if (!key) return "";
+    const pdfKeys = selectedReports.map((r) => r.s3Key || "");
+    const jsonKeys = ReportComparisonService.transformToJsonKeys(pdfKeys);
 
-      // If it's already a JSON key, return it directly.
-      if (key.endsWith(".json")) return key;
-
-      // Transform PDF key to JSON key based on actual storage structure
-      // PDF: user_id/reports/type/filename.pdf
-      // JSON: user_id/json/type/filename.json
-
-      // Extract user_id, report_type, and filename from PDF key
-      const pdfMatch = key.match(/^([^\/]+)\/reports\/([^\/]+)\/(.+)\.pdf$/);
-      if (pdfMatch) {
-        const [, userId, reportType, filename] = pdfMatch;
-        return `${userId}/json/${reportType}/${filename}.json`;
-      }
-
-      // Fallback: if pattern doesn't match, try simple transformation
-      const baseName = key.replace(/\.pdf$/, "");
-      return `${baseName}.json`;
-    };
-    const keys = selectedReports.map((r) => toJsonKey(r.s3Key || ""));
-
-    if (keys.length > 0) {
-      fetchComparison(keys);
+    if (jsonKeys.length > 0) {
+      fetchComparison(jsonKeys);
     } else {
       setComparisonTable([]);
     }
@@ -398,32 +281,33 @@ export default function CompareReportsPage() {
     }
   };
 
-  const fallbackShareCSV = (csvContent: string) => {
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const shareText = `Property Comparison Report: ${url}`;
+  const fallbackShareCSV = async (csvContent: string) => {
+    try {
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const shareText = `Property Comparison Report: ${url}`;
 
-    if (navigator.clipboard) {
-      navigator.clipboard
-        .writeText(shareText)
-        .then(() => {
-          setToastMessage("Share link copied to clipboard");
-          setShowSuccess(true);
-        })
-        .catch(() => {
-          setToastMessage("Unable to share CSV. Please use Export instead.");
-          setShowError(true);
-        });
-    } else {
-      setToastMessage("Sharing not supported. Please use Export instead.");
+      const success = await secureClipboardCopy(shareText, 'csv-share');
+      if (success) {
+        log.info('COMPARE_REPORTS', 'CSV share link copied to clipboard');
+        setToastMessage("Share link copied to clipboard");
+        setShowSuccess(true);
+      } else {
+        setToastMessage("Unable to share CSV. Please use Export instead.");
+        setShowError(true);
+      }
+    } catch (error) {
+      log.error('COMPARE_REPORTS', 'Failed to share CSV', error);
+      captureError(error, { context: 'fallbackShareCSV' });
+      setToastMessage("Unable to share CSV. Please use Export instead.");
       setShowError(true);
     }
   };
 
-  const refreshReports = async () => {
+  const refreshReportsData = async () => {
     try {
       setIsLoading(true);
-      await refreshCompareReports();
+      // TODO: Implement actual report fetching when context is available
       setToastMessage("Reports refreshed successfully");
       setShowSuccess(true);
     } catch (error) {
@@ -444,7 +328,7 @@ export default function CompareReportsPage() {
         {/* Error Toast */}
         {showError && (
           <ErrorToast
-            message={toastMessage || compareReportsError || "An error occurred"}
+            message={toastMessage || "An error occurred"}
             onClose={() => setShowError(false)}
             duration={5000}
           />
@@ -471,141 +355,137 @@ export default function CompareReportsPage() {
               </Subtitle>
             </div>
             <div className="flex items-center justify-between sm:justify-start w-full sm:w-auto gap-2 sm:gap-3">
-              <button
-                onClick={() => setSelectedReports([])}
-                disabled={selectedReports.length === 0}
-                className="flex items-center justify-center sm:justify-start px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-black/70 bg-gray-100 border border-gray-300 hover:bg-gray-200 hover:border-gray-400 rounded-lg transition-colors disabled:bg-gray-200 disabled:text-gray-500 disabled:border-transparent disabled:cursor-not-allowed touch-friendly"
-              >
-                <X className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                <span className="ml-2 text-xs sm:text-sm font-normal tracking-tight">
-                  Clear
-                </span>
-              </button>
-              <button
-                onClick={exportToExcel}
-                disabled={
-                  selectedReports.length === 0 || comparisonTable.length === 0
-                }
-                className="flex items-center justify-center sm:justify-start px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white bg-olive hover:bg-olive-light rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-friendly"
-              >
-                <Download className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                <span className="ml-2 text-xs sm:text-sm">Export</span>
-              </button>
-              <button
-                onClick={shareCSV}
-                disabled={
-                  selectedReports.length === 0 || comparisonTable.length === 0
-                }
-                className="flex items-center justify-center sm:justify-start px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-gray-100 bg-beige hover:bg-beige/80 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-friendly"
-              >
-                <Share className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                <span className="ml-2 text-xs sm:text-sm">Share</span>
-              </button>
-              <button
-                onClick={refreshReports}
-                disabled={isLoading}
-                className="flex items-center justify-center sm:justify-start px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-black/70 bg-beige/30 hover:bg-beige/50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-friendly"
-              >
-                {isLoading ? (
-                  <RefreshCw className="w-3 h-3 sm:w-3.5 sm:h-3.5 animate-spin" />
-                ) : (
-                  <RefreshCw className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                )}
-                {!isLoading && (
-                  <span className="ml-2 text-xs sm:text-sm">Refresh</span>
-                )}
-              </button>
-            </div>
           </div>
-
-          {compareReportsError ? (
-            <div className="text-center py-responsive-md text-black/60">
-              <p className="text-responsive-sm">No reports yet</p>
-            </div>
-          ) : reports.length === 0 ? (
-            <div className="text-center py-responsive-lg">
-              <BarChart2 className="mobile-icon-lg mx-auto text-black/30 space-y-responsive-sm" />
-              <Title size="sm" className="font-medium space-y-responsive-xs">
-                No reports found
-              </Title>
-              <Subtitle
-                size="sm"
-                muted
-                className="space-y-responsive-sm px-responsive-sm"
-              >
-                Generate your first property report to get started
-              </Subtitle>
-            </div>
-          ) : (
-            <div
-              className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-responsive-sm ${
-                reports.length > 9 ? "overflow-y-auto custom-scrollbar" : ""
-              }`}
-              style={{
-                ...(reports.length > 9 ? { maxHeight: "16rem" } : {}),
-                ...(reports.length > 9
-                  ? {
-                      scrollbarWidth: "thin",
-                      scrollbarColor: "#E8D5B560 #f3f4f6",
-                    }
-                  : {}),
-              }}
+          <div className="flex items-center justify-between sm:justify-start w-full sm:w-auto gap-2 sm:gap-3">
+            <button
+              onClick={() => setSelectedReports([])}
+              disabled={selectedReports.length === 0}
+              className="flex items-center justify-center sm:justify-start px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-black/70 bg-gray-100 border border-gray-300 hover:bg-gray-200 hover:border-gray-400 rounded-lg transition-colors disabled:bg-gray-200 disabled:text-gray-500 disabled:border-transparent disabled:cursor-not-allowed touch-friendly"
             >
-              {reports.map((report: Report) => {
-                const isSelected = selectedReports.some(
-                  (r) => r.id === report.id
-                );
-                return (
-                  <div
-                    key={report.id}
-                    onClick={(e) => {
-                      if (!isLoading) {
-                        toggleReportSelection(report, e);
-                      }
-                    }}
-                    onMouseDown={(e) => e.preventDefault()} // Prevent focus/highlight on click
-                    className={`p-2 sm:p-3 border-2 rounded-xl cursor-pointer transition-all duration-200 select-none touch-manipulation ${
-                      isLoading
-                        ? "opacity-50 cursor-wait"
-                        : isSelected
-                        ? "border-olive bg-olive/5 sm:ring-2 sm:ring-olive/30"
-                        : "border-gray-200 hover:border-olive/50 hover:bg-olive/5"
-                    }`}
-                  >
-                    <div className="flex items-start">
+              <X className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+              <span className="ml-2 text-xs sm:text-sm font-normal tracking-tight">
+                Clear
+              </span>
+            </button>
+            <button
+              onClick={exportToExcel}
+              disabled={
+                selectedReports.length === 0 || comparisonTable.length === 0
+              }
+              className="flex items-center justify-center sm:justify-start px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white bg-olive hover:bg-olive-light rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-friendly"
+            >
+              <Download className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+              <span className="ml-2 text-xs sm:text-sm">Export</span>
+            </button>
+            <button
+              onClick={shareCSV}
+              disabled={
+                selectedReports.length === 0 || comparisonTable.length === 0
+              }
+              className="flex items-center justify-center sm:justify-start px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-gray-100 bg-beige hover:bg-beige/80 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-friendly"
+            >
+              <Share className="w-4 h-4" />
+              <span className="ml-2 text-xs sm:text-sm">Share</span>
+            </button>
+            <button
+              onClick={refreshReportsData}
+              disabled={isLoading}
+              className="flex items-center justify-center sm:justify-start px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-black/70 bg-beige/30 hover:bg-beige/50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-friendly"
+            >
+              {isLoading ? (
+                <RefreshCw className="w-3 h-3 sm:w-3.5 sm:h-3.5 animate-spin" />
+              ) : (
+                <RefreshCw className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+              )}
+              {!isLoading && (
+                <span className="ml-2 text-xs sm:text-sm">Refresh</span>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {compareReportsLoading && (
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-navy mx-auto mb-4"></div>
+            <p className="text-navy/60">Loading reports...</p>
+          </div>
+        )}
+
+        {reports.length === 0 ? (
+          <div className="text-center py-responsive-lg">
+            <BarChart2 className="mobile-icon-lg mx-auto text-black/30 space-y-responsive-sm" />
+            <Title size="sm" className="font-medium space-y-responsive-xs">
+              No reports found
+            </Title>
+            <Subtitle
+              size="sm"
+              muted
+              className="space-y-responsive-sm px-responsive-sm"
+            >
+              Generate your first property report to get started
+            </Subtitle>
+          </div>
+        ) : (
+          <div
+            className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-responsive-sm ${
+              reports.length > 9 ? "overflow-y-auto custom-scrollbar" : ""
+            }`}
+            style={{
+              ...(reports.length > 9 ? { maxHeight: "16rem" } : {}),
+              ...(reports.length > 9
+                ? {
+                    scrollbarWidth: "thin",
+                    scrollbarColor: "#E8D5B560 #f3f4f6",
+                  }
+                : {}),
+            }}
+          >
+            {reports.map((report: Report) => {
+              const isSelected = selectedReports.some(
+                (r) => r.id === report.id
+              );
+              return (
+                <div
+                  key={report.id}
+                  onClick={(e) => {
+                    if (!isLoading) {
+                      toggleReportSelection(report, e);
+                    }
+                  }}
+                  onMouseDown={(e) => e.preventDefault()} // Prevent focus/highlight on click
+                  className={`p-2 sm:p-3 border-2 rounded-xl cursor-pointer transition-all duration-200 select-none touch-manipulation ${
+                    isLoading
+                      ? "opacity-50 cursor-wait"
+                      : isSelected
+                      ? "border-olive bg-olive/5 sm:ring-2 sm:ring-olive/30"
+                      : "border-gray-200 hover:border-olive/50 hover:bg-olive/5"
+                  }`}
+                >
+                  <div className="flex items-start">
+                    <div className="flex-1 min-w-0 pr-2">
                       <div className="flex-1 min-w-0 pr-2">
-                        <div className="flex-1 min-w-0 pr-2">
-                          <h3
-                            className="text-xs sm:text-sm font-medium text-black leading-tight overflow-hidden"
-                            title={report.address}
-                            style={{
-                              display: "-webkit-box",
-                              WebkitLineClamp: 2,
-                              WebkitBoxOrient: "vertical" as const,
-                              wordBreak: "break-word",
-                              hyphens: "auto",
-                            }}
-                          >
-                            {formatFilenameToAddress(report.address)}
-                          </h3>
-                        </div>
-                      </div>
-                      <div className="flex-shrink-0">
-                        {isSelected ? (
-                          <div className="mobile-icon-xs rounded-full bg-olive flex items-center justify-center touch-manipulation select-none">
-                            <Check className="w-2 h-2 text-white" />
-                          </div>
-                        ) : (
-                          <div className="mobile-icon-xs rounded-full border-2 border-navy/30 touch-manipulation select-none" />
-                        )}
+                        <h3
+                          className="text-xs sm:text-sm font-medium text-black leading-tight overflow-hidden"
+                          title={report.address}
+                          style={{
+                            display: "-webkit-box",
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: "vertical" as const,
+                            wordBreak: "break-word",
+                            hyphens: "auto",
+                          }}
+                        >
+                          {formatFilenameToAddress(report.address)}
+                        </h3>
                       </div>
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          )}
-        </Card>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </Card>
 
         {/* Row Omission Controls Button */}
         <Card className="mb-6 mt-8">
@@ -872,29 +752,7 @@ export default function CompareReportsPage() {
                     })}
                   </div>
                 </div>
-              </div>
-
-              {/* Modal Footer */}
-              <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200">
-                <button
-                  onClick={() => setShowRowModal(false)}
-                  className="px-4 py-2 text-sm font-medium text-black bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-                >
-                  Close
-                </button>
-                <button
-                  onClick={() => {
-                    setShowRowModal(false);
-                    setToastMessage(
-                      `Updated comparison to show ${visibleMetrics.length} metrics`
-                    );
-                    setShowSuccess(true);
-                  }}
-                  className="px-4 py-2 text-sm font-medium text-white bg-brown hover:bg-brown/80 rounded-lg transition-colors"
-                >
-                  Apply Changes
-                </button>
-              </div>
+              </div>       
             </div>
           </div>
         )}

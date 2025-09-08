@@ -4,9 +4,13 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapPin, ChevronDown, AlertCircle } from "lucide-react";
 import { useUser, useGoogleMaps } from "../../context";
-import KeyTurnLoader from "../../components/ui/base/KeyTurnLoader";
-import Input from "../../components/ui/base/Input";
-import { Card } from "../../components/ui/base";
+// import { useData } from "../../context/DataContext"; // TODO: Fix missing context
+// import { useAuth } from "../../context/AuthContext"; // TODO: Fix missing context
+// import PageHeader from "../../components/ui/PageHeader"; // TODO: Fix missing component
+import { reportApi } from "../../api";
+import KeyTurnLoader from "../../components/ui/loading/KeyTurnLoader";
+import { Input } from "../../components/ui";
+import { Card } from "../../components/layout";
 
 declare global {
   interface Window {
@@ -373,56 +377,19 @@ export default function GenerateReportPage() {
     setIsGenerating(true);
     setError(null);
 
-    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
-    const idToken = localStorage.getItem("id_token");
-
     const willSendUserId =
       userProfile?.is_agent &&
       selectedClientId &&
       selectedClientId !== userProfile?.id;
 
-    const requestBody = {
-      address: trimmed,
-      ...(reportType === "comparison" && {
-        comparisonAddress: comparisonAddress.trim(),
-      }),
-      ...(willSendUserId && {
-        user_id: selectedClientId,
-      }),
-      ...(reportType === "marketing" && {
-        marketing_model: true,
-      }),
-    };
-
-    // Start both immediately
-    const delayPromise = new Promise((resolve) => setTimeout(resolve, 500));
-    const fetchPromise = fetch(`${apiBaseUrl}/api/v1/report/generate`, {
-      method: "POST",
-      mode: "cors",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-        Authorization: `Bearer ${idToken}`,
-      },
-      body: JSON.stringify(requestBody),
-    });
-
-    // Wait for the 0.5 second delay, then navigate
-    await delayPromise;
-    navigate("/reports"); // ✅ happens after delay, regardless of fetch result
-
     try {
-      const res = await fetchPromise;
+      // Use centralized API for report generation
+      const data = await reportApi.generate({
+        address: address,
+        ...(reportType === "comparison" && { comparisonAddress: comparisonAddress }),
+        ...(willSendUserId && { user_id: selectedClientId }),
+      });
 
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        if (res.status === 402) {
-          return; // Stop further execution
-        }
-        throw new Error(errorData.error || "Report generation failed");
-      }
-
-      const data = await res.json();
       if (!data.success) {
         throw new Error(data.error || "Failed to generate report");
       }
@@ -431,9 +398,12 @@ export default function GenerateReportPage() {
       if (data.document_id) {
         setupReportCompletionListener(data.document_id);
       }
+
+      // Navigate after successful API call
+      navigate("/dashboard/reports");
     } catch (err: any) {
-      console.error("❌ API error after navigation:", err.message || err);
-      // Optionally persist the error to show in the next page
+      console.error("❌ Report generation error:", err.message || err);
+      setError(err.message || "Failed to generate report. Please try again.");
     } finally {
       setIsGenerating(false);
     }
@@ -469,8 +439,6 @@ export default function GenerateReportPage() {
               dropdownRef={dropdownRef}
             />
           </div>
-
-          
 
           {reportType === "comparison" && (
             <div className="bg-olive/10 border border-olive/30 rounded-lg space-responsive-sm">

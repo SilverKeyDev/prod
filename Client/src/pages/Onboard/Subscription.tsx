@@ -10,7 +10,7 @@ import {
   Clock,
   Settings,
 } from "lucide-react";
-import KeyTurnLoader from "../../components/ui/base/KeyTurnLoader";
+import KeyTurnLoader from "../../components/ui/loading/KeyTurnLoader";
 import {
   useStripePayment,
   useStripePortal,
@@ -146,13 +146,14 @@ export default function Subscription() {
         <div className="sm:hidden space-y-4">
           <div className="grid grid-cols-1 gap-4">
             {/* Status - Mobile */}
-            {billingInfo?.subscription && billingInfo.subscription.cancel_at_period_end && (
-              <div className="flex items-center justify-center gap-2">
-                <span className="px-3 py-1 bg-red-100 text-red-800 text-sm font-medium rounded-full">
-                  Cancels at period end
-                </span>
-              </div>
-            )}
+            {billingInfo?.subscription &&
+              billingInfo.subscription.cancel_at_period_end && (
+                <div className="flex items-center justify-center gap-2">
+                  <span className="px-3 py-1 bg-red-100 text-red-800 text-sm font-medium rounded-full">
+                    Cancels at period end
+                  </span>
+                </div>
+              )}
           </div>
         </div>
 
@@ -180,25 +181,117 @@ export default function Subscription() {
           </div>
         ) : (
           <>
-              {/* Plan Details */}
-              {billingInfo?.subscription?.plan_id ? (
-                <div className="bg-green-50/30 px-responsive-sm py-responsive-sm rounded-xl">
-                  {/* Mobile Layout */}
-                  <div className="sm:hidden space-y-3">
-                    {/* Status and Price Row */}
-                    <div className="flex items-center justify-between">
-                      {billingInfo?.subscription?.status === "active" ? (
-                        <span className="px-2 py-1 bg-green-100 text-green-800 text-responsive-xs font-medium rounded-2xl flex items-center gap-responsive-xs">
-                          <CheckCircle className="mobile-icon-xs" />
-                          Active
+            {/* Plan Details */}
+            {billingInfo?.subscription?.plan_id ? (
+              <div className="bg-green-50/30 px-responsive-sm py-responsive-sm rounded-xl">
+                {/* Mobile Layout */}
+                <div className="sm:hidden space-y-3">
+                  {/* Status and Price Row */}
+                  <div className="flex items-center justify-between">
+                    {billingInfo?.subscription?.status === "active" ? (
+                      <span className="px-2 py-1 bg-green-100 text-green-800 text-responsive-xs font-medium rounded-2xl flex items-center gap-responsive-xs">
+                        <CheckCircle className="mobile-icon-xs" />
+                        Active
+                      </span>
+                    ) : (
+                      <h4 className="font-medium text-black text-responsive-sm">
+                        Plan Details
+                      </h4>
+                    )}
+
+                    <div className="text-responsive-lg font-bold text-black">
+                      {(() => {
+                        const plan = plans.find(
+                          (p) => p.id === billingInfo.subscription?.plan_id
+                        );
+                        if (!plan) return "$0";
+                        return `$${plan.price}${
+                          plan.interval === "year"
+                            ? "/yr"
+                            : plan.interval === "month"
+                            ? "/mo"
+                            : ""
+                        }`;
+                      })()}
+                    </div>
+                  </div>
+
+                  {/* Plan Info - Flex Wrap */}
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 py-1.5 text-responsive-xs font-medium">
+                    <span className="whitespace-nowrap">
+                      <span className="text-black">• Plan: </span>
+                      <span className="text-gray-500">
+                        {(() => {
+                          const plan = plans.find(
+                            (p) => p.id === billingInfo.subscription?.plan_id
+                          );
+                          return plan ? plan.name : "Custom Plan";
+                        })()}
+                      </span>
+                    </span>
+                    <span className="whitespace-nowrap">
+                      <span className="text-black">• Billing cycle: </span>
+                      <span className="text-gray-500">
+                        {(() => {
+                          const plan = plans.find(
+                            (p) => p.id === billingInfo.subscription?.plan_id
+                          );
+                          if (!plan) return "One-time";
+                          return plan.interval === "month"
+                            ? "Monthly"
+                            : plan.interval === "year"
+                            ? "Yearly"
+                            : "One-time";
+                        })()}
+                      </span>
+                    </span>
+                    {billingInfo.subscription.current_period_end && (
+                      <span className="whitespace-nowrap">
+                        <span className="text-black">
+                          • Next billing date:{" "}
                         </span>
-                      ) : (
-                        <h4 className="font-medium text-black text-responsive-sm">
-                          Plan Details
-                        </h4>
-                      )}
-                      
-                      <div className="text-responsive-lg font-bold text-black">
+                        <span className="text-gray-500">
+                          {new Date(
+                            billingInfo.subscription.current_period_end
+                          ).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })}
+                        </span>
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Manage Button */}
+                  {billingInfo?.subscription?.status === "active" && (
+                    <button
+                      onClick={handlePortal}
+                      disabled={portalLoading}
+                      className="w-full bg-gray-100 text-gray-700 hover:bg-gray-200 px-2 py-1 rounded-2xl text-responsive-sm font-medium transition-all duration-200 flex items-center justify-center gap-responsive-xs border border-gray-200 hover:shadow-sm disabled:opacity-50 touch-friendly"
+                    >
+                      <Settings className="mobile-icon-sm" />
+                      {portalLoading ? "Loading..." : "Manage Subscription"}
+                    </button>
+                  )}
+                </div>
+
+                {/* Desktop Layout */}
+                <div className="hidden sm:block">
+                  <div className="flex items-center justify-between mb-3">
+                    {billingInfo?.subscription?.status === "active" ? (
+                      <span className="px-2 py-1 bg-green-100 text-green-800 text-responsive-sm font-medium rounded-2xl flex items-center gap-responsive-xs">
+                        <CheckCircle className="mobile-icon-sm" />
+                        Active
+                      </span>
+                    ) : (
+                      <h4 className="font-medium text-black text-responsive-md">
+                        Plan Details
+                      </h4>
+                    )}
+
+                    <div className="flex items-center gap-responsive-sm">
+                      <div className="text-responsive-xl font-bold text-black">
                         {(() => {
                           const plan = plans.find(
                             (p) => p.id === billingInfo.subscription?.plan_id
@@ -213,22 +306,36 @@ export default function Subscription() {
                           }`;
                         })()}
                       </div>
+
+                      {billingInfo?.subscription?.status === "active" && (
+                        <button
+                          onClick={handlePortal}
+                          disabled={portalLoading}
+                          className="bg-gray-100 text-gray-700 hover:bg-gray-200 px-2 py-1 rounded-2xl text-responsive-sm font-medium transition-all duration-200 flex items-center gap-responsive-xs border border-gray-200 hover:shadow-sm disabled:opacity-50"
+                        >
+                          <Settings className="mobile-icon-sm" />
+                          {portalLoading ? "Loading..." : "Manage"}
+                        </button>
+                      )}
                     </div>
-                    
-                    {/* Plan Info - Flex Wrap */}
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 py-1.5 text-responsive-xs font-medium">
-                      <span className="whitespace-nowrap">
-                        <span className="text-black">• Plan: </span>
-                        <span className="text-gray-500">{(() => {
+                  </div>
+
+                  <div className="flex flex-wrap items-center justify-between gap-y-1 text-responsive-sm font-medium">
+                    <span className="whitespace-nowrap">
+                      <span className="text-black">• Plan: </span>
+                      <span className="text-gray-500">
+                        {(() => {
                           const plan = plans.find(
                             (p) => p.id === billingInfo.subscription?.plan_id
                           );
                           return plan ? plan.name : "Custom Plan";
-                        })()}</span>
+                        })()}
                       </span>
-                      <span className="whitespace-nowrap">
-                        <span className="text-black">• Billing cycle: </span>
-                        <span className="text-gray-500">{(() => {
+                    </span>
+                    <span className="whitespace-nowrap">
+                      <span className="text-black">• Billing cycle: </span>
+                      <span className="text-gray-500">
+                        {(() => {
                           const plan = plans.find(
                             (p) => p.id === billingInfo.subscription?.plan_id
                           );
@@ -238,135 +345,48 @@ export default function Subscription() {
                             : plan.interval === "year"
                             ? "Yearly"
                             : "One-time";
-                        })()}</span>
+                        })()}
                       </span>
-                      {billingInfo.subscription.current_period_end && (
-                        <span className="whitespace-nowrap">
-                          <span className="text-black">• Next billing date: </span>
-                          <span className="text-gray-500">{new Date(
+                    </span>
+                    {billingInfo.subscription.current_period_end && (
+                      <span className="whitespace-nowrap">
+                        <span className="text-black">
+                          • Next billing date:{" "}
+                        </span>
+                        <span className="text-gray-500">
+                          {new Date(
                             billingInfo.subscription.current_period_end
                           ).toLocaleDateString("en-US", {
                             month: "short",
                             day: "numeric",
                             year: "numeric",
-                          })}</span>
+                          })}
                         </span>
-                      )}
-                    </div>
-                    
-                    {/* Manage Button */}
-                    {billingInfo?.subscription?.status === "active" && (
-                      <button
-                        onClick={handlePortal}
-                        disabled={portalLoading}
-                        className="w-full bg-gray-100 text-gray-700 hover:bg-gray-200 px-2 py-1 rounded-2xl text-responsive-sm font-medium transition-all duration-200 flex items-center justify-center gap-responsive-xs border border-gray-200 hover:shadow-sm disabled:opacity-50 touch-friendly"
-                      >
-                        <Settings className="mobile-icon-sm" />
-                        {portalLoading ? "Loading..." : "Manage Subscription"}
-                      </button>
+                      </span>
                     )}
                   </div>
-
-                  {/* Desktop Layout */}
-                  <div className="hidden sm:block">
-                    <div className="flex items-center justify-between mb-3">
-                      {billingInfo?.subscription?.status === "active" ? (
-                        <span className="px-2 py-1 bg-green-100 text-green-800 text-responsive-sm font-medium rounded-2xl flex items-center gap-responsive-xs">
-                          <CheckCircle className="mobile-icon-sm" />
-                          Active
-                        </span>
-                      ) : (
-                        <h4 className="font-medium text-black text-responsive-md">
-                          Plan Details
-                        </h4>
-                      )}
-                      
-                      <div className="flex items-center gap-responsive-sm">
-                        <div className="text-responsive-xl font-bold text-black">
-                          {(() => {
-                            const plan = plans.find(
-                              (p) => p.id === billingInfo.subscription?.plan_id
-                            );
-                            if (!plan) return "$0";
-                            return `$${plan.price}${
-                              plan.interval === "year"
-                                ? "/yr"
-                                : plan.interval === "month"
-                                ? "/mo"
-                                : ""
-                            }`;
-                          })()}
-                        </div>
-                        
-                        {billingInfo?.subscription?.status === "active" && (
-                          <button
-                            onClick={handlePortal}
-                            disabled={portalLoading}
-                            className="bg-gray-100 text-gray-700 hover:bg-gray-200 px-2 py-1 rounded-2xl text-responsive-sm font-medium transition-all duration-200 flex items-center gap-responsive-xs border border-gray-200 hover:shadow-sm disabled:opacity-50"
-                          >
-                            <Settings className="mobile-icon-sm" />
-                            {portalLoading ? "Loading..." : "Manage"}
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div className="flex flex-wrap items-center justify-between gap-y-1 text-responsive-sm font-medium">
-                      <span className="whitespace-nowrap">
-                        <span className="text-black">• Plan: </span>
-                        <span className="text-gray-500">{(() => {
-                          const plan = plans.find(
-                            (p) => p.id === billingInfo.subscription?.plan_id
-                          );
-                          return plan ? plan.name : "Custom Plan";
-                        })()}</span>
-                      </span>
-                      <span className="whitespace-nowrap">
-                        <span className="text-black">• Billing cycle: </span>
-                        <span className="text-gray-500">{(() => {
-                          const plan = plans.find(
-                            (p) => p.id === billingInfo.subscription?.plan_id
-                          );
-                          if (!plan) return "One-time";
-                          return plan.interval === "month"
-                            ? "Monthly"
-                            : plan.interval === "year"
-                            ? "Yearly"
-                            : "One-time";
-                        })()}</span>
-                      </span>
-                      {billingInfo.subscription.current_period_end && (
-                        <span className="whitespace-nowrap">
-                          <span className="text-black">• Next billing date: </span>
-                          <span className="text-gray-500">{new Date(
-                            billingInfo.subscription.current_period_end
-                          ).toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          })}</span>
-                        </span>
-                      )}
-                    </div>
-                  </div>
                 </div>
-              ) : (
-                <div className="bg-green-50/30 px-responsive-sm py-responsive-md rounded-xl flex flex-col items-center justify-center text-center">
-                  <Clock className="mobile-icon-xl text-black/40 mb-responsive-sm" />
-                  <h3 className="text-responsive-md font-medium text-black mb-responsive-xs">
-                    No active subscription
-                  </h3>
-                  <p className="text-black/60 text-responsive-sm">
-                    Get started with one of our plans below
-                  </p>
-                </div>
-              )}
-            </>
-          )}
-        </div>
+              </div>
+            ) : (
+              <div className="bg-green-50/30 px-responsive-sm py-responsive-md rounded-xl flex flex-col items-center justify-center text-center">
+                <Clock className="mobile-icon-xl text-black/40 mb-responsive-sm" />
+                <h3 className="text-responsive-md font-medium text-black mb-responsive-xs">
+                  No active subscription
+                </h3>
+                <p className="text-black/60 text-responsive-sm">
+                  Get started with one of our plans below
+                </p>
+              </div>
+            )}
+          </>
+        )}
+      </div>
 
       {/* Plans */}
-      <div id="plans" className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+      <div
+        id="plans"
+        className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto"
+      >
         {filteredPlans.map((plan) => {
           const displayPrice = plan.price;
 

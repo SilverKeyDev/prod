@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Search } from "lucide-react";
-import KeyTurnLoader from "../../components/ui/base/KeyTurnLoader";
+import { KeyTurnLoader, Input } from "../../components/ui";
+import { Card } from "../../components/layout";
 import { createPortal } from "react-dom";
 import { X, UserPlus } from "lucide-react";
-import Card from "../../components/ui/base/Card";
 import { usePreferences, useUser, useAgent, Agent } from "../../context";
-import Input from "../../components/ui/base/Input";
 
 export default function AgentConnection() {
   const { refreshUserPreferences } = usePreferences();
@@ -16,14 +15,16 @@ export default function AgentConnection() {
     searchLoading: agentSearchLoading,
     searchAgents,
     assignAgent,
-    removeAgent
+    removeAgent,
   } = useAgent();
 
   const [agentSearchTerm, setAgentSearchTerm] = useState("");
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [agentToRemove, setAgentToRemove] = useState<Agent | null>(null);
-  const [openDropdowns, setOpenDropdowns] = useState<{[key: string]: boolean}>({});
+  const [openDropdowns, setOpenDropdowns] = useState<{
+    [key: string]: boolean;
+  }>({});
 
   const assignedAgents = assignedAgent ? [assignedAgent] : [];
 
@@ -112,9 +113,7 @@ export default function AgentConnection() {
 
   return (
     <div className="min-h-screen bg-off-white">
-      
       <div className="px-responsive-sm sm:px-responsive-md lg:px-responsive-lg py-responsive-lg">
-
         {/* Agent Search Section */}
         {userProfile && !userProfile.is_agent && (
           <div className="mb-8">
@@ -155,7 +154,9 @@ export default function AgentConnection() {
                           <h4 className="font-medium text-black">
                             {agent.name}
                           </h4>
-                          <p className="text-responsive-sm text-gray-600">{agent.email}</p>
+                          <p className="text-responsive-sm text-gray-600">
+                            {agent.email}
+                          </p>
                           {agent.phone && (
                             <p className="text-responsive-sm text-gray-600">
                               {agent.phone}
@@ -181,7 +182,6 @@ export default function AgentConnection() {
                       No agents found matching "{agentSearchTerm}"
                     </div>
                   )}
-
               </div>
             </Card>
           </div>
@@ -231,17 +231,20 @@ export default function AgentConnection() {
         )}
 
         {/* Empty State for Non-Agents */}
-        {userProfile && !userProfile.is_agent && assignedAgents.length === 0 && (
-          <div className="card text-center py-responsive-xl">
-            <UserPlus className="mobile-icon-xl text-gray-400 mx-auto space-y-responsive-sm" />
-            <h3 className="text-responsive-md font-medium text-black space-y-responsive-xs">
-              No Agents Connected
-            </h3>
-            <p className="text-gray-600 mb-4">
-              Search for agents above to connect with real estate professionals who can help you find your perfect home.
-            </p>
-          </div>
-        )}
+        {userProfile &&
+          !userProfile.is_agent &&
+          assignedAgents.length === 0 && (
+            <div className="card text-center py-responsive-xl">
+              <UserPlus className="mobile-icon-xl text-gray-400 mx-auto space-y-responsive-sm" />
+              <h3 className="text-responsive-md font-medium text-black space-y-responsive-xs">
+                No Agents Connected
+              </h3>
+              <p className="text-gray-600 mb-4">
+                Search for agents above to connect with real estate
+                professionals who can help you find your perfect home.
+              </p>
+            </div>
+          )}
       </div>
 
       {/* Success Dialog */}

@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { getPropertyDetailsByAddress } from '../lib/propertyApi';
+import { searchApi } from '../api';
 
 export interface Property {
   id: string;
@@ -22,7 +22,7 @@ export interface UsePropertyDetailsReturn {
   /** The selected property with detailed information */
   selectedProperty: Property | null;
   /** Function to fetch and set property details */
-  fetchPropertyDetails: (property: Property, useAddressOnly?: boolean) => Promise<void>;
+  fetchPropertyDetails: (property: Property) => Promise<void>;
   /** Function to clear the selected property */
   clearSelectedProperty: () => void;
   /** Error state if property details fetch fails */
@@ -38,20 +38,35 @@ export function usePropertyDetails(): UsePropertyDetailsReturn {
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchPropertyDetails = useCallback(async (property: Property, useAddressOnly: boolean = false) => {
+  const fetchPropertyDetails = useCallback(async (property: Property) => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const detailedPropertyData = await getPropertyDetailsByAddress(
-        useAddressOnly ? undefined : property.id, // Only use zpid if not address-only
-        property.address // Always pass address
-      );
+      const response = await searchApi.getProperty({
+        address: property.address
+      });
+      
+      console.log("🔍 [USE_PROPERTY_DETAILS] Full API response:", response);
+      
+      // The backend returns property data in response.data, not response.property
+      const detailedPropertyData = response.data || {};
+      
+      console.log("🔍 [USE_PROPERTY_DETAILS] Detailed property data:", detailedPropertyData);
 
       const enhancedProperty = {
         ...property,
         ...detailedPropertyData, // Merge detailed data with existing property data
+        // Also include additional response fields
+        commute_data: response.commute_data,
+        property_analysis: response.property_analysis,
+        image_features: response.image_features,
+        zillow_url: response.zillow_url,
+        images: response.images,
+        features: response.features,
       };
+      
+      console.log("🔍 [USE_PROPERTY_DETAILS] Enhanced property for modal:", enhancedProperty);
       setSelectedProperty(enhancedProperty);
     } catch (error) {
       console.error("❌ [USE_PROPERTY_DETAILS] Error fetching property details:", error);

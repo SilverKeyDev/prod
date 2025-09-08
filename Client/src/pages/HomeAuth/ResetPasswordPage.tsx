@@ -1,16 +1,16 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Mail, Lock, Key } from "lucide-react";
-import { authApi } from "../../lib/api";
+import { authApi } from "../../api";
 import SuccessDialog from "../../components/modals/SuccessDialog";
 import {
   PasswordValidation,
   usePasswordValidation,
 } from "../../components/feedback/PasswordValidation";
-import Input from "../../components/ui/base/Input";
-import AuthButton from "../../components/ui/homeauth/AuthButton";
-import AuthLink from "../../components/ui/homeauth/AuthLink";
-import AuthPageLayout from "../../components/layout/AuthPageLayout";
+import { Input } from "../../components/ui";
+import AuthButton from "../../features/homeauth/AuthButton";
+import AuthLink from "../../features/homeauth/AuthLink";
+import AuthPageLayout from "../../features/homeauth/AuthPageLayout";
 
 export default function ResetPasswordPage() {
   const [searchParams] = useSearchParams();
@@ -114,7 +114,6 @@ export default function ResetPasswordPage() {
         onSubmit={step === "request" ? handleRequestReset : handleResetPassword}
         className="card space-y-responsive-md"
       >
-
         {step === "request" ? (
           // Step 1: Request reset code
           <Input
@@ -204,10 +203,15 @@ export default function ResetPasswordPage() {
         </AuthButton>
 
         <div className="text-center text-responsive-xs">
-          <span className="text-gray-600 text-responsive-xs">Remember your password?</span><AuthLink
+          <span className="text-gray-600 text-responsive-xs">
+            Remember your password?
+          </span>
+          <AuthLink
             to="/login"
             className="text-brown hover:text-brown/80 hover:underline underline-offset-4 transition-colors"
-          >Login</AuthLink>
+          >
+            Login
+          </AuthLink>
         </div>
       </form>
 

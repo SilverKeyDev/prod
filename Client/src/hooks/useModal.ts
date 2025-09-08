@@ -1,61 +1,38 @@
 import { useState, useCallback } from 'react';
 
-export interface ModalState {
-  [modalId: string]: boolean;
-}
-
 export interface UseModalReturn {
-  modals: ModalState;
-  isOpen: (modalId: string) => boolean;
-  openModal: (modalId: string) => void;
-  closeModal: (modalId: string) => void;
-  toggleModal: (modalId: string) => void;
-  closeAllModals: () => void;
+  isOpen: boolean;
+  open: () => void;
+  close: () => void;
+  toggle: () => void;
 }
 
-export function useModal(initialModals: string[] = []): UseModalReturn {
-  const [modals, setModals] = useState<ModalState>(() => {
-    const initial: ModalState = {};
-    initialModals.forEach(modalId => {
-      initial[modalId] = false;
-    });
-    return initial;
-  });
+/**
+ * Generic modal state management hook
+ * Reusable logic without business nouns - pure UI state management
+ */
+export function useModal(initialState = false): UseModalReturn {
+  const [isOpen, setIsOpen] = useState(initialState);
 
-  const isOpen = useCallback((modalId: string): boolean => {
-    return Boolean(modals[modalId]);
-  }, [modals]);
-
-  const openModal = useCallback((modalId: string) => {
-    setModals(prev => ({ ...prev, [modalId]: true }));
+  const open = useCallback(() => {
+    setIsOpen(true);
+    document.body.style.overflow = "hidden";
   }, []);
 
-  const closeModal = useCallback((modalId: string) => {
-    setModals(prev => ({ ...prev, [modalId]: false }));
+  const close = useCallback(() => {
+    setIsOpen(false);
+    document.body.style.overflow = "auto";
   }, []);
 
-  const toggleModal = useCallback((modalId: string) => {
-    setModals(prev => ({ ...prev, [modalId]: !prev[modalId] }));
-  }, []);
-
-  const closeAllModals = useCallback(() => {
-    setModals(prev => {
-      const newState: ModalState = {};
-      Object.keys(prev).forEach(key => {
-        newState[key] = false;
-      });
-      return newState;
-    });
-  }, []);
+  const toggle = useCallback(() => {
+    setIsOpen(prev => !prev);
+    document.body.style.overflow = isOpen ? "auto" : "hidden";
+  }, [isOpen]);
 
   return {
-    modals,
     isOpen,
-    openModal,
-    closeModal,
-    toggleModal,
-    closeAllModals
+    open,
+    close,
+    toggle,
   };
 }
-
-export default useModal;

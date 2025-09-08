@@ -97,7 +97,7 @@ export default function HomeCard({
   // Use pre-calculated score if available
   const score = showScore ? home.calculatedScore : undefined;
 
-  // Handle view details button click
+  // Handle Unlock button click
   const handleViewDetails = async () => {
     const propertyData = convertToProperty(home);
     // Use address instead of zpid for HomeCard

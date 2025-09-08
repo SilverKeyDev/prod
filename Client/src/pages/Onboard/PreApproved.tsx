@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { usePreferences, useUser } from "../../context";
 import { User, DollarSign, CreditCard, Calculator } from "lucide-react";
-import Input from "../../components/ui/base/Input";
+import { Input } from "../../components/ui";
 
 type FormData = {
   name: string;
-  income: string;       // monthly, numeric string
-  creditScore: string;  // numeric string
-  debts: string;        // monthly, numeric string
+  income: string; // monthly, numeric string
+  creditScore: string; // numeric string
+  debts: string; // monthly, numeric string
 };
 
 const PreApproved: React.FC = () => {
@@ -122,9 +122,14 @@ const PreApproved: React.FC = () => {
   return (
     <div className="min-h-screen bg-off-white">
       <div className="max-w-2xl mx-auto px-responsive-sm">
-        <form onSubmit={handleSubmit} className="bg-white space-responsive-lg rounded-lg space-y-responsive-sm">
+        <form
+          onSubmit={handleSubmit}
+          className="bg-white space-responsive-lg rounded-lg space-y-responsive-sm"
+        >
           {error && (
-            <div className="space-responsive-sm rounded bg-red-50 text-red-700 text-responsive-sm">{error}</div>
+            <div className="space-responsive-sm rounded bg-red-50 text-red-700 text-responsive-sm">
+              {error}
+            </div>
           )}
 
           <Input
@@ -143,7 +148,10 @@ const PreApproved: React.FC = () => {
             placeholder="e.g., 7500"
             value={formData.income}
             onChange={(e) =>
-              setFormData({ ...formData, income: sanitizeCurrencyNumber(e.target.value) })
+              setFormData({
+                ...formData,
+                income: sanitizeCurrencyNumber(e.target.value),
+              })
             }
             leftIcon={<DollarSign className="w-4 h-4" />}
             required
@@ -170,7 +178,10 @@ const PreApproved: React.FC = () => {
             placeholder="e.g., 400"
             value={formData.debts}
             onChange={(e) =>
-              setFormData({ ...formData, debts: sanitizeCurrencyNumber(e.target.value) })
+              setFormData({
+                ...formData,
+                debts: sanitizeCurrencyNumber(e.target.value),
+              })
             }
             leftIcon={<Calculator className="w-4 h-4" />}
             required
@@ -185,8 +196,9 @@ const PreApproved: React.FC = () => {
           </button>
 
           <p className="text-responsive-xs text-navy/60">
-            By continuing, you agree to share this information with our mortgage partner for the
-            purpose of pre-approval. We do not store your SSN on our servers.
+            By continuing, you agree to share this information with our mortgage
+            partner for the purpose of pre-approval. We do not store your SSN on
+            our servers.
           </p>
         </form>
       </div>

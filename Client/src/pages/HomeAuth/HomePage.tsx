@@ -1,8 +1,15 @@
 import { useState, useEffect } from "react";
-import { Building2, BarChart2, Lightbulb, FolderLock, X, Lock } from "lucide-react";
+import {
+  Building2,
+  BarChart2,
+  Lightbulb,
+  FolderLock,
+  X,
+  Lock,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 import KeyLogo from "/logo.png";
-import RippleBackground from "../../components/ui/homeauth/RippleBackground";
+import RippleBackground from "../../features/homeauth/RippleBackground";
 // Remove Google Maps import for now to fix compilation
 
 interface Suggestion {
@@ -19,11 +26,11 @@ declare global {
 
 export default function HomePage() {
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [address, ] = useState("");
+  const [address] = useState("");
   const [, setSuggestions] = useState<Suggestion[]>([]);
   const [scriptsReady, setScriptsReady] = useState(false);
   const [, setLoadError] = useState<string | null>(null);
-  const [hasSelected, ] = useState(false);
+  const [hasSelected] = useState(false);
 
   // Temporarily disable Google Maps functionality
   const googleMapsLoaded = false;
@@ -56,7 +63,7 @@ export default function HomePage() {
         const request = {
           input: address,
           sessionToken,
-          componentRestrictions: { country: 'US' },
+          componentRestrictions: { country: "US" },
         };
 
         const { suggestions: fetched } =
@@ -86,7 +93,10 @@ export default function HomePage() {
       <header className="w-full flex justify-between items-center px-responsive-sm py-2 sm:py-3 border-b border-gray-200 bg-white fixed top-0 left-0 right-0 z-50 shadow-lg">
         <img src={KeyLogo} alt="SilverKey Logo" className="h-8 w-auto" />
         <div className="flex gap-1.5 sm:gap-2 text-responsive-sm font-medium">
-          <Link to="/login" className="hover:underline px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 rounded-md">
+          <Link
+            to="/login"
+            className="hover:underline px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 rounded-md"
+          >
             Login
           </Link>
           <Link
@@ -110,91 +120,93 @@ export default function HomePage() {
         {/* Centered Content Wrapper */}
         <div className="relative z-10 flex flex-col items-center w-full max-w-[85%] mx-auto">
           <div className="max-w-3xl text-center w-full mx-auto">
-          <div className="bg-white p-6 sm:p-8 rounded-lg shadow-lg">
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 text-gray-900">
-              Discover a New Way to Buy
-            </h1>
-            <p className="text-lg sm:text-xl text-gray-600 mb-6">
-              Onboard, Search, Decide, Negotiate, Close
-            </p>
-            <div className="mt-4 sm:mt-8">
-              <button
-                onClick={() => setShowAuthModal(true)}
-                className="bg-olive text-white rounded-lg py-responsive-sm px-responsive-lg font-semibold hover:bg-olive-light transition text-responsive-sm w-1/2 touch-friendly"
-              >
-                Start Now
-              </button>
+            <div className="bg-white p-6 sm:p-8 rounded-lg shadow-lg">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 text-gray-900">
+                Discover a New Way to Buy
+              </h1>
+              <p className="text-lg sm:text-xl text-gray-600 mb-6">
+                Onboard, Search, Decide, Negotiate, Close
+              </p>
+              <div className="mt-4 sm:mt-8">
+                <button
+                  onClick={() => setShowAuthModal(true)}
+                  className="bg-olive text-white rounded-lg py-responsive-sm px-responsive-lg font-semibold hover:bg-olive-light transition text-responsive-sm w-1/2 touch-friendly"
+                >
+                  Start Now
+                </button>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Feature Cards */}
+          {/* Feature Cards */}
           <div className="relative z-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-responsive-sm mt-20 max-w-6xl w-full mx-auto">
-          {[
-            {
-              title: "Find Properties",
-              description:
-                "Select your preferences and let our AI find the best homes for you",
-              icon: <Building2 className="mobile-icon-lg text-gray-500" />,
-            },
-            {
-              title: "Decide on a Home",
-              description:
-                "Input the facts of homes into spreadsheets or reports and get detailed analysis of the neighborhood.",
-              icon: <BarChart2 className="mobile-icon-lg text-gray-500" />,
-            },
-            {
-              title: "Negotiate",
-              description:
-                "Analyze the market and home to draft a competitive offer and automate the associated paperwork.",
-              icon: <Lightbulb className="mobile-icon-lg text-gray-500" />,
-            },
-            {
-              title: "Purchase",
-              description:
-                "Use our timelines and paperwork to find and submit the appropriate paperwork, disclosures, etc, without paying legal fees.",
-              icon: <FolderLock className="mobile-icon-lg text-gray-500" />,
-            },
-          ].map((f, i) => (
-            <div
-              key={i}
-              className="bg-white rounded-xl shadow-md hover:shadow-lg p-4 sm:p-5 flex flex-col items-center text-center transition-all duration-200 hover:-translate-y-0.5 cursor-pointer touch-friendly"
-            >
-              <div className="mb-2">{f.icon}</div>
-              <h3 className="font-semibold text-black text-responsive-md mb-3 w-[87%]">
-                {f.title}
-              </h3>
-              <p className="text-gray-600 text-xs sm:text-sm w-[87%]">{f.description}</p>
-            </div>
-          ))}
-        </div>
+            {[
+              {
+                title: "Find Properties",
+                description:
+                  "Select your preferences and let our AI find the best homes for you",
+                icon: <Building2 className="mobile-icon-lg text-gray-500" />,
+              },
+              {
+                title: "Decide on a Home",
+                description:
+                  "Input the facts of homes into spreadsheets or reports and get detailed analysis of the neighborhood.",
+                icon: <BarChart2 className="mobile-icon-lg text-gray-500" />,
+              },
+              {
+                title: "Negotiate",
+                description:
+                  "Analyze the market and home to draft a competitive offer and automate the associated paperwork.",
+                icon: <Lightbulb className="mobile-icon-lg text-gray-500" />,
+              },
+              {
+                title: "Purchase",
+                description:
+                  "Use our timelines and paperwork to find and submit the appropriate paperwork, disclosures, etc, without paying legal fees.",
+                icon: <FolderLock className="mobile-icon-lg text-gray-500" />,
+              },
+            ].map((f, i) => (
+              <div
+                key={i}
+                className="bg-white rounded-xl shadow-md hover:shadow-lg p-4 sm:p-5 flex flex-col items-center text-center transition-all duration-200 hover:-translate-y-0.5 cursor-pointer touch-friendly"
+              >
+                <div className="mb-2">{f.icon}</div>
+                <h3 className="font-semibold text-black text-responsive-md mb-3 w-[87%]">
+                  {f.title}
+                </h3>
+                <p className="text-gray-600 text-xs sm:text-sm w-[87%]">
+                  {f.description}
+                </p>
+              </div>
+            ))}
+          </div>
 
-        {/* Footer Links */}
+          {/* Footer Links */}
           <div className="relative mt-10 flex flex-wrap justify-center items-center gap-responsive-sm text-responsive-xs text-center">
-          <Link
-            to="/privacy"
-            className="bg-white text-black px-responsive-xl py-responsive-xs rounded-lg shadow hover:shadow-md transition-all duration-200 touch-friendly flex items-center justify-center text-gray-600 hover:text-gray-800"
-          >
-            <span className="hover:underline underline-offset-2 decoration-1">
-              Privacy Policy
-            </span>
-          </Link>
-          <Link
-            to="/terms"
-            className="bg-white text-black px-responsive-xl py-responsive-xs rounded-lg shadow hover:shadow-md transition-all duration-200 touch-friendly flex items-center justify-center text-gray-600 hover:text-gray-800"
-          >
-            <span className="hover:underline underline-offset-2 decoration-1">
-              Terms of Service
-            </span>
-          </Link>
-          <Link
-            to="/contact"
-            className="bg-white text-black px-responsive-xl py-responsive-xs rounded-lg shadow hover:shadow-md transition-all duration-200 touch-friendly flex items-center justify-center text-gray-600 hover:text-gray-800"
-          >
-            <span className="hover:underline underline-offset-2 decoration-1">
-              Contact Us
-            </span>
-          </Link>
+            <Link
+              to="/privacy"
+              className="bg-white text-black px-responsive-xl py-responsive-xs rounded-lg shadow hover:shadow-md transition-all duration-200 touch-friendly flex items-center justify-center text-gray-600 hover:text-gray-800"
+            >
+              <span className="hover:underline underline-offset-2 decoration-1">
+                Privacy Policy
+              </span>
+            </Link>
+            <Link
+              to="/terms"
+              className="bg-white text-black px-responsive-xl py-responsive-xs rounded-lg shadow hover:shadow-md transition-all duration-200 touch-friendly flex items-center justify-center text-gray-600 hover:text-gray-800"
+            >
+              <span className="hover:underline underline-offset-2 decoration-1">
+                Terms of Service
+              </span>
+            </Link>
+            <Link
+              to="/contact"
+              className="bg-white text-black px-responsive-xl py-responsive-xs rounded-lg shadow hover:shadow-md transition-all duration-200 touch-friendly flex items-center justify-center text-gray-600 hover:text-gray-800"
+            >
+              <span className="hover:underline underline-offset-2 decoration-1">
+                Contact Us
+              </span>
+            </Link>
           </div>
         </div>
       </main>
@@ -206,7 +218,9 @@ export default function HomePage() {
             <div className="flex justify-between mb-4">
               <div className="flex items-center gap-responsive-xs">
                 <Lock className="mobile-icon-sm text-gray-600" />
-                <span className="font-bold text-responsive-sm text-gray-600">Account Required</span>
+                <span className="font-bold text-responsive-sm text-gray-600">
+                  Account Required
+                </span>
               </div>
               <button onClick={() => setShowAuthModal(false)}>
                 <X className="mobile-icon-sm text-black" />

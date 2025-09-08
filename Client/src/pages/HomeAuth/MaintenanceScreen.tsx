@@ -1,5 +1,5 @@
 import React from "react";
-import RippleBackground from "../../components/ui/homeauth/RippleBackground";
+import RippleBackground from "../../features/homeauth/RippleBackground";
 
 const MaintenanceScreen: React.FC = () => (
   <div className="min-h-screen bg-white flex flex-col hide-scrollbar">
@@ -16,7 +16,8 @@ const MaintenanceScreen: React.FC = () => (
             </h1>
           </div>
           <p className="text-xs sm:text-sm md:text-base leading-relaxed text-gray-600">
-            SilverKey is undergoing scheduled maintenance, please check back in a few minutes.
+            SilverKey is undergoing scheduled maintenance, please check back in
+            a few minutes.
           </p>
         </div>
       </div>

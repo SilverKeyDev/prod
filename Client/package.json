@@ -7,7 +7,11 @@
         "dev": "vite",
         "build": "vite build",
         "lint": "eslint .",
-        "preview": "vite preview"
+        "preview": "vite preview",
+        "audit": "npm audit",
+        "audit:fix": "npm audit fix",
+        "security-check": "node scripts/security-audit.js",
+        "security:ci": "node scripts/security-audit.js --ci"
     },
     "dependencies": {
         "@dnd-kit/core": "^6.3.1",
@@ -23,6 +27,7 @@
         "react": "^18.3.1",
         "react-dom": "^18.3.1",
         "react-phone-number-input": "^3.2.20",
+        "react-responsive-carousel": "^3.2.23",
         "react-router-dom": "^6.20.1",
         "use-places-autocomplete": "^4.0.0"
     },

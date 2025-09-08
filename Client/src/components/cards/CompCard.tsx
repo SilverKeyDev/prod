@@ -1,9 +1,9 @@
-import { 
-  formatPrice, 
-  getStatusColor, 
-  formatHomeStatus, 
-  formatAgentName, 
-  formatLotSize 
+import {
+  formatPrice,
+  getStatusColor,
+  formatHomeStatus,
+  formatAgentName,
+  formatLotSize,
 } from "../../lib/addressFormat";
 import { Bed, Bath, Square, MapPin, User, Building } from "lucide-react";
 
@@ -46,18 +46,20 @@ interface CompCardProps {
 }
 
 export default function CompCard({ comp, className = "" }: CompCardProps) {
-
-  const imageUrl = comp.miniCardPhotos?.[0]?.url || '/defaut-home.jpg';
+  const imageUrl = comp.miniCardPhotos?.[0]?.url || "/defaut-home.jpg";
 
   // Format lot size for display
-  const lotSizeDisplay = comp.lotAreaValue && comp.lotAreaValue >= 100
-    ? formatLotSize(comp.lotAreaValue)
-    : comp.lotAreaValue && comp.lotAreaValue < 100
-    ? "N/A"
-    : null;
+  const lotSizeDisplay =
+    comp.lotAreaValue && comp.lotAreaValue >= 100
+      ? formatLotSize(comp.lotAreaValue)
+      : comp.lotAreaValue && comp.lotAreaValue < 100
+      ? "N/A"
+      : null;
 
   return (
-    <div className={`bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden flex flex-col ${className}`}>
+    <div
+      className={`bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden flex flex-col ${className}`}
+    >
       {/* Image Section */}
       <div className="relative h-32 sm:h-40 md:h-48">
         <img
@@ -65,7 +67,7 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
           alt={comp.address.streetAddress}
           className="w-full h-full object-cover"
         />
-        
+
         {/* Price and Status Row */}
         <div className="absolute top-2 left-2 right-2 flex items-center justify-between">
           {/* Price Badge - reduced padding */}
@@ -74,14 +76,18 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
               {formatPrice(comp.price, comp.currency)}
             </span>
           </div>
-          
+
           {/* Recently Sold Badge - reduced padding, aligned in same row */}
-          <div className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(comp.homeStatus)}`}>
+          <div
+            className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
+              comp.homeStatus
+            )}`}
+          >
             {formatHomeStatus(comp.homeStatus)}
           </div>
         </div>
       </div>
-      
+
       {/* Content Section */}
       <div className="p-3 flex-1 flex flex-col">
         {/* Address */}
@@ -96,39 +102,47 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
             {comp.address.city}, {comp.address.state} {comp.address.zipcode}
           </p>
         </div>
-        
+
         {/* Property Details - Try to fit on same line, wrap if needed */}
         <div className="mb-3 text-left">
           <div className="flex flex-wrap gap-x-4 gap-y-2">
             {comp.bedrooms > 0 && (
               <div className="flex items-center gap-1">
                 <Bed className="w-3 h-3 text-brown flex-shrink-0" />
-                <span className="text-xs text-brown whitespace-nowrap">{comp.bedrooms} bed{comp.bedrooms !== 1 ? 's' : ''}</span>
+                <span className="text-xs text-brown whitespace-nowrap">
+                  {comp.bedrooms} bed{comp.bedrooms !== 1 ? "s" : ""}
+                </span>
               </div>
             )}
             {comp.bathrooms > 0 && (
               <div className="flex items-center gap-1">
                 <Bath className="w-3 h-3 text-brown flex-shrink-0" />
-                <span className="text-xs text-brown whitespace-nowrap">{comp.bathrooms} bath{comp.bathrooms !== 1 ? 's' : ''}</span>
+                <span className="text-xs text-brown whitespace-nowrap">
+                  {comp.bathrooms} bath{comp.bathrooms !== 1 ? "s" : ""}
+                </span>
               </div>
             )}
             {comp.livingArea > 0 && (
               <div className="flex items-center gap-1">
                 <Square className="w-3 h-3 text-brown flex-shrink-0" />
-                <span className="text-xs text-brown whitespace-nowrap">{Math.round(comp.livingArea).toLocaleString()} sqft</span>
+                <span className="text-xs text-brown whitespace-nowrap">
+                  {Math.round(comp.livingArea).toLocaleString()} sqft
+                </span>
               </div>
             )}
           </div>
         </div>
-        
+
         {/* Lot Size - underneath bed/bath/sqft */}
         {lotSizeDisplay && (
           <div className="flex items-center gap-1 mb-3 text-left">
             <MapPin className="w-3 h-3 text-brown flex-shrink-0" />
-            <span className="text-xs text-brown whitespace-nowrap">Lot: {lotSizeDisplay}</span>
+            <span className="text-xs text-brown whitespace-nowrap">
+              Lot: {lotSizeDisplay}
+            </span>
           </div>
         )}
-        
+
         {/* Agent and Brokerage Info */}
         {comp.attributionInfo?.agentName && (
           <div className="space-y-2 text-left mt-auto">

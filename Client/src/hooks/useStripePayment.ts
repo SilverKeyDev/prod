@@ -1,12 +1,24 @@
 import { useState } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
-import { apiRequest } from '../lib/api';
+import { apiRequest } from "../api/utils/index";
 
 // Initialize Stripe with your publishable key
 // Conditionally load Stripe only on HTTPS to avoid errors in local HTTP dev
+const getStripeKey = () => {
+  const key = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
+  if (!key) {
+    console.warn('VITE_STRIPE_PUBLIC_KEY not configured - Stripe payments disabled');
+    return null;
+  }
+  return key;
+};
+
 const stripePromise =
   window.location.protocol === 'https:'
-    ? loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || '')
+    ? (() => {
+        const key = getStripeKey();
+        return key ? loadStripe(key) : Promise.resolve(null);
+      })()
     : Promise.resolve(null);
 
 export const useStripePayment = () => {
@@ -32,13 +44,13 @@ export const useStripePayment = () => {
         }
       );
 
-      if (!response.success || !response.data?.sessionId) {
-        throw new Error(response.error || 'Failed to create checkout session');
+      if (!response.sessionId) {
+        throw new Error('Failed to create checkout session');
       }
 
       // 2. Redirect to Stripe Checkout
       const { error } = await stripe.redirectToCheckout({
-        sessionId: response.data.sessionId,
+        sessionId: response.sessionId,
       });
 
       if (error) {
@@ -75,12 +87,12 @@ export const useStripePortal = () => {
         }
       );
 
-      if (!response.success || !response.data?.url) {
-        throw new Error(response.error || 'Failed to create portal session');
+      if (!response.url) {
+        throw new Error('Failed to create portal session');
       }
 
       // 2. Redirect to Stripe Portal
-      window.location.href = response.data.url;
+      window.location.href = response.url;
     } catch (err: any) {
       console.error('Portal error:', err);
       const errorMessage = err.message || 'An error occurred while accessing the customer portal';

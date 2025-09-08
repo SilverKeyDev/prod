@@ -1,5 +1,5 @@
 import React from "react";
-import { Card } from "../ui/base";
+import { Card } from "../ui";
 
 export interface FilterCardProps {
   label: string;
@@ -14,13 +14,13 @@ const FilterCard: React.FC<FilterCardProps> = ({
   value,
   isActive = false,
   onClick,
-  className = ""
+  className = "",
 }) => {
   return (
     <Card
       className={`cursor-pointer transition-all duration-200 ${
-        isActive 
-          ? "ring-2 ring-brown bg-brown/5 border-brown" 
+        isActive
+          ? "ring-2 ring-brown bg-brown/5 border-brown"
           : "hover:border-brown/50 hover:bg-brown/5"
       } ${className}`}
       padding="sm"
@@ -29,9 +29,11 @@ const FilterCard: React.FC<FilterCardProps> = ({
     >
       <div className="text-center">
         <p className="text-xs text-gray-600 mb-1">{label}</p>
-        <p className={`text-sm font-medium ${
-          isActive ? "text-brown" : "text-gray-900"
-        }`}>
+        <p
+          className={`text-sm font-medium ${
+            isActive ? "text-brown" : "text-gray-900"
+          }`}
+        >
           {value}
         </p>
       </div>

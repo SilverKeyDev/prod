@@ -1,4 +1,11 @@
+// React imports
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+
+// types
+import { SearchResult } from "../../types/search";
+
+// Third-party UI icons
 import {
   Bookmark,
   MapPin,
@@ -7,6 +14,27 @@ import {
   ChevronUp,
   ChevronDown,
 } from "lucide-react";
+
+// API clients
+import { preferencesApi } from "../../api/preferences";
+import { userApi } from "../../api/user";
+
+// Services
+import { searchPropertiesInIsochrone } from "../../features/search/services/propertySearch";
+import { renderImportantLocationMarkers } from "../../features/search/lib/importantLocationRenderer";
+import { renderIsochronePolygon } from "../../features/search/lib/isochroneRenderer";
+
+// Context providers
+import { useGoogleMaps } from "../../context/GoogleMapsContext";
+
+// Hooks
+import { usePropertyDetails } from "../../hooks/usePropertyDetails";
+import { useMapZoomController } from "../../features/search/lib/MapZoomController";
+
+// Utility functions
+import { checkAuthAndRedirect, getAuthToken } from "../../lib/authUtils";
+
+// UI Components
 import {
   CardImageContainer,
   CardPropertyDetails,
@@ -16,203 +44,12 @@ import {
 } from "../../components/cards/base";
 import { PropertyCard } from "../../components/cards";
 import { renderMapPropertyCard } from "../../components/cards/MapPropertyCard";
-import { useNavigate } from "react-router-dom";
-import { favoriteHomesApi } from "../../lib/api";
 import PropertyDetailsModal from "../../components/modals/PropertyDetailsModal";
-import { searchZillowByPolygon, LatLng } from "../../lib/searchApi";
-import { usePropertyDetails } from "../../hooks/usePropertyDetails";
-import { checkAuthAndRedirect, getAuthToken } from "../../lib/authUtils";
-import { useGoogleMaps } from "../../context/GoogleMapsContext";
-import SearchMobileHeader from "../../components/ui/search/SearchMobileHeader";
-import SearchHeader from "../../components/ui/search/SearchHeader";
-import { useMapZoomController } from "../../components/ui/search/map/MapZoomController";
-import {
-  injectBounceAnimationCSS,
-  setupMarkerClickWithBounce,
-} from "../../components/ui/search/map/markerBounceUtils";
-import { getScoreBasedPinColor } from "../../components/ui/search/map/markerUtils";
-import KeyTurnLoader from "../../components/ui/base/KeyTurnLoader";
+import KeyTurnLoader from "../../components/ui/loading/KeyTurnLoader";
 
-interface SearchResult {
-  id: string;
-  address: string;
-  price: string;
-  bedrooms: number;
-  bathrooms: number;
-  sqft: number;
-  lat: number;
-  lng: number;
-  lotSize?: string;
-  propertyType?: string;
-  listingStatus?: string;
-  imageUrl?: string;
-  _score?: number; // Backend ML match score (0-100 integer)
-
-  // Enhanced property details from searchAddress API
-  zpid?: number;
-  streetAddress?: string;
-  city?: string;
-  state?: string;
-  zipcode?: string;
-  yearBuilt?: number;
-  livingArea?: string;
-  livingAreaValue?: number;
-  pricePerSquareFoot?: number;
-  propertyTypeDimension?: string;
-  homeType?: string;
-  homeStatus?: string;
-  timeOnZillow?: string;
-  daysOnZillow?: number;
-  onMarketDate?: number;
-
-  // Financial information
-  zestimate?: number;
-  taxAnnualAmount?: number;
-  propertyTaxRate?: number;
-  hoaFee?: string;
-  associationFee?: string;
-  monthlyHoaFee?: number;
-  annualHomeownersInsurance?: number;
-  rentZestimate?: number;
-
-  // Property features
-  architecturalStyle?: string;
-  structureType?: string;
-  propertyCondition?: string;
-  isNewConstruction?: boolean;
-  hasGarage?: boolean;
-  hasAttachedGarage?: boolean;
-  garageSpaces?: number;
-  parking?: number;
-  hasView?: boolean;
-  waterView?: string;
-  hasFireplace?: boolean;
-  hasCooling?: boolean;
-  hasHeating?: boolean;
-  hasAssociation?: boolean;
-
-  // Detailed features
-  view?: string[];
-  flooring?: string[];
-  heating?: string[];
-  cooling?: string[];
-  appliances?: string[];
-  interiorFeatures?: string[];
-  exteriorFeatures?: any;
-  lotFeatures?: string[];
-  communityFeatures?: string[];
-  parkingFeatures?: string[];
-  utilities?: string[];
-  inclusions?: string[];
-
-  // Room information
-  rooms?: any[];
-  bathroomsFull?: number;
-  bathroomsHalf?: number;
-  bathroomsPartial?: number;
-  bathroomsThreeQuarter?: number;
-  mainLevelBedrooms?: number;
-  mainLevelBathrooms?: number;
-
-  // Building details
-  stories?: string;
-  roofType?: string;
-  foundationDetails?: string[];
-  constructionMaterials?: string[];
-  windowFeatures?: string[];
-
-  // Location details
-  subdivision?: string;
-  subdivisionName?: string;
-  county?: string;
-  cityId?: number;
-  parcelNumber?: string;
-
-  // Agent information
-  contact_recipients?: any[];
-  listed_by?: {
-    agent_reason?: number;
-    zpro?: boolean;
-    recent_sales?: number;
-    review_count?: number;
-    display_name?: string;
-    badge_type?: string;
-    business_name?: string;
-    rating_average?: number;
-    phone?: {
-      prefix?: string;
-      areacode?: string;
-      number?: string;
-    };
-    zuid?: string;
-    image_url?: string;
-  };
-
-  // Schools
-  schools?: Array<{
-    name?: string;
-    rating?: number;
-    level?: string;
-    grades?: string;
-    type?: string;
-    distance?: number;
-    isAssigned?: boolean;
-    studentsPerTeacher?: number;
-    size?: number;
-    link?: string;
-  }>;
-
-  // Price history
-  priceHistory?: Array<{
-    date?: string;
-    price?: number;
-    event?: string;
-    priceChangeRate?: number;
-    source?: string;
-    pricePerSquareFoot?: number;
-  }>;
-
-  // Nearby homes
-  nearbyHomes?: any[];
-
-  // At a glance facts
-  atAGlanceFacts?: Array<{
-    factLabel?: string;
-    factValue?: string;
-  }>;
-
-  // Additional details
-  description?: string;
-  url?: string;
-  mlsid?: string;
-  pageViewCount?: number;
-  favoriteCount?: number;
-  virtualTour?: string;
-  buildingName?: string;
-
-  // Mortgage rates
-  mortgageRates?: {
-    thirtyYearFixedRate?: number;
-    fifteenYearFixedRate?: number;
-    arm5Rate?: number;
-  };
-}
-
-interface UserPreferences {
-  priceRange: { min: number; max: number };
-  preferredBedrooms: number;
-  preferredSqft: { min: number; max: number };
-  commuteLocation: string;
-  lifestyle: string;
-}
-
-const userPreferences: UserPreferences = {
-  priceRange: { min: 500000, max: 1000000 },
-  preferredBedrooms: 3,
-  preferredSqft: { min: 1500, max: 2500 },
-  commuteLocation: "San Francisco",
-  lifestyle: "Family",
-};
+// Feature components
+import SearchMobileHeader from "../../features/search/SearchMobileHeader";
+import SearchHeader from "../../features/search/SearchHeader";
 
 interface SearchPageProps {
   setMobileHeaderActions: React.Dispatch<
@@ -225,10 +62,7 @@ export default function SearchPage({
 }: SearchPageProps) {
   const navigate = useNavigate();
   const { isLoaded: isGoogleMapsLoaded, createMap } = useGoogleMaps();
-  // selectedLocation state removed - no longer needed without map click search
-
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
-
   const [savedHomes, setSavedHomes] = useState<SearchResult[]>([]);
   const [favoriteAddresses, setFavoriteAddresses] = useState<string[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -241,11 +75,6 @@ export default function SearchPage({
   } = usePropertyDetails();
   const [isLocalStorageLoaded, setIsLocalStorageLoaded] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
-  const [, setIsochronePolygon] = useState<google.maps.Polygon | null>(null);
-  const [isochroneData, setIsochroneData] = useState<any>(null);
-  const [, setImportantLocationMarkers] = useState<
-    google.maps.marker.AdvancedMarkerElement[]
-  >([]);
   const [isUpdatingMarkers, setIsUpdatingMarkers] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const [showPropertyModals, setShowPropertyModals] = useState(false);
@@ -369,49 +198,41 @@ export default function SearchPage({
     };
   }, [setMobileHeaderActions, handlePreferences, handleSearch, isSearching]);
 
-  // Global function to open property modal from info window
-  useEffect(() => {
-    (window as any).openPropertyModal = (propertyId: string) => {
-      const allProperties = [...searchResults, ...savedHomes];
-      const property = allProperties.find((p) => p.id === propertyId);
-      if (property) {
-        handleViewPropertyDetails(property);
-      }
-    };
-
-    // Cleanup function
-    return () => {
-      delete (window as any).openPropertyModal;
-    };
-  }, [searchResults, savedHomes]);
   const [activeTab, setActiveTab] = useState<"results" | "saved">("results");
 
   // Reset to first page when switching tabs and save to localStorage
   const handleTabChange = (tab: "results" | "saved") => {
     setActiveTab(tab);
     setCurrentPage(0);
-    // Save the selected tab to localStorage
-    localStorage.setItem("searchPageActiveTab", tab);
   };
   const mobileMapRef = useRef<HTMLDivElement>(null);
   const desktopMapRef = useRef<HTMLDivElement>(null);
   const googleMapRef = useRef<google.maps.Map | null>(null);
-  const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
   const polygonRef = useRef<google.maps.Polygon | null>(null);
   const individualPolygonsRef = useRef<google.maps.Polygon[]>([]);
   const importantMarkersRef = useRef<
     google.maps.marker.AdvancedMarkerElement[]
   >([]);
+  const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
+
+  // Initialize MapZoomController
+  const {
+    resetToDefaultZoom,
+    zoomIn: mapZoomIn,
+    zoomOut: mapZoomOut,
+    focusOnCurrentProperty: mapFocusOnCurrentProperty,
+  } = useMapZoomController({
+    googleMapRef,
+    activeTab,
+    searchResults,
+    savedHomes,
+    currentPage,
+  });
 
   // Use backend ML match score (already calculated as 0-100 integer)
   const calculatePropertyScore = (property: SearchResult) => {
     return property._score || 0; // Backend ML score (0-100 integer)
   };
-
-  // Initialize bounce animation CSS on component mount
-  useEffect(() => {
-    injectBounceAnimationCSS();
-  }, []);
 
   // Save search results to localStorage with preferences version
   const saveSearchResultsToLocalStorage = async (results: SearchResult[]) => {
@@ -517,8 +338,8 @@ export default function SearchPage({
         fetcher()
           .then((data) => {
             if (data) {
-              renderIsochronePolygon(data);
-              renderImportantLocationMarkers(data);
+              renderIsochronePolygonWrapper(data);
+              renderImportantLocationMarkersWrapper(data);
             } else {
               console.warn(
                 "⚠️ No isochrone data received, polygon will not be displayed"
@@ -604,47 +425,50 @@ export default function SearchPage({
     };
   }, [searchResults, savedHomes, activeTab, handleViewPropertyDetails]);
 
-  // Initialize MapZoomController
-  const mapZoomController = useMapZoomController({
-    googleMapRef,
-    activeTab,
-    searchResults: searchResults as any,
-    savedHomes: savedHomes as any,
-    currentPage,
-  });
+  // Map zoom controller functions
+  // Use MapZoomController functions instead of manual implementations
 
   // Auto-zoom to selected property when it changes
   useEffect(() => {
     if (selectedProperty && googleMapRef.current) {
       // Use MapZoomController for consistent zoom behavior
-      const map = googleMapRef.current;
-      const propertyPosition = new google.maps.LatLng(
-        selectedProperty.lat,
-        selectedProperty.lng
-      );
-
-      // Center the map on the selected property with slight offset
-      map.setCenter(propertyPosition);
-
-      // Use a higher zoom level for property details view
-      const targetZoom = 13;
-      map.setZoom(targetZoom);
-
+      mapFocusOnCurrentProperty();
+      
       console.log(
-        `🎯 Auto-zoomed to property at ${selectedProperty.lat}, ${selectedProperty.lng} with zoom ${targetZoom}`
+        `🎯 Auto-zoomed to property at ${selectedProperty.lat}, ${selectedProperty.lng} using MapZoomController`
       );
     }
-  }, [selectedProperty]);
+  }, [selectedProperty, mapFocusOnCurrentProperty]);
+
+  // Focus map on current property when page changes (arrow clicks)
+  useEffect(() => {
+    if (googleMapRef.current && (searchResults.length > 0 || savedHomes.length > 0)) {
+      // Use MapZoomController to focus on current property
+      mapFocusOnCurrentProperty();
+    }
+  }, [currentPage, mapFocusOnCurrentProperty, searchResults.length, savedHomes.length]);
+
+  // Focus map on current property when tab changes
+  useEffect(() => {
+    if (googleMapRef.current && (searchResults.length > 0 || savedHomes.length > 0)) {
+      // Use MapZoomController to focus on current property after tab switch
+      setTimeout(() => {
+        mapFocusOnCurrentProperty();
+      }, 100); // Small delay to ensure tab switch is complete
+    }
+  }, [activeTab, mapFocusOnCurrentProperty, searchResults.length, savedHomes.length]);
 
   // Update markers when activeTab, currentPage changes or when hasSearched/showPropertyModals changes
   useEffect(() => {
     if (googleMapRef.current && hasSearched && showPropertyModals) {
-      // Show only properties from the currently selected tab and current page
+      // Show only the currently selected property marker
       const allData = activeTab === "results" ? searchResults : savedHomes;
-      const startIndex = currentPage * PROPERTIES_PER_PAGE;
-      const endIndex = startIndex + PROPERTIES_PER_PAGE;
-      const currentPageData = allData.slice(startIndex, endIndex);
-      updateMapMarkers(currentPageData);
+      const currentProperty = allData[currentPage];
+      if (currentProperty) {
+        updateMapMarkers([currentProperty]); // Show only current property
+      } else {
+        updateMapMarkers([]); // Clear markers if no current property
+      }
     } else if (googleMapRef.current && (!hasSearched || !showPropertyModals)) {
       // Clear all markers when user hasn't searched yet or property modals should not be shown
       markersRef.current.forEach((marker) => {
@@ -688,7 +512,6 @@ export default function SearchPage({
         const data = await response.json();
 
         if (data.success && data.data) {
-          setIsochroneData(data.data);
           return data.data;
         } else {
           console.warn("⚠️ Invalid isochrone response structure:", data);
@@ -729,8 +552,7 @@ export default function SearchPage({
         const data = await response.json();
 
         if (data.success && data.data) {
-          setIsochroneData(data.data);
-          await searchPropertiesInIsochrone(data.data);
+          await handleSearchPropertiesInIsochrone(data.data);
 
           return data.data;
         } else {
@@ -772,477 +594,67 @@ export default function SearchPage({
   };
 
   // Automatically search for properties within the isochrone polygon
-  const searchPropertiesInIsochrone = async (isochroneData: any) => {
-    setIsSearching(true);
-    setSearchStage("Locating homes in your area...");
-
-    // Clear previous search results to show loading state in sidebar
-    setSearchResults([]);
-
-    if (!isochroneData?.isochrone?.geometry) {
-      console.warn("❌ No isochrone geometry available for property search");
-      setIsSearching(false);
-      return;
-    }
-
+  const handleSearchPropertiesInIsochrone = async (isochroneData: any) => {
+    // Get user preferences for the search
+    let userPrefs = {};
     try {
-      // Convert isochrone polygon coordinates to LatLng format for search
-      const geometry = isochroneData.isochrone.geometry;
-      let searchPolygon: LatLng[] = [];
-
-      if (geometry.type === "Polygon") {
-        // Use the outer ring of the polygon
-        const coordinates = geometry.coordinates[0];
-        searchPolygon = coordinates.map((coord: [number, number]) => ({
-          lon: coord[0],
-          lat: coord[1],
-        }));
-      } else if (geometry.type === "MultiPolygon") {
-        // Use the first polygon's outer ring
-        const coordinates = geometry.coordinates[0][0];
-        searchPolygon = coordinates.map((coord: [number, number]) => ({
-          lon: coord[0],
-          lat: coord[1],
-        }));
-      } else {
-        console.warn("❌ Unsupported geometry type for search:", geometry.type);
-        return;
+      const response = await preferencesApi.get();
+      if (response.success && response.preferences) {
+        userPrefs = response.preferences;
       }
-
-      // Map current userPreferences to the searchByCoords format
-      // Include ALL important_locations from the isochrone data (not just center)
-      const searchUserPreferences = {
-        home_budget: userPreferences.priceRange.max,
-        preferred_bedrooms: userPreferences.preferredBedrooms,
-        preferred_bathrooms:
-          Math.floor(userPreferences.preferredBedrooms / 2) + 1,
-        preferred_housing_type: "single_family",
-        preferred_home_age: "any",
-        preferred_lot_size: "medium",
-        preferred_home_features: [],
-        deal_breakers: [],
-        // Use ALL important_locations from the isochrone response, not just center
-        important_locations: isochroneData.locations || [],
-      };
-
-      setSearchStage("Extracting property data...");
-
-      // Call the Zillow search API with the isochrone polygon
-      const searchResult = await searchZillowByPolygon({
-        polygon: searchPolygon,
-        user_preferences: searchUserPreferences,
-        status_type: "ForSale",
-        perBucketPages: 10,
-        maxRetries: 3,
-      });
-
-      // Show evaluating scores stage for 10 seconds
-      setSearchStage("Evaluating scores...");
-      await new Promise((resolve) => setTimeout(resolve, 10000));
-
-      setSearchStage("Scoring homes based on your preferences...");
-
-      // Transform Zillow API results to SearchResult format
-      const transformedResults: SearchResult[] = searchResult.properties.map(
-        (property, index) => ({
-          id: property.zpid || `${Date.now()}-${index}`,
-          address: property.address || "Address not available",
-          price: property.price
-            ? `$${property.price.toLocaleString()}`
-            : "Price not available",
-          bedrooms: property.bedrooms || 0,
-          bathrooms: property.bathrooms || 0,
-          sqft: property.livingArea || 0,
-          lat:
-            property.latitude ||
-            isochroneData.center.lat + (Math.random() - 0.5) * 0.01,
-          lng:
-            property.longitude ||
-            isochroneData.center.lng + (Math.random() - 0.5) * 0.01,
-          lotSize:
-            property.lotAreaValue && property.lotAreaUnit
-              ? `${property.lotAreaValue.toLocaleString()} ${
-                  property.lotAreaUnit
-                }`
-              : undefined,
-          propertyType: property.propertyType || "Single Family",
-          listingStatus: property.listingStatus || "For Sale",
-          imageUrl: property.imgSrc || "/default-home.jpg",
-          _score: property._score || 0, // Backend ML match score (0-100 integer)
-        })
+    } catch (prefError) {
+      console.warn(
+        "⚠️ Could not fetch user preferences, using empty preferences:",
+        prefError
       );
-
-      setSearchStage("Extracting property images...");
-
-      // Simulate image extraction delay
-      await new Promise((resolve) => setTimeout(resolve, 800));
-
-      setSearchStage("Finalizing results...");
-
-      // Update search results and mark as searched
-      setSearchResults(transformedResults);
-
-      // Save search results to localStorage with preferences version
-      saveSearchResultsToLocalStorage(transformedResults).catch((error) => {
-        console.error(
-          "❌ Failed to save search results to localStorage:",
-          error
-        );
-      });
-
-      setHasSearched(true);
-      setIsSearching(false);
-      setCurrentPage(0); // Reset to first page when new search results come in
-      setShowPropertyModals(true); // Enable property markers to be displayed on map
-    } catch (error) {
-      console.error("❌ Error in automatic isochrone property search:", error);
-      console.error("❌ Error details:", {
-        message: (error as Error).message,
-        stack: (error as Error).stack,
-        isochroneData: isochroneData,
-      });
-      setIsSearching(false);
-      setSearchStage("");
     }
+
+    // Use the service function
+    await searchPropertiesInIsochrone(
+      isochroneData,
+      userPrefs,
+      setSearchStage,
+      setSearchResults,
+      setIsSearching,
+      setHasSearched,
+      setCurrentPage,
+      setShowPropertyModals,
+      saveSearchResultsToLocalStorage
+    );
   };
 
-  // Render isochrone polygon on the map
-  const renderIsochronePolygon = (isochroneData: any) => {
+  // Use centralized isochrone renderer
+  const renderIsochronePolygonWrapper = (isochroneData: any) => {
     if (!googleMapRef.current) {
       console.warn("❌ Google Map not initialized yet");
       return;
     }
 
-    if (!isochroneData?.isochrone?.geometry) {
-      console.warn("❌ No isochrone geometry data available");
-      return;
-    }
-
-    // Clear existing polygons
-    if (polygonRef.current) {
-      polygonRef.current.setMap(null);
-    }
-
-    // Clear existing individual polygons
-    if (individualPolygonsRef.current) {
-      individualPolygonsRef.current.forEach((polygon: google.maps.Polygon) =>
-        polygon.setMap(null)
-      );
-      individualPolygonsRef.current = [];
-    }
-
-    try {
-      // First, render individual isochrones as gray outlines
-      if (
-        isochroneData.individual_isochrones &&
-        Array.isArray(isochroneData.individual_isochrones)
-      ) {
-        isochroneData.individual_isochrones.forEach((individualData: any) => {
-          const geometry = individualData.isochrone?.geometry;
-          if (!geometry) return;
-
-          let coordinates: number[][][] = [];
-
-          if (geometry.type === "Polygon") {
-            coordinates = geometry.coordinates;
-          } else if (geometry.type === "MultiPolygon") {
-            coordinates = geometry.coordinates[0];
-          }
-
-          if (coordinates.length > 0) {
-            const paths = coordinates.map((ring: number[][]) => {
-              return ring.map((coord: number[]) => ({
-                lat: coord[1],
-                lng: coord[0],
-              }));
-            });
-
-            // Create individual polygon with brownish styling
-            const individualPolygon = new google.maps.Polygon({
-              paths: paths,
-              strokeColor: "#8B7355", // Brownish color matching app theme
-              strokeOpacity: 0.6,
-              strokeWeight: 1,
-              fillColor: "transparent",
-              fillOpacity: 0,
-              clickable: false,
-            });
-
-            individualPolygon.setMap(googleMapRef.current);
-            if (!individualPolygonsRef.current)
-              individualPolygonsRef.current = [];
-            individualPolygonsRef.current.push(individualPolygon);
-          }
-        });
-      }
-
-      // Now render the main union isochrone
-      const geometry = isochroneData.isochrone.geometry;
-      let coordinates: number[][][] = [];
-
-      if (geometry.type === "Polygon") {
-        coordinates = geometry.coordinates;
-      } else if (geometry.type === "MultiPolygon") {
-        // For MultiPolygon, take the first polygon
-        coordinates = geometry.coordinates[0];
-      } else {
-        console.warn("❌ Unsupported geometry type:", geometry.type);
-        return;
-      }
-
-      // Convert GeoJSON coordinates to Google Maps LatLng format
-      // GeoJSON uses [longitude, latitude], Google Maps uses {lat, lng}
-      const paths = coordinates.map((ring: number[][]) => {
-        const convertedRing = ring.map((coord: number[]) => ({
-          lat: coord[1], // latitude is second
-          lng: coord[0], // longitude is first
-        }));
-        return convertedRing;
-      });
-
-      const polygon = new google.maps.Polygon({
-        paths: paths,
-        strokeColor: "#7B9E7C", // Match the app's green theme
-        strokeOpacity: 0.8,
-        strokeWeight: 2,
-        fillColor: "#7B9E7C",
-        fillOpacity: 0.15,
-        clickable: false,
-      });
-
-      polygon.setMap(googleMapRef.current);
-      polygonRef.current = polygon;
-      setIsochronePolygon(polygon);
-
-      // Fit the map to include the polygon bounds
-      const bounds = new google.maps.LatLngBounds();
-      paths[0].forEach((point: { lat: number; lng: number }) => {
-        bounds.extend(point);
-      });
-
-      googleMapRef.current.fitBounds(bounds);
-
-      // Add some padding to the bounds
-      setTimeout(() => {
-        if (googleMapRef.current) {
-          // Use MapZoomController for consistent zoom behavior
-          focusOnCurrentProperty();
-        }
-      }, 100);
-    } catch (error) {
-      console.error("❌ Error rendering isochrone polygon:", error);
-      console.error("❌ Error details:", {
-        message: (error as Error).message,
-        stack: (error as Error).stack,
-        isochroneData: isochroneData,
-      });
-    }
+    renderIsochronePolygon(isochroneData, {
+      map: googleMapRef.current,
+      polygonRef,
+      individualPolygonsRef,
+      focusOnCurrentProperty: mapFocusOnCurrentProperty,
+    });
   };
 
-  // Render important location markers on the map (nubless, gapless bubbles)
-  const renderImportantLocationMarkers = async (isochroneData: any) => {
-    if (!googleMapRef.current || !isochroneData?.center) {
+  // Use imported renderImportantLocationMarkers function
+  const renderImportantLocationMarkersWrapper = async (isochroneData: any) => {
+    if (!googleMapRef.current) {
       console.warn(
-        "❌ Cannot render important location markers: map or data not available"
+        "❌ Cannot render important location markers: map not available"
       );
       return;
     }
 
-    // Clear existing markers + bubbles
-    importantMarkersRef.current.forEach((marker) => {
-      (marker as any)._bubble?.setMap(null);
-      marker.map = null;
+    await renderImportantLocationMarkers(isochroneData, {
+      map: googleMapRef.current,
+      importantMarkersRef,
+      setImportantLocationMarkers: (markers) => {
+        importantMarkersRef.current = markers;
+      },
+      resetToDefaultZoom,
     });
-    importantMarkersRef.current = [];
-
-    // Build list of important locations
-    const importantLocations: Array<any> = [];
-    if (isochroneData.center) {
-      importantLocations.push({
-        name: isochroneData.center.name || "Primary Location",
-        address: isochroneData.center.address,
-        lat: isochroneData.center.lat,
-        lng: isochroneData.center.lng,
-        commute_tolerance: isochroneData.commute_tolerance || 30,
-      });
-    }
-    if (Array.isArray(isochroneData.locations)) {
-      isochroneData.locations.forEach((loc: any) => {
-        if (!loc?.address) return;
-        const dup = importantLocations.some((e) => e.address === loc.address);
-        if (!dup) {
-          importantLocations.push({
-            name: loc.name || "Important Location",
-            address: loc.address,
-            lat: loc.lat ?? null,
-            lng: loc.lng ?? null,
-            commute_tolerance: loc.commute_tolerance || 30,
-          });
-        }
-      });
-    }
-
-    // Small, always-visible bubble overlay (no nub, zero-gap)
-    class BubbleOverlay extends google.maps.OverlayView {
-      private div: HTMLDivElement;
-      private position: google.maps.LatLng | google.maps.LatLngLiteral;
-
-      constructor(
-        position: google.maps.LatLng | google.maps.LatLngLiteral,
-        contentHTML: string
-      ) {
-        super();
-        this.position = position;
-        this.div = document.createElement("div");
-        this.div.style.position = "absolute";
-        this.div.style.zIndex = "1100"; // above property overlays (yours use 1000)
-        // Place directly above the marker, no gap:
-        // translateX(-50%) centers horizontally; -100% puts top edge at marker point;
-        // extra -2px tucks it flush (tweak if your dot size changes)
-        this.div.style.transform = "translate(-50%, calc(-100% - 2px))";
-        this.div.style.pointerEvents = "auto";
-        // Safely set content using textContent to prevent XSS
-        this.div.textContent = "";
-        const tempDiv = document.createElement("div");
-        tempDiv.innerHTML = contentHTML;
-        // Only append if content is safe (basic validation)
-        if (tempDiv.textContent || tempDiv.innerText) {
-          this.div.appendChild(tempDiv);
-        }
-      }
-
-      onAdd() {
-        const panes = this.getPanes();
-        panes?.overlayMouseTarget.appendChild(this.div);
-      }
-
-      draw() {
-        const projection = this.getProjection();
-        if (!projection) return;
-        const pt = projection.fromLatLngToDivPixel(
-          this.position instanceof google.maps.LatLng
-            ? this.position
-            : new google.maps.LatLng(this.position)
-        );
-        if (!pt) return;
-        this.div.style.left = `${pt.x}px`;
-        this.div.style.top = `${pt.y}px`;
-      }
-
-      onRemove() {
-        this.div.remove();
-      }
-    }
-
-    // Check if Google Maps API and AdvancedMarkerElement are available
-    if (!window.google || !window.google.maps || !window.google.maps.marker) {
-      console.warn(
-        "⚠️ Google Maps API or AdvancedMarkerElement not available yet for important locations"
-      );
-      return;
-    }
-
-    const { AdvancedMarkerElement } = window.google.maps.marker;
-    const markers: google.maps.marker.AdvancedMarkerElement[] = [];
-    const geocoder = new google.maps.Geocoder();
-
-    for (let i = 0; i < importantLocations.length; i++) {
-      const loc = importantLocations[i];
-      const name = loc.name ?? "Important Location";
-      const address = loc.address;
-
-      if (!address) {
-        console.warn("⚠️ Skipping location without address:", name);
-        continue;
-      }
-
-      // Resolve coordinates
-      let position: google.maps.LatLng | google.maps.LatLngLiteral | null =
-        null;
-      if (typeof loc.lat === "number" && typeof loc.lng === "number") {
-        position = { lat: loc.lat, lng: loc.lng };
-      } else {
-        const geocode = await geocoder.geocode({ address });
-        if (geocode.results?.length) {
-          position = geocode.results[0].geometry.location;
-        }
-      }
-      if (!position) {
-        console.warn(
-          `⚠️ Could not resolve coordinates for ${name}: ${address}`
-        );
-        continue;
-      }
-
-      const isFirst = i === 0;
-
-      // Create custom marker element for AdvancedMarkerElement
-      const markerElement = document.createElement("div");
-      markerElement.style.cssText = `
-        width: ${isFirst ? 12 : 8}px;
-        height: ${isFirst ? 12 : 8}px;
-        background-color: ${isFirst ? "#7B9E7C" : "#E8A87C"};
-        border: 1px solid #ffffff;
-        border-radius: 50%;
-        opacity: 0.9;
-      `;
-
-      const marker = new AdvancedMarkerElement({
-        position,
-        map: googleMapRef.current!,
-        title: `${name}${isFirst ? " (Commute Center)" : ""}`,
-        content: markerElement,
-      });
-
-      // Add bounce animation click handler for important location markers
-      setupMarkerClickWithBounce(marker, () => {
-        console.log(`🎯 Important location clicked: ${name} at ${address}`);
-        // Optional: Add custom behavior for important location clicks
-        // For example, you could center the map on this location or show details
-        if (googleMapRef.current) {
-          googleMapRef.current.panTo(position);
-          // Use MapZoomController for consistent zoom behavior
-          resetToDefaultZoom();
-        }
-      });
-
-      const commuteTime =
-        loc.commute_tolerance ?? isochroneData.commute_tolerance ?? 30;
-      const bubbleHTML = `
-      <div style="
-        padding: 3px 6px;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        background: rgba(255, 255, 255, 0.92);
-        border: 1px solid rgba(158, 131, 113, 0.3);
-        border-radius: 4px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        min-width: 60px; max-width: 90px;
-        text-align: center; font-size: 10px; line-height: 1.2;
-      ">
-        <div style="
-          color: #4A3228; font-size: 10px; font-weight: 600;
-          margin-bottom: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-        ">${name}</div>
-        <div style="color: #8B7355; font-size: 9px; font-weight: 500;">
-          ${commuteTime} min
-        </div>
-      </div>
-    `;
-
-      const bubble = new BubbleOverlay(
-        position instanceof google.maps.LatLng
-          ? position
-          : new google.maps.LatLng(position),
-        bubbleHTML
-      );
-      bubble.setMap(googleMapRef.current!);
-
-      (marker as any)._bubble = bubble;
-      markers.push(marker);
-    }
-
-    importantMarkersRef.current = markers;
-    setImportantLocationMarkers(markers);
   };
 
   // Load saved homes from user's favorite_home_ids on component mount
@@ -1254,8 +666,8 @@ export default function SearchPage({
           return;
         }
 
-        // Step 2: Call the centralized favoriteHomesApi
-        const favoritesData = await favoriteHomesApi.getFavorites();
+        // Step 2: Call the centralized userApi
+        const favoritesData = await userApi.getFavoriteHomes();
 
         if (!favoritesData.success) {
           console.error("🏠 API returned success=false:", favoritesData.error);
@@ -1361,13 +773,19 @@ export default function SearchPage({
 
   // Update map markers
   const updateMapMarkers = async (results: SearchResult[]) => {
-    if (!googleMapRef.current) return;
+    if (!googleMapRef.current) {
+      console.log("🗺️ [MARKER_DEBUG] No map reference available");
+      return;
+    }
 
     // Prevent duplicate processing using proper state
     if (isUpdatingMarkers) {
+      console.log("🗺️ [MARKER_DEBUG] Already updating markers, skipping");
       return;
     }
     setIsUpdatingMarkers(true);
+
+    console.log("🗺️ [MARKER_DEBUG] Starting marker update for", results.length, "results");
 
     // Clear existing HOME markers and overlays (but preserve important location markers)
     markersRef.current.forEach((marker) => {
@@ -1379,41 +797,39 @@ export default function SearchPage({
     });
     markersRef.current = [];
 
-    // Re-render important location markers FIRST (so they appear behind home markers)
-    // Use cached isochrone data if available, otherwise fetch it
-    if (isochroneData) {
-      await renderImportantLocationMarkers(isochroneData);
-    } else {
-      const data = await fetchIsochroneForMapOnly();
-      if (data) {
-        setIsochroneData(data);
-        await renderImportantLocationMarkers(data);
-      }
-    }
+    // Important location markers are rendered once on initial load
+    // No need to re-render them when updating property markers
 
-    // Paginate the results - only show PROPERTIES_PER_PAGE at a time
-    const startIndex = currentPage * PROPERTIES_PER_PAGE;
-    const endIndex = startIndex + PROPERTIES_PER_PAGE;
-    const paginatedData = results.slice(startIndex, endIndex);
-    const currentData = paginatedData;
+    // Show all properties (no pagination on map - users should see all markers)
+    const currentData = results;
 
-    const BASE_PIN_PATH =
-      "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z";
+    console.log("🗺️ [MARKER_DEBUG] Marker data:", {
+      totalResults: results.length,
+      properties: currentData.map(p => ({ id: p.id, address: p.address, lat: p.lat, lng: p.lng }))
+    });
 
     // Check if Google Maps API and AdvancedMarkerElement are available
     if (!window.google || !window.google.maps || !window.google.maps.marker) {
       console.warn(
         "⚠️ Google Maps API or AdvancedMarkerElement not available yet"
       );
+      setIsUpdatingMarkers(false);
       return;
     }
 
     const { AdvancedMarkerElement } = window.google.maps.marker;
 
-    currentData.forEach((result) => {
+    currentData.forEach((result, index) => {
+      console.log(`🗺️ [MARKER_DEBUG] Creating marker ${index + 1}/${currentData.length} for property:`, {
+        id: result.id,
+        address: result.address,
+        lat: result.lat,
+        lng: result.lng
+      });
       // Use backend ML match score directly
       const score = calculatePropertyScore(result);
-      const { fillColor, strokeColor } = getScoreBasedPinColor(score);
+      // Simple color mapping based on score
+     
       const isSaved = isHomeSaved(result.id);
 
       // Create custom marker element for AdvancedMarkerElement
@@ -1424,23 +840,18 @@ export default function SearchPage({
         cursor: pointer;
       `;
 
-      const path = document.createElementNS(
-        "http://www.w3.org/2000/svg",
-        "path"
-      );
-      path.setAttribute("d", BASE_PIN_PATH);
-      path.setAttribute("fill", fillColor);
-      path.setAttribute("stroke", strokeColor);
-      path.setAttribute("stroke-width", "1.75");
-      path.setAttribute("stroke-opacity", "0.9");
-      path.setAttribute("fill-opacity", "0.9");
-
       // Create the marker
       const marker = new AdvancedMarkerElement({
         map: googleMapRef.current,
         position: { lat: result.lat, lng: result.lng },
         title: result.address,
         content: markerElement,
+      });
+
+      console.log(`🗺️ [MARKER_DEBUG] Created marker for ${result.address}:`, {
+        position: { lat: result.lat, lng: result.lng },
+        hasMap: !!marker.map,
+        markerElement: markerElement
       });
 
       // Create property overlay using MapPropertyCard component
@@ -1525,17 +936,23 @@ export default function SearchPage({
       markersRef.current.push(marker);
     });
 
+    console.log("🗺️ [MARKER_DEBUG] Marker creation complete:", {
+      totalMarkersCreated: markersRef.current.length,
+      expectedCount: currentData.length,
+      markerPositions: markersRef.current.map(m => ({
+        position: m.position,
+        hasMap: !!m.map,
+        title: m.title
+      }))
+    });
+
     // Fit map to show current page markers with adaptive zoom
     if (results.length > 0) {
       // Focus on the first property in the current page results
       const firstProperty = results[0];
       if (firstProperty && googleMapRef.current) {
-        const center = {
-          lat: firstProperty.lat + 0.002, // Offset slightly north
-          lng: firstProperty.lng,
-        };
-        googleMapRef.current.setCenter(center);
-        googleMapRef.current.setZoom(13);
+        // Use MapZoomController for consistent behavior
+        mapFocusOnCurrentProperty();
       }
     }
 
@@ -1545,7 +962,7 @@ export default function SearchPage({
   const saveHome = async (property: SearchResult) => {
     try {
       // Call backend API to add favorite
-      const response = await favoriteHomesApi.addFavorite(property);
+      const response = await userApi.addFavoriteHome({ home: property });
       if (response.success) {
         // Update local state
         const isAlreadySaved = savedHomes.find(
@@ -1560,8 +977,8 @@ export default function SearchPage({
         }
 
         // Update favorite addresses from backend response
-        if (response.data?.favorites) {
-          setFavoriteAddresses(response.data.favorites);
+        if (response.favorites) {
+          setFavoriteAddresses(response.favorites);
         }
       } else {
         console.error("❌ Backend API returned failure:", response.error);
@@ -1591,7 +1008,9 @@ export default function SearchPage({
         return;
       }
 
-      const response = await favoriteHomesApi.removeFavorite(property.address);
+      const response = await userApi.removeFavoriteHome({
+        address: property.address,
+      });
 
       if (response.success) {
         // Update local state
@@ -1601,8 +1020,8 @@ export default function SearchPage({
         });
 
         // Update favorite addresses from backend response
-        if (response.data?.favorites) {
-          setFavoriteAddresses(response.data.favorites);
+        if (response.favorites) {
+          setFavoriteAddresses(response.favorites);
         }
       } else {
         console.error("❌ Backend API returned failure:", response.error);
@@ -1629,9 +1048,7 @@ export default function SearchPage({
     );
   };
 
-  // Use zoom functions from MapZoomController
-  const { zoomIn, zoomOut, resetToDefaultZoom, focusOnCurrentProperty } =
-    mapZoomController;
+  // Zoom functions are defined above
 
   return (
     <div className="h-full">
@@ -1721,6 +1138,7 @@ export default function SearchPage({
                       )}
                       renderItem={(property: SearchResult, _index: number) => (
                         <PropertyCard
+                          id={property.id}
                           imageUrl={property.imageUrl}
                           address={
                             typeof property.address === "string" ||
@@ -1768,6 +1186,7 @@ export default function SearchPage({
                   )}
                   renderItem={(property: SearchResult, _index: number) => (
                     <PropertyCard
+                      id={property.id}
                       imageUrl={property.imageUrl}
                       address={
                         typeof property.address === "string" ||
@@ -1835,7 +1254,7 @@ export default function SearchPage({
                 {/* Mobile Zoom Controls */}
                 <div className="absolute bottom-4 left-4 flex flex-col gap-responsive-xs z-10">
                   <button
-                    onClick={zoomIn}
+                    onClick={mapZoomIn}
                     className="mobile-icon-sm sm:mobile-icon-lg md:mobile-icon-xl bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 touch-friendly cursor-zoom"
                     title="Zoom in"
                   >
@@ -1844,7 +1263,7 @@ export default function SearchPage({
                     </span>
                   </button>
                   <button
-                    onClick={zoomOut}
+                    onClick={mapZoomOut}
                     className="mobile-icon-sm sm:mobile-icon-lg md:mobile-icon-xl bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 touch-friendly cursor-zoom"
                     title="Zoom out"
                   >
@@ -1993,7 +1412,6 @@ export default function SearchPage({
                             <div className="p-3">
                               <div className="flex items-start justify-between gap-2 mb-2">
                                 <div className="flex-1 min-w-0">
-
                                   {/* Address */}
                                   <h3 className="text-responsive-sm font-medium text-black line-clamp-2 mb-1">
                                     {typeof property.address === "string" ||
@@ -2199,7 +1617,7 @@ export default function SearchPage({
                   {/* Custom Zoom Controls */}
                   <div className="absolute bottom-12 left-8 flex flex-row gap-1 z-10">
                     <button
-                      onClick={zoomIn}
+                      onClick={mapZoomIn}
                       className="w-8 h-8 lg:w-10 lg:h-10 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 cursor-zoom"
                       title="Zoom in"
                     >
@@ -2208,7 +1626,7 @@ export default function SearchPage({
                       </span>
                     </button>
                     <button
-                      onClick={zoomOut}
+                      onClick={mapZoomOut}
                       className="w-8 h-8 lg:w-10 lg:h-10 bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center text-gray-700 hover:text-brown hover:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 cursor-zoom"
                       title="Zoom out"
                     >

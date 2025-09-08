@@ -1,10 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Mail, ArrowLeft } from "lucide-react";
-import KeyTurnLoader from "../../components/ui/base/KeyTurnLoader";
-import { authApi } from "../../lib/api";
-import MiniLogo from "../../components/ui/base/MiniLogo";
-import Input from "../../components/ui/base/Input";
+import { KeyTurnLoader, MiniLogo, Input } from "../../components/ui";
+import { authApi } from "../../api";
+import { secureTokenUtils } from "../../hooks/useSecureAuth";
 
 interface LocationState {
   email?: string;
@@ -156,32 +155,26 @@ export default function VerificationPage() {
         throw new Error("Password not found. Please sign up again.");
       }
 
-      const { success, error, data } = await authApi.verify({
+      const response = await authApi.verify({
         email: userEmail,
         code: verificationCode,
         password: userPassword,
       });
 
-      if (!success) {
-        throw new Error(error || "Verification failed");
-      }
-
       // Clear the stored signup data
       localStorage.removeItem("signupEmail");
       localStorage.removeItem("signupPassword");
 
-      // Store authentication tokens and user data
-      if (data?.access_token) {
-        localStorage.setItem("access_token", data.access_token);
-      }
-      if (data?.id_token) {
-        localStorage.setItem("id_token", data.id_token);
-      }
-      if (data?.refresh_token) {
-        localStorage.setItem("refresh_token", data.refresh_token);
-      }
-      if (data?.user) {
-        localStorage.setItem("user", JSON.stringify(data.user));
+      // Store authentication tokens securely
+      secureTokenUtils.storeTokens({
+        access_token: response?.access_token,
+        id_token: response?.id_token,
+        refresh_token: response?.refresh_token
+      });
+      
+      // Store user data (non-sensitive)
+      if (response?.user) {
+        localStorage.setItem("user", JSON.stringify(response.user));
       }
 
       // On success, redirect to onboarding

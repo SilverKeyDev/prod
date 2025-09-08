@@ -1,8 +1,9 @@
 from flask import Blueprint, request, jsonify, current_app
-from app.utils.auth import require_auth, get_current_user
+from app.utils.auth import require_auth, get_current_user, SecurityException
 from ..utils.auth import get_current_user
 from ..utils.security import security_error_response, SecurityError, rate_limit
 from ..utils.secure_errors import SecureErrorHandler
+from jose.exceptions import JWTError, ExpiredSignatureError
 from ..models.pdf_document import PDFDocument
 from .. import db
 from app import db

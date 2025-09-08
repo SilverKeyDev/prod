@@ -1,0 +1,59 @@
+/* Carousel-specific styles */
+
+/* Set slider wrapper to 80% width */
+.sk-carousel .carousel .slider-wrapper {
+  width: 80% !important;
+  margin: 0 auto !important;
+}
+
+/* Ensure the slider itself respects the wrapper width */
+.sk-carousel .carousel .slider {
+  width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+}
+
+/* Ensure the carousel container doesn't overflow */
+.sk-carousel .carousel {
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+}
+
+/* Safety net for flex parents in this zone */
+.sk-carousel {
+  min-width: 0 !important;
+  overflow-x: clip !important; /* modern safe alternative to hidden */
+}
+
+/* Ensure the track doesn't affect outer layout */
+.sk-carousel .carousel .slider {
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+}
+
+/* Ensure each slide doesn't blow up */
+.sk-carousel .carousel {
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+}
+
+/* Safety net for flex parents in this zone */
+.sk-carousel {
+    min-width: 0 !important;
+    overflow-x: clip !important; /* modern safe alternative to hidden */
+}
+
+/* Scope to your carousel root */
+.carousel.carousel-slider {
+  position: relative;
+  padding: 0 1rem; /* leave space left+right (~ button width + gap) */
+}
+
+/* Left/right nav buttons */
+.carousel.carousel-slider > button[aria-label="previous slide / item"] {
+  left: 0.25rem; /* sit inside the padded space */
+}
+
+.carousel.carousel-slider > button[aria-label="next slide / item"] {
+  right: 0.25rem;
+}

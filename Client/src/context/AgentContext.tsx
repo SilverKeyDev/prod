@@ -9,20 +9,14 @@ import {
 } from "react";
 import ClientIntelPage from "../pages/Onboard/ClientIntelPage.tsx";
 import AgentConnection from "../pages/Onboard/AgentConnection.tsx";
+import { Agent, UserProfile } from "../types";
 import {
-  Agent,
-  UserProfile,
-  BASE_URL,
-} from "./utils";
-import {
-  fetchJson,
-  createAuthHeaders,
   createAbortManager,
   isAbortError,
-  getAuthToken,
   routeStartsWith,
-} from "../lib/fetchUtils";
-import { useAuth } from "./AuthContext";
+} from "../api/utils/index";
+import { userApi } from "../api";
+import { useAuth } from "../app/providers";
 
 /* =========================
    Types
@@ -81,35 +75,16 @@ export function AgentProvider({ children }: AgentProviderProps) {
      Fetchers
      ========================= */
 
-  const fetchAssignedAgent = useCallback(async (signal?: AbortSignal) => {
-    const token = getAuthToken();
-    if (!token) return;
-
+  const fetchAssignedAgent = useCallback(async (_signal?: AbortSignal) => {
     setAgentLoading(true);
     setAgentError(null);
 
     try {
-      const json = await fetchJson<{ success: boolean; agent?: Agent; error?: string }>(
-        `${BASE_URL}/api/v1/user/assigned-agent`,
-        { 
-          method: "GET", 
-          mode: "cors", 
-          headers: createAuthHeaders(token), 
-          credentials: "include",
-          signal,
-          acceptStatuses: [404]
-        }
-      );
-
-      if (json.success && json.agent) {
-        setAssignedAgent(json.agent);
-      } else if (json.success && !json.agent) {
-        setAssignedAgent(null);
-      } else if (json === undefined) {
-        // 404 response, treat as no agent assigned
-        setAssignedAgent(null);
+      const response = await userApi.getAssignedAgent();
+      if (response.success && response.data) {
+        setAssignedAgent(response.data);
       } else {
-        throw new Error(json.error || "Failed to fetch assigned agent");
+        setAssignedAgent(null);
       }
     } catch (e: any) {
       if (!isAbortError(e)) {
@@ -122,33 +97,16 @@ export function AgentProvider({ children }: AgentProviderProps) {
     }
   }, []);
 
-  const fetchClientList = useCallback(async (signal?: AbortSignal) => {
-    const token = getAuthToken();
-    if (!token) return;
-
+  const fetchClientList = useCallback(async (_signal?: AbortSignal) => {
     setClientsLoading(true);
     setClientsError(null);
 
     try {
-      const json = await fetchJson<{ success: boolean; clients?: UserProfile[]; error?: string }>(
-        `${BASE_URL}/api/v1/agent/clients`,
-        { 
-          method: "GET", 
-          mode: "cors", 
-          headers: createAuthHeaders(token), 
-          credentials: "include",
-          signal,
-          acceptStatuses: [404]
-        }
-      );
-
-      if (json.success && json.clients) {
-        setClientList(json.clients);
-      } else if (json === undefined) {
-        // 404 response, treat as empty
-        setClientList([]);
+      const response = await userApi.getClientList();
+      if (response.success && response.clients) {
+        setClientList(response.clients);
       } else {
-        throw new Error(json.error || "Failed to fetch client list");
+        setClientList([]);
       }
     } catch (e: any) {
       if (!isAbortError(e)) {
@@ -161,100 +119,66 @@ export function AgentProvider({ children }: AgentProviderProps) {
     }
   }, []);
 
-  const performAgentSearch = useCallback(async (query: string, signal?: AbortSignal) => {
-    const token = getAuthToken();
-    if (!token) return;
+  const performAgentSearch = useCallback(
+    async (query: string, _signal?: AbortSignal) => {
+      setSearchLoading(true);
+      setSearchError(null);
 
-    setSearchLoading(true);
-    setSearchError(null);
-
-    try {
-      const json = await fetchJson<{ success: boolean; agents?: Agent[]; error?: string }>(
-        `${BASE_URL}/api/v1/user/search-agents?q=${encodeURIComponent(query)}`,
-        { 
-          method: "GET", 
-          mode: "cors", 
-          headers: createAuthHeaders(token), 
-          credentials: "include",
-          signal
+      try {
+        const response = await userApi.searchAgents(query);
+        if (response.success && response.agents) {
+          setAgentSearchResults(response.agents);
+        } else {
+          setAgentSearchResults([]);
         }
-      );
-
-      if (json.success && json.agents) {
-        setAgentSearchResults(json.agents);
-      } else {
-        throw new Error(json.error || "Failed to search agents");
+      } catch (e: any) {
+        if (!isAbortError(e)) {
+          console.error("Failed to search agents", e);
+          setSearchError(e?.message ?? "Failed to search agents");
+        }
+      } finally {
+        setSearchLoading(false);
       }
-    } catch (e: any) {
-      if (!isAbortError(e)) {
-        console.error("Failed to search agents", e);
-        setSearchError(e?.message ?? "Failed to search agents");
+    },
+    []
+  );
+
+  const performAssignAgent = useCallback(
+    async (agentId: string, _signal?: AbortSignal) => {
+      setAgentLoading(true);
+      setAgentError(null);
+
+      try {
+        const response = await userApi.assignAgent(agentId);
+        if (response.success && response.agent) {
+          setAssignedAgent(response.agent);
+          // Clear search results after successful assignment
+          setAgentSearchResults([]);
+        } else {
+          throw new Error(response.message || "Failed to assign agent");
+        }
+      } catch (e: any) {
+        if (!isAbortError(e)) {
+          console.error("Failed to assign agent", e);
+          setAgentError(e?.message ?? "Failed to assign agent");
+        }
+      } finally {
+        setAgentLoading(false);
       }
-    } finally {
-      setSearchLoading(false);
-    }
-  }, []);
+    },
+    []
+  );
 
-  const performAssignAgent = useCallback(async (agentId: string, signal?: AbortSignal) => {
-    const token = getAuthToken();
-    if (!token) return;
-
+  const performRemoveAgent = useCallback(async (_signal?: AbortSignal) => {
     setAgentLoading(true);
     setAgentError(null);
 
     try {
-      const json = await fetchJson<{ success: boolean; agent?: Agent; error?: string }>(
-        `${BASE_URL}/api/v1/user/assign-agent`,
-        {
-          method: "POST",
-          mode: "cors",
-          headers: createAuthHeaders(token),
-          credentials: "include",
-          body: JSON.stringify({ agent_id: agentId }),
-          signal
-        }
-      );
-
-      if (json.success && json.agent) {
-        setAssignedAgent(json.agent);
-        // Clear search results after successful assignment
-        setAgentSearchResults([]);
-      } else {
-        throw new Error(json.error || "Failed to assign agent");
-      }
-    } catch (e: any) {
-      if (!isAbortError(e)) {
-        console.error("Failed to assign agent", e);
-        setAgentError(e?.message ?? "Failed to assign agent");
-      }
-    } finally {
-      setAgentLoading(false);
-    }
-  }, []);
-
-  const performRemoveAgent = useCallback(async (signal?: AbortSignal) => {
-    const token = getAuthToken();
-    if (!token) return;
-
-    setAgentLoading(true);
-    setAgentError(null);
-
-    try {
-      const json = await fetchJson<{ success: boolean; error?: string }>(
-        `${BASE_URL}/api/v1/user/remove-agent`,
-        {
-          method: "POST",
-          mode: "cors",
-          headers: createAuthHeaders(token),
-          credentials: "include",
-          signal
-        }
-      );
-
-      if (json.success) {
+      const response = await userApi.removeAgent();
+      if (response.success) {
         setAssignedAgent(null);
       } else {
-        throw new Error(json.error || "Failed to remove agent");
+        throw new Error(response.message || "Failed to remove agent");
       }
     } catch (e: any) {
       if (!isAbortError(e)) {
@@ -270,28 +194,28 @@ export function AgentProvider({ children }: AgentProviderProps) {
      Public functions
      ========================= */
 
-  const searchAgents = useCallback((query: string) => 
-    withAbort((s) => performAgentSearch(query, s)), 
+  const searchAgents = useCallback(
+    (query: string) => withAbort((s) => performAgentSearch(query, s)),
     [withAbort, performAgentSearch]
   );
 
-  const assignAgent = useCallback((agentId: string) => 
-    withAbort((s) => performAssignAgent(agentId, s)), 
+  const assignAgent = useCallback(
+    (agentId: string) => withAbort((s) => performAssignAgent(agentId, s)),
     [withAbort, performAssignAgent]
   );
 
-  const removeAgent = useCallback(() => 
-    withAbort((s) => performRemoveAgent(s)), 
+  const removeAgent = useCallback(
+    () => withAbort((s) => performRemoveAgent(s)),
     [withAbort, performRemoveAgent]
   );
 
-  const refreshAgentData = useCallback(() => 
-    withAbort((s) => fetchAssignedAgent(s)), 
+  const refreshAgentData = useCallback(
+    () => withAbort((s) => fetchAssignedAgent(s)),
     [withAbort, fetchAssignedAgent]
   );
 
-  const refreshClientList = useCallback(() => 
-    withAbort((s) => fetchClientList(s)), 
+  const refreshClientList = useCallback(
+    () => withAbort((s) => fetchClientList(s)),
     [withAbort, fetchClientList]
   );
 
@@ -302,7 +226,7 @@ export function AgentProvider({ children }: AgentProviderProps) {
 
   // Helper function to determine if user is an agent
   const isAgent = useCallback(() => {
-    return clientList.length > 0 || user?.user_type === 'agent';
+    return clientList.length > 0 || user?.user_type === "agent";
   }, [clientList.length, user?.user_type]);
 
   // Function to get the appropriate component based on user type
@@ -322,11 +246,11 @@ export function AgentProvider({ children }: AgentProviderProps) {
 
   // Gate initial load based on auth readiness and relevant routes
   useEffect(() => {
-    const enabled = authReady && !!user?.id && (
-      routeStartsWith('/agent') ||
-      routeStartsWith('/profile')
-    );
-    
+    const enabled =
+      authReady &&
+      !!user?.id &&
+      (routeStartsWith("/agent") || routeStartsWith("/profile"));
+
     if (enabled) {
       refreshAgentData();
       refreshClientList();
@@ -364,34 +288,50 @@ export function AgentProvider({ children }: AgentProviderProps) {
      Memoized value
      ========================= */
 
-  const value = useMemo<AgentContextType>(() => ({
-    assignedAgent,
-    clientList,
-    agentSearchResults,
-    agentLoading,
-    clientsLoading,
-    searchLoading,
-    agentError,
-    clientsError,
-    searchError,
-    searchAgents,
-    assignAgent,
-    removeAgent,
-    refreshAgentData,
-    refreshClientList,
-    clearSearchResults,
-    isAgent,
-    getAgentConnectionComponent,
-  }), [
-    assignedAgent, clientList, agentSearchResults,
-    agentLoading, clientsLoading, searchLoading,
-    agentError, clientsError, searchError,
-    searchAgents, assignAgent, removeAgent,
-    refreshAgentData, refreshClientList, clearSearchResults,
-    isAgent, getAgentConnectionComponent,
-  ]);
+  const value = useMemo<AgentContextType>(
+    () => ({
+      assignedAgent,
+      clientList,
+      agentSearchResults,
+      agentLoading,
+      clientsLoading,
+      searchLoading,
+      agentError,
+      clientsError,
+      searchError,
+      searchAgents,
+      assignAgent,
+      removeAgent,
+      refreshAgentData,
+      refreshClientList,
+      clearSearchResults,
+      isAgent,
+      getAgentConnectionComponent,
+    }),
+    [
+      assignedAgent,
+      clientList,
+      agentSearchResults,
+      agentLoading,
+      clientsLoading,
+      searchLoading,
+      agentError,
+      clientsError,
+      searchError,
+      searchAgents,
+      assignAgent,
+      removeAgent,
+      refreshAgentData,
+      refreshClientList,
+      clearSearchResults,
+      isAgent,
+      getAgentConnectionComponent,
+    ]
+  );
 
-  return <AgentContext.Provider value={value}>{children}</AgentContext.Provider>;
+  return (
+    <AgentContext.Provider value={value}>{children}</AgentContext.Provider>
+  );
 }
 
 /* =========================

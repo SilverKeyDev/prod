@@ -9,8 +9,6 @@ import {
 } from "react";
 import {
   BillingInfo,
-  ApiResponse,
-  ApiError,
   getIdToken,
   apiRequest,
 } from "./utils";
@@ -53,16 +51,10 @@ export function BillingProvider({ children }: BillingProviderProps) {
     setBillingError(null);
 
     try {
-      const response = (await apiRequest<BillingInfo>(
+      const billingData = await apiRequest<BillingInfo>(
         "/api/v1/user/billing-info"
-      )) as ApiResponse<BillingInfo>;
-      if ("success" in response && response.success && response.data) {
-        setBillingInfo(response.data);
-      } else {
-        throw new Error(
-          (response as ApiError).error || "Failed to fetch billing information"
-        );
-      }
+      );
+      setBillingInfo(billingData);
     } catch (e: any) {
       console.error("Failed to fetch billing info:", e);
       setBillingError(e?.message ?? "Failed to fetch billing information");

@@ -1,9 +1,9 @@
 import React from "react";
-import { Card } from "../ui/base";
+import { Card } from "../layout";
 import { Eye, Download, Share, Trash2, Clock } from "lucide-react";
-import { Report } from "../../context/utils";
+import { Report } from "../../types";
 import { formatFilenameToAddress } from "../../lib/addressFormat";
-import ActionButton from "../ui/decide/ActionButton";
+import ActionButton from "../../features/decide/ActionButton";
 import { getInteractiveCardClasses } from "./base/CardHoverStyles";
 import CardPriceBubble from "./base/CardPriceBubble";
 

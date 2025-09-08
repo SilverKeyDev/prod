@@ -7,16 +7,14 @@ import {
   useMemo,
   ReactNode,
 } from "react";
+import { Chat } from "../types";
 import {
-  Chat,
-  BASE_URL,
-  getIdToken,
-  authHeaders,
-  fetchJson,
   createAbortManager,
   isAbortError,
   formatFilenameToAddress,
 } from "./utils";
+import { reportApi } from "../api/report";
+import { chatbotApi } from "../api/chatbot";
 
 /* =========================
    Types
@@ -27,6 +25,8 @@ interface ChatsContextType {
   chatsLoading: boolean;
   chatsError: string | null;
   refreshChats: () => Promise<void>;
+  sendMessage: (reportId: string, message: string) => Promise<any>;
+  getChatHistory: (reportId: string) => Promise<any>;
 }
 
 /* =========================
@@ -41,7 +41,7 @@ interface ChatsProviderProps {
 
 export function ChatsProvider({ children }: ChatsProviderProps) {
   const { abortAll, withAbort } = useMemo(() => createAbortManager(), []);
-  
+
   const [chats, setChats] = useState<Chat[]>([]);
   const [chatsLoading, setChatsLoading] = useState(false);
   const [chatsError, setChatsError] = useState<string | null>(null);
@@ -50,19 +50,21 @@ export function ChatsProvider({ children }: ChatsProviderProps) {
      Fetcher
      ========================= */
 
-  const fetchChats = useCallback(async (signal?: AbortSignal) => {
-    const token = getIdToken();
-    if (!token) return;
+  const fetchChats = useCallback(async () => {
+    console.log("[CHATS_CONTEXT] 🚀 Starting fetchChats");
     
     setChatsLoading(true);
     setChatsError(null);
+    console.log("[CHATS_CONTEXT] 📡 Calling reportApi.getAll()");
     
     try {
-      const json = await fetchJson<{ success: boolean; reports?: any[]; error?: string }>(
-        `${BASE_URL}/api/v1/report/almostall`,
-        { method: "GET", mode: "cors", headers: authHeaders(token) },
-        signal
-      );
+      const json = await reportApi.getAll();
+      console.log("[CHATS_CONTEXT] 📥 API Response received:", {
+        success: json.success,
+        reportsCount: json.reports?.length || 0,
+        hasReports: !!json.reports,
+        error: json.error
+      });
       
       if (json.success && json.reports) {
         const newChats: Chat[] = json.reports.map((report: any) => ({
@@ -72,17 +74,81 @@ export function ChatsProvider({ children }: ChatsProviderProps) {
           messages: [],
           createdAt: new Date(report.generatedAt ? report.generatedAt * 1000 : Date.now()),
         }));
+        console.log("[CHATS_CONTEXT] ✅ Successfully processed chats:", {
+          chatsCount: newChats.length,
+          chatIds: newChats.map(c => c.id)
+        });
         setChats(newChats);
       } else {
-        throw new Error(json.error || "Failed to fetch chat data");
+        const errorMsg = json.error || "Failed to fetch chat data";
+        console.log("[CHATS_CONTEXT] ❌ API returned error:", errorMsg);
+        throw new Error(errorMsg);
       }
     } catch (e: any) {
       if (!isAbortError(e)) {
-        console.error("Failed to fetch chat data:", e);
+        console.error("[CHATS_CONTEXT] ❌ fetchChats error:", {
+          error: e,
+          message: e?.message,
+          stack: e?.stack
+        });
         setChatsError(e?.message ?? "Failed to fetch chat data");
       }
     } finally {
+      console.log("[CHATS_CONTEXT] 🏁 fetchChats completed");
       setChatsLoading(false);
+    }
+  }, []);
+
+  /* =========================
+     Chatbot methods
+     ========================= */
+
+  const sendMessage = useCallback(async (reportId: string, message: string) => {
+    console.log("[CHATS_CONTEXT] 💬 Starting sendMessage", { reportId, messageLength: message.length });
+    try {
+      const cleanReportId = reportId.replace(/\.(pdf|json)$/, '');
+      console.log("[CHATS_CONTEXT] 📡 Calling chatbotApi.chatForAddress", { cleanReportId });
+      
+      const response = await chatbotApi.chatForAddress(cleanReportId, message);
+      console.log("[CHATS_CONTEXT] ✅ sendMessage response:", {
+        hasResponse: !!response.response,
+        messageId: response.message_id,
+        messageSummary: response.message_summary
+      });
+      
+      return response;
+    } catch (error) {
+      console.error("[CHATS_CONTEXT] ❌ sendMessage error:", {
+        reportId,
+        cleanReportId: reportId.replace(/\.(pdf|json)$/, ''),
+        error,
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+      throw error;
+    }
+  }, []);
+
+  const getChatHistory = useCallback(async (reportId: string) => {
+    console.log("[CHATS_CONTEXT] 📜 Starting getChatHistory", { reportId });
+    try {
+      const cleanReportId = reportId.replace(/\.(pdf|json)$/, '');
+      console.log("[CHATS_CONTEXT] 📡 Calling chatbotApi.getChatHistory", { cleanReportId });
+      
+      const response = await chatbotApi.getChatHistory(cleanReportId);
+      console.log("[CHATS_CONTEXT] ✅ getChatHistory response:", {
+        messagesCount: response.messages?.length || 0,
+        hasMessages: !!response.messages
+      });
+      
+      return response;
+    } catch (error) {
+      console.error("[CHATS_CONTEXT] ❌ getChatHistory error:", {
+        reportId,
+        cleanReportId: reportId.replace(/\.(pdf|json)$/, ''),
+        error,
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+      throw error;
     }
   }, []);
 
@@ -90,7 +156,10 @@ export function ChatsProvider({ children }: ChatsProviderProps) {
      Public refresh function
      ========================= */
 
-  const refreshChats = useCallback(() => withAbort((s) => fetchChats(s)), [withAbort, fetchChats]);
+  const refreshChats = useCallback(
+    () => withAbort(() => fetchChats()),
+    [withAbort, fetchChats]
+  );
 
   /* =========================
      Effects
@@ -98,10 +167,9 @@ export function ChatsProvider({ children }: ChatsProviderProps) {
 
   // Initial load when authenticated
   useEffect(() => {
-    const token = getIdToken();
-    if (token) {
-      refreshChats();
-    }
+    console.log("[CHATS_CONTEXT] 🔄 Initial load effect triggered");
+    console.log("[CHATS_CONTEXT] 🚀 Calling refreshChats from initial load");
+    refreshChats();
   }, [refreshChats]);
 
   // Cross-tab auth changes
@@ -118,7 +186,7 @@ export function ChatsProvider({ children }: ChatsProviderProps) {
         }
       }
     };
-    
+
     window.addEventListener("storage", handleStorageChange);
     return () => window.removeEventListener("storage", handleStorageChange);
   }, [refreshChats, abortAll]);
@@ -130,14 +198,21 @@ export function ChatsProvider({ children }: ChatsProviderProps) {
      Memoized value
      ========================= */
 
-  const value = useMemo<ChatsContextType>(() => ({
-    chats,
-    chatsLoading,
-    chatsError,
-    refreshChats,
-  }), [chats, chatsLoading, chatsError, refreshChats]);
+  const value = useMemo<ChatsContextType>(
+    () => ({
+      chats,
+      chatsLoading,
+      chatsError,
+      refreshChats,
+      sendMessage,
+      getChatHistory,
+    }),
+    [chats, chatsLoading, chatsError, refreshChats, sendMessage, getChatHistory]
+  );
 
-  return <ChatsContext.Provider value={value}>{children}</ChatsContext.Provider>;
+  return (
+    <ChatsContext.Provider value={value}>{children}</ChatsContext.Provider>
+  );
 }
 
 /* =========================
@@ -152,5 +227,7 @@ export function useChats() {
     loading: ctx.chatsLoading,
     error: ctx.chatsError,
     refreshChats: ctx.refreshChats,
+    sendMessage: ctx.sendMessage,
+    getChatHistory: ctx.getChatHistory,
   };
 }
