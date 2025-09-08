@@ -65,7 +65,7 @@ export async function fetchJson<T>(url: string, opts: FetchJsonOpts = {}): Promi
       if (controller && !controller.signal.aborted) {
         controller.abort(new Error('Request timeout'));
       }
-    }, Math.max(60000, timeout)); // Minimum 60 second timeout for AI operations
+    }, Math.max(300000, timeout)); // Minimum 5 minute timeout for AI operations
     signal = controller.signal;
   }
 

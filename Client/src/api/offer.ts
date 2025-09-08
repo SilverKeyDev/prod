@@ -101,7 +101,7 @@ export const offerApi = {
    * Generate a negotiation strategy for a specific property
    */
   generateStrategy: (data: NegotiationStrategyRequest): Promise<NegotiationStrategyResponse> =>
-    apiPost<NegotiationStrategyResponse>('/api/v1/offer/generate-strategy', data, { timeout: 120000 }),
+    apiPost<NegotiationStrategyResponse>('/api/v1/offer/generate-strategy', data, { timeout: 300000 }),
 
   /**
    * Generate a purchase agreement document

@@ -156,17 +156,57 @@ function _CardCarousel<T>({
 
   // Observe size of the container to compute how many cards fit
   useEffect(() => {
+    // Only run when we have items and aren't loading
+    if (loading || items.length === 0) {
+      console.log(`[CardCarousel] Skipping width detection - loading: ${loading}, items: ${items.length}`);
+      return;
+    }
+
     const el = containerRef.current;
-    if (!el) return;
+    if (!el) {
+      console.log(`[CardCarousel] No container element found, retrying...`);
+      // Retry after a short delay
+      const retryTimer = setTimeout(() => {
+        const retryEl = containerRef.current;
+        if (retryEl) {
+          console.log(`[CardCarousel] Container found on retry`);
+          const width = retryEl.clientWidth;
+          console.log(`[CardCarousel] Retry width check: ${width}px`);
+          if (width > 0) {
+            throttledSetWidth(width);
+          }
+        }
+      }, 50);
+      return () => clearTimeout(retryTimer);
+    }
 
     let rafId: number;
     const update = () => {
       cancelAnimationFrame(rafId);
       rafId = requestAnimationFrame(() => {
-        throttledSetWidth(el.clientWidth);
+        const width = el.clientWidth;
+        console.log(`[CardCarousel] Container width detected: ${width}px`);
+        throttledSetWidth(width);
       });
     };
     
+    // Initial update with delay to ensure DOM is rendered
+    setTimeout(() => {
+      const width = el.clientWidth;
+      console.log(`[CardCarousel] Initial width check: ${width}px`);
+      if (width > 0) {
+        throttledSetWidth(width);
+      } else {
+        // Fallback: try parent container width
+        const parent = el.parentElement;
+        if (parent) {
+          const parentWidth = parent.clientWidth;
+          console.log(`[CardCarousel] Using parent width: ${parentWidth}px`);
+          throttledSetWidth(parentWidth - 32); // Account for padding
+        }
+      }
+    }, 100);
+
     update();
 
     // ResizeObserver for robust responsiveness
@@ -182,7 +222,7 @@ function _CardCarousel<T>({
       ro?.disconnect();
       window.removeEventListener("resize", update);
     };
-  }, [throttledSetWidth]);
+  }, [throttledSetWidth, loading, items.length]);
 
   /** Compute how many cards fit given cardMinWidth, gap, and containerWidth.
    * Rule: try to fit as many as possible; if they can't fit with the 16px gap,
@@ -196,22 +236,43 @@ function _CardCarousel<T>({
     const minW = Math.max(1, Math.floor(cardMinWidth));
     const gap = Math.max(0, Math.floor(cardGap));
 
-    if (w === 0) return Math.max(1, minCols); // initial render
+    // Debug logging
+    console.log(`[CardCarousel] Computing columns:`, {
+      containerWidth: w,
+      cardMinWidth: minW,
+      cardGap: gap,
+      itemsLength: items.length,
+      minCols,
+      maxCols
+    });
+
+    if (w === 0) {
+      console.log(`[CardCarousel] Container width is 0, returning minCols:`, Math.max(1, minCols));
+      return Math.max(1, minCols); // initial render
+    }
 
     // Max cards that could fit by naive packing (with gap between them)
     // FitCols satisfies: cols*minW + (cols-1)*gap <= w
     let cols = Math.floor((w + gap) / (minW + gap));
-    cols = Math.max(minCols, Math.min(cols, maxCols, items.length || 1));
+    console.log(`[CardCarousel] Initial calculation: ${cols} columns`);
+    
+    cols = Math.max(minCols, Math.min(cols, maxCols));
+    console.log(`[CardCarousel] After constraints: ${cols} columns`);
 
     // Ensure that the chosen cols actually fit; if not, decrement until it does
     const fits = (c: number) => c * minW + (c - 1) * gap <= w;
-    while (cols > minCols && !fits(cols)) cols--;
+    while (cols > minCols && !fits(cols)) {
+      console.log(`[CardCarousel] ${cols} columns don't fit, reducing...`);
+      cols--;
+    }
 
     // If there's room for one more, and it fits, increment
-    while (cols < Math.min(maxCols, items.length || cols) && fits(cols + 1)) {
+    while (cols < maxCols && fits(cols + 1)) {
+      console.log(`[CardCarousel] Room for more, increasing to ${cols + 1}...`);
       cols++;
     }
 
+    console.log(`[CardCarousel] Final result: ${cols} columns`);
     return Math.max(1, cols);
   }, [
     centerMode,
@@ -306,7 +367,8 @@ function _CardCarousel<T>({
           className="min-w-0 max-w-full overflow-hidden relative"
           ref={containerRef}
         >
-          <Carousel
+          <div className="sk-carousel-clip relative overflow-hidden max-w-full min-w-0 box-border">
+            <Carousel
             showThumbs={false}
             showStatus={false}
             showIndicators={false}
@@ -391,7 +453,8 @@ function _CardCarousel<T>({
                 </div>
               );
             })}
-          </Carousel>
+            </Carousel>
+          </div>
         </div>
       )}
     </div>

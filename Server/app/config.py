@@ -18,6 +18,10 @@ class Config:
     CELERY_TRANSPORT_OPTIONS = {
         'visibility_timeout': 900
     }
+    
+    # Request timeout configuration for long-running AI operations
+    REQUEST_TIMEOUT = 300  # 5 minutes for AI strategy generation
+    SEND_FILE_MAX_AGE_DEFAULT = 300
     SQLALCHEMY_ENGINE_OPTIONS = {
         'pool_pre_ping': True,          # Verify connections before use
         'pool_recycle': 300,            # Recycle connections every 5 minutes (300 seconds)

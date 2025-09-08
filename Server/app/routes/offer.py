@@ -141,7 +141,7 @@ def generate_negotiation_strategy():
                 }
                 params = {"address": address.strip()}
                 
-                r = requests.get(url, headers=headers, params=params, timeout=20)
+                r = requests.get(url, headers=headers, params=params, timeout=120)
                 
                 if r.ok:
                     property_data = r.json()
