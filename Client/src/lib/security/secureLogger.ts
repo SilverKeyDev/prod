@@ -58,9 +58,8 @@ const SENSITIVE_KEYS = [
   'credential',
   'credentials',
   'ssn',
-  'social_security_number',
-  'credit_card',
-  'creditCard',
+  'social_security_number', 'ssn',
+  'credit_card', 'creditCard', 'cc',
   'cvv',
   'pin',
 ];
@@ -68,6 +67,7 @@ const SENSITIVE_KEYS = [
 class SecureLogger {
   private currentLevel: number;
   private isProduction: boolean;
+  private isProcessing: boolean = false;
 
   constructor() {
     this.isProduction = import.meta.env.PROD;
@@ -78,6 +78,11 @@ class SecureLogger {
    * Scrub PII from any value (string, object, array)
    */
   private scrubPII(value: any): any {
+    // Prevent infinite recursion during error logging
+    if (this.isProcessing) {
+      return '[PROCESSING]';
+    }
+
     if (typeof value === 'string') {
       return this.scrubStringPII(value);
     }
@@ -97,17 +102,30 @@ class SecureLogger {
    * Scrub PII patterns from strings
    */
   private scrubStringPII(str: string): string {
-    let scrubbed = str;
-    
-    PII_PATTERNS.forEach(pattern => {
-      scrubbed = scrubbed.replace(pattern, (match) => {
-        // Keep first and last character, mask the middle
-        if (match.length <= 4) return '[REDACTED]';
-        return match[0] + '*'.repeat(match.length - 2) + match[match.length - 1];
+    // Prevent infinite recursion
+    if (this.isProcessing) {
+      return '[PROCESSING]';
+    }
+
+    try {
+      this.isProcessing = true;
+      let scrubbed = str;
+      
+      PII_PATTERNS.forEach(pattern => {
+        scrubbed = scrubbed.replace(pattern, (match) => {
+          // Keep first and last character, mask the middle
+          if (match.length <= 4) return '[REDACTED]';
+          return match[0] + '*'.repeat(match.length - 2) + match[match.length - 1];
+        });
       });
-    });
-    
-    return scrubbed;
+      
+      return scrubbed;
+    } catch (error) {
+      // Fallback to prevent infinite loops
+      return '[SCRUB_ERROR]';
+    } finally {
+      this.isProcessing = false;
+    }
   }
 
   /**
@@ -135,15 +153,27 @@ class SecureLogger {
    * Format log message with timestamp and level
    */
   private formatMessage(level: string, scope: string, message: string, data?: any): string {
-    const timestamp = new Date().toISOString();
-    const prefix = `[${timestamp}] [${level}] [${scope}]`;
-    
-    if (data) {
-      const scrubbedData = this.scrubPII(data);
-      return `${prefix} ${message} ${JSON.stringify(scrubbedData)}`;
+    // Prevent infinite recursion during error logging
+    if (this.isProcessing) {
+      const timestamp = new Date().toISOString();
+      return `[${timestamp}] [${level}] [${scope}] ${message} [RECURSION_PREVENTED]`;
     }
-    
-    return `${prefix} ${this.scrubStringPII(message)}`;
+
+    try {
+      const timestamp = new Date().toISOString();
+      const prefix = `[${timestamp}] [${level}] [${scope}]`;
+      
+      if (data) {
+        const scrubbedData = this.scrubPII(data);
+        return `${prefix} ${message} ${JSON.stringify(scrubbedData)}`;
+      }
+      
+      return `${prefix} ${this.scrubStringPII(message)}`;
+    } catch (error) {
+      // Fallback formatting to prevent crashes
+      const timestamp = new Date().toISOString();
+      return `[${timestamp}] [${level}] [${scope}] ${message} [FORMAT_ERROR]`;
+    }
   }
 
   /**

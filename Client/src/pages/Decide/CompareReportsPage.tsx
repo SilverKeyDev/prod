@@ -29,7 +29,7 @@ import { useCompareReports } from "../../context/ReportsContext";
 
 export default function CompareReportsPage() {
   // Use Reports context for reports management
-  const { compareReports, loading: compareReportsLoading, refreshCompareReports } = useCompareReports();
+  const { compareReports, refreshCompareReports } = useCompareReports();
 
   // Refresh data when page loads to ensure latest updates
   useEffect(() => {
@@ -403,13 +403,6 @@ export default function CompareReportsPage() {
             </button>
           </div>
         </div>
-
-        {compareReportsLoading && (
-          <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-navy mx-auto mb-4"></div>
-            <p className="text-navy/60">Loading reports...</p>
-          </div>
-        )}
 
         {reports.length === 0 ? (
           <div className="text-center py-responsive-lg">
