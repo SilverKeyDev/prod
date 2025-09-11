@@ -38,7 +38,7 @@ export interface SavedHome {
   lat?: number;
   lng?: number;
   address?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface SearchQuery {
@@ -108,7 +108,12 @@ export interface PropertyAnalysis {
   pros: string[];
   cons: string[];
   neighborhood_overview?: string;
-  crime_stats?: any;
+  crime_stats?: {
+    violent_crime?: number;
+    property_crime?: number;
+    overall_safety_score?: number;
+    trend?: 'improving' | 'stable' | 'declining';
+  };
   gentrification_index?: number;
   roi_explanation?: string;
 }

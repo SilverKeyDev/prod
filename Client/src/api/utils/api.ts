@@ -10,16 +10,16 @@ import { AuthenticationError, HttpError } from './errors';
    HTTP Method Helpers
    ========================= */
 
-export function apiGet<T = any>(
+export function apiGet<T = unknown>(
   endpoint: string,
   options: Omit<ApiRequestOptions, 'method' | 'body'> = {}
 ): Promise<T> {
   return apiRequest<T>(endpoint, { ...options, method: 'GET' });
 }
 
-export function apiPost<T = any>(
+export function apiPost<T = unknown>(
   endpoint: string,
-  data?: any,
+  data?: unknown,
   options: Omit<ApiRequestOptions, 'method'> = {}
 ): Promise<T> {
   return apiRequest<T>(endpoint, {
@@ -29,9 +29,9 @@ export function apiPost<T = any>(
   });
 }
 
-export function apiPut<T = any>(
+export function apiPut<T = unknown>(
   endpoint: string,
-  data?: any,
+  data?: unknown,
   options: Omit<ApiRequestOptions, 'method'> = {}
 ): Promise<T> {
   return apiRequest<T>(endpoint, {
@@ -41,9 +41,9 @@ export function apiPut<T = any>(
   });
 }
 
-export function apiPatch<T = any>(
+export function apiPatch<T = unknown>(
   endpoint: string,
-  data?: any,
+  data?: unknown,
   options: Omit<ApiRequestOptions, 'method'> = {}
 ): Promise<T> {
   return apiRequest<T>(endpoint, {
@@ -53,9 +53,9 @@ export function apiPatch<T = any>(
   });
 }
 
-export function apiDelete<T = any>(
+export function apiDelete<T = unknown>(
   endpoint: string,
-  data?: any,
+  data?: unknown,
   options: Omit<ApiRequestOptions, 'method'> = {}
 ): Promise<T> {
   return apiRequest<T>(endpoint, {
@@ -89,7 +89,7 @@ const getBaseUrl = (): string => {
   return normalizeBase(env || '');
 };
 
-export function apiUpload<T = any>(
+export function apiUpload<T = unknown>(
   endpoint: string,
   formData: FormData,
   options: Omit<ApiRequestOptions, 'method' | 'body'> = {}
@@ -161,7 +161,7 @@ export async function apiDownloadBlob(
    Specialized API Helpers
    ========================= */
 
-export function apiGetOptional<T = any>(
+export function apiGetOptional<T = unknown>(
   endpoint: string,
   options: Omit<ApiRequestOptions, 'method' | 'body' | 'acceptStatuses'> = {}
 ): Promise<T | null> {

@@ -68,7 +68,7 @@ export default function CloseLayout({
   // Utility function to convert checked state to array of IDs
   const idsFromChecked = (state: { [id: number]: boolean }) =>
     Object.entries(state)
-      .filter(([_, v]) => v)
+      .filter(([, v]) => v)
       .map(([k]) => Number(k));
 
   // Fetch existing checklist from API

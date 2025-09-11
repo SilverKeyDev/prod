@@ -11,7 +11,7 @@ export function useWhyRender(name: string, props: any) {
       }
     });
     if (Object.keys(diffs).length) {
-      // eslint-disable-next-line no-console
+       
       console.log(`[WHY] ${name} changed`, diffs);
     }
     prev.current = props;

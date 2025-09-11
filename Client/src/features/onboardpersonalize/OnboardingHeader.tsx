@@ -89,7 +89,9 @@ const OnboardingHeader: React.FC<OnboardingHeaderProps> = ({
           if (outerRef.current) ro.unobserve(outerRef.current);
           if (gridRef.current) ro.unobserve(gridRef.current);
           ro.unobserve(document.documentElement);
-        } catch {}
+        } catch {
+          // Ignore unobserve errors during cleanup
+        }
       } else {
         window.removeEventListener("resize", recalc);
       }

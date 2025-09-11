@@ -1281,7 +1281,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
           </Card>
         );
 
-      case "reportcustomization":
+      case "reportcustomization": {
         if (isLoading) {
           return (
             <Card className="space-y-6">
@@ -1318,6 +1318,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
             />
           </Card>
         );
+      }
     }
   };
 

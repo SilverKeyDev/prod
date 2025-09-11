@@ -5,9 +5,14 @@ export interface ChatMessage {
   message: string;
 }
 
+interface FunctionCall {
+  name?: string;
+  arguments?: string;
+}
+
 export interface ChatResponse {
   response: string;
-  function_call?: any;
+  function_call?: FunctionCall;
   message_id: string;
   message_summary: string;
 }

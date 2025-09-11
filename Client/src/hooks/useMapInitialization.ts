@@ -63,7 +63,7 @@ export const useMapInitialization = ({
 
     const map = createMap(container);
     if (!map) {
-      // eslint-disable-next-line no-console
+       
       console.error('❌ Failed to create Google Map');
       return null;
     }

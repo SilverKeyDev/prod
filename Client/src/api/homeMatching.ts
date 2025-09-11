@@ -1,9 +1,39 @@
 import { apiPost, apiGet } from './utils/index';
 
 // Types for home matching API
+interface UserMatchingData {
+  preferences?: Record<string, unknown>;
+  demographics?: Record<string, unknown>;
+  financial?: Record<string, unknown>;
+}
+
+interface HomeData {
+  id?: string;
+  address?: string;
+  price?: number;
+  features?: Record<string, unknown>;
+}
+
+interface MatchingResult {
+  ranked_homes?: Array<{
+    home_id: string;
+    score: number;
+    explanation?: string;
+  }>;
+  scores?: Record<string, number>;
+  explanations?: Record<string, string>;
+}
+
+interface TaskMeta {
+  progress?: number;
+  current_step?: string;
+  total_steps?: number;
+  estimated_completion?: string;
+}
+
 export interface HomeMatchingRequest {
-  user_data: Record<string, any>;
-  homes_data: any[];
+  user_data: UserMatchingData;
+  homes_data: HomeData[];
   top_k?: number;
   include_explanations?: boolean;
   method_weights?: {
@@ -30,8 +60,8 @@ export interface TaskStatusResponse {
   success: boolean;
   task_id: string;
   status: 'SUCCESS' | 'PENDING' | 'PROGRESS' | 'FAILURE';
-  result?: any;
-  meta?: any;
+  result?: MatchingResult;
+  meta?: TaskMeta;
   message?: string;
   error?: string;
 }

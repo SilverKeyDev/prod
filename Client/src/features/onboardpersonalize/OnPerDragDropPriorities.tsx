@@ -34,7 +34,17 @@ const SortableReportSection: React.FC<SortableReportSectionProps> = ({
   onToggle,
   priority,
 }) => {
-  // Safety checks for props
+  // Always call hooks first before any conditional logic
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: id || 'default' });
+
+  // Safety checks for props after hooks
   if (
     !id ||
     !label ||
@@ -49,15 +59,6 @@ const SortableReportSection: React.FC<SortableReportSectionProps> = ({
     });
     return null;
   }
-
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id });
 
   const style = {
     transform: CSS.Transform.toString(transform),

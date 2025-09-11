@@ -9,7 +9,7 @@ interface ImportantLocation {
 }
 
 interface Suggestion {
-  placePrediction: any;
+  placePrediction: google.maps.places.PlacePrediction;
   description: string;
 }
 
@@ -59,7 +59,7 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
           );
 
         setSuggestions(
-          fetched.map((s: any) => ({
+          fetched.map((s: google.maps.places.AutocompleteSuggestion) => ({
             description: s.placePrediction.text.text,
             placePrediction: s.placePrediction,
           }))

@@ -68,10 +68,10 @@ const formatToE164 = (phoneNumber: string | undefined): string | undefined => {
     return undefined;
   }
 
-  const cleaned = phoneNumber.replace(/[\s\-\(\)\.]/g, "");
+  const cleaned = phoneNumber.replace(/[\s\-().]/, "");
 
   // Basic phone validation: digits and optional leading +
-  if (!/^[\+]?[\d]+$/.test(cleaned)) {
+  if (!/^[+]?\d+$/.test(cleaned)) {
     console.log(
       "Phone autofill received invalid format, ignoring:",
       phoneNumber

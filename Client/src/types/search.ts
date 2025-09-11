@@ -64,7 +64,7 @@ export interface SearchResult {
   cooling?: string[];
   appliances?: string[];
   interiorFeatures?: string[];
-  exteriorFeatures?: any;
+  exteriorFeatures?: string[];
   lotFeatures?: string[];
   communityFeatures?: string[];
   parkingFeatures?: string[];
@@ -72,7 +72,13 @@ export interface SearchResult {
   inclusions?: string[];
 
   // Room information
-  rooms?: any[];
+  rooms?: Array<{
+    room_type?: string;
+    room_level?: string;
+    room_length?: number;
+    room_width?: number;
+    room_description?: string;
+  }>;
   bathroomsFull?: number;
   bathroomsHalf?: number;
   bathroomsPartial?: number;
@@ -95,7 +101,13 @@ export interface SearchResult {
   parcelNumber?: string;
 
   // Agent information
-  contact_recipients?: any[];
+  contact_recipients?: Array<{
+    recipient_name?: string;
+    recipient_contact_phone?: string;
+    recipient_contact_phone_ext?: string;
+    recipient_contact_email?: string;
+    recipient_address?: string;
+  }>;
   listed_by?: {
     agent_reason?: number;
     zpro?: boolean;
@@ -139,7 +151,17 @@ export interface SearchResult {
   }>;
 
   // Nearby homes
-  nearbyHomes?: any[];
+  nearbyHomes?: Array<{
+    address?: string;
+    price?: number;
+    beds?: number;
+    baths?: number;
+    sqft?: number;
+    lot_size?: number;
+    year_built?: number;
+    distance?: number;
+    status?: string;
+  }>;
 
   // At a glance facts
   atAGlanceFacts?: Array<{

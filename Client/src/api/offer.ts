@@ -37,9 +37,17 @@ export interface CommuteData {
   property_address: string;
 }
 
+interface NegotiationStrategy {
+  recommended_offer?: number;
+  max_offer?: number;
+  strategy_points?: string[];
+  market_analysis?: string;
+  reasoning?: string;
+}
+
 export interface NegotiationStrategyResponse {
   success: boolean;
-  strategy: any;
+  strategy: NegotiationStrategy;
   property_address: string;
   strategy_id: string;
   filename: string;

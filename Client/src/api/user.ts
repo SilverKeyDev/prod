@@ -15,7 +15,12 @@ export interface User {
   client_ids?: string[];
   agency_name?: string;
   has_subscription?: boolean;
-  subscription?: any;
+  subscription?: {
+    plan: string;
+    status: 'active' | 'inactive' | 'pending' | 'cancelled';
+    created_at?: string;
+    expires_at?: string;
+  };
   has_preferences?: boolean;
 }
 
@@ -36,7 +41,17 @@ export interface FavoriteHomesResponse {
 }
 
 export interface AddFavoriteRequest {
-  home: any;
+  home: {
+    home_id: string;
+    address: string;
+    price?: number;
+    beds?: number;
+    baths?: number;
+    sqft?: number;
+    image_url?: string;
+    description?: string;
+    [key: string]: unknown;
+  };
 }
 
 export interface RemoveFavoriteRequest {
@@ -56,8 +71,8 @@ export const userApi = {
   /**
    * Update user profile - Note: Backend endpoint not implemented yet
    */
-  updateProfile: (_userData: Partial<User>): Promise<UserResponse> => {
-    console.warn('User profile update endpoint not implemented on backend');
+  updateProfile: (userData: Partial<User>): Promise<UserResponse> => {
+    console.warn('User profile update endpoint not implemented on backend', { userData });
     return Promise.reject(new Error('Profile update not available'));
   },
 
@@ -82,26 +97,26 @@ export const userApi = {
   /**
    * Get assigned agent for current user
    */
-  getAssignedAgent: (): Promise<{ success: boolean; data?: any; message?: string }> =>
-    apiGet<{ success: boolean; data?: any; message?: string }>('/api/v1/user/assigned-agent'),
+  getAssignedAgent: (): Promise<{ success: boolean; data?: { id: string; name: string; email: string; phone?: string; }; message?: string }> =>
+    apiGet<{ success: boolean; data?: { id: string; name: string; email: string; phone?: string; }; message?: string }>('/api/v1/user/assigned-agent'),
 
   /**
    * Get client list for agents
    */
-  getClientList: (): Promise<{ success: boolean; clients?: any[]; message?: string }> =>
-    apiGet<{ success: boolean; clients?: any[]; message?: string }>('/api/v1/agent/clients'),
+  getClientList: (): Promise<{ success: boolean; clients?: Array<{ id: string; name: string; email: string; }>; message?: string }> =>
+    apiGet<{ success: boolean; clients?: Array<{ id: string; name: string; email: string; }>; message?: string }>('/api/v1/agent/clients'),
 
   /**
    * Search for agents
    */
-  searchAgents: (query: string): Promise<{ success: boolean; agents?: any[]; message?: string }> =>
-    apiGet<{ success: boolean; agents?: any[]; message?: string }>(`/api/v1/user/search-agents?q=${encodeURIComponent(query)}`),
+  searchAgents: (query: string): Promise<{ success: boolean; agents?: Array<{ id: string; name: string; email: string; phone?: string; specialties?: string[]; }>; message?: string }> =>
+    apiGet<{ success: boolean; agents?: Array<{ id: string; name: string; email: string; phone?: string; specialties?: string[]; }>; message?: string }>(`/api/v1/user/search-agents?q=${encodeURIComponent(query)}`),
 
   /**
    * Assign an agent to current user
    */
-  assignAgent: (agentId: string): Promise<{ success: boolean; agent?: any; message?: string }> =>
-    apiPost<{ success: boolean; agent?: any; message?: string }>('/api/v1/user/assign-agent', { agent_id: agentId }),
+  assignAgent: (agentId: string): Promise<{ success: boolean; agent?: { id: string; name: string; email: string; phone?: string; }; message?: string }> =>
+    apiPost<{ success: boolean; agent?: { id: string; name: string; email: string; phone?: string; }; message?: string }>('/api/v1/user/assign-agent', { agent_id: agentId }),
 
   /**
    * Remove assigned agent from current user

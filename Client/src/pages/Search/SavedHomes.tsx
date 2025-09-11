@@ -61,7 +61,7 @@ export default function SavedHomes() {
   useEffect(() => {
     fetchSavedHomes();
     // Optionally expose refresh in dev
-    // @ts-ignore
+    // @ts-expect-error - Adding debug method to global scope
     window.refreshFavorites = fetchSavedHomes;
   }, [fetchSavedHomes]);
 

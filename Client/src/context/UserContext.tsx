@@ -128,14 +128,14 @@ export function UserProvider({ children }: UserProviderProps) {
     const now = Date.now();
     const cached = preferencesCacheRef.current;
     if (cached && (now - cached.timestamp) < CACHE_TTL) {
-      DEV && console.count("[USER_CONTEXT] Using cached preferences");
+      if (DEV) console.count("[USER_CONTEXT] Using cached preferences");
       setUserPreferences(cached.data);
       return;
     }
 
     // Return existing promise if already loading
     if (preferencesPromiseRef.current) {
-      DEV && console.count("[USER_CONTEXT] Waiting for existing preferences request");
+      if (DEV) console.count("[USER_CONTEXT] Waiting for existing preferences request");
       return preferencesPromiseRef.current;
     }
 
@@ -211,7 +211,7 @@ export function UserProvider({ children }: UserProviderProps) {
     console.log('[USER_CONTEXT] 📊 Profile enabled check:', { profileEnabled, authReady, hasUserId: !!user?.id });
     
     if (profileEnabled) {
-      DEV && console.count("[USER_CONTEXT] Loading user profile for sidebar");
+      if (DEV) console.count("[USER_CONTEXT] Loading user profile for sidebar");
       console.log('[USER_CONTEXT] 🚀 Calling refreshUserProfile()');
       refreshUserProfile();
     } else {
@@ -219,7 +219,7 @@ export function UserProvider({ children }: UserProviderProps) {
     }
 
     if (preferencesEnabled) {
-      DEV && console.count("[USER_CONTEXT] Loading user preferences");
+      if (DEV) console.count("[USER_CONTEXT] Loading user preferences");
       refreshUserPreferences();
     }
   });

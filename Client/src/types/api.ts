@@ -2,14 +2,14 @@
 
 export interface ApiSuccess<T> {
   success: true;
-  [k: string]: any;
+  [k: string]: unknown;
   data?: T;
 }
 
 export interface ApiError {
   success: false;
   error?: string;
-  [k: string]: any;
+  [k: string]: unknown;
 }
 
 export type ApiResponse<T> = ApiSuccess<T> | ApiError;

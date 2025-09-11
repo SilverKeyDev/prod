@@ -756,7 +756,7 @@ export default function OnboardingPage() {
           </div>
         );
 
-      case "reportcustomization":
+      case "reportcustomization": {
         if (loading) {
           return (
             <div className="space-y-6">
@@ -791,6 +791,7 @@ export default function OnboardingPage() {
             onToggle={handleReportSectionToggle}
           />
         );
+      }
 
       default:
         return <div>Step content for {step.title} coming soon...</div>;

@@ -86,7 +86,7 @@ export class ReportComparisonService {
     // JSON: user_id/json/type/filename.json
 
     // Extract user_id, report_type, and filename from PDF key
-    const pdfMatch = key.match(/^([^\/]+)\/reports\/([^\/]+)\/(.+)\.pdf$/);
+    const pdfMatch = key.match(/^([^/]+)\/reports\/([^/]+)\/(.+)\.pdf$/);
     if (pdfMatch) {
       const [, userId, reportType, filename] = pdfMatch;
       return `${userId}/json/${reportType}/${filename}.json`;

@@ -20,7 +20,6 @@ export function formatFilenameToAddress(filename: string): string {
   // Check for hexadecimal hash patterns (10+ characters, only 0-9 and a-f)
   if (parts.length > 0 && /^[0-9a-f]{10,}$/i.test(parts[0])) {
     parts = parts.slice(1);
-  } else {
   }
 
   if (parts.length < 3) return parts.join(" ");

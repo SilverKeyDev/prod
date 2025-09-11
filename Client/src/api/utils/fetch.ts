@@ -212,7 +212,7 @@ export async function fetchJsonWithRetry<T>(
         /network|fetch failed|load failed|TypeError/i.test(err.message);
 
       if (transient && attempt <= retries) {
-        let wait = jitter ? Math.round(delay * (Math.random() * 0.3 + 0.85)) : delay;
+        const wait = jitter ? Math.round(delay * (Math.random() * 0.3 + 0.85)) : delay;
         await sleep(wait);
         delay = delay * backoffFactor;
         continue;

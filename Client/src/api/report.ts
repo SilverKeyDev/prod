@@ -63,10 +63,21 @@ export interface CompareReportsRequest {
   s3Keys?: string[];
 }
 
+interface ComparisonData {
+  summary?: string;
+  differences?: Record<string, unknown>;
+  recommendations?: string[];
+}
+
+interface ComparisonTable {
+  headers?: string[];
+  rows?: Array<Record<string, unknown>>;
+}
+
 export interface CompareReportsResponse {
   success: boolean;
-  comparison_data?: any;
-  table?: any;
+  comparison_data?: ComparisonData;
+  table?: ComparisonTable;
   error?: string;
 }
 

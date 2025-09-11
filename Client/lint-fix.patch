@@ -1,0 +1,1107 @@
+diff --git a/Client/src/api/auth.ts b/Client/src/api/auth.ts
+index 110d87e..3826980 100644
+--- a/Client/src/api/auth.ts
++++ b/Client/src/api/auth.ts
+@@ -22,6 +22,11 @@ export interface LoginData {
+   password: string;
+ }
+ 
++interface CodeDeliveryDetails {
++  destination?: string;
++  delivery_medium?: string;
++}
++
+ export interface AuthResponse {
+   success: boolean;
+   access_token?: string;
+@@ -37,7 +42,7 @@ export interface AuthResponse {
+   verification_complete?: boolean;
+   login_failed?: boolean;
+   auto_login_failed?: boolean;
+-  code_delivery?: any;
++  code_delivery?: CodeDeliveryDetails;
+ }
+ 
+ /**
+diff --git a/Client/src/api/chatbot.ts b/Client/src/api/chatbot.ts
+index e891522..c247c02 100644
+--- a/Client/src/api/chatbot.ts
++++ b/Client/src/api/chatbot.ts
+@@ -5,9 +5,14 @@ export interface ChatMessage {
+   message: string;
+ }
+ 
++interface FunctionCall {
++  name?: string;
++  arguments?: string;
++}
++
+ export interface ChatResponse {
+   response: string;
+-  function_call?: any;
++  function_call?: FunctionCall;
+   message_id: string;
+   message_summary: string;
+ }
+diff --git a/Client/src/api/homeMatching.ts b/Client/src/api/homeMatching.ts
+index 54b93c8..a72838f 100644
+--- a/Client/src/api/homeMatching.ts
++++ b/Client/src/api/homeMatching.ts
+@@ -1,9 +1,39 @@
+ import { apiPost, apiGet } from './utils/index';
+ 
+ // Types for home matching API
++interface UserMatchingData {
++  preferences?: Record<string, unknown>;
++  demographics?: Record<string, unknown>;
++  financial?: Record<string, unknown>;
++}
++
++interface HomeData {
++  id?: string;
++  address?: string;
++  price?: number;
++  features?: Record<string, unknown>;
++}
++
++interface MatchingResult {
++  ranked_homes?: Array<{
++    home_id: string;
++    score: number;
++    explanation?: string;
++  }>;
++  scores?: Record<string, number>;
++  explanations?: Record<string, string>;
++}
++
++interface TaskMeta {
++  progress?: number;
++  current_step?: string;
++  total_steps?: number;
++  estimated_completion?: string;
++}
++
+ export interface HomeMatchingRequest {
+-  user_data: Record<string, any>;
+-  homes_data: any[];
++  user_data: UserMatchingData;
++  homes_data: HomeData[];
+   top_k?: number;
+   include_explanations?: boolean;
+   method_weights?: {
+@@ -30,8 +60,8 @@ export interface TaskStatusResponse {
+   success: boolean;
+   task_id: string;
+   status: 'SUCCESS' | 'PENDING' | 'PROGRESS' | 'FAILURE';
+-  result?: any;
+-  meta?: any;
++  result?: MatchingResult;
++  meta?: TaskMeta;
+   message?: string;
+   error?: string;
+ }
+diff --git a/Client/src/api/offer.ts b/Client/src/api/offer.ts
+index 5eb7e4b..ec36c9d 100644
+--- a/Client/src/api/offer.ts
++++ b/Client/src/api/offer.ts
+@@ -37,9 +37,17 @@ export interface CommuteData {
+   property_address: string;
+ }
+ 
++interface NegotiationStrategy {
++  recommended_offer?: number;
++  max_offer?: number;
++  strategy_points?: string[];
++  market_analysis?: string;
++  reasoning?: string;
++}
++
+ export interface NegotiationStrategyResponse {
+   success: boolean;
+-  strategy: any;
++  strategy: NegotiationStrategy;
+   property_address: string;
+   strategy_id: string;
+   filename: string;
+diff --git a/Client/src/api/report.ts b/Client/src/api/report.ts
+index 05332f5..2fa7fcf 100644
+--- a/Client/src/api/report.ts
++++ b/Client/src/api/report.ts
+@@ -63,10 +63,21 @@ export interface CompareReportsRequest {
+   s3Keys?: string[];
+ }
+ 
++interface ComparisonData {
++  summary?: string;
++  differences?: Record<string, unknown>;
++  recommendations?: string[];
++}
++
++interface ComparisonTable {
++  headers?: string[];
++  rows?: Array<Record<string, unknown>>;
++}
++
+ export interface CompareReportsResponse {
+   success: boolean;
+-  comparison_data?: any;
+-  table?: any;
++  comparison_data?: ComparisonData;
++  table?: ComparisonTable;
+   error?: string;
+ }
+ 
+diff --git a/Client/src/api/search.ts b/Client/src/api/search.ts
+index 67c806e..7b64f06 100644
+--- a/Client/src/api/search.ts
++++ b/Client/src/api/search.ts
+@@ -1,6 +1,18 @@
+ import { apiGet, apiPost, buildApiUrl } from './utils/index';
+ 
+ // Types for search API
++interface PropertyComp {
++  address: string;
++  price: number;
++  beds?: number;
++  baths?: number;
++  sqft?: number;
++  lot_size?: number;
++  year_built?: number;
++  distance?: number;
++  sale_date?: string;
++}
++
+ export interface PropertyCompsRequest {
+   address: string;
+   radius?: number;
+@@ -9,7 +21,7 @@ export interface PropertyCompsRequest {
+ 
+ export interface PropertyCompsResponse {
+   success: boolean;
+-  comps?: any[];
++  comps?: PropertyComp[];
+   error?: string;
+ }
+ 
+@@ -17,14 +29,71 @@ export interface PropertyRequest {
+   address: string;
+ }
+ 
++interface SearchQuery {
++  address: string;
++  filters?: Record<string, unknown>;
++}
++
++interface PropertyData {
++  address?: string;
++  price?: number;
++  beds?: number;
++  baths?: number;
++  sqft?: number;
++  lot_size?: number;
++  year_built?: number;
++  property_type?: string;
++  status?: string;
++  description?: string;
++  features?: string[];
++  [key: string]: unknown;
++}
++
++interface PropertyFeatures {
++  interior?: string[];
++  exterior?: string[];
++  appliances?: string[];
++  heating_cooling?: string[];
++  parking?: string[];
++  lot?: string[];
++}
++
++interface CommuteData {
++  destinations?: Array<{
++    name: string;
++    address: string;
++    distance?: number;
++    duration?: number;
++    mode?: string;
++  }>;
++  transit_score?: number;
++  walkability_score?: number;
++}
++
++interface PropertyAnalysis {
++  summary?: string;
++  pros?: string[];
++  cons?: string[];
++  market_analysis?: string;
++  investment_potential?: string;
++  neighborhood_info?: string;
++}
++
++interface ImageFeatures {
++  exterior_photos?: string[];
++  interior_photos?: string[];
++  analyzed_features?: string[];
++  property_condition?: string;
++}
++
+ export interface PropertyResponse {
+   success: boolean;
+-  query?: any;
+-  data?: any;
+-  features?: any;
+-  commute_data?: any;
+-  property_analysis?: any;
+-  image_features?: any;
++  query?: SearchQuery;
++  data?: PropertyData;
++  features?: PropertyFeatures;
++  commute_data?: CommuteData;
++  property_analysis?: PropertyAnalysis;
++  image_features?: ImageFeatures;
+   zillow_url?: string;
+   images?: string[];
+   error?: string;
+@@ -51,9 +120,23 @@ export interface PolygonSearchRequest {
+   perBucketPages?: number;
+ }
+ 
++interface SearchProperty {
++  id: string;
++  address: string;
++  price: number;
++  beds?: number;
++  baths?: number;
++  sqft?: number;
++  lat?: number;
++  lng?: number;
++  images?: string[];
++  features?: string[];
++  status?: string;
++}
++
+ export interface PolygonSearchResponse {
+   success: boolean;
+-  properties?: any[];
++  properties?: SearchProperty[];
+   total_count?: number;
+   has_more?: boolean;
+   error?: string;
+@@ -73,7 +156,14 @@ export interface IsochroneResponse {
+       name: string;
+       address: string;
+       commute_tolerance: number;
+-      isochrone: any;
++      isochrone: {
++        type: string;
++        geometry: {
++          type: string;
++          coordinates: number[][][];
++        };
++        properties?: Record<string, unknown>;
++      };
+     }>;
+     center: {
+       lat: number;
+diff --git a/Client/src/api/secureUpload.ts b/Client/src/api/secureUpload.ts
+index 941dc2a..1bc3005 100644
+--- a/Client/src/api/secureUpload.ts
++++ b/Client/src/api/secureUpload.ts
+@@ -19,7 +19,7 @@ export const secureUploadApi = {
+   /**
+    * Upload a document file
+    */
+-  uploadDocument: (file: File, metadata?: Record<string, any>): Promise<UploadResponse> => {
++  uploadDocument: (file: File, metadata?: Record<string, unknown>): Promise<UploadResponse> => {
+     const formData = new FormData();
+     formData.append('file', file);
+     if (metadata) {
+@@ -31,7 +31,7 @@ export const secureUploadApi = {
+   /**
+    * Upload an image file
+    */
+-  uploadImage: (file: File, metadata?: Record<string, any>): Promise<UploadResponse> => {
++  uploadImage: (file: File, metadata?: Record<string, unknown>): Promise<UploadResponse> => {
+     const formData = new FormData();
+     formData.append('file', file);
+     if (metadata) {
+diff --git a/Client/src/api/user.ts b/Client/src/api/user.ts
+index c1a3d5a..f1cffe1 100644
+--- a/Client/src/api/user.ts
++++ b/Client/src/api/user.ts
+@@ -15,7 +15,12 @@ export interface User {
+   client_ids?: string[];
+   agency_name?: string;
+   has_subscription?: boolean;
+-  subscription?: any;
++  subscription?: {
++    plan: string;
++    status: 'active' | 'inactive' | 'pending' | 'cancelled';
++    created_at?: string;
++    expires_at?: string;
++  };
+   has_preferences?: boolean;
+ }
+ 
+@@ -36,7 +41,17 @@ export interface FavoriteHomesResponse {
+ }
+ 
+ export interface AddFavoriteRequest {
+-  home: any;
++  home: {
++    home_id: string;
++    address: string;
++    price?: number;
++    beds?: number;
++    baths?: number;
++    sqft?: number;
++    image_url?: string;
++    description?: string;
++    [key: string]: unknown;
++  };
+ }
+ 
+ export interface RemoveFavoriteRequest {
+@@ -56,8 +71,8 @@ export const userApi = {
+   /**
+    * Update user profile - Note: Backend endpoint not implemented yet
+    */
+-  updateProfile: (_userData: Partial<User>): Promise<UserResponse> => {
+-    console.warn('User profile update endpoint not implemented on backend');
++  updateProfile: (userData: Partial<User>): Promise<UserResponse> => {
++    console.warn('User profile update endpoint not implemented on backend', { userData });
+     return Promise.reject(new Error('Profile update not available'));
+   },
+ 
+@@ -82,26 +97,26 @@ export const userApi = {
+   /**
+    * Get assigned agent for current user
+    */
+-  getAssignedAgent: (): Promise<{ success: boolean; data?: any; message?: string }> =>
+-    apiGet<{ success: boolean; data?: any; message?: string }>('/api/v1/user/assigned-agent'),
++  getAssignedAgent: (): Promise<{ success: boolean; data?: { id: string; name: string; email: string; phone?: string; }; message?: string }> =>
++    apiGet<{ success: boolean; data?: { id: string; name: string; email: string; phone?: string; }; message?: string }>('/api/v1/user/assigned-agent'),
+ 
+   /**
+    * Get client list for agents
+    */
+-  getClientList: (): Promise<{ success: boolean; clients?: any[]; message?: string }> =>
+-    apiGet<{ success: boolean; clients?: any[]; message?: string }>('/api/v1/agent/clients'),
++  getClientList: (): Promise<{ success: boolean; clients?: Array<{ id: string; name: string; email: string; }>; message?: string }> =>
++    apiGet<{ success: boolean; clients?: Array<{ id: string; name: string; email: string; }>; message?: string }>('/api/v1/agent/clients'),
+ 
+   /**
+    * Search for agents
+    */
+-  searchAgents: (query: string): Promise<{ success: boolean; agents?: any[]; message?: string }> =>
+-    apiGet<{ success: boolean; agents?: any[]; message?: string }>(`/api/v1/user/search-agents?q=${encodeURIComponent(query)}`),
++  searchAgents: (query: string): Promise<{ success: boolean; agents?: Array<{ id: string; name: string; email: string; phone?: string; specialties?: string[]; }>; message?: string }> =>
++    apiGet<{ success: boolean; agents?: Array<{ id: string; name: string; email: string; phone?: string; specialties?: string[]; }>; message?: string }>(`/api/v1/user/search-agents?q=${encodeURIComponent(query)}`),
+ 
+   /**
+    * Assign an agent to current user
+    */
+-  assignAgent: (agentId: string): Promise<{ success: boolean; agent?: any; message?: string }> =>
+-    apiPost<{ success: boolean; agent?: any; message?: string }>('/api/v1/user/assign-agent', { agent_id: agentId }),
++  assignAgent: (agentId: string): Promise<{ success: boolean; agent?: { id: string; name: string; email: string; phone?: string; }; message?: string }> =>
++    apiPost<{ success: boolean; agent?: { id: string; name: string; email: string; phone?: string; }; message?: string }>('/api/v1/user/assign-agent', { agent_id: agentId }),
+ 
+   /**
+    * Remove assigned agent from current user
+diff --git a/Client/src/api/utils/api.ts b/Client/src/api/utils/api.ts
+index 3792ef2..a386346 100644
+--- a/Client/src/api/utils/api.ts
++++ b/Client/src/api/utils/api.ts
+@@ -10,16 +10,16 @@ import { AuthenticationError, HttpError } from './errors';
+    HTTP Method Helpers
+    ========================= */
+ 
+-export function apiGet<T = any>(
++export function apiGet<T = unknown>(
+   endpoint: string,
+   options: Omit<ApiRequestOptions, 'method' | 'body'> = {}
+ ): Promise<T> {
+   return apiRequest<T>(endpoint, { ...options, method: 'GET' });
+ }
+ 
+-export function apiPost<T = any>(
++export function apiPost<T = unknown>(
+   endpoint: string,
+-  data?: any,
++  data?: unknown,
+   options: Omit<ApiRequestOptions, 'method'> = {}
+ ): Promise<T> {
+   return apiRequest<T>(endpoint, {
+@@ -29,9 +29,9 @@ export function apiPost<T = any>(
+   });
+ }
+ 
+-export function apiPut<T = any>(
++export function apiPut<T = unknown>(
+   endpoint: string,
+-  data?: any,
++  data?: unknown,
+   options: Omit<ApiRequestOptions, 'method'> = {}
+ ): Promise<T> {
+   return apiRequest<T>(endpoint, {
+@@ -41,9 +41,9 @@ export function apiPut<T = any>(
+   });
+ }
+ 
+-export function apiPatch<T = any>(
++export function apiPatch<T = unknown>(
+   endpoint: string,
+-  data?: any,
++  data?: unknown,
+   options: Omit<ApiRequestOptions, 'method'> = {}
+ ): Promise<T> {
+   return apiRequest<T>(endpoint, {
+@@ -53,9 +53,9 @@ export function apiPatch<T = any>(
+   });
+ }
+ 
+-export function apiDelete<T = any>(
++export function apiDelete<T = unknown>(
+   endpoint: string,
+-  data?: any,
++  data?: unknown,
+   options: Omit<ApiRequestOptions, 'method'> = {}
+ ): Promise<T> {
+   return apiRequest<T>(endpoint, {
+@@ -89,7 +89,7 @@ const getBaseUrl = (): string => {
+   return normalizeBase(env || '');
+ };
+ 
+-export function apiUpload<T = any>(
++export function apiUpload<T = unknown>(
+   endpoint: string,
+   formData: FormData,
+   options: Omit<ApiRequestOptions, 'method' | 'body'> = {}
+@@ -161,7 +161,7 @@ export async function apiDownloadBlob(
+    Specialized API Helpers
+    ========================= */
+ 
+-export function apiGetOptional<T = any>(
++export function apiGetOptional<T = unknown>(
+   endpoint: string,
+   options: Omit<ApiRequestOptions, 'method' | 'body' | 'acceptStatuses'> = {}
+ ): Promise<T | null> {
+diff --git a/Client/src/api/utils/fetch.ts b/Client/src/api/utils/fetch.ts
+index 6e6e4c6..b2909b0 100644
+--- a/Client/src/api/utils/fetch.ts
++++ b/Client/src/api/utils/fetch.ts
+@@ -212,7 +212,7 @@ export async function fetchJsonWithRetry<T>(
+         /network|fetch failed|load failed|TypeError/i.test(err.message);
+ 
+       if (transient && attempt <= retries) {
+-        let wait = jitter ? Math.round(delay * (Math.random() * 0.3 + 0.85)) : delay;
++        const wait = jitter ? Math.round(delay * (Math.random() * 0.3 + 0.85)) : delay;
+         await sleep(wait);
+         delay = delay * backoffFactor;
+         continue;
+diff --git a/Client/src/context/AgentContext.tsx b/Client/src/context/AgentContext.tsx
+index d1726e0..c948373 100644
+--- a/Client/src/context/AgentContext.tsx
++++ b/Client/src/context/AgentContext.tsx
+@@ -75,7 +75,7 @@ export function AgentProvider({ children }: AgentProviderProps) {
+      Fetchers
+      ========================= */
+ 
+-  const fetchAssignedAgent = useCallback(async (_signal?: AbortSignal) => {
++  const fetchAssignedAgent = useCallback(async () => {
+     setAgentLoading(true);
+     setAgentError(null);
+ 
+@@ -86,10 +86,11 @@ export function AgentProvider({ children }: AgentProviderProps) {
+       } else {
+         setAssignedAgent(null);
+       }
+-    } catch (e: any) {
++    } catch (e: unknown) {
+       if (!isAbortError(e)) {
+         console.error("Failed to fetch assigned agent", e);
+-        setAgentError(e?.message ?? "Failed to fetch assigned agent");
++        const errorMessage = e instanceof Error ? e.message : "Failed to fetch assigned agent";
++        setAgentError(errorMessage);
+         setAssignedAgent(null); // Safe fallback
+       }
+     } finally {
+@@ -97,7 +98,7 @@ export function AgentProvider({ children }: AgentProviderProps) {
+     }
+   }, []);
+ 
+-  const fetchClientList = useCallback(async (_signal?: AbortSignal) => {
++  const fetchClientList = useCallback(async () => {
+     setClientsLoading(true);
+     setClientsError(null);
+ 
+@@ -144,7 +145,7 @@ export function AgentProvider({ children }: AgentProviderProps) {
+   );
+ 
+   const performAssignAgent = useCallback(
+-    async (agentId: string, _signal?: AbortSignal) => {
++    async (agentId: string) => {
+       setAgentLoading(true);
+       setAgentError(null);
+ 
+diff --git a/Client/src/context/UserContext.tsx b/Client/src/context/UserContext.tsx
+index 28cd25e..cd5617c 100644
+--- a/Client/src/context/UserContext.tsx
++++ b/Client/src/context/UserContext.tsx
+@@ -128,14 +128,14 @@ export function UserProvider({ children }: UserProviderProps) {
+     const now = Date.now();
+     const cached = preferencesCacheRef.current;
+     if (cached && (now - cached.timestamp) < CACHE_TTL) {
+-      DEV && console.count("[USER_CONTEXT] Using cached preferences");
++      if (DEV) console.count("[USER_CONTEXT] Using cached preferences");
+       setUserPreferences(cached.data);
+       return;
+     }
+ 
+     // Return existing promise if already loading
+     if (preferencesPromiseRef.current) {
+-      DEV && console.count("[USER_CONTEXT] Waiting for existing preferences request");
++      if (DEV) console.count("[USER_CONTEXT] Waiting for existing preferences request");
+       return preferencesPromiseRef.current;
+     }
+ 
+@@ -211,7 +211,7 @@ export function UserProvider({ children }: UserProviderProps) {
+     console.log('[USER_CONTEXT] 📊 Profile enabled check:', { profileEnabled, authReady, hasUserId: !!user?.id });
+     
+     if (profileEnabled) {
+-      DEV && console.count("[USER_CONTEXT] Loading user profile for sidebar");
++      if (DEV) console.count("[USER_CONTEXT] Loading user profile for sidebar");
+       console.log('[USER_CONTEXT] 🚀 Calling refreshUserProfile()');
+       refreshUserProfile();
+     } else {
+@@ -219,7 +219,7 @@ export function UserProvider({ children }: UserProviderProps) {
+     }
+ 
+     if (preferencesEnabled) {
+-      DEV && console.count("[USER_CONTEXT] Loading user preferences");
++      if (DEV) console.count("[USER_CONTEXT] Loading user preferences");
+       refreshUserPreferences();
+     }
+   });
+diff --git a/Client/src/features/close/CloseLayout.tsx b/Client/src/features/close/CloseLayout.tsx
+index b30253a..4825f2b 100644
+--- a/Client/src/features/close/CloseLayout.tsx
++++ b/Client/src/features/close/CloseLayout.tsx
+@@ -68,7 +68,7 @@ export default function CloseLayout({
+   // Utility function to convert checked state to array of IDs
+   const idsFromChecked = (state: { [id: number]: boolean }) =>
+     Object.entries(state)
+-      .filter(([_, v]) => v)
++      .filter(([, v]) => v)
+       .map(([k]) => Number(k));
+ 
+   // Fetch existing checklist from API
+diff --git a/Client/src/features/onboardpersonalize/ImportantLocationsInput.tsx b/Client/src/features/onboardpersonalize/ImportantLocationsInput.tsx
+index 953117a..5582b1a 100644
+--- a/Client/src/features/onboardpersonalize/ImportantLocationsInput.tsx
++++ b/Client/src/features/onboardpersonalize/ImportantLocationsInput.tsx
+@@ -9,7 +9,7 @@ interface ImportantLocation {
+ }
+ 
+ interface Suggestion {
+-  placePrediction: any;
++  placePrediction: google.maps.places.PlacePrediction;
+   description: string;
+ }
+ 
+@@ -59,7 +59,7 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
+           );
+ 
+         setSuggestions(
+-          fetched.map((s: any) => ({
++          fetched.map((s: google.maps.places.AutocompleteSuggestion) => ({
+             description: s.placePrediction.text.text,
+             placePrediction: s.placePrediction,
+           }))
+diff --git a/Client/src/features/onboardpersonalize/OnPerDragDropPriorities.tsx b/Client/src/features/onboardpersonalize/OnPerDragDropPriorities.tsx
+index e016c54..402e255 100644
+--- a/Client/src/features/onboardpersonalize/OnPerDragDropPriorities.tsx
++++ b/Client/src/features/onboardpersonalize/OnPerDragDropPriorities.tsx
+@@ -34,7 +34,17 @@ const SortableReportSection: React.FC<SortableReportSectionProps> = ({
+   onToggle,
+   priority,
+ }) => {
+-  // Safety checks for props
++  // Always call hooks first before any conditional logic
++  const {
++    attributes,
++    listeners,
++    setNodeRef,
++    transform,
++    transition,
++    isDragging,
++  } = useSortable({ id: id || 'default' });
++
++  // Safety checks for props after hooks
+   if (
+     !id ||
+     !label ||
+@@ -50,15 +60,6 @@ const SortableReportSection: React.FC<SortableReportSectionProps> = ({
+     return null;
+   }
+ 
+-  const {
+-    attributes,
+-    listeners,
+-    setNodeRef,
+-    transform,
+-    transition,
+-    isDragging,
+-  } = useSortable({ id });
+-
+   const style = {
+     transform: CSS.Transform.toString(transform),
+     transition: isDragging ? "none" : transition,
+diff --git a/Client/src/features/onboardpersonalize/OnboardingHeader.tsx b/Client/src/features/onboardpersonalize/OnboardingHeader.tsx
+index 0dfd17f..3e16351 100644
+--- a/Client/src/features/onboardpersonalize/OnboardingHeader.tsx
++++ b/Client/src/features/onboardpersonalize/OnboardingHeader.tsx
+@@ -89,7 +89,9 @@ const OnboardingHeader: React.FC<OnboardingHeaderProps> = ({
+           if (outerRef.current) ro.unobserve(outerRef.current);
+           if (gridRef.current) ro.unobserve(gridRef.current);
+           ro.unobserve(document.documentElement);
+-        } catch {}
++        } catch {
++          // Ignore unobserve errors during cleanup
++        }
+       } else {
+         window.removeEventListener("resize", recalc);
+       }
+diff --git a/Client/src/hooks/useMapInitialization.ts b/Client/src/hooks/useMapInitialization.ts
+index d037573..e37faed 100644
+--- a/Client/src/hooks/useMapInitialization.ts
++++ b/Client/src/hooks/useMapInitialization.ts
+@@ -63,7 +63,7 @@ export const useMapInitialization = ({
+ 
+     const map = createMap(container);
+     if (!map) {
+-      // eslint-disable-next-line no-console
++       
+       console.error('❌ Failed to create Google Map');
+       return null;
+     }
+diff --git a/Client/src/hooks/useWhy.ts b/Client/src/hooks/useWhy.ts
+index 239d10c..2a4b3f0 100644
+--- a/Client/src/hooks/useWhy.ts
++++ b/Client/src/hooks/useWhy.ts
+@@ -11,7 +11,7 @@ export function useWhyRender(name: string, props: any) {
+       }
+     });
+     if (Object.keys(diffs).length) {
+-      // eslint-disable-next-line no-console
++       
+       console.log(`[WHY] ${name} changed`, diffs);
+     }
+     prev.current = props;
+diff --git a/Client/src/lib/addressFormat.ts b/Client/src/lib/addressFormat.ts
+index f424924..2d74222 100644
+--- a/Client/src/lib/addressFormat.ts
++++ b/Client/src/lib/addressFormat.ts
+@@ -20,7 +20,6 @@ export function formatFilenameToAddress(filename: string): string {
+   // Check for hexadecimal hash patterns (10+ characters, only 0-9 and a-f)
+   if (parts.length > 0 && /^[0-9a-f]{10,}$/i.test(parts[0])) {
+     parts = parts.slice(1);
+-  } else {
+   }
+ 
+   if (parts.length < 3) return parts.join(" ");
+diff --git a/Client/src/pages/HomeAuth/OnboardingPage.tsx b/Client/src/pages/HomeAuth/OnboardingPage.tsx
+index f700fac..1acb06d 100644
+--- a/Client/src/pages/HomeAuth/OnboardingPage.tsx
++++ b/Client/src/pages/HomeAuth/OnboardingPage.tsx
+@@ -756,7 +756,7 @@ export default function OnboardingPage() {
+           </div>
+         );
+ 
+-      case "reportcustomization":
++      case "reportcustomization": {
+         if (loading) {
+           return (
+             <div className="space-y-6">
+@@ -791,6 +791,7 @@ export default function OnboardingPage() {
+             onToggle={handleReportSectionToggle}
+           />
+         );
++      }
+ 
+       default:
+         return <div>Step content for {step.title} coming soon...</div>;
+diff --git a/Client/src/pages/HomeAuth/SignupPage.tsx b/Client/src/pages/HomeAuth/SignupPage.tsx
+index 9acd58a..e9d972d 100644
+--- a/Client/src/pages/HomeAuth/SignupPage.tsx
++++ b/Client/src/pages/HomeAuth/SignupPage.tsx
+@@ -68,10 +68,10 @@ const formatToE164 = (phoneNumber: string | undefined): string | undefined => {
+     return undefined;
+   }
+ 
+-  const cleaned = phoneNumber.replace(/[\s\-\(\)\.]/g, "");
++  const cleaned = phoneNumber.replace(/[\s\-().]/, "");
+ 
+   // Basic phone validation: digits and optional leading +
+-  if (!/^[\+]?[\d]+$/.test(cleaned)) {
++  if (!/^[+]?\d+$/.test(cleaned)) {
+     console.log(
+       "Phone autofill received invalid format, ignoring:",
+       phoneNumber
+diff --git a/Client/src/pages/Onboard/PersonalizationPage.tsx b/Client/src/pages/Onboard/PersonalizationPage.tsx
+index 073396e..0b18057 100644
+--- a/Client/src/pages/Onboard/PersonalizationPage.tsx
++++ b/Client/src/pages/Onboard/PersonalizationPage.tsx
+@@ -1281,7 +1281,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
+           </Card>
+         );
+ 
+-      case "reportcustomization":
++      case "reportcustomization": {
+         if (isLoading) {
+           return (
+             <Card className="space-y-6">
+@@ -1318,6 +1318,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
+             />
+           </Card>
+         );
++      }
+     }
+   };
+ 
+diff --git a/Client/src/pages/Search/SavedHomes.tsx b/Client/src/pages/Search/SavedHomes.tsx
+index b2cf345..f6dea0a 100644
+--- a/Client/src/pages/Search/SavedHomes.tsx
++++ b/Client/src/pages/Search/SavedHomes.tsx
+@@ -61,7 +61,7 @@ export default function SavedHomes() {
+   useEffect(() => {
+     fetchSavedHomes();
+     // Optionally expose refresh in dev
+-    // @ts-ignore
++    // @ts-expect-error - Adding debug method to global scope
+     window.refreshFavorites = fetchSavedHomes;
+   }, [fetchSavedHomes]);
+ 
+diff --git a/Client/src/services/reports.ts b/Client/src/services/reports.ts
+index 9b47555..ed57891 100644
+--- a/Client/src/services/reports.ts
++++ b/Client/src/services/reports.ts
+@@ -86,7 +86,7 @@ export class ReportComparisonService {
+     // JSON: user_id/json/type/filename.json
+ 
+     // Extract user_id, report_type, and filename from PDF key
+-    const pdfMatch = key.match(/^([^\/]+)\/reports\/([^\/]+)\/(.+)\.pdf$/);
++    const pdfMatch = key.match(/^([^/]+)\/reports\/([^/]+)\/(.+)\.pdf$/);
+     if (pdfMatch) {
+       const [, userId, reportType, filename] = pdfMatch;
+       return `${userId}/json/${reportType}/${filename}.json`;
+diff --git a/Client/src/types/api.ts b/Client/src/types/api.ts
+index d76d40c..4c4926d 100644
+--- a/Client/src/types/api.ts
++++ b/Client/src/types/api.ts
+@@ -2,14 +2,14 @@
+ 
+ export interface ApiSuccess<T> {
+   success: true;
+-  [k: string]: any;
++  [k: string]: unknown;
+   data?: T;
+ }
+ 
+ export interface ApiError {
+   success: false;
+   error?: string;
+-  [k: string]: any;
++  [k: string]: unknown;
+ }
+ 
+ export type ApiResponse<T> = ApiSuccess<T> | ApiError;
+diff --git a/Client/src/types/chat.ts b/Client/src/types/chat.ts
+index 541b720..2be67d4 100644
+--- a/Client/src/types/chat.ts
++++ b/Client/src/types/chat.ts
+@@ -1,9 +1,17 @@
+ // Chat and communication-related type definitions
+ 
++export interface ChatMessage {
++  id: string;
++  role: 'user' | 'assistant' | 'system';
++  content: string;
++  timestamp: Date;
++  metadata?: Record<string, unknown>;
++}
++
+ export interface Chat {
+   id: string;
+   title: string;
+   propertyAddress: string;
+-  messages: any[];
++  messages: ChatMessage[];
+   createdAt: Date;
+ }
+diff --git a/Client/src/types/property.ts b/Client/src/types/property.ts
+index 45dd3d0..8c7dacf 100644
+--- a/Client/src/types/property.ts
++++ b/Client/src/types/property.ts
+@@ -38,7 +38,7 @@ export interface SavedHome {
+   lat?: number;
+   lng?: number;
+   address?: string;
+-  [key: string]: any;
++  [key: string]: unknown;
+ }
+ 
+ export interface SearchQuery {
+@@ -108,7 +108,12 @@ export interface PropertyAnalysis {
+   pros: string[];
+   cons: string[];
+   neighborhood_overview?: string;
+-  crime_stats?: any;
++  crime_stats?: {
++    violent_crime?: number;
++    property_crime?: number;
++    overall_safety_score?: number;
++    trend?: 'improving' | 'stable' | 'declining';
++  };
+   gentrification_index?: number;
+   roi_explanation?: string;
+ }
+diff --git a/Client/src/types/reports.ts b/Client/src/types/reports.ts
+index 5ee7203..b033907 100644
+--- a/Client/src/types/reports.ts
++++ b/Client/src/types/reports.ts
+@@ -36,7 +36,13 @@ export interface Strategy {
+     action_items: string[];
+   }[];
+   market_analysis: {
+-    comparable_sales: any[];
++    comparable_sales: Array<{
++      address: string;
++      price: number;
++      sqft?: number;
++      days_on_market?: number;
++      sale_date?: string;
++    }>;
+     market_trends: string;
+     pricing_strategy: string;
+   };
+diff --git a/Client/src/types/search.ts b/Client/src/types/search.ts
+index 7b4a0ac..681eb7d 100644
+--- a/Client/src/types/search.ts
++++ b/Client/src/types/search.ts
+@@ -64,7 +64,7 @@ export interface SearchResult {
+   cooling?: string[];
+   appliances?: string[];
+   interiorFeatures?: string[];
+-  exteriorFeatures?: any;
++  exteriorFeatures?: string[];
+   lotFeatures?: string[];
+   communityFeatures?: string[];
+   parkingFeatures?: string[];
+@@ -72,7 +72,13 @@ export interface SearchResult {
+   inclusions?: string[];
+ 
+   // Room information
+-  rooms?: any[];
++  rooms?: Array<{
++    room_type?: string;
++    room_level?: string;
++    room_length?: number;
++    room_width?: number;
++    room_description?: string;
++  }>;
+   bathroomsFull?: number;
+   bathroomsHalf?: number;
+   bathroomsPartial?: number;
+@@ -95,7 +101,13 @@ export interface SearchResult {
+   parcelNumber?: string;
+ 
+   // Agent information
+-  contact_recipients?: any[];
++  contact_recipients?: Array<{
++    recipient_name?: string;
++    recipient_contact_phone?: string;
++    recipient_contact_phone_ext?: string;
++    recipient_contact_email?: string;
++    recipient_address?: string;
++  }>;
+   listed_by?: {
+     agent_reason?: number;
+     zpro?: boolean;
+@@ -139,7 +151,17 @@ export interface SearchResult {
+   }>;
+ 
+   // Nearby homes
+-  nearbyHomes?: any[];
++  nearbyHomes?: Array<{
++    address?: string;
++    price?: number;
++    beds?: number;
++    baths?: number;
++    sqft?: number;
++    lot_size?: number;
++    year_built?: number;
++    distance?: number;
++    status?: string;
++  }>;
+ 
+   // At a glance facts
+   atAGlanceFacts?: Array<{
+diff --git a/Client/src/types/user.ts b/Client/src/types/user.ts
+index 4a94509..24bf205 100644
+--- a/Client/src/types/user.ts
++++ b/Client/src/types/user.ts
+@@ -1,5 +1,13 @@
+ // User-related type definitions
+ 
++interface UserSubscription {
++  plan?: string;
++  status?: 'active' | 'inactive' | 'pending' | 'cancelled';
++  created_at?: string;
++  expires_at?: string;
++  features?: string[];
++}
++
+ export interface UserProfile {
+   id: string;
+   email: string;
+@@ -8,26 +16,118 @@ export interface UserProfile {
+   created_at: string | null;
+   is_active: boolean;
+   has_subscription: boolean;
+-  subscription: any;
++  subscription: UserSubscription;
+   has_preferences: boolean;
+   is_agent: boolean;
+   agent_id?: string;
+   client_ids?: string;
+ }
+ 
++interface Demographics {
++  age?: number;
++  age_range?: string;
++  marital_status?: string;
++  household_size?: number;
++  occupation?: string;
++  education_level?: string;
++  income_range?: string;
++}
++
++interface FinancialProfile {
++  annual_income?: number;
++  credit_score?: number;
++  debt_to_income?: number;
++  down_payment_amount?: number;
++  max_monthly_payment?: number;
++  pre_approval_amount?: number;
++  loan_type_preference?: string;
++}
++
++interface HousingPreferences {
++  property_type?: string[];
++  min_bedrooms?: number;
++  max_bedrooms?: number;
++  min_bathrooms?: number;
++  min_sqft?: number;
++  max_sqft?: number;
++  preferred_features?: string[];
++  must_have_features?: string[];
++  deal_breakers?: string[];
++}
++
++interface LocationPreferences {
++  preferred_cities?: string[];
++  preferred_neighborhoods?: string[];
++  max_commute_time?: number;
++  important_locations?: Array<{
++    name: string;
++    address: string;
++    commute_tolerance?: number;
++  }>;
++  school_district_importance?: 'high' | 'medium' | 'low';
++  walkability_importance?: 'high' | 'medium' | 'low';
++}
++
++interface LifestylePreferences {
++  lifestyle_type?: 'urban' | 'suburban' | 'rural';
++  outdoor_activities?: string[];
++  indoor_activities?: string[];
++  social_preferences?: string[];
++  pet_ownership?: boolean;
++  children?: boolean;
++}
++
++interface BehavioralPatterns {
++  search_frequency?: string;
++  decision_making_style?: 'analytical' | 'intuitive' | 'collaborative';
++  communication_preference?: 'email' | 'phone' | 'text' | 'in-person';
++  viewing_preferences?: string[];
++}
++
++interface RealEstatePreferences {
++  buying_timeline?: string;
++  first_time_buyer?: boolean;
++  investment_property?: boolean;
++  move_in_ready?: boolean;
++  renovation_willingness?: 'high' | 'medium' | 'low' | 'none';
++  market_knowledge?: 'beginner' | 'intermediate' | 'advanced';
++}
++
++interface AgentPreferences {
++  preferred_communication_style?: string;
++  meeting_frequency?: string;
++  experience_level_preference?: string;
++  specialization_preferences?: string[];
++  language_preferences?: string[];
++}
++
++interface UserValues {
++  priorities?: string[];
++  important_factors?: string[];
++  lifestyle_values?: string[];
++  financial_goals?: string[];
++}
++
++interface EmotionalSignals {
++  stress_level?: 'low' | 'medium' | 'high';
++  excitement_level?: 'low' | 'medium' | 'high';
++  confidence_level?: 'low' | 'medium' | 'high';
++  urgency_level?: 'low' | 'medium' | 'high';
++}
++
+ export interface UserPreferences {
+-  demographics?: any;
+-  financial_profile?: any;
+-  housing_preferences?: any;
+-  location_preferences?: any;
+-  lifestyle_preferences?: any;
+-  behavioral_patterns?: any;
+-  real_estate?: any;
+-  agent_preferences?: any;
+-  values?: any;
+-  emotional_signals?: any;
+-  report_section_priorities?: any;
+-  [key: string]: any;
++  demographics?: Demographics;
++  financial_profile?: FinancialProfile;
++  housing_preferences?: HousingPreferences;
++  location_preferences?: LocationPreferences;
++  lifestyle_preferences?: LifestylePreferences;
++  behavioral_patterns?: BehavioralPatterns;
++  real_estate?: RealEstatePreferences;
++  agent_preferences?: AgentPreferences;
++  values?: UserValues;
++  emotional_signals?: EmotionalSignals;
++  report_section_priorities?: string[];
++  [key: string]: unknown;
+ }
+ 
+ export interface Agent {
+@@ -53,7 +153,7 @@ export interface Activity {
+   description: string;
+   entity_type: string; // 'report', 'offer', 'document', etc.
+   entity_id: string;
+-  metadata?: any;
++  metadata?: Record<string, unknown>;
+   created_at: Date;
+ }
+ 

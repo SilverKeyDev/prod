@@ -1,6 +1,18 @@
 import { apiGet, apiPost, buildApiUrl } from './utils/index';
 
 // Types for search API
+interface PropertyComp {
+  address: string;
+  price: number;
+  beds?: number;
+  baths?: number;
+  sqft?: number;
+  lot_size?: number;
+  year_built?: number;
+  distance?: number;
+  sale_date?: string;
+}
+
 export interface PropertyCompsRequest {
   address: string;
   radius?: number;
@@ -9,7 +21,7 @@ export interface PropertyCompsRequest {
 
 export interface PropertyCompsResponse {
   success: boolean;
-  comps?: any[];
+  comps?: PropertyComp[];
   error?: string;
 }
 
@@ -17,14 +29,71 @@ export interface PropertyRequest {
   address: string;
 }
 
+interface SearchQuery {
+  address: string;
+  filters?: Record<string, unknown>;
+}
+
+interface PropertyData {
+  address?: string;
+  price?: number;
+  beds?: number;
+  baths?: number;
+  sqft?: number;
+  lot_size?: number;
+  year_built?: number;
+  property_type?: string;
+  status?: string;
+  description?: string;
+  features?: string[];
+  [key: string]: unknown;
+}
+
+interface PropertyFeatures {
+  interior?: string[];
+  exterior?: string[];
+  appliances?: string[];
+  heating_cooling?: string[];
+  parking?: string[];
+  lot?: string[];
+}
+
+interface CommuteData {
+  destinations?: Array<{
+    name: string;
+    address: string;
+    distance?: number;
+    duration?: number;
+    mode?: string;
+  }>;
+  transit_score?: number;
+  walkability_score?: number;
+}
+
+interface PropertyAnalysis {
+  summary?: string;
+  pros?: string[];
+  cons?: string[];
+  market_analysis?: string;
+  investment_potential?: string;
+  neighborhood_info?: string;
+}
+
+interface ImageFeatures {
+  exterior_photos?: string[];
+  interior_photos?: string[];
+  analyzed_features?: string[];
+  property_condition?: string;
+}
+
 export interface PropertyResponse {
   success: boolean;
-  query?: any;
-  data?: any;
-  features?: any;
-  commute_data?: any;
-  property_analysis?: any;
-  image_features?: any;
+  query?: SearchQuery;
+  data?: PropertyData;
+  features?: PropertyFeatures;
+  commute_data?: CommuteData;
+  property_analysis?: PropertyAnalysis;
+  image_features?: ImageFeatures;
   zillow_url?: string;
   images?: string[];
   error?: string;
@@ -51,9 +120,23 @@ export interface PolygonSearchRequest {
   perBucketPages?: number;
 }
 
+interface SearchProperty {
+  id: string;
+  address: string;
+  price: number;
+  beds?: number;
+  baths?: number;
+  sqft?: number;
+  lat?: number;
+  lng?: number;
+  images?: string[];
+  features?: string[];
+  status?: string;
+}
+
 export interface PolygonSearchResponse {
   success: boolean;
-  properties?: any[];
+  properties?: SearchProperty[];
   total_count?: number;
   has_more?: boolean;
   error?: string;
@@ -73,7 +156,14 @@ export interface IsochroneResponse {
       name: string;
       address: string;
       commute_tolerance: number;
-      isochrone: any;
+      isochrone: {
+        type: string;
+        geometry: {
+          type: string;
+          coordinates: number[][][];
+        };
+        properties?: Record<string, unknown>;
+      };
     }>;
     center: {
       lat: number;

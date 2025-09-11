@@ -19,7 +19,7 @@ export const secureUploadApi = {
   /**
    * Upload a document file
    */
-  uploadDocument: (file: File, metadata?: Record<string, any>): Promise<UploadResponse> => {
+  uploadDocument: (file: File, metadata?: Record<string, unknown>): Promise<UploadResponse> => {
     const formData = new FormData();
     formData.append('file', file);
     if (metadata) {
@@ -31,7 +31,7 @@ export const secureUploadApi = {
   /**
    * Upload an image file
    */
-  uploadImage: (file: File, metadata?: Record<string, any>): Promise<UploadResponse> => {
+  uploadImage: (file: File, metadata?: Record<string, unknown>): Promise<UploadResponse> => {
     const formData = new FormData();
     formData.append('file', file);
     if (metadata) {

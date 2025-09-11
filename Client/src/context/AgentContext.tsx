@@ -75,7 +75,7 @@ export function AgentProvider({ children }: AgentProviderProps) {
      Fetchers
      ========================= */
 
-  const fetchAssignedAgent = useCallback(async (_signal?: AbortSignal) => {
+  const fetchAssignedAgent = useCallback(async () => {
     setAgentLoading(true);
     setAgentError(null);
 
@@ -86,10 +86,11 @@ export function AgentProvider({ children }: AgentProviderProps) {
       } else {
         setAssignedAgent(null);
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (!isAbortError(e)) {
         console.error("Failed to fetch assigned agent", e);
-        setAgentError(e?.message ?? "Failed to fetch assigned agent");
+        const errorMessage = e instanceof Error ? e.message : "Failed to fetch assigned agent";
+        setAgentError(errorMessage);
         setAssignedAgent(null); // Safe fallback
       }
     } finally {
@@ -97,7 +98,7 @@ export function AgentProvider({ children }: AgentProviderProps) {
     }
   }, []);
 
-  const fetchClientList = useCallback(async (_signal?: AbortSignal) => {
+  const fetchClientList = useCallback(async () => {
     setClientsLoading(true);
     setClientsError(null);
 
@@ -144,7 +145,7 @@ export function AgentProvider({ children }: AgentProviderProps) {
   );
 
   const performAssignAgent = useCallback(
-    async (agentId: string, _signal?: AbortSignal) => {
+    async (agentId: string) => {
       setAgentLoading(true);
       setAgentError(null);
 

@@ -22,6 +22,11 @@ export interface LoginData {
   password: string;
 }
 
+interface CodeDeliveryDetails {
+  destination?: string;
+  delivery_medium?: string;
+}
+
 export interface AuthResponse {
   success: boolean;
   access_token?: string;
@@ -37,7 +42,7 @@ export interface AuthResponse {
   verification_complete?: boolean;
   login_failed?: boolean;
   auto_login_failed?: boolean;
-  code_delivery?: any;
+  code_delivery?: CodeDeliveryDetails;
 }
 
 /**

@@ -36,7 +36,13 @@ export interface Strategy {
     action_items: string[];
   }[];
   market_analysis: {
-    comparable_sales: any[];
+    comparable_sales: Array<{
+      address: string;
+      price: number;
+      sqft?: number;
+      days_on_market?: number;
+      sale_date?: string;
+    }>;
     market_trends: string;
     pricing_strategy: string;
   };
