@@ -9,13 +9,9 @@ interface PersonalizationMobileHeaderProps {
   onSave: () => void;
 }
 
-const PersonalizationMobileHeader: React.FC<PersonalizationMobileHeaderProps> = ({
-  isEditMode,
-  isSaving,
-  onEdit,
-  onCancel,
-  onSave,
-}) => {
+const PersonalizationMobileHeader: React.FC<
+  PersonalizationMobileHeaderProps
+> = ({ isEditMode, isSaving, onEdit, onCancel, onSave }) => {
   if (!isEditMode) {
     return (
       <div className="flex justify-center w-full px-4">

@@ -17,7 +17,7 @@ export interface OfferDraft {
   exclusions: string[];
   special_terms?: string;
   cover_letter?: string;
-  status: 'draft' | 'submitted' | 'accepted' | 'rejected' | 'countered';
+  status: "draft" | "submitted" | "accepted" | "rejected" | "countered";
   created_at: Date;
   updated_at: Date;
 }

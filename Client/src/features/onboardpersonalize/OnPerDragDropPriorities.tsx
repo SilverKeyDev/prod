@@ -34,6 +34,16 @@ const SortableReportSection: React.FC<SortableReportSectionProps> = ({
   onToggle,
   priority,
 }) => {
+  // Always call hooks first before any early returns
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id });
+
   // Safety checks for props
   if (
     !id ||
@@ -49,15 +59,6 @@ const SortableReportSection: React.FC<SortableReportSectionProps> = ({
     });
     return null;
   }
-
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -161,7 +162,7 @@ const OnPerDragDropPriorities: React.FC<OnPerDragDropPrioritiesProps> = ({
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    })
+    }),
   );
 
   if (isLoading) {

@@ -43,8 +43,16 @@ export const TIMELINE_STEPS: Step[] = [
     name: "Onboard",
     icon: ClipboardList,
     subSteps: [
-      { name: "Personalization", href: "/dashboard/personalization", icon: UserIcon },
-      { name: "Get Pre-Approved", href: "/dashboard/get-preapproved", icon: BadgeCheck },
+      {
+        name: "Personalization",
+        href: "/dashboard/personalization",
+        icon: UserIcon,
+      },
+      {
+        name: "Get Pre-Approved",
+        href: "/dashboard/get-preapproved",
+        icon: BadgeCheck,
+      },
     ],
   },
   {
@@ -61,10 +69,22 @@ export const TIMELINE_STEPS: Step[] = [
     name: "Decide",
     icon: Split,
     subSteps: [
-      { name: "Generate Report", href: "/dashboard/generate-report", icon: FilePlus },
+      {
+        name: "Generate Report",
+        href: "/dashboard/generate-report",
+        icon: FilePlus,
+      },
       { name: "Past Reports", href: "/dashboard/reports", icon: FileText },
-      { name: "Compare Reports", href: "/dashboard/compare-reports", icon: BarChart2 },
-      { name: "AI Assistant", href: "/dashboard/ai-assistant", icon: MessageCircle },
+      {
+        name: "Compare Reports",
+        href: "/dashboard/compare-reports",
+        icon: BarChart2,
+      },
+      {
+        name: "AI Assistant",
+        href: "/dashboard/ai-assistant",
+        icon: MessageCircle,
+      },
     ],
   },
   {
@@ -72,7 +92,11 @@ export const TIMELINE_STEPS: Step[] = [
     name: "Negotiate",
     icon: Handshake,
     subSteps: [
-      { name: "Negotiation Strategy", href: "/dashboard/negotiation-strategy", icon: Brain },
+      {
+        name: "Negotiation Strategy",
+        href: "/dashboard/negotiation-strategy",
+        icon: Brain,
+      },
       { name: "Draft Offer", href: "/dashboard/draft-offer", icon: FileText },
     ],
   },
@@ -81,30 +105,48 @@ export const TIMELINE_STEPS: Step[] = [
     name: "Close",
     icon: Key,
     subSteps: [
-      { name: "Escrow & Legal", href: "/dashboard/escrow-legal-logistics", icon: Scale },
-      { name: "Inspections & Due Diligence", href: "/dashboard/inspections-due-diligence", icon: ShieldCheck },
-      { name: "Financing & Insurance", href: "/dashboard/financing-insurance", icon: Building2 },
-      { name: "Closing & Move-In", href: "/dashboard/closing-moving-in", icon: KeyRound },
+      {
+        name: "Escrow & Legal",
+        href: "/dashboard/escrow-legal-logistics",
+        icon: Scale,
+      },
+      {
+        name: "Inspections & Due Diligence",
+        href: "/dashboard/inspections-due-diligence",
+        icon: ShieldCheck,
+      },
+      {
+        name: "Financing & Insurance",
+        href: "/dashboard/financing-insurance",
+        icon: Building2,
+      },
+      {
+        name: "Closing & Move-In",
+        href: "/dashboard/closing-moving-in",
+        icon: KeyRound,
+      },
     ],
   },
 ];
 
 interface TimelineChecklistProps {
   completedStepKey?: string; // inclusive key of last completed step
-  variant?: 'horizontal' | 'vertical'; // New prop to control layout
+  variant?: "horizontal" | "vertical"; // New prop to control layout
 }
 
-const TimelineChecklist: React.FC<TimelineChecklistProps> = ({ 
-  completedStepKey, 
-  variant = 'vertical' 
+const TimelineChecklist: React.FC<TimelineChecklistProps> = ({
+  completedStepKey,
+  variant = "vertical",
 }) => {
   const location = useLocation();
   const [openKey, setOpenKey] = useState<string | null>(null);
 
-  const completedIndex = TIMELINE_STEPS.findIndex((s) => s.key === completedStepKey);
+  const completedIndex = TIMELINE_STEPS.findIndex(
+    (s) => s.key === completedStepKey,
+  );
 
   // Horizontal timeline progress (from TimelineProgress)
-  if (variant === 'horizontal') {
+  if (variant === "horizontal") {
     return (
       <div className="mobile-container">
         {/* Timeline grid: each column contains main + substeps */}
@@ -127,7 +169,10 @@ const TimelineChecklist: React.FC<TimelineChecklistProps> = ({
                     className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 rounded-full flex items-center justify-center transition-colors bg-olive text-white touch-manipulation"
                     title={step.name}
                   >
-                    <StepIcon className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 lg:w-6 lg:h-6" color="white" />
+                    <StepIcon
+                      className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 lg:w-6 lg:h-6"
+                      color="white"
+                    />
                   </Link>
 
                   {/* Step name - hidden on mobile */}
@@ -196,16 +241,24 @@ const TimelineChecklist: React.FC<TimelineChecklistProps> = ({
             <button
               onClick={() => setOpenKey(isOpen ? null : step.key)}
               className={`w-full flex items-center justify-between p-2 sm:p-3 rounded-lg border transition-colors touch-manipulation ${
-                isCompleted ? "bg-green-100 border-green-300" : "bg-white border-gray-200"
+                isCompleted
+                  ? "bg-green-100 border-green-300"
+                  : "bg-white border-gray-200"
               }`}
             >
               <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
                 <span className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center bg-brown flex-shrink-0">
                   <StepIcon className="w-4 h-4 sm:w-5 sm:h-5" color="white" />
                 </span>
-                <span className="font-medium text-brown-dark text-xs sm:text-base truncate">{step.name}</span>
+                <span className="font-medium text-brown-dark text-xs sm:text-base truncate">
+                  {step.name}
+                </span>
               </div>
-              {isOpen ? <ChevronUp className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" /> : <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />}
+              {isOpen ? (
+                <ChevronUp className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+              ) : (
+                <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+              )}
             </button>
 
             {/* Progress bar line */}
@@ -229,7 +282,9 @@ const TimelineChecklist: React.FC<TimelineChecklistProps> = ({
                       }`}
                     >
                       <SubIcon className="w-3 h-3 sm:w-4 sm:h-4 text-brown flex-shrink-0" />
-                      <span className="text-[10px] sm:text-sm truncate">{sub.name}</span>
+                      <span className="text-[10px] sm:text-sm truncate">
+                        {sub.name}
+                      </span>
                     </Link>
                   );
                 })}

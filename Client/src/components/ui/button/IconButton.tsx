@@ -30,7 +30,7 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
       disabled,
       ...props
     },
-    ref
+    ref,
   ) => {
     // Base styles that apply to all icon buttons
     const baseStyles =
@@ -99,7 +99,7 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
         {loading ? <KeyTurnLoader message="" /> : icon}
       </button>
     );
-  }
+  },
 );
 
 IconButton.displayName = "IconButton";

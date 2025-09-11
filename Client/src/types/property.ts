@@ -1,7 +1,6 @@
 // Property-related type definitions
 
-import type { Agent } from './user';
-
+import type { Agent } from "./user";
 
 export interface Property {
   id: string;
@@ -71,7 +70,7 @@ export interface PriceHistory {
   property_id: string;
   price: number;
   date: Date;
-  event_type: 'listed' | 'price_change' | 'sold' | 'withdrawn';
+  event_type: "listed" | "price_change" | "sold" | "withdrawn";
   source: string;
 }
 

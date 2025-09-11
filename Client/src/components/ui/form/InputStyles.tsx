@@ -12,7 +12,12 @@ interface InputStylesProps {
   isOpen?: boolean;
   onClick?: () => void;
   className?: string;
-  type?: 'input' | 'dropdown-trigger' | 'dropdown-option' | 'dropdown-container' | 'shared-text';
+  type?:
+    | "input"
+    | "dropdown-trigger"
+    | "dropdown-option"
+    | "dropdown-container"
+    | "shared-text";
   isSelected?: boolean;
   isFirstOption?: boolean;
 }
@@ -115,11 +120,7 @@ const InputStyles: React.FC<InputStylesProps> = ({
   }
 
   if (type === "input") {
-    return (
-      <input className={`${getStyles()} ${className}`}>
-        {children}
-      </input>
-    );
+    return <input className={`${getStyles()} ${className}`}>{children}</input>;
   }
 
   return <div className={`${getStyles()} ${className}`}>{children}</div>;

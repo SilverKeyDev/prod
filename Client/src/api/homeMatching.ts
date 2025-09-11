@@ -1,9 +1,9 @@
-import { apiPost, apiGet } from './utils/index';
+import { apiPost, apiGet } from "./utils/index";
 
 // Types for home matching API
 export interface HomeMatchingRequest {
-  user_data: Record<string, any>;
-  homes_data: any[];
+  user_data: Record<string, unknown>;
+  homes_data: Record<string, unknown>[];
   top_k?: number;
   include_explanations?: boolean;
   method_weights?: {
@@ -29,9 +29,9 @@ export interface HomeMatchingResponse {
 export interface TaskStatusResponse {
   success: boolean;
   task_id: string;
-  status: 'SUCCESS' | 'PENDING' | 'PROGRESS' | 'FAILURE';
-  result?: any;
-  meta?: any;
+  status: "SUCCESS" | "PENDING" | "PROGRESS" | "FAILURE";
+  result?: Record<string, unknown>;
+  meta?: Record<string, unknown>;
   message?: string;
   error?: string;
 }
@@ -44,7 +44,7 @@ export const homeMatchingApi = {
    * Start a background task to find the best home matches for a user
    */
   findMatches: (data: HomeMatchingRequest): Promise<HomeMatchingResponse> =>
-    apiPost<HomeMatchingResponse>('/api/home-matching/find-matches', data),
+    apiPost<HomeMatchingResponse>("/api/home-matching/find-matches", data),
 
   /**
    * Get the status of a home matching task

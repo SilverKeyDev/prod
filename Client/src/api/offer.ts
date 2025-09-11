@@ -1,5 +1,5 @@
-import { apiPost } from './utils/index';
-import { PropertyAnalysis } from '../types';
+import { apiPost } from "./utils/index";
+import { PropertyAnalysis } from "../types";
 
 // Types for offer/negotiation API
 export interface NegotiationStrategyRequest {
@@ -39,7 +39,7 @@ export interface CommuteData {
 
 export interface NegotiationStrategyResponse {
   success: boolean;
-  strategy: any;
+  strategy: Record<string, unknown>;
   property_address: string;
   strategy_id: string;
   filename: string;
@@ -100,31 +100,42 @@ export const offerApi = {
   /**
    * Generate a negotiation strategy for a specific property
    */
-  generateStrategy: (data: NegotiationStrategyRequest): Promise<NegotiationStrategyResponse> =>
-    apiPost<NegotiationStrategyResponse>('/api/v1/offer/generate-strategy', data, { timeout: 300000 }),
+  generateStrategy: (
+    data: NegotiationStrategyRequest,
+  ): Promise<NegotiationStrategyResponse> =>
+    apiPost<NegotiationStrategyResponse>(
+      "/api/v1/offer/generate-strategy",
+      data,
+      { timeout: 300000 },
+    ),
 
   /**
    * Generate a purchase agreement document
    */
-  generatePurchaseAgreement: (data: PurchaseAgreementRequest): Promise<DocumentResponse> =>
-    apiPost<DocumentResponse>('/api/v1/offer/purchase-agreement', data),
+  generatePurchaseAgreement: (
+    data: PurchaseAgreementRequest,
+  ): Promise<DocumentResponse> =>
+    apiPost<DocumentResponse>("/api/v1/offer/purchase-agreement", data),
 
   /**
    * Generate a pre-approval letter
    */
-  generatePreApprovalLetter: (data: PreApprovalLetterRequest): Promise<DocumentResponse> =>
-    apiPost<DocumentResponse>('/api/v1/offer/pre-approval-letter', data),
+  generatePreApprovalLetter: (
+    data: PreApprovalLetterRequest,
+  ): Promise<DocumentResponse> =>
+    apiPost<DocumentResponse>("/api/v1/offer/pre-approval-letter", data),
 
   /**
    * Generate earnest money instructions
    */
-  generateEarnestMoneyInstructions: (data: EarnestMoneyRequest): Promise<DocumentResponse> =>
-    apiPost<DocumentResponse>('/api/v1/offer/earnest-money-instructions', data),
+  generateEarnestMoneyInstructions: (
+    data: EarnestMoneyRequest,
+  ): Promise<DocumentResponse> =>
+    apiPost<DocumentResponse>("/api/v1/offer/earnest-money-instructions", data),
 
   /**
    * Generate a cover letter for the offer
    */
   generateCoverLetter: (data: CoverLetterRequest): Promise<DocumentResponse> =>
-    apiPost<DocumentResponse>('/api/v1/offer/cover-letter', data),
-
+    apiPost<DocumentResponse>("/api/v1/offer/cover-letter", data),
 };

@@ -48,7 +48,6 @@ interface ClientData {
   preferences: any;
 }
 
-
 const ClientIntelPage: React.FC = () => {
   const [clientData, setClientData] = useState<ClientData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -88,7 +87,10 @@ const ClientIntelPage: React.FC = () => {
         }));
         setClientData(mappedData);
       } else {
-        console.error("Failed to fetch client data:", data.message || data.error);
+        console.error(
+          "Failed to fetch client data:",
+          data.message || data.error,
+        );
       }
     } catch (error) {
       console.error("Error fetching client data:", error);
@@ -120,7 +122,7 @@ const ClientIntelPage: React.FC = () => {
   const handleActionPlan = async (client: ClientData) => {
     if (!client.has_preferences) {
       alert(
-        `${client.name} needs to complete their preferences setup before generating an action plan.`
+        `${client.name} needs to complete their preferences setup before generating an action plan.`,
       );
       return;
     }
@@ -130,16 +132,23 @@ const ClientIntelPage: React.FC = () => {
     setShowActionPlanModal(true);
 
     try {
-      const data = await apiPost(`/api/v1/preferences/action-plan/${client.id}`);
+      const data = await apiPost(
+        `/api/v1/preferences/action-plan/${client.id}`,
+      );
       if (data.success) {
-        setActionPlanData(data.action_plan || "Action plan generated successfully!");
+        setActionPlanData(
+          data.action_plan || "Action plan generated successfully!",
+        );
       } else {
-        console.error("Failed to generate action plan:", data.message || data.error);
+        console.error(
+          "Failed to generate action plan:",
+          data.message || data.error,
+        );
       }
     } catch (error) {
       console.error("Error generating action plan:", error);
       alert(
-        "Network error occurred while generating action plan. Please try again."
+        "Network error occurred while generating action plan. Please try again.",
       );
       setShowActionPlanModal(false);
     } finally {
@@ -153,9 +162,9 @@ const ClientIntelPage: React.FC = () => {
     const content =
       `ACTION PLAN - ${actionPlanData.client_name}\n` +
       `Generated on: ${new Date(
-        actionPlanData.generated_at
+        actionPlanData.generated_at,
       ).toLocaleDateString()} at ${new Date(
-        actionPlanData.generated_at
+        actionPlanData.generated_at,
       ).toLocaleTimeString()}\n` +
       `\n${"=".repeat(60)}\n\n` +
       actionPlanData.action_plan;
@@ -236,7 +245,7 @@ const ClientIntelPage: React.FC = () => {
     // Convert to CSV
     const csvContent = rows
       .map((row) =>
-        row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",")
+        row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","),
       )
       .join("\n");
 
@@ -247,7 +256,7 @@ const ClientIntelPage: React.FC = () => {
     link.href = url;
     link.setAttribute(
       "download",
-      `${selectedClient.name.replace(/\s+/g, "_")}_preferences.csv`
+      `${selectedClient.name.replace(/\s+/g, "_")}_preferences.csv`,
     );
     document.body.appendChild(link);
     link.click();
@@ -560,11 +569,11 @@ const ClientIntelPage: React.FC = () => {
                           <span>
                             Generated on{" "}
                             {new Date(
-                              actionPlanData.generated_at
+                              actionPlanData.generated_at,
                             ).toLocaleDateString()}{" "}
                             at{" "}
                             {new Date(
-                              actionPlanData.generated_at
+                              actionPlanData.generated_at,
                             ).toLocaleTimeString()}
                           </span>
                         )}
@@ -617,7 +626,7 @@ const UserPreferencesTable: React.FC<UserPreferencesTableProps> = ({
         (value[0].name || value[0].address)
       ) {
         return value
-          .map((item: any) => {
+          .map((item: unknown) => {
             if (item.name && item.address) {
               return `${item.name} (${item.address})`;
             } else if (item.name) {
@@ -681,13 +690,13 @@ const UserPreferencesTable: React.FC<UserPreferencesTableProps> = ({
     "extra_tips",
   ];
 
-  const renderSection = (title: string, data: any) => {
+  const renderSection = (title: string, data: unknown) => {
     if (!data || typeof data !== "object") {
       return null;
     }
 
     const entries = Object.entries(data).filter(
-      ([_, value]) => value !== null && value !== undefined && value !== ""
+      ([_, value]) => value !== null && value !== undefined && value !== "",
     );
 
     if (entries.length === 0) {
@@ -730,12 +739,12 @@ const UserPreferencesTable: React.FC<UserPreferencesTableProps> = ({
             .replace(/\b\w/g, (l) => l.toUpperCase());
           const displayName = `${index + 1}. ${name}`;
           return { key: sectionKey, displayName };
-        }
+        },
       );
 
       // Find disabled sections (sections in VALID_REPORT_SECTIONS but not in priorities)
       const disabledSections = VALID_REPORT_SECTIONS.filter(
-        (section) => !prioritizedSections.includes(section)
+        (section) => !prioritizedSections.includes(section),
       ).map((sectionKey) => {
         const name = sectionKey
           .replace(/_/g, " ")
@@ -773,7 +782,7 @@ const UserPreferencesTable: React.FC<UserPreferencesTableProps> = ({
                       >
                         <span className="font-medium">{displayName}</span>
                       </div>
-                    )
+                    ),
                   )}
                 </div>
               </div>
@@ -803,7 +812,7 @@ const UserPreferencesTable: React.FC<UserPreferencesTableProps> = ({
                       >
                         <span className="font-medium">{displayName}</span>
                       </div>
-                    )
+                    ),
                   )}
                 </div>
               </div>

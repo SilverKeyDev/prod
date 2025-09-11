@@ -60,7 +60,8 @@ const ValidationWarning: React.FC<ValidationWarningProps> = ({
               Complete Required Information
             </h3>
             <p className="text-responsive-sm text-gray-600">
-              Please fill in the missing fields to continue with your onboarding.
+              Please fill in the missing fields to continue with your
+              onboarding.
             </p>
           </div>
 
@@ -75,7 +76,9 @@ const ValidationWarning: React.FC<ValidationWarningProps> = ({
                   {missingFields.map((field, index) => (
                     <li key={index} className="flex items-center gap-2">
                       <div className="w-1.5 h-1.5 bg-amber-500 rounded-full flex-shrink-0" />
-                      <span className="text-sm text-amber-800 font-medium">{field}</span>
+                      <span className="text-sm text-amber-800 font-medium">
+                        {field}
+                      </span>
                     </li>
                   ))}
                 </ul>

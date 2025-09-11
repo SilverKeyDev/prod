@@ -1,6 +1,6 @@
-import { apiPost } from './utils/index';
-import { log } from '../lib/security/secureLogger';
-import { reportSecurityEvent } from '../lib/security/errorReporting';
+import { apiPost } from "./utils/index";
+import { log } from "../lib/security/secureLogger";
+import { reportSecurityEvent } from "../lib/security/errorReporting";
 
 // Types for authentication API
 export interface SignupData {
@@ -37,7 +37,7 @@ export interface AuthResponse {
   verification_complete?: boolean;
   login_failed?: boolean;
   auto_login_failed?: boolean;
-  code_delivery?: any;
+  code_delivery?: Record<string, unknown>;
 }
 
 /**
@@ -48,20 +48,20 @@ export const authApi = {
    * Register a new user
    */
   signup: async (data: SignupData): Promise<AuthResponse> => {
-    log.security('AUTH_API', 'User signup attempt', { email: data.email });
-    const response = await apiPost<AuthResponse>('/api/v1/auth/signup', data);
-    
+    log.security("AUTH_API", "User signup attempt", { email: data.email });
+    const response = await apiPost<AuthResponse>("/api/v1/auth/signup", data);
+
     if (response.success) {
-      log.security('AUTH_API', 'User signup successful', { email: data.email });
+      log.security("AUTH_API", "User signup successful", { email: data.email });
     } else {
       reportSecurityEvent({
-        type: 'authentication_failure',
-        severity: 'medium',
-        description: 'User signup failed',
-        metadata: { email: data.email, error: response.error }
+        type: "authentication_failure",
+        severity: "medium",
+        description: "User signup failed",
+        metadata: { email: data.email, error: response.error },
       });
     }
-    
+
     return response;
   },
 
@@ -69,20 +69,24 @@ export const authApi = {
    * Verify user's email with code and automatically log them in
    */
   verify: async (data: VerifyData): Promise<AuthResponse> => {
-    log.security('AUTH_API', 'Email verification attempt', { email: data.email });
-    const response = await apiPost<AuthResponse>('/api/v1/auth/verify', data);
-    
+    log.security("AUTH_API", "Email verification attempt", {
+      email: data.email,
+    });
+    const response = await apiPost<AuthResponse>("/api/v1/auth/verify", data);
+
     if (response.success && response.verification_complete) {
-      log.security('AUTH_API', 'Email verification successful', { email: data.email });
+      log.security("AUTH_API", "Email verification successful", {
+        email: data.email,
+      });
     } else {
       reportSecurityEvent({
-        type: 'authentication_failure',
-        severity: 'medium',
-        description: 'Email verification failed',
-        metadata: { email: data.email, error: response.error }
+        type: "authentication_failure",
+        severity: "medium",
+        description: "Email verification failed",
+        metadata: { email: data.email, error: response.error },
       });
     }
-    
+
     return response;
   },
 
@@ -90,26 +94,30 @@ export const authApi = {
    * Resend verification code to user's email
    */
   resendCode: (email: string): Promise<AuthResponse> =>
-    apiPost<AuthResponse>('/api/v1/auth/resend-code', { email }),
+    apiPost<AuthResponse>("/api/v1/auth/resend-code", { email }),
 
   /**
    * Authenticate user and return Cognito JWT tokens
    */
   login: async (data: LoginData): Promise<AuthResponse> => {
-    log.security('AUTH_API', 'User login attempt', { email: data.email });
-    const response = await apiPost<AuthResponse>('/api/v1/auth/login', data);
-    
+    log.security("AUTH_API", "User login attempt", { email: data.email });
+    const response = await apiPost<AuthResponse>("/api/v1/auth/login", data);
+
     if (response.success && response.access_token) {
-      log.security('AUTH_API', 'User login successful', { email: data.email });
+      log.security("AUTH_API", "User login successful", { email: data.email });
     } else {
       reportSecurityEvent({
-        type: 'authentication_failure',
-        severity: response.login_failed ? 'high' : 'medium',
-        description: 'User login failed',
-        metadata: { email: data.email, error: response.error, loginFailed: response.login_failed }
+        type: "authentication_failure",
+        severity: response.login_failed ? "high" : "medium",
+        description: "User login failed",
+        metadata: {
+          email: data.email,
+          error: response.error,
+          loginFailed: response.login_failed,
+        },
       });
     }
-    
+
     return response;
   },
 
@@ -117,45 +125,55 @@ export const authApi = {
    * Initiate forgot password flow
    */
   forgotPassword: async (email: string): Promise<AuthResponse> => {
-    log.security('AUTH_API', 'Password reset request', { email });
-    const response = await apiPost<AuthResponse>('/api/v1/auth/forgot-password', { email });
-    
+    log.security("AUTH_API", "Password reset request", { email });
+    const response = await apiPost<AuthResponse>(
+      "/api/v1/auth/forgot-password",
+      { email },
+    );
+
     if (response.success) {
-      log.security('AUTH_API', 'Password reset code sent', { email });
+      log.security("AUTH_API", "Password reset code sent", { email });
     } else {
       reportSecurityEvent({
-        type: 'authentication_failure',
-        severity: 'low',
-        description: 'Password reset request failed',
-        metadata: { email, error: response.error }
+        type: "authentication_failure",
+        severity: "low",
+        description: "Password reset request failed",
+        metadata: { email, error: response.error },
       });
     }
-    
+
     return response;
   },
 
   /**
    * Confirm forgot password with code and set new password
    */
-  resetPassword: async (email: string, code: string, new_password: string): Promise<AuthResponse> => {
-    log.security('AUTH_API', 'Password reset confirmation attempt', { email });
-    const response = await apiPost<AuthResponse>('/api/v1/auth/reset-password', {
-      email,
-      code,
-      new_password,
-    });
-    
+  resetPassword: async (
+    email: string,
+    code: string,
+    new_password: string,
+  ): Promise<AuthResponse> => {
+    log.security("AUTH_API", "Password reset confirmation attempt", { email });
+    const response = await apiPost<AuthResponse>(
+      "/api/v1/auth/reset-password",
+      {
+        email,
+        code,
+        new_password,
+      },
+    );
+
     if (response.success) {
-      log.security('AUTH_API', 'Password reset successful', { email });
+      log.security("AUTH_API", "Password reset successful", { email });
     } else {
       reportSecurityEvent({
-        type: 'authentication_failure',
-        severity: 'medium',
-        description: 'Password reset confirmation failed',
-        metadata: { email, error: response.error }
+        type: "authentication_failure",
+        severity: "medium",
+        description: "Password reset confirmation failed",
+        metadata: { email, error: response.error },
       });
     }
-    
+
     return response;
   },
 };

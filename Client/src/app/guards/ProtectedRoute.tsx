@@ -1,6 +1,6 @@
-import React, { PropsWithChildren } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../providers/AuthProvider';
+import React, { PropsWithChildren } from "react";
+import { Navigate, useLocation } from "react-router-dom";
+import { useAuth } from "../providers/AuthProvider";
 
 /**
  * ProtectedRoute component that wraps routes requiring authentication

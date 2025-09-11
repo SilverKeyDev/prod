@@ -1,4 +1,9 @@
-import { CardAddressDisplay, CardMatchScore, CardImageContainer, CardContentContainer } from "./base";
+import {
+  CardAddressDisplay,
+  CardMatchScore,
+  CardImageContainer,
+  CardContentContainer,
+} from "./base";
 
 interface NewMatch {
   address: string;
@@ -34,7 +39,10 @@ export default function NewMatchCard({ item }: NewMatchCardProps) {
       />
 
       {/* Details */}
-      <CardContentContainer padding="sm" className="flex-1 flex flex-col gap-responsive-sm card-content-spacing">
+      <CardContentContainer
+        padding="sm"
+        className="flex-1 flex flex-col gap-responsive-sm card-content-spacing"
+      >
         <div className="flex items-start justify-between gap-responsive-sm">
           <CardAddressDisplay
             address={address}
@@ -42,13 +50,14 @@ export default function NewMatchCard({ item }: NewMatchCardProps) {
             showIcon={false}
             className="flex-1"
           />
-          <CardMatchScore
-            score={matchScore}
-            size="sm"
-          />
+          <CardMatchScore score={matchScore} size="sm" />
         </div>
-        <p className="text-responsive-xs text-gray-600 truncate">Listed on {dateStr}</p>
-        <p className="text-responsive-xs text-gray-700 line-clamp-2">{reason}</p>
+        <p className="text-responsive-xs text-gray-600 truncate">
+          Listed on {dateStr}
+        </p>
+        <p className="text-responsive-xs text-gray-700 line-clamp-2">
+          {reason}
+        </p>
       </CardContentContainer>
     </div>
   );

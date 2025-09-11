@@ -23,11 +23,11 @@ export default function SearchHeader({
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-sm font-medium text-gray-900">
-              We use your preferences and important locations to surface
-              the best properties
+              We use your preferences and important locations to surface the
+              best properties
             </p>
           </div>
-          
+
           <div className="flex items-center gap-3">
             <SearchActions
               onUpdatePreferences={onUpdatePreferences}

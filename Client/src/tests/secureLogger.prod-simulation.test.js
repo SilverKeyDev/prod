@@ -21,7 +21,7 @@ class ProductionSecureLogger {
     this.isProduction = true;
     this.currentLevel = 2; // WARN level in production
     this.isProcessing = false;
-    
+
     // Store original console methods BEFORE any overrides
     this.originalConsole = {
       log: console.log.bind(console),
@@ -34,23 +34,25 @@ class ProductionSecureLogger {
 
   scrubStringPII(str) {
     if (this.isProcessing) {
-      return '[PROCESSING]';
+      return "[PROCESSING]";
     }
 
     try {
       this.isProcessing = true;
       let scrubbed = str;
-      
-      PII_PATTERNS.forEach(pattern => {
+
+      PII_PATTERNS.forEach((pattern) => {
         scrubbed = scrubbed.replace(pattern, (match) => {
-          if (match.length <= 4) return '[REDACTED]';
-          return match[0] + '*'.repeat(match.length - 2) + match[match.length - 1];
+          if (match.length <= 4) return "[REDACTED]";
+          return (
+            match[0] + "*".repeat(match.length - 2) + match[match.length - 1]
+          );
         });
       });
-      
+
       return scrubbed;
     } catch (error) {
-      return '[SCRUB_ERROR]';
+      return "[SCRUB_ERROR]";
     } finally {
       this.isProcessing = false;
     }
@@ -65,12 +67,12 @@ class ProductionSecureLogger {
     try {
       const timestamp = new Date().toISOString();
       const prefix = `[${timestamp}] [${level}] [${scope}]`;
-      
+
       if (data) {
         const scrubbedData = JSON.stringify(data); // Simplified for test
         return `${prefix} ${message} ${scrubbedData}`;
       }
-      
+
       return `${prefix} ${this.scrubStringPII(message)}`;
     } catch (error) {
       const timestamp = new Date().toISOString();
@@ -81,29 +83,29 @@ class ProductionSecureLogger {
   error(scope, message, error) {
     try {
       let errorData = error;
-      
+
       if (error instanceof Error) {
         errorData = {
           name: error.name,
           message: error.message,
-          stack: '[REDACTED]' // Always redacted in production
+          stack: "[REDACTED]", // Always redacted in production
         };
       }
-      
-      const formatted = this.formatMessage('ERROR', scope, message, errorData);
+
+      const formatted = this.formatMessage("ERROR", scope, message, errorData);
       this.originalConsole.error(formatted);
     } catch (error) {
-      this.originalConsole.error('SecureLogger error error:', error);
+      this.originalConsole.error("SecureLogger error error:", error);
     }
   }
 }
 
 function runProductionSimulation() {
-  console.log('🏭 Production Environment Simulation Test\n');
-  
+  console.log("🏭 Production Environment Simulation Test\n");
+
   // Create logger instance
   const logger = new ProductionSecureLogger();
-  
+
   // Store original console for restoration
   const originalConsole = {
     log: console.log.bind(console),
@@ -114,8 +116,8 @@ function runProductionSimulation() {
   };
 
   // STEP 1: Override console methods (exactly like production)
-  console.log('Step 1: Overriding console methods...');
-  
+  console.log("Step 1: Overriding console methods...");
+
   const safeConsole = {
     log: originalConsole.log.bind(originalConsole),
     info: originalConsole.info.bind(originalConsole),
@@ -123,98 +125,99 @@ function runProductionSimulation() {
     error: originalConsole.error.bind(originalConsole),
     debug: originalConsole.debug.bind(originalConsole),
   };
-  
+
   console.error = (...args) => {
     try {
-      logger.error('CONSOLE', args.join(' '));
+      logger.error("CONSOLE", args.join(" "));
     } catch (error) {
-      safeConsole.error('SecureLogger error:', error);
+      safeConsole.error("SecureLogger error:", error);
     }
   };
 
   // STEP 2: Test scenarios that caused the original issue
-  console.log('Step 2: Testing problematic scenarios...\n');
+  console.log("Step 2: Testing problematic scenarios...\n");
 
   // Test A: Direct error logging
-  console.log('Test A: Direct console.error call');
+  console.log("Test A: Direct console.error call");
   try {
-    console.error('This is a test error message with PII: user@example.com');
-    console.log('✅ Direct error logging works\n');
+    console.error("This is a test error message with PII: user@example.com");
+    console.log("✅ Direct error logging works\n");
   } catch (error) {
-    console.log('❌ Direct error logging failed:', error.message, '\n');
+    console.log("❌ Direct error logging failed:", error.message, "\n");
   }
 
   // Test B: Error with complex data
-  console.log('Test B: Error with complex data object');
+  console.log("Test B: Error with complex data object");
   try {
     const complexData = {
-      user: 'john@example.com',
-      token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test.signature',
+      user: "john@example.com",
+      token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test.signature",
       nested: {
-        password: 'secret123',
-        data: 'normal data'
-      }
+        password: "secret123",
+        data: "normal data",
+      },
     };
-    console.error('Complex error:', complexData);
-    console.log('✅ Complex data error logging works\n');
+    console.error("Complex error:", complexData);
+    console.log("✅ Complex data error logging works\n");
   } catch (error) {
-    console.log('❌ Complex data error logging failed:', error.message, '\n');
+    console.log("❌ Complex data error logging failed:", error.message, "\n");
   }
 
   // Test C: Rapid successive errors (stress test)
-  console.log('Test C: Rapid successive errors');
+  console.log("Test C: Rapid successive errors");
   try {
     for (let i = 0; i < 10; i++) {
       console.error(`Rapid error ${i} with email: test${i}@example.com`);
     }
-    console.log('✅ Rapid successive errors work\n');
+    console.log("✅ Rapid successive errors work\n");
   } catch (error) {
-    console.log('❌ Rapid successive errors failed:', error.message, '\n');
+    console.log("❌ Rapid successive errors failed:", error.message, "\n");
   }
 
   // Test D: Error during error handling (the original issue)
-  console.log('Test D: Nested error scenario');
+  console.log("Test D: Nested error scenario");
   try {
     // Temporarily break the scrubStringPII method to force an error
     const originalScrub = logger.scrubStringPII;
     let errorCount = 0;
-    
-    logger.scrubStringPII = function(str) {
+
+    logger.scrubStringPII = function (str) {
       errorCount++;
       if (errorCount === 1) {
         // Force an error on first call
-        throw new Error('Simulated PII scrubbing failure');
+        throw new Error("Simulated PII scrubbing failure");
       }
       // Restore normal behavior for subsequent calls
       return originalScrub.call(this, str);
     };
-    
-    console.error('This should trigger error handling during PII scrubbing');
-    console.log('✅ Nested error scenario handled correctly\n');
+
+    console.error("This should trigger error handling during PII scrubbing");
+    console.log("✅ Nested error scenario handled correctly\n");
   } catch (error) {
-    console.log('❌ Nested error scenario failed:', error.message, '\n');
+    console.log("❌ Nested error scenario failed:", error.message, "\n");
   }
 
   // Test E: Very long string (potential regex performance issue)
-  console.log('Test E: Very long string with PII');
+  console.log("Test E: Very long string with PII");
   try {
-    const longString = 'a'.repeat(50000) + ' email: user@example.com ' + 'b'.repeat(50000);
-    console.error('Long string test:', longString);
-    console.log('✅ Long string with PII handled correctly\n');
+    const longString =
+      "a".repeat(50000) + " email: user@example.com " + "b".repeat(50000);
+    console.error("Long string test:", longString);
+    console.log("✅ Long string with PII handled correctly\n");
   } catch (error) {
-    console.log('❌ Long string test failed:', error.message, '\n');
+    console.log("❌ Long string test failed:", error.message, "\n");
   }
 
   // Restore original console
   console.error = originalConsole.error;
-  
-  console.log('🎉 Production simulation completed successfully!');
-  console.log('✅ All recursion scenarios handled correctly');
-  console.log('✅ Ready for production deployment');
+
+  console.log("🎉 Production simulation completed successfully!");
+  console.log("✅ All recursion scenarios handled correctly");
+  console.log("✅ Ready for production deployment");
 }
 
 // Export for testing frameworks
-if (typeof module !== 'undefined' && module.exports) {
+if (typeof module !== "undefined" && module.exports) {
   module.exports = { runProductionSimulation, ProductionSecureLogger };
 } else {
   // Run the simulation if executed directly

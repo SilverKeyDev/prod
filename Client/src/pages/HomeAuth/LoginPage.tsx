@@ -19,21 +19,24 @@ export default function LoginPage() {
   // Only clear auth data if user is not authenticated and there are stale tokens
   useEffect(() => {
     // Check if user is already authenticated via secure auth hook
-    const hasValidAuth = (window as any).getSecureAccessToken && (window as any).getSecureAccessToken();
-    
+    const hasValidAuth =
+      (window as any).getSecureAccessToken &&
+      (window as any).getSecureAccessToken();
+
     // Only clear tokens if there's no valid authentication
     if (!hasValidAuth) {
-      const hasTokens = sessionStorage.getItem('refresh_token') || 
-                       localStorage.getItem('access_token') || 
-                       localStorage.getItem('id_token') ||
-                       localStorage.getItem('user');
-      
+      const hasTokens =
+        sessionStorage.getItem("refresh_token") ||
+        localStorage.getItem("access_token") ||
+        localStorage.getItem("id_token") ||
+        localStorage.getItem("user");
+
       if (hasTokens) {
         // Clear stale tokens
-        sessionStorage.removeItem('refresh_token');
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('id_token');
-        localStorage.removeItem('user');
+        sessionStorage.removeItem("refresh_token");
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("id_token");
+        localStorage.removeItem("user");
         clearError();
       }
     }
@@ -49,11 +52,11 @@ export default function LoginPage() {
       // Get the intended destination from location state or default to dashboard
       const from = (location.state as any)?.from?.pathname || "/dashboard";
 
-      console.log('🔐 [LOGIN] Login successful, navigating to:', from);
+      console.log("🔐 [LOGIN] Login successful, navigating to:", from);
       // Navigate to intended destination or dashboard
       navigate(from, { replace: true });
     } else {
-      console.log('🔐 [LOGIN] Login failed, staying on login page');
+      console.log("🔐 [LOGIN] Login failed, staying on login page");
     }
   };
 

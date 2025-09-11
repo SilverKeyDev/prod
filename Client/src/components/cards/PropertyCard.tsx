@@ -81,7 +81,7 @@ function PropertyCardImpl(props: PropertyCardProps) {
   if (import.meta.env.DEV) {
     // eslint-disable-next-line react-hooks/rules-of-hooks
     useWhyRender(`PropertyCard-${id}`, props);
-    
+
     // count only when mounted (not every render)
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const mounted = React.useRef(false);
@@ -99,7 +99,7 @@ function PropertyCardImpl(props: PropertyCardProps) {
     }
     return price.toString();
   };
-  
+
   return (
     <BaseCard
       hover
@@ -258,7 +258,8 @@ function equal(prev: PropertyCardProps, next: PropertyCardProps) {
     prev.className === next.className &&
     prev.score === next.score &&
     // Compare status object properties
-    (prev.status?.text === next.status?.text && prev.status?.className === next.status?.className)
+    prev.status?.text === next.status?.text &&
+    prev.status?.className === next.status?.className
     // Note: We intentionally skip callback props (onClick, onSave, etc.) as they often change identity
     // but don't affect the visual rendering. If callbacks are needed for memoization, they should be
     // memoized at the parent level.

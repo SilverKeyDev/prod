@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react';
-import { useGoogleMaps } from '../context/GoogleMapsContext';
+import { useEffect, useRef } from "react";
+import { useGoogleMaps } from "../context/GoogleMapsContext";
 
 interface UseMapInitializationProps {
   isLocalStorageLoaded: boolean;
@@ -12,7 +12,7 @@ interface UseMapInitializationReturn {
   googleMapRef: React.RefObject<google.maps.Map | null>;
 }
 
-const DESKTOP_QUERY = '(min-width: 768px)';
+const DESKTOP_QUERY = "(min-width: 768px)";
 
 export const useMapInitialization = ({
   isLocalStorageLoaded,
@@ -31,7 +31,7 @@ export const useMapInitialization = ({
   const mqlRef = useRef<MediaQueryList | null>(null);
 
   const getVisibleContainer = () => {
-    if (typeof window === 'undefined') return null;
+    if (typeof window === "undefined") return null;
     const isDesktop = window.matchMedia(DESKTOP_QUERY).matches;
     return isDesktop ? desktopMapRef.current : mobileMapRef.current;
   };
@@ -42,13 +42,18 @@ export const useMapInitialization = ({
       resizeObserverRef.current.disconnect();
       resizeObserverRef.current = null;
     }
-    if (!container || !googleMapRef.current || typeof ResizeObserver === 'undefined') return;
+    if (
+      !container ||
+      !googleMapRef.current ||
+      typeof ResizeObserver === "undefined"
+    )
+      return;
 
     const ro = new ResizeObserver(() => {
       // Use rAF to coalesce multiple size changes
       requestAnimationFrame(() => {
         if (window.google?.maps?.event && googleMapRef.current) {
-          window.google.maps.event.trigger(googleMapRef.current, 'resize');
+          window.google.maps.event.trigger(googleMapRef.current, "resize");
         }
       });
     });
@@ -59,12 +64,11 @@ export const useMapInitialization = ({
 
   const createInContainer = (container: HTMLDivElement) => {
     // Clean the container to prevent stacking multiple canvases if reusing a node
-    container.innerHTML = '';
+    container.innerHTML = "";
 
     const map = createMap(container);
     if (!map) {
-      // eslint-disable-next-line no-console
-      console.error('❌ Failed to create Google Map');
+      console.error("❌ Failed to create Google Map");
       return null;
     }
     googleMapRef.current = map;
@@ -73,7 +77,7 @@ export const useMapInitialization = ({
     // Kick a resize after initial paint for tiles/layout correctness
     setTimeout(() => {
       if (window.google?.maps?.event && googleMapRef.current) {
-        window.google.maps.event.trigger(googleMapRef.current, 'resize');
+        window.google.maps.event.trigger(googleMapRef.current, "resize");
       }
     }, 60);
 
@@ -85,14 +89,18 @@ export const useMapInitialization = ({
 
   // Initial create when both prerequisites are ready
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === "undefined") return;
 
     if (!isLocalStorageLoaded || !isGoogleMapsLoaded) return;
     const container = getVisibleContainer();
     if (!container) return;
 
     // If already initialized into this same container, skip
-    if (isInitializedRef.current && currentContainerRef.current === container && googleMapRef.current) {
+    if (
+      isInitializedRef.current &&
+      currentContainerRef.current === container &&
+      googleMapRef.current
+    ) {
       return;
     }
 
@@ -103,7 +111,7 @@ export const useMapInitialization = ({
 
   // React to breakpoint changes (mobile <-> desktop)
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === "undefined") return;
 
     const mql = window.matchMedia(DESKTOP_QUERY);
     mqlRef.current = mql;
@@ -113,9 +121,12 @@ export const useMapInitialization = ({
       if (!nextContainer) return;
 
       // If the map is already in the right container, just trigger resize
-      if (currentContainerRef.current === nextContainer && googleMapRef.current) {
+      if (
+        currentContainerRef.current === nextContainer &&
+        googleMapRef.current
+      ) {
         if (window.google?.maps?.event) {
-          window.google.maps.event.trigger(googleMapRef.current, 'resize');
+          window.google.maps.event.trigger(googleMapRef.current, "resize");
         }
         return;
       }
@@ -125,17 +136,17 @@ export const useMapInitialization = ({
     };
 
     // Some browsers want addEventListener, some support addListener
-    if (typeof mql.addEventListener === 'function') {
-      mql.addEventListener('change', handleChange);
-    } else if (typeof (mql as any).addListener === 'function') {
+    if (typeof mql.addEventListener === "function") {
+      mql.addEventListener("change", handleChange);
+    } else if (typeof (mql as any).addListener === "function") {
       (mql as any).addListener(handleChange);
     }
 
     return () => {
       if (!mqlRef.current) return;
-      if (typeof mqlRef.current.removeEventListener === 'function') {
-        mqlRef.current.removeEventListener('change', handleChange);
-      } else if (typeof (mqlRef.current as any).removeListener === 'function') {
+      if (typeof mqlRef.current.removeEventListener === "function") {
+        mqlRef.current.removeEventListener("change", handleChange);
+      } else if (typeof (mqlRef.current as any).removeListener === "function") {
         (mqlRef.current as any).removeListener(handleChange);
       }
     };
@@ -144,7 +155,7 @@ export const useMapInitialization = ({
 
   // Fallback: window resize/orientation (still useful if ResizeObserver not available)
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === "undefined") return;
 
     let rafId: number | null = null;
     const onResize = () => {
@@ -160,16 +171,16 @@ export const useMapInitialization = ({
         }
 
         if (window.google?.maps?.event && googleMapRef.current) {
-          window.google.maps.event.trigger(googleMapRef.current, 'resize');
+          window.google.maps.event.trigger(googleMapRef.current, "resize");
         }
       });
     };
 
-    window.addEventListener('resize', onResize);
-    window.addEventListener('orientationchange', onResize);
+    window.addEventListener("resize", onResize);
+    window.addEventListener("orientationchange", onResize);
     return () => {
-      window.removeEventListener('resize', onResize);
-      window.removeEventListener('orientationchange', onResize);
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("orientationchange", onResize);
       if (rafId) cancelAnimationFrame(rafId);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps

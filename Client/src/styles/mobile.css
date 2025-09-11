@@ -13,7 +13,7 @@
   select:not([class*="text-"]) {
     font-size: 16px !important;
   }
-  
+
   /* For inputs WITH responsive text classes, allow Tailwind classes to work naturally */
   /* Remove !important override to let responsive classes function properly */
 
@@ -25,7 +25,7 @@
     .pac-item {
       font-size: 14px !important;
     }
-    
+
     /* Only use 12px for very specific cases where zoom is handled */
     .mobile-input.compact {
       font-size: 12px !important;
@@ -253,11 +253,17 @@
   .btn-mobile-outline {
     @apply mobile-form-button bg-transparent border-2 border-brown text-brown hover:bg-brown hover:text-white;
   }
-  
+
   /* Legacy aliases - deprecated, use btn-mobile-* instead */
-  .mobile-button-primary { @apply btn-mobile-primary; }
-  .mobile-button-secondary { @apply btn-mobile-secondary; }
-  .mobile-button-outline { @apply btn-mobile-outline; }
+  .mobile-button-primary {
+    @apply btn-mobile-primary;
+  }
+  .mobile-button-secondary {
+    @apply btn-mobile-secondary;
+  }
+  .mobile-button-outline {
+    @apply btn-mobile-outline;
+  }
 
   /* Mobile icon utilities */
   .mobile-icon-xs {
@@ -300,11 +306,11 @@
       width: 100vw;
       margin-left: calc(-50vw + 50%);
     }
-    
+
     .mobile-no-scroll {
       overflow: hidden;
     }
-    
+
     .mobile-safe-area {
       /* Fallbacks for older browsers */
       padding-top: 0;
@@ -324,11 +330,11 @@
     .mobile-modal-content {
       max-height: 85vh;
     }
-    
+
     .mobile-form {
       padding: 2rem 1rem;
     }
-    
+
     .mobile-py {
       @apply py-2 sm:py-4;
     }
@@ -344,36 +350,65 @@
   /* Mobile text scaling - non-conflicting approach */
   @media (max-width: 640px) {
     /* Only override elements that don't have responsive classes */
-    h1:not([class*="text-"]) { font-size: 1.5rem; line-height: 2rem; }
-    h2:not([class*="text-"]) { font-size: 1.25rem; line-height: 1.75rem; }
-    h3:not([class*="text-"]) { font-size: 1.125rem; line-height: 1.75rem; }
-    h4:not([class*="text-"]) { font-size: 1rem; line-height: 1.5rem; }
-    h5:not([class*="text-"]) { font-size: 0.875rem; line-height: 1.25rem; }
-    h6:not([class*="text-"]) { font-size: 0.75rem; line-height: 1rem; }
-    
+    h1:not([class*="text-"]) {
+      font-size: 1.5rem;
+      line-height: 2rem;
+    }
+    h2:not([class*="text-"]) {
+      font-size: 1.25rem;
+      line-height: 1.75rem;
+    }
+    h3:not([class*="text-"]) {
+      font-size: 1.125rem;
+      line-height: 1.75rem;
+    }
+    h4:not([class*="text-"]) {
+      font-size: 1rem;
+      line-height: 1.5rem;
+    }
+    h5:not([class*="text-"]) {
+      font-size: 0.875rem;
+      line-height: 1.25rem;
+    }
+    h6:not([class*="text-"]) {
+      font-size: 0.75rem;
+      line-height: 1rem;
+    }
+
     /* Only scale buttons without responsive classes */
-    button:not([class*="text-"]):not(input):not(.mobile-input):not(.input-field) { 
-      font-size: 0.75rem; 
+    button:not([class*="text-"]):not(input):not(.mobile-input):not(
+        .input-field
+      ) {
+      font-size: 0.75rem;
     }
-    
+
     /* Only scale labels without responsive classes */
-    label:not([class*="text-"]):not(.input-label) { 
-      font-size: 0.75rem; 
+    label:not([class*="text-"]):not(.input-label) {
+      font-size: 0.75rem;
     }
-    
+
     /* Exception: buttons that are actually input elements should maintain 16px */
     input[type="button"],
     input[type="submit"],
     input[type="reset"] {
       font-size: 16px !important;
     }
-    
+
     /* Only scale paragraphs without responsive classes */
-    p:not([class*="text-"]) { font-size: 0.875rem; line-height: 1.25rem; }
-    
+    p:not([class*="text-"]) {
+      font-size: 0.875rem;
+      line-height: 1.25rem;
+    }
+
     /* Only scale table text without responsive classes */
-    table:not([class*="text-"]) { font-size: 0.75rem; }
-    th:not([class*="text-"]) { font-size: 0.75rem; }
-    td:not([class*="text-"]) { font-size: 0.75rem; }
+    table:not([class*="text-"]) {
+      font-size: 0.75rem;
+    }
+    th:not([class*="text-"]) {
+      font-size: 0.75rem;
+    }
+    td:not([class*="text-"]) {
+      font-size: 0.75rem;
+    }
   }
 }

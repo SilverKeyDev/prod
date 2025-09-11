@@ -3,11 +3,11 @@
  * Centralized error handling for the entire application
  */
 
-import { Component, ErrorInfo, ReactNode } from 'react';
-import Card from '../../components/layout/Card';
-import Button from '../../components/ui/button/Button';
-import { AlertTriangle, RefreshCw, MessageSquare, Home } from 'lucide-react';
-import { reportError, normalizeError } from './errorUtils.ts';
+import { Component, ErrorInfo, ReactNode } from "react";
+import Card from "../../components/layout/Card";
+import Button from "../../components/ui/button/Button";
+import { AlertTriangle, RefreshCw, MessageSquare, Home } from "lucide-react";
+import { reportError, normalizeError } from "./errorUtils.ts";
 
 interface Props {
   children: ReactNode;
@@ -32,7 +32,7 @@ export class ErrorBoundary extends Component<Props, State> {
       error: null,
       errorInfo: null,
       showDetails: false,
-      feedbackMessage: '',
+      feedbackMessage: "",
       feedbackSubmitted: false,
     };
   }
@@ -66,26 +66,26 @@ export class ErrorBoundary extends Component<Props, State> {
       error: null,
       errorInfo: null,
       showDetails: false,
-      feedbackMessage: '',
+      feedbackMessage: "",
       feedbackSubmitted: false,
     });
   };
 
   handleGoHome = () => {
-    window.location.href = '/';
+    window.location.href = "/";
   };
 
   handleToggleDetails = () => {
-    this.setState(prev => ({ showDetails: !prev.showDetails }));
+    this.setState((prev) => ({ showDetails: !prev.showDetails }));
   };
 
   handleFeedbackSubmit = () => {
     if (this.state.feedbackMessage.trim()) {
-      reportError(this.state.error || new Error('User feedback'), {
+      reportError(this.state.error || new Error("User feedback"), {
         userFeedback: this.state.feedbackMessage,
         errorBoundary: true,
       });
-      
+
       this.setState({ feedbackSubmitted: true });
     }
   };
@@ -100,20 +100,24 @@ export class ErrorBoundary extends Component<Props, State> {
 
       return (
         <div className="min-h-screen bg-off-white flex items-center justify-center px-responsive-lg py-responsive-lg">
-          <Card className="max-w-2xl w-full border-l-4 border-l-brown shadow-lg" padding="lg">
+          <Card
+            className="max-w-2xl w-full border-l-4 border-l-brown shadow-lg"
+            padding="lg"
+          >
             <div className="text-center">
               <div className="flex justify-center mb-responsive-md">
                 <div className="p-responsive-sm bg-brown/10 rounded-full">
                   <AlertTriangle className="mobile-icon-lg text-brown" />
                 </div>
               </div>
-              
+
               <h1 className="heading-responsive-md font-serif text-navy mb-responsive-xs">
                 Something went wrong
               </h1>
-              
+
               <p className="text-responsive-sm text-neutral-600 mb-responsive-md font-sans">
-                We're sorry, but something unexpected happened. Our team has been notified and we're working to resolve this issue.
+                We're sorry, but something unexpected happened. Our team has
+                been notified and we're working to resolve this issue.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-responsive-xs mb-responsive-md">
@@ -143,14 +147,18 @@ export class ErrorBoundary extends Component<Props, State> {
                   onClick={this.handleToggleDetails}
                   className="mb-responsive-xs text-brown hover:text-brown/80"
                 >
-                  {this.state.showDetails ? 'Hide' : 'Show'} Error Details
+                  {this.state.showDetails ? "Hide" : "Show"} Error Details
                 </Button>
 
                 {this.state.showDetails && (
-                  <Card className="bg-neutral-50 border-neutral-200 mb-responsive-sm" padding="sm">
+                  <Card
+                    className="bg-neutral-50 border-neutral-200 mb-responsive-sm"
+                    padding="sm"
+                  >
                     <div className="text-responsive-xs font-mono text-neutral-700">
                       <div className="mb-responsive-xs">
-                        <strong className="text-navy">Error:</strong> {normalizedError.message}
+                        <strong className="text-navy">Error:</strong>{" "}
+                        {normalizedError.message}
                       </div>
                       {normalizedError.stack && (
                         <div className="mb-responsive-xs">
@@ -162,7 +170,9 @@ export class ErrorBoundary extends Component<Props, State> {
                       )}
                       {this.state.errorInfo?.componentStack && (
                         <div>
-                          <strong className="text-navy">Component Stack:</strong>
+                          <strong className="text-navy">
+                            Component Stack:
+                          </strong>
                           <pre className="mt-1 text-xs overflow-x-auto whitespace-pre-wrap bg-white p-responsive-xs rounded border">
                             {this.state.errorInfo.componentStack}
                           </pre>
@@ -185,7 +195,9 @@ export class ErrorBoundary extends Component<Props, State> {
                       <div>
                         <textarea
                           value={this.state.feedbackMessage}
-                          onChange={(e) => this.setState({ feedbackMessage: e.target.value })}
+                          onChange={(e) =>
+                            this.setState({ feedbackMessage: e.target.value })
+                          }
                           placeholder="What were you trying to do when this error occurred?"
                           className="w-full p-responsive-xs text-responsive-xs border border-olive/30 rounded-lg resize-none bg-white focus:border-olive focus:ring-2 focus:ring-olive/20 font-sans"
                           rows={3}
@@ -202,7 +214,8 @@ export class ErrorBoundary extends Component<Props, State> {
                       </div>
                     ) : (
                       <p className="text-responsive-xs text-olive font-sans">
-                        Thank you for your feedback! This helps us fix the issue.
+                        Thank you for your feedback! This helps us fix the
+                        issue.
                       </p>
                     )}
                   </div>

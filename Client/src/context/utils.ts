@@ -2,63 +2,63 @@ import { apiRequest, userApi } from "../api";
 import { formatFilenameToAddress } from "../lib/addressFormat";
 
 // Import and re-export all types from centralized location
-import type { 
-  Report, 
-  CompareReport, 
+import type {
+  Report,
+  CompareReport,
   Strategy,
   MarketInsight,
-  UserProfile, 
-  UserPreferences, 
-  Agent, 
-  Activity, 
+  UserProfile,
+  UserPreferences,
+  Agent,
+  Activity,
   Notification,
-  Property, 
-  SavedHome, 
-  SearchQuery, 
-  SavedSearch, 
-  PriceHistory, 
-  MarketTrend, 
+  Property,
+  SavedHome,
+  SearchQuery,
+  SavedSearch,
+  PriceHistory,
+  MarketTrend,
   NeighborhoodStats,
-  OfferDraft, 
+  OfferDraft,
   OfferHistory,
-  Document, 
-  DocumentCategory, 
+  Document,
+  DocumentCategory,
   UploadedFile,
   BillingInfo,
   Chat,
-  ApiSuccess, 
-  ApiError, 
+  ApiSuccess,
+  ApiError,
   ApiResponse,
-  BASE_URL
-} from '../types';
+  BASE_URL,
+} from "../types";
 
 export type {
-  Report, 
-  CompareReport, 
+  Report,
+  CompareReport,
   Strategy,
   MarketInsight,
-  UserProfile, 
-  UserPreferences, 
-  Agent, 
-  Activity, 
+  UserProfile,
+  UserPreferences,
+  Agent,
+  Activity,
   Notification,
-  Property, 
-  SavedHome, 
-  SearchQuery, 
-  SavedSearch, 
-  PriceHistory, 
-  MarketTrend, 
+  Property,
+  SavedHome,
+  SearchQuery,
+  SavedSearch,
+  PriceHistory,
+  MarketTrend,
   NeighborhoodStats,
-  OfferDraft, 
+  OfferDraft,
   OfferHistory,
-  Document, 
-  DocumentCategory, 
+  Document,
+  DocumentCategory,
   UploadedFile,
   BillingInfo,
   Chat,
-  ApiSuccess, 
-  ApiError, 
-  ApiResponse
+  ApiSuccess,
+  ApiError,
+  ApiResponse,
 };
 
 export { BASE_URL };
@@ -98,7 +98,7 @@ export function authHeaders(token: string): HeadersInit {
 export async function fetchJson<T>(
   input: RequestInfo,
   init: RequestInit,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<T> {
   const res = await fetch(input, { ...init, signal });
   const json = await res.json();
@@ -107,19 +107,19 @@ export async function fetchJson<T>(
 
 export function createAbortManager() {
   const controllers = new Set<AbortController>();
-  
+
   const abortAll = () => controllers.forEach((c) => c.abort());
-  
-  const withAbort = <T,>(fn: (signal: AbortSignal) => Promise<T>) => {
+
+  const withAbort = <T>(fn: (signal: AbortSignal) => Promise<T>) => {
     const controller = new AbortController();
     controllers.add(controller);
     return fn(controller.signal).finally(() => controllers.delete(controller));
   };
-  
+
   return { abortAll, withAbort };
 }
 
-export function isAbortError(error: any): boolean {
+export function isAbortError(error: unknown): boolean {
   return error?.name === "AbortError";
 }
 
@@ -152,7 +152,10 @@ export const deserializeCompareReport = (r: any): CompareReport => ({
   schoolScore: r.schoolScore,
 });
 
-export const mapHomeUniversalToSavedHome = (home: any, index: number): SavedHome => ({
+export const mapHomeUniversalToSavedHome = (
+  home: any,
+  index: number,
+): SavedHome => ({
   home_id: home.address || `home_${index}_${Date.now()}`,
   description: home.address || "",
   address: home.address || "",

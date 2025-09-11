@@ -18,7 +18,6 @@ export const useMapZoomController = ({
   savedHomes,
   currentPage,
 }: MapZoomControllerProps) => {
-  
   // Calculate map center positioned slightly above the property marker
   const calculateMapCenter = useCallback(() => {
     if (!googleMapRef.current) return null;
@@ -31,7 +30,7 @@ export const useMapZoomController = ({
       // Offset the latitude slightly north to position map above the marker
       // At zoom level 13, approximately 0.002 degrees latitude = ~220 meters
       const latOffset = 0.002;
-      
+
       return {
         lat: currentProperty.lat + latOffset,
         lng: currentProperty.lng,

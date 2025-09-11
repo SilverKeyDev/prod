@@ -97,8 +97,8 @@ const CardViewDetailsButton: React.FC<CardViewDetailsButtonProps> = ({
               size === "sm"
                 ? "scale(0.75)"
                 : size === "lg"
-                ? "scale(1.25)"
-                : "scale(1)",
+                  ? "scale(1.25)"
+                  : "scale(1)",
           }}
         >
           <KeyTurnLoader message="Loading..." />

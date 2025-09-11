@@ -1,4 +1,12 @@
-import React, { ReactNode, useEffect, useMemo, useRef, useState, useCallback, memo } from "react";
+import React, {
+  ReactNode,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useCallback,
+  memo,
+} from "react";
 import { Carousel } from "react-responsive-carousel";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 import "../../../styles/carousel.css";
@@ -68,18 +76,18 @@ export interface CardCarouselProps<T> {
   renderArrowPrev?: (
     clickHandler: () => void,
     hasPrev: boolean,
-    label: string
+    label: string,
   ) => ReactNode;
   renderArrowNext?: (
     clickHandler: () => void,
     hasNext: boolean,
-    label: string
+    label: string,
   ) => ReactNode;
   renderIndicator?: (
     clickHandler: (e: React.MouseEvent | React.KeyboardEvent) => void,
     isSelected: boolean,
     index: number,
-    label: string
+    label: string,
   ) => ReactNode;
 
   /** Width of the carousel container (passed through to component) */
@@ -151,14 +159,16 @@ function _CardCarousel<T>({
   // Throttled resize handler to prevent excessive re-renders
   const throttledSetWidth = useCallback((width: number) => {
     // Only update if width actually changed by a meaningful amount
-    setContainerWidth(prev => Math.abs(prev - width) > 10 ? width : prev);
+    setContainerWidth((prev) => (Math.abs(prev - width) > 10 ? width : prev));
   }, []);
 
   // Observe size of the container to compute how many cards fit
   useEffect(() => {
     // Only run when we have items and aren't loading
     if (loading || items.length === 0) {
-      console.log(`[CardCarousel] Skipping width detection - loading: ${loading}, items: ${items.length}`);
+      console.log(
+        `[CardCarousel] Skipping width detection - loading: ${loading}, items: ${items.length}`,
+      );
       return;
     }
 
@@ -189,7 +199,7 @@ function _CardCarousel<T>({
         throttledSetWidth(width);
       });
     };
-    
+
     // Initial update with delay to ensure DOM is rendered
     setTimeout(() => {
       const width = el.clientWidth;
@@ -243,11 +253,14 @@ function _CardCarousel<T>({
       cardGap: gap,
       itemsLength: items.length,
       minCols,
-      maxCols
+      maxCols,
     });
 
     if (w === 0) {
-      console.log(`[CardCarousel] Container width is 0, returning minCols:`, Math.max(1, minCols));
+      console.log(
+        `[CardCarousel] Container width is 0, returning minCols:`,
+        Math.max(1, minCols),
+      );
       return Math.max(1, minCols); // initial render
     }
 
@@ -255,7 +268,7 @@ function _CardCarousel<T>({
     // FitCols satisfies: cols*minW + (cols-1)*gap <= w
     let cols = Math.floor((w + gap) / (minW + gap));
     console.log(`[CardCarousel] Initial calculation: ${cols} columns`);
-    
+
     cols = Math.max(minCols, Math.min(cols, maxCols));
     console.log(`[CardCarousel] After constraints: ${cols} columns`);
 
@@ -295,54 +308,56 @@ function _CardCarousel<T>({
   }, [items, computedCols]);
 
   /** Normalize labels for the underlying library - memoized for stability */
-  const safeLabels = useMemo(() => labels
-    ? {
-        leftArrow: labels.leftArrow ?? "previous slide / item",
-        rightArrow: labels.rightArrow ?? "next slide / item",
-        item: labels.item ?? "slide item",
-      }
-    : undefined, [labels]);
+  const safeLabels = useMemo(
+    () =>
+      labels
+        ? {
+            leftArrow: labels.leftArrow ?? "previous slide / item",
+            rightArrow: labels.rightArrow ?? "next slide / item",
+            item: labels.item ?? "slide item",
+          }
+        : undefined,
+    [labels],
+  );
 
   /** Memoized navigation arrows to prevent re-creation on every render */
-  const LeftArrow = useMemo(() => (
-    clickHandler: () => void,
-    hasPrev: boolean,
-    label: string
-  ) => (
-    <button
-      type="button"
-      onClick={clickHandler}
-      aria-label={label}
-      disabled={!hasPrev}
-      className={`absolute left-2 top-1/2 -translate-y-1/2 z-10 p-2 h-10 w-10 rounded-2xl flex items-center justify-center transition-all duration-200 ${
-        hasPrev
-          ? "bg-white/90 text-gray-700 hover:bg-white hover:text-brown shadow-md hover:shadow-lg border border-gray-200"
-          : "bg-gray-100 text-gray-400 cursor-not-allowed"
-      }`}
-    >
-      <ChevronLeft className="w-5 h-5" />
-    </button>
-  ), []);
+  const LeftArrow = useMemo(
+    () => (clickHandler: () => void, hasPrev: boolean, label: string) => (
+      <button
+        type="button"
+        onClick={clickHandler}
+        aria-label={label}
+        disabled={!hasPrev}
+        className={`absolute left-2 top-1/2 -translate-y-1/2 z-10 p-2 h-10 w-10 rounded-2xl flex items-center justify-center transition-all duration-200 ${
+          hasPrev
+            ? "bg-white/90 text-gray-700 hover:bg-white hover:text-brown shadow-md hover:shadow-lg border border-gray-200"
+            : "bg-gray-100 text-gray-400 cursor-not-allowed"
+        }`}
+      >
+        <ChevronLeft className="w-5 h-5" />
+      </button>
+    ),
+    [],
+  );
 
-  const RightArrow = useMemo(() => (
-    clickHandler: () => void,
-    hasNext: boolean,
-    label: string
-  ) => (
-    <button
-      type="button"
-      onClick={clickHandler}
-      aria-label={label}
-      disabled={!hasNext}
-      className={`absolute right-2 top-1/2 -translate-y-1/2 z-10 p-2 h-10 w-10 rounded-2xl flex items-center justify-center transition-all duration-200 ${
-        hasNext
-          ? "bg-white/90 text-gray-700 hover:bg-white hover:text-brown shadow-md hover:shadow-lg border border-gray-200"
-          : "bg-gray-100 text-gray-400 cursor-not-allowed"
-      }`}
-    >
-      <ChevronRight className="w-5 h-5" />
-    </button>
-  ), []);
+  const RightArrow = useMemo(
+    () => (clickHandler: () => void, hasNext: boolean, label: string) => (
+      <button
+        type="button"
+        onClick={clickHandler}
+        aria-label={label}
+        disabled={!hasNext}
+        className={`absolute right-2 top-1/2 -translate-y-1/2 z-10 p-2 h-10 w-10 rounded-2xl flex items-center justify-center transition-all duration-200 ${
+          hasNext
+            ? "bg-white/90 text-gray-700 hover:bg-white hover:text-brown shadow-md hover:shadow-lg border border-gray-200"
+            : "bg-gray-100 text-gray-400 cursor-not-allowed"
+        }`}
+      >
+        <ChevronRight className="w-5 h-5" />
+      </button>
+    ),
+    [],
+  );
 
   return (
     <div aria-label={ariaLabel} className="sk-carousel">
@@ -369,90 +384,87 @@ function _CardCarousel<T>({
         >
           <div className="sk-carousel-clip relative overflow-hidden max-w-full min-w-0 box-border">
             <Carousel
-            showThumbs={false}
-            showStatus={false}
-            showIndicators={false}
-            showArrows={!!showSideArrows}
-            width={width}
-            axis={axis}
-            infiniteLoop={!!infiniteLoop}
-            autoPlay={!!autoPlay}
-            interval={interval}
-            transitionTime={transitionTime}
-            emulateTouch={!!emulateTouch}
-            swipeable={!!swipeable}
-            stopOnHover={!!stopOnHover}
-            useKeyboardArrows={!!useKeyboardArrows}
-            dynamicHeight={!!dynamicHeight}
-            verticalSwipe={verticalSwipe}
-            preventMovementUntilSwipeScrollTolerance={
-              !!preventMovementUntilSwipeScrollTolerance
-            }
-            swipeScrollTolerance={swipeScrollTolerance}
-            selectedItem={selectedItem}
-            onChange={onSlideChange}
-            animationHandler={animationHandler as any}
-            swipeAnimationHandler={swipeAnimationHandler}
-            stopSwipingHandler={stopSwipingHandler}
-            labels={safeLabels}
-            statusFormatter={statusFormatter}
-            centerMode={!!centerMode}
-            centerSlidePercentage={
-              centerMode ? centerSlidePercentage : undefined
-            }
-            renderArrowPrev={
-              showSideArrows
-                ? renderArrowPrev || LeftArrow
-                : undefined
-            }
-            renderArrowNext={
-              showSideArrows
-                ? renderArrowNext || RightArrow
-                : undefined
-            }
-          >
-            {pages.map((page, pIdx) => {
-              return (
-                <div key={`page-${pIdx}`} className="min-w-0">
-                  {/* Row container with CSS variables for robust sizing */}
-                  <div
-                    className="flex w-full items-stretch justify-center"
-                    style={
-                      {
-                        // CSS variables allow clean width calc per child
-                        // @ts-ignore custom properties
-                        "--gap": `${Math.max(0, cardGap)}px`,
-                        // @ts-ignore custom properties
-                        "--cols": centerMode ? 1 : Math.max(1, computedCols),
-                        gap: `var(--gap)`,
-                      } as React.CSSProperties
-                    }
-                  >
-                    {page.map((item, idx) => {
-                      const globalIndex = Math.max(1, computedCols) * pIdx + idx;
-                      const itemKey = stableGetItemKey(item, globalIndex);
-                      
-                      return (
-                        <div
-                          key={itemKey}
-                          className="min-w-0"
-                          style={
-                            {
-                              // No partials: exact width so cols fit with gap
-                              flex: "0 0 auto",
-                              width:
-                                "calc((100% - (var(--gap) * (var(--cols) - 1))) / var(--cols))",
-                            } as React.CSSProperties
-                          }
-                        >
-                          {stableRenderItem(item, globalIndex)}
-                        </div>
-                      );
-                    })}
+              showThumbs={false}
+              showStatus={false}
+              showIndicators={false}
+              showArrows={!!showSideArrows}
+              width={width}
+              axis={axis}
+              infiniteLoop={!!infiniteLoop}
+              autoPlay={!!autoPlay}
+              interval={interval}
+              transitionTime={transitionTime}
+              emulateTouch={!!emulateTouch}
+              swipeable={!!swipeable}
+              stopOnHover={!!stopOnHover}
+              useKeyboardArrows={!!useKeyboardArrows}
+              dynamicHeight={!!dynamicHeight}
+              verticalSwipe={verticalSwipe}
+              preventMovementUntilSwipeScrollTolerance={
+                !!preventMovementUntilSwipeScrollTolerance
+              }
+              swipeScrollTolerance={swipeScrollTolerance}
+              selectedItem={selectedItem}
+              onChange={onSlideChange}
+              animationHandler={animationHandler as any}
+              swipeAnimationHandler={swipeAnimationHandler}
+              stopSwipingHandler={stopSwipingHandler}
+              labels={safeLabels}
+              statusFormatter={statusFormatter}
+              centerMode={!!centerMode}
+              centerSlidePercentage={
+                centerMode ? centerSlidePercentage : undefined
+              }
+              renderArrowPrev={
+                showSideArrows ? renderArrowPrev || LeftArrow : undefined
+              }
+              renderArrowNext={
+                showSideArrows ? renderArrowNext || RightArrow : undefined
+              }
+            >
+              {pages.map((page, pIdx) => {
+                return (
+                  <div key={`page-${pIdx}`} className="min-w-0">
+                    {/* Row container with CSS variables for robust sizing */}
+                    <div
+                      className="flex w-full items-stretch justify-center"
+                      style={
+                        {
+                          // CSS variables allow clean width calc per child
+                          // @ts-ignore custom properties
+                          "--gap": `${Math.max(0, cardGap)}px`,
+                          // @ts-ignore custom properties
+                          "--cols": centerMode ? 1 : Math.max(1, computedCols),
+                          gap: `var(--gap)`,
+                        } as React.CSSProperties
+                      }
+                    >
+                      {page.map((item, idx) => {
+                        const globalIndex =
+                          Math.max(1, computedCols) * pIdx + idx;
+                        const itemKey = stableGetItemKey(item, globalIndex);
+
+                        return (
+                          <div
+                            key={itemKey}
+                            className="min-w-0"
+                            style={
+                              {
+                                // No partials: exact width so cols fit with gap
+                                flex: "0 0 auto",
+                                width:
+                                  "calc((100% - (var(--gap) * (var(--cols) - 1))) / var(--cols))",
+                              } as React.CSSProperties
+                            }
+                          >
+                            {stableRenderItem(item, globalIndex)}
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
             </Carousel>
           </div>
         </div>

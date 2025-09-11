@@ -1,5 +1,5 @@
-import React from 'react';
-import { LucideIcon } from 'lucide-react';
+import React from "react";
+import { LucideIcon } from "lucide-react";
 
 interface CardHeaderProps {
   /** Icon component */
@@ -22,16 +22,21 @@ export default function CardHeader({
   title,
   subtitle,
   action,
-  className = ''
+  className = "",
 }: CardHeaderProps) {
   return (
-    <div className={`flex items-start justify-between gap-responsive-sm card-header-spacing ${className}`}>
+    <div
+      className={`flex items-start justify-between gap-responsive-sm card-header-spacing ${className}`}
+    >
       <div className="flex items-center gap-responsive-sm flex-1 min-w-0">
         <div className="flex-shrink-0 text-brand-accent">
           <Icon className="mobile-icon-md" />
         </div>
         <div className="flex-1 overflow-hidden">
-          <p className="font-medium text-responsive-xs leading-tight line-clamp-1 truncate text-brand-primary" title={title}>
+          <p
+            className="font-medium text-responsive-xs leading-tight line-clamp-1 truncate text-brand-primary"
+            title={title}
+          >
             {title}
           </p>
           {subtitle && (
@@ -41,11 +46,7 @@ export default function CardHeader({
           )}
         </div>
       </div>
-      {action && (
-        <div className="flex-shrink-0">
-          {action}
-        </div>
-      )}
+      {action && <div className="flex-shrink-0">{action}</div>}
     </div>
   );
 }

@@ -67,7 +67,7 @@ export default function ResetPasswordPage() {
     // Validate password using comprehensive validation
     if (!isPasswordValid) {
       setError(
-        `Password must meet all requirements: ${passwordErrors.join(", ")}`
+        `Password must meet all requirements: ${passwordErrors.join(", ")}`,
       );
       setLoading(false);
       return;
@@ -77,7 +77,7 @@ export default function ResetPasswordPage() {
       const { success, error } = await authApi.resetPassword(
         email,
         code,
-        newPassword
+        newPassword,
       );
 
       if (!success) {

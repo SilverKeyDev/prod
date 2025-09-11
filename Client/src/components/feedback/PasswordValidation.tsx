@@ -1,5 +1,5 @@
-import React from 'react';
-import { Check, X } from 'lucide-react';
+import React from "react";
+import { Check, X } from "lucide-react";
 
 interface PasswordValidationProps {
   password: string;
@@ -14,30 +14,30 @@ interface ValidationRule {
 
 const validationRules: ValidationRule[] = [
   {
-    id: 'length',
-    label: 'At least 8 characters',
-    test: (password: string) => password.length >= 8
+    id: "length",
+    label: "At least 8 characters",
+    test: (password: string) => password.length >= 8,
   },
   {
-    id: 'uppercase',
-    label: 'Contains uppercase letter',
-    test: (password: string) => /[A-Z]/.test(password)
+    id: "uppercase",
+    label: "Contains uppercase letter",
+    test: (password: string) => /[A-Z]/.test(password),
   },
   {
-    id: 'lowercase',
-    label: 'Contains lowercase letter',
-    test: (password: string) => /[a-z]/.test(password)
+    id: "lowercase",
+    label: "Contains lowercase letter",
+    test: (password: string) => /[a-z]/.test(password),
   },
   {
-    id: 'number',
-    label: 'Contains number',
-    test: (password: string) => /[0-9]/.test(password)
-  }
+    id: "number",
+    label: "Contains number",
+    test: (password: string) => /[0-9]/.test(password),
+  },
 ];
 
-export const PasswordValidation: React.FC<PasswordValidationProps> = ({ 
-  password, 
-  showValidation = true 
+export const PasswordValidation: React.FC<PasswordValidationProps> = ({
+  password,
+  showValidation = true,
 }) => {
   if (!showValidation || !password) {
     return null;
@@ -50,22 +50,22 @@ export const PasswordValidation: React.FC<PasswordValidationProps> = ({
           const isValid = rule.test(password);
           return (
             <div key={rule.id} className="flex items-center gap-responsive-sm">
-              <div className={`flex-shrink-0 mobile-icon-sm rounded-full flex items-center justify-center ${
-                isValid 
-                  ? 'bg-olive' 
-                  : 'bg-gray-300'
-              }`}>
+              <div
+                className={`flex-shrink-0 mobile-icon-sm rounded-full flex items-center justify-center ${
+                  isValid ? "bg-olive" : "bg-gray-300"
+                }`}
+              >
                 {isValid ? (
                   <Check className="mobile-icon-xs text-white" />
                 ) : (
                   <X className="mobile-icon-xs text-gray-500" />
                 )}
               </div>
-              <span className={`text-responsive-sm ${
-                isValid 
-                  ? 'text-olive font-medium' 
-                  : 'text-gray-600'
-              }`}>
+              <span
+                className={`text-responsive-sm ${
+                  isValid ? "text-olive font-medium" : "text-gray-600"
+                }`}
+              >
                 {rule.label}
               </span>
             </div>
@@ -77,31 +77,36 @@ export const PasswordValidation: React.FC<PasswordValidationProps> = ({
 };
 
 // Helper function to validate password
-export const validatePassword = (password: string): { isValid: boolean; errors: string[] } => {
+export const validatePassword = (
+  password: string,
+): { isValid: boolean; errors: string[] } => {
   const errors: string[] = [];
-  
+
   validationRules.forEach((rule) => {
     if (!rule.test(password)) {
       errors.push(rule.label.toLowerCase());
     }
   });
-  
+
   return {
     isValid: errors.length === 0,
-    errors
+    errors,
   };
 };
 
 // Hook for password validation
 export const usePasswordValidation = (password: string) => {
-  const validation = React.useMemo(() => validatePassword(password), [password]);
-  
+  const validation = React.useMemo(
+    () => validatePassword(password),
+    [password],
+  );
+
   return {
     isValid: validation.isValid,
     errors: validation.errors,
-    rules: validationRules.map(rule => ({
+    rules: validationRules.map((rule) => ({
       ...rule,
-      isValid: rule.test(password)
-    }))
+      isValid: rule.test(password),
+    })),
   };
 };

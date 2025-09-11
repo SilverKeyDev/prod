@@ -7,13 +7,8 @@ import {
   useMemo,
   ReactNode,
 } from "react";
-import {
-  SavedHome,
-} from "../types";
-import {
-  getIdToken,
-  mapHomeUniversalToSavedHome,
-} from "./utils";
+import { SavedHome } from "../types";
+import { getIdToken, mapHomeUniversalToSavedHome } from "./utils";
 import { SearchResult } from "../types/search";
 import {
   isAuthenticationError,
@@ -38,9 +33,9 @@ interface SavedHomesContextType {
    Context
    ========================= */
 
-export const SavedHomesContext = createContext<SavedHomesContextType | undefined>(
-  undefined
-);
+export const SavedHomesContext = createContext<
+  SavedHomesContextType | undefined
+>(undefined);
 
 interface SavedHomesProviderProps {
   children: ReactNode;
@@ -67,13 +62,13 @@ export function SavedHomesProvider({ children }: SavedHomesProviderProps) {
       if (response.success) {
         const rawHomes = response.favorites || [];
         const homeObjects: SavedHome[] = rawHomes.map(
-          mapHomeUniversalToSavedHome
+          mapHomeUniversalToSavedHome,
         );
         setSavedHomes(homeObjects);
       } else {
         throw new Error(response.error || "Failed to load favorite homes");
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (isAuthenticationError(e)) {
         handleAuthenticationError(e);
         return; // User will be redirected
@@ -91,7 +86,7 @@ export function SavedHomesProvider({ children }: SavedHomesProviderProps) {
 
   const refreshSavedHomes = useCallback(
     () => fetchSavedHomes(),
-    [fetchSavedHomes]
+    [fetchSavedHomes],
   );
 
   const saveHome = useCallback(
@@ -108,7 +103,7 @@ export function SavedHomesProvider({ children }: SavedHomesProviderProps) {
         throw error;
       }
     },
-    [refreshSavedHomes]
+    [refreshSavedHomes],
   );
 
   const removeSavedHome = useCallback(
@@ -130,7 +125,7 @@ export function SavedHomesProvider({ children }: SavedHomesProviderProps) {
         throw error;
       }
     },
-    [savedHomes, refreshSavedHomes]
+    [savedHomes, refreshSavedHomes],
   );
 
   /* =========================
@@ -183,7 +178,7 @@ export function SavedHomesProvider({ children }: SavedHomesProviderProps) {
       refreshSavedHomes,
       saveHome,
       removeSavedHome,
-    ]
+    ],
   );
 
   return (

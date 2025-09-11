@@ -67,7 +67,7 @@ export function CookieConsentBanner() {
       setShowBanner(true);
       log.info(
         "privacy",
-        "Cookie consent banner displayed - no previous consent found"
+        "Cookie consent banner displayed - no previous consent found",
       );
     } else {
       try {
@@ -81,7 +81,7 @@ export function CookieConsentBanner() {
         log.warn(
           "privacy",
           "Cookie consent banner displayed - invalid stored consent",
-          { error }
+          { error },
         );
       }
     }
@@ -116,7 +116,7 @@ export function CookieConsentBanner() {
     window.dispatchEvent(
       new CustomEvent("cookieConsentUpdated", {
         detail: prefs,
-      })
+      }),
     );
 
     setPreferences(prefs);
@@ -135,7 +135,7 @@ export function CookieConsentBanner() {
 
   const handlePreferenceChange = (
     key: keyof ConsentPreferences,
-    checked: boolean
+    checked: boolean,
   ) => {
     setPreferences((prev) => ({ ...prev, [key]: checked }));
   };
@@ -241,7 +241,7 @@ export function CookieConsentBanner() {
                           onChange={(e) =>
                             handlePreferenceChange(
                               key as keyof ConsentPreferences,
-                              e.target.checked
+                              e.target.checked,
                             )
                           }
                           disabled={key === "necessary"}

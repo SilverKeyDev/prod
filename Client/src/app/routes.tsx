@@ -8,8 +8,12 @@ import { UserProfile } from "../context"; // consider importing from a /types mo
 const HomePage = lazy(() => import("../pages/HomeAuth/HomePage"));
 const LoginPage = lazy(() => import("../pages/HomeAuth/LoginPage"));
 const SignupPage = lazy(() => import("../pages/HomeAuth/SignupPage"));
-const ResetPasswordPage = lazy(() => import("../pages/HomeAuth/ResetPasswordPage"));
-const VerificationPage = lazy(() => import("../pages/HomeAuth/VerificationPage"));
+const ResetPasswordPage = lazy(
+  () => import("../pages/HomeAuth/ResetPasswordPage"),
+);
+const VerificationPage = lazy(
+  () => import("../pages/HomeAuth/VerificationPage"),
+);
 const OnboardingPage = lazy(() => import("../pages/HomeAuth/OnboardingPage"));
 const PrivacyPolicy = lazy(() => import("../pages/HomeAuth/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("../pages/HomeAuth/TermsOfService"));
@@ -53,27 +57,35 @@ const PROTECTED_BASE_PATHS = [
   "/closing-moving-in/*",
   "/client-information/*",
   "/agent-connection/*",
-  "/close/*"
+  "/close/*",
 ];
 
 export function AppRoutes({ user, handleLogout }: AppRoutesProps) {
   return (
-    <Suspense fallback={<div className="p-6 text-sm text-gray-600">Loading…</div>}>
+    <Suspense
+      fallback={<div className="p-6 text-sm text-gray-600">Loading…</div>}
+    >
       <Routes>
         {/* Root route - always show homepage */}
         <Route path="/" element={<HomePage />} />
 
         {/* Public Routes */}
-        <Route path="/signup" element={
-          <AuthGuard requireAuth={false}>
-            <SignupPage />
-          </AuthGuard>
-        } />
-        <Route path="/login" element={
-          <AuthGuard requireAuth={false}>
-            <LoginPage />
-          </AuthGuard>
-        } />
+        <Route
+          path="/signup"
+          element={
+            <AuthGuard requireAuth={false}>
+              <SignupPage />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/login"
+          element={
+            <AuthGuard requireAuth={false}>
+              <LoginPage />
+            </AuthGuard>
+          }
+        />
         <Route path="/forgot-password" element={<ResetPasswordPage />} />
         <Route path="/onboarding" element={<OnboardingPage />} />
         <Route path="/verification" element={<VerificationPage />} />
@@ -86,7 +98,12 @@ export function AppRoutes({ user, handleLogout }: AppRoutesProps) {
           <Route
             key={path}
             path={path}
-            element={<ProtectedDashboard user={user ?? undefined} onLogout={handleLogout} />}
+            element={
+              <ProtectedDashboard
+                user={user ?? undefined}
+                onLogout={handleLogout}
+              />
+            }
           />
         ))}
 

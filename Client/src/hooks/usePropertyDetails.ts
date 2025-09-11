@@ -1,5 +1,5 @@
-import { useState, useCallback } from 'react';
-import { searchApi } from '../api';
+import { useState, useCallback } from "react";
+import { searchApi } from "../api";
 
 export interface Property {
   id: string;
@@ -35,7 +35,9 @@ export interface UsePropertyDetailsReturn {
  */
 export function usePropertyDetails(): UsePropertyDetailsReturn {
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(
+    null,
+  );
   const [error, setError] = useState<string | null>(null);
 
   const fetchPropertyDetails = useCallback(async (property: Property) => {
@@ -44,15 +46,18 @@ export function usePropertyDetails(): UsePropertyDetailsReturn {
 
     try {
       const response = await searchApi.getProperty({
-        address: property.address
+        address: property.address,
       });
-      
+
       console.log("🔍 [USE_PROPERTY_DETAILS] Full API response:", response);
-      
+
       // The backend returns property data in response.data, not response.property
       const detailedPropertyData = response.data || {};
-      
-      console.log("🔍 [USE_PROPERTY_DETAILS] Detailed property data:", detailedPropertyData);
+
+      console.log(
+        "🔍 [USE_PROPERTY_DETAILS] Detailed property data:",
+        detailedPropertyData,
+      );
 
       const enhancedProperty = {
         ...property,
@@ -65,15 +70,25 @@ export function usePropertyDetails(): UsePropertyDetailsReturn {
         images: response.images,
         features: response.features,
       };
-      
-      console.log("🔍 [USE_PROPERTY_DETAILS] Enhanced property for modal:", enhancedProperty);
+
+      console.log(
+        "🔍 [USE_PROPERTY_DETAILS] Enhanced property for modal:",
+        enhancedProperty,
+      );
       setSelectedProperty(enhancedProperty);
     } catch (error) {
-      console.error("❌ [USE_PROPERTY_DETAILS] Error fetching property details:", error);
+      console.error(
+        "❌ [USE_PROPERTY_DETAILS] Error fetching property details:",
+        error,
+      );
       console.error("❌ [USE_PROPERTY_DETAILS] Error type:", typeof error);
-      console.error("❌ [USE_PROPERTY_DETAILS] Error message:", (error as Error).message);
+      console.error(
+        "❌ [USE_PROPERTY_DETAILS] Error message:",
+        (error as Error).message,
+      );
 
-      const errorMessage = (error as Error).message || 'Failed to fetch property details';
+      const errorMessage =
+        (error as Error).message || "Failed to fetch property details";
       setError(errorMessage);
 
       // Fallback: use the original property data without detailed information
@@ -94,6 +109,6 @@ export function usePropertyDetails(): UsePropertyDetailsReturn {
     selectedProperty,
     fetchPropertyDetails,
     clearSelectedProperty,
-    error
+    error,
   };
 }

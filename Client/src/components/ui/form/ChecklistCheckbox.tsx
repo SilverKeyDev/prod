@@ -48,10 +48,12 @@ const ChecklistCheckbox: React.FC<ChecklistCheckboxProps> = ({
       />
       {/* visible square checkbox */}
       <div
-        className={`h-5 w-5 rounded border flex items-center justify-center transition-colors cursor-pointer ${checked ? 'bg-olive border-olive' : 'border-beige'}`}
+        className={`h-5 w-5 rounded border flex items-center justify-center transition-colors cursor-pointer ${checked ? "bg-olive border-olive" : "border-beige"}`}
         onClick={onToggle}
       >
-        {checked && <Check className="h-[14px] w-[14px] text-white" strokeWidth={4} />}
+        {checked && (
+          <Check className="h-[14px] w-[14px] text-white" strokeWidth={4} />
+        )}
       </div>
       <label htmlFor={`item-${item.id}`} className="flex-1">
         <span className={itemLabelClass}>{item.label}</span>

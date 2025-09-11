@@ -15,9 +15,16 @@ import {
   FileCheck,
 } from "lucide-react";
 import { offerApi } from "../../api";
-import { processImage, isValidImageFile, ProcessedImage } from "../../lib/security/imageProcessor";
+import {
+  processImage,
+  isValidImageFile,
+  ProcessedImage,
+} from "../../lib/security/imageProcessor";
 import { log } from "../../lib/security/secureLogger";
-import { captureError, reportSecurityEvent } from "../../lib/security/errorReporting";
+import {
+  captureError,
+  reportSecurityEvent,
+} from "../../lib/security/errorReporting";
 
 const sectionBox =
   "bg-white rounded-xl shadow-sm p-6 mb-6 border border-beige/40";
@@ -114,8 +121,9 @@ const OfferDraftPage: React.FC = () => {
   };
 
   // Use centralized localStorage hooks for persistence
-  const { value: offerData, setValue: setOfferData } = useLocalStorage<OfferData>('silverkey_draft_offer_data', defaultOfferData);
-  
+  const { value: offerData, setValue: setOfferData } =
+    useLocalStorage<OfferData>("silverkey_draft_offer_data", defaultOfferData);
+
   // File state (not persisted for security reasons)
   const [fileUploads, setFileUploads] = useState({
     signedAgreement: null as File | null,
@@ -130,15 +138,27 @@ const OfferDraftPage: React.FC = () => {
     ...fileUploads,
   };
 
-  const setOffer = (updater: any) => {
-    if (typeof updater === 'function') {
+  const setOffer = (updater: unknown) => {
+    if (typeof updater === "function") {
       const newState = updater(offer);
       // Separate text data from files
-      const { signedAgreement, signature, preApproval, proofOfFunds, ...textData } = newState;
+      const {
+        signedAgreement,
+        signature,
+        preApproval,
+        proofOfFunds,
+        ...textData
+      } = newState;
       setOfferData(textData);
       setFileUploads({ signedAgreement, signature, preApproval, proofOfFunds });
     } else {
-      const { signedAgreement, signature, preApproval, proofOfFunds, ...textData } = updater;
+      const {
+        signedAgreement,
+        signature,
+        preApproval,
+        proofOfFunds,
+        ...textData
+      } = updater;
       setOfferData(textData);
       setFileUploads({ signedAgreement, signature, preApproval, proofOfFunds });
     }
@@ -154,7 +174,8 @@ const OfferDraftPage: React.FC = () => {
   });
 
   // Use centralized localStorage hook for selected home
-  const { value: selectedHome, setValue: setSelectedHome } = useLocalStorage<any>('silverkey_draft_offer_selected_home', null);
+  const { value: selectedHome, setValue: setSelectedHome } =
+    useLocalStorage<any>("silverkey_draft_offer_selected_home", null);
 
   // Validation state for visual feedback
   const [sectionValidation, setSectionValidation] = useState<{
@@ -182,76 +203,83 @@ const OfferDraftPage: React.FC = () => {
   // No useEffect needed for persistence
 
   // Secure file handling with EXIF stripping for images
-  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>, field: string) => {
+  const handleFile = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    field: string,
+  ) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     try {
-      log.security('OFFER_DRAFT', 'File upload attempt', { 
-        fileName: file.name, 
-        fileType: file.type, 
+      log.security("OFFER_DRAFT", "File upload attempt", {
+        fileName: file.name,
+        fileType: file.type,
         fileSize: file.size,
-        field 
+        field,
       });
 
       // Process images to strip EXIF data
       if (isValidImageFile(file)) {
-        log.info('OFFER_DRAFT', 'Processing image file for security', { fileName: file.name });
-        
+        log.info("OFFER_DRAFT", "Processing image file for security", {
+          fileName: file.name,
+        });
+
         const processed: ProcessedImage = await processImage(file, {
           maxWidth: 2048,
           maxHeight: 2048,
           quality: 0.9,
-          stripAllMetadata: true
+          stripAllMetadata: true,
         });
 
         if (processed.warnings.length > 0) {
-          log.warn('OFFER_DRAFT', 'Image processing warnings', { 
-            fileName: file.name, 
-            warnings: processed.warnings 
+          log.warn("OFFER_DRAFT", "Image processing warnings", {
+            fileName: file.name,
+            warnings: processed.warnings,
           });
         }
 
-        log.security('OFFER_DRAFT', 'Image processed successfully', {
+        log.security("OFFER_DRAFT", "Image processed successfully", {
           originalSize: processed.originalSize,
           processedSize: processed.processedSize,
-          metadataRemoved: processed.metadataRemoved
+          metadataRemoved: processed.metadataRemoved,
         });
 
-        setOffer((prev: typeof offer) => ({ ...prev, [field]: processed.file }));
+        setOffer((prev: typeof offer) => ({
+          ...prev,
+          [field]: processed.file,
+        }));
       } else {
         // For non-image files (PDFs), use as-is but log the upload
-        log.info('OFFER_DRAFT', 'Non-image file uploaded', { 
-          fileName: file.name, 
-          fileType: file.type 
+        log.info("OFFER_DRAFT", "Non-image file uploaded", {
+          fileName: file.name,
+          fileType: file.type,
         });
         setOffer((prev: typeof offer) => ({ ...prev, [field]: file }));
       }
 
       reportSecurityEvent({
-        type: 'data_access',
-        severity: 'low',
-        description: 'File uploaded in offer draft',
-        metadata: { fileName: file.name, fileType: file.type, field }
+        type: "data_access",
+        severity: "low",
+        description: "File uploaded in offer draft",
+        metadata: { fileName: file.name, fileType: file.type, field },
+      });
+    } catch (error) {
+      log.error("OFFER_DRAFT", "File processing failed", error);
+      captureError(error, {
+        context: "handleFile",
+        fileName: file.name,
+        field,
       });
 
-    } catch (error) {
-      log.error('OFFER_DRAFT', 'File processing failed', error);
-      captureError(error, { 
-        context: 'handleFile', 
-        fileName: file.name, 
-        field 
-      });
-      
       // Show user-friendly error
-      alert('Failed to process file. Please try again or contact support.');
+      alert("Failed to process file. Please try again or contact support.");
     }
   };
 
   // Text/number/date change handler with auto-save
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-    key: keyof typeof offer
+    key: keyof typeof offer,
   ) => {
     const newValue = e.target.value;
     setOffer((prev: typeof offer) => {
@@ -263,7 +291,7 @@ const OfferDraftPage: React.FC = () => {
   };
 
   // Handle home selection with auto-save
-  const handleHomeSelection = (home: any) => {
+  const handleHomeSelection = (home: unknown) => {
     setSelectedHome(home);
     // Auto-save will be triggered by useEffect
     // Update validation state when home selection changes
@@ -279,7 +307,7 @@ const OfferDraftPage: React.FC = () => {
 
     if (!selectedHome)
       errors.push(
-        "Please select a property from your favorites before generating documents"
+        "Please select a property from your favorites before generating documents",
       );
     if (!offer.price || parseFloat(offer.price) <= 0)
       errors.push("Offer price is required and must be greater than 0");
@@ -287,7 +315,7 @@ const OfferDraftPage: React.FC = () => {
     if (!offer.closingDate) errors.push("Closing date is required");
     if (!offer.earnestMoney || parseFloat(offer.earnestMoney) <= 0)
       errors.push(
-        "Earnest money amount is required and must be greater than 0"
+        "Earnest money amount is required and must be greater than 0",
       );
     if (!offer.signedAgreement)
       errors.push("Signed agreement document is required");
@@ -304,13 +332,13 @@ const OfferDraftPage: React.FC = () => {
     // Property address is required for all document generation
     if (!selectedHome)
       errors.push(
-        "Please select a property from your favorites before generating documents"
+        "Please select a property from your favorites before generating documents",
       );
 
     // At least one document is required (pre-approval OR proof of funds)
     if (!offer.preApproval && !offer.proofOfFunds) {
       errors.push(
-        "Either a pre-approval letter or proof of funds document is required"
+        "Either a pre-approval letter or proof of funds document is required",
       );
     }
 
@@ -326,7 +354,7 @@ const OfferDraftPage: React.FC = () => {
     // Property address is required for all document generation
     if (!selectedHome)
       errors.push(
-        "Please select a property from your favorites before generating documents"
+        "Please select a property from your favorites before generating documents",
       );
 
     if (
@@ -334,7 +362,7 @@ const OfferDraftPage: React.FC = () => {
       parseFloat(offer.earnestMoneyAmount) <= 0
     ) {
       errors.push(
-        "Earnest money amount is required and must be greater than 0"
+        "Earnest money amount is required and must be greater than 0",
       );
     }
     if (!offer.escrowHolder.trim())
@@ -354,7 +382,7 @@ const OfferDraftPage: React.FC = () => {
     // Property address is required for all document generation
     if (!selectedHome)
       errors.push(
-        "Please select a property from your favorites before generating documents"
+        "Please select a property from your favorites before generating documents",
       );
 
     // Cover letter content is required if generating this section
@@ -377,19 +405,19 @@ const OfferDraftPage: React.FC = () => {
     if (!purchaseValidation.isValid) {
       allErrors.push(
         "Purchase Agreement section:",
-        ...purchaseValidation.errors.map((e) => `  • ${e}`)
+        ...purchaseValidation.errors.map((e) => `  • ${e}`),
       );
     }
     if (!preApprovalValidation.isValid) {
       allErrors.push(
         "Pre-Approval section:",
-        ...preApprovalValidation.errors.map((e) => `  • ${e}`)
+        ...preApprovalValidation.errors.map((e) => `  • ${e}`),
       );
     }
     if (!earnestMoneyValidation.isValid) {
       allErrors.push(
         "Earnest Money section:",
-        ...earnestMoneyValidation.errors.map((e) => `  • ${e}`)
+        ...earnestMoneyValidation.errors.map((e) => `  • ${e}`),
       );
     }
 
@@ -450,7 +478,7 @@ const OfferDraftPage: React.FC = () => {
 
       if (data.success) {
         alert(
-          `Purchase Agreement generated successfully! Document ID: ${data.document_id}`
+          `Purchase Agreement generated successfully! Document ID: ${data.document_id}`,
         );
       } else {
         alert(`Error: ${data.error}`);
@@ -484,7 +512,7 @@ const OfferDraftPage: React.FC = () => {
 
       if (data.success) {
         alert(
-          `Pre-Approval Letter generated successfully! Document ID: ${data.document_id}`
+          `Pre-Approval Letter generated successfully! Document ID: ${data.document_id}`,
         );
       } else {
         alert(`Error: ${data.error}`);
@@ -517,7 +545,7 @@ const OfferDraftPage: React.FC = () => {
 
       if (data.success) {
         alert(
-          `Earnest Money Instructions generated successfully! Document ID: ${data.document_id}`
+          `Earnest Money Instructions generated successfully! Document ID: ${data.document_id}`,
         );
       } else {
         alert(`Error: ${data.error}`);
@@ -557,7 +585,7 @@ const OfferDraftPage: React.FC = () => {
 
       if (data.success) {
         alert(
-          `Cover Letter generated successfully! Document ID: ${data.document_id}`
+          `Cover Letter generated successfully! Document ID: ${data.document_id}`,
         );
       } else {
         alert(`Error: ${data.error}`);
@@ -592,7 +620,7 @@ const OfferDraftPage: React.FC = () => {
     } catch (error) {
       console.error("Error generating all documents:", error);
       alert(
-        "Some documents failed to generate. Please check individual sections."
+        "Some documents failed to generate. Please check individual sections.",
       );
     } finally {
       setLoadingStates((prev) => ({ ...prev, allDocuments: false }));
@@ -1141,7 +1169,7 @@ const OfferDraftPage: React.FC = () => {
                   onClick={() => {
                     if (
                       window.confirm(
-                        "Are you sure you want to clear all draft data? This cannot be undone."
+                        "Are you sure you want to clear all draft data? This cannot be undone.",
                       )
                     ) {
                       clearDraftOfferData();

@@ -30,8 +30,12 @@ export default function SuccessToast({
       <div className="bg-green-50 border border-green-200 rounded-lg space-responsive-sm max-w-xs sm:max-w-md">
         <div className="flex items-start justify-between gap-responsive-sm">
           <div className="flex-1 min-w-0">
-            <p className="text-green-800 font-medium text-responsive-sm">Success</p>
-            <p className="text-green-700 text-responsive-xs mt-1 break-words">{message}</p>
+            <p className="text-green-800 font-medium text-responsive-sm">
+              Success
+            </p>
+            <p className="text-green-700 text-responsive-xs mt-1 break-words">
+              {message}
+            </p>
           </div>
           <button
             onClick={() => {

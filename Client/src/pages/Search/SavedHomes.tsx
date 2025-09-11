@@ -45,7 +45,7 @@ export default function SavedHomes() {
             lng: home.lng || 0,
             // Any other HomeUniversal fields can be passed through
             ...home,
-          })
+          }),
         );
         setHomes(homeObjects);
       } else {
@@ -61,7 +61,7 @@ export default function SavedHomes() {
   useEffect(() => {
     fetchSavedHomes();
     // Optionally expose refresh in dev
-    // @ts-ignore
+    // @ts-expect-error
     window.refreshFavorites = fetchSavedHomes;
   }, [fetchSavedHomes]);
 
@@ -72,32 +72,26 @@ export default function SavedHomes() {
   };
 
   // Save a home to favorites - use exact same format as working Dashboard
-  const saveHome = useCallback(
-    async (home: SavedHome) => {
-      try {
-        await userApi.addFavoriteHome({ home });
-        // Force refresh like Dashboard does
-        window.location.reload();
-      } catch (error) {
-        console.error("Error saving home:", error);
-      }
-    },
-    []
-  );
+  const saveHome = useCallback(async (home: SavedHome) => {
+    try {
+      await userApi.addFavoriteHome({ home });
+      // Force refresh like Dashboard does
+      window.location.reload();
+    } catch (error) {
+      console.error("Error saving home:", error);
+    }
+  }, []);
 
   // Remove a home from favorites - use exact same format as working Dashboard
-  const removeSavedHome = useCallback(
-    async (homeId: string) => {
-      try {
-        await userApi.removeFavoriteHome({ address: homeId });
-        // Refresh the page like Dashboard does
-        window.location.reload();
-      } catch (error) {
-        console.error("Error removing home from favorites:", error);
-      }
-    },
-    []
-  );
+  const removeSavedHome = useCallback(async (homeId: string) => {
+    try {
+      await userApi.removeFavoriteHome({ address: homeId });
+      // Refresh the page like Dashboard does
+      window.location.reload();
+    } catch (error) {
+      console.error("Error removing home from favorites:", error);
+    }
+  }, []);
 
   // Check if a home is saved (for modal)
   const isHomeSavedForModal = useCallback(
@@ -108,39 +102,33 @@ export default function SavedHomes() {
           home.id === homeId ||
           home.zpid === homeId ||
           home.zpid?.toString() === homeId ||
-          home.address === homeId
+          home.address === homeId,
       );
     },
-    [homes]
+    [homes],
   );
 
   // Save home for modal - use exact same format as working Dashboard
-  const saveHomeForModal = useCallback(
-    async (property: any) => {
-      try {
-        await userApi.addFavoriteHome({ home: property });
-        // Force refresh like Dashboard does
-        window.location.reload();
-      } catch (error) {
-        console.error("Error saving home:", error);
-      }
-    },
-    []
-  );
+  const saveHomeForModal = useCallback(async (property: unknown) => {
+    try {
+      await userApi.addFavoriteHome({ home: property });
+      // Force refresh like Dashboard does
+      window.location.reload();
+    } catch (error) {
+      console.error("Error saving home:", error);
+    }
+  }, []);
 
   // Remove saved home for modal - use exact same format as working Dashboard
-  const removeSavedHomeForModal = useCallback(
-    async (homeId: string) => {
-      try {
-        await userApi.removeFavoriteHome({ address: homeId });
-        // Force refresh like Dashboard does
-        window.location.reload();
-      } catch (error) {
-        console.error("Error removing home from favorites:", error);
-      }
-    },
-    []
-  );
+  const removeSavedHomeForModal = useCallback(async (homeId: string) => {
+    try {
+      await userApi.removeFavoriteHome({ address: homeId });
+      // Force refresh like Dashboard does
+      window.location.reload();
+    } catch (error) {
+      console.error("Error removing home from favorites:", error);
+    }
+  }, []);
 
   const filteredHomes = homes.filter((h: SavedHome) => {
     return (

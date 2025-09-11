@@ -3,12 +3,16 @@
  * Handles route-specific errors with navigation options
  */
 
-import React from 'react';
-import { useRouteError, useNavigate, isRouteErrorResponse } from 'react-router-dom';
-import Card from '../../components/layout/Card';
-import Button from '../../components/ui/button/Button';
-import { AlertTriangle, Home, ArrowLeft, RefreshCw } from 'lucide-react';
-import { reportError, normalizeError, formatErrorMessage } from './errorUtils';
+import React from "react";
+import {
+  useRouteError,
+  useNavigate,
+  isRouteErrorResponse,
+} from "react-router-dom";
+import Card from "../../components/layout/Card";
+import Button from "../../components/ui/button/Button";
+import { AlertTriangle, Home, ArrowLeft, RefreshCw } from "lucide-react";
+import { reportError, normalizeError, formatErrorMessage } from "./errorUtils";
 
 export function RouteErrorBoundary() {
   const error = useRouteError();
@@ -27,7 +31,7 @@ export function RouteErrorBoundary() {
   };
 
   const handleGoHome = () => {
-    navigate('/');
+    navigate("/");
   };
 
   const handleRetry = () => {
@@ -38,27 +42,30 @@ export function RouteErrorBoundary() {
   if (isRouteErrorResponse(error)) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <Card className="max-w-lg w-full border-l-4 border-l-red-500" padding="lg">
+        <Card
+          className="max-w-lg w-full border-l-4 border-l-red-500"
+          padding="lg"
+        >
           <div className="text-center">
             <div className="flex justify-center mb-4">
               <div className="p-3 bg-red-100 rounded-full">
                 <AlertTriangle className="w-8 h-8 text-red-600" />
               </div>
             </div>
-            
+
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
               {error.status}
             </h1>
-            
+
             <h2 className="text-xl font-semibold text-gray-700 mb-4">
-              {error.status === 404 ? 'Page Not Found' : error.statusText}
+              {error.status === 404 ? "Page Not Found" : error.statusText}
             </h2>
-            
+
             <p className="text-gray-600 mb-6">
-              {error.status === 404 
+              {error.status === 404
                 ? "The page you're looking for doesn't exist or has been moved."
-                : error.data?.message || 'An error occurred while loading this page.'
-              }
+                : error.data?.message ||
+                  "An error occurred while loading this page."}
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3">
@@ -91,21 +98,20 @@ export function RouteErrorBoundary() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <Card className="max-w-lg w-full border-l-4 border-l-red-500" padding="lg">
+      <Card
+        className="max-w-lg w-full border-l-4 border-l-red-500"
+        padding="lg"
+      >
         <div className="text-center">
           <div className="flex justify-center mb-4">
             <div className="p-3 bg-red-100 rounded-full">
               <AlertTriangle className="w-8 h-8 text-red-600" />
             </div>
           </div>
-          
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            Route Error
-          </h1>
-          
-          <p className="text-gray-600 mb-6">
-            {userMessage}
-          </p>
+
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Route Error</h1>
+
+          <p className="text-gray-600 mb-6">{userMessage}</p>
 
           <div className="flex flex-col sm:flex-row gap-3 mb-4">
             <Button

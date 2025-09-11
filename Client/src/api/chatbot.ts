@@ -1,4 +1,4 @@
-import { apiPost, apiGet } from './utils/index';
+import { apiPost, apiGet } from "./utils/index";
 
 // Types for chatbot API
 export interface ChatMessage {
@@ -7,14 +7,14 @@ export interface ChatMessage {
 
 export interface ChatResponse {
   response: string;
-  function_call?: any;
+  function_call?: Record<string, unknown>;
   message_id: string;
   message_summary: string;
 }
 
 export interface ChatHistoryMessage {
   id: string;
-  role: 'user' | 'assistant';
+  role: "user" | "assistant";
   message: string;
   timestamp: string;
 }

@@ -7,11 +7,7 @@ import {
   useMemo,
   ReactNode,
 } from "react";
-import {
-  BillingInfo,
-  getIdToken,
-  apiRequest,
-} from "./utils";
+import { BillingInfo, getIdToken, apiRequest } from "./utils";
 
 /* =========================
    Types
@@ -52,10 +48,10 @@ export function BillingProvider({ children }: BillingProviderProps) {
 
     try {
       const billingData = await apiRequest<BillingInfo>(
-        "/api/v1/user/billing-info"
+        "/api/v1/user/billing-info",
       );
       setBillingInfo(billingData);
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("Failed to fetch billing info:", e);
       setBillingError(e?.message ?? "Failed to fetch billing information");
     } finally {
@@ -69,7 +65,7 @@ export function BillingProvider({ children }: BillingProviderProps) {
 
   const refreshBillingInfo = useCallback(
     () => fetchBillingInfo(),
-    [fetchBillingInfo]
+    [fetchBillingInfo],
   );
 
   /* =========================
@@ -113,7 +109,7 @@ export function BillingProvider({ children }: BillingProviderProps) {
       billingError,
       refreshBillingInfo,
     }),
-    [billingInfo, billingLoading, billingError, refreshBillingInfo]
+    [billingInfo, billingLoading, billingError, refreshBillingInfo],
   );
 
   return (

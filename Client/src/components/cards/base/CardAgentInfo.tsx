@@ -1,4 +1,4 @@
-import { User } from 'lucide-react';
+import { User } from "lucide-react";
 
 interface CardAgentInfoProps {
   /** Agent name */
@@ -6,7 +6,7 @@ interface CardAgentInfoProps {
   /** Broker name (optional) */
   brokerName?: string;
   /** Size variant */
-  size?: 'xs' | 'sm' | 'md';
+  size?: "xs" | "sm" | "md";
   /** Show icon */
   showIcon?: boolean;
   /** Additional className */
@@ -19,31 +19,31 @@ interface CardAgentInfoProps {
 export default function CardAgentInfo({
   agentName,
   brokerName,
-  size = 'xs',
+  size = "xs",
   showIcon = false,
-  className = ''
+  className = "",
 }: CardAgentInfoProps) {
   const getSizeClasses = () => {
     switch (size) {
-      case 'xs':
+      case "xs":
         return {
-          icon: 'mobile-icon-xs',
-          text: 'text-responsive-xs'
+          icon: "mobile-icon-xs",
+          text: "text-responsive-xs",
         };
-      case 'sm':
+      case "sm":
         return {
-          icon: 'mobile-icon-sm',
-          text: 'text-responsive-sm'
+          icon: "mobile-icon-sm",
+          text: "text-responsive-sm",
         };
-      case 'md':
+      case "md":
         return {
-          icon: 'mobile-icon-md',
-          text: 'text-responsive-base'
+          icon: "mobile-icon-md",
+          text: "text-responsive-base",
         };
       default:
         return {
-          icon: 'mobile-icon-xs',
-          text: 'text-responsive-xs'
+          icon: "mobile-icon-xs",
+          text: "text-responsive-xs",
         };
     }
   };
@@ -55,7 +55,9 @@ export default function CardAgentInfo({
       {showIcon && (
         <User className={`${sizeClasses.icon} text-gray-500 flex-shrink-0`} />
       )}
-      <span className={`${sizeClasses.text} text-gray-500 flex-shrink-0`}>Agent:</span>
+      <span className={`${sizeClasses.text} text-gray-500 flex-shrink-0`}>
+        Agent:
+      </span>
       <span className={`${sizeClasses.text} font-medium text-navy truncate`}>
         {agentName}
       </span>

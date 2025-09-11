@@ -23,7 +23,11 @@ type Connection = {
   fadeOut?: boolean;
 };
 
-export default function OrbRippleLoader({ message = "Thinking..." }: { message?: string }) {
+export default function OrbRippleLoader({
+  message = "Thinking...",
+}: {
+  message?: string;
+}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particles = useRef<Particle[]>([]);
   const animationRef = useRef<number>();
@@ -151,7 +155,7 @@ export default function OrbRippleLoader({ message = "Thinking..." }: { message?:
             cx,
             cy,
             from.x + (to.x - from.x) * conn.progress,
-            from.y + (to.y - from.y) * conn.progress
+            from.y + (to.y - from.y) * conn.progress,
           );
           ctx.strokeStyle = `rgba(204, 204, 204, ${0.4 + 0.4 * conn.progress})`;
           ctx.lineWidth = 0.75;

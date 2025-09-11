@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 
 interface PriceRangeSliderProps {
   tickValues: number[]; // Ex: [1000000, 2000000, 4000000, 10000000]
@@ -15,11 +15,12 @@ const PriceRangeSlider: React.FC<PriceRangeSliderProps> = ({
   value,
   onChange,
   formatValue,
-  formatPrefix = '$',
-  className = '',
-  disabled = false
+  formatPrefix = "$",
+  className = "",
+  disabled = false,
 }) => {
-  const defaultFormatValue = (val: number) => `${formatPrefix}${val.toLocaleString()}`;
+  const defaultFormatValue = (val: number) =>
+    `${formatPrefix}${val.toLocaleString()}`;
   const formattedValue = formatValue || defaultFormatValue;
   const [sliderValue, setSliderValue] = useState(0);
 
@@ -32,7 +33,9 @@ const PriceRangeSlider: React.FC<PriceRangeSliderProps> = ({
         const segmentStart = (i / (tickValues.length - 1)) * 100;
         const segmentEnd = ((i + 1) / (tickValues.length - 1)) * 100;
         const percentWithinSegment = (val - start) / (end - start);
-        return segmentStart + percentWithinSegment * (segmentEnd - segmentStart);
+        return (
+          segmentStart + percentWithinSegment * (segmentEnd - segmentStart)
+        );
       }
     }
     return val <= tickValues[0] ? 0 : 100;
@@ -42,12 +45,18 @@ const PriceRangeSlider: React.FC<PriceRangeSliderProps> = ({
   const fromSliderPercent = (percent: number): number => {
     const totalSegments = tickValues.length - 1;
     const segmentSize = 100 / totalSegments;
-    const segmentIndex = Math.min(Math.floor(percent / segmentSize), totalSegments - 1);
+    const segmentIndex = Math.min(
+      Math.floor(percent / segmentSize),
+      totalSegments - 1,
+    );
 
     const segmentStart = tickValues[segmentIndex];
     const segmentEnd = tickValues[segmentIndex + 1];
-    const percentInSegment = (percent - segmentIndex * segmentSize) / segmentSize;
-    return Math.round(segmentStart + percentInSegment * (segmentEnd - segmentStart));
+    const percentInSegment =
+      (percent - segmentIndex * segmentSize) / segmentSize;
+    return Math.round(
+      segmentStart + percentInSegment * (segmentEnd - segmentStart),
+    );
   };
 
   useEffect(() => {
@@ -74,7 +83,9 @@ const PriceRangeSlider: React.FC<PriceRangeSliderProps> = ({
             >
               <div className="h-2 w-0.5 bg-gray-300 mx-auto"></div>
               <div className="text-[5px] xs:text-[6px] sm:text-[7px] md:text-[8px] lg:text-[9px] text-gray-500 mt-1 whitespace-nowrap">
-                {index === tickValues.length - 1 ? `${formattedValue(val)}+` : formattedValue(val)}
+                {index === tickValues.length - 1
+                  ? `${formattedValue(val)}+`
+                  : formattedValue(val)}
               </div>
             </div>
           );
@@ -94,7 +105,7 @@ const PriceRangeSlider: React.FC<PriceRangeSliderProps> = ({
             step={0.1}
             value={sliderValue}
             onChange={disabled ? undefined : handleSliderChange}
-            className={`w-full h-2 bg-beige rounded-lg appearance-none accent-brown touch-manipulation ${disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
+            className={`w-full h-2 bg-beige rounded-lg appearance-none accent-brown touch-manipulation ${disabled ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}`}
             disabled={disabled}
             tabIndex={disabled ? -1 : 0}
             aria-disabled={disabled}
@@ -112,7 +123,6 @@ const PriceRangeSlider: React.FC<PriceRangeSliderProps> = ({
 };
 
 export default PriceRangeSlider;
-
 
 const zip2ptyRate: { [prefix: string]: number } = {
   // 0 prefix - Northeast (CT, MA, ME, NH, RI, VT)
@@ -140,13 +150,13 @@ const zip2ptyRate: { [prefix: string]: number } = {
   "19": 0.0147, // New York (~1.47%)
 
   // 2 prefix - Mid-Atlantic (DC, MD, NC, SC, VA, WV)
-  "20": 0.0080, // Washington DC / Maryland area (~0.80-0.87%)
+  "20": 0.008, // Washington DC / Maryland area (~0.80-0.87%)
   "21": 0.0087, // Maryland (~0.87%)
-  "22": 0.0080, // Virginia (~0.80%)
-  "23": 0.0080, // Virginia (~0.80%)
-  "24": 0.0080, // Virginia (~0.80%)
-  "25": 0.0080, // Virginia (~0.80%)
-  "26": 0.0080, // Virginia (~0.80%)
+  "22": 0.008, // Virginia (~0.80%)
+  "23": 0.008, // Virginia (~0.80%)
+  "24": 0.008, // Virginia (~0.80%)
+  "25": 0.008, // Virginia (~0.80%)
+  "26": 0.008, // Virginia (~0.80%)
   "27": 0.0099, // North Carolina (~0.99%)
   "28": 0.0099, // North Carolina (~0.99%)
   "29": 0.0051, // South Carolina (~0.51%)
@@ -154,9 +164,9 @@ const zip2ptyRate: { [prefix: string]: number } = {
   // 3 prefix - Southeast (AL, FL, GA, MS, TN, parts of others)
   "30": 0.0089, // Georgia (~0.89%)
   "31": 0.0089, // Georgia (~0.89%)
-  "32": 0.0100, // Florida (~1.00%)
-  "33": 0.0100, // Florida (~1.00%)
-  "34": 0.0100, // Florida (~1.00%)
+  "32": 0.01, // Florida (~1.00%)
+  "33": 0.01, // Florida (~1.00%)
+  "34": 0.01, // Florida (~1.00%)
   "35": 0.0036, // Alabama (~0.36%)
   "36": 0.0036, // Alabama (~0.36%)
   "37": 0.0055, // Tennessee (~0.55%)
@@ -203,8 +213,8 @@ const zip2ptyRate: { [prefix: string]: number } = {
   "70": 0.0055, // Louisiana (~0.55%)
   "71": 0.0055, // Louisiana (~0.55%)
   "72": 0.0057, // Arkansas (~0.57%)
-  "73": 0.0090, // Oklahoma (~0.90%)
-  "74": 0.0090, // Oklahoma (~0.90%)
+  "73": 0.009, // Oklahoma (~0.90%)
+  "74": 0.009, // Oklahoma (~0.90%)
   "75": 0.0147, // Texas - Dallas area (~1.47%)
   "76": 0.0147, // Texas (~1.47%)
   "77": 0.0147, // Texas - Houston area (~1.47%)
@@ -233,7 +243,7 @@ const zip2ptyRate: { [prefix: string]: number } = {
   "96": 0.0076, // California (~0.76%)
   "97": 0.0073, // Oregon (~0.73%)
   "98": 0.0098, // Washington (~0.98%)
-  "99": 0.0032  // Alaska (~0.32%) / Hawaii (~0.26%) - using Alaska rate
+  "99": 0.0032, // Alaska (~0.32%) / Hawaii (~0.26%) - using Alaska rate
 };
 
 // Additional mappings for specific high-tax areas
@@ -241,23 +251,23 @@ const zipSpecialRates: { [zipRange: string]: number } = {
   // New Jersey - highest property tax state
   "070-079": 0.0208, // NJ Bergen, Essex, Morris counties (~2.08%)
   "080-089": 0.0208, // NJ Hunterdon, Somerset, Union counties (~2.08%)
-  
+
   // Connecticut high-tax areas
   "068": 0.0178, // Western CT Planning Region
-  
+
   // New York high-tax counties
   "100-104": 0.0147, // Manhattan, Bronx
   "110-116": 0.0147, // Queens, Brooklyn, Staten Island
-  "105-109": 0.0160, // Westchester County (higher rate)
-  "117-119": 0.0170, // Nassau, Suffolk counties (higher rate)
-  
+  "105-109": 0.016, // Westchester County (higher rate)
+  "117-119": 0.017, // Nassau, Suffolk counties (higher rate)
+
   // California high-tax areas
   "940-949": 0.0085, // Marin County area (higher than state average)
   "950-959": 0.0082, // Santa Clara County area
-  
+
   // Virginia Falls Church City
-  "220": 0.0120, // Falls Church City area
-  
+  "220": 0.012, // Falls Church City area
+
   // Texas - some areas have higher rates despite no state income tax
   "750-759": 0.0155, // Dallas metro high-tax areas
   "770-779": 0.0155, // Houston metro high-tax areas
@@ -267,11 +277,11 @@ const zipSpecialRates: { [zipRange: string]: number } = {
 function getPropertyTaxRate(zipCode: string): number {
   const prefix = zipCode.substring(0, 2);
   const threeDigit = zipCode.substring(0, 3);
-  
+
   // Check for special rates first
   for (const range in zipSpecialRates) {
-    if (range.includes('-')) {
-      const [start, end] = range.split('-');
+    if (range.includes("-")) {
+      const [start, end] = range.split("-");
       if (threeDigit >= start && threeDigit <= end) {
         return zipSpecialRates[range];
       }
@@ -279,7 +289,7 @@ function getPropertyTaxRate(zipCode: string): number {
       return zipSpecialRates[range];
     }
   }
-  
+
   // Fall back to prefix rate
   return zip2ptyRate[prefix] || 0.01; // Default 1% if not found
 }

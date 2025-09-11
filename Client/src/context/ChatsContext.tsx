@@ -52,31 +52,35 @@ export function ChatsProvider({ children }: ChatsProviderProps) {
 
   const fetchChats = useCallback(async () => {
     console.log("[CHATS_CONTEXT] 🚀 Starting fetchChats");
-    
+
     setChatsLoading(true);
     setChatsError(null);
     console.log("[CHATS_CONTEXT] 📡 Calling reportApi.getAll()");
-    
+
     try {
       const json = await reportApi.getAll();
       console.log("[CHATS_CONTEXT] 📥 API Response received:", {
         success: json.success,
         reportsCount: json.reports?.length || 0,
         hasReports: !!json.reports,
-        error: json.error
+        error: json.error,
       });
-      
+
       if (json.success && json.reports) {
-        const newChats: Chat[] = json.reports.map((report: any) => ({
+        const newChats: Chat[] = json.reports.map((report: unknown) => ({
           id: report.id,
-          title: report.address ? formatFilenameToAddress(report.address) : `Report ${report.id}`,
+          title: report.address
+            ? formatFilenameToAddress(report.address)
+            : `Report ${report.id}`,
           propertyAddress: report.address,
           messages: [],
-          createdAt: new Date(report.generatedAt ? report.generatedAt * 1000 : Date.now()),
+          createdAt: new Date(
+            report.generatedAt ? report.generatedAt * 1000 : Date.now(),
+          ),
         }));
         console.log("[CHATS_CONTEXT] ✅ Successfully processed chats:", {
           chatsCount: newChats.length,
-          chatIds: newChats.map(c => c.id)
+          chatIds: newChats.map((c) => c.id),
         });
         setChats(newChats);
       } else {
@@ -84,12 +88,12 @@ export function ChatsProvider({ children }: ChatsProviderProps) {
         console.log("[CHATS_CONTEXT] ❌ API returned error:", errorMsg);
         throw new Error(errorMsg);
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (!isAbortError(e)) {
         console.error("[CHATS_CONTEXT] ❌ fetchChats error:", {
           error: e,
           message: e?.message,
-          stack: e?.stack
+          stack: e?.stack,
         });
         setChatsError(e?.message ?? "Failed to fetch chat data");
       }
@@ -104,25 +108,30 @@ export function ChatsProvider({ children }: ChatsProviderProps) {
      ========================= */
 
   const sendMessage = useCallback(async (reportId: string, message: string) => {
-    console.log("[CHATS_CONTEXT] 💬 Starting sendMessage", { reportId, messageLength: message.length });
+    console.log("[CHATS_CONTEXT] 💬 Starting sendMessage", {
+      reportId,
+      messageLength: message.length,
+    });
     try {
-      const cleanReportId = reportId.replace(/\.(pdf|json)$/, '');
-      console.log("[CHATS_CONTEXT] 📡 Calling chatbotApi.chatForAddress", { cleanReportId });
-      
+      const cleanReportId = reportId.replace(/\.(pdf|json)$/, "");
+      console.log("[CHATS_CONTEXT] 📡 Calling chatbotApi.chatForAddress", {
+        cleanReportId,
+      });
+
       const response = await chatbotApi.chatForAddress(cleanReportId, message);
       console.log("[CHATS_CONTEXT] ✅ sendMessage response:", {
         hasResponse: !!response.response,
         messageId: response.message_id,
-        messageSummary: response.message_summary
+        messageSummary: response.message_summary,
       });
-      
+
       return response;
     } catch (error) {
       console.error("[CHATS_CONTEXT] ❌ sendMessage error:", {
         reportId,
-        cleanReportId: reportId.replace(/\.(pdf|json)$/, ''),
+        cleanReportId: reportId.replace(/\.(pdf|json)$/, ""),
         error,
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : "Unknown error",
       });
       throw error;
     }
@@ -131,22 +140,24 @@ export function ChatsProvider({ children }: ChatsProviderProps) {
   const getChatHistory = useCallback(async (reportId: string) => {
     console.log("[CHATS_CONTEXT] 📜 Starting getChatHistory", { reportId });
     try {
-      const cleanReportId = reportId.replace(/\.(pdf|json)$/, '');
-      console.log("[CHATS_CONTEXT] 📡 Calling chatbotApi.getChatHistory", { cleanReportId });
-      
+      const cleanReportId = reportId.replace(/\.(pdf|json)$/, "");
+      console.log("[CHATS_CONTEXT] 📡 Calling chatbotApi.getChatHistory", {
+        cleanReportId,
+      });
+
       const response = await chatbotApi.getChatHistory(cleanReportId);
       console.log("[CHATS_CONTEXT] ✅ getChatHistory response:", {
         messagesCount: response.messages?.length || 0,
-        hasMessages: !!response.messages
+        hasMessages: !!response.messages,
       });
-      
+
       return response;
     } catch (error) {
       console.error("[CHATS_CONTEXT] ❌ getChatHistory error:", {
         reportId,
-        cleanReportId: reportId.replace(/\.(pdf|json)$/, ''),
+        cleanReportId: reportId.replace(/\.(pdf|json)$/, ""),
         error,
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : "Unknown error",
       });
       throw error;
     }
@@ -158,7 +169,7 @@ export function ChatsProvider({ children }: ChatsProviderProps) {
 
   const refreshChats = useCallback(
     () => withAbort(() => fetchChats()),
-    [withAbort, fetchChats]
+    [withAbort, fetchChats],
   );
 
   /* =========================
@@ -207,7 +218,14 @@ export function ChatsProvider({ children }: ChatsProviderProps) {
       sendMessage,
       getChatHistory,
     }),
-    [chats, chatsLoading, chatsError, refreshChats, sendMessage, getChatHistory]
+    [
+      chats,
+      chatsLoading,
+      chatsError,
+      refreshChats,
+      sendMessage,
+      getChatHistory,
+    ],
   );
 
   return (

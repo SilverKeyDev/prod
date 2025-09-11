@@ -88,7 +88,7 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
     const photos = (property as any).photos;
     if (Array.isArray(photos) && photos.length > 0) {
       return photos
-        .map((p: any) => {
+        .map((p: unknown) => {
           if (typeof p === "string") return p;
           if (p?.url) return p.url;
           const jpeg = p?.mixedSources?.jpeg;
@@ -115,7 +115,7 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
     setCurrentImageIndex((prev) => (prev + 1) % propertyImages.length);
   const prevImage = () =>
     setCurrentImageIndex(
-      (prev) => (prev - 1 + propertyImages.length) % propertyImages.length
+      (prev) => (prev - 1 + propertyImages.length) % propertyImages.length,
     );
   const goToImage = (index: number) => setCurrentImageIndex(index);
 
@@ -145,7 +145,7 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
         window.open(
           `https://www.zillow.com/homedetails/${p.zpid}_zpid/`,
           "_blank",
-          "noopener,noreferrer"
+          "noopener,noreferrer",
         );
         return;
       }
@@ -153,14 +153,14 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
       window.open(
         `https://www.zillow.com/homes/${encodeURIComponent(addr)}_rb/`,
         "_blank",
-        "noopener,noreferrer"
+        "noopener,noreferrer",
       );
     } catch {
       const addr = formatAddress((property as any)?.address ?? "");
       window.open(
         `https://www.zillow.com/homes/${encodeURIComponent(addr)}_rb/`,
         "_blank",
-        "noopener,noreferrer"
+        "noopener,noreferrer",
       );
     }
   };
@@ -372,7 +372,7 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
                           {propertyImages
                             .slice(
                               thumbnailStartIndex,
-                              thumbnailStartIndex + thumbnailsPerView
+                              thumbnailStartIndex + thumbnailsPerView,
                             )
                             .map((image, relativeIndex) => {
                               const actualIndex =
@@ -481,7 +481,7 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
                     {formatPropertyType(
                       (property as any).homeType ||
                         (property as any).propertyType ||
-                        ""
+                        "",
                     )}
                   </span>
                 </div>
@@ -501,8 +501,8 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
                       {(property as any).garageSpaces
                         ? `${(property as any).garageSpaces}-car garage`
                         : (property as any).parking
-                        ? `${(property as any).parking} spaces`
-                        : "N/A"}
+                          ? `${(property as any).parking} spaces`
+                          : "N/A"}
                     </span>
                   </div>
                 )}
@@ -745,8 +745,8 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
                                 school.rating >= 8
                                   ? "bg-olive/20 text-olive border-olive/30"
                                   : school.rating >= 6
-                                  ? "bg-amber-50 text-amber-600 border-amber-200"
-                                  : "bg-red-50 text-red-600 border-red-200"
+                                    ? "bg-amber-50 text-amber-600 border-amber-200"
+                                    : "bg-red-50 text-red-600 border-red-200"
                               }`}
                             >
                               {school.rating}/10
@@ -818,7 +818,7 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
                                 <span className="text-brown/40 mx-2">•</span>
                               )}
                             </span>
-                          )
+                          ),
                         )}
                       </div>
                     </div>
@@ -827,7 +827,7 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
                 <div className="space-y-4">
                   {typeof (property as any).features === "object" ? (
                     Object.entries(
-                      (property as any).features as Record<string, string[]>
+                      (property as any).features as Record<string, string[]>,
                     ).map(([category, list]) => (
                       <div key={category}>
                         <h4 className="text-brown font-semibold text-sm mb-2">
@@ -887,7 +887,7 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
                             </h4>
                             <p className="text-sm text-brown/80">{pro}</p>
                           </div>
-                        )
+                        ),
                       )}
                     </div>
                   </div>
@@ -911,7 +911,7 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
                             </h4>
                             <p className="text-sm text-brown/70">{con}</p>
                           </div>
-                        )
+                        ),
                       )}
                     </div>
                   </div>
@@ -983,7 +983,7 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
                               ).property_analysis.crime_stats.specific_concerns.map(
                                 (c: string, i: number) => (
                                   <p key={i}>{c}</p>
-                                )
+                                ),
                               )}
                             </div>
                           </div>
@@ -1059,7 +1059,7 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
                                 ).property_analysis.gentrification_index.indicators.map(
                                   (ind: string, i: number) => (
                                     <p key={i}>{ind}</p>
-                                  )
+                                  ),
                                 )}
                               </div>
                             </div>

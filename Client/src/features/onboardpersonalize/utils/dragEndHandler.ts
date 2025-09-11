@@ -13,7 +13,7 @@ export interface HandleDragEndParams {
   event: DragEndEvent;
   getOrderedReportSections: () => ReportSection[];
   formData: OnboardingData;
-  updateFormData: (field: string | number | symbol, value: any) => void;
+  updateFormData: (field: string | number | symbol, value: unknown) => void;
 }
 
 /**
@@ -33,9 +33,7 @@ export const handleDragEnd = ({
       return;
 
     const sections = getOrderedReportSections();
-    const oldIndex = sections.findIndex(
-      (section) => section.key === active.id
-    );
+    const oldIndex = sections.findIndex((section) => section.key === active.id);
     const newIndex = sections.findIndex((section) => section.key === over.id);
 
     if (oldIndex === -1 || newIndex === -1) return;

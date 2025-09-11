@@ -3,8 +3,8 @@
  * Provides secure clipboard operations and protection for sensitive data
  */
 
-import { log } from './secureLogger';
-import { reportSecurityEvent } from './errorReporting';
+import { log } from "./secureLogger";
+import { reportSecurityEvent } from "./errorReporting";
 
 interface ClipboardOptions {
   timeout?: number; // Auto-clear timeout in ms
@@ -41,9 +41,9 @@ class ClipboardSecurity {
    * Securely copy text to clipboard with protection features
    */
   async copyToClipboard(
-    text: string, 
-    source: string = 'unknown',
-    options: ClipboardOptions = {}
+    text: string,
+    source: string = "unknown",
+    options: ClipboardOptions = {},
   ): Promise<boolean> {
     const {
       timeout = 30000, // 30 seconds default
@@ -54,22 +54,22 @@ class ClipboardSecurity {
     try {
       // Check if text contains sensitive data
       const isSensitive = this.containsSensitiveData(text);
-      
+
       if (isSensitive) {
-        log.security('CLIPBOARD', 'Sensitive data copied to clipboard', {
+        log.security("CLIPBOARD", "Sensitive data copied to clipboard", {
           source,
           dataLength: text.length,
-          masked: maskValue ? this.maskSensitiveData(text) : '[REDACTED]',
+          masked: maskValue ? this.maskSensitiveData(text) : "[REDACTED]",
         });
-        
+
         reportSecurityEvent({
-          type: 'data_access',
-          severity: 'medium',
-          description: 'Sensitive data copied to clipboard',
+          type: "data_access",
+          severity: "medium",
+          description: "Sensitive data copied to clipboard",
           metadata: { source, isSensitive: true },
         });
       } else if (logAccess) {
-        log.info('CLIPBOARD', 'Data copied to clipboard', {
+        log.info("CLIPBOARD", "Data copied to clipboard", {
           source,
           dataLength: text.length,
         });
@@ -85,7 +85,7 @@ class ClipboardSecurity {
 
       return true;
     } catch (error) {
-      log.error('CLIPBOARD', 'Failed to copy to clipboard', error);
+      log.error("CLIPBOARD", "Failed to copy to clipboard", error);
       return false;
     }
   }
@@ -93,29 +93,29 @@ class ClipboardSecurity {
   /**
    * Read from clipboard with security checks
    */
-  async readFromClipboard(source: string = 'unknown'): Promise<string | null> {
+  async readFromClipboard(source: string = "unknown"): Promise<string | null> {
     try {
       const text = await navigator.clipboard.readText();
-      
+
       const isSensitive = this.containsSensitiveData(text);
-      
+
       if (isSensitive) {
-        log.security('CLIPBOARD', 'Sensitive data read from clipboard', {
+        log.security("CLIPBOARD", "Sensitive data read from clipboard", {
           source,
           dataLength: text.length,
         });
-        
+
         reportSecurityEvent({
-          type: 'data_access',
-          severity: 'low',
-          description: 'Sensitive data read from clipboard',
+          type: "data_access",
+          severity: "low",
+          description: "Sensitive data read from clipboard",
           metadata: { source },
         });
       }
 
       return text;
     } catch (error) {
-      log.error('CLIPBOARD', 'Failed to read from clipboard', error);
+      log.error("CLIPBOARD", "Failed to read from clipboard", error);
       return null;
     }
   }
@@ -123,15 +123,15 @@ class ClipboardSecurity {
   /**
    * Clear clipboard
    */
-  async clearClipboard(source: string = 'auto'): Promise<boolean> {
+  async clearClipboard(source: string = "auto"): Promise<boolean> {
     try {
-      await navigator.clipboard.writeText('');
-      
-      log.info('CLIPBOARD', 'Clipboard cleared', { source });
-      
+      await navigator.clipboard.writeText("");
+
+      log.info("CLIPBOARD", "Clipboard cleared", { source });
+
       return true;
     } catch (error) {
-      log.error('CLIPBOARD', 'Failed to clear clipboard', error);
+      log.error("CLIPBOARD", "Failed to clear clipboard", error);
       return false;
     }
   }
@@ -140,7 +140,7 @@ class ClipboardSecurity {
    * Check if text contains sensitive data
    */
   containsSensitiveData(text: string): boolean {
-    return this.sensitivePatterns.some(pattern => pattern.test(text));
+    return this.sensitivePatterns.some((pattern) => pattern.test(text));
   }
 
   /**
@@ -148,14 +148,16 @@ class ClipboardSecurity {
    */
   maskSensitiveData(text: string): string {
     let masked = text;
-    
-    this.sensitivePatterns.forEach(pattern => {
+
+    this.sensitivePatterns.forEach((pattern) => {
       masked = masked.replace(pattern, (match) => {
-        if (match.length <= 4) return '***';
-        return match[0] + '*'.repeat(match.length - 2) + match[match.length - 1];
+        if (match.length <= 4) return "***";
+        return (
+          match[0] + "*".repeat(match.length - 2) + match[match.length - 1]
+        );
       });
     });
-    
+
     return masked;
   }
 
@@ -171,12 +173,12 @@ class ClipboardSecurity {
 
     // Set new timeout
     const timeoutId = setTimeout(() => {
-      this.clearClipboard('auto-clear');
+      this.clearClipboard("auto-clear");
       this.activeTimeouts.delete(source);
-      
-      log.info('CLIPBOARD', 'Auto-cleared clipboard', { 
-        source, 
-        timeoutMs: timeout 
+
+      log.info("CLIPBOARD", "Auto-cleared clipboard", {
+        source,
+        timeoutMs: timeout,
       });
     }, timeout);
 
@@ -191,7 +193,7 @@ class ClipboardSecurity {
     if (timeout) {
       clearTimeout(timeout);
       this.activeTimeouts.delete(source);
-      log.info('CLIPBOARD', 'Auto-clear cancelled', { source });
+      log.info("CLIPBOARD", "Auto-clear cancelled", { source });
     }
   }
 
@@ -204,8 +206,12 @@ class ClipboardSecurity {
   }> {
     try {
       const [readPermission, writePermission] = await Promise.all([
-        navigator.permissions.query({ name: 'clipboard-read' as PermissionName }),
-        navigator.permissions.query({ name: 'clipboard-write' as PermissionName }),
+        navigator.permissions.query({
+          name: "clipboard-read" as PermissionName,
+        }),
+        navigator.permissions.query({
+          name: "clipboard-write" as PermissionName,
+        }),
       ]);
 
       return {
@@ -213,10 +219,10 @@ class ClipboardSecurity {
         write: writePermission.state,
       };
     } catch (error) {
-      log.error('CLIPBOARD', 'Failed to check permissions', error);
+      log.error("CLIPBOARD", "Failed to check permissions", error);
       return {
-        read: 'denied',
-        write: 'denied',
+        read: "denied",
+        write: "denied",
       };
     }
   }
@@ -226,8 +232,11 @@ class ClipboardSecurity {
 export const clipboardSecurity = new ClipboardSecurity();
 
 // Convenience functions
-export const secureClipboardCopy = (text: string, source?: string, options?: ClipboardOptions) =>
-  clipboardSecurity.copyToClipboard(text, source, options);
+export const secureClipboardCopy = (
+  text: string,
+  source?: string,
+  options?: ClipboardOptions,
+) => clipboardSecurity.copyToClipboard(text, source, options);
 
 export const secureClipboardRead = (source?: string) =>
   clipboardSecurity.readFromClipboard(source);

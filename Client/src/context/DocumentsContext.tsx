@@ -8,10 +8,7 @@ import {
   ReactNode,
 } from "react";
 import { Document, DocumentCategory } from "../types";
-import {
-  createAbortManager,
-  isAbortError,
-} from "../api/utils/index";
+import { createAbortManager, isAbortError } from "../api/utils/index";
 import { useAuth } from "../app/providers";
 import { dashboardApi, secureUploadApi } from "../api";
 
@@ -31,12 +28,12 @@ interface DocumentsContextType {
     file: File,
     category: string,
     propertyId?: string,
-    offerId?: string
+    offerId?: string,
   ) => Promise<Document>;
   deleteDocument: (docId: string) => Promise<void>;
   updateDocumentStatus: (
     docId: string,
-    status: Document["status"]
+    status: Document["status"],
   ) => Promise<void>;
   signDocument: (docId: string) => Promise<void>;
   downloadDocument: (docId: string) => Promise<void>;
@@ -52,7 +49,7 @@ interface DocumentsContextType {
    ========================= */
 
 const DocumentsContext = createContext<DocumentsContextType | undefined>(
-  undefined
+  undefined,
 );
 
 interface DocumentsProviderProps {
@@ -91,7 +88,7 @@ export function DocumentsProvider({ children }: DocumentsProviderProps) {
       } else {
         setDocuments([]);
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (!isAbortError(e)) {
         console.error("Failed to fetch documents", e);
         setDocumentsError(e?.message ?? "Failed to fetch documents");
@@ -113,7 +110,7 @@ export function DocumentsProvider({ children }: DocumentsProviderProps) {
       } else {
         setCategories([]);
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (!isAbortError(e)) {
         console.error("Failed to fetch document categories", e);
         setCategoriesError(e?.message ?? "Failed to fetch document categories");
@@ -128,9 +125,8 @@ export function DocumentsProvider({ children }: DocumentsProviderProps) {
     file: File,
     category: string,
     propertyId?: string,
-    offerId?: string
+    offerId?: string,
   ): Promise<Document> => {
-
     // Create upload tracking entry
     const uploadId = `${Date.now()}-${file.name}`;
     const uploadEntry: any = {
@@ -173,8 +169,8 @@ export function DocumentsProvider({ children }: DocumentsProviderProps) {
           prev.map((upload) =>
             upload.id === uploadId
               ? { ...upload, status: "completed", progress: 100 }
-              : upload
-          )
+              : upload,
+          ),
         );
 
         return newDocument;
@@ -189,8 +185,8 @@ export function DocumentsProvider({ children }: DocumentsProviderProps) {
         prev.map((upload) =>
           upload.id === uploadId
             ? { ...upload, status: "failed", progress: 0 }
-            : upload
-        )
+            : upload,
+        ),
       );
 
       throw error;
@@ -198,7 +194,11 @@ export function DocumentsProvider({ children }: DocumentsProviderProps) {
   };
 
   const performUpdateDocumentStatus = useCallback(
-    async (docId: string, status: Document["status"], _signal?: AbortSignal) => {
+    async (
+      docId: string,
+      status: Document["status"],
+      _signal?: AbortSignal,
+    ) => {
       try {
         const response = await dashboardApi.updateDocumentStatus(docId, status);
         if (response.success && response.document) {
@@ -211,19 +211,19 @@ export function DocumentsProvider({ children }: DocumentsProviderProps) {
           };
 
           setDocuments((prev) =>
-            prev.map((doc) => (doc.id === docId ? updatedDocument : doc))
+            prev.map((doc) => (doc.id === docId ? updatedDocument : doc)),
           );
         } else {
           throw new Error(response.error || "Failed to update document status");
         }
-      } catch (e: any) {
+      } catch (e: unknown) {
         if (!isAbortError(e)) {
           console.error("Failed to update document status", e);
           throw e;
         }
       }
     },
-    []
+    [],
   );
 
   const performSignDocument = useCallback(
@@ -240,25 +240,25 @@ export function DocumentsProvider({ children }: DocumentsProviderProps) {
           };
 
           setDocuments((prev) =>
-            prev.map((doc) => (doc.id === docId ? signedDocument : doc))
+            prev.map((doc) => (doc.id === docId ? signedDocument : doc)),
           );
         } else {
           throw new Error(response.error || "Failed to sign document");
         }
-      } catch (e: any) {
+      } catch (e: unknown) {
         if (!isAbortError(e)) {
           console.error("Failed to sign document", e);
           throw e;
         }
       }
     },
-    []
+    [],
   );
 
   const performDownloadDocument = useCallback(async (docId: string) => {
     try {
       await secureUploadApi.downloadDocument(docId);
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (!isAbortError(e)) {
         console.error("Failed to download document", e);
         throw e;
@@ -275,7 +275,7 @@ export function DocumentsProvider({ children }: DocumentsProviderProps) {
       } else {
         throw new Error(json.error || "Failed to delete document");
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (!isAbortError(e)) {
         console.error("Failed to delete document", e);
         throw e;
@@ -289,50 +289,50 @@ export function DocumentsProvider({ children }: DocumentsProviderProps) {
 
   const deleteDocument = useCallback(
     (docId: string) => withAbort(() => performDeleteDocument(docId)),
-    [withAbort, performDeleteDocument]
+    [withAbort, performDeleteDocument],
   );
 
   const updateDocumentStatus = useCallback(
     (docId: string, status: Document["status"]) =>
       withAbort((s) => performUpdateDocumentStatus(docId, status, s)),
-    [withAbort, performUpdateDocumentStatus]
+    [withAbort, performUpdateDocumentStatus],
   );
 
   const signDocument = useCallback(
     (docId: string) => withAbort((s) => performSignDocument(docId, s)),
-    [withAbort, performSignDocument]
+    [withAbort, performSignDocument],
   );
 
   const downloadDocument = useCallback(
     (docId: string) => withAbort(() => performDownloadDocument(docId)),
-    [withAbort, performDownloadDocument]
+    [withAbort, performDownloadDocument],
   );
 
   const refreshDocuments = useCallback(
     () => withAbort((s) => fetchDocuments(s)),
-    [withAbort, fetchDocuments]
+    [withAbort, fetchDocuments],
   );
 
   const refreshCategories = useCallback(
     () => withAbort((s) => fetchCategories(s)),
-    [withAbort, fetchCategories]
+    [withAbort, fetchCategories],
   );
 
   // Helper functions
   const getDocumentsByCategory = useCallback(
     (category: string) => documents.filter((doc) => doc.category === category),
-    [documents]
+    [documents],
   );
 
   const getDocumentsByProperty = useCallback(
     (propertyId: string) =>
       documents.filter((doc) => doc.property_id === propertyId),
-    [documents]
+    [documents],
   );
 
   const getDocumentsByOffer = useCallback(
     (offerId: string) => documents.filter((doc) => doc.offer_id === offerId),
-    [documents]
+    [documents],
   );
 
   /* =========================
@@ -355,7 +355,6 @@ export function DocumentsProvider({ children }: DocumentsProviderProps) {
           // DISABLED: Backend endpoints don't exist
           // const enabled =
           //   routeStartsWith("/documents") || routeStartsWith("/negotiation");
-
           // if (enabled) {
           //   refreshDocuments();
           //   refreshCategories();
@@ -382,8 +381,8 @@ export function DocumentsProvider({ children }: DocumentsProviderProps) {
         prev.filter(
           (upload) =>
             upload.status === "uploading" ||
-            Date.now() - parseInt(upload.id.split("-")[0]) < 5 * 60 * 1000
-        )
+            Date.now() - parseInt(upload.id.split("-")[0]) < 5 * 60 * 1000,
+        ),
       );
     }, 60000); // Check every minute
 
@@ -435,7 +434,7 @@ export function DocumentsProvider({ children }: DocumentsProviderProps) {
       getDocumentsByCategory,
       getDocumentsByProperty,
       getDocumentsByOffer,
-    ]
+    ],
   );
 
   return (

@@ -2,11 +2,14 @@
  * Utility functions for rendering important location markers on Google Maps
  */
 
-
 interface ImportantLocationRenderOptions {
   map: google.maps.Map;
-  importantMarkersRef: React.MutableRefObject<google.maps.marker.AdvancedMarkerElement[]>;
-  setImportantLocationMarkers?: (markers: google.maps.marker.AdvancedMarkerElement[]) => void;
+  importantMarkersRef: React.MutableRefObject<
+    google.maps.marker.AdvancedMarkerElement[]
+  >;
+  setImportantLocationMarkers?: (
+    markers: google.maps.marker.AdvancedMarkerElement[],
+  ) => void;
   resetToDefaultZoom: () => void;
 }
 
@@ -19,13 +22,14 @@ interface ImportantLocation {
   icon?: string;
 }
 
-
 /**
  * Build list of important locations from isochrone data
  */
-const buildImportantLocationsList = (isochroneData: any): ImportantLocation[] => {
+const buildImportantLocationsList = (
+  isochroneData: any,
+): ImportantLocation[] => {
   const importantLocations: ImportantLocation[] = [];
-  
+
   if (isochroneData.center) {
     importantLocations.push({
       name: isochroneData.center.name || "Primary Location",
@@ -35,9 +39,9 @@ const buildImportantLocationsList = (isochroneData: any): ImportantLocation[] =>
       commute_tolerance: isochroneData.commute_tolerance || 30,
     });
   }
-  
+
   if (Array.isArray(isochroneData.locations)) {
-    isochroneData.locations.forEach((loc: any) => {
+    isochroneData.locations.forEach((loc: unknown) => {
       if (!loc?.address) return;
       const dup = importantLocations.some((e) => e.address === loc.address);
       if (!dup) {
@@ -51,33 +55,34 @@ const buildImportantLocationsList = (isochroneData: any): ImportantLocation[] =>
       }
     });
   }
-  
+
   return importantLocations;
 };
-
 
 /**
  * Render important location markers on the map
  */
 export const renderImportantLocationMarkers = async (
   isochroneData: any,
-  options: ImportantLocationRenderOptions
+  options: ImportantLocationRenderOptions,
 ) => {
   const { map, importantMarkersRef, setImportantLocationMarkers } = options;
 
   if (!map || !isochroneData?.center) {
     console.warn(
-      "❌ Cannot render important location markers: map or data not available"
+      "❌ Cannot render important location markers: map or data not available",
     );
     console.warn("📊 Map ref available:", !!map);
     console.warn(
       "📊 Isochrone center data:",
-      JSON.stringify(isochroneData?.center, null, 2)
+      JSON.stringify(isochroneData?.center, null, 2),
     );
     return;
   }
 
-  console.log("🎯 [IMPORTANT_LOCATIONS] Starting to render important location markers");
+  console.log(
+    "🎯 [IMPORTANT_LOCATIONS] Starting to render important location markers",
+  );
 
   // Clear existing important location markers
   if (importantMarkersRef.current) {
@@ -91,7 +96,9 @@ export const renderImportantLocationMarkers = async (
   }
 
   const importantLocations = buildImportantLocationsList(isochroneData);
-  console.log(`🎯 [IMPORTANT_LOCATIONS] Found ${importantLocations.length} important locations to render`);
+  console.log(
+    `🎯 [IMPORTANT_LOCATIONS] Found ${importantLocations.length} important locations to render`,
+  );
 
   if (importantLocations.length === 0) {
     console.log("🎯 [IMPORTANT_LOCATIONS] No important locations to render");
@@ -103,21 +110,26 @@ export const renderImportantLocationMarkers = async (
   for (const loc of importantLocations) {
     // Skip locations without coordinates - this is normal and not an error
     if (!loc.lat || !loc.lng) {
-      console.log(`🎯 [IMPORTANT_LOCATIONS] Skipping ${loc.name} - no coordinates available`);
+      console.log(
+        `🎯 [IMPORTANT_LOCATIONS] Skipping ${loc.name} - no coordinates available`,
+      );
       continue;
     }
 
     const { name, address } = loc;
     const position = { lat: loc.lat, lng: loc.lng };
 
-    console.log(`🎯 [IMPORTANT_LOCATIONS] Creating marker for: ${name} at (${loc.lat}, ${loc.lng})`);
+    console.log(
+      `🎯 [IMPORTANT_LOCATIONS] Creating marker for: ${name} at (${loc.lat}, ${loc.lng})`,
+    );
 
     // Create marker box with triangle pointer
-    const markerElement = document.createElement('div');
-    markerElement.className = 'important-location-marker';
-    
-    const commuteTime = loc.commute_tolerance ?? isochroneData.commute_tolerance ?? 30;
-    
+    const markerElement = document.createElement("div");
+    markerElement.className = "important-location-marker";
+
+    const commuteTime =
+      loc.commute_tolerance ?? isochroneData.commute_tolerance ?? 30;
+
     markerElement.innerHTML = `
       <div style="
         padding: 4px 8px;

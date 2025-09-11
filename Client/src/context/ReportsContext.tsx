@@ -7,14 +7,8 @@ import {
   useMemo,
   ReactNode,
 } from "react";
-import {
-  Report,
-  CompareReport,
-} from "../types";
-import {
-  deserializeReport,
-  deserializeCompareReport,
-} from "./utils";
+import { Report, CompareReport } from "../types";
+import { deserializeReport, deserializeCompareReport } from "./utils";
 import {
   createAbortManager,
   isAbortError,
@@ -64,7 +58,7 @@ export function ReportsProvider({ children }: ReportsProviderProps) {
   const [compareReports, setCompareReports] = useState<CompareReport[]>([]);
   const [compareReportsLoading, setCompareReportsLoading] = useState(false);
   const [compareReportsError, setCompareReportsError] = useState<string | null>(
-    null
+    null,
   );
 
   /* =========================
@@ -82,7 +76,7 @@ export function ReportsProvider({ children }: ReportsProviderProps) {
       } else {
         setReports([]);
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (!isAbortError(e)) {
         if (isAuthenticationError(e)) {
           handleAuthenticationError(e);
@@ -109,7 +103,7 @@ export function ReportsProvider({ children }: ReportsProviderProps) {
       } else {
         setCompareReports([]);
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (!isAbortError(e)) {
         if (isAuthenticationError(e)) {
           handleAuthenticationError(e);
@@ -130,11 +124,11 @@ export function ReportsProvider({ children }: ReportsProviderProps) {
 
   const refreshReports = useCallback(
     () => withAbort((s) => fetchReports(s)),
-    [withAbort, fetchReports]
+    [withAbort, fetchReports],
   );
   const refreshCompareReports = useCallback(
     () => withAbort((s) => fetchCompareReports(s)),
-    [withAbort, fetchCompareReports]
+    [withAbort, fetchCompareReports],
   );
 
   /* =========================
@@ -230,7 +224,7 @@ export function ReportsProvider({ children }: ReportsProviderProps) {
       compareReportsLoading,
       compareReportsError,
       refreshCompareReports,
-    ]
+    ],
   );
 
   return (

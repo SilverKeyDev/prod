@@ -86,7 +86,7 @@ export function AgentProvider({ children }: AgentProviderProps) {
       } else {
         setAssignedAgent(null);
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (!isAbortError(e)) {
         console.error("Failed to fetch assigned agent", e);
         setAgentError(e?.message ?? "Failed to fetch assigned agent");
@@ -108,7 +108,7 @@ export function AgentProvider({ children }: AgentProviderProps) {
       } else {
         setClientList([]);
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (!isAbortError(e)) {
         console.error("Failed to fetch client list", e);
         setClientsError(e?.message ?? "Failed to fetch client list");
@@ -131,7 +131,7 @@ export function AgentProvider({ children }: AgentProviderProps) {
         } else {
           setAgentSearchResults([]);
         }
-      } catch (e: any) {
+      } catch (e: unknown) {
         if (!isAbortError(e)) {
           console.error("Failed to search agents", e);
           setSearchError(e?.message ?? "Failed to search agents");
@@ -140,7 +140,7 @@ export function AgentProvider({ children }: AgentProviderProps) {
         setSearchLoading(false);
       }
     },
-    []
+    [],
   );
 
   const performAssignAgent = useCallback(
@@ -157,7 +157,7 @@ export function AgentProvider({ children }: AgentProviderProps) {
         } else {
           throw new Error(response.message || "Failed to assign agent");
         }
-      } catch (e: any) {
+      } catch (e: unknown) {
         if (!isAbortError(e)) {
           console.error("Failed to assign agent", e);
           setAgentError(e?.message ?? "Failed to assign agent");
@@ -166,7 +166,7 @@ export function AgentProvider({ children }: AgentProviderProps) {
         setAgentLoading(false);
       }
     },
-    []
+    [],
   );
 
   const performRemoveAgent = useCallback(async (_signal?: AbortSignal) => {
@@ -180,7 +180,7 @@ export function AgentProvider({ children }: AgentProviderProps) {
       } else {
         throw new Error(response.message || "Failed to remove agent");
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (!isAbortError(e)) {
         console.error("Failed to remove agent", e);
         setAgentError(e?.message ?? "Failed to remove agent");
@@ -196,27 +196,27 @@ export function AgentProvider({ children }: AgentProviderProps) {
 
   const searchAgents = useCallback(
     (query: string) => withAbort((s) => performAgentSearch(query, s)),
-    [withAbort, performAgentSearch]
+    [withAbort, performAgentSearch],
   );
 
   const assignAgent = useCallback(
     (agentId: string) => withAbort((s) => performAssignAgent(agentId, s)),
-    [withAbort, performAssignAgent]
+    [withAbort, performAssignAgent],
   );
 
   const removeAgent = useCallback(
     () => withAbort((s) => performRemoveAgent(s)),
-    [withAbort, performRemoveAgent]
+    [withAbort, performRemoveAgent],
   );
 
   const refreshAgentData = useCallback(
     () => withAbort((s) => fetchAssignedAgent(s)),
-    [withAbort, fetchAssignedAgent]
+    [withAbort, fetchAssignedAgent],
   );
 
   const refreshClientList = useCallback(
     () => withAbort((s) => fetchClientList(s)),
-    [withAbort, fetchClientList]
+    [withAbort, fetchClientList],
   );
 
   const clearSearchResults = useCallback(() => {
@@ -326,7 +326,7 @@ export function AgentProvider({ children }: AgentProviderProps) {
       clearSearchResults,
       isAgent,
       getAgentConnectionComponent,
-    ]
+    ],
   );
 
   return (

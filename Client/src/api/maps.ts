@@ -1,4 +1,4 @@
-import { apiGet } from './utils/index';
+import { apiGet } from "./utils/index";
 
 // Types for maps API
 export interface MapsScriptResponse {
@@ -15,5 +15,5 @@ export const mapsApi = {
    * Get Google Maps script URL with API key
    */
   getScriptUrl: (): Promise<MapsScriptResponse> =>
-    apiGet<MapsScriptResponse>('/api/maps/script'),
+    apiGet<MapsScriptResponse>("/api/maps/script"),
 };

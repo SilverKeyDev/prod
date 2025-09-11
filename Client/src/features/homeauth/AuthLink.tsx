@@ -15,11 +15,12 @@ export default function AuthLink({
   className = "",
 }: AuthLinkProps) {
   const baseClasses = "transition-colors";
-  
+
   const variantClasses = {
-    footer: "text-black/60 hover:text-black text-xs sm:text-sm px-responsive-sm transition-all duration-200",
+    footer:
+      "text-black/60 hover:text-black text-xs sm:text-sm px-responsive-sm transition-all duration-200",
     inline: "text-gray-600 hover:text-gray-800 text-xs sm:text-sm",
-    back: "inline-flex items-center text-black/60 hover:text-black mb-4"
+    back: "inline-flex items-center text-black/60 hover:text-black mb-4",
   };
 
   return (

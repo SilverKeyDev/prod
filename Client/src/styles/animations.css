@@ -87,7 +87,8 @@
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
@@ -128,7 +129,7 @@
   .animate-fade-in {
     animation: fade-in 0.2s ease-out;
   }
-  
+
   /* Alternative fadeIn with transform - use .animate-fadeIn for this version */
   .animate-fadeIn {
     animation: fadeIn 0.5s ease-out;
@@ -160,7 +161,10 @@
   }
 
   .transition-colors {
-    transition: color 0.2s ease-in-out, background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+    transition:
+      color 0.2s ease-in-out,
+      background-color 0.2s ease-in-out,
+      border-color 0.2s ease-in-out;
   }
 
   .transition-transform {
@@ -221,16 +225,16 @@
     .animate-slide-in-left {
       animation-duration: 0.25s;
     }
-    
+
     .animate-slide-out-left {
       animation-duration: 0.25s;
     }
-    
+
     .hover-lift:active {
       transform: translateY(0);
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
-    
+
     .hover-scale:active {
       transform: scale(0.98);
     }
@@ -250,11 +254,11 @@
       animation: none;
       transition: none;
     }
-    
+
     .animate-pulse {
       animation: none;
     }
-    
+
     .animate-spin {
       animation: none;
     }

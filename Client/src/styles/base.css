@@ -1,26 +1,35 @@
 /* Base styles - Typography, colors, global resets */
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap");
 
 /* CSS custom properties removed - using Tailwind config colors instead */
 
 @layer base {
   .hide-scrollbar,
-.hide-scrollbar * {
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE and Edge */
-}
-.hide-scrollbar::-webkit-scrollbar,
-.hide-scrollbar *::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Opera */
-}
+  .hide-scrollbar * {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+  }
+  .hide-scrollbar::-webkit-scrollbar,
+  .hide-scrollbar *::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
 
   /* Base styles */
-  html, body, #root { 
-    height: 100%; 
+  html,
+  body,
+  #root {
+    height: 100%;
   }
 
   html {
-    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family:
+      "Inter",
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      Roboto,
+      sans-serif;
   }
 
   body {
@@ -34,18 +43,23 @@
 
   /* Note: Mobile input zoom prevention moved to mobile.css to avoid duplication */
 
-  h1, h2, h3, h4, h5, h6 {
-    font-family: 'Playfair Display', serif;
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: "Playfair Display", serif;
     font-weight: 600;
     line-height: 1.2;
   }
 
   .font-serif {
-    font-family: 'Playfair Display', serif;
+    font-family: "Playfair Display", serif;
   }
 
   .font-sans {
-    font-family: 'Inter', sans-serif;
+    font-family: "Inter", sans-serif;
   }
   /* Google Maps autocomplete styling - consistent with mobile rules */
   .pac-container {

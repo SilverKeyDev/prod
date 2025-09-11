@@ -1,4 +1,4 @@
-import { apiGet, apiPost, buildApiUrl } from './utils/index';
+import { apiGet, apiPost, buildApiUrl } from "./utils/index";
 
 // Types for search API
 export interface PropertyCompsRequest {
@@ -9,7 +9,7 @@ export interface PropertyCompsRequest {
 
 export interface PropertyCompsResponse {
   success: boolean;
-  comps?: any[];
+  comps?: Record<string, unknown>[];
   error?: string;
 }
 
@@ -19,12 +19,12 @@ export interface PropertyRequest {
 
 export interface PropertyResponse {
   success: boolean;
-  query?: any;
-  data?: any;
-  features?: any;
-  commute_data?: any;
-  property_analysis?: any;
-  image_features?: any;
+  query?: Record<string, unknown>;
+  data?: Record<string, unknown>;
+  features?: Record<string, unknown>;
+  commute_data?: Record<string, unknown>;
+  property_analysis?: Record<string, unknown>;
+  image_features?: Record<string, unknown>;
   zillow_url?: string;
   images?: string[];
   error?: string;
@@ -53,7 +53,7 @@ export interface PolygonSearchRequest {
 
 export interface PolygonSearchResponse {
   success: boolean;
-  properties?: any[];
+  properties?: Record<string, unknown>[];
   total_count?: number;
   has_more?: boolean;
   error?: string;
@@ -73,7 +73,7 @@ export interface IsochroneResponse {
       name: string;
       address: string;
       commute_tolerance: number;
-      isochrone: any;
+      isochrone: Record<string, unknown>;
     }>;
     center: {
       lat: number;
@@ -111,8 +111,10 @@ export const searchApi = {
   /**
    * Get property comparables using Zillow API
    */
-  getPropertyComps: (params: PropertyCompsRequest): Promise<PropertyCompsResponse> => {
-    const url = buildApiUrl('/api/v1/search/propertyComps', {
+  getPropertyComps: (
+    params: PropertyCompsRequest,
+  ): Promise<PropertyCompsResponse> => {
+    const url = buildApiUrl("/api/v1/search/propertyComps", {
       address: params.address,
       radius: params.radius,
       count: params.count,
@@ -124,18 +126,22 @@ export const searchApi = {
    * Get property details via address using RapidAPI Zillow
    */
   getProperty: (data: PropertyRequest): Promise<PropertyResponse> =>
-    apiPost<PropertyResponse>('/api/v1/search/property', data),
+    apiPost<PropertyResponse>("/api/v1/search/property", data),
 
   /**
    * Search properties within a polygon area
    */
-  searchByPolygon: (data: PolygonSearchRequest): Promise<PolygonSearchResponse> =>
-    apiPost<PolygonSearchResponse>('/api/v1/search/properties-by-polygon', data),
+  searchByPolygon: (
+    data: PolygonSearchRequest,
+  ): Promise<PolygonSearchResponse> =>
+    apiPost<PolygonSearchResponse>(
+      "/api/v1/search/properties-by-polygon",
+      data,
+    ),
 
   /**
    * Generate isochrone polygon data based on user preferences
    */
   getIsochrone: (): Promise<IsochroneResponse> =>
-    apiGet<IsochroneResponse>('/api/v1/search/isochrone'),
-
+    apiGet<IsochroneResponse>("/api/v1/search/isochrone"),
 };

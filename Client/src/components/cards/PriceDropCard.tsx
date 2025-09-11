@@ -1,4 +1,9 @@
-import { CardAddressDisplay, CardPriceDrop, CardImageContainer, CardContentContainer } from "./base";
+import {
+  CardAddressDisplay,
+  CardPriceDrop,
+  CardImageContainer,
+  CardContentContainer,
+} from "./base";
 
 interface PriceDrop {
   address: string;
@@ -28,17 +33,12 @@ export default function PriceDropCard({ item }: PriceDropCardProps) {
       />
 
       {/* Details */}
-      <CardContentContainer padding="sm" className="flex-1 flex flex-col gap-responsive-sm card-content-spacing">
-        <CardAddressDisplay
-          address={address}
-          size="xs"
-          showIcon={false}
-        />
-        <CardPriceDrop
-          oldPrice={oldPrice}
-          newPrice={newPrice}
-          size="sm"
-        />
+      <CardContentContainer
+        padding="sm"
+        className="flex-1 flex flex-col gap-responsive-sm card-content-spacing"
+      >
+        <CardAddressDisplay address={address} size="xs" showIcon={false} />
+        <CardPriceDrop oldPrice={oldPrice} newPrice={newPrice} size="sm" />
       </CardContentContainer>
     </div>
   );

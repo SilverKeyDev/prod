@@ -20,7 +20,6 @@ export default function PastReports() {
   // Use preloaded report data from context (same as Dashboard)
   const { reports, loading: reportsLoading, refreshReports } = useReports();
 
-
   // Use centralized document actions
   const {
     loadingUrls,
@@ -43,7 +42,7 @@ export default function PastReports() {
     try {
       await refreshReports();
     } catch (error) {
-      console.error('Failed to refresh reports:', error);
+      console.error("Failed to refresh reports:", error);
     } finally {
       setIsRefreshing(false);
     }
@@ -72,12 +71,12 @@ export default function PastReports() {
         setShowError(true);
       }
     },
-    [handleShareDocument]
+    [handleShareDocument],
   );
 
   const openDeleteModal = (
     reportId: string,
-    s3Key: string | null | undefined
+    s3Key: string | null | undefined,
   ) => {
     setReportToDelete({ id: reportId, s3Key });
     setDeleteModalOpen(true);
@@ -90,7 +89,7 @@ export default function PastReports() {
 
   const handleDeleteReport = async (
     reportId: string,
-    s3Key: string | null | undefined
+    s3Key: string | null | undefined,
   ) => {
     if (!reportId) {
       console.error("[DELETE] Error: No report ID provided");
@@ -100,7 +99,7 @@ export default function PastReports() {
     try {
       if (!s3Key) {
         console.warn(
-          "[DELETE] No S3 key provided, will only delete from in-memory storage"
+          "[DELETE] No S3 key provided, will only delete from in-memory storage",
         );
       }
 
@@ -121,19 +120,21 @@ export default function PastReports() {
       });
 
       setErrorMessage(
-        error instanceof Error ? error.message : "Failed to delete report"
+        error instanceof Error ? error.message : "Failed to delete report",
       );
       setShowError(true);
     }
   };
 
   const filteredReports = reports.filter((report: Report) =>
-    report.address?.toLowerCase().includes(searchTerm.toLowerCase())
+    report.address?.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const sortedReports = [...filteredReports].sort((a, b) => {
     // Sort by date, newest first
-    return new Date(b.generatedAt).getTime() - new Date(a.generatedAt).getTime();
+    return (
+      new Date(b.generatedAt).getTime() - new Date(a.generatedAt).getTime()
+    );
   });
 
   const pollForReportCompletion = useCallback(
@@ -158,9 +159,7 @@ export default function PastReports() {
         const initialResponse = await reportApi.poll(documentId);
 
         if (!initialResponse.success) {
-          console.error(
-            `[PastReports] ❌ Poll failed:`, initialResponse.error
-          );
+          console.error(`[PastReports] ❌ Poll failed:`, initialResponse.error);
           return;
         }
 
@@ -180,10 +179,7 @@ export default function PastReports() {
         } else if (data.success && !data.report) {
           lastReportSnapshot = null;
         } else {
-          console.error(
-            `[PastReports] ❌ Initial poll failed:`,
-            data.error
-          );
+          console.error(`[PastReports] ❌ Initial poll failed:`, data.error);
           return;
         }
       } catch (err) {
@@ -202,12 +198,12 @@ export default function PastReports() {
           if (!response.success) {
             consecutiveErrors++;
             console.error(
-              `[PastReports] ❌ Poll error: ${response.error} (${consecutiveErrors}/${maxConsecutiveErrors})`
+              `[PastReports] ❌ Poll error: ${response.error} (${consecutiveErrors}/${maxConsecutiveErrors})`,
             );
 
             if (consecutiveErrors >= maxConsecutiveErrors) {
               console.error(
-                `[PastReports] 🚫 Too many consecutive errors (${consecutiveErrors}), aborting poll`
+                `[PastReports] 🚫 Too many consecutive errors (${consecutiveErrors}), aborting poll`,
               );
               return;
             }
@@ -243,7 +239,7 @@ export default function PastReports() {
               console.warn(
                 `[PastReports] ⚠️ TIMEOUT - Report never appeared after ${
                   elapsedTime / 60
-                } mins`
+                } mins`,
               );
             }
             return;
@@ -273,19 +269,19 @@ export default function PastReports() {
             console.warn(
               `[PastReports] ⚠️ TIMEOUT after ${
                 elapsedTime / 60
-              } mins — Report still ${data.report.status}`
+              } mins — Report still ${data.report.status}`,
             );
           }
         } catch (error) {
           consecutiveErrors++;
           console.error(
             `[PastReports] ❌ Polling exception (${consecutiveErrors}/${maxConsecutiveErrors}):`,
-            error
+            error,
           );
 
           if (consecutiveErrors >= maxConsecutiveErrors) {
             console.error(
-              `[PastReports] 🚫 Too many consecutive errors, aborting poll`
+              `[PastReports] 🚫 Too many consecutive errors, aborting poll`,
             );
             return;
           }
@@ -297,7 +293,7 @@ export default function PastReports() {
       };
       setTimeout(pollForCompletion, pollInterval);
     },
-    [refreshReports]
+    [refreshReports],
   );
 
   useEffect(() => {

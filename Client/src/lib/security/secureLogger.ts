@@ -41,27 +41,30 @@ const PII_PATTERNS = [
 
 // Sensitive keys that should be completely removed from objects
 const SENSITIVE_KEYS = [
-  'password',
-  'token',
-  'accessToken',
-  'refreshToken',
-  'idToken',
-  'id_token',
-  'access_token',
-  'refresh_token',
-  'authorization',
-  'auth',
-  'secret',
-  'key',
-  'apiKey',
-  'api_key',
-  'credential',
-  'credentials',
-  'ssn',
-  'social_security_number', 'ssn',
-  'credit_card', 'creditCard', 'cc',
-  'cvv',
-  'pin',
+  "password",
+  "token",
+  "accessToken",
+  "refreshToken",
+  "idToken",
+  "id_token",
+  "access_token",
+  "refresh_token",
+  "authorization",
+  "auth",
+  "secret",
+  "key",
+  "apiKey",
+  "api_key",
+  "credential",
+  "credentials",
+  "ssn",
+  "social_security_number",
+  "ssn",
+  "credit_card",
+  "creditCard",
+  "cc",
+  "cvv",
+  "pin",
 ];
 
 class SecureLogger {
@@ -89,21 +92,21 @@ class SecureLogger {
   private scrubPII(value: any): any {
     // Prevent infinite recursion during error logging
     if (this.isProcessing) {
-      return '[PROCESSING]';
+      return "[PROCESSING]";
     }
 
-    if (typeof value === 'string') {
+    if (typeof value === "string") {
       return this.scrubStringPII(value);
     }
-    
+
     if (Array.isArray(value)) {
-      return value.map(item => this.scrubPII(item));
+      return value.map((item) => this.scrubPII(item));
     }
-    
-    if (value && typeof value === 'object') {
+
+    if (value && typeof value === "object") {
       return this.scrubObjectPII(value);
     }
-    
+
     return value;
   }
 
@@ -113,25 +116,27 @@ class SecureLogger {
   private scrubStringPII(str: string): string {
     // Prevent infinite recursion
     if (this.isProcessing) {
-      return '[PROCESSING]';
+      return "[PROCESSING]";
     }
 
     try {
       this.isProcessing = true;
       let scrubbed = str;
-      
-      PII_PATTERNS.forEach(pattern => {
+
+      PII_PATTERNS.forEach((pattern) => {
         scrubbed = scrubbed.replace(pattern, (match) => {
           // Keep first and last character, mask the middle
-          if (match.length <= 4) return '[REDACTED]';
-          return match[0] + '*'.repeat(match.length - 2) + match[match.length - 1];
+          if (match.length <= 4) return "[REDACTED]";
+          return (
+            match[0] + "*".repeat(match.length - 2) + match[match.length - 1]
+          );
         });
       });
-      
+
       return scrubbed;
     } catch (error) {
       // Fallback to prevent infinite loops
-      return '[SCRUB_ERROR]';
+      return "[SCRUB_ERROR]";
     } finally {
       this.isProcessing = false;
     }
@@ -141,27 +146,34 @@ class SecureLogger {
    * Scrub sensitive keys from objects
    */
   private scrubObjectPII(obj: any): any {
-    if (!obj || typeof obj !== 'object') return obj;
-    
+    if (!obj || typeof obj !== "object") return obj;
+
     const scrubbed: any = {};
-    
+
     for (const [key, value] of Object.entries(obj)) {
       const lowerKey = key.toLowerCase();
-      
-      if (SENSITIVE_KEYS.some(sensitiveKey => lowerKey.includes(sensitiveKey))) {
-        scrubbed[key] = '[REDACTED]';
+
+      if (
+        SENSITIVE_KEYS.some((sensitiveKey) => lowerKey.includes(sensitiveKey))
+      ) {
+        scrubbed[key] = "[REDACTED]";
       } else {
         scrubbed[key] = this.scrubPII(value);
       }
     }
-    
+
     return scrubbed;
   }
 
   /**
    * Format log message with timestamp and level
    */
-  private formatMessage(level: string, scope: string, message: string, data?: any): string {
+  private formatMessage(
+    level: string,
+    scope: string,
+    message: string,
+    data?: any,
+  ): string {
     // Prevent infinite recursion during error logging
     if (this.isProcessing) {
       const timestamp = new Date().toISOString();
@@ -171,12 +183,12 @@ class SecureLogger {
     try {
       const timestamp = new Date().toISOString();
       const prefix = `[${timestamp}] [${level}] [${scope}]`;
-      
+
       if (data) {
         const scrubbedData = this.scrubPII(data);
         return `${prefix} ${message} ${JSON.stringify(scrubbedData)}`;
       }
-      
+
       return `${prefix} ${this.scrubStringPII(message)}`;
     } catch (error) {
       // Fallback formatting to prevent crashes
@@ -191,10 +203,10 @@ class SecureLogger {
   debug(scope: string, message: string, data?: any): void {
     if (this.currentLevel <= LOG_LEVELS.DEBUG) {
       try {
-        const formatted = this.formatMessage('DEBUG', scope, message, data);
+        const formatted = this.formatMessage("DEBUG", scope, message, data);
         this.originalConsole.debug(formatted);
       } catch (error) {
-        this.originalConsole.error('SecureLogger debug error:', error);
+        this.originalConsole.error("SecureLogger debug error:", error);
       }
     }
   }
@@ -205,10 +217,10 @@ class SecureLogger {
   info(scope: string, message: string, data?: any): void {
     if (this.currentLevel <= LOG_LEVELS.INFO) {
       try {
-        const formatted = this.formatMessage('INFO', scope, message, data);
+        const formatted = this.formatMessage("INFO", scope, message, data);
         this.originalConsole.info(formatted);
       } catch (error) {
-        this.originalConsole.error('SecureLogger info error:', error);
+        this.originalConsole.error("SecureLogger info error:", error);
       }
     }
   }
@@ -219,10 +231,10 @@ class SecureLogger {
   warn(scope: string, message: string, data?: any): void {
     if (this.currentLevel <= LOG_LEVELS.WARN) {
       try {
-        const formatted = this.formatMessage('WARN', scope, message, data);
+        const formatted = this.formatMessage("WARN", scope, message, data);
         this.originalConsole.warn(formatted);
       } catch (error) {
-        this.originalConsole.error('SecureLogger warn error:', error);
+        this.originalConsole.error("SecureLogger warn error:", error);
       }
     }
   }
@@ -234,20 +246,25 @@ class SecureLogger {
     if (this.currentLevel <= LOG_LEVELS.ERROR) {
       try {
         let errorData = error;
-        
+
         // Handle Error objects
         if (error instanceof Error) {
           errorData = {
             name: error.name,
             message: error.message,
-            stack: this.isProduction ? '[REDACTED]' : error.stack,
+            stack: this.isProduction ? "[REDACTED]" : error.stack,
           };
         }
-        
-        const formatted = this.formatMessage('ERROR', scope, message, errorData);
+
+        const formatted = this.formatMessage(
+          "ERROR",
+          scope,
+          message,
+          errorData,
+        );
         this.originalConsole.error(formatted);
       } catch (error) {
-        this.originalConsole.error('SecureLogger error error:', error);
+        this.originalConsole.error("SecureLogger error error:", error);
       }
     }
   }
@@ -258,22 +275,31 @@ class SecureLogger {
   security(scope: string, event: string, data?: any): void {
     try {
       const scrubbedData = data ? this.scrubPII(data) : undefined;
-      const formatted = this.formatMessage('SECURITY', scope, `🔒 ${event}`, scrubbedData);
+      const formatted = this.formatMessage(
+        "SECURITY",
+        scope,
+        `🔒 ${event}`,
+        scrubbedData,
+      );
       this.originalConsole.warn(formatted);
-      
+
       // In production, could send to security monitoring service
       if (this.isProduction) {
         this.sendToSecurityMonitoring(scope, event, scrubbedData);
       }
     } catch (error) {
-      this.originalConsole.error('SecureLogger security error:', error);
+      this.originalConsole.error("SecureLogger security error:", error);
     }
   }
 
   /**
    * Send security events to monitoring service (placeholder)
    */
-  private sendToSecurityMonitoring(scope: string, event: string, data?: any): void {
+  private sendToSecurityMonitoring(
+    scope: string,
+    event: string,
+    data?: any,
+  ): void {
     // Placeholder for integration with security monitoring service
     // e.g., Datadog, Splunk, etc.
     try {
@@ -282,7 +308,7 @@ class SecureLogger {
       //   method: 'POST',
       //   body: JSON.stringify({ scope, event, data, timestamp: new Date().toISOString() })
       // });
-      
+
       // Prevent unused variable warnings
       void scope;
       void event;
@@ -312,17 +338,22 @@ export const secureLogger = new SecureLogger();
 
 // Convenience exports
 export const log = {
-  debug: (scope: string, message: string, data?: any) => secureLogger.debug(scope, message, data),
-  info: (scope: string, message: string, data?: any) => secureLogger.info(scope, message, data),
-  warn: (scope: string, message: string, data?: any) => secureLogger.warn(scope, message, data),
-  error: (scope: string, message: string, error?: any) => secureLogger.error(scope, message, error),
-  security: (scope: string, event: string, data?: any) => secureLogger.security(scope, event, data),
+  debug: (scope: string, message: string, data?: unknown) =>
+    secureLogger.debug(scope, message, data),
+  info: (scope: string, message: string, data?: unknown) =>
+    secureLogger.info(scope, message, data),
+  warn: (scope: string, message: string, data?: unknown) =>
+    secureLogger.warn(scope, message, data),
+  error: (scope: string, message: string, error?: unknown) =>
+    secureLogger.error(scope, message, error),
+  security: (scope: string, event: string, data?: unknown) =>
+    secureLogger.security(scope, event, data),
 };
 
 // Replace console methods in production
 if (import.meta.env.PROD) {
   const originalConsole = { ...console };
-  
+
   // Use original console methods in the logger to prevent recursion
   const safeConsole = {
     log: originalConsole.log.bind(originalConsole),
@@ -331,47 +362,47 @@ if (import.meta.env.PROD) {
     error: originalConsole.error.bind(originalConsole),
     debug: originalConsole.debug.bind(originalConsole),
   };
-  
+
   console.log = (...args) => {
     try {
-      secureLogger.info('CONSOLE', args.join(' '));
+      secureLogger.info("CONSOLE", args.join(" "));
     } catch (error) {
-      safeConsole.error('SecureLogger error:', error);
+      safeConsole.error("SecureLogger error:", error);
     }
   };
-  
+
   console.info = (...args) => {
     try {
-      secureLogger.info('CONSOLE', args.join(' '));
+      secureLogger.info("CONSOLE", args.join(" "));
     } catch (error) {
-      safeConsole.error('SecureLogger error:', error);
+      safeConsole.error("SecureLogger error:", error);
     }
   };
-  
+
   console.warn = (...args) => {
     try {
-      secureLogger.warn('CONSOLE', args.join(' '));
+      secureLogger.warn("CONSOLE", args.join(" "));
     } catch (error) {
-      safeConsole.error('SecureLogger error:', error);
+      safeConsole.error("SecureLogger error:", error);
     }
   };
-  
+
   console.error = (...args) => {
     try {
-      secureLogger.error('CONSOLE', args.join(' '));
+      secureLogger.error("CONSOLE", args.join(" "));
     } catch (error) {
-      safeConsole.error('SecureLogger error:', error);
+      safeConsole.error("SecureLogger error:", error);
     }
   };
-  
+
   console.debug = (...args) => {
     try {
-      secureLogger.debug('CONSOLE', args.join(' '));
+      secureLogger.debug("CONSOLE", args.join(" "));
     } catch (error) {
-      safeConsole.error('SecureLogger error:', error);
+      safeConsole.error("SecureLogger error:", error);
     }
   };
-  
+
   // Keep original methods available for emergency debugging
   (window as any).__originalConsole = originalConsole;
   (window as any).__safeConsole = safeConsole;

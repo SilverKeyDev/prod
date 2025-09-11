@@ -1,10 +1,10 @@
-import React from 'react';
+import React from "react";
 
 interface CardContentContainerProps {
   /** Content to display */
   children: React.ReactNode;
   /** Padding variant */
-  padding?: 'xs' | 'sm' | 'md' | 'lg';
+  padding?: "xs" | "sm" | "md" | "lg";
   /** Additional className */
   className?: string;
 }
@@ -14,21 +14,21 @@ interface CardContentContainerProps {
  */
 export default function CardContentContainer({
   children,
-  padding = 'sm',
-  className = ''
+  padding = "sm",
+  className = "",
 }: CardContentContainerProps) {
   const getPaddingClass = () => {
     switch (padding) {
-      case 'xs':
-        return 'space-responsive-xs';
-      case 'sm':
-        return 'space-responsive-sm';
-      case 'md':
-        return 'space-responsive-md';
-      case 'lg':
-        return 'space-responsive-lg';
+      case "xs":
+        return "space-responsive-xs";
+      case "sm":
+        return "space-responsive-sm";
+      case "md":
+        return "space-responsive-md";
+      case "lg":
+        return "space-responsive-lg";
       default:
-        return 'space-responsive-sm';
+        return "space-responsive-sm";
     }
   };
 

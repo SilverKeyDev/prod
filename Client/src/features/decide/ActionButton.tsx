@@ -42,7 +42,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({
       {text && (
         <span
           className={`ml-1 sm:ml-2 flex-shrink min-w-0 btn-text-responsive ${
-            hideTextOnMobile ? 'hidden lg:inline' : ''
+            hideTextOnMobile ? "hidden lg:inline" : ""
           }`}
         >
           {text}

@@ -87,7 +87,7 @@ export default function Subscription() {
 
   // Show only unlimited plans since tab functionality is removed
   const filteredPlans = plans.filter(
-    (plan) => plan.interval === "month" || plan.interval === "year"
+    (plan) => plan.interval === "month" || plan.interval === "year",
   );
 
   const getPlanIcon = (planId: string) => {
@@ -202,15 +202,15 @@ export default function Subscription() {
                     <div className="text-responsive-lg font-bold text-black">
                       {(() => {
                         const plan = plans.find(
-                          (p) => p.id === billingInfo.subscription?.plan_id
+                          (p) => p.id === billingInfo.subscription?.plan_id,
                         );
                         if (!plan) return "$0";
                         return `$${plan.price}${
                           plan.interval === "year"
                             ? "/yr"
                             : plan.interval === "month"
-                            ? "/mo"
-                            : ""
+                              ? "/mo"
+                              : ""
                         }`;
                       })()}
                     </div>
@@ -223,7 +223,7 @@ export default function Subscription() {
                       <span className="text-gray-500">
                         {(() => {
                           const plan = plans.find(
-                            (p) => p.id === billingInfo.subscription?.plan_id
+                            (p) => p.id === billingInfo.subscription?.plan_id,
                           );
                           return plan ? plan.name : "Custom Plan";
                         })()}
@@ -234,14 +234,14 @@ export default function Subscription() {
                       <span className="text-gray-500">
                         {(() => {
                           const plan = plans.find(
-                            (p) => p.id === billingInfo.subscription?.plan_id
+                            (p) => p.id === billingInfo.subscription?.plan_id,
                           );
                           if (!plan) return "One-time";
                           return plan.interval === "month"
                             ? "Monthly"
                             : plan.interval === "year"
-                            ? "Yearly"
-                            : "One-time";
+                              ? "Yearly"
+                              : "One-time";
                         })()}
                       </span>
                     </span>
@@ -252,7 +252,7 @@ export default function Subscription() {
                         </span>
                         <span className="text-gray-500">
                           {new Date(
-                            billingInfo.subscription.current_period_end
+                            billingInfo.subscription.current_period_end,
                           ).toLocaleDateString("en-US", {
                             month: "short",
                             day: "numeric",
@@ -294,15 +294,15 @@ export default function Subscription() {
                       <div className="text-responsive-xl font-bold text-black">
                         {(() => {
                           const plan = plans.find(
-                            (p) => p.id === billingInfo.subscription?.plan_id
+                            (p) => p.id === billingInfo.subscription?.plan_id,
                           );
                           if (!plan) return "$0";
                           return `$${plan.price}${
                             plan.interval === "year"
                               ? "/yr"
                               : plan.interval === "month"
-                              ? "/mo"
-                              : ""
+                                ? "/mo"
+                                : ""
                           }`;
                         })()}
                       </div>
@@ -326,7 +326,7 @@ export default function Subscription() {
                       <span className="text-gray-500">
                         {(() => {
                           const plan = plans.find(
-                            (p) => p.id === billingInfo.subscription?.plan_id
+                            (p) => p.id === billingInfo.subscription?.plan_id,
                           );
                           return plan ? plan.name : "Custom Plan";
                         })()}
@@ -337,14 +337,14 @@ export default function Subscription() {
                       <span className="text-gray-500">
                         {(() => {
                           const plan = plans.find(
-                            (p) => p.id === billingInfo.subscription?.plan_id
+                            (p) => p.id === billingInfo.subscription?.plan_id,
                           );
                           if (!plan) return "One-time";
                           return plan.interval === "month"
                             ? "Monthly"
                             : plan.interval === "year"
-                            ? "Yearly"
-                            : "One-time";
+                              ? "Yearly"
+                              : "One-time";
                         })()}
                       </span>
                     </span>
@@ -355,7 +355,7 @@ export default function Subscription() {
                         </span>
                         <span className="text-gray-500">
                           {new Date(
-                            billingInfo.subscription.current_period_end
+                            billingInfo.subscription.current_period_end,
                           ).toLocaleDateString("en-US", {
                             month: "short",
                             day: "numeric",
@@ -428,8 +428,8 @@ export default function Subscription() {
                       {plan.interval === "year"
                         ? "/year"
                         : plan.interval === "month"
-                        ? "/month"
-                        : ""}
+                          ? "/month"
+                          : ""}
                     </span>
                   </div>
                   {plan.interval === "year" && (
@@ -459,8 +459,8 @@ export default function Subscription() {
                   billingInfo?.subscription?.plan_id === plan.id
                     ? "bg-gray-100 text-gray-500 border border-gray-300 cursor-not-allowed"
                     : plan.popular
-                    ? "bg-olive text-white hover:bg-olive-light hover:text-white hover:font-bold border border-transparent"
-                    : "bg-olive-light text-white hover:bg-olive hover:text-white border border-olive-light"
+                      ? "bg-olive text-white hover:bg-olive-light hover:text-white hover:font-bold border border-transparent"
+                      : "bg-olive-light text-white hover:bg-olive hover:text-white border border-olive-light"
                 } ${subscriptionLoading ? "opacity-75" : ""}`}
               >
                 {billingInfo?.subscription?.plan_id === plan.id ? (

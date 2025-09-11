@@ -72,7 +72,7 @@ export default function Dashboard() {
   };
 
   // Handle saving a home
-  const handleSaveHome = async (property: any) => {
+  const handleSaveHome = async (property: unknown) => {
     try {
       await userApi.addFavoriteHome({ home: property });
       // Refresh the saved homes list - we'll trigger a re-fetch via useEffect
@@ -88,7 +88,7 @@ export default function Dashboard() {
       await userApi.removeFavoriteHome({ address: homeId });
       // Update local state by removing the home
       setFavoriteHomes((prev) =>
-        prev.filter((home) => home.home_id !== homeId)
+        prev.filter((home) => home.home_id !== homeId),
       );
     } catch (error) {
       console.error("Error removing home from favorites:", error);
@@ -129,7 +129,7 @@ export default function Dashboard() {
               lng: home.lng || 0,
               // Any other HomeUniversal fields can be passed through
               ...home,
-            })
+            }),
           );
           setFavoriteHomes(homeObjects);
         } else {
@@ -159,12 +159,12 @@ export default function Dashboard() {
         setShowError(true);
       }
     },
-    [handleShareDocument]
+    [handleShareDocument],
   );
 
   const openDeleteModal = (
     reportId: string,
-    s3Key: string | null | undefined
+    s3Key: string | null | undefined,
   ) => {
     setReportToDelete({ id: reportId, s3Key });
     setDeleteModalOpen(true);
@@ -177,7 +177,7 @@ export default function Dashboard() {
 
   const handleDeleteReport = async (
     reportId: string,
-    s3Key: string | null | undefined
+    s3Key: string | null | undefined,
   ) => {
     if (!reportId) {
       console.error("[DELETE] Error: No report ID provided");
@@ -187,7 +187,7 @@ export default function Dashboard() {
     try {
       if (!s3Key) {
         console.warn(
-          "[DELETE] No S3 key provided, will only delete from in-memory storage"
+          "[DELETE] No S3 key provided, will only delete from in-memory storage",
         );
       }
 
@@ -208,7 +208,7 @@ export default function Dashboard() {
       });
 
       setErrorMessage(
-        error instanceof Error ? error.message : "Failed to delete report"
+        error instanceof Error ? error.message : "Failed to delete report",
       );
       setShowError(true);
     }
@@ -251,7 +251,7 @@ export default function Dashboard() {
           lastReportSnapshot = null;
         } else {
           console.error(
-            `[Dashboard] ❌ Initial poll failed: No report data received`
+            `[Dashboard] ❌ Initial poll failed: No report data received`,
           );
           return;
         }
@@ -271,12 +271,12 @@ export default function Dashboard() {
           if (!data.success) {
             consecutiveErrors++;
             console.error(
-              `[Dashboard] ❌ Poll error: API returned unsuccessful response (${consecutiveErrors}/${maxConsecutiveErrors})`
+              `[Dashboard] ❌ Poll error: API returned unsuccessful response (${consecutiveErrors}/${maxConsecutiveErrors})`,
             );
 
             if (consecutiveErrors >= maxConsecutiveErrors) {
               console.error(
-                `[Dashboard] 🚫 Too many consecutive errors (${consecutiveErrors}), aborting poll`
+                `[Dashboard] 🚫 Too many consecutive errors (${consecutiveErrors}), aborting poll`,
               );
               return;
             }
@@ -302,7 +302,7 @@ export default function Dashboard() {
               console.warn(
                 `[Dashboard] ⚠️ TIMEOUT - Report never appeared after ${
                   elapsedTime / 60
-                } mins`
+                } mins`,
               );
             }
             return;
@@ -332,19 +332,19 @@ export default function Dashboard() {
             console.warn(
               `[Dashboard] ⚠️ TIMEOUT after ${
                 elapsedTime / 60
-              } mins — Report still ${data.report.status}`
+              } mins — Report still ${data.report.status}`,
             );
           }
         } catch (error) {
           consecutiveErrors++;
           console.error(
             `[Dashboard] ❌ Polling exception (${consecutiveErrors}/${maxConsecutiveErrors}):`,
-            error
+            error,
           );
 
           if (consecutiveErrors >= maxConsecutiveErrors) {
             console.error(
-              `[Dashboard] 🚫 Too many consecutive errors, aborting poll`
+              `[Dashboard] 🚫 Too many consecutive errors, aborting poll`,
             );
             return;
           }
@@ -356,7 +356,7 @@ export default function Dashboard() {
       };
       setTimeout(pollForCompletion, pollInterval);
     },
-    [refreshReports]
+    [refreshReports],
   );
 
   // Event listeners and global function exposure (matching PastReports)

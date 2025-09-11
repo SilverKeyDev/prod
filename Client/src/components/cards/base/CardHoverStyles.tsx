@@ -10,9 +10,9 @@ export interface CardHoverConfig {
 }
 
 const CARD_HOVER_EFFECTS: CardHoverConfig = {
-  shadow: 'hover:shadow-lg',
-  transform: 'hover:-translate-y-1',
-  transition: 'transition-all duration-200 ease-out'
+  shadow: "hover:shadow-lg",
+  transform: "hover:-translate-y-1",
+  transition: "transition-all duration-200 ease-out",
 };
 
 /**
@@ -32,7 +32,9 @@ export function getInteractiveCardClasses(): string {
 /**
  * Get card hover styles with custom shadow intensity
  */
-export function getCardHoverClassesWithShadow(shadowIntensity: 'sm' | 'md' | 'lg' | 'xl' = 'lg'): string {
+export function getCardHoverClassesWithShadow(
+  shadowIntensity: "sm" | "md" | "lg" | "xl" = "lg",
+): string {
   const shadowClass = `hover:shadow-${shadowIntensity}`;
   return `${CARD_HOVER_EFFECTS.transition} ${shadowClass} ${CARD_HOVER_EFFECTS.transform}`;
 }
@@ -40,5 +42,5 @@ export function getCardHoverClassesWithShadow(shadowIntensity: 'sm' | 'md' | 'lg
 export default {
   getCardHoverClasses,
   getInteractiveCardClasses,
-  getCardHoverClassesWithShadow
+  getCardHoverClassesWithShadow,
 };

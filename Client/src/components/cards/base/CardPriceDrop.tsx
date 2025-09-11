@@ -1,4 +1,4 @@
-import { ArrowDownRight } from 'lucide-react';
+import { ArrowDownRight } from "lucide-react";
 
 interface CardPriceDropProps {
   /** Old price */
@@ -8,7 +8,7 @@ interface CardPriceDropProps {
   /** Currency (default USD) */
   currency?: string;
   /** Size variant */
-  size?: 'xs' | 'sm' | 'md';
+  size?: "xs" | "sm" | "md";
   /** Additional className */
   className?: string;
 }
@@ -19,12 +19,12 @@ interface CardPriceDropProps {
 export default function CardPriceDrop({
   oldPrice,
   newPrice,
-  currency = 'USD',
-  size = 'sm',
-  className = ''
+  currency = "USD",
+  size = "sm",
+  className = "",
 }: CardPriceDropProps) {
   const percent = Math.round(((oldPrice - newPrice) / oldPrice) * 100);
-  
+
   const formatter = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: currency,
@@ -33,25 +33,25 @@ export default function CardPriceDrop({
 
   const getSizeClasses = () => {
     switch (size) {
-      case 'xs':
+      case "xs":
         return {
-          icon: 'mobile-icon-xs',
-          text: 'text-responsive-xs'
+          icon: "mobile-icon-xs",
+          text: "text-responsive-xs",
         };
-      case 'sm':
+      case "sm":
         return {
-          icon: 'mobile-icon-sm',
-          text: 'text-responsive-xs'
+          icon: "mobile-icon-sm",
+          text: "text-responsive-xs",
         };
-      case 'md':
+      case "md":
         return {
-          icon: 'mobile-icon-md',
-          text: 'text-responsive-sm'
+          icon: "mobile-icon-md",
+          text: "text-responsive-sm",
         };
       default:
         return {
-          icon: 'mobile-icon-sm',
-          text: 'text-responsive-xs'
+          icon: "mobile-icon-sm",
+          text: "text-responsive-xs",
         };
     }
   };
@@ -60,7 +60,9 @@ export default function CardPriceDrop({
 
   return (
     <div className={`space-y-1 ${className}`}>
-      <div className={`flex items-center gap-responsive-xs ${sizeClasses.text} text-red-600 font-medium`}>
+      <div
+        className={`flex items-center gap-responsive-xs ${sizeClasses.text} text-red-600 font-medium`}
+      >
         <ArrowDownRight className={`${sizeClasses.icon} flex-shrink-0`} />
         <span className="whitespace-nowrap">{percent}% price drop</span>
       </div>

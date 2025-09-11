@@ -97,7 +97,7 @@ export const StepUpAuth: React.FC<StepUpAuthProps> = ({
         `stepup_lockout_${Date.now()}`,
         JSON.stringify({
           until: lockoutUntil,
-        })
+        }),
       );
 
       setIsLockedOut(true);

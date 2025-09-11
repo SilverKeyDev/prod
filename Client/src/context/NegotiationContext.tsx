@@ -1,4 +1,11 @@
-import { createContext, useContext, useState, useCallback, useMemo, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useMemo,
+  ReactNode,
+} from "react";
 import { offerApi, searchApi } from "../api";
 import { log } from "../lib/security/secureLogger";
 import { useLocalStorage } from "../hooks/useLocalStorage";
@@ -15,7 +22,7 @@ interface NegotiationContextType {
   compsData: any | null;
   isLoading: boolean;
   error: string | null;
-  handleHomeSelection: (home: any) => void;
+  handleHomeSelection: (home: unknown) => void;
   handleGenerate: () => Promise<void>;
   handleDownloadJson: () => void;
   handleShareJson: () => Promise<void>;
@@ -26,7 +33,7 @@ interface NegotiationContextType {
    ========================= */
 
 const NegotiationContext = createContext<NegotiationContextType | undefined>(
-  undefined
+  undefined,
 );
 
 interface NegotiationProviderProps {
@@ -35,19 +42,28 @@ interface NegotiationProviderProps {
 
 export function NegotiationProvider({ children }: NegotiationProviderProps) {
   // Enhanced strategy generation state with centralized localStorage persistence
-  const { value: selectedHome, setValue: setSelectedHome } = useLocalStorage<any | null>('negotiationSelectedHome', null);
-  const { value: strategyData, setValue: setStrategyData } = useLocalStorage<any | null>('negotiationStrategy', null);
-  const { value: compsData, setValue: setCompsData } = useLocalStorage<any | null>('negotiationComps', null);
+  const { value: selectedHome, setValue: setSelectedHome } = useLocalStorage<
+    any | null
+  >("negotiationSelectedHome", null);
+  const { value: strategyData, setValue: setStrategyData } = useLocalStorage<
+    any | null
+  >("negotiationStrategy", null);
+  const { value: compsData, setValue: setCompsData } = useLocalStorage<
+    any | null
+  >("negotiationComps", null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Handle home selection from dropdown
-  const handleHomeSelection = useCallback((home: any) => {
-    setSelectedHome(home);
-    setStrategyData(null); // Reset strategy when home changes
-    setCompsData(null); // Reset comps when home changes
-    // Note: localStorage persistence is handled automatically by useLocalStorage hooks
-  }, [setSelectedHome, setStrategyData, setCompsData]);
+  const handleHomeSelection = useCallback(
+    (home: unknown) => {
+      setSelectedHome(home);
+      setStrategyData(null); // Reset strategy when home changes
+      setCompsData(null); // Reset comps when home changes
+      // Note: localStorage persistence is handled automatically by useLocalStorage hooks
+    },
+    [setSelectedHome, setStrategyData, setCompsData],
+  );
 
   // Enhanced strategy generation with localStorage persistence
   const handleGenerate = async () => {
@@ -76,12 +92,11 @@ export function NegotiationProvider({ children }: NegotiationProviderProps) {
         searchApi.getPropertyComps({ address }),
       ]);
 
-
       // Check comps response (log but don't fail if comps fails)
       if (!compsResponseData.success) {
         console.warn(
           "⚠️ [NEGOTIATION] Property comps API failed:",
-          compsResponseData.error || "Unknown error"
+          compsResponseData.error || "Unknown error",
         );
       }
 
@@ -101,29 +116,33 @@ export function NegotiationProvider({ children }: NegotiationProviderProps) {
     } catch (err) {
       console.error(
         "❌ [NEGOTIATION] Error generating negotiation strategy:",
-        err
+        err,
       );
       console.error(
         "❌ [NEGOTIATION] Error stack:",
-        err instanceof Error ? err.stack : "No stack trace"
+        err instanceof Error ? err.stack : "No stack trace",
       );
-      
+
       // Handle different error types
       let errorMessage = "Failed to generate strategy. Please try again.";
-      
+
       if (err instanceof Error) {
-        if (err.name === 'AbortError') {
-          errorMessage = "Request was cancelled or timed out. Please try again.";
-          console.warn("🕐 [NEGOTIATION] Request aborted - likely due to timeout or cancellation");
-        } else if (err.message.includes('timeout')) {
-          errorMessage = "Request timed out. Please check your connection and try again.";
-        } else if (err.message.includes('Authentication required')) {
+        if (err.name === "AbortError") {
+          errorMessage =
+            "Request was cancelled or timed out. Please try again.";
+          console.warn(
+            "🕐 [NEGOTIATION] Request aborted - likely due to timeout or cancellation",
+          );
+        } else if (err.message.includes("timeout")) {
+          errorMessage =
+            "Request timed out. Please check your connection and try again.";
+        } else if (err.message.includes("Authentication required")) {
           errorMessage = "Please log in again to continue.";
         } else {
           errorMessage = err.message;
         }
       }
-      
+
       setError(errorMessage);
     } finally {
       setIsLoading(false);
@@ -172,11 +191,18 @@ export function NegotiationProvider({ children }: NegotiationProviderProps) {
       if (navigator.canShare(shareData)) {
         try {
           await navigator.share(shareData);
-          log.info('NEGOTIATION_CONTEXT', 'Strategy shared successfully via Web Share API');
+          log.info(
+            "NEGOTIATION_CONTEXT",
+            "Strategy shared successfully via Web Share API",
+          );
           return;
         } catch (err) {
-          if (err instanceof Error && err.name !== 'AbortError') {
-            log.warn('NEGOTIATION_CONTEXT', 'Web Share API failed, trying text share', err);
+          if (err instanceof Error && err.name !== "AbortError") {
+            log.warn(
+              "NEGOTIATION_CONTEXT",
+              "Web Share API failed, trying text share",
+              err,
+            );
           } else {
             // User cancelled sharing
             return;
@@ -192,11 +218,18 @@ export function NegotiationProvider({ children }: NegotiationProviderProps) {
           title: "Negotiation Strategy",
           text: `Negotiation strategy for ${selectedHome?.address || "property"}:\n\n${dataStr}`,
         });
-        log.info('NEGOTIATION_CONTEXT', 'Strategy shared as text via Web Share API');
+        log.info(
+          "NEGOTIATION_CONTEXT",
+          "Strategy shared as text via Web Share API",
+        );
         return;
       } catch (err) {
-        if (err instanceof Error && err.name !== 'AbortError') {
-          log.warn('NEGOTIATION_CONTEXT', 'Text share also failed, falling back to clipboard', err);
+        if (err instanceof Error && err.name !== "AbortError") {
+          log.warn(
+            "NEGOTIATION_CONTEXT",
+            "Text share also failed, falling back to clipboard",
+            err,
+          );
         } else {
           // User cancelled sharing
           return;
@@ -206,7 +239,6 @@ export function NegotiationProvider({ children }: NegotiationProviderProps) {
 
     // Final fallback: Copy to clipboard
   }, [strategyData, selectedHome]);
-
 
   /* =========================
      Effects
@@ -241,7 +273,7 @@ export function NegotiationProvider({ children }: NegotiationProviderProps) {
       handleGenerate,
       handleDownloadJson,
       handleShareJson,
-    ]
+    ],
   );
 
   return (

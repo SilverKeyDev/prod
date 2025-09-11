@@ -107,7 +107,7 @@ export default function DashboardLayout({
 
     // Find matching page configuration
     const configPath = Object.keys(PAGE_WIDTH_CONFIG).find((configPath) =>
-      path.startsWith(configPath)
+      path.startsWith(configPath),
     );
 
     // Use page-specific width or default to maxWidth (defaulting to 85)
@@ -269,7 +269,7 @@ export default function DashboardLayout({
     }
 
     const override = Object.keys(mobileOverrides).find((key) =>
-      path.startsWith(key)
+      path.startsWith(key),
     );
     if (override) return mobileOverrides[override];
 

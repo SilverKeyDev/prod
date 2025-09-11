@@ -5,7 +5,7 @@ import { getCardBubbleSizeClasses } from "./CardBubbleStyles";
 export interface CardHeartSaveProps {
   property: { id: string; address: string; [key: string]: any };
   isSaved: boolean;
-  onSave: (property: any) => void | Promise<void>;
+  onSave: (property: unknown) => void | Promise<void>;
   onRemove: (propertyId: string) => void | Promise<void>;
   position?: "top-left" | "top-right" | "bottom-left" | "bottom-right";
   size?: "xs" | "sm" | "md" | "lg";
@@ -20,7 +20,10 @@ const CIRCLE_SIZE: Record<NonNullable<CardHeartSaveProps["size"]>, string> = {
   lg: "w-13 h-13",
 };
 
-const ICON_SIZE_FALLBACK: Record<NonNullable<CardHeartSaveProps["size"]>, string> = {
+const ICON_SIZE_FALLBACK: Record<
+  NonNullable<CardHeartSaveProps["size"]>,
+  string
+> = {
   xs: "w-3.5 h-3.5",
   sm: "w-4 h-4",
   md: "w-5 h-5",
@@ -84,13 +87,20 @@ const CardHeartSave: React.FC<CardHeartSaveProps> = ({
           ${isSaved ? "text-red-500 hover:text-red-600" : "text-gray-400 hover:text-red-500"}
           ${circleClass} ${className}
         `}
-        aria-label={ariaLabel || (isSaved ? "Remove from saved homes" : "Save to favorites")}
+        aria-label={
+          ariaLabel ||
+          (isSaved ? "Remove from saved homes" : "Save to favorites")
+        }
         title={isSaved ? "Remove from saved homes" : "Save to favorites"}
       >
-        <Heart className={`${iconSizeClass} ${isSaved ? "fill-current" : ""} transition-transform duration-200 group-hover:scale-110`} />
-        
+        <Heart
+          className={`${iconSizeClass} ${isSaved ? "fill-current" : ""} transition-transform duration-200 group-hover:scale-110`}
+        />
+
         {/* Sparkles micro-accent on hover/active */}
-        <Sparkles className={`w-2 h-2 absolute top-1 left-1 text-white opacity-0 scale-50 transition-all duration-300 group-hover:opacity-30 group-hover:scale-75 group-active:opacity-50`} />
+        <Sparkles
+          className={`w-2 h-2 absolute top-1 left-1 text-white opacity-0 scale-50 transition-all duration-300 group-hover:opacity-30 group-hover:scale-75 group-active:opacity-50`}
+        />
       </button>
     </div>
   );

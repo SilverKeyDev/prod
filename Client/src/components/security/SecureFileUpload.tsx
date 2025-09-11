@@ -63,15 +63,15 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
     if (file.size > maxSize) {
       errors.push(
         `File "${file.name}" is too large (${formatFileSize(
-          file.size
-        )}). Maximum size is ${formatFileSize(maxSize)}.`
+          file.size,
+        )}). Maximum size is ${formatFileSize(maxSize)}.`,
       );
     }
     if (!acceptedTypes.includes(file.type)) {
       errors.push(
         `File "${file.name}" has unsupported type (${
           file.type
-        }). Accepted types: ${acceptedTypes.join(", ")}.`
+        }). Accepted types: ${acceptedTypes.join(", ")}.`,
       );
     }
     return errors;
@@ -96,7 +96,7 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
       }
 
       const validFiles = fileList.filter((file) =>
-        file.type.startsWith("image/")
+        file.type.startsWith("image/"),
       );
 
       const processedFiles: ProcessedImage[] = await Promise.all(
@@ -118,7 +118,7 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
               warnings: [],
             };
           }
-        })
+        }),
       );
 
       const filesWithPreview: FileWithPreview[] = processedFiles.map(
@@ -128,7 +128,7 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
             ? URL.createObjectURL(processed.file)
             : undefined,
           id: `file-${Date.now()}-${index}`,
-        })
+        }),
       );
 
       setFiles((prev) => [...prev, ...filesWithPreview]);
@@ -141,7 +141,7 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
         totalFiles: processedFiles.length,
         totalSizeReduction: processedFiles.reduce(
           (acc, f) => acc + (f.originalSize - f.processedSize),
-          0
+          0,
         ),
       });
     } catch (error) {
@@ -149,7 +149,7 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
       setError(
         `Processing failed: ${
           error instanceof Error ? error.message : "Unknown error"
-        }`
+        }`,
       );
     } finally {
       setProcessing(false);
@@ -169,7 +169,7 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
       }
       processFiles(droppedFiles);
     },
-    [files.length, maxFiles]
+    [files.length, maxFiles],
   );
 
   const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {

@@ -14,11 +14,14 @@ interface NormalizedError {
  * @param error - The error to report
  * @param context - Additional context about the error
  */
-export function reportError(error: unknown, context?: Record<string, any>): void {
+export function reportError(
+  error: unknown,
+  context?: Record<string, any>,
+): void {
   const normalizedError = normalizeError(error);
-  
+
   // Console logging for development
-  console.error('Error reported:', {
+  console.error("Error reported:", {
     error: normalizedError,
     context,
     timestamp: new Date().toISOString(),
@@ -50,27 +53,27 @@ export function normalizeError(error: unknown): NormalizedError {
   }
 
   // Handle string errors
-  if (typeof error === 'string') {
+  if (typeof error === "string") {
     return {
       message: error,
-      name: 'StringError',
+      name: "StringError",
     };
   }
 
   // Handle objects with message property
-  if (error && typeof error === 'object' && 'message' in error) {
+  if (error && typeof error === "object" && "message" in error) {
     return {
       message: String((error as any).message),
-      stack: 'stack' in error ? String((error as any).stack) : undefined,
-      name: 'name' in error ? String((error as any).name) : 'ObjectError',
+      stack: "stack" in error ? String((error as any).stack) : undefined,
+      name: "name" in error ? String((error as any).name) : "ObjectError",
     };
   }
 
   // Handle null/undefined
   if (error == null) {
     return {
-      message: 'Unknown error occurred',
-      name: 'NullError',
+      message: "Unknown error occurred",
+      name: "NullError",
     };
   }
 
@@ -78,12 +81,12 @@ export function normalizeError(error: unknown): NormalizedError {
   try {
     return {
       message: JSON.stringify(error),
-      name: 'SerializedError',
+      name: "SerializedError",
     };
   } catch {
     return {
       message: String(error),
-      name: 'UnknownError',
+      name: "UnknownError",
     };
   }
 }
@@ -95,29 +98,34 @@ export function normalizeError(error: unknown): NormalizedError {
  */
 export function formatErrorMessage(error: unknown): string {
   const normalized = normalizeError(error);
-  
+
   // Common error message mappings
   const errorMappings: Record<string, string> = {
-    'Network Error': 'Unable to connect to the server. Please check your internet connection.',
-    'TypeError': 'A technical error occurred. Please try again.',
-    'ReferenceError': 'A technical error occurred. Please try again.',
-    'SyntaxError': 'A technical error occurred. Please try again.',
-    'ChunkLoadError': 'Failed to load application resources. Please refresh the page.',
+    "Network Error":
+      "Unable to connect to the server. Please check your internet connection.",
+    TypeError: "A technical error occurred. Please try again.",
+    ReferenceError: "A technical error occurred. Please try again.",
+    SyntaxError: "A technical error occurred. Please try again.",
+    ChunkLoadError:
+      "Failed to load application resources. Please refresh the page.",
   };
 
   // Check for mapped error messages
   for (const [errorType, userMessage] of Object.entries(errorMappings)) {
-    if (normalized.message.includes(errorType) || normalized.name === errorType) {
+    if (
+      normalized.message.includes(errorType) ||
+      normalized.name === errorType
+    ) {
       return userMessage;
     }
   }
 
   // Return original message if it's user-friendly, otherwise generic message
-  if (normalized.message.length < 100 && !normalized.message.includes('at ')) {
+  if (normalized.message.length < 100 && !normalized.message.includes("at ")) {
     return normalized.message;
   }
 
-  return 'An unexpected error occurred. Please try again or contact support if the problem persists.';
+  return "An unexpected error occurred. Please try again or contact support if the problem persists.";
 }
 
 /**
@@ -128,17 +136,18 @@ export function formatErrorMessage(error: unknown): string {
 export function isNetworkError(error: unknown): boolean {
   const normalized = normalizeError(error);
   const networkIndicators = [
-    'Network Error',
-    'fetch',
-    'NETWORK_ERROR',
-    'ERR_NETWORK',
-    'ERR_INTERNET_DISCONNECTED',
-    'Failed to fetch',
+    "Network Error",
+    "fetch",
+    "NETWORK_ERROR",
+    "ERR_NETWORK",
+    "ERR_INTERNET_DISCONNECTED",
+    "Failed to fetch",
   ];
 
-  return networkIndicators.some(indicator => 
-    normalized.message.includes(indicator) || 
-    normalized.name?.includes(indicator)
+  return networkIndicators.some(
+    (indicator) =>
+      normalized.message.includes(indicator) ||
+      normalized.name?.includes(indicator),
   );
 }
 
@@ -150,16 +159,17 @@ export function isNetworkError(error: unknown): boolean {
 export function isAuthError(error: unknown): boolean {
   const normalized = normalizeError(error);
   const authIndicators = [
-    'Unauthorized',
-    'Authentication',
-    'AUTH_ERROR',
-    '401',
-    'Invalid token',
-    'Token expired',
+    "Unauthorized",
+    "Authentication",
+    "AUTH_ERROR",
+    "401",
+    "Invalid token",
+    "Token expired",
   ];
 
-  return authIndicators.some(indicator => 
-    normalized.message.includes(indicator) || 
-    normalized.name?.includes(indicator)
+  return authIndicators.some(
+    (indicator) =>
+      normalized.message.includes(indicator) ||
+      normalized.name?.includes(indicator),
   );
 }

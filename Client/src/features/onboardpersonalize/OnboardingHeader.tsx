@@ -39,8 +39,8 @@ const OnboardingHeader: React.FC<OnboardingHeaderProps> = ({
     currentStep > prevStep
       ? "forward"
       : currentStep < prevStep
-      ? "backward"
-      : "none";
+        ? "backward"
+        : "none";
 
   useEffect(() => {
     prevStepRef.current = currentStep;
@@ -89,7 +89,9 @@ const OnboardingHeader: React.FC<OnboardingHeaderProps> = ({
           if (outerRef.current) ro.unobserve(outerRef.current);
           if (gridRef.current) ro.unobserve(gridRef.current);
           ro.unobserve(document.documentElement);
-        } catch {}
+        } catch {
+          // Ignore observer cleanup errors
+        }
       } else {
         window.removeEventListener("resize", recalc);
       }
@@ -100,9 +102,9 @@ const OnboardingHeader: React.FC<OnboardingHeaderProps> = ({
   const templateCols = useMemo(
     () =>
       Array.from({ length: steps.length * 2 - 1 }, (_, i) =>
-        i % 2 === 0 ? "auto" : "1fr"
+        i % 2 === 0 ? "auto" : "1fr",
       ).join(" "),
-    [steps.length]
+    [steps.length],
   );
 
   // Helper: for connector at index (between step i and i+1), compute motion props
@@ -253,8 +255,8 @@ const OnboardingHeader: React.FC<OnboardingHeaderProps> = ({
                             isCompleted
                               ? "bg-olive text-white"
                               : isActive
-                              ? "bg-brown text-white"
-                              : "bg-beige text-black/60"
+                                ? "bg-brown text-white"
+                                : "bg-beige text-black/60"
                           }`}
                             whileHover={
                               direction === "backward"

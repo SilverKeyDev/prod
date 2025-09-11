@@ -14,9 +14,10 @@ interface IsochroneRenderOptions {
  */
 export const renderIsochronePolygon = (
   isochroneData: any,
-  options: IsochroneRenderOptions
+  options: IsochroneRenderOptions,
 ) => {
-  const { map, polygonRef, individualPolygonsRef, focusOnCurrentProperty } = options;
+  const { map, polygonRef, individualPolygonsRef, focusOnCurrentProperty } =
+    options;
 
   if (!map) {
     console.warn("❌ Google Map not initialized yet");
@@ -27,7 +28,7 @@ export const renderIsochronePolygon = (
     console.warn("❌ No isochrone geometry data available for map rendering");
     console.warn(
       "📊 Isochrone data structure:",
-      JSON.stringify(isochroneData, null, 2)
+      JSON.stringify(isochroneData, null, 2),
     );
     return;
   }
@@ -40,7 +41,7 @@ export const renderIsochronePolygon = (
   // Clear existing individual polygons
   if (individualPolygonsRef.current) {
     individualPolygonsRef.current.forEach((polygon: google.maps.Polygon) =>
-      polygon.setMap(null)
+      polygon.setMap(null),
     );
     individualPolygonsRef.current = [];
   }
@@ -51,7 +52,7 @@ export const renderIsochronePolygon = (
       isochroneData.individual_isochrones &&
       Array.isArray(isochroneData.individual_isochrones)
     ) {
-      isochroneData.individual_isochrones.forEach((individualData: any) => {
+      isochroneData.individual_isochrones.forEach((individualData: unknown) => {
         const geometry = individualData.isochrone?.geometry;
         if (!geometry) return;
 

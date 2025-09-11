@@ -13,7 +13,14 @@ import { useGoogleMaps } from "../../context/GoogleMapsContext";
 
 // UI Components
 import Card from "../../components/layout/Card";
-import { Loading, Input, Dropdown, Title, Subtitle, NavigationButtons } from "../../components/ui";
+import {
+  Loading,
+  Input,
+  Dropdown,
+  Title,
+  Subtitle,
+  NavigationButtons,
+} from "../../components/ui";
 import { ValidationWarning } from "../../components/feedback";
 
 // Feature components
@@ -109,7 +116,7 @@ export default function OnboardingPage() {
       setHomePriceError(
         error instanceof Error
           ? error.message
-          : "Failed to calculate home price"
+          : "Failed to calculate home price",
       );
       setHomePriceResult(null);
     } finally {
@@ -197,7 +204,7 @@ export default function OnboardingPage() {
     if (!checked) {
       // Remove from priorities when unchecked
       const newPriorities = currentPriorities.filter(
-        (key) => key !== sectionKey
+        (key) => key !== sectionKey,
       );
       updateFormData("report_section_priorities", newPriorities);
     } else {
@@ -233,7 +240,7 @@ export default function OnboardingPage() {
   // Trigger home price calculation when relevant form data changes
 
   // Update form data with new value
-  const updateFormData = (field: string | number | symbol, value: any) => {
+  const updateFormData = (field: string | number | symbol, value: unknown) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -541,7 +548,7 @@ export default function OnboardingPage() {
                   onChange={(e) =>
                     updateFormData(
                       "preferred_bedrooms",
-                      parseInt(e.target.value) || undefined
+                      parseInt(e.target.value) || undefined,
                     )
                   }
                   min={1}
@@ -561,7 +568,7 @@ export default function OnboardingPage() {
                   onChange={(e) =>
                     updateFormData(
                       "preferred_bathrooms",
-                      parseFloat(e.target.value) || undefined
+                      parseFloat(e.target.value) || undefined,
                     )
                   }
                   min={1}
@@ -695,7 +702,7 @@ export default function OnboardingPage() {
                     name: string;
                     address: string;
                     commute_tolerance?: number;
-                  }[]
+                  }[],
                 ) => {
                   updateFormData("important_locations", locations);
                 }}
@@ -756,7 +763,7 @@ export default function OnboardingPage() {
           </div>
         );
 
-      case "reportcustomization":
+      case "reportcustomization": {
         if (loading) {
           return (
             <div className="space-y-6">
@@ -791,6 +798,7 @@ export default function OnboardingPage() {
             onToggle={handleReportSectionToggle}
           />
         );
+      }
 
       default:
         return <div>Step content for {step.title} coming soon...</div>;

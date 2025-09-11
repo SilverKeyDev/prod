@@ -14,8 +14,8 @@ const FormField = ({
   children,
   error,
   required = false,
-  className = '',
-  labelClassName = ''
+  className = "",
+  labelClassName = "",
 }: FormFieldProps) => {
   return (
     <div className={`mb-4 ${className}`}>

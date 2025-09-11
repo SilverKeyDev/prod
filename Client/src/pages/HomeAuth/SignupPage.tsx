@@ -14,7 +14,9 @@ import AuthButton from "../../features/homeauth/AuthButton";
 import AuthLink from "../../features/homeauth/AuthLink";
 import AuthPageLayout from "../../features/homeauth/AuthPageLayout";
 
-interface SignupPageProps {}
+interface SignupPageProps {
+  // Props interface for potential future props
+}
 
 const BarePhoneTextInput = React.forwardRef<
   HTMLInputElement,
@@ -68,13 +70,13 @@ const formatToE164 = (phoneNumber: string | undefined): string | undefined => {
     return undefined;
   }
 
-  const cleaned = phoneNumber.replace(/[\s\-\(\)\.]/g, "");
+  const cleaned = phoneNumber.replace(/[\s\-().]/g, "");
 
   // Basic phone validation: digits and optional leading +
-  if (!/^[\+]?[\d]+$/.test(cleaned)) {
+  if (!/^[+]?[\d]+$/.test(cleaned)) {
     console.log(
       "Phone autofill received invalid format, ignoring:",
-      phoneNumber
+      phoneNumber,
     );
     return undefined;
   }
@@ -85,7 +87,7 @@ const formatToE164 = (phoneNumber: string | undefined): string | undefined => {
 
 type FieldKey = "all" | "name" | "email" | "password" | "phone";
 
-export default function SignupPage({}: SignupPageProps) {
+export default function SignupPage(_props: SignupPageProps) {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -104,10 +106,10 @@ export default function SignupPage({}: SignupPageProps) {
     const nameEl = document.getElementById("name") as HTMLInputElement | null;
     const emailEl = document.getElementById("email") as HTMLInputElement | null;
     const pwdEl = document.getElementById(
-      "password"
+      "password",
     ) as HTMLInputElement | null;
     const phoneEl = document.querySelector(
-      "input.PhoneInputInput"
+      "input.PhoneInputInput",
     ) as HTMLInputElement | null;
     return { nameEl, emailEl, pwdEl, phoneEl };
   };
@@ -223,7 +225,7 @@ export default function SignupPage({}: SignupPageProps) {
 
     if (!isPasswordValid) {
       alert(
-        `Password must meet all requirements: ${passwordErrors.join(", ")}`
+        `Password must meet all requirements: ${passwordErrors.join(", ")}`,
       );
       setLoading(false);
       return;
@@ -247,7 +249,7 @@ export default function SignupPage({}: SignupPageProps) {
       alert(
         error instanceof Error
           ? error.message
-          : "Failed to sign up. Please try again."
+          : "Failed to sign up. Please try again.",
       );
     } finally {
       setLoading(false);
@@ -398,13 +400,13 @@ export default function SignupPage({}: SignupPageProps) {
               margin: 0,
             }}
             inputComponent={BarePhoneTextInput}
-            onFocus={(e: any) => {
+            onFocus={(e: unknown) => {
               lastFocusRef.current = "phone";
               // Phone-triggered autofill should update only phone
               syncFromDom("phone");
               // If the wrapper receives focus first, forward it to the input
               const inputEl = (e.currentTarget as HTMLElement).querySelector(
-                "input.PhoneInputInput"
+                "input.PhoneInputInput",
               ) as HTMLInputElement | null;
               if (inputEl) inputEl.focus();
             }}

@@ -1,6 +1,6 @@
-import React from 'react';
-import { createRoot } from 'react-dom/client';
-import HomeCard from './HomeCard';
+import React from "react";
+import { createRoot } from "react-dom/client";
+import HomeCard from "./HomeCard";
 
 export interface MapPropertyCardProps {
   property: {
@@ -28,7 +28,7 @@ const MapPropertyCard: React.FC<MapPropertyCardProps> = ({
   isSaved = false,
   onSave,
   onUnsave,
-  showScore = true
+  showScore = true,
 }) => {
   // Convert property to HomeDescription format
   const homeData = {
@@ -45,7 +45,6 @@ const MapPropertyCard: React.FC<MapPropertyCardProps> = ({
     address: property.address,
     calculatedScore: property.calculatedScore,
   };
-
 
   return (
     <div className="relative w-48">
@@ -64,7 +63,7 @@ const MapPropertyCard: React.FC<MapPropertyCardProps> = ({
           }}
         />
       </div>
-      
+
       {/* Pointer triangle at the bottom */}
       <div className="absolute left-1/2 transform -translate-x-1/2">
         <div className="w-0 h-0 border-l-[8px] border-r-[8px] border-t-[8px] border-l-transparent border-r-transparent border-t-white drop-shadow-md"></div>
@@ -76,7 +75,7 @@ const MapPropertyCard: React.FC<MapPropertyCardProps> = ({
 // Helper function to render MapPropertyCard into a DOM element
 export const renderMapPropertyCard = (
   container: HTMLElement,
-  props: MapPropertyCardProps
+  props: MapPropertyCardProps,
 ): void => {
   const root = createRoot(container);
   root.render(<MapPropertyCard {...props} />);

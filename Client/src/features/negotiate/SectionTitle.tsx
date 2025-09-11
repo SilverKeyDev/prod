@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 interface SectionTitleProps {
   children: React.ReactNode;
@@ -6,8 +6,13 @@ interface SectionTitleProps {
   className?: string;
 }
 
-const SectionTitle: React.FC<SectionTitleProps> = ({ children, icon, className = '' }) => {
-  const baseClasses = 'text-lg font-semibold text-navy flex items-center gap-3 mb-4';
+const SectionTitle: React.FC<SectionTitleProps> = ({
+  children,
+  icon,
+  className = "",
+}) => {
+  const baseClasses =
+    "text-lg font-semibold text-navy flex items-center gap-3 mb-4";
   const combinedClasses = `${baseClasses} ${className}`.trim();
 
   return (

@@ -68,14 +68,14 @@ export default function HomePage() {
 
         const { suggestions: fetched } =
           await window.google.maps.places.AutocompleteSuggestion.fetchAutocompleteSuggestions(
-            request
+            request,
           );
 
         setSuggestions(
-          fetched.map((s: any) => ({
+          fetched.map((s: unknown) => ({
             description: s.placePrediction.text.text,
             placePrediction: s.placePrediction,
-          }))
+          })),
         );
       } catch (err) {
         console.error("Autocomplete fetch error:", err);

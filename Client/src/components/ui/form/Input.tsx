@@ -45,7 +45,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
       placeholder,
       ...props
     },
-    ref
+    ref,
   ) => {
     const [showPassword, setShowPassword] = useState(false);
     const [internalType, setInternalType] = useState(type);
@@ -196,7 +196,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
       </div>
     );
-  }
+  },
 );
 
 Input.displayName = "Input";

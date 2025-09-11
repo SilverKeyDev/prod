@@ -13,7 +13,7 @@ export interface Document {
   uploaded_at: Date;
   is_signed?: boolean;
   expiry_date?: Date;
-  status: 'pending' | 'approved' | 'rejected' | 'expired';
+  status: "pending" | "approved" | "rejected" | "expired";
 }
 
 export interface DocumentCategory {
@@ -28,6 +28,6 @@ export interface UploadedFile {
   id: string;
   file: File;
   progress: number;
-  status: 'uploading' | 'completed' | 'failed';
+  status: "uploading" | "completed" | "failed";
   error?: string;
 }

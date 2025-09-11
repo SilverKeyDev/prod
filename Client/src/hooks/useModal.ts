@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback } from "react";
 
 export interface UseModalReturn {
   isOpen: boolean;
@@ -25,7 +25,7 @@ export function useModal(initialState = false): UseModalReturn {
   }, []);
 
   const toggle = useCallback(() => {
-    setIsOpen(prev => !prev);
+    setIsOpen((prev) => !prev);
     document.body.style.overflow = isOpen ? "auto" : "hidden";
   }, [isOpen]);
 

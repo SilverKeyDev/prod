@@ -12,11 +12,11 @@ export interface StorageOptions {
  * Safely get an item from localStorage with JSON parsing
  */
 export const getFromStorage = <T>(
-  key: string, 
-  options: StorageOptions = {}
+  key: string,
+  options: StorageOptions = {},
 ): T | null => {
   const { defaultValue = null, errorPrefix = "❌" } = options;
-  
+
   try {
     const item = localStorage.getItem(key);
     if (item === null) {
@@ -24,7 +24,10 @@ export const getFromStorage = <T>(
     }
     return JSON.parse(item) as T;
   } catch (error) {
-    console.error(`${errorPrefix} Error reading localStorage key "${key}":`, error);
+    console.error(
+      `${errorPrefix} Error reading localStorage key "${key}":`,
+      error,
+    );
     return defaultValue;
   }
 };
@@ -33,17 +36,20 @@ export const getFromStorage = <T>(
  * Safely set an item to localStorage with JSON serialization
  */
 export const setToStorage = (
-  key: string, 
-  value: any, 
-  options: StorageOptions = {}
+  key: string,
+  value: any,
+  options: StorageOptions = {},
 ): boolean => {
   const { errorPrefix = "❌" } = options;
-  
+
   try {
     localStorage.setItem(key, JSON.stringify(value));
     return true;
   } catch (error) {
-    console.error(`${errorPrefix} Error setting localStorage key "${key}":`, error);
+    console.error(
+      `${errorPrefix} Error setting localStorage key "${key}":`,
+      error,
+    );
     return false;
   }
 };
@@ -52,16 +58,19 @@ export const setToStorage = (
  * Safely remove an item from localStorage
  */
 export const removeFromStorage = (
-  key: string, 
-  options: StorageOptions = {}
+  key: string,
+  options: StorageOptions = {},
 ): boolean => {
   const { errorPrefix = "❌" } = options;
-  
+
   try {
     localStorage.removeItem(key);
     return true;
   } catch (error) {
-    console.error(`${errorPrefix} Error removing localStorage key "${key}":`, error);
+    console.error(
+      `${errorPrefix} Error removing localStorage key "${key}":`,
+      error,
+    );
     return false;
   }
 };
@@ -71,8 +80,8 @@ export const removeFromStorage = (
  */
 export const isStorageAvailable = (): boolean => {
   try {
-    const testKey = '__storage_test__';
-    localStorage.setItem(testKey, 'test');
+    const testKey = "__storage_test__";
+    localStorage.setItem(testKey, "test");
     localStorage.removeItem(testKey);
     return true;
   } catch {
@@ -84,18 +93,18 @@ export const isStorageAvailable = (): boolean => {
  * Get multiple items from localStorage at once
  */
 export const getMultipleFromStorage = <T extends Record<string, any>>(
-  keys: (keyof T)[], 
-  options: StorageOptions = {}
+  keys: (keyof T)[],
+  options: StorageOptions = {},
 ): Partial<T> => {
   const result: Partial<T> = {};
-  
-  keys.forEach(key => {
+
+  keys.forEach((key) => {
     const value = getFromStorage(key as string, options);
     if (value !== null) {
       result[key] = value as T[keyof T];
     }
   });
-  
+
   return result;
 };
 
@@ -103,8 +112,8 @@ export const getMultipleFromStorage = <T extends Record<string, any>>(
  * Set multiple items to localStorage at once
  */
 export const setMultipleToStorage = <T extends Record<string, any>>(
-  items: T, 
-  options: StorageOptions = {}
+  items: T,
+  options: StorageOptions = {},
 ): boolean => {
   try {
     Object.entries(items).forEach(([key, value]) => {
@@ -113,7 +122,10 @@ export const setMultipleToStorage = <T extends Record<string, any>>(
     return true;
   } catch (error) {
     const { errorPrefix = "❌" } = options;
-    console.error(`${errorPrefix} Error setting multiple localStorage items:`, error);
+    console.error(
+      `${errorPrefix} Error setting multiple localStorage items:`,
+      error,
+    );
     return false;
   }
 };

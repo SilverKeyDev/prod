@@ -30,7 +30,9 @@ export default function ErrorToast({
         <div className="flex items-start justify-between gap-responsive-sm">
           <div className="flex-1 min-w-0">
             <p className="text-red-800 font-medium text-responsive-sm">Error</p>
-            <p className="text-red-700 text-responsive-xs mt-1 break-words">{message}</p>
+            <p className="text-red-700 text-responsive-xs mt-1 break-words">
+              {message}
+            </p>
           </div>
           <button
             onClick={onClose}

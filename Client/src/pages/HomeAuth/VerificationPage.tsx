@@ -71,7 +71,7 @@ export default function VerificationPage() {
   // Handle paste
   const handlePaste = (
     e: React.ClipboardEvent<HTMLInputElement>,
-    index: number
+    index: number,
   ) => {
     e.preventDefault();
     const pasteData = e.clipboardData.getData("text/plain").slice(0, 6);
@@ -98,7 +98,7 @@ export default function VerificationPage() {
   // Handle backspace
   const handleKeyDown = (
     e: React.KeyboardEvent<HTMLInputElement>,
-    index: number
+    index: number,
   ) => {
     if (e.key === "Backspace" && !code[index] && index > 0) {
       // Move to previous input on backspace if current is empty
@@ -169,9 +169,9 @@ export default function VerificationPage() {
       secureTokenUtils.storeTokens({
         access_token: response?.access_token,
         id_token: response?.id_token,
-        refresh_token: response?.refresh_token
+        refresh_token: response?.refresh_token,
       });
-      
+
       // Store user data (non-sensitive)
       if (response?.user) {
         localStorage.setItem("user", JSON.stringify(response.user));

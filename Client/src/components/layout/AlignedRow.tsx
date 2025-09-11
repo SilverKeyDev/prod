@@ -83,7 +83,7 @@ const AlignedRow: React.FC<AlignedRowProps> = ({
       const equalWidth = remainingItems > 0 ? remaining / remainingItems : 0;
 
       return Array.from({ length: itemCount }, (_, index) =>
-        index < widths.length ? widths[index] : equalWidth
+        index < widths.length ? widths[index] : equalWidth,
       );
     }
 
@@ -102,10 +102,10 @@ const AlignedRow: React.FC<AlignedRowProps> = ({
       if (items && items.length > 0) {
         // Handle structured items with title/content
         const titleElements = containerRef.current.querySelectorAll(
-          ".aligned-row-title"
+          ".aligned-row-title",
         ) as NodeListOf<HTMLElement>;
         const contentElements = containerRef.current.querySelectorAll(
-          ".aligned-row-content"
+          ".aligned-row-content",
         ) as NodeListOf<HTMLElement>;
 
         // Reset heights to get natural heights
@@ -118,10 +118,10 @@ const AlignedRow: React.FC<AlignedRowProps> = ({
 
         // Calculate max heights
         const titleHeights = Array.from(titleElements).map(
-          (el) => el.offsetHeight
+          (el) => el.offsetHeight,
         );
         const contentHeights = Array.from(contentElements).map(
-          (el) => el.offsetHeight
+          (el) => el.offsetHeight,
         );
 
         const newMaxTitleHeight =
@@ -148,7 +148,7 @@ const AlignedRow: React.FC<AlignedRowProps> = ({
       } else if (children) {
         // Handle regular children mode
         const childElements = Array.from(
-          containerRef.current.children
+          containerRef.current.children,
         ) as HTMLElement[];
         if (childElements.length === 0) return;
 
@@ -165,7 +165,7 @@ const AlignedRow: React.FC<AlignedRowProps> = ({
         const finalHeight = minHeight
           ? Math.max(
               newMaxHeight,
-              typeof minHeight === "string" ? parseInt(minHeight) : minHeight
+              typeof minHeight === "string" ? parseInt(minHeight) : minHeight,
             )
           : newMaxHeight;
 

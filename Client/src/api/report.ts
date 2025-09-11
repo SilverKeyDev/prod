@@ -1,7 +1,7 @@
-import { apiGet, apiPost, apiDelete } from './utils/index';
-import { secureClipboardCopy } from '../lib/security/clipboardSecurity';
-import { log } from '../lib/security/secureLogger';
-import { captureError } from '../lib/security/errorReporting';
+import { apiGet, apiPost, apiDelete } from "./utils/index";
+import { secureClipboardCopy } from "../lib/security/clipboardSecurity";
+import { log } from "../lib/security/secureLogger";
+import { captureError } from "../lib/security/errorReporting";
 
 // Types for report API
 export interface GenerateReportRequest {
@@ -18,7 +18,7 @@ export interface ReportDocument {
   file_path: string;
   created_at: string;
   updated_at: string;
-  status: 'generating' | 'completed' | 'error' | 'processed';
+  status: "generating" | "completed" | "error" | "processed";
   primary_address?: string;
   comparison_address?: string;
   report_type?: string;
@@ -65,8 +65,8 @@ export interface CompareReportsRequest {
 
 export interface CompareReportsResponse {
   success: boolean;
-  comparison_data?: any;
-  table?: any;
+  comparison_data?: Record<string, unknown>;
+  table?: Record<string, unknown>;
   error?: string;
 }
 
@@ -84,19 +84,19 @@ export const reportApi = {
    * Generate a property report
    */
   generate: (data: GenerateReportRequest): Promise<GenerateReportResponse> =>
-    apiPost<GenerateReportResponse>('/api/v1/report/generate', data),
+    apiPost<GenerateReportResponse>("/api/v1/report/generate", data),
 
   /**
    * Get all reports for current user
    */
   getAll: (): Promise<ReportsListResponse> =>
-    apiGet<ReportsListResponse>('/api/v1/report/all'),
+    apiGet<ReportsListResponse>("/api/v1/report/all"),
 
   /**
    * List all reports (alias for getAll)
    */
   list: (): Promise<ReportsListResponse> =>
-    apiGet<ReportsListResponse>('/api/v1/report/list'),
+    apiGet<ReportsListResponse>("/api/v1/report/list"),
 
   /**
    * Poll for a specific report's status by document ID
@@ -108,7 +108,7 @@ export const reportApi = {
    * Get almost all reports (alternative endpoint)
    */
   getAlmostAll: (): Promise<ReportsListResponse> =>
-    apiGet<ReportsListResponse>('/api/v1/report/almostall'),
+    apiGet<ReportsListResponse>("/api/v1/report/almostall"),
 
   /**
    * Get download URL for a specific report
@@ -125,7 +125,10 @@ export const reportApi = {
   /**
    * Share document using Web Share API or fallback to URL sharing
    */
-  shareDocument: async (documentId: string, documentName: string): Promise<{ success: boolean; message: string }> => {
+  shareDocument: async (
+    documentId: string,
+    documentName: string,
+  ): Promise<{ success: boolean; message: string }> => {
     try {
       // Get a fresh view URL for sharing
       const viewResponse = await reportApi.getViewUrl(documentId);
@@ -144,30 +147,35 @@ export const reportApi = {
             text: "Check out this property report",
             url: shareUrl,
           });
-          log.info('REPORT_API', 'Report shared via Web Share API', { documentName });
+          log.info("REPORT_API", "Report shared via Web Share API", {
+            documentName,
+          });
           return { success: true, message: "Report shared successfully" };
         } catch (shareError) {
           // User cancelled or share failed, fall through to clipboard
-          if (shareError instanceof Error && shareError.name === 'AbortError') {
+          if (shareError instanceof Error && shareError.name === "AbortError") {
             return { success: false, message: "Share cancelled" };
           }
         }
       }
 
       // Fallback: Copy shareable URL to clipboard
-      const success = await secureClipboardCopy(shareUrl, 'report-share');
+      const success = await secureClipboardCopy(shareUrl, "report-share");
       if (success) {
-        log.info('REPORT_API', 'Report URL copied to clipboard', { documentName });
+        log.info("REPORT_API", "Report URL copied to clipboard", {
+          documentName,
+        });
         return { success: true, message: "Shareable link copied to clipboard" };
       } else {
         return { success: false, message: "Failed to copy shareable link" };
       }
     } catch (error) {
-      log.error('REPORT_API', 'Share failed', error);
-      captureError(error, { context: 'shareDocument', documentName });
+      log.error("REPORT_API", "Share failed", error);
+      captureError(error, { context: "shareDocument", documentName });
       return {
         success: false,
-        message: error instanceof Error ? error.message : "Failed to share report"
+        message:
+          error instanceof Error ? error.message : "Failed to share report",
       };
     }
   },
@@ -176,19 +184,21 @@ export const reportApi = {
    * Compare multiple reports
    */
   compare: (data: CompareReportsRequest): Promise<CompareReportsResponse> =>
-    apiPost<CompareReportsResponse>('/api/v1/report/compare', data),
+    apiPost<CompareReportsResponse>("/api/v1/report/compare", data),
 
   /**
    * Delete a report
    */
   delete: (reportId: string, s3Key?: string): Promise<DeleteReportResponse> =>
-    apiDelete<DeleteReportResponse>(`/api/v1/report/${reportId}`, { s3_key: s3Key }),
+    apiDelete<DeleteReportResponse>(`/api/v1/report/${reportId}`, {
+      s3_key: s3Key,
+    }),
 
   /**
    * Get user documents
    */
   getDocuments: (): Promise<ReportsListResponse> =>
-    apiGet<ReportsListResponse>('/api/v1/report/documents'),
+    apiGet<ReportsListResponse>("/api/v1/report/documents"),
 
   /**
    * Serve static report file (fallback for local files)

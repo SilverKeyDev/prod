@@ -38,7 +38,9 @@ interface UserContextType {
    Context
    ========================= */
 
-export const UserContext = createContext<UserContextType | undefined>(undefined);
+export const UserContext = createContext<UserContextType | undefined>(
+  undefined,
+);
 
 interface UserProviderProps {
   children: ReactNode;
@@ -46,15 +48,15 @@ interface UserProviderProps {
 
 export function UserProvider({ children }: UserProviderProps) {
   const { user, authReady } = useAuth();
-  
+
   // Debug auth state - log on every render to catch changes
   useEffect(() => {
-    console.log('[USER_CONTEXT] 🔍 Auth context values changed:', { 
-      user, 
-      authReady, 
+    console.log("[USER_CONTEXT] 🔍 Auth context values changed:", {
+      user,
+      authReady,
       userType: typeof user,
       hasUserId: !!user?.id,
-      userKeys: user ? Object.keys(user) : null
+      userKeys: user ? Object.keys(user) : null,
     });
   }, [user, authReady]);
 
@@ -71,7 +73,10 @@ export function UserProvider({ children }: UserProviderProps) {
 
   // Centralized preferences loading to prevent duplicate API calls
   const preferencesPromiseRef = useRef<Promise<void> | null>(null);
-  const preferencesCacheRef = useRef<{ data: UserPreferences | null; timestamp: number } | null>(null);
+  const preferencesCacheRef = useRef<{
+    data: UserPreferences | null;
+    timestamp: number;
+  } | null>(null);
   const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
   /* =========================
@@ -79,18 +84,21 @@ export function UserProvider({ children }: UserProviderProps) {
      ========================= */
 
   const fetchUserProfile = useCallback(async () => {
-    console.log('[USER_CONTEXT] 🚀 fetchUserProfile called');
+    console.log("[USER_CONTEXT] 🚀 fetchUserProfile called");
     setUserProfileLoading(true);
     setUserProfileError(null);
 
     try {
       const response = await userApi.getProfile();
-      console.log('[USER_CONTEXT] GET /api/v1/user/profile response:', response);
-      
+      console.log(
+        "[USER_CONTEXT] GET /api/v1/user/profile response:",
+        response,
+      );
+
       // Handle both 'user' and 'data' response structures from backend
       const userData = response.user || response.data;
-      console.log('[USER_CONTEXT] Extracted userData:', userData);
-      
+      console.log("[USER_CONTEXT] Extracted userData:", userData);
+
       if (response.success && userData) {
         // Convert User to UserProfile by adding missing properties
         const userProfile: UserProfile = {
@@ -100,19 +108,19 @@ export function UserProvider({ children }: UserProviderProps) {
           has_preferences: userData.has_preferences || false,
           is_agent: userData.is_agent || false,
           created_at: userData.created_at || null,
-          client_ids: Array.isArray(userData.client_ids) 
-            ? userData.client_ids.join(',') 
-            : userData.client_ids || '',
+          client_ids: Array.isArray(userData.client_ids)
+            ? userData.client_ids.join(",")
+            : userData.client_ids || "",
         };
-        console.log('[USER_CONTEXT] Final userProfile object:', userProfile);
-        console.log('[USER_CONTEXT] Name field:', userProfile.name);
-        console.log('[USER_CONTEXT] Email field:', userProfile.email);
+        console.log("[USER_CONTEXT] Final userProfile object:", userProfile);
+        console.log("[USER_CONTEXT] Name field:", userProfile.name);
+        console.log("[USER_CONTEXT] Email field:", userProfile.email);
         setUserProfile(userProfile);
       } else {
-        console.warn('Failed to get user profile:', response);
+        console.warn("Failed to get user profile:", response);
         setUserProfile(null);
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("Failed to fetch user profile", e);
       setUserProfileError(e?.message ?? "Failed to fetch user profile");
       setUserProfile(null);
@@ -123,24 +131,28 @@ export function UserProvider({ children }: UserProviderProps) {
 
   const fetchUserPreferences = useCallback(async () => {
     const DEV = import.meta.env.MODE !== "production";
-    
+
     // Check cache first
     const now = Date.now();
     const cached = preferencesCacheRef.current;
-    if (cached && (now - cached.timestamp) < CACHE_TTL) {
-      DEV && console.count("[USER_CONTEXT] Using cached preferences");
+    if (cached && now - cached.timestamp < CACHE_TTL) {
+      if (DEV) console.count("[USER_CONTEXT] Using cached preferences");
       setUserPreferences(cached.data);
       return;
     }
 
     // Return existing promise if already loading
     if (preferencesPromiseRef.current) {
-      DEV && console.count("[USER_CONTEXT] Waiting for existing preferences request");
+      if (DEV) {
+        console.count(
+          "[USER_CONTEXT] Waiting for existing preferences request",
+        );
+      }
       return preferencesPromiseRef.current;
     }
 
     // Create new load promise
-    DEV && console.count("[USER_CONTEXT] Starting new preferences request");
+    if (DEV) console.count("[USER_CONTEXT] Starting new preferences request");
     setPreferencesLoading(true);
     setPreferencesError(null);
 
@@ -148,7 +160,7 @@ export function UserProvider({ children }: UserProviderProps) {
       try {
         const response = await preferencesApi.get();
         const preferences = response.preferences || null;
-        
+
         // Update cache
         preferencesCacheRef.current = { data: preferences, timestamp: now };
         setUserPreferences(preferences);
@@ -159,7 +171,7 @@ export function UserProvider({ children }: UserProviderProps) {
         }
         console.error("Failed to fetch user preferences", error);
         setPreferencesError(
-          (error as any)?.message ?? "Failed to fetch user preferences"
+          (error as any)?.message ?? "Failed to fetch user preferences",
         );
         setUserPreferences(null);
       } finally {
@@ -178,11 +190,11 @@ export function UserProvider({ children }: UserProviderProps) {
 
   const refreshUserProfile = useCallback(
     () => fetchUserProfile(),
-    [fetchUserProfile]
+    [fetchUserProfile],
   );
   const refreshUserPreferences = useCallback(
     () => fetchUserPreferences(),
-    [fetchUserPreferences]
+    [fetchUserPreferences],
   );
 
   /* =========================
@@ -192,9 +204,13 @@ export function UserProvider({ children }: UserProviderProps) {
   // Gate initial load based on auth readiness - load profile on all authenticated routes
   useOnceEffect(() => {
     const DEV = import.meta.env.MODE !== "production";
-    
-    console.log('[USER_CONTEXT] 🔍 Auth state check:', { authReady, user, userId: user?.id });
-    
+
+    console.log("[USER_CONTEXT] 🔍 Auth state check:", {
+      authReady,
+      user,
+      userId: user?.id,
+    });
+
     // Always load user profile when authenticated since sidebar needs email/name on all routes
     const profileEnabled = authReady && !!user?.id;
 
@@ -208,14 +224,20 @@ export function UserProvider({ children }: UserProviderProps) {
         routeStartsWith("/generate") ||
         routeStartsWith("/dashboard")); // Report generation and dashboard need preferences
 
-    console.log('[USER_CONTEXT] 📊 Profile enabled check:', { profileEnabled, authReady, hasUserId: !!user?.id });
-    
+    console.log("[USER_CONTEXT] 📊 Profile enabled check:", {
+      profileEnabled,
+      authReady,
+      hasUserId: !!user?.id,
+    });
+
     if (profileEnabled) {
-      DEV && console.count("[USER_CONTEXT] Loading user profile for sidebar");
-      console.log('[USER_CONTEXT] 🚀 Calling refreshUserProfile()');
+      if (DEV) console.count("[USER_CONTEXT] Loading user profile for sidebar");
+      console.log("[USER_CONTEXT] 🚀 Calling refreshUserProfile()");
       refreshUserProfile();
     } else {
-      console.log('[USER_CONTEXT] ❌ Profile loading skipped - conditions not met');
+      console.log(
+        "[USER_CONTEXT] ❌ Profile loading skipped - conditions not met",
+      );
     }
 
     if (preferencesEnabled) {
@@ -231,7 +253,7 @@ export function UserProvider({ children }: UserProviderProps) {
         if (e.newValue) {
           // Always refresh user profile since sidebar needs it on all routes
           refreshUserProfile();
-          
+
           // Only refresh preferences on specific routes that need them
           const preferencesEnabled =
             routeStartsWith("/") ||
@@ -280,7 +302,7 @@ export function UserProvider({ children }: UserProviderProps) {
       preferencesLoading,
       preferencesError,
       refreshUserPreferences,
-    ]
+    ],
   );
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;

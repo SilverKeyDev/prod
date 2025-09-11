@@ -3,7 +3,7 @@
  * Implements SOC 2 compliant error reporting and monitoring
  */
 
-import { log } from './secureLogger';
+import { log } from "./secureLogger";
 
 interface ErrorContext {
   userId?: string;
@@ -16,8 +16,13 @@ interface ErrorContext {
 }
 
 interface SecurityEvent {
-  type: 'authentication_failure' | 'authorization_failure' | 'suspicious_activity' | 'data_access' | 'session_anomaly';
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  type:
+    | "authentication_failure"
+    | "authorization_failure"
+    | "suspicious_activity"
+    | "data_access"
+    | "session_anomaly";
+  severity: "low" | "medium" | "high" | "critical";
   description: string;
   metadata?: Record<string, any>;
 }
@@ -31,7 +36,7 @@ class ErrorReporter {
 
   constructor() {
     this.isProduction = import.meta.env.PROD;
-    this.buildVersion = import.meta.env.VITE_BUILD_VERSION ?? 'unknown';
+    this.buildVersion = import.meta.env.VITE_BUILD_VERSION ?? "unknown";
     this.sessionId = this.generateSessionId();
   }
 
@@ -43,7 +48,7 @@ class ErrorReporter {
 
     try {
       this.userId = config?.userId;
-      
+
       // In production, initialize Sentry or other error reporting service
       if (this.isProduction && config?.dsn) {
         await this.initializeSentry(config.dsn);
@@ -51,15 +56,19 @@ class ErrorReporter {
 
       // Set up global error handlers
       this.setupGlobalErrorHandlers();
-      
+
       this.isInitialized = true;
-      log.info('ERROR_REPORTER', 'Error reporting initialized', {
-        environment: this.isProduction ? 'production' : 'development',
+      log.info("ERROR_REPORTER", "Error reporting initialized", {
+        environment: this.isProduction ? "production" : "development",
         buildVersion: this.buildVersion,
-        sessionId: this.sessionId
+        sessionId: this.sessionId,
       });
     } catch (error) {
-      log.error('ERROR_REPORTER', 'Failed to initialize error reporting', error);
+      log.error(
+        "ERROR_REPORTER",
+        "Failed to initialize error reporting",
+        error,
+      );
     }
   }
 
@@ -78,10 +87,12 @@ class ErrorReporter {
       //   integrations: [new Sentry.BrowserTracing()],
       //   tracesSampleRate: this.isProduction ? 0.1 : 1.0,
       // });
-      
-      log.info('ERROR_REPORTER', 'Sentry initialized', { dsn: dsn.substring(0, 20) + '...' });
+
+      log.info("ERROR_REPORTER", "Sentry initialized", {
+        dsn: dsn.substring(0, 20) + "...",
+      });
     } catch (error) {
-      log.error('ERROR_REPORTER', 'Failed to initialize Sentry', error);
+      log.error("ERROR_REPORTER", "Failed to initialize Sentry", error);
     }
   }
 
@@ -90,17 +101,17 @@ class ErrorReporter {
    */
   private setupGlobalErrorHandlers(): void {
     // Handle unhandled promise rejections
-    window.addEventListener('unhandledrejection', (event) => {
+    window.addEventListener("unhandledrejection", (event) => {
       this.captureError(event.reason, {
-        type: 'unhandled_promise_rejection',
+        type: "unhandled_promise_rejection",
         url: window.location.href,
       });
     });
 
     // Handle uncaught errors
-    window.addEventListener('error', (event) => {
+    window.addEventListener("error", (event) => {
       this.captureError(event.error, {
-        type: 'uncaught_error',
+        type: "uncaught_error",
         url: window.location.href,
         filename: event.filename,
         lineno: event.lineno,
@@ -109,9 +120,9 @@ class ErrorReporter {
     });
 
     // Handle React error boundaries (if using)
-    window.addEventListener('react-error', (event: any) => {
+    window.addEventListener("react-error", (event: unknown) => {
       this.captureError(event.detail.error, {
-        type: 'react_error',
+        type: "react_error",
         componentStack: event.detail.componentStack,
       });
     });
@@ -120,12 +131,15 @@ class ErrorReporter {
   /**
    * Capture and report an error
    */
-  captureError(error: Error | string | unknown, context?: Record<string, any>): void {
+  captureError(
+    error: Error | string | unknown,
+    context?: Record<string, any>,
+  ): void {
     try {
       const errorContext = this.buildErrorContext(context);
-      
+
       // Log locally with PII scrubbing
-      log.error('ERROR_CAPTURE', 'Error captured', {
+      log.error("ERROR_CAPTURE", "Error captured", {
         error: this.serializeError(error),
         context: errorContext,
       });
@@ -136,7 +150,7 @@ class ErrorReporter {
       }
     } catch (reportingError) {
       // Fail silently to avoid infinite loops
-      console.error('Error reporting failed:', reportingError);
+      console.error("Error reporting failed:", reportingError);
     }
   }
 
@@ -151,7 +165,7 @@ class ErrorReporter {
         severity: event.severity,
       });
 
-      log.security('SECURITY_EVENT', `${event.type}: ${event.description}`, {
+      log.security("SECURITY_EVENT", `${event.type}: ${event.description}`, {
         severity: event.severity,
         metadata: event.metadata,
         context,
@@ -162,7 +176,7 @@ class ErrorReporter {
         this.sendSecurityAlert(event, context);
       }
     } catch (error) {
-      log.error('ERROR_REPORTER', 'Failed to report security event', error);
+      log.error("ERROR_REPORTER", "Failed to report security event", error);
     }
   }
 
@@ -176,7 +190,7 @@ class ErrorReporter {
         feedbackMessage: message,
       });
 
-      log.info('USER_FEEDBACK', 'User feedback captured', {
+      log.info("USER_FEEDBACK", "User feedback captured", {
         message,
         error: error ? this.serializeError(error) : null,
         context,
@@ -186,7 +200,11 @@ class ErrorReporter {
         this.sendUserFeedback(message, error, context);
       }
     } catch (reportingError) {
-      log.error('ERROR_REPORTER', 'Failed to capture user feedback', reportingError);
+      log.error(
+        "ERROR_REPORTER",
+        "Failed to capture user feedback",
+        reportingError,
+      );
     }
   }
 
@@ -195,14 +213,14 @@ class ErrorReporter {
    */
   setUserContext(userId: string, userInfo?: Record<string, any>): void {
     this.userId = userId;
-    
+
     if (this.isProduction && this.isInitialized) {
       // Update external service user context
       // Sentry.setUser({ id: userId, ...userInfo });
       void userInfo; // Prevent unused variable warning
     }
-    
-    log.info('ERROR_REPORTER', 'User context updated', { userId });
+
+    log.info("ERROR_REPORTER", "User context updated", { userId });
   }
 
   /**
@@ -210,19 +228,21 @@ class ErrorReporter {
    */
   clearUserContext(): void {
     this.userId = undefined;
-    
+
     if (this.isProduction && this.isInitialized) {
       // Clear external service user context
       // Sentry.setUser(null);
     }
-    
-    log.info('ERROR_REPORTER', 'User context cleared');
+
+    log.info("ERROR_REPORTER", "User context cleared");
   }
 
   /**
    * Build error context with environment info
    */
-  private buildErrorContext(additionalContext?: Record<string, any>): ErrorContext {
+  private buildErrorContext(
+    additionalContext?: Record<string, any>,
+  ): ErrorContext {
     return {
       userId: this.userId,
       userAgent: navigator.userAgent,
@@ -230,7 +250,7 @@ class ErrorReporter {
       timestamp: new Date().toISOString(),
       sessionId: this.sessionId,
       buildVersion: this.buildVersion,
-      environment: this.isProduction ? 'production' : 'development',
+      environment: this.isProduction ? "production" : "development",
       ...additionalContext,
     };
   }
@@ -243,15 +263,15 @@ class ErrorReporter {
       return {
         name: error.name,
         message: error.message,
-        stack: this.isProduction ? '[REDACTED]' : error.stack,
+        stack: this.isProduction ? "[REDACTED]" : error.stack,
       };
     }
-    
-    if (typeof error === 'string') {
+
+    if (typeof error === "string") {
       return { message: error };
     }
-    
-    return { message: 'Unknown error', error };
+
+    return { message: "Unknown error", error };
   }
 
   /**
@@ -262,9 +282,9 @@ class ErrorReporter {
       // Placeholder for external service integration
       // In production, this would send to Sentry, Datadog, etc.
       // Sentry.captureException(error, { contexts: { custom: context } });
-      
+
       // For now, just log that we would send it
-      log.debug('ERROR_REPORTER', 'Would send to external service', {
+      log.debug("ERROR_REPORTER", "Would send to external service", {
         hasError: !!error,
         contextKeys: Object.keys(context),
       });
@@ -280,12 +300,12 @@ class ErrorReporter {
     try {
       // Placeholder for security monitoring integration
       // This could integrate with SIEM, security dashboards, etc.
-      
-      log.debug('ERROR_REPORTER', 'Would send security alert', {
+
+      log.debug("ERROR_REPORTER", "Would send security alert", {
         eventType: event.type,
         severity: event.severity,
       });
-      
+
       void context; // Prevent unused variable warning
     } catch (error) {
       // Fail silently
@@ -295,16 +315,20 @@ class ErrorReporter {
   /**
    * Send user feedback to support system
    */
-  private sendUserFeedback(message: string, error: Error | undefined, context: ErrorContext): void {
+  private sendUserFeedback(
+    message: string,
+    error: Error | undefined,
+    context: ErrorContext,
+  ): void {
     try {
       // Placeholder for user feedback integration
       // This could integrate with support ticketing systems
-      
-      log.debug('ERROR_REPORTER', 'Would send user feedback', {
+
+      log.debug("ERROR_REPORTER", "Would send user feedback", {
         hasMessage: !!message,
         hasError: !!error,
       });
-      
+
       void context; // Prevent unused variable warning
     } catch (error) {
       // Fail silently
@@ -323,30 +347,38 @@ class ErrorReporter {
 export const errorReporter = new ErrorReporter();
 
 // Convenience functions
-export const captureError = (error: Error | string | unknown, context?: Record<string, any>) => 
-  errorReporter.captureError(error, context);
+export const captureError = (
+  error: Error | string | unknown,
+  context?: Record<string, any>,
+) => errorReporter.captureError(error, context);
 
-export const reportSecurityEvent = (event: SecurityEvent) => 
+export const reportSecurityEvent = (event: SecurityEvent) =>
   errorReporter.reportSecurityEvent(event);
 
-export const captureUserFeedback = (message: string, error?: Error) => 
+export const captureUserFeedback = (message: string, error?: Error) =>
   errorReporter.captureUserFeedback(message, error);
 
-export const setUserContext = (userId: string, userInfo?: Record<string, any>) => 
-  errorReporter.setUserContext(userId, userInfo);
+export const setUserContext = (
+  userId: string,
+  userInfo?: Record<string, any>,
+) => errorReporter.setUserContext(userId, userInfo);
 
-export const clearUserContext = () => 
-  errorReporter.clearUserContext();
+export const clearUserContext = () => errorReporter.clearUserContext();
 
 // Initialize error reporting
-export const initializeErrorReporting = (config?: { userId?: string; dsn?: string }) => 
-  errorReporter.initialize(config);
+export const initializeErrorReporting = (config?: {
+  userId?: string;
+  dsn?: string;
+}) => errorReporter.initialize(config);
 
 // React Error Boundary helper
 export class ErrorBoundary extends Error {
-  constructor(message: string, public componentStack?: string) {
+  constructor(
+    message: string,
+    public componentStack?: string,
+  ) {
     super(message);
-    this.name = 'ErrorBoundary';
+    this.name = "ErrorBoundary";
   }
 }
 

@@ -1,4 +1,4 @@
-import { apiUpload, apiRequest } from './utils/index';
+import { apiUpload, apiRequest } from "./utils/index";
 
 // Types for secure upload API
 export interface UploadResponse {
@@ -19,25 +19,31 @@ export const secureUploadApi = {
   /**
    * Upload a document file
    */
-  uploadDocument: (file: File, metadata?: Record<string, any>): Promise<UploadResponse> => {
+  uploadDocument: (
+    file: File,
+    metadata?: Record<string, any>,
+  ): Promise<UploadResponse> => {
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append("file", file);
     if (metadata) {
-      formData.append('metadata', JSON.stringify(metadata));
+      formData.append("metadata", JSON.stringify(metadata));
     }
-    return apiUpload<UploadResponse>('/api/v1/upload/document', formData);
+    return apiUpload<UploadResponse>("/api/v1/upload/document", formData);
   },
 
   /**
    * Upload an image file
    */
-  uploadImage: (file: File, metadata?: Record<string, any>): Promise<UploadResponse> => {
+  uploadImage: (
+    file: File,
+    metadata?: Record<string, any>,
+  ): Promise<UploadResponse> => {
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append("file", file);
     if (metadata) {
-      formData.append('metadata', JSON.stringify(metadata));
+      formData.append("metadata", JSON.stringify(metadata));
     }
-    return apiUpload<UploadResponse>('/api/v1/upload/image', formData);
+    return apiUpload<UploadResponse>("/api/v1/upload/image", formData);
   },
 
   /**
@@ -45,16 +51,16 @@ export const secureUploadApi = {
    */
   downloadDocument: async (docId: string): Promise<void> => {
     const response = await apiRequest(`/api/v1/documents/${docId}/download`, {
-      method: 'GET',
+      method: "GET",
     });
-    
+
     if (response.success) {
       // Handle blob download
       const blob = new Blob([response.data]);
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
-      a.download = response.filename || 'document';
+      a.download = response.filename || "document";
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -65,8 +71,13 @@ export const secureUploadApi = {
   /**
    * Delete a document by ID
    */
-  deleteDocument: (docId: string): Promise<{ success: boolean; error?: string }> =>
-    apiRequest<{ success: boolean; error?: string }>(`/api/v1/documents/${docId}`, {
-      method: 'DELETE',
-    }),
+  deleteDocument: (
+    docId: string,
+  ): Promise<{ success: boolean; error?: string }> =>
+    apiRequest<{ success: boolean; error?: string }>(
+      `/api/v1/documents/${docId}`,
+      {
+        method: "DELETE",
+      },
+    ),
 };

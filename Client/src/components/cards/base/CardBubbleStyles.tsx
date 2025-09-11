@@ -1,7 +1,7 @@
 // Simplified styling system for card bubbles - only handles sizing
 export interface CardBubbleStyleConfig {
   /** Size variant for consistent scaling */
-  size: 'xs' | 'sm' | 'md' | 'lg';
+  size: "xs" | "sm" | "md" | "lg";
 }
 
 // Size configurations for margin and height only
@@ -12,7 +12,7 @@ export const CARD_BUBBLE_SIZES = {
     height: "h-6",
   },
   sm: {
-    iconClass: "w-3.5 h-3.5", 
+    iconClass: "w-3.5 h-3.5",
     margin: "m-2",
     height: "h-7",
   },
@@ -25,10 +25,12 @@ export const CARD_BUBBLE_SIZES = {
     iconClass: "w-5 h-5",
     margin: "m-3",
     height: "h-9",
-  }
+  },
 };
 
 // Helper function to get size-specific classes
-export const getCardBubbleSizeClasses = (size: CardBubbleStyleConfig['size']) => {
+export const getCardBubbleSizeClasses = (
+  size: CardBubbleStyleConfig["size"],
+) => {
   return CARD_BUBBLE_SIZES[size];
 };

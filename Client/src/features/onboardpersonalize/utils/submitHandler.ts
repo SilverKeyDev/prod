@@ -6,7 +6,10 @@ import { validateOnboardingData, ValidationResult } from "./validation";
 export interface SubmitHandlerParams {
   formData: OnboardingData;
   setLoading: (loading: boolean) => void;
-  setValidationResult?: (result: { missingFields: string[]; errors: string[] }) => void;
+  setValidationResult?: (result: {
+    missingFields: string[];
+    errors: string[];
+  }) => void;
   setShowValidationWarning?: (show: boolean) => void;
   navigate?: (path: string) => void;
   validateFunction?: (data: OnboardingData) => ValidationResult;
@@ -41,7 +44,11 @@ export const handleSubmit = async ({
       setShowValidationWarning(true);
     } else {
       // Fallback to console warning if validation UI not available
-      console.warn("Validation failed:", validation.missingFields, validation.errors);
+      console.warn(
+        "Validation failed:",
+        validation.missingFields,
+        validation.errors,
+      );
     }
     return;
   }
@@ -64,7 +71,7 @@ export const handleSubmit = async ({
       const errorMsg = result.error || "Failed to generate report";
       console.error(
         "[SubmitHandler] Server returned unsuccessful result:",
-        result
+        result,
       );
       throw new Error(errorMsg);
     }
@@ -72,7 +79,7 @@ export const handleSubmit = async ({
     console.error("[SubmitHandler] Error in handleSubmit:", error);
     console.error(
       "[SubmitHandler] Error stack:",
-      error instanceof Error ? error.stack : "No stack trace"
+      error instanceof Error ? error.stack : "No stack trace",
     );
 
     // More user-friendly error message

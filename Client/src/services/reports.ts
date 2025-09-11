@@ -1,6 +1,10 @@
-import { reportApi, CompareReportsRequest, CompareReportsResponse } from '../api/report';
-import { log } from '../lib/security/secureLogger';
-import { captureError } from '../lib/security/errorReporting';
+import {
+  reportApi,
+  CompareReportsRequest,
+  CompareReportsResponse,
+} from "../api/report";
+import { log } from "../lib/security/secureLogger";
+import { captureError } from "../lib/security/errorReporting";
 
 /**
  * Service for handling report comparison operations
@@ -14,49 +18,53 @@ export class ReportComparisonService {
    * @returns Promise with comparison data and table
    */
   static async compareReports(
-    s3Keys: string[], 
-    reportIds?: string[]
+    s3Keys: string[],
+    reportIds?: string[],
   ): Promise<CompareReportsResponse> {
     try {
-      log.info('REPORT_COMPARISON', 'Starting report comparison', { 
-        s3KeyCount: s3Keys.length, 
-        reportIdCount: reportIds?.length || 0 
+      log.info("REPORT_COMPARISON", "Starting report comparison", {
+        s3KeyCount: s3Keys.length,
+        reportIdCount: reportIds?.length || 0,
       });
 
       if (s3Keys.length === 0) {
-        throw new Error('At least one S3 key is required for comparison');
+        throw new Error("At least one S3 key is required for comparison");
       }
 
       const requestData: CompareReportsRequest = {
         report_ids: reportIds || [],
-        s3Keys: s3Keys
+        s3Keys: s3Keys,
       };
 
       const response = await reportApi.compare(requestData);
 
       if (!response.success) {
-        throw new Error(response.error || 'Comparison failed');
+        throw new Error(response.error || "Comparison failed");
       }
 
-      log.info('REPORT_COMPARISON', 'Report comparison completed successfully', {
-        hasTable: !!response.table,
-        hasComparisonData: !!response.comparison_data
-      });
+      log.info(
+        "REPORT_COMPARISON",
+        "Report comparison completed successfully",
+        {
+          hasTable: !!response.table,
+          hasComparisonData: !!response.comparison_data,
+        },
+      );
 
       return response;
     } catch (error) {
-      log.error('REPORT_COMPARISON', 'Failed to compare reports', error);
-      captureError(error, { 
-        context: 'ReportComparisonService.compareReports',
+      log.error("REPORT_COMPARISON", "Failed to compare reports", error);
+      captureError(error, {
+        context: "ReportComparisonService.compareReports",
         s3KeyCount: s3Keys.length,
-        reportIdCount: reportIds?.length || 0
+        reportIdCount: reportIds?.length || 0,
       });
-      
+
       // Re-throw with more context
       throw new Error(
-        error instanceof Error 
+        error instanceof Error
           ? `Report comparison failed: ${error.message}`
-          : 'Report comparison failed with unknown error'
+          : "Report comparison failed with unknown error",
       );
     }
   }
@@ -67,7 +75,7 @@ export class ReportComparisonService {
    * @returns Array of corresponding JSON S3 keys
    */
   static transformToJsonKeys(pdfKeys: string[]): string[] {
-    return pdfKeys.map(key => this.toJsonKey(key));
+    return pdfKeys.map((key) => this.toJsonKey(key));
   }
 
   /**
@@ -104,17 +112,21 @@ export class ReportComparisonService {
    */
   static validateComparisonKeys(keys: string[]): boolean {
     if (keys.length === 0) {
-      log.warn('REPORT_COMPARISON', 'No keys provided for validation');
+      log.warn("REPORT_COMPARISON", "No keys provided for validation");
       return false;
     }
 
-    const invalidKeys = keys.filter(key => !key || key.trim() === '');
+    const invalidKeys = keys.filter((key) => !key || key.trim() === "");
     if (invalidKeys.length > 0) {
-      log.warn('REPORT_COMPARISON', 'Invalid keys found', { invalidKeyCount: invalidKeys.length });
+      log.warn("REPORT_COMPARISON", "Invalid keys found", {
+        invalidKeyCount: invalidKeys.length,
+      });
       return false;
     }
 
-    log.info('REPORT_COMPARISON', 'All keys validated successfully', { keyCount: keys.length });
+    log.info("REPORT_COMPARISON", "All keys validated successfully", {
+      keyCount: keys.length,
+    });
     return true;
   }
 

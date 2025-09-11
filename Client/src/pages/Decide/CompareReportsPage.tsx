@@ -2,7 +2,15 @@
 import React, { useState, useEffect } from "react";
 
 // Third-party UI icons
-import { Download, Share, BarChart2, Check, X, RefreshCw, Settings } from "lucide-react";
+import {
+  Download,
+  Share,
+  BarChart2,
+  Check,
+  X,
+  RefreshCw,
+  Settings,
+} from "lucide-react";
 
 // Services
 import { ReportComparisonService } from "../../services";
@@ -48,7 +56,7 @@ export default function CompareReportsPage() {
   const [comparisonTable, setComparisonTable] = useState<any[]>([]);
   const [omittedRows, setOmittedRows] = useState<Set<string>>(new Set());
   const [manuallyEnabledRows, setManuallyEnabledRows] = useState<Set<string>>(
-    new Set()
+    new Set(),
   );
 
   // Load comparison state from localStorage on mount
@@ -92,7 +100,7 @@ export default function CompareReportsPage() {
       const sanitize = (str: string) =>
         (str || "").toLowerCase().replace(/\s+/g, "_");
       const row = comparisonTable.find(
-        (item: any) => sanitize(item.Address) === sanitize(report.address)
+        (item: unknown) => sanitize(item.Address) === sanitize(report.address),
       );
       const value = row ? (row as any)[metric] : null;
       // Consider a row to have data if it's not null, undefined, empty string, or just "-"
@@ -121,7 +129,7 @@ export default function CompareReportsPage() {
 
   // Get visible metrics (all metrics minus omitted ones)
   const visibleMetrics = ALL_METRIC_KEYS.filter(
-    (metric) => !allOmittedRows.has(metric)
+    (metric) => !allOmittedRows.has(metric),
   );
 
   // Removed fetchReports - now using preloaded data from context
@@ -145,9 +153,9 @@ export default function CompareReportsPage() {
       setIsLoading(true);
       const response = await ReportComparisonService.compareReports(
         keys,
-        selectedReports.map(r => r.id)
+        selectedReports.map((r) => r.id),
       );
-      
+
       if (response.success && response.table) {
         setComparisonTable(response.table);
       } else {
@@ -156,7 +164,7 @@ export default function CompareReportsPage() {
     } catch (error) {
       console.error(error);
       setToastMessage(
-        error instanceof Error ? error.message : "Comparison failed"
+        error instanceof Error ? error.message : "Comparison failed",
       );
       setShowError(true);
     } finally {
@@ -208,14 +216,14 @@ export default function CompareReportsPage() {
     const rows = visibleMetrics.map((metric: string) => {
       const values = selectedReports.map((r) => {
         const row = comparisonTable.find(
-          (item: any) => sanitize(item.Address) === sanitize(r.address)
+          (item: unknown) => sanitize(item.Address) === sanitize(r.address),
         );
-        return row ? (row as any)[metric] ?? "-" : "-";
+        return row ? ((row as any)[metric] ?? "-") : "-";
       });
       return [metric, ...values];
     });
     const csvRows = [header, ...rows].map((r) =>
-      r.map((v: any) => `"${String(v).replace(/"/g, '""')}"`).join(",")
+      r.map((v: unknown) => `"${String(v).replace(/"/g, '""')}"`).join(","),
     );
     const csvContent = csvRows.join("\n");
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
@@ -242,14 +250,14 @@ export default function CompareReportsPage() {
     const rows = visibleMetrics.map((metric: string) => {
       const values = selectedReports.map((r) => {
         const row = comparisonTable.find(
-          (item: any) => sanitize(item.Address) === sanitize(r.address)
+          (item: unknown) => sanitize(item.Address) === sanitize(r.address),
         );
-        return row ? (row as any)[metric] ?? "-" : "-";
+        return row ? ((row as any)[metric] ?? "-") : "-";
       });
       return [metric, ...values];
     });
     const csvRows = [header, ...rows].map((r) =>
-      r.map((v: any) => `"${String(v).replace(/"/g, '""')}"`).join(",")
+      r.map((v: unknown) => `"${String(v).replace(/"/g, '""')}"`).join(","),
     );
     const csvContent = csvRows.join("\n");
 
@@ -287,9 +295,9 @@ export default function CompareReportsPage() {
       const url = URL.createObjectURL(blob);
       const shareText = `Property Comparison Report: ${url}`;
 
-      const success = await secureClipboardCopy(shareText, 'csv-share');
+      const success = await secureClipboardCopy(shareText, "csv-share");
       if (success) {
-        log.info('COMPARE_REPORTS', 'CSV share link copied to clipboard');
+        log.info("COMPARE_REPORTS", "CSV share link copied to clipboard");
         setToastMessage("Share link copied to clipboard");
         setShowSuccess(true);
       } else {
@@ -297,8 +305,8 @@ export default function CompareReportsPage() {
         setShowError(true);
       }
     } catch (error) {
-      log.error('COMPARE_REPORTS', 'Failed to share CSV', error);
-      captureError(error, { context: 'fallbackShareCSV' });
+      log.error("COMPARE_REPORTS", "Failed to share CSV", error);
+      captureError(error, { context: "fallbackShareCSV" });
       setToastMessage("Unable to share CSV. Please use Export instead.");
       setShowError(true);
     }
@@ -314,7 +322,7 @@ export default function CompareReportsPage() {
       console.error("❌ Failed to refresh reports:", error);
 
       setToastMessage(
-        error instanceof Error ? error.message : "Failed to refresh reports"
+        error instanceof Error ? error.message : "Failed to refresh reports",
       );
       setShowError(true);
     } finally {
@@ -354,131 +362,130 @@ export default function CompareReportsPage() {
                 {selectedReports.length} of {reports.length} selected
               </Subtitle>
             </div>
+            <div className="flex items-center justify-between sm:justify-start w-full sm:w-auto gap-2 sm:gap-3"></div>
             <div className="flex items-center justify-between sm:justify-start w-full sm:w-auto gap-2 sm:gap-3">
+              <button
+                onClick={() => setSelectedReports([])}
+                disabled={selectedReports.length === 0}
+                className="flex items-center justify-center sm:justify-start px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-black/70 bg-gray-100 border border-gray-300 hover:bg-gray-200 hover:border-gray-400 rounded-lg transition-colors disabled:bg-gray-200 disabled:text-gray-500 disabled:border-transparent disabled:cursor-not-allowed touch-friendly"
+              >
+                <X className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                <span className="ml-2 text-xs sm:text-sm font-normal tracking-tight">
+                  Clear
+                </span>
+              </button>
+              <button
+                onClick={exportToExcel}
+                disabled={
+                  selectedReports.length === 0 || comparisonTable.length === 0
+                }
+                className="flex items-center justify-center sm:justify-start px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white bg-olive hover:bg-olive-light rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-friendly"
+              >
+                <Download className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                <span className="ml-2 text-xs sm:text-sm">Export</span>
+              </button>
+              <button
+                onClick={shareCSV}
+                disabled={
+                  selectedReports.length === 0 || comparisonTable.length === 0
+                }
+                className="flex items-center justify-center sm:justify-start px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-gray-100 bg-beige hover:bg-beige/80 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-friendly"
+              >
+                <Share className="w-4 h-4" />
+                <span className="ml-2 text-xs sm:text-sm">Share</span>
+              </button>
+              <button
+                onClick={refreshReportsData}
+                disabled={isLoading}
+                className="flex items-center justify-center sm:justify-start px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-black/70 bg-beige/30 hover:bg-beige/50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-friendly"
+              >
+                {isLoading ? (
+                  <RefreshCw className="w-3 h-3 sm:w-3.5 sm:h-3.5 animate-spin" />
+                ) : (
+                  <RefreshCw className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                )}
+                {!isLoading && (
+                  <span className="ml-2 text-xs sm:text-sm">Refresh</span>
+                )}
+              </button>
+            </div>
           </div>
-          <div className="flex items-center justify-between sm:justify-start w-full sm:w-auto gap-2 sm:gap-3">
-            <button
-              onClick={() => setSelectedReports([])}
-              disabled={selectedReports.length === 0}
-              className="flex items-center justify-center sm:justify-start px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-black/70 bg-gray-100 border border-gray-300 hover:bg-gray-200 hover:border-gray-400 rounded-lg transition-colors disabled:bg-gray-200 disabled:text-gray-500 disabled:border-transparent disabled:cursor-not-allowed touch-friendly"
-            >
-              <X className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-              <span className="ml-2 text-xs sm:text-sm font-normal tracking-tight">
-                Clear
-              </span>
-            </button>
-            <button
-              onClick={exportToExcel}
-              disabled={
-                selectedReports.length === 0 || comparisonTable.length === 0
-              }
-              className="flex items-center justify-center sm:justify-start px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white bg-olive hover:bg-olive-light rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-friendly"
-            >
-              <Download className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-              <span className="ml-2 text-xs sm:text-sm">Export</span>
-            </button>
-            <button
-              onClick={shareCSV}
-              disabled={
-                selectedReports.length === 0 || comparisonTable.length === 0
-              }
-              className="flex items-center justify-center sm:justify-start px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-gray-100 bg-beige hover:bg-beige/80 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-friendly"
-            >
-              <Share className="w-4 h-4" />
-              <span className="ml-2 text-xs sm:text-sm">Share</span>
-            </button>
-            <button
-              onClick={refreshReportsData}
-              disabled={isLoading}
-              className="flex items-center justify-center sm:justify-start px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-black/70 bg-beige/30 hover:bg-beige/50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-friendly"
-            >
-              {isLoading ? (
-                <RefreshCw className="w-3 h-3 sm:w-3.5 sm:h-3.5 animate-spin" />
-              ) : (
-                <RefreshCw className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-              )}
-              {!isLoading && (
-                <span className="ml-2 text-xs sm:text-sm">Refresh</span>
-              )}
-            </button>
-          </div>
-        </div>
 
-        {reports.length === 0 ? (
-          <div className="text-center py-responsive-lg">
-            <BarChart2 className="mobile-icon-lg mx-auto text-black/30 space-y-responsive-sm" />
-            <Title size="sm" className="font-medium space-y-responsive-xs">
-              No reports found
-            </Title>
-            <Subtitle
-              size="sm"
-              muted
-              className="space-y-responsive-sm px-responsive-sm"
-            >
-              Generate your first property report to get started
-            </Subtitle>
-          </div>
-        ) : (
-          <div
-            className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-responsive-sm ${
-              reports.length > 9 ? "overflow-y-auto custom-scrollbar" : ""
-            }`}
-            style={{
-              ...(reports.length > 9 ? { maxHeight: "16rem" } : {}),
-              ...(reports.length > 9
-                ? {
-                    scrollbarWidth: "thin",
-                    scrollbarColor: "#E8D5B560 #f3f4f6",
-                  }
-                : {}),
-            }}
-          >
-            {reports.map((report: Report) => {
-              const isSelected = selectedReports.some(
-                (r) => r.id === report.id
-              );
-              return (
-                <div
-                  key={report.id}
-                  onClick={(e) => {
-                    if (!isLoading) {
-                      toggleReportSelection(report, e);
+          {reports.length === 0 ? (
+            <div className="text-center py-responsive-lg">
+              <BarChart2 className="mobile-icon-lg mx-auto text-black/30 space-y-responsive-sm" />
+              <Title size="sm" className="font-medium space-y-responsive-xs">
+                No reports found
+              </Title>
+              <Subtitle
+                size="sm"
+                muted
+                className="space-y-responsive-sm px-responsive-sm"
+              >
+                Generate your first property report to get started
+              </Subtitle>
+            </div>
+          ) : (
+            <div
+              className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-responsive-sm ${
+                reports.length > 9 ? "overflow-y-auto custom-scrollbar" : ""
+              }`}
+              style={{
+                ...(reports.length > 9 ? { maxHeight: "16rem" } : {}),
+                ...(reports.length > 9
+                  ? {
+                      scrollbarWidth: "thin",
+                      scrollbarColor: "#E8D5B560 #f3f4f6",
                     }
-                  }}
-                  onMouseDown={(e) => e.preventDefault()} // Prevent focus/highlight on click
-                  className={`p-2 sm:p-3 border-2 rounded-xl cursor-pointer transition-all duration-200 select-none touch-manipulation ${
-                    isLoading
-                      ? "opacity-50 cursor-wait"
-                      : isSelected
-                      ? "border-olive bg-olive/5 sm:ring-2 sm:ring-olive/30"
-                      : "border-gray-200 hover:border-olive/50 hover:bg-olive/5"
-                  }`}
-                >
-                  <div className="flex items-start">
-                    <div className="flex-1 min-w-0 pr-2">
+                  : {}),
+              }}
+            >
+              {reports.map((report: Report) => {
+                const isSelected = selectedReports.some(
+                  (r) => r.id === report.id,
+                );
+                return (
+                  <div
+                    key={report.id}
+                    onClick={(e) => {
+                      if (!isLoading) {
+                        toggleReportSelection(report, e);
+                      }
+                    }}
+                    onMouseDown={(e) => e.preventDefault()} // Prevent focus/highlight on click
+                    className={`p-2 sm:p-3 border-2 rounded-xl cursor-pointer transition-all duration-200 select-none touch-manipulation ${
+                      isLoading
+                        ? "opacity-50 cursor-wait"
+                        : isSelected
+                          ? "border-olive bg-olive/5 sm:ring-2 sm:ring-olive/30"
+                          : "border-gray-200 hover:border-olive/50 hover:bg-olive/5"
+                    }`}
+                  >
+                    <div className="flex items-start">
                       <div className="flex-1 min-w-0 pr-2">
-                        <h3
-                          className="text-xs sm:text-sm font-medium text-black leading-tight overflow-hidden"
-                          title={report.address}
-                          style={{
-                            display: "-webkit-box",
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: "vertical" as const,
-                            wordBreak: "break-word",
-                            hyphens: "auto",
-                          }}
-                        >
-                          {formatFilenameToAddress(report.address)}
-                        </h3>
+                        <div className="flex-1 min-w-0 pr-2">
+                          <h3
+                            className="text-xs sm:text-sm font-medium text-black leading-tight overflow-hidden"
+                            title={report.address}
+                            style={{
+                              display: "-webkit-box",
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: "vertical" as const,
+                              wordBreak: "break-word",
+                              hyphens: "auto",
+                            }}
+                          >
+                            {formatFilenameToAddress(report.address)}
+                          </h3>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </Card>
+                );
+              })}
+            </div>
+          )}
+        </Card>
 
         {/* Row Omission Controls Button */}
         <Card className="mb-6 mt-8">
@@ -550,10 +557,10 @@ export default function CompareReportsPage() {
                       const sanitize = (str: string) =>
                         (str || "").toLowerCase().replace(/\s+/g, "_");
                       const row = comparisonTable.find(
-                        (item: any) =>
-                          sanitize(item.Address) === sanitize(r.address)
+                        (item: unknown) =>
+                          sanitize(item.Address) === sanitize(r.address),
                       );
-                      const value = row ? (row as any)[metric] ?? "-" : "-";
+                      const value = row ? ((row as any)[metric] ?? "-") : "-";
                       const colWidth =
                         selectedReports.length >= 3
                           ? "min-w-[120px] sm:min-w-[140px]"
@@ -686,7 +693,7 @@ export default function CompareReportsPage() {
                                   // If it was auto-omitted, mark as manually enabled
                                   if (!hasData) {
                                     const newManuallyEnabled = new Set(
-                                      manuallyEnabledRows
+                                      manuallyEnabledRows,
                                     );
                                     newManuallyEnabled.add(metric);
                                     setManuallyEnabledRows(newManuallyEnabled);
@@ -699,7 +706,7 @@ export default function CompareReportsPage() {
 
                                   // Remove from manually enabled if it was there
                                   const newManuallyEnabled = new Set(
-                                    manuallyEnabledRows
+                                    manuallyEnabledRows,
                                   );
                                   newManuallyEnabled.delete(metric);
                                   setManuallyEnabledRows(newManuallyEnabled);
@@ -745,7 +752,7 @@ export default function CompareReportsPage() {
                     })}
                   </div>
                 </div>
-              </div>       
+              </div>
             </div>
           </div>
         )}

@@ -306,7 +306,7 @@ export default function AgentConnection() {
               </div>
             </div>
           </div>,
-          document.body
+          document.body,
         )}
 
       {/* Agent Removal Confirmation Modal */}
@@ -400,7 +400,7 @@ export default function AgentConnection() {
               </div>
             </div>
           </div>,
-          document.body
+          document.body,
         )}
     </div>
   );

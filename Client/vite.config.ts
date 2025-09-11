@@ -1,12 +1,12 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react-swc';
-import path from 'path';
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react-swc";
+import path from "path";
 
 export default defineConfig({
-  base: '/',
+  base: "/",
   plugins: [react()],
   server: {
-    host: '0.0.0.0',
+    host: "0.0.0.0",
     port: 5173,
     strictPort: true,
     watch: {
@@ -14,33 +14,33 @@ export default defineConfig({
       interval: 100,
     },
     hmr: {
-      protocol: 'ws',
-      host: 'localhost',
+      protocol: "ws",
+      host: "localhost",
       port: 5173,
       clientPort: 5173,
     },
     proxy: {
-      '/api': {
-        target: 'http://127.0.0.1:5000',
+      "/api": {
+        target: "http://127.0.0.1:5000",
         changeOrigin: true,
         secure: false,
       },
-      '/healthz': {
-        target: 'http://127.0.0.1:5000',
+      "/healthz": {
+        target: "http://127.0.0.1:5000",
         changeOrigin: true,
         secure: false,
       },
     },
   },
   optimizeDeps: {
-    include: ['react', 'react-dom'],
+    include: ["react", "react-dom"],
     exclude: ["@types/*"],
-    },
+  },
   build: {
-    target: 'es2020',
+    target: "es2020",
     sourcemap: false,
     minify: false,
-    outDir: 'dist',
+    outDir: "dist",
   },
   resolve: {
     alias: {

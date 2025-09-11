@@ -201,7 +201,7 @@ export default function NegotiationStrategy() {
                                     .map(
                                       (word: string) =>
                                         word.charAt(0).toUpperCase() +
-                                        word.slice(1).toLowerCase()
+                                        word.slice(1).toLowerCase(),
                                     )
                                     .join(" ")}
                             </span>
@@ -221,7 +221,7 @@ export default function NegotiationStrategy() {
                             .split(" ")
                             .map(
                               (word: string) =>
-                                word.charAt(0).toUpperCase() + word.slice(1)
+                                word.charAt(0).toUpperCase() + word.slice(1),
                             )
                             .join(" ");
 
@@ -253,8 +253,8 @@ export default function NegotiationStrategy() {
                                                     ([k, v]) =>
                                                       `${k.replace(
                                                         /_/g,
-                                                        " "
-                                                      )}: ${v}`
+                                                        " ",
+                                                      )}: ${v}`,
                                                   )
                                                   .join(", ")
                                               : item
@@ -262,7 +262,7 @@ export default function NegotiationStrategy() {
                                                   .replace(/_/g, " ")
                                                   .replace(
                                                     /([a-z])([A-Z])/g,
-                                                    "$1 $2"
+                                                    "$1 $2",
                                                   )}
                                           </span>
                                         </li>
@@ -286,7 +286,7 @@ export default function NegotiationStrategy() {
                                                   .replace(/_/g, " ")
                                                   .replace(
                                                     /([a-z])([A-Z])/g,
-                                                    "$1 $2"
+                                                    "$1 $2",
                                                   )
                                                   .split(" ")
                                                   .map(
@@ -294,7 +294,7 @@ export default function NegotiationStrategy() {
                                                       word
                                                         .charAt(0)
                                                         .toUpperCase() +
-                                                      word.slice(1)
+                                                      word.slice(1),
                                                   )
                                                   .join(" ")}
                                                 :
@@ -306,23 +306,23 @@ export default function NegotiationStrategy() {
                                                     ? "Yes"
                                                     : "No"
                                                   : typeof nestedValue ===
-                                                    "number"
-                                                  ? nestedValue.toLocaleString()
-                                                  : Array.isArray(nestedValue)
-                                                  ? nestedValue
-                                                      .join(", ")
-                                                      .replace(/_/g, " ")
-                                                  : nestedValue
-                                                      ?.toString()
-                                                      .replace(/_/g, " ")
-                                                      .replace(
-                                                        /([a-z])([A-Z])/g,
-                                                        "$1 $2"
-                                                      ) || "Not specified"}
+                                                      "number"
+                                                    ? nestedValue.toLocaleString()
+                                                    : Array.isArray(nestedValue)
+                                                      ? nestedValue
+                                                          .join(", ")
+                                                          .replace(/_/g, " ")
+                                                      : nestedValue
+                                                          ?.toString()
+                                                          .replace(/_/g, " ")
+                                                          .replace(
+                                                            /([a-z])([A-Z])/g,
+                                                            "$1 $2",
+                                                          ) || "Not specified"}
                                               </span>
                                             </div>
                                           </div>
-                                        )
+                                        ),
                                       )}
                                     </div>
                                   )

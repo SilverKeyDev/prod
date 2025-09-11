@@ -24,7 +24,12 @@ interface ChatMessage {
 
 export default function AIAssistant() {
   const navigate = useNavigate();
-  const { chats, refreshChats, sendMessage: contextSendMessage, getChatHistory } = useChats();
+  const {
+    chats,
+    refreshChats,
+    sendMessage: contextSendMessage,
+    getChatHistory,
+  } = useChats();
   const [localChats, setLocalChats] = useState<Chat[]>([]);
   const [activeChatId, setActiveChatId] = useState<string>("");
   const [message, setMessage] = useState("");
@@ -42,7 +47,7 @@ export default function AIAssistant() {
     if (savedState) {
       try {
         const parsed = JSON.parse(savedState);
-        if (parsed.activeChatId && typeof parsed.activeChatId === 'string') {
+        if (parsed.activeChatId && typeof parsed.activeChatId === "string") {
           setActiveChatId(parsed.activeChatId);
         }
         if (parsed.message) setMessage(parsed.message);
@@ -71,7 +76,7 @@ export default function AIAssistant() {
       if (chats && chats.length > 0) {
         const updatedChats = chats.map((contextChat: Chat) => {
           const existingChat = localChats.find(
-            (chat: Chat) => chat.id === contextChat.id
+            (chat: Chat) => chat.id === contextChat.id,
           );
           return {
             ...contextChat,
@@ -122,7 +127,7 @@ export default function AIAssistant() {
   const loadChatHistory = async (chatId: string) => {
     try {
       const data = await getChatHistory(chatId);
-      const messages: ChatMessage[] = data.messages.map((msg: any) => ({
+      const messages: ChatMessage[] = data.messages.map((msg: unknown) => ({
         id: msg.id,
         content: msg.message,
         role: msg.role as "user" | "assistant",
@@ -131,13 +136,13 @@ export default function AIAssistant() {
 
       setLocalChats((prevChats) =>
         prevChats.map((c: Chat) =>
-          c.id === activeChatId ? { ...c, messages } : c
-        )
+          c.id === activeChatId ? { ...c, messages } : c,
+        ),
       );
     } catch (error) {
       console.error(
         `[AI_ASSISTANT] Failed to load chat history for ${chatId}:`,
-        error
+        error,
       );
     }
   };
@@ -165,8 +170,8 @@ export default function AIAssistant() {
       prev.map((chat) =>
         chat.id === activeChatId
           ? { ...chat, messages: [...chat.messages, newMessage] }
-          : chat
-      )
+          : chat,
+      ),
     );
 
     setMessage("");
@@ -186,8 +191,8 @@ export default function AIAssistant() {
         prev.map((chat) =>
           chat.id === activeChatId
             ? { ...chat, messages: [...chat.messages, aiResponse] }
-            : chat
-        )
+            : chat,
+        ),
       );
     } catch (error) {
       console.error(`[AI_ASSISTANT] Network error sending message:`, error);
@@ -203,8 +208,8 @@ export default function AIAssistant() {
         prev.map((chat) =>
           chat.id === activeChatId
             ? { ...chat, messages: [...chat.messages, errorMessage] }
-            : chat
-        )
+            : chat,
+        ),
       );
     } finally {
       setIsTyping(false);

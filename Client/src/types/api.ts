@@ -15,4 +15,4 @@ export interface ApiError {
 export type ApiResponse<T> = ApiSuccess<T> | ApiError;
 
 // API Configuration
-export const BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+export const BASE_URL = import.meta.env.VITE_API_BASE_URL || "";

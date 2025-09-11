@@ -1,4 +1,4 @@
-import { searchApi } from '../../../api/search';
+import { searchApi } from "../../../api/search";
 
 export interface LatLng {
   lat: number;
@@ -59,7 +59,7 @@ export const searchPropertiesInIsochrone = async (
   setHasSearched: (searched: boolean) => void,
   setCurrentPage: (page: number) => void,
   setShowPropertyModals: (show: boolean) => void,
-  saveSearchResultsToLocalStorage: (results: SearchResult[]) => Promise<void>
+  saveSearchResultsToLocalStorage: (results: SearchResult[]) => Promise<void>,
 ): Promise<void> => {
   setIsSearching(true);
   setSearchStage("Locating homes in your area...");
@@ -76,7 +76,8 @@ export const searchPropertiesInIsochrone = async (
     const searchUserPreferences: UserPreferences = {
       home_budget: userPreferences.priceRange?.max || 500000,
       preferred_bedrooms: userPreferences.preferredBedrooms || 3,
-      preferred_bathrooms: Math.floor((userPreferences.preferredBedrooms || 3) / 2) + 1,
+      preferred_bathrooms:
+        Math.floor((userPreferences.preferredBedrooms || 3) / 2) + 1,
       preferred_housing_type: "single_family",
       preferred_home_age: "any",
       preferred_lot_size: "medium",
@@ -109,28 +110,32 @@ export const searchPropertiesInIsochrone = async (
     setSearchStage("Scoring homes based on your preferences...");
 
     // Transform API results to SearchResult format
-    const transformedResults: SearchResult[] = (searchResult.properties || []).map(
-      (property: any, index: number) => ({
-        id: property.zpid || `${Date.now()}-${index}`,
-        address: property.address || "Address not available",
-        price: property.price
-          ? `$${property.price.toLocaleString()}`
-          : "Price not available",
-        bedrooms: property.bedrooms || 0,
-        bathrooms: property.bathrooms || 0,
-        sqft: property.livingArea || 0,
-        lat: property.latitude || (isochroneData.center?.lat + (Math.random() - 0.5) * 0.01),
-        lng: property.longitude || (isochroneData.center?.lng + (Math.random() - 0.5) * 0.01),
-        lotSize:
-          property.lotAreaValue && property.lotAreaUnit
-            ? `${property.lotAreaValue.toLocaleString()} ${property.lotAreaUnit}`
-            : undefined,
-        propertyType: property.propertyType || "Single Family",
-        listingStatus: property.listingStatus || "For Sale",
-        imageUrl: property.imgSrc || "/default-home.jpg",
-        _score: property._score || 0, // Backend ML match score
-      })
-    );
+    const transformedResults: SearchResult[] = (
+      searchResult.properties || []
+    ).map((property: any, index: number) => ({
+      id: property.zpid || `${Date.now()}-${index}`,
+      address: property.address || "Address not available",
+      price: property.price
+        ? `$${property.price.toLocaleString()}`
+        : "Price not available",
+      bedrooms: property.bedrooms || 0,
+      bathrooms: property.bathrooms || 0,
+      sqft: property.livingArea || 0,
+      lat:
+        property.latitude ||
+        isochroneData.center?.lat + (Math.random() - 0.5) * 0.01,
+      lng:
+        property.longitude ||
+        isochroneData.center?.lng + (Math.random() - 0.5) * 0.01,
+      lotSize:
+        property.lotAreaValue && property.lotAreaUnit
+          ? `${property.lotAreaValue.toLocaleString()} ${property.lotAreaUnit}`
+          : undefined,
+      propertyType: property.propertyType || "Single Family",
+      listingStatus: property.listingStatus || "For Sale",
+      imageUrl: property.imgSrc || "/default-home.jpg",
+      _score: property._score || 0, // Backend ML match score
+    }));
 
     setSearchStage("Extracting property images...");
     await new Promise((resolve) => setTimeout(resolve, 800));
@@ -152,8 +157,9 @@ export const searchPropertiesInIsochrone = async (
     setCurrentPage(0);
     setShowPropertyModals(true);
 
-    console.log(`✅ [POLYGON_SEARCH] Successfully found ${transformedResults.length} properties`);
-
+    console.log(
+      `✅ [POLYGON_SEARCH] Successfully found ${transformedResults.length} properties`,
+    );
   } catch (error) {
     console.error("❌ Error in automatic isochrone property search:", error);
     console.error("❌ Error details:", {

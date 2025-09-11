@@ -5,7 +5,10 @@ interface MobileTopBarProps {
   sidebarExpanded: boolean;
 }
 
-const MobileTopBar: React.FC<MobileTopBarProps> = ({ children, sidebarExpanded }) => {
+const MobileTopBar: React.FC<MobileTopBarProps> = ({
+  children,
+  sidebarExpanded,
+}) => {
   return (
     <div
       className={`lg:hidden fixed top-0 left-0 right-0 z-40 p-4 bg-background/80 backdrop-blur-sm transition-all duration-300 ease-in-out ${
@@ -17,13 +20,13 @@ const MobileTopBar: React.FC<MobileTopBarProps> = ({ children, sidebarExpanded }
       <div className="relative flex items-center w-full min-h-12">
         {/* Sidebar button area - reserve space */}
         <div className="w-16 flex-shrink-0" />
-        
+
         {/* Children content area - centered between sidebar and right edge */}
         {children && (
-          <div 
+          <div
             className="flex-1 flex items-center justify-center"
             style={{
-              marginTop: '0vh'
+              marginTop: "0vh",
             }}
           >
             {children}

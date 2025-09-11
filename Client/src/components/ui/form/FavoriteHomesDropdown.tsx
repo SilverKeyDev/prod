@@ -46,7 +46,7 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
 
         if (res.success && Array.isArray(res.favorites)) {
           // Backend returns array of HomeUniversal objects with full property data
-          const homes: FavoriteHome[] = res.favorites.map((home: any) => ({
+          const homes: FavoriteHome[] = res.favorites.map((home: unknown) => ({
             user_id: home.user_id,
             address: home.address,
             beds: home.beds,
@@ -194,7 +194,7 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
                     {home.sqft &&
                       Number(home.sqft) > 0 &&
                       ` • ${Math.round(
-                        Number(home.sqft)
+                        Number(home.sqft),
                       ).toLocaleString()} sqft`}
                     {home.price && ` • ${home.price}`}
                   </div>

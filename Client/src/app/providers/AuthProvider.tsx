@@ -6,7 +6,9 @@
 import { createContext, useContext, ReactNode } from "react";
 import { useAuthState, AuthState } from "../../lib/authUtils";
 
-interface AuthContextType extends AuthState {}
+interface AuthContextType extends AuthState {
+  // Extends AuthState with additional context methods if needed in the future
+}
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 

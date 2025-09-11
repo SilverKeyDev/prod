@@ -3,11 +3,23 @@
  * Provides protected clipboard operations with user feedback
  */
 
-import React, { useState, useEffect } from 'react';
-import { Copy, Check, Eye, EyeOff, Shield, Clock, AlertTriangle } from 'lucide-react';
-import Button from '../ui/button/Button';
-import Input from '../ui/form/Input';
-import { secureClipboardCopy, containsSensitiveData, maskSensitiveData } from '../../lib/security/clipboardSecurity.ts';
+import React, { useState, useEffect } from "react";
+import {
+  Copy,
+  Check,
+  Eye,
+  EyeOff,
+  Shield,
+  Clock,
+  AlertTriangle,
+} from "lucide-react";
+import Button from "../ui/button/Button";
+import Input from "../ui/form/Input";
+import {
+  secureClipboardCopy,
+  containsSensitiveData,
+  maskSensitiveData,
+} from "../../lib/security/clipboardSecurity.ts";
 
 interface SecureClipboardProps {
   value: string;
@@ -16,20 +28,22 @@ interface SecureClipboardProps {
   showValue?: boolean;
   autoTimeout?: number;
   source?: string;
-  variant?: 'button' | 'inline' | 'field';
+  variant?: "button" | "inline" | "field";
 }
 
 export const SecureClipboard: React.FC<SecureClipboardProps> = ({
   value,
   label,
-  className = '',
+  className = "",
   showValue = false,
   autoTimeout = 30000,
-  source = 'secure-clipboard',
-  variant = 'button',
+  source = "secure-clipboard",
+  variant = "button",
 }) => {
   const [copied, setCopied] = useState(false);
-  const [showSensitive, setShowSensitive] = useState(!containsSensitiveData(value));
+  const [showSensitive, setShowSensitive] = useState(
+    !containsSensitiveData(value),
+  );
   const [timeoutRemaining, setTimeoutRemaining] = useState<number | null>(null);
 
   const isSensitive = containsSensitiveData(value);
@@ -37,10 +51,10 @@ export const SecureClipboard: React.FC<SecureClipboardProps> = ({
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
-    
+
     if (timeoutRemaining && timeoutRemaining > 0) {
       interval = setInterval(() => {
-        setTimeoutRemaining(prev => {
+        setTimeoutRemaining((prev) => {
           if (prev && prev <= 1000) {
             setCopied(false);
             return null;
@@ -66,7 +80,7 @@ export const SecureClipboard: React.FC<SecureClipboardProps> = ({
       if (autoTimeout > 0) {
         setTimeoutRemaining(autoTimeout);
       }
-      
+
       // Reset copied state after 2 seconds
       setTimeout(() => {
         if (!timeoutRemaining) {
@@ -86,17 +100,23 @@ export const SecureClipboard: React.FC<SecureClipboardProps> = ({
   };
 
   // Button variant
-  if (variant === 'button') {
+  if (variant === "button") {
     return (
       <Button
         onClick={handleCopy}
-        variant={copied ? 'success' : 'secondary'}
+        variant={copied ? "success" : "secondary"}
         size="sm"
-        icon={copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+        icon={
+          copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />
+        }
         className={className}
-        title={isSensitive ? 'Copy sensitive data (will auto-clear)' : 'Copy to clipboard'}
+        title={
+          isSensitive
+            ? "Copy sensitive data (will auto-clear)"
+            : "Copy to clipboard"
+        }
       >
-        {copied ? 'Copied' : (label || 'Copy')}
+        {copied ? "Copied" : label || "Copy"}
         {isSensitive && !copied && <Shield className="w-3 h-3 ml-1" />}
         {timeoutRemaining && copied && (
           <span className="ml-2 text-xs opacity-75">
@@ -108,27 +128,39 @@ export const SecureClipboard: React.FC<SecureClipboardProps> = ({
   }
 
   // Inline variant
-  if (variant === 'inline') {
+  if (variant === "inline") {
     return (
       <div className={`inline-flex items-center space-x-2 ${className}`}>
-        <span className="text-sm text-gray-600 font-mono">
-          {displayValue}
-        </span>
+        <span className="text-sm text-gray-600 font-mono">{displayValue}</span>
         {isSensitive && (
           <Button
             variant="ghost"
             size="xs"
             onClick={toggleVisibility}
-            icon={showSensitive ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            icon={
+              showSensitive ? (
+                <EyeOff className="w-4 h-4" />
+              ) : (
+                <Eye className="w-4 h-4" />
+              )
+            }
             className="text-gray-400 hover:text-gray-600"
-            title={showSensitive ? 'Hide sensitive data' : 'Show sensitive data'}
+            title={
+              showSensitive ? "Hide sensitive data" : "Show sensitive data"
+            }
           />
         )}
         <Button
           variant="ghost"
           size="xs"
           onClick={handleCopy}
-          icon={copied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
+          icon={
+            copied ? (
+              <Check className="w-4 h-4 text-green-600" />
+            ) : (
+              <Copy className="w-4 h-4" />
+            )
+          }
           className="text-gray-400 hover:text-gray-600"
           title="Copy to clipboard"
         />
@@ -156,7 +188,7 @@ export const SecureClipboard: React.FC<SecureClipboardProps> = ({
           )}
         </label>
       )}
-      
+
       <div className="relative">
         <div className="flex">
           <Input
@@ -164,36 +196,51 @@ export const SecureClipboard: React.FC<SecureClipboardProps> = ({
             readOnly
             className="flex-1 font-mono bg-gray-50 rounded-r-none border-r-0"
           />
-          
+
           <div className="flex border border-l-0 border-gray-300 rounded-r-lg bg-white">
             {isSensitive && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={toggleVisibility}
-                icon={showSensitive ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                icon={
+                  showSensitive ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )
+                }
                 className="text-gray-400 hover:text-gray-600 rounded-none border-r border-gray-300"
-                title={showSensitive ? 'Hide sensitive data' : 'Show sensitive data'}
+                title={
+                  showSensitive ? "Hide sensitive data" : "Show sensitive data"
+                }
               />
             )}
-            
+
             <Button
               variant="ghost"
               size="sm"
               onClick={handleCopy}
-              icon={copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+              icon={
+                copied ? (
+                  <Check className="w-4 h-4" />
+                ) : (
+                  <Copy className="w-4 h-4" />
+                )
+              }
               className={`
                 rounded-l-none
-                ${copied 
-                  ? 'text-green-600 bg-green-50' 
-                  : 'text-gray-400 hover:text-gray-600'
+                ${
+                  copied
+                    ? "text-green-600 bg-green-50"
+                    : "text-gray-400 hover:text-gray-600"
                 }
               `}
               title="Copy to clipboard"
             />
           </div>
         </div>
-        
+
         {timeoutRemaining && (
           <div className="absolute -bottom-6 right-0 text-xs text-orange-600 flex items-center bg-orange-50 px-2 py-1 rounded-md">
             <Clock className="w-3 h-3 mr-1" />
@@ -201,13 +248,14 @@ export const SecureClipboard: React.FC<SecureClipboardProps> = ({
           </div>
         )}
       </div>
-      
+
       {showValue && (
         <p className="text-xs text-gray-500 mt-2">
           Click copy to securely copy to clipboard
           {isSensitive && autoTimeout > 0 && (
             <span className="text-orange-600">
-              {' '}(will auto-clear in {autoTimeout / 1000}s)
+              {" "}
+              (will auto-clear in {autoTimeout / 1000}s)
             </span>
           )}
         </p>
@@ -217,7 +265,7 @@ export const SecureClipboard: React.FC<SecureClipboardProps> = ({
 };
 
 // Hook for using secure clipboard in components
-export const useSecureClipboard = (source: string = 'component') => {
+export const useSecureClipboard = (source: string = "component") => {
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -225,15 +273,15 @@ export const useSecureClipboard = (source: string = 'component') => {
     try {
       setError(null);
       const success = await secureClipboardCopy(value, source, options);
-      
+
       if (success) {
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
       } else {
-        setError('Failed to copy to clipboard');
+        setError("Failed to copy to clipboard");
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      setError(err instanceof Error ? err.message : "Unknown error");
     }
   };
 

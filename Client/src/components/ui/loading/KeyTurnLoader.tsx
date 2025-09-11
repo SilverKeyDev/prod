@@ -78,7 +78,8 @@ export default function KeyTurnLoader({
   };
 
   const keyStyle: React.CSSProperties = {
-    animation: "turnKey 3.6s infinite cubic-bezier(0.25, 0.1, 0.25, 1), shimmer 4s infinite ease-in-out",
+    animation:
+      "turnKey 3.6s infinite cubic-bezier(0.25, 0.1, 0.25, 1), shimmer 4s infinite ease-in-out",
     transformOrigin: "20px 32px", // pivot at center of key head
     willChange: "transform, filter",
   };

@@ -75,11 +75,13 @@ export default function CloseLayout({
   const fetchChecklist = async () => {
     try {
       setLoading(true);
-      const res = await apiRequest<{success: boolean; data: number[]}>(apiEndpoint);
-      
+      const res = await apiRequest<{ success: boolean; data: number[] }>(
+        apiEndpoint,
+      );
+
       // Handle backend response format: {success: true, data: [1, 3, 5]}
       const checklist = res?.data || res;
-      
+
       if (Array.isArray(checklist)) {
         const mapping: { [id: number]: boolean } = {};
         checklist.forEach((id: number) => (mapping[id] = true));
@@ -156,11 +158,7 @@ export default function CloseLayout({
   return (
     <div className="bg-off-white">
       {/* Custom content before checklist */}
-      {children && (
-        <div className="mb-responsive-sm">
-          {children}
-        </div>
-      )}
+      {children && <div className="mb-responsive-sm">{children}</div>}
 
       {/* Main checklist section */}
       <div className={containerClassName}>

@@ -3,9 +3,9 @@
  * Wraps the application with centralized error boundary
  */
 
-import React, { ReactNode } from 'react';
-import ErrorBoundary from '../error/ErrorBoundary';
-import { reportError } from '../error/errorUtils';
+import React, { ReactNode } from "react";
+import ErrorBoundary from "../error/ErrorBoundary";
+import { reportError } from "../error/errorUtils";
 
 interface ErrorProviderProps {
   children: ReactNode;

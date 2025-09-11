@@ -120,7 +120,7 @@ export default function SearchPage({
         } catch (prefError) {
           console.warn(
             "⚠️ Could not fetch current preferences version, using default:",
-            prefError
+            prefError,
           );
         }
 
@@ -179,7 +179,7 @@ export default function SearchPage({
             onPreferences={handlePreferences}
             onSearch={handleSearch}
             isSearching={isSearching}
-          />
+          />,
         );
       } else {
         setMobileHeaderActions(null);
@@ -261,7 +261,7 @@ export default function SearchPage({
       } catch (prefError) {
         console.warn(
           "⚠️ Could not fetch preferences version, using default:",
-          prefError
+          prefError,
         );
       }
 
@@ -294,7 +294,7 @@ export default function SearchPage({
     } catch (error) {
       console.error(
         "❌ Error loading search results from localStorage:",
-        error
+        error,
       );
     }
     return null;
@@ -342,14 +342,14 @@ export default function SearchPage({
               renderImportantLocationMarkersWrapper(data);
             } else {
               console.warn(
-                "⚠️ No isochrone data received, polygon will not be displayed"
+                "⚠️ No isochrone data received, polygon will not be displayed",
               );
             }
           })
           .catch((error) => {
             console.error(
               "❌ Failed to fetch or render isochrone polygon:",
-              error
+              error,
             );
           });
       }, 100);
@@ -414,7 +414,7 @@ export default function SearchPage({
         console.error("🗺️ MAP MODAL: Property not found with ID:", propertyId);
         console.error(
           "🗺️ MAP MODAL: Available properties:",
-          currentData.map((p) => ({ id: p.id, address: p.address }))
+          currentData.map((p) => ({ id: p.id, address: p.address })),
         );
       }
     };
@@ -433,30 +433,46 @@ export default function SearchPage({
     if (selectedProperty && googleMapRef.current) {
       // Use MapZoomController for consistent zoom behavior
       mapFocusOnCurrentProperty();
-      
+
       console.log(
-        `🎯 Auto-zoomed to property at ${selectedProperty.lat}, ${selectedProperty.lng} using MapZoomController`
+        `🎯 Auto-zoomed to property at ${selectedProperty.lat}, ${selectedProperty.lng} using MapZoomController`,
       );
     }
   }, [selectedProperty, mapFocusOnCurrentProperty]);
 
   // Focus map on current property when page changes (arrow clicks)
   useEffect(() => {
-    if (googleMapRef.current && (searchResults.length > 0 || savedHomes.length > 0)) {
+    if (
+      googleMapRef.current &&
+      (searchResults.length > 0 || savedHomes.length > 0)
+    ) {
       // Use MapZoomController to focus on current property
       mapFocusOnCurrentProperty();
     }
-  }, [currentPage, mapFocusOnCurrentProperty, searchResults.length, savedHomes.length]);
+  }, [
+    currentPage,
+    mapFocusOnCurrentProperty,
+    searchResults.length,
+    savedHomes.length,
+  ]);
 
   // Focus map on current property when tab changes
   useEffect(() => {
-    if (googleMapRef.current && (searchResults.length > 0 || savedHomes.length > 0)) {
+    if (
+      googleMapRef.current &&
+      (searchResults.length > 0 || savedHomes.length > 0)
+    ) {
       // Use MapZoomController to focus on current property after tab switch
       setTimeout(() => {
         mapFocusOnCurrentProperty();
       }, 100); // Small delay to ensure tab switch is complete
     }
-  }, [activeTab, mapFocusOnCurrentProperty, searchResults.length, savedHomes.length]);
+  }, [
+    activeTab,
+    mapFocusOnCurrentProperty,
+    searchResults.length,
+    savedHomes.length,
+  ]);
 
   // Update markers when activeTab, currentPage changes or when hasSearched/showPropertyModals changes
   useEffect(() => {
@@ -557,7 +573,7 @@ export default function SearchPage({
           return data.data;
         } else {
           console.warn(
-            "⚠️ ISOCHRONE FAILED - API returned unsuccessful response:"
+            "⚠️ ISOCHRONE FAILED - API returned unsuccessful response:",
           );
           console.warn("  📄 Message:", data.message || "Unknown error");
           console.warn("  📊 Full Response:", JSON.stringify(data, null, 2));
@@ -576,11 +592,11 @@ export default function SearchPage({
             const errorJson = JSON.parse(errorText);
             console.warn(
               "  📊 Error Response JSON:",
-              JSON.stringify(errorJson, null, 2)
+              JSON.stringify(errorJson, null, 2),
             );
           } catch (jsonError) {
             console.warn(
-              "  📋 Error response is not JSON, showing as text above"
+              "  📋 Error response is not JSON, showing as text above",
             );
           }
         } catch (textError) {
@@ -594,7 +610,7 @@ export default function SearchPage({
   };
 
   // Automatically search for properties within the isochrone polygon
-  const handleSearchPropertiesInIsochrone = async (isochroneData: any) => {
+  const handleSearchPropertiesInIsochrone = async (isochroneData: unknown) => {
     // Get user preferences for the search
     let userPrefs = {};
     try {
@@ -605,7 +621,7 @@ export default function SearchPage({
     } catch (prefError) {
       console.warn(
         "⚠️ Could not fetch user preferences, using empty preferences:",
-        prefError
+        prefError,
       );
     }
 
@@ -619,12 +635,12 @@ export default function SearchPage({
       setHasSearched,
       setCurrentPage,
       setShowPropertyModals,
-      saveSearchResultsToLocalStorage
+      saveSearchResultsToLocalStorage,
     );
   };
 
   // Use centralized isochrone renderer
-  const renderIsochronePolygonWrapper = (isochroneData: any) => {
+  const renderIsochronePolygonWrapper = (isochroneData: unknown) => {
     if (!googleMapRef.current) {
       console.warn("❌ Google Map not initialized yet");
       return;
@@ -639,10 +655,12 @@ export default function SearchPage({
   };
 
   // Use imported renderImportantLocationMarkers function
-  const renderImportantLocationMarkersWrapper = async (isochroneData: any) => {
+  const renderImportantLocationMarkersWrapper = async (
+    isochroneData: unknown,
+  ) => {
     if (!googleMapRef.current) {
       console.warn(
-        "❌ Cannot render important location markers: map not available"
+        "❌ Cannot render important location markers: map not available",
       );
       return;
     }
@@ -690,7 +708,7 @@ export default function SearchPage({
                   // Check if Google Maps API is loaded before geocoding
                   if (!window.google || !window.google.maps) {
                     console.warn(
-                      `⚠️ Google Maps API not loaded yet, skipping geocoding for ${home.address}`
+                      `⚠️ Google Maps API not loaded yet, skipping geocoding for ${home.address}`,
                     );
                     lat = 33.749; // Atlanta fallback
                     lng = -84.388;
@@ -710,7 +728,7 @@ export default function SearchPage({
                       lng = location.lng();
                     } else {
                       console.warn(
-                        `⚠️ Could not geocode ${home.address}, using fallback coordinates`
+                        `⚠️ Could not geocode ${home.address}, using fallback coordinates`,
                       );
                       lat = 33.749; // Atlanta fallback
                       lng = -84.388;
@@ -719,7 +737,7 @@ export default function SearchPage({
                 } catch (error) {
                   console.error(
                     `❌ Geocoding error for ${home.address}:`,
-                    error
+                    error,
                   );
                   lat = 33.749; // Atlanta fallback
                   lng = -84.388;
@@ -743,12 +761,12 @@ export default function SearchPage({
                 listingStatus: home.listing_status || "FOR_SALE",
                 imageUrl: home.image_url || undefined,
               };
-            })
+            }),
           );
 
           // Extract addresses for favoriteAddresses state (for compatibility)
           const favoriteAddresses = rawHomes
-            .map((home: any) => home.address)
+            .map((home: unknown) => home.address)
             .filter(Boolean);
 
           // Update state
@@ -785,7 +803,11 @@ export default function SearchPage({
     }
     setIsUpdatingMarkers(true);
 
-    console.log("🗺️ [MARKER_DEBUG] Starting marker update for", results.length, "results");
+    console.log(
+      "🗺️ [MARKER_DEBUG] Starting marker update for",
+      results.length,
+      "results",
+    );
 
     // Clear existing HOME markers and overlays (but preserve important location markers)
     markersRef.current.forEach((marker) => {
@@ -805,13 +827,18 @@ export default function SearchPage({
 
     console.log("🗺️ [MARKER_DEBUG] Marker data:", {
       totalResults: results.length,
-      properties: currentData.map(p => ({ id: p.id, address: p.address, lat: p.lat, lng: p.lng }))
+      properties: currentData.map((p) => ({
+        id: p.id,
+        address: p.address,
+        lat: p.lat,
+        lng: p.lng,
+      })),
     });
 
     // Check if Google Maps API and AdvancedMarkerElement are available
     if (!window.google || !window.google.maps || !window.google.maps.marker) {
       console.warn(
-        "⚠️ Google Maps API or AdvancedMarkerElement not available yet"
+        "⚠️ Google Maps API or AdvancedMarkerElement not available yet",
       );
       setIsUpdatingMarkers(false);
       return;
@@ -820,16 +847,19 @@ export default function SearchPage({
     const { AdvancedMarkerElement } = window.google.maps.marker;
 
     currentData.forEach((result, index) => {
-      console.log(`🗺️ [MARKER_DEBUG] Creating marker ${index + 1}/${currentData.length} for property:`, {
-        id: result.id,
-        address: result.address,
-        lat: result.lat,
-        lng: result.lng
-      });
+      console.log(
+        `🗺️ [MARKER_DEBUG] Creating marker ${index + 1}/${currentData.length} for property:`,
+        {
+          id: result.id,
+          address: result.address,
+          lat: result.lat,
+          lng: result.lng,
+        },
+      );
       // Use backend ML match score directly
       const score = calculatePropertyScore(result);
       // Simple color mapping based on score
-     
+
       const isSaved = isHomeSaved(result.id);
 
       // Create custom marker element for AdvancedMarkerElement
@@ -851,7 +881,7 @@ export default function SearchPage({
       console.log(`🗺️ [MARKER_DEBUG] Created marker for ${result.address}:`, {
         position: { lat: result.lat, lng: result.lng },
         hasMap: !!marker.map,
-        markerElement: markerElement
+        markerElement: markerElement,
       });
 
       // Create property overlay using MapPropertyCard component
@@ -927,7 +957,7 @@ export default function SearchPage({
 
       const overlay = new PropertyOverlay(
         new google.maps.LatLng(result.lat, result.lng),
-        overlayDiv
+        overlayDiv,
       );
       overlay.setMap(googleMapRef.current);
 
@@ -939,11 +969,11 @@ export default function SearchPage({
     console.log("🗺️ [MARKER_DEBUG] Marker creation complete:", {
       totalMarkersCreated: markersRef.current.length,
       expectedCount: currentData.length,
-      markerPositions: markersRef.current.map(m => ({
+      markerPositions: markersRef.current.map((m) => ({
         position: m.position,
         hasMap: !!m.map,
-        title: m.title
-      }))
+        title: m.title,
+      })),
     });
 
     // Fit map to show current page markers with adaptive zoom
@@ -966,7 +996,7 @@ export default function SearchPage({
       if (response.success) {
         // Update local state
         const isAlreadySaved = savedHomes.find(
-          (home) => home.id === property.id
+          (home) => home.id === property.id,
         );
 
         if (!isAlreadySaved) {
@@ -1002,7 +1032,7 @@ export default function SearchPage({
       if (!property) {
         console.error(
           "❌ Property not found in local savedHomes state:",
-          propertyId
+          propertyId,
         );
         console.error("🗑️ ===== HOME UNSAVE OPERATION FAILED (FRONTEND) =====");
         return;
@@ -1134,7 +1164,7 @@ export default function SearchPage({
                     <CardCarousel
                       items={searchResults.slice(
                         currentPage * PROPERTIES_PER_PAGE,
-                        (currentPage + 1) * PROPERTIES_PER_PAGE
+                        (currentPage + 1) * PROPERTIES_PER_PAGE,
                       )}
                       renderItem={(property: SearchResult, _index: number) => (
                         <PropertyCard
@@ -1182,7 +1212,7 @@ export default function SearchPage({
                 <CardCarousel
                   items={savedHomes.slice(
                     currentPage * PROPERTIES_PER_PAGE,
-                    (currentPage + 1) * PROPERTIES_PER_PAGE
+                    (currentPage + 1) * PROPERTIES_PER_PAGE,
                   )}
                   renderItem={(property: SearchResult, _index: number) => (
                     <PropertyCard
@@ -1294,7 +1324,7 @@ export default function SearchPage({
                           (currentPage + 1) * PROPERTIES_PER_PAGE,
                           activeTab === "results"
                             ? searchResults.length
-                            : savedHomes.length
+                            : savedHomes.length,
                         )}
                         <span className="mx-1">/</span>
                         {activeTab === "results"
@@ -1657,7 +1687,7 @@ export default function SearchPage({
                             (currentPage + 1) * PROPERTIES_PER_PAGE,
                             activeTab === "results"
                               ? searchResults.length
-                              : savedHomes.length
+                              : savedHomes.length,
                           )}{" "}
                           of{" "}
                           {activeTab === "results"

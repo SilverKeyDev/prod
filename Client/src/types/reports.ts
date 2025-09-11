@@ -28,11 +28,11 @@ export interface CompareReport {
 export interface Strategy {
   id: string;
   property_address: string;
-  strategy_type: 'negotiation' | 'offer' | 'inspection';
+  strategy_type: "negotiation" | "offer" | "inspection";
   recommendations: {
     title: string;
     description: string;
-    priority: 'high' | 'medium' | 'low';
+    priority: "high" | "medium" | "low";
     action_items: string[];
   }[];
   market_analysis: {
@@ -47,7 +47,7 @@ export interface MarketInsight {
   id: string;
   title: string;
   content: string;
-  insight_type: 'trend' | 'opportunity' | 'warning' | 'tip';
+  insight_type: "trend" | "opportunity" | "warning" | "tip";
   location?: string;
   property_type?: string;
   relevance_score: number;

@@ -2,7 +2,7 @@
 
 /* 1 Wrapper should be full-width with no accidental centering */
 .sk-carousel .carousel .slider-wrapper {
-  width: auto !important;     /* 100% also OK; 'auto' respects container */
+  width: auto !important; /* 100% also OK; 'auto' respects container */
   margin: 0 !important;
 }
 
@@ -24,11 +24,11 @@
   width: 100% !important;
   max-width: 100% !important;
   margin: 0 !important;
-  display: flex !important;                  /* the library uses flex; reinforce it */
-  gap: var(--gap, 1rem) !important;          /* configurable card spacing */
-  justify-content: flex-start !important;    /* respect left boundary */
+  display: flex !important; /* the library uses flex; reinforce it */
+  gap: var(--gap, 1rem) !important; /* configurable card spacing */
+  justify-content: flex-start !important; /* respect left boundary */
   box-sizing: border-box !important;
-  overflow: visible !important;              /* allow inner shadows, etc. */
+  overflow: visible !important; /* allow inner shadows, etc. */
   position: relative !important;
 }
 
@@ -57,7 +57,7 @@
 
 /* 7 Reserve real space for arrows so content never sits underneath */
 .sk-carousel-clip .carousel .slider-wrapper {
-  padding-inline: 5rem !important;        /* MUST match arrow width below */
+  padding-inline: 5rem !important; /* MUST match arrow width below */
 }
 
 /* 8 Arrow sizing and vertical centering within the reserved padded zone */
@@ -68,7 +68,7 @@
   z-index: 10 !important;
   top: 50% !important;
   transform: translateY(-50%) !important;
-  width: 2.75rem !important;                 /* keep in sync with wrapper padding */
+  width: 2.75rem !important; /* keep in sync with wrapper padding */
   height: 2.75rem !important;
   display: flex !important;
   align-items: center !important;

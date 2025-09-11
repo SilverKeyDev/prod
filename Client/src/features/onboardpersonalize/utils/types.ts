@@ -3,7 +3,7 @@
 export interface OnboardingData {
   // Metadata
   preferences_version?: string;
-  
+
   // Demographics
   pets?: string;
   age?: number;
@@ -33,7 +33,11 @@ export interface OnboardingData {
 
   // Location & Housing
   preferred_regions?: { name: string; address: string }[];
-  important_locations?: { name: string; address: string; commute_tolerance?: number }[];
+  important_locations?: {
+    name: string;
+    address: string;
+    commute_tolerance?: number;
+  }[];
   walkability_importance?: string;
 
   // Communication

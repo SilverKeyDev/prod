@@ -1,12 +1,12 @@
-import React from 'react';
+import React from "react";
 
 export interface CardPriceBubbleProps {
   /** Price to display */
   price: string | number;
   /** Position of the bubble */
-  position?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+  position?: "top-left" | "top-right" | "bottom-left" | "bottom-right";
   /** Size variant */
-  size?: 'xs' | 'sm' | 'md' | 'lg';
+  size?: "xs" | "sm" | "md" | "lg";
   /** Additional className */
   className?: string;
 }
@@ -30,12 +30,12 @@ const BUBBLE_SIZE: Record<NonNullable<CardPriceBubbleProps["size"]>, string> = {
 
 const CardPriceBubble: React.FC<CardPriceBubbleProps> = ({
   price,
-  position = 'top-right',
-  size = 'sm',
-  className = ''
+  position = "top-right",
+  size = "sm",
+  className = "",
 }) => {
   const formatPrice = (price: string | number): string => {
-    if (typeof price === 'number') {
+    if (typeof price === "number") {
       return `$${price.toLocaleString()}`;
     }
     return price.toString();
@@ -45,11 +45,13 @@ const CardPriceBubble: React.FC<CardPriceBubbleProps> = ({
 
   return (
     <div className={`absolute ${POSITION_MAP[position]} z-10`}>
-      <div className={`
+      <div
+        className={`
         bg-neutral-50/95 backdrop-blur-sm rounded-full border border-neutral-200/50
         flex items-center justify-center font-semibold text-brand-primary
         ${bubbleClass} ${className}
-      `}>
+      `}
+      >
         {formatPrice(price)}
       </div>
     </div>

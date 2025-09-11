@@ -11,9 +11,13 @@ interface AppWithRouterProps {
   setLoading: (loading: boolean) => void;
 }
 
-export function AppWithRouter({ user, handleLogout, setLoading }: AppWithRouterProps) {
+export function AppWithRouter({
+  user,
+  handleLogout,
+  setLoading,
+}: AppWithRouterProps) {
   const { authReady } = useAuth();
-  
+
   // Session timeout management for authenticated users - now inside Router context
   const sessionTimeout = useSessionTimeout({
     idleTimeoutMs: 30 * 60 * 1000, // 30 minutes idle
@@ -24,7 +28,7 @@ export function AppWithRouter({ user, handleLogout, setLoading }: AppWithRouterP
   // Wait for AuthProvider to be ready before showing routes
   useEffect(() => {
     if (authReady) {
-      console.log('🔒 [APP] AuthProvider ready, stopping loading state');
+      console.log("🔒 [APP] AuthProvider ready, stopping loading state");
       setLoading(false);
     }
   }, [authReady, setLoading]);

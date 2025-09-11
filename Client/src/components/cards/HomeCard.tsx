@@ -81,8 +81,8 @@ export default function HomeCard({
         typeof homeDesc.price === "string"
           ? homeDesc.price
           : typeof homeDesc.price === "number"
-          ? `$${homeDesc.price.toLocaleString()}`
-          : "Price not available",
+            ? `$${homeDesc.price.toLocaleString()}`
+            : "Price not available",
       bedrooms: homeDesc.bedrooms || 3,
       bathrooms: homeDesc.bathrooms || 2,
       sqft: homeDesc.sqft || 1500,
@@ -138,7 +138,7 @@ export default function HomeCard({
 
     localStorage.setItem(
       "generateReportState",
-      JSON.stringify(generateReportState)
+      JSON.stringify(generateReportState),
     );
 
     // Navigate to the generate report page

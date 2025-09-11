@@ -21,6 +21,7 @@ export function formatFilenameToAddress(filename: string): string {
   if (parts.length > 0 && /^[0-9a-f]{10,}$/i.test(parts[0])) {
     parts = parts.slice(1);
   } else {
+    // No hash pattern found, continue with normal processing
   }
 
   if (parts.length < 3) return parts.join(" ");
@@ -57,8 +58,33 @@ export function formatFilenameToAddress(filename: string): string {
 
   // 7) street vs city split: find the last street suffix BEFORE the state
   const streetSuffixes = new Set([
-    "St","Ave","Rd","Dr","Ln","Blvd","Way","Ct","Pl","Ter","Pkwy",
-    "Street","Avenue","Road","Drive","Lane","Boulevard","Way","Court","Place","Terrace","Parkway","Trail","Cir","Circle","Hwy","Highway"
+    "St",
+    "Ave",
+    "Rd",
+    "Dr",
+    "Ln",
+    "Blvd",
+    "Way",
+    "Ct",
+    "Pl",
+    "Ter",
+    "Pkwy",
+    "Street",
+    "Avenue",
+    "Road",
+    "Drive",
+    "Lane",
+    "Boulevard",
+    "Way",
+    "Court",
+    "Place",
+    "Terrace",
+    "Parkway",
+    "Trail",
+    "Cir",
+    "Circle",
+    "Hwy",
+    "Highway",
   ]);
 
   let streetEndIndex = -1;
@@ -80,14 +106,17 @@ export function formatFilenameToAddress(filename: string): string {
     // Soft guess: if address starts with a number, keep tokens until we hit something
     // that looks like a city start (usually after the number + a couple tokens).
     const startsWithNumber = /^\d+[A-Za-z]?$/.test(parts[0]);
-    const cutoff = startsWithNumber ? Math.min(4, stateIndex) : Math.min(3, stateIndex);
+    const cutoff = startsWithNumber
+      ? Math.min(4, stateIndex)
+      : Math.min(3, stateIndex);
     streetParts = parts.slice(0, cutoff);
     cityParts = parts.slice(cutoff, stateIndex);
   }
 
   const state = parts[stateIndex];
   const zip = zipIndex === stateIndex + 1 ? parts[zipIndex] : undefined;
-  const tail = zipIndex > -1 ? parts.slice(zipIndex + 1) : parts.slice(stateIndex + 1); // country already removed
+  const tail =
+    zipIndex > -1 ? parts.slice(zipIndex + 1) : parts.slice(stateIndex + 1); // country already removed
 
   const formatted: string[] = [];
   if (streetParts.length) formatted.push(streetParts.join(" "));
@@ -109,7 +138,7 @@ function naiveJoin(tokens: string[]): string {
 function titleCase(s: string): string {
   return s
     .split(" ")
-    .map(w => (w.length ? w[0].toUpperCase() + w.slice(1).toLowerCase() : w))
+    .map((w) => (w.length ? w[0].toUpperCase() + w.slice(1).toLowerCase() : w))
     .join(" ");
 }
 
@@ -131,15 +160,19 @@ export function formatDate(dateString: string): string {
   if (!dateString) return "";
   const date = new Date(dateString);
   if (isNaN(date.getTime())) return dateString;
-  return date.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
 }
 
 /**
  * Formats a price with currency formatting.
  */
-export function formatPrice(price: number, currency: string = 'USD'): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
+export function formatPrice(price: number, currency: string = "USD"): string {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
     currency: currency,
     maximumFractionDigits: 0,
   }).format(price);
@@ -162,14 +195,14 @@ export function formatStructuredAddress(address: {
  */
 export function getStatusColor(status: string): string {
   switch (status.toLowerCase()) {
-    case 'recently_sold':
-      return 'bg-green-100 text-green-800';
-    case 'for_sale':
-      return 'bg-blue-100 text-blue-800';
-    case 'off_market':
-      return 'bg-gray-100 text-gray-800';
+    case "recently_sold":
+      return "bg-green-100 text-green-800";
+    case "for_sale":
+      return "bg-blue-100 text-blue-800";
+    case "off_market":
+      return "bg-gray-100 text-gray-800";
     default:
-      return 'bg-gray-100 text-gray-800';
+      return "bg-gray-100 text-gray-800";
   }
 }
 
@@ -177,14 +210,17 @@ export function getStatusColor(status: string): string {
  * Formats home status text (converts underscores to spaces and title cases).
  */
 export function formatHomeStatus(status: string): string {
-  return status.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
+  return status
+    .replace(/_/g, " ")
+    .toLowerCase()
+    .replace(/\b\w/g, (l) => l.toUpperCase());
 }
 
 /**
  * Formats agent name to title case.
  */
 export function formatAgentName(name: string): string {
-  return name.toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
+  return name.toLowerCase().replace(/\b\w/g, (l) => l.toUpperCase());
 }
 
 /**
@@ -192,11 +228,11 @@ export function formatAgentName(name: string): string {
  * Acres: 2 decimal places, Square footage: 0 decimal places.
  */
 export function formatSquareFootage(value: number, units?: string): string {
-  if (units?.toLowerCase().includes('acre')) {
+  if (units?.toLowerCase().includes("acre")) {
     return `${value.toFixed(2)} ${units.toLowerCase()}`;
   } else {
     // Always round to integer and format with commas for consistency
-    return `${Math.round(value).toLocaleString()} ${units?.toLowerCase() || 'sqft'}`;
+    return `${Math.round(value).toLocaleString()} ${units?.toLowerCase() || "sqft"}`;
   }
 }
 
@@ -205,25 +241,28 @@ export function formatSquareFootage(value: number, units?: string): string {
  */
 export function formatLotSize(lotSize: string | number | undefined): string {
   if (!lotSize) return "N/A";
-  
-  if (typeof lotSize === 'number') {
-    return formatSquareFootage(lotSize, 'sqft');
+
+  if (typeof lotSize === "number") {
+    return formatSquareFootage(lotSize, "sqft");
   }
-  
-  if (typeof lotSize === 'string') {
+
+  if (typeof lotSize === "string") {
     // If it already contains units, return as-is
-    if (lotSize.toLowerCase().includes('acre') || lotSize.toLowerCase().includes('sqft')) {
+    if (
+      lotSize.toLowerCase().includes("acre") ||
+      lotSize.toLowerCase().includes("sqft")
+    ) {
       return lotSize;
     }
-    
+
     // Try to parse as number and format
-    const numValue = parseFloat(lotSize.replace(/[^\d.]/g, ''));
+    const numValue = parseFloat(lotSize.replace(/[^\d.]/g, ""));
     if (!isNaN(numValue)) {
-      return formatSquareFootage(numValue, 'sqft');
+      return formatSquareFootage(numValue, "sqft");
     }
-    
+
     return lotSize;
   }
-  
+
   return "N/A";
 }

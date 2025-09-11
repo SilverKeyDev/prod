@@ -2,9 +2,14 @@
    Fetch Utilities & Types
    ========================= */
 
-import { HttpError, AuthenticationError, isAuthenticationError, handleAuthenticationError } from './errors';
-import { logApiRequest, logApiResponse } from './logging';
-import { getAuthToken, createAuthHeaders } from './auth';
+import {
+  HttpError,
+  AuthenticationError,
+  isAuthenticationError,
+  handleAuthenticationError,
+} from "./errors";
+import { logApiRequest, logApiResponse } from "./logging";
+import { getAuthToken, createAuthHeaders } from "./auth";
 
 type FetchJsonOpts = RequestInit & {
   acceptStatuses?: number[];
@@ -12,11 +17,11 @@ type FetchJsonOpts = RequestInit & {
 };
 
 type RetryOpts = {
-  retries?: number;                 // default 2
-  retryOnStatuses?: number[];       // default [429, 502, 503, 504]
-  retryDelayMs?: number;            // base delay, default 400
-  backoffFactor?: number;           // default 2
-  jitter?: boolean;                 // default true
+  retries?: number; // default 2
+  retryOnStatuses?: number[]; // default [429, 502, 503, 504]
+  retryDelayMs?: number; // base delay, default 400
+  backoffFactor?: number; // default 2
+  jitter?: boolean; // default true
 };
 
 function toPlainHeaderObject(h?: HeadersInit): Record<string, string> {
@@ -41,55 +46,66 @@ function toPlainHeaderObject(h?: HeadersInit): Record<string, string> {
  * Returns parsed JSON when content-type is JSON; otherwise returns `undefined`
  * only if body is empty or status is explicitly accepted.
  */
-export async function fetchJson<T>(url: string, opts: FetchJsonOpts = {}): Promise<T> {
+export async function fetchJson<T>(
+  url: string,
+  opts: FetchJsonOpts = {},
+): Promise<T> {
   const { acceptStatuses = [], timeout = 30000, ...init } = opts;
   const startTime = Date.now();
 
   // Log request
-  const method = (init.method || 'GET').toUpperCase();
-  
+  const method = (init.method || "GET").toUpperCase();
+
   logApiRequest(method, url);
 
   // Add timeout support - only create new controller if no signal provided
   let controller: AbortController | undefined;
   let timer: NodeJS.Timeout | undefined;
   let signal: AbortSignal;
-  
+
   if (init.signal) {
     // Use existing signal if provided
     signal = init.signal;
   } else {
     // Create new controller with timeout
     controller = new AbortController();
-    timer = setTimeout(() => {
-      if (controller && !controller.signal.aborted) {
-        controller.abort(new Error('Request timeout'));
-      }
-    }, Math.max(300000, timeout)); // Minimum 5 minute timeout for AI operations
+    timer = setTimeout(
+      () => {
+        if (controller && !controller.signal.aborted) {
+          controller.abort(new Error("Request timeout"));
+        }
+      },
+      Math.max(300000, timeout),
+    ); // Minimum 5 minute timeout for AI operations
     signal = controller.signal;
   }
 
   try {
     const res = await fetch(url, { ...init, signal });
 
-    const contentType = res.headers.get('content-type') || '';
+    const contentType = res.headers.get("content-type") || "";
     const raw = await res.text();
 
     // Non-OK handling (unless caller opted-in via acceptStatuses)
     if (!res.ok && !acceptStatuses.includes(res.status)) {
-      let parsedBody: any;
+      let parsedBody: Record<string, unknown>;
       try {
-        if (contentType.includes('application/json') && raw.trim()) {
+        if (contentType.includes("application/json") && raw.trim()) {
           parsedBody = JSON.parse(raw);
 
           // Auth errors that should trigger logout
           if (res.status === 401 && parsedBody?.error) {
-            const authErrorCodes = ['TOKEN_EXPIRED', 'INVALID_TOKEN', 'UNAUTHORIZED', 'NO_TOKEN'];
+            const authErrorCodes = [
+              "TOKEN_EXPIRED",
+              "INVALID_TOKEN",
+              "UNAUTHORIZED",
+              "NO_TOKEN",
+            ];
             if (authErrorCodes.includes(parsedBody.error)) {
               throw new AuthenticationError(
                 parsedBody.error,
-                parsedBody.message || 'Authentication required',
-                res.status
+                parsedBody.message || "Authentication required",
+                res.status,
               );
             }
           }
@@ -102,12 +118,12 @@ export async function fetchJson<T>(url: string, opts: FetchJsonOpts = {}): Promi
     }
 
     // Handle non-JSON responses
-    if (!contentType.includes('application/json')) {
-      if (acceptStatuses.includes(res.status) || raw.trim() === '') {
+    if (!contentType.includes("application/json")) {
+      if (acceptStatuses.includes(res.status) || raw.trim() === "") {
         return undefined as unknown as T;
       }
       throw new Error(
-        `Expected JSON from ${url} but got ${contentType || 'unknown type'}. Body: ${raw.slice(0, 200)}`
+        `Expected JSON from ${url} but got ${contentType || "unknown type"}. Body: ${raw.slice(0, 200)}`,
       );
     }
 
@@ -124,28 +140,34 @@ export async function fetchJson<T>(url: string, opts: FetchJsonOpts = {}): Promi
     }
   } catch (error) {
     const duration = Date.now() - startTime;
-    
+
     // Log error responses
     if (error instanceof HttpError) {
       logApiResponse(method, url, error.status, duration);
     } else if (error instanceof AuthenticationError) {
       logApiResponse(method, url, error.status, duration);
     } else {
-      console.error('API_REQUEST', `${method} ${url} - Network Error`, {
+      console.error("API_REQUEST", `${method} ${url} - Network Error`, {
         method,
-        url: url.replace(/\/\d+/g, '/:id'),
+        url: url.replace(/\/\d+/g, "/:id"),
         error: error instanceof Error ? error.message : String(error),
         duration: `${duration}ms`,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     }
     // Re-throw known types / aborts as-is
     if (error instanceof AuthenticationError) throw error;
     if (error instanceof HttpError) throw error;
-    if (error instanceof Error && (error.name === 'AbortError' || error.name === 'TimeoutError')) throw error;
+    if (
+      error instanceof Error &&
+      (error.name === "AbortError" || error.name === "TimeoutError")
+    )
+      throw error;
 
     // Wrap other errors
-    throw new Error(`Network error for ${url}: ${error instanceof Error ? error.message : String(error)}`);
+    throw new Error(
+      `Network error for ${url}: ${error instanceof Error ? error.message : String(error)}`,
+    );
   } finally {
     if (timer) {
       clearTimeout(timer);
@@ -164,7 +186,7 @@ async function sleep(ms: number) {
 export async function fetchJsonWithRetry<T>(
   url: string,
   init: FetchJsonOpts,
-  retry: RetryOpts = {}
+  retry: RetryOpts = {},
 ): Promise<T> {
   const {
     retries = 2,
@@ -185,10 +207,14 @@ export async function fetchJsonWithRetry<T>(
 
       // Don't retry auth or abort
       if (err instanceof AuthenticationError) throw err;
-      if (err instanceof Error && err.name === 'AbortError') throw err;
+      if (err instanceof Error && err.name === "AbortError") throw err;
 
       // Retry for certain HTTP statuses
-      if (err instanceof HttpError && retryOnStatuses.includes(err.status) && attempt <= retries) {
+      if (
+        err instanceof HttpError &&
+        retryOnStatuses.includes(err.status) &&
+        attempt <= retries
+      ) {
         // Respect Retry-After for 429/503 if present
         let wait = delay;
         if (err.status === 429 || err.status === 503) {
@@ -212,7 +238,9 @@ export async function fetchJsonWithRetry<T>(
         /network|fetch failed|load failed|TypeError/i.test(err.message);
 
       if (transient && attempt <= retries) {
-        let wait = jitter ? Math.round(delay * (Math.random() * 0.3 + 0.85)) : delay;
+        const wait = jitter
+          ? Math.round(delay * (Math.random() * 0.3 + 0.85))
+          : delay;
         await sleep(wait);
         delay = delay * backoffFactor;
         continue;
@@ -235,7 +263,7 @@ export function createAbortManager() {
     controllers.clear();
   };
 
-  const withAbort = async <T,>(fn: (signal: AbortSignal) => Promise<T>) => {
+  const withAbort = async <T>(fn: (signal: AbortSignal) => Promise<T>) => {
     const controller = new AbortController();
     controllers.add(controller);
     try {
@@ -254,40 +282,40 @@ export function createAbortManager() {
 
 export interface ApiRequestOptions extends RequestInit, RetryOpts {
   includeCredentials?: boolean; // default true
-  includeAuth?: boolean;        // default true
+  includeAuth?: boolean; // default true
   authToken?: string;
   acceptStatuses?: number[];
-  timeout?: number;             // default 30000
-  useCors?: boolean;            // default true
+  timeout?: number; // default 30000
+  useCors?: boolean; // default true
   baseUrl?: string;
 }
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
   error?: string;
   message?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /* =========================
    Configuration
    ========================= */
 
-const normalizeBase = (s: string) => s.replace(/\/+$/, '');
+const normalizeBase = (s: string) => s.replace(/\/+$/, "");
 
 const getBaseUrl = (): string => {
   const env = import.meta.env.VITE_API_BASE_URL;
-  return normalizeBase(env || '');
+  return normalizeBase(env || "");
 };
 
 /* =========================
    Core API Request Function
    ========================= */
 
-export async function apiRequest<T = any>(
+export async function apiRequest<T = unknown>(
   endpoint: string,
-  options: ApiRequestOptions = {}
+  options: ApiRequestOptions = {},
 ): Promise<T> {
   const {
     includeCredentials = true,
@@ -307,7 +335,9 @@ export async function apiRequest<T = any>(
 
   // Construct full URL (avoid double slashes)
   const base = normalizeBase(baseUrl || getBaseUrl());
-  const url = endpoint.startsWith('http') ? endpoint : `${base}${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
+  const url = endpoint.startsWith("http")
+    ? endpoint
+    : `${base}${endpoint.startsWith("/") ? "" : "/"}${endpoint}`;
 
   // Get auth token & build headers
   const token = authToken ?? (includeAuth ? getAuthToken() : null);
@@ -320,8 +350,8 @@ export async function apiRequest<T = any>(
   const requestOptions: RequestInit = {
     ...fetchOptions,
     headers: mergedHeaders,
-    mode: useCors ? 'cors' : fetchOptions.mode,
-    credentials: includeCredentials ? 'include' : fetchOptions.credentials,
+    mode: useCors ? "cors" : fetchOptions.mode,
+    credentials: includeCredentials ? "include" : fetchOptions.credentials,
   };
 
   try {
@@ -329,7 +359,7 @@ export async function apiRequest<T = any>(
     return await fetchJsonWithRetry<T>(
       url,
       { ...requestOptions, acceptStatuses, timeout },
-      { retries, retryOnStatuses, retryDelayMs, backoffFactor, jitter }
+      { retries, retryOnStatuses, retryDelayMs, backoffFactor, jitter },
     );
   } catch (error) {
     if (isAuthenticationError(error)) {

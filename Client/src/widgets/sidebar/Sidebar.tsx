@@ -29,12 +29,9 @@ import ConfirmationDialog from "../../components/modals/ConfirmationDialog";
 import { useUser } from "../../context/UserContext";
 import { useAuth } from "../../app/providers";
 import WhiteLogo from "../../components/ui/asset/WhiteLogo";
-import {
-  getButtonStyles,
-  getSubItemStyles,
-} from "./sidebarStyles";
+import { getButtonStyles, getSubItemStyles } from "./sidebarStyles";
 interface SidebarProps {
-  user?: UserProfile; 
+  user?: UserProfile;
   onLogout: () => void;
   expanded: boolean;
   onToggleExpanded: () => void;
@@ -196,7 +193,7 @@ export default function Sidebar({
   const { user: authUser } = useAuth();
   // Use userProfile from UserContext for all user info
   const { userProfile, loading: userProfileLoading } = useUser();
-  
+
   // Use auth user data if available, fallback to userProfile
   const displayUser = authUser || userProfile;
   const isLoading = userProfileLoading && !authUser;
@@ -207,7 +204,7 @@ export default function Sidebar({
       decide: false,
       negotiate: false,
       close: false,
-    }
+    },
   );
   const location = useLocation();
 
@@ -334,10 +331,18 @@ export default function Sidebar({
                       <Link
                         to={category.items[0]?.href || "/"}
                         onClick={() => {
-                          console.log('[SIDEBAR] 🏠 Dashboard navigation clicked:', {
-                            href: category.items[0]?.href || "/",
-                            userProfile: userProfile ? { id: userProfile.id, email: userProfile.email } : null
-                          });
+                          console.log(
+                            "[SIDEBAR] 🏠 Dashboard navigation clicked:",
+                            {
+                              href: category.items[0]?.href || "/",
+                              userProfile: userProfile
+                                ? {
+                                    id: userProfile.id,
+                                    email: userProfile.email,
+                                  }
+                                : null,
+                            },
+                          );
                           onLinkClick?.();
                         }}
                         className={`${getButtonStyles(isActive("/"))} ${
@@ -360,7 +365,7 @@ export default function Sidebar({
                         <button
                           onClick={() => toggleCategory(categoryKey)}
                           className={`${getButtonStyles(
-                            isCategoryActive(category.items)
+                            isCategoryActive(category.items),
                           )} relative group ${
                             !expanded ? "justify-center" : "justify-between"
                           } cursor-pointer`}
@@ -418,7 +423,7 @@ export default function Sidebar({
                                   onLinkClick?.();
                                 }}
                                 className={`${getSubItemStyles(
-                                  isActive(item.href)
+                                  isActive(item.href),
                                 )} ${
                                   !expanded ? "justify-center py-2" : "py-2"
                                 }`}
@@ -444,7 +449,7 @@ export default function Sidebar({
                       </>
                     )}
                   </div>
-                )
+                ),
               )}
             </nav>
           </div>
@@ -455,7 +460,7 @@ export default function Sidebar({
               onClick={handleLogoutClick}
               className={`${getButtonStyles(false).replace(
                 "text-white/70",
-                "text-white"
+                "text-white",
               )} ${!expanded ? "justify-center py-3" : "py-3"} cursor-pointer`}
             >
               <LogOut className={`w-6 h-6 ${expanded ? "mr-3" : ""}`} />

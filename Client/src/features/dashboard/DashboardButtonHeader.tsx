@@ -113,7 +113,7 @@ const TimelineChecklist: React.FC<TimelineChecklistProps> = ({
   const [openKey, setOpenKey] = useState<string | null>(null);
 
   const completedIndex = TIMELINE_STEPS.findIndex(
-    (s) => s.key === completedStepKey
+    (s) => s.key === completedStepKey,
   );
 
   // Horizontal timeline progress (from TimelineProgress)

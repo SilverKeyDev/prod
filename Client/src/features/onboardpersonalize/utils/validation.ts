@@ -10,7 +10,9 @@ export interface ValidationResult {
  * Shared validation function for onboarding and personalization forms
  * Used by both OnboardingPage and PersonalizationPage
  */
-export const validateOnboardingData = (formData: OnboardingData): ValidationResult => {
+export const validateOnboardingData = (
+  formData: OnboardingData,
+): ValidationResult => {
   const missingFields: string[] = [];
   const errors: string[] = [];
 
@@ -99,9 +101,7 @@ export const validateOnboardingData = (formData: OnboardingData): ValidationResu
         missingFields.push(`Important location ${index + 1} address`);
       }
       if (!location.commute_tolerance || location.commute_tolerance <= 0) {
-        missingFields.push(
-          `Important location ${index + 1} commute tolerance`
-        );
+        missingFields.push(`Important location ${index + 1} commute tolerance`);
       }
     });
   }

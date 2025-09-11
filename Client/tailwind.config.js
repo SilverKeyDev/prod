@@ -1,8 +1,8 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
-    "./index.html",                // include root html
-    "./src/**/*.{js,ts,jsx,tsx}",  // scan all source files
+    "./index.html", // include root html
+    "./src/**/*.{js,ts,jsx,tsx}", // scan all source files
   ],
   theme: {
     screens: {
@@ -17,44 +17,44 @@ export default {
       colors: {
         // Muted Brand Colors with Low Saturation
         brand: {
-          primary: 'hsl(210, 20%, 25%)',    // Muted navy
-          accent: 'hsl(25, 18%, 45%)',      // Muted brown accent
-          secondary: 'hsl(85, 15%, 55%)',   // Muted olive
-          tertiary: 'hsl(45, 20%, 75%)',    // Muted beige
+          primary: "hsl(210, 20%, 25%)", // Muted navy
+          accent: "hsl(25, 18%, 45%)", // Muted brown accent
+          secondary: "hsl(85, 15%, 55%)", // Muted olive
+          tertiary: "hsl(45, 20%, 75%)", // Muted beige
         },
         brown: {
           DEFAULT: "#8C6F5A",
           light: "#8C6F5A",
-          muted: 'hsl(25, 18%, 45%)',       // Low saturation brown
+          muted: "hsl(25, 18%, 45%)", // Low saturation brown
         },
         olive: {
           DEFAULT: "#A3B18A",
           light: "#97a77b",
-          muted: 'hsl(85, 15%, 55%)',       // Low saturation olive
+          muted: "hsl(85, 15%, 55%)", // Low saturation olive
         },
         beige: {
           DEFAULT: "#D2C3A1",
           light: "#D2C3A1",
-          muted: 'hsl(45, 20%, 75%)',       // Low saturation beige
+          muted: "hsl(45, 20%, 75%)", // Low saturation beige
         },
         gold: {
           DEFAULT: "#D2C3A1",
           light: "#D2C3A1",
-          lighter: 'hsl(45, 30%, 80%)',
-          muted: 'hsl(45, 20%, 70%)',       // Low saturation gold
+          lighter: "hsl(45, 30%, 80%)",
+          muted: "hsl(45, 20%, 70%)", // Low saturation gold
         },
         // Muted Neutrals
         neutral: {
-          50: 'hsl(0, 0%, 98%)',            // Off-white
-          100: 'hsl(0, 0%, 96%)',           // Very light gray
-          200: 'hsl(0, 0%, 90%)',           // Light gray
-          300: 'hsl(0, 0%, 83%)',           // Medium-light gray
-          400: 'hsl(0, 0%, 64%)',           // Medium gray
-          500: 'hsl(0, 0%, 45%)',           // Dark gray
-          600: 'hsl(0, 0%, 32%)',           // Darker gray
-          700: 'hsl(0, 0%, 25%)',           // Very dark gray
-          800: 'hsl(0, 0%, 15%)',           // Near black
-          900: 'hsl(0, 0%, 9%)',            // Almost black
+          50: "hsl(0, 0%, 98%)", // Off-white
+          100: "hsl(0, 0%, 96%)", // Very light gray
+          200: "hsl(0, 0%, 90%)", // Light gray
+          300: "hsl(0, 0%, 83%)", // Medium-light gray
+          400: "hsl(0, 0%, 64%)", // Medium gray
+          500: "hsl(0, 0%, 45%)", // Dark gray
+          600: "hsl(0, 0%, 32%)", // Darker gray
+          700: "hsl(0, 0%, 25%)", // Very dark gray
+          800: "hsl(0, 0%, 15%)", // Near black
+          900: "hsl(0, 0%, 9%)", // Almost black
         },
         "off-white": "#FAF9F6",
         navy: "#1A1F36",
@@ -113,9 +113,9 @@ export default {
         "touch-lg": "16px",
         "touch-xl": "24px",
         // Additional spacing sizes
-        "1.5": "6px",
-        "2.5": "10px",
-        "4.5": "18px",
+        1.5: "6px",
+        2.5: "10px",
+        4.5: "18px",
       },
       minHeight: {
         touch: "44px",

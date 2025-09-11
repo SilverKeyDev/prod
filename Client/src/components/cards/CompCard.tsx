@@ -53,8 +53,8 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
     comp.lotAreaValue && comp.lotAreaValue >= 100
       ? formatLotSize(comp.lotAreaValue)
       : comp.lotAreaValue && comp.lotAreaValue < 100
-      ? "N/A"
-      : null;
+        ? "N/A"
+        : null;
 
   return (
     <div
@@ -80,7 +80,7 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
           {/* Recently Sold Badge - reduced padding, aligned in same row */}
           <div
             className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
-              comp.homeStatus
+              comp.homeStatus,
             )}`}
           >
             {formatHomeStatus(comp.homeStatus)}

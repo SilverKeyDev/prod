@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect } from "react";
 
 export interface UseLocalStorageReturn<T> {
   value: T;
@@ -12,7 +12,7 @@ export interface UseLocalStorageReturn<T> {
  */
 export function useLocalStorage<T>(
   key: string,
-  defaultValue: T
+  defaultValue: T,
 ): UseLocalStorageReturn<T> {
   // Get initial value from localStorage or use default
   const [value, setStoredValue] = useState<T>(() => {
@@ -26,17 +26,23 @@ export function useLocalStorage<T>(
   });
 
   // Update localStorage and state
-  const setValue = useCallback((value: T | ((prev: T) => T)) => {
-    try {
-      setStoredValue(prevValue => {
-        const valueToStore = typeof value === 'function' ? (value as (prev: T) => T)(prevValue) : value;
-        localStorage.setItem(key, JSON.stringify(valueToStore));
-        return valueToStore;
-      });
-    } catch (error) {
-      console.warn(`Error setting localStorage key "${key}":`, error);
-    }
-  }, [key]);
+  const setValue = useCallback(
+    (value: T | ((prev: T) => T)) => {
+      try {
+        setStoredValue((prevValue) => {
+          const valueToStore =
+            typeof value === "function"
+              ? (value as (prev: T) => T)(prevValue)
+              : value;
+          localStorage.setItem(key, JSON.stringify(valueToStore));
+          return valueToStore;
+        });
+      } catch (error) {
+        console.warn(`Error setting localStorage key "${key}":`, error);
+      }
+    },
+    [key],
+  );
 
   // Remove from localStorage and reset to default
   const removeValue = useCallback(() => {
@@ -55,13 +61,16 @@ export function useLocalStorage<T>(
         try {
           setStoredValue(JSON.parse(e.newValue));
         } catch (error) {
-          console.warn(`Error parsing localStorage change for key "${key}":`, error);
+          console.warn(
+            `Error parsing localStorage change for key "${key}":`,
+            error,
+          );
         }
       }
     };
 
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, [key]);
 
   return { value, setValue, removeValue };

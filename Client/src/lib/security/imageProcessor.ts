@@ -3,7 +3,7 @@
  * Removes sensitive metadata from uploaded images for SOC 2 compliance
  */
 
-import { log } from './secureLogger';
+import { log } from "./secureLogger";
 
 interface ProcessedImage {
   file: File;
@@ -17,7 +17,7 @@ interface ImageProcessingOptions {
   maxWidth?: number;
   maxHeight?: number;
   quality?: number;
-  format?: 'jpeg' | 'png' | 'webp';
+  format?: "jpeg" | "png" | "webp";
   stripAllMetadata?: boolean;
 }
 
@@ -26,10 +26,10 @@ class ImageProcessor {
   private ctx: CanvasRenderingContext2D;
 
   constructor() {
-    this.canvas = document.createElement('canvas');
-    const context = this.canvas.getContext('2d');
+    this.canvas = document.createElement("canvas");
+    const context = this.canvas.getContext("2d");
     if (!context) {
-      throw new Error('Canvas 2D context not supported');
+      throw new Error("Canvas 2D context not supported");
     }
     this.ctx = context;
   }
@@ -38,18 +38,18 @@ class ImageProcessor {
    * Process image file to remove EXIF data and optionally resize
    */
   async processImage(
-    file: File, 
-    options: ImageProcessingOptions = {}
+    file: File,
+    options: ImageProcessingOptions = {},
   ): Promise<ProcessedImage> {
     const {
       maxWidth = 2048,
       maxHeight = 2048,
       quality = 0.9,
-      format = 'jpeg',
+      format = "jpeg",
       stripAllMetadata = true,
     } = options;
 
-    log.info('IMAGE_PROCESSOR', 'Processing image', {
+    log.info("IMAGE_PROCESSOR", "Processing image", {
       fileName: file.name,
       fileSize: file.size,
       fileType: file.type,
@@ -58,13 +58,13 @@ class ImageProcessor {
     try {
       // Load image
       const img = await this.loadImage(file);
-      
+
       // Calculate new dimensions
       const { width, height } = this.calculateDimensions(
         img.width,
         img.height,
         maxWidth,
-        maxHeight
+        maxHeight,
       );
 
       // Set canvas size
@@ -77,34 +77,41 @@ class ImageProcessor {
 
       // Convert to blob (this automatically strips EXIF data)
       const processedBlob = await this.canvasToBlob(format, quality);
-      
+
       // Create new file
       const processedFile = new File(
         [processedBlob],
         this.generateFileName(file.name, format),
-        { type: processedBlob.type }
+        { type: processedBlob.type },
       );
 
       const result: ProcessedImage = {
         file: processedFile,
         originalSize: file.size,
         processedSize: processedFile.size,
-        metadataRemoved: stripAllMetadata ? ['EXIF', 'GPS', 'Camera Info', 'Timestamps'] : [],
+        metadataRemoved: stripAllMetadata
+          ? ["EXIF", "GPS", "Camera Info", "Timestamps"]
+          : [],
         warnings: [],
       };
 
       // Add warnings for large size reduction
-      const sizeReduction = ((file.size - processedFile.size) / file.size) * 100;
+      const sizeReduction =
+        ((file.size - processedFile.size) / file.size) * 100;
       if (sizeReduction > 50) {
-        result.warnings.push(`File size reduced by ${sizeReduction.toFixed(1)}%`);
+        result.warnings.push(
+          `File size reduced by ${sizeReduction.toFixed(1)}%`,
+        );
       }
 
       // Add warning if image was resized
       if (width !== img.width || height !== img.height) {
-        result.warnings.push(`Image resized from ${img.width}x${img.height} to ${width}x${height}`);
+        result.warnings.push(
+          `Image resized from ${img.width}x${img.height} to ${width}x${height}`,
+        );
       }
 
-      log.info('IMAGE_PROCESSOR', 'Image processed successfully', {
+      log.info("IMAGE_PROCESSOR", "Image processed successfully", {
         originalSize: file.size,
         processedSize: processedFile.size,
         metadataRemoved: result.metadataRemoved,
@@ -112,10 +119,11 @@ class ImageProcessor {
       });
 
       return result;
-
     } catch (error) {
-      log.error('IMAGE_PROCESSOR', 'Image processing failed', error);
-      throw new Error(`Failed to process image: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      log.error("IMAGE_PROCESSOR", "Image processing failed", error);
+      throw new Error(
+        `Failed to process image: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
     }
   }
 
@@ -124,31 +132,33 @@ class ImageProcessor {
    */
   async processImages(
     files: File[],
-    options: ImageProcessingOptions = {}
+    options: ImageProcessingOptions = {},
   ): Promise<ProcessedImage[]> {
     const results: ProcessedImage[] = [];
-    
+
     for (const file of files) {
       try {
         const processed = await this.processImage(file, options);
         results.push(processed);
       } catch (error) {
-        log.error('IMAGE_PROCESSOR', 'Failed to process image', {
+        log.error("IMAGE_PROCESSOR", "Failed to process image", {
           fileName: file.name,
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: error instanceof Error ? error.message : "Unknown error",
         });
-        
+
         // Create error result
         results.push({
           file,
           originalSize: file.size,
           processedSize: file.size,
           metadataRemoved: [],
-          warnings: [`Processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`],
+          warnings: [
+            `Processing failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+          ],
         });
       }
     }
-    
+
     return results;
   }
 
@@ -159,17 +169,17 @@ class ImageProcessor {
     return new Promise((resolve, reject) => {
       const img = new Image();
       const url = URL.createObjectURL(file);
-      
+
       img.onload = () => {
         URL.revokeObjectURL(url);
         resolve(img);
       };
-      
+
       img.onerror = () => {
         URL.revokeObjectURL(url);
-        reject(new Error('Failed to load image'));
+        reject(new Error("Failed to load image"));
       };
-      
+
       img.src = url;
     });
   }
@@ -181,18 +191,18 @@ class ImageProcessor {
     originalWidth: number,
     originalHeight: number,
     maxWidth: number,
-    maxHeight: number
+    maxHeight: number,
   ): { width: number; height: number } {
     let { width, height } = { width: originalWidth, height: originalHeight };
-    
+
     // Calculate scaling factor
     const widthRatio = maxWidth / width;
     const heightRatio = maxHeight / height;
     const ratio = Math.min(widthRatio, heightRatio, 1); // Don't upscale
-    
+
     width = Math.round(width * ratio);
     height = Math.round(height * ratio);
-    
+
     return { width, height };
   }
 
@@ -206,11 +216,11 @@ class ImageProcessor {
           if (blob) {
             resolve(blob);
           } else {
-            reject(new Error('Failed to convert canvas to blob'));
+            reject(new Error("Failed to convert canvas to blob"));
           }
         },
         `image/${format}`,
-        quality
+        quality,
       );
     });
   }
@@ -219,7 +229,7 @@ class ImageProcessor {
    * Generate new filename with proper extension
    */
   private generateFileName(originalName: string, format: string): string {
-    const nameWithoutExt = originalName.replace(/\.[^/.]+$/, '');
+    const nameWithoutExt = originalName.replace(/\.[^/.]+$/, "");
     const timestamp = Date.now();
     return `${nameWithoutExt}_processed_${timestamp}.${format}`;
   }
@@ -229,14 +239,14 @@ class ImageProcessor {
    */
   static isValidImageFile(file: File): boolean {
     const validTypes = [
-      'image/jpeg',
-      'image/jpg',
-      'image/png',
-      'image/webp',
-      'image/gif',
-      'image/bmp',
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "image/webp",
+      "image/gif",
+      "image/bmp",
     ];
-    
+
     return validTypes.includes(file.type.toLowerCase());
   }
 
@@ -244,13 +254,13 @@ class ImageProcessor {
    * Get file size in human readable format
    */
   static formatFileSize(bytes: number): string {
-    if (bytes === 0) return '0 Bytes';
-    
+    if (bytes === 0) return "0 Bytes";
+
     const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   }
 
   /**
@@ -278,8 +288,10 @@ export const imageProcessor = new ImageProcessor();
 export const processImage = (file: File, options?: ImageProcessingOptions) =>
   imageProcessor.processImage(file, options);
 
-export const processImages = (files: File[], options?: ImageProcessingOptions) =>
-  imageProcessor.processImages(files, options);
+export const processImages = (
+  files: File[],
+  options?: ImageProcessingOptions,
+) => imageProcessor.processImages(files, options);
 
 export const isValidImageFile = ImageProcessor.isValidImageFile;
 export const formatFileSize = ImageProcessor.formatFileSize;

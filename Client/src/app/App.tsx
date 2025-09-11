@@ -63,12 +63,12 @@ function App() {
   }, []);
 
   useEffect(() => {
-    log.debug('APP', 'Checking for saved user in localStorage');
+    log.debug("APP", "Checking for saved user in localStorage");
     const savedUser = localStorage.getItem("user");
     if (savedUser) {
-      log.info('APP', 'Found saved user data in localStorage');
+      log.info("APP", "Found saved user data in localStorage");
       const parsedUser = JSON.parse(savedUser);
-      log.info('APP', 'User authenticated successfully');
+      log.info("APP", "User authenticated successfully");
       setUser(parsedUser);
       // Set user context for error reporting (secure logger will automatically scrub PII)
       setUserContext(parsedUser.id || parsedUser.user_sub, {
@@ -76,7 +76,7 @@ function App() {
         role: parsedUser.role,
       });
     } else {
-      log.debug('APP', 'No saved user found in localStorage');
+      log.debug("APP", "No saved user found in localStorage");
     }
     // Don't set loading to false here - wait for AuthProvider to be ready
 
@@ -112,14 +112,16 @@ function App() {
 
   const handleLogout = () => {
     console.log("[APP] 🚪 Logout initiated");
-    
+
     // Call secure auth logout if available
     if ((window as any).secureLogout) {
       console.log("[APP] 🔒 Calling secure auth logout");
       (window as any).secureLogout();
     } else {
       // Fallback: clear tokens manually
-      console.log("[APP] 🧹 Secure auth not available, clearing tokens manually");
+      console.log(
+        "[APP] 🧹 Secure auth not available, clearing tokens manually",
+      );
       setUser(null);
       clearUserContext();
 
@@ -154,7 +156,11 @@ function App() {
         ) : maintenance ? (
           <MaintenanceScreen />
         ) : (
-          <AppWithRouter user={user} handleLogout={handleLogout} setLoading={setLoading} />
+          <AppWithRouter
+            user={user}
+            handleLogout={handleLogout}
+            setLoading={setLoading}
+          />
         )}
       </BrowserRouter>
     </AppProviders>

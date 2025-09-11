@@ -1,6 +1,6 @@
 // Shared dropdown options for onboarding and personalization forms
 
-import { DropdownOption } from './types';
+import { DropdownOption } from "./types";
 
 export const GENDER_OPTIONS: DropdownOption[] = [
   { value: "male", label: "Male" },

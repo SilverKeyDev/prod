@@ -1,7 +1,7 @@
 // Shared utility functions for onboarding and personalization
 
-import { OnboardingData } from '../utils/types';
-import { DEFAULT_REPORT_SECTIONS } from '../utils/constants';
+import { OnboardingData } from "../utils/types";
+import { DEFAULT_REPORT_SECTIONS } from "../utils/constants";
 
 /**
  * Updates form data with a new field value
@@ -9,7 +9,7 @@ import { DEFAULT_REPORT_SECTIONS } from '../utils/constants';
 export const updateFormData = <T extends OnboardingData>(
   prevData: T,
   field: keyof T,
-  value: any
+  value: any,
 ): T => {
   return { ...prevData, [field]: value };
 };
@@ -20,7 +20,9 @@ export const updateFormData = <T extends OnboardingData>(
 export const createDropdownManager = () => {
   const toggleDropdown = (
     fieldName: string,
-    setOpenDropdowns: React.Dispatch<React.SetStateAction<{ [key: string]: boolean }>>
+    setOpenDropdowns: React.Dispatch<
+      React.SetStateAction<{ [key: string]: boolean }>
+    >,
   ) => {
     setOpenDropdowns((prev) => ({
       ...prev,
@@ -29,7 +31,9 @@ export const createDropdownManager = () => {
   };
 
   const closeAllDropdowns = (
-    setOpenDropdowns: React.Dispatch<React.SetStateAction<{ [key: string]: boolean }>>
+    setOpenDropdowns: React.Dispatch<
+      React.SetStateAction<{ [key: string]: boolean }>
+    >,
   ) => {
     setOpenDropdowns({});
   };
@@ -103,15 +107,13 @@ export const handleReportSectionToggle = (
   sectionKey: string,
   checked: boolean,
   formData: OnboardingData,
-  updateFormData: (field: keyof OnboardingData, value: any) => void
+  updateFormData: (field: keyof OnboardingData, value: unknown) => void,
 ) => {
   const currentPriorities = formData.report_section_priorities || [];
 
   if (!checked) {
     // Remove from priorities when unchecked
-    const newPriorities = currentPriorities.filter(
-      (key) => key !== sectionKey
-    );
+    const newPriorities = currentPriorities.filter((key) => key !== sectionKey);
     updateFormData("report_section_priorities", newPriorities);
   } else {
     // Add to last priority (bottom of list) when checked (if not already there)
@@ -130,7 +132,7 @@ export const handleReportSectionToggle = (
  */
 export const navigateToMissingFieldSection = (
   missingField: string,
-  setActiveSection: (section: string) => void
+  setActiveSection: (section: string) => void,
 ) => {
   if (missingField.includes("report")) {
     setActiveSection("reportcustomization");

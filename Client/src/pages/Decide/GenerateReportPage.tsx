@@ -200,14 +200,14 @@ export default function GenerateReportPage() {
 
         const { suggestions: fetched } =
           await window.google.maps.places.AutocompleteSuggestion.fetchAutocompleteSuggestions(
-            request
+            request,
           );
 
         setSuggestions(
-          fetched.map((s: any) => ({
+          fetched.map((s: unknown) => ({
             description: s.placePrediction.text.text,
             placePrediction: s.placePrediction,
-          }))
+          })),
         );
       } catch (err) {
         console.error("Autocomplete fetch error:", err);
@@ -243,14 +243,14 @@ export default function GenerateReportPage() {
 
         const { suggestions: fetched } =
           await window.google.maps.places.AutocompleteSuggestion.fetchAutocompleteSuggestions(
-            request
+            request,
           );
 
         setComparisonSuggestions(
-          fetched.map((s: any) => ({
+          fetched.map((s: unknown) => ({
             description: s.placePrediction.text.text,
             placePrediction: s.placePrediction,
-          }))
+          })),
         );
       } catch (err) {
         console.error("Comparison autocomplete fetch error:", err);
@@ -269,7 +269,7 @@ export default function GenerateReportPage() {
   };
 
   const handleComparisonInputChange = (
-    e: React.ChangeEvent<HTMLInputElement>
+    e: React.ChangeEvent<HTMLInputElement>,
   ) => {
     setHasSelectedComparison(false);
     setComparisonAddress(e.target.value);
@@ -306,7 +306,7 @@ export default function GenerateReportPage() {
         } catch (pollingError) {
           console.error(
             `[GenerateReport] ❌ Error calling polling function:`,
-            pollingError
+            pollingError,
           );
         }
       } else {
@@ -326,19 +326,19 @@ export default function GenerateReportPage() {
               console.error(
                 `[GenerateReport] ❌ CRITICAL: Could not find PastReports polling function after ${maxRetries} retries (${
                   maxRetries * 500
-                }ms). Report completion detection will NOT work!`
+                }ms). Report completion detection will NOT work!`,
               );
               console.error(
-                `[GenerateReport] ❌ This means the report will generate but the UI won't refresh automatically.`
+                `[GenerateReport] ❌ This means the report will generate but the UI won't refresh automatically.`,
               );
               console.error(
-                `[GenerateReport] ❌ User will need to manually refresh the reports page.`
+                `[GenerateReport] ❌ User will need to manually refresh the reports page.`,
               );
             }
           } catch (retryError) {
             console.error(
               `[GenerateReport] ❌ Error during retry ${retryCount}:`,
-              retryError
+              retryError,
             );
             if (retryCount < maxRetries) {
               setTimeout(retryPolling, 500);
@@ -351,10 +351,10 @@ export default function GenerateReportPage() {
     } catch (setupError) {
       console.error(
         `[GenerateReport] ❌ CRITICAL ERROR in setupReportCompletionListener:`,
-        setupError
+        setupError,
       );
       console.error(
-        `[GenerateReport] ❌ Report polling will not work. Document ID: ${documentId}`
+        `[GenerateReport] ❌ Report polling will not work. Document ID: ${documentId}`,
       );
     }
   };
@@ -386,7 +386,9 @@ export default function GenerateReportPage() {
       // Use centralized API for report generation
       const data = await reportApi.generate({
         address: address,
-        ...(reportType === "comparison" && { comparisonAddress: comparisonAddress }),
+        ...(reportType === "comparison" && {
+          comparisonAddress: comparisonAddress,
+        }),
         ...(willSendUserId && { user_id: selectedClientId }),
       });
 

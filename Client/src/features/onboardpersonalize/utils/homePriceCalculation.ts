@@ -36,7 +36,7 @@ export const mapCreditScoreToNumber = (creditScoreRange?: string): number => {
 // Generate explanation text for the home price calculation
 export const generateHomePriceExplanation = (
   result: any,
-  data: OnboardingData
+  data: OnboardingData,
 ): string => {
   // Calculate down payment percent for display
   const downPaymentPercent =
@@ -60,9 +60,7 @@ Key assumptions used:
       : "-"
   }%
 - **DTI Used:** ${
-    typeof result.dtiUsed === "number"
-      ? (result.dtiUsed * 100).toFixed(0)
-      : "-"
+    typeof result.dtiUsed === "number" ? (result.dtiUsed * 100).toFixed(0) : "-"
   }%
 
 Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleString()} includes principal, interest, property taxes, homeowner's insurance, and PMI (if applicable). This approach gives you a realistic maximum home price based on your income and debts—not just a budget cap.`;
@@ -70,7 +68,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
 
 // Main home price calculation function
 export const calculateAffordableHomePrice = async (
-  formData: OnboardingData
+  formData: OnboardingData,
 ): Promise<HomePriceResult | HomePriceError> => {
   // Check if we have all required data
   if (!formData.gross_income || !formData.ideal_zip_code) {
@@ -80,7 +78,7 @@ export const calculateAffordableHomePrice = async (
   try {
     // Map credit score range to a numeric value
     const creditScore = mapCreditScoreToNumber(formData.credit_score_range);
-    
+
     // Calculate down payment amount
     const downPaymentAmount = formData.down_payment || 50000;
 
@@ -101,9 +99,10 @@ export const calculateAffordableHomePrice = async (
     };
   } catch (error) {
     return {
-      error: error instanceof Error
-        ? error.message
-        : "Failed to calculate home price"
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to calculate home price",
     };
   }
 };

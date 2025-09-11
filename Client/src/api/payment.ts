@@ -1,6 +1,6 @@
-import { apiGet, apiPost } from './utils/index';
-import { log } from '../lib/security/secureLogger';
-import { reportSecurityEvent } from '../lib/security/errorReporting';
+import { apiGet, apiPost } from "./utils/index";
+import { log } from "../lib/security/secureLogger";
+import { reportSecurityEvent } from "../lib/security/errorReporting";
 
 // Types for payment API
 export interface SubscriptionStatus {
@@ -37,30 +37,43 @@ export const paymentApi = {
    * Get subscription status for current user
    */
   getSubscriptionStatus: async (): Promise<SubscriptionStatus> => {
-    log.security('PAYMENT_API', 'Subscription status request');
-    const response = await apiGet<SubscriptionStatus>('/api/v1/payment/subscription-status');
-    log.info('PAYMENT_API', 'Subscription status retrieved', { hasSubscription: response.has_subscription });
+    log.security("PAYMENT_API", "Subscription status request");
+    const response = await apiGet<SubscriptionStatus>(
+      "/api/v1/payment/subscription-status",
+    );
+    log.info("PAYMENT_API", "Subscription status retrieved", {
+      hasSubscription: response.has_subscription,
+    });
     return response;
   },
 
   /**
    * Create Stripe checkout session
    */
-  createCheckoutSession: async (data: CheckoutSessionRequest): Promise<CheckoutSessionResponse> => {
-    log.security('PAYMENT_API', 'Checkout session creation attempt', { priceId: data.priceId });
-    const response = await apiPost<CheckoutSessionResponse>('/api/v1/payment/create-checkout-session', data);
-    
+  createCheckoutSession: async (
+    data: CheckoutSessionRequest,
+  ): Promise<CheckoutSessionResponse> => {
+    log.security("PAYMENT_API", "Checkout session creation attempt", {
+      priceId: data.priceId,
+    });
+    const response = await apiPost<CheckoutSessionResponse>(
+      "/api/v1/payment/create-checkout-session",
+      data,
+    );
+
     if (response.sessionId) {
-      log.security('PAYMENT_API', 'Checkout session created successfully', { sessionId: response.sessionId });
+      log.security("PAYMENT_API", "Checkout session created successfully", {
+        sessionId: response.sessionId,
+      });
     } else {
       reportSecurityEvent({
-        type: 'suspicious_activity',
-        severity: 'medium',
-        description: 'Checkout session creation failed',
-        metadata: { priceId: data.priceId }
+        type: "suspicious_activity",
+        severity: "medium",
+        description: "Checkout session creation failed",
+        metadata: { priceId: data.priceId },
       });
     }
-    
+
     return response;
   },
 
@@ -68,29 +81,44 @@ export const paymentApi = {
    * Create Stripe customer portal session
    */
   createPortalSession: async (): Promise<PortalSessionResponse> => {
-    log.security('PAYMENT_API', 'Customer portal session creation attempt');
-    const response = await apiPost<PortalSessionResponse>('/api/v1/payment/create-portal-session', {});
-    
+    log.security("PAYMENT_API", "Customer portal session creation attempt");
+    const response = await apiPost<PortalSessionResponse>(
+      "/api/v1/payment/create-portal-session",
+      {},
+    );
+
     if (response.url) {
-      log.security('PAYMENT_API', 'Customer portal session created successfully');
+      log.security(
+        "PAYMENT_API",
+        "Customer portal session created successfully",
+      );
     } else {
       reportSecurityEvent({
-        type: 'suspicious_activity',
-        severity: 'medium',
-        description: 'Customer portal session creation failed'
+        type: "suspicious_activity",
+        severity: "medium",
+        description: "Customer portal session creation failed",
       });
     }
-    
+
     return response;
   },
 
   /**
    * Get subscription status by ID
    */
-  getSubscriptionStatusById: async (subscriptionId: string): Promise<SubscriptionStatusResponse> => {
-    log.security('PAYMENT_API', 'Subscription status by ID request', { subscriptionId });
-    const response = await apiGet<SubscriptionStatusResponse>(`/api/v1/payment/subscription/status?subscription_id=${subscriptionId}`);
-    log.info('PAYMENT_API', 'Subscription status by ID retrieved', { subscriptionId, status: response.status });
+  getSubscriptionStatusById: async (
+    subscriptionId: string,
+  ): Promise<SubscriptionStatusResponse> => {
+    log.security("PAYMENT_API", "Subscription status by ID request", {
+      subscriptionId,
+    });
+    const response = await apiGet<SubscriptionStatusResponse>(
+      `/api/v1/payment/subscription/status?subscription_id=${subscriptionId}`,
+    );
+    log.info("PAYMENT_API", "Subscription status by ID retrieved", {
+      subscriptionId,
+      status: response.status,
+    });
     return response;
   },
 };

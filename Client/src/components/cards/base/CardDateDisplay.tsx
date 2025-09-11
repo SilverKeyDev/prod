@@ -1,4 +1,4 @@
-import { Calendar } from 'lucide-react';
+import { Calendar } from "lucide-react";
 
 interface CardDateDisplayProps {
   /** Date string or Date object */
@@ -6,7 +6,7 @@ interface CardDateDisplayProps {
   /** Label prefix (e.g., "Created", "Listed on") */
   label?: string;
   /** Size variant */
-  size?: 'xs' | 'sm' | 'md';
+  size?: "xs" | "sm" | "md";
   /** Additional className */
   className?: string;
 }
@@ -16,14 +16,15 @@ interface CardDateDisplayProps {
  */
 export default function CardDateDisplay({
   date,
-  label = 'Created',
-  size = 'xs',
-  className = ''
+  label = "Created",
+  size = "xs",
+  className = "",
 }: CardDateDisplayProps) {
   const formatDate = (dateInput: string | Date | null): string => {
     if (!dateInput) return "Unknown";
-    
-    const dateObj = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+
+    const dateObj =
+      typeof dateInput === "string" ? new Date(dateInput) : dateInput;
     return dateObj.toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
@@ -33,25 +34,25 @@ export default function CardDateDisplay({
 
   const getSizeClasses = () => {
     switch (size) {
-      case 'xs':
+      case "xs":
         return {
-          icon: 'mobile-icon-xs',
-          text: 'text-responsive-xs'
+          icon: "mobile-icon-xs",
+          text: "text-responsive-xs",
         };
-      case 'sm':
+      case "sm":
         return {
-          icon: 'mobile-icon-sm',
-          text: 'text-responsive-sm'
+          icon: "mobile-icon-sm",
+          text: "text-responsive-sm",
         };
-      case 'md':
+      case "md":
         return {
-          icon: 'mobile-icon-md',
-          text: 'text-responsive-base'
+          icon: "mobile-icon-md",
+          text: "text-responsive-base",
         };
       default:
         return {
-          icon: 'mobile-icon-xs',
-          text: 'text-responsive-xs'
+          icon: "mobile-icon-xs",
+          text: "text-responsive-xs",
         };
     }
   };
@@ -60,7 +61,9 @@ export default function CardDateDisplay({
 
   return (
     <div className={`flex items-center gap-responsive-sm ${className}`}>
-      <Calendar className={`${sizeClasses.icon} text-neutral-400 flex-shrink-0`} />
+      <Calendar
+        className={`${sizeClasses.icon} text-neutral-400 flex-shrink-0`}
+      />
       <p className={`${sizeClasses.text} text-neutral-600`}>
         {label} {formatDate(date)}
       </p>
