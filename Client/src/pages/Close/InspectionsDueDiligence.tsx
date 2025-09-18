@@ -1,6 +1,5 @@
-import CloseLayout, {
-  type ChecklistItem,
-} from "../../features/close/CloseLayout";
+import CloseLayout from "../../features/close/CloseLayout";
+import { type ChecklistItem } from "../../components/ui/form/ChecklistCheckbox";
 
 type ClosePageHeaderData = {
   title: string;

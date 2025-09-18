@@ -1,6 +1,8 @@
 import { Check } from "lucide-react";
 import React from "react";
 
+import NavigationButton from "../button/NavigationButton";
+
 type ResourceLink = {
   label: string;
   href?: string;
@@ -13,6 +15,11 @@ export type ChecklistItem = {
   bullets?: string[];
   tip?: string;
   resource?: ResourceLink;
+  navigationButton?: {
+    label: string;
+    onClick: () => void;
+    title?: string;
+  };
 };
 
 type ChecklistCheckboxProps = {
@@ -85,6 +92,19 @@ const ChecklistCheckbox: React.FC<ChecklistCheckboxProps> = ({
                   item.resource.label
                 )}
               </p>
+            )}
+            {item.navigationButton && (
+              <div>
+                <NavigationButton
+                  onClick={item.navigationButton.onClick}
+                  size="sm"
+                  showArrow={true}
+                  arrowType="arrow"
+                  title={item.navigationButton.title}
+                >
+                  {item.navigationButton.label}
+                </NavigationButton>
+              </div>
             )}
           </div>
         )}

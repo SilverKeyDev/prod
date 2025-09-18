@@ -232,7 +232,9 @@ export default function SavedHomes() {
                       images: home.image_url ? [home.image_url] : [],
                     }}
                     isSaved={true}
-                    onSave={() => saveHome(home)}
+                    onSave={async () => {
+                      await saveHome(home);
+                    }}
                     onRemove={() => handleRemoveSavedHome(home.home_id)}
                     size="sm"
                   />
@@ -292,7 +294,9 @@ export default function SavedHomes() {
                       images: home.image_url ? [home.image_url] : [],
                     }}
                     isSaved={true}
-                    onSave={() => saveHome(home)}
+                    onSave={async () => {
+                      await saveHome(home);
+                    }}
                     onRemove={() => handleRemoveSavedHome(home.home_id)}
                     size="sm"
                   />

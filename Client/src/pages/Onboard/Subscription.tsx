@@ -12,10 +12,8 @@ import { useEffect } from "react";
 import { useSearchParams, useLocation } from "react-router-dom";
 
 import KeyTurnLoader from "../../components/ui/loading/KeyTurnLoader";
-import {
-  useStripePayment,
-  useStripePortal,
-} from "../../core/hooks/data/useStripePayment";
+import { useStripePortal } from "../../core/hooks/data/useStripePayment";
+import { useBillingStoreIntegration } from "../../core/hooks/store/useBillingStoreIntegration";
 import { useUIStore } from "../../core/store";
 
 type Plan = {
@@ -69,13 +67,13 @@ export default function Subscription() {
   const cancelled = searchParams.get("cancelled") === "true";
   const enqueueToast = useUIStore((s) => s.enqueueToast);
 
-  // Use billing data from Stripe payment hook
+  // Use billing data from billing store integration (transforms API data to schema format)
   const {
     billingInfo,
     billingLoading: isLoading,
     billingError,
     refreshBillingInfo,
-  } = useStripePayment();
+  } = useBillingStoreIntegration();
 
   // Refresh data when page loads to ensure latest updates
   useEffect(() => {
@@ -97,8 +95,8 @@ export default function Subscription() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cancelled, notificationMessage]);
 
-  const { handleSubscription, loading: subscriptionLoading } =
-    useStripePayment();
+  const { handleSubscription, paymentLoading: subscriptionLoading } =
+    useBillingStoreIntegration();
   const { handlePortal, loading: portalLoading } = useStripePortal();
 
   // Data is already preloaded by context - no need to fetch
@@ -149,12 +147,12 @@ export default function Subscription() {
           <div className="grid grid-cols-1 gap-4">
             {/* Status - Mobile */}
             {billingInfo?.subscription?.cancel_at_period_end && (
-                <div className="flex items-center justify-center gap-2">
-                  <span className="rounded-full bg-red-100 px-3 py-1 text-sm font-medium text-red-800">
-                    Cancels at period end
-                  </span>
-                </div>
-              )}
+              <div className="flex items-center justify-center gap-2">
+                <span className="rounded-full bg-red-100 px-3 py-1 text-sm font-medium text-red-800">
+                  Cancels at period end
+                </span>
+              </div>
+            )}
           </div>
         </div>
 

@@ -1,8 +1,7 @@
 import React from "react";
 
-import CloseLayout, {
-  type ChecklistItem,
-} from "../../features/close/CloseLayout";
+import CloseLayout from "../../features/close/CloseLayout";
+import { type ChecklistItem } from "../../components/ui/form/ChecklistCheckbox";
 import HomeConcierge from "../../features/close/HomeConcierge";
 
 type ClosePageHeaderData = {
@@ -37,6 +36,13 @@ export default function ClosingMovingIn({
       resource: {
         label: "Final Walkthrough Checklist (Redfin Blog)",
         href: "https://www.redfin.com/blog/final-walk-through-checklist-before-closing-on-a-home/",
+      },
+      navigationButton: {
+        label: "Schedule Walkthrough",
+        onClick: () => {
+          // Example: Navigate to scheduling page or open calendar
+          console.log("Navigate to walkthrough scheduling");
+        },
       },
     },
     {
@@ -112,6 +118,25 @@ export default function ClosingMovingIn({
       resource: {
         label: "Guide to Transferring Utilities (Zillow)",
         href: "https://www.zillow.com/learn/transferring-utilities-when-buying-a-house/?utm_source=chatgpt.com",
+      },
+    },
+    {
+      id: 7.5,
+      label: "Hire moving services",
+      explanation:
+        "Professional movers can make your transition smoother and safer.",
+      bullets: [
+        "Get quotes from multiple moving companies.",
+        "Book services 2-4 weeks in advance for better rates.",
+        "Consider full-service vs. DIY options based on your budget.",
+        "Verify insurance coverage and licensing.",
+      ],
+      navigationButton: {
+        label: "Get Moving Quotes",
+        title: "Compare moving services and get quotes",
+        onClick: () => {
+          window.open("https://www.hireahelper.com/?affil=31393330", "_blank");
+        },
       },
     },
     {

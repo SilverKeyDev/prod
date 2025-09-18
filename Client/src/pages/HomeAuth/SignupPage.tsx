@@ -120,13 +120,14 @@ export default function SignupPage(_props: SignupPageProps) {
     const { nameEl, emailEl, pwdEl, phoneEl } = getDomEls();
 
     // Helper readers
-    const readName = () => nameEl?.value ?? "";
-    const readEmail = () => emailEl?.value ?? "";
-    const readPwd = () => pwdEl?.value ?? "";
+    const readName = () => (nameEl as HTMLInputElement)?.value ?? "";
+    const readEmail = () => (emailEl as HTMLInputElement)?.value ?? "";
+    const readPwd = () => (pwdEl as HTMLInputElement)?.value ?? "";
     const readPhone = (): string | undefined => {
       const raw =
-        phoneEl?.value && typeof phoneEl.value === "string"
-          ? (phoneEl.value as string).trim()
+        (phoneEl as HTMLInputElement)?.value &&
+        typeof (phoneEl as HTMLInputElement).value === "string"
+          ? ((phoneEl as HTMLInputElement).value as string).trim()
           : undefined;
       if (!raw) return undefined;
       return formatToE164(raw);
@@ -134,11 +135,12 @@ export default function SignupPage(_props: SignupPageProps) {
 
     // Determine if anything is actually filled (to avoid wiping)
     const anyFilled: boolean =
-      !!nameEl?.value?.trim() ||
-      !!emailEl?.value?.trim() ||
-      !!pwdEl?.value ||
-      !!(phoneEl?.value && typeof phoneEl.value === "string"
-        ? (phoneEl.value as string).trim()
+      !!(nameEl as HTMLInputElement)?.value?.trim() ||
+      !!(emailEl as HTMLInputElement)?.value?.trim() ||
+      !!(pwdEl as HTMLInputElement)?.value ||
+      !!((phoneEl as HTMLInputElement)?.value &&
+      typeof (phoneEl as HTMLInputElement).value === "string"
+        ? ((phoneEl as HTMLInputElement).value as string).trim()
         : undefined);
 
     if (!anyFilled) return;
@@ -412,16 +414,16 @@ export default function SignupPage(_props: SignupPageProps) {
               margin: 0,
             }}
             inputComponent={BarePhoneTextInput}
-            onFocus={(e: unknown) => {
+            onFocus={(e: React.FocusEvent<HTMLDivElement>) => {
               lastFocusRef.current = "phone";
               // Phone-triggered autofill should update only phone
               syncFromDom("phone");
               // If the wrapper receives focus first, forward it to the input
               const inputEl = (e.currentTarget as HTMLElement).querySelector(
                 "input.PhoneInputInput"
-              );
+              ) as HTMLInputElement;
               if (inputEl && typeof inputEl.focus === "function")
-                (inputEl as { focus: () => void }).focus();
+                inputEl.focus();
             }}
           />
         </FieldShell>

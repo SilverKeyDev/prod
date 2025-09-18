@@ -2,7 +2,9 @@ import { CheckSquare } from "lucide-react";
 import React, { useState, useEffect, type ReactNode } from "react";
 
 import Card from "../../components/format/Card";
-import ChecklistCheckbox from "../../components/ui/form/ChecklistCheckbox";
+import ChecklistCheckbox, {
+  type ChecklistItem,
+} from "../../components/ui/form/ChecklistCheckbox";
 import { apiRequest } from "../../core/services/http";
 import { asError } from "../../core/utils/error";
 
@@ -19,15 +21,6 @@ const itemExplanation =
 export type ResourceLink = {
   label: string;
   href?: string;
-};
-
-export type ChecklistItem = {
-  id: number;
-  label: string;
-  explanation: string;
-  bullets?: string[];
-  tip?: string;
-  resource?: ResourceLink;
 };
 
 type ClosePageHeaderData = {
@@ -169,9 +162,7 @@ export default function CloseLayout({
       {children && <div className="mb-responsive-lg">{children}</div>}
 
       {/* Main checklist section */}
-      <div
-        className={`${containerClassName}`}
-      >
+      <div className={`${containerClassName}`}>
         {loading && showMinLoadingText && (
           <p className="mb-responsive-sm">Loading checklist…</p>
         )}

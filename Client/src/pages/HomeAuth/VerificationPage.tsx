@@ -39,7 +39,7 @@ export default function VerificationPage() {
 
   // Countdown timer for resend button
   useEffect(() => {
-    let interval: number;
+    let interval: NodeJS.Timeout;
     if (countdown > 0 && !canResend) {
       interval = setInterval(() => {
         setCountdown((prev) => prev - 1);

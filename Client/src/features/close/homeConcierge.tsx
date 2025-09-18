@@ -18,9 +18,9 @@ export default function HomeConcierge() {
               muted
               className="mb-responsive-lg leading-relaxed"
             >
-              Get a free concierge to compare movers, schedule
-              services, transfer utilities, and handle logistics, all in one 30
-              minute call
+              Get a free concierge to compare movers, schedule services,
+              transfer utilities, and handle logistics, all in one 30 minute
+              call
             </Subtitle>
             <Subtitle
               size="xs"
@@ -31,7 +31,13 @@ export default function HomeConcierge() {
               commission from service providers, so it’s free for you
             </Subtitle>
             <NavigationButton
-              onClick={() => window.open("#", "_blank", "noopener,noreferrer")}
+              onClick={() =>
+                window.open(
+                  "https://mc.partners/SilverKey",
+                  "_blank",
+                  "noopener,noreferrer"
+                )
+              }
               size="md"
               className="text-olive hover:text-olive/80 mt-responsive-xs"
             >

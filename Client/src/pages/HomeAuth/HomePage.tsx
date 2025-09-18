@@ -208,7 +208,7 @@ export default function HomePage() {
           <div className="gap-responsive-sm text-responsive-xs relative mt-10 flex flex-wrap items-center justify-center text-center">
             <Link
               to="/privacy"
-              className="px-responsive-xl py-responsive-xs touch-friendly flex items-center justify-center rounded-lg bg-white text-black text-gray-600 shadow transition-all duration-200 hover:text-gray-800 hover:shadow-md"
+              className="px-responsive-xl py-responsive-xs touch-friendly flex items-center justify-center rounded-lg bg-white text-gray-600 shadow transition-all duration-200 hover:text-gray-800 hover:shadow-md"
             >
               <span className="decoration-1 underline-offset-2 hover:underline">
                 Privacy Policy
@@ -216,7 +216,7 @@ export default function HomePage() {
             </Link>
             <Link
               to="/terms"
-              className="px-responsive-xl py-responsive-xs touch-friendly flex items-center justify-center rounded-lg bg-white text-black text-gray-600 shadow transition-all duration-200 hover:text-gray-800 hover:shadow-md"
+              className="px-responsive-xl py-responsive-xs touch-friendly flex items-center justify-center rounded-lg bg-white text-gray-600 shadow transition-all duration-200 hover:text-gray-800 hover:shadow-md"
             >
               <span className="decoration-1 underline-offset-2 hover:underline">
                 Terms of Service
@@ -224,7 +224,7 @@ export default function HomePage() {
             </Link>
             <Link
               to="/contact"
-              className="px-responsive-xl py-responsive-xs touch-friendly flex items-center justify-center rounded-lg bg-white text-black text-gray-600 shadow transition-all duration-200 hover:text-gray-800 hover:shadow-md"
+              className="px-responsive-xl py-responsive-xs touch-friendly flex items-center justify-center rounded-lg bg-white text-gray-600 shadow transition-all duration-200 hover:text-gray-800 hover:shadow-md"
             >
               <span className="decoration-1 underline-offset-2 hover:underline">
                 Contact Us

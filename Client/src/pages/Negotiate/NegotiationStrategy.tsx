@@ -31,9 +31,6 @@ export default function NegotiationStrategy() {
     compsData,
     isLoading,
     error,
-    setSelectedHome,
-    setStrategyData,
-    setCompsData,
     setLoading,
     setError,
   } = useNegotiationStore();
