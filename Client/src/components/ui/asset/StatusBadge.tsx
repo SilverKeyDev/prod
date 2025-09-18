@@ -1,6 +1,6 @@
 import React from 'react';
 
-export interface StatusBadgeProps {
+export type StatusBadgeProps = {
   /** Status text to display */
   text: string;
   /** Status variant */
@@ -9,13 +9,13 @@ export interface StatusBadgeProps {
   size?: 'xs' | 'sm' | 'md' | 'lg';
   /** Custom className */
   className?: string;
-}
+};
 
 const StatusBadge: React.FC<StatusBadgeProps> = ({
   text,
   variant = 'default',
   size = 'sm',
-  className = ''
+  className = '',
 }) => {
   // Base styles
   const baseStyles = 'inline-block px-2 py-1 rounded-full font-medium';
@@ -25,7 +25,7 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({
     xs: 'text-xs px-1.5 py-0.5',
     sm: 'text-xs px-2 py-1',
     md: 'text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-1.5',
-    lg: 'text-sm sm:text-base px-3 sm:px-4 py-1.5 sm:py-2'
+    lg: 'text-sm sm:text-base px-3 sm:px-4 py-1.5 sm:py-2',
   };
 
   // Variant styles matching existing patterns
@@ -35,22 +35,15 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({
     error: 'bg-red-100 text-red-800',
     info: 'bg-blue-100 text-blue-800',
     processing: 'bg-gold text-white',
-    default: 'bg-gray-100 text-gray-800'
+    default: 'bg-gray-100 text-gray-800',
   };
 
   // Combine all classes
-  const badgeClasses = [
-    baseStyles,
-    sizeStyles[size],
-    variantStyles[variant],
-    className
-  ].filter(Boolean).join(' ');
+  const badgeClasses = [baseStyles, sizeStyles[size], variantStyles[variant], className]
+    .filter(Boolean)
+    .join(' ');
 
-  return (
-    <span className={badgeClasses}>
-      {text}
-    </span>
-  );
+  return <span className={badgeClasses}>{text}</span>;
 };
 
 export default StatusBadge;

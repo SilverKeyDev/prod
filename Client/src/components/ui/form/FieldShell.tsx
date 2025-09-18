@@ -1,7 +1,7 @@
 // src/components/ui/FieldShell.tsx
-import { ReactNode } from "react";
+import type { ReactNode } from 'react';
 
-interface FieldShellProps {
+type FieldShellProps = {
   id?: string;
   label?: string;
   leftIcon?: ReactNode;
@@ -11,14 +11,14 @@ interface FieldShellProps {
   className?: string; // wrapper
   fieldClassName?: string; // inner field bar
   children: ReactNode; // your custom input goes here
-  variant?: "default" | "mobile" | "compact" | "search";
-  size?: "sm" | "md" | "lg";
+  variant?: 'default' | 'mobile' | 'compact' | 'search';
+  size?: 'sm' | 'md' | 'lg';
   required?: boolean;
-}
+};
 
 // Minimal class combiner (falsy values are ignored)
 function cx(...classes: Array<string | false | null | undefined>) {
-  return classes.filter(Boolean).join(" ");
+  return classes.filter(Boolean).join(' ');
 }
 
 export default function FieldShell({
@@ -31,46 +31,46 @@ export default function FieldShell({
   className,
   fieldClassName,
   children,
-  variant = "mobile",
-  size = "md",
+  variant = 'mobile',
+  size = 'md',
   required,
 }: FieldShellProps) {
   // Base styles - enhanced for nested component support
   const baseStyles =
-    "w-full border rounded-lg transition-all duration-200 focus-within:outline-none focus-within:ring-2 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400 transition-colors duration-150 touch-friendly mobile-input group";
+    'w-full border rounded-lg transition-all duration-200 focus-within:outline-none focus-within:ring-2 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400 transition-colors duration-150 touch-friendly mobile-input group';
 
   // Variant styles - enhanced for nested component hover support
   const variantStyles = {
     default:
-      "border-beige bg-white hover:bg-brown/5 focus-within:ring-brown/20 focus-within:border-brown",
+      'border-beige bg-white hover:bg-brown/5 focus-within:ring-brown/20 focus-within:border-brown',
     mobile:
-      "mobile-input border-beige bg-white hover:bg-brown/5 focus-within:ring-brown/20 focus-within:border-brown touch-friendly autofill-parent",
+      'mobile-input border-beige bg-white hover:bg-brown/5 focus-within:ring-brown/20 focus-within:border-brown touch-friendly autofill-parent',
     compact:
-      "border-beige bg-white hover:bg-brown/5 focus-within:ring-brown/20 focus-within:border-brown",
+      'border-beige bg-white hover:bg-brown/5 focus-within:ring-brown/20 focus-within:border-brown',
     search:
-      "border-beige bg-white hover:bg-brown/5 focus-within:ring-brown/20 focus-within:border-brown",
+      'border-beige bg-white hover:bg-brown/5 focus-within:ring-brown/20 focus-within:border-brown',
   };
 
   // Size styles - copied exactly from Input.tsx
   const sizeStyles = {
-    sm: "h-9 px-3",
-    md: "h-12 px-4",
-    lg: "h-14 px-5",
+    sm: 'h-9 px-3',
+    md: 'h-12 px-4',
+    lg: 'h-14 px-5',
   };
 
   // Error styles - copied exactly from Input.tsx
   const errorStyles = error
-    ? "border-red-500 focus-within:border-red-500 focus-within:ring-red-500/20"
-    : "";
+    ? 'border-red-500 focus-within:border-red-500 focus-within:ring-red-500/20'
+    : '';
 
   // Container classes - copied exactly from Input.tsx
-  const containerClasses = "relative";
+  const containerClasses = 'relative';
 
   // Icon positioning classes - always visible, matches Input.tsx behavior with proper z-index
   const iconClasses = {
-    left: "absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 z-1 pointer-events-none",
+    left: 'absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 z-1 pointer-events-none',
     right:
-      "absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 z-1 pointer-events-none",
+      'absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 z-1 pointer-events-none',
   };
 
   // Combine all styles exactly like Input.tsx
@@ -79,22 +79,19 @@ export default function FieldShell({
     variantStyles[variant],
     sizeStyles[size],
     errorStyles,
-    leftIcon ? "has-left-icon" : "",
-    rightIcon ? "has-right-icon" : "",
+    leftIcon ? 'has-left-icon' : '',
+    rightIcon ? 'has-right-icon' : '',
     fieldClassName,
   ]
     .filter(Boolean)
-    .join(" ");
+    .join(' ');
 
   return (
-    <div className={cx("w-full space-y-1.5", className)}>
+    <div className={cx('w-full space-y-1.5', className)}>
       {label && (
-        <label
-          htmlFor={id}
-          className="block text-sm font-medium text-gray-700 mb-1"
-        >
+        <label htmlFor={id} className="mb-1 block text-sm font-medium text-gray-700">
           {label}
-          {required && <span className="text-red-500 ml-0.5">*</span>}
+          {required && <span className="ml-0.5 text-red-500">*</span>}
         </label>
       )}
       <style
@@ -196,9 +193,7 @@ export default function FieldShell({
       <div className={containerClasses}>
         {/* Field Container with exact Input.tsx styling */}
         <div className={fieldClasses}>
-          <div className="nested-input w-full h-full flex items-center">
-            {children}
-          </div>
+          <div className="nested-input flex h-full w-full items-center">{children}</div>
         </div>
 
         {/* Left Icon - always visible on top of input */}
@@ -213,9 +208,7 @@ export default function FieldShell({
       </div>
 
       {/* Helper Text - copied exactly from Input.tsx */}
-      {helperText && !error && (
-        <p className="mt-1 text-sm text-gray-500">{helperText}</p>
-      )}
+      {helperText && !error && <p className="mt-1 text-sm text-gray-500">{helperText}</p>}
 
       {/* Error Message - copied exactly from Input.tsx */}
       {error && <p className="mt-1 text-sm text-red-600">{error}</p>}

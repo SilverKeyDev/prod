@@ -1,10 +1,11 @@
-import React from "react";
-import MiniLogo from "./MiniLogo";
+import React from 'react';
 
-interface WhiteLogoProps {
-  size?: "xs" | "sm" | "md" | "lg" | "header";
+import MiniLogo from './MiniLogo';
+
+type WhiteLogoProps = {
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'header';
   className?: string;
-}
+};
 
 const WhiteLogo: React.FC<WhiteLogoProps> = ({ size, className }) => {
   return (

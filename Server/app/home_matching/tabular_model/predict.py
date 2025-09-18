@@ -317,11 +317,19 @@ class TabularPredictor:
             if WARN_ON_CONSTANT_BATCH and (np.nanstd(scores) <= CONST_EPS):
                 logger.warning(
                     "[TABULAR][BATCH] Predicted scores are constant/near-constant across homes "
-                    "(std=%.2e). Check feature variability and parsing.",
+                    "(std=%.2e). This may indicate similar properties or insufficient feature variability. "
+                    "Consider adding more diverse properties or enhancing feature engineering.",
                     float(np.nanstd(scores))
                 )
+                
+                # Add some randomization to break ties when scores are too similar
+                if len(scores) > 1:
+                    noise_scale = 0.01  # Small amount of noise
+                    noise = np.random.normal(0, noise_scale, len(scores))
+                    scores = [max(0.0, min(1.0, score + noise[i])) for i, score in enumerate(scores)]
+                    logger.info(f"[TABULAR][BATCH] Applied small randomization (scale={noise_scale}) to break score ties")
 
-            return scores.tolist()
+            return scores.tolist() if hasattr(scores, 'tolist') else scores
 
         except Exception as e:
             logger.error(f"[TABULAR] Error predicting batch scores: {e}", exc_info=True)

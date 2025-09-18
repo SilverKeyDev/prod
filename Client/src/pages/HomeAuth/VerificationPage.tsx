@@ -1,13 +1,14 @@
-import { useState, useEffect, useRef } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
 import { Mail, ArrowLeft } from "lucide-react";
-import { KeyTurnLoader, MiniLogo, Input } from "../../components/ui";
-import { authApi } from "../../api";
-import { secureTokenUtils } from "../../hooks/useSecureAuth";
+import React, { useState, useEffect, useRef } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 
-interface LocationState {
+import { KeyTurnLoader, MiniLogo, Input } from "../../components/ui";
+import { authApi } from "../../core/config/api";
+import { secureTokenUtils } from "../../core/hooks/data/useSecureAuth";
+
+type LocationState = {
   email?: string;
-}
+};
 
 export default function VerificationPage() {
   const [email, setEmail] = useState("");
@@ -21,7 +22,9 @@ export default function VerificationPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const locationState = location.state as LocationState;
-  const inputRefs = useRef<Array<HTMLInputElement | null>>(Array(6).fill(null));
+  const inputRefs = useRef<Array<HTMLInputElement | null>>(
+    Array(6).fill(null) as Array<HTMLInputElement | null>
+  );
 
   // Pre-fill email if coming from signup
   useEffect(() => {
@@ -36,7 +39,7 @@ export default function VerificationPage() {
 
   // Countdown timer for resend button
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: number;
     if (countdown > 0 && !canResend) {
       interval = setInterval(() => {
         setCountdown((prev) => prev - 1);
@@ -44,7 +47,9 @@ export default function VerificationPage() {
     } else if (countdown === 0) {
       setCanResend(true);
     }
-    return () => clearInterval(interval);
+    return () => {
+      if (interval) clearInterval(interval);
+    };
   }, [countdown, canResend]);
 
   const startCountdown = () => {
@@ -64,7 +69,7 @@ export default function VerificationPage() {
     if (value && index < 5) {
       inputRefs.current[index + 1]?.focus();
     } else if (index === 5 && newCode.every((digit) => digit)) {
-      handleVerify();
+      void handleVerify();
     }
   };
 
@@ -120,7 +125,7 @@ export default function VerificationPage() {
       const { success, error } = await authApi.resendCode(email);
 
       if (!success) {
-        throw new Error(error || "Failed to send verification code");
+        throw new Error(error ?? "Failed to send verification code");
       }
 
       setActiveStep("code");
@@ -148,8 +153,8 @@ export default function VerificationPage() {
     setError("");
 
     try {
-      const userEmail = email || localStorage.getItem("signupEmail") || "";
-      const userPassword = localStorage.getItem("signupPassword") || "";
+      const userEmail = email ?? sessionStorage.getItem("signupEmail") ?? "";
+      const userPassword = sessionStorage.getItem("signupPassword") ?? "";
 
       if (!userPassword) {
         throw new Error("Password not found. Please sign up again.");
@@ -169,12 +174,12 @@ export default function VerificationPage() {
       secureTokenUtils.storeTokens({
         access_token: response?.access_token,
         id_token: response?.id_token,
-        refresh_token: response?.refresh_token
+        refresh_token: response?.refresh_token,
       });
-      
+
       // Store user data (non-sensitive)
       if (response?.user) {
-        localStorage.setItem("user", JSON.stringify(response.user));
+        sessionStorage.setItem("user", JSON.stringify(response.user));
       }
 
       // On success, redirect to onboarding
@@ -201,7 +206,7 @@ export default function VerificationPage() {
     setError("");
 
     try {
-      const userEmail = email || localStorage.getItem("signupEmail");
+      const userEmail = email ?? sessionStorage.getItem("signupEmail");
       if (!userEmail) {
         throw new Error("Email not found. Please go back and try again.");
       }
@@ -209,7 +214,7 @@ export default function VerificationPage() {
       const { success, error } = await authApi.resendCode(userEmail);
 
       if (!success) {
-        throw new Error(error || "Failed to resend verification code");
+        throw new Error(error ?? "Failed to resend verification code");
       }
 
       // Reset UI state
@@ -238,7 +243,7 @@ export default function VerificationPage() {
   };
 
   const renderCodeInputs = () => (
-    <div className="flex justify-center gap-responsive-xs space-y-responsive-lg">
+    <div className="gap-responsive-xs space-y-responsive-lg flex justify-center">
       {code.map((digit, index) => (
         <input
           key={index}
@@ -248,10 +253,12 @@ export default function VerificationPage() {
           pattern="\d*"
           maxLength={1}
           value={digit}
-          onChange={(e) => handleCodeChange(e.target.value, index)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+            handleCodeChange(e.target.value, index)
+          }
           onPaste={(e) => handlePaste(e, index)}
           onKeyDown={(e) => handleKeyDown(e, index)}
-          className="mobile-icon-md btn-responsive-lg text-responsive-lg text-center border-2 border-olive rounded-lg focus:outline-none focus:ring-2 focus:ring-olive focus:border-transparent font-bold"
+          className="mobile-icon-md btn-responsive-lg text-responsive-lg rounded-lg border-2 border-olive text-center font-bold focus:border-transparent focus:outline-none focus:ring-2 focus:ring-olive"
           disabled={loading}
         />
       ))}
@@ -259,26 +266,26 @@ export default function VerificationPage() {
   );
 
   return (
-    <div className="min-h-screen bg-off-white flex items-center justify-center px-responsive-sm py-responsive-md">
+    <div className="px-responsive-sm py-responsive-md flex min-h-screen items-center justify-center bg-off-white">
       <div className="w-full max-w-md">
         {/* Back Button */}
         <button
           onClick={handleBack}
-          className="flex items-center text-black/60 hover:text-black space-y-responsive-md transition-colors"
+          className="space-y-responsive-md flex items-center text-black/60 transition-colors hover:text-black"
         >
           <ArrowLeft className="mobile-icon-sm mr-1" />
           Back
         </button>
 
         {/* Header */}
-        <div className="text-center space-y-responsive-lg">
-          <h2 className="text-responsive-xl font-serif text-black space-y-responsive-xs flex items-center justify-center gap-responsive-xs">
+        <div className="space-y-responsive-lg text-center">
+          <h2 className="text-responsive-xl space-y-responsive-xs gap-responsive-xs flex items-center justify-center font-serif text-black">
             <MiniLogo size="md" />
             {activeStep === "email"
               ? "Verify your email"
               : "Enter verification code"}
           </h2>
-          <p className="text-black/60 font-light text-responsive-sm">
+          <p className="text-responsive-sm font-light text-black/60">
             {activeStep === "email"
               ? "We'll send you a code to verify your email"
               : `Enter the 6-digit code sent to ${email}`}
@@ -287,7 +294,7 @@ export default function VerificationPage() {
 
         {/* Error Message */}
         {error && (
-          <div className="space-y-responsive-md space-responsive-sm bg-red-50 text-red-600 text-responsive-sm rounded-md">
+          <div className="space-y-responsive-md space-responsive-sm text-responsive-sm rounded-md bg-red-50 text-red-600">
             {error}
           </div>
         )}
@@ -296,13 +303,13 @@ export default function VerificationPage() {
         {activeStep === "email" && (
           <form onSubmit={handleEmailSubmit} className="space-y-responsive-md">
             <div>
-              <label className="block text-responsive-sm font-medium text-black space-y-responsive-xs">
+              <label className="text-responsive-sm space-y-responsive-xs block font-medium text-black">
                 Email address
               </label>
               <Input
                 type="email"
                 value={email}
-                onChange={(e) => {
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   setEmail(e.target.value);
                   setError("");
                 }}
@@ -317,7 +324,7 @@ export default function VerificationPage() {
             <button
               type="submit"
               disabled={loading}
-              className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn-primary w-full disabled:cursor-not-allowed disabled:opacity-50"
             >
               {loading ? (
                 <KeyTurnLoader message="Sending..." />
@@ -331,12 +338,14 @@ export default function VerificationPage() {
         {/* Verification Code Step */}
         {activeStep === "code" && (
           <form
-            onSubmit={(e) => e.preventDefault()}
+            onSubmit={(e: React.FormEvent<HTMLFormElement>) =>
+              e.preventDefault()
+            }
             className="space-y-responsive-md"
           >
             {renderCodeInputs()}
 
-            <div className="text-center text-responsive-sm text-black/60">
+            <div className="text-responsive-sm text-center text-black/60">
               Didn't receive a code?{" "}
               <button
                 type="button"
@@ -364,8 +373,8 @@ export default function VerificationPage() {
             <button
               type="button"
               onClick={handleVerify}
-              disabled={loading || code.join("").length !== 6}
-              className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={loading ?? code.join("").length !== 6}
+              className="btn-primary w-full disabled:cursor-not-allowed disabled:opacity-50"
             >
               {loading ? (
                 <div className="flex items-center justify-center">

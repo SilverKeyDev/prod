@@ -1,16 +1,15 @@
-import { useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
 import { Mail, Lock, Key } from "lucide-react";
-import { authApi } from "../../api";
+import React, { useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+
+import { PasswordValidation } from "../../components/feedback/PasswordValidation";
+import { usePasswordValidation } from "../../components/feedback/PasswordValidationUtils";
 import SuccessDialog from "../../components/modals/SuccessDialog";
-import {
-  PasswordValidation,
-  usePasswordValidation,
-} from "../../components/feedback/PasswordValidation";
 import { Input } from "../../components/ui";
-import AuthButton from "../../features/homeauth/AuthButton";
-import AuthLink from "../../features/homeauth/AuthLink";
-import AuthPageLayout from "../../features/homeauth/AuthPageLayout";
+import { authApi } from "../../core/config/api";
+import AuthButton from "../../features/homeauth/Auth/Button";
+import AuthLink from "../../features/homeauth/Auth/Link";
+import AuthPageLayout from "../../features/homeauth/Auth/PageLayout";
 
 export default function ResetPasswordPage() {
   const [searchParams] = useSearchParams();
@@ -25,8 +24,12 @@ export default function ResetPasswordPage() {
   const navigate = useNavigate();
 
   // Password validation
-  const { isValid: isPasswordValid, errors: passwordErrors } =
-    usePasswordValidation(newPassword);
+  const { isValid: isPasswordValid, errors: passwordErrors } = (
+    usePasswordValidation as (password: string) => {
+      isValid: boolean;
+      errors: string[];
+    }
+  )(newPassword);
 
   const handleRequestReset = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,7 +40,7 @@ export default function ResetPasswordPage() {
       const { success, error } = await authApi.forgotPassword(email);
 
       if (!success) {
-        throw new Error(error || "Failed to send reset code");
+        throw new Error(error ?? "Failed to send reset code");
       }
 
       setStep("reset");
@@ -67,7 +70,7 @@ export default function ResetPasswordPage() {
     // Validate password using comprehensive validation
     if (!isPasswordValid) {
       setError(
-        `Password must meet all requirements: ${passwordErrors.join(", ")}`
+        `Password must meet all requirements: ${Array.isArray(passwordErrors) ? passwordErrors.join(", ") : "Unknown error"}`
       );
       setLoading(false);
       return;
@@ -81,7 +84,7 @@ export default function ResetPasswordPage() {
       );
 
       if (!success) {
-        throw new Error(error || "Failed to reset password");
+        throw new Error(error ?? "Failed to reset password");
       }
 
       setShowSuccessDialog(true);
@@ -120,9 +123,11 @@ export default function ResetPasswordPage() {
             label="Email address"
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setEmail(e.target.value)
+            }
             placeholder="Enter your email"
-            leftIcon={<Mail className="w-4 h-4" />}
+            leftIcon={<Mail className="h-4 w-4" />}
             name="email"
             id="email-request"
             autoComplete="username"
@@ -136,9 +141,11 @@ export default function ResetPasswordPage() {
               label="Email address"
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setEmail(e.target.value)
+              }
               placeholder="Enter your email"
-              leftIcon={<Mail className="w-4 h-4" />}
+              leftIcon={<Mail className="h-4 w-4" />}
               name="email"
               id="email-request"
               autoComplete="username"
@@ -150,9 +157,11 @@ export default function ResetPasswordPage() {
               label="Verification code"
               type="text"
               value={code}
-              onChange={(e) => setCode(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setCode(e.target.value)
+              }
               placeholder="Enter verification code"
-              leftIcon={<Key className="w-4 h-4" />}
+              leftIcon={<Key className="h-4 w-4" />}
               name="code"
               id="verification-code"
               variant="mobile"
@@ -164,9 +173,11 @@ export default function ResetPasswordPage() {
                 label="New password"
                 type="password"
                 value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setNewPassword(e.target.value)
+                }
                 placeholder="Enter new password"
-                leftIcon={<Lock className="w-4 h-4" />}
+                leftIcon={<Lock className="h-4 w-4" />}
                 name="new-password"
                 id="new-password"
                 autoComplete="new-password"
@@ -184,9 +195,11 @@ export default function ResetPasswordPage() {
               label="Confirm new password"
               type="password"
               value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setConfirmPassword(e.target.value)
+              }
               placeholder="Confirm new password"
-              leftIcon={<Lock className="w-4 h-4" />}
+              leftIcon={<Lock className="h-4 w-4" />}
               name="confirm-password"
               id="confirm-password"
               autoComplete="new-password"
@@ -202,13 +215,13 @@ export default function ResetPasswordPage() {
           {step === "request" ? "Send reset code" : "Reset password"}
         </AuthButton>
 
-        <div className="text-center text-responsive-xs">
-          <span className="text-gray-600 text-responsive-xs">
+        <div className="text-responsive-xs text-center">
+          <span className="text-responsive-xs text-gray-600">
             Remember your password?
           </span>
           <AuthLink
             to="/login"
-            className="text-brown hover:text-brown/80 hover:underline underline-offset-4 transition-colors"
+            className="text-brown underline-offset-4 transition-colors hover:text-brown/80 hover:underline"
           >
             Login
           </AuthLink>

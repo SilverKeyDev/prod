@@ -154,7 +154,7 @@ def generate_report_endpoint():
             return jsonify({'error': 'Internal server error', 'success': False}), 500
 
 @report_bp.route('/all', methods=['GET', 'POST'])
-@rate_limit(max_requests=50, window_seconds=60)
+@rate_limit(max_requests=200, window_seconds=60)
 def list_all_reports():
     """Get all reports for the current user - alias for /list endpoint"""
     return list_reports()

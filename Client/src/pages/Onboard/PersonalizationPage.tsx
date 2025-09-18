@@ -1,10 +1,5 @@
 // React imports
-import React, { useState, useEffect } from "react";
-
-// Third-party libraries
-import { DragEndEvent } from "@dnd-kit/core";
-
-// Third-party UI icons
+import type { DragEndEvent } from "@dnd-kit/core";
 import {
   User,
   Building,
@@ -13,53 +8,73 @@ import {
   MessageSquare,
   ListOrdered,
 } from "lucide-react";
+import React, { useState, useEffect, useCallback } from "react";
 
-// Context providers
-import { useGoogleMaps } from "../../context";
-import { usePreferences } from "../../context";
-
-// UI Components
-import Card from "../../components/layout/Card";
-import { Loading, OliveCheckbox, Dropdown, Input, Title, Subtitle } from "../../components/ui";
-
-// Feature components
-import PriceRangeSlider from "../../features/onboardpersonalize/PriceRangeSlider";
-import ImportantLocationsInput from "../../features/onboardpersonalize/ImportantLocationsInput";
-import HomePriceEstimate from "../../features/onboardpersonalize/HomePriceEstimate";
-import OnPerDragDropPriorities from "../../features/onboardpersonalize/OnPerDragDropPriorities";
-import OnPerTagInput from "../../features/onboardpersonalize/OnPerTagInput";
-import Label from "../../features/onboardpersonalize/Label";
-import PersonalizationMobileHeader from "../../features/onboardpersonalize/PersonalizationMobileHeader";
-
-// Utility functions
-import { handleDragEnd as handleDragEndUtil } from "../../features/onboardpersonalize/utils/dragEndHandler";
-import { handleSubmit as handleSubmitUtil } from "../../features/onboardpersonalize/utils/submitHandler";
-import { validateOnboardingData } from "../../features/onboardpersonalize/utils/validation";
-import { calculateAffordableHomePrice } from "../../features/onboardpersonalize/utils/homePriceCalculation";
-import PersonalizationSidebar from "../../features/onboardpersonalize/PersonalizationSidebar";
-import useMobile from "../../hooks/useMobile";
+// Components
+import AlignedRow from "../../components/format/AlignedRow";
+import Card from "../../components/format/Card";
 import {
-  OnboardingData,
+  Loading,
+  OliveCheckbox,
+  Dropdown,
+  Input,
+  Title,
+  Subtitle,
+} from "../../components/ui";
+// Core
+import { useGoogleMapsStore } from "../../core/store/googleMaps.slice";
+import { showErrorToast } from "../../core/hooks/ui/useToast";
+import { useUserPreferences } from "../../core/hooks/data/useUserData";
+import useMobile from "../../core/hooks/ui/useMobile";
+// Features
+import OnPerDragDropPriorities from "../../features/onboardpersonalize/DragDropPriorities";
+import HomePriceEstimate from "../../features/onboardpersonalize/HomePriceEstimate";
+import ImportantLocationsInput from "../../features/onboardpersonalize/ImportantLocationsInput";
+import Label from "../../features/onboardpersonalize/Label";
+import {
   SECTION_TITLES,
   FIELD_LABELS,
   CREDIT_SCORE_OPTIONS,
   HOUSING_TYPE_OPTIONS,
   COMMUNICATION_FREQUENCY_OPTIONS,
-} from "../../features/onboardpersonalize/utils/constants";
-import AlignedRow from "../../components/layout/AlignedRow";
+  type OnboardingData,
+} from "../../features/onboardpersonalize/lib/constants";
+import { handleDragEnd as handleDragEndUtil } from "../../features/onboardpersonalize/lib/dragEndHandler";
+import { calculateAffordableHomePrice } from "../../features/onboardpersonalize/lib/homePriceCalculation";
+import { handleSubmit as handleSubmitUtil } from "../../features/onboardpersonalize/lib/submitHandler";
+import { validateOnboardingData } from "../../features/onboardpersonalize/lib/validation";
+import PersonalizationMobileHeader from "../../features/onboardpersonalize/personalization/MobileHeader";
+import PersonalizationSidebar from "../../features/onboardpersonalize/personalization/Sidebar";
+import PriceRangeSlider from "../../features/onboardpersonalize/PriceRangeSlider";
+import OnPerTagInput from "../../features/onboardpersonalize/TagInput";
 
 // Extend window interface for Google Maps
 declare global {
+  // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
   interface Window {
-    google?: any;
+    google?: typeof google | undefined;
   }
 }
 
-interface PersonalizationPageProps {
+type PersonalizationPageProps = {
   setMobileHeaderActions: React.Dispatch<
     React.SetStateAction<React.ReactNode | null>
   >;
-}
+};
+
+type HomePriceResult = {
+  maxHomePrice: number;
+  totalMonthlyHousingCost: number;
+  netAnnualIncome: number;
+  monthlyMortgage: number;
+  loanAmount: number;
+  monthlyPMI: number;
+  interestRate: number;
+  propertyTaxRate: number;
+  dtiUsed: number;
+  downPayment: number;
+  explanation?: string;
+};
 
 const STEPS = [
   {
@@ -81,7 +96,7 @@ const STEPS = [
 export default function PersonalizationPage({
   setMobileHeaderActions,
 }: PersonalizationPageProps) {
-  const { userPreferences, refreshUserPreferences } = usePreferences();
+  const { userPreferences, refreshUserPreferences } = useUserPreferences();
   const [formData, setFormData] = useState<OnboardingData>({});
   const [originalData, setOriginalData] = useState<OnboardingData>({});
   const [isEditMode, setIsEditMode] = useState(false);
@@ -91,21 +106,32 @@ export default function PersonalizationPage({
   // Modal state variables removed - modals not currently implemented
   const [scriptsReady, setScriptsReady] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [homePriceResult, setHomePriceResult] = useState<any>(null);
+  const [homePriceResult, setHomePriceResult] =
+    useState<HomePriceResult | null>(null);
   const [homePriceLoading, setHomePriceLoading] = useState(false);
   const [homePriceError, setHomePriceError] = useState<string | null>(null);
   const [isAffordabilityCollapsed, setIsAffordabilityCollapsed] =
     useState(false);
 
   // Generate explanation text for the home price calculation
-  const generateExplanation = (result: any, data: OnboardingData) => {
+  const generateExplanation = (
+    result: HomePriceResult,
+    data: OnboardingData
+  ) => {
     // Calculate down payment percent for display
+    const maxHomePrice =
+      typeof result.maxHomePrice === "number" ? result.maxHomePrice : 0;
+    const downPayment =
+      typeof result.downPayment === "number" ? result.downPayment : 0;
     const downPaymentPercent =
-      result.maxHomePrice > 0
-        ? ((result.downPayment / result.maxHomePrice) * 100).toFixed(1)
-        : "-";
+      maxHomePrice > 0 ? ((downPayment / maxHomePrice) * 100).toFixed(1) : "-";
 
-    return `Based on your gross annual income of $${data.gross_income?.toLocaleString()}, credit score range, and a down payment of $${data.down_payment?.toLocaleString()} (${downPaymentPercent}% of home price), we estimate you can afford a home up to $${result.maxHomePrice.toLocaleString()}.
+    const totalMonthlyHousingCost =
+      typeof result.totalMonthlyHousingCost === "number"
+        ? result.totalMonthlyHousingCost
+        : 0;
+
+    return `Based on your gross annual income of $${data.gross_income?.toLocaleString()}, credit score range, and a down payment of $${data.down_payment?.toLocaleString()} (${downPaymentPercent}% of home price), we estimate you can afford a home up to $${maxHomePrice.toLocaleString()}.
 
 This estimate is calculated using a debt-to-income (DTI) approach: your maximum allowable monthly housing cost is determined as a percentage of your gross monthly income, in line with common DTI limits. We then backsolve for the highest home price you can afford, factoring in principal, interest, property taxes, homeowner's insurance, and any required PMI.
 
@@ -120,16 +146,12 @@ Key assumptions used:
         ? result.propertyTaxRate.toFixed(2)
         : "-"
     }%
-- **DTI Used:** ${
-      typeof result.dtiUsed === "number"
-        ? (result.dtiUsed * 100).toFixed(0)
-        : "-"
-    }%
+- **DTI Used:** ${typeof result.dtiUsed === "number" ? (result.dtiUsed * 100).toFixed(0) : "-"}%
 
-Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleString()} includes principal, interest, property taxes, homeowner's insurance, and PMI (if applicable). This approach gives you a realistic maximum home price based on your income and debts—not just a budget cap.`;
+Your estimated monthly payment of $${totalMonthlyHousingCost.toLocaleString()} includes principal, interest, property taxes, homeowner's insurance, and PMI (if applicable). This approach gives you a realistic maximum home price based on your income and debts—not just a budget cap.`;
   };
 
-  const calculateHomePrice = async () => {
+  const calculateHomePrice = useCallback(() => {
     // Check if we have all required data
     if (!formData.gross_income || !formData.ideal_zip_code) {
       return;
@@ -139,7 +161,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
       setHomePriceLoading(true);
       setHomePriceError(null);
 
-      const result = await calculateAffordableHomePrice(formData);
+      const result = calculateAffordableHomePrice(formData);
 
       if ("error" in result) {
         setHomePriceError(result.error);
@@ -147,10 +169,10 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
       } else {
         setHomePriceResult({
           ...result,
-          explanation: generateExplanation(result, formData),
-        });
+          explanation: generateExplanation(result as HomePriceResult, formData),
+        } as HomePriceResult);
       }
-    } catch (error) {
+    } catch (error: unknown) {
       setHomePriceError(
         error instanceof Error
           ? error.message
@@ -160,7 +182,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
     } finally {
       setHomePriceLoading(false);
     }
-  };
+  }, [formData]);
 
   // Default report sections with their labels
   const defaultReportSections = [
@@ -186,7 +208,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
         return [];
       }
 
-      const priorities = formData.report_section_priorities || [];
+      const priorities = formData.report_section_priorities ?? [];
       const sections = [...defaultReportSections];
 
       // Sort sections based on priorities - included items first in priority order, excluded items at end
@@ -214,7 +236,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
       });
 
       return orderedSections;
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error in getOrderedReportSections:", error);
       return [];
     }
@@ -226,7 +248,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
     return () => {
       setMobileHeaderActions(null);
     };
-  }, []);
+  }, [setMobileHeaderActions]);
 
   useEffect(() => {
     // Only calculate if we're on the financial section
@@ -234,7 +256,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
 
     // Only calculate if we have the minimum required data
     if (formData.gross_income && formData.ideal_zip_code) {
-      calculateHomePrice();
+      void calculateHomePrice();
     }
   }, [
     formData.gross_income,
@@ -242,6 +264,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
     formData.ideal_zip_code,
     formData.down_payment,
     activeSection,
+    calculateHomePrice,
   ]);
 
   // Handle drag end for reordering
@@ -256,7 +279,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
 
   // Handle checkbox toggle for report sections
   const handleReportSectionToggle = (sectionKey: string, checked: boolean) => {
-    const currentPriorities = formData.report_section_priorities || [];
+    const currentPriorities = formData.report_section_priorities ?? [];
 
     if (!checked) {
       // Remove from priorities when unchecked
@@ -276,21 +299,36 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
     }
   };
 
+  const loadUserPreferencesFromContext = useCallback(() => {
+    try {
+      setIsLoading(true);
+
+      if (userPreferences) {
+        setFormData(userPreferences as OnboardingData);
+        setOriginalData(userPreferences as OnboardingData);
+      }
+    } catch (error: unknown) {
+      console.error("Failed to load user preferences from context:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [userPreferences]);
+
   // Refresh data when page loads to ensure latest updates
   useEffect(() => {
-    refreshUserPreferences();
-  }, [refreshUserPreferences]);
+    void refreshUserPreferences();
+  }, [refreshUserPreferences]); // Only run once on mount
 
   // Load user preferences from centralized context
   useEffect(() => {
     if (userPreferences) {
-      loadUserPreferencesFromContext();
+      void void loadUserPreferencesFromContext();
     } else {
       setFormData({});
       setOriginalData({});
       setIsLoading(false);
     }
-  }, [userPreferences]);
+  }, [userPreferences, loadUserPreferencesFromContext]);
 
   // Track scroll position to update active section
   useEffect(() => {
@@ -315,13 +353,13 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
 
   // Use centralized Google Maps loading
   const { isLoaded: googleMapsLoaded, error: googleMapsError } =
-    useGoogleMaps();
+    useGoogleMapsStore();
 
   // Update scriptsReady based on centralized Google Maps loading
   useEffect(() => {
     if (googleMapsError) {
       console.error("❌ Google Maps loading error:", googleMapsError);
-      setLoadError("Failed to load Google Maps script.");
+      void void setLoadError("Failed to load Google Maps script.");
       return;
     }
 
@@ -330,31 +368,19 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
     }
   }, [googleMapsLoaded, googleMapsError]);
 
-  const loadUserPreferencesFromContext = () => {
-    try {
-      setIsLoading(true);
+  const updateFormData = useCallback(
+    (field: string | number | symbol, value: unknown) => {
+      setFormData((prev) => ({ ...prev, [field]: value }));
+    },
+    []
+  );
 
-      if (userPreferences) {
-        setFormData(userPreferences as OnboardingData);
-        setOriginalData(userPreferences as OnboardingData);
-      }
-    } catch (error) {
-      console.error("Failed to load user preferences from context:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const updateFormData = (field: string | number | symbol, value: any) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleSaveChanges = async () => {
+  const handleSaveChanges = useCallback(async () => {
     // Increment version for this update
-    const currentVersion = formData.preferences_version || "1.0";
+    const currentVersion = formData.preferences_version ?? "1.0";
     const versionParts = currentVersion.split(".");
-    const majorVersion = parseInt(versionParts[0]) || 1;
-    const minorVersion = parseInt(versionParts[1]) || 0;
+    const majorVersion = parseInt(versionParts[0]) ?? 1;
+    const minorVersion = parseInt(versionParts[1]) ?? 0;
     const newVersion = `${majorVersion}.${minorVersion + 1}`;
 
     const dataToSave = {
@@ -379,15 +405,15 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
       },
       onError: (error) => {
         console.error("Failed to update preferences:", error);
-        alert("Failed to update preferences. Please try again.");
+        showErrorToast("Failed to update preferences. Please try again.");
       },
     });
-  };
+  }, [formData]);
 
-  const handleCancel = () => {
+  const handleCancel = useCallback(() => {
     setFormData(originalData);
     setIsEditMode(false);
-  };
+  }, [originalData]);
 
   // Handle mobile header actions based on screen size
   const isMobile = useMobile();
@@ -406,7 +432,14 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
     } else {
       setMobileHeaderActions(null);
     }
-  }, [isMobile, isEditMode, isSaving]);
+  }, [
+    isMobile,
+    isEditMode,
+    isSaving,
+    setMobileHeaderActions,
+    handleCancel,
+    handleSaveChanges,
+  ]);
 
   // Modal handlers removed - modals not currently implemented
 
@@ -420,7 +453,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-off-white flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-off-white">
         <Loading message="Loading your preferences..." />
       </div>
     );
@@ -446,8 +479,8 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   content: isEditMode ? (
                     <Input
                       type="number"
-                      value={formData.age?.toString() || ""}
-                      onChange={(e) =>
+                      value={formData.age?.toString() ?? ""}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                         updateFormData(
                           "age",
                           parseInt(e.target.value) || undefined
@@ -457,7 +490,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                     />
                   ) : (
                     <div className="mobile-input bg-gray-50">
-                      {formData.age || "Not specified"}
+                      {formData.age ?? "Not specified"}
                     </div>
                   ),
                 },
@@ -465,7 +498,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   title: <Label>Gender</Label>,
                   content: isEditMode ? (
                     <Dropdown
-                      value={formData.gender || ""}
+                      value={formData.gender ?? ""}
                       onChange={(value) => updateFormData("gender", value)}
                       options={[
                         { value: "male", label: "Male" },
@@ -506,7 +539,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   title: <Label>Do you have pets?</Label>,
                   content: isEditMode ? (
                     <Dropdown
-                      value={formData.pets || ""}
+                      value={formData.pets ?? ""}
                       onChange={(value) => updateFormData("pets", value)}
                       options={[
                         { value: "yes", label: "Yes" },
@@ -538,15 +571,15 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   content: isEditMode ? (
                     <Input
                       type="text"
-                      value={formData.occupation || ""}
-                      onChange={(e) =>
+                      value={formData.occupation ?? ""}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                         updateFormData("occupation", e.target.value)
                       }
                       placeholder="Your job title"
                     />
                   ) : (
                     <div className="mobile-input bg-gray-50">
-                      {formData.occupation || "Not specified"}
+                      {formData.occupation ?? "Not specified"}
                     </div>
                   ),
                 },
@@ -574,7 +607,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                       tickValues={[
                         50000, 100000, 200000, 300000, 500000, 750000, 1000000,
                       ]}
-                      value={formData.gross_income || 100000}
+                      value={formData.gross_income ?? 100000}
                       onChange={(value) => {
                         // Round to nearest $5,000 increment
                         const roundedValue = Math.round(value / 5000) * 5000;
@@ -598,7 +631,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                       tickValues={[
                         100000, 250000, 500000, 1000000, 2000000, 5000000,
                       ]}
-                      value={formData.down_payment || 100000}
+                      value={formData.down_payment ?? 100000}
                       onChange={(value) => {
                         // Round to nearest $5,000 increment
                         const roundedValue = Math.round(value / 5000) * 5000;
@@ -628,15 +661,15 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   content: isEditMode ? (
                     <Input
                       type="text"
-                      value={formData.ideal_zip_code || ""}
-                      onChange={(e) =>
+                      value={formData.ideal_zip_code ?? ""}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                         updateFormData("ideal_zip_code", e.target.value)
                       }
                       placeholder="Enter zip code"
                     />
                   ) : (
                     <div className="mobile-input bg-gray-50">
-                      {formData.ideal_zip_code || "Not specified"}
+                      {formData.ideal_zip_code ?? "Not specified"}
                     </div>
                   ),
                 },
@@ -644,7 +677,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   title: <Label>{FIELD_LABELS.CREDIT_SCORE_RANGE}</Label>,
                   content: isEditMode ? (
                     <Dropdown
-                      value={formData.credit_score_range || ""}
+                      value={formData.credit_score_range ?? ""}
                       onChange={(value) =>
                         updateFormData("credit_score_range", value)
                       }
@@ -660,10 +693,10 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   ) : (
                     <div className="mobile-input bg-gray-50">
                       {formData.credit_score_range
-                        ? CREDIT_SCORE_OPTIONS.find(
+                        ? (CREDIT_SCORE_OPTIONS.find(
                             (option) =>
                               option.value === formData.credit_score_range
-                          )?.label || "Not specified"
+                          )?.label ?? "Not specified")
                         : "Not specified"}
                     </div>
                   ),
@@ -671,9 +704,9 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
               ]}
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-              <div className="col-span-1 md:col-span-2 flex flex-col items-center">
-                <Title size="md" className="mb-2 text-center w-full font-bold">
+            <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
+              <div className="col-span-1 flex flex-col items-center md:col-span-2">
+                <Title size="md" className="mb-2 w-full text-center font-bold">
                   Home Budget
                 </Title>
                 {isEditMode ? (
@@ -681,7 +714,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                     tickValues={[
                       200000, 500000, 1000000, 2000000, 5000000, 10000000,
                     ]}
-                    value={formData.home_budget || 500000}
+                    value={formData.home_budget ?? 500000}
                     onChange={(value) => {
                       // Round to nearest $25,000 increment
                       const roundedValue = Math.round(value / 25000) * 25000;
@@ -691,9 +724,9 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                     className="mt-2"
                   />
                 ) : (
-                  <div className="mobile-input bg-gray-50 text-center mt-2">
+                  <div className="mobile-input mt-2 bg-gray-50 text-center">
                     <Title size="md" className="font-bold">
-                      ${(formData.home_budget || 0).toLocaleString()}
+                      ${(formData.home_budget ?? 0).toLocaleString()}
                     </Title>
                   </div>
                 )}
@@ -732,7 +765,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   title: <Label>{FIELD_LABELS.PREFERRED_HOUSING_TYPE}</Label>,
                   content: isEditMode ? (
                     <Dropdown
-                      value={formData.preferred_housing_type || ""}
+                      value={formData.preferred_housing_type ?? ""}
                       onChange={(value) =>
                         updateFormData("preferred_housing_type", value)
                       }
@@ -742,10 +775,10 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   ) : (
                     <div className="mobile-input bg-gray-50">
                       {formData.preferred_housing_type
-                        ? HOUSING_TYPE_OPTIONS.find(
+                        ? (HOUSING_TYPE_OPTIONS.find(
                             (option) =>
                               option.value === formData.preferred_housing_type
-                          )?.label || "Not specified"
+                          )?.label ?? "Not specified")
                         : "Not specified"}
                     </div>
                   ),
@@ -755,8 +788,8 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   content: isEditMode ? (
                     <Input
                       type="number"
-                      value={formData.preferred_bedrooms?.toString() || ""}
-                      onChange={(e) =>
+                      value={formData.preferred_bedrooms?.toString() ?? ""}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                         updateFormData(
                           "preferred_bedrooms",
                           parseInt(e.target.value) || undefined
@@ -766,7 +799,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                     />
                   ) : (
                     <div className="mobile-input bg-gray-50">
-                      {formData.preferred_bedrooms || "Not specified"}
+                      {formData.preferred_bedrooms ?? "Not specified"}
                     </div>
                   ),
                 },
@@ -783,8 +816,8 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   content: isEditMode ? (
                     <Input
                       type="number"
-                      value={formData.preferred_bathrooms?.toString() || ""}
-                      onChange={(e) =>
+                      value={formData.preferred_bathrooms?.toString() ?? ""}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                         updateFormData(
                           "preferred_bathrooms",
                           parseInt(e.target.value) || undefined
@@ -794,7 +827,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                     />
                   ) : (
                     <div className="mobile-input bg-gray-50">
-                      {formData.preferred_bathrooms || "Not specified"}
+                      {formData.preferred_bathrooms ?? "Not specified"}
                     </div>
                   ),
                 },
@@ -802,7 +835,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   title: <Label>Preferred Lot Size</Label>,
                   content: isEditMode ? (
                     <Dropdown
-                      value={formData.preferred_lot_size || ""}
+                      value={formData.preferred_lot_size ?? ""}
                       onChange={(value) =>
                         updateFormData("preferred_lot_size", value)
                       }
@@ -850,7 +883,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   title: <Label>Preferred Home Age</Label>,
                   content: isEditMode ? (
                     <Dropdown
-                      value={formData.preferred_home_age || ""}
+                      value={formData.preferred_home_age ?? ""}
                       onChange={(value) =>
                         updateFormData("preferred_home_age", value)
                       }
@@ -892,7 +925,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   title: <Label>Preferred Architectural Style</Label>,
                   content: isEditMode ? (
                     <Dropdown
-                      value={formData.preferred_architectural_style || ""}
+                      value={formData.preferred_architectural_style ?? ""}
                       onChange={(value) =>
                         updateFormData("preferred_architectural_style", value)
                       }
@@ -941,7 +974,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   title: <Label>Renovation Willingness</Label>,
                   content: isEditMode ? (
                     <Dropdown
-                      value={formData.renovation_preference || ""}
+                      value={formData.renovation_preference ?? ""}
                       onChange={(value) =>
                         updateFormData("renovation_preference", value)
                       }
@@ -973,7 +1006,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   title: <Label>Intended Property Use</Label>,
                   content: isEditMode ? (
                     <Dropdown
-                      value={formData.intended_property_use || ""}
+                      value={formData.intended_property_use ?? ""}
                       onChange={(value) =>
                         updateFormData("intended_property_use", value)
                       }
@@ -1011,7 +1044,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
               <div>
                 <Label>Preferred Home Features</Label>
                 <OnPerTagInput
-                  value={(formData.preferred_home_features as string[]) || []}
+                  value={(formData.preferred_home_features as string[]) ?? []}
                   onChange={(value: string[]) =>
                     updateFormData("preferred_home_features", value)
                   }
@@ -1022,7 +1055,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
               <div>
                 <Label>Deal Breakers</Label>
                 <OnPerTagInput
-                  value={(formData.deal_breakers as string[]) || []}
+                  value={(formData.deal_breakers as string[]) ?? []}
                   onChange={(value: string[]) =>
                     updateFormData("deal_breakers", value)
                   }
@@ -1045,7 +1078,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                 <Label>Walkability Importance</Label>
                 {isEditMode ? (
                   <Dropdown
-                    value={formData.walkability_importance || ""}
+                    value={formData.walkability_importance ?? ""}
                     onChange={(value) =>
                       updateFormData("walkability_importance", value)
                     }
@@ -1079,10 +1112,10 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
             </div>
 
             {/* Important Locations for Commute */}
-            <div className="flex flex-col md:flex-row gap-6 w-full">
+            <div className="flex w-full flex-col gap-6 md:flex-row">
               <div className="flex-1">
                 <Label>Important Locations</Label>
-                <p className="text-xs text-black/60 mb-4">
+                <p className="mb-4 text-xs text-black/60">
                   Add locations important to you (workplace, gym, family, etc.).
                   We use these to create travel time maps and find properties
                   within your commute tolerance. Each location helps our AI
@@ -1090,7 +1123,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   routines.
                 </p>
                 <ImportantLocationsInput
-                  locations={formData.important_locations || []}
+                  locations={formData.important_locations ?? []}
                   onChange={(locations) =>
                     updateFormData("important_locations", locations)
                   }
@@ -1098,7 +1131,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                   isEditMode={isEditMode}
                 />
                 {loadError && (
-                  <p className="text-red-500 text-xs mt-2">{loadError}</p>
+                  <p className="mt-2 text-xs text-red-500">{loadError}</p>
                 )}
               </div>
             </div>
@@ -1117,7 +1150,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
               <Label>{FIELD_LABELS.COMMUNICATION_FREQUENCY}</Label>
               {isEditMode ? (
                 <Dropdown
-                  value={formData.communication_frequency || ""}
+                  value={formData.communication_frequency ?? ""}
                   onChange={(value) =>
                     updateFormData("communication_frequency", value)
                   }
@@ -1127,10 +1160,10 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
               ) : (
                 <div className="mobile-input bg-gray-50">
                   {formData.communication_frequency
-                    ? COMMUNICATION_FREQUENCY_OPTIONS.find(
+                    ? (COMMUNICATION_FREQUENCY_OPTIONS.find(
                         (option) =>
                           option.value === formData.communication_frequency
-                      )?.label || "Not specified"
+                      )?.label ?? "Not specified")
                     : "Not specified"}
                 </div>
               )}
@@ -1141,7 +1174,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
               <Label>Information Detail Level</Label>
               {isEditMode ? (
                 <Dropdown
-                  value={formData.information_detail_level || ""}
+                  value={formData.information_detail_level ?? ""}
                   onChange={(value) =>
                     updateFormData("information_detail_level", value)
                   }
@@ -1206,16 +1239,16 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                     formData.has_buyers_agent === "no" ? (
                       <Label>Looking for Agent?</Label>
                     ) : (
-                      <div className="block text-sm font-medium text-transparent mb-2">
+                      <div className="mb-2 block text-sm font-medium text-transparent">
                         &nbsp;
                       </div>
                     ),
                   content:
                     formData.has_buyers_agent === "no" ? (
-                      <div className="flex items-center h-full">
+                      <div className="flex h-full items-center">
                         <label
                           htmlFor="looking-buyers-agent"
-                          className="flex items-center gap-3 text-sm font-medium text-black cursor-pointer"
+                          className="flex cursor-pointer items-center gap-3 text-sm font-medium text-black"
                         >
                           {isEditMode ? (
                             <>
@@ -1244,15 +1277,15 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
                             </>
                           ) : (
                             <div
-                              className={`h-5 w-5 rounded border flex items-center justify-center ${
+                              className={`flex h-5 w-5 items-center justify-center rounded border ${
                                 formData.looking_for_buyers_agent
-                                  ? "bg-olive border-olive"
+                                  ? "border-olive bg-olive"
                                   : "border-gray-300 bg-gray-50"
                               }`}
                             >
                               {formData.looking_for_buyers_agent && (
                                 <svg
-                                  className="w-4 h-4 text-gray-600"
+                                  className="h-4 w-4 text-gray-600"
                                   fill="currentColor"
                                   viewBox="0 0 20 20"
                                 >
@@ -1281,11 +1314,11 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
           </Card>
         );
 
-      case "reportcustomization":
+      case "reportcustomization": {
         if (isLoading) {
           return (
             <Card className="space-y-6">
-              <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
+              <h2 className="mb-6 font-serif text-xl text-black sm:text-2xl">
                 Priorities
               </h2>
               <Loading message="Loading report customization options..." />
@@ -1298,7 +1331,7 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
         if (!orderedSections || orderedSections.length === 0) {
           return (
             <Card className="space-y-6">
-              <h2 className="text-xl sm:text-2xl font-serif text-black mb-6">
+              <h2 className="mb-6 font-serif text-xl text-black sm:text-2xl">
                 Priorities
               </h2>
               <Loading message="Loading report customization options..." />
@@ -1318,12 +1351,13 @@ Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleStri
             />
           </Card>
         );
+      }
     }
   };
 
   return (
-    <div className="bg-off-white min-h-screen">
-      <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 pb-1">
+    <div className="min-h-screen bg-off-white">
+      <div className="mx-auto max-w-7xl pb-1 sm:px-6 lg:px-8">
         <div className="flex flex-row gap-2 md:gap-8">
           {/* Sidebar */}
           <PersonalizationSidebar

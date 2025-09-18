@@ -1,9 +1,10 @@
-import React, { useEffect } from "react";
-import { createPortal } from "react-dom";
-import { X } from "lucide-react";
-import IconButton from "../ui/button/IconButton";
+import { X } from 'lucide-react';
+import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
-export interface BaseModalProps {
+import IconButton from '../ui/button/IconButton';
+
+export type BaseModalProps = {
   /** Whether the modal is open */
   isOpen: boolean;
   /** Function to close the modal */
@@ -11,7 +12,7 @@ export interface BaseModalProps {
   /** Modal title */
   title?: string;
   /** Modal size */
-  size?: "xs" | "sm" | "md" | "lg" | "xl" | "full";
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'full';
   /** Whether to show close button */
   showCloseButton?: boolean;
   /** Whether clicking backdrop closes modal */
@@ -30,18 +31,18 @@ export interface BaseModalProps {
   footerContent?: React.ReactNode;
   /** Z-index level */
   zIndex?: number;
-}
+};
 
 const BaseModal: React.FC<BaseModalProps> = ({
   isOpen,
   onClose,
   title,
-  size = "md",
+  size = 'md',
   showCloseButton = true,
   closeOnBackdropClick = true,
   closeOnEscape = true,
-  className = "",
-  backdropClassName = "",
+  className = '',
+  backdropClassName = '',
   children,
   headerContent,
   footerContent,
@@ -52,21 +53,21 @@ const BaseModal: React.FC<BaseModalProps> = ({
     if (!isOpen || !closeOnEscape) return;
 
     const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
+      if (event.key === 'Escape') {
         onClose();
       }
     };
 
-    document.addEventListener("keydown", handleEscape);
-    return () => document.removeEventListener("keydown", handleEscape);
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
   }, [isOpen, closeOnEscape, onClose]);
 
   // Prevent body scroll when modal is open
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = "hidden";
+      document.body.style.overflow = 'hidden';
       return () => {
-        document.body.style.overflow = "unset";
+        document.body.style.overflow = 'unset';
       };
     }
   }, [isOpen]);
@@ -75,12 +76,12 @@ const BaseModal: React.FC<BaseModalProps> = ({
 
   // Size variants - mobile responsive
   const sizeStyles = {
-    xs: "max-w-xs mx-responsive-sm",
-    sm: "max-w-sm mx-responsive-sm",
-    md: "max-w-md sm:max-w-lg mx-responsive-md",
-    lg: "max-w-lg sm:max-w-xl mx-responsive-md",
-    xl: "max-w-xl sm:max-w-2xl mx-responsive-lg",
-    full: "max-w-full mx-responsive-sm",
+    xs: 'max-w-xs mx-responsive-sm',
+    sm: 'max-w-sm mx-responsive-sm',
+    md: 'max-w-md sm:max-w-lg mx-responsive-md',
+    lg: 'max-w-lg sm:max-w-xl mx-responsive-md',
+    xl: 'max-w-xl sm:max-w-2xl mx-responsive-lg',
+    full: 'max-w-full mx-responsive-sm',
   };
 
   const handleBackdropClick = (e: React.MouseEvent) => {
@@ -103,15 +104,15 @@ const BaseModal: React.FC<BaseModalProps> = ({
 
         {/* Modal */}
         <div
-          className={`relative transform overflow-hidden rounded-lg sm:rounded-xl bg-white text-left shadow-xl transition-all w-full max-h-[90vh] sm:max-h-[85vh] ${sizeStyles[size]} ${className}`}
+          className={`relative max-h-[90vh] w-full transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:max-h-[85vh] sm:rounded-xl ${sizeStyles[size]} ${className}`}
         >
           {/* Header */}
-          {(title || headerContent || showCloseButton) && (
-            <div className="flex items-center justify-between p-3 sm:p-4 md:p-6 border-b border-gray-200">
-              <div className="flex-1 min-w-0">
-                {headerContent ||
+          {(title ?? headerContent ?? showCloseButton) && (
+            <div className="flex items-center justify-between border-b border-gray-200 p-3 sm:p-4 md:p-6">
+              <div className="min-w-0 flex-1">
+                {headerContent ??
                   (title && (
-                    <h3 className="text-base sm:text-lg font-medium text-gray-900 truncate">
+                    <h3 className="truncate text-base font-medium text-gray-900 sm:text-lg">
                       {title}
                     </h3>
                   ))}
@@ -122,7 +123,7 @@ const BaseModal: React.FC<BaseModalProps> = ({
                   size="sm"
                   icon={<X className="h-4 w-4 sm:h-5 sm:w-5" />}
                   onClick={onClose}
-                  className="text-gray-400 hover:text-gray-500 ml-2 flex-shrink-0 touch-manipulation"
+                  className="ml-2 flex-shrink-0 touch-manipulation text-gray-400 hover:text-gray-500"
                   aria-label="Close modal"
                 />
               )}
@@ -130,15 +131,13 @@ const BaseModal: React.FC<BaseModalProps> = ({
           )}
 
           {/* Content */}
-          <div className="p-3 sm:p-4 md:p-6 overflow-y-auto max-h-[calc(90vh-120px)] sm:max-h-[calc(85vh-120px)]">
+          <div className="max-h-[calc(90vh-120px)] overflow-y-auto p-3 sm:max-h-[calc(85vh-120px)] sm:p-4 md:p-6">
             {children}
           </div>
 
           {/* Footer */}
           {footerContent && (
-            <div className="border-t border-gray-200 p-3 sm:p-4 md:p-6">
-              {footerContent}
-            </div>
+            <div className="border-t border-gray-200 p-3 sm:p-4 md:p-6">{footerContent}</div>
           )}
         </div>
       </div>

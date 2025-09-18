@@ -1,13 +1,14 @@
+import { Bed, Bath, Square, MapPin, User, Building } from "lucide-react";
+
 import {
   formatPrice,
   getStatusColor,
   formatHomeStatus,
   formatAgentName,
   formatLotSize,
-} from "../../lib/addressFormat";
-import { Bed, Bath, Square, MapPin, User, Building } from "lucide-react";
+} from "../../core/utils/address";
 
-export interface CompData {
+export type CompData = {
   address: {
     city: string;
     state: string;
@@ -38,40 +39,40 @@ export interface CompData {
     brokerName?: string;
     trueStatus?: string;
   };
-}
+};
 
-interface CompCardProps {
+type CompCardProps = {
   comp: CompData;
   className?: string;
-}
+};
 
 export default function CompCard({ comp, className = "" }: CompCardProps) {
-  const imageUrl = comp.miniCardPhotos?.[0]?.url || "/defaut-home.jpg";
+  const imageUrl = comp.miniCardPhotos?.[0]?.url ?? "/defaut-home.jpg";
 
   // Format lot size for display
   const lotSizeDisplay =
     comp.lotAreaValue && comp.lotAreaValue >= 100
       ? formatLotSize(comp.lotAreaValue)
       : comp.lotAreaValue && comp.lotAreaValue < 100
-      ? "N/A"
-      : null;
+        ? "N/A"
+        : null;
 
   return (
     <div
-      className={`bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden flex flex-col ${className}`}
+      className={`flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm ${className}`}
     >
       {/* Image Section */}
-      <div className="relative h-32 sm:h-40 md:h-48">
+      <div className="relative h-28 sm:h-32 md:h-36 overflow-hidden">
         <img
           src={imageUrl}
           alt={comp.address.streetAddress}
-          className="w-full h-full object-cover"
+          className="h-full w-full object-cover"
         />
 
         {/* Price and Status Row */}
-        <div className="absolute top-2 left-2 right-2 flex items-center justify-between">
+        <div className="absolute left-2 right-2 top-2 flex items-center justify-between">
           {/* Price Badge - reduced padding */}
-          <div className="bg-neutral-50/95 backdrop-blur-sm px-2 py-1 rounded-full border border-neutral-200/50">
+          <div className="rounded-full border border-neutral-200/50 bg-neutral-50/95 px-2 py-1 backdrop-blur-sm">
             <span className="text-xs font-semibold text-brand-primary">
               {formatPrice(comp.price, comp.currency)}
             </span>
@@ -79,7 +80,7 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
 
           {/* Recently Sold Badge - reduced padding, aligned in same row */}
           <div
-            className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
+            className={`rounded-full px-2 py-1 text-xs font-medium ${getStatusColor(
               comp.homeStatus
             )}`}
           >
@@ -89,7 +90,7 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
       </div>
 
       {/* Content Section */}
-      <div className="p-3 flex-1 flex flex-col">
+      <div className="flex flex-1 flex-col p-3">
         {/* Address */}
         <div className="mb-3 text-left">
           <div className="flex items-center gap-1 mb-1">
@@ -148,14 +149,14 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
           <div className="space-y-2 text-left mt-auto">
             <div className="flex items-center gap-1">
               <User className="w-3 h-3 text-brown flex-shrink-0" />
-              <span className="text-xs text-brown whitespace-nowrap">
+              <span className="text-xs text-brown truncate">
                 Agent: {formatAgentName(comp.attributionInfo.agentName)}
               </span>
             </div>
             {comp.attributionInfo?.brokerName && (
               <div className="flex items-center gap-1">
                 <Building className="w-3 h-3 text-brown flex-shrink-0" />
-                <span className="text-xs text-brown whitespace-nowrap">
+                <span className="text-xs text-brown truncate">
                   {comp.attributionInfo.brokerName}
                 </span>
               </div>

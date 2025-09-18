@@ -20,8 +20,16 @@ class FeatureEngineer:
         """Calculate price-related features."""
         features = []
         
-        budget_min = user_prefs.get('budget_min', 500000)
-        budget_max = user_prefs.get('budget_max', 1000000)
+        # Extract budget from user preferences - handle different formats
+        home_budget = user_prefs.get('home_budget', 0)
+        if home_budget <= 0:
+            budget_min = user_prefs.get('budget_min', 500000)
+            budget_max = user_prefs.get('budget_max', 1000000)
+        else:
+            # Use home_budget as max, calculate min as 70% of budget
+            budget_max = float(home_budget)
+            budget_min = budget_max * 0.7
+        
         home_price = home_data.get('price', 0)
         
         # Use median imputation for missing prices (consistent with training)
@@ -36,7 +44,7 @@ class FeatureEngineer:
         affordability_ratio = home_price / budget_max if budget_max > 0 else home_price / 1000000
         features.append(affordability_ratio)
         
-        # Price preference score
+        # Price preference score - more nuanced calculation
         if budget_max > budget_min > 0:
             budget_center = (budget_min + budget_max) / 2
             price_distance = abs(home_price - budget_center) / (budget_max - budget_min)
@@ -44,6 +52,16 @@ class FeatureEngineer:
         else:
             price_preference_score = home_price / 1000000  # Normalize by typical max
         features.append(price_preference_score)
+        
+        # Price value score - how much home you get per dollar
+        sqft = home_data.get('sqft') or home_data.get('livingArea') or 0
+        if sqft and sqft > 0 and home_price > 0:
+            price_per_sqft = home_price / sqft
+            # Normalize price per sqft (typical range: $100-500 per sqft)
+            price_value_score = max(0.0, 1.0 - (price_per_sqft - 100) / 400)
+        else:
+            price_value_score = 0.5  # Neutral score when data missing
+        features.append(price_value_score)
         
         # MISSING FEATURE 1: price_within_tolerance (10% tolerance from training)
         budget_center = (budget_min + budget_max) / 2 if budget_max > budget_min else budget_max
@@ -224,21 +242,21 @@ class FeatureEngineer:
         categorical_features = self.calculate_categorical_features(user_prefs, home_data)
         amenity_features = self.calculate_amenity_features(user_prefs, home_data)
         
-        # Combine all features - now exactly 21 features
-        all_features.extend(price_features)  # 4 features (added price_within_tolerance)
-        all_features.extend(size_features)   # 9 features (added bedroom_match, bathroom_match)
-        all_features.extend(location_features)  # 4 features (added commute_with_tolerance)
+        # Combine all features - exactly 22 features
+        all_features.extend(price_features)  # 5 features
+        all_features.extend(size_features)   # 9 features
+        all_features.extend(location_features)  # 4 features
         all_features.extend(categorical_features)  # 2 features
         all_features.extend(amenity_features)  # 2 features
-        # Total: 4 + 9 + 4 + 2 + 2 = 21 features
+        # Total: 5 + 9 + 4 + 2 + 2 = 22 features
         
         return np.array(all_features)
     
     def get_feature_names(self) -> List[str]:
         """Get names of all features for interpretability."""
         return [
-            # Price features (4)
-            'price_within_budget', 'price_affordability_ratio', 'price_preference_score', 'price_within_tolerance',
+            # Price features (5)
+            'price_within_budget', 'price_affordability_ratio', 'price_preference_score', 'price_value_score', 'price_within_tolerance',
             # Size features (9)
             'bedroom_delta', 'bedroom_score', 'bedroom_match',
             'bathroom_delta', 'bathroom_score', 'bathroom_match',

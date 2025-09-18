@@ -1,14 +1,16 @@
 import React from "react";
-import BaseCard from "./BaseCard";
+
+import { useWhyRender } from "../../core/hooks/ui/useWhy";
+
 import {
   CardAddressDisplay,
   CardPropertyDetails,
   CardMatchScore,
 } from "./base";
 import { StyledImage } from "./base/CardImageStyles";
-import { useWhyRender } from "../../hooks/useWhy";
+import BaseCard from "./BaseCard";
 
-export interface PropertyCardProps {
+export type PropertyCardProps = {
   /** Stable ID for memoization */
   id: string;
   /** Property image URL */
@@ -47,11 +49,13 @@ export interface PropertyCardProps {
   showScore?: boolean;
   /** Whether to hide square footage */
   hideSquareFootage?: boolean;
+  /** Whether to show square footage (overrides hideSquareFootage when false) */
+  showSquareFootage?: boolean;
   /** Whether to show triangle pointer for map cards */
   showTrianglePointer?: boolean;
   /** Whether this card is displayed on the map */
   isOnMap?: boolean;
-}
+};
 
 function PropertyCardImpl(props: PropertyCardProps) {
   const {
@@ -74,24 +78,25 @@ function PropertyCardImpl(props: PropertyCardProps) {
     className = "",
     showScore = true,
     hideSquareFootage = false,
+    showSquareFootage = true,
     showTrianglePointer = false,
     isOnMap = false,
   } = props;
 
   if (import.meta.env.DEV) {
     // eslint-disable-next-line react-hooks/rules-of-hooks
-    useWhyRender(`PropertyCard-${id}`, props);
-    
+    useWhyRender({ componentId: `PropertyCard-${id}` });
+
     // count only when mounted (not every render)
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const mounted = React.useRef(false);
     if (!mounted.current) {
-      console.log("🏠 [PROPERTY_CARD_DEBUG] mounted", id);
       mounted.current = true;
     }
   }
 
-  const placeholder = "/api/placeholder/400/300";
+  const placeholder =
+    "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzljYTNhZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg==";
 
   const formatPrice = (price: string | number): string => {
     if (typeof price === "number") {
@@ -99,7 +104,7 @@ function PropertyCardImpl(props: PropertyCardProps) {
     }
     return price.toString();
   };
-  
+
   return (
     <BaseCard
       hover
@@ -110,13 +115,13 @@ function PropertyCardImpl(props: PropertyCardProps) {
       className={className}
       onClick={onClick}
     >
-      {/* Image container - only render if imageUrl is provided */}
+      {/* Image container - only render if imageUrl exists */}
       {imageUrl && (
         <div
           className={`relative overflow-hidden ${
             cardType === "searchpage"
-              ? "h-24 sm:h-28 md:h-32"
-              : "h-32 sm:h-40 md:h-48"
+              ? "h-32 sm:h-36 md:h-40"
+              : "h-40 sm:h-48 md:h-56"
           }`}
         >
           <StyledImage
@@ -124,14 +129,14 @@ function PropertyCardImpl(props: PropertyCardProps) {
             alt={address}
             variant="professional"
             placeholder={placeholder}
-            className="w-full h-full"
+            className="h-full w-full"
           />
 
           {/* Status Badge */}
           {status && (
-            <div className="absolute top-3 sm:top-4 left-3 sm:left-4">
+            <div className="absolute left-3 top-3 sm:left-4 sm:top-4">
               <span
-                className={`px-2 py-1 sm:px-3 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium ${status.className}`}
+                className={`rounded-full px-2 py-1 text-xs font-medium sm:px-3 sm:py-1.5 sm:text-sm ${status.className}`}
               >
                 {status.text}
               </span>
@@ -145,9 +150,9 @@ function PropertyCardImpl(props: PropertyCardProps) {
                 pricePosition === "top-left"
                   ? "left-3 sm:left-4"
                   : "right-3 sm:right-4"
-              } bg-neutral-50/95 backdrop-blur-sm px-2 py-1 sm:px-3 sm:py-1.5 rounded-full border border-neutral-200/50`}
+              } rounded-full border border-neutral-200/50 bg-neutral-50/95 px-2 py-1 backdrop-blur-sm sm:px-3 sm:py-1.5`}
             >
-              <span className="text-xs sm:text-sm font-semibold text-brand-primary">
+              <span className="text-xs font-semibold text-olive sm:text-sm">
                 {formatPrice(price)}
               </span>
             </div>
@@ -168,18 +173,18 @@ function PropertyCardImpl(props: PropertyCardProps) {
         </div>
       )}
 
-      <div className="p-3 sm:p-4 space-y-2 sm:space-y-3">
+      <div className={isOnMap ? "p-2 sm:p-3" : "p-3 sm:p-4"}>
         {/* Address row: full width + proper truncate - hide on map */}
         {!isOnMap && (
-          <div className="w-full">
+          <div className="w-full text-left">
             <CardAddressDisplay
               address={address}
               size="sm"
               variant="compact"
               className={
                 pricePosition === "below-address"
-                  ? "mb-0 w-full"
-                  : "mb-1 w-full"
+                  ? "mb-0 w-full text-left truncate"
+                  : "mb-0 w-full text-left truncate"
               }
             />
           </div>
@@ -187,9 +192,9 @@ function PropertyCardImpl(props: PropertyCardProps) {
 
         {/* Price and Heart Section - when price goes below address */}
         {pricePosition === "below-address" && (
-          <div className="flex items-center w-full gap-2">
-            <div className="flex items-center gap-2 flex-1">
-              <div className="text-lg sm:text-xl font-bold text-brown">
+          <div className="flex w-full items-center justify-start gap-2 mt-1">
+            <div className="flex flex-1 items-center justify-start gap-2">
+              <div className="text-lg font-bold text-olive sm:text-xl">
                 {formatPrice(price)}
               </div>
               {showScore && score !== undefined && (
@@ -206,14 +211,17 @@ function PropertyCardImpl(props: PropertyCardProps) {
           </div>
         )}
 
-        <div className="flex items-center">
+        <div className="flex items-center justify-start mt-0.5 mb-2">
           <CardPropertyDetails
             bedrooms={bedrooms}
             bathrooms={bathrooms}
             sqft={sqft}
             lotSize={lotSize}
             variant="horizontal"
-            hideSquareFootage={hideSquareFootage || isOnMap}
+            hideSquareFootage={hideSquareFootage ?? isOnMap}
+            showSquareFootage={
+              showSquareFootage && !(typeof sqft === "number" && sqft === 0)
+            }
           />
         </div>
 
@@ -223,9 +231,9 @@ function PropertyCardImpl(props: PropertyCardProps) {
 
       {/* Triangle Pointer for Map Cards - 8px tall, full width */}
       {showTrianglePointer && (
-        <div className="w-full relative" style={{ height: "8px" }}>
+        <div className="relative w-full" style={{ height: "8px" }}>
           <div
-            className="absolute top-0 left-0 w-full bg-white shadow-sm"
+            className="absolute left-0 top-0 w-full bg-white shadow-sm"
             style={{
               height: "8px",
               clipPath: "polygon(0 0, 100% 0, 50% 100%)",
@@ -237,33 +245,5 @@ function PropertyCardImpl(props: PropertyCardProps) {
   );
 }
 
-// shallow compare only the visual props
-function equal(prev: PropertyCardProps, next: PropertyCardProps) {
-  return (
-    prev.id === next.id &&
-    prev.address === next.address &&
-    prev.price === next.price &&
-    prev.bedrooms === next.bedrooms &&
-    prev.bathrooms === next.bathrooms &&
-    prev.sqft === next.sqft &&
-    prev.lotSize === next.lotSize &&
-    prev.imageUrl === next.imageUrl &&
-    prev.loading === next.loading &&
-    prev.cardType === next.cardType &&
-    prev.pricePosition === next.pricePosition &&
-    prev.showScore === next.showScore &&
-    prev.hideSquareFootage === next.hideSquareFootage &&
-    prev.showTrianglePointer === next.showTrianglePointer &&
-    prev.isOnMap === next.isOnMap &&
-    prev.className === next.className &&
-    prev.score === next.score &&
-    // Compare status object properties
-    (prev.status?.text === next.status?.text && prev.status?.className === next.status?.className)
-    // Note: We intentionally skip callback props (onClick, onSave, etc.) as they often change identity
-    // but don't affect the visual rendering. If callbacks are needed for memoization, they should be
-    // memoized at the parent level.
-  );
-}
-
-export const PropertyCard = React.memo(PropertyCardImpl, equal);
+export const PropertyCard = PropertyCardImpl;
 export default PropertyCard;

@@ -1,17 +1,13 @@
-import { useState, useEffect } from "react";
-import { X } from "lucide-react";
+import { X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 
-interface SuccessToastProps {
+type SuccessToastProps = {
   message: string;
   onClose: () => void;
   duration?: number;
-}
+};
 
-export default function SuccessToast({
-  message,
-  onClose,
-  duration = 3000,
-}: SuccessToastProps) {
+export default function SuccessToast({ message, onClose, duration = 3000 }: SuccessToastProps) {
   const [visible, setVisible] = useState(true);
 
   useEffect(() => {
@@ -26,19 +22,19 @@ export default function SuccessToast({
   if (!visible) return null;
 
   return (
-    <div className="fixed bottom-2 sm:bottom-4 right-2 sm:right-4 z-50">
-      <div className="bg-green-50 border border-green-200 rounded-lg space-responsive-sm max-w-xs sm:max-w-md">
-        <div className="flex items-start justify-between gap-responsive-sm">
-          <div className="flex-1 min-w-0">
-            <p className="text-green-800 font-medium text-responsive-sm">Success</p>
-            <p className="text-green-700 text-responsive-xs mt-1 break-words">{message}</p>
+    <div className="fixed bottom-2 right-2 z-50 sm:bottom-4 sm:right-4">
+      <div className="space-responsive-sm max-w-xs rounded-lg border border-green-200 bg-green-50 sm:max-w-md">
+        <div className="gap-responsive-sm flex items-start justify-between">
+          <div className="min-w-0 flex-1">
+            <p className="text-responsive-sm font-medium text-green-800">Success</p>
+            <p className="text-responsive-xs mt-1 break-words text-green-700">{message}</p>
           </div>
           <button
             onClick={() => {
               setVisible(false);
               onClose();
             }}
-            className="text-green-500 hover:text-green-700 transition-colors flex-shrink-0 touch-manipulation space-responsive-xs"
+            className="space-responsive-xs flex-shrink-0 touch-manipulation text-green-500 transition-colors hover:text-green-700"
           >
             <X className="mobile-icon-sm" />
           </button>

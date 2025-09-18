@@ -1,27 +1,26 @@
-import React from "react";
-import BackButton from "./BackButton";
+import React from 'react';
 
-interface SectionProps {
+import BackButton from './BackButton';
+
+type SectionProps = {
   title: string;
   children: React.ReactNode;
   isLast?: boolean;
-}
+};
 
-interface StaticPageLayoutProps {
+type StaticPageLayoutProps = {
   title: string;
   subtitle?: string;
   backButtonTo?: string;
   backButtonText?: string;
   children: React.ReactNode;
   centered?: boolean;
-}
+};
 
 export function Section({ title, children, isLast = false }: SectionProps) {
   return (
-    <section className={isLast ? "" : "mb-8"}>
-      <h2 className="text-responsive-lg font-semibold text-black space-y-responsive-sm">
-        {title}
-      </h2>
+    <section className={isLast ? '' : 'mb-8'}>
+      <h2 className="text-responsive-lg space-y-responsive-sm font-semibold text-black">{title}</h2>
       {children}
     </section>
   );
@@ -29,7 +28,7 @@ export function Section({ title, children, isLast = false }: SectionProps) {
 
 export function Paragraph({
   children,
-  className = "",
+  className = '',
 }: {
   children: React.ReactNode;
   className?: string;
@@ -38,20 +37,10 @@ export function Paragraph({
 }
 
 export function List({ children }: { children: React.ReactNode }) {
-  return (
-    <ul className="list-disc pl-6 space-y-responsive-sm space-y-responsive-xs">
-      {children}
-    </ul>
-  );
+  return <ul className="space-y-responsive-sm space-y-responsive-xs list-disc pl-6">{children}</ul>;
 }
 
-export function EmailLink({
-  href,
-  children,
-}: {
-  href: string;
-  children: React.ReactNode;
-}) {
+export function EmailLink({ href, children }: { href: string; children: React.ReactNode }) {
   return (
     <a href={href} className="text-black hover:underline">
       {children}
@@ -62,50 +51,44 @@ export function EmailLink({
 export default function StaticPageLayout({
   title,
   subtitle,
-  backButtonTo = "/",
-  backButtonText = "Back to Home",
+  backButtonTo = '/',
+  backButtonText = 'Back to Home',
   children,
   centered = false,
 }: StaticPageLayoutProps) {
   return (
     <div className="min-h-screen bg-off-white">
-      <div className="w-[85%] max-w-4xl mx-auto px-responsive-sm py-responsive-lg">
+      <div className="px-responsive-sm py-responsive-lg mx-auto w-[85%] max-w-4xl">
         <div className="mb-4">
           {centered ? (
             <div className="relative">
-              <div className="absolute top-0 left-0">
+              <div className="absolute left-0 top-0">
                 <BackButton to={backButtonTo}>{backButtonText}</BackButton>
               </div>
-              <div className="text-center py-responsive-md sm:pt-0">
-                <h1 className="text-responsive-xl font-bold text-black space-y-responsive-xs mt-8 sm:mt-0">
+              <div className="py-responsive-md text-center sm:pt-0">
+                <h1 className="text-responsive-xl space-y-responsive-xs mt-8 font-bold text-black sm:mt-0">
                   {title}
                 </h1>
-                {subtitle && (
-                  <p className="text-responsive-sm text-gray-600">{subtitle}</p>
-                )}
+                {subtitle && <p className="text-responsive-sm text-gray-600">{subtitle}</p>}
               </div>
             </div>
           ) : (
             <div className="relative">
-              <div className="absolute top-0 left-0">
+              <div className="absolute left-0 top-0">
                 <BackButton to={backButtonTo}>{backButtonText}</BackButton>
               </div>
-              <div className="text-center py-responsive-md sm:pt-0">
-                <h1 className="text-responsive-xl font-bold text-black space-y-responsive-xs mt-8 sm:mt-0">
+              <div className="py-responsive-md text-center sm:pt-0">
+                <h1 className="text-responsive-xl space-y-responsive-xs mt-8 font-bold text-black sm:mt-0">
                   {title}
                 </h1>
-                {subtitle && (
-                  <p className="text-responsive-sm text-gray-600">{subtitle}</p>
-                )}
+                {subtitle && <p className="text-responsive-sm text-gray-600">{subtitle}</p>}
               </div>
             </div>
           )}
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm space-responsive-md">
-          <div className="prose max-w-none text-responsive-sm text-gray-700">
-            {children}
-          </div>
+        <div className="space-responsive-md rounded-xl bg-white shadow-sm">
+          <div className="prose text-responsive-sm max-w-none text-gray-700">{children}</div>
         </div>
       </div>
     </div>

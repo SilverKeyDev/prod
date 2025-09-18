@@ -1,13 +1,15 @@
-import React from "react";
-import { Card } from "../layout";
 import { Eye, Download, Share, Trash2, Clock } from "lucide-react";
-import { Report } from "../../types";
-import { formatFilenameToAddress } from "../../lib/addressFormat";
+import React from "react";
+
+import type { Report } from "../../core/schemas";
+import { formatFilenameToAddress } from "../../core/utils/address";
 import ActionButton from "../../features/decide/ActionButton";
+import { Card } from "../format";
+
 import { getInteractiveCardClasses } from "./base/CardHoverStyles";
 import CardPriceBubble from "./base/CardPriceBubble";
 
-export interface ReportCardProps {
+export type ReportCardProps = {
   report: Report;
   viewMode: "grid" | "list";
   onView: (id: string, address: string) => void;
@@ -15,7 +17,7 @@ export interface ReportCardProps {
   onShare: (report: Report) => void;
   onDelete: (id: string, s3Key: string) => void;
   loadingUrls: Set<string>;
-}
+};
 
 const ReportCard: React.FC<ReportCardProps> = ({
   report,
@@ -56,15 +58,15 @@ const ReportCard: React.FC<ReportCardProps> = ({
     <Card
       className={
         viewMode === "grid"
-          ? `${getInteractiveCardClasses()} flex flex-col h-full relative`
-          : "flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0 relative"
+          ? `${getInteractiveCardClasses()} relative flex h-full flex-col`
+          : "relative flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0"
       }
       hover={true}
     >
       {/* Date in top left */}
-      <div className="absolute top-3 left-3 z-10">
-        <p className="text-xs sm:text-sm text-black/60 flex items-center bg-white/90 px-2 py-1 rounded-md shadow-sm">
-          <Clock className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+      <div className="absolute left-3 top-3 z-10">
+        <p className="flex items-center rounded-md bg-white/90 px-2 py-1 text-xs text-black/60 shadow-sm sm:text-sm">
+          <Clock className="mr-1 h-3 w-3 sm:h-4 sm:w-4" />
           {new Date(report.generatedAt).toLocaleDateString()}
         </p>
       </div>
@@ -77,13 +79,13 @@ const ReportCard: React.FC<ReportCardProps> = ({
         className={`${getStatusColor(report.status)} border-0`}
       />
 
-      <div className="flex-grow flex flex-col">
+      <div className="flex flex-grow flex-col">
         {viewMode === "grid" ? (
           <div className="flex-grow pt-4">
             <div className="flex items-start justify-between">
-              <div className="flex-1 mt-1.5 mb-3">
+              <div className="mb-3 mt-1.5 flex-1">
                 <h3
-                  className="text-sm sm:text-base font-medium text-black overflow-hidden"
+                  className="overflow-hidden text-sm font-medium text-black sm:text-base"
                   title={formatFilenameToAddress(report.address)}
                   style={{
                     display: "-webkit-box",
@@ -102,7 +104,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
         ) : (
           <div className="flex-1 pt-6">
             <h3
-              className="font-medium text-black overflow-hidden leading-5 mt-6 mb-3"
+              className="mb-3 mt-6 overflow-hidden font-medium leading-5 text-black"
               title={formatFilenameToAddress(report.address)}
               style={{
                 maxWidth: "calc(100% - 10rem)",
@@ -136,18 +138,18 @@ const ReportCard: React.FC<ReportCardProps> = ({
                     onClick={() => onDownload(report.id, report.address)}
                     disabled={loadingUrls.has(report.id)}
                     icon={<Download />}
-                    text="Download"
+                    text=""
                     colorClasses="bg-brown-muted hover:bg-brown/90 text-white"
-                    className="flex-1 min-w-0"
+                    className="min-w-0 flex-1"
                     hideTextOnMobile
                   />
                   <ActionButton
                     onClick={() => onShare(report)}
                     disabled={loadingUrls.has(report.id)}
                     icon={<Share />}
-                    text="Share"
+                    text=""
                     colorClasses="bg-gold hover:bg-gold/90 text-white"
-                    className="flex-1 min-w-0"
+                    className="min-w-0 flex-1"
                     hideTextOnMobile
                   />
                   <ActionButton
@@ -156,11 +158,11 @@ const ReportCard: React.FC<ReportCardProps> = ({
                         onDelete(report.id, report.s3Key);
                       }
                     }}
-                    disabled={loadingUrls.has(report.id) || !report.s3Key}
+                    disabled={loadingUrls.has(report.id) ?? !report.s3Key}
                     icon={<Trash2 />}
                     colorClasses="bg-transparent hover:bg-danger/10 text-danger border border-danger"
                     title="Delete report"
-                    className="flex-1 min-w-0 sm:flex-initial sm:w-auto"
+                    className="min-w-0 flex-1 sm:w-auto sm:flex-initial"
                     hideTextOnMobile
                   />
                 </div>
@@ -171,7 +173,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
                   onClick={() => onDownload(report.id, report.address)}
                   disabled={loadingUrls.has(report.id)}
                   icon={<Download />}
-                  text="Download"
+                  text=""
                   colorClasses="bg-brown-muted hover:bg-brown/90 text-white"
                   className="flex-1"
                   hideTextOnMobile
@@ -188,7 +190,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
                   onClick={() => onShare(report)}
                   disabled={loadingUrls.has(report.id)}
                   icon={<Share />}
-                  text="Share"
+                  text=""
                   colorClasses="bg-gold hover:bg-gold/90 text-white"
                   className="flex-1"
                   hideTextOnMobile
@@ -199,11 +201,11 @@ const ReportCard: React.FC<ReportCardProps> = ({
                       onDelete(report.id, report.s3Key);
                     }
                   }}
-                  disabled={loadingUrls.has(report.id) || !report.s3Key}
+                  disabled={loadingUrls.has(report.id) ?? !report.s3Key}
                   icon={<Trash2 />}
                   colorClasses="bg-transparent hover:bg-danger/10 text-danger border border-danger"
                   title="Delete report"
-                  className="sm:flex-initial sm:w-auto"
+                  className="sm:w-auto sm:flex-initial"
                   hideTextOnMobile
                 />
               </div>
@@ -216,7 +218,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
               }
             >
               {/* Placeholder for a progress bar */}
-              <div className="w-full bg-gray-200 rounded-full h-2.5">
+              <div className="h-2.5 w-full rounded-full bg-gray-200">
                 <div
                   className="bg-primary h-2.5 rounded-full"
                   style={{ width: `50%` }}
@@ -231,10 +233,10 @@ const ReportCard: React.FC<ReportCardProps> = ({
                   onDelete(report.id, report.s3Key);
                 }
               }}
-              disabled={loadingUrls.has(report.id) || !report.s3Key}
-              className="w-full btn-danger flex items-center justify-center"
+              disabled={loadingUrls.has(report.id) ?? !report.s3Key}
+              className="btn-danger flex w-full items-center justify-center"
             >
-              <Trash2 className="h-4 w-4 mr-1" />
+              <Trash2 className="mr-1 h-4 w-4" />
               Delete
             </button>
           )}

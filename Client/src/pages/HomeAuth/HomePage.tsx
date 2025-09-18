@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import {
   Building2,
   BarChart2,
@@ -7,20 +6,24 @@ import {
   X,
   Lock,
 } from "lucide-react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import KeyLogo from "/logo.png";
-import RippleBackground from "../../features/homeauth/RippleBackground";
-// Remove Google Maps import for now to fix compilation
 
-interface Suggestion {
+import KeyLogo from "/logo.png?url";
+import type { AutocompleteSuggestion } from "../../core/schemas/google-maps";
+import { asError } from "../../core/utils/error";
+import RippleBackground from "../../features/homeauth/RippleBackground";
+
+type Suggestion = {
   description: string;
-  placePrediction: any;
-}
+  placePrediction: unknown;
+};
 
 declare global {
+  // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
   interface Window {
     initMapScripts?: () => void;
-    google?: any;
+    google?: typeof google;
   }
 }
 
@@ -40,7 +43,7 @@ export default function HomePage() {
   useEffect(() => {
     if (googleMapsError) {
       console.error("❌ Google Maps loading error:", googleMapsError);
-      setLoadError("Failed to load Google Maps script.");
+      void void setLoadError("Failed to load Google Maps script.");
       return;
     }
 
@@ -58,50 +61,70 @@ export default function HomePage() {
 
     const fetchSuggestions = async () => {
       try {
-        const sessionToken =
-          new window.google.maps.places.AutocompleteSessionToken();
+        const g = (window as unknown as { google?: typeof google }).google;
+        if (!g?.maps?.places) {
+          setSuggestions([]);
+          return;
+        }
+        const sessionToken = new g.maps.places.AutocompleteSessionToken();
         const request = {
           input: address,
           sessionToken,
-          componentRestrictions: { country: "US" },
+          includedRegionCodes: ["US"],
         };
 
         const { suggestions: fetched } =
-          await window.google.maps.places.AutocompleteSuggestion.fetchAutocompleteSuggestions(
+          await g.maps.places.AutocompleteSuggestion.fetchAutocompleteSuggestions(
             request
           );
 
-        setSuggestions(
-          fetched.map((s: any) => ({
-            description: s.placePrediction.text.text,
-            placePrediction: s.placePrediction,
-          }))
+        const built = fetched.flatMap(
+          (
+            s:
+              | AutocompleteSuggestion
+              | { placePrediction: google.maps.places.PlacePrediction | null }
+          ) => {
+            const pred = (s as any)
+              .placePrediction as google.maps.places.PlacePrediction | null;
+            if (!pred) return [];
+            return [
+              {
+                description: pred.text.text,
+                placePrediction: {
+                  text: { text: pred.text.text },
+                  toPlace: () => pred.toPlace(),
+                },
+              },
+            ];
+          }
         );
-      } catch (err) {
-        console.error("Autocomplete fetch error:", err);
+        setSuggestions(built);
+      } catch (err: unknown) {
+        const error = asError(err);
+        console.error("Autocomplete fetch error:", error);
         setSuggestions([]);
       }
     };
 
-    const debounce = setTimeout(fetchSuggestions, 200);
+    const debounce = void void setTimeout(fetchSuggestions, 200);
     return () => clearTimeout(debounce);
   }, [address, scriptsReady, hasSelected]);
 
   return (
-    <div className="min-h-screen bg-white flex flex-col hide-scrollbar">
+    <div className="hide-scrollbar flex min-h-screen flex-col bg-white">
       {/* Header */}
-      <header className="w-full flex justify-between items-center px-responsive-sm py-2 sm:py-3 border-b border-gray-200 bg-white fixed top-0 left-0 right-0 z-50 shadow-lg">
+      <header className="px-responsive-sm fixed left-0 right-0 top-0 z-50 flex w-full items-center justify-between border-b border-gray-200 bg-white py-2 shadow-lg sm:py-3">
         <img src={KeyLogo} alt="SilverKey Logo" className="h-8 w-auto" />
-        <div className="flex gap-1.5 sm:gap-2 text-responsive-sm font-medium">
+        <div className="text-responsive-sm flex gap-1.5 font-medium sm:gap-2">
           <Link
             to="/login"
-            className="hover:underline px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 rounded-md"
+            className="rounded-md px-3 py-2 hover:underline sm:px-4 sm:py-2.5 md:px-5"
           >
             Login
           </Link>
           <Link
             to="/signup"
-            className="bg-gold text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-md hover:bg-gold/90 transition-colors"
+            className="rounded-md bg-gold px-3 py-2 text-white transition-colors hover:bg-gold/90 sm:px-4 sm:py-2.5"
           >
             Sign Up
           </Link>
@@ -109,28 +132,28 @@ export default function HomePage() {
       </header>
 
       {/* Spacer for fixed header */}
-      <div className="h-16 sm:h-20 flex-shrink-0"></div>
+      <div className="h-16 flex-shrink-0 sm:h-20"></div>
 
       {/* Hero Section */}
-      <main className="flex-1 flex flex-col items-center justify-center px-responsive-sm py-responsive-lg relative">
+      <main className="px-responsive-sm py-responsive-lg relative flex flex-1 flex-col items-center justify-center">
         <div className="absolute inset-0 z-0">
           <RippleBackground />
         </div>
 
         {/* Centered Content Wrapper */}
-        <div className="relative z-10 flex flex-col items-center w-full max-w-[85%] mx-auto">
-          <div className="max-w-3xl text-center w-full mx-auto">
-            <div className="bg-white p-6 sm:p-8 rounded-lg shadow-lg">
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 text-gray-900">
+        <div className="relative z-10 mx-auto flex w-full max-w-[85%] flex-col items-center">
+          <div className="mx-auto w-full max-w-3xl text-center">
+            <div className="rounded-lg bg-white p-6 shadow-lg sm:p-8">
+              <h1 className="mb-4 text-3xl font-bold text-gray-900 sm:text-4xl lg:text-5xl">
                 Discover a New Way to Buy
               </h1>
-              <p className="text-lg sm:text-xl text-gray-600 mb-6">
+              <p className="mb-6 text-lg text-gray-600 sm:text-xl">
                 Onboard, Search, Decide, Negotiate, Close
               </p>
               <div className="mt-4 sm:mt-8">
                 <button
                   onClick={() => setShowAuthModal(true)}
-                  className="bg-olive text-white rounded-lg py-responsive-sm px-responsive-lg font-semibold hover:bg-olive-light transition text-responsive-sm w-1/2 touch-friendly"
+                  className="py-responsive-sm px-responsive-lg text-responsive-sm touch-friendly w-1/2 rounded-lg bg-olive font-semibold text-white transition hover:bg-olive-light"
                 >
                   Start Now
                 </button>
@@ -139,7 +162,7 @@ export default function HomePage() {
           </div>
 
           {/* Feature Cards */}
-          <div className="relative z-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-responsive-sm mt-20 max-w-6xl w-full mx-auto">
+          <div className="z-12 gap-responsive-sm relative mx-auto mt-20 grid w-full max-w-6xl grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
             {[
               {
                 title: "Find Properties",
@@ -168,13 +191,13 @@ export default function HomePage() {
             ].map((f, i) => (
               <div
                 key={i}
-                className="bg-white rounded-xl shadow-md hover:shadow-lg p-4 sm:p-5 flex flex-col items-center text-center transition-all duration-200 hover:-translate-y-0.5 cursor-pointer touch-friendly"
+                className="touch-friendly flex cursor-pointer flex-col items-center rounded-xl bg-white p-4 text-center shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg sm:p-5"
               >
                 <div className="mb-2">{f.icon}</div>
-                <h3 className="font-semibold text-black text-responsive-md mb-3 w-[87%]">
+                <h3 className="text-responsive-md mb-3 w-[87%] font-semibold text-black">
                   {f.title}
                 </h3>
-                <p className="text-gray-600 text-xs sm:text-sm w-[87%]">
+                <p className="w-[87%] text-xs text-gray-600 sm:text-sm">
                   {f.description}
                 </p>
               </div>
@@ -182,28 +205,28 @@ export default function HomePage() {
           </div>
 
           {/* Footer Links */}
-          <div className="relative mt-10 flex flex-wrap justify-center items-center gap-responsive-sm text-responsive-xs text-center">
+          <div className="gap-responsive-sm text-responsive-xs relative mt-10 flex flex-wrap items-center justify-center text-center">
             <Link
               to="/privacy"
-              className="bg-white text-black px-responsive-xl py-responsive-xs rounded-lg shadow hover:shadow-md transition-all duration-200 touch-friendly flex items-center justify-center text-gray-600 hover:text-gray-800"
+              className="px-responsive-xl py-responsive-xs touch-friendly flex items-center justify-center rounded-lg bg-white text-black text-gray-600 shadow transition-all duration-200 hover:text-gray-800 hover:shadow-md"
             >
-              <span className="hover:underline underline-offset-2 decoration-1">
+              <span className="decoration-1 underline-offset-2 hover:underline">
                 Privacy Policy
               </span>
             </Link>
             <Link
               to="/terms"
-              className="bg-white text-black px-responsive-xl py-responsive-xs rounded-lg shadow hover:shadow-md transition-all duration-200 touch-friendly flex items-center justify-center text-gray-600 hover:text-gray-800"
+              className="px-responsive-xl py-responsive-xs touch-friendly flex items-center justify-center rounded-lg bg-white text-black text-gray-600 shadow transition-all duration-200 hover:text-gray-800 hover:shadow-md"
             >
-              <span className="hover:underline underline-offset-2 decoration-1">
+              <span className="decoration-1 underline-offset-2 hover:underline">
                 Terms of Service
               </span>
             </Link>
             <Link
               to="/contact"
-              className="bg-white text-black px-responsive-xl py-responsive-xs rounded-lg shadow hover:shadow-md transition-all duration-200 touch-friendly flex items-center justify-center text-gray-600 hover:text-gray-800"
+              className="px-responsive-xl py-responsive-xs touch-friendly flex items-center justify-center rounded-lg bg-white text-black text-gray-600 shadow transition-all duration-200 hover:text-gray-800 hover:shadow-md"
             >
-              <span className="hover:underline underline-offset-2 decoration-1">
+              <span className="decoration-1 underline-offset-2 hover:underline">
                 Contact Us
               </span>
             </Link>
@@ -213,12 +236,12 @@ export default function HomePage() {
 
       {/* Auth Modal */}
       {showAuthModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 space-responsive-sm">
-          <div className="bg-white rounded-2xl shadow space-responsive-lg max-w-md w-full">
-            <div className="flex justify-between mb-4">
-              <div className="flex items-center gap-responsive-xs">
+        <div className="space-responsive-sm fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="space-responsive-lg w-full max-w-md rounded-2xl bg-white shadow">
+            <div className="mb-4 flex justify-between">
+              <div className="gap-responsive-xs flex items-center">
                 <Lock className="mobile-icon-sm text-gray-600" />
-                <span className="font-bold text-responsive-sm text-gray-600">
+                <span className="text-responsive-sm font-bold text-gray-600">
                   Account Required
                 </span>
               </div>
@@ -226,19 +249,19 @@ export default function HomePage() {
                 <X className="mobile-icon-sm text-black" />
               </button>
             </div>
-            <p className="space-y-responsive-md text-center text-responsive-sm text-gray-600 mb-4">
+            <p className="space-y-responsive-md text-responsive-sm mb-4 text-center text-gray-600">
               Please log in or create an account to generate a report.
             </p>
             <div className="flex gap-2 sm:gap-3">
               <Link
                 to="/login"
-                className="flex-1 hover:underline px-3 sm:px-4 md:px-5 py-2.5 sm:py-3 rounded-lg text-center text-responsive-sm transition-colors touch-friendly border border-gray-300"
+                className="text-responsive-sm touch-friendly flex-1 rounded-lg border border-gray-300 px-3 py-2.5 text-center transition-colors hover:underline sm:px-4 sm:py-3 md:px-5"
               >
                 Login
               </Link>
               <Link
                 to="/signup"
-                className="flex-1 bg-gold text-white hover:bg-gold/90 rounded-lg py-2.5 sm:py-3 text-center text-responsive-sm transition-colors touch-friendly"
+                className="text-responsive-sm touch-friendly flex-1 rounded-lg bg-gold py-2.5 text-center text-white transition-colors hover:bg-gold/90 sm:py-3"
               >
                 Sign Up
               </Link>

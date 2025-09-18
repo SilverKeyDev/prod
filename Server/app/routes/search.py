@@ -776,17 +776,15 @@ def map_user_preferences_to_filters(user_preferences: Dict[str, Any], status_typ
             filters['rentMinPrice'] = int(budget * 0.7 / 12)
         else:
             filters['maxPrice'] = budget
-            filters['minPrice'] = int(budget * 0.7)
+            filters['minPrice'] = int(budget * 0.65)
     
     # Map preferred bedrooms
     if user_preferences.get('preferred_bedrooms'):
         filters['bedsMin'] = user_preferences['preferred_bedrooms']
-        filters['bedsMax'] = user_preferences['preferred_bedrooms']
     
     # Map preferred bathrooms
     if user_preferences.get('preferred_bathrooms'):
         filters['bathsMin'] = user_preferences['preferred_bathrooms']
-        filters['bathsMax'] = user_preferences['preferred_bathrooms']
     
     # Map housing type based on status type
     raw_type = str(user_preferences.get('preferred_housing_type', user_preferences.get('housing_type', '')))
@@ -835,40 +833,6 @@ def map_user_preferences_to_filters(user_preferences: Dict[str, Any], status_typ
             if mapped_type:
                 filters['home_type'] = mapped_type
     
-    # Map home age to build year range
-    if user_preferences.get('preferred_home_age'):
-        from datetime import datetime
-        current_year = datetime.now().year
-        age_map = {
-            'new': {'min': current_year - 5},  # 0-5 years
-            'recent': {'min': current_year - 15, 'max': current_year - 5},  # 5-15 years
-            'established': {'min': current_year - 30, 'max': current_year - 15},  # 15-30 years
-            'mature': {'min': current_year - 50, 'max': current_year - 30},  # 30-50 years
-            'historic': {'max': current_year - 50}  # 50+ years
-        }
-        
-        age_range = age_map.get(user_preferences['preferred_home_age'].lower())
-        if age_range:
-            if age_range.get('min'):
-                filters['buildYearMin'] = age_range['min']
-            if age_range.get('max'):
-                filters['buildYearMax'] = age_range['max']
-    
-    # Map lot size preferences
-    if user_preferences.get('preferred_lot_size'):
-        lot_size_str = user_preferences['preferred_lot_size'].lower()
-        lot_size_map = {
-            'small': 5000,
-            'medium': 10000,
-            'large': 20000,
-            'extra_large': 43560,  # 1 acre
-            'acre': 43560,
-            'multi_acre': 87120  # 2 acres
-        }
-        
-        target_sqft = lot_size_map.get(lot_size_str)
-        if target_sqft:
-            filters['lotSize'] = nearest_lot_bucket_label(target_sqft)
     
     return filters
 @search_bp.route('/properties-by-polygon', methods=['POST'])
@@ -881,7 +845,7 @@ def search_properties_by_polygon():
     import time
     start_time = time.time()
     request_id = f"poly_{int(start_time * 1000)}"
-    TARGET_LIMIT = 100  # hard cap on deduped results
+    TARGET_LIMIT = 99  # hard cap on deduped results
 
     try:
         user = get_current_user()
@@ -908,33 +872,25 @@ def search_properties_by_polygon():
         per_pages = data.get("perBucketPages", 20)        
         per_pages = max(0, min(int(per_pages), 20))
 
-        current_app.logger.info(f"[POLYGON_SEARCH] 🔍 {request_id} - Request data: {data}")
-        current_app.logger.info(f"[POLYGON_SEARCH] 🔍 {request_id} - User preferences: {user_preferences}")
-
         if not user_preferences:
             current_app.logger.error(f"[POLYGON_SEARCH] ❌ {request_id} - No user preferences provided")
             return jsonify({"success": False, "error": "NO_PREFS", "message": "User preferences are required"}), 400
 
         # ---- Generate polygon ----
-        current_app.logger.info(f"[POLYGON_SEARCH] 🗺️ {request_id} - Generating polygon from preferences...")
         polygon = generate_isochrone_polygon_from_preferences(user_preferences)
         if not polygon:
             current_app.logger.error(f"[POLYGON_SEARCH] ❌ {request_id} - Failed to generate isochrone polygon")
             return jsonify({"success": False, "error": "ISOCHRONE_FAILED", "message": "Failed to generate search area"}), 400
         
-        current_app.logger.info(f"[POLYGON_SEARCH] ✅ {request_id} - Generated polygon with {len(polygon)} points")
         
         if polygon[0] != polygon[-1]:
             polygon.append(polygon[0])
         polygon = simplify_polygon(polygon, max_points=50)
-        current_app.logger.info(f"[POLYGON_SEARCH] 📐 {request_id} - Simplified polygon to {len(polygon)} points")
 
         polygon_param = to_polygon_param(polygon)
-        current_app.logger.info(f"[POLYGON_SEARCH] 📍 {request_id} - Polygon param: {polygon_param[:100]}...")
 
         # ---- Filters ----
         filters = map_user_preferences_to_filters(user_preferences, status_type)
-        current_app.logger.info(f"[POLYGON_SEARCH] 🔧 {request_id} - Base filters: {filters}")
 
         # Apply min/max price from home_budget
         home_budget = user_preferences.get("home_budget")
@@ -943,14 +899,12 @@ def search_properties_by_polygon():
                 hb_val = float(home_budget)
                 filters["minPrice"] = int(hb_val * 0.6)
                 filters["maxPrice"] = int(hb_val * 1.05)
-                current_app.logger.info(f"[POLYGON_SEARCH] 💰 {request_id} - Applied budget filters: minPrice={filters['minPrice']}, maxPrice={filters['maxPrice']}")
 
             except (TypeError, ValueError):
                 current_app.logger.warning(
                     f"[POLYGON_SEARCH] ⚠️ {request_id} - home_budget value invalid: {home_budget}"
                 )
         
-        current_app.logger.info(f"[POLYGON_SEARCH] 🎯 {request_id} - Final filters: {filters}")
 
         headers = {
             "x-rapidapi-host": RAPI_HOST,
@@ -965,13 +919,10 @@ def search_properties_by_polygon():
         errors = []
         try_page_orders = [1, 0]
 
-        current_app.logger.info(f"[POLYGON_SEARCH] 🔄 {request_id} - Starting search loop, target limit: {TARGET_LIMIT}")
 
         for start_page in try_page_orders:
-            current_app.logger.info(f"[POLYGON_SEARCH] 📄 {request_id} - Starting page order from {start_page}")
             for page in range(start_page, per_pages + 1):
                 if len(all_properties) >= TARGET_LIMIT:
-                    current_app.logger.info(f"[POLYGON_SEARCH] 🎯 {request_id} - Reached target limit {TARGET_LIMIT}, stopping")
                     break
 
                 params = {
@@ -984,19 +935,17 @@ def search_properties_by_polygon():
                 # Apply filters
                 if filters.get("home_type"):
                     params["home_type"] = filters["home_type"]
-                for key in ("bedsMin", "bedsMax", "bathsMin", "bathsMax",
-                            "minPrice", "maxPrice", "buildYearMin", "buildYearMax", "lotSize"):
+                for key in ("bedsMin", "bathsMin",
+                            "minPrice", "maxPrice",):
                     if filters.get(key) is not None:
                         params[key] = filters[key]
 
-                current_app.logger.info(f"[POLYGON_SEARCH] 🌐 {request_id} - API request page {page} with params: {params}")
 
                 try:
                     resp = requests.get(f"{API_BASE}/propertyByPolygon",
                                         headers=headers, params=params, timeout=20)
                     requests_made += 1
                     
-                    current_app.logger.info(f"[POLYGON_SEARCH] 📡 {request_id} - API response: status={resp.status_code}, content_length={len(resp.content) if resp.content else 0}")
                     
                     if resp.status_code == 429:
                         current_app.logger.warning(f"[POLYGON_SEARCH] ⏳ {request_id} - Rate limited, sleeping...")
@@ -1012,10 +961,8 @@ def search_properties_by_polygon():
                     props = (result or {}).get("props") or []
                     page_size = (result or {}).get("pageSize") or 20
 
-                    current_app.logger.info(f"[POLYGON_SEARCH] 🏠 {request_id} - Page {page} returned {len(props)} properties (pageSize: {page_size})")
                     
                     if not props:
-                        current_app.logger.info(f"[POLYGON_SEARCH] 📭 {request_id} - No properties on page {page}, stopping")
                         break
 
                     for prop in props:
@@ -1025,12 +972,9 @@ def search_properties_by_polygon():
                         if zpid and zpid not in seen:
                             seen.add(zpid)
                             all_properties.append(prop)
-                            current_app.logger.debug(f"[POLYGON_SEARCH] ➕ {request_id} - Added property {zpid}")
 
-                    current_app.logger.info(f"[POLYGON_SEARCH] 📊 {request_id} - Total unique properties so far: {len(all_properties)}")
 
                     if len(props) < int(page_size):
-                        current_app.logger.info(f"[POLYGON_SEARCH] 🔚 {request_id} - Last page reached (got {len(props)} < {page_size})")
                         break
 
                 except Exception as e:
@@ -1042,7 +986,6 @@ def search_properties_by_polygon():
 
         # ---- Apply home matching scores ----
         scored_properties = []
-        current_app.logger.info(f"[POLYGON_SEARCH] 🎯 {request_id} - Starting scoring for {len(all_properties)} properties")
         
         if all_properties:            
             try:
@@ -1051,9 +994,7 @@ def search_properties_by_polygon():
                     "user_id": user.id,
                     "preferences": user_preferences
                 }
-                
-                current_app.logger.info(f"[POLYGON_SEARCH] 👤 {request_id} - User data prepared for scoring: user_id={user.id}")
-                
+                                
                 # Convert properties to format expected by home matching system
                 homes_data = []
                 for prop in all_properties:
@@ -1075,9 +1016,7 @@ def search_properties_by_polygon():
                         "raw_data": prop
                     }
                     homes_data.append(home_data)
-                
-                current_app.logger.info(f"[POLYGON_SEARCH] 🏠 {request_id} - Converted {len(homes_data)} properties for scoring")
-                
+                                
                 # Get scored matches (returns all properties with scores)
                 scored_matches = find_best_matches(
                     user_data=user_data,
@@ -1183,8 +1122,6 @@ def search_properties_by_polygon():
             current_app.logger.warning(f"[POLYGON_SEARCH] ⚠️ {request_id} - No properties found to score")
             scored_properties = all_properties
 
-        current_app.logger.info(f"[POLYGON_SEARCH] 📊 {request_id} - Final results: {len(scored_properties)} properties")
-
         total_time = time.time() - start_time
         response_data = {
             "success": True,
@@ -1204,7 +1141,6 @@ def search_properties_by_polygon():
             }
         }
         
-        current_app.logger.info(f"[POLYGON_SEARCH] ✅ {request_id} - Returning {len(scored_properties)} properties in {round(total_time, 2)}s")
         return jsonify(response_data), 200
 
     except Exception as e:
@@ -1353,8 +1289,6 @@ def get_isochrone():
         primary_address = primary_location.get('address')
         primary_name = primary_location.get('name', 'Multiple Locations')
         
-        # For center coordinates, we'll use the first location's coordinates
-        # In the future, we could calculate the centroid of all locations
         try:
             coords = geocode_address(primary_address) if primary_address else None
             if coords:
@@ -1362,9 +1296,11 @@ def get_isochrone():
             else:
                 # Fallback: use center of isochrone bounds if available
                 center_lat, center_lon = 0, 0
-        except:
+                current_app.logger.warning(f"🗺️ [ISOCHRONE_CENTER] Geocoding failed for address '{primary_address}', using fallback coordinates: lat={center_lat}, lon={center_lon}")
+        except Exception as e:
             center_lat, center_lon = 0, 0
-
+            current_app.logger.error(f"🗺️ [ISOCHRONE_CENTER] Exception during geocoding: {str(e)}, using fallback coordinates: lat={center_lat}, lon={center_lon}")
+        
         # Extract individual isochrones if available
         individual_isochrones = []
         if isinstance(isochrone_feature, dict) and 'extras' in isochrone_feature:
@@ -1396,7 +1332,7 @@ def get_isochrone():
                 "mode": "drive"
             }
         }
-        
+                
         return jsonify(response_data), 200
 
     except Exception as e:
@@ -1408,6 +1344,5 @@ def get_isochrone():
             "error": "INTERNAL_ERROR",
             "message": f"Internal server error: {str(e)}"
         }), 500
-
 
 

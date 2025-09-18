@@ -139,16 +139,16 @@ def _create_pdf(report: dict, address: str, filename: str, comparison_address: s
                 elements.append(HRFlowable(width="100%", thickness=0.5, color="#AAAAAA"))
                 elements.append(Spacer(1, 1))
 
-            # CHART SECTION: Generate and cache for later rendering
+            # CHART SECTION: Generate, render inline, and cache for later rendering
             if section.lower() in ["age_distribution", "lifestyle_dna"] and isinstance(section_data, dict):
-               
                 chart_data = {}
+                chart_buffer = None
 
-                if section.lower() == "lifesyle_dna":
+                if section.lower() == "lifestyle_dna":
                     for k, v in section_data.items():
                         # Handle values that are already percentages or numbers
-                        if isinstance(v, str) and v.endswith('%'):
-                            chart_data[k] = v
+                        if isinstance(v, str) and v.strip().endswith('%'):
+                            chart_data[k] = v.strip()
                         else:
                             chart_data[k] = f"{v}%"
                     chart_buffer = generate_horizontal_bar_chart(chart_data, key)
@@ -159,16 +159,17 @@ def _create_pdf(report: dict, address: str, filename: str, comparison_address: s
                             display_name = field_name.replace("age_", "").replace("_plus", "+").replace("_", "-")
                         else:
                             display_name = field_name
-                        
+
                         # Handle values that already have % suffix
-                        if isinstance(value, str) and value.endswith('%'):
-                            chart_data[display_name] = value
+                        if isinstance(value, str) and value.strip().endswith('%'):
+                            chart_data[display_name] = value.strip()
                         else:
                             chart_data[display_name] = f"{value}%"
                     chart_buffer = generate_vertical_lollipop_chart(chart_data, key)
 
-                # Only cache if chart rendered successfully
+                # Render inline and cache if chart rendered successfully
                 if chart_buffer:
+                    # Inline render (label + chart + caption), keeping chart sections title-less per above
                     img = _resize_image_to_fit(chart_buffer, target_width=3.6 * inch, target_height=2.8 * inch, is_chart=True)
                     table = Table([[img]], colWidths=[3.6 * inch])
                     table.setStyle(TableStyle([
@@ -179,6 +180,13 @@ def _create_pdf(report: dict, address: str, filename: str, comparison_address: s
                         ("TOPPADDING", (0, 0), (-1, -1), 1),
                         ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
                     ]))
+
+                    # Add inline chart with a concise caption
+                    elements.append(table)
+                    elements.append(Paragraph(f"{key} Chart", styles["Caption"]))
+                    elements.append(Spacer(1, 10))
+
+                    # Cache for potential side-by-side summary later
                     chart_tables[section.lower()] = table
                 else:
                     logger.error(f"❌ Chart generation failed for {section} - chart_buffer is None")
@@ -284,7 +292,8 @@ def _create_pdf(report: dict, address: str, filename: str, comparison_address: s
             elements.append(side_by_side)
             elements.append(Spacer(1, 20))
         elif len(chart_tables) > 0:
-            logger.warning(f"⚠️ Only {len(chart_tables)} chart(s) cached, cannot render side-by-side: {list(chart_tables.keys())}")
+            # Single chart present; already rendered inline above. Do not duplicate at the end.
+            pass
         else:
             logger.warning("⚠️ No charts cached for rendering")
             

@@ -1,8 +1,4 @@
-export default function KeyTurnLoader({
-  message = "Unlocking...",
-}: {
-  message?: string;
-}) {
+export default function KeyTurnLoader({ message = 'Unlocking...' }: { message?: string }) {
   const keyframeStyles = `
     @keyframes turnKey {
       0% { transform: rotate(0deg); }
@@ -71,24 +67,25 @@ export default function KeyTurnLoader({
   `;
 
   const containerStyle: React.CSSProperties = {
-    display: "inline-flex",
-    alignItems: "center",
-    gap: "15px",
-    animation: "fadeIn 0.5s ease-in-out",
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '15px',
+    animation: 'fadeIn 0.5s ease-in-out',
   };
 
   const keyStyle: React.CSSProperties = {
-    animation: "turnKey 3.6s infinite cubic-bezier(0.25, 0.1, 0.25, 1), shimmer 4s infinite ease-in-out",
-    transformOrigin: "20px 32px", // pivot at center of key head
-    willChange: "transform, filter",
+    animation:
+      'turnKey 3.6s infinite cubic-bezier(0.25, 0.1, 0.25, 1), shimmer 4s infinite ease-in-out',
+    transformOrigin: '20px 32px', // pivot at center of key head
+    willChange: 'transform, filter',
   };
 
   const textStyle: React.CSSProperties = {
-    fontSize: "0.875rem",
-    color: "#F5F5F0", // Match the key color
-    fontFamily: "inherit",
+    fontSize: '0.875rem',
+    color: '#F5F5F0', // Match the key color
+    fontFamily: 'inherit',
     opacity: 0.95,
-    whiteSpace: "nowrap",
+    whiteSpace: 'nowrap',
   };
 
   return (
@@ -104,14 +101,7 @@ export default function KeyTurnLoader({
           xmlns="http://www.w3.org/2000/svg"
         >
           {/* Key head */}
-          <circle
-            cx="20"
-            cy="32"
-            r="8"
-            stroke="#F5F5F0"
-            strokeWidth="4"
-            fill="#F8F8F5"
-          />
+          <circle cx="20" cy="32" r="8" stroke="#F5F5F0" strokeWidth="4" fill="#F8F8F5" />
           {/* Shaft */}
           <rect x="28" y="30" width="24" height="4" fill="#F5F5F0" rx="2" />
           {/* Teeth */}

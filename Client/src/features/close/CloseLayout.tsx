@@ -1,45 +1,48 @@
-import { useState, useEffect, ReactNode } from "react";
-import { apiRequest } from "../../api/utils/index";
 import { CheckSquare } from "lucide-react";
+import React, { useState, useEffect, type ReactNode } from "react";
+
+import Card from "../../components/format/Card";
 import ChecklistCheckbox from "../../components/ui/form/ChecklistCheckbox";
-import Card from "../../components/layout/Card";
+import { apiRequest } from "../../core/services/http";
+import { asError } from "../../core/utils/error";
 
 // Shared CSS classes - now using Card component instead with mobile-first responsive design
 const sectionTitle =
-  "text-responsive-sm font-semibold text-navy flex items-center gap-responsive-xs mb-responsive-sm";
-const checkboxContainer = "flex items-start gap-responsive-xs mb-responsive-sm";
+  "text-responsive-sm font-semibold text-navy flex items-center gap-responsive-xs mb-responsive-md";
+const checkboxContainer =
+  "flex items-start gap-responsive-xs mt-responsive-sm mb-responsive-md";
 const itemLabel = "font-medium text-navy text-responsive-xs";
 const itemExplanation =
   "text-navy/80 text-responsive-xs mt-1 transition-opacity duration-300 ease-in-out";
 
 // Shared interfaces
-export interface ResourceLink {
+export type ResourceLink = {
   label: string;
   href?: string;
-}
+};
 
-export interface ChecklistItem {
+export type ChecklistItem = {
   id: number;
   label: string;
   explanation: string;
   bullets?: string[];
   tip?: string;
   resource?: ResourceLink;
-}
+};
 
-interface ClosePageHeaderData {
+type ClosePageHeaderData = {
   title: string;
   subtitle: string;
   completedCount: number;
   totalCount: number;
   loading: boolean;
-}
+};
 
-interface CloseLayoutProps {
+type CloseLayoutProps = {
   title: string;
   subtitle: string;
   sectionTitle: string;
-  apiEndpoint: string;
+  type: string;
   items: ChecklistItem[];
   children?: ReactNode;
   showLoadingScreen?: boolean;
@@ -48,13 +51,13 @@ interface CloseLayoutProps {
   setClosePageHeaderData?: React.Dispatch<
     React.SetStateAction<ClosePageHeaderData | null>
   >;
-}
+};
 
 export default function CloseLayout({
   title,
   subtitle,
   sectionTitle: sectionTitleText,
-  apiEndpoint,
+  type,
   items,
   children,
   showLoadingScreen = false,
@@ -62,6 +65,9 @@ export default function CloseLayout({
   showMinLoadingText = false,
   setClosePageHeaderData,
 }: CloseLayoutProps) {
+  // Construct the full API endpoint from the type
+  const apiEndpoint = `/api/v1/user/close?type=${type}`;
+
   const [checked, setChecked] = useState<{ [id: number]: boolean }>({});
   const [loading, setLoading] = useState(false);
 
@@ -75,18 +81,21 @@ export default function CloseLayout({
   const fetchChecklist = async () => {
     try {
       setLoading(true);
-      const res = await apiRequest<{success: boolean; data: number[]}>(apiEndpoint);
-      
+      const res = await apiRequest<{ success: boolean; data: number[] }>(
+        apiEndpoint
+      );
+
       // Handle backend response format: {success: true, data: [1, 3, 5]}
-      const checklist = res?.data || res;
-      
+      const checklist = res?.data ?? res;
+
       if (Array.isArray(checklist)) {
         const mapping: { [id: number]: boolean } = {};
         checklist.forEach((id: number) => (mapping[id] = true));
         setChecked(mapping);
       }
-    } catch (err) {
-      console.error(`❌ Failed to fetch ${apiEndpoint} checklist`, err);
+    } catch (err: unknown) {
+      const error = asError(err);
+      console.error(`❌ Failed to fetch ${apiEndpoint} checklist`, error);
     } finally {
       setLoading(false);
     }
@@ -100,8 +109,9 @@ export default function CloseLayout({
         method: "PUT",
         body: JSON.stringify(body),
       });
-    } catch (err) {
-      console.error(`❌ Failed to update ${apiEndpoint} checklist`, err);
+    } catch (err: unknown) {
+      const error = asError(err);
+      console.error(`❌ Failed to update ${apiEndpoint} checklist`, error);
     }
   };
 
@@ -109,13 +119,13 @@ export default function CloseLayout({
   const toggle = (id: number) =>
     setChecked((prev) => {
       const next = { ...prev, [id]: !prev[id] };
-      updateChecklist(next);
+      void updateChecklist(next);
       return next;
     });
 
   // Fetch checklist on component mount
   useEffect(() => {
-    fetchChecklist();
+    void fetchChecklist();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -156,28 +166,28 @@ export default function CloseLayout({
   return (
     <div className="bg-off-white">
       {/* Custom content before checklist */}
-      {children && (
-        <div className="mb-responsive-sm">
-          {children}
-        </div>
-      )}
+      {children && <div className="mb-responsive-lg">{children}</div>}
 
       {/* Main checklist section */}
-      <div className={containerClassName}>
+      <div
+        className={`${containerClassName}`}
+      >
         {loading && showMinLoadingText && (
           <p className="mb-responsive-sm">Loading checklist…</p>
         )}
 
-        <div className="w-full max-w-none px-responsive-sm mx-auto">
-          <Card className="mb-responsive-sm" padding="sm">
-            <div className={sectionTitle}>
-              <CheckSquare className="mobile-icon-sm text-brown flex-shrink-0" />
-              <span className="break-words min-w-0">{sectionTitleText}</span>
+        <div className="px-responsive-sm mx-auto w-full max-w-none">
+          <Card className="mb-responsive-md" padding="sm">
+            <div className={`${sectionTitle} mb-[12px]`}>
+              <div className="flex h-4 w-4 lg:h-5 lg:w-5 items-center justify-center flex-shrink-0">
+                <CheckSquare className="h-4 w-4 lg:h-5 lg:w-5 text-brown" />
+              </div>
+              <span className="min-w-0 break-words">{sectionTitleText}</span>
             </div>
 
             <fieldset className="mt-responsive-xs">
               <legend className="sr-only">Checklist</legend>
-              <div className="space-y-responsive-xs">
+              <div className="space-y-responsive-sm">
                 {items.map((item) => (
                   <ChecklistCheckbox
                     key={item.id}

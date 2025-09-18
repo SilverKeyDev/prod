@@ -1,13 +1,22 @@
-import React, { ReactNode, useEffect, useMemo, useRef, useState, useCallback, memo } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import React, {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useCallback,
+  memo,
+  type ReactNode,
+} from "react";
 import { Carousel } from "react-responsive-carousel";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
-import "../../../styles/carousel.css";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Loading } from "../../ui";
+import "../../../core/styles/carousel.css";
+
+import { Loading } from "../../ui/loading/Loading";
 
 type CarouselLabels = { leftArrow: string; rightArrow: string; item: string };
 
-export interface CardCarouselProps<T> {
+export type CardCarouselProps<T> = {
   items: T[];
   renderItem: (item: T, index: number) => ReactNode;
   getItemKey: (item: T, index: number) => string;
@@ -33,7 +42,6 @@ export interface CardCarouselProps<T> {
 
   /** Centering options from react-responsive-carousel (one-at-a-time view) */
   centerMode?: boolean; // default false
-  centerSlidePercentage?: number; // used only when centerMode=true
 
   /** react-responsive-carousel passthroughs */
   autoPlay?: boolean;
@@ -60,7 +68,7 @@ export interface CardCarouselProps<T> {
   selectedItem?: number;
 
   /** Animation handlers */
-  animationHandler?: "slide" | "fade" | any;
+  animationHandler?: "slide" | "fade";
   swipeAnimationHandler?: any;
   stopSwipingHandler?: any;
 
@@ -84,9 +92,9 @@ export interface CardCarouselProps<T> {
 
   /** Width of the carousel container (passed through to component) */
   width?: number | string;
-}
+};
 
-function _CardCarousel<T>({
+function CardCarousel<T>({
   items,
   renderItem,
   getItemKey,
@@ -106,7 +114,6 @@ function _CardCarousel<T>({
   showSideArrows = true,
 
   centerMode = false,
-  centerSlidePercentage,
 
   // passthroughs
   autoPlay = false,
@@ -139,8 +146,14 @@ function _CardCarousel<T>({
 
   width = "100%",
 }: CardCarouselProps<T>) {
+  type CSSVars = React.CSSProperties & {
+    ["--gap"]?: string;
+    ["--cols"]?: string;
+  };
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [containerWidth, setContainerWidth] = useState<number>(0);
+  const [isAnimating, setIsAnimating] = useState<boolean>(false);
+  const [currentSlideIndex, setCurrentSlideIndex] = useState<number>(0);
 
   // Memoize the getItemKey function to prevent unnecessary re-renders
   const stableGetItemKey = useCallback(getItemKey, [getItemKey]);
@@ -148,30 +161,46 @@ function _CardCarousel<T>({
   // Memoize renderItem to prevent re-creation on every render
   const stableRenderItem = useCallback(renderItem, [renderItem]);
 
+  // Handle slide change to track current slide and manage visibility
+  const handleSlideChange = useCallback(
+    (index: number) => {
+      setCurrentSlideIndex(index);
+      if (onSlideChange) {
+        onSlideChange(index);
+      }
+    },
+    [onSlideChange]
+  );
+
+  // Handle animation start/end for visibility timing
+  const handleAnimationStart = useCallback(() => {
+    setIsAnimating(true);
+  }, []);
+
+  const handleAnimationEnd = useCallback(() => {
+    setIsAnimating(false);
+  }, []);
+
   // Throttled resize handler to prevent excessive re-renders
   const throttledSetWidth = useCallback((width: number) => {
     // Only update if width actually changed by a meaningful amount
-    setContainerWidth(prev => Math.abs(prev - width) > 10 ? width : prev);
+    setContainerWidth((prev) => (Math.abs(prev - width) > 10 ? width : prev));
   }, []);
 
   // Observe size of the container to compute how many cards fit
   useEffect(() => {
     // Only run when we have items and aren't loading
-    if (loading || items.length === 0) {
-      console.log(`[CardCarousel] Skipping width detection - loading: ${loading}, items: ${items.length}`);
+    if (loading ?? items.length === 0) {
       return;
     }
 
     const el = containerRef.current;
     if (!el) {
-      console.log(`[CardCarousel] No container element found, retrying...`);
       // Retry after a short delay
       const retryTimer = setTimeout(() => {
         const retryEl = containerRef.current;
         if (retryEl) {
-          console.log(`[CardCarousel] Container found on retry`);
           const width = retryEl.clientWidth;
-          console.log(`[CardCarousel] Retry width check: ${width}px`);
           if (width > 0) {
             throttledSetWidth(width);
           }
@@ -185,15 +214,13 @@ function _CardCarousel<T>({
       cancelAnimationFrame(rafId);
       rafId = requestAnimationFrame(() => {
         const width = el.clientWidth;
-        console.log(`[CardCarousel] Container width detected: ${width}px`);
         throttledSetWidth(width);
       });
     };
-    
+
     // Initial update with delay to ensure DOM is rendered
     setTimeout(() => {
       const width = el.clientWidth;
-      console.log(`[CardCarousel] Initial width check: ${width}px`);
       if (width > 0) {
         throttledSetWidth(width);
       } else {
@@ -201,7 +228,6 @@ function _CardCarousel<T>({
         const parent = el.parentElement;
         if (parent) {
           const parentWidth = parent.clientWidth;
-          console.log(`[CardCarousel] Using parent width: ${parentWidth}px`);
           throttledSetWidth(parentWidth - 32); // Account for padding
         }
       }
@@ -236,53 +262,29 @@ function _CardCarousel<T>({
     const minW = Math.max(1, Math.floor(cardMinWidth));
     const gap = Math.max(0, Math.floor(cardGap));
 
-    // Debug logging
-    console.log(`[CardCarousel] Computing columns:`, {
-      containerWidth: w,
-      cardMinWidth: minW,
-      cardGap: gap,
-      itemsLength: items.length,
-      minCols,
-      maxCols
-    });
-
     if (w === 0) {
-      console.log(`[CardCarousel] Container width is 0, returning minCols:`, Math.max(1, minCols));
       return Math.max(1, minCols); // initial render
     }
 
     // Max cards that could fit by naive packing (with gap between them)
     // FitCols satisfies: cols*minW + (cols-1)*gap <= w
     let cols = Math.floor((w + gap) / (minW + gap));
-    console.log(`[CardCarousel] Initial calculation: ${cols} columns`);
-    
+
     cols = Math.max(minCols, Math.min(cols, maxCols));
-    console.log(`[CardCarousel] After constraints: ${cols} columns`);
 
     // Ensure that the chosen cols actually fit; if not, decrement until it does
     const fits = (c: number) => c * minW + (c - 1) * gap <= w;
     while (cols > minCols && !fits(cols)) {
-      console.log(`[CardCarousel] ${cols} columns don't fit, reducing...`);
       cols--;
     }
 
     // If there's room for one more, and it fits, increment
     while (cols < maxCols && fits(cols + 1)) {
-      console.log(`[CardCarousel] Room for more, increasing to ${cols + 1}...`);
       cols++;
     }
 
-    console.log(`[CardCarousel] Final result: ${cols} columns`);
     return Math.max(1, cols);
-  }, [
-    centerMode,
-    containerWidth,
-    cardMinWidth,
-    cardGap,
-    minCols,
-    maxCols,
-    items.length,
-  ]);
+  }, [centerMode, containerWidth, cardMinWidth, cardGap, minCols, maxCols]);
 
   // Chunk items into pages of computedCols with stable references
   const pages = useMemo(() => {
@@ -295,60 +297,100 @@ function _CardCarousel<T>({
   }, [items, computedCols]);
 
   /** Normalize labels for the underlying library - memoized for stability */
-  const safeLabels = useMemo(() => labels
-    ? {
-        leftArrow: labels.leftArrow ?? "previous slide / item",
-        rightArrow: labels.rightArrow ?? "next slide / item",
-        item: labels.item ?? "slide item",
+  const safeLabels = useMemo(
+    () =>
+      labels
+        ? {
+            leftArrow: labels.leftArrow ?? "previous slide / item",
+            rightArrow: labels.rightArrow ?? "next slide / item",
+            item: labels.item ?? "slide item",
+          }
+        : undefined,
+    [labels]
+  );
+
+  // Calculate which cards should be visible (all cards on current page)
+  const getCardVisibility = useCallback(
+    (globalIndex: number) => {
+      if (isAnimating) {
+        return true; // Show all cards during animation
       }
-    : undefined, [labels]);
+
+      // Show all cards that fit on the current page
+      const cardsPerPage = Math.max(1, computedCols);
+      const currentPageStartIndex = currentSlideIndex * cardsPerPage;
+      const currentPageEndIndex = currentPageStartIndex + cardsPerPage - 1;
+
+      // Card is visible if it's within the current page range
+      return (
+        globalIndex >= currentPageStartIndex &&
+        globalIndex <= currentPageEndIndex
+      );
+    },
+    [isAnimating, currentSlideIndex, computedCols]
+  );
 
   /** Memoized navigation arrows to prevent re-creation on every render */
-  const LeftArrow = useMemo(() => (
-    clickHandler: () => void,
-    hasPrev: boolean,
-    label: string
-  ) => (
-    <button
-      type="button"
-      onClick={clickHandler}
-      aria-label={label}
-      disabled={!hasPrev}
-      className={`absolute left-2 top-1/2 -translate-y-1/2 z-10 p-2 h-10 w-10 rounded-2xl flex items-center justify-center transition-all duration-200 ${
-        hasPrev
-          ? "bg-white/90 text-gray-700 hover:bg-white hover:text-brown shadow-md hover:shadow-lg border border-gray-200"
-          : "bg-gray-100 text-gray-400 cursor-not-allowed"
-      }`}
-    >
-      <ChevronLeft className="w-5 h-5" />
-    </button>
-  ), []);
+  const LeftArrow = useMemo(
+    () => (clickHandler: () => void, hasPrev: boolean, label: string) => (
+      <button
+        type="button"
+        onClick={() => {
+          handleAnimationStart();
+          clickHandler();
+        }}
+        aria-label={label}
+        disabled={!hasPrev}
+        className={`absolute left-2 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-2xl p-2 transition-all duration-200 ${
+          hasPrev
+            ? "border border-gray-200 bg-white/90 text-gray-700 shadow-md hover:bg-white hover:text-brown hover:shadow-lg"
+            : "cursor-not-allowed bg-gray-100 text-gray-400"
+        }`}
+      >
+        <ChevronLeft className="h-5 w-5" />
+      </button>
+    ),
+    [handleAnimationStart]
+  );
 
-  const RightArrow = useMemo(() => (
-    clickHandler: () => void,
-    hasNext: boolean,
-    label: string
-  ) => (
-    <button
-      type="button"
-      onClick={clickHandler}
-      aria-label={label}
-      disabled={!hasNext}
-      className={`absolute right-2 top-1/2 -translate-y-1/2 z-10 p-2 h-10 w-10 rounded-2xl flex items-center justify-center transition-all duration-200 ${
-        hasNext
-          ? "bg-white/90 text-gray-700 hover:bg-white hover:text-brown shadow-md hover:shadow-lg border border-gray-200"
-          : "bg-gray-100 text-gray-400 cursor-not-allowed"
-      }`}
-    >
-      <ChevronRight className="w-5 h-5" />
-    </button>
-  ), []);
+  const RightArrow = useMemo(
+    () => (clickHandler: () => void, hasNext: boolean, label: string) => (
+      <button
+        type="button"
+        onClick={() => {
+          handleAnimationStart();
+          clickHandler();
+        }}
+        aria-label={label}
+        disabled={!hasNext}
+        className={`absolute right-2 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-2xl p-2 transition-all duration-200 ${
+          hasNext
+            ? "border border-gray-200 bg-white/90 text-gray-700 shadow-md hover:bg-white hover:text-brown hover:shadow-lg"
+            : "cursor-not-allowed bg-gray-100 text-gray-400"
+        }`}
+      >
+        <ChevronRight className="h-5 w-5" />
+      </button>
+    ),
+    [handleAnimationStart]
+  );
+
+  // Add animation end handler with delay to ensure animation completes
+  useEffect(() => {
+    if (isAnimating) {
+      const timer = setTimeout(() => {
+        handleAnimationEnd();
+      }, transitionTime ?? 300);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isAnimating, transitionTime, handleAnimationEnd]);
 
   return (
     <div aria-label={ariaLabel} className="sk-carousel">
       {embeddedButton && (
-        <div className="flex items-center justify-between w-full mb-3 sm:mb-4">
-          <div className="flex items-center h-10">{embeddedButton}</div>
+        <div className="mb-3 flex w-full items-center justify-between sm:mb-4">
+          <div className="flex h-10 items-center">{embeddedButton}</div>
         </div>
       )}
 
@@ -357,102 +399,109 @@ function _CardCarousel<T>({
           <Loading message="Loading..." />
         </div>
       ) : error ? (
-        <p className="text-sm text-neutral-500 text-center py-4">{error}</p>
+        <p className="py-4 text-center text-sm text-neutral-500">{error}</p>
       ) : items.length === 0 ? (
-        <p className="text-sm text-neutral-500 text-center py-4">
+        <p className="py-4 text-center text-sm text-neutral-500">
           {emptyMessage}
         </p>
       ) : (
         <div
-          className="min-w-0 max-w-full overflow-hidden relative"
+          className="relative min-w-0 max-w-full overflow-hidden"
           ref={containerRef}
         >
-          <div className="sk-carousel-clip relative overflow-hidden max-w-full min-w-0 box-border">
+          <div className="sk-carousel-clip relative box-border min-w-0 max-w-full overflow-hidden">
             <Carousel
-            showThumbs={false}
-            showStatus={false}
-            showIndicators={false}
-            showArrows={!!showSideArrows}
-            width={width}
-            axis={axis}
-            infiniteLoop={!!infiniteLoop}
-            autoPlay={!!autoPlay}
-            interval={interval}
-            transitionTime={transitionTime}
-            emulateTouch={!!emulateTouch}
-            swipeable={!!swipeable}
-            stopOnHover={!!stopOnHover}
-            useKeyboardArrows={!!useKeyboardArrows}
-            dynamicHeight={!!dynamicHeight}
-            verticalSwipe={verticalSwipe}
-            preventMovementUntilSwipeScrollTolerance={
-              !!preventMovementUntilSwipeScrollTolerance
-            }
-            swipeScrollTolerance={swipeScrollTolerance}
-            selectedItem={selectedItem}
-            onChange={onSlideChange}
-            animationHandler={animationHandler as any}
-            swipeAnimationHandler={swipeAnimationHandler}
-            stopSwipingHandler={stopSwipingHandler}
-            labels={safeLabels}
-            statusFormatter={statusFormatter}
-            centerMode={!!centerMode}
-            centerSlidePercentage={
-              centerMode ? centerSlidePercentage : undefined
-            }
-            renderArrowPrev={
-              showSideArrows
-                ? renderArrowPrev || LeftArrow
-                : undefined
-            }
-            renderArrowNext={
-              showSideArrows
-                ? renderArrowNext || RightArrow
-                : undefined
-            }
-          >
-            {pages.map((page, pIdx) => {
-              return (
-                <div key={`page-${pIdx}`} className="min-w-0">
-                  {/* Row container with CSS variables for robust sizing */}
-                  <div
-                    className="flex w-full items-stretch justify-center"
-                    style={
-                      {
-                        // CSS variables allow clean width calc per child
-                        // @ts-ignore custom properties
-                        "--gap": `${Math.max(0, cardGap)}px`,
-                        // @ts-ignore custom properties
-                        "--cols": centerMode ? 1 : Math.max(1, computedCols),
-                        gap: `var(--gap)`,
-                      } as React.CSSProperties
-                    }
-                  >
-                    {page.map((item, idx) => {
-                      const globalIndex = Math.max(1, computedCols) * pIdx + idx;
-                      const itemKey = stableGetItemKey(item, globalIndex);
-                      
-                      return (
-                        <div
-                          key={itemKey}
-                          className="min-w-0"
-                          style={
-                            {
-                              // No partials: exact width so cols fit with gap
-                              flex: "0 0 auto",
-                              width:
-                                "calc((100% - (var(--gap) * (var(--cols) - 1))) / var(--cols))",
-                            } as React.CSSProperties
-                          }
-                        >
-                          {stableRenderItem(item, globalIndex)}
-                        </div>
-                      );
-                    })}
+              showThumbs={false}
+              showStatus={false}
+              showIndicators={false}
+              showArrows={!!showSideArrows}
+              width={width}
+              axis={axis}
+              infiniteLoop={!!infiniteLoop}
+              autoPlay={!!autoPlay}
+              interval={interval}
+              transitionTime={transitionTime}
+              emulateTouch={!!emulateTouch}
+              swipeable={!!swipeable}
+              stopOnHover={!!stopOnHover}
+              useKeyboardArrows={!!useKeyboardArrows}
+              dynamicHeight={!!dynamicHeight}
+              verticalSwipe={verticalSwipe}
+              preventMovementUntilSwipeScrollTolerance={
+                !!preventMovementUntilSwipeScrollTolerance
+              }
+              swipeScrollTolerance={swipeScrollTolerance}
+              selectedItem={selectedItem}
+              onChange={handleSlideChange}
+              onSwipeStart={handleAnimationStart}
+              onSwipeEnd={handleAnimationEnd}
+              animationHandler={animationHandler}
+              swipeAnimationHandler={swipeAnimationHandler}
+              stopSwipingHandler={stopSwipingHandler}
+              labels={safeLabels}
+              statusFormatter={statusFormatter}
+              centerMode={false}
+              centerSlidePercentage={undefined}
+              renderArrowPrev={
+                showSideArrows ? (renderArrowPrev ?? LeftArrow) : undefined
+              }
+              renderArrowNext={
+                showSideArrows ? (renderArrowNext ?? RightArrow) : undefined
+              }
+            >
+              {pages.map((page, pIdx) => {
+                return (
+                  <div key={`page-${pIdx}`} className="min-w-0">
+                    {/* Row container with CSS variables for robust sizing */}
+                    <div
+                      className="flex w-full items-stretch"
+                      style={
+                        {
+                          "--gap": `${Math.max(0, cardGap)}px`,
+                          "--cols": `${centerMode ? 1 : Math.max(1, computedCols)}`,
+                          gap: `var(--gap)`,
+                          justifyContent:
+                            computedCols === 1
+                              ? "center"
+                              : page.length === computedCols
+                                ? "space-between"
+                                : "flex-start",
+                          paddingLeft: computedCols > 1 ? "0.5rem" : "0",
+                          paddingRight: computedCols > 1 ? "0.5rem" : "0",
+                        } as CSSVars
+                      }
+                    >
+                      {page.map((item, idx) => {
+                        const globalIndex =
+                          Math.max(1, computedCols) * pIdx + idx;
+                        const itemKey = stableGetItemKey(item, globalIndex);
+                        const isVisible = getCardVisibility(globalIndex);
+
+                        return (
+                          <div
+                            key={itemKey}
+                            className={`carousel-card min-w-0 ${
+                              isVisible
+                                ? "carousel-card-visible"
+                                : "carousel-card-hidden"
+                            }`}
+                            style={
+                              {
+                                // No partials: exact width so cols fit with gap
+                                flex: "0 0 auto",
+                                width:
+                                  "calc((100% - (var(--gap) * (var(--cols) - 1))) / var(--cols))",
+                              } as React.CSSProperties
+                            }
+                          >
+                            {stableRenderItem(item, globalIndex)}
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
             </Carousel>
           </div>
         </div>
@@ -462,4 +511,4 @@ function _CardCarousel<T>({
 }
 
 // Export memoized component to prevent unnecessary re-renders
-export default memo(_CardCarousel) as typeof _CardCarousel;
+export default memo(CardCarousel) as typeof CardCarousel;

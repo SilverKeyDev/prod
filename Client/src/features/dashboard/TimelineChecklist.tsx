@@ -1,115 +1,33 @@
+import { ChevronDown, ChevronUp } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import {
-  ClipboardList,
-  Search as SearchIcon,
-  Split,
-  Handshake,
-  Key,
-  ChevronDown,
-  ChevronUp,
-  LucideIcon,
-  User as UserIcon,
-  BadgeCheck,
-  Bookmark,
-  FilePlus,
-  FileText,
-  BarChart2,
-  MessageCircle,
-  Brain,
-  Scale,
-  ShieldCheck,
-  Building2,
-  KeyRound,
-} from "lucide-react";
 
-type SubStep = {
-  name: string;
-  href: string;
-  icon: LucideIcon;
-};
+import { TIMELINE_STEPS } from "./DashboardButtonHeaderConstants";
 
-type Step = {
-  key: string;
-  name: string;
-  icon: LucideIcon;
-  subSteps: SubStep[];
-};
-
-// Mirrors Sidebar categories
-export const TIMELINE_STEPS: Step[] = [
-  {
-    key: "onboard",
-    name: "Onboard",
-    icon: ClipboardList,
-    subSteps: [
-      { name: "Personalization", href: "/dashboard/personalization", icon: UserIcon },
-      { name: "Get Pre-Approved", href: "/dashboard/get-preapproved", icon: BadgeCheck },
-    ],
-  },
-  {
-    key: "search",
-    name: "Search",
-    icon: SearchIcon,
-    subSteps: [
-      { name: "Search Homes", href: "/dashboard/search", icon: SearchIcon },
-      { name: "Saved Homes", href: "/dashboard/saved", icon: Bookmark },
-    ],
-  },
-  {
-    key: "decide",
-    name: "Decide",
-    icon: Split,
-    subSteps: [
-      { name: "Generate Report", href: "/dashboard/generate-report", icon: FilePlus },
-      { name: "Past Reports", href: "/dashboard/reports", icon: FileText },
-      { name: "Compare Reports", href: "/dashboard/compare-reports", icon: BarChart2 },
-      { name: "AI Assistant", href: "/dashboard/ai-assistant", icon: MessageCircle },
-    ],
-  },
-  {
-    key: "negotiate",
-    name: "Negotiate",
-    icon: Handshake,
-    subSteps: [
-      { name: "Negotiation Strategy", href: "/dashboard/negotiation-strategy", icon: Brain },
-      { name: "Draft Offer", href: "/dashboard/draft-offer", icon: FileText },
-    ],
-  },
-  {
-    key: "close",
-    name: "Close",
-    icon: Key,
-    subSteps: [
-      { name: "Escrow & Legal", href: "/dashboard/escrow-legal-logistics", icon: Scale },
-      { name: "Inspections & Due Diligence", href: "/dashboard/inspections-due-diligence", icon: ShieldCheck },
-      { name: "Financing & Insurance", href: "/dashboard/financing-insurance", icon: Building2 },
-      { name: "Closing & Move-In", href: "/dashboard/closing-moving-in", icon: KeyRound },
-    ],
-  },
-];
-
-interface TimelineChecklistProps {
+type TimelineChecklistProps = {
   completedStepKey?: string; // inclusive key of last completed step
-  variant?: 'horizontal' | 'vertical'; // New prop to control layout
-}
+  variant?: "horizontal" | "vertical"; // New prop to control layout
+};
 
-const TimelineChecklist: React.FC<TimelineChecklistProps> = ({ 
-  completedStepKey, 
-  variant = 'vertical' 
+const TimelineChecklist: React.FC<TimelineChecklistProps> = ({
+  completedStepKey,
+  variant = "vertical",
 }) => {
   const location = useLocation();
   const [openKey, setOpenKey] = useState<string | null>(null);
 
-  const completedIndex = TIMELINE_STEPS.findIndex((s) => s.key === completedStepKey);
+  const completedIndex = TIMELINE_STEPS.findIndex(
+    (s) => s.key === completedStepKey
+  );
 
   // Horizontal timeline progress (from TimelineProgress)
-  if (variant === 'horizontal') {
+  if (variant === "horizontal") {
     return (
       <div className="mobile-container">
         {/* Timeline grid: each column contains main + substeps */}
         <div
-          className="grid gap-x-1 sm:gap-x-2 md:gap-x-3 lg:gap-x-4 items-start relative w-full"
+          className="relative grid w-full items-start gap-x-1 sm:gap-x-2 md:gap-x-3 lg:gap-x-4"
           style={{
             gridTemplateColumns: `repeat(${TIMELINE_STEPS.length * 2 - 1}, minmax(0, 1fr))`, // steps + connecting lines
           }}
@@ -120,26 +38,52 @@ const TimelineChecklist: React.FC<TimelineChecklistProps> = ({
             return (
               <React.Fragment key={step.key}>
                 {/* Step column */}
-                <div className="flex flex-col items-center col-span-1 min-w-0">
+                <div className="col-span-1 flex min-w-0 flex-col items-center">
                   {/* Main icon */}
                   <Link
-                    to={step.subSteps[0]?.href || "#"}
-                    className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 rounded-full flex items-center justify-center transition-colors bg-olive text-white touch-manipulation"
+                    to={(() => {
+                      const first = step.subSteps?.[0] as unknown;
+                      if (
+                        first &&
+                        typeof first === "object" &&
+                        "href" in first
+                      ) {
+                        return (first as { href: string }).href;
+                      }
+                      return "#";
+                    })()}
+                    className="flex h-6 w-6 touch-manipulation items-center justify-center rounded-full bg-olive text-white transition-colors sm:h-8 sm:w-8 md:h-10 md:w-10 lg:h-12 lg:w-12"
                     title={step.name}
                   >
-                    <StepIcon className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 lg:w-6 lg:h-6" color="white" />
+                    <StepIcon
+                      className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5 lg:h-6 lg:w-6"
+                      color="white"
+                    />
                   </Link>
 
                   {/* Step name - hidden on mobile */}
-                  <span className="hidden sm:inline text-[8px] sm:text-xs md:text-sm mt-0.5 sm:mt-1 text-brown-dark capitalize select-none text-center px-0.5 sm:px-1 truncate max-w-full">
+                  <span className="text-brown-dark mt-0.5 hidden max-w-full select-none truncate px-0.5 text-center text-[8px] capitalize sm:mt-1 sm:inline sm:px-1 sm:text-xs md:text-sm">
                     {step.name}
                   </span>
 
                   {/* Substeps container: responsive width - hidden on mobile */}
-                  <div className="hidden sm:flex mt-0.5 sm:mt-1 md:mt-2 justify-center gap-0.5 sm:gap-1 md:gap-2 flex-wrap max-w-full">
+                  <div className="mt-0.5 hidden max-w-full flex-wrap justify-center gap-0.5 sm:mt-1 sm:flex sm:gap-1 md:mt-2 md:gap-2">
                     {step.subSteps.map((sub) => {
-                      const SubIcon: LucideIcon = sub.icon;
-                      const isActiveSub = location.pathname === sub.href;
+                      const subAny = sub as unknown;
+                      const SubIcon =
+                        subAny && typeof subAny === "object" && "icon" in subAny
+                          ? ((subAny as { icon: LucideIcon })
+                              .icon)
+                          : null;
+                      const href =
+                        subAny && typeof subAny === "object" && "href" in subAny
+                          ? (subAny as { href: string }).href
+                          : "#";
+                      const name =
+                        subAny && typeof subAny === "object" && "name" in subAny
+                          ? (subAny as { name: string }).name
+                          : "Unknown";
+                      const isActiveSub = location.pathname === href;
                       const colorStyles = {
                         backgroundColor: "#f3f4f6", // light gray
                         borderColor: "#d1d5db",
@@ -147,15 +91,17 @@ const TimelineChecklist: React.FC<TimelineChecklistProps> = ({
                       };
                       return (
                         <Link
-                          key={sub.href}
-                          to={sub.href}
-                          title={sub.name}
-                          className={`w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 lg:w-7 lg:h-7 rounded-full flex items-center justify-center text-xs transition-colors border touch-manipulation ${
-                            isActiveSub ? "ring-1 sm:ring-2 ring-brown" : ""
+                          key={href || "unknown"}
+                          to={href}
+                          title={name}
+                          className={`flex h-4 w-4 touch-manipulation items-center justify-center rounded-full border text-xs transition-colors sm:h-5 sm:w-5 md:h-6 md:w-6 lg:h-7 lg:w-7 ${
+                            isActiveSub ? "ring-1 ring-brown sm:ring-2" : ""
                           }`}
                           style={colorStyles}
                         >
-                          <SubIcon className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 lg:w-3.5 lg:h-3.5" />
+                          {SubIcon ? (
+                            <SubIcon className="h-2 w-2 sm:h-2.5 sm:w-2.5 md:h-3 md:w-3 lg:h-3.5 lg:w-3.5" />
+                          ) : null}
                         </Link>
                       );
                     })}
@@ -164,9 +110,9 @@ const TimelineChecklist: React.FC<TimelineChecklistProps> = ({
 
                 {/* Connector column */}
                 {idx < TIMELINE_STEPS.length - 1 && (
-                  <div className="flex items-center justify-center col-span-1 h-6 sm:h-8 md:h-10 lg:h-12">
+                  <div className="col-span-1 flex h-6 items-center justify-center sm:h-8 md:h-10 lg:h-12">
                     <div
-                      className="w-full h-[1px] sm:h-[1px] md:h-[2px]"
+                      className="h-[1px] w-full sm:h-[1px] md:h-[2px]"
                       style={{
                         backgroundColor: "#d1d5db", // light gray
                       }}
@@ -195,41 +141,65 @@ const TimelineChecklist: React.FC<TimelineChecklistProps> = ({
             {/* Main Step Row */}
             <button
               onClick={() => setOpenKey(isOpen ? null : step.key)}
-              className={`w-full flex items-center justify-between p-2 sm:p-3 rounded-lg border transition-colors touch-manipulation ${
-                isCompleted ? "bg-green-100 border-green-300" : "bg-white border-gray-200"
+              className={`flex w-full touch-manipulation items-center justify-between rounded-lg border p-2 transition-colors sm:p-3 ${
+                isCompleted
+                  ? "border-green-300 bg-green-100"
+                  : "border-gray-200 bg-white"
               }`}
             >
-              <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
-                <span className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center bg-brown flex-shrink-0">
-                  <StepIcon className="w-4 h-4 sm:w-5 sm:h-5" color="white" />
+              <div className="flex min-w-0 flex-1 items-center space-x-2 sm:space-x-3">
+                <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-brown sm:h-8 sm:w-8">
+                  <StepIcon className="h-4 w-4 sm:h-5 sm:w-5" color="white" />
                 </span>
-                <span className="font-medium text-brown-dark text-xs sm:text-base truncate">{step.name}</span>
+                <span className="text-brown-dark truncate text-xs font-medium sm:text-base">
+                  {step.name}
+                </span>
               </div>
-              {isOpen ? <ChevronUp className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" /> : <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />}
+              {isOpen ? (
+                <ChevronUp className="h-4 w-4 flex-shrink-0 sm:h-5 sm:w-5" />
+              ) : (
+                <ChevronDown className="h-4 w-4 flex-shrink-0 sm:h-5 sm:w-5" />
+              )}
             </button>
 
             {/* Progress bar line */}
             <div
-              className={`h-1 ml-2 sm:ml-3 border-l-2 ${index < TIMELINE_STEPS.length - 1 ? "" : "hidden"}`}
+              className={`ml-2 h-1 border-l-2 sm:ml-3 ${index < TIMELINE_STEPS.length - 1 ? "" : "hidden"}`}
               style={{ borderColor: isCompleted ? "#16a34a" : "#e5e7eb" }}
             />
 
             {/* Sub-steps */}
             {isOpen && (
-              <div className="mt-2 ml-6 sm:ml-8 space-y-1 sm:space-y-2 w-full">
+              <div className="ml-6 mt-2 w-full space-y-1 sm:ml-8 sm:space-y-2">
                 {step.subSteps.map((sub) => {
-                  const SubIcon = sub.icon;
-                  const isSubActive = location.pathname === sub.href;
+                  const subAny = sub as unknown;
+                  const SubIcon =
+                    subAny && typeof subAny === "object" && "icon" in subAny
+                      ? ((subAny as { icon: LucideIcon }).icon)
+                      : null;
+                  const href =
+                    subAny && typeof subAny === "object" && "href" in subAny
+                      ? (subAny as { href: string }).href
+                      : "#";
+                  const name =
+                    subAny && typeof subAny === "object" && "name" in subAny
+                      ? (subAny as { name: string }).name
+                      : "";
+                  const isSubActive = location.pathname === href;
                   return (
                     <Link
-                      key={sub.href}
-                      to={sub.href}
-                      className={`flex items-center space-x-2 p-2 rounded hover:bg-brown/10 transition-colors touch-manipulation w-full ${
+                      key={href || "unknown"}
+                      to={href}
+                      className={`flex w-full touch-manipulation items-center space-x-2 rounded p-2 transition-colors hover:bg-brown/10 ${
                         isSubActive ? "bg-brown/10" : ""
                       }`}
                     >
-                      <SubIcon className="w-3 h-3 sm:w-4 sm:h-4 text-brown flex-shrink-0" />
-                      <span className="text-[10px] sm:text-sm truncate">{sub.name}</span>
+                      {SubIcon ? (
+                        <SubIcon className="h-3 w-3 flex-shrink-0 text-brown sm:h-4 sm:w-4" />
+                      ) : null}
+                      <span className="truncate text-[10px] sm:text-sm">
+                        {name}
+                      </span>
                     </Link>
                   );
                 })}

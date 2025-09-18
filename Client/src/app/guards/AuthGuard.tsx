@@ -3,87 +3,102 @@
  * Checks if user is logged in; redirects or shows login if not authenticated
  */
 
-import React, { ReactNode } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../providers';
-import Card from '../../components/layout/Card';
-import Button from '../../components/ui/button/Button';
-import { Lock, LogIn, Loader2 } from 'lucide-react';
+import { Lock, LogIn, Loader2 } from "lucide-react";
+import { type ReactNode } from "react";
+import { Navigate, useLocation } from "react-router-dom";
 
-interface AuthGuardProps {
+import Card from "../../components/format/Card";
+import Button from "../../components/ui/button/Button";
+import { useAuthStore } from "../../core/store/auth.slice";
+
+type AuthGuardProps = {
   children: ReactNode;
   redirectTo?: string;
   fallback?: ReactNode;
   requireAuth?: boolean;
-}
+};
 
-export function AuthGuard({ 
-  children, 
-  redirectTo = '/login', 
+export type { AuthGuardProps };
+
+export function AuthGuard({
+  children,
+  redirectTo = "/login",
   fallback,
-  requireAuth = true 
+  requireAuth = true,
 }: AuthGuardProps) {
-  const { isAuthenticated, authReady } = useAuth();
+  // Use auth store directly for consistent auth state
+  const authStatus = useAuthStore((s) => s.authStatus);
+  const authReady = useAuthStore((s) => s.authReady);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const location = useLocation();
 
-  // Show loading state while checking authentication
+  // Show loading state while checking authentication or auth status is checking
   // This prevents premature redirects during StrictMode double-mount
-  if (!authReady) {
-    return fallback || (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Card className="max-w-sm w-full" padding="lg">
-          <div className="text-center">
-            <Loader2 className="w-8 h-8 text-brand-accent animate-spin mx-auto mb-4" />
-            <p className="text-gray-600">Checking authentication...</p>
-          </div>
-        </Card>
-      </div>
+  if (!authReady || authStatus === "checking") {
+    return (
+      fallback ?? (
+        <div className="flex min-h-screen items-center justify-center bg-gray-50">
+          <Card className="w-full max-w-sm" padding="lg">
+            <div className="text-center">
+              <Loader2 className="mx-auto mb-4 h-8 w-8 animate-spin text-brand-accent" />
+              <p className="text-gray-600">Checking authentication...</p>
+            </div>
+          </Card>
+        </div>
+      )
     );
   }
 
   // If authentication is required but user is not authenticated
   if (requireAuth && !isAuthenticated) {
-    // If redirectTo is provided, redirect to login with return URL
-    if (redirectTo) {
+    // Prevent redirect loops - don't redirect if already on target page
+    if (redirectTo && location.pathname !== redirectTo) {
+      console.log(
+        "🧭 [AUTH_GUARD] Redirecting to:",
+        redirectTo,
+        "from:",
+        location.pathname
+      );
       return (
-        <Navigate 
-          to={redirectTo} 
-          state={{ from: location.pathname }} 
-          replace 
-        />
+        <Navigate to={redirectTo} state={{ from: location.pathname }} replace />
       );
     }
 
     // Otherwise show inline login prompt
-    return fallback || (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <Card className="max-w-md w-full border-l-4 border-l-brand-accent" padding="lg">
-          <div className="text-center">
-            <div className="flex justify-center mb-4">
-              <div className="p-3 bg-brand-accent/10 rounded-full">
-                <Lock className="w-8 h-8 text-brand-accent" />
+    return (
+      fallback ?? (
+        <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
+          <Card
+            className="w-full max-w-md border-l-4 border-l-brand-accent"
+            padding="lg"
+          >
+            <div className="text-center">
+              <div className="mb-4 flex justify-center">
+                <div className="rounded-full bg-brand-accent/10 p-3">
+                  <Lock className="h-8 w-8 text-brand-accent" />
+                </div>
               </div>
-            </div>
-            
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">
-              Authentication Required
-            </h2>
-            
-            <p className="text-gray-600 mb-6">
-              You need to be logged in to access this page.
-            </p>
 
-            <Button
-              variant="primary"
-              onClick={() => window.location.href = redirectTo}
-              icon={<LogIn className="w-4 h-4" />}
-              className="w-full"
-            >
-              Sign In
-            </Button>
-          </div>
-        </Card>
-      </div>
+              <h2 className="mb-2 text-xl font-semibold text-gray-900">
+                Authentication Required
+              </h2>
+
+              <p className="mb-6 text-gray-600">
+                You need to be logged in to access this page.
+              </p>
+
+              <Button
+                variant="primary"
+                onClick={() => (window.location.href = redirectTo)}
+                icon={<LogIn className="h-4 w-4" />}
+                className="w-full"
+              >
+                Sign In
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )
     );
   }
 
@@ -94,22 +109,6 @@ export function AuthGuard({
 
   // User is authenticated or authentication is not required
   return <>{children}</>;
-}
-
-/**
- * Higher-order component version of AuthGuard
- */
-export function withAuthGuard<P extends object>(
-  Component: React.ComponentType<P>,
-  guardProps?: Omit<AuthGuardProps, 'children'>
-) {
-  return function AuthGuardedComponent(props: P) {
-    return (
-      <AuthGuard {...guardProps}>
-        <Component {...props} />
-      </AuthGuard>
-    );
-  };
 }
 
 export default AuthGuard;

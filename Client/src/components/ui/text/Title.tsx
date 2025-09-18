@@ -2,12 +2,12 @@ import React from 'react';
 
 export type TitleSize = 'sm' | 'md' | 'lg' | 'xl';
 
-export interface TitleProps {
+export type TitleProps = {
   children: React.ReactNode;
   size?: TitleSize;
   className?: string;
   as?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
-}
+};
 
 const sizeClasses: Record<TitleSize, string> = {
   sm: 'text-lg sm:text-xl',
@@ -16,18 +16,14 @@ const sizeClasses: Record<TitleSize, string> = {
   xl: 'text-3xl sm:text-4xl md:text-5xl',
 };
 
-export default function Title({ 
-  children, 
-  size = 'md', 
-  className = '', 
-  as: Component = 'h2' 
+export default function Title({
+  children,
+  size = 'md',
+  className = '',
+  as: Component = 'h2',
 }: TitleProps) {
   const baseClasses = 'font-serif text-black';
   const sizeClass = sizeClasses[size];
-  
-  return (
-    <Component className={`${baseClasses} ${sizeClass} ${className}`}>
-      {children}
-    </Component>
-  );
+
+  return <Component className={`${baseClasses} ${sizeClass} ${className}`}>{children}</Component>;
 }

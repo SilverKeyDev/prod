@@ -1,11 +1,12 @@
-import { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
 import { Mail, Lock } from "lucide-react";
-import { useSecureAuth } from "../../hooks/useSecureAuth";
-import AuthPageLayout from "../../features/homeauth/AuthPageLayout";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+
 import { Input } from "../../components/ui";
-import AuthButton from "../../features/homeauth/AuthButton";
-import AuthLink from "../../features/homeauth/AuthLink";
+import { useSecureAuth } from "../../core/hooks/data/useSecureAuth";
+import AuthButton from "../../features/homeauth/Auth/Button";
+import AuthLink from "../../features/homeauth/Auth/Link";
+import AuthPageLayout from "../../features/homeauth/Auth/PageLayout";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -19,21 +20,24 @@ export default function LoginPage() {
   // Only clear auth data if user is not authenticated and there are stale tokens
   useEffect(() => {
     // Check if user is already authenticated via secure auth hook
-    const hasValidAuth = (window as any).getSecureAccessToken && (window as any).getSecureAccessToken();
-    
+    const hasValidAuth = (
+      window as unknown as { getSecureAccessToken?: () => string | null }
+    ).getSecureAccessToken?.();
+
     // Only clear tokens if there's no valid authentication
     if (!hasValidAuth) {
-      const hasTokens = sessionStorage.getItem('refresh_token') || 
-                       localStorage.getItem('access_token') || 
-                       localStorage.getItem('id_token') ||
-                       localStorage.getItem('user');
-      
+      const hasTokens =
+        sessionStorage.getItem("refresh_token") ??
+        sessionStorage.getItem("access_token") ??
+        sessionStorage.getItem("id_token") ??
+        sessionStorage.getItem("user");
+
       if (hasTokens) {
-        // Clear stale tokens
-        sessionStorage.removeItem('refresh_token');
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('id_token');
-        localStorage.removeItem('user');
+        // Clear stale tokens from sessionStorage
+        sessionStorage.removeItem("refresh_token");
+        sessionStorage.removeItem("access_token");
+        sessionStorage.removeItem("id_token");
+        sessionStorage.removeItem("user");
         clearError();
       }
     }
@@ -47,13 +51,16 @@ export default function LoginPage() {
 
     if (success) {
       // Get the intended destination from location state or default to dashboard
-      const from = (location.state as any)?.from?.pathname || "/dashboard";
+      // Type-safe location state access with proper type guards
+      const locationState = location.state as {
+        from?: { pathname?: string };
+      } | null;
+      const from = locationState?.from?.pathname ?? "/dashboard";
 
-      console.log('🔐 [LOGIN] Login successful, navigating to:', from);
-      // Navigate to intended destination or dashboard
+      // Navigate immediately - store is updated synchronously in login function
       navigate(from, { replace: true });
     } else {
-      console.log('🔐 [LOGIN] Login failed, staying on login page');
+      console.log("🔐 [LOGIN] Login failed, staying on login page");
     }
   };
 
@@ -62,7 +69,7 @@ export default function LoginPage() {
       title="Welcome back"
       subtitle="Generate premium property reports with AI"
       logoSize="lg"
-      error={error || undefined}
+      error={error ?? undefined}
     >
       {/* Login Form */}
       <form onSubmit={handleSubmit} className="card space-y-responsive-md">
@@ -70,9 +77,11 @@ export default function LoginPage() {
           label="Email"
           type="email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+            setEmail(e.target.value)
+          }
           placeholder="Enter your email"
-          leftIcon={<Mail className="w-4 h-4" />}
+          leftIcon={<Mail className="h-4 w-4" />}
           name="email"
           id="email"
           autoComplete="email"
@@ -84,9 +93,11 @@ export default function LoginPage() {
           label="Password"
           type="password"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+            setPassword(e.target.value)
+          }
           placeholder="Enter your password"
-          leftIcon={<Lock className="w-4 h-4" />}
+          leftIcon={<Lock className="h-4 w-4" />}
           name="password"
           id="password"
           autoComplete="current-password"
@@ -99,7 +110,7 @@ export default function LoginPage() {
           Login
         </AuthButton>
 
-        <div className="flex items-center justify-center gap-responsive-md text-responsive-sm">
+        <div className="gap-responsive-md text-responsive-sm flex items-center justify-center">
           <AuthLink to="/signup" variant="inline">
             Create an account
           </AuthLink>

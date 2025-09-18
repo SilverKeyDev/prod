@@ -44,7 +44,7 @@ export { default as ClosePageHeader } from '../../features/close/ClosePageHeader
 export { default as RippleBackground } from '../../features/homeauth/RippleBackground';
 
 // Layout Components
-export { default as PageHeader } from '../../widgets/header/PageHeader';
+export { default as PageHeader } from '../widgets/header/PageHeader';
 
 // Modal Components
 export { default as BaseModal } from '../modals/BaseModal';

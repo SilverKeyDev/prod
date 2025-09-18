@@ -1,10 +1,10 @@
-import React from "react";
-import { Check } from "lucide-react";
+import { Check } from 'lucide-react';
+import React from 'react';
 
-interface OliveCheckboxProps {
+type OliveCheckboxProps = {
   checked: boolean;
   onToggle?: () => void;
-}
+};
 
 /**
  * Square checkbox matching site style: olive background when checked
@@ -13,12 +13,10 @@ interface OliveCheckboxProps {
 const OliveCheckbox: React.FC<OliveCheckboxProps> = ({ checked, onToggle }) => {
   return (
     <div
-      className={`h-5 w-5 rounded border flex items-center justify-center transition-colors ${onToggle ? 'cursor-pointer' : ''} ${checked ? "bg-olive border-olive" : "border-beige"}`}
+      className={`flex h-5 w-5 items-center justify-center rounded border transition-colors ${onToggle ? 'cursor-pointer' : ''} ${checked ? 'border-olive bg-olive' : 'border-beige'}`}
       {...(onToggle ? { onClick: onToggle } : {})}
     >
-      {checked && (
-        <Check className="h-[14px] w-[14px] text-white" strokeWidth={4} />
-      )}
+      {checked && <Check className="h-[14px] w-[14px] text-white" strokeWidth={4} />}
     </div>
   );
 };

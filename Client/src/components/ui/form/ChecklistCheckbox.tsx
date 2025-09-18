@@ -1,28 +1,28 @@
-import React from "react";
 import { Check } from "lucide-react";
+import React from "react";
 
-interface ResourceLink {
+type ResourceLink = {
   label: string;
   href?: string;
-}
+};
 
-export interface ChecklistItem {
+export type ChecklistItem = {
   id: number;
   label: string;
   explanation: string;
   bullets?: string[];
   tip?: string;
   resource?: ResourceLink;
-}
+};
 
-interface ChecklistCheckboxProps {
+type ChecklistCheckboxProps = {
   item: ChecklistItem;
   checked: boolean;
   onToggle: () => void;
   itemLabelClass: string;
   itemExplanationClass: string;
   checkboxContainerClass: string;
-}
+};
 
 /**
  * Reusable styled checkbox row for checklist pages.
@@ -41,17 +41,22 @@ const ChecklistCheckbox: React.FC<ChecklistCheckboxProps> = ({
       <input
         id={`item-${item.id}`}
         type="checkbox"
-        className="sr-only peer"
+        className="peer sr-only"
         checked={checked}
         onChange={onToggle}
         aria-label={item.label}
       />
       {/* visible square checkbox */}
       <div
-        className={`h-5 w-5 rounded border flex items-center justify-center transition-colors cursor-pointer ${checked ? 'bg-olive border-olive' : 'border-beige'}`}
+        className={`flex h-4 w-4 lg:h-5 lg:w-5 cursor-pointer items-center justify-center rounded border transition-colors ${checked ? "border-olive bg-olive" : "border-beige"}`}
         onClick={onToggle}
       >
-        {checked && <Check className="h-[14px] w-[14px] text-white" strokeWidth={4} />}
+        {checked && (
+          <Check
+            className="h-[12px] w-[12px] lg:h-[14px] lg:w-[14px] text-white"
+            strokeWidth={4}
+          />
+        )}
       </div>
       <label htmlFor={`item-${item.id}`} className="flex-1">
         <span className={itemLabelClass}>{item.label}</span>
@@ -59,14 +64,14 @@ const ChecklistCheckbox: React.FC<ChecklistCheckboxProps> = ({
           <div>
             <p className={itemExplanationClass}>{item.explanation}</p>
             {item.bullets && (
-              <ul className="list-disc list-inside text-navy/70 text-sm ml-4 mt-2 space-y-1">
+              <ul className="ml-4 mt-2 list-inside list-disc space-y-1 text-sm text-navy/70">
                 {item.bullets.map((b, idx) => (
                   <li key={idx}>{b}</li>
                 ))}
               </ul>
             )}
             {item.resource && (
-              <p className="text-olive text-sm mt-2">
+              <p className="mt-2 text-sm text-olive">
                 {item.resource.href ? (
                   <a
                     href={item.resource.href}

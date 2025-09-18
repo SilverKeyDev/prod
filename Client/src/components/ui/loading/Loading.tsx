@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef } from 'react';
 
 const PARTICLE_COUNT = 9;
 const SIZE = 80;
@@ -23,7 +23,7 @@ type Connection = {
   fadeOut?: boolean;
 };
 
-export default function OrbRippleLoader({ message = "Thinking..." }: { message?: string }) {
+function OrbRippleLoader({ message = 'Thinking...' }: { message?: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particles = useRef<Particle[]>([]);
   const animationRef = useRef<number>();
@@ -35,8 +35,9 @@ export default function OrbRippleLoader({ message = "Thinking..." }: { message?:
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext("2d")!;
-    const dpr = window.devicePixelRatio || 1;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const dpr = window.devicePixelRatio ?? 1;
 
     canvas.width = SIZE * dpr;
     canvas.height = SIZE * dpr;
@@ -123,7 +124,7 @@ export default function OrbRippleLoader({ message = "Thinking..." }: { message?:
 
         ctx.beginPath();
         ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
-        ctx.fillStyle = "#888";
+        ctx.fillStyle = '#888';
         ctx.fill();
       });
 
@@ -178,22 +179,26 @@ export default function OrbRippleLoader({ message = "Thinking..." }: { message?:
         style={{
           width: SIZE,
           height: SIZE,
-          position: "relative",
-          overflow: "hidden",
-          backgroundColor: "transparent",
+          position: 'relative',
+          overflow: 'hidden',
+          backgroundColor: 'transparent',
         }}
       >
         <canvas
           ref={canvasRef}
           className="absolute inset-0"
           style={{
-            borderRadius: "9999px",
-            pointerEvents: "none",
-            backgroundColor: "transparent",
+            borderRadius: '9999px',
+            pointerEvents: 'none',
+            backgroundColor: 'transparent',
           }}
         />
       </div>
-      <p className="text-xs text-gray-500 animate-pulse">{message}</p>
+      <p className="animate-pulse text-xs text-gray-500">{message}</p>
     </div>
   );
 }
+
+// Export both named and default for compatibility
+export { OrbRippleLoader as Loading };
+export default OrbRippleLoader;

@@ -1,25 +1,25 @@
-import { useState, useEffect, useCallback } from "react";
 import { MapPin } from "lucide-react";
-import SavedLayout, { ViewMode } from "../../app/layouts//SavedLayout";
-import ErrorToast from "../../components/feedback/ErrorToast";
-import SuccessToast from "../../components/feedback/SuccessToast";
-import DeleteModal from "../../components/modals/DeleteModal";
-import { useReports } from "../../context";
-import { useDocumentActions } from "../../hooks/useDocumentActions";
-import PdfModal from "../../components/modals/PdfModal";
+import { useState, useEffect, useCallback } from "react";
+
+import SavedLayout, { type ViewMode } from "../../app/layouts/SavedLayout";
 import ReportCard from "../../components/cards/ReportCard";
-import useMobile from "../../hooks/useMobile";
-import { reportApi } from "../../api";
-import { Report } from "../../types";
+import DeleteModal from "../../components/modals/DeleteModal";
+import PdfModal from "../../components/modals/PdfModal";
+import { reportApi } from "../../core/config/api";
+import { useDocumentActions } from "../../core/hooks/data/useDocumentActions";
+import { useReportsData } from "../../core/hooks/data/useReportsData";
+import useMobile from "../../core/hooks/ui/useMobile";
+import type { Report } from "../../core/schemas";
+import { useUIStore } from "../../core/store";
+import { asError } from "../../core/utils/error";
 
 export default function PastReports() {
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Use preloaded report data from context (same as Dashboard)
-  const { reports, loading: reportsLoading, refreshReports } = useReports();
-
+  // Use reports data hook (same as Dashboard)
+  const { reports, reportsLoading, refreshReports } = useReportsData();
 
   // Use centralized document actions
   const {
@@ -32,47 +32,38 @@ export default function PastReports() {
     closePdfModal,
   } = useDocumentActions();
 
-  // Refresh data when page loads to ensure latest updates
-  useEffect(() => {
-    refreshReports();
-  }, [refreshReports]);
+  // Note: Removed automatic refresh on mount to prevent infinite loops
+  // Data will be loaded automatically by React Query when the component mounts
 
   // Handle refresh button click with loading state (using context)
-  const handleRefresh = async () => {
+  const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
     try {
       await refreshReports();
-    } catch (error) {
-      console.error('Failed to refresh reports:', error);
+    } catch (error: unknown) {
+      console.error("Failed to refresh reports:", error);
     } finally {
       setIsRefreshing(false);
     }
-  };
+  }, [refreshReports]);
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [reportToDelete, setReportToDelete] = useState<{
     id: string;
     s3Key: string | null | undefined;
   } | null>(null);
-  const [showError, setShowError] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
-  const [showSuccess, setShowSuccess] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
+  const enqueueToast = useUIStore((s) => s.enqueueToast);
 
   // Share individual report using centralized function (same as Dashboard)
   const handleShareReport = useCallback(
     async (report: Report) => {
       const result = await handleShareDocument(report.id, report.address);
 
-      if (result.success) {
-        setSuccessMessage(result.message);
-        setShowSuccess(true);
-      } else {
-        setErrorMessage(result.message);
-        setShowError(true);
-      }
+      if (result.success)
+        enqueueToast({ type: "success", message: result.message });
+      else enqueueToast({ type: "error", message: result.message });
     },
-    [handleShareDocument]
+    [handleShareDocument, enqueueToast]
   );
 
   const openDeleteModal = (
@@ -104,15 +95,14 @@ export default function PastReports() {
         );
       }
 
-      await reportApi.delete(reportId, s3Key || undefined);
+      await reportApi.delete(reportId, s3Key ?? undefined);
 
       closeDeleteModal();
-      setSuccessMessage("Report deleted successfully");
-      setShowSuccess(true);
+      enqueueToast({ type: "success", message: "Report deleted successfully" });
 
       // Refresh the reports list
       await refreshReports();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("[DELETE] Error deleting report:", {
         error,
         reportId,
@@ -120,10 +110,11 @@ export default function PastReports() {
         stack: error instanceof Error ? error.stack : "No stack trace",
       });
 
-      setErrorMessage(
-        error instanceof Error ? error.message : "Failed to delete report"
-      );
-      setShowError(true);
+      enqueueToast({
+        type: "error",
+        message:
+          error instanceof Error ? error.message : "Failed to delete report",
+      });
     }
   };
 
@@ -133,7 +124,9 @@ export default function PastReports() {
 
   const sortedReports = [...filteredReports].sort((a, b) => {
     // Sort by date, newest first
-    return new Date(b.generatedAt).getTime() - new Date(a.generatedAt).getTime();
+    return (
+      new Date(b.generatedAt).getTime() - new Date(a.generatedAt).getTime()
+    );
   });
 
   const pollForReportCompletion = useCallback(
@@ -145,7 +138,7 @@ export default function PastReports() {
       let consecutiveErrors = 0;
       const maxConsecutiveErrors = 5;
 
-      const idToken = localStorage.getItem("id_token");
+      const idToken = sessionStorage.getItem("id_token");
       if (!idToken) {
         console.error(`[PastReports] ❌ No auth token found`);
         return;
@@ -158,9 +151,7 @@ export default function PastReports() {
         const initialResponse = await reportApi.poll(documentId);
 
         if (!initialResponse.success) {
-          console.error(
-            `[PastReports] ❌ Poll failed:`, initialResponse.error
-          );
+          console.error(`[PastReports] ❌ Poll failed:`, initialResponse.error);
           return;
         }
 
@@ -180,14 +171,12 @@ export default function PastReports() {
         } else if (data.success && !data.report) {
           lastReportSnapshot = null;
         } else {
-          console.error(
-            `[PastReports] ❌ Initial poll failed:`,
-            data.error
-          );
+          console.error(`[PastReports] ❌ Initial poll failed:`, data.error);
           return;
         }
-      } catch (err) {
-        console.error(`[PastReports] ❌ Error during initial poll:`, err);
+      } catch (err: unknown) {
+        const error = asError(err);
+        console.error(`[PastReports] ❌ Error during initial poll:`, error);
         return;
       }
 
@@ -241,9 +230,7 @@ export default function PastReports() {
               setTimeout(pollForCompletion, pollInterval);
             } else {
               console.warn(
-                `[PastReports] ⚠️ TIMEOUT - Report never appeared after ${
-                  elapsedTime / 60
-                } mins`
+                `[PastReports] ⚠️ TIMEOUT - Report never appeared after ${elapsedTime / 60} mins`
               );
             }
             return;
@@ -276,7 +263,7 @@ export default function PastReports() {
               } mins — Report still ${data.report.status}`
             );
           }
-        } catch (error) {
+        } catch (error: unknown) {
           consecutiveErrors++;
           console.error(
             `[PastReports] ❌ Polling exception (${consecutiveErrors}/${maxConsecutiveErrors}):`,
@@ -303,25 +290,37 @@ export default function PastReports() {
   useEffect(() => {
     // Event listener setup - data is already preloaded by context
     const handleReportGenerated = () => {
-      refreshReports();
+      void refreshReports();
     };
 
     window.addEventListener("reportGenerated", handleReportGenerated);
 
     // Expose refresh function globally for GenerateReportPage to call
-    (window as any).refreshPastReports = handleRefresh;
+    (
+      window as unknown as { refreshPastReports: () => void }
+    ).refreshPastReports = () => void handleRefresh();
 
     // Expose polling function globally for GenerateReportPage to call
-    (window as any).pollForReportCompletion = pollForReportCompletion;
+    (
+      window as unknown as {
+        pollForReportCompletion: (documentId: string) => void;
+      }
+    ).pollForReportCompletion = (documentId: string) =>
+      void pollForReportCompletion(documentId);
 
     // Cleanup on unmount
     return () => {
       window.removeEventListener("reportGenerated", handleReportGenerated);
       // Clean up global function references
-      delete (window as any).refreshPastReports;
-      delete (window as any).pollForReportCompletion;
+      delete (window as unknown as { refreshPastReports?: () => void })
+        .refreshPastReports;
+      delete (
+        window as unknown as {
+          pollForReportCompletion?: (documentId: string) => void;
+        }
+      ).pollForReportCompletion;
     };
-  }, [handleRefresh, pollForReportCompletion]);
+  }, [handleRefresh, pollForReportCompletion, refreshReports]);
 
   // Force grid mode on mobile
   const isSmallMobile = useMobile("(max-width: 640px)");
@@ -349,20 +348,7 @@ export default function PastReports() {
           handleDeleteReport(reportToDelete.id, reportToDelete.s3Key)
         }
       />
-      {showError && (
-        <ErrorToast
-          message={errorMessage}
-          onClose={() => setShowError(false)}
-          duration={5000}
-        />
-      )}
-      {showSuccess && (
-        <SuccessToast
-          message={successMessage}
-          onClose={() => setShowSuccess(false)}
-          duration={3000}
-        />
-      )}
+      {/* Global toasts shown via ToastsPortal */}
 
       <SavedLayout
         searchTerm={searchTerm}
@@ -373,21 +359,19 @@ export default function PastReports() {
         showViewToggle={true}
         onRefresh={handleRefresh}
         isRefreshing={isRefreshing}
-        isLoading={reportsLoading || isRefreshing}
+        isLoading={reportsLoading ?? isRefreshing}
         refreshTitle="Refresh reports"
-        rightText={`${filteredReports.length} report${
-          filteredReports.length !== 1 ? "s" : ""
-        }`}
+        rightText={`${filteredReports.length} report${filteredReports.length !== 1 ? "s" : ""}`}
       />
 
       <div>
         {sortedReports.length === 0 ? (
-          <div className="text-center py-8 sm:py-12">
-            <MapPin className="h-8 w-8 sm:h-12 sm:w-12 text-black/40 mx-auto mb-3 sm:mb-4" />
-            <h3 className="text-base sm:text-lg font-medium text-black mb-2">
+          <div className="py-8 text-center sm:py-12">
+            <MapPin className="mx-auto mb-3 h-8 w-8 text-black/40 sm:mb-4 sm:h-12 sm:w-12" />
+            <h3 className="mb-2 text-base font-medium text-black sm:text-lg">
               No reports found
             </h3>
-            <p className="text-sm sm:text-base text-black/60 px-4">
+            <p className="px-4 text-sm text-black/60 sm:text-base">
               {searchTerm
                 ? "Try adjusting your search terms"
                 : "Generate your first property report to get started"}
@@ -397,7 +381,7 @@ export default function PastReports() {
           <div
             className={
               viewMode === "grid"
-                ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
+                ? "grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3"
                 : "space-y-3 sm:space-y-4"
             }
           >

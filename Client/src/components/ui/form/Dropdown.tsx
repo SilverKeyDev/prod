@@ -1,22 +1,23 @@
-import React, { useState, useRef, useEffect } from "react";
 import { ChevronDown, Search, Check } from "lucide-react";
-import { getSharedInputTextStyles } from "./InputStyles";
+import React, { useState, useRef, useEffect } from "react";
 
-export interface DropdownOption<T = any> {
+import { getSharedInputTextStyles } from "./InputStyleUtils";
+
+export type DropdownOption<T = unknown> = {
   value: T;
   label: string;
   disabled?: boolean;
   icon?: React.ReactNode;
-}
+};
 
-export interface DropdownProps<T = any> {
+export type DropdownProps<T = unknown> = {
   options: DropdownOption<T>[];
   value?: T;
   onChange: (value: T) => void;
   placeholder?: string;
   label?: string;
   required?: boolean;
-  error?: string;
+  error?: string | undefined;
   disabled?: boolean;
   searchable?: boolean;
   clearable?: boolean;
@@ -26,9 +27,9 @@ export interface DropdownProps<T = any> {
   className?: string;
   dropdownClassName?: string;
   onClear?: () => void;
-}
+};
 
-function Dropdown<T = any>({
+function Dropdown<T = unknown>({
   options,
   value,
   onChange,
@@ -93,7 +94,7 @@ function Dropdown<T = any>({
     "w-full border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2",
     "flex items-center justify-between cursor-pointer touch-friendly mobile-input",
     "disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed",
-    getSharedInputTextStyles(),
+    (getSharedInputTextStyles as () => string)(),
     variantStyles[variant],
     sizeStyles[size],
     errorStyles,
@@ -171,9 +172,9 @@ function Dropdown<T = any>({
     <div className="w-full">
       {/* Label */}
       {label && (
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="mb-2 block text-sm font-medium text-gray-700">
           {label}
-          {required && <span className="text-red-500 ml-1">*</span>}
+          {required && <span className="ml-1 text-red-500">*</span>}
         </label>
       )}
 
@@ -184,9 +185,7 @@ function Dropdown<T = any>({
           type="button"
           onClick={handleToggle}
           disabled={disabled}
-          className={`${buttonClasses} ${
-            disabled ? "cursor-not-allowed" : "cursor-pointer"
-          }`}
+          className={`${buttonClasses} ${disabled ? "cursor-not-allowed" : "cursor-pointer"}`}
         >
           <span className="flex items-center gap-2 truncate">
             {selectedOption?.icon}
@@ -202,15 +201,15 @@ function Dropdown<T = any>({
               <button
                 type="button"
                 onClick={handleClear}
-                className="p-1 hover:bg-gray-100 rounded transition-colors cursor-pointer"
+                className="cursor-pointer rounded p-1 transition-colors hover:bg-gray-100"
                 tabIndex={-1}
               >
                 ×
               </button>
             )}
             <ChevronDown
-              className={`w-4 h-4 transition-transform duration-200 ${
-                isOpen ? "transform rotate-180" : ""
+              className={`h-4 w-4 transition-transform duration-200 ${
+                isOpen ? "rotate-180 transform" : ""
               }`}
             />
           </div>
@@ -221,16 +220,16 @@ function Dropdown<T = any>({
           <div className={dropdownClasses}>
             {/* Search Input */}
             {searchable && (
-              <div className="p-2 border-b border-gray-100">
+              <div className="border-b border-gray-100 p-2">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
                   <input
                     ref={searchInputRef}
                     type="text"
                     value={searchTerm}
                     onChange={handleSearchChange}
                     placeholder="Search options..."
-                    className={`w-full pl-9 pr-3 py-2 border border-beige rounded focus:outline-none focus:ring-2 focus:ring-brown/20 focus:border-brown hover:border-brown/50 transition-all duration-200 ${getSharedInputTextStyles()}`}
+                    className={`w-full rounded border border-beige py-2 pl-9 pr-3 transition-all duration-200 hover:border-brown/50 focus:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 ${(getSharedInputTextStyles as () => string)()}`}
                   />
                 </div>
               </div>
@@ -249,31 +248,22 @@ function Dropdown<T = any>({
                     type="button"
                     onClick={() => handleOptionSelect(option)}
                     disabled={option.disabled}
-                    className={`
-                      w-full px-4 py-3 text-left
-                      transition-colors duration-150 touch-friendly outline-none
-                      flex items-center justify-between gap-2
-                      ${getSharedInputTextStyles()}
-                      ${
-                        option.disabled
-                          ? "text-gray-400 cursor-not-allowed"
-                          : "text-gray-600 hover:bg-gray-50 hover:text-gray-700 cursor-pointer"
-                      }
-                      ${
-                        option.value === value
-                          ? "bg-gray-100 text-gray-900 font-medium"
-                          : ""
-                      }
-                      ${index > 0 ? "border-t border-gray-200" : ""}
-                      hover:font-normal active:bg-gray-100 focus:bg-gray-50
-                    `}
+                    className={`touch-friendly flex w-full items-center justify-between gap-2 px-4 py-4 text-left outline-none transition-colors duration-150 ${(getSharedInputTextStyles as () => string)()} ${
+                      option.disabled
+                        ? "cursor-not-allowed text-gray-400"
+                        : "cursor-pointer text-gray-600 hover:bg-gray-50 hover:text-gray-700"
+                    } ${
+                      option.value === value
+                        ? "bg-gray-100 font-medium text-gray-900"
+                        : ""
+                    } ${index > 0 ? "border-t border-gray-200" : ""} hover:font-normal focus:bg-gray-50 active:bg-gray-100`}
                   >
                     <span className="flex items-center gap-2 truncate">
                       {option.icon}
                       {option.label}
                     </span>
                     {option.value === value && (
-                      <Check className="w-4 h-4 text-brown" />
+                      <Check className="h-4 w-4 text-brown" />
                     )}
                   </button>
                 ))

@@ -1,4 +1,4 @@
-interface DeleteModalProps {
+type DeleteModalProps = {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
@@ -6,24 +6,24 @@ interface DeleteModalProps {
   message?: string;
   confirmText?: string;
   cancelText?: string;
-}
+};
 
 export default function DeleteModal({
   isOpen,
   onClose,
   onConfirm,
-  title = "Delete Report",
-  message = "Are you sure you want to delete this report? This action cannot be undone.",
-  confirmText = "Delete",
-  cancelText = "Cancel",
+  title = 'Delete Report',
+  message = 'Are you sure you want to delete this report? This action cannot be undone.',
+  confirmText = 'Delete',
+  cancelText = 'Cancel',
 }: DeleteModalProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 space-responsive-sm">
-      <div className="bg-white rounded-xl space-responsive-sm max-w-md w-full mx-4">
+    <div className="space-responsive-sm fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="space-responsive-sm mx-4 w-full max-w-md rounded-xl bg-white">
         <div className="text-center">
-          <div className="mx-auto flex items-center justify-center mobile-icon-lg rounded-full bg-red-100 space-y-responsive-sm">
+          <div className="mobile-icon-lg space-y-responsive-sm mx-auto flex items-center justify-center rounded-full bg-red-100">
             <svg
               className="mobile-icon-sm text-red-600"
               fill="none"
@@ -38,24 +38,22 @@ export default function DeleteModal({
               />
             </svg>
           </div>
-          <h3 className="text-responsive-lg font-medium text-gray-900 space-y-responsive-xs">
+          <h3 className="text-responsive-lg space-y-responsive-xs font-medium text-gray-900">
             {title}
           </h3>
-          <p className="text-responsive-sm text-gray-500 space-y-responsive-md">
-            {message}
-          </p>
+          <p className="text-responsive-sm space-y-responsive-md text-gray-500">{message}</p>
           <div className="flex justify-center gap-4">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-black bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brown-500"
+              className="focus:ring-brown-500 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-black hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2"
             >
               {cancelText}
             </button>
             <button
               type="button"
               onClick={onConfirm}
-              className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+              className="rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
             >
               {confirmText}
             </button>

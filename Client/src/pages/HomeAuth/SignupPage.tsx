@@ -1,20 +1,25 @@
-import React, { useEffect, useState, useCallback, useRef } from "react";
-import { useNavigate } from "react-router-dom";
 import { Mail, Lock, User as UserIcon, Phone } from "lucide-react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import PhoneInput from "react-phone-number-input";
+import { useNavigate } from "react-router-dom";
+
 import "react-phone-number-input/style.css"; // keep base layout; visual overrides below
-import { authApi } from "../../api";
-import { Input, FieldShell } from "../../components/ui";
-import { getSharedInputTextStyles } from "../../components/ui/form/InputStyles";
 import {
   PasswordValidation,
   usePasswordValidation,
 } from "../../components/feedback";
-import AuthButton from "../../features/homeauth/AuthButton";
-import AuthLink from "../../features/homeauth/AuthLink";
-import AuthPageLayout from "../../features/homeauth/AuthPageLayout";
+import { Input, FieldShell } from "../../components/ui";
+import { getSharedInputTextStyles } from "../../components/ui/form/InputStyleUtils";
+import { authApi } from "../../core/config/api";
+import { showErrorToast } from "../../core/hooks/ui/useToast";
+import AuthButton from "../../features/homeauth/Auth/Button";
+import AuthLink from "../../features/homeauth/Auth/Link";
+import AuthPageLayout from "../../features/homeauth/Auth/PageLayout";
 
-interface SignupPageProps {}
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+type SignupPageProps = {
+  // No props currently needed
+};
 
 const BarePhoneTextInput = React.forwardRef<
   HTMLInputElement,
@@ -26,8 +31,8 @@ const BarePhoneTextInput = React.forwardRef<
       ref={ref}
       {...rest}
       placeholder={placeholder}
-      className={`w-full h-full bg-transparent border-0 outline-none focus:outline-none focus:ring-0 autofill-gold ${getSharedInputTextStyles()} ${
-        className || ""
+      className={`autofill-gold h-full w-full border-0 bg-transparent outline-none focus:outline-none focus:ring-0 ${(getSharedInputTextStyles as () => string)()} ${
+        className ?? ""
       }`}
       style={{
         // real input owns the space & is clickable
@@ -60,7 +65,7 @@ BarePhoneTextInput.displayName = "BarePhoneTextInput";
 
 // E.164 normalizer with email validation guard
 const formatToE164 = (phoneNumber: string | undefined): string | undefined => {
-  if (!phoneNumber || !phoneNumber.trim()) return undefined;
+  if (!phoneNumber?.trim()) return undefined;
 
   // If the value looks like an email (common autofill quirk), ignore
   if (phoneNumber.includes("@")) {
@@ -68,10 +73,10 @@ const formatToE164 = (phoneNumber: string | undefined): string | undefined => {
     return undefined;
   }
 
-  const cleaned = phoneNumber.replace(/[\s\-\(\)\.]/g, "");
+  const cleaned = phoneNumber.replace(/[\s\-().]/g, "");
 
   // Basic phone validation: digits and optional leading +
-  if (!/^[\+]?[\d]+$/.test(cleaned)) {
+  if (!/^[+]?[\d]+$/.test(cleaned)) {
     console.log(
       "Phone autofill received invalid format, ignoring:",
       phoneNumber
@@ -85,7 +90,7 @@ const formatToE164 = (phoneNumber: string | undefined): string | undefined => {
 
 type FieldKey = "all" | "name" | "email" | "password" | "phone";
 
-export default function SignupPage({}: SignupPageProps) {
+export default function SignupPage(_props: SignupPageProps) {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -106,9 +111,7 @@ export default function SignupPage({}: SignupPageProps) {
     const pwdEl = document.getElementById(
       "password"
     ) as HTMLInputElement | null;
-    const phoneEl = document.querySelector(
-      "input.PhoneInputInput"
-    ) as HTMLInputElement | null;
+    const phoneEl = document.querySelector("input.PhoneInputInput");
     return { nameEl, emailEl, pwdEl, phoneEl };
   };
 
@@ -121,17 +124,22 @@ export default function SignupPage({}: SignupPageProps) {
     const readEmail = () => emailEl?.value ?? "";
     const readPwd = () => pwdEl?.value ?? "";
     const readPhone = (): string | undefined => {
-      const raw = phoneEl?.value?.trim();
+      const raw =
+        phoneEl?.value && typeof phoneEl.value === "string"
+          ? (phoneEl.value as string).trim()
+          : undefined;
       if (!raw) return undefined;
       return formatToE164(raw);
     };
 
     // Determine if anything is actually filled (to avoid wiping)
-    const anyFilled =
+    const anyFilled: boolean =
       !!nameEl?.value?.trim() ||
       !!emailEl?.value?.trim() ||
       !!pwdEl?.value ||
-      !!phoneEl?.value?.trim();
+      !!(phoneEl?.value && typeof phoneEl.value === "string"
+        ? (phoneEl.value as string).trim()
+        : undefined);
 
     if (!anyFilled) return;
 
@@ -214,16 +222,20 @@ export default function SignupPage({}: SignupPageProps) {
     };
   }, [syncFromDom]);
 
-  const { isValid: isPasswordValid, errors: passwordErrors } =
-    usePasswordValidation(formData.password);
+  const { isValid: isPasswordValid, errors: passwordErrors } = (
+    usePasswordValidation as (password: string) => {
+      isValid: boolean;
+      errors: string[];
+    }
+  )(formData.password);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     if (!isPasswordValid) {
-      alert(
-        `Password must meet all requirements: ${passwordErrors.join(", ")}`
+      showErrorToast(
+        `Password must meet all requirements: ${Array.isArray(passwordErrors) ? passwordErrors.join(", ") : "Unknown error"}`
       );
       setLoading(false);
       return;
@@ -234,17 +246,18 @@ export default function SignupPage({}: SignupPageProps) {
         name: formData.name,
         email: formData.email,
         password: formData.password,
-        phone: phoneValue || undefined, // E.164
-        agency_name: formData.agencyName || undefined,
+        phone: phoneValue ?? undefined, // E.164
+        agency_name: formData.agencyName ?? undefined,
       });
-      if (!success) throw new Error(error || "Failed to sign up");
+      if (!success) throw new Error(error ?? "Failed to sign up");
 
-      localStorage.setItem("signupEmail", formData.email);
-      localStorage.setItem("signupPassword", formData.password);
+      // Store email in sessionStorage for verification flow (non-sensitive)
+      // NEVER store passwords - they should be handled server-side only
+      sessionStorage.setItem("signupEmail", formData.email);
       navigate("/verification", { state: { email: formData.email } });
     } catch (error: unknown) {
       console.error("Signup error:", error);
-      alert(
+      showErrorToast(
         error instanceof Error
           ? error.message
           : "Failed to sign up. Please try again."
@@ -256,7 +269,8 @@ export default function SignupPage({}: SignupPageProps) {
 
   const handlePhoneChange = (value: string | undefined) => {
     const fieldShell = document.querySelector("#phone.autofill-parent");
-    if (fieldShell) fieldShell.classList.remove("is-autofilled");
+    if (fieldShell)
+      (fieldShell as HTMLElement).classList.remove("is-autofilled");
     setPhoneValue(formatToE164(value));
   };
 
@@ -326,13 +340,13 @@ export default function SignupPage({}: SignupPageProps) {
           label="Full Name"
           type="text"
           value={formData.name}
-          onChange={(e) => {
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
             setFormData((prev) => ({ ...prev, name: e.target.value }));
             // Trigger autofill detection on manual input too
             setTimeout(() => syncFromDom("name"), 100);
           }}
           placeholder="Enter your full name"
-          leftIcon={<UserIcon className="w-4 h-4 pointer-events-none" />}
+          leftIcon={<UserIcon className="pointer-events-none h-4 w-4" />}
           name="name"
           id="name"
           autoComplete="name"
@@ -352,11 +366,11 @@ export default function SignupPage({}: SignupPageProps) {
           label="Email"
           type="email"
           value={formData.email}
-          onChange={(e) =>
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
             setFormData((prev) => ({ ...prev, email: e.target.value }))
           }
           placeholder="Enter your email"
-          leftIcon={<Mail className="w-4 h-4 pointer-events-none" />}
+          leftIcon={<Mail className="pointer-events-none h-4 w-4" />}
           name="email"
           id="email"
           autoComplete="email"
@@ -371,7 +385,7 @@ export default function SignupPage({}: SignupPageProps) {
 
         <FieldShell
           label="Phone Number"
-          leftIcon={<Phone className="w-4 h-4 pointer-events-none" />}
+          leftIcon={<Phone className="pointer-events-none h-4 w-4" />}
           variant="mobile"
           size="md"
           className="autofill-parent"
@@ -398,15 +412,16 @@ export default function SignupPage({}: SignupPageProps) {
               margin: 0,
             }}
             inputComponent={BarePhoneTextInput}
-            onFocus={(e: any) => {
+            onFocus={(e: unknown) => {
               lastFocusRef.current = "phone";
               // Phone-triggered autofill should update only phone
               syncFromDom("phone");
               // If the wrapper receives focus first, forward it to the input
               const inputEl = (e.currentTarget as HTMLElement).querySelector(
                 "input.PhoneInputInput"
-              ) as HTMLInputElement | null;
-              if (inputEl) inputEl.focus();
+              );
+              if (inputEl && typeof inputEl.focus === "function")
+                (inputEl as { focus: () => void }).focus();
             }}
           />
         </FieldShell>
@@ -415,11 +430,11 @@ export default function SignupPage({}: SignupPageProps) {
           label="Password"
           type="password"
           value={formData.password}
-          onChange={(e) =>
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
             setFormData((prev) => ({ ...prev, password: e.target.value }))
           }
           placeholder="Create a password"
-          leftIcon={<Lock className="w-4 h-4 pointer-events-none" />}
+          leftIcon={<Lock className="pointer-events-none h-4 w-4" />}
           name="new-password"
           id="password"
           autoComplete="new-password"
@@ -446,12 +461,12 @@ export default function SignupPage({}: SignupPageProps) {
         </AuthButton>
 
         <div className="text-center text-signup-mid">
-          <span className="text-gray-600 text-signup-mid">
+          <span className="text-signup-mid text-gray-600">
             Already have an account?
           </span>
           <AuthLink
             to="/login"
-            className="text-brown hover:text-brown/80 hover:underline underline-offset-4 transition-colors"
+            className="text-brown underline-offset-4 transition-colors hover:text-brown/80 hover:underline"
           >
             Sign in
           </AuthLink>

@@ -1,33 +1,48 @@
-import { formatFilenameToAddress, truncateText } from "../../lib/addressFormat";
-import PropertyDetailsModal from "../modals/PropertyDetailsModal";
-import ModalPortal from "../modals/ModalPortal";
-import PropertyCard from "./PropertyCard";
-import { CardViewDetailsButton, CardHeartSave } from "./base";
+// React import not required with automatic JSX runtime
+import { useNavigate } from "react-router-dom";
+
 import {
   usePropertyDetails,
   type Property,
-} from "../../hooks/usePropertyDetails";
-import { useNavigate } from "react-router-dom";
+} from "../../core/hooks/data/usePropertyDetails";
+import {
+  formatFilenameToAddress,
+  truncateText,
+  formatLotSize,
+} from "../../core/utils/address";
+import ModalPortal from "../modals/ModalPortal";
+import PropertyDetailsModal from "../modals/PropertyDetailsModal";
+
+import { CardViewDetailsButton, CardHeartSave } from "./base";
+import PropertyCard from "./PropertyCard";
 
 // Safe navigation hook that handles cases outside Router context
 const useSafeNavigate = () => {
   try {
     return useNavigate();
-  } catch (error) {
+  } catch {
     // Return a no-op function if outside Router context
     return () => {};
   }
 };
 
-export interface HomeDescription {
+export type HomeDescription = {
   home_id: string;
   description?: string;
   image_url?: string;
   calculatedScore?: number;
-  [key: string]: any; // allow additional properties for future use
-}
+  // Common optional fields used across cards/modals
+  address?: string;
+  price?: string | number;
+  bedrooms: number;
+  bathrooms: number;
+  sqft: number;
+  lot_size?: string | number;
+  lat?: number;
+  lng?: number;
+};
 
-interface HomeCardProps {
+type HomeCardProps = {
   home: HomeDescription;
   /** Function to check if home is saved */
   isHomeSaved?: (homeId: string) => boolean;
@@ -41,7 +56,7 @@ interface HomeCardProps {
   isOnMap?: boolean;
   /** Function to focus on this property in the map/search */
   onFocus?: (property: Property) => void;
-}
+};
 
 /**
  * Simple presentation component to display a saved home.
@@ -56,6 +71,26 @@ export default function HomeCard({
   isOnMap = false,
   onFocus,
 }: HomeCardProps) {
+  // Add defensive programming to handle undefined/null home
+  if (!home) {
+    console.error("HomeCard: home prop is undefined or null");
+    return (
+      <div className="p-4 border border-red-300 bg-red-50 rounded-lg">
+        <p className="text-red-700">Error: No home data provided</p>
+      </div>
+    );
+  }
+
+  // Validate required home properties
+  if (!home.home_id) {
+    console.error("HomeCard: home.home_id is missing");
+    return (
+      <div className="p-4 border border-red-300 bg-red-50 rounded-lg">
+        <p className="text-red-700">Error: Home ID is missing</p>
+      </div>
+    );
+  }
+
   const navigate = useSafeNavigate();
   const {
     isLoading,
@@ -66,28 +101,35 @@ export default function HomeCard({
 
   // Use actual address if available, otherwise format home_id
   const formattedAddress = formatFilenameToAddress(home.home_id);
-  const actualAddress = home.address || formattedAddress;
-  const rawDisplayName = actualAddress || `Home ${home.home_id}`;
+  const actualAddress = home.address ?? formattedAddress;
+  const rawDisplayName = actualAddress ?? `Home ${home.home_id}`;
   const displayName = truncateText(rawDisplayName, 35);
 
   // Convert HomeDescription to Property format for API call
   const convertToProperty = (homeDesc: HomeDescription): Property => {
-    const lat = homeDesc.lat || 37.7749;
-    const lng = homeDesc.lng || -122.4194;
+    // Add defensive programming for required fields
+    if (!homeDesc?.home_id) {
+      console.error("convertToProperty: Invalid homeDesc provided", homeDesc);
+      throw new Error("Invalid home data provided to convertToProperty");
+    }
+
+    const lat = homeDesc.lat ?? 37.7749;
+    const lng = homeDesc.lng ?? -122.4194;
+
     return {
       id: homeDesc.home_id,
-      address: homeDesc.address || formattedAddress || homeDesc.home_id,
+      address: homeDesc.address ?? formattedAddress ?? homeDesc.home_id,
       price:
         typeof homeDesc.price === "string"
           ? homeDesc.price
           : typeof homeDesc.price === "number"
-          ? `$${homeDesc.price.toLocaleString()}`
-          : "Price not available",
-      bedrooms: homeDesc.bedrooms || 3,
-      bathrooms: homeDesc.bathrooms || 2,
-      sqft: homeDesc.sqft || 1500,
-      lat: lat,
-      lng: lng,
+            ? `$${homeDesc.price.toLocaleString()}`
+            : "Price not available",
+      bedrooms: homeDesc.bedrooms,
+      bathrooms: homeDesc.bathrooms,
+      sqft: homeDesc.sqft,
+      lat,
+      lng,
       latitude: lat,
       longitude: lng,
       images: homeDesc.image_url ? [homeDesc.image_url] : undefined,
@@ -101,23 +143,29 @@ export default function HomeCard({
   const handleViewDetails = async () => {
     const propertyData = convertToProperty(home);
     // Use address instead of zpid for HomeCard
-    await fetchPropertyDetails(propertyData, true); // true flag indicates use address only
+    await fetchPropertyDetails(propertyData);
   };
 
   // Modal functions for property details
   const isHomeSavedForModal = (propertyId: string) => isHomeSaved(propertyId);
-  const saveHomeForModal = async (property: Property | any) => {
+  const saveHomeForModal = async (
+    property: Property | import("../../core/schemas/search").SearchResult
+  ) => {
     // Convert Property back to HomeDescription format for onSave
+    const asAny = property as any;
     const homeDescription: HomeDescription = {
-      home_id: property.id,
-      address: property.address,
-      price: property.price,
-      bedrooms: property.bedrooms,
-      bathrooms: property.bathrooms,
-      sqft: property.sqft,
-      lat: property.lat || property.latitude,
-      lng: property.lng || property.longitude,
-      image_url: property.images?.[0],
+      home_id: asAny.id,
+      address: asAny.address,
+      price:
+        typeof asAny.price === "number"
+          ? `$${asAny.price.toLocaleString()}`
+          : asAny.price,
+      bedrooms: asAny.bedrooms,
+      bathrooms: asAny.bathrooms,
+      sqft: asAny.sqft,
+      lat: asAny.lat ?? asAny.latitude,
+      lng: asAny.lng ?? asAny.longitude,
+      image_url: asAny.images?.[0] ?? asAny.imageUrl,
       calculatedScore: home.calculatedScore, // Preserve original score
     };
     await onSave(homeDescription);
@@ -128,15 +176,15 @@ export default function HomeCard({
 
   // Handle generate report navigation
   const handleGenerateReport = (address: string) => {
-    // Save the address to localStorage for the GenerateReportPage
+    // Save the address to sessionStorage for the GenerateReportPage (temporary wizard state)
     const generateReportState = {
-      address: address,
+      address,
       comparisonAddress: "",
       reportType: "detailed",
       selectedClientId: "",
     };
 
-    localStorage.setItem(
+    sessionStorage.setItem(
       "generateReportState",
       JSON.stringify(generateReportState)
     );
@@ -154,30 +202,29 @@ export default function HomeCard({
 
   return (
     <div
-      className={`relative cursor-pointer ${
-        isOnMap ? "transform scale-90" : ""
-      }`}
+      className={`relative cursor-pointer ${isOnMap ? "scale-90 transform" : ""}`}
       onClick={handleCardClick}
     >
       {/* Triangle pointer for map pins */}
       {isOnMap && (
-        <div className="absolute bottom-0 left-0 right-0 transform translate-y-full">
-          <div className="w-full h-0 border-l-[96px] border-r-[96px] border-t-16 border-l-transparent border-r-transparent border-t-white"></div>
+        <div className="absolute bottom-0 left-0 right-0 translate-y-full transform">
+          <div className="border-t-16 h-0 w-full border-l-[96px] border-r-[96px] border-l-transparent border-r-transparent border-t-white"></div>
         </div>
       )}
 
       <PropertyCard
+        id={home.home_id}
         imageUrl={home.image_url}
-        address={
-          typeof displayName === "string" || typeof displayName === "number"
-            ? displayName.toString()
-            : "[Invalid address]"
+        address={displayName}
+        price={
+          typeof home.price === "number"
+            ? `$${home.price.toLocaleString()}`
+            : (home.price ?? "N/A")
         }
-        price={home.price || "N/A"}
         bedrooms={home.bedrooms}
         bathrooms={home.bathrooms}
         sqft={home.sqft}
-        lotSize={home.lot_size}
+        lotSize={formatLotSize(home.lot_size)}
         pricePosition="below-address"
         loading={isLoading}
         cardType="searchpage"
@@ -188,7 +235,22 @@ export default function HomeCard({
           <CardHeartSave
             property={convertToProperty(home)}
             isSaved={isHomeSaved(home.home_id)}
-            onSave={onSave}
+            onSave={async (property) => {
+              const prop = property as Property;
+              const homeDesc: HomeDescription = {
+                home_id: prop.id,
+                address: prop.address,
+                price: prop.price,
+                bedrooms: prop.bedrooms,
+                bathrooms: prop.bathrooms,
+                sqft: prop.sqft,
+                lat: prop.lat ?? prop.latitude,
+                lng: prop.lng ?? prop.longitude,
+                image_url: prop.images?.[0],
+                calculatedScore: home.calculatedScore,
+              };
+              await onSave(homeDesc);
+            }}
             onRemove={onRemove}
             size="sm"
           />

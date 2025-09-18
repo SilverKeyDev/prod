@@ -1,7 +1,7 @@
-import { X } from "lucide-react";
-import { createPortal } from "react-dom";
+import { X } from 'lucide-react';
+import { createPortal } from 'react-dom';
 
-interface ConfirmationDialogProps {
+type ConfirmationDialogProps = {
   isOpen: boolean;
   title: string;
   message: string;
@@ -9,14 +9,14 @@ interface ConfirmationDialogProps {
   cancelText?: string;
   onConfirm: () => void;
   onCancel: () => void;
-}
+};
 
 export default function ConfirmationDialog({
   isOpen,
   title,
   message,
-  confirmText = "Confirm",
-  cancelText = "Cancel",
+  confirmText = 'Confirm',
+  cancelText = 'Cancel',
   onConfirm,
   onCancel,
 }: ConfirmationDialogProps) {
@@ -28,8 +28,8 @@ export default function ConfirmationDialog({
       style={{ left: 0, right: 0, top: 0, bottom: 0 }}
     >
       <div
-        className="flex min-h-screen items-center justify-center space-responsive-md"
-        style={{ width: "100vw", height: "100vh" }}
+        className="space-responsive-md flex min-h-screen items-center justify-center"
+        style={{ width: '100vw', height: '100vh' }}
       >
         {/* Backdrop */}
         <div
@@ -40,24 +40,22 @@ export default function ConfirmationDialog({
 
         {/* Dialog */}
         <div
-          className="relative z-[10000] w-full max-w-sm mx-auto transform overflow-hidden rounded-2xl bg-white space-responsive-lg text-left shadow-xl transition-all"
-          style={{ maxWidth: "320px" }}
+          className="space-responsive-lg relative z-[10000] mx-auto w-full max-w-sm transform overflow-hidden rounded-2xl bg-white text-left shadow-xl transition-all"
+          style={{ maxWidth: '320px' }}
         >
           {/* Close button */}
           <button
             type="button"
             onClick={onCancel}
-            className="absolute right-2 top-2 text-gray-400 hover:text-gray-500 touch-friendly"
+            className="touch-friendly absolute right-2 top-2 text-gray-400 hover:text-gray-500"
           >
             <X className="mobile-icon-md" aria-hidden="true" />
           </button>
 
           {/* Content */}
           <div className="flex items-start justify-center">
-            <div className="mt-3 text-center w-full">
-              <h3 className="text-responsive-lg font-medium leading-6 text-gray-900">
-                {title}
-              </h3>
+            <div className="mt-3 w-full text-center">
+              <h3 className="text-responsive-lg font-medium leading-6 text-gray-900">{title}</h3>
               <div className="mt-2">
                 <p className="text-responsive-sm text-gray-500">{message}</p>
               </div>
@@ -65,18 +63,18 @@ export default function ConfirmationDialog({
           </div>
 
           {/* Actions */}
-          <div className="mt-5 sm:mt-6 flex flex-col sm:flex-row gap-responsive-sm justify-center">
+          <div className="gap-responsive-sm mt-5 flex flex-col justify-center sm:mt-6 sm:flex-row">
             <button
               type="button"
               onClick={onConfirm}
-              className="inline-flex w-full justify-center rounded-md border border-transparent bg-brown px-responsive-lg py-responsive-sm text-responsive-sm font-medium text-white shadow-sm hover:bg-brown/90 focus:outline-none focus:ring-2 focus:ring-brown/50 focus:ring-offset-2 sm:w-auto touch-friendly min-w-[100px]"
+              className="px-responsive-lg py-responsive-sm text-responsive-sm touch-friendly inline-flex w-full min-w-[100px] justify-center rounded-md border border-transparent bg-brown font-medium text-white shadow-sm hover:bg-brown/90 focus:outline-none focus:ring-2 focus:ring-brown/50 focus:ring-offset-2 sm:w-auto"
             >
               {confirmText}
             </button>
             <button
               type="button"
               onClick={onCancel}
-              className="inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-responsive-lg py-responsive-sm text-responsive-sm font-medium text-black shadow-sm hover:bg-gray-50 hover:text-black focus:outline-none focus:ring-2 focus:ring-gray-500/50 focus:ring-offset-2 sm:w-auto touch-friendly min-w-[100px]"
+              className="px-responsive-lg py-responsive-sm text-responsive-sm touch-friendly inline-flex w-full min-w-[100px] justify-center rounded-md border border-gray-300 bg-white font-medium text-black shadow-sm hover:bg-gray-50 hover:text-black focus:outline-none focus:ring-2 focus:ring-gray-500/50 focus:ring-offset-2 sm:w-auto"
             >
               {cancelText}
             </button>

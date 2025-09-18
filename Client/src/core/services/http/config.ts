@@ -1,0 +1,84 @@
+/* =========================
+   HTTP Client Configuration
+   ========================= */
+
+import { env } from '../../config';
+import { getAuthToken } from '../../utils/auth';
+
+import { HttpClient, type HttpClientConfig } from './client';
+
+/* =========================
+   Environment Configuration
+   ========================= */
+
+export function getBaseUrl(): string {
+  return env.apiBaseUrl;
+}
+
+function getDefaultTimeout(): number {
+  return env.apiTimeout;
+}
+
+function getDefaultRetries(): number {
+  return env.apiRetries;
+}
+
+/* =========================
+   Auth Token Provider
+   ========================= */
+
+function createAuthTokenProvider(): () => string | null {
+  return () => {
+    try {
+      return getAuthToken();
+    } catch (error: unknown) {
+      console.warn('Failed to get auth token:', error);
+      return null;
+    }
+  };
+}
+
+/* =========================
+   Auth Error Handler
+   ========================= */
+
+function createAuthErrorHandler() {
+  return (error: unknown) => {
+    // Use existing handleAuthenticationError - it's already imported in client.ts
+    // This handler is only used as a fallback, the main handling is in client.ts
+    console.warn('Auth error handler called as fallback:', error);
+  };
+}
+
+/* =========================
+   Default Configuration
+   ========================= */
+
+export const defaultHttpConfig: HttpClientConfig = {
+  baseUrl: getBaseUrl(),
+  timeout: getDefaultTimeout(),
+  retries: getDefaultRetries(),
+  authTokenProvider: createAuthTokenProvider(),
+  onAuthError: createAuthErrorHandler(),
+};
+
+/* =========================
+   Configured HTTP Client
+   ========================= */
+
+export const httpClient = new HttpClient(defaultHttpConfig);
+
+/* =========================
+   Configuration Utilities
+   ========================= */
+
+export function configureHttpClient(config: Partial<HttpClientConfig>): void {
+  if (config.baseUrl) httpClient.setBaseUrl(config.baseUrl);
+  if (config.timeout) httpClient.setTimeout(config.timeout);
+  if (config.authTokenProvider) httpClient.setAuthTokenProvider(config.authTokenProvider);
+  if (config.onAuthError) httpClient.setAuthErrorHandler(config.onAuthError);
+}
+
+export function getHttpClientConfig(): HttpClientConfig {
+  return { ...defaultHttpConfig };
+}

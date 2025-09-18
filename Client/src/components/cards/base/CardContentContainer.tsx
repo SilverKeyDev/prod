@@ -1,13 +1,13 @@
 import React from 'react';
 
-interface CardContentContainerProps {
+type CardContentContainerProps = {
   /** Content to display */
   children: React.ReactNode;
   /** Padding variant */
   padding?: 'xs' | 'sm' | 'md' | 'lg';
   /** Additional className */
   className?: string;
-}
+};
 
 /**
  * Reusable card content container with consistent spacing
@@ -15,7 +15,7 @@ interface CardContentContainerProps {
 export default function CardContentContainer({
   children,
   padding = 'sm',
-  className = ''
+  className = '',
 }: CardContentContainerProps) {
   const getPaddingClass = () => {
     switch (padding) {
@@ -32,9 +32,5 @@ export default function CardContentContainer({
     }
   };
 
-  return (
-    <div className={`${getPaddingClass()} card-content-spacing ${className}`}>
-      {children}
-    </div>
-  );
+  return <div className={`${getPaddingClass()} card-content-spacing ${className}`}>{children}</div>;
 }

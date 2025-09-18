@@ -1,11 +1,12 @@
-import React from "react";
 import { Search, RefreshCw } from "lucide-react";
-import { Card } from "../../components/layout";
+import React from "react";
+
+import { Card } from "../../components/format";
 
 export type ViewMode = "grid" | "list";
 export type SortBy = "date" | "address";
 
-interface SavedLayoutProps {
+type SavedLayoutProps = {
   searchTerm: string;
   onSearchChange: (value: string) => void;
   searchPlaceholder?: string;
@@ -17,7 +18,7 @@ interface SavedLayoutProps {
   isLoading?: boolean;
   refreshTitle?: string;
   rightText?: string;
-}
+};
 
 const SavedLayout: React.FC<SavedLayoutProps> = ({
   searchTerm,
@@ -41,55 +42,57 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
   return (
     <div>
       <Card className="mb-4">
-        <div className="flex items-center justify-between gap-4 min-h-[44px]">
-          <div className="flex items-center gap-4 flex-1 min-w-0">
-            <div className="relative flex-1 min-w-[200px]">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 mobile-icon-xs text-black/40" />
+        <div className="flex min-h-[44px] items-center justify-between gap-4">
+          <div className="flex min-w-0 flex-1 items-center gap-4">
+            <div className="relative min-w-[200px] flex-1">
+              <Search className="mobile-icon-xs absolute left-3 top-1/2 -translate-y-1/2 transform text-black/40" />
               <input
                 type="text"
                 value={searchTerm}
-                onChange={(e) => onSearchChange(e.target.value)}
-                className="mobile-input pl-9 sm:pl-10 pr-4 w-full"
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  onSearchChange(e.target.value)
+                }
+                className="mobile-input w-full pl-9 pr-4 sm:pl-10"
                 placeholder={searchPlaceholder}
               />
             </div>
             {rightText && (
-              <div className="hidden sm:block text-sm text-gray-600 whitespace-nowrap shrink-0">
+              <div className="hidden shrink-0 whitespace-nowrap text-sm text-gray-600 sm:block">
                 {rightText}
               </div>
             )}
           </div>
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex shrink-0 items-center gap-3">
             {/* View Toggle Buttons - Desktop Only */}
             {showViewToggle && onViewModeChange && (
-              <div className="hidden sm:flex items-center gap-2">
+              <div className="hidden items-center gap-2 sm:flex">
                 <button
                   onClick={() => onViewModeChange("grid")}
-                  className={`px-3 py-2.5 rounded touch-friendly flex items-center justify-center ${
+                  className={`touch-friendly flex items-center justify-center rounded px-3 py-2.5 ${
                     viewMode === "grid"
                       ? "bg-brown text-white"
                       : "bg-beige text-white hover:bg-brown/80"
                   }`}
                 >
-                  <div className="grid grid-cols-2 gap-1 mobile-icon-xs">
-                    <div className="bg-current rounded-sm"></div>
-                    <div className="bg-current rounded-sm"></div>
-                    <div className="bg-current rounded-sm"></div>
-                    <div className="bg-current rounded-sm"></div>
+                  <div className="mobile-icon-xs grid grid-cols-2 gap-1">
+                    <div className="rounded-sm bg-current"></div>
+                    <div className="rounded-sm bg-current"></div>
+                    <div className="rounded-sm bg-current"></div>
+                    <div className="rounded-sm bg-current"></div>
                   </div>
                 </button>
                 <button
                   onClick={() => onViewModeChange("list")}
-                  className={`px-3 py-2.5 rounded touch-friendly flex items-center justify-center ${
+                  className={`touch-friendly flex items-center justify-center rounded px-3 py-2.5 ${
                     viewMode === "list"
                       ? "bg-brown text-white"
                       : "bg-beige text-white hover:bg-brown/80"
                   }`}
                 >
-                  <div className="space-y-1 mobile-icon-xs">
-                    <div className="bg-current rounded-sm h-0.5"></div>
-                    <div className="bg-current rounded-sm h-0.5"></div>
-                    <div className="bg-current rounded-sm h-0.5"></div>
+                  <div className="mobile-icon-xs space-y-1">
+                    <div className="h-0.5 rounded-sm bg-current"></div>
+                    <div className="h-0.5 rounded-sm bg-current"></div>
+                    <div className="h-0.5 rounded-sm bg-current"></div>
                   </div>
                 </button>
               </div>
@@ -99,18 +102,18 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
             {onRefresh && (
               <button
                 onClick={handleRefresh}
-                disabled={isRefreshing || isLoading}
-                className={`px-3 py-2.5 rounded touch-friendly flex items-center justify-center transition-colors duration-200 shrink-0 ${
+                disabled={isRefreshing ?? isLoading}
+                className={`touch-friendly flex shrink-0 items-center justify-center rounded px-3 py-2.5 transition-colors duration-200 ${
                   isRefreshing
-                    ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                    ? "cursor-not-allowed bg-gray-300 text-gray-600"
                     : "bg-gray-300 text-gray-600 hover:bg-gray-500 hover:text-white"
                 }`}
                 title={
-                  isRefreshing || isLoading ? "Refreshing..." : refreshTitle
+                  (isRefreshing ?? isLoading) ? "Refreshing..." : refreshTitle
                 }
               >
                 <RefreshCw
-                  className={`w-4 h-4 transition-transform duration-200 ${
+                  className={`h-4 w-4 transition-transform duration-200 ${
                     isRefreshing ? "animate-spin" : ""
                   }`}
                 />

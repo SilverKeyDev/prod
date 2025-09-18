@@ -11,7 +11,7 @@ user_bp = Blueprint('user', __name__, url_prefix='/api/v1/user')
 
 
 @user_bp.route('/profile', methods=['GET'])
-@rate_limit(max_requests=100, window_seconds=60)
+@rate_limit(max_requests=200, window_seconds=60)
 def get_user_profile():
     """Get the current user's profile information"""
     try:
@@ -104,48 +104,7 @@ def _get_user():
         current_app.logger.error(f"Authorization failed in checklists route: {e}")
         return None
 
-@user_bp.route('/insurance', methods=['GET', 'PUT'])
-def insurance_checklist():
-    user = _get_user()
-    if not user:
-        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
-    if request.method == 'GET':
-        checklist = _parse_checklist(user.insurance_checklist)
-        return _build_response(checklist)
-    # PUT update
-    try:
-        data = request.get_json(force=True)
-        if not isinstance(data, list):
-            return jsonify({'success': False, 'error': 'Expected JSON array'}), 400
-        user.insurance_checklist = json.dumps(data)
-        from app import db
-        db.session.commit()
-        return _build_response(data)
-    except Exception as e:
-        current_app.logger.error(f"Failed to update insurance checklist: {e}")
-        return jsonify({'success': False, 'error': 'Server error'}), 500
 
-@user_bp.route('/closing', methods=['GET', 'PUT'])
-def closing_checklist():
-    """GET returns checklist, PUT updates it (expects JSON list)."""
-    user = _get_user()
-    if not user:
-        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
-    if request.method == 'GET':
-        checklist = _parse_checklist(user.closing_checklist)
-        return _build_response(checklist)
-    # PUT - update
-    try:
-        data = request.get_json(force=True)
-        if not isinstance(data, list):
-            return jsonify({'success': False, 'error': 'Expected JSON array'}), 400
-        user.closing_checklist = json.dumps(data)
-        from app import db
-        db.session.commit()
-        return _build_response(data)
-    except Exception as e:
-        current_app.logger.error(f"Failed to update closing checklist: {e}")
-        return jsonify({'success': False, 'error': 'Server error'}), 500
 
 @user_bp.route('/timeline', methods=['GET', 'PUT'])
 def timeline_checklist():
@@ -167,44 +126,58 @@ def timeline_checklist():
         current_app.logger.error(f"Failed to update timeline checklist: {e}")
         return jsonify({'success': False, 'error': 'Server error'}), 500
 
-@user_bp.route('/financing', methods=['GET', 'PUT'])
-def financing_checklist():
-    user = _get_user()
-    if not user:
-        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
-    if request.method == 'GET':
-        checklist = _parse_checklist(user.financing_checklist)
-        return _build_response(checklist)
-    try:
-        data = request.get_json(force=True)
-        if not isinstance(data, list):
-            return jsonify({'success': False, 'error': 'Expected JSON array'}), 400
-        user.financing_checklist = json.dumps(data)
-        from app import db
-        db.session.commit()
-        return _build_response(data)
-    except Exception as e:
-        current_app.logger.error(f"Failed to update financing checklist: {e}")
-        return jsonify({'success': False, 'error': 'Server error'}), 500
 
-@user_bp.route('/escrow', methods=['GET', 'PUT'])
-def escrow_checklist():
+
+@user_bp.route('/close', methods=['GET', 'PUT'])
+def close_checklist():
+    """Consolidated Close checklist endpoint - handles escrow, financing, closing, and insurance checklists."""
     user = _get_user()
     if not user:
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    # Get checklist type from query parameter
+    checklist_type = request.args.get('type', 'escrow')  # Default to escrow for backward compatibility
+    
     if request.method == 'GET':
-        checklist = _parse_checklist(user.escrow_checklist)
+        # Return the appropriate checklist based on type
+        checklist_data = None
+        if checklist_type == 'escrow':
+            checklist_data = user.escrow_checklist
+        elif checklist_type == 'financing':
+            checklist_data = user.financing_checklist
+        elif checklist_type == 'closing':
+            checklist_data = user.closing_checklist
+        elif checklist_type == 'insurance':
+            checklist_data = user.insurance_checklist
+        else:
+            return jsonify({'success': False, 'error': 'Invalid checklist type'}), 400
+        
+        checklist = _parse_checklist(checklist_data)
         return _build_response(checklist)
+    
+    # PUT - update
     try:
         data = request.get_json(force=True)
         if not isinstance(data, list):
             return jsonify({'success': False, 'error': 'Expected JSON array'}), 400
-        user.escrow_checklist = json.dumps(data)
+        
+        # Update the appropriate checklist based on type
+        if checklist_type == 'escrow':
+            user.escrow_checklist = json.dumps(data)
+        elif checklist_type == 'financing':
+            user.financing_checklist = json.dumps(data)
+        elif checklist_type == 'closing':
+            user.closing_checklist = json.dumps(data)
+        elif checklist_type == 'insurance':
+            user.insurance_checklist = json.dumps(data)
+        else:
+            return jsonify({'success': False, 'error': 'Invalid checklist type'}), 400
+        
         from app import db
         db.session.commit()
         return _build_response(data)
     except Exception as e:
-        current_app.logger.error(f"Failed to update escrow checklist: {e}")
+        current_app.logger.error(f"Failed to update {checklist_type} checklist: {e}")
         return jsonify({'success': False, 'error': 'Server error'}), 500
 
 # === Favorite Homes Endpoints ===
@@ -264,7 +237,6 @@ def add_favorite_home():
 
     user = _get_user()
     if not user:
-        current_app.logger.warning("❌ Unauthorized attempt to save home - no valid user found")
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
     
 
@@ -273,74 +245,24 @@ def add_favorite_home():
         
         home = data.get('home')
         if not home or not isinstance(home, dict):
-            current_app.logger.error("❌ Invalid home object in request")
             return jsonify({'success': False, 'error': 'Home object is required'}), 400
 
         address = home.get('address')
         if not address or not isinstance(address, str):
-            current_app.logger.error(f"❌ Invalid address in home object: {address}")
             return jsonify({'success': False, 'error': 'Address is required and must be a string'}), 400
 
         from app.models.home_universal import HomeUniversal
         from app.utils.address_format import normalize_address
         
-        # Log the incoming request data for debugging
-        current_app.logger.info(f"🏠 Adding home to favorites - Full request data: {data}")
-        current_app.logger.info(f"📍 Target address from request: '{address}'")
-        current_app.logger.info(f"🔍 Target address type: {type(address)}")
-        current_app.logger.info(f"🔍 Target address length: {len(address) if address else 'None'}")
-        current_app.logger.info(f"🔍 Target address repr: {repr(address)}")
-        
         # Check for duplicate using normalized address matching
         normalized_target = normalize_address(address)
-        current_app.logger.info(f"🔄 Normalized target address: '{normalized_target}'")
-        current_app.logger.info(f"🔍 Normalized target type: {type(normalized_target)}")
-        current_app.logger.info(f"🔍 Normalized target length: {len(normalized_target) if normalized_target else 'None'}")
-        current_app.logger.info(f"🔍 Normalized target repr: {repr(normalized_target)}")
-        
         existing_homes = HomeUniversal.query.filter_by(user_id=str(user.id)).all()
-        current_app.logger.info(f"📋 Found {len(existing_homes)} existing homes for user {user.id}")
         
-        for i, existing_home in enumerate(existing_homes):
+        for existing_home in existing_homes:
             if existing_home.address:
-                current_app.logger.info(f"🔍 Existing home #{i+1} raw data:")
-                current_app.logger.info(f"   📍 Raw address: '{existing_home.address}'")
-                current_app.logger.info(f"   🔍 Address type: {type(existing_home.address)}")
-                current_app.logger.info(f"   🔍 Address length: {len(existing_home.address) if existing_home.address else 'None'}")
-                current_app.logger.info(f"   🔍 Address repr: {repr(existing_home.address)}")
-                current_app.logger.info(f"   🏠 Home User ID: {existing_home.user_id}")
-                current_app.logger.info(f"   📅 Created: {existing_home.created_at}")
-                
                 normalized_existing = normalize_address(existing_home.address)
-                current_app.logger.info(f"   🔄 Normalized: '{normalized_existing}'")
-                current_app.logger.info(f"   🔍 Normalized type: {type(normalized_existing)}")
-                current_app.logger.info(f"   🔍 Normalized length: {len(normalized_existing) if normalized_existing else 'None'}")
-                current_app.logger.info(f"   🔍 Normalized repr: {repr(normalized_existing)}")
-                
-                # Character-by-character comparison for debugging
                 if normalized_target == normalized_existing:
-                    current_app.logger.warning(f"⚠️ Home already exists in favorites: {address}")
-                    current_app.logger.warning(f"   📍 Target address: '{address}' → normalized: '{normalized_target}'")
-                    current_app.logger.warning(f"   🏠 Existing address: '{existing_home.address}' → normalized: '{normalized_existing}'")
-                    current_app.logger.warning(f"   ✅ Normalized addresses match exactly")
-                    current_app.logger.warning(f"   🔍 String equality check: {normalized_target == normalized_existing}")
-                    current_app.logger.warning(f"   🔍 Hash comparison: target={hash(normalized_target)}, existing={hash(normalized_existing)}")
                     return jsonify({'success': False, 'error': 'Home is already in favorites'}), 400
-                else:
-                    current_app.logger.debug(f"   ❌ No match: '{normalized_target}' != '{normalized_existing}'")
-                    # Show character differences for debugging
-                    if len(normalized_target) != len(normalized_existing):
-                        current_app.logger.debug(f"   📏 Length difference: target={len(normalized_target)}, existing={len(normalized_existing)}")
-                    else:
-                        # Find first differing character
-                        for j, (c1, c2) in enumerate(zip(normalized_target, normalized_existing)):
-                            if c1 != c2:
-                                current_app.logger.debug(f"   🔍 First difference at position {j}: '{c1}' vs '{c2}'")
-                                current_app.logger.debug(f"   🔍 Target substring: '{normalized_target[max(0,j-5):j+6]}'")
-                                current_app.logger.debug(f"   🔍 Existing substring: '{normalized_existing[max(0,j-5):j+6]}'")
-                                break
-            else:
-                current_app.logger.debug(f"🔍 Skipping existing home #{i+1}: no address stored (ID: {existing_home.id})")
         
         image_url = home.get('image_url', '') or home.get('imageUrl', '')
         
@@ -369,12 +291,7 @@ def add_favorite_home():
         })
 
     except Exception as e:
-        current_app.logger.error("🏠 ===== HOME SAVE OPERATION FAILED =====")
-        current_app.logger.error(f"❌ Failed to add favorite home: {e}")
-        current_app.logger.error(f"❌ Exception type: {type(e).__name__}")
-        current_app.logger.error(f"❌ Exception details: {str(e)}")
-        import traceback
-        current_app.logger.error(f"❌ Stack trace: {traceback.format_exc()}")
+        current_app.logger.error(f"Failed to add favorite home: {e}")
         return jsonify({'success': False, 'error': 'Server error'}), 500
 
 
@@ -383,7 +300,6 @@ def remove_favorite_home():
     """Remove a single home address from the user's favorites list."""
     user = _get_user()
     if not user:
-        current_app.logger.warning("❌ Unauthorized attempt to remove home - no valid user found")
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
     
     
@@ -393,7 +309,6 @@ def remove_favorite_home():
         address = data.get('address')
         
         if not address or not isinstance(address, str):
-            current_app.logger.error(f"❌ Invalid address in request: {address}")
             return jsonify({'success': False, 'error': 'Address is required and must be a string'}), 400
         
         
@@ -403,7 +318,6 @@ def remove_favorite_home():
         # Check if home exists before attempting to delete
         existing_home = HomeUniversal.query.filter_by(user_id=str(user.id), address=address).first()
         if not existing_home:
-            current_app.logger.warning(f"⚠️ Home not found in favorites: {address}")
             return jsonify({'success': False, 'error': 'Home not found in favorites'}), 404
         
         # Delete the home record

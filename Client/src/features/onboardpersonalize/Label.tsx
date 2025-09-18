@@ -1,19 +1,15 @@
-import React from "react";
-import BaseLabel from "../../components/ui/text/Label";
+import React from 'react';
 
-export interface LabelProps {
+import BaseLabel from '../../components/ui/text/Label';
+
+export type LabelProps = {
   children: React.ReactNode;
   htmlFor?: string;
   required?: boolean;
   className?: string;
-}
+};
 
-const Label: React.FC<LabelProps> = ({
-  children,
-  htmlFor,
-  required = false,
-  className = "",
-}) => {
+const Label: React.FC<LabelProps> = ({ children, htmlFor, required = false, className = '' }) => {
   return (
     <BaseLabel
       htmlFor={htmlFor}

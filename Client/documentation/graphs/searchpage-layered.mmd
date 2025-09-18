@@ -1,0 +1,60 @@
+flowchart LR
+  %% Layers: Inputs -> Orchestration -> Data/State -> UI -> Map/Details
+
+  subgraph L1[Inputs]
+    ENV[env]
+    PREF[preferencesApi.get]
+  end
+
+  subgraph L2[Orchestration Hooks]
+    USB[useSearchBootstrap]
+    UIF[useIsochroneFlow]
+  end
+
+  subgraph L3[Data_State]
+    CSS[useConsolidatedSearchStore]
+    UCache[unifiedCache]
+    SS[searchService.searchByPolygon]
+    MAP[mapBackendPropertyToDetails]
+  end
+
+  subgraph L4[UI_Composition]
+    SP[SearchPage.tsx]
+    SMH[SearchMobileHeader]
+    MSL[MobileSearchLayout]
+    DSL[DesktopSearchLayout]
+  end
+
+  subgraph L5[Map_Details]
+    GMC[useGoogleMapsStore]
+    SMC[SearchMapContainer]
+    PDM[PropertyDetailsModal]
+  end
+
+  ENV --> USB
+  ENV --> UIF
+  PREF --> UIF
+
+  USB -->|hydrate cached results| CSS
+  USB --> UCache
+
+  UIF -->|searchPropertiesInIsochrone| SS
+  SS -->|properties| MAP
+  MAP -->|PropertyDetails| CSS
+  CSS -->|persist| UCache
+
+  SP --> USB
+  SP --> UIF
+  SP --> CSS
+  SP --> GMC
+  SP --> MSL
+  SP --> DSL
+  SP --> PDM
+  MSL --> SMH
+  MSL --> SMC
+  DSL --> SMC
+
+  classDef n fill:#fff,stroke:#555,stroke-width:1px,rx:4,ry:4;
+  class ENV,PREF,USB,UIF,CSS,UCache,SS,MAP,SP,SMH,MSL,DSL,GMC,SMC,PDM n;
+
+

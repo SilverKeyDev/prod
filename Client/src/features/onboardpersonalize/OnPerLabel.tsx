@@ -1,21 +1,17 @@
-import React from "react";
-import { Asterisk } from "lucide-react";
+import { Asterisk } from 'lucide-react';
+import React from 'react';
 
-interface OnPerLabelProps {
+type OnPerLabelProps = {
   children: React.ReactNode;
   required?: boolean;
   className?: string;
   htmlFor?: string;
-}
+};
 
-export const RequiredLabel: React.FC<OnPerLabelProps> = ({
-  children,
-  className = "",
-  htmlFor,
-}) => (
+export const RequiredLabel: React.FC<OnPerLabelProps> = ({ children, className = '', htmlFor }) => (
   <label
     htmlFor={htmlFor}
-    className={`block text-xs sm:text-sm md:text-base font-medium text-black mb-2 ${className}`}
+    className={`mb-2 block text-xs font-medium text-black sm:text-sm md:text-base ${className}`}
   >
     {children}
     <Asterisk
@@ -27,14 +23,10 @@ export const RequiredLabel: React.FC<OnPerLabelProps> = ({
   </label>
 );
 
-export const OptionalLabel: React.FC<OnPerLabelProps> = ({
-  children,
-  className = "",
-  htmlFor,
-}) => (
+export const OptionalLabel: React.FC<OnPerLabelProps> = ({ children, className = '', htmlFor }) => (
   <label
     htmlFor={htmlFor}
-    className={`block text-xs sm:text-sm md:text-base font-medium text-black mb-2 ${className}`}
+    className={`mb-2 block text-xs font-medium text-black sm:text-sm md:text-base ${className}`}
   >
     {children}
   </label>
@@ -43,7 +35,7 @@ export const OptionalLabel: React.FC<OnPerLabelProps> = ({
 const OnPerLabel: React.FC<OnPerLabelProps> = ({
   children,
   required = false,
-  className = "",
+  className = '',
   htmlFor,
 }) => {
   if (required) {

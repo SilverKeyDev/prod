@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import React, { useEffect, useRef } from 'react';
 
 const CONNECT_DISTANCE = 95;
 const MOUSE_RADIUS = 95;
@@ -21,7 +21,8 @@ export default function RippleBackground() {
     const canvas = canvasRef.current;
     if (!container || !canvas) return;
 
-    const ctx = canvas.getContext("2d")!;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
     const margin = 20;
 
     const resize = () => {
@@ -45,12 +46,12 @@ export default function RippleBackground() {
     };
 
     resize();
-    window.addEventListener("resize", resize);
+    window.addEventListener('resize', resize);
 
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = "#888";
-      ctx.strokeStyle = "#999";
+      ctx.fillStyle = '#888';
+      ctx.strokeStyle = '#999';
       ctx.lineWidth = 0.65;
 
       for (const p of particles.current) {
@@ -102,19 +103,19 @@ export default function RippleBackground() {
       mouse.current.x = e.clientX - rect.left;
       mouse.current.y = e.clientY - rect.top;
     };
-    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener('mousemove', handleMouseMove);
 
     return () => {
-      window.removeEventListener("resize", resize);
-      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener('resize', resize);
+      window.removeEventListener('mousemove', handleMouseMove);
     };
   }, []);
 
   return (
     <div
       ref={containerRef}
-      className="absolute inset-0 z-0 pointer-events-none"
-      style={{ background: "white" }}
+      className="pointer-events-none absolute inset-0 z-0"
+      style={{ background: 'white' }}
     >
       <canvas ref={canvasRef} />
     </div>

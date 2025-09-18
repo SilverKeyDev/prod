@@ -1,24 +1,43 @@
-import React, { useState, useRef, useEffect } from "react";
 import { MapPin, Plus, X, Clock } from "lucide-react";
-import { Input } from "../../components/ui";
+import React, { useState, useRef, useEffect } from "react";
 
-interface ImportantLocation {
+import { Input } from "../../components/ui/form/Input";
+import type {
+  GoogleMapsWindow,
+  AutocompleteSuggestion,
+} from "../../core/schemas/google-maps";
+import { asError } from "../../core/utils/error";
+import { isObject, hasProperty, isFunction } from "../../core/utils/typeGuards";
+
+type ImportantLocation = {
   name: string;
   address: string;
   commute_tolerance?: number;
-}
+};
 
-interface Suggestion {
-  placePrediction: any;
+type PlacePrediction = {
+  toPlace: () => Place;
+  text: {
+    text: string;
+  };
+};
+
+type Place = {
+  fetchFields: (options: { fields: string[] }) => Promise<{ place: Place }>;
+  formattedAddress: string;
+};
+
+type Suggestion = {
   description: string;
-}
+  placePrediction: PlacePrediction;
+};
 
-interface ImportantLocationsInputProps {
+type ImportantLocationsInputProps = {
   locations: ImportantLocation[];
   onChange: (locations: ImportantLocation[]) => void;
   scriptsReady: boolean;
   isEditMode?: boolean;
-}
+};
 
 const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
   locations,
@@ -45,32 +64,48 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
 
     const fetchSuggestions = async () => {
       try {
+        const googleMapsWindow = window as unknown as GoogleMapsWindow;
         const sessionToken =
-          new window.google.maps.places.AutocompleteSessionToken();
+          new googleMapsWindow.google.maps.places.AutocompleteSessionToken();
         const request = {
           input: locationAddress,
           sessionToken,
-          componentRestrictions: { country: "US" },
+          includedRegionCodes: ["US"],
         };
 
         const { suggestions: fetched } =
-          await window.google.maps.places.AutocompleteSuggestion.fetchAutocompleteSuggestions(
+          await googleMapsWindow.google.maps.places.AutocompleteSuggestion.fetchAutocompleteSuggestions(
             request
           );
 
         setSuggestions(
-          fetched.map((s: any) => ({
-            description: s.placePrediction.text.text,
-            placePrediction: s.placePrediction,
-          }))
+          fetched
+            .filter(
+              (s: AutocompleteSuggestion) =>
+                isObject(s) &&
+                hasProperty(s, "placePrediction") &&
+                s.placePrediction &&
+                typeof s.placePrediction === "object" &&
+                hasProperty(s.placePrediction, "text") &&
+                s.placePrediction.text &&
+                typeof s.placePrediction.text === "object" &&
+                hasProperty(s.placePrediction.text, "text") &&
+                typeof (s.placePrediction.text as Record<string, unknown>)
+                  .text === "string"
+            )
+            .map((s: AutocompleteSuggestion) => ({
+              description: s.placePrediction.text.text,
+              placePrediction: s.placePrediction,
+            }))
         );
-      } catch (err) {
-        console.error("Autocomplete fetch error:", err);
+      } catch (err: unknown) {
+        const error = asError(err);
+        console.error("Autocomplete fetch error:", error);
         setSuggestions([]);
       }
     };
 
-    const debounce = setTimeout(fetchSuggestions, 500);
+    const debounce = void void setTimeout(fetchSuggestions, 500);
     return () => clearTimeout(debounce);
   }, [locationAddress, scriptsReady, hasSelected]);
 
@@ -81,11 +116,17 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
 
   const handleSelect = async (suggestion: Suggestion) => {
     setHasSelected(true);
-    const place = suggestion.placePrediction.toPlace();
-    await place.fetchFields({
-      fields: ["displayName", "formattedAddress"],
-    });
-    setLocationAddress(place.formattedAddress);
+    try {
+      const place = suggestion.placePrediction.toPlace();
+      await place.fetchFields({
+        fields: ["displayName", "formattedAddress"],
+      });
+      setLocationAddress(place.formattedAddress ?? "");
+    } catch (error) {
+      console.warn("Error fetching place fields:", error);
+      // Fallback to using the description if place details fail
+      setLocationAddress(suggestion.description);
+    }
     setSuggestions([]);
   };
 
@@ -127,17 +168,17 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
           {locations.map((location, index) => (
             <div
               key={index}
-              className="flex items-start justify-between p-3 bg-beige/20 rounded-lg border border-beige"
+              className="flex items-start justify-between rounded-lg border border-beige bg-beige/20 p-3"
             >
-              <div className="flex-1 min-w-0">
-                <h4 className="font-medium text-black text-sm">
+              <div className="min-w-0 flex-1">
+                <h4 className="text-sm font-medium text-black">
                   {location.name}
                 </h4>
-                <p className="text-xs text-black/60 mt-1 break-words">
+                <p className="mt-1 break-words text-xs text-black/60">
                   {location.address}
                 </p>
                 {location.commute_tolerance && (
-                  <p className="text-xs text-brown mt-1">
+                  <p className="mt-1 text-xs text-brown">
                     Max commute: {location.commute_tolerance} minutes
                   </p>
                 )}
@@ -145,7 +186,7 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
               {isEditMode && (
                 <button
                   onClick={() => handleRemoveLocation(index)}
-                  className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors cursor-pointer"
+                  className="cursor-pointer rounded p-1 text-red-500 transition-colors hover:bg-red-50 hover:text-red-700"
                   title="Remove location"
                 >
                   <X className="h-4 w-4" />
@@ -162,20 +203,22 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
           {!isAddingLocation ? (
             <button
               onClick={() => setIsAddingLocation(true)}
-              className="flex items-center justify-center w-full p-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-brown hover:text-brown transition-colors cursor-pointer"
+              className="flex w-full cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-gray-300 p-3 text-gray-500 transition-colors hover:border-brown hover:text-brown"
             >
               <Plus className="h-4 w-4" />
               <span>Add Important Location</span>
             </button>
           ) : (
-            <div className="space-y-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div className="space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
               {/* Location Name Input */}
               <Input
                 ref={nameInputRef}
                 label="Location Name"
                 type="text"
                 value={locationName}
-                onChange={(e) => setLocationName(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setLocationName(e.target.value)
+                }
                 placeholder="e.g., Work, Mom's House, Gym"
                 autoComplete="off"
                 size="md"
@@ -200,12 +243,12 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
 
                 {/* Address Suggestions */}
                 {suggestions.length > 0 && (
-                  <ul className="border mt-2 rounded-md overflow-hidden shadow-sm bg-white z-50 relative max-h-60 overflow-y-auto">
+                  <ul className="relative z-50 mt-2 max-h-60 overflow-hidden overflow-y-auto rounded-md border bg-white shadow-sm">
                     {suggestions.map((s, idx) => (
                       <li key={idx}>
                         <button
                           onClick={handleSelect.bind(null, s)}
-                          className="w-full text-left px-3 py-2 hover:bg-gray-100 text-sm cursor-pointer"
+                          className="w-full cursor-pointer px-3 py-2 text-left text-sm hover:bg-gray-100"
                         >
                           {s.description}
                         </button>
@@ -220,7 +263,9 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
                 label="Max Commute Time (minutes)"
                 type="number"
                 value={commuteTime}
-                onChange={(e) => setCommuteTime(parseInt(e.target.value) || 30)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setCommuteTime(parseInt(e.target.value) || 30)
+                }
                 placeholder="30"
                 min="5"
                 max="180"
@@ -235,13 +280,13 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
                 <button
                   onClick={handleAddLocation}
                   disabled={!locationName.trim() || !locationAddress.trim()}
-                  className="px-4 py-2 bg-olive text-white text-sm font-medium rounded-lg hover:bg-olive/80 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed cursor-pointer"
+                  className="cursor-pointer rounded-lg bg-olive px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-olive/80 disabled:cursor-not-allowed disabled:bg-gray-300"
                 >
                   Add Location
                 </button>
                 <button
                   onClick={handleCancel}
-                  className="px-4 py-2 bg-brown text-white rounded-lg hover:bg-brown/90 transition-colors cursor-pointer"
+                  className="cursor-pointer rounded-lg bg-brown px-4 py-2 text-white transition-colors hover:bg-brown/90"
                 >
                   Cancel
                 </button>

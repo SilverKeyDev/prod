@@ -1,5 +1,5 @@
 from datetime import datetime
-from flask import Blueprint, request, jsonify, current_app
+from flask import Blueprint, request, jsonify, current_app, make_response
 import os
 import jwt
 from .. import db
@@ -115,17 +115,48 @@ def verify():
         decoded_id_token = jwt.decode(id_token, options={"verify_signature": False})
         user_sub = decoded_id_token['sub']
 
-        return jsonify({
+        # Create response with HttpOnly cookies
+        response_data = {
             'success': True,
             'message': 'Email verified and logged in successfully',
-            'access_token': login_result['tokens']['AccessToken'],
-            'id_token': login_result['tokens']['IdToken'],
-            'refresh_token': login_result['tokens']['RefreshToken'],
             'user': {
                 'email': data['email'],
                 'user_sub': user_sub
             }
-        })
+        }
+        
+        # Create response object
+        resp = make_response(response_data)
+        
+        # Set secure HttpOnly cookies
+        resp.set_cookie(
+            "session", 
+            value=login_result['tokens']['AccessToken'],
+            httponly=True, 
+            secure=os.getenv('FLASK_ENV') == 'production',
+            samesite="Lax", 
+            max_age=60*60*8  # 8 hours
+        )
+        
+        resp.set_cookie(
+            "refresh_token",
+            value=login_result['tokens']['RefreshToken'],
+            httponly=True,
+            secure=os.getenv('FLASK_ENV') == 'production',
+            samesite="Lax",
+            max_age=60*60*24*30  # 30 days
+        )
+        
+        resp.set_cookie(
+            "id_token",
+            value=login_result['tokens']['IdToken'],
+            httponly=True,
+            secure=os.getenv('FLASK_ENV') == 'production',
+            samesite="Lax",
+            max_age=60*60*8  # 8 hours
+        )
+        
+        return resp
 
     except Exception as e:
         current_app.logger.error(f'Error during auto-login after verification: {str(e)}')
@@ -217,20 +248,65 @@ def login():
 
         # decode IdToken to get Cognito user_sub
         id_token = result['tokens']['IdToken']
-        import jwt  # local decode only for sub
         decoded_id_token = jwt.decode(id_token, options={"verify_signature": False})
         user_sub = decoded_id_token['sub']
 
-        return jsonify({
+        # Get user data from database to include name
+        from ..models.user import User
+        user = User.query.filter_by(cognito_id=user_sub).first()
+        if not user:
+            # Fallback: try to find by email
+            user = User.query.filter_by(email=data['email']).first()
+            if user:
+                # Link cognito_id to existing user
+                user.cognito_id = user_sub
+                db.session.commit()
+
+        # Create response with HttpOnly cookies
+        response_data = {
             'success': True,
-            'access_token': result['tokens']['AccessToken'],
-            'id_token': result['tokens']['IdToken'],
-            'refresh_token': result['tokens']['RefreshToken'],
             'user': {
                 'email': data['email'],
-                'user_sub': user_sub
+                'user_sub': user_sub,
+                'name': user.name if user else 'Unknown User',
+                'id': user.id if user else None
             }
-        })
+        }
+        
+        # Create response object
+        resp = make_response(response_data)
+        
+        # Set secure HttpOnly cookies
+        resp.set_cookie(
+            "session", 
+            value=result['tokens']['AccessToken'],
+            httponly=True, 
+            secure=os.getenv('FLASK_ENV') == 'production',  # Only secure in production
+            samesite="Lax", 
+            max_age=60*60*8  # 8 hours
+        )
+        
+        # Set refresh token cookie (longer expiry)
+        resp.set_cookie(
+            "refresh_token",
+            value=result['tokens']['RefreshToken'],
+            httponly=True,
+            secure=os.getenv('FLASK_ENV') == 'production',
+            samesite="Lax",
+            max_age=60*60*24*30  # 30 days
+        )
+        
+        # Set ID token cookie for client-side use (if needed)
+        resp.set_cookie(
+            "id_token",
+            value=result['tokens']['IdToken'],
+            httponly=True,
+            secure=os.getenv('FLASK_ENV') == 'production',
+            samesite="Lax",
+            max_age=60*60*8  # 8 hours
+        )
+        
+        return resp
 
     except Exception as e:
         current_app.logger.error(f'Error logging in: {str(e)}')
@@ -297,3 +373,51 @@ def reset_password():
         'success': True,
         'message': 'Password reset successfully'
     })
+
+@auth_bp.route('/logout', methods=['POST'])
+def logout():
+    """Logout user and clear HttpOnly cookies"""
+    try:
+        # Create response object
+        resp = make_response({
+            'success': True,
+            'message': 'Logged out successfully'
+        })
+        
+        # Clear all authentication cookies
+        resp.set_cookie(
+            "session",
+            value="",
+            httponly=True,
+            secure=os.getenv('FLASK_ENV') == 'production',
+            samesite="Lax",
+            max_age=0  # Expire immediately
+        )
+        
+        resp.set_cookie(
+            "refresh_token",
+            value="",
+            httponly=True,
+            secure=os.getenv('FLASK_ENV') == 'production',
+            samesite="Lax",
+            max_age=0  # Expire immediately
+        )
+        
+        resp.set_cookie(
+            "id_token",
+            value="",
+            httponly=True,
+            secure=os.getenv('FLASK_ENV') == 'production',
+            samesite="Lax",
+            max_age=0  # Expire immediately
+        )
+        
+        return resp
+        
+    except Exception as e:
+        current_app.logger.error(f'Error during logout: {str(e)}')
+        return jsonify({
+            'success': False,
+            'error': 'LOGOUT_FAILED',
+            'message': 'Failed to logout user'
+        }), 500

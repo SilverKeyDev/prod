@@ -1354,6 +1354,13 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
         
         # Inject real age distribution data from Census API if neighborhood_overview exists
         combined_report = inject_real_age_distribution(combined_report, address)
+
+        # Ensure lifestyle_dna presence and log if missing after generation
+        try:
+            if 'lifestyle_dna' in section_names and 'lifestyle_dna' not in combined_report:
+                logger.warning("⚠️ LIFESTYLE_DNA: Section requested but missing in combined report. Upstream model may have failed or returned empty.")
+        except Exception:
+            pass
         
         # Inject real property data from search endpoint if available (only for detailed reports)
         if property_data_future is not None and not marketing_model:

@@ -1,18 +1,20 @@
-import CloseLayout, { ChecklistItem } from "../../features/close/CloseLayout";
+import CloseLayout, {
+  type ChecklistItem,
+} from "../../features/close/CloseLayout";
 
-interface ClosePageHeaderData {
+type ClosePageHeaderData = {
   title: string;
   subtitle: string;
   completedCount: number;
   totalCount: number;
   loading: boolean;
-}
+};
 
-interface FinancingInsuranceProps {
+type FinancingInsuranceProps = {
   setClosePageHeaderData: React.Dispatch<
     React.SetStateAction<ClosePageHeaderData | null>
   >;
-}
+};
 
 export default function FinancingInsurance({
   setClosePageHeaderData,
@@ -151,7 +153,7 @@ export default function FinancingInsurance({
       title="Financing & Insurance Checklist"
       subtitle="Stay on top of your loan and insurance tasks"
       sectionTitle="Loan & Insurance Tasks"
-      apiEndpoint="/api/v1/user/financing"
+      type="financing"
       items={items}
       showMinLoadingText={true}
       setClosePageHeaderData={setClosePageHeaderData}

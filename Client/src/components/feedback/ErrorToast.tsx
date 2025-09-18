@@ -1,17 +1,13 @@
-import { useState, useEffect } from "react";
-import { X } from "lucide-react";
+import { X } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
-interface ErrorToastProps {
+type ErrorToastProps = {
   message: string;
   onClose: () => void;
   duration?: number;
-}
+};
 
-export default function ErrorToast({
-  message,
-  onClose,
-  duration = 5000,
-}: ErrorToastProps) {
+export default function ErrorToast({ message, onClose, duration = 5000 }: ErrorToastProps) {
   const [visible, setVisible] = useState(true);
 
   useEffect(() => {
@@ -25,16 +21,16 @@ export default function ErrorToast({
   if (!visible) return null;
 
   return (
-    <div className="fixed bottom-2 sm:bottom-4 right-2 sm:right-4 z-50">
-      <div className="bg-red-50 border border-red-200 rounded-lg space-responsive-sm max-w-xs sm:max-w-md">
-        <div className="flex items-start justify-between gap-responsive-sm">
-          <div className="flex-1 min-w-0">
-            <p className="text-red-800 font-medium text-responsive-sm">Error</p>
-            <p className="text-red-700 text-responsive-xs mt-1 break-words">{message}</p>
+    <div className="fixed bottom-2 right-2 z-50 sm:bottom-4 sm:right-4">
+      <div className="space-responsive-sm max-w-xs rounded-lg border border-red-200 bg-red-50 sm:max-w-md">
+        <div className="gap-responsive-sm flex items-start justify-between">
+          <div className="min-w-0 flex-1">
+            <p className="text-responsive-sm font-medium text-red-800">Error</p>
+            <p className="text-responsive-xs mt-1 break-words text-red-700">{message}</p>
           </div>
           <button
             onClick={onClose}
-            className="text-red-500 hover:text-red-700 transition-colors flex-shrink-0 touch-manipulation space-responsive-xs"
+            className="space-responsive-xs flex-shrink-0 touch-manipulation text-red-500 transition-colors hover:text-red-700"
           >
             <X className="mobile-icon-sm" />
           </button>

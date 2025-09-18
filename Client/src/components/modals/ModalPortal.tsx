@@ -1,5 +1,5 @@
-import { ReactNode, useEffect, useState } from "react";
-import { createPortal } from "react-dom";
+import { useEffect, useState, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 
 export default function ModalPortal({ children }: { children: ReactNode }) {
   const [mounted, setMounted] = useState(false);

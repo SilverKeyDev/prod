@@ -1,18 +1,18 @@
-import { createPortal } from "react-dom";
+import { createPortal } from 'react-dom';
 
-interface SuccessDialogProps {
+type SuccessDialogProps = {
   isOpen: boolean;
   title: string;
   message: string;
   confirmText?: string;
   onConfirm: () => void;
-}
+};
 
 export default function SuccessDialog({
   isOpen,
   title,
   message,
-  confirmText = "Continue",
+  confirmText = 'Continue',
   onConfirm,
 }: SuccessDialogProps) {
   if (!isOpen) return null;
@@ -23,8 +23,8 @@ export default function SuccessDialog({
       style={{ left: 0, right: 0, top: 0, bottom: 0 }}
     >
       <div
-        className="flex min-h-screen items-center justify-center space-responsive-md"
-        style={{ width: "100vw", height: "100vh" }}
+        className="space-responsive-md flex min-h-screen items-center justify-center"
+        style={{ width: '100vw', height: '100vh' }}
       >
         {/* Backdrop */}
         <div
@@ -34,11 +34,11 @@ export default function SuccessDialog({
 
         {/* Dialog */}
         <div
-          className="relative z-[10000] w-full max-w-sm mx-auto transform overflow-hidden rounded-2xl bg-white space-responsive-lg text-left shadow-xl transition-all"
-          style={{ maxWidth: "320px" }}
+          className="space-responsive-lg relative z-[10000] mx-auto w-full max-w-sm transform overflow-hidden rounded-2xl bg-white text-left shadow-xl transition-all"
+          style={{ maxWidth: '320px' }}
         >
           {/* Success Icon */}
-          <div className="flex items-center justify-center mobile-icon-xl mx-auto mb-4 bg-green-100 rounded-full">
+          <div className="mobile-icon-xl mx-auto mb-4 flex items-center justify-center rounded-full bg-green-100">
             <svg
               className="mobile-icon-lg text-green-600"
               fill="none"
@@ -56,10 +56,8 @@ export default function SuccessDialog({
 
           {/* Content */}
           <div className="text-center">
-            <h3 className="text-responsive-lg font-medium leading-6 text-gray-900 mb-2">
-              {title}
-            </h3>
-            <p className="text-responsive-sm text-gray-500 mb-6">{message}</p>
+            <h3 className="text-responsive-lg mb-2 font-medium leading-6 text-gray-900">{title}</h3>
+            <p className="text-responsive-sm mb-6 text-gray-500">{message}</p>
           </div>
 
           {/* Action */}
@@ -67,7 +65,7 @@ export default function SuccessDialog({
             <button
               type="button"
               onClick={onConfirm}
-              className="inline-flex justify-center rounded-md border border-transparent bg-brown px-responsive-lg py-responsive-sm text-responsive-sm font-medium text-white shadow-sm hover:bg-brown/90 focus:outline-none focus:ring-2 focus:ring-brown/50 focus:ring-offset-2 touch-friendly min-w-[120px]"
+              className="px-responsive-lg py-responsive-sm text-responsive-sm touch-friendly inline-flex min-w-[120px] justify-center rounded-md border border-transparent bg-brown font-medium text-white shadow-sm hover:bg-brown/90 focus:outline-none focus:ring-2 focus:ring-brown/50 focus:ring-offset-2"
             >
               {confirmText}
             </button>

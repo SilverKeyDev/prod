@@ -1,15 +1,15 @@
-interface CardMatchScoreProps {
+type CardMatchScoreProps = {
   /** Match score (0-100) */
   score: number;
   /** Maximum score (default 100) */
   maxScore?: number;
   /** Size variant */
-  size?: "xs" | "sm" | "md";
+  size?: 'xs' | 'sm' | 'md';
   /** Use color-based styling */
   useColorStyling?: boolean;
   /** Additional className */
   className?: string;
-}
+};
 
 /**
  * Reusable card match score display
@@ -17,27 +17,27 @@ interface CardMatchScoreProps {
 export default function CardMatchScore({
   score,
   maxScore = 100,
-  size = "sm",
+  size = 'sm',
   useColorStyling = false,
-  className = "",
+  className = '',
 }: CardMatchScoreProps) {
   const getSizeClasses = () => {
     switch (size) {
-      case "xs":
+      case 'xs':
         return {
-          text: "text-responsive-xs",
+          text: 'text-responsive-xs',
         };
-      case "sm":
+      case 'sm':
         return {
-          text: "text-responsive-xs",
+          text: 'text-responsive-xs',
         };
-      case "md":
+      case 'md':
         return {
-          text: "text-responsive-sm",
+          text: 'text-responsive-sm',
         };
       default:
         return {
-          text: "text-responsive-xs",
+          text: 'text-responsive-xs',
         };
     }
   };
@@ -74,11 +74,9 @@ export default function CardMatchScore({
 
   if (useColorStyling && colors) {
     return (
-      <div
-        className={`flex items-center gap-responsive-xs flex-shrink-0 ${className}`}
-      >
+      <div className={`gap-responsive-xs flex flex-shrink-0 items-center ${className}`}>
         <span
-          className={`font-medium ${sizeClasses.text} whitespace-nowrap px-2 py-1 rounded`}
+          className={`font-medium ${sizeClasses.text} whitespace-nowrap rounded px-2 py-1`}
           style={{
             backgroundColor: colors.fillColor,
             color: colors.strokeColor,
@@ -91,9 +89,7 @@ export default function CardMatchScore({
   }
 
   return (
-    <div
-      className={`flex items-center gap-responsive-xs text-brown flex-shrink-0 ${className}`}
-    >
+    <div className={`gap-responsive-xs flex flex-shrink-0 items-center text-brown ${className}`}>
       <span className={`font-medium ${sizeClasses.text} whitespace-nowrap`}>
         {score}/{maxScore}
       </span>

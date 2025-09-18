@@ -1,20 +1,52 @@
 import { useState, useEffect } from "react";
-import { BrowserRouter } from "react-router-dom";
+
+// Note: StrictMode is disabled for cleaner development logs
+// Re-enable by wrapping App with <StrictMode> in main.tsx when debugging React issues
+
+import ToastsPortal from "../components/feedback/ToastsPortal";
+import { SessionTimeoutWarning } from "../components/security/SessionTimeoutWarning";
+import { useSavedHomesStoreIntegration } from "../core/hooks/store/useSavedHomesStoreIntegration";
+import { useDocumentsStoreIntegration } from "../core/hooks/store/useDocumentsStoreIntegration";
+import { useGoogleMapsStoreIntegration } from "../core/hooks/store/useGoogleMapsStoreIntegration";
+// import { useBillingStoreIntegration } from "../core/hooks/store/useBillingStoreIntegration"; // Removed - billing should only load on billing pages
+import { useSessionTimeout } from "../core/hooks/ui/useSessionTimeout";
+import type { UserProfile } from "../core/schemas/user";
+import { initializeErrorReporting } from "../core/services/security/errorReporting";
 import MaintenanceScreen from "../pages/HomeAuth/MaintenanceScreen";
-import { AppProviders } from "./providers/AppProviders";
-import { UserProfile } from "../context";
-import { AppWithRouter } from "./AppWithRouter";
-import {
-  initializeErrorReporting,
-  setUserContext,
-  clearUserContext,
-} from "../lib/security/errorReporting";
-import { log } from "../lib/security/secureLogger";
+
+import { useAuthStoreIntegration } from "../core/hooks/store/useAuthStoreIntegration";
+import { AppRoutes } from "./routes";
 
 function App() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [maintenance, setMaintenance] = useState(false); // Only show maintenance if health check fails
+  const [healthCheckComplete, setHealthCheckComplete] = useState(false);
+
+  // Initialize globally needed store integrations
+  // Note: useReportsStoreIntegration is now conditional - only loads on pages that need reports
+  useSavedHomesStoreIntegration();
+  useDocumentsStoreIntegration();
+  useGoogleMapsStoreIntegration();
+  // useBillingStoreIntegration(); // Removed - billing info should only load on billing pages
+  useAuthStoreIntegration();
+
+  // Auth readiness from Zustand store
+  const {
+    authReady,
+    user: authUser,
+    logout: authLogout,
+  } = useAuthStoreIntegration();
+
+  const sessionTimeout = useSessionTimeout({
+    idleTimeoutMs: 30 * 60 * 1000, // 30 minutes idle
+    maxSessionMs: 8 * 60 * 60 * 1000, // 8 hours max
+    warningTimeMs: 5 * 60 * 1000, // 5 minute warning
+  }) as {
+    timeRemaining: number;
+    extendSession: () => void;
+    showWarning: boolean;
+  };
 
   // Health check
   useEffect(() => {
@@ -23,13 +55,19 @@ function App() {
       .then((res) => {
         if (!res.ok) {
           console.error("/healthz responded with status:", res.status);
-          throw new Error("Healthz failed with status: " + res.status);
+          throw new Error(`Healthz failed with status: ${res.status}`);
         }
         return res.json();
       })
-      .then((data) => {
+      .then((data: unknown) => {
         if (isMounted) {
-          if (data && data.status === "ok") {
+          if (
+            data &&
+            typeof data === "object" &&
+            data !== null &&
+            "status" in data &&
+            (data as { status: string }).status === "ok"
+          ) {
             setMaintenance(false);
           } else {
             setMaintenance(true);
@@ -44,7 +82,7 @@ function App() {
         }
       })
       .finally(() => {
-        if (isMounted) setLoading(false);
+        if (isMounted) setHealthCheckComplete(true);
       });
     return () => {
       isMounted = false;
@@ -53,111 +91,71 @@ function App() {
 
   // Initialize error reporting on app start
   useEffect(() => {
-    const sentryDsn = import.meta.env.VITE_SENTRY_DSN;
-    if (sentryDsn) {
-      initializeErrorReporting({
-        dsn: sentryDsn,
-      });
-    }
+    void import("../core/config").then(({ sentryDsn }) => {
+      if (sentryDsn) {
+        void initializeErrorReporting({
+          dsn: sentryDsn,
+        });
+      }
+    });
     // Sentry infrastructure ready but not actively warning when DSN not configured
   }, []);
 
+  // Wait for both health check and auth store to be ready before showing routes
   useEffect(() => {
-    log.debug('APP', 'Checking for saved user in localStorage');
-    const savedUser = localStorage.getItem("user");
-    if (savedUser) {
-      log.info('APP', 'Found saved user data in localStorage');
-      const parsedUser = JSON.parse(savedUser);
-      log.info('APP', 'User authenticated successfully');
-      setUser(parsedUser);
-      // Set user context for error reporting (secure logger will automatically scrub PII)
-      setUserContext(parsedUser.id || parsedUser.user_sub, {
-        email: parsedUser.email,
-        role: parsedUser.role,
-      });
-    } else {
-      log.debug('APP', 'No saved user found in localStorage');
+    // Only set loading to false when both health check is done AND auth is ready
+    if (healthCheckComplete && authReady) {
+      // Add a small delay to prevent rapid state transitions that cause flashing
+      const timer = setTimeout(() => {
+        setLoading(false);
+      }, 100);
+
+      return () => clearTimeout(timer);
     }
-    // Don't set loading to false here - wait for AuthProvider to be ready
+  }, [healthCheckComplete, authReady]);
 
-    // Listen for auth changes (login/logout)
-    const handleAuthChange = () => {
-      const savedUser = localStorage.getItem("user");
-      if (savedUser) {
-        log.info("APP", "Auth change: User found, updating state");
-        const parsedUser = JSON.parse(savedUser);
-        setUser(parsedUser);
-        setUserContext(parsedUser.id || parsedUser.user_sub, {
-          email: parsedUser.email,
-          role: parsedUser.role,
-        });
-      } else {
-        log.info("APP", "Auth change: No user found, clearing state");
-        setUser(null);
-        clearUserContext();
-      }
-    };
-
-    // Listen for storage changes from other tabs
-    window.addEventListener("storage", handleAuthChange);
-
-    // Listen for custom auth events from same tab
-    window.addEventListener("authChange", handleAuthChange);
-
-    return () => {
-      window.removeEventListener("storage", handleAuthChange);
-      window.removeEventListener("authChange", handleAuthChange);
-    };
-  }, []);
-
-  const handleLogout = () => {
-    console.log("[APP] 🚪 Logout initiated");
-    
-    // Call secure auth logout if available
-    if ((window as any).secureLogout) {
-      console.log("[APP] 🔒 Calling secure auth logout");
-      (window as any).secureLogout();
+  // Sync auth user with local state
+  useEffect(() => {
+    if (authUser) {
+      setUser(authUser);
     } else {
-      // Fallback: clear tokens manually
-      console.log("[APP] 🧹 Secure auth not available, clearing tokens manually");
       setUser(null);
-      clearUserContext();
-
-      // Clear all authentication-related storage
-      localStorage.removeItem("user");
-      localStorage.removeItem("access_token");
-      localStorage.removeItem("id_token");
-      localStorage.removeItem("signupEmail");
-      sessionStorage.removeItem("access_token");
-      sessionStorage.removeItem("refresh_token");
-
-      // Clear secure auth tokens
-      if ((window as any).clearSecureTokens) {
-        (window as any).clearSecureTokens();
-      }
-
-      // Dispatch auth change event
-      window.dispatchEvent(new Event("authChange"));
-      console.log("[APP] 📢 Dispatched authChange event");
     }
-  };
+  }, [authUser]);
+
+  // Get logout function from Zustand auth store
+  const logout = authLogout;
+
+  // Show loading state if any of these conditions are true
+  const isLoading = loading || !authReady;
 
   return (
-    <AppProviders>
-      <BrowserRouter
-        future={{ v7_relativeSplatPath: true, v7_startTransition: true }}
-      >
-        {loading ? (
-          <div className="min-h-screen bg-off-white flex items-center justify-center">
-            <div className="shimmer w-32 h-8 rounded-lg"></div>
-          </div>
-        ) : maintenance ? (
-          <MaintenanceScreen />
-        ) : (
-          <AppWithRouter user={user} handleLogout={handleLogout} setLoading={setLoading} />
-        )}
-      </BrowserRouter>
-    </AppProviders>
+    <>
+      {isLoading ? (
+        <div className="flex min-h-screen items-center justify-center bg-off-white">
+          <div className="shimmer h-8 w-32 rounded-lg"></div>
+        </div>
+      ) : maintenance ? (
+        <MaintenanceScreen />
+      ) : (
+        <div className="min-h-screen bg-off-white">
+          <AppRoutes user={user} handleLogout={logout} />
+
+          {/* Session timeout warning for authenticated users */}
+          {user && (
+            <SessionTimeoutWarning
+              timeRemaining={sessionTimeout.timeRemaining}
+              onExtendSession={sessionTimeout.extendSession}
+              onLogout={logout}
+              isVisible={sessionTimeout.showWarning}
+            />
+          )}
+
+          {/* Global toasts */}
+          <ToastsPortal />
+        </div>
+      )}
+    </>
   );
 }
 

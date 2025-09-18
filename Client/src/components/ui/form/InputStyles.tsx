@@ -1,12 +1,8 @@
-import React from "react";
+import React from 'react';
 
-// Export the shared styles function for use in other components
-// Uses direct responsive classes exactly like onboarding components
-export const getSharedInputTextStyles = () => {
-  return `text-gray-600 text-xs sm:text-sm md:text-base text-left leading-tight disabled:text-gray-400`;
-};
+import { getSharedInputTextStyles } from './InputStyleUtils';
 
-interface InputStylesProps {
+type InputStylesProps = {
   children: React.ReactNode;
   disabled?: boolean;
   isOpen?: boolean;
@@ -15,21 +11,21 @@ interface InputStylesProps {
   type?: 'input' | 'dropdown-trigger' | 'dropdown-option' | 'dropdown-container' | 'shared-text';
   isSelected?: boolean;
   isFirstOption?: boolean;
-}
+};
 
 const InputStyles: React.FC<InputStylesProps> = ({
   children,
   disabled = false,
   isOpen = false,
   onClick,
-  className = "",
-  type = "input",
+  className = '',
+  type = 'input',
   isSelected = false,
   isFirstOption = false,
 }) => {
   const getStyles = () => {
     switch (type) {
-      case "input":
+      case 'input':
         return `
           w-full h-12 px-4 border border-beige rounded-lg bg-white
           hover:bg-brown/5 transition-colors duration-150 touch-friendly mobile-input
@@ -39,7 +35,7 @@ const InputStyles: React.FC<InputStylesProps> = ({
           ${getSharedInputTextStyles()}
         `;
 
-      case "dropdown-trigger":
+      case 'dropdown-trigger':
         return `
           w-full h-12 px-4 border border-beige rounded-lg
           bg-white
@@ -51,35 +47,31 @@ const InputStyles: React.FC<InputStylesProps> = ({
           ${getSharedInputTextStyles()}
         `;
 
-      case "dropdown-container":
+      case 'dropdown-container':
         return `
           absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 
           rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto
         `;
 
-      case "dropdown-option":
+      case 'dropdown-option':
         return `
           w-full px-4 py-3 text-left text-xs sm:text-sm md:text-base
           transition-colors duration-150 touch-friendly outline-none
-          ${
-            isSelected
-              ? "bg-gray-100 text-gray-900 font-medium"
-              : "text-gray-600"
-          }
+          ${isSelected ? 'bg-gray-100 text-gray-900 font-medium' : 'text-gray-600'}
           hover:bg-gray-50 hover:text-gray-700 hover:font-normal
           active:bg-gray-100 focus:bg-gray-50
-          ${!isFirstOption ? "border-t border-gray-200" : ""}
+          ${!isFirstOption ? 'border-t border-gray-200' : ''}
         `;
 
-      case "shared-text":
+      case 'shared-text':
         return getSharedInputTextStyles();
 
       default:
-        return "";
+        return '';
     }
   };
 
-  if (type === "dropdown-trigger") {
+  if (type === 'dropdown-trigger') {
     return (
       <button
         onClick={onClick}
@@ -93,7 +85,7 @@ const InputStyles: React.FC<InputStylesProps> = ({
     );
   }
 
-  if (type === "dropdown-option") {
+  if (type === 'dropdown-option') {
     return (
       <button
         onClick={onClick}
@@ -106,7 +98,7 @@ const InputStyles: React.FC<InputStylesProps> = ({
     );
   }
 
-  if (type === "dropdown-container") {
+  if (type === 'dropdown-container') {
     return (
       <div className={`${getStyles()} ${className}`} role="listbox">
         {children}
@@ -114,12 +106,8 @@ const InputStyles: React.FC<InputStylesProps> = ({
     );
   }
 
-  if (type === "input") {
-    return (
-      <input className={`${getStyles()} ${className}`}>
-        {children}
-      </input>
-    );
+  if (type === 'input') {
+    return <input className={`${getStyles()} ${className}`}>{children}</input>;
   }
 
   return <div className={`${getStyles()} ${className}`}>{children}</div>;

@@ -1,77 +1,70 @@
 // React imports
-import { useState, useMemo, ReactNode, useEffect } from "react";
+import React, { useState, useMemo, useCallback, type ReactNode } from "react";
 import { useLocation } from "react-router-dom";
 
 // Types
-import { UserProfile } from "../../types/user";
-
 // Context and hooks
-import { useAgent } from "../../context/AgentContext";
-import useMobile from "../../hooks/useMobile";
-
 // Layout components
-import Sidebar from "../../widgets/sidebar/Sidebar";
-import MobileSidebar from "../../widgets/sidebar/MobileSidebar";
-import PageHeader from "../../widgets/header/PageHeader";
-import MobileTopBar from "../../widgets/header/MobileTopBar";
-
+import MobileTopBar from "../../components/widgets/header/MobileTopBar";
+import PageHeader from "../../components/widgets/header/PageHeader";
+import MobileSidebar from "../../components/widgets/sidebar/MobileSidebar";
+import Sidebar from "../../components/widgets/sidebar/Sidebar";
+// import useMobile from '../../core/hooks/ui/useMobile';
+import type { UserProfile } from "../../core/schemas/user";
 // Feature components
-import TimelineChecklist from "../../features/dashboard/DashboardButtonHeader";
+import { useViewStore } from "../../core/store/view.slice";
 import ClosePageHeader from "../../features/close/ClosePageHeader";
-
+import TimelineChecklist from "../../features/dashboard/DashboardButtonHeader";
 // Page components - Dashboard
-import DashboardPage from "../../pages/Dashboard";
-
 // Page components - Search
-import SearchPage from "../../pages/Search/SearchPage";
-import SavedHomes from "../../pages/Search/SavedHomes";
-
+import SearchMobileHeader from "../../features/search/components/mobile/SearchMobileHeader";
 // Page components - Decide
+import ClosingMovingIn from "../../pages/Close/ClosingMovingIn";
+import EscrowLegalLogistics from "../../pages/Close/EscrowLegalLogistics";
+import FinancingInsurance from "../../pages/Close/FinancingInsurance";
+import InspectionsDueDiligence from "../../pages/Close/InspectionsDueDiligence";
+import DashboardPage from "../../pages/misc/Dashboard";
+import Calendar from "../../pages/misc/Calendar";
+import AIAssistant from "../../pages/Decide/AIAssistant";
+import CompareReportsPage from "../../pages/Decide/CompareReportsPage";
 import GenerateReportPage from "../../pages/Decide/GenerateReportPage";
 import PastReports from "../../pages/Decide/PastReports";
-import CompareReportsPage from "../../pages/Decide/CompareReportsPage";
-import AIAssistant from "../../pages/Decide/AIAssistant";
-
 // Page components - Negotiate
-import OfferDraftPage from "../../pages/Negotiate/OfferDraftPage";
 import NegotiationStrategy from "../../pages/Negotiate/NegotiationStrategy";
-
 // Page components - Close
-import EscrowLegalLogistics from "../../pages/Close/EscrowLegalLogistics";
-import InspectionsDueDiligence from "../../pages/Close/InspectionsDueDiligence";
-import FinancingInsurance from "../../pages/Close/FinancingInsurance";
-import ClosingMovingIn from "../../pages/Close/ClosingMovingIn";
-
 // Page components - Onboard
 import PersonalizationPage from "../../pages/Onboard/PersonalizationPage";
+import ProofOfFunds from "../../pages/Onboard/ProofOfFunds";
 import Subscription from "../../pages/Onboard/Subscription";
+import SavedHomes from "../../pages/Search/SavedHomes";
+import SearchPage from "../../pages/Search/SearchPage";
 
-interface HeaderConfig {
+type HeaderConfig = {
   type: "rheader" | "none";
   title?: string;
   subtitle?: string;
-}
+};
 
-interface ClosePageHeaderData {
+type ClosePageHeaderData = {
   title: string;
   subtitle: string;
   completedCount: number;
   totalCount: number;
   loading: boolean;
-}
+};
 
-interface DashboardProps {
+type DashboardProps = {
   user?: UserProfile;
   onLogout: () => void;
   header?: HeaderConfig;
   mobileHeader?: React.ReactNode; // Allow passing a custom mobile header
   maxWidth?: number; // Percentage value (e.g., 85 for 85%)
-}
+};
 
 // Page-specific width configuration
-interface PageWidthConfig {
+type PageWidthConfig = {
   [path: string]: number; // Percentage values
-}
+};
 
 const PAGE_WIDTH_CONFIG: PageWidthConfig = {
   "/search": 100,
@@ -91,15 +84,21 @@ export default function DashboardLayout({
     useState<ReactNode | null>(null);
   const [closePageHeaderData, setClosePageHeaderData] =
     useState<ClosePageHeaderData | null>(null);
-  const isMobile = useMobile();
-  const [sidebarExpanded, setSidebarExpanded] = useState(!isMobile); // Default to collapsed on mobile, expanded on desktop
+  const sidebarExpanded = useViewStore((s) => s.sidebarExpanded);
+  const setSidebarExpanded = useViewStore((s) => s.setSidebarExpanded);
   const location = useLocation();
-  const { getAgentConnectionComponent } = useAgent();
 
-  // Update sidebar state when switching between mobile and desktop
-  useEffect(() => {
-    setSidebarExpanded(!isMobile);
-  }, [isMobile]);
+  // Search page handlers
+  const handleSearchPreferences = useCallback(() => {
+    // Navigate to preferences page
+    window.location.href = "/dashboard/personalization";
+  }, []);
+
+  const handleSearch = useCallback(() => {
+    // Trigger search - this will be handled by the search page itself
+    // We can dispatch a custom event that the search page can listen to
+    window.dispatchEvent(new CustomEvent("triggerSearch"));
+  }, []);
 
   // Get page-specific width configuration based on current route
   const getPageWidth = (): number => {
@@ -118,13 +117,13 @@ export default function DashboardLayout({
     const path = location.pathname;
     if (header) return header;
 
-    if (path.startsWith("/escrow-legal-logistics")) {
+    if (path.startsWith("/close/escrow-legal-logistics")) {
       return { type: "none", title: "Escrow & Legal" };
-    } else if (path.startsWith("/inspections-due-diligence")) {
+    } else if (path.startsWith("/close/inspections-due-diligence")) {
       return { type: "none", title: "Inspections" };
-    } else if (path.startsWith("/financing-insurance")) {
+    } else if (path.startsWith("/close/financing-insurance")) {
       return { type: "none", title: "Financing & Insurance" };
-    } else if (path.startsWith("/closing-moving-in")) {
+    } else if (path.startsWith("/close/closing-moving-in")) {
       return { type: "none", title: "Closing" };
     } else if (path.startsWith("/generate-report")) {
       return {
@@ -148,6 +147,12 @@ export default function DashboardLayout({
         title: "Personalization",
         subtitle: "Customize your home search preferences",
       };
+    } else if (path.startsWith("/proof-of-funds")) {
+      return {
+        type: "rheader",
+        title: "Proof of Funds",
+        subtitle: "Upload and manage your financial documentation",
+      };
     } else if (path.startsWith("/negotiation-strategy")) {
       return {
         type: "rheader",
@@ -167,7 +172,7 @@ export default function DashboardLayout({
         subtitle: "Manage your SilverKey membership and billing",
       };
     } else if (
-      path.startsWith("/agent-connection") ||
+      path.startsWith("/agent-connection") ??
       path.startsWith("/client-information")
     ) {
       return {
@@ -187,6 +192,12 @@ export default function DashboardLayout({
         title: "Compare Reports",
         subtitle: "Side-by-side analysis of multiple properties",
       };
+    } else if (path.startsWith("/calendar")) {
+      return {
+        type: "rheader",
+        title: "Calendar",
+        subtitle: "Manage your schedule and appointments",
+      };
     } else {
       return { type: "none", title: "Dashboard" };
     }
@@ -196,13 +207,7 @@ export default function DashboardLayout({
     const path = location.pathname;
 
     // Use ClosePageHeader for Close pages
-    if (
-      closePageHeaderData &&
-      (path.startsWith("/escrow-legal-logistics") ||
-        path.startsWith("/inspections-due-diligence") ||
-        path.startsWith("/financing-insurance") ||
-        path.startsWith("/closing-moving-in"))
-    ) {
+    if (closePageHeaderData && path.startsWith("/close")) {
       return (
         <ClosePageHeader
           title={closePageHeaderData.title}
@@ -220,10 +225,6 @@ export default function DashboardLayout({
     return null;
   }, [config, closePageHeaderData, location.pathname]);
 
-  const mobileOverrides: { [key: string]: React.ReactNode } = {
-    // Example: "/search": <SearchHeaderComponent />,
-  };
-
   const mobileHeaderContent = useMemo(() => {
     const path = location.pathname;
 
@@ -233,13 +234,7 @@ export default function DashboardLayout({
     }
 
     // Check for Close pages first - render ClosePageHeader if data is available
-    if (
-      closePageHeaderData &&
-      (path.startsWith("/escrow-legal-logistics") ||
-        path.startsWith("/inspections-due-diligence") ||
-        path.startsWith("/financing-insurance") ||
-        path.startsWith("/closing-moving-in"))
-    ) {
+    if (closePageHeaderData && path.startsWith("/close")) {
       return (
         <ClosePageHeader
           title={closePageHeaderData.title}
@@ -268,6 +263,16 @@ export default function DashboardLayout({
       return mobileHeader;
     }
 
+    // Mobile overrides - defined inside useMemo to avoid dependency issues
+    const mobileOverrides: { [key: string]: React.ReactNode } = {
+      "/search": (
+        <SearchMobileHeader
+          onPreferences={handleSearchPreferences}
+          onSearch={handleSearch}
+        />
+      ),
+    };
+
     const override = Object.keys(mobileOverrides).find((key) =>
       path.startsWith(key)
     );
@@ -281,14 +286,15 @@ export default function DashboardLayout({
   }, [
     location.pathname,
     config,
-    mobileOverrides,
     mobileHeader,
     mobileHeaderActions,
     closePageHeaderData,
+    handleSearchPreferences,
+    handleSearch,
   ]);
 
   return (
-    <div className="min-h-screen bg-off-white flex">
+    <div className="flex min-h-screen bg-off-white">
       {/* Desktop Sidebar - Hidden on mobile */}
       <div className="hidden lg:block">
         <Sidebar
@@ -310,14 +316,14 @@ export default function DashboardLayout({
       </div>
 
       <main
-        className={`flex-1 transition-all duration-200 ml-0 ${
+        className={`ml-0 flex-1 transition-all duration-200 ${
           sidebarExpanded ? "lg:ml-64" : "lg:ml-16"
         }`}
       >
         {/* Mobile Header - Hidden on desktop */}
         <div className="lg:hidden">
           <MobileTopBar sidebarExpanded={sidebarExpanded}>
-            <div className="flex-grow text-center flex items-center justify-center">
+            <div className="flex flex-grow items-center justify-center text-center">
               {mobileHeaderContent}
             </div>
           </MobileTopBar>
@@ -331,7 +337,7 @@ export default function DashboardLayout({
 
         {/* Desktop Header Rendering with consistent width - Hidden on mobile */}
         {!location.pathname.startsWith("/search") && (
-          <div className="hidden lg:block pt-8">{headerContent}</div>
+          <div className="hidden pt-8 lg:block">{headerContent}</div>
         )}
 
         {/* Content area with centralized width parameter */}
@@ -339,13 +345,8 @@ export default function DashboardLayout({
           className={`mx-auto w-full ${
             location.pathname.startsWith("/search")
               ? "h-[calc(100vh-80px)] lg:h-[calc(100vh-0px)]" // Full height for search page
-              : `p-4 sm:p-6 lg:p-8 ${
-                  location.pathname.startsWith("/escrow-legal-logistics") ||
-                  location.pathname.startsWith("/inspections-due-diligence") ||
-                  location.pathname.startsWith("/financing-insurance") ||
-                  location.pathname.startsWith("/closing-moving-in")
-                    ? ""
-                    : "lg:pt-8"
+              : `p-4 sm:p-6 lg:p-8 mt-4 lg:mt-0 ${
+                  location.pathname.startsWith("/close") ? "" : "lg:pt-8"
                 }`
           }`}
           style={{
@@ -360,43 +361,40 @@ export default function DashboardLayout({
           {location.pathname.startsWith("/compare-reports") && (
             <CompareReportsPage />
           )}
-          {location.pathname.startsWith("/search") && (
-            <SearchPage setMobileHeaderActions={setMobileHeaderActions} />
-          )}
+          {location.pathname.startsWith("/search") && <SearchPage />}
           {location.pathname.startsWith("/ai-assistant") && <AIAssistant />}
           {location.pathname.startsWith("/personalization") && (
             <PersonalizationPage
               setMobileHeaderActions={setMobileHeaderActions}
             />
           )}
+          {location.pathname.startsWith("/proof-of-funds") && <ProofOfFunds />}
           {location.pathname.startsWith("/subscription") && <Subscription />}
-          {(location.pathname.startsWith("/client-information") ||
-            location.pathname.startsWith("/agent-connection")) &&
-            getAgentConnectionComponent()}
-          {location.pathname.startsWith("/draft-offer") && <OfferDraftPage />}
+          {/* {location.pathname.startsWith("/draft-offer") && <OfferDraftPage />} */}
           {location.pathname.startsWith("/negotiation-strategy") && (
             <NegotiationStrategy />
           )}
-          {location.pathname.startsWith("/escrow-legal-logistics") && (
+          {location.pathname.startsWith("/close/escrow-legal-logistics") && (
             <EscrowLegalLogistics
               setClosePageHeaderData={setClosePageHeaderData}
             />
           )}
-          {location.pathname.startsWith("/inspections-due-diligence") && (
+          {location.pathname.startsWith("/close/inspections-due-diligence") && (
             <InspectionsDueDiligence
               setClosePageHeaderData={setClosePageHeaderData}
             />
           )}
-          {location.pathname.startsWith("/financing-insurance") && (
+          {location.pathname.startsWith("/close/financing-insurance") && (
             <FinancingInsurance
               setClosePageHeaderData={setClosePageHeaderData}
             />
           )}
-          {location.pathname.startsWith("/closing-moving-in") && (
+          {location.pathname.startsWith("/close/closing-moving-in") && (
             <ClosingMovingIn setClosePageHeaderData={setClosePageHeaderData} />
           )}
           {location.pathname.startsWith("/saved") && <SavedHomes />}
           {location.pathname.startsWith("/dashboard") && <DashboardPage />}
+          {location.pathname.startsWith("/calendar") && <Calendar />}
         </div>
       </main>
     </div>

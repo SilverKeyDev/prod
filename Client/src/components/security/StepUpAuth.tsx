@@ -3,15 +3,16 @@
  * Requires users to re-authenticate with password and optional MFA for sensitive actions
  */
 
-import React, { useState, useEffect } from "react";
 import { Shield, AlertTriangle, Lock } from "lucide-react";
+import React, { useState, useEffect } from "react";
+
+import { reportSecurityEvent } from "../../core/services/security/errorReporting";
+import { log } from "../../core/services/security/secureLogger";
 import BaseModal from "../modals/BaseModal";
 import Button from "../ui/button/Button";
 import Input from "../ui/form/Input";
-import { log } from "../../lib/security/secureLogger";
-import { reportSecurityEvent } from "../../lib/security/errorReporting";
 
-interface StepUpAuthProps {
+type StepUpAuthProps = {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
@@ -20,7 +21,7 @@ interface StepUpAuthProps {
   requireMFA?: boolean;
   maxAttempts?: number;
   lockoutDuration?: number;
-}
+};
 
 export const StepUpAuth: React.FC<StepUpAuthProps> = ({
   isOpen,
@@ -55,16 +56,16 @@ export const StepUpAuth: React.FC<StepUpAuthProps> = ({
   // Check if user is locked out from previous attempts
   const checkLockoutStatus = () => {
     const lockoutKey = `stepup_lockout_${Date.now()}`;
-    const lockoutData = localStorage.getItem(lockoutKey);
+    const lockoutData = sessionStorage.getItem(lockoutKey);
 
     if (lockoutData) {
-      const { until } = JSON.parse(lockoutData);
-      if (Date.now() < until) {
+      const parsedData = JSON.parse(lockoutData) as { until: number };
+      if (Date.now() < parsedData.until) {
         setIsLockedOut(true);
-        setLockoutEndTime(until);
+        setLockoutEndTime(parsedData.until);
         return;
       } else {
-        localStorage.removeItem(lockoutKey);
+        sessionStorage.removeItem(lockoutKey);
       }
     }
 
@@ -93,7 +94,7 @@ export const StepUpAuth: React.FC<StepUpAuthProps> = ({
     // Check for lockout after failed attempts
     if (!success && attempts >= maxAttempts) {
       const lockoutUntil = Date.now() + lockoutDuration;
-      localStorage.setItem(
+      sessionStorage.setItem(
         `stepup_lockout_${Date.now()}`,
         JSON.stringify({
           until: lockoutUntil,
@@ -119,19 +120,45 @@ export const StepUpAuth: React.FC<StepUpAuthProps> = ({
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         },
         body: JSON.stringify({ password }),
       });
 
       if (response.ok) {
-        const data = await response.json();
+        const data = (await response.json()) as { valid: boolean };
         return data.valid === true;
       }
 
       return false;
-    } catch (error) {
-      log.error("STEP_UP_AUTH", "Password validation failed", error);
+    } catch (error: unknown) {
+      // Type-safe error handling with proper type guards
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : typeof error === "object" && error !== null
+            ? (() => {
+                try {
+                  return JSON.stringify(error);
+                } catch {
+                  return "[Object]";
+                }
+              })()
+            : (() => {
+                try {
+                  if (typeof error === "string") return error;
+                  if (typeof error === "number") return String(error);
+                  if (typeof error === "boolean") return String(error);
+                  if (error === null || error === undefined)
+                    return "Unknown error";
+                  return "[Unknown]";
+                } catch {
+                  return "[Unknown]";
+                }
+              })();
+      log.error("STEP_UP_AUTH", "Password validation failed", {
+        error: errorMessage,
+      });
       return false;
     }
   };
@@ -143,19 +170,45 @@ export const StepUpAuth: React.FC<StepUpAuthProps> = ({
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         },
         body: JSON.stringify({ code }),
       });
 
       if (response.ok) {
-        const data = await response.json();
+        const data = (await response.json()) as { valid: boolean };
         return data.valid === true;
       }
 
       return false;
-    } catch (error) {
-      log.error("STEP_UP_AUTH", "MFA validation failed", error);
+    } catch (error: unknown) {
+      // Type-safe error handling with proper type guards
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : typeof error === "object" && error !== null
+            ? (() => {
+                try {
+                  return JSON.stringify(error);
+                } catch {
+                  return "[Object]";
+                }
+              })()
+            : (() => {
+                try {
+                  if (typeof error === "string") return error;
+                  if (typeof error === "number") return String(error);
+                  if (typeof error === "boolean") return String(error);
+                  if (error === null || error === undefined)
+                    return "Unknown error";
+                  return "[Unknown]";
+                } catch {
+                  return "[Unknown]";
+                }
+              })();
+      log.error("STEP_UP_AUTH", "MFA validation failed", {
+        error: errorMessage,
+      });
       return false;
     }
   };
@@ -187,10 +240,36 @@ export const StepUpAuth: React.FC<StepUpAuthProps> = ({
           description: "Step-up authentication password validation failed",
         });
       }
-    } catch (error) {
+    } catch (error: unknown) {
       recordAttempt(false);
       setError("Authentication failed. Please try again.");
-      log.error("STEP_UP_AUTH", "Password validation error", error);
+      // Type-safe error handling with proper type guards
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : typeof error === "object" && error !== null
+            ? (() => {
+                try {
+                  return JSON.stringify(error);
+                } catch {
+                  return "[Object]";
+                }
+              })()
+            : (() => {
+                try {
+                  if (typeof error === "string") return error;
+                  if (typeof error === "number") return String(error);
+                  if (typeof error === "boolean") return String(error);
+                  if (error === null || error === undefined)
+                    return "Unknown error";
+                  return "[Unknown]";
+                } catch {
+                  return "[Unknown]";
+                }
+              })();
+      log.error("STEP_UP_AUTH", "Password validation error", {
+        error: errorMessage,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -219,10 +298,36 @@ export const StepUpAuth: React.FC<StepUpAuthProps> = ({
           description: "Step-up authentication MFA validation failed",
         });
       }
-    } catch (error) {
+    } catch (error: unknown) {
       recordAttempt(false);
       setError("MFA validation failed. Please try again.");
-      log.error("STEP_UP_AUTH", "MFA validation error", error);
+      // Type-safe error handling with proper type guards
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : typeof error === "object" && error !== null
+            ? (() => {
+                try {
+                  return JSON.stringify(error);
+                } catch {
+                  return "[Object]";
+                }
+              })()
+            : (() => {
+                try {
+                  if (typeof error === "string") return error;
+                  if (typeof error === "number") return String(error);
+                  if (typeof error === "boolean") return String(error);
+                  if (error === null || error === undefined)
+                    return "Unknown error";
+                  return "[Unknown]";
+                } catch {
+                  return "[Unknown]";
+                }
+              })();
+      log.error("STEP_UP_AUTH", "MFA validation error", {
+        error: errorMessage,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -251,14 +356,14 @@ export const StepUpAuth: React.FC<StepUpAuthProps> = ({
   const headerContent = (
     <div className="flex items-center space-x-2">
       <Shield className="h-5 w-5 text-brand-accent" />
-      <span className="text-base sm:text-lg font-medium text-gray-900">
+      <span className="text-base font-medium text-gray-900 sm:text-lg">
         {title}
       </span>
     </div>
   );
 
   const footerContent = (
-    <div className="flex flex-col sm:flex-row gap-3 sm:gap-2 sm:justify-end">
+    <div className="flex flex-col gap-3 sm:flex-row sm:justify-end sm:gap-2">
       <Button
         variant="ghost"
         onClick={onClose}
@@ -291,9 +396,9 @@ export const StepUpAuth: React.FC<StepUpAuthProps> = ({
       closeOnBackdropClick={false}
     >
       {/* Action Description */}
-      <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+      <div className="mb-6 rounded-lg border border-yellow-200 bg-yellow-50 p-4">
         <div className="flex items-start">
-          <AlertTriangle className="w-5 h-5 text-yellow-600 mr-2 mt-0.5 flex-shrink-0" />
+          <AlertTriangle className="mr-2 mt-0.5 h-5 w-5 flex-shrink-0 text-yellow-600" />
           <div>
             <p className="text-sm font-medium text-yellow-800">{description}</p>
           </div>
@@ -302,9 +407,9 @@ export const StepUpAuth: React.FC<StepUpAuthProps> = ({
 
       {/* Lockout Message */}
       {isLockedOut && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4">
           <div className="flex items-center">
-            <AlertTriangle className="w-5 h-5 text-red-600 mr-2" />
+            <AlertTriangle className="mr-2 h-5 w-5 text-red-600" />
             <div>
               <p className="text-sm font-medium text-red-800">
                 Account Temporarily Locked
@@ -326,9 +431,11 @@ export const StepUpAuth: React.FC<StepUpAuthProps> = ({
             label="Password"
             type="password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setPassword(e.target.value)
+            }
             placeholder="Enter your password"
-            disabled={isLoading || isLockedOut}
+            disabled={isLoading ?? isLockedOut}
             required
             showPasswordToggle
             autoComplete="current-password"
@@ -346,11 +453,11 @@ export const StepUpAuth: React.FC<StepUpAuthProps> = ({
               label="MFA Code"
               type="text"
               value={mfaCode}
-              onChange={(e) =>
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 setMfaCode(e.target.value.replace(/\D/g, "").slice(0, 6))
               }
               placeholder="Enter 6-digit MFA code"
-              disabled={isLoading || isLockedOut}
+              disabled={isLoading ?? isLockedOut}
               required
               maxLength={6}
               autoComplete="one-time-code"
@@ -361,7 +468,7 @@ export const StepUpAuth: React.FC<StepUpAuthProps> = ({
 
       {/* Error Message */}
       {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+        <div className="mb-4 rounded-md border border-red-200 bg-red-50 p-3">
           <p className="text-sm text-red-700">{error}</p>
         </div>
       )}

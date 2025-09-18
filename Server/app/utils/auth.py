@@ -159,18 +159,34 @@ def _log_expired_once(ip: str, endpoint: str, interval: int = 60):
 # Core: current user resolver
 # =========================
 def get_current_user():
-    """Get current user from Cognito JWT token with comprehensive validation and fallback."""
-    # Normalize and validate Authorization header
-    auth = request.headers.get("Authorization", "")
-    parts = auth.split()
-    if len(parts) != 2 or parts[0].lower() != "bearer":
-        if not auth:
-            log_security_event('auth_missing_header')
-            raise SecurityException(SecurityError.UNAUTHORIZED)
-        log_security_event('auth_invalid_header_format')
-        raise SecurityException(SecurityError.INVALID_TOKEN)
-
-    token = parts[1]
+    """
+    Get current user from Cognito JWT token with comprehensive validation and fallback.
+    Supports both HttpOnly cookies (preferred) and Authorization header (fallback).
+    """
+    token = None
+    
+    # Try to get token from HttpOnly cookie first (preferred method)
+    session_cookie = request.cookies.get('session')
+    if session_cookie:
+        token = session_cookie
+        current_app.logger.debug("Using token from HttpOnly cookie")
+    else:
+        # Fallback to Authorization header for backward compatibility
+        auth = request.headers.get("Authorization", "")
+        parts = auth.split()
+        if len(parts) == 2 and parts[0].lower() == "bearer":
+            token = parts[1]
+            current_app.logger.debug("Using token from Authorization header")
+        else:
+            if not auth:
+                log_security_event('auth_missing_token')
+                raise SecurityException(SecurityError.UNAUTHORIZED)
+            log_security_event('auth_invalid_header_format')
+            raise SecurityException(SecurityError.INVALID_TOKEN)
+    
+    if not token:
+        log_security_event('auth_missing_token')
+        raise SecurityException(SecurityError.UNAUTHORIZED)
 
     # Basic shape check (three parts)
     if token.count(".") != 2:

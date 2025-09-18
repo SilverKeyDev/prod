@@ -1,15 +1,28 @@
 import { Lightbulb, Home, Download, Share2 } from "lucide-react";
-import {
-  FavoriteHomesDropdown,
-  Loading,
-  Button,
-  Subtitle,
-} from "../../components/ui";
-import { Card, AlignedRow } from "../../components/layout";
-import { SectionBox, SectionTitle } from "../../features/negotiate";
+
 import { CardCarousel } from "../../components/cards/base";
-import CompCard, { CompData } from "../../components/cards/CompCard";
-import { useNegotiation } from "../../context/NegotiationContext";
+import CompCard from "../../components/cards/CompCard";
+import { AlignedRow } from "../../components/format";
+import { FavoriteHomesDropdown, Loading, Button } from "../../components/ui";
+import { useNegotiationStore } from "../../core/store/negotiation.slice";
+import { SectionBox, SectionTitle } from "../../features/negotiate";
+import { negotiationService } from "../../core/services/negotiation";
+
+// Types for negotiation data
+type FavoriteHome = {
+  user_id: string;
+  address: string;
+  beds: string;
+  baths: string;
+  sqft: string;
+  lot_size: string;
+  price: string;
+  image_url: string;
+  created_at: string;
+  updated_at: string;
+};
+
+// Removed unused CompsDataResponse type
 
 export default function NegotiationStrategy() {
   const {
@@ -18,11 +31,49 @@ export default function NegotiationStrategy() {
     compsData,
     isLoading,
     error,
-    handleHomeSelection,
-    handleGenerate,
-    handleDownloadJson,
-    handleShareJson,
-  } = useNegotiation();
+    setSelectedHome,
+    setStrategyData,
+    setCompsData,
+    setLoading,
+    setError,
+  } = useNegotiationStore();
+
+  // Create handler functions for compatibility
+  const handleHomeSelection = (home: unknown) => {
+    negotiationService.selectHome(home);
+  };
+
+  const handleGenerate = async () => {
+    setLoading(true);
+    setError(null);
+    await negotiationService.generateStrategy();
+  };
+
+  const handleDownloadJson = () => {
+    negotiationService.downloadStrategyJson();
+  };
+
+  const handleShareJson = async () => {
+    await negotiationService.shareStrategyJson();
+  };
+
+  // Extract error message for proper type handling
+  const errorMessage: string | null =
+    error && typeof error !== "object"
+      ? typeof error === "string"
+        ? error
+        : String(error)
+      : null;
+
+  // Type guard for loading state
+  const shouldShowLoading = (): boolean => {
+    return Boolean(isLoading);
+  };
+
+  // Type guard for error state
+  const shouldShowError = (): boolean => {
+    return Boolean(errorMessage);
+  };
 
   return (
     <div>
@@ -33,11 +84,14 @@ export default function NegotiationStrategy() {
           <SectionTitle icon={<Home className="mobile-icon-sm text-brown" />}>
             Select a Home
           </SectionTitle>
-          <Subtitle>Choose from Your Favorite Homes</Subtitle>
 
           <AlignedRow gap="sm" justify="start" widths={[80, 20]}>
             <FavoriteHomesDropdown
-              selectedHome={selectedHome}
+              selectedHome={
+                selectedHome && typeof selectedHome === "object"
+                  ? (selectedHome as FavoriteHome)
+                  : null
+              }
               onHomeSelect={handleHomeSelection}
               placeholder="Select a favorite home for strategy generation"
             />
@@ -57,38 +111,71 @@ export default function NegotiationStrategy() {
         </SectionBox>
 
         {/* Loading state */}
-        {isLoading && (
-          <SectionBox>
-            <div className="flex justify-center">
-              <Loading message="Generating your personalized negotiation strategy..." />
-            </div>
-          </SectionBox>
-        )}
+        {
+          (shouldShowLoading() && (
+            <SectionBox>
+              <div className="flex justify-center">
+                <Loading
+                  message={
+                    "Generating your personalized negotiation strategy..."
+                  }
+                />
+              </div>
+            </SectionBox>
+          )) as any
+        }
 
         {/* Error display */}
-        {error && (
-          <SectionBox className="border-red-200 bg-red-50">
-            <div className="text-red-600 text-center text-responsive-sm">
-              <p className="font-semibold mb-2">Error Generating Strategy</p>
-              <p className="text-responsive-sm">{error}</p>
-            </div>
-          </SectionBox>
-        )}
+        {
+          (shouldShowError() && (
+            <SectionBox className="border-red-200 bg-red-50">
+              <div className="text-responsive-sm text-center text-red-600">
+                <p className="mb-2 font-semibold">Error Generating Strategy</p>
+                <p className="text-responsive-sm">{errorMessage}</p>
+              </div>
+            </SectionBox>
+          )) as any
+        }
 
         {/* Property Comparables CardCarousel */}
         {compsData &&
-          compsData.success &&
-          compsData.data?.comps &&
+          typeof compsData === "object" &&
+          "success" in compsData &&
+          (compsData as { success: boolean }).success &&
+          "data" in compsData &&
+          Boolean((compsData as { data: unknown }).data) &&
+          typeof (compsData as { data: unknown }).data === "object" &&
+          "comps" in (compsData as { data: Record<string, unknown> }).data &&
           !isLoading && (
             <div className="my-responsive-lg">
               <CardCarousel
-                items={compsData.data.comps as CompData[]}
+                items={
+                  Array.isArray(
+                    (compsData as { data?: { comps?: unknown } })?.data?.comps
+                  )
+                    ? (compsData as { data: { comps: unknown[] } }).data.comps
+                    : ([] as unknown[])
+                }
                 loading={false}
                 error={null}
                 emptyMessage="No comparable properties found"
-                renderItem={(comp) => <CompCard comp={comp} />}
-                getItemKey={(comp) => comp.zpid.toString()}
-                showDots={true}
+                renderItem={(comp) =>
+                  comp && typeof comp === "object" ? (
+                    <CompCard
+                      comp={
+                        comp as unknown as import("../../components/cards/CompCard").CompData
+                      }
+                    />
+                  ) : null
+                }
+                getItemKey={(comp) =>
+                  comp &&
+                  typeof comp === "object" &&
+                  "zpid" in comp &&
+                  typeof comp.zpid === "number"
+                    ? comp.zpid.toString()
+                    : "unknown"
+                }
                 cardMinWidth={280}
                 cardGap={16}
                 infiniteLoop={false}
@@ -98,8 +185,21 @@ export default function NegotiationStrategy() {
           )}
 
         {/* Property Comps Debug JSON (fallback) */}
-        {compsData &&
-          (!compsData.success || !compsData.data?.comps) &&
+        {Boolean(compsData) &&
+          (!(
+            compsData &&
+            typeof compsData === "object" &&
+            "success" in compsData &&
+            (compsData as { success: boolean }).success
+          ) ||
+            !(
+              compsData &&
+              typeof compsData === "object" &&
+              "data" in compsData &&
+              (compsData as { data: unknown }).data &&
+              typeof (compsData as { data: unknown }).data === "object" &&
+              "comps" in (compsData as { data: Record<string, unknown> }).data
+            )) &&
           !isLoading && (
             <SectionBox>
               <SectionTitle
@@ -107,7 +207,7 @@ export default function NegotiationStrategy() {
               >
                 Property Comparables - Debug Response
               </SectionTitle>
-              <div className="bg-gray-900 text-green-400 space-responsive-sm rounded-lg overflow-auto max-h-96 font-mono text-responsive-sm">
+              <div className="space-responsive-sm text-responsive-sm max-h-96 overflow-auto rounded-lg bg-gray-900 font-mono text-green-400">
                 <pre className="whitespace-pre-wrap break-words">
                   {JSON.stringify(compsData, null, 2)}
                 </pre>
@@ -118,290 +218,328 @@ export default function NegotiationStrategy() {
         {/* Strategy output - Dynamic display of all AI fields */}
         {strategyData && !isLoading && (
           <div className="space-y-responsive-md">
-            {/* Header with Download and Share buttons wrapped in Card */}
-            <Card padding="md" shadow="sm" hover={false}>
-              <div className="flex justify-between items-center">
-                <div className="flex items-center gap-3">
-                  <img
-                    src="/minilogo.png"
-                    alt="SilverKey"
-                    className="w-8 h-8 object-contain"
-                  />
-                </div>
-                <div className="flex gap-responsive-sm">
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    onClick={handleDownloadJson}
-                    icon={<Download className="mobile-icon-xs" />}
-                    className="bg-brown hover:bg-brown/90"
-                  >
-                    Download JSON
-                  </Button>
-                  <Button
-                    variant="olive"
-                    size="sm"
-                    onClick={handleShareJson}
-                    icon={<Share2 className="mobile-icon-xs" />}
-                  >
-                    Share
-                  </Button>
-                </div>
-              </div>
-            </Card>
-            {Object.entries(strategyData).map(([key, value]) => {
-              // Skip empty or null values
-              if (
-                !value ||
-                (typeof value === "string" && value.trim() === "")
-              ) {
-                return null;
-              }
+            {strategyData &&
+            typeof strategyData === "object" &&
+            !Array.isArray(strategyData)
+              ? Object.entries(strategyData as Record<string, unknown>).map(
+                  ([key, value], index) => {
+                    // Skip empty or null values
+                    if (
+                      !value ||
+                      (typeof value === "string" && value.trim() === "")
+                    ) {
+                      return null;
+                    }
 
-              // Skip metadata fields that shouldn't be displayed
-              const metadataFields = [
-                "section",
-                "success",
-                "task_id",
-                "generated_at",
-                "filename",
-                "strategy_id",
-              ];
-              if (metadataFields.includes(key.toLowerCase())) {
-                return null;
-              }
+                    // Skip metadata fields that shouldn't be displayed
+                    const metadataFields = [
+                      "section",
+                      "success",
+                      "task_id",
+                      "generated_at",
+                      "filename",
+                      "strategy_id",
+                    ];
+                    if (metadataFields.includes(key.toLowerCase())) {
+                      return null;
+                    }
 
-              // Format the value for display with better styling - NO JSON
-              const formatValue = (val: any): JSX.Element | string => {
-                if (typeof val === "object" && val !== null) {
-                  if (Array.isArray(val)) {
-                    // Format arrays as clean bullet points with modern styling
-                    return (
-                      <ul className="space-y-2 ml-2">
-                        {val.map((item, idx) => (
-                          <li
-                            key={idx}
-                            className="text-responsive-sm text-navy/80 flex items-start gap-2"
-                          >
-                            <span className="text-brown flex-shrink-0 flex items-center h-5">
-                              <span className="w-2 h-px bg-brown"></span>
-                            </span>
-                            <span>
-                              {typeof item === "object" && item !== null
-                                ? // Handle objects properly - extract meaningful content
-                                  Object.entries(item)
-                                    .map(([k, v]) => `${k}: ${v}`)
-                                    .join(", ")
-                                    .replace(/_/g, " ")
-                                : // Handle strings and primitives
-                                  String(item)
-                                    .replace(/_/g, " ")
-                                    .replace(/([a-z])([A-Z])/g, "$1 $2")
-                                    .split(" ")
-                                    .map(
-                                      (word: string) =>
-                                        word.charAt(0).toUpperCase() +
-                                        word.slice(1).toLowerCase()
-                                    )
-                                    .join(" ")}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    );
-                  } else {
-                    // For objects, create clean structured display without JSON
-                    return (
-                      <div className="space-y-2">
-                        {Object.entries(val).map(([subKey, subValue]) => {
-                          // Format the sub-key nicely
-                          const formattedKey = subKey
-                            .replace(/_/g, " ")
-                            .replace(/([a-z])([A-Z])/g, "$1 $2")
-                            .split(" ")
-                            .map(
-                              (word: string) =>
-                                word.charAt(0).toUpperCase() + word.slice(1)
-                            )
-                            .join(" ");
-
+                    // Format the value for display with better styling - NO JSON
+                    const formatValue = (
+                      val: unknown
+                    ): JSX.Element | string => {
+                      if (typeof val === "object" && val !== null) {
+                        if (Array.isArray(val)) {
+                          // Format arrays as clean bullet points with modern styling
                           return (
-                            <div
-                              key={subKey}
-                              className="bg-gray-50/50 rounded-lg p-3 border-l-4 border-brown/30"
-                            >
-                              <div className="text-responsive-sm font-semibold text-brown mb-2">
-                                {formattedKey}
-                              </div>
-                              <div className="text-responsive-sm text-navy/80">
-                                {typeof subValue === "object" &&
-                                subValue !== null ? (
-                                  Array.isArray(subValue) ? (
-                                    <ul className="space-y-2 ml-2">
-                                      {subValue.map((item, idx) => (
-                                        <li
-                                          key={idx}
-                                          className="text-responsive-sm flex items-start gap-2"
+                            <ul className="ml-2 space-y-2">
+                              {val.map((item, idx) => (
+                                <li
+                                  key={idx}
+                                  className="text-responsive-sm flex items-start gap-2 text-navy/80"
+                                >
+                                  <span className="flex h-5 flex-shrink-0 items-center text-brown">
+                                    <span className="h-px w-2 bg-brown"></span>
+                                  </span>
+                                  <span>
+                                    {typeof item === "object" && item !== null
+                                      ? // Handle objects properly - extract meaningful content
+                                        Object.entries(
+                                          item as Record<string, unknown>
+                                        )
+                                          .map(([k, v]) => `${k}: ${String(v)}`)
+                                          .join(", ")
+                                          .replace(/_/g, " ")
+                                      : // Handle strings and primitives
+                                        String(item)
+                                          .replace(/_/g, " ")
+                                          .replace(/([a-z])([A-Z])/g, "$1 $2")
+                                          .split(" ")
+                                          .map(
+                                            (word: string) =>
+                                              word.charAt(0).toUpperCase() +
+                                              word.slice(1).toLowerCase()
+                                          )
+                                          .join(" ")}
+                                  </span>
+                                </li>
+                              ))}
+                            </ul>
+                          );
+                        } else {
+                          // For objects, create clean structured display without JSON
+                          return (
+                            <div className="space-y-2">
+                              {Object.entries(val).map(([subKey, subValue]) => {
+                                // Format the sub-key nicely
+                                const formattedKey = subKey
+                                  .replace(/_/g, " ")
+                                  .replace(/([a-z])([A-Z])/g, "$1 $2")
+                                  .split(" ")
+                                  .map(
+                                    (word: string) =>
+                                      word.charAt(0).toUpperCase() +
+                                      word.slice(1)
+                                  )
+                                  .join(" ");
+
+                                return (
+                                  <div
+                                    key={subKey}
+                                    className="rounded-lg border-l-4 border-brown/30 bg-gray-50/50 p-3"
+                                  >
+                                    <div className="text-responsive-sm mb-2 font-semibold text-brown">
+                                      {formattedKey}
+                                    </div>
+                                    <div className="text-responsive-sm text-navy/80">
+                                      {typeof subValue === "object" &&
+                                      subValue !== null ? (
+                                        Array.isArray(subValue) ? (
+                                          <ul className="ml-2 space-y-2">
+                                            {subValue.map((item, idx) => (
+                                              <li
+                                                key={idx}
+                                                className="text-responsive-sm flex items-start gap-2"
+                                              >
+                                                <span className="flex h-5 flex-shrink-0 items-center text-brown">
+                                                  <span className="h-px w-2 bg-brown"></span>
+                                                </span>
+                                                <span>
+                                                  {typeof item === "object"
+                                                    ? Object.entries(
+                                                        item as Record<
+                                                          string,
+                                                          unknown
+                                                        >
+                                                      )
+                                                        .map(
+                                                          ([k, v]) =>
+                                                            `${k.replace(/_/g, " ")}: ${String(v)}`
+                                                        )
+                                                        .join(", ")
+                                                    : String(item)
+                                                        .replace(/_/g, " ")
+                                                        .replace(
+                                                          /([a-z])([A-Z])/g,
+                                                          "$1 $2"
+                                                        )}
+                                                </span>
+                                              </li>
+                                            ))}
+                                          </ul>
+                                        ) : (
+                                          // Nested objects - display as key-value pairs with bullets
+                                          <div className="space-y-2">
+                                            {Object.entries(
+                                              subValue as Record<
+                                                string,
+                                                unknown
+                                              >
+                                            ).map(
+                                              ([nestedKey, nestedValue]) => (
+                                                <div
+                                                  key={nestedKey}
+                                                  className="text-responsive-xs flex items-start gap-2"
+                                                >
+                                                  <span className="flex h-5 flex-shrink-0 items-center text-brown">
+                                                    <span className="h-px w-2 bg-brown"></span>
+                                                  </span>
+                                                  <div className="flex-1">
+                                                    <span className="font-medium text-brown/80">
+                                                      {nestedKey
+                                                        .replace(/_/g, " ")
+                                                        .replace(
+                                                          /([a-z])([A-Z])/g,
+                                                          "$1 $2"
+                                                        )
+                                                        .split(" ")
+                                                        .map(
+                                                          (word) =>
+                                                            word
+                                                              .charAt(0)
+                                                              .toUpperCase() +
+                                                            word.slice(1)
+                                                        )
+                                                        .join(" ")}
+                                                      :
+                                                    </span>{" "}
+                                                    <span className="text-navy/70">
+                                                      {typeof nestedValue ===
+                                                      "boolean"
+                                                        ? nestedValue
+                                                          ? "Yes"
+                                                          : "No"
+                                                        : typeof nestedValue ===
+                                                            "number"
+                                                          ? nestedValue.toLocaleString()
+                                                          : Array.isArray(
+                                                                nestedValue
+                                                              )
+                                                            ? nestedValue
+                                                                .join(", ")
+                                                                .replace(
+                                                                  /_/g,
+                                                                  " "
+                                                                )
+                                                            : (nestedValue
+                                                                ?.toString()
+                                                                .replace(
+                                                                  /_/g,
+                                                                  " "
+                                                                )
+                                                                .replace(
+                                                                  /([a-z])([A-Z])/g,
+                                                                  "$1 $2"
+                                                                ) ??
+                                                              "Not specified")}
+                                                    </span>
+                                                  </div>
+                                                </div>
+                                              )
+                                            )}
+                                          </div>
+                                        )
+                                      ) : typeof subValue === "boolean" ? (
+                                        <span
+                                          className={`rounded px-2 py-1 text-xs font-medium ${
+                                            subValue
+                                              ? "bg-green-100 text-green-800"
+                                              : "bg-red-100 text-red-800"
+                                          }`}
                                         >
-                                          <span className="text-brown flex-shrink-0 flex items-center h-5">
-                                            <span className="w-2 h-px bg-brown"></span>
-                                          </span>
-                                          <span>
-                                            {typeof item === "object"
-                                              ? Object.entries(item)
-                                                  .map(
-                                                    ([k, v]) =>
-                                                      `${k.replace(
-                                                        /_/g,
-                                                        " "
-                                                      )}: ${v}`
-                                                  )
-                                                  .join(", ")
-                                              : item
+                                          {subValue ? "Yes" : "No"}
+                                        </span>
+                                      ) : typeof subValue === "number" ? (
+                                        <span className="font-mono text-brown">
+                                          {subValue.toLocaleString()}
+                                        </span>
+                                      ) : (
+                                        <p className="leading-relaxed">
+                                          {subValue &&
+                                          typeof subValue === "string"
+                                            ? subValue
+                                                .replace(/_/g, " ")
+                                                .replace(
+                                                  /([a-z])([A-Z])/g,
+                                                  "$1 $2"
+                                                )
+                                            : subValue &&
+                                                typeof subValue === "number"
+                                              ? subValue
                                                   .toString()
                                                   .replace(/_/g, " ")
                                                   .replace(
                                                     /([a-z])([A-Z])/g,
                                                     "$1 $2"
-                                                  )}
-                                          </span>
-                                        </li>
-                                      ))}
-                                    </ul>
-                                  ) : (
-                                    // Nested objects - display as key-value pairs with bullets
-                                    <div className="space-y-2">
-                                      {Object.entries(subValue).map(
-                                        ([nestedKey, nestedValue]) => (
-                                          <div
-                                            key={nestedKey}
-                                            className="text-responsive-xs flex items-start gap-2"
-                                          >
-                                            <span className="text-brown flex-shrink-0 flex items-center h-5">
-                                              <span className="w-2 h-px bg-brown"></span>
-                                            </span>
-                                            <div className="flex-1">
-                                              <span className="font-medium text-brown/80">
-                                                {nestedKey
-                                                  .replace(/_/g, " ")
-                                                  .replace(
-                                                    /([a-z])([A-Z])/g,
-                                                    "$1 $2"
                                                   )
-                                                  .split(" ")
-                                                  .map(
-                                                    (word) =>
-                                                      word
-                                                        .charAt(0)
-                                                        .toUpperCase() +
-                                                      word.slice(1)
-                                                  )
-                                                  .join(" ")}
-                                                :
-                                              </span>{" "}
-                                              <span className="text-navy/70">
-                                                {typeof nestedValue ===
-                                                "boolean"
-                                                  ? nestedValue
-                                                    ? "Yes"
-                                                    : "No"
-                                                  : typeof nestedValue ===
-                                                    "number"
-                                                  ? nestedValue.toLocaleString()
-                                                  : Array.isArray(nestedValue)
-                                                  ? nestedValue
-                                                      .join(", ")
-                                                      .replace(/_/g, " ")
-                                                  : nestedValue
-                                                      ?.toString()
-                                                      .replace(/_/g, " ")
-                                                      .replace(
-                                                        /([a-z])([A-Z])/g,
-                                                        "$1 $2"
-                                                      ) || "Not specified"}
-                                              </span>
-                                            </div>
-                                          </div>
-                                        )
+                                              : "Not specified"}
+                                        </p>
                                       )}
                                     </div>
-                                  )
-                                ) : typeof subValue === "boolean" ? (
-                                  <span
-                                    className={`px-2 py-1 rounded text-xs font-medium ${
-                                      subValue
-                                        ? "bg-green-100 text-green-800"
-                                        : "bg-red-100 text-red-800"
-                                    }`}
-                                  >
-                                    {subValue ? "Yes" : "No"}
-                                  </span>
-                                ) : typeof subValue === "number" ? (
-                                  <span className="font-mono text-brown">
-                                    {subValue.toLocaleString()}
-                                  </span>
-                                ) : (
-                                  <p className="leading-relaxed">
-                                    {subValue
-                                      ?.toString()
-                                      .replace(/_/g, " ")
-                                      .replace(/([a-z])([A-Z])/g, "$1 $2") ||
-                                      "Not specified"}
-                                  </p>
-                                )}
-                              </div>
+                                  </div>
+                                );
+                              })}
                             </div>
                           );
-                        })}
-                      </div>
+                        }
+                      } else if (typeof val === "boolean") {
+                        return (
+                          <span
+                            className={`rounded-full px-3 py-1 text-sm font-medium ${
+                              val
+                                ? "bg-green-100 text-green-800"
+                                : "bg-red-100 text-red-800"
+                            }`}
+                          >
+                            {val ? "Yes" : "No"}
+                          </span>
+                        );
+                      } else if (typeof val === "number") {
+                        return (
+                          <span className="font-mono text-lg font-semibold text-brown">
+                            {val.toLocaleString()}
+                          </span>
+                        );
+                      } else {
+                        return (
+                          <p className="leading-relaxed text-navy/80">
+                            {String(val)
+                              .replace(/_/g, " ")
+                              .replace(/([a-z])([A-Z])/g, "$1 $2")}
+                          </p>
+                        );
+                      }
+                    };
+
+                    const formattedValue = formatValue(value);
+
+                    return (
+                      <SectionBox key={key}>
+                        {/* Add download/share buttons to the first card */}
+                        {index === 0 && (
+                          <div className="mb-4 flex items-center justify-between border-b border-gray-200 pb-4">
+                            <div className="flex items-center gap-3">
+                              <img
+                                src="/minilogo.png"
+                                alt="SilverKey"
+                                className="h-8 w-8 object-contain"
+                              />
+                            </div>
+                            <div className="gap-responsive-sm flex">
+                              <Button
+                                variant="primary"
+                                size="sm"
+                                onClick={handleDownloadJson}
+                                icon={<Download className="mobile-icon-xs" />}
+                                className="bg-brown hover:bg-brown/90"
+                              >
+                                Download JSON
+                              </Button>
+                              <Button
+                                variant="olive"
+                                size="sm"
+                                onClick={handleShareJson}
+                                icon={<Share2 className="mobile-icon-xs" />}
+                              >
+                                Share
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                        <div className="text-navy/80">
+                          {typeof formattedValue === "string" ? (
+                            <p className="text-sm leading-relaxed">
+                              {formattedValue}
+                            </p>
+                          ) : (
+                            <div>{formattedValue}</div>
+                          )}
+                        </div>
+                      </SectionBox>
                     );
                   }
-                } else if (typeof val === "boolean") {
-                  return (
-                    <span
-                      className={`px-3 py-1 rounded-full text-sm font-medium ${
-                        val
-                          ? "bg-green-100 text-green-800"
-                          : "bg-red-100 text-red-800"
-                      }`}
-                    >
-                      {val ? "Yes" : "No"}
-                    </span>
-                  );
-                } else if (typeof val === "number") {
-                  return (
-                    <span className="font-mono text-lg text-brown font-semibold">
-                      {val.toLocaleString()}
-                    </span>
-                  );
-                } else {
-                  return (
-                    <p className="leading-relaxed text-navy/80">
-                      {val
-                        .toString()
-                        .replace(/_/g, " ")
-                        .replace(/([a-z])([A-Z])/g, "$1 $2")}
-                    </p>
-                  );
-                }
-              };
-
-              const formattedValue = formatValue(value);
-
-              return (
-                <SectionBox key={key}>
-                  <div className="text-navy/80">
-                    {typeof formattedValue === "string" ? (
-                      <p className="text-sm leading-relaxed">
-                        {formattedValue}
-                      </p>
-                    ) : (
-                      <div>{formattedValue}</div>
-                    )}
-                  </div>
-                </SectionBox>
-              );
-            })}
+                )
+              : null}
           </div>
         )}
       </div>

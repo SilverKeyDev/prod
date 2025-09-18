@@ -3,14 +3,15 @@
  * Wraps the application with centralized error boundary
  */
 
-import React, { ReactNode } from 'react';
-import ErrorBoundary from '../error/ErrorBoundary';
-import { reportError } from '../error/errorUtils';
+import type { ReactNode } from "react";
 
-interface ErrorProviderProps {
+import ErrorBoundary from "../error/ErrorBoundary";
+import { reportError } from "../../core/utils/errorHandling";
+
+type ErrorProviderProps = {
   children: ReactNode;
   fallback?: ReactNode;
-}
+};
 
 export function ErrorProvider({ children, fallback }: ErrorProviderProps) {
   const handleError = (error: Error, errorInfo: React.ErrorInfo) => {

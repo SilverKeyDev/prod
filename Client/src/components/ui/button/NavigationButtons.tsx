@@ -1,8 +1,9 @@
-import React from "react";
-import { ChevronLeft, ChevronRight, Check } from "lucide-react";
-import Button from "./Button";
+import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
+import React from 'react';
 
-export interface NavigationButtonsProps {
+import Button from './Button';
+
+export type NavigationButtonsProps = {
   /** Current step index (0-based) */
   currentStep: number;
   /** Total number of steps */
@@ -26,12 +27,12 @@ export interface NavigationButtonsProps {
   /** Custom text for submit button */
   submitText?: string;
   /** Layout variant */
-  layout?: "centered" | "spaced" | "inline";
+  layout?: 'centered' | 'spaced' | 'inline';
   /** Size variant */
-  size?: "sm" | "md" | "lg";
+  size?: 'sm' | 'md' | 'lg';
   /** Custom class name */
   className?: string;
-}
+};
 
 const NavigationButtons: React.FC<NavigationButtonsProps> = ({
   currentStep,
@@ -42,11 +43,11 @@ const NavigationButtons: React.FC<NavigationButtonsProps> = ({
   loading = false,
   disableNext = false,
   disablePrevious = false,
-  previousText = "Previous",
-  nextText = "Next",
-  submitText = "Complete",
-  layout = "centered",
-  size = "md",
+  previousText = 'Previous',
+  nextText = 'Next',
+  submitText = 'Complete',
+  layout = 'centered',
+  size = 'md',
   className,
 }) => {
   const isFirstStep = currentStep === 0;
@@ -54,36 +55,36 @@ const NavigationButtons: React.FC<NavigationButtonsProps> = ({
 
   // Layout styles
   const layoutStyles = {
-    centered: "relative flex items-center justify-between w-full",
-    spaced: "flex items-center justify-between w-full",
-    inline: "flex items-center gap-4",
+    centered: 'relative flex items-center justify-between w-full',
+    spaced: 'flex items-center justify-between w-full',
+    inline: 'flex items-center gap-4',
   };
 
   // Position styles for centered layout
   const getCenteredPositionStyles = () => {
-    if (layout !== "centered") return {};
+    if (layout !== 'centered') return {};
 
     return {
-      previous: "absolute left-1/4 transform -translate-x-1/2",
-      next: "absolute left-3/4 transform -translate-x-1/2",
+      previous: 'absolute left-1/4 transform -translate-x-1/2',
+      next: 'absolute left-3/4 transform -translate-x-1/2',
     };
   };
 
   const positionStyles = getCenteredPositionStyles();
 
   const renderPreviousButton = () => (
-    <div className={layout === "centered" ? positionStyles.previous : ""}>
+    <div className={layout === 'centered' ? positionStyles.previous : ''}>
       <Button
         variant="secondary"
         size={size}
         onClick={onPrevious}
-        disabled={isFirstStep || disablePrevious}
-        icon={<ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />}
+        disabled={isFirstStep ?? disablePrevious}
+        icon={<ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />}
         iconPosition="left"
         className={`w-[100px] sm:w-[110px] ${
-          isFirstStep || disablePrevious
-            ? "bg-gray-300 text-gray-500 cursor-not-allowed hover:bg-gray-300"
-            : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+          (isFirstStep ?? disablePrevious)
+            ? 'cursor-not-allowed bg-gray-300 text-gray-500 hover:bg-gray-300'
+            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
         }`}
       >
         {previousText}
@@ -92,21 +93,19 @@ const NavigationButtons: React.FC<NavigationButtonsProps> = ({
   );
 
   const renderNextButton = () => (
-    <div className={layout === "centered" ? positionStyles.next : ""}>
+    <div className={layout === 'centered' ? positionStyles.next : ''}>
       {isLastStep && onSubmit ? (
         <Button
           variant="olive"
           size={size}
           onClick={onSubmit}
-          disabled={loading || disableNext}
+          disabled={loading ?? disableNext}
           loading={loading}
-          icon={
-            !loading ? <Check className="w-3 h-3 sm:w-4 sm:h-4" /> : undefined
-          }
+          icon={!loading ? <Check className="h-3 w-3 sm:h-4 sm:w-4" /> : undefined}
           iconPosition="right"
-          className="w-[100px] sm:w-[110px] font-bold"
+          className="w-[100px] font-bold sm:w-[110px]"
         >
-          {loading ? "Saving..." : submitText}
+          {loading ? 'Saving...' : submitText}
         </Button>
       ) : (
         <Button
@@ -114,9 +113,9 @@ const NavigationButtons: React.FC<NavigationButtonsProps> = ({
           size={size}
           onClick={onNext}
           disabled={disableNext}
-          icon={<ChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />}
+          icon={<ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />}
           iconPosition="right"
-          className="w-[100px] sm:w-[110px] font-bold bg-olive/60 hover:bg-olive/70"
+          className="w-[100px] bg-olive/60 font-bold hover:bg-olive/70 sm:w-[110px]"
         >
           {nextText}
         </Button>
@@ -125,10 +124,10 @@ const NavigationButtons: React.FC<NavigationButtonsProps> = ({
   );
 
   return (
-    <div className={`${layoutStyles[layout]} ${className || ""}`}>
+    <div className={`${layoutStyles[layout]} ${className ?? ''}`}>
       {renderPreviousButton()}
-      {layout === "inline" && renderNextButton()}
-      {layout !== "inline" && renderNextButton()}
+      {layout === 'inline' && renderNextButton()}
+      {layout !== 'inline' && renderNextButton()}
     </div>
   );
 };

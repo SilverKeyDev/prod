@@ -1,26 +1,16 @@
-import React from "react";
 import { ChevronDown } from "lucide-react";
+import React from "react";
 
-interface HomePriceResult {
-  maxHomePrice: number;
-  totalMonthlyHousingCost: number;
-  netAnnualIncome: number;
-  interestRate: number;
-  propertyTaxRate: number;
-  monthlyMortgage: number;
-  loanAmount: number;
-  monthlyPMI: number;
-  dtiUsed: number;
-}
+import type { HomePriceResult } from "./lib/homePriceCalculation";
 
-interface HomePriceEstimateProps {
+type HomePriceEstimateProps = {
   homePriceLoading: boolean;
   homePriceError: string | null;
   homePriceResult: HomePriceResult | null;
   isAffordabilityCollapsed: boolean;
   setIsAffordabilityCollapsed: (collapsed: boolean) => void;
   idealZipCode?: string;
-}
+};
 
 const HomePriceEstimate: React.FC<HomePriceEstimateProps> = ({
   homePriceLoading,
@@ -32,17 +22,17 @@ const HomePriceEstimate: React.FC<HomePriceEstimateProps> = ({
 }) => {
   return (
     <div
-      className={`col-span-1 md:col-span-2 mt-4 sm:mt-6 px-3 py-4 sm:p-4 bg-white rounded-lg border border-olive ${
+      className={`col-span-1 mt-4 rounded-lg border border-olive bg-white px-3 py-4 sm:mt-6 sm:p-4 md:col-span-2 ${
         isAffordabilityCollapsed ? "pb-4 sm:pb-6" : ""
       }`}
     >
       <div
-        className={`flex items-center justify-between cursor-pointer p-2 -m-2 rounded-lg hover:bg-olive/5 transition-colors duration-150 touch-friendly ${
+        className={`touch-friendly -m-2 flex cursor-pointer items-center justify-between rounded-lg p-2 transition-colors duration-150 hover:bg-olive/5 ${
           isAffordabilityCollapsed ? "mb-2" : "mb-2"
         }`}
         onClick={() => setIsAffordabilityCollapsed(!isAffordabilityCollapsed)}
       >
-        <h3 className="text-base sm:text-lg font-medium text-olive">
+        <h3 className="text-base font-medium text-olive sm:text-lg">
           Estimated Home Affordability
         </h3>
         <ChevronDown
@@ -53,7 +43,7 @@ const HomePriceEstimate: React.FC<HomePriceEstimateProps> = ({
       </div>
 
       <div
-        className={`transition-all duration-300 ease-in-out overflow-hidden ${
+        className={`overflow-hidden transition-all duration-300 ease-in-out ${
           isAffordabilityCollapsed
             ? "max-h-0 opacity-0"
             : "max-h-[2000px] opacity-100"
@@ -62,13 +52,13 @@ const HomePriceEstimate: React.FC<HomePriceEstimateProps> = ({
         <div className="pt-2">
           {homePriceLoading ? (
             <div className="flex items-center justify-center py-3 sm:py-4">
-              <div className="animate-spin rounded-full h-5 w-5 sm:h-6 sm:w-6 border-b-2 border-olive"></div>
-              <span className="ml-2 text-responsive-xs text-black">
+              <div className="h-5 w-5 animate-spin rounded-full border-b-2 border-olive sm:h-6 sm:w-6"></div>
+              <span className="text-responsive-xs ml-2 text-black">
                 Calculating affordability...
               </span>
             </div>
           ) : homePriceError ? (
-            <div className="text-black text-responsive-xs py-2 space-y-2">
+            <div className="text-responsive-xs space-y-2 py-2 text-black">
               <p className="font-medium">Unable to calculate affordability:</p>
               <p>{homePriceError}</p>
               <p>
@@ -78,36 +68,39 @@ const HomePriceEstimate: React.FC<HomePriceEstimateProps> = ({
             </div>
           ) : homePriceResult ? (
             <div className="space-responsive-sm">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-responsive-sm">
+              <div className="gap-responsive-sm grid grid-cols-1 lg:grid-cols-2">
                 <div>
-                  <div className="text-center px-2 py-3 sm:p-4 lg:p-6">
-                    <div className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-olive mb-1 sm:mb-2">
+                  <div className="px-2 py-3 text-center sm:p-4 lg:p-6">
+                    <div className="mb-1 text-xl font-bold text-olive sm:mb-2 sm:text-2xl lg:text-3xl xl:text-4xl">
                       ${homePriceResult.maxHomePrice.toLocaleString()}
                     </div>
-                    <div className="text-responsive-xs text-gray-600 mb-2 sm:mb-4">
+                    <div className="text-responsive-xs mb-2 text-gray-600 sm:mb-4">
                       Maximum recommended home price
                     </div>
                   </div>
                 </div>
-                <div className="px-2 sm:px-0 text-center lg:text-left">
-                  <p className="text-responsive-xs text-black mb-1">Monthly Payment</p>
-                  <p className="text-lg sm:text-xl font-bold text-olive">
+                <div className="px-2 text-center sm:px-0 lg:text-left">
+                  <p className="text-responsive-xs mb-1 text-black">
+                    Monthly Payment
+                  </p>
+                  <p className="text-lg font-bold text-olive sm:text-xl">
                     ${homePriceResult.totalMonthlyHousingCost.toLocaleString()}
                     /mo
                   </p>
                 </div>
               </div>
 
-              <div className="text-responsive-xs text-black bg-white px-2 py-3 sm:p-3 rounded border border-olive/30">
-                <p className="text-responsive-xs text-gray-600 mb-3 sm:mb-4">
+              <div className="text-responsive-xs rounded border border-olive/30 bg-white px-2 py-3 text-black sm:p-3">
+                <p className="text-responsive-xs mb-3 text-gray-600 sm:mb-4">
                   Based on your income and financial profile, here's what you
                   might afford:
                 </p>
-                <div className="bg-[#EAD9B3] bg-opacity-20 px-2 py-2 sm:p-3 rounded font-mono text-xs sm:text-sm text-black space-y-1 sm:space-y-2 overflow-x-auto">
+                <div className="space-y-1 overflow-x-auto rounded bg-[#EAD9B3] bg-opacity-20 px-2 py-2 font-mono text-xs text-black sm:space-y-2 sm:p-3 sm:text-sm">
                   <p>
-                    1. <strong>Monthly Income</strong> = Gross Annual Income ÷ 12
+                    1. <strong>Monthly Income</strong> = Gross Annual Income ÷
+                    12
                   </p>
-                  <p className="ml-2 sm:ml-4 break-words">
+                  <p className="ml-2 break-words sm:ml-4">
                     = ${homePriceResult.netAnnualIncome.toLocaleString()} ÷ 12 ={" "}
                     <strong>
                       $
@@ -121,13 +114,12 @@ const HomePriceEstimate: React.FC<HomePriceEstimateProps> = ({
                   </p>
 
                   <p>
-                    2. <strong>Max Monthly Housing Cost</strong> = Monthly Income
-                    × DTI Ratio
+                    2. <strong>Max Monthly Housing Cost</strong> = Monthly
+                    Income × DTI Ratio
                   </p>
-                  <p className="ml-2 sm:ml-4 break-words">
-                    = $
-                    {(homePriceResult.netAnnualIncome / 12).toLocaleString()} ×{" "}
-                    {(homePriceResult.dtiUsed / 100).toFixed(2)} ={" "}
+                  <p className="ml-2 break-words sm:ml-4">
+                    = ${(homePriceResult.netAnnualIncome / 12).toLocaleString()}{" "}
+                    × {(homePriceResult.dtiUsed / 100).toFixed(2)} ={" "}
                     <strong>
                       $
                       {Math.round(
@@ -142,16 +134,18 @@ const HomePriceEstimate: React.FC<HomePriceEstimateProps> = ({
                     <sup>n</sup> ÷ ((1 + r)<sup>n</sup> - 1)
                   </p>
                   <p className="ml-2 sm:ml-4">Where:</p>
-                  <p className="ml-4 sm:ml-8 break-words">
-                    P = ${Math.round(homePriceResult.loanAmount).toLocaleString()}
+                  <p className="ml-4 break-words sm:ml-8">
+                    P = $
+                    {Math.round(homePriceResult.loanAmount).toLocaleString()}
                   </p>
                   <p className="ml-4 sm:ml-8">
-                    r ={" "}
-                    {(homePriceResult.interestRate / 100 / 12).toFixed(4)}{" "}
+                    r = {(homePriceResult.interestRate / 100 / 12).toFixed(4)}{" "}
                     (monthly interest)
                   </p>
-                  <p className="ml-4 sm:ml-8">n = {30 * 12} months (30-year loan)</p>
-                  <p className="ml-2 sm:ml-4 break-words">
+                  <p className="ml-4 sm:ml-8">
+                    n = {30 * 12} months (30-year loan)
+                  </p>
+                  <p className="ml-2 break-words sm:ml-4">
                     →{" "}
                     <strong>
                       Monthly Mortgage = $
@@ -160,9 +154,10 @@ const HomePriceEstimate: React.FC<HomePriceEstimateProps> = ({
                   </p>
 
                   <p>
-                    4. <strong>Property Tax</strong> = Home Price × Tax Rate ÷ 12
+                    4. <strong>Property Tax</strong> = Home Price × Tax Rate ÷
+                    12
                   </p>
-                  <p className="ml-2 sm:ml-4 break-words">
+                  <p className="ml-2 break-words sm:ml-4">
                     = ${homePriceResult.maxHomePrice.toLocaleString()} ×{" "}
                     {(homePriceResult.propertyTaxRate * 100).toFixed(2)}% ÷ 12
                   </p>
@@ -170,7 +165,7 @@ const HomePriceEstimate: React.FC<HomePriceEstimateProps> = ({
                   <p>
                     5. <strong>Home Insurance</strong> = Home Price × 0.50% ÷ 12
                   </p>
-                  <p className="ml-2 sm:ml-4 break-words">
+                  <p className="ml-2 break-words sm:ml-4">
                     = ${homePriceResult.maxHomePrice.toLocaleString()} × 0.005 ÷
                     12
                   </p>
@@ -178,9 +173,8 @@ const HomePriceEstimate: React.FC<HomePriceEstimateProps> = ({
                   {homePriceResult.monthlyPMI > 0 && (
                     <>
                       <p>
-                        6.{" "}
-                        <strong>PMI (Private Mortgage Insurance)</strong> = Loan
-                        × PMI Rate ÷ 12
+                        6. <strong>PMI (Private Mortgage Insurance)</strong> =
+                        Loan × PMI Rate ÷ 12
                       </p>
                       <p className="ml-2 sm:ml-4">
                         PMI Rate ≈{" "}
@@ -191,7 +185,7 @@ const HomePriceEstimate: React.FC<HomePriceEstimateProps> = ({
                         ).toFixed(2)}
                         %
                       </p>
-                      <p className="ml-2 sm:ml-4 break-words">
+                      <p className="ml-2 break-words sm:ml-4">
                         →{" "}
                         <strong>
                           Monthly PMI = $
@@ -202,16 +196,18 @@ const HomePriceEstimate: React.FC<HomePriceEstimateProps> = ({
                   )}
                 </div>
 
-                <div className="mt-3 sm:mt-4 space-y-2 sm:space-y-3">
-                  <p className="font-medium text-responsive-xs">Why This Formula Matters:</p>
+                <div className="mt-3 space-y-2 sm:mt-4 sm:space-y-3">
+                  <p className="text-responsive-xs font-medium">
+                    Why This Formula Matters:
+                  </p>
                   <p className="text-responsive-xs leading-relaxed">
-                    This estimate uses a{" "}
-                    <strong>Debt-to-Income (DTI)</strong> ratio of{" "}
-                    <strong>{homePriceResult.dtiUsed.toFixed(1)}%</strong>, which
-                    reflects current lending guidelines. It ensures your total
-                    monthly housing cost—including mortgage, taxes, insurance, and
-                    PMI—stays within what lenders generally approve based on your
-                    income and debt load.
+                    This estimate uses a <strong>Debt-to-Income (DTI)</strong>{" "}
+                    ratio of{" "}
+                    <strong>{homePriceResult.dtiUsed.toFixed(1)}%</strong>,
+                    which reflects current lending guidelines. It ensures your
+                    total monthly housing cost—including mortgage, taxes,
+                    insurance, and PMI—stays within what lenders generally
+                    approve based on your income and debt load.
                   </p>
                   <p className="text-responsive-xs leading-relaxed">
                     We include estimated <strong>property taxes</strong>{" "}
@@ -228,7 +224,7 @@ const HomePriceEstimate: React.FC<HomePriceEstimateProps> = ({
               </div>
             </div>
           ) : (
-            <div className="text-responsive-xs text-black py-2 px-2 sm:px-0">
+            <div className="text-responsive-xs px-2 py-2 text-black sm:px-0">
               <p>
                 Enter your income, zip code, and other financial details to see
                 your estimated home affordability.

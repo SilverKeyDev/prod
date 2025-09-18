@@ -1,18 +1,23 @@
-import CloseLayout, { ChecklistItem } from "../../features/close/CloseLayout";
+import React from "react";
 
-interface ClosePageHeaderData {
+import CloseLayout, {
+  type ChecklistItem,
+} from "../../features/close/CloseLayout";
+import HomeConcierge from "../../features/close/homeConcierge";
+
+type ClosePageHeaderData = {
   title: string;
   subtitle: string;
   completedCount: number;
   totalCount: number;
   loading: boolean;
-}
+};
 
-interface ClosingMovingInProps {
+type ClosingMovingInProps = {
   setClosePageHeaderData: React.Dispatch<
     React.SetStateAction<ClosePageHeaderData | null>
   >;
-}
+};
 
 export default function ClosingMovingIn({
   setClosePageHeaderData,
@@ -172,10 +177,12 @@ export default function ClosingMovingIn({
       title="Closing & Moving In"
       subtitle="Track your progress toward a smooth transition into your new home"
       sectionTitle="To-Do Items"
-      apiEndpoint="/api/v1/user/closing"
+      type="closing"
       items={items}
       showLoadingScreen={true}
       setClosePageHeaderData={setClosePageHeaderData}
-    />
+    >
+      <HomeConcierge />
+    </CloseLayout>
   );
 }

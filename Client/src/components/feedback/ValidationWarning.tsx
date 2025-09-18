@@ -1,14 +1,14 @@
-import React from "react";
-import { createPortal } from "react-dom";
-import { AlertCircle, X } from "lucide-react";
+import { AlertCircle, X } from 'lucide-react';
+import React from 'react';
+import { createPortal } from 'react-dom';
 
-interface ValidationWarningProps {
+type ValidationWarningProps = {
   isVisible: boolean;
   onClose: () => void;
   onReview: () => void;
   missingFields: string[];
   errors: string[];
-}
+};
 
 const ValidationWarning: React.FC<ValidationWarningProps> = ({
   isVisible,
@@ -25,8 +25,8 @@ const ValidationWarning: React.FC<ValidationWarningProps> = ({
       style={{ left: 0, right: 0, top: 0, bottom: 0 }}
     >
       <div
-        className="flex min-h-screen items-center justify-center space-responsive-md"
-        style={{ width: "100vw", height: "100vh" }}
+        className="space-responsive-md flex min-h-screen items-center justify-center"
+        style={{ width: '100vw', height: '100vh' }}
       >
         {/* Backdrop */}
         <div
@@ -37,26 +37,26 @@ const ValidationWarning: React.FC<ValidationWarningProps> = ({
 
         {/* Dialog */}
         <div
-          className="relative z-[10000] w-full max-w-lg mx-auto transform overflow-hidden rounded-2xl bg-white space-responsive-lg text-left shadow-xl transition-all"
-          style={{ maxWidth: "480px" }}
+          className="space-responsive-lg relative z-[10000] mx-auto w-full max-w-lg transform overflow-hidden rounded-2xl bg-white text-left shadow-xl transition-all"
+          style={{ maxWidth: '480px' }}
         >
           {/* Close button */}
           <button
             type="button"
             onClick={onClose}
-            className="absolute right-4 top-4 text-gray-400 hover:text-gray-500 touch-friendly z-10"
+            className="touch-friendly absolute right-4 top-4 z-10 text-gray-400 hover:text-gray-500"
           >
             <X className="mobile-icon-md" aria-hidden="true" />
           </button>
 
           {/* Warning Icon */}
-          <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-amber-100 rounded-full">
-            <AlertCircle className="w-6 h-6 text-amber-600" />
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-amber-100">
+            <AlertCircle className="h-6 w-6 text-amber-600" />
           </div>
 
           {/* Content */}
-          <div className="text-center mb-6">
-            <h3 className="text-responsive-xl font-semibold leading-6 text-gray-900 mb-2">
+          <div className="mb-6 text-center">
+            <h3 className="text-responsive-xl mb-2 font-semibold leading-6 text-gray-900">
               Complete Required Information
             </h3>
             <p className="text-responsive-sm text-gray-600">
@@ -67,15 +67,15 @@ const ValidationWarning: React.FC<ValidationWarningProps> = ({
           {/* Missing Fields */}
           {missingFields.length > 0 && (
             <div className="mb-6">
-              <h4 className="text-responsive-sm font-medium text-gray-900 mb-3">
+              <h4 className="text-responsive-sm mb-3 font-medium text-gray-900">
                 Required Fields:
               </h4>
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 max-h-60 overflow-y-auto">
-                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div className="max-h-60 overflow-y-auto rounded-lg border border-amber-200 bg-amber-50 p-4">
+                <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {missingFields.map((field, index) => (
                     <li key={index} className="flex items-center gap-2">
-                      <div className="w-1.5 h-1.5 bg-amber-500 rounded-full flex-shrink-0" />
-                      <span className="text-sm text-amber-800 font-medium">{field}</span>
+                      <div className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-amber-500" />
+                      <span className="text-sm font-medium text-amber-800">{field}</span>
                     </li>
                   ))}
                 </ul>
@@ -86,14 +86,12 @@ const ValidationWarning: React.FC<ValidationWarningProps> = ({
           {/* Errors */}
           {errors.length > 0 && (
             <div className="mb-6">
-              <h4 className="text-responsive-sm font-medium text-gray-900 mb-3">
-                Issues to Fix:
-              </h4>
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4 max-h-40 overflow-y-auto">
+              <h4 className="text-responsive-sm mb-3 font-medium text-gray-900">Issues to Fix:</h4>
+              <div className="max-h-40 overflow-y-auto rounded-lg border border-red-200 bg-red-50 p-4">
                 <ul className="space-y-2">
                   {errors.map((error, index) => (
                     <li key={index} className="flex items-start gap-2">
-                      <div className="w-1.5 h-1.5 bg-red-500 rounded-full flex-shrink-0 mt-2" />
+                      <div className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-red-500" />
                       <span className="text-sm text-red-800">{error}</span>
                     </li>
                   ))}
@@ -103,18 +101,18 @@ const ValidationWarning: React.FC<ValidationWarningProps> = ({
           )}
 
           {/* Actions */}
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <div className="flex flex-col justify-center gap-3 sm:flex-row">
             <button
               type="button"
               onClick={onReview}
-              className="inline-flex justify-center rounded-md border border-transparent bg-brown px-6 py-3 text-sm font-medium text-white shadow-sm hover:bg-brown/90 focus:outline-none focus:ring-2 focus:ring-brown/50 focus:ring-offset-2 transition-colors touch-friendly min-w-[140px]"
+              className="touch-friendly inline-flex min-w-[140px] justify-center rounded-md border border-transparent bg-brown px-6 py-3 text-sm font-medium text-white shadow-sm transition-colors hover:bg-brown/90 focus:outline-none focus:ring-2 focus:ring-brown/50 focus:ring-offset-2"
             >
               Review Information
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-6 py-3 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500/50 focus:ring-offset-2 transition-colors touch-friendly min-w-[100px]"
+              className="touch-friendly inline-flex min-w-[100px] justify-center rounded-md border border-gray-300 bg-white px-6 py-3 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500/50 focus:ring-offset-2"
             >
               Cancel
             </button>

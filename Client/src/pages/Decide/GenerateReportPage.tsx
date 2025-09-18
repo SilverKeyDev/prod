@@ -1,29 +1,44 @@
 export {};
 
+import { MapPin, ChevronDown, AlertCircle } from "lucide-react";
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { MapPin, ChevronDown, AlertCircle } from "lucide-react";
-import { useUser, useGoogleMaps } from "../../context";
-// import { useData } from "../../context/DataContext"; // TODO: Fix missing context
-// import { useAuth } from "../../context/AuthContext"; // TODO: Fix missing context
-// import PageHeader from "../../components/ui/PageHeader"; // TODO: Fix missing component
-import { reportApi } from "../../api";
-import KeyTurnLoader from "../../components/ui/loading/KeyTurnLoader";
+
+import { Card } from "../../components/format";
 import { Input } from "../../components/ui";
-import { Card } from "../../components/layout";
+import KeyTurnLoader from "../../components/ui/loading/KeyTurnLoader";
+import { reportApi } from "../../core/config/api";
+import type { GenerateReportRequest } from "../../core/config/api/report";
+import { useGoogleMapsStore } from "../../core/store/googleMaps.slice";
+import { useUserStore } from "../../core/store/user.slice";
+import { asError } from "../../core/utils/error";
+// Legacy context imports removed - now using Zustand stores
+// import PageHeader from "../../components/ui/PageHeader"; // TODO: Fix missing component
 
-declare global {
-  interface Window {
-    google?: any;
-  }
-}
+// Google Maps types are handled by the useGoogleMaps hook
 
-interface Suggestion {
+// Google Places API types
+type PlacePrediction = {
+  toPlace: () => Place;
+  text: {
+    text: string;
+  };
+};
+
+type Place = {
+  fetchFields: (options: { fields: string[] }) => Promise<{ place: Place }>;
+  formattedAddress: string;
+};
+
+type Suggestion = {
   description: string;
-  placePrediction: any;
-}
+  placePrediction: PlacePrediction;
+};
 
-interface CustomDropdownProps {
+// Google Maps API types are handled by the vite-env.d.ts file
+// The AutocompleteSuggestion interface is available through the google.maps types
+
+type CustomDropdownProps = {
   value: string;
   onChange: (value: string) => void;
   options: { value: string; label: string }[];
@@ -31,7 +46,7 @@ interface CustomDropdownProps {
   isOpen: boolean;
   onToggle: () => void;
   dropdownRef: React.RefObject<HTMLDivElement>;
-}
+};
 
 const CustomDropdown: React.FC<CustomDropdownProps> = ({
   value,
@@ -48,7 +63,7 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={onToggle}
-        className="mobile-input text-responsive-sm flex items-center justify-between cursor-pointer hover:border-brown focus:border-brown focus:ring-brown/20 w-full"
+        className="mobile-input text-responsive-sm flex w-full cursor-pointer items-center justify-between hover:border-brown focus:border-brown focus:ring-brown/20"
       >
         <span className="text-left">
           {selectedOption ? selectedOption.label : placeholder}
@@ -61,7 +76,7 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-beige rounded-lg shadow-lg z-50">
+        <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-lg border border-beige bg-white shadow-lg">
           {options.map((option, index) => (
             <button
               key={option.value}
@@ -69,11 +84,11 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
                 onChange(option.value);
                 onToggle();
               }}
-              className={`w-full px-responsive-sm py-responsive-xs text-left text-responsive-sm hover:bg-brown/5 transition-colors duration-150 ${
+              className={`px-3 py-2 sm:px-4 sm:py-2.5 text-responsive-sm w-full text-left transition-colors duration-150 hover:bg-brown/5 ${
                 index === 0 ? "first:rounded-t-lg" : ""
               } ${index === options.length - 1 ? "last:rounded-b-lg" : ""} ${
                 value === option.value
-                  ? "bg-brown/10 text-brown font-medium"
+                  ? "bg-brown/10 font-medium text-brown"
                   : "text-black"
               }`}
             >
@@ -92,7 +107,7 @@ export default function GenerateReportPage() {
   const comparisonInputRef = useRef<HTMLInputElement | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const { userProfile } = useUser();
+  const { userProfile } = useUserStore();
 
   const [address, setAddress] = useState("");
   const [comparisonAddress, setComparisonAddress] = useState("");
@@ -110,12 +125,16 @@ export default function GenerateReportPage() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [selectedClientId, setSelectedClientId] = useState<string>("");
 
-  // Load generate report state from localStorage on mount
+  // Load generate report state from sessionStorage on mount (temporary wizard state)
   useEffect(() => {
-    const savedState = localStorage.getItem("generateReportState");
+    const savedState = sessionStorage.getItem("generateReportState");
     if (savedState) {
       try {
-        const parsed = JSON.parse(savedState);
+        const parsed = JSON.parse(savedState) as {
+          address?: string;
+          comparisonAddress?: string;
+          reportType?: string;
+        };
         if (parsed.address) {
           setAddress(parsed.address);
           setHasSelected(true);
@@ -127,13 +146,13 @@ export default function GenerateReportPage() {
         if (parsed.reportType) {
           setReportType(parsed.reportType);
         }
-      } catch (e) {
+      } catch {
         console.warn("Invalid generate report state data");
       }
     }
   }, []);
 
-  // Save generate report state to localStorage when it changes
+  // Save generate report state to sessionStorage when it changes (temporary wizard state)
   useEffect(() => {
     const stateToSave = {
       address,
@@ -141,7 +160,7 @@ export default function GenerateReportPage() {
       reportType,
       selectedClientId,
     };
-    localStorage.setItem("generateReportState", JSON.stringify(stateToSave));
+    sessionStorage.setItem("generateReportState", JSON.stringify(stateToSave));
   }, [address, comparisonAddress, reportType, selectedClientId]);
 
   const reportTypeOptions = [
@@ -166,13 +185,13 @@ export default function GenerateReportPage() {
 
   // Use centralized Google Maps loading
   const { isLoaded: googleMapsLoaded, error: googleMapsError } =
-    useGoogleMaps();
+    useGoogleMapsStore();
 
   // Update scriptsReady based on centralized Google Maps loading
   useEffect(() => {
     if (googleMapsError) {
       console.error("❌ Google Maps loading error:", googleMapsError);
-      setLoadError("Failed to load Google Maps script.");
+      void void setLoadError("Failed to load Google Maps script.");
       return;
     }
 
@@ -203,19 +222,27 @@ export default function GenerateReportPage() {
             request
           );
 
-        setSuggestions(
-          fetched.map((s: any) => ({
-            description: s.placePrediction.text.text,
-            placePrediction: s.placePrediction,
-          }))
-        );
-      } catch (err) {
-        console.error("Autocomplete fetch error:", err);
+        const built: Suggestion[] = fetched.flatMap((s) => {
+          const prediction = s.placePrediction;
+          if (!prediction) return [];
+          return [
+            {
+              description: prediction.text.text,
+              // Coerce to the Suggestion's expected prediction type
+              placePrediction:
+                prediction as unknown as Suggestion["placePrediction"],
+            },
+          ];
+        });
+        setSuggestions(built);
+      } catch (err: unknown) {
+        const error = asError(err);
+        console.error("Autocomplete fetch error:", error);
         setSuggestions([]);
       }
     };
 
-    const debounce = setTimeout(fetchSuggestions, 500);
+    const debounce = void void setTimeout(fetchSuggestions, 500);
     return () => clearTimeout(debounce);
   }, [address, scriptsReady, hasSelected]);
 
@@ -246,19 +273,26 @@ export default function GenerateReportPage() {
             request
           );
 
-        setComparisonSuggestions(
-          fetched.map((s: any) => ({
-            description: s.placePrediction.text.text,
-            placePrediction: s.placePrediction,
-          }))
-        );
-      } catch (err) {
-        console.error("Comparison autocomplete fetch error:", err);
+        const built: Suggestion[] = fetched.flatMap((s) => {
+          const prediction = s.placePrediction;
+          if (!prediction) return [];
+          return [
+            {
+              description: prediction.text.text,
+              placePrediction:
+                prediction as unknown as Suggestion["placePrediction"],
+            },
+          ];
+        });
+        setComparisonSuggestions(built);
+      } catch (err: unknown) {
+        const error = asError(err);
+        console.error("Comparison autocomplete fetch error:", error);
         setComparisonSuggestions([]);
       }
     };
 
-    const debounce = setTimeout(fetchComparisonSuggestions, 200);
+    const debounce = void void setTimeout(fetchComparisonSuggestions, 200);
     return () => clearTimeout(debounce);
   }, [comparisonAddress, scriptsReady, hasSelectedComparison, reportType]);
 
@@ -282,7 +316,7 @@ export default function GenerateReportPage() {
     await place.fetchFields({
       fields: ["displayName", "formattedAddress"],
     });
-    setAddress(place.formattedAddress);
+    setAddress(place.formattedAddress ?? "");
     setSuggestions([]);
   };
 
@@ -292,7 +326,7 @@ export default function GenerateReportPage() {
     await place.fetchFields({
       fields: ["displayName", "formattedAddress"],
     });
-    setComparisonAddress(place.formattedAddress);
+    setComparisonAddress(place.formattedAddress ?? "");
     setComparisonSuggestions([]);
   };
 
@@ -300,13 +334,24 @@ export default function GenerateReportPage() {
   const setupReportCompletionListener = (documentId: string) => {
     try {
       // Try to call the polling function from PastReports
-      if ((window as any).pollForReportCompletion) {
+      if (
+        (
+          window as unknown as {
+            pollForReportCompletion?: (id: string) => void;
+          }
+        ).pollForReportCompletion
+      ) {
         try {
-          (window as any).pollForReportCompletion(documentId);
-        } catch (pollingError) {
+          (
+            window as unknown as {
+              pollForReportCompletion: (id: string) => void;
+            }
+          ).pollForReportCompletion(documentId);
+        } catch (pollingError: unknown) {
+          const error = asError(pollingError);
           console.error(
             `[GenerateReport] ❌ Error calling polling function:`,
-            pollingError
+            error
           );
         }
       } else {
@@ -318,8 +363,18 @@ export default function GenerateReportPage() {
           retryCount++;
 
           try {
-            if ((window as any).pollForReportCompletion) {
-              (window as any).pollForReportCompletion(documentId);
+            if (
+              (
+                window as unknown as {
+                  pollForReportCompletion?: (id: string) => void;
+                }
+              ).pollForReportCompletion
+            ) {
+              (
+                window as unknown as {
+                  pollForReportCompletion: (id: string) => void;
+                }
+              ).pollForReportCompletion(documentId);
             } else if (retryCount < maxRetries) {
               setTimeout(retryPolling, 500); // Retry every 500ms
             } else {
@@ -335,10 +390,11 @@ export default function GenerateReportPage() {
                 `[GenerateReport] ❌ User will need to manually refresh the reports page.`
               );
             }
-          } catch (retryError) {
+          } catch (retryError: unknown) {
+            const error = asError(retryError);
             console.error(
               `[GenerateReport] ❌ Error during retry ${retryCount}:`,
-              retryError
+              error
             );
             if (retryCount < maxRetries) {
               setTimeout(retryPolling, 500);
@@ -348,10 +404,11 @@ export default function GenerateReportPage() {
 
         setTimeout(retryPolling, 500);
       }
-    } catch (setupError) {
+    } catch (setupError: unknown) {
+      const error = asError(setupError);
       console.error(
         `[GenerateReport] ❌ CRITICAL ERROR in setupReportCompletionListener:`,
-        setupError
+        error
       );
       console.error(
         `[GenerateReport] ❌ Report polling will not work. Document ID: ${documentId}`
@@ -384,14 +441,17 @@ export default function GenerateReportPage() {
 
     try {
       // Use centralized API for report generation
-      const data = await reportApi.generate({
-        address: address,
-        ...(reportType === "comparison" && { comparisonAddress: comparisonAddress }),
-        ...(willSendUserId && { user_id: selectedClientId }),
-      });
+      const requestData: GenerateReportRequest = {
+        address,
+        ...(reportType === "comparison" && {
+          comparisonAddress,
+        }),
+        ...(willSendUserId ? { user_id: selectedClientId } : {}),
+      };
+      const data = await reportApi.generate(requestData);
 
       if (!data.success) {
-        throw new Error(data.error || "Failed to generate report");
+        throw new Error(data.error ?? "Failed to generate report");
       }
 
       // Set up listener for when report generation actually completes (~5 minutes)
@@ -400,10 +460,17 @@ export default function GenerateReportPage() {
       }
 
       // Navigate after successful API call
-      navigate("/dashboard/reports");
-    } catch (err: any) {
-      console.error("❌ Report generation error:", err.message || err);
-      setError(err.message || "Failed to generate report. Please try again.");
+      navigate("/reports");
+    } catch (err: unknown) {
+      console.error(
+        "❌ Report generation error:",
+        err instanceof Error ? err.message : err
+      );
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to generate report. Please try again."
+      );
     } finally {
       setIsGenerating(false);
     }
@@ -425,7 +492,7 @@ export default function GenerateReportPage() {
           <div>
             <label
               htmlFor="report-type"
-              className="block text-sm sm:text-lg font-medium text-black mb-2 sm:mb-3"
+              className="mb-2 block text-sm font-medium text-black sm:mb-3 sm:text-lg"
             >
               Report Type
             </label>
@@ -441,10 +508,10 @@ export default function GenerateReportPage() {
           </div>
 
           {reportType === "comparison" && (
-            <div className="bg-olive/10 border border-olive/30 rounded-lg space-responsive-sm">
+            <div className="space-responsive-sm rounded-lg border border-olive/30 bg-olive/10">
               <div className="flex items-start space-x-2 sm:space-x-3">
                 <div className="text-olive">
-                  <div className="font-medium text-sm sm:text-base mb-1">
+                  <div className="mb-1 text-sm font-medium sm:text-base">
                     Comparison Report
                   </div>
                   <div className="text-xs sm:text-sm">
@@ -458,10 +525,10 @@ export default function GenerateReportPage() {
           )}
 
           {reportType === "marketing" && (
-            <div className="bg-gold/10 border border-gold/30 rounded-lg space-responsive-sm">
+            <div className="space-responsive-sm rounded-lg border border-gold/30 bg-gold/10">
               <div className="flex items-start space-x-2 sm:space-x-3">
                 <div className="text-gold">
-                  <div className="font-medium text-sm sm:text-base mb-1">
+                  <div className="mb-1 text-sm font-medium sm:text-base">
                     Marketing Material
                   </div>
                   <div className="text-xs sm:text-sm">
@@ -479,10 +546,10 @@ export default function GenerateReportPage() {
           )}
 
           {reportType === "detailed" && (
-            <div className="bg-brown/10 border border-brown/30 rounded-lg space-responsive-sm">
+            <div className="space-responsive-sm rounded-lg border border-brown/30 bg-brown/10">
               <div className="flex items-start space-x-2 sm:space-x-3">
                 <div className="text-brown">
-                  <div className="font-medium text-sm sm:text-base mb-1">
+                  <div className="mb-1 text-sm font-medium sm:text-base">
                     Detailed Report
                   </div>
                   <div className="text-xs sm:text-sm">
@@ -501,7 +568,7 @@ export default function GenerateReportPage() {
           <div>
             <label
               htmlFor="address-input"
-              className="block text-sm sm:text-lg font-medium text-black mb-2 sm:mb-3"
+              className="mb-2 block text-sm font-medium text-black sm:mb-3 sm:text-lg"
             >
               {reportType === "comparison"
                 ? "First Property Address"
@@ -522,12 +589,12 @@ export default function GenerateReportPage() {
             />
 
             {suggestions.length > 0 && (
-              <ul className="border mt-2 rounded-md overflow-hidden shadow-sm bg-white z-50 relative max-h-60 overflow-y-auto">
+              <ul className="relative z-50 mt-2 max-h-60 overflow-hidden overflow-y-auto rounded-md border bg-white shadow-sm">
                 {suggestions.map((s, idx) => (
                   <li
                     key={idx}
                     onClick={() => handleSelect(s)}
-                    className="px-3 sm:px-4 py-3 sm:py-2 cursor-pointer hover:bg-gray-100 text-sm sm:text-base touch-friendly border-b border-gray-100 last:border-b-0"
+                    className="touch-friendly cursor-pointer border-b border-gray-100 px-3 py-3 text-sm last:border-b-0 hover:bg-gray-100 sm:px-4 sm:py-2 sm:text-base"
                   >
                     {s.description}
                   </li>
@@ -536,8 +603,8 @@ export default function GenerateReportPage() {
             )}
 
             {!scriptsReady && !loadError && (
-              <div className="text-responsive-sm text-black/60 mt-2 flex items-center">
-                <div className="animate-spin mobile-icon-xs mr-2 border-2 border-current border-t-transparent rounded-full" />
+              <div className="text-responsive-sm mt-2 flex items-center text-black/60">
+                <div className="mobile-icon-xs mr-2 animate-spin rounded-full border-2 border-current border-t-transparent" />
                 Loading address autocomplete...
               </div>
             )}
@@ -547,7 +614,7 @@ export default function GenerateReportPage() {
             <div>
               <label
                 htmlFor="comparison-address-input"
-                className="block text-sm sm:text-lg font-medium text-black mb-2 sm:mb-3"
+                className="mb-2 block text-sm font-medium text-black sm:mb-3 sm:text-lg"
               >
                 Second Property Address
               </label>
@@ -566,12 +633,12 @@ export default function GenerateReportPage() {
               />
 
               {comparisonSuggestions.length > 0 && (
-                <ul className="border mt-2 rounded-md overflow-hidden shadow-sm bg-white z-50 relative max-h-60 overflow-y-auto">
+                <ul className="relative z-50 mt-2 max-h-60 overflow-hidden overflow-y-auto rounded-md border bg-white shadow-sm">
                   {comparisonSuggestions.map((s, idx) => (
                     <li
                       key={idx}
                       onClick={() => handleComparisonSelect(s)}
-                      className="px-3 sm:px-4 py-3 sm:py-2 cursor-pointer hover:bg-gray-100 text-sm sm:text-base touch-friendly border-b border-gray-100 last:border-b-0"
+                      className="touch-friendly cursor-pointer border-b border-gray-100 px-3 py-3 text-sm last:border-b-0 hover:bg-gray-100 sm:px-4 sm:py-2 sm:text-base"
                     >
                       {s.description}
                     </li>
@@ -581,12 +648,12 @@ export default function GenerateReportPage() {
             </div>
           )}
 
-          {(error || loadError) && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3 sm:p-4 flex items-start space-x-2 sm:space-x-3">
-              <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-red-500 flex-shrink-0 mt-0.5" />
+          {(error ?? loadError) && (
+            <div className="flex items-start space-x-2 rounded-lg border border-red-200 bg-red-50 p-3 sm:space-x-3 sm:p-4">
+              <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-red-500 sm:h-5 sm:w-5" />
               <div className="text-red-700">
-                <div className="font-medium text-sm sm:text-base">Error</div>
-                <div className="text-xs sm:text-sm">{error || loadError}</div>
+                <div className="text-sm font-medium sm:text-base">Error</div>
+                <div className="text-xs sm:text-sm">{error ?? loadError}</div>
               </div>
             </div>
           )}
@@ -594,10 +661,10 @@ export default function GenerateReportPage() {
           <button
             onClick={handleGenerate}
             disabled={isButtonDisabled}
-            className={`w-full py-3 sm:py-4 px-4 sm:px-6 rounded-lg text-base sm:text-lg font-medium transition-all duration-200 touch-manipulation min-h-12 sm:min-h-14 ${
+            className={`min-h-12 w-full touch-manipulation rounded-lg px-4 py-3 text-base font-medium transition-all duration-200 sm:min-h-14 sm:px-6 sm:py-4 sm:text-lg ${
               isButtonDisabled
                 ? "cursor-not-allowed bg-gray-300 text-gray-500"
-                : "bg-olive text-white hover:bg-olive-light hover:shadow-lg active:transform active:scale-[0.98]"
+                : "bg-olive text-white hover:bg-olive-light hover:shadow-lg active:scale-[0.98] active:transform"
             }`}
           >
             {isGenerating ? (

@@ -3,8 +3,13 @@ import react from '@vitejs/plugin-react-swc';
 import path from 'path';
 
 export default defineConfig({
+  root: __dirname, // Client/ directory
   base: '/',
   plugins: [react()],
+  publicDir: 'public', // Static assets from Client/public/
+  css: {
+    postcss: './postcss.config.js',
+  },
   server: {
     host: '0.0.0.0',
     port: 5173,
@@ -34,8 +39,8 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: ['react', 'react-dom'],
-    exclude: ["@types/*"],
-    },
+    exclude: ['@types/*'],
+  },
   build: {
     target: 'es2020',
     sourcemap: false,
@@ -44,7 +49,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "src"),
+      '@': path.resolve(__dirname, './src'),
     },
   },
 });

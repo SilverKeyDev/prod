@@ -1,9 +1,9 @@
-import React, { forwardRef, useState } from "react";
 import { Eye, EyeOff, X } from "lucide-react";
-import { getSharedInputTextStyles } from "./InputStyles";
+import React, { forwardRef, useState } from "react";
 
-export interface InputProps
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size"> {
+import { getSharedInputTextStyles } from "./InputStyleUtils";
+
+export type InputProps = {
   variant?: "default" | "mobile" | "compact" | "search";
   size?: "sm" | "md" | "lg";
   error?: string;
@@ -20,7 +20,7 @@ export interface InputProps
   iconSize?: "xs" | "sm" | "md" | "lg";
   iconColor?: string;
   iconPosition?: "left" | "right";
-}
+} & Omit<React.InputHTMLAttributes<HTMLInputElement>, "size">;
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
   (
@@ -97,7 +97,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
       errorStyles,
       disabledStyles,
       leftIcon ? "has-left-icon" : "",
-      rightIcon || clearable || showPasswordToggle ? "has-right-icon" : "",
+      (rightIcon ?? (clearable || showPasswordToggle)) ? "has-right-icon" : "",
       className,
     ]
       .filter(Boolean)
@@ -119,10 +119,10 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label
             htmlFor={props.id}
-            className="block text-sm font-medium text-gray-700 mb-2"
+            className="mb-2 block text-sm font-medium text-gray-700"
           >
             {label}
-            {required && <span className="text-red-500 ml-1">*</span>}
+            {required && <span className="ml-1 text-red-500">*</span>}
           </label>
         )}
 
@@ -158,10 +158,10 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
                 <button
                   type="button"
                   onClick={onClear}
-                  className="p-1 hover:bg-gray-100 rounded transition-colors"
+                  className="rounded p-1 transition-colors hover:bg-gray-100"
                   tabIndex={-1}
                 >
-                  <X className="w-4 h-4" />
+                  <X className="h-4 w-4" />
                 </button>
               )}
 
@@ -170,13 +170,13 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="p-1 hover:bg-gray-100 rounded transition-colors"
+                  className="rounded p-1 transition-colors hover:bg-gray-100"
                   tabIndex={-1}
                 >
                   {showPassword ? (
-                    <EyeOff className="w-4 h-4" />
+                    <EyeOff className="h-4 w-4" />
                   ) : (
-                    <Eye className="w-4 h-4" />
+                    <Eye className="h-4 w-4" />
                   )}
                 </button>
               )}
@@ -201,4 +201,6 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
 
 Input.displayName = "Input";
 
+// Export both named and default for compatibility
+export { Input };
 export default Input;

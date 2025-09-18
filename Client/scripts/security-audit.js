@@ -9,14 +9,88 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
+/**
+ * Simple logger utility to replace console statements
+ */
+class Logger {
+  constructor(level = 'info') {
+    this.level = level;
+    this.levels = { error: 0, warn: 1, info: 2, debug: 3 };
+  }
+
+  shouldLog(level) {
+    return this.levels[level] <= this.levels[this.level];
+  }
+
+  error(message) {
+    if (this.shouldLog('error')) {
+      process.stderr.write(`❌ ${message}\n`);
+    }
+  }
+
+  warn(message) {
+    if (this.shouldLog('warn')) {
+      process.stdout.write(`⚠️  ${message}\n`);
+    }
+  }
+
+  info(message) {
+    if (this.shouldLog('info')) {
+      process.stdout.write(`${message}\n`);
+    }
+  }
+
+  debug(message) {
+    if (this.shouldLog('debug')) {
+      process.stdout.write(`🔍 ${message}\n`);
+    }
+  }
+
+  success(message) {
+    if (this.shouldLog('info')) {
+      process.stdout.write(`✅ ${message}\n`);
+    }
+  }
+
+  progress(message) {
+    if (this.shouldLog('info')) {
+      process.stdout.write(`📊 ${message}\n`);
+    }
+  }
+
+  file(message) {
+    if (this.shouldLog('info')) {
+      process.stdout.write(`📄 ${message}\n`);
+    }
+  }
+
+  package(message) {
+    if (this.shouldLog('info')) {
+      process.stdout.write(`📦 ${message}\n`);
+    }
+  }
+
+  analysis(message) {
+    if (this.shouldLog('info')) {
+      process.stdout.write(`📋 ${message}\n`);
+    }
+  }
+
+  audit(message) {
+    if (this.shouldLog('info')) {
+      process.stdout.write(`🔒 ${message}\n`);
+    }
+  }
+}
+
 // Configuration
 const CONFIG = {
   // Vulnerability severity levels to fail on
   failOnSeverity: ['critical', 'high'],
-  
+
   // Maximum age for vulnerabilities (in days)
   maxVulnerabilityAge: 30,
-  
+
   // Allowed vulnerability count by severity
   allowedVulnerabilities: {
     critical: 0,
@@ -24,16 +98,17 @@ const CONFIG = {
     moderate: 5,
     low: 10,
   },
-  
+
   // Output file for audit results
   outputFile: 'security-audit-report.json',
-  
+
   // Dependencies to exclude from audit (if needed)
   excludePackages: [],
 };
 
 class SecurityAuditor {
-  constructor() {
+  constructor(logLevel = 'info') {
+    this.logger = new Logger(logLevel);
     this.results = {
       timestamp: new Date().toISOString(),
       vulnerabilities: [],
@@ -47,18 +122,17 @@ class SecurityAuditor {
    * Run npm audit and parse results
    */
   async runNpmAudit() {
-    console.log('🔍 Running npm audit...');
-    
+    this.logger.debug('Running npm audit...');
+
     try {
       // Run npm audit with JSON output
-      const auditOutput = execSync('npm audit --json', { 
+      const auditOutput = execSync('npm audit --json', {
         encoding: 'utf8',
         cwd: process.cwd(),
       });
-      
+
       const auditData = JSON.parse(auditOutput);
       this.processAuditResults(auditData);
-      
     } catch (error) {
       // npm audit returns non-zero exit code when vulnerabilities are found
       if (error.stdout) {
@@ -66,11 +140,11 @@ class SecurityAuditor {
           const auditData = JSON.parse(error.stdout);
           this.processAuditResults(auditData);
         } catch (parseError) {
-          console.error('❌ Failed to parse npm audit output:', parseError.message);
+          this.logger.error(`Failed to parse npm audit output: ${parseError.message}`);
           throw parseError;
         }
       } else {
-        console.error('❌ npm audit failed:', error.message);
+        this.logger.error(`npm audit failed: ${error.message}`);
         throw error;
       }
     }
@@ -80,15 +154,15 @@ class SecurityAuditor {
    * Process npm audit results
    */
   processAuditResults(auditData) {
-    const { vulnerabilities = {}, metadata = {} } = auditData;
-    
+    const { vulnerabilities = {} } = auditData;
+
     // Extract vulnerability information
     Object.entries(vulnerabilities).forEach(([packageName, vulnData]) => {
       if (CONFIG.excludePackages.includes(packageName)) {
         return;
       }
-      
-      vulnData.via?.forEach(via => {
+
+      vulnData.via?.forEach((via) => {
         if (typeof via === 'object' && via.severity) {
           this.results.vulnerabilities.push({
             package: packageName,
@@ -107,42 +181,42 @@ class SecurityAuditor {
     // Generate summary
     this.results.summary = {
       total: this.results.vulnerabilities.length,
-      critical: this.results.vulnerabilities.filter(v => v.severity === 'critical').length,
-      high: this.results.vulnerabilities.filter(v => v.severity === 'high').length,
-      moderate: this.results.vulnerabilities.filter(v => v.severity === 'moderate').length,
-      low: this.results.vulnerabilities.filter(v => v.severity === 'low').length,
-      info: this.results.vulnerabilities.filter(v => v.severity === 'info').length,
+      critical: this.results.vulnerabilities.filter((v) => v.severity === 'critical').length,
+      high: this.results.vulnerabilities.filter((v) => v.severity === 'high').length,
+      moderate: this.results.vulnerabilities.filter((v) => v.severity === 'moderate').length,
+      low: this.results.vulnerabilities.filter((v) => v.severity === 'low').length,
+      info: this.results.vulnerabilities.filter((v) => v.severity === 'info').length,
     };
 
-    console.log(`📊 Found ${this.results.summary.total} vulnerabilities:`);
-    console.log(`   Critical: ${this.results.summary.critical}`);
-    console.log(`   High: ${this.results.summary.high}`);
-    console.log(`   Moderate: ${this.results.summary.moderate}`);
-    console.log(`   Low: ${this.results.summary.low}`);
+    this.logger.progress(`Found ${this.results.summary.total} vulnerabilities:`);
+    this.logger.info(`   Critical: ${this.results.summary.critical}`);
+    this.logger.info(`   High: ${this.results.summary.high}`);
+    this.logger.info(`   Moderate: ${this.results.summary.moderate}`);
+    this.logger.info(`   Low: ${this.results.summary.low}`);
   }
 
   /**
    * Check for outdated dependencies
    */
   async checkOutdatedDependencies() {
-    console.log('📅 Checking for outdated dependencies...');
-    
+    this.logger.debug('Checking for outdated dependencies...');
+
     try {
-      const outdatedOutput = execSync('npm outdated --json', { 
+      const outdatedOutput = execSync('npm outdated --json', {
         encoding: 'utf8',
         cwd: process.cwd(),
       });
-      
+
       if (outdatedOutput.trim()) {
         const outdatedData = JSON.parse(outdatedOutput);
         const outdatedCount = Object.keys(outdatedData).length;
-        
-        console.log(`📦 Found ${outdatedCount} outdated dependencies`);
-        
+
+        this.logger.package(`Found ${outdatedCount} outdated dependencies`);
+
         this.results.outdatedDependencies = outdatedData;
         this.results.summary.outdated = outdatedCount;
       } else {
-        console.log('✅ All dependencies are up to date');
+        this.logger.success('All dependencies are up to date');
         this.results.summary.outdated = 0;
       }
     } catch (error) {
@@ -150,13 +224,13 @@ class SecurityAuditor {
       if (error.stdout && error.stdout.trim()) {
         const outdatedData = JSON.parse(error.stdout);
         const outdatedCount = Object.keys(outdatedData).length;
-        
-        console.log(`📦 Found ${outdatedCount} outdated dependencies`);
-        
+
+        this.logger.package(`Found ${outdatedCount} outdated dependencies`);
+
         this.results.outdatedDependencies = outdatedData;
         this.results.summary.outdated = outdatedCount;
       } else {
-        console.log('✅ All dependencies are up to date');
+        this.logger.success('All dependencies are up to date');
         this.results.summary.outdated = 0;
       }
     }
@@ -166,22 +240,22 @@ class SecurityAuditor {
    * Analyze package.json for security best practices
    */
   analyzePackageJson() {
-    console.log('📋 Analyzing package.json for security best practices...');
-    
+    this.logger.analysis('Analyzing package.json for security best practices...');
+
     const packageJsonPath = path.join(process.cwd(), 'package.json');
-    
+
     if (!fs.existsSync(packageJsonPath)) {
-      console.warn('⚠️  package.json not found');
+      this.logger.warn('package.json not found');
       return;
     }
-    
+
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
     const issues = [];
-    
+
     // Check for exact version pinning
     const checkVersions = (deps, type) => {
       if (!deps) return;
-      
+
       Object.entries(deps).forEach(([name, version]) => {
         if (version.startsWith('^') || version.startsWith('~') || version.includes('*')) {
           issues.push({
@@ -194,31 +268,31 @@ class SecurityAuditor {
         }
       });
     };
-    
+
     checkVersions(packageJson.dependencies, 'dependencies');
     checkVersions(packageJson.devDependencies, 'devDependencies');
-    
+
     // Check for security-related scripts
-    const hasSecurityScripts = packageJson.scripts && (
-      packageJson.scripts.audit ||
-      packageJson.scripts['security-check'] ||
-      packageJson.scripts['vulnerability-check']
-    );
-    
+    const hasSecurityScripts =
+      packageJson.scripts &&
+      (packageJson.scripts.audit ??
+        packageJson.scripts['security-check'] ??
+        packageJson.scripts['vulnerability-check']);
+
     if (!hasSecurityScripts) {
       issues.push({
         type: 'missing_security_scripts',
         recommendation: 'Add security audit scripts to package.json',
       });
     }
-    
+
     this.results.packageAnalysis = {
       issues,
       hasLockFile: fs.existsSync(path.join(process.cwd(), 'package-lock.json')),
       hasSecurityScripts,
     };
-    
-    console.log(`📋 Package analysis found ${issues.length} potential issues`);
+
+    this.logger.analysis(`Package analysis found ${issues.length} potential issues`);
   }
 
   /**
@@ -226,7 +300,7 @@ class SecurityAuditor {
    */
   generateRecommendations() {
     const recommendations = [];
-    
+
     // Vulnerability-based recommendations
     if (this.results.summary.critical > 0) {
       recommendations.push({
@@ -235,7 +309,7 @@ class SecurityAuditor {
         command: 'npm audit fix --force',
       });
     }
-    
+
     if (this.results.summary.high > 0) {
       recommendations.push({
         priority: 'high',
@@ -243,7 +317,7 @@ class SecurityAuditor {
         command: 'npm audit fix',
       });
     }
-    
+
     if (this.results.summary.outdated > 5) {
       recommendations.push({
         priority: 'medium',
@@ -251,7 +325,7 @@ class SecurityAuditor {
         command: 'npm update',
       });
     }
-    
+
     // Package analysis recommendations
     if (this.results.packageAnalysis?.issues.length > 0) {
       recommendations.push({
@@ -260,7 +334,7 @@ class SecurityAuditor {
         details: this.results.packageAnalysis.issues,
       });
     }
-    
+
     this.results.recommendations = recommendations;
   }
 
@@ -270,33 +344,33 @@ class SecurityAuditor {
   evaluateResults() {
     let passed = true;
     const failures = [];
-    
+
     // Check against allowed vulnerability counts
     Object.entries(CONFIG.allowedVulnerabilities).forEach(([severity, maxCount]) => {
-      const actualCount = this.results.summary[severity] || 0;
+      const actualCount = this.results.summary[severity] ?? 0;
       if (actualCount > maxCount) {
         passed = false;
         failures.push(`${severity}: ${actualCount} (max: ${maxCount})`);
       }
     });
-    
+
     // Check for fail-on severity levels
-    CONFIG.failOnSeverity.forEach(severity => {
-      const count = this.results.summary[severity] || 0;
+    CONFIG.failOnSeverity.forEach((severity) => {
+      const count = this.results.summary[severity] ?? 0;
       if (count > 0) {
         passed = false;
         failures.push(`${severity} vulnerabilities not allowed: ${count} found`);
       }
     });
-    
+
     this.results.passed = passed;
     this.results.failures = failures;
-    
+
     if (passed) {
-      console.log('✅ Security audit passed');
+      this.logger.success('Security audit passed');
     } else {
-      console.log('❌ Security audit failed:');
-      failures.forEach(failure => console.log(`   - ${failure}`));
+      this.logger.error('Security audit failed:');
+      failures.forEach((failure) => this.logger.info(`   - ${failure}`));
     }
   }
 
@@ -306,15 +380,15 @@ class SecurityAuditor {
   saveResults() {
     const outputPath = path.join(process.cwd(), CONFIG.outputFile);
     fs.writeFileSync(outputPath, JSON.stringify(this.results, null, 2));
-    console.log(`📄 Results saved to ${CONFIG.outputFile}`);
+    this.logger.file(`Results saved to ${CONFIG.outputFile}`);
   }
 
   /**
    * Run complete security audit
    */
   async run() {
-    console.log('🔒 Starting security audit...\n');
-    
+    this.logger.audit('Starting security audit...\n');
+
     try {
       await this.runNpmAudit();
       await this.checkOutdatedDependencies();
@@ -322,14 +396,13 @@ class SecurityAuditor {
       this.generateRecommendations();
       this.evaluateResults();
       this.saveResults();
-      
-      console.log('\n🔒 Security audit completed');
-      
+
+      this.logger.audit('\nSecurity audit completed');
+
       // Exit with appropriate code
       process.exit(this.results.passed ? 0 : 1);
-      
     } catch (error) {
-      console.error('❌ Security audit failed:', error.message);
+      this.logger.error(`Security audit failed: ${error.message}`);
       process.exit(1);
     }
   }
