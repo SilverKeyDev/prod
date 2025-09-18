@@ -123,8 +123,59 @@ def _create_pdf(report: dict, address: str, filename: str, comparison_address: s
         
        
 
-        # Cache chart tables for side-by-side rendering
-        chart_tables = {}  # Cache for deferred rendering
+        # Prebuild charts for age_distribution and lifestyle_dna so we can render them
+        # side-by-side immediately after the neighborhood_overview section
+        prebuilt_chart_tables = {}
+        try:
+            # Lifestyle DNA chart prebuild
+            lifestyle_data = report.get("lifestyle_dna")
+            if isinstance(lifestyle_data, dict):
+                lifestyle_chart_data = {}
+                for k, v in lifestyle_data.items():
+                    if isinstance(v, str) and v.strip().endswith('%'):
+                        lifestyle_chart_data[k] = v.strip()
+                    else:
+                        lifestyle_chart_data[k] = f"{v}%"
+                lifestyle_buffer = generate_horizontal_bar_chart(lifestyle_chart_data, "Lifestyle Dna")
+                if lifestyle_buffer:
+                    lifestyle_img = _resize_image_to_fit(lifestyle_buffer, target_width=3.6 * inch, target_height=2.8 * inch, is_chart=True)
+                    lifestyle_table = Table([[lifestyle_img]], colWidths=[3.6 * inch])
+                    lifestyle_table.setStyle(TableStyle([
+                        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                        ("LEFTPADDING", (0, 0), (-1, -1), 10),
+                        ("RIGHTPADDING", (0, 0), (-1, -1), 10),
+                        ("TOPPADDING", (0, 0), (-1, -1), 1),
+                        ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
+                    ]))
+                    prebuilt_chart_tables["lifestyle_dna"] = lifestyle_table
+
+            # Age Distribution chart prebuild
+            age_data = report.get("age_distribution")
+            if isinstance(age_data, dict):
+                age_chart_data = {}
+                for field_name, value in age_data.items():
+                    if isinstance(value, str) and value.strip().endswith('%'):
+                        age_chart_data[field_name] = value.strip()
+                    else:
+                        age_chart_data[field_name] = f"{value}%"
+                age_buffer = generate_vertical_lollipop_chart(age_chart_data, "Age Distribution")
+                if age_buffer:
+                    age_img = _resize_image_to_fit(age_buffer, target_width=3.6 * inch, target_height=2.8 * inch, is_chart=True)
+                    age_table = Table([[age_img]], colWidths=[3.6 * inch])
+                    age_table.setStyle(TableStyle([
+                        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                        ("LEFTPADDING", (0, 0), (-1, -1), 10),
+                        ("RIGHTPADDING", (0, 0), (-1, -1), 10),
+                        ("TOPPADDING", (0, 0), (-1, -1), 1),
+                        ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
+                    ]))
+                    prebuilt_chart_tables["age_distribution"] = age_table
+        except Exception as _prebuild_err:
+            logger.warning(f"⚠️ Failed to prebuild charts: {_prebuild_err}")
+
+        charts_inserted_after_neighborhood = False
 
         for i, (section, section_data) in enumerate(report.items()):
             key = section.replace("_", " ").title()
@@ -139,59 +190,9 @@ def _create_pdf(report: dict, address: str, filename: str, comparison_address: s
                 elements.append(HRFlowable(width="100%", thickness=0.5, color="#AAAAAA"))
                 elements.append(Spacer(1, 1))
 
-            # CHART SECTION: Generate, render inline, and cache for later rendering
+            # CHART SECTION: Skip per-section inline rendering; will render side-by-side later
             if section.lower() in ["age_distribution", "lifestyle_dna"] and isinstance(section_data, dict):
-                chart_data = {}
-                chart_buffer = None
-
-                if section.lower() == "lifestyle_dna":
-                    for k, v in section_data.items():
-                        # Handle values that are already percentages or numbers
-                        if isinstance(v, str) and v.strip().endswith('%'):
-                            chart_data[k] = v.strip()
-                        else:
-                            chart_data[k] = f"{v}%"
-                    chart_buffer = generate_horizontal_bar_chart(chart_data, key)
-
-                elif section.lower() == "age_distribution":
-                    for field_name, value in section_data.items():
-                        if field_name.startswith("age_"):
-                            display_name = field_name.replace("age_", "").replace("_plus", "+").replace("_", "-")
-                        else:
-                            display_name = field_name
-
-                        # Handle values that already have % suffix
-                        if isinstance(value, str) and value.strip().endswith('%'):
-                            chart_data[display_name] = value.strip()
-                        else:
-                            chart_data[display_name] = f"{value}%"
-                    chart_buffer = generate_vertical_lollipop_chart(chart_data, key)
-
-                # Render inline and cache if chart rendered successfully
-                if chart_buffer:
-                    # Inline render (label + chart + caption), keeping chart sections title-less per above
-                    img = _resize_image_to_fit(chart_buffer, target_width=3.6 * inch, target_height=2.8 * inch, is_chart=True)
-                    table = Table([[img]], colWidths=[3.6 * inch])
-                    table.setStyle(TableStyle([
-                        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-                        ("LEFTPADDING", (0, 0), (-1, -1), 10),
-                        ("RIGHTPADDING", (0, 0), (-1, -1), 10),
-                        ("TOPPADDING", (0, 0), (-1, -1), 1),
-                        ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
-                    ]))
-
-                    # Add inline chart with a concise caption
-                    elements.append(table)
-                    elements.append(Paragraph(f"{key} Chart", styles["Caption"]))
-                    elements.append(Spacer(1, 10))
-
-                    # Cache for potential side-by-side summary later
-                    chart_tables[section.lower()] = table
-                else:
-                    logger.error(f"❌ Chart generation failed for {section} - chart_buffer is None")
-
-                continue  # Skip rest of loop for chart sections
+                continue  # Defer rendering to after neighborhood_overview
 
             if isinstance(section_data, dict):                
                 # Special aesthetic handling for property_data section
@@ -262,6 +263,35 @@ def _create_pdf(report: dict, address: str, filename: str, comparison_address: s
                 elements.append(Indenter(left=1))
                 _add_section(elements, section_data, styles)
                 elements.append(Indenter(left=-1))
+
+                # Immediately after neighborhood_overview, render charts side-by-side if available
+                if not charts_inserted_after_neighborhood and section.lower() == "neighborhood_overview":
+                    try:
+                        lifestyle_table = prebuilt_chart_tables.get("lifestyle_dna")
+                        age_table = prebuilt_chart_tables.get("age_distribution")
+                        if lifestyle_table or age_table:
+                            elements.append(Spacer(1, 6))
+                            if lifestyle_table and age_table:
+                                side_by_side = Table([[age_table, lifestyle_table]], colWidths=[3.6 * inch, 3.6 * inch], hAlign='CENTER')
+                                side_by_side.setStyle(TableStyle([
+                                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                                    ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                                    ("LEFTPADDING", (0, 0), (-1, -1), 10),
+                                    ("RIGHTPADDING", (0, 0), (-1, -1), 10),
+                                    ("TOPPADDING", (0, 0), (-1, -1), 6),
+                                    ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+                                ]))
+                                elements.append(side_by_side)
+                                elements.append(Paragraph("Demographics Overview", styles["Caption"]))
+                                elements.append(Spacer(1, 20))
+                            else:
+                                # Fallback: single chart centered if only one available
+                                solo = lifestyle_table or age_table
+                                elements.append(solo)
+                                elements.append(Spacer(1, 10))
+                            charts_inserted_after_neighborhood = True
+                    except Exception as _sbs_err:
+                        logger.warning(f"⚠️ Failed to render side-by-side charts after neighborhood_overview: {_sbs_err}")
             elif isinstance(section_data, list):
                 for item in section_data:
                     elements.append(Indenter(left=1))
@@ -273,29 +303,7 @@ def _create_pdf(report: dict, address: str, filename: str, comparison_address: s
             else:
                 elements.append(Paragraph(str(section_data), styles["Body"]))
         
-        # Render side-by-side charts after all sections are processed
-        if "age_distribution" in chart_tables and "lifestyle_dna" in chart_tables:
-            side_by_side = Table(
-                [[chart_tables["age_distribution"], chart_tables["lifestyle_dna"]]],
-                colWidths=[3.6 * inch, 3.6 * inch],
-                hAlign='CENTER'
-            )
-            side_by_side.setStyle(TableStyle([
-                ("VALIGN", (0, 0), (-1, -1), "TOP"),
-                ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-                ("LEFTPADDING", (0, 0), (-1, -1), 10),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 10),
-                ("TOPPADDING", (0, 0), (-1, -1), 6),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
-            ]))
-            elements.append(Spacer(1, 10))
-            elements.append(side_by_side)
-            elements.append(Spacer(1, 20))
-        elif len(chart_tables) > 0:
-            # Single chart present; already rendered inline above. Do not duplicate at the end.
-            pass
-        else:
-            logger.warning("⚠️ No charts cached for rendering")
+        # Removed end-of-file side-by-side rendering; charts are rendered after neighborhood_overview
             
         doc.build(elements)
         pdf_data = pdf_buffer.getvalue()
