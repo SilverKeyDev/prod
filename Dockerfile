@@ -37,6 +37,7 @@
     # ---- system packages ----
     # - build-essential, cmake, libomp-dev: your existing native deps (e.g., lightgbm)
     # - libmagic1, file: REQUIRED for python-magic (provides libmagic.so + magic DB)
+    # - gdal-bin, libgdal-dev: REQUIRED for fiona/osmnx geospatial libraries
     RUN apt-get update && apt-get install -y --no-install-recommends \
         build-essential \
         libomp-dev \
@@ -44,6 +45,8 @@
         curl \
         libmagic1 \
         file \
+        gdal-bin \
+        libgdal-dev \
      && rm -rf /var/lib/apt/lists/*
     
     # ---- python deps ----
