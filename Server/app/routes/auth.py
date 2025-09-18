@@ -147,14 +147,8 @@ def verify():
             max_age=60*60*24*30  # 30 days
         )
         
-        resp.set_cookie(
-            "id_token",
-            value=login_result['tokens']['IdToken'],
-            httponly=True,
-            secure=os.getenv('FLASK_ENV') == 'production',
-            samesite="Lax",
-            max_age=60*60*8  # 8 hours
-        )
+        # Include ID token in response body instead of cookie
+        response_data['id_token'] = login_result['tokens']['IdToken']
         
         return resp
 
@@ -296,15 +290,8 @@ def login():
             max_age=60*60*24*30  # 30 days
         )
         
-        # Set ID token cookie for client-side use (if needed)
-        resp.set_cookie(
-            "id_token",
-            value=result['tokens']['IdToken'],
-            httponly=True,
-            secure=os.getenv('FLASK_ENV') == 'production',
-            samesite="Lax",
-            max_age=60*60*8  # 8 hours
-        )
+        # Include ID token in response body instead of cookie
+        response_data['id_token'] = result['tokens']['IdToken']
         
         return resp
 
@@ -403,14 +390,7 @@ def logout():
             max_age=0  # Expire immediately
         )
         
-        resp.set_cookie(
-            "id_token",
-            value="",
-            httponly=True,
-            secure=os.getenv('FLASK_ENV') == 'production',
-            samesite="Lax",
-            max_age=0  # Expire immediately
-        )
+        # No need to clear id_token cookie since we don't set it anymore
         
         return resp
         

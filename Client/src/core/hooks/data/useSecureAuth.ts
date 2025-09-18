@@ -68,20 +68,25 @@ export function useSecureAuth(): UseSecureAuthReturn {
 
 
       if (response.success) {
-        // For HttpOnly cookie approach, we don't get tokens in response body
-        // The tokens are automatically included in subsequent requests via cookies
-        // We'll use a placeholder token for the client-side state management
-        const placeholderToken = 'http-only-cookie-auth';
+        // Store actual tokens from response body
+        // Access token and refresh token are handled via HttpOnly cookies
+        // ID token is returned in response body for client-side use
+        const accessToken = response.access_token || 'http-only-cookie-auth';
+        const idToken = response.id_token;
         
-        // Store placeholder token in memory (primary)
-        setAccessToken(placeholderToken);
+        // Store access token in memory (primary)
+        setAccessToken(accessToken);
 
-        // Store placeholder token in sessionStorage for persistence across refreshes
-        // This is just for client-side state management - actual auth is via HttpOnly cookies
+        // Store access token in sessionStorage for persistence across refreshes
         sessionStorage.setItem(
           AUTH_CONFIG.STORAGE_KEYS.ACCESS_TOKEN,
-          placeholderToken
+          accessToken
         );
+
+        // Store ID token in sessionStorage for client-side use
+        if (idToken) {
+          sessionStorage.setItem('id_token', idToken);
+        }
 
         // Note: Global function will be updated by useEffect to include this token
 
@@ -168,6 +173,7 @@ export function useSecureAuth(): UseSecureAuthReturn {
     // Clear sessionStorage tokens and user data
     sessionStorage.removeItem(AUTH_CONFIG.STORAGE_KEYS.ACCESS_TOKEN);
     sessionStorage.removeItem(AUTH_CONFIG.STORAGE_KEYS.USER);
+    sessionStorage.removeItem('id_token');
     sessionStorage.removeItem('signupEmail');
     
     // Clear auth ready flag so it can be dispatched again on next login

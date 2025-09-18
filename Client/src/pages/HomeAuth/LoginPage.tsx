@@ -29,14 +29,12 @@ export default function LoginPage() {
       const hasTokens =
         sessionStorage.getItem("refresh_token") ??
         sessionStorage.getItem("access_token") ??
-        sessionStorage.getItem("id_token") ??
         sessionStorage.getItem("user");
 
       if (hasTokens) {
         // Clear stale tokens from sessionStorage
         sessionStorage.removeItem("refresh_token");
         sessionStorage.removeItem("access_token");
-        sessionStorage.removeItem("id_token");
         sessionStorage.removeItem("user");
         clearError();
       }
