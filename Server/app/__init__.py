@@ -186,13 +186,6 @@ def create_app(config=None):
     def serve_assets(filename):
         path = os.path.join(app.static_folder, "assets")
         print(f"Serving from {path} filename={filename}")
-        
-        # Set correct MIME type for JavaScript files
-        if filename.endswith('.js'):
-            response = send_from_directory(path, filename)
-            response.headers['Content-Type'] = 'application/javascript'
-            return response
-        
         return send_from_directory(path, filename)
 
     @app.route("/", defaults={"path": ""})
@@ -205,17 +198,7 @@ def create_app(config=None):
         requested_file = os.path.join(app.static_folder, path)
         if os.path.isfile(requested_file):
             print(f"CATCH_ALL: Serving static file: {path}")
-            response = send_from_directory(app.static_folder, path)
-            
-            # Set correct MIME type for JavaScript files
-            if path.endswith('.js'):
-                response.headers['Content-Type'] = 'application/javascript'
-            elif path.endswith('.css'):
-                response.headers['Content-Type'] = 'text/css'
-            elif path.endswith('.json'):
-                response.headers['Content-Type'] = 'application/json'
-            
-            return response
+            return send_from_directory(app.static_folder, path)
         else:
             print(f"CATCH_ALL: Path not found: {path} — serving index.html fallback")
             return send_from_directory(app.static_folder, "index.html")

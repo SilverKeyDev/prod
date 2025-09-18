@@ -2,7 +2,7 @@ import React from "react";
 
 import CloseLayout from "../../features/close/CloseLayout";
 import { type ChecklistItem } from "../../components/ui/form/ChecklistCheckbox";
-import HomeConcierge from "../../features/close/homeConcierge";
+import HomeConcierge from "../../features/close/HomeConcierge";
 
 type ClosePageHeaderData = {
   title: string;
