@@ -159,7 +159,6 @@ jobs:
               -e COGNITO_CLIENT_SECRET="${{ secrets.COGNITO_CLIENT_SECRET }}" \
               -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
               -e S3_BUCKET_NAME_PDFS="${{ secrets.S3_BUCKET_NAME_PDFS }}" \
-              -e STRIPE_PROD_ID_BASIC="${{ secrets.STRIPE_PROD_ID_BASIC }}" \
               -e GOOGLE_MAPS_API_KEY="${{ secrets.GOOGLE_MAPS_API_KEY }}" \
               -e PERPLEXITY_API_KEY="${{ secrets.PERPLEXITY_API_KEY }}" \
               -e VITE_API_BASE_URL="${{ secrets.VITE_API_BASE_URL }}" \
@@ -196,7 +195,6 @@ jobs:
               -e COGNITO_CLIENT_SECRET="${{ secrets.COGNITO_CLIENT_SECRET }}" \
               -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
               -e S3_BUCKET_NAME_PDFS="${{ secrets.S3_BUCKET_NAME_PDFS }}" \
-              -e STRIPE_PROD_ID_BASIC="${{ secrets.STRIPE_PROD_ID_BASIC }}" \
               -e GOOGLE_MAPS_API_KEY="${{ secrets.GOOGLE_MAPS_API_KEY }}" \
               -e PERPLEXITY_API_KEY="${{ secrets.PERPLEXITY_API_KEY }}" \
               -e VITE_API_BASE_URL="${{ secrets.VITE_API_BASE_URL }}" \

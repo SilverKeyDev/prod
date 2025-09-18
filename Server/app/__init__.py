@@ -136,8 +136,9 @@ def create_app(config=None):
     app.register_blueprint(offer_bp)
 
     # Health check endpoint
-    @app.route('/healthz', methods=['GET'])
+    @app.route('/healthz', methods=['GET', 'HEAD'])
     def healthz():
+        # return empty body for HEAD automatically
         return jsonify({"status": "ok"}), 200
 
     # Security headers middleware
