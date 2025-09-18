@@ -3,7 +3,7 @@ import React from "react";
 import CloseLayout, {
   type ChecklistItem,
 } from "../../features/close/CloseLayout";
-import HomeConcierge from "../../features/close/homeConcierge";
+import HomeConcierge from "../../features/close/HomeConcierge";
 
 type ClosePageHeaderData = {
   title: string;
