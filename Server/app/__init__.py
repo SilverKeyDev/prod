@@ -1,5 +1,6 @@
 # Fix Hugging Face parallelism warnings - must be set before any HF imports
 import os
+import random
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 os.environ.setdefault("OMP_NUM_THREADS", "1")
 os.environ.setdefault("MKL_NUM_THREADS", "1")
@@ -138,8 +139,60 @@ def create_app(config=None):
     # Health check endpoint
     @app.route('/healthz', methods=['GET', 'HEAD'])
     def healthz():
-        # return empty body for HEAD automatically
-        return jsonify({"status": "ok"}), 200
+        import time
+        from datetime import datetime
+        
+        start_time = time.time()
+        health_data = {
+            "status": "ok",
+            "timestamp": datetime.utcnow().isoformat(),
+            "version": "1.0.0"
+        }
+        
+        # Check database connectivity
+        try:
+            db.session.execute('SELECT 1')
+            health_data["database"] = "connected"
+        except Exception as e:
+            health_data["database"] = f"error: {str(e)}"
+            health_data["status"] = "degraded"
+        
+        # Check AWS Cognito connectivity
+        try:
+            from .services.auth import cognito_service
+            # Simple check - just verify the client is initialized
+            if cognito_service.client:
+                health_data["cognito"] = "connected"
+            else:
+                health_data["cognito"] = "not_initialized"
+                health_data["status"] = "degraded"
+        except Exception as e:
+            health_data["cognito"] = f"error: {str(e)}"
+            health_data["status"] = "degraded"
+        
+        # Check environment variables
+        required_env_vars = [
+            'COGNITO_USER_POOL_ID',
+            'COGNITO_CLIENT_ID', 
+            'COGNITO_CLIENT_SECRET',
+            'AWS_REGION'
+        ]
+        
+        missing_vars = []
+        for var in required_env_vars:
+            if not os.getenv(var):
+                missing_vars.append(var)
+        
+        if missing_vars:
+            health_data["environment"] = f"missing: {', '.join(missing_vars)}"
+            health_data["status"] = "degraded"
+        else:
+            health_data["environment"] = "ok"
+        
+        health_data["response_time_ms"] = int((time.time() - start_time) * 1000)
+        
+        status_code = 200 if health_data["status"] == "ok" else 503
+        return jsonify(health_data), status_code
 
     # Security headers middleware
     @app.after_request
@@ -172,7 +225,137 @@ def create_app(config=None):
         
         return response
 
-    # Global handler for expired JWT tokens
+    # Request/Response logging middleware
+    @app.before_request
+    def log_request_info():
+        import time
+        from datetime import datetime
+        
+        request_id = f"req_{int(time.time() * 1000)}_{random.randint(1000, 9999)}"
+        request.start_time = time.time()
+        request.request_id = request_id
+        
+        # Log request details
+        app.logger.info(f"REQUEST_START", extra={
+            'request_id': request_id,
+            'method': request.method,
+            'url': request.url,
+            'endpoint': request.endpoint,
+            'remote_addr': request.remote_addr,
+            'user_agent': request.headers.get('User-Agent', 'unknown'),
+            'content_type': request.content_type,
+            'content_length': request.content_length,
+            'has_json': request.is_json,
+            'headers': dict(request.headers),
+            'timestamp': datetime.utcnow().isoformat()
+        })
+        
+        # Log request data for auth endpoints
+        if request.endpoint and 'auth' in request.endpoint:
+            try:
+                if request.is_json:
+                    data = request.get_json()
+                    if data:
+                        sanitized_data = {}
+                        for key, value in data.items():
+                            if key == 'email' and isinstance(value, str):
+                                sanitized_data[key] = value[:3] + '***' + value[-3:]
+                            elif key == 'password':
+                                sanitized_data[key] = f"[{len(str(value))} chars]"
+                            else:
+                                sanitized_data[key] = str(value)[:100]  # Truncate long values
+                        
+                        app.logger.info(f"AUTH_REQUEST_DATA", extra={
+                            'request_id': request_id,
+                            'data': sanitized_data
+                        })
+            except Exception as e:
+                app.logger.warning(f"AUTH_REQUEST_DATA_ERROR", extra={
+                    'request_id': request_id,
+                    'error': str(e)
+                })
+
+    @app.after_request
+    def log_response_info(response):
+        import time
+        from datetime import datetime
+        
+        if hasattr(request, 'request_id') and hasattr(request, 'start_time'):
+            request_id = request.request_id
+            duration_ms = int((time.time() - request.start_time) * 1000)
+            
+            # Log response details
+            app.logger.info(f"RESPONSE_COMPLETE", extra={
+                'request_id': request_id,
+                'method': request.method,
+                'url': request.url,
+                'endpoint': request.endpoint,
+                'status_code': response.status_code,
+                'status_text': response.status,
+                'content_type': response.content_type,
+                'content_length': response.content_length,
+                'duration_ms': duration_ms,
+                'timestamp': datetime.utcnow().isoformat()
+            })
+            
+            # Enhanced logging for auth endpoints
+            if request.endpoint and 'auth' in request.endpoint:
+                try:
+                    if response.is_json:
+                        response_data = response.get_json()
+                        if response_data:
+                            sanitized_response = {}
+                            for key, value in response_data.items():
+                                if key == 'user' and isinstance(value, dict):
+                                    sanitized_user = {}
+                                    for user_key, user_value in value.items():
+                                        if user_key == 'email' and isinstance(user_value, str):
+                                            sanitized_user[user_key] = user_value[:3] + '***' + user_value[-3:]
+                                        else:
+                                            sanitized_user[user_key] = str(user_value)[:100]
+                                    sanitized_response[key] = sanitized_user
+                                elif key == 'id_token':
+                                    sanitized_response[key] = f"[{len(str(value))} chars]"
+                                else:
+                                    sanitized_response[key] = str(value)[:100]
+                            
+                            app.logger.info(f"AUTH_RESPONSE_DATA", extra={
+                                'request_id': request_id,
+                                'data': sanitized_response,
+                                'duration_ms': duration_ms
+                            })
+                except Exception as e:
+                    app.logger.warning(f"AUTH_RESPONSE_DATA_ERROR", extra={
+                        'request_id': request_id,
+                        'error': str(e),
+                        'duration_ms': duration_ms
+                    })
+            
+            # Log slow requests
+            if duration_ms > 5000:  # 5 seconds
+                app.logger.warning(f"SLOW_REQUEST", extra={
+                    'request_id': request_id,
+                    'method': request.method,
+                    'url': request.url,
+                    'duration_ms': duration_ms,
+                    'status_code': response.status_code
+                })
+            
+            # Log 502 errors specifically
+            if response.status_code == 502:
+                app.logger.error(f"BAD_GATEWAY_ERROR", extra={
+                    'request_id': request_id,
+                    'method': request.method,
+                    'url': request.url,
+                    'endpoint': request.endpoint,
+                    'duration_ms': duration_ms,
+                    'response_headers': dict(response.headers),
+                    'response_data': response.get_data(as_text=True)[:500] if response.get_data() else 'empty'
+                })
+        
+        return response
+
+    # Global error handlers
     @app.errorhandler(ExpiredSignatureError)
     def handle_expired_signature(error):
         app.logger.warning("Expired token detected, prompting re-login.")
@@ -181,6 +364,103 @@ def create_app(config=None):
             'error': 'TOKEN_EXPIRED',
             'message': 'Signature has expired. Please log in again.'
         }), 401
+
+    @app.errorhandler(500)
+    def handle_internal_server_error(error):
+        import traceback
+        from datetime import datetime
+        
+        request_id = getattr(request, 'request_id', 'unknown')
+        error_traceback = traceback.format_exc()
+        
+        app.logger.error(f"INTERNAL_SERVER_ERROR", extra={
+            'request_id': request_id,
+            'error_type': type(error).__name__,
+            'error_message': str(error),
+            'traceback': error_traceback,
+            'url': request.url if request else 'unknown',
+            'method': request.method if request else 'unknown',
+            'timestamp': datetime.utcnow().isoformat()
+        })
+        
+        return jsonify({
+            'success': False,
+            'error': 'INTERNAL_SERVER_ERROR',
+            'message': 'An internal server error occurred. Please try again later.'
+        }), 500
+
+    @app.errorhandler(502)
+    def handle_bad_gateway(error):
+        import traceback
+        from datetime import datetime
+        
+        request_id = getattr(request, 'request_id', 'unknown')
+        error_traceback = traceback.format_exc()
+        
+        app.logger.error(f"BAD_GATEWAY_ERROR_HANDLER", extra={
+            'request_id': request_id,
+            'error_type': type(error).__name__,
+            'error_message': str(error),
+            'traceback': error_traceback,
+            'url': request.url if request else 'unknown',
+            'method': request.method if request else 'unknown',
+            'headers': dict(request.headers) if request else {},
+            'timestamp': datetime.utcnow().isoformat()
+        })
+        
+        return jsonify({
+            'success': False,
+            'error': 'BAD_GATEWAY',
+            'message': 'Service temporarily unavailable. Please try again later.'
+        }), 502
+
+    @app.errorhandler(503)
+    def handle_service_unavailable(error):
+        import traceback
+        from datetime import datetime
+        
+        request_id = getattr(request, 'request_id', 'unknown')
+        error_traceback = traceback.format_exc()
+        
+        app.logger.error(f"SERVICE_UNAVAILABLE_ERROR", extra={
+            'request_id': request_id,
+            'error_type': type(error).__name__,
+            'error_message': str(error),
+            'traceback': error_traceback,
+            'url': request.url if request else 'unknown',
+            'method': request.method if request else 'unknown',
+            'timestamp': datetime.utcnow().isoformat()
+        })
+        
+        return jsonify({
+            'success': False,
+            'error': 'SERVICE_UNAVAILABLE',
+            'message': 'Service temporarily unavailable. Please try again later.'
+        }), 503
+
+    @app.errorhandler(504)
+    def handle_gateway_timeout(error):
+        import traceback
+        from datetime import datetime
+        
+        request_id = getattr(request, 'request_id', 'unknown')
+        error_traceback = traceback.format_exc()
+        
+        app.logger.error(f"GATEWAY_TIMEOUT_ERROR", extra={
+            'request_id': request_id,
+            'error_type': type(error).__name__,
+            'error_message': str(error),
+            'traceback': error_traceback,
+            'url': request.url if request else 'unknown',
+            'method': request.method if request else 'unknown',
+            'timestamp': datetime.utcnow().isoformat()
+        })
+        
+        return jsonify({
+            'success': False,
+            'error': 'GATEWAY_TIMEOUT',
+            'message': 'Request timeout. Please try again later.'
+        }), 504
 
     # Static asset serving
     @app.route('/assets/<path:filename>')

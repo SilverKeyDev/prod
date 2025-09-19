@@ -212,27 +212,84 @@ def resend_code():
 @auth_bp.route('/login', methods=['POST'])
 def login():
     """Authenticate user and return Cognito JWT tokens directly"""
-    data = request.get_json()
-
+    import time
+    import random
+    from datetime import datetime
     
-    if not data or not all(field in data for field in ['email', 'password']):
-        current_app.logger.error(f"Missing required fields in login request: {data}")
-        return jsonify({
-            'success': False,
-            'error': 'MISSING_FIELDS',
-            'message': 'Email and password are required'
-        }), 400
-
+    request_id = f"login_{int(time.time() * 1000)}_{random.randint(1000, 9999)}"
+    start_time = time.time()
+    
+    # Log request details
+    current_app.logger.info(f"AUTH_LOGIN_REQUEST_START", extra={
+        'request_id': request_id,
+        'method': request.method,
+        'endpoint': request.endpoint,
+        'remote_addr': request.remote_addr,
+        'user_agent': request.headers.get('User-Agent', 'unknown'),
+        'content_type': request.content_type,
+        'content_length': request.content_length,
+        'has_json': request.is_json,
+        'timestamp': datetime.utcnow().isoformat()
+    })
+    
     try:
+        data = request.get_json()
+        
+        # Log request data (sanitized)
+        if data:
+            current_app.logger.info(f"AUTH_LOGIN_REQUEST_DATA", extra={
+                'request_id': request_id,
+                'has_email': 'email' in data,
+                'email_preview': data.get('email', '')[:3] + '***' + data.get('email', '')[-3:] if data.get('email') else 'missing',
+                'has_password': 'password' in data,
+                'password_length': len(data.get('password', '')) if data.get('password') else 0,
+                'data_keys': list(data.keys()) if data else []
+            })
+        else:
+            current_app.logger.warning(f"AUTH_LOGIN_NO_JSON_DATA", extra={
+                'request_id': request_id,
+                'content_type': request.content_type,
+                'raw_data': str(request.get_data())[:200] if request.get_data() else 'empty'
+            })
+
+        if not data or not all(field in data for field in ['email', 'password']):
+            duration_ms = int((time.time() - start_time) * 1000)
+            current_app.logger.error(f"AUTH_LOGIN_MISSING_FIELDS", extra={
+                'request_id': request_id,
+                'missing_fields': [field for field in ['email', 'password'] if field not in (data or {})],
+                'provided_fields': list(data.keys()) if data else [],
+                'duration_ms': duration_ms
+            })
+            return jsonify({
+                'success': False,
+                'error': 'MISSING_FIELDS',
+                'message': 'Email and password are required'
+            }), 400
+
+        # Call Cognito service
+        current_app.logger.info(f"AUTH_LOGIN_COGNITO_CALL", extra={
+            'request_id': request_id,
+            'username': data['email'][:3] + '***' + data['email'][-3:] if data['email'] else 'missing'
+        })
+        
         result = cognito_service.sign_in(
             username=data['email'],
             password=data['password']
         )
 
         if not result['success']:
+            duration_ms = int((time.time() - start_time) * 1000)
             error_message = 'Invalid email or password'
             if result.get('error') == 'NotAuthorizedException':
                 error_message = 'Incorrect email or password. Please try again.'
+            
+            current_app.logger.warning(f"AUTH_LOGIN_COGNITO_FAILED", extra={
+                'request_id': request_id,
+                'error': result.get('error', 'unknown'),
+                'message': result.get('message', 'unknown'),
+                'login_failed': result.get('login_failed', False),
+                'duration_ms': duration_ms
+            })
             
             return jsonify({
                 'success': False,
@@ -240,21 +297,74 @@ def login():
                 'message': result.get('message', error_message)
             }), 401
 
-        # decode IdToken to get Cognito user_sub
-        id_token = result['tokens']['IdToken']
-        decoded_id_token = jwt.decode(id_token, options={"verify_signature": False})
-        user_sub = decoded_id_token['sub']
+        # Log successful Cognito authentication
+        current_app.logger.info(f"AUTH_LOGIN_COGNITO_SUCCESS", extra={
+            'request_id': request_id,
+            'has_access_token': 'AccessToken' in result['tokens'],
+            'has_id_token': 'IdToken' in result['tokens'],
+            'has_refresh_token': 'RefreshToken' in result['tokens'],
+            'token_type': result['tokens'].get('TokenType', 'unknown'),
+            'expires_in': result['tokens'].get('ExpiresIn', 'unknown')
+        })
 
-        # Get user data from database to include name
-        from ..models.user import User
-        user = User.query.filter_by(cognito_id=user_sub).first()
-        if not user:
-            # Fallback: try to find by email
-            user = User.query.filter_by(email=data['email']).first()
-            if user:
-                # Link cognito_id to existing user
-                user.cognito_id = user_sub
-                db.session.commit()
+        # Decode IdToken to get Cognito user_sub
+        try:
+            id_token = result['tokens']['IdToken']
+            decoded_id_token = jwt.decode(id_token, options={"verify_signature": False})
+            user_sub = decoded_id_token['sub']
+            
+            current_app.logger.info(f"AUTH_LOGIN_TOKEN_DECODED", extra={
+                'request_id': request_id,
+                'user_sub': user_sub[:10] + '***' if user_sub else 'missing',
+                'token_issuer': decoded_id_token.get('iss', 'unknown'),
+                'token_audience': decoded_id_token.get('aud', 'unknown'),
+                'token_exp': decoded_id_token.get('exp', 'unknown')
+            })
+        except Exception as token_error:
+            duration_ms = int((time.time() - start_time) * 1000)
+            current_app.logger.error(f"AUTH_LOGIN_TOKEN_DECODE_ERROR", extra={
+                'request_id': request_id,
+                'error': str(token_error),
+                'duration_ms': duration_ms
+            })
+            return jsonify({
+                'success': False,
+                'error': 'TOKEN_DECODE_ERROR',
+                'message': 'Failed to process authentication token'
+            }), 500
+
+        # Get user data from database
+        try:
+            from ..models.user import User
+            user = User.query.filter_by(cognito_id=user_sub).first()
+            if not user:
+                # Fallback: try to find by email
+                user = User.query.filter_by(email=data['email']).first()
+                if user:
+                    # Link cognito_id to existing user
+                    user.cognito_id = user_sub
+                    db.session.commit()
+                    current_app.logger.info(f"AUTH_LOGIN_USER_LINKED", extra={
+                        'request_id': request_id,
+                        'user_id': user.id,
+                        'email': data['email'][:3] + '***' + data['email'][-3:]
+                    })
+            
+            current_app.logger.info(f"AUTH_LOGIN_USER_LOOKUP", extra={
+                'request_id': request_id,
+                'user_found': user is not None,
+                'user_id': user.id if user else None,
+                'user_name': user.name if user else 'Unknown User'
+            })
+        except Exception as db_error:
+            duration_ms = int((time.time() - start_time) * 1000)
+            current_app.logger.error(f"AUTH_LOGIN_DB_ERROR", extra={
+                'request_id': request_id,
+                'error': str(db_error),
+                'duration_ms': duration_ms
+            })
+            # Continue with login even if DB lookup fails
+            user = None
 
         # Create response with HttpOnly cookies
         response_data = {
@@ -271,32 +381,62 @@ def login():
         resp = make_response(response_data)
         
         # Set secure HttpOnly cookies
-        resp.set_cookie(
-            "session", 
-            value=result['tokens']['AccessToken'],
-            httponly=True, 
-            secure=os.getenv('FLASK_ENV') == 'production',  # Only secure in production
-            samesite="Lax", 
-            max_age=60*60*8  # 8 hours
-        )
-        
-        # Set refresh token cookie (longer expiry)
-        resp.set_cookie(
-            "refresh_token",
-            value=result['tokens']['RefreshToken'],
-            httponly=True,
-            secure=os.getenv('FLASK_ENV') == 'production',
-            samesite="Lax",
-            max_age=60*60*24*30  # 30 days
-        )
+        try:
+            resp.set_cookie(
+                "session", 
+                value=result['tokens']['AccessToken'],
+                httponly=True, 
+                secure=os.getenv('FLASK_ENV') == 'production',  # Only secure in production
+                samesite="Lax", 
+                max_age=60*60*8  # 8 hours
+            )
+            
+            # Set refresh token cookie (longer expiry)
+            resp.set_cookie(
+                "refresh_token",
+                value=result['tokens']['RefreshToken'],
+                httponly=True,
+                secure=os.getenv('FLASK_ENV') == 'production',
+                samesite="Lax",
+                max_age=60*60*24*30  # 30 days
+            )
+            
+            current_app.logger.info(f"AUTH_LOGIN_COOKIES_SET", extra={
+                'request_id': request_id,
+                'session_cookie_set': True,
+                'refresh_cookie_set': True,
+                'secure_cookies': os.getenv('FLASK_ENV') == 'production'
+            })
+        except Exception as cookie_error:
+            current_app.logger.error(f"AUTH_LOGIN_COOKIE_ERROR", extra={
+                'request_id': request_id,
+                'error': str(cookie_error)
+            })
+            # Continue even if cookie setting fails
         
         # Include ID token in response body instead of cookie
         response_data['id_token'] = result['tokens']['IdToken']
         
+        duration_ms = int((time.time() - start_time) * 1000)
+        current_app.logger.info(f"AUTH_LOGIN_SUCCESS", extra={
+            'request_id': request_id,
+            'user_email': data['email'][:3] + '***' + data['email'][-3:],
+            'user_sub': user_sub[:10] + '***' if user_sub else 'missing',
+            'duration_ms': duration_ms,
+            'timestamp': datetime.utcnow().isoformat()
+        })
+        
         return resp
 
     except Exception as e:
-        current_app.logger.error(f'Error logging in: {str(e)}')
+        duration_ms = int((time.time() - start_time) * 1000)
+        current_app.logger.error(f"AUTH_LOGIN_EXCEPTION", extra={
+            'request_id': request_id,
+            'error_type': type(e).__name__,
+            'error_message': str(e),
+            'duration_ms': duration_ms,
+            'timestamp': datetime.utcnow().isoformat()
+        })
         return jsonify({
             'success': False,
             'error': 'LOGIN_FAILED',

@@ -206,6 +206,20 @@ export class HttpClient {
     }
 
     try {
+      // Log detailed request information before making the request
+      console.log('HTTP_REQUEST_DETAILS', {
+        method,
+        url,
+        headers: Object.keys(mergedHeaders),
+        hasBody: !!requestOptions.body,
+        bodyType: requestOptions.body ? typeof requestOptions.body : 'none',
+        bodyLength: requestOptions.body ? String(requestOptions.body).length : 0,
+        credentials: requestOptions.credentials,
+        mode: requestOptions.mode,
+        signal: !!signal,
+        timestamp: new Date().toISOString()
+      });
+
       const response = await fetch(url, {
         ...requestOptions,
         signal,
@@ -213,6 +227,19 @@ export class HttpClient {
 
       const contentType = response.headers.get('content-type') ?? '';
       const responseText = await response.text();
+
+      // Log detailed response information
+      console.log('HTTP_RESPONSE_DETAILS', {
+        method,
+        url,
+        status: response.status,
+        statusText: response.statusText,
+        contentType,
+        responseLength: responseText.length,
+        responsePreview: responseText.substring(0, 200),
+        headers: Object.fromEntries(response.headers.entries()),
+        timestamp: new Date().toISOString()
+      });
 
       // Handle non-OK responses
       if (!response.ok && !acceptStatuses.includes(response.status)) {
@@ -241,6 +268,21 @@ export class HttpClient {
           const error = asError(parseError);
           if (error instanceof AuthenticationError) throw error;
           // Continue with HttpError for non-JSON responses
+        }
+
+        // Enhanced logging for 502 Bad Gateway errors
+        if (response.status === 502) {
+          console.error('HTTP_502_BAD_GATEWAY', {
+            method,
+            url,
+            status: response.status,
+            statusText: response.statusText,
+            responseText: responseText,
+            parsedBody,
+            headers: Object.fromEntries(response.headers.entries()),
+            requestHeaders: mergedHeaders,
+            timestamp: new Date().toISOString()
+          });
         }
 
         throw new HttpError(response.status, url, responseText.slice(0, 600), parsedBody);

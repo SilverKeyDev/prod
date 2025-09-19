@@ -5,6 +5,8 @@ import hmac
 import hashlib
 import base64
 import json
+import time
+import random
 from botocore.exceptions import ClientError
 from datetime import datetime, timedelta
 from flask import current_app
@@ -73,12 +75,81 @@ class CognitoService:
 
     def sign_in(self, username, password):
         """Authenticate user and get tokens"""
+        request_id = f"cognito_signin_{int(time.time() * 1000)}_{random.randint(1000, 9999)}"
+        start_time = time.time()
+        
+        logger.info(f"COGNITO_SIGNIN_START", extra={
+            'request_id': request_id,
+            'username': username[:3] + '***' + username[-3:] if username else 'missing',
+            'has_password': bool(password),
+            'password_length': len(password) if password else 0,
+            'region': self.region,
+            'user_pool_id': self.user_pool_id[:10] + '***' if self.user_pool_id else 'missing',
+            'client_id': self.client_id[:10] + '***' if self.client_id else 'missing',
+            'has_client_secret': bool(self.client_secret),
+            'timestamp': datetime.utcnow().isoformat()
+        })
+        
         try:
+            # Validate inputs
+            if not username:
+                logger.error(f"COGNITO_SIGNIN_VALIDATION_ERROR", extra={
+                    'request_id': request_id,
+                    'error': 'Missing username',
+                    'duration_ms': int((time.time() - start_time) * 1000)
+                })
+                return {
+                    'success': False,
+                    'error': 'MISSING_USERNAME',
+                    'message': 'Username is required',
+                    'login_failed': True
+                }
+            
+            if not password:
+                logger.error(f"COGNITO_SIGNIN_VALIDATION_ERROR", extra={
+                    'request_id': request_id,
+                    'error': 'Missing password',
+                    'duration_ms': int((time.time() - start_time) * 1000)
+                })
+                return {
+                    'success': False,
+                    'error': 'MISSING_PASSWORD',
+                    'message': 'Password is required',
+                    'login_failed': True
+                }
+
+            # Generate secret hash
+            try:
+                secret_hash = self._get_secret_hash(username)
+                logger.debug(f"COGNITO_SECRET_HASH_GENERATED", extra={
+                    'request_id': request_id,
+                    'secret_hash_length': len(secret_hash)
+                })
+            except Exception as hash_error:
+                logger.error(f"COGNITO_SECRET_HASH_ERROR", extra={
+                    'request_id': request_id,
+                    'error': str(hash_error),
+                    'duration_ms': int((time.time() - start_time) * 1000)
+                })
+                return {
+                    'success': False,
+                    'error': 'SECRET_HASH_ERROR',
+                    'message': 'Failed to generate authentication hash',
+                    'login_failed': True
+                }
+
             auth_params = {
                 'USERNAME': username,
                 'PASSWORD': password,
-                'SECRET_HASH': self._get_secret_hash(username)
+                'SECRET_HASH': secret_hash
             }
+            
+            logger.info(f"COGNITO_AUTH_REQUEST", extra={
+                'request_id': request_id,
+                'auth_flow': 'USER_PASSWORD_AUTH',
+                'auth_params_keys': list(auth_params.keys()),
+                'client_id': self.client_id[:10] + '***' if self.client_id else 'missing'
+            })
             
             response = self.client.initiate_auth(
                 AuthFlow='USER_PASSWORD_AUTH',
@@ -86,17 +157,43 @@ class CognitoService:
                 ClientId=self.client_id
             )
             
+            duration_ms = int((time.time() - start_time) * 1000)
+            logger.info(f"COGNITO_SIGNIN_SUCCESS", extra={
+                'request_id': request_id,
+                'has_access_token': 'AccessToken' in response['AuthenticationResult'],
+                'has_id_token': 'IdToken' in response['AuthenticationResult'],
+                'has_refresh_token': 'RefreshToken' in response['AuthenticationResult'],
+                'token_type': response['AuthenticationResult'].get('TokenType', 'unknown'),
+                'expires_in': response['AuthenticationResult'].get('ExpiresIn', 'unknown'),
+                'duration_ms': duration_ms
+            })
+            
             return {
                 'success': True,
                 'tokens': response['AuthenticationResult']
             }
         except ClientError as e:
+            duration_ms = int((time.time() - start_time) * 1000)
             error_code = e.response['Error']['Code']
             error_message = e.response['Error']['Message']
-            logger.error(f"Error signing in: {error_code} - {error_message}")
+            
+            logger.error(f"COGNITO_SIGNIN_CLIENT_ERROR", extra={
+                'request_id': request_id,
+                'error_code': error_code,
+                'error_message': error_message,
+                'http_status_code': e.response.get('ResponseMetadata', {}).get('HTTPStatusCode', 'unknown'),
+                'request_id_cognito': e.response.get('ResponseMetadata', {}).get('RequestId', 'unknown'),
+                'duration_ms': duration_ms,
+                'timestamp': datetime.utcnow().isoformat()
+            })
             
             # Handle specific error cases
             if error_code == 'NotAuthorizedException':
+                logger.warning(f"COGNITO_SIGNIN_UNAUTHORIZED", extra={
+                    'request_id': request_id,
+                    'username': username[:3] + '***' + username[-3:] if username else 'missing',
+                    'duration_ms': duration_ms
+                })
                 return {
                     'success': False,
                     'error': error_code,
@@ -104,6 +201,11 @@ class CognitoService:
                     'login_failed': True
                 }
             elif error_code == 'UserNotFoundException':
+                logger.warning(f"COGNITO_SIGNIN_USER_NOT_FOUND", extra={
+                    'request_id': request_id,
+                    'username': username[:3] + '***' + username[-3:] if username else 'missing',
+                    'duration_ms': duration_ms
+                })
                 return {
                     'success': False,
                     'error': error_code,
@@ -111,6 +213,11 @@ class CognitoService:
                     'login_failed': True
                 }
             elif error_code == 'TooManyRequestsException':
+                logger.warning(f"COGNITO_SIGNIN_RATE_LIMITED", extra={
+                    'request_id': request_id,
+                    'username': username[:3] + '***' + username[-3:] if username else 'missing',
+                    'duration_ms': duration_ms
+                })
                 return {
                     'success': False,
                     'error': error_code,
@@ -118,6 +225,12 @@ class CognitoService:
                     'login_failed': True
                 }
             else:
+                logger.error(f"COGNITO_SIGNIN_UNKNOWN_ERROR", extra={
+                    'request_id': request_id,
+                    'error_code': error_code,
+                    'error_message': error_message,
+                    'duration_ms': duration_ms
+                })
                 return {
                     'success': False,
                     'error': error_code,
@@ -125,7 +238,14 @@ class CognitoService:
                     'login_failed': True
                 }
         except Exception as e:
-            logger.error(f"Unexpected error during sign in: {str(e)}")
+            duration_ms = int((time.time() - start_time) * 1000)
+            logger.error(f"COGNITO_SIGNIN_UNEXPECTED_ERROR", extra={
+                'request_id': request_id,
+                'error_type': type(e).__name__,
+                'error_message': str(e),
+                'duration_ms': duration_ms,
+                'timestamp': datetime.utcnow().isoformat()
+            })
             return {
                 'success': False,
                 'error': 'INTERNAL_ERROR',
