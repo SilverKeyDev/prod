@@ -267,7 +267,12 @@ def login():
             }), 400
 
         # Call Cognito service
-        current_app.logger.info(f"AUTH_LOGIN_COGNITO_CALL", extra={
+        current_app.logger.info(f"AUTH_LOGIN_PHASE_START", extra={
+            'request_id': request_id,
+            'email': data['email'][:3] + '***' + data['email'][-3:] if data['email'] else 'missing'
+        })
+        
+        current_app.logger.info(f"AUTH_LOGIN_PHASE_COGNITO_CALL", extra={
             'request_id': request_id,
             'username': data['email'][:3] + '***' + data['email'][-3:] if data['email'] else 'missing'
         })
@@ -276,20 +281,83 @@ def login():
             username=data['email'],
             password=data['password']
         )
+        
+        current_app.logger.info(f"AUTH_LOGIN_PHASE_COGNITO_RESULT", extra={
+            'request_id': request_id,
+            'success': result.get('success', False),
+            'error': result.get('error', 'none'),
+            'login_failed': result.get('login_failed', False)
+        })
 
-        if not result['success']:
-            duration_ms = int((time.time() - start_time) * 1000)
-            error_message = 'Invalid email or password'
-            if result.get('error') == 'NotAuthorizedException':
-                error_message = 'Incorrect email or password. Please try again.'
-            
-            current_app.logger.warning(f"AUTH_LOGIN_COGNITO_FAILED", extra={
+        current_app.logger.info(f"AUTH_LOGIN_CHECKING_SUCCESS", extra={
+            'request_id': request_id,
+            'result_success': result.get('success', 'missing'),
+            'result_type': type(result.get('success', 'missing')).__name__
+        })
+
+        try:
+            success_value = result['success']
+            current_app.logger.info(f"AUTH_LOGIN_SUCCESS_VALUE", extra={
                 'request_id': request_id,
-                'error': result.get('error', 'unknown'),
-                'message': result.get('message', 'unknown'),
-                'login_failed': result.get('login_failed', False),
-                'duration_ms': duration_ms
+                'success_value': success_value,
+                'success_type': type(success_value).__name__
             })
+        except Exception as key_error:
+            current_app.logger.error(f"AUTH_LOGIN_SUCCESS_KEY_ERROR", extra={
+                'request_id': request_id,
+                'error': str(key_error),
+                'result_keys': list(result.keys()) if isinstance(result, dict) else 'not_dict'
+            })
+            return jsonify({
+                'success': False,
+                'error': 'INVALID_RESPONSE',
+                'message': 'Invalid response from authentication service'
+            }), 500
+
+        current_app.logger.info(f"AUTH_LOGIN_EVALUATING_SUCCESS", extra={
+            'request_id': request_id,
+            'success_value': success_value,
+            'not_success_value': not success_value
+        })
+
+        if not success_value:
+            current_app.logger.info(f"AUTH_LOGIN_ENTERING_FAILURE_BRANCH", extra={
+                'request_id': request_id
+            })
+            
+            try:
+                duration_ms = int((time.time() - start_time) * 1000)
+                current_app.logger.info(f"AUTH_LOGIN_DURATION_CALCULATED", extra={
+                    'request_id': request_id,
+                    'duration_ms': duration_ms
+                })
+            except Exception as duration_error:
+                current_app.logger.error(f"AUTH_LOGIN_DURATION_ERROR", extra={
+                    'request_id': request_id,
+                    'error': str(duration_error)
+                })
+                duration_ms = 0
+            
+            try:
+                error_message = 'Invalid email or password'
+                if result.get('error') == 'NotAuthorizedException':
+                    error_message = 'Incorrect email or password. Please try again.'
+                current_app.logger.info(f"AUTH_LOGIN_ERROR_MESSAGE_SET", extra={
+                    'request_id': request_id,
+                    'error_message': error_message
+                })
+            except Exception as error_msg_error:
+                current_app.logger.error(f"AUTH_LOGIN_ERROR_MESSAGE_ERROR", extra={
+                    'request_id': request_id,
+                    'error': str(error_msg_error)
+                })
+                error_message = 'Authentication failed'
+            
+            # Simple logging to avoid any serialization issues
+            current_app.logger.warning(f"AUTH_LOGIN_COGNITO_FAILED - request_id: {request_id}, duration_ms: {duration_ms}")
+            current_app.logger.info(f"AUTH_LOGIN_COGNITO_FAILED_LOGGED - request_id: {request_id}")
+            
+            current_app.logger.info(f"AUTH_LOGIN_RETURNING_401 - request_id: {request_id}")
             
             return jsonify({
                 'success': False,
@@ -308,6 +376,10 @@ def login():
         })
 
         # Decode IdToken to get Cognito user_sub
+        current_app.logger.info(f"AUTH_LOGIN_PHASE_TOKEN_DECODE", extra={
+            'request_id': request_id
+        })
+        
         try:
             id_token = result['tokens']['IdToken']
             decoded_id_token = jwt.decode(id_token, options={"verify_signature": False})
@@ -334,6 +406,10 @@ def login():
             }), 500
 
         # Get user data from database
+        current_app.logger.info(f"AUTH_LOGIN_PHASE_USER_LOOKUP", extra={
+            'request_id': request_id
+        })
+        
         try:
             from ..models.user import User
             user = User.query.filter_by(cognito_id=user_sub).first()
@@ -367,6 +443,10 @@ def login():
             user = None
 
         # Create response with HttpOnly cookies
+        current_app.logger.info(f"AUTH_LOGIN_PHASE_RESPONSE_CREATION", extra={
+            'request_id': request_id
+        })
+        
         response_data = {
             'success': True,
             'user': {

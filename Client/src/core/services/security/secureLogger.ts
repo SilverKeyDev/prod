@@ -264,6 +264,8 @@ if (isProduction) {
     debug: originalConsole.debug.bind(originalConsole),
   };
 
+  // COMMENTED OUT: Console method overrides disabled to allow console.log in production
+  /*
   console.log = (...args) => {
     try {
       secureLogger.info('CONSOLE', args.join(' '));
@@ -308,6 +310,7 @@ if (isProduction) {
       safeConsole.error('SecureLogger error:', error);
     }
   };
+  */
 
   // Keep original methods available for emergency debugging
   (window as unknown as { __originalConsole: typeof originalConsole }).__originalConsole = originalConsole;

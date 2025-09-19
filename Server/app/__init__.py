@@ -67,9 +67,7 @@ def create_app(config=None):
                 "https://www.silverkeyestates.com",
                 "http://localhost:3000",
                 "http://localhost:5173",
-                "http://127.0.0.1:5173",
-                "http://10.136.25.50:5173",
-                "http://10.90.20.231:5173"
+                "http://127.0.0.1:5173"
             ],
             "supports_credentials": True,
             "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"],

@@ -53,6 +53,8 @@ export const AUTH_CONFIG = {
       'password',
       'signupPassword',
       'signupEmail', // Contains PII
+      'user', // Contains sensitive user data
+      'userProfile', // Contains sensitive user data
     ],
   },
 
@@ -298,7 +300,7 @@ export const authUtils = {
      * Store non-sensitive data in localStorage
      */
     setNonSensitive: (key: string, value: string): void => {
-      if (AUTH_CONFIG.SECURE_STORAGE.FORBIDDEN_LOCALSTORAGE_KEYS.includes(key)) {
+      if (AUTH_CONFIG.SECURE_STORAGE.FORBIDDEN_LOCALSTORAGE_KEYS.includes(key as any)) {
         console.warn(`[AUTH_CONFIG] Attempted to store forbidden key "${key}" in localStorage. Use secureStorage.setSensitive() instead.`);
         return;
       }
