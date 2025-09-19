@@ -98,9 +98,8 @@ export const authApi = {
   login: async (data: LoginData): Promise<AuthResponse> => {
     const response = await apiPost<AuthResponse>('/api/v1/auth/login', data);
 
-    if (response.success && response.access_token) {
-      // Login successful
-    } else {
+    // Only report authentication failure when the response explicitly indicates failure
+    if (!response.success) {
       reportSecurityEvent({
         type: 'authentication_failure',
         severity: response.login_failed ? 'high' : 'medium',

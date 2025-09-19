@@ -1,6 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
-from flask_cors import CORS
 from flask_wtf.csrf import CSRFProtect
 from flask_marshmallow import Marshmallow
 from flask import request, jsonify
@@ -10,9 +9,6 @@ db = SQLAlchemy()
 
 # Login manager
 login_manager = LoginManager()
-
-# CORS configuration
-cors = CORS()
 
 # CSRF protection
 csrf = CSRFProtect()

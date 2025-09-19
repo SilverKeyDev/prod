@@ -22,6 +22,10 @@ class Config:
     # Request timeout configuration for long-running AI operations
     REQUEST_TIMEOUT = 300  # 5 minutes for AI strategy generation
     SEND_FILE_MAX_AGE_DEFAULT = 300
+    
+    # HTTP request timeout configuration
+    HTTP_TIMEOUT = 30  # 30 seconds for HTTP requests
+    COGNITO_TIMEOUT = 10  # 10 seconds for Cognito operations
     SQLALCHEMY_ENGINE_OPTIONS = {
         'pool_pre_ping': True,          # Verify connections before use
         'pool_recycle': 300,            # Recycle connections every 5 minutes (300 seconds)

@@ -122,7 +122,7 @@ export function useSecureAuth(): UseSecureAuthReturn {
         // Ensure auth state is immediately available for route guards
         // This prevents race conditions where ProtectedRoute checks before state updates
         secureLogger.security('SECURE_AUTH', 'Auth state updated synchronously', {
-          hasPlaceholderToken: !!placeholderToken,
+          hasPlaceholderToken: accessToken === 'http-only-cookie-auth',
           hasUser: !!response.user,
           authMethod: 'http-only-cookies'
         });

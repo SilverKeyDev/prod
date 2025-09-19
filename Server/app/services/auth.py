@@ -17,7 +17,15 @@ class CognitoService:
         
         # Initialize with explicit region from config
         self.region = Config.AWS_REGION
-        self.client = boto3.client('cognito-idp', region_name=self.region)
+        self.client = boto3.client(
+            'cognito-idp', 
+            region_name=self.region,
+            config=boto3.session.Config(
+                read_timeout=Config.COGNITO_TIMEOUT,
+                connect_timeout=Config.COGNITO_TIMEOUT,
+                retries={'max_attempts': 3}
+            )
+        )
         self.user_pool_id = os.getenv('COGNITO_USER_POOL_ID')
         self.client_id = os.getenv('COGNITO_CLIENT_ID')
         self.client_secret = os.getenv('COGNITO_CLIENT_SECRET')
@@ -83,11 +91,46 @@ class CognitoService:
                 'tokens': response['AuthenticationResult']
             }
         except ClientError as e:
-            logger.error(f"Error signing in: {e}")
+            error_code = e.response['Error']['Code']
+            error_message = e.response['Error']['Message']
+            logger.error(f"Error signing in: {error_code} - {error_message}")
+            
+            # Handle specific error cases
+            if error_code == 'NotAuthorizedException':
+                return {
+                    'success': False,
+                    'error': error_code,
+                    'message': 'Incorrect email or password. Please try again.',
+                    'login_failed': True
+                }
+            elif error_code == 'UserNotFoundException':
+                return {
+                    'success': False,
+                    'error': error_code,
+                    'message': 'No account found with this email address.',
+                    'login_failed': True
+                }
+            elif error_code == 'TooManyRequestsException':
+                return {
+                    'success': False,
+                    'error': error_code,
+                    'message': 'Too many login attempts. Please try again later.',
+                    'login_failed': True
+                }
+            else:
+                return {
+                    'success': False,
+                    'error': error_code,
+                    'message': error_message,
+                    'login_failed': True
+                }
+        except Exception as e:
+            logger.error(f"Unexpected error during sign in: {str(e)}")
             return {
                 'success': False,
-                'error': e.response['Error']['Code'],
-                'message': e.response['Error']['Message']
+                'error': 'INTERNAL_ERROR',
+                'message': 'An unexpected error occurred. Please try again.',
+                'login_failed': True
             }
 
     def forgot_password(self, username):
