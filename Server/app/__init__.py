@@ -13,7 +13,7 @@ try:
 except Exception:
     pass
 
-from flask import Flask, send_from_directory, jsonify
+from flask import Flask, send_from_directory, jsonify, request, g
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_migrate import Migrate
@@ -139,60 +139,7 @@ def create_app(config=None):
     # Health check endpoint
     @app.route('/healthz', methods=['GET', 'HEAD'])
     def healthz():
-        import time
-        from datetime import datetime
-        
-        start_time = time.time()
-        health_data = {
-            "status": "ok",
-            "timestamp": datetime.utcnow().isoformat(),
-            "version": "1.0.0"
-        }
-        
-        # Check database connectivity
-        try:
-            db.session.execute('SELECT 1')
-            health_data["database"] = "connected"
-        except Exception as e:
-            health_data["database"] = f"error: {str(e)}"
-            health_data["status"] = "degraded"
-        
-        # Check AWS Cognito connectivity
-        try:
-            from .services.auth import cognito_service
-            # Simple check - just verify the client is initialized
-            if cognito_service.client:
-                health_data["cognito"] = "connected"
-            else:
-                health_data["cognito"] = "not_initialized"
-                health_data["status"] = "degraded"
-        except Exception as e:
-            health_data["cognito"] = f"error: {str(e)}"
-            health_data["status"] = "degraded"
-        
-        # Check environment variables
-        required_env_vars = [
-            'COGNITO_USER_POOL_ID',
-            'COGNITO_CLIENT_ID', 
-            'COGNITO_CLIENT_SECRET',
-            'AWS_REGION'
-        ]
-        
-        missing_vars = []
-        for var in required_env_vars:
-            if not os.getenv(var):
-                missing_vars.append(var)
-        
-        if missing_vars:
-            health_data["environment"] = f"missing: {', '.join(missing_vars)}"
-            health_data["status"] = "degraded"
-        else:
-            health_data["environment"] = "ok"
-        
-        health_data["response_time_ms"] = int((time.time() - start_time) * 1000)
-        
-        status_code = 200 if health_data["status"] == "ok" else 503
-        return jsonify(health_data), status_code
+        return jsonify({"status": "ok"}), 200
 
     # Security headers middleware
     @app.after_request
@@ -232,8 +179,8 @@ def create_app(config=None):
         from datetime import datetime
         
         request_id = f"req_{int(time.time() * 1000)}_{random.randint(1000, 9999)}"
-        request.start_time = time.time()
-        request.request_id = request_id
+        g.start_time = time.time()
+        g.request_id = request_id
         
         # Log request details
         app.logger.info(f"REQUEST_START", extra={
@@ -280,9 +227,9 @@ def create_app(config=None):
         import time
         from datetime import datetime
         
-        if hasattr(request, 'request_id') and hasattr(request, 'start_time'):
-            request_id = request.request_id
-            duration_ms = int((time.time() - request.start_time) * 1000)
+        if hasattr(g, 'request_id') and hasattr(g, 'start_time'):
+            request_id = g.request_id
+            duration_ms = int((time.time() - g.start_time) * 1000)
             
             # Log response details
             app.logger.info(f"RESPONSE_COMPLETE", extra={
@@ -370,7 +317,7 @@ def create_app(config=None):
         import traceback
         from datetime import datetime
         
-        request_id = getattr(request, 'request_id', 'unknown')
+        request_id = getattr(g, 'request_id', 'unknown')
         error_traceback = traceback.format_exc()
         
         app.logger.error(f"INTERNAL_SERVER_ERROR", extra={
@@ -394,7 +341,7 @@ def create_app(config=None):
         import traceback
         from datetime import datetime
         
-        request_id = getattr(request, 'request_id', 'unknown')
+        request_id = getattr(g, 'request_id', 'unknown')
         error_traceback = traceback.format_exc()
         
         app.logger.error(f"BAD_GATEWAY_ERROR_HANDLER", extra={
@@ -419,7 +366,7 @@ def create_app(config=None):
         import traceback
         from datetime import datetime
         
-        request_id = getattr(request, 'request_id', 'unknown')
+        request_id = getattr(g, 'request_id', 'unknown')
         error_traceback = traceback.format_exc()
         
         app.logger.error(f"SERVICE_UNAVAILABLE_ERROR", extra={
@@ -443,7 +390,7 @@ def create_app(config=None):
         import traceback
         from datetime import datetime
         
-        request_id = getattr(request, 'request_id', 'unknown')
+        request_id = getattr(g, 'request_id', 'unknown')
         error_traceback = traceback.format_exc()
         
         app.logger.error(f"GATEWAY_TIMEOUT_ERROR", extra={
