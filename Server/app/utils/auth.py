@@ -8,6 +8,7 @@ from jose.exceptions import JWTError, JWTClaimsError, ExpiredSignatureError
 from ..models.user import User
 from .. import db
 from .security import SecurityError, log_security_event, safe_user_lookup_error, security_error_response
+from ..services.minimal_token import minimal_token_service
 
 logger = logging.getLogger(__name__)
 
@@ -158,6 +159,63 @@ def _log_expired_once(ip: str, endpoint: str, interval: int = 60):
 # =========================
 # Core: current user resolver
 # =========================
+def _verify_minimal_token(token: str) -> User:
+    """
+    Verify a minimal token and return the associated user
+    
+    Args:
+        token: Minimal JWT token string
+        
+    Returns:
+        User object
+        
+    Raises:
+        SecurityException: If token is invalid or user not found
+    """
+    try:
+        # Verify minimal token
+        claims = minimal_token_service.verify_minimal_token(token)
+        
+        # Get user ID from token
+        user_id = claims.get('sub')
+        if not user_id:
+            log_security_event('auth_minimal_token_missing_sub')
+            raise SecurityException(SecurityError.INVALID_TOKEN)
+        
+        # Find user by ID (minimal tokens use database ID as sub)
+        user = User.query.filter_by(id=user_id).first()
+        if not user:
+            # Fallback: try to find by email
+            user_email = claims.get('email')
+            if user_email:
+                user = User.query.filter_by(email=user_email).first()
+                if user:
+                    # Update user ID to match token
+                    user.id = user_id
+                    db.session.commit()
+        
+        if not user:
+            log_security_event('auth_minimal_token_user_not_found', {'user_id': f"{user_id[:8]}..."})
+            raise SecurityException(SecurityError.UNAUTHORIZED)
+        
+        # Log successful minimal token verification
+        logger.debug("MINIMAL_TOKEN_VERIFIED_SUCCESSFULLY", extra={
+            'user_id': user.id,
+            'email': user.email[:3] + '***' + user.email[-3:] if user.email else 'missing',
+            'token_type': claims.get('type', 'unknown'),
+            'expires_at': claims.get('exp', 'unknown')
+        })
+        
+        return user
+        
+    except Exception as e:
+        logger.error("MINIMAL_TOKEN_VERIFICATION_ERROR", extra={
+            'error': str(e),
+            'error_type': type(e).__name__,
+            'token_preview': token[:20] + '...' if len(token) > 20 else token
+        })
+        raise SecurityException(SecurityError.INVALID_TOKEN)
+
 def get_current_user():
     """
     Get current user from Cognito JWT token with comprehensive validation and fallback.
@@ -193,7 +251,26 @@ def get_current_user():
         log_security_event('auth_invalid_jwt_format', {'parts_count': token.count(".") + 1})
         raise SecurityException(SecurityError.INVALID_TOKEN)
 
+    # Try minimal token first (preferred)
     try:
+        # Check if this looks like a minimal token by trying to decode without verification
+        minimal_payload = jose_jwt.decode(token, options={"verify_signature": False})
+        token_type = minimal_payload.get('type')
+        issuer = minimal_payload.get('iss')
+        
+        # If it's a minimal token, verify it
+        if token_type in ('access', 'id') and issuer == 'silverkey-api':
+            current_app.logger.debug("Detected minimal token, verifying...")
+            return _verify_minimal_token(token)
+            
+    except Exception as e:
+        current_app.logger.debug(f"Token is not a minimal token: {str(e)}")
+        # Continue to Cognito token verification
+
+    # Fallback to Cognito token verification
+    try:
+        current_app.logger.debug("Verifying as Cognito token...")
+        
         # Resolve signing key
         key = get_signing_key(token)
 

@@ -5,6 +5,7 @@ import jwt
 from .. import db
 from ..models.user import User
 from ..services.auth import cognito_service
+from ..services.minimal_token import minimal_token_service
 
 # Blueprint setup
 auth_bp = Blueprint('auth', __name__, url_prefix='/api/v1/auth')
@@ -115,23 +116,81 @@ def verify():
         decoded_id_token = jwt.decode(id_token, options={"verify_signature": False})
         user_sub = decoded_id_token['sub']
 
-        # Create response with HttpOnly cookies
+        # Get user data from database for minimal token creation
+        try:
+            from ..models.user import User
+            user = User.query.filter_by(cognito_id=user_sub).first()
+            if not user:
+                # Fallback: try to find by email
+                user = User.query.filter_by(email=data['email']).first()
+                if user:
+                    # Link cognito_id to existing user
+                    user.cognito_id = user_sub
+                    db.session.commit()
+        except Exception as db_error:
+            current_app.logger.error(f'Error during user lookup in verification: {str(db_error)}')
+            user = None
+        
+        # Create minimal tokens instead of using large Cognito tokens
+        try:
+            # Generate minimal access token
+            minimal_access_token = minimal_token_service.create_minimal_access_token(
+                user_id=str(user.id) if user else user_sub,
+                user_email=data['email'],
+                expires_in_hours=8
+            )
+            
+            # Generate minimal ID token
+            minimal_id_token = minimal_token_service.create_minimal_id_token(
+                user_id=str(user.id) if user else user_sub,
+                user_email=data['email'],
+                user_name=user.name if user else 'Unknown User',
+                expires_in_hours=8
+            )
+            
+            # Log token size comparison
+            cognito_access_size = len(login_result['tokens']['AccessToken'].encode('utf-8'))
+            cognito_id_size = len(login_result['tokens']['IdToken'].encode('utf-8'))
+            minimal_access_size = len(minimal_access_token.encode('utf-8'))
+            minimal_id_size = len(minimal_id_token.encode('utf-8'))
+            
+            current_app.logger.info(f"VERIFICATION_TOKEN_SIZE_COMPARISON", extra={
+                'cognito_access_size_bytes': cognito_access_size,
+                'cognito_id_size_bytes': cognito_id_size,
+                'minimal_access_size_bytes': minimal_access_size,
+                'minimal_id_size_bytes': minimal_id_size,
+                'access_token_size_reduction_percent': round(((cognito_access_size - minimal_access_size) / cognito_access_size) * 100, 2),
+                'id_token_size_reduction_percent': round(((cognito_id_size - minimal_id_size) / cognito_id_size) * 100, 2),
+                'total_size_reduction_bytes': (cognito_access_size + cognito_id_size) - (minimal_access_size + minimal_id_size)
+            })
+            
+        except Exception as token_error:
+            current_app.logger.error(f"VERIFICATION_MINIMAL_TOKEN_ERROR", extra={
+                'error': str(token_error)
+            })
+            # Fallback to Cognito tokens if minimal token creation fails
+            minimal_access_token = login_result['tokens']['AccessToken']
+            minimal_id_token = login_result['tokens']['IdToken']
+        
+        # Create response with minimal tokens
         response_data = {
             'success': True,
             'message': 'Email verified and logged in successfully',
             'user': {
                 'email': data['email'],
-                'user_sub': user_sub
+                'user_sub': user_sub,
+                'name': user.name if user else 'Unknown User',
+                'id': user.id if user else None
             }
         }
         
         # Create response object
         resp = make_response(response_data)
         
-        # Set secure HttpOnly cookies
+        # Set secure HttpOnly cookies with minimal tokens
         resp.set_cookie(
             "session", 
-            value=login_result['tokens']['AccessToken'],
+            value=minimal_access_token,
             httponly=True, 
             secure=os.getenv('FLASK_ENV') == 'production',
             samesite="Lax", 
@@ -147,8 +206,8 @@ def verify():
             max_age=60*60*24*30  # 30 days
         )
         
-        # Include ID token in response body instead of cookie
-        response_data['id_token'] = login_result['tokens']['IdToken']
+        # Include minimal ID token in response body instead of cookie
+        response_data['id_token'] = minimal_id_token
         
         return resp
 
@@ -442,7 +501,54 @@ def login():
             # Continue with login even if DB lookup fails
             user = None
 
-        # Create response with HttpOnly cookies
+        # Create minimal tokens instead of using large Cognito tokens
+        current_app.logger.info(f"AUTH_LOGIN_PHASE_MINIMAL_TOKEN_CREATION", extra={
+            'request_id': request_id
+        })
+        
+        try:
+            # Generate minimal access token
+            minimal_access_token = minimal_token_service.create_minimal_access_token(
+                user_id=str(user.id) if user else user_sub,
+                user_email=data['email'],
+                expires_in_hours=8
+            )
+            
+            # Generate minimal ID token
+            minimal_id_token = minimal_token_service.create_minimal_id_token(
+                user_id=str(user.id) if user else user_sub,
+                user_email=data['email'],
+                user_name=user.name if user else 'Unknown User',
+                expires_in_hours=8
+            )
+            
+            # Log token size comparison
+            cognito_access_size = len(result['tokens']['AccessToken'].encode('utf-8'))
+            cognito_id_size = len(result['tokens']['IdToken'].encode('utf-8'))
+            minimal_access_size = len(minimal_access_token.encode('utf-8'))
+            minimal_id_size = len(minimal_id_token.encode('utf-8'))
+            
+            current_app.logger.info(f"AUTH_LOGIN_TOKEN_SIZE_COMPARISON", extra={
+                'request_id': request_id,
+                'cognito_access_size_bytes': cognito_access_size,
+                'cognito_id_size_bytes': cognito_id_size,
+                'minimal_access_size_bytes': minimal_access_size,
+                'minimal_id_size_bytes': minimal_id_size,
+                'access_token_size_reduction_percent': round(((cognito_access_size - minimal_access_size) / cognito_access_size) * 100, 2),
+                'id_token_size_reduction_percent': round(((cognito_id_size - minimal_id_size) / cognito_id_size) * 100, 2),
+                'total_size_reduction_bytes': (cognito_access_size + cognito_id_size) - (minimal_access_size + minimal_id_size)
+            })
+            
+        except Exception as token_error:
+            current_app.logger.error(f"AUTH_LOGIN_MINIMAL_TOKEN_ERROR", extra={
+                'request_id': request_id,
+                'error': str(token_error)
+            })
+            # Fallback to Cognito tokens if minimal token creation fails
+            minimal_access_token = result['tokens']['AccessToken']
+            minimal_id_token = result['tokens']['IdToken']
+        
+        # Create response with minimal tokens
         current_app.logger.info(f"AUTH_LOGIN_PHASE_RESPONSE_CREATION", extra={
             'request_id': request_id
         })
@@ -460,18 +566,18 @@ def login():
         # Create response object
         resp = make_response(response_data)
         
-        # Set secure HttpOnly cookies
+        # Set secure HttpOnly cookies with minimal tokens
         try:
             resp.set_cookie(
                 "session", 
-                value=result['tokens']['AccessToken'],
+                value=minimal_access_token,
                 httponly=True, 
                 secure=os.getenv('FLASK_ENV') == 'production',  # Only secure in production
                 samesite="Lax", 
                 max_age=60*60*8  # 8 hours
             )
             
-            # Set refresh token cookie (longer expiry)
+            # Set refresh token cookie (longer expiry) - keep Cognito refresh token for now
             resp.set_cookie(
                 "refresh_token",
                 value=result['tokens']['RefreshToken'],
@@ -485,7 +591,8 @@ def login():
                 'request_id': request_id,
                 'session_cookie_set': True,
                 'refresh_cookie_set': True,
-                'secure_cookies': os.getenv('FLASK_ENV') == 'production'
+                'secure_cookies': os.getenv('FLASK_ENV') == 'production',
+                'using_minimal_tokens': True
             })
         except Exception as cookie_error:
             current_app.logger.error(f"AUTH_LOGIN_COOKIE_ERROR", extra={
@@ -494,8 +601,8 @@ def login():
             })
             # Continue even if cookie setting fails
         
-        # Include ID token in response body instead of cookie
-        response_data['id_token'] = result['tokens']['IdToken']
+        # Include minimal ID token in response body instead of cookie
+        response_data['id_token'] = minimal_id_token
         
         duration_ms = int((time.time() - start_time) * 1000)
         current_app.logger.info(f"AUTH_LOGIN_SUCCESS", extra={

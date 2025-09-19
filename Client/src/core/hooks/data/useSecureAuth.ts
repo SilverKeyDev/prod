@@ -88,6 +88,19 @@ export function useSecureAuth(): UseSecureAuthReturn {
           sessionStorage.setItem('id_token', idToken);
         }
 
+        // Log token storage with size information
+        const accessTokenSize = accessToken ? accessToken.length : 0;
+        const idTokenSize = idToken ? idToken.length : 0;
+        const totalTokenSize = accessTokenSize + idTokenSize;
+        
+        secureLogger.info('TOKEN_STORAGE_SUCCESS', {
+          accessTokenSize,
+          idTokenSize,
+          totalTokenSize,
+          storageMethod: 'sessionStorage',
+          tokenTypes: ['access', 'id']
+        });
+
         // Note: Global function will be updated by useEffect to include this token
 
         // Store user data (non-sensitive)
@@ -166,6 +179,24 @@ export function useSecureAuth(): UseSecureAuthReturn {
   const logout = useCallback(() => {
     console.log('🔒 [SECURE_AUTH] Logout initiated');
 
+    // Log token cleanup before clearing
+    const accessToken = sessionStorage.getItem(AUTH_CONFIG.STORAGE_KEYS.ACCESS_TOKEN);
+    const idToken = sessionStorage.getItem('id_token');
+    const userData = sessionStorage.getItem(AUTH_CONFIG.STORAGE_KEYS.USER);
+    
+    const accessTokenSize = accessToken ? accessToken.length : 0;
+    const idTokenSize = idToken ? idToken.length : 0;
+    const userDataSize = userData ? userData.length : 0;
+    const totalClearedSize = accessTokenSize + idTokenSize + userDataSize;
+    
+    secureLogger.info('TOKEN_CLEANUP_START', {
+      accessTokenSize,
+      idTokenSize,
+      userDataSize,
+      totalClearedSize,
+      storageMethod: 'sessionStorage'
+    });
+
     // Clear memory-based tokens
     setAccessToken(null);
     setUser(null);
@@ -194,6 +225,10 @@ export function useSecureAuth(): UseSecureAuthReturn {
     // Auth state changes are now handled reactively through hook state
 
     secureLogger.security('SECURE_AUTH', 'User logged out with secure token cleanup');
+    secureLogger.info('TOKEN_CLEANUP_SUCCESS', {
+      totalClearedSize,
+      clearedItems: ['access_token', 'id_token', 'user_data', 'signup_email', 'auth_flags']
+    });
 
     console.log('🔒 [SECURE_AUTH] Logout complete, navigating to login');
     // Use window.location.href for reliable navigation during logout
@@ -205,10 +240,21 @@ export function useSecureAuth(): UseSecureAuthReturn {
    * Refresh access token using refresh token
    */
   const refreshToken = useCallback(async (): Promise<boolean> => {
+    // Log refresh attempt
+    const currentToken = sessionStorage.getItem(AUTH_CONFIG.STORAGE_KEYS.ACCESS_TOKEN);
+    const tokenSize = currentToken ? currentToken.length : 0;
+    
+    secureLogger.info('TOKEN_REFRESH_ATTEMPT', {
+      currentTokenSize: tokenSize,
+      hasToken: !!currentToken,
+      refreshMethod: 'http_only_cookies'
+    });
+    
     // No refresh token storage - tokens are memory-only
     // In production, refresh would be handled by HTTP-only cookies
     secureLogger.security('SECURE_AUTH', 'Token refresh failed', {
       error: 'Token refresh not implemented',
+      currentTokenSize: tokenSize
     });
     return false;
   }, []);
@@ -226,11 +272,25 @@ export function useSecureAuth(): UseSecureAuthReturn {
   useEffect(() => {
     const storedToken = sessionStorage.getItem(AUTH_CONFIG.STORAGE_KEYS.ACCESS_TOKEN);
     const storedUser = sessionStorage.getItem(AUTH_CONFIG.STORAGE_KEYS.USER);
+    const storedIdToken = sessionStorage.getItem('id_token');
     
     if (storedToken && !accessToken) {
       setAccessToken(storedToken);
       // Only log once per session to avoid verbose logs
       if (!sessionStorage.getItem('auth_restored_logged')) {
+        const tokenSize = storedToken.length;
+        const idTokenSize = storedIdToken ? storedIdToken.length : 0;
+        const userDataSize = storedUser ? storedUser.length : 0;
+        const totalRestoredSize = tokenSize + idTokenSize + userDataSize;
+        
+        secureLogger.info('TOKEN_RESTORATION_SUCCESS', {
+          accessTokenSize: tokenSize,
+          idTokenSize,
+          userDataSize,
+          totalRestoredSize,
+          storageMethod: 'sessionStorage'
+        });
+        
         console.log('🔒 [SECURE_AUTH] Restored token from sessionStorage');
         sessionStorage.setItem('auth_restored_logged', 'true');
       }
@@ -361,11 +421,22 @@ export const secureTokenUtils = {
     // All tokens stored in memory only via useSecureAuth hook
     // No persistent storage for security
 
-    // Log security event
+    // Calculate token sizes for logging
+    const accessTokenSize = tokens.access_token ? tokens.access_token.length : 0;
+    const refreshTokenSize = tokens.refresh_token ? tokens.refresh_token.length : 0;
+    const idTokenSize = tokens.id_token ? tokens.id_token.length : 0;
+    const totalSize = accessTokenSize + refreshTokenSize + idTokenSize;
+
+    // Log security event with size information
     secureLogger.security('SECURE_TOKEN_UTILS', 'Tokens stored securely in memory only', {
       hasAccessToken: !!tokens.access_token,
       hasRefreshToken: !!tokens.refresh_token,
       hasIdToken: !!tokens.id_token,
+      accessTokenSize,
+      refreshTokenSize,
+      idTokenSize,
+      totalSize,
+      storageMethod: 'memory_only'
     });
   },
 
@@ -373,6 +444,16 @@ export const secureTokenUtils = {
    * Clear all tokens securely
    */
   clearAllTokens: () => {
+    // Log cleanup before clearing
+    const accessToken = sessionStorage.getItem(AUTH_CONFIG.STORAGE_KEYS.ACCESS_TOKEN);
+    const idToken = sessionStorage.getItem('id_token');
+    const userData = sessionStorage.getItem(AUTH_CONFIG.STORAGE_KEYS.USER);
+    
+    const accessTokenSize = accessToken ? accessToken.length : 0;
+    const idTokenSize = idToken ? idToken.length : 0;
+    const userDataSize = userData ? userData.length : 0;
+    const totalClearedSize = accessTokenSize + idTokenSize + userDataSize;
+
     // Clear secure tokens via global function
     if ('clearSecureTokens' in window && typeof (window as { clearSecureTokens: () => void }).clearSecureTokens === 'function') {
       (window as { clearSecureTokens: () => void }).clearSecureTokens();
@@ -381,7 +462,13 @@ export const secureTokenUtils = {
     // Clear user data (non-sensitive)
     sessionStorage.removeItem(AUTH_CONFIG.STORAGE_KEYS.USER);
 
-    secureLogger.security('SECURE_TOKEN_UTILS', 'All tokens cleared securely');
+    secureLogger.security('SECURE_TOKEN_UTILS', 'All tokens cleared securely', {
+      accessTokenSize,
+      idTokenSize,
+      userDataSize,
+      totalClearedSize,
+      clearedItems: ['access_token', 'id_token', 'user_data']
+    });
   },
 
   /**
