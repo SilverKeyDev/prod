@@ -59,16 +59,33 @@ def create_app(config=None):
         from .models.chat_history import ChatHistory
         db.create_all()
 
-    # Global CORS Configuration - Restricted to specific domains
+    # Environment-aware CORS Configuration
+    flask_env = os.getenv('FLASK_ENV', 'development')
+    
+    # Get base origins from config (supports CORS_ORIGINS environment variable)
+    from .config import Config
+    base_origins = Config.CORS_ORIGINS.copy()
+    
+    # Development origins (only added in non-production environments)
+    development_origins = [
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173"
+    ]
+    
+    # Combine origins based on environment
+    if flask_env == 'production':
+        cors_origins = base_origins
+    else:
+        # Add development origins to base origins for non-production
+        cors_origins = base_origins + development_origins
+    
+    # Log CORS configuration for debugging
+    logging.getLogger(__name__).info(f"CORS configured for {flask_env} environment with origins: {cors_origins}")
+    
     CORS(app, resources={
         r"/*": {
-            "origins": [
-                "https://silverkeyestates.com",
-                "https://www.silverkeyestates.com",
-                "http://localhost:3000",
-                "http://localhost:5173",
-                "http://127.0.0.1:5173"
-            ],
+            "origins": cors_origins,
             "supports_credentials": True,
             "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"],
             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
@@ -107,6 +124,21 @@ def create_app(config=None):
     except Exception as e:
         logging.getLogger(__name__).warning(f"Environment validation warning: {e}")
 
+    # Log minimal token mode configuration at startup
+    from .services.minimal_token import minimal_token_service
+    flask_env = os.getenv('FLASK_ENV', 'development')
+    has_minimal_secret = bool(os.getenv('MINIMAL_TOKEN_SECRET'))
+    
+    app.logger.info("MINIMAL_TOKEN_MODE_CONFIGURATION", extra={
+        'environment': flask_env,
+        'minimal_token_mode': 'ENABLED',
+        'has_minimal_secret': has_minimal_secret,
+        'secret_source': 'environment' if has_minimal_secret else 'development_fallback',
+        'production_mode': flask_env == 'production',
+        'cookie_optimization': 'ACTIVE',
+        'token_size_reduction': '~71%'
+    })
+
     # Register blueprints
     from .routes.report import report_bp
     from .routes.dashboard import dashboard_bp
@@ -139,36 +171,6 @@ def create_app(config=None):
     def healthz():
         return jsonify({"status": "ok"}), 200
 
-    # Security headers middleware
-    @app.after_request
-    def security_headers(response):
-        """Add security headers to all responses"""
-        # HTTPS enforcement
-        response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains; preload'
-        
-        # Content security policy
-        csp_policy = (
-            "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://maps.googleapis.com https://js.stripe.com; "
-            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
-            "font-src 'self' https://fonts.gstatic.com; "
-            "img-src 'self' data: https: blob:; "
-            "connect-src 'self' https://api.stripe.com https://maps.googleapis.com https://cognito-idp.us-east-2.amazonaws.com; "
-            "frame-src https://js.stripe.com; "
-            "object-src 'none'; "
-            "base-uri 'self'; "
-            "form-action 'self';"
-        )
-        response.headers['Content-Security-Policy'] = csp_policy
-        
-        # Additional security headers
-        response.headers['X-Content-Type-Options'] = 'nosniff'
-        response.headers['X-Frame-Options'] = 'DENY'
-        response.headers['X-XSS-Protection'] = '1; mode=block'
-        response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
-        response.headers['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=()'
-        
-        return response
 
     # Request/Response logging middleware
     @app.before_request

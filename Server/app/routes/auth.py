@@ -188,12 +188,14 @@ def verify():
         resp = make_response(response_data)
         
         # Set secure HttpOnly cookies with minimal tokens
+        # Use host-only cookies (no domain) and Path=/ for proper scope
         resp.set_cookie(
             "session", 
             value=minimal_access_token,
             httponly=True, 
             secure=os.getenv('FLASK_ENV') == 'production',
             samesite="Lax", 
+            path="/",  # Explicit path for all routes
             max_age=60*60*8  # 8 hours
         )
         
@@ -203,6 +205,7 @@ def verify():
             httponly=True,
             secure=os.getenv('FLASK_ENV') == 'production',
             samesite="Lax",
+            path="/",  # Explicit path for all routes
             max_age=60*60*24*30  # 30 days
         )
         
@@ -567,6 +570,7 @@ def login():
         resp = make_response(response_data)
         
         # Set secure HttpOnly cookies with minimal tokens
+        # Use host-only cookies (no domain) and Path=/ for proper scope
         try:
             resp.set_cookie(
                 "session", 
@@ -574,6 +578,7 @@ def login():
                 httponly=True, 
                 secure=os.getenv('FLASK_ENV') == 'production',  # Only secure in production
                 samesite="Lax", 
+                path="/",  # Explicit path for all routes
                 max_age=60*60*8  # 8 hours
             )
             
@@ -584,6 +589,7 @@ def login():
                 httponly=True,
                 secure=os.getenv('FLASK_ENV') == 'production',
                 samesite="Lax",
+                path="/",  # Explicit path for all routes
                 max_age=60*60*24*30  # 30 days
             )
             
@@ -592,7 +598,16 @@ def login():
                 'session_cookie_set': True,
                 'refresh_cookie_set': True,
                 'secure_cookies': os.getenv('FLASK_ENV') == 'production',
-                'using_minimal_tokens': True
+                'using_minimal_tokens': True,
+                'cookie_config': {
+                    'httponly': True,
+                    'secure': os.getenv('FLASK_ENV') == 'production',
+                    'samesite': 'Lax',
+                    'path': '/',
+                    'domain': 'none',  # Host-only cookies
+                    'session_max_age': '8h',
+                    'refresh_max_age': '30d'
+                }
             })
         except Exception as cookie_error:
             current_app.logger.error(f"AUTH_LOGIN_COOKIE_ERROR", extra={
@@ -699,12 +714,14 @@ def logout():
         })
         
         # Clear all authentication cookies
+        # Use same path as login to ensure proper clearing
         resp.set_cookie(
             "session",
             value="",
             httponly=True,
             secure=os.getenv('FLASK_ENV') == 'production',
             samesite="Lax",
+            path="/",  # Match login path
             max_age=0  # Expire immediately
         )
         
@@ -714,6 +731,7 @@ def logout():
             httponly=True,
             secure=os.getenv('FLASK_ENV') == 'production',
             samesite="Lax",
+            path="/",  # Match login path
             max_age=0  # Expire immediately
         )
         

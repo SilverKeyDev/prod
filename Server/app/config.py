@@ -56,6 +56,12 @@ class Config:
     SQLALCHEMY_DATABASE_URI = database_url
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
+    # Disable Flask session cookies - we use custom HttpOnly cookies instead
+    SESSION_COOKIE_HTTPONLY = False  # Disable Flask's session cookie
+    SESSION_COOKIE_SECURE = False    # Disable Flask's session cookie
+    SESSION_COOKIE_SAMESITE = None   # Disable Flask's session cookie
+    PERMANENT_SESSION_LIFETIME = None # Disable permanent sessions
+    
     # AWS Cognito Settings
     AWS_REGION = os.getenv('AWS_REGION', 'us-east-2')
     COGNITO_USER_POOL_ID = os.getenv('COGNITO_USER_POOL_ID')
@@ -74,7 +80,18 @@ class Config:
     ALLOWED_FILE_TYPES = {'application/pdf'}
 
     FRONTEND_URL = os.getenv('FRONTEND_URL', 'https://silverkeyestates.com/')
-    CORS_ORIGINS = [FRONTEND_URL]
+    
+    # CORS Origins Configuration
+    # Support comma-separated CORS_ORIGINS environment variable
+    cors_origins_env = os.getenv('CORS_ORIGINS')
+    if cors_origins_env:
+        CORS_ORIGINS = [origin.strip() for origin in cors_origins_env.split(',')]
+    else:
+        # Default to production origins
+        CORS_ORIGINS = [
+            "https://silverkeyestates.com",
+            "https://www.silverkeyestates.com"
+        ]
 
     API_VERSION = 'v1'
     API_BASE_URL = f'/api/{API_VERSION}'
