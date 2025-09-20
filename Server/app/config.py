@@ -60,7 +60,8 @@ class Config:
     SESSION_COOKIE_HTTPONLY = False  # Disable Flask's session cookie
     SESSION_COOKIE_SECURE = False    # Disable Flask's session cookie
     SESSION_COOKIE_SAMESITE = None   # Disable Flask's session cookie
-    PERMANENT_SESSION_LIFETIME = None # Disable permanent sessions
+    PERMANENT_SESSION_LIFETIME = timedelta(days=1)  # Set to 1 day to avoid NoneType errors
+    SESSION_COOKIE_NAME = 'silverkey_session'  # Custom session cookie name
     
     # AWS Cognito Settings
     AWS_REGION = os.getenv('AWS_REGION', 'us-east-2')
