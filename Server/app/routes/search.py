@@ -180,7 +180,7 @@ def get_property_comps():
             "Accept": "application/json"
         }
                 
-        response = _SESSION.get(url, headers=headers, params=params, timeout=30)
+        response = _SESSION.get(url, headers=headers, params=params, timeout=300)
         
         # Handle API response
         if not response.ok:
@@ -264,7 +264,7 @@ def get_property_via_address():
         "Accept": "application/json",
     }
 
-    r = requests.get(url, headers=headers, params=params, timeout=20)
+    r = requests.get(url, headers=headers, params=params, timeout=300)
 
     if not r.ok:
         return jsonify({"success": False, "error": "RAPIDAPI_ERROR",
@@ -492,7 +492,7 @@ def get_property_via_address():
                 "X-RapidAPI-Host": RAPI_HOST
             }
             
-            images_response = requests.get(images_url, headers=images_headers, params=images_params, timeout=10)
+            images_response = requests.get(images_url, headers=images_headers, params=images_params, timeout=300)
             
             if images_response.status_code == 200:
                 images_data = images_response.json()
@@ -641,7 +641,7 @@ def geocode_address(address: str) -> Optional[Tuple[float, float]]:
         
 
         
-        response = requests.get(url, params=params, timeout=10)
+        response = requests.get(url, params=params, timeout=300)
 
         response.raise_for_status()
         
@@ -943,7 +943,7 @@ def search_properties_by_polygon():
 
                 try:
                     resp = requests.get(f"{API_BASE}/propertyByPolygon",
-                                        headers=headers, params=params, timeout=20)
+                                        headers=headers, params=params, timeout=300)
                     requests_made += 1
                     
                     

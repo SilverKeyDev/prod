@@ -24,16 +24,16 @@ class Config:
     SEND_FILE_MAX_AGE_DEFAULT = 300
     
     # HTTP request timeout configuration
-    HTTP_TIMEOUT = 30  # 30 seconds for HTTP requests
-    COGNITO_TIMEOUT = 10  # 10 seconds for Cognito operations
+    HTTP_TIMEOUT = 300  # 5 minutes for HTTP requests
+    COGNITO_TIMEOUT = 300  # 5 minutes for Cognito operations
     SQLALCHEMY_ENGINE_OPTIONS = {
         'pool_pre_ping': True,          # Verify connections before use
         'pool_recycle': 300,            # Recycle connections every 5 minutes (300 seconds)
-        'pool_timeout': 30,             # Timeout for getting connection from pool
+        'pool_timeout': 300,             # Timeout for getting connection from pool
         'pool_size': 10,                # Number of connections to maintain in pool
         'max_overflow': 20,             # Allow overflow connections for high load
         'connect_args': {
-            'connect_timeout': 10,      # Connection timeout in seconds
+            'connect_timeout': 300,      # Connection timeout in seconds
             'keepalives_idle': 600,     # TCP keepalive idle time (10 minutes)
             'keepalives_interval': 30,  # TCP keepalive interval
             'keepalives_count': 3,      # TCP keepalive probe count
