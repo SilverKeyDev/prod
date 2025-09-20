@@ -1,13 +1,15 @@
-import { Mail, ArrowLeft } from "lucide-react";
+import { Mail, ArrowLeft, Clipboard } from "lucide-react";
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 import { KeyTurnLoader, MiniLogo, Input } from "../../components/ui";
+import Card from "../../components/format/Card";
 import { authApi } from "../../core/config/api";
 import { secureTokenUtils } from "../../core/hooks/data/useSecureAuth";
 
 type LocationState = {
   email?: string;
+  password?: string;
 };
 
 export default function VerificationPage() {
@@ -100,6 +102,39 @@ export default function VerificationPage() {
     inputRefs.current[focusIndex]?.focus();
   };
 
+  // Handle paste button click
+  const handlePasteButton = async () => {
+    try {
+      const clipboardText = await navigator.clipboard.readText();
+      const pasteData = clipboardText.slice(0, 6);
+      if (!/^\d+$/.test(pasteData)) {
+        setError("Clipboard content is not a valid 6-digit code");
+        return;
+      }
+
+      const newCode = [...code];
+      const pasteDigits = pasteData.split("");
+
+      // Fill in the code array with pasted digits
+      pasteDigits.forEach((digit, i) => {
+        if (i < 6) {
+          newCode[i] = digit;
+        }
+      });
+
+      setCode(newCode);
+      setError("");
+
+      // Focus the next empty input or the last one if all filled
+      const nextEmptyIndex = newCode.findIndex((digit) => !digit);
+      const focusIndex =
+        nextEmptyIndex === -1 ? 5 : Math.min(nextEmptyIndex, 5);
+      inputRefs.current[focusIndex]?.focus();
+    } catch (error) {
+      setError("Unable to access clipboard. Please paste manually.");
+    }
+  };
+
   // Handle backspace
   const handleKeyDown = (
     e: React.KeyboardEvent<HTMLInputElement>,
@@ -153,8 +188,12 @@ export default function VerificationPage() {
     setError("");
 
     try {
-      const userEmail = email ?? sessionStorage.getItem("signupEmail") ?? "";
-      const userPassword = sessionStorage.getItem("signupPassword") ?? "";
+      const userEmail =
+        email ??
+        locationState?.email ??
+        sessionStorage.getItem("signupEmail") ??
+        "";
+      const userPassword = locationState?.password ?? "";
 
       if (!userPassword) {
         throw new Error("Password not found. Please sign up again.");
@@ -206,7 +245,8 @@ export default function VerificationPage() {
     setError("");
 
     try {
-      const userEmail = email ?? sessionStorage.getItem("signupEmail");
+      const userEmail =
+        email ?? locationState?.email ?? sessionStorage.getItem("signupEmail");
       if (!userEmail) {
         throw new Error("Email not found. Please go back and try again.");
       }
@@ -243,25 +283,37 @@ export default function VerificationPage() {
   };
 
   const renderCodeInputs = () => (
-    <div className="gap-responsive-xs space-y-responsive-lg flex justify-center">
-      {code.map((digit, index) => (
-        <input
-          key={index}
-          ref={(el) => (inputRefs.current[index] = el)}
-          type="text"
-          inputMode="numeric"
-          pattern="\d*"
-          maxLength={1}
-          value={digit}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-            handleCodeChange(e.target.value, index)
-          }
-          onPaste={(e) => handlePaste(e, index)}
-          onKeyDown={(e) => handleKeyDown(e, index)}
-          className="mobile-icon-md btn-responsive-lg text-responsive-lg rounded-lg border-2 border-olive text-center font-bold focus:border-transparent focus:outline-none focus:ring-2 focus:ring-olive"
+    <div className="space-y-responsive-md">
+      <div className="flex justify-center gap-responsive-xs">
+        {code.map((digit, index) => (
+          <input
+            key={index}
+            ref={(el) => (inputRefs.current[index] = el)}
+            type="text"
+            inputMode="numeric"
+            pattern="\d*"
+            maxLength={1}
+            value={digit}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              handleCodeChange(e.target.value, index)
+            }
+            onPaste={(e) => handlePaste(e, index)}
+            onKeyDown={(e) => handleKeyDown(e, index)}
+            className="h-12 w-12 text-lg rounded-lg border-2 border-olive text-center font-bold focus:border-transparent focus:outline-none focus:ring-2 focus:ring-olive sm:h-14 sm:w-14 sm:text-xl"
+          />
+        ))}
+      </div>
+      <div className="flex justify-center">
+        <button
+          type="button"
+          onClick={handlePasteButton}
           disabled={loading}
-        />
-      ))}
+          className="flex items-center gap-2 text-sm text-gray-500 underline transition-colors hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <Clipboard className="h-4 w-4" />
+          Paste from clipboard
+        </button>
+      </div>
     </div>
   );
 
@@ -277,118 +329,123 @@ export default function VerificationPage() {
           Back
         </button>
 
-        {/* Header */}
-        <div className="space-y-responsive-lg text-center">
-          <h2 className="text-responsive-xl space-y-responsive-xs gap-responsive-xs flex items-center justify-center font-serif text-black">
-            <MiniLogo size="md" />
-            {activeStep === "email"
-              ? "Verify your email"
-              : "Enter verification code"}
-          </h2>
-          <p className="text-responsive-sm font-light text-black/60">
-            {activeStep === "email"
-              ? "We'll send you a code to verify your email"
-              : `Enter the 6-digit code sent to ${email}`}
-          </p>
-        </div>
-
-        {/* Error Message */}
-        {error && (
-          <div className="space-y-responsive-md space-responsive-sm text-responsive-sm rounded-md bg-red-50 text-red-600">
-            {error}
+        <Card className="space-y-responsive-lg">
+          {/* Header */}
+          <div className="space-y-responsive-lg text-center">
+            <h2 className="text-responsive-xl space-y-responsive-xs gap-responsive-xs flex items-center justify-center font-serif text-black">
+              <MiniLogo size="md" />
+              {activeStep === "email"
+                ? "Verify your email"
+                : "Enter verification code"}
+            </h2>
+            <p className="text-responsive-sm font-light text-black/60">
+              {activeStep === "email"
+                ? "We'll send you a code to verify your email"
+                : `Enter the 6-digit code sent to ${email}`}
+            </p>
           </div>
-        )}
 
-        {/* Email Step */}
-        {activeStep === "email" && (
-          <form onSubmit={handleEmailSubmit} className="space-y-responsive-md">
-            <div>
-              <label className="text-responsive-sm space-y-responsive-xs block font-medium text-black">
-                Email address
-              </label>
-              <Input
-                type="email"
-                value={email}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  setEmail(e.target.value);
-                  setError("");
-                }}
-                placeholder="Enter your email"
-                leftIcon={<Mail className="mobile-icon-sm" />}
-                autoComplete="email"
-                variant="mobile"
-                size="md"
-              />
+          {/* Error Message */}
+          {error && (
+            <div className="space-y-responsive-md space-responsive-sm text-responsive-sm rounded-md bg-red-50 p-3 text-red-600">
+              {error}
             </div>
+          )}
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn-primary w-full disabled:cursor-not-allowed disabled:opacity-50"
+          {/* Email Step */}
+          {activeStep === "email" && (
+            <form
+              onSubmit={handleEmailSubmit}
+              className="space-y-responsive-md"
             >
-              {loading ? (
-                <KeyTurnLoader message="Sending..." />
-              ) : (
-                "Send verification code"
-              )}
-            </button>
-          </form>
-        )}
+              <div>
+                <label className="text-responsive-sm space-y-responsive-xs block font-medium text-black">
+                  Email address
+                </label>
+                <Input
+                  type="email"
+                  value={email}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    setEmail(e.target.value);
+                    setError("");
+                  }}
+                  placeholder="Enter your email"
+                  leftIcon={<Mail className="mobile-icon-sm" />}
+                  autoComplete="email"
+                  variant="mobile"
+                  size="md"
+                />
+              </div>
 
-        {/* Verification Code Step */}
-        {activeStep === "code" && (
-          <form
-            onSubmit={(e: React.FormEvent<HTMLFormElement>) =>
-              e.preventDefault()
-            }
-            className="space-y-responsive-md"
-          >
-            {renderCodeInputs()}
-
-            <div className="text-responsive-sm text-center text-black/60">
-              Didn't receive a code?{" "}
               <button
-                type="button"
-                onClick={handleResendCode}
-                disabled={!canResend || loading}
-                className={`${
-                  canResend ? "text-gold hover:text-gold/80" : "text-black/40"
-                } font-medium transition-colors`}
+                type="submit"
+                disabled={loading}
+                className="btn-primary w-full disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {loading ? (
-                  <span className="inline-flex items-center">
-                    <div className="mr-1">
-                      <KeyTurnLoader message="" />
-                    </div>
-                    Sending...
-                  </span>
-                ) : canResend ? (
-                  "Resend code"
+                  <KeyTurnLoader message="Sending..." />
                 ) : (
-                  `Resend in ${countdown}s`
+                  "Send verification code"
                 )}
               </button>
-            </div>
+            </form>
+          )}
 
-            <button
-              type="button"
-              onClick={handleVerify}
-              disabled={loading ?? code.join("").length !== 6}
-              className="btn-primary w-full disabled:cursor-not-allowed disabled:opacity-50"
+          {/* Verification Code Step */}
+          {activeStep === "code" && (
+            <form
+              onSubmit={(e: React.FormEvent<HTMLFormElement>) =>
+                e.preventDefault()
+              }
+              className="space-y-responsive-md"
             >
-              {loading ? (
-                <div className="flex items-center justify-center">
-                  <div className="mr-2">
-                    <KeyTurnLoader message="" />
+              {renderCodeInputs()}
+
+              <div className="text-responsive-sm text-center text-black/60">
+                Didn't receive a code?{" "}
+                <button
+                  type="button"
+                  onClick={handleResendCode}
+                  disabled={!canResend || loading}
+                  className={`${
+                    canResend ? "text-gold hover:text-gold/80" : "text-black/40"
+                  } font-medium transition-colors`}
+                >
+                  {loading ? (
+                    <span className="inline-flex items-center">
+                      <div className="mr-1">
+                        <KeyTurnLoader message="" />
+                      </div>
+                      Sending...
+                    </span>
+                  ) : canResend ? (
+                    "Resend code"
+                  ) : (
+                    `Resend in ${countdown}s`
+                  )}
+                </button>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleVerify}
+                disabled={loading ?? code.join("").length !== 6}
+                className="btn-primary w-full disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {loading ? (
+                  <div className="flex items-center justify-center">
+                    <div className="mr-2">
+                      <KeyTurnLoader message="" />
+                    </div>
+                    Verifying...
                   </div>
-                  Verifying...
-                </div>
-              ) : (
-                "Verify and continue"
-              )}
-            </button>
-          </form>
-        )}
+                ) : (
+                  "Verify and continue"
+                )}
+              </button>
+            </form>
+          )}
+        </Card>
       </div>
     </div>
   );

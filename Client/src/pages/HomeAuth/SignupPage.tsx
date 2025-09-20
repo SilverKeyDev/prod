@@ -254,9 +254,14 @@ export default function SignupPage(_props: SignupPageProps) {
       if (!success) throw new Error(error ?? "Failed to sign up");
 
       // Store email in sessionStorage for verification flow (non-sensitive)
-      // NEVER store passwords - they should be handled server-side only
       sessionStorage.setItem("signupEmail", formData.email);
-      navigate("/verification", { state: { email: formData.email } });
+      // Pass password through navigation state (temporary, only for verification flow)
+      navigate("/verification", {
+        state: {
+          email: formData.email,
+          password: formData.password,
+        },
+      });
     } catch (error: unknown) {
       console.error("Signup error:", error);
       showErrorToast(
