@@ -1,6 +1,5 @@
 import { env } from '../config';
 import { mapsApi, type MapsScriptResponse } from '../config/api/maps';
-import { authService } from './auth';
 import { asError } from '../utils/error';
 
 /**
@@ -54,12 +53,6 @@ export class GoogleMapsService {
     );
   }
 
-  /**
-   * Check if user is authenticated using centralized auth check
-   */
-  private isUserAuthenticated(): boolean {
-    return authService.isAuthenticated();
-  }
 
   /**
    * Check for existing Google Maps scripts
@@ -148,13 +141,8 @@ export class GoogleMapsService {
     // If a load is already in progress, await the same promise
     if (this.loadPromise) return this.loadPromise;
 
-    // Check if user is authenticated - but don't block loading if auth is not ready yet
-    const isAuthenticated = this.isUserAuthenticated();
-    if (!isAuthenticated) {
-      console.error('🗺️ [GMAPS_SERVICE] User not authenticated, will retry when auth is ready');
-      // Don't return here - let the retry mechanism handle it
-      throw new Error('User not authenticated - will retry');
-    }
+    // Google Maps can be loaded without authentication
+    // Removed authentication check to allow loading on public pages
 
     // Check for existing scripts
     if (this.hasExistingScripts()) {

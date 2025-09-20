@@ -246,14 +246,22 @@ export default function OnboardingPage() {
   };
 
   // Use centralized Google Maps loading
-  const { isLoaded: googleMapsLoaded, error: googleMapsError } =
-    useGoogleMapsStore();
+  const {
+    isLoaded: googleMapsLoaded,
+    error: googleMapsError,
+    loadGoogleMaps,
+  } = useGoogleMapsStore();
+
+  // Initialize Google Maps when component mounts
+  useEffect(() => {
+    void loadGoogleMaps();
+  }, [loadGoogleMaps]);
 
   // Update scriptsReady based on centralized Google Maps loading
   useEffect(() => {
     if (googleMapsError) {
       console.error("❌ Google Maps loading error:", googleMapsError);
-      void void setLoadError("Failed to load Google Maps script.");
+      setLoadError("Failed to load Google Maps script.");
       return;
     }
 

@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 
-import { useAuthStore } from '../../store/auth.slice';
 import { googleMapsService } from '../../services/googleMaps';
 import { asError } from '../../utils/error';
 
@@ -24,8 +23,6 @@ export function useGoogleMaps(): UseGoogleMapsReturn {
   const [error, setError] = useState<string | null>(null);
   const [scriptUrl, setScriptUrl] = useState<string | null>(null);
   const [hasInitialized, setHasInitialized] = useState(false);
-  
-  const authStatus = useAuthStore((s) => s.authStatus);
 
   const createMap = useCallback(
     (container: HTMLElement) => {
@@ -58,8 +55,8 @@ export function useGoogleMaps(): UseGoogleMapsReturn {
       return;
     }
 
-    // Only initialize once after user is authenticated
-    if (authStatus === 'authenticated' && !hasInitialized) {
+    // Initialize Google Maps regardless of authentication status
+    if (!hasInitialized) {
       const initializeGoogleMaps = async () => {
         try {
           await googleMapsService.loadGoogleMapsScript();
@@ -84,7 +81,7 @@ export function useGoogleMaps(): UseGoogleMapsReturn {
       setIsLoaded(state.isLoaded);
       setError(state.error);
     }
-  }, [authStatus, hasInitialized]);
+  }, [hasInitialized]);
 
   return {
     isLoaded,

@@ -119,7 +119,9 @@ export const searchApi = {
       count: params.count,
     });
     console.log('🔎 [searchApi.getPropertyComps] Request', { url, params });
-    return apiGet<PropertyCompsResponse>(url)
+    return apiGet<PropertyCompsResponse>(url, {
+      timeout: 300000, // 5 minutes for property comps search
+    })
       .then((resp) => {
         console.log('✅ [searchApi.getPropertyComps] Response', {
           success: resp?.success,
@@ -140,7 +142,9 @@ export const searchApi = {
   getProperty: (data: PropertyRequest): Promise<PropertyResponse> => {
     const url = '/api/v1/search/property';
     console.log('🔎 [searchApi.getProperty] Request', { url, body: data });
-    return apiPost<PropertyResponse>(url, data)
+    return apiPost<PropertyResponse>(url, data, {
+      timeout: 300000, // 5 minutes for property search
+    })
       .then((resp) => {
         console.log('✅ [searchApi.getProperty] Response', {
           success: resp?.success,
@@ -164,7 +168,9 @@ export const searchApi = {
    */
   searchByPolygon: (data: PolygonSearchRequest): Promise<PolygonSearchResponse> => {
     const url = '/api/v1/search/properties-by-polygon';
-    return apiPost<PolygonSearchResponse>(url, data)
+    return apiPost<PolygonSearchResponse>(url, data, {
+      timeout: 300000, // 5 minutes for polygon search
+    })
       .then((resp) => {
         return resp;
       })
@@ -181,7 +187,9 @@ export const searchApi = {
   getIsochrone: (): Promise<IsochroneResponse> => {
     const url = '/api/v1/search/isochrone';
     console.log('🔎 [searchApi.getIsochrone] Request', { url });
-    return apiGet<IsochroneResponse>(url)
+    return apiGet<IsochroneResponse>(url, {
+      timeout: 300000, // 5 minutes for isochrone generation
+    })
       .then((resp) => {
         console.log('✅ [searchApi.getIsochrone] Response', {
           success: resp?.success,

@@ -12,6 +12,7 @@ import { Link } from "react-router-dom";
 import KeyLogo from "/logo.png?url";
 import type { AutocompleteSuggestion } from "../../core/schemas/google-maps";
 import { asError } from "../../core/utils/error";
+import { useGoogleMaps } from "../../core/hooks/data/useGoogleMaps";
 import RippleBackground from "../../features/homeauth/RippleBackground";
 
 type Suggestion = {
@@ -35,9 +36,9 @@ export default function HomePage() {
   const [, setLoadError] = useState<string | null>(null);
   const [hasSelected] = useState(false);
 
-  // Temporarily disable Google Maps functionality
-  const googleMapsLoaded = false;
-  const googleMapsError = null;
+  // Load Google Maps functionality
+  const { isLoaded: googleMapsLoaded, error: googleMapsError } =
+    useGoogleMaps();
 
   // Update scriptsReady based on centralized Google Maps loading
   useEffect(() => {

@@ -231,30 +231,6 @@ const OnboardingHeader: React.FC<OnboardingHeaderProps> = ({
                       <React.Fragment key={step.id}>
                         {/* Icon cell */}
                         <div className="relative flex h-full items-center justify-center">
-                          {/* Subtle active glow (no animation on backward) */}
-                          <AnimatePresence initial={false}>
-                            {isActive && (
-                              <motion.span
-                                key={`${step.id}-glow`}
-                                className="pointer-events-none absolute -z-0 rounded-full"
-                                style={{
-                                  width: "150%",
-                                  height: "150%",
-                                  top: "50%",
-                                  left: "50%",
-                                  transform: "translate(-50%, -50%)",
-                                  background:
-                                    "radial-gradient(50% 50% at 50% 50%, rgba(88,67,57,0.22) 0%, rgba(88,67,57,0) 70%)",
-                                  filter: "blur(2px)",
-                                }}
-                                initial={{ opacity: 0, scale: 0.85 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.9 }}
-                                transition={t}
-                              />
-                            )}
-                          </AnimatePresence>
-
                           <motion.button
                             onClick={() => onStepClick(index)}
                             type="button"
