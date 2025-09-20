@@ -63,7 +63,6 @@ def create_app(config=None):
     flask_env = os.getenv('FLASK_ENV', 'development')
     
     # Get base origins from config (supports CORS_ORIGINS environment variable)
-    from .config import Config
     base_origins = Config.CORS_ORIGINS.copy()
     
     # Development origins (only added in non-production environments)
