@@ -26,19 +26,6 @@ class Config:
     # HTTP request timeout configuration
     HTTP_TIMEOUT = 300  # 5 minutes for HTTP requests
     COGNITO_TIMEOUT = 300  # 5 minutes for Cognito operations
-    SQLALCHEMY_ENGINE_OPTIONS = {
-        'pool_pre_ping': True,          # Verify connections before use
-        'pool_recycle': 300,            # Recycle connections every 5 minutes (300 seconds)
-        'pool_timeout': 300,             # Timeout for getting connection from pool
-        'pool_size': 10,                # Number of connections to maintain in pool
-        'max_overflow': 20,             # Allow overflow connections for high load
-        'connect_args': {
-            'connect_timeout': 300,      # Connection timeout in seconds
-            'keepalives_idle': 600,     # TCP keepalive idle time (10 minutes)
-            'keepalives_interval': 30,  # TCP keepalive interval
-            'keepalives_count': 3,      # TCP keepalive probe count
-        }
-    }
     
 
     SECRET_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
@@ -56,11 +43,37 @@ class Config:
     SQLALCHEMY_DATABASE_URI = database_url
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
-    # Disable Flask session cookies - we use custom HttpOnly cookies instead
-    SESSION_COOKIE_HTTPONLY = False  # Disable Flask's session cookie
-    SESSION_COOKIE_SECURE = False    # Disable Flask's session cookie
-    SESSION_COOKIE_SAMESITE = None   # Disable Flask's session cookie
-    PERMANENT_SESSION_LIFETIME = timedelta(days=1)  # Set to 1 day to avoid NoneType errors
+    # Configure engine options based on database type
+    if database_url.startswith('sqlite://'):
+        # SQLite-specific configuration
+        SQLALCHEMY_ENGINE_OPTIONS = {
+            'pool_pre_ping': True,
+            'pool_recycle': 300,
+            'pool_timeout': 300,
+            'pool_size': 10,
+            'max_overflow': 20,
+        }
+    else:
+        # PostgreSQL/other database configuration with connection args
+        SQLALCHEMY_ENGINE_OPTIONS = {
+            'pool_pre_ping': True,
+            'pool_recycle': 300,
+            'pool_timeout': 300,
+            'pool_size': 10,
+            'max_overflow': 20,
+            'connect_args': {
+                'connect_timeout': 300,
+                'keepalives_idle': 600,
+                'keepalives_interval': 30,
+                'keepalives_count': 3,
+            }
+        }
+    
+    # Flask session cookies for OAuth flow
+    SESSION_COOKIE_HTTPONLY = True   # Enable HttpOnly for security
+    SESSION_COOKIE_SECURE = True     # Enable Secure for HTTPS
+    SESSION_COOKIE_SAMESITE = 'Lax' # Enable SameSite for OAuth redirects
+    PERMANENT_SESSION_LIFETIME = timedelta(days=1)  # Set to 1 day
     SESSION_COOKIE_NAME = 'silverkey_session'  # Custom session cookie name
     
     # AWS Cognito Settings
@@ -76,11 +89,69 @@ class Config:
     S3_REGION = os.getenv('S3_REGION', AWS_REGION)
     S3_PRESIGNED_URL_EXPIRATION = int(os.getenv('S3_PRESIGNED_URL_EXPIRATION', 3600))  # 1 hour default
 
+    # Google Calendar Settings
+    GOOGLE_CALENDAR_SECRET = os.getenv('GOOGLE_CALENDAR_SECRET')
+    GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID')
+    GOOGLE_SCOPES = os.getenv('GOOGLE_SCOPES', 'https://www.googleapis.com/auth/calendar')
+    
+    # Environment-based redirect URI
+    @classmethod
+    def get_google_redirect_uri(cls):
+        """Get Google OAuth redirect URI based on environment"""
+        # Check if we're in development (localhost) or production
+        flask_env = os.getenv('FLASK_ENV', 'development')
+        
+        if flask_env == 'production':
+            # Production: use silverkeyestates.com
+            return 'https://silverkeyestates.com/api/v1/google/oauth/callback'
+        else:
+            # Development: use localhost with port 5173 (Vite dev server)
+            return 'http://localhost:5173/api/v1/google/oauth/callback'
+    
+    # Set the redirect URI using a function call
+    def _get_google_redirect_uri():
+        """Get Google OAuth redirect URI based on environment"""
+        flask_env = os.getenv('FLASK_ENV', 'development')
+        
+        if flask_env == 'production':
+            # Production: use silverkeyestates.com
+            return 'https://silverkeyestates.com/api/v1/google/oauth/callback'
+        else:
+            # Development: use localhost with port 5173 (Vite dev server)
+            return 'http://localhost:5173/api/v1/google/oauth/callback'
+    
+    GOOGLE_REDIRECT_URI = _get_google_redirect_uri()
+
     UPLOAD_FOLDER = os.getenv('UPLOAD_FOLDER', 'uploads')
     MAX_CONTENT_LENGTH = int(os.getenv('MAX_CONTENT_LENGTH', 16 * 1024 * 1024))
     ALLOWED_FILE_TYPES = {'application/pdf'}
 
-    FRONTEND_URL = os.getenv('FRONTEND_URL', 'https://silverkeyestates.com/')
+    # Environment-based frontend URL
+    @classmethod
+    def get_frontend_url(cls):
+        """Get frontend URL based on environment"""
+        flask_env = os.getenv('FLASK_ENV', 'development')
+        
+        if flask_env == 'production':
+            # Production: use silverkeyestates.com
+            return 'https://silverkeyestates.com'
+        else:
+            # Development: use localhost with port 5173 (Vite dev server)
+            return 'http://localhost:5173'
+    
+    # Set the frontend URL using a function call
+    def _get_frontend_url():
+        """Get frontend URL based on environment"""
+        flask_env = os.getenv('FLASK_ENV', 'development')
+        
+        if flask_env == 'production':
+            # Production: use silverkeyestates.com
+            return 'https://silverkeyestates.com'
+        else:
+            # Development: use localhost with port 5173 (Vite dev server)
+            return 'http://localhost:5173'
+    
+    FRONTEND_URL = _get_frontend_url()
     
     # CORS Origins Configuration
     # Support comma-separated CORS_ORIGINS environment variable
@@ -88,11 +159,21 @@ class Config:
     if cors_origins_env:
         CORS_ORIGINS = [origin.strip() for origin in cors_origins_env.split(',')]
     else:
-        # Default to production origins
-        CORS_ORIGINS = [
-            "https://silverkeyestates.com",
-            "https://www.silverkeyestates.com"
-        ]
+        # Default origins based on environment
+        flask_env = os.getenv('FLASK_ENV', 'development')
+        if flask_env == 'production':
+            CORS_ORIGINS = [
+                "https://silverkeyestates.com",
+                "https://www.silverkeyestates.com"
+            ]
+        else:
+            # Development: include localhost:5173 (Vite dev server)
+            CORS_ORIGINS = [
+                "http://localhost:5173",
+                "http://localhost:3000",
+                "https://silverkeyestates.com",
+                "https://www.silverkeyestates.com"
+            ]
 
     API_VERSION = 'v1'
     API_BASE_URL = f'/api/{API_VERSION}'

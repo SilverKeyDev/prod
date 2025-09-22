@@ -18,6 +18,7 @@ type ImportMetaEnv = {
   // Third-party Services
   readonly VITE_STRIPE_PUBLIC_KEY: string;
   readonly VITE_GOOGLE_MAPS_ID: string;
+  readonly VITE_GOOGLE_CLIENT_ID: string;
 
   // Development
   readonly DEV: boolean;
@@ -47,7 +48,7 @@ class EnvConfig {
    * Validate required environment variables
    */
   private validateRequiredEnvVars(): void {
-    const required: Array<keyof ImportMetaEnv> = ['VITE_STRIPE_PUBLIC_KEY', 'VITE_GOOGLE_MAPS_ID'];
+    const required: Array<keyof ImportMetaEnv> = ['VITE_STRIPE_PUBLIC_KEY', 'VITE_GOOGLE_MAPS_ID', 'VITE_GOOGLE_CLIENT_ID'];
 
     const missing = required.filter((key) => !this.env[key]);
 
@@ -96,6 +97,15 @@ class EnvConfig {
     return mapId;
   }
 
+  get googleClientId(): string | null {
+    const clientId = this.env.VITE_GOOGLE_CLIENT_ID;
+    if (!clientId) {
+      console.warn('VITE_GOOGLE_CLIENT_ID not configured - Google Calendar integration disabled');
+      return null;
+    }
+    return clientId;
+  }
+
   // Environment Detection
   get isDevelopment(): boolean {
     return this.env.DEV;
@@ -125,6 +135,7 @@ export const {
   buildVersion,
   stripePublicKey,
   googleMapsId,
+  googleClientId,
   isDevelopment,
   isProduction,
 } = env;

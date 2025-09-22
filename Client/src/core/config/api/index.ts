@@ -4,6 +4,7 @@
 export { authApi } from './auth';
 export { chatbotApi } from './chatbot';
 export { dashboardApi } from './dashboard';
+export { googleCalendarApi } from './googleCalendar';
 export { homeMatchingApi } from './homeMatching';
 export { mapsApi } from './maps';
 export { offerApi } from './offer';
@@ -33,6 +34,14 @@ export {
 export type { SignupData, VerifyData, LoginData, AuthResponse } from './auth';
 export type { ChatMessage, ChatResponse, ChatHistoryMessage, ChatHistoryResponse } from './chatbot';
 export type { PDFDocument, DashboardResponse, ReportsResponse } from './dashboard';
+export type {
+  GoogleCalendar,
+  GoogleEvent,
+  GoogleCalendarListResponse,
+  GoogleEventListResponse,
+  GoogleEventCreateResponse,
+  GoogleCalendarApiResponse,
+} from './googleCalendar';
 export type { HomeMatchingRequest, HomeMatchingResponse, TaskStatusResponse } from './homeMatching';
 export type { MapsScriptResponse } from './maps';
 export type {

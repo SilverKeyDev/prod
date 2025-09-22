@@ -29,5 +29,9 @@ export * from './user';
 
 // Metrics types
 export * from './metrics';
+
+// Plaid types
+export * from './plaid';
+
 // Search types
 export * from './search';

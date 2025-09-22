@@ -39,6 +39,7 @@ jobs:
             --build-arg VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }} \
             --build-arg VITE_STRIPE_PUBLIC_KEY=${{ secrets.VITE_STRIPE_PUBLIC_KEY }} \
             --build-arg VITE_GOOGLE_MAPS_ID=${{ secrets.VITE_GOOGLE_MAPS_ID }} \
+            --build-arg VITE_GOOGLE_CLIENT_ID=${{ secrets.VITE_GOOGLE_CLIENT_ID }} \
             -t $REPO:$IMAGE_TAG .
           docker tag $REPO:$IMAGE_TAG $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO:$IMAGE_TAG
           docker push $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO:$IMAGE_TAG
@@ -176,6 +177,10 @@ jobs:
               -e HUD_TOKEN="${{ secrets.HUD_TOKEN }}" \
               -e RAPIDAPI_KEY="${{ secrets.RAPIDAPI_KEY }}" \
               -e MAPBOX_API_KEY="${{ secrets.MAPBOX_API_KEY }}" \
+              -e GOOGLE_CALENDAR_SECRET="${{ secrets.GOOGLE_CALENDAR_SECRET }}" \
+              -e GOOGLE_CLIENT_ID="${{ secrets.GOOGLE_CLIENT_ID }}" \
+              -e GOOGLE_REDIRECT_URI="${{ secrets.GOOGLE_REDIRECT_URI }}" \
+              -e GOOGLE_SCOPES="${{ secrets.GOOGLE_SCOPES }}" \
               "$IMAGE"
             
             
@@ -212,6 +217,10 @@ jobs:
               -e HUD_TOKEN="${{ secrets.HUD_TOKEN }}" \
               -e RAPIDAPI_KEY="${{ secrets.RAPIDAPI_KEY }}" \
               -e MAPBOX_API_KEY="${{ secrets.MAPBOX_API_KEY }}" \
+              -e GOOGLE_CALENDAR_SECRET="${{ secrets.GOOGLE_CALENDAR_SECRET }}" \
+              -e GOOGLE_CLIENT_ID="${{ secrets.GOOGLE_CLIENT_ID }}" \
+              -e GOOGLE_REDIRECT_URI="${{ secrets.GOOGLE_REDIRECT_URI }}" \
+              -e GOOGLE_SCOPES="${{ secrets.GOOGLE_SCOPES }}" \
               "$IMAGE" \
               celery -A app.celery.celery_worker worker --loglevel=info
 

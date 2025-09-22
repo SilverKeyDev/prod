@@ -55,7 +55,7 @@ def create_app(config=None):
 
     # Initialize database within app context
     with app.app_context():
-        from .models import User, PDFDocument, Subscription, HomeDescription, HomeUniversal
+        from .models import User, PDFDocument, Subscription, HomeDescription, HomeUniversal, PlaidItem, PlaidAssetReport
         from .models.chat_history import ChatHistory
         db.create_all()
 
@@ -151,6 +151,8 @@ def create_app(config=None):
     from .routes.search import search_bp
     from .routes.secure_upload import secure_upload_bp
     from .routes.offer import offer_bp
+    from .routes.google_calendar import google_calendar_bp
+    from .routes.plaid import plaid_bp
 
     app.register_blueprint(report_bp)
     app.register_blueprint(dashboard_bp)
@@ -164,6 +166,8 @@ def create_app(config=None):
     app.register_blueprint(search_bp)
     app.register_blueprint(secure_upload_bp)
     app.register_blueprint(offer_bp)
+    app.register_blueprint(google_calendar_bp)
+    app.register_blueprint(plaid_bp)
 
     # Health check endpoint
     @app.route('/healthz', methods=['GET', 'HEAD'])

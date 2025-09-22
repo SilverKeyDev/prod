@@ -69,6 +69,27 @@ export const queryKeys = {
     profile: () => [...queryKeys.user.all, 'profile'] as const,
     preferences: () => [...queryKeys.user.all, 'preferences'] as const,
   },
+
+  // Google Calendar domain
+  googleCalendar: {
+    all: ['googleCalendar'] as const,
+    calendars: () => [...queryKeys.googleCalendar.all, 'calendars'] as const,
+    events: () => [...queryKeys.googleCalendar.all, 'events'] as const,
+    eventsList: (params?: Record<string, unknown>) => [...queryKeys.googleCalendar.events(), 'list', params] as const,
+  },
+
+  // Plaid domain
+  plaid: {
+    all: ['plaid'] as const,
+    linkToken: () => [...queryKeys.plaid.all, 'linkToken'] as const,
+    items: () => [...queryKeys.plaid.all, 'items'] as const,
+    assetReports: () => [...queryKeys.plaid.all, 'assetReports'] as const,
+    assetReport: (token: string) => [...queryKeys.plaid.assetReports(), token] as const,
+    assetReportPdf: (token: string) => [...queryKeys.plaid.all, 'assetReportPdf', token] as const,
+    statements: () => [...queryKeys.plaid.all, 'statements'] as const,
+    statementsList: (accountId?: string) => [...queryKeys.plaid.statements(), accountId] as const,
+    statementDownload: (statementId: string) => [...queryKeys.plaid.all, 'statementDownload', statementId] as const,
+  },
 } as const;
 
 // Type helper for extracting query key types
