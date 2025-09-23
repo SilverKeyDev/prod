@@ -73,7 +73,6 @@ dump.rdb
 .ipynb_checkpoints/
 
 # Development scripts
-run-dev.sh
 clean.sh
 
 # Build outputs
