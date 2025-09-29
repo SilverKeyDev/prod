@@ -4,7 +4,7 @@ import os
 import jwt
 from .. import db
 from ..models.user import User
-from ..services.auth import cognito_service
+from ..services.auth import AWS_COGNITO_service
 from ..services.minimal_token import minimal_token_service
 
 # Blueprint setup
@@ -31,7 +31,7 @@ def signup():
     if 'phone' in data:
         user_attributes.append({'Name': 'phone_number', 'Value': data['phone']})
 
-    result = cognito_service.sign_up(
+    result = AWS_COGNITO_service.sign_up(
         username=data['email'],
         password=data['password'],
         user_attributes=user_attributes
@@ -48,7 +48,7 @@ def signup():
         # Create user in our database
         user = User(
             id=result['user_sub'],
-            cognito_id=result['user_sub'],
+            AWS_COGNITO_id=result['user_sub'],
             email=data['email'],
             name=data['name'],
             phone=data.get('phone'),
@@ -83,7 +83,7 @@ def verify():
         }), 400
 
     # First verify the email
-    result = cognito_service.confirm_sign_up(
+    result = AWS_COGNITO_service.confirm_sign_up(
         username=data['email'],
         confirmation_code=data['code']
     )
@@ -97,7 +97,7 @@ def verify():
 
     # After successful verification, automatically log the user in
     try:
-        login_result = cognito_service.sign_in(
+        login_result = AWS_COGNITO_service.sign_in(
             username=data['email'],
             password=data['password']
         )
@@ -119,13 +119,13 @@ def verify():
         # Get user data from database for minimal token creation
         try:
             from ..models.user import User
-            user = User.query.filter_by(cognito_id=user_sub).first()
+            user = User.query.filter_by(AWS_COGNITO_id=user_sub).first()
             if not user:
                 # Fallback: try to find by email
                 user = User.query.filter_by(email=data['email']).first()
                 if user:
-                    # Link cognito_id to existing user
-                    user.cognito_id = user_sub
+                    # Link AWS_COGNITO_id to existing user
+                    user.AWS_COGNITO_id = user_sub
                     db.session.commit()
         except Exception as db_error:
             current_app.logger.error(f'Error during user lookup in verification: {str(db_error)}')
@@ -149,19 +149,19 @@ def verify():
             )
             
             # Log token size comparison
-            cognito_access_size = len(login_result['tokens']['AccessToken'].encode('utf-8'))
-            cognito_id_size = len(login_result['tokens']['IdToken'].encode('utf-8'))
+            AWS_COGNITO_access_size = len(login_result['tokens']['AccessToken'].encode('utf-8'))
+            AWS_COGNITO_id_size = len(login_result['tokens']['IdToken'].encode('utf-8'))
             minimal_access_size = len(minimal_access_token.encode('utf-8'))
             minimal_id_size = len(minimal_id_token.encode('utf-8'))
             
             current_app.logger.info(f"VERIFICATION_TOKEN_SIZE_COMPARISON", extra={
-                'cognito_access_size_bytes': cognito_access_size,
-                'cognito_id_size_bytes': cognito_id_size,
+                'AWS_COGNITO_access_size_bytes': AWS_COGNITO_access_size,
+                'AWS_COGNITO_id_size_bytes': AWS_COGNITO_id_size,
                 'minimal_access_size_bytes': minimal_access_size,
                 'minimal_id_size_bytes': minimal_id_size,
-                'access_token_size_reduction_percent': round(((cognito_access_size - minimal_access_size) / cognito_access_size) * 100, 2),
-                'id_token_size_reduction_percent': round(((cognito_id_size - minimal_id_size) / cognito_id_size) * 100, 2),
-                'total_size_reduction_bytes': (cognito_access_size + cognito_id_size) - (minimal_access_size + minimal_id_size)
+                'access_token_size_reduction_percent': round(((AWS_COGNITO_access_size - minimal_access_size) / AWS_COGNITO_access_size) * 100, 2),
+                'id_token_size_reduction_percent': round(((AWS_COGNITO_id_size - minimal_id_size) / AWS_COGNITO_id_size) * 100, 2),
+                'total_size_reduction_bytes': (AWS_COGNITO_access_size + AWS_COGNITO_id_size) - (minimal_access_size + minimal_id_size)
             })
             
         except Exception as token_error:
@@ -237,9 +237,9 @@ def resend_code():
         }), 400
 
     try:
-        response = cognito_service.client.resend_confirmation_code(
-            ClientId=os.getenv('COGNITO_CLIENT_ID'),
-            SecretHash=cognito_service._get_secret_hash(data['email']),
+        response = AWS_COGNITO_service.client.resend_confirmation_code(
+            ClientId=os.getenv('AWS_COGNITO_CLIENT_ID'),
+            SecretHash=AWS_COGNITO_service._get_secret_hash(data['email']),
             Username=data['email']
         )
 
@@ -249,14 +249,14 @@ def resend_code():
             'code_delivery': response.get('CodeDeliveryDetails', {})
         })
 
-    except cognito_service.client.exceptions.UserNotFoundException:
+    except AWS_COGNITO_service.client.exceptions.UserNotFoundException:
         return jsonify({
             'success': False,
             'error': 'USER_NOT_FOUND',
             'message': 'No user found with this email'
         }), 404
 
-    except cognito_service.client.exceptions.InvalidParameterException as e:
+    except AWS_COGNITO_service.client.exceptions.InvalidParameterException as e:
         return jsonify({
             'success': False,
             'error': 'INVALID_PARAMETER',
@@ -334,17 +334,17 @@ def login():
             'email': data['email'][:3] + '***' + data['email'][-3:] if data['email'] else 'missing'
         })
         
-        current_app.logger.info(f"AUTH_LOGIN_PHASE_COGNITO_CALL", extra={
+        current_app.logger.info(f"AUTH_LOGIN_PHASE_AWS_COGNITO_CALL", extra={
             'request_id': request_id,
             'username': data['email'][:3] + '***' + data['email'][-3:] if data['email'] else 'missing'
         })
         
-        result = cognito_service.sign_in(
+        result = AWS_COGNITO_service.sign_in(
             username=data['email'],
             password=data['password']
         )
         
-        current_app.logger.info(f"AUTH_LOGIN_PHASE_COGNITO_RESULT", extra={
+        current_app.logger.info(f"AUTH_LOGIN_PHASE_AWS_COGNITO_RESULT", extra={
             'request_id': request_id,
             'success': result.get('success', False),
             'error': result.get('error', 'none'),
@@ -416,8 +416,8 @@ def login():
                 error_message = 'Authentication failed'
             
             # Simple logging to avoid any serialization issues
-            current_app.logger.warning(f"AUTH_LOGIN_COGNITO_FAILED - request_id: {request_id}, duration_ms: {duration_ms}")
-            current_app.logger.info(f"AUTH_LOGIN_COGNITO_FAILED_LOGGED - request_id: {request_id}")
+            current_app.logger.warning(f"AUTH_LOGIN_AWS_COGNITO_FAILED - request_id: {request_id}, duration_ms: {duration_ms}")
+            current_app.logger.info(f"AUTH_LOGIN_AWS_COGNITO_FAILED_LOGGED - request_id: {request_id}")
             
             current_app.logger.info(f"AUTH_LOGIN_RETURNING_401 - request_id: {request_id}")
             
@@ -428,7 +428,7 @@ def login():
             }), 401
 
         # Log successful Cognito authentication
-        current_app.logger.info(f"AUTH_LOGIN_COGNITO_SUCCESS", extra={
+        current_app.logger.info(f"AUTH_LOGIN_AWS_COGNITO_SUCCESS", extra={
             'request_id': request_id,
             'has_access_token': 'AccessToken' in result['tokens'],
             'has_id_token': 'IdToken' in result['tokens'],
@@ -474,13 +474,13 @@ def login():
         
         try:
             from ..models.user import User
-            user = User.query.filter_by(cognito_id=user_sub).first()
+            user = User.query.filter_by(AWS_COGNITO_id=user_sub).first()
             if not user:
                 # Fallback: try to find by email
                 user = User.query.filter_by(email=data['email']).first()
                 if user:
-                    # Link cognito_id to existing user
-                    user.cognito_id = user_sub
+                    # Link AWS_COGNITO_id to existing user
+                    user.AWS_COGNITO_id = user_sub
                     db.session.commit()
                     current_app.logger.info(f"AUTH_LOGIN_USER_LINKED", extra={
                         'request_id': request_id,
@@ -526,20 +526,20 @@ def login():
             )
             
             # Log token size comparison
-            cognito_access_size = len(result['tokens']['AccessToken'].encode('utf-8'))
-            cognito_id_size = len(result['tokens']['IdToken'].encode('utf-8'))
+            AWS_COGNITO_access_size = len(result['tokens']['AccessToken'].encode('utf-8'))
+            AWS_COGNITO_id_size = len(result['tokens']['IdToken'].encode('utf-8'))
             minimal_access_size = len(minimal_access_token.encode('utf-8'))
             minimal_id_size = len(minimal_id_token.encode('utf-8'))
             
             current_app.logger.info(f"AUTH_LOGIN_TOKEN_SIZE_COMPARISON", extra={
                 'request_id': request_id,
-                'cognito_access_size_bytes': cognito_access_size,
-                'cognito_id_size_bytes': cognito_id_size,
+                'AWS_COGNITO_access_size_bytes': AWS_COGNITO_access_size,
+                'AWS_COGNITO_id_size_bytes': AWS_COGNITO_id_size,
                 'minimal_access_size_bytes': minimal_access_size,
                 'minimal_id_size_bytes': minimal_id_size,
-                'access_token_size_reduction_percent': round(((cognito_access_size - minimal_access_size) / cognito_access_size) * 100, 2),
-                'id_token_size_reduction_percent': round(((cognito_id_size - minimal_id_size) / cognito_id_size) * 100, 2),
-                'total_size_reduction_bytes': (cognito_access_size + cognito_id_size) - (minimal_access_size + minimal_id_size)
+                'access_token_size_reduction_percent': round(((AWS_COGNITO_access_size - minimal_access_size) / AWS_COGNITO_access_size) * 100, 2),
+                'id_token_size_reduction_percent': round(((AWS_COGNITO_id_size - minimal_id_size) / AWS_COGNITO_id_size) * 100, 2),
+                'total_size_reduction_bytes': (AWS_COGNITO_access_size + AWS_COGNITO_id_size) - (minimal_access_size + minimal_id_size)
             })
             
         except Exception as token_error:
@@ -657,7 +657,7 @@ def forgot_password():
             'message': 'Email is required'
         }), 400
     
-    result = cognito_service.forgot_password(data['email'])
+    result = AWS_COGNITO_service.forgot_password(data['email'])
     
     if not result['success']:
         return jsonify({
@@ -685,7 +685,7 @@ def reset_password():
             'message': 'Email, code, and new password are required'
         }), 400
     
-    result = cognito_service.confirm_forgot_password(
+    result = AWS_COGNITO_service.confirm_forgot_password(
         username=data['email'],
         confirmation_code=data['code'],
         new_password=data['new_password']

@@ -1,0 +1,166 @@
+import { create } from "zustand";
+
+import type { UserProfile } from "../schemas/user";
+
+import { withDevtools } from "./middleware/devtools";
+import { persistSafe } from "./middleware/persistSafe";
+import { withResettable } from "./middleware/resettable";
+
+export type AuthStatus = "checking" | "authenticated" | "unauthenticated";
+
+export type AuthState = {
+  // Auth state
+  user: UserProfile | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  error: string | null;
+  authReady: boolean;
+  authStatus: AuthStatus; // 3-state: checking/authenticated/unauthenticated
+
+  // Actions
+  setUser: (user: UserProfile | null) => void;
+  setIsAuthenticated: (value: boolean) => void;
+  setIsLoading: (loading: boolean) => void;
+  setError: (error: string | null) => void;
+  setAuthReady: (ready: boolean) => void;
+  setAuthStatus: (status: AuthStatus) => void;
+
+  // Auth actions (will be implemented by hooks)
+  login: (email: string, password: string) => Promise<boolean>;
+  logout: () => void;
+  refreshToken: () => Promise<boolean>;
+  clearError: () => void;
+
+  reset: () => void; // Added by withResettable
+};
+
+const initialState = (): Omit<
+  AuthState,
+  | "setUser"
+  | "setIsAuthenticated"
+  | "setIsLoading"
+  | "setError"
+  | "setAuthReady"
+  | "setAuthStatus"
+  | "login"
+  | "logout"
+  | "refreshToken"
+  | "clearError"
+  | "reset"
+> => ({
+  user: null,
+  isAuthenticated: false,
+  isLoading: false,
+  error: null,
+  authReady: false,
+  authStatus: "checking", // Start in checking state
+});
+
+const baseCreator: import("zustand").StateCreator<AuthState> = (set) => ({
+  ...initialState(),
+
+  setUser: (user) => set({ user }),
+  setIsAuthenticated: (isAuthenticated) => set({ isAuthenticated }),
+  setIsLoading: (isLoading) => set({ isLoading }),
+  setError: (error) => set({ error }),
+  setAuthReady: (authReady) => set({ authReady }),
+  setAuthStatus: (authStatus) => set({ authStatus }),
+
+  // Auth actions will be implemented by hooks that use this store
+  login: () => {
+    console.warn("login should be implemented by useAuthStoreIntegration hook");
+    return Promise.resolve(false);
+  },
+  logout: () => {
+    console.warn(
+      "logout should be implemented by useAuthStoreIntegration hook",
+    );
+  },
+  refreshToken: () => {
+    console.warn(
+      "refreshToken should be implemented by useAuthStoreIntegration hook",
+    );
+    return Promise.resolve(false);
+  },
+  clearError: () => {
+    set({ error: null });
+  },
+
+  // placeholder; will be replaced by withResettable
+  reset: () => {},
+});
+
+const withReset = withResettable<AuthState>(baseCreator, (set) => ({
+  ...initialState(),
+  setUser: (user) => set({ user }),
+  setIsAuthenticated: (isAuthenticated) => set({ isAuthenticated }),
+  setIsLoading: (isLoading) => set({ isLoading }),
+  setError: (error) => set({ error }),
+  setAuthReady: (authReady) => set({ authReady }),
+  setAuthStatus: (authStatus) => set({ authStatus }),
+  login: async () => false,
+  logout: () => {},
+  refreshToken: async () => false,
+  clearError: () => set({ error: null }),
+  reset: () => {},
+})) as unknown as import("zustand").StateCreator<AuthState>;
+
+const withPersist = persistSafe<AuthState>(withReset, {
+  name: "auth-store",
+  version: 1,
+  storage: sessionStorage, // Use sessionStorage for security
+  partialize: (state: AuthState) => ({
+    // Only persist non-sensitive user data (no tokens)
+    user: state.user
+      ? {
+          id: state.user.id,
+          email: state.user.email,
+          name: state.user.name,
+          created_at: state.user.created_at,
+          is_active: state.user.is_active,
+          has_subscription: state.user.has_subscription,
+          subscription: state.user.subscription,
+          has_preferences: state.user.has_preferences,
+          is_agent: state.user.is_agent,
+          client_ids: state.user.client_ids,
+        }
+      : null,
+    isAuthenticated: state.isAuthenticated,
+    authReady: state.authReady,
+    authStatus: state.authStatus,
+  }),
+  migrate: (persisted: unknown, _version: number): AuthState => {
+    const base = { ...initialState() } as AuthState;
+    if (!persisted)
+      return {
+        ...base,
+        reset: () => {},
+        setUser: base.setUser as any,
+        setIsAuthenticated: base.setIsAuthenticated as any,
+        setIsLoading: base.setIsLoading as any,
+        setError: base.setError as any,
+        setAuthReady: base.setAuthReady as any,
+        login: base.login as any,
+        logout: base.logout as any,
+        refreshToken: base.refreshToken as any,
+        clearError: base.clearError as any,
+      } as unknown as AuthState;
+    const persistedData = persisted as Record<string, unknown>;
+    const safe = {
+      user: (persistedData.user as UserProfile | null) ?? null,
+      isAuthenticated: (persistedData.isAuthenticated as boolean) ?? false,
+      authReady: (persistedData.authReady as boolean) ?? false,
+      authStatus: (persistedData.authStatus as AuthStatus) ?? "checking",
+    } as Pick<
+      AuthState,
+      "user" | "isAuthenticated" | "authReady" | "authStatus"
+    >;
+    return { ...base, ...safe } as AuthState;
+  },
+}) as unknown as import("zustand").StateCreator<AuthState>;
+
+const withDev = withDevtools<AuthState>("auth")(
+  withPersist,
+) as unknown as import("zustand").StateCreator<AuthState>;
+
+export const useAuthStore = create<AuthState>()(withDev);

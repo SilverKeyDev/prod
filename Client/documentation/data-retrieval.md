@@ -42,14 +42,17 @@ developer experience.
 // CLIENT STATE (Zustand) - UI, Session, Filters, View
 const { isAnyModalOpen, enqueueToast, toastQueue } = useUIStore();
 const { authReady, isAuthenticated, userMeta } = useSessionStore();
-const { activeTab, currentPage, favoriteAddresses, isHomeSaved } = useFiltersStore();
+const { activeTab, currentPage, favoriteAddresses, isHomeSaved } =
+  useFiltersStore();
 const { sidebarExpanded, personalizationEditMode } = useViewStore();
 const { userProfile, userPreferences } = useUserStore();
 
 // SERVER STATE (TanStack Query) - API Data
-const { reports, reportsLoading, generateReport, deleteReport } = useReportsData();
+const { reports, reportsLoading, generateReport, deleteReport } =
+  useReportsData();
 const { savedHomes, addSavedHome, removeSavedHome } = useSavedHomesData();
-const { userProfile: userProfileData, userPreferences: userPrefsData } = useUserData();
+const { userProfile: userProfileData, userPreferences: userPrefsData } =
+  useUserData();
 const { chats, sendMessage, getChatHistory } = useChats();
 const { documents, uploadDocument, deleteDocument } = useDocuments();
 const { propertyDetails, refreshPropertyDetails } = usePropertyDetails();
@@ -57,25 +60,24 @@ const { propertyDetails, refreshPropertyDetails } = usePropertyDetails();
 
 ### Key Stores & Hooks
 
-| **Zustand Stores** | **TanStack Query Hooks** | **Purpose**                      |
-| ------------------ | ------------------------ | -------------------------------- |
-| `useUIStore`       | -                        | Global UI state (modals, toasts, drawers) |
-| `useSessionStore`  | -                        | Authentication & session flags   |
-| `useFiltersStore`  | -                        | Search filters & pagination      |
-| `useViewStore`     | -                        | Sidebar, personalization UI     |
-| `useUserStore`     | -                        | User profile & preferences cache |
-| `useReportsStore`  | -                        | Reports state management         |
-| `useDocumentsStore`| -                        | Document upload state            |
-| `useSavedHomesStore`| -                       | Saved homes state management     |
-| `useBillingStore`  | -                        | Billing & subscription state     |
-| `useNegotiationStore`| -                      | Negotiation state management     |
-| -                  | `useReportsData()`       | Reports & compare reports        |
-| -                  | `useSavedHomesData()`    | Saved homes management           |
-| -                  | `useUserData()`          | User profile & preferences       |
-| -                  | `useChats()`             | Chat history & messaging         |
-| -                  | `useDocuments()`         | Document uploads & management    |
-| -                  | `usePropertyDetails()`   | Property details & information   |
-| -                  | `useStripePayment()`     | Payment processing               |
+| **Zustand Stores**    | **TanStack Query Hooks** | **Purpose**                               |
+| --------------------- | ------------------------ | ----------------------------------------- |
+| `useUIStore`          | -                        | Global UI state (modals, toasts, drawers) |
+| `useSessionStore`     | -                        | Authentication & session flags            |
+| `useFiltersStore`     | -                        | Search filters & pagination               |
+| `useViewStore`        | -                        | Sidebar, personalization UI               |
+| `useUserStore`        | -                        | User profile & preferences cache          |
+| `useReportsStore`     | -                        | Reports state management                  |
+| `useDocumentsStore`   | -                        | Document upload state                     |
+| `useSavedHomesStore`  | -                        | Saved homes state management              |
+| `useBillingStore`     | -                        | Billing & subscription state              |
+| `useNegotiationStore` | -                        | Negotiation state management              |
+| -                     | `useReportsData()`       | Reports & compare reports                 |
+| -                     | `useSavedHomesData()`    | Saved homes management                    |
+| -                     | `useUserData()`          | User profile & preferences                |
+| -                     | `useChats()`             | Chat history & messaging                  |
+| -                     | `useDocuments()`         | Document uploads & management             |
+| -                     | `usePropertyDetails()`   | Property details & information            |
 
 ## Data Flow Strategy
 
@@ -85,34 +87,40 @@ const { propertyDetails, refreshPropertyDetails } = usePropertyDetails();
 // Canonical query keys with filter integration
 export const queryKeys = {
   reports: {
-    all: ['reports'] as const,
-    lists: () => [...queryKeys.reports.all, 'list'] as const,
-    list: (filters?: Record<string, unknown>) => [...queryKeys.reports.lists(), filters] as const,
-    details: () => [...queryKeys.reports.all, 'detail'] as const,
+    all: ["reports"] as const,
+    lists: () => [...queryKeys.reports.all, "list"] as const,
+    list: (filters?: Record<string, unknown>) =>
+      [...queryKeys.reports.lists(), filters] as const,
+    details: () => [...queryKeys.reports.all, "detail"] as const,
     detail: (id: string) => [...queryKeys.reports.details(), id] as const,
-    compare: (reportIds: string[]) => [...queryKeys.reports.all, 'compare', reportIds] as const,
+    compare: (reportIds: string[]) =>
+      [...queryKeys.reports.all, "compare", reportIds] as const,
   },
   homes: {
-    all: ['homes'] as const,
-    favorites: () => [...queryKeys.homes.all, 'favorites'] as const,
-    saved: (propertyId: string) => [...queryKeys.homes.all, 'saved', propertyId] as const,
+    all: ["homes"] as const,
+    favorites: () => [...queryKeys.homes.all, "favorites"] as const,
+    saved: (propertyId: string) =>
+      [...queryKeys.homes.all, "saved", propertyId] as const,
   },
   chats: {
-    all: ['chats'] as const,
-    lists: () => [...queryKeys.chats.all, 'list'] as const,
-    list: (filters?: Record<string, unknown>) => [...queryKeys.chats.lists(), filters] as const,
-    history: (reportId: string) => [...queryKeys.chats.all, 'history', reportId] as const,
+    all: ["chats"] as const,
+    lists: () => [...queryKeys.chats.all, "list"] as const,
+    list: (filters?: Record<string, unknown>) =>
+      [...queryKeys.chats.lists(), filters] as const,
+    history: (reportId: string) =>
+      [...queryKeys.chats.all, "history", reportId] as const,
   },
   documents: {
-    all: ['documents'] as const,
-    lists: () => [...queryKeys.documents.all, 'list'] as const,
-    list: (filters?: Record<string, unknown>) => [...queryKeys.documents.lists(), filters] as const,
-    categories: () => [...queryKeys.documents.all, 'categories'] as const,
+    all: ["documents"] as const,
+    lists: () => [...queryKeys.documents.all, "list"] as const,
+    list: (filters?: Record<string, unknown>) =>
+      [...queryKeys.documents.lists(), filters] as const,
+    categories: () => [...queryKeys.documents.all, "categories"] as const,
   },
   user: {
-    all: ['user'] as const,
-    profile: () => [...queryKeys.user.all, 'profile'] as const,
-    preferences: () => [...queryKeys.user.all, 'preferences'] as const,
+    all: ["user"] as const,
+    profile: () => [...queryKeys.user.all, "profile"] as const,
+    preferences: () => [...queryKeys.user.all, "preferences"] as const,
   },
 };
 
@@ -128,26 +136,40 @@ const { data } = useQuery({
 
 ```typescript
 const deleteReportMutation = useMutation({
-  mutationFn: async ({ reportId, s3Key }: { reportId: string; s3Key?: string }) => {
+  mutationFn: async ({
+    reportId,
+    s3Key,
+  }: {
+    reportId: string;
+    s3Key?: string;
+  }) => {
     const response = await reportApi.delete(reportId, s3Key);
     if (!response.success) {
-      throw new Error(response.error ?? 'Failed to delete report');
+      throw new Error(response.error ?? "Failed to delete report");
     }
     return response;
   },
   onMutate: ({ reportId }) => {
     // Optimistic update - remove the report from cache
-    const previousReports = queryClient.getQueryData(queryKeys.reports.list(filters));
-    queryClient.setQueryData(queryKeys.reports.list(filters), (old: Report[] | undefined) => {
-      if (!old) return old;
-      return old.filter((report) => report.id !== reportId);
-    });
+    const previousReports = queryClient.getQueryData(
+      queryKeys.reports.list(filters),
+    );
+    queryClient.setQueryData(
+      queryKeys.reports.list(filters),
+      (old: Report[] | undefined) => {
+        if (!old) return old;
+        return old.filter((report) => report.id !== reportId);
+      },
+    );
     return { previousReports };
   },
   onError: (_error, _variables, context) => {
     // Rollback on error
     if (context?.previousReports) {
-      queryClient.setQueryData(queryKeys.reports.list(filters), context.previousReports);
+      queryClient.setQueryData(
+        queryKeys.reports.list(filters),
+        context.previousReports,
+      );
     }
   },
   onSettled: () => {
@@ -165,8 +187,8 @@ const { enqueueToast, dequeueToast, toastQueue, activeToastId } = useUIStore();
 
 // Usage in components
 enqueueToast({
-  type: 'success',
-  message: 'Report generated successfully!',
+  type: "success",
+  message: "Report generated successfully!",
 });
 
 // Modal and drawer management
@@ -207,11 +229,16 @@ export function useFiltersQueryParams() {
 
 // Pure function for query param conversion
 export function toQueryParams(
-  state: Pick<FiltersState, 'searchStage' | 'favoriteAddresses' | 'currentPage'>
+  state: Pick<
+    FiltersState,
+    "searchStage" | "favoriteAddresses" | "currentPage"
+  >,
 ) {
   return {
     stage: state.searchStage ?? undefined,
-    favorites: state.favoriteAddresses.length ? state.favoriteAddresses : undefined,
+    favorites: state.favoriteAddresses.length
+      ? state.favoriteAddresses
+      : undefined,
     page: state.currentPage,
   } as const;
 }
@@ -272,8 +299,9 @@ export function useReportsStoreIntegration() {
 // Similar patterns for other data hooks
 export function useDocumentsStoreIntegration() {
   const { documents, documentsLoading, documentsError } = useDocuments();
-  const { setDocuments, setDocumentsLoading, setDocumentsError } = useDocumentsStore();
-  
+  const { setDocuments, setDocumentsLoading, setDocumentsError } =
+    useDocumentsStore();
+
   // Sync logic...
 }
 ```
@@ -284,7 +312,7 @@ export function useDocumentsStoreIntegration() {
 // Listen for auth changes across tabs
 useEffect(() => {
   const handleStorageChange = (e: StorageEvent) => {
-    if (e.key === 'id_token') {
+    if (e.key === "id_token") {
       if (e.newValue) {
         void queryClient.invalidateQueries({ queryKey: queryKeys.chats.all });
       } else {
@@ -293,8 +321,8 @@ useEffect(() => {
     }
   };
 
-  window.addEventListener('storage', handleStorageChange);
-  return () => window.removeEventListener('storage', handleStorageChange);
+  window.addEventListener("storage", handleStorageChange);
+  return () => window.removeEventListener("storage", handleStorageChange);
 }, [queryClient]);
 ```
 
@@ -305,7 +333,7 @@ useEffect(() => {
 ```typescript
 // UI Store - Only persist safe preferences
 const withPersist = persistSafe<UIState>(withReset, {
-  name: 'ui-store',
+  name: "ui-store",
   version: 1,
   storage: localStorage,
   partialize: (state: UIState) => ({
@@ -327,7 +355,7 @@ const withPersist = persistSafe<UIState>(withReset, {
 
 // Filters Store - Persist only benign UI filters
 const withPersist = persistSafe<FiltersState>(withReset, {
-  name: 'filters-store',
+  name: "filters-store",
   version: 1,
   storage: localStorage,
   partialize: (state: FiltersState) => ({
@@ -336,12 +364,13 @@ const withPersist = persistSafe<FiltersState>(withReset, {
     favoriteAddresses: state.favoriteAddresses,
     searchStage: state.searchStage,
   }),
-  migrate: (persisted: unknown) => ({ ...initialState(), ...(persisted as object) }) as FiltersState,
+  migrate: (persisted: unknown) =>
+    ({ ...initialState(), ...(persisted as object) }) as FiltersState,
 });
 
 // User Store - Only persist non-sensitive user data
 const withPersist = persistSafe<UserState>(withReset, {
-  name: 'user-store',
+  name: "user-store",
   version: 1,
   storage: localStorage,
   partialize: (state: UserState) => ({
@@ -375,7 +404,7 @@ export interface StoreState {
 }
 
 // Store creation with middleware stack
-const baseCreator: import('zustand').StateCreator<StoreState> = (set, get) => ({
+const baseCreator: import("zustand").StateCreator<StoreState> = (set, get) => ({
   ...initialState(),
   setData: (data) => set({ data }),
   setLoading: (loading) => set({ loading }),
@@ -383,26 +412,28 @@ const baseCreator: import('zustand').StateCreator<StoreState> = (set, get) => ({
   reset: () => {},
 });
 
-const withReset = withResettable<StoreState>(
-  baseCreator,
-  (set) => ({
-    ...initialState(),
-    setData: (data) => set({ data }),
-    setLoading: (loading) => set({ loading }),
-    setError: (error) => set({ error }),
-    reset: () => {},
-  })
-) as unknown as import('zustand').StateCreator<StoreState>;
+const withReset = withResettable<StoreState>(baseCreator, (set) => ({
+  ...initialState(),
+  setData: (data) => set({ data }),
+  setLoading: (loading) => set({ loading }),
+  setError: (error) => set({ error }),
+  reset: () => {},
+})) as unknown as import("zustand").StateCreator<StoreState>;
 
 const withPersist = persistSafe<StoreState>(withReset, {
-  name: 'store-name',
+  name: "store-name",
   version: 1,
   storage: localStorage,
-  partialize: (state) => ({ /* safe fields only */ }),
-  migrate: (persisted) => ({ ...initialState(), ...(persisted as object) }) as StoreState,
-}) as unknown as import('zustand').StateCreator<StoreState>;
+  partialize: (state) => ({
+    /* safe fields only */
+  }),
+  migrate: (persisted) =>
+    ({ ...initialState(), ...(persisted as object) }) as StoreState,
+}) as unknown as import("zustand").StateCreator<StoreState>;
 
-const withDev = withDevtools<StoreState>('store-name')(withPersist) as unknown as import('zustand').StateCreator<StoreState>;
+const withDev = withDevtools<StoreState>("store-name")(
+  withPersist,
+) as unknown as import("zustand").StateCreator<StoreState>;
 
 export const useStore = create<StoreState>()(withDev);
 ```
@@ -423,7 +454,7 @@ export function usePropertyDetails(): UsePropertyDetailsReturn {
     queryFn: async () => {
       const response = await propertyApi.getDetails(propertyId);
       if (!response.success) {
-        throw new Error(response.error ?? 'Failed to fetch property details');
+        throw new Error(response.error ?? "Failed to fetch property details");
       }
       return response.property;
     },
@@ -444,44 +475,6 @@ export function usePropertyDetails(): UsePropertyDetailsReturn {
 }
 ```
 
-### Payment Processing
-
-```typescript
-export function useStripePayment() {
-  const queryClient = useQueryClient();
-
-  const createCheckoutSession = useMutation({
-    mutationFn: async (priceId: string) => {
-      const response = await stripeApi.createCheckoutSession(priceId);
-      if (!response.success) {
-        throw new Error(response.error ?? 'Failed to create checkout session');
-      }
-      return response;
-    },
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.billing.all });
-    },
-  });
-
-  const createPortalSession = useMutation({
-    mutationFn: async () => {
-      const response = await stripeApi.createPortalSession();
-      if (!response.success) {
-        throw new Error(response.error ?? 'Failed to create portal session');
-      }
-      return response;
-    },
-  });
-
-  return {
-    createCheckoutSession: createCheckoutSession.mutateAsync,
-    createPortalSession: createPortalSession.mutateAsync,
-    isCreatingCheckout: createCheckoutSession.isPending,
-    isCreatingPortal: createPortalSession.isPending,
-  };
-}
-```
-
 ## Migration Benefits
 
 | **Aspect**      | **Before (Context)**             | **After (Zustand + TanStack Query)** |
@@ -492,10 +485,10 @@ export function useStripePayment() {
 | **Debugging**   | Limited debugging tools          | Redux DevTools integration           |
 | **Persistence** | Manual localStorage handling     | Safe, versioned persistence          |
 | **Testing**     | Complex context mocking          | Pure functions, easy testing         |
-| **Store Count** | 1-2 large contexts              | 9 focused, single-purpose stores    |
-| **Data Hooks**  | Manual API calls                | 7 specialized data hooks            |
-| **Middleware**  | None                            | 3-layer middleware stack            |
-| **Cross-tab**   | No synchronization              | Automatic auth state sync           |
+| **Store Count** | 1-2 large contexts               | 9 focused, single-purpose stores     |
+| **Data Hooks**  | Manual API calls                 | 7 specialized data hooks             |
+| **Middleware**  | None                             | 3-layer middleware stack             |
+| **Cross-tab**   | No synchronization               | Automatic auth state sync            |
 
 ## Current Implementation Summary
 

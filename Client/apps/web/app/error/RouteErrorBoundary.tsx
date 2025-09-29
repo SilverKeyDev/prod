@@ -1,0 +1,155 @@
+/**
+ * Route Error Boundary for React Router
+ * Handles route-specific errors with navigation options
+ */
+
+import { AlertTriangle, Home, ArrowLeft, RefreshCw } from "lucide-react";
+import React from "react";
+import {
+  useRouteError,
+  useNavigate,
+  isRouteErrorResponse,
+} from "react-router-dom";
+
+import Card from "../../components/layout/Card";
+import Button from "../../components/ui/button/Button";
+
+import {
+  reportError,
+  normalizeError,
+  formatErrorMessage,
+} from "./errorUtils.ts";
+
+export function RouteErrorBoundary() {
+  const error = useRouteError();
+  const navigate = useNavigate();
+
+  React.useEffect(() => {
+    // Report the route error
+    reportError(error, {
+      routeError: true,
+      url: window.location.href,
+    });
+  }, [error]);
+
+  const handleGoBack = () => {
+    navigate(-1);
+  };
+
+  const handleGoHome = () => {
+    navigate("/");
+  };
+
+  const handleRetry = () => {
+    window.location.reload();
+  };
+
+  // Handle React Router error responses
+  if (isRouteErrorResponse(error)) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
+        <Card
+          className="w-full max-w-lg border-l-4 border-l-red-500"
+          padding="lg"
+        >
+          <div className="text-center">
+            <div className="mb-4 flex justify-center">
+              <div className="rounded-full bg-red-100 p-3">
+                <AlertTriangle className="h-8 w-8 text-red-600" />
+              </div>
+            </div>
+
+            <h1 className="mb-2 text-3xl font-bold text-gray-900">
+              {error.status}
+            </h1>
+
+            <h2 className="mb-4 text-xl font-semibold text-gray-700">
+              {error.status === 404 ? "Page Not Found" : error.statusText}
+            </h2>
+
+            <p className="mb-6 text-gray-600">
+              {error.status === 404
+                ? "The page you're looking for doesn't exist or has been moved."
+                : ((error.data as { message?: string })?.message ??
+                  "An error occurred while loading this page.")}
+            </p>
+
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Button
+                variant="primary"
+                onClick={handleGoHome}
+                icon={<Home className="h-4 w-4" />}
+                className="flex-1"
+              >
+                Go Home
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleGoBack}
+                icon={<ArrowLeft className="h-4 w-4" />}
+                className="flex-1"
+              >
+                Go Back
+              </Button>
+            </div>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
+  // Handle other errors
+  const normalizedError = normalizeError(error);
+  const userMessage = formatErrorMessage(normalizedError);
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
+      <Card
+        className="w-full max-w-lg border-l-4 border-l-red-500"
+        padding="lg"
+      >
+        <div className="text-center">
+          <div className="mb-4 flex justify-center">
+            <div className="rounded-full bg-red-100 p-3">
+              <AlertTriangle className="h-8 w-8 text-red-600" />
+            </div>
+          </div>
+
+          <h1 className="mb-2 text-2xl font-bold text-gray-900">Route Error</h1>
+
+          <p className="mb-6 text-gray-600">{userMessage}</p>
+
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row">
+            <Button
+              variant="primary"
+              onClick={handleRetry}
+              icon={<RefreshCw className="h-4 w-4" />}
+              className="flex-1"
+            >
+              Try Again
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleGoHome}
+              icon={<Home className="h-4 w-4" />}
+              className="flex-1"
+            >
+              Go Home
+            </Button>
+          </div>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleGoBack}
+            icon={<ArrowLeft className="h-4 w-4" />}
+          >
+            Go Back
+          </Button>
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+export default RouteErrorBoundary;

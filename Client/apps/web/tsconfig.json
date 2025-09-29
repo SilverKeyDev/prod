@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "types": ["vite/client"],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"],
+      "packages/*": ["../../packages/*"]
+    }
+  },
+  "files": [],
+  "references": [
+    { "path": "../../tsconfig.app.json" },
+    { "path": "../../tsconfig.node.json" }
+  ]
+}

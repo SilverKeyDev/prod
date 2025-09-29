@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 from datetime import timedelta
+from urllib.parse import quote_plus
 
 load_dotenv()
 
@@ -13,8 +14,7 @@ os.makedirs(instance_dir, exist_ok=True)
 class Config:
 
     # Celery Configuration
-    CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'redis://localhost:6379/0')
-    CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', 'redis://localhost:6379/0')
+    CELERY_URL = 'redis://localhost:6379/0'
     CELERY_TRANSPORT_OPTIONS = {
         'visibility_timeout': 900
     }
@@ -25,7 +25,7 @@ class Config:
     
     # HTTP request timeout configuration
     HTTP_TIMEOUT = 300  # 5 minutes for HTTP requests
-    COGNITO_TIMEOUT = 300  # 5 minutes for Cognito operations
+    AWS_COGNITO_TIMEOUT = 300  # 5 minutes for Cognito operations
     
 
     SECRET_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
@@ -33,7 +33,41 @@ class Config:
         raise RuntimeError("AWS_SECRET_ACCESS_KEY environment variable must be set")
     
     # Database Configuration with SSL support
-    database_url = os.getenv('DATABASE_URL', f'sqlite:///{os.path.join(instance_dir, "silverkey.db")}')
+    # Preferred: set `DATABASE_URL` directly.
+    # Fallback: construct from individual env vars if `DATABASE_URL` is not set.
+    # Supported pieces (optional unless noted):
+    #   DB_ENGINE (required if constructing, e.g. "postgresql")
+    #   DB_HOST (required), DB_PORT (optional)
+    #   DB_NAME (required)
+    #   DB_USER (optional), DB_PASSWORD (optional; URL-encoded automatically)
+    #   DB_SSLMODE (optional; e.g., "require", "prefer")
+    database_url = os.getenv('DATABASE_URL')
+    if not database_url:
+        db_engine = os.getenv('DB_ENGINE', '').strip()
+        db_host = os.getenv('DB_HOST', '').strip()
+        db_port = os.getenv('DB_PORT', '').strip()
+        db_name = os.getenv('DB_NAME', '').strip()
+        db_user = os.getenv('DB_USER', '').strip()
+        db_password = os.getenv('DB_PASSWORD', '').strip()
+        db_sslmode = os.getenv('DB_SSLMODE', '').strip()  # e.g. require, prefer
+
+        if db_engine and db_host and db_name:
+            auth_part = ''
+            if db_user:
+                if db_password:
+                    auth_part = f"{db_user}:{quote_plus(db_password)}@"
+                else:
+                    auth_part = f"{db_user}@"
+            host_part = db_host
+            if db_port:
+                host_part = f"{host_part}:{db_port}"
+            query_part = ''
+            if db_sslmode:
+                query_part = f"?sslmode={db_sslmode}"
+            database_url = f"{db_engine}://{auth_part}{host_part}/{db_name}{query_part}"
+        else:
+            # Final fallback to local SQLite for development if nothing else provided
+            database_url = f'sqlite:///{os.path.join(instance_dir, "silverkey.db")}'
     # Add SSL mode for PostgreSQL connections if not already present
     if database_url.startswith('postgresql://') or database_url.startswith('postgres://'):
         if '?sslmode=' not in database_url:
@@ -78,21 +112,29 @@ class Config:
     
     # AWS Cognito Settings
     AWS_REGION = os.getenv('AWS_REGION', 'us-east-2')
-    COGNITO_USER_POOL_ID = os.getenv('COGNITO_USER_POOL_ID')
-    COGNITO_CLIENT_ID = os.getenv('COGNITO_CLIENT_ID')
-    COGNITO_CLIENT_SECRET = os.getenv('COGNITO_CLIENT_SECRET')
+    AWS_COGNITO_USER_POOL_ID = os.getenv('AWS_COGNITO_USER_POOL_ID')
+    AWS_COGNITO_CLIENT_ID = os.getenv('AWS_COGNITO_CLIENT_ID')
+    AWS_COGNITO_CLIENT_SECRET = os.getenv('AWS_COGNITO_CLIENT_SECRET')
 
     # AWS S3 Settings
     AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
-    S3_BUCKET_NAME_PDFS = os.getenv('S3_BUCKET_NAME_PDFS')
-    S3_REGION = os.getenv('S3_REGION', AWS_REGION)
+    # Centralize default bucket name here; avoid hardcoding elsewhere
+    S3_BUCKET_NAME_PDFS = os.getenv('S3_BUCKET_NAME_PDFS', 'pdf-storage-jkdsfiugew')
     S3_PRESIGNED_URL_EXPIRATION = int(os.getenv('S3_PRESIGNED_URL_EXPIRATION', 3600))  # 1 hour default
+
+    
+
+    # EC2 Host Configuration
+    EC2_HOST = '3.146.37.166'
 
     # Google Calendar Settings
     GOOGLE_CALENDAR_SECRET = os.getenv('GOOGLE_CALENDAR_SECRET')
     GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID')
-    GOOGLE_SCOPES = os.getenv('GOOGLE_SCOPES', 'https://www.googleapis.com/auth/calendar')
+    GOOGLE_SCOPES = 'https://www.googleapis.com/auth/calendar'
+    
+    # Google OAuth Redirect URI - set as class attribute
+    GOOGLE_REDIRECT_URI = None  # Will be set below
     
     # Environment-based redirect URI
     @classmethod

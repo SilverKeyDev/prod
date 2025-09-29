@@ -3,6 +3,7 @@ from celery.signals import worker_process_init, worker_process_shutdown
 import socket
 import os
 from dotenv import load_dotenv
+from app.config import Config
 
 # Load environment variables from .env file
 load_dotenv()
@@ -11,10 +12,10 @@ load_dotenv()
 # Flask app will be initialized lazily to avoid circular imports
 celery = Celery('silverkey')
 
-# Configure Celery with environment variables directly
+# Configure Celery with config values
 celery.conf.update({
-    "broker_url": os.getenv('CELERY_BROKER_URL', 'redis://localhost:6379/0'),
-    "result_backend": os.getenv('CELERY_RESULT_BACKEND', 'redis://localhost:6379/0'),
+    "broker_url": Config.CELERY_URL,
+    "result_backend": Config.CELERY_URL,
     "task_acks_late": True,
     "worker_prefetch_multiplier": 1,
     "task_reject_on_worker_lost": True,

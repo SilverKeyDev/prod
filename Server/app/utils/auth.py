@@ -21,20 +21,20 @@ class SecurityException(Exception):
 # =========================
 # Cognito Configuration (derive region from pool id)
 # =========================
-COGNITO_POOL_ID = os.getenv("COGNITO_USER_POOL_ID")
-if not COGNITO_POOL_ID:
-    raise RuntimeError("COGNITO_USER_POOL_ID must be set")
+AWS_COGNITO_POOL_ID = os.getenv("AWS_COGNITO_USER_POOL_ID")
+if not AWS_COGNITO_POOL_ID:
+    raise RuntimeError("AWS_COGNITO_USER_POOL_ID must be set")
 
 # Pool id format: 'us-east-2_abcdef...'
-_pool_region = COGNITO_POOL_ID.split("_", 1)[0]
-COGNITO_REGION = os.getenv("COGNITO_REGION", os.getenv("AWS_REGION", _pool_region))
+_pool_region = AWS_COGNITO_POOL_ID.split("_", 1)[0]
+AWS_COGNITO_REGION = os.getenv("AWS_COGNITO_REGION", os.getenv("AWS_REGION", _pool_region))
 
-COGNITO_CLIENT_ID = os.getenv("COGNITO_CLIENT_ID")
-if not COGNITO_CLIENT_ID:
-    raise RuntimeError("COGNITO_CLIENT_ID must be set")
+AWS_COGNITO_CLIENT_ID = os.getenv("AWS_COGNITO_CLIENT_ID")
+if not AWS_COGNITO_CLIENT_ID:
+    raise RuntimeError("AWS_COGNITO_CLIENT_ID must be set")
 
-COGNITO_ISSUER = f"https://cognito-idp.{COGNITO_REGION}.amazonaws.com/{COGNITO_POOL_ID}"
-COGNITO_KEYS_URL = f"{COGNITO_ISSUER}/.well-known/jwks.json"
+AWS_COGNITO_ISSUER = f"https://cognito-idp.{AWS_COGNITO_REGION}.amazonaws.com/{AWS_COGNITO_POOL_ID}"
+AWS_COGNITO_KEYS_URL = f"{AWS_COGNITO_ISSUER}/.well-known/jwks.json"
 
 # =========================
 # JWKS Cache (with TTL)
@@ -49,7 +49,7 @@ def _load_jwks(force: bool = False):
     now = time.time()
     if force or _JWKS is None or (now - _JWKS_TS) > _JWKS_TTL:
         try:
-            resp = requests.get(COGNITO_KEYS_URL, timeout=3)
+            resp = requests.get(AWS_COGNITO_KEYS_URL, timeout=3)
             resp.raise_for_status()
             _JWKS = resp.json()
             _JWKS_TS = now
@@ -278,8 +278,8 @@ def get_current_user():
         claims = _decode_with_leeway(
             token=token,
             key=key,
-            audience=COGNITO_CLIENT_ID,   # Valid for ID tokens
-            issuer=COGNITO_ISSUER,
+            audience=AWS_COGNITO_CLIENT_ID,   # Valid for ID tokens
+            issuer=AWS_COGNITO_ISSUER,
             leeway_seconds=60
         )
 
@@ -291,7 +291,7 @@ def get_current_user():
 
         if token_use == "access":
             # Access tokens validate client_id, not aud
-            if claims.get("client_id") != COGNITO_CLIENT_ID:
+            if claims.get("client_id") != AWS_COGNITO_CLIENT_ID:
                 log_security_event("auth_invalid_client_id")
                 raise SecurityException(SecurityError.INVALID_TOKEN)
 
@@ -301,18 +301,18 @@ def get_current_user():
             log_security_event('auth_missing_sub')
             raise SecurityException(SecurityError.INVALID_TOKEN)
 
-        user = User.query.filter_by(cognito_id=sub).first()
+        user = User.query.filter_by(AWS_COGNITO_id=sub).first()
         if not user:
             user_email = claims.get('email')
             if user_email:
-                # Try to find by email, then link cognito_id
+                # Try to find by email, then link AWS_COGNITO_id
                 user = User.query.filter_by(email=user_email).first()
                 if user:
-                    user.cognito_id = sub
+                    user.AWS_COGNITO_id = sub
                     db.session.commit()
 
         if not user:
-            log_security_event('auth_user_not_found', {'cognito_id': f"{sub[:8]}..."})
+            log_security_event('auth_user_not_found', {'AWS_COGNITO_id': f"{sub[:8]}..."})
             raise SecurityException(SecurityError.UNAUTHORIZED)
 
         return user

@@ -73,6 +73,9 @@ dump.rdb
 # Development scripts
 clean.sh
 
+# Cursor IDE files
+.cursor/
+
 # Build outputs
 dist/
 *.tsbuildinfo
@@ -82,6 +85,7 @@ dist/
 .env.local
 .env.*.local
 !.env.example
+.env.production
 
 # Database files
 *.db
@@ -114,3 +118,9 @@ htmlcov/
 .coverage.*
 
 
+.vscode/
+
+.cursor/
+.cursorignore
+.cursorindexingignore
+.cursorignore

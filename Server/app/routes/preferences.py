@@ -329,7 +329,7 @@ def set_as_agent():
                 token,
                 key=key,
                 algorithms=['RS256'],
-                issuer=COGNITO_ISSUER,
+                issuer=AWS_COGNITO_ISSUER,
                 options={
                     'verify_signature': True,
                     'verify_aud': False,
@@ -351,9 +351,9 @@ def set_as_agent():
             logger.warning("🚫 No agent_id provided in request")
             return jsonify({'success': False, 'error': 'agent_id parameter is required'}), 400
 
-        current_user = User.query.filter_by(cognito_id=user_id).first()
+        current_user = User.query.filter_by(AWS_COGNITO_id=user_id).first()
         if not current_user:
-            logger.error(f"🚫 User not found with cognito_id: {user_id}")
+            logger.error(f"🚫 User not found with AWS_COGNITO_id: {user_id}")
             return jsonify({'success': False, 'error': 'User not found'}), 404
 
         # Prevent agents from assigning clients to themselves (only clients can add agents)
@@ -491,7 +491,7 @@ def remove_agent_relationship():
                 token,
                 key=key,
                 algorithms=['RS256'],
-                issuer=COGNITO_ISSUER,
+                issuer=AWS_COGNITO_ISSUER,
                 options={
                     'verify_signature': True,
                     'verify_aud': False,
@@ -513,9 +513,9 @@ def remove_agent_relationship():
             logger.warning("🚫 No agent_id provided in request")
             return jsonify({'success': False, 'error': 'agent_id parameter is required'}), 400
 
-        current_user = User.query.filter_by(cognito_id=user_id).first()
+        current_user = User.query.filter_by(AWS_COGNITO_id=user_id).first()
         if not current_user:
-            logger.error(f"🚫 User not found with cognito_id: {user_id}")
+            logger.error(f"🚫 User not found with AWS_COGNITO_id: {user_id}")
             return jsonify({'success': False, 'error': 'User not found'}), 404
 
         # Prevent agents from removing clients (only clients can remove agents from themselves)

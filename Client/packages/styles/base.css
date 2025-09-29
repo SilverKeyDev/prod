@@ -1,0 +1,80 @@
+/* Base styles - Typography, colors, global resets */
+/* Google Fonts now loaded in index.html to avoid CSP issues */
+
+/* CSS custom properties removed - using Tailwind config colors instead */
+
+@layer base {
+  .hide-scrollbar,
+  .hide-scrollbar * {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+  }
+  .hide-scrollbar::-webkit-scrollbar,
+  .hide-scrollbar *::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
+
+  /* Base styles */
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  html {
+    font-family:
+      "Inter",
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      Roboto,
+      sans-serif;
+  }
+
+  body {
+    @apply bg-off-white text-navy;
+    font-weight: 300;
+    /* Improve mobile scrolling */
+    -webkit-overflow-scrolling: touch;
+    /* Prevent zoom on input focus on iOS */
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* Note: Mobile input zoom prevention moved to mobile.css to avoid duplication */
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: "Playfair Display", serif;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  .font-serif {
+    font-family: "Playfair Display", serif;
+  }
+
+  .font-sans {
+    font-family: "Inter", sans-serif;
+  }
+  /* Google Maps autocomplete styling - consistent with mobile rules */
+  .pac-container {
+    font-size: 12px !important;
+  }
+
+  .pac-item {
+    font-size: 12px !important;
+  }
+
+  .pac-item-query {
+    font-size: 12px !important;
+  }
+
+  .pac-matched {
+    font-size: 12px !important;
+  }
+}

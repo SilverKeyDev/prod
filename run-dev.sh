@@ -163,14 +163,26 @@ popd >/dev/null
 if [[ "${1:-}" == "--production" ]]; then
   log "Starting Flask server in ${RED}production${NC} mode (gunicorn @ 0.0.0.0:${FLASK_PORT})..."
   pushd Server >/dev/null
-  # Bind gunicorn to 5000 for consistency with dev/proxy
-  gunicorn -w 4 -b "0.0.0.0:${FLASK_PORT}" run:app --access-logfile - --error-logfile - >/dev/null 2>&1 &
+  # Activate virtual environment if it exists, otherwise use python3
+  if [[ -d ".venv" ]]; then
+    source .venv/bin/activate
+    gunicorn -w 4 -b "0.0.0.0:${FLASK_PORT}" run:app --access-logfile - --error-logfile - >/dev/null 2>&1 &
+  else
+    python3 -m gunicorn -w 4 -b "0.0.0.0:${FLASK_PORT}" run:app --access-logfile - --error-logfile - >/dev/null 2>&1 &
+  fi
   FLASK_PID=$!
   popd >/dev/null
 else
   log "Starting Flask server in ${GREEN}development${NC} mode (0.0.0.0:${FLASK_PORT})..."
   pushd Server >/dev/null
-  python run.py --host 0.0.0.0 --port "${FLASK_PORT}" &
+  # Activate virtual environment if it exists, otherwise use python3
+  if [[ -d ".venv" ]]; then
+    log "Activating virtual environment..."
+    source .venv/bin/activate
+    python run.py --host 0.0.0.0 --port "${FLASK_PORT}" &
+  else
+    python3 run.py --host 0.0.0.0 --port "${FLASK_PORT}" &
+  fi
   FLASK_PID=$!
   popd >/dev/null
 fi
@@ -204,7 +216,13 @@ fi
 # =========================
 log "Starting Celery worker..."
 pushd Server >/dev/null
-celery -A app.celery.celery_worker:celery worker --loglevel=info >/dev/null 2>&1 &
+# Activate virtual environment if it exists, otherwise use python3
+if [[ -d ".venv" ]]; then
+  source .venv/bin/activate
+  celery -A app.celery.celery_worker:celery worker --loglevel=info >/dev/null 2>&1 &
+else
+  python3 -m celery -A app.celery.celery_worker:celery worker --loglevel=info >/dev/null 2>&1 &
+fi
 CELERY_PID=$!
 popd >/dev/null
 log "${GREEN}✅ Celery worker started (PID: ${CELERY_PID})${NC}"
@@ -215,7 +233,7 @@ log "${GREEN}✅ Celery worker started (PID: ${CELERY_PID})${NC}"
 if [[ "${1:-}" != "--production" ]]; then
   log "Starting Vite client..."
   pushd Client >/dev/null
-  npm run dev &
+  npm run dev:web &
   VITE_PID=$!
 
   # Start background TypeScript watch so type errors are surfaced continuously

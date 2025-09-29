@@ -1,0 +1,604 @@
+// React imports
+import { ChevronUp, ChevronDown } from "lucide-react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+
+// Components
+import PropertyDetailsModal from "../../components/modals/PropertyDetailsModal";
+import KeyTurnLoader from "../../components/ui/loading/KeyTurnLoader";
+// Core
+import { env } from "../../../../packages/config";
+import { preferencesApi } from "../../../../packages/config/api/preferences";
+import { userApi } from "../../../../packages/config/api/user";
+import { useGoogleMaps } from "../../../../packages/hooks/data/useGoogleMaps";
+import { usePropertyDetails } from "../../../../packages/hooks/data/usePropertyDetails";
+import type { SearchResult } from "../../../../packages/schemas/search";
+import { useFiltersStore, useUIStore } from "../../../../packages/store";
+import type { IsochroneData } from "../../../../packages/schemas/api";
+import { asError } from "../../../../packages/utils/error";
+// Features
+import { renderImportantLocationMarkers } from "../../features/search/lib/importantLocationRenderer";
+import { renderIsochronePolygon } from "../../features/search/lib/isochroneRenderer";
+import { saveSearchResults } from "../../features/search/lib/localStorage";
+import { useMapZoomController } from "../../features/search/lib/MapZoomController";
+import { MapControls } from "../../features/search/page/components/MapControls";
+import { PropertyCarousel } from "../../features/search/page/components/PropertyCarousel";
+import { SidebarList } from "../../features/search/page/components/SidebarList";
+import { Tabs } from "../../features/search/page/components/Tabs";
+import { useIsochroneFlow } from "../../features/search/page/useIsochroneFlow";
+import { useMapInitAndResize } from "../../features/search/page/useMapInitAndResize";
+import { useMarkerUpdates } from "../../features/search/page/useMarkerUpdates";
+import useMobileHeaderActions from "../../features/search/page/useMobileHeaderActions";
+import { usePropertyFocus } from "../../features/search/page/usePropertyFocus";
+import { useSavedHomes } from "../../features/search/page/useSavedHomes";
+import { useSearchBootstrap } from "../../features/search/page/useSearchBootstrap";
+import SearchHeader from "../../features/search/SearchHeader";
+import { searchPropertiesInIsochrone } from "../../features/search/services/propertySearch";
+
+type SearchPageProps = {
+  setMobileHeaderActions: React.Dispatch<
+    React.SetStateAction<React.ReactNode | null>
+  >;
+};
+
+export default function SearchPage({
+  setMobileHeaderActions,
+}: SearchPageProps) {
+  const navigate = useNavigate();
+  const { isLoaded: isGoogleMapsLoaded, createMap } = useGoogleMaps();
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const setFavoriteAddresses = useFiltersStore((s) => s.setFavoriteAddresses);
+  const isSearching = useFiltersStore((s) => s.isSearching);
+  const setIsSearching = useFiltersStore((s) => s.setIsSearching);
+  const searchStage = useFiltersStore((s) => s.searchStage);
+  const setSearchStage = useFiltersStore((s) => s.setSearchStage);
+  const {
+    isLoading: isLoadingPropertyDetails,
+    selectedProperty,
+    fetchPropertyDetails,
+    clearSelectedProperty,
+  } = usePropertyDetails();
+  const [hasSearched, setHasSearched] = useState(false);
+  const currentPage = useFiltersStore((s) => s.currentPage);
+  const setCurrentPage = useFiltersStore((s) => s.setCurrentPage);
+  const showPropertyModals = useUIStore((s) => s.showPropertyModals);
+  const setShowPropertyModals = useUIStore((s) => s.setShowPropertyModals);
+  const isCarouselCollapsed = useUIStore((s) => s.isCarouselCollapsed);
+  const setIsCarouselCollapsed = useUIStore((s) => s.setCarouselCollapsed);
+  const PROPERTIES_PER_PAGE = 1;
+
+  // Mobile header button handlers
+  const handlePreferences = useCallback(() => {
+    navigate("/dashboard/personalization");
+  }, [navigate]);
+
+  const activeTab = useFiltersStore((s) => s.activeTab);
+  const setActiveTab = useFiltersStore((s) => s.setActiveTab);
+
+  // Handle property details search using the hook
+  const handleViewPropertyDetails = useCallback(
+    async (property: SearchResult) => {
+      // Map SearchResult to Property format for the hook
+      const propertyForDetails = {
+        ...property,
+        latitude: property.lat,
+        longitude: property.lng,
+        property_type: property.propertyType ?? "Unknown",
+        listing_status: "active", // Default status
+      };
+      await fetchPropertyDetails(propertyForDetails);
+    },
+    [fetchPropertyDetails],
+  );
+
+  // Initialize hooks
+  const { isLocalStorageLoaded } = useSearchBootstrap({
+    env,
+    setSearchResults,
+    setHasSearched,
+    setCurrentPage,
+    setShowPropertyModals,
+  });
+
+  const mobileMapRef = useRef<HTMLDivElement>(null);
+  const desktopMapRef = useRef<HTMLDivElement>(null);
+  const polygonRef = useRef<google.maps.Polygon | null>(null);
+  const individualPolygonsRef = useRef<google.maps.Polygon[]>([]);
+  const importantMarkersRef = useRef<
+    google.maps.marker.AdvancedMarkerElement[]
+  >([]);
+
+  const { googleMapRef } = useMapInitAndResize({
+    isLocalStorageLoaded,
+    isGoogleMapsLoaded,
+    createMap: createMap as (container: HTMLElement) => google.maps.Map | null,
+    mobileMapRef,
+    desktopMapRef,
+  });
+
+  const { savedHomes, isHomeSaved, saveHome, removeSavedHome } = useSavedHomes({
+    userApi,
+    setFavoriteAddresses,
+    isGoogleMapsLoaded,
+  });
+
+  // Initialize MapZoomController
+  const {
+    resetToDefaultZoom,
+    zoomIn: mapZoomIn,
+    zoomOut: mapZoomOut,
+    focusOnCurrentProperty: mapFocusOnCurrentProperty,
+  } = useMapZoomController({
+    googleMapRef,
+    activeTab,
+    searchResults,
+    savedHomes,
+    currentPage,
+  });
+
+  // Use centralized isochrone renderer
+  const renderIsochronePolygonWrapper = useCallback(
+    (isochroneData: unknown) => {
+      if (!googleMapRef.current) {
+        console.warn("❌ Google Map not initialized yet");
+        return;
+      }
+
+      renderIsochronePolygon(isochroneData as IsochroneData, {
+        map: googleMapRef.current,
+        polygonRef,
+        individualPolygonsRef,
+        focusOnCurrentProperty: mapFocusOnCurrentProperty,
+      });
+    },
+    [mapFocusOnCurrentProperty, googleMapRef],
+  );
+
+  // Use imported renderImportantLocationMarkers function
+  const renderImportantLocationMarkersWrapper = useCallback(
+    (isochroneData: unknown) => {
+      if (!googleMapRef.current) {
+        console.warn(
+          "❌ Cannot render important location markers: map not available",
+        );
+        return;
+      }
+
+      renderImportantLocationMarkers(isochroneData as IsochroneData, {
+        map: googleMapRef.current,
+        importantMarkersRef,
+        setImportantLocationMarkers: (
+          markers: google.maps.marker.AdvancedMarkerElement[],
+        ) => {
+          importantMarkersRef.current = markers;
+        },
+        resetToDefaultZoom,
+      });
+    },
+    [resetToDefaultZoom, googleMapRef],
+  );
+
+  // Save search results to localStorage with preferences version
+  const saveSearchResultsToLocalStorage = useCallback(
+    async (results: SearchResult[]) => {
+      try {
+        // Fetch current user preferences to get the version
+        let preferencesVersion = "1.0"; // Default version
+
+        try {
+          const idToken = localStorage.getItem("id_token");
+          const { apiBaseUrl } = env;
+
+          if (idToken) {
+            const response = await fetch(`${apiBaseUrl}/api/v1/preferences`, {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${idToken}`,
+                "Content-Type": "application/json",
+              },
+            });
+
+            if (response?.ok) {
+              const data = (await response.json()) as Record<string, unknown>;
+              preferencesVersion =
+                data.preferences &&
+                typeof data.preferences === "object" &&
+                "preferences_version" in data.preferences
+                  ? (data.preferences as { preferences_version: string })
+                      .preferences_version
+                  : "1.0";
+            }
+          }
+        } catch (prefError: unknown) {
+          const error = asError(prefError);
+          console.warn(
+            "⚠️ Could not fetch preferences version, using default:",
+            error,
+          );
+        }
+
+        const searchData = {
+          results,
+          timestamp: new Date().toISOString(),
+          totalCount: results.length,
+          preferencesVersion,
+          searchMetadata: {
+            hasSearched: true,
+            currentPage: 0,
+            propertiesPerPage: PROPERTIES_PER_PAGE,
+          },
+        };
+
+        saveSearchResults(searchData);
+      } catch (error: unknown) {
+        console.error("❌ Error saving search results to localStorage:", error);
+      }
+    },
+    [],
+  );
+
+  const { primeIsochroneOverlay, runIsochroneSearch } = useIsochroneFlow({
+    env,
+    googleMapRef,
+    renderIsochronePolygon: renderIsochronePolygonWrapper,
+    renderImportantLocationMarkers: (isochroneData: unknown) => {
+      renderImportantLocationMarkersWrapper(isochroneData);
+      return Promise.resolve();
+    },
+    searchPropertiesInIsochrone: async (isochroneData: unknown) => {
+      // Get user preferences for the search
+      let userPrefs = {};
+      try {
+        const response = await preferencesApi.get();
+        if (
+          response &&
+          typeof response === "object" &&
+          "success" in response &&
+          response.success &&
+          "preferences" in response &&
+          response.preferences
+        ) {
+          userPrefs = response.preferences;
+        }
+      } catch (prefError: unknown) {
+        const error = asError(prefError);
+        console.warn(
+          "⚠️ Could not fetch user preferences, using empty preferences:",
+          error,
+        );
+      }
+
+      // Use the service function
+      await searchPropertiesInIsochrone(
+        isochroneData as IsochroneData,
+        userPrefs,
+        (stage: string) => setSearchStage(stage),
+        setSearchResults,
+        setIsSearching,
+        setHasSearched,
+        setCurrentPage,
+        setShowPropertyModals,
+        saveSearchResultsToLocalStorage,
+      );
+    },
+    prefsApi: preferencesApi,
+    setSearchStage: (stage?: string) => setSearchStage(stage ?? ""),
+    setSearchResults,
+    setIsSearching,
+    setHasSearched,
+    setCurrentPage,
+    setShowPropertyModals,
+    saveSearchResultsToLocalStorage,
+    mapFocusOnCurrentProperty,
+  });
+
+  // Update handleSearch to use runIsochroneSearch
+  const handleSearchUpdated = useCallback(() => {
+    if (!isSearching) {
+      void runIsochroneSearch();
+    }
+  }, [isSearching, runIsochroneSearch]);
+
+  // Create stable callback for opening property details
+  const handleOpenPropertyDetails = useCallback(
+    (propertyId: string) => {
+      // Find the property in current data (search results or saved homes)
+      const currentData = activeTab === "results" ? searchResults : savedHomes;
+      const property = currentData.find((p) => p.id === propertyId);
+
+      if (property) {
+        void handleViewPropertyDetails(property);
+      } else {
+        console.error("🗺️ MAP MODAL: Property not found with ID:", propertyId);
+        console.error(
+          "🗺️ MAP MODAL: Available properties:",
+          currentData.map((p) => ({ id: p.id, address: p.address })),
+        );
+      }
+    },
+    [activeTab, searchResults, savedHomes, handleViewPropertyDetails],
+  );
+
+  useMarkerUpdates({
+    googleMapRef,
+    onOpenDetails: handleOpenPropertyDetails,
+    isHomeSaved,
+    saveHome,
+    removeSavedHome,
+    activeTab,
+    currentPage,
+    hasSearched,
+    showPropertyModals,
+    searchResults,
+    savedHomes,
+  });
+
+  usePropertyFocus({
+    googleMapRef,
+    activeTab,
+    searchResults,
+    savedHomes,
+    currentPage,
+    mapFocusOnCurrentProperty,
+    selectedProperty,
+  });
+
+  useMobileHeaderActions({
+    setMobileHeaderActions,
+    isSearching,
+    onPreferences: handlePreferences,
+    onSearch: handleSearchUpdated,
+  });
+
+  // Reset to first page when switching tabs and save to localStorage
+  const handleTabChange = (tab: "results" | "saved") => {
+    setActiveTab(tab);
+    setCurrentPage(0);
+  };
+
+  // Initialize isochrone overlay after map is ready
+  useEffect(() => {
+    if (!isLocalStorageLoaded || !isGoogleMapsLoaded) return;
+
+    // ---------- Isochrone overlay logic ----------
+    setTimeout(() => {
+      void primeIsochroneOverlay(searchResults.length > 0);
+    }, 100);
+  }, [
+    isLocalStorageLoaded,
+    isGoogleMapsLoaded,
+    primeIsochroneOverlay,
+    searchResults.length,
+  ]);
+
+  return (
+    <div className="h-full">
+      {/* Mobile Layout */}
+      <div className="flex h-full flex-col md:hidden">
+        {/* Mobile Carousel for Properties */}
+        <div className="flex-shrink-0 border-b border-gray-200 bg-white">
+          {/* Tab Navigation */}
+          <Tabs
+            active={activeTab}
+            onChange={(tab) => {
+              handleTabChange(tab);
+              if (
+                tab === "results" &&
+                hasSearched &&
+                searchResults.length > 0
+              ) {
+                setShowPropertyModals(true);
+              } else if (tab === "saved" && savedHomes.length > 0) {
+                setShowPropertyModals(true);
+                setHasSearched(true);
+              }
+            }}
+            counts={{ results: searchResults.length, saved: savedHomes.length }}
+            compact
+          />
+
+          {/* Collapse/Expand Button */}
+          <div className="flex justify-center">
+            <button
+              onClick={() => setIsCarouselCollapsed(!isCarouselCollapsed)}
+              className="cursor-help-hint p-1 text-gray-500 transition-colors hover:text-gray-700"
+              title={
+                isCarouselCollapsed ? "Expand carousel" : "Collapse carousel"
+              }
+            >
+              {isCarouselCollapsed ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ChevronUp className="h-4 w-4" />
+              )}
+            </button>
+          </div>
+
+          {/* Mobile Property Carousel */}
+          <div
+            className={`overflow-hidden transition-all duration-300 ease-in-out ${
+              isCarouselCollapsed ? "max-h-0" : "max-h-96"
+            }`}
+          >
+            <PropertyCarousel
+              items={activeTab === "results" ? searchResults : savedHomes}
+              perPage={PROPERTIES_PER_PAGE}
+              currentPage={currentPage}
+              isHomeSaved={isHomeSaved}
+              onSave={saveHome}
+              onViewDetails={handleViewPropertyDetails}
+            />
+          </div>
+        </div>
+
+        {/* Mobile Map - Takes majority of screen */}
+        <div className="relative flex-1">
+          {/* Loading overlay - Only show when actively searching */}
+          {isSearching && (
+            <div className="absolute inset-0 z-20 flex h-full w-full items-center justify-center bg-gray-50">
+              <div className="gap-responsive-sm flex flex-col items-center">
+                <KeyTurnLoader
+                  message={searchStage ?? "Searching properties..."}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Map container */}
+          <div className="relative h-full w-full overflow-hidden rounded-t-2xl">
+            <div
+              ref={mobileMapRef}
+              className="h-full w-full"
+              style={{ minHeight: "100%" }}
+            />
+
+            {/* Mobile Map Controls */}
+            {!isSearching && (
+              <MapControls
+                variant="mobile"
+                page={currentPage}
+                total={
+                  activeTab === "results"
+                    ? searchResults.length
+                    : savedHomes.length
+                }
+                perPage={PROPERTIES_PER_PAGE}
+                onPrev={() => setCurrentPage(Math.max(0, currentPage - 1))}
+                onNext={() => setCurrentPage(currentPage + 1)}
+                onZoomIn={mapZoomIn}
+                onZoomOut={mapZoomOut}
+                disabled={!hasSearched}
+              />
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Desktop Layout */}
+      <div className="gap-responsive-md hidden h-full md:flex">
+        {/* Sidebar */}
+        <div className="flex w-64 flex-shrink-0 flex-col">
+          <div className="flex h-full flex-col rounded-lg border border-gray-200 bg-white p-4">
+            {/* Tab Navigation */}
+            <Tabs
+              active={activeTab}
+              onChange={(tab) => {
+                handleTabChange(tab);
+                if (
+                  tab === "results" &&
+                  hasSearched &&
+                  searchResults.length > 0
+                ) {
+                  setShowPropertyModals(true);
+                } else if (tab === "saved" && savedHomes.length > 0) {
+                  setShowPropertyModals(true);
+                  setHasSearched(true);
+                }
+              }}
+              counts={{
+                results: searchResults.length,
+                saved: savedHomes.length,
+              }}
+            />
+
+            {/* Tab Content - Scrollable */}
+            <div className="flex-1 overflow-hidden">
+              <SidebarList
+                items={activeTab === "results" ? searchResults : savedHomes}
+                selectedId={selectedProperty?.id}
+                isLoading={isLoadingPropertyDetails}
+                isHomeSaved={isHomeSaved}
+                onSave={saveHome}
+                onViewDetails={handleViewPropertyDetails}
+                removeSavedHome={removeSavedHome}
+                activeTab={activeTab}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <div className="flex flex-1 flex-col">
+          {/* Search Header */}
+          <div className="hidden lg:block">
+            <SearchHeader
+              onUpdatePreferences={() => navigate("/dashboard/personalization")}
+              onSearchProperties={async () => {
+                try {
+                  setIsSearching(true);
+                  await runIsochroneSearch();
+                } catch (error: unknown) {
+                  console.error("Search failed:", error);
+                } finally {
+                  setIsSearching(false);
+                }
+              }}
+              isSearching={isSearching}
+            />
+          </div>
+
+          {/* Desktop Map - Takes remaining height */}
+          <div className="relative flex-1 overflow-hidden rounded-lg border border-gray-200 bg-white">
+            {/* Loading overlay - shows until at least one property is available on map */}
+            {(isSearching ||
+              (hasSearched &&
+                searchResults.length === 0 &&
+                savedHomes.length === 0) ||
+              (!hasSearched &&
+                searchResults.length === 0 &&
+                savedHomes.length === 0)) && (
+              <div className="absolute inset-0 z-20 flex h-full w-full items-center justify-center rounded-lg bg-gray-50">
+                <div className="flex flex-col items-center gap-4">
+                  <KeyTurnLoader
+                    message={
+                      isSearching
+                        ? (searchStage ?? "Searching properties...")
+                        : "Loading map..."
+                    }
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Map container - always present in DOM */}
+            <div className="relative h-full w-full">
+              <div
+                ref={desktopMapRef}
+                className="h-full w-full rounded-lg"
+                style={{ minHeight: "400px" }}
+              />
+
+              {/* Desktop Map Controls - hidden during search */}
+              {!isSearching && (
+                <MapControls
+                  variant="desktop"
+                  page={currentPage}
+                  total={
+                    activeTab === "results"
+                      ? searchResults.length
+                      : savedHomes.length
+                  }
+                  perPage={PROPERTIES_PER_PAGE}
+                  onPrev={() => setCurrentPage(Math.max(0, currentPage - 1))}
+                  onNext={() => setCurrentPage(currentPage + 1)}
+                  onZoomIn={mapZoomIn}
+                  onZoomOut={mapZoomOut}
+                  disabled={!hasSearched}
+                />
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Property Details Modal */}
+      <PropertyDetailsModal
+        property={selectedProperty}
+        onClose={clearSelectedProperty}
+        isHomeSaved={isHomeSaved}
+        saveHome={saveHome}
+        removeSavedHome={removeSavedHome}
+      />
+    </div>
+  );
+}

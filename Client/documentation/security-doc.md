@@ -38,7 +38,10 @@ SilverKey uses AWS Cognito for user authentication, providing enterprise-grade s
 const [accessToken, setAccessToken] = useState<string | null>(null);
 
 // Secure token storage in sessionStorage (not localStorage)
-sessionStorage.setItem(AUTH_CONFIG.STORAGE_KEYS.ACCESS_TOKEN, response.access_token);
+sessionStorage.setItem(
+  AUTH_CONFIG.STORAGE_KEYS.ACCESS_TOKEN,
+  response.access_token,
+);
 ```
 
 **Security Features:**
@@ -61,18 +64,18 @@ sessionStorage.setItem(AUTH_CONFIG.STORAGE_KEYS.ACCESS_TOKEN, response.access_to
 ```typescript
 // Route protection levels
 PROTECTED_ROUTES: [
-  '/dashboard',
-  '/search',
-  '/past-reports',
-  '/compare-reports',
-  '/saved-homes',
-  '/personalization',
-  '/generate-report',
-  '/onboarding',
-  '/offer-draft',
-  '/negotiation',
-  '/client-intel',
-]
+  "/dashboard",
+  "/search",
+  "/past-reports",
+  "/compare-reports",
+  "/saved-homes",
+  "/personalization",
+  "/generate-report",
+  "/onboarding",
+  "/offer-draft",
+  "/negotiation",
+  "/client-intel",
+];
 ```
 
 ---
@@ -202,13 +205,15 @@ MAX_FILE_SIZES = {
 
 ```typescript
 // Form validation with comprehensive checks
-export const validateOnboardingData = (formData: OnboardingData): ValidationResult => {
+export const validateOnboardingData = (
+  formData: OnboardingData,
+): ValidationResult => {
   const missingFields: string[] = [];
   const errors: string[] = [];
 
   // Required field validation
   if (!formData.age || formData.age <= 0) {
-    missingFields.push('Age');
+    missingFields.push("Age");
   }
   // ... additional validations
 };
@@ -225,11 +230,11 @@ def validate_json_request(required_fields=None):
             # JSON validation
             if not request.is_json:
                 return jsonify({'error': 'Content-Type must be application/json'}), 400
-            
+
             data = request.get_json()
             if not data:
                 return jsonify({'error': 'No data provided'}), 400
-            
+
             # Required fields validation
             if required_fields:
                 missing_fields = [field for field in required_fields if not data.get(field)]
@@ -237,7 +242,7 @@ def validate_json_request(required_fields=None):
                     return jsonify({
                         'error': f'Missing required fields: {", ".join(missing_fields)}'
                     }), 400
-            
+
             return f(data, *args, **kwargs)
         return decorated_function
     return decorator
@@ -287,7 +292,7 @@ def protected_endpoint():
 ```python
 class SecurityError:
     """Standardized security error codes and messages"""
-    
+
     UNAUTHORIZED = ("UNAUTHORIZED", "Authentication required", 401)
     INVALID_TOKEN = ("INVALID_TOKEN", "Authentication required", 401)
     TOKEN_EXPIRED = ("TOKEN_EXPIRED", "Authentication required", 401)
@@ -317,7 +322,9 @@ class SecurityError:
 ### Content Security Policy (CSP)
 
 ```html
-<meta http-equiv="Content-Security-Policy" content="
+<meta
+  http-equiv="Content-Security-Policy"
+  content="
   default-src 'self';
   script-src 'self' 'unsafe-inline' 'unsafe-eval' https://maps.googleapis.com https://js.stripe.com;
   style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
@@ -328,7 +335,8 @@ class SecurityError:
   object-src 'none';
   base-uri 'self';
   form-action 'self';
-" />
+"
+/>
 ```
 
 ### Additional Security Headers
@@ -480,4 +488,4 @@ For security-related questions, concerns, or to report vulnerabilities:
 
 ---
 
-*This document is regularly updated to reflect current security measures and should be reviewed quarterly.*
+_This document is regularly updated to reflect current security measures and should be reviewed quarterly._

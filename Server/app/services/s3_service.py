@@ -60,7 +60,7 @@ class S3Service:
                     config = current_app.config
                     aws_access_key = config.get('AWS_ACCESS_KEY_ID')
                     aws_secret_key = config.get('AWS_SECRET_ACCESS_KEY')
-                    s3_region = config.get('S3_REGION', 'us-east-2')
+                    s3_region = config.get('AWS_REGION', 'us-east-2')
                     bucket_name = config.get('S3_BUCKET_NAME_PDFS')
                 except Exception as e:
                     logger.warning(f"⚠️ Could not access Flask config: {e}")
@@ -69,8 +69,8 @@ class S3Service:
             if not aws_access_key or not aws_secret_key:
                 aws_access_key = os.getenv('AWS_ACCESS_KEY_ID')
                 aws_secret_key = os.getenv('AWS_SECRET_ACCESS_KEY')
-                s3_region = os.getenv('S3_REGION', 'us-east-2')
-                bucket_name = os.getenv('S3_BUCKET_NAME_PDFS', 'pdf-storage-jkdsfiugew')
+                s3_region = os.getenv('AWS_REGION', 'us-east-2')
+                bucket_name = os.getenv('S3_BUCKET_NAME_PDFS')
             
             # Validate credentials
             if not aws_access_key or not aws_secret_key:
@@ -184,7 +184,7 @@ class S3Service:
                         pass
                 
                 if not bucket_name:
-                    bucket_name = os.getenv('S3_BUCKET_NAME_PDFS', 'pdf-storage-jkdsfiugew')
+                    bucket_name = os.getenv('S3_BUCKET_NAME_PDFS')
             
             if not bucket_name:
                 logger.error("❌ S3 bucket name not available")
@@ -276,7 +276,7 @@ class S3Service:
                         pass
                 
                 if not bucket_name:
-                    bucket_name = os.getenv('S3_BUCKET_NAME_PDFS', 'pdf-storage-jkdsfiugew')
+                    bucket_name = os.getenv('S3_BUCKET_NAME_PDFS')
             
             # Get expiration from config or use default
             expiration = 3600  # 1 hour default
@@ -374,7 +374,7 @@ class S3Service:
                         pass
                 
                 if not bucket_name:
-                    bucket_name = os.getenv('S3_BUCKET_NAME_PDFS', 'pdf-storage-jkdsfiugew')
+                    bucket_name = os.getenv('S3_BUCKET_NAME_PDFS')
             
             # Get expiration from config or use default
             expiration = 3600  # 1 hour default
@@ -469,7 +469,7 @@ class S3Service:
                         pass
                 
                 if not bucket_name:
-                    bucket_name = os.getenv('S3_BUCKET_NAME_PDFS', 'pdf-storage-jkdsfiugew')
+                    bucket_name = os.getenv('S3_BUCKET_NAME_PDFS')
             
             if not bucket_name:
                 logger.error("❌ S3 bucket name not available for deletion")

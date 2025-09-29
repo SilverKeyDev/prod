@@ -1,0 +1,354 @@
+/* =========================
+   Authentication Configuration Constants
+   ========================= */
+
+/**
+ * Authentication configuration that matches existing patterns
+ * Uses the same structure as existing auth implementations
+ */
+
+// Define enums here to avoid circular imports
+export enum AuthStatus {
+  IDLE = "idle",
+  LOADING = "loading",
+  AUTHENTICATED = "authenticated",
+  UNAUTHENTICATED = "unauthenticated",
+  ERROR = "error",
+}
+
+export enum AuthEvents {
+  LOGIN_SUCCESS = "login_success",
+  LOGIN_FAILURE = "login_failure",
+  LOGOUT = "logout",
+  TOKEN_REFRESH = "token_refresh",
+  SESSION_EXPIRED = "session_expired",
+  UNAUTHORIZED = "unauthorized",
+}
+
+/**
+ * Authentication-related constants and configuration
+ * Matches the structure expected by existing auth implementations
+ */
+export const AUTH_CONFIG = {
+  // Storage Keys (lowercase to match existing usage)
+  STORAGE_KEYS: {
+    ACCESS_TOKEN: "access_token",
+    REFRESH_TOKEN: "refresh_token",
+    ID_TOKEN: "id_token",
+    USER: "user",
+    USER_PROFILE: "userProfile",
+  },
+
+  // Secure Storage Configuration
+  SECURE_STORAGE: {
+    // Use sessionStorage for sensitive data (tokens, auth state)
+    SENSITIVE_STORAGE: "sessionStorage",
+    // Use localStorage for non-sensitive data (preferences, UI state)
+    NON_SENSITIVE_STORAGE: "localStorage",
+    // Keys that should NEVER be stored in localStorage
+    FORBIDDEN_LOCALSTORAGE_KEYS: [
+      "access_token",
+      "refresh_token",
+      "id_token",
+      "password",
+      "signupPassword",
+      "signupEmail", // Contains PII
+      "user", // Contains sensitive user data
+      "userProfile", // Contains sensitive user data
+    ],
+  },
+
+  // Token Refresh Configuration
+  TOKEN_REFRESH: {
+    // Refresh token 14 minutes before expiration (in milliseconds)
+    REFRESH_INTERVAL: 14 * 60 * 1000,
+    // Check for token expiration every 5 minutes
+    CHECK_INTERVAL: 5 * 60 * 1000,
+    // Consider token expired if it expires within 5 minutes
+    EXPIRY_BUFFER_MINUTES: 5,
+  },
+
+  // Session Management
+  SESSION: {
+    // Session timeout warning (25 minutes in milliseconds)
+    TIMEOUT_WARNING: 25 * 60 * 1000,
+    // Maximum session duration (30 minutes in milliseconds)
+    MAX_DURATION: 30 * 60 * 1000,
+    // Grace period for user interaction (5 minutes in milliseconds)
+    GRACE_PERIOD: 5 * 60 * 1000,
+  },
+
+  // API Endpoints (lowercase to match existing usage)
+  endpoints: {
+    signup: "/api/v1/auth/signup",
+    verify: "/api/v1/auth/verify",
+    resendCode: "/api/v1/auth/resend-code",
+    login: "/api/v1/auth/login",
+    forgotPassword: "/api/v1/auth/forgot-password",
+    resetPassword: "/api/v1/auth/reset-password",
+    refreshToken: "/api/v1/auth/refresh-token",
+    logout: "/api/v1/auth/logout",
+  },
+
+  // Authentication Error Codes
+  ERROR_CODES: {
+    TOKEN_EXPIRED: "TOKEN_EXPIRED",
+    INVALID_TOKEN: "INVALID_TOKEN",
+    UNAUTHORIZED: "UNAUTHORIZED",
+    NO_TOKEN: "NO_TOKEN",
+    REFRESH_FAILED: "REFRESH_FAILED",
+    LOGIN_REQUIRED: "LOGIN_REQUIRED",
+  },
+
+  // Security Configuration
+  SECURITY: {
+    // Maximum login attempts before lockout
+    MAX_LOGIN_ATTEMPTS: 5,
+    // Lockout duration in milliseconds (15 minutes)
+    LOCKOUT_DURATION: 15 * 60 * 1000,
+    // Password requirements
+    PASSWORD_MIN_LENGTH: 8,
+    PASSWORD_REQUIRE_UPPERCASE: true,
+    PASSWORD_REQUIRE_LOWERCASE: true,
+    PASSWORD_REQUIRE_NUMBERS: true,
+    PASSWORD_REQUIRE_SYMBOLS: true,
+  },
+
+  // Routes that don't require authentication
+  PUBLIC_ROUTES: [
+    "/",
+    "/login",
+    "/signup",
+    "/verification",
+    "/forgot-password",
+    "/reset-password",
+    "/privacy",
+    "/terms",
+    "/about",
+    "/contact",
+  ],
+
+  // Routes that require authentication
+  PROTECTED_ROUTES: [
+    "/dashboard",
+    "/search",
+    "/past-reports",
+    "/compare-reports",
+    "/saved-homes",
+    "/personalization",
+    "/generate-report",
+    "/onboarding",
+    "/offer-draft",
+    "/negotiation",
+    "/client-intel",
+  ],
+
+  // Default redirect routes
+  REDIRECTS: {
+    AFTER_LOGIN: "/dashboard",
+    AFTER_LOGOUT: "/login",
+    AFTER_SIGNUP: "/verification",
+    AFTER_VERIFICATION: "/onboarding",
+    AFTER_ONBOARDING: "/dashboard",
+    UNAUTHORIZED: "/login",
+  },
+} as const;
+
+/**
+ * User role constants
+ */
+export enum UserRole {
+  USER = "user",
+  AGENT = "agent",
+  ADMIN = "admin",
+  SUPER_ADMIN = "super_admin",
+}
+
+/**
+ * Permission constants for role-based access control
+ */
+export const PERMISSIONS = {
+  // User permissions
+  VIEW_DASHBOARD: "view_dashboard",
+  GENERATE_REPORTS: "generate_reports",
+  VIEW_REPORTS: "view_reports",
+  SAVE_HOMES: "save_homes",
+  UPDATE_PREFERENCES: "update_preferences",
+
+  // Agent permissions
+  VIEW_CLIENTS: "view_clients",
+  MANAGE_CLIENTS: "manage_clients",
+  VIEW_CLIENT_REPORTS: "view_client_reports",
+  GENERATE_CLIENT_REPORTS: "generate_client_reports",
+
+  // Admin permissions
+  MANAGE_USERS: "manage_users",
+  VIEW_ANALYTICS: "view_analytics",
+  MANAGE_SYSTEM: "manage_system",
+
+  // Super admin permissions
+  FULL_ACCESS: "full_access",
+} as const;
+
+/**
+ * Role-based permission mapping
+ */
+const USER_PERMISSIONS = [
+  PERMISSIONS.VIEW_DASHBOARD,
+  PERMISSIONS.GENERATE_REPORTS,
+  PERMISSIONS.VIEW_REPORTS,
+  PERMISSIONS.SAVE_HOMES,
+  PERMISSIONS.UPDATE_PREFERENCES,
+];
+
+const AGENT_PERMISSIONS = [
+  ...USER_PERMISSIONS,
+  PERMISSIONS.VIEW_CLIENTS,
+  PERMISSIONS.MANAGE_CLIENTS,
+  PERMISSIONS.VIEW_CLIENT_REPORTS,
+  PERMISSIONS.GENERATE_CLIENT_REPORTS,
+];
+
+const ADMIN_PERMISSIONS = [
+  ...AGENT_PERMISSIONS,
+  PERMISSIONS.MANAGE_USERS,
+  PERMISSIONS.VIEW_ANALYTICS,
+  PERMISSIONS.MANAGE_SYSTEM,
+];
+
+export const ROLE_PERMISSIONS = {
+  [UserRole.USER]: USER_PERMISSIONS,
+  [UserRole.AGENT]: AGENT_PERMISSIONS,
+  [UserRole.ADMIN]: ADMIN_PERMISSIONS,
+  [UserRole.SUPER_ADMIN]: [PERMISSIONS.FULL_ACCESS],
+} as const;
+
+/**
+ * Utility functions for authentication configuration
+ */
+export const authUtils = {
+  /**
+   * Check if a route is public (doesn't require authentication)
+   */
+  isPublicRoute: (path: string): boolean => {
+    return AUTH_CONFIG.PUBLIC_ROUTES.some(
+      (route) => path === route || path.startsWith(`${route}/`),
+    );
+  },
+
+  /**
+   * Check if a route is protected (requires authentication)
+   */
+  isProtectedRoute: (path: string): boolean => {
+    return AUTH_CONFIG.PROTECTED_ROUTES.some(
+      (route) => path === route || path.startsWith(`${route}/`),
+    );
+  },
+
+  /**
+   * Get redirect URL after authentication action
+   */
+  getRedirectUrl: (action: keyof typeof AUTH_CONFIG.REDIRECTS): string => {
+    return AUTH_CONFIG.REDIRECTS[action];
+  },
+
+  /**
+   * Check if user has permission
+   */
+  hasPermission: (userRole: UserRole, permission: string): boolean => {
+    const rolePermissions = ROLE_PERMISSIONS[userRole] as readonly string[];
+    // Handle FULL_ACCESS permission for super admin
+    if (rolePermissions.includes(PERMISSIONS.FULL_ACCESS)) {
+      return true;
+    }
+    return rolePermissions.includes(permission);
+  },
+
+  /**
+   * Get all permissions for a role
+   */
+  getRolePermissions: (role: UserRole): readonly string[] => {
+    return ROLE_PERMISSIONS[role];
+  },
+
+  /**
+   * Secure storage utilities
+   */
+  secureStorage: {
+    /**
+     * Store sensitive data in sessionStorage
+     */
+    setSensitive: (key: string, value: string): void => {
+      sessionStorage.setItem(key, value);
+    },
+
+    /**
+     * Get sensitive data from sessionStorage
+     */
+    getSensitive: (key: string): string | null => {
+      return sessionStorage.getItem(key);
+    },
+
+    /**
+     * Remove sensitive data from sessionStorage
+     */
+    removeSensitive: (key: string): void => {
+      sessionStorage.removeItem(key);
+    },
+
+    /**
+     * Store non-sensitive data in localStorage
+     */
+    setNonSensitive: (key: string, value: string): void => {
+      if (
+        AUTH_CONFIG.SECURE_STORAGE.FORBIDDEN_LOCALSTORAGE_KEYS.includes(
+          key as any,
+        )
+      ) {
+        console.warn(
+          `[AUTH_CONFIG] Attempted to store forbidden key "${key}" in localStorage. Use secureStorage.setSensitive() instead.`,
+        );
+        return;
+      }
+      localStorage.setItem(key, value);
+    },
+
+    /**
+     * Get non-sensitive data from localStorage
+     */
+    getNonSensitive: (key: string): string | null => {
+      return localStorage.getItem(key);
+    },
+
+    /**
+     * Remove non-sensitive data from localStorage
+     */
+    removeNonSensitive: (key: string): void => {
+      localStorage.removeItem(key);
+    },
+
+    /**
+     * Clear all auth-related storage
+     */
+    clearAll: (): void => {
+      // Clear sessionStorage (sensitive data)
+      Object.values(AUTH_CONFIG.STORAGE_KEYS).forEach((key) => {
+        sessionStorage.removeItem(key);
+      });
+
+      // Clear localStorage (non-sensitive data, but remove forbidden keys)
+      Object.values(AUTH_CONFIG.STORAGE_KEYS).forEach((key) => {
+        if (
+          !AUTH_CONFIG.SECURE_STORAGE.FORBIDDEN_LOCALSTORAGE_KEYS.includes(key)
+        ) {
+          localStorage.removeItem(key);
+        }
+      });
+
+      // Clear forbidden keys from localStorage if they exist
+      AUTH_CONFIG.SECURE_STORAGE.FORBIDDEN_LOCALSTORAGE_KEYS.forEach((key) => {
+        localStorage.removeItem(key);
+      });
+    },
+  },
+} as const;

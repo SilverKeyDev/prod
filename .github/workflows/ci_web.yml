@@ -1,0 +1,221 @@
+# .github/workflows/deploy.yml
+name: Build and Deploy Docker App to EC2
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  id-token: write      # required for OIDC
+  contents: read
+
+env:
+  AWS_REGION: us-east-2
+  ECR_REPO: cre
+  APP_NAME: cre_app
+  CELERY_NAME: cre_worker
+  REDIS_NAME: redis
+  SECRET_ID: silverkey/prod/app                 # <-- change to your secret path
+  SSM_PARAMS: "/silverkey/prod/API_BASE_URL /silverkey/prod/LOG_LEVEL"  # optional; space-separated
+  FRONTEND_DIST_PATH: /app/Client/dist
+  WEB_ROOT: /var/www/html
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::123456789012:role/gh-oidc-deploy   # <-- your deploy role
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Get AWS Account ID
+        id: aws
+        run: echo "account_id=$(aws sts get-caller-identity --query Account --output text)" >> $GITHUB_OUTPUT
+
+      - name: Log in to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Compute image tags
+        id: meta
+        run: |
+          echo "sha_tag=${GITHUB_SHA::12}" >> $GITHUB_OUTPUT
+          echo "image=${{ steps.aws.outputs.account_id }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPO }}" >> $GITHUB_OUTPUT
+
+      - name: Build & Push image
+        run: |
+          IMAGE="${{ steps.meta.outputs.image }}"
+          SHA_TAG="${{ steps.meta.outputs.sha_tag }}"
+
+          # Build with public build args if you still need them at build time
+          docker build \
+            --build-arg VITE_PLAID_CLIENT_ID=${{ secrets.VITE_PLAID_CLIENT_ID }} \
+            --build-arg VITE_GOOGLE_MAPS_ID=${{ secrets.VITE_GOOGLE_MAPS_ID }} \
+            --build-arg VITE_GOOGLE_CLIENT_ID=${{ secrets.VITE_GOOGLE_CLIENT_ID }} \
+            -t "$IMAGE:$SHA_TAG" \
+            -t "$IMAGE:latest" \
+            .
+
+          docker push "$IMAGE:$SHA_TAG"
+          docker push "$IMAGE:latest"
+
+      - name: Deploy over SSH (EC2 pulls secrets itself)
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -euo pipefail
+
+            echo "🕒 $(date -u +'%Y-%m-%dT%H:%M:%SZ')  Starting EC2 deploy..."
+
+            AWS_REGION="${{ env.AWS_REGION }}"
+            ACCOUNT_ID="${{ steps.aws.outputs.account_id }}"
+            ECR_REPO="${{ env.ECR_REPO }}"
+            APP_NAME="${{ env.APP_NAME }}"
+            CELERY_NAME="${{ env.CELERY_NAME }}"
+            REDIS_NAME="${{ env.REDIS_NAME }}"
+            SECRET_ID="${{ env.SECRET_ID }}"
+            SSM_PARAMS="${{ env.SSM_PARAMS }}"
+            FRONTEND_DIST_PATH="${{ env.FRONTEND_DIST_PATH }}"
+            WEB_ROOT="${{ env.WEB_ROOT }}"
+
+            IMAGE="$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:latest"
+
+            echo "📦 Installing Docker & AWS CLI if needed..."
+            if ! command -v docker >/dev/null 2>&1; then
+              sudo apt-get update -y
+              sudo apt-get install -y docker.io
+              sudo usermod -aG docker ubuntu || true
+            fi
+            if ! command -v aws >/dev/null 2>&1; then
+              curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+              sudo apt-get install -y unzip >/dev/null
+              unzip -q awscliv2.zip
+              sudo ./aws/install
+              rm -rf aws awscliv2.zip
+            fi
+            if ! command -v jq >/dev/null 2>&1; then
+              sudo apt-get update -y
+              sudo apt-get install -y jq
+            fi
+            if ! command -v curl >/dev/null 2>&1; then
+              sudo apt-get update -y
+              sudo apt-get install -y curl
+            fi
+
+            echo "🧹 Docker prune (safe)..."
+            sudo docker system prune -af || true
+            sudo docker system prune -af --volumes || true
+            sudo rm -rf /var/lib/docker/tmp/* || true
+
+            echo "🔐 ECR login..."
+            aws ecr get-login-password --region "$AWS_REGION" \
+            | sudo docker login --username AWS --password-stdin "$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com"
+
+            echo "📥 Pulling image: $IMAGE"
+            sudo docker pull "$IMAGE"
+
+            echo "🛑 Stop old containers if present..."
+            for name in "$APP_NAME" "$CELERY_NAME" "$REDIS_NAME"; do
+              if sudo docker ps -a --format '{{.Names}}' | grep -Eq "^$name$"; then
+                sudo docker rm -f "$name" || true
+              fi
+            done
+
+            echo "🚧 Ensure port 6379 is free..."
+            if sudo lsof -i :6379 -sTCP:LISTEN -t >/dev/null 2>&1; then
+              sudo lsof -i :6379 -sTCP:LISTEN -t | xargs -r sudo kill -9
+            fi
+
+            echo "📡 Start Redis..."
+            sudo docker run -d --name "$REDIS_NAME" \
+              -p 6379:6379 \
+              --health-cmd="redis-cli ping || exit 1" \
+              --health-interval=30s \
+              --health-timeout=10s \
+              --health-retries=3 \
+              --health-start-period=30s \
+              redis:7
+
+            sleep 2
+            if ! sudo docker ps --format '{{.Names}}' | grep -q "^$REDIS_NAME$"; then
+              echo "::error::Redis failed to start"; sudo docker logs "$REDIS_NAME" || true; exit 1
+            fi
+
+            echo "🧾 Build env file from Secrets Manager + SSM..."
+            sudo mkdir -p /opt/cre
+            ENV_PATH=/opt/cre/.env
+
+            # 1) Pull JSON secret and write KEY=VALUE lines
+            SECRET_JSON=$(aws secretsmanager get-secret-value \
+              --secret-id "$SECRET_ID" \
+              --query SecretString --output text --region "$AWS_REGION")
+            echo "$SECRET_JSON" | jq -r 'to_entries[] | "\(.key)=\(.value)"' | sudo tee "$ENV_PATH" >/dev/null
+
+            # 2) (Optional) Add SSM params (names are last path segment)
+            if [ -n "$SSM_PARAMS" ]; then
+              SSM_JSON=$(aws ssm get-parameters \
+                --names $SSM_PARAMS \
+                --with-decryption \
+                --query 'Parameters[].{Name:Name,Value:Value}' \
+                --output json --region "$AWS_REGION")
+              echo "$SSM_JSON" | jq -r '.[] | "\(.Name | split("/")[-1])=\(.Value)"' | sudo tee -a "$ENV_PATH" >/dev/null
+            fi
+
+            sudo chmod 600 "$ENV_PATH"
+
+            echo "🚀 Start app container with --env-file"
+            sudo docker run -d --name "$APP_NAME" \
+              --env-file "$ENV_PATH" \
+              -p 5000:5000 \
+              --link "$REDIS_NAME":redis \
+              --health-cmd="curl -fsS http://localhost:5000/api/v1/user/profile || exit 1" \
+              --health-interval=30s \
+              --health-timeout=10s \
+              --health-retries=3 \
+              --health-start-period=40s \
+              "$IMAGE"
+
+            echo "🚀 Start Celery worker with same env"
+            sudo docker run -d --name "$CELERY_NAME" \
+              --env-file "$ENV_PATH" \
+              --link "$REDIS_NAME":redis \
+              "$IMAGE" \
+              celery -A app.celery.celery_worker worker --loglevel=info
+
+            echo "⏳ Wait a few seconds..."
+            sleep 5
+
+            echo "🗂 Copy frontend build to web root..."
+            sudo mkdir -p "$WEB_ROOT"
+            sudo rm -rf "$WEB_ROOT"/*
+            sudo docker cp "$APP_NAME:$FRONTEND_DIST_PATH/." "$WEB_ROOT/"
+            sudo chown -R www-data:www-data "$WEB_ROOT" || true
+
+            echo "🔍 Status & health"
+            sudo docker ps
+            echo "— APP logs (tail 40) —"
+            sudo docker logs --tail 40 "$APP_NAME" || true
+            echo "— Celery health —"
+            sudo docker inspect --format='{{json .State.Health}}' "$CELERY_NAME" || echo "no health info"
+            echo "— Redis health —"
+            sudo docker inspect --format='{{json .State.Health}}' "$REDIS_NAME" || echo "no health info"
+
+            if ! sudo docker ps --format '{{.Names}}' | grep -q "^$APP_NAME$"; then
+              echo "::error::App container not running"; exit 1
+            fi
+
+            echo "✅ Deployment complete."
