@@ -24,8 +24,21 @@ export type LoginData = {
 
 export type AuthResponse = {
   success: boolean;
+  /**
+   * @deprecated Tokens are stored in HTTP-only cookies by the backend.
+   * These fields are returned for logging/debugging only and should NOT be stored client-side.
+   * The browser automatically sends tokens via cookies with credentials: "include".
+   */
   access_token?: string;
+  /**
+   * @deprecated Tokens are stored in HTTP-only cookies by the backend.
+   * These fields are returned for logging/debugging only and should NOT be stored client-side.
+   */
   id_token?: string;
+  /**
+   * @deprecated Tokens are stored in HTTP-only cookies by the backend.
+   * These fields are returned for logging/debugging only and should NOT be stored client-side.
+   */
   refresh_token?: string;
   user?: {
     email: string;
@@ -113,21 +126,33 @@ export const authApi = {
     });
 
     try {
-      // Log the exact API call being made
+      // Get cookies BEFORE the login request
+      const cookiesBefore = document.cookie.split(';').map(c => c.trim().split('=')[0]).filter(Boolean);
+      
+      // Log the exact API call being made with detailed info
       const apiUrl = "/api/v1/auth/login";
-      log.info("AUTH_LOGIN_API_CALL", "Making API request", {
+      console.log("🔵 AUTH_LOGIN_API_CALL", {
         requestId,
         url: apiUrl,
+        fullUrl: window.location.origin + apiUrl,
         method: "POST",
         hasCredentials: true,
         contentType: "application/json",
+        currentOrigin: window.location.origin,
+        currentHref: window.location.href,
+        cookiesBefore,
+        cookieCountBefore: cookiesBefore.length,
       });
 
       const response = await apiPost<AuthResponse>(apiUrl, data);
       const duration = Date.now() - startTime;
 
-      // Log successful response
-      log.info("AUTH_LOGIN_SUCCESS", "Login request completed successfully", {
+      // Get cookies AFTER the login response
+      const cookiesAfter = document.cookie.split(';').map(c => c.trim().split('=')[0]).filter(Boolean);
+      const newCookies = cookiesAfter.filter(c => !cookiesBefore.includes(c));
+
+      // Log successful response with cookie details
+      console.log("✅ AUTH_LOGIN_SUCCESS", {
         requestId,
         success: response.success,
         hasAccessToken: !!response.access_token,
@@ -135,6 +160,11 @@ export const authApi = {
         hasRefreshToken: !!response.refresh_token,
         hasUser: !!response.user,
         duration: `${duration}ms`,
+        cookiesBefore,
+        cookiesAfter,
+        newCookies,
+        cookieCountBefore: cookiesBefore.length,
+        cookieCountAfter: cookiesAfter.length,
         timestamp: new Date().toISOString(),
       });
 

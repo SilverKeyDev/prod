@@ -31,12 +31,15 @@ export enum AuthEvents {
  */
 export const AUTH_CONFIG = {
   // Storage Keys (lowercase to match existing usage)
+  // NOTE: With HTTP-only cookie authentication, ACCESS_TOKEN, REFRESH_TOKEN, and ID_TOKEN
+  // keys are NEVER used for storage. They remain here for backward compatibility only.
+  // Tokens are stored exclusively in HTTP-only cookies set by the backend.
   STORAGE_KEYS: {
-    ACCESS_TOKEN: "access_token",
-    REFRESH_TOKEN: "refresh_token",
-    ID_TOKEN: "id_token",
-    USER: "user",
-    USER_PROFILE: "userProfile",
+    ACCESS_TOKEN: "access_token",       // ⚠️ Not used with HTTP-only cookies
+    REFRESH_TOKEN: "refresh_token",     // ⚠️ Not used with HTTP-only cookies
+    ID_TOKEN: "id_token",               // ⚠️ Not used with HTTP-only cookies
+    USER: "user",                       // ✅ Used for non-sensitive user data
+    USER_PROFILE: "userProfile",        // ✅ Used for non-sensitive profile data
   },
 
   // Secure Storage Configuration

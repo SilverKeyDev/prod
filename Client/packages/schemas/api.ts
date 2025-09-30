@@ -39,11 +39,12 @@ export type ApiRequestOptions = {
 export type ApiResponse<T> = ApiSuccess<T> | ApiError;
 
 // API Configuration
+// In development: empty string uses Vite proxy
+// In production: full URL to production backend
 export const BASE_URL =
-  (typeof window !== "undefined" &&
-    (window as unknown as { __ENV__?: { VITE_API_BASE_URL?: string } }).__ENV__
-      ?.VITE_API_BASE_URL) ??
-  "";
+  typeof import.meta !== "undefined" && import.meta.env.DEV
+    ? ""
+    : "https://silverkeyestates.com";
 
 // API response types for type safety
 

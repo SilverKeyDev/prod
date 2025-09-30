@@ -173,12 +173,14 @@ export default function VerificationPage() {
       // Tokens are now in HTTP-only cookies set by the server
       // No client-side token storage needed
 
-      // Log successful verification
-      secureTokenUtils.storeTokens({
-        access_token: response?.access_token,
-        id_token: response?.id_token,
-        refresh_token: response?.refresh_token,
-      });
+      // Log token information for debugging (tokens are NOT stored)
+      if (process.env.NODE_ENV === "development") {
+        secureTokenUtils.storeTokens({
+          access_token: response?.access_token,
+          id_token: response?.id_token,
+          refresh_token: response?.refresh_token,
+        });
+      }
 
       // On success, redirect to onboarding
       // Auth state will be picked up by AuthProvider via session verification

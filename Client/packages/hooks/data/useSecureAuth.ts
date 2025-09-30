@@ -400,19 +400,23 @@ export const getSecureAccessToken = (): string | null => {
 };
 
 /**
- * Enhanced token storage utilities with security features - memory only
+ * Enhanced token utilities with security features
+ * NOTE: With HTTP-only cookies, these utilities only LOG token information.
+ * Actual tokens are stored in HTTP-only cookies by the backend and are not accessible to JavaScript.
  */
 export const secureTokenUtils = {
   /**
-   * Store tokens securely (memory only)
+   * Log token information for debugging
+   * NOTE: This does NOT store tokens! Tokens are in HTTP-only cookies.
+   * This function only logs token sizes for security auditing.
    */
   storeTokens: (tokens: {
     access_token?: string;
     refresh_token?: string;
     id_token?: string;
   }) => {
-    // All tokens stored in memory only via useSecureAuth hook
-    // No persistent storage for security
+    // HTTP-only cookies: Tokens are NOT stored client-side
+    // This function only logs token metadata for debugging
 
     // Calculate token sizes for logging
     const accessTokenSize = tokens.access_token
@@ -424,10 +428,10 @@ export const secureTokenUtils = {
     const idTokenSize = tokens.id_token ? tokens.id_token.length : 0;
     const totalSize = accessTokenSize + refreshTokenSize + idTokenSize;
 
-    // Log security event with size information
+    // Log security event with size information (no token values logged)
     secureLogger.security(
       "SECURE_TOKEN_UTILS",
-      "Tokens stored securely in memory only",
+      "Token metadata logged (tokens NOT stored - using HTTP-only cookies)",
       {
         hasAccessToken: !!tokens.access_token,
         hasRefreshToken: !!tokens.refresh_token,
@@ -436,7 +440,8 @@ export const secureTokenUtils = {
         refreshTokenSize,
         idTokenSize,
         totalSize,
-        storageMethod: "memory_only",
+        storageMethod: "http_only_cookies",
+        note: "Tokens are in HTTP-only cookies, not accessible to JS",
       },
     );
   },

@@ -2,6 +2,9 @@ import os
 from dotenv import load_dotenv
 from datetime import timedelta
 from urllib.parse import quote_plus
+import logging
+
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 
@@ -35,45 +38,15 @@ class Config:
     # Database Configuration with SSL support
     # Preferred: set `DATABASE_URL` directly.
     # Fallback: construct from individual env vars if `DATABASE_URL` is not set.
-    # Supported pieces (optional unless noted):
-    #   DB_ENGINE (required if constructing, e.g. "postgresql")
-    #   DB_HOST (required), DB_PORT (optional)
-    #   DB_NAME (required)
-    #   DB_USER (optional), DB_PASSWORD (optional; URL-encoded automatically)
-    #   DB_SSLMODE (optional; e.g., "require", "prefer")
-    database_url = os.getenv('DATABASE_URL')
-    if not database_url:
-        db_engine = os.getenv('DB_ENGINE', '').strip()
-        db_host = os.getenv('DB_HOST', '').strip()
-        db_port = os.getenv('DB_PORT', '').strip()
-        db_name = os.getenv('DB_NAME', '').strip()
-        db_user = os.getenv('DB_USER', '').strip()
-        db_password = os.getenv('DB_PASSWORD', '').strip()
-        db_sslmode = os.getenv('DB_SSLMODE', '').strip()  # e.g. require, prefer
-
-        if db_engine and db_host and db_name:
-            auth_part = ''
-            if db_user:
-                if db_password:
-                    auth_part = f"{db_user}:{quote_plus(db_password)}@"
-                else:
-                    auth_part = f"{db_user}@"
-            host_part = db_host
-            if db_port:
-                host_part = f"{host_part}:{db_port}"
-            query_part = ''
-            if db_sslmode:
-                query_part = f"?sslmode={db_sslmode}"
-            database_url = f"{db_engine}://{auth_part}{host_part}/{db_name}{query_part}"
-        else:
-            # Final fallback to local SQLite for development if nothing else provided
-            database_url = f'sqlite:///{os.path.join(instance_dir, "silverkey.db")}'
-    # Add SSL mode for PostgreSQL connections if not already present
-    if database_url.startswith('postgresql://') or database_url.startswith('postgres://'):
-        if '?sslmode=' not in database_url:
-            separator = '&' if '?' in database_url else '?'
-            database_url += f'{separator}sslmode=prefer'
-    
+    # Supported environment variables (all optional unless noted):
+    #   engine (required if constructing, e.g. "postgres", "postgresql", "mysql")
+    #   username (required for remote DB)
+    #   password (required for remote DB)
+    #   host (required for remote DB, e.g. RDS endpoint)
+    #   port (optional, defaults: PostgreSQL=5432, MySQL=3306)
+    #   dbInstanceIdentifier (required, database name)
+    #   sslmode (optional; e.g., "require", "prefer", "disable")
+    database_url = os.getenv('DATABASE_URL')    
     SQLALCHEMY_DATABASE_URI = database_url
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
@@ -105,7 +78,7 @@ class Config:
     
     # Flask session cookies for OAuth flow
     SESSION_COOKIE_HTTPONLY = True   # Enable HttpOnly for security
-    SESSION_COOKIE_SECURE = True     # Enable Secure for HTTPS
+    SESSION_COOKIE_SECURE = os.getenv('FLASK_ENV') == 'production'  # Only secure in production
     SESSION_COOKIE_SAMESITE = 'Lax' # Enable SameSite for OAuth redirects
     PERMANENT_SESSION_LIFETIME = timedelta(days=1)  # Set to 1 day
     SESSION_COOKIE_NAME = 'silverkey_session'  # Custom session cookie name
@@ -120,7 +93,7 @@ class Config:
     AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
     # Centralize default bucket name here; avoid hardcoding elsewhere
-    S3_BUCKET_NAME_PDFS = os.getenv('S3_BUCKET_NAME_PDFS', 'pdf-storage-jkdsfiugew')
+    S3_BUCKET_NAME_PDFS = 'pdf-storage-jkdsfiugew'
     S3_PRESIGNED_URL_EXPIRATION = int(os.getenv('S3_PRESIGNED_URL_EXPIRATION', 3600))  # 1 hour default
 
     

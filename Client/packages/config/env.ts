@@ -8,7 +8,6 @@
 type ImportMetaEnv = {
   readonly VITE_GOOGLE_MAPS_ID: string;
   readonly VITE_PLAID_CLIENT_ID: string;
-  readonly VITE_API_BASE_URL: string;
 
   // Development
   readonly DEV: boolean;
@@ -24,7 +23,7 @@ class EnvConfig {
   private static readonly STATIC = {
     GOOGLE_MAPS_ID: "",
     PLAID_CLIENT_ID: "",
-    API_BASE_URL: "",
+    // API_BASE_URL is set dynamically based on environment
   } as const;
 
   private constructor() {
@@ -80,7 +79,12 @@ class EnvConfig {
   }
 
   get apiBaseUrl(): string {
-    return EnvConfig.STATIC.API_BASE_URL || this.env.VITE_API_BASE_URL || "";
+    // In development: empty string uses Vite proxy (vite.config.ts)
+    // In production: full URL to production backend
+    if (this.isDevelopment) {
+      return "";
+    }
+    return "https://silverkeyestates.com";
   }
 
   get apiTimeout(): number {

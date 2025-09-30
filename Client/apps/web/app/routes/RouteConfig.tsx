@@ -83,6 +83,7 @@ export const ROUTE_CONFIGS = {
   specialized: [
     { path: "/search/*", providerType: "maps" as const },
     { path: "/negotiation-strategy/*", providerType: "negotiation" as const },
+    { path: "/buyer-checklists/*", providerType: "docs" as const },
     { path: "/close/escrow-legal-logistics/*", providerType: "docs" as const },
     {
       path: "/close/inspections-due-diligence/*",

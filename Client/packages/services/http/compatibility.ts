@@ -39,7 +39,9 @@ const getEnvVar = (key: string, defaultValue: string): string => {
 };
 
 const localHttpConfig: HttpClientConfig = {
-  baseUrl: getEnvVar("VITE_API_BASE_URL", "").replace(/\/+$/, ""),
+  // In development: empty string uses Vite proxy
+  // In production: full URL to production backend
+  baseUrl: (import.meta.env.DEV ? "" : "https://silverkeyestates.com").replace(/\/+$/, ""),
   timeout: parseInt(getEnvVar("VITE_API_TIMEOUT", "30000"), 10),
   retries: parseInt(getEnvVar("VITE_API_RETRIES", "2"), 10),
   authTokenProvider: () => {
@@ -136,7 +138,7 @@ export async function apiRequest<T = unknown>(
 
   // Construct full URL (avoid double slashes) - using centralized logic
   const base = normalizeBase(
-    baseUrl ?? getEnvVar("VITE_API_BASE_URL", "").replace(/\/+$/, ""),
+    baseUrl ?? (import.meta.env.DEV ? "" : "https://silverkeyestates.com").replace(/\/+$/, ""),
   );
   const url = endpoint.startsWith("http")
     ? endpoint
@@ -270,7 +272,7 @@ export async function apiDownloadBlob(
   } = options;
 
   const base = normalizeBase(
-    baseUrl ?? getEnvVar("VITE_API_BASE_URL", "").replace(/\/+$/, ""),
+    baseUrl ?? (import.meta.env.DEV ? "" : "https://silverkeyestates.com").replace(/\/+$/, ""),
   );
   const url = endpoint.startsWith("http")
     ? endpoint
@@ -394,7 +396,7 @@ export function buildApiUrl(
   baseUrl?: string,
 ): string {
   const base = normalizeBase(
-    baseUrl ?? getEnvVar("VITE_API_BASE_URL", "").replace(/\/+$/, ""),
+    baseUrl ?? (import.meta.env.DEV ? "" : "https://silverkeyestates.com").replace(/\/+$/, ""),
   );
   const url = endpoint.startsWith("http")
     ? endpoint

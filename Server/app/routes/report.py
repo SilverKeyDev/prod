@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, current_app
+from flask import Blueprint, request, jsonify, current_app, send_from_directory
 from app.utils.auth import require_auth, get_current_user, SecurityException
 from ..utils.auth import get_current_user
 from ..utils.security import security_error_response, SecurityError, rate_limit
@@ -159,6 +159,57 @@ def list_all_reports():
     """Get all reports for the current user - alias for /list endpoint"""
     return list_reports()
 
+@report_bp.route('/db-diagnostic', methods=['GET'])
+def db_diagnostic():
+    """Diagnostic endpoint to check database connectivity and table status"""
+    from sqlalchemy import text, inspect
+    from sqlalchemy.exc import ProgrammingError as SQLProgrammingError
+    
+    diagnostics = {
+        'db_connected': False,
+        'tables_exist': {},
+        'sample_query': None,
+        'errors': []
+    }
+    
+    try:
+        # Test basic connectivity
+        result = db.session.execute(text("SELECT 1 as test")).fetchone()
+        diagnostics['db_connected'] = True
+        diagnostics['connectivity_test'] = dict(result._mapping) if result else None
+        
+        # Check what tables exist
+        inspector = inspect(db.engine)
+        all_tables = inspector.get_table_names()
+        diagnostics['all_tables'] = all_tables
+        
+        # Check specific tables we care about
+        diagnostics['tables_exist']['pdf_documents'] = 'pdf_documents' in all_tables
+        diagnostics['tables_exist']['users'] = 'users' in all_tables
+        
+        # If pdf_documents table exists, try to query it
+        if 'pdf_documents' in all_tables:
+            try:
+                sample = db.session.execute(text("SELECT * FROM pdf_documents LIMIT 1")).fetchone()
+                diagnostics['sample_query'] = dict(sample._mapping) if sample else "Table exists but is empty"
+                
+                # Get column names
+                columns = inspector.get_columns('pdf_documents')
+                diagnostics['pdf_documents_columns'] = [col['name'] for col in columns]
+            except SQLProgrammingError as e:
+                diagnostics['errors'].append(f"Query error: {str(e)}")
+        else:
+            diagnostics['errors'].append("pdf_documents table does not exist - run migrations")
+            
+    except Exception as e:
+        diagnostics['errors'].append(f"Database error: {type(e).__name__}: {str(e)}")
+        logger.exception("DB diagnostic failed")
+    
+    return jsonify({
+        'success': len(diagnostics['errors']) == 0,
+        'diagnostics': diagnostics
+    }), 200 if len(diagnostics['errors']) == 0 else 500
+
 @report_bp.route('/list', methods=['GET'])
 @rate_limit(max_requests=50, window_seconds=60)
 def list_reports():
@@ -167,7 +218,6 @@ def list_reports():
         seen_names = set()
         user = get_current_user()
         if not user:
-            logger.error(f"User not found with ID: {current_user_id}")
             return jsonify({'error': 'User not found', 'success': False}), 404
 
         # Get generating and processed reports from database
@@ -309,7 +359,6 @@ def list_reports_almostall():
         reports_list = []
         user = get_current_user()
         if not user:
-            logger.error(f"User not found with ID: {current_user_id}")
             return jsonify({'error': 'User not found', 'success': False}), 404
             
         # Get completed reports from S3 using prefix filtering for new tree structure

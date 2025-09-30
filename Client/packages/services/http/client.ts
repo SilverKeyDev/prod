@@ -231,15 +231,26 @@ export class HttpClient {
           ? "HTTP-only cookies"
           : "none";
       
-      console.log("HTTP_REQUEST_DETAILS", {
+      // Get all cookies for debugging
+      const allCookies = document.cookie.split(';').map(c => c.trim().split('=')[0]).filter(Boolean);
+      const hasCookies = document.cookie.length > 0;
+      
+      console.log("🔵 HTTP_REQUEST_DETAILS", {
         method,
         url,
+        currentLocation: window.location.origin,
+        currentHref: window.location.href,
         headers: Object.keys(mergedHeaders),
         headerValues: maskedHeaders,
         authMethod,
         hasAuthHeader: !!mergedHeaders.Authorization,
         authHeaderType: mergedHeaders.Authorization?.split(" ")[0] || "none",
         tokenLength: mergedHeaders.Authorization?.split(" ")[1]?.length || 0,
+        credentials: requestOptions.credentials,
+        mode: requestOptions.mode,
+        hasCookies,
+        allCookies,
+        cookieCount: allCookies.length,
         hasBody: !!requestOptions.body,
         bodyType: requestOptions.body ? typeof requestOptions.body : "none",
         bodyLength: requestOptions.body
@@ -259,8 +270,11 @@ export class HttpClient {
       const contentType = response.headers.get("content-type") ?? "";
       const responseText = await response.text();
 
-      // Log detailed response information
-      console.log("HTTP_RESPONSE_DETAILS", {
+      // Get cookies AFTER the response to see if any were set
+      const cookiesAfter = document.cookie.split(';').map(c => c.trim().split('=')[0]).filter(Boolean);
+      
+      // Log detailed response information with CORS headers
+      console.log("✅ HTTP_RESPONSE_DETAILS", {
         method,
         url,
         status: response.status,
@@ -268,9 +282,30 @@ export class HttpClient {
         contentType,
         responseLength: responseText.length,
         responsePreview: responseText.substring(0, 200),
-        headers: Object.fromEntries(response.headers.entries()),
+        allHeaders: Object.fromEntries(response.headers.entries()),
+        corsHeaders: {
+          'access-control-allow-origin': response.headers.get('access-control-allow-origin'),
+          'access-control-allow-credentials': response.headers.get('access-control-allow-credentials'),
+          'access-control-expose-headers': response.headers.get('access-control-expose-headers'),
+        },
+        setCookieHeader: response.headers.get('set-cookie'),
+        cookiesAfterResponse: cookiesAfter,
+        cookieCountAfter: cookiesAfter.length,
         timestamp: new Date().toISOString(),
       });
+      
+      // Special logging for auth responses
+      if (url.includes('/auth/') || response.status === 401) {
+        console.log("🔐 AUTH_RESPONSE_DETECTED", {
+          url,
+          status: response.status,
+          cookiesBefore: allCookies,
+          cookiesAfter: cookiesAfter,
+          newCookies: cookiesAfter.filter(c => !allCookies.includes(c)),
+          corsOrigin: response.headers.get('access-control-allow-origin'),
+          corsCredentials: response.headers.get('access-control-allow-credentials'),
+        });
+      }
 
       // Handle non-OK responses
       if (!response.ok && !acceptStatuses.includes(response.status)) {
@@ -297,6 +332,19 @@ export class HttpClient {
                 error: string;
                 message?: string;
               };
+              
+              console.error("❌ AUTH_ERROR_401", {
+                url,
+                errorCode: errorBody.error,
+                message: errorBody.message,
+                hasCookies: allCookies.length > 0,
+                cookies: allCookies,
+                requestCredentials: requestOptions.credentials,
+                corsOrigin: response.headers.get('access-control-allow-origin'),
+                corsCredentials: response.headers.get('access-control-allow-credentials'),
+                currentOrigin: window.location.origin,
+              });
+              
               if (authErrorCodes.includes(errorBody.error)) {
                 const authError = new AuthenticationError(
                   errorBody.error,

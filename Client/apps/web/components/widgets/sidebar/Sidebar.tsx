@@ -12,10 +12,6 @@ import {
   Handshake,
   Home,
   FilePlus,
-  Scale,
-  ShieldCheck,
-  Building2,
-  KeyRound,
   Bookmark,
   ClipboardList,
   UserPlus,
@@ -120,25 +116,10 @@ const navigationStructure: NavigationStructure = {
     icon: Key,
     items: [
       {
-        name: "Escrow & Legal",
-        href: "/close/escrow-legal-logistics",
-        icon: Scale,
-      }, // represents legal/balance
-      {
-        name: "Inspections & Due Diligence",
-        href: "/close/inspections-due-diligence",
-        icon: ShieldCheck,
-      }, // safety/verification
-      {
-        name: "Financing & Insurance",
-        href: "/close/financing-insurance",
-        icon: Building2,
-      }, // financial institution
-      {
-        name: "Closing & Move-In",
-        href: "/close/closing-moving-in",
-        icon: KeyRound,
-      }, // handing over the key
+        name: "Buyer Checklists",
+        href: "/buyer-checklists",
+        icon: Key,
+      },
     ],
   },
 };
@@ -315,10 +296,11 @@ export default function Sidebar({
               {Object.entries(getNavigation()).map(
                 ([categoryKey, category]: [string, NavCategory]) => (
                   <div key={categoryKey}>
-                    {/* Render certain categories as direct links (dashboard, onboard, negotiate) */}
+                    {/* Render certain categories as direct links (dashboard, onboard, negotiate, close) */}
                     {categoryKey === "dashboard" ||
                     categoryKey === "onboard" ||
-                    categoryKey === "negotiate" ? (
+                    categoryKey === "negotiate" ||
+                    categoryKey === "close" ? (
                       (() => {
                         const firstItem = category.items[0];
                         const ItemIcon = firstItem?.icon;
@@ -327,7 +309,7 @@ export default function Sidebar({
                             to={firstItem?.href ?? "/"}
                             onClick={() => {
                               console.log(
-                                `[SIDEBAR] ${categoryKey === "dashboard" ? "🏠" : categoryKey === "onboard" ? "📋" : "🤝"} ${firstItem?.name} navigation clicked:`,
+                                `[SIDEBAR] ${categoryKey === "dashboard" ? "🏠" : categoryKey === "onboard" ? "📋" : categoryKey === "negotiate" ? "🤝" : "🔑"} ${firstItem?.name} navigation clicked:`,
                                 {
                                   href: firstItem?.href ?? "/",
                                   userProfile: userProfile

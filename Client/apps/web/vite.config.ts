@@ -11,7 +11,7 @@ export default defineConfig({
     postcss: "./postcss.config.js",
   },
   server: {
-    host: "0.0.0.0",
+    host: "localhost",  // Changed from 0.0.0.0 to localhost for cookie consistency
     port: 5173,
     strictPort: true,
     watch: {
@@ -26,12 +26,13 @@ export default defineConfig({
     },
     proxy: {
       "/api": {
-        target: "http://127.0.0.1:5000",
+        target: "http://localhost:5000",  // Changed from 127.0.0.1 to localhost
         changeOrigin: true,
         secure: false,
+        cookieDomainRewrite: "localhost",  // Ensure cookies are rewritten for localhost
       },
       "/healthz": {
-        target: "http://127.0.0.1:5000",
+        target: "http://localhost:5000",  // Changed from 127.0.0.1 to localhost
         changeOrigin: true,
         secure: false,
       },

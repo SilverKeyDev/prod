@@ -209,6 +209,15 @@ def _verify_minimal_token(token: str) -> User:
         return user
         
     except Exception as e:
+        # Don't catch database errors - let them propagate to proper error handlers
+        from sqlalchemy.exc import SQLAlchemyError
+        if isinstance(e, SQLAlchemyError):
+            logger.error("DATABASE_ERROR_IN_MINIMAL_TOKEN_VERIFICATION", extra={
+                'error': str(e),
+                'error_type': type(e).__name__
+            })
+            raise  # Re-raise DB errors so they get proper 500 handling
+            
         logger.error("MINIMAL_TOKEN_VERIFICATION_ERROR", extra={
             'error': str(e),
             'error_type': type(e).__name__,
@@ -223,26 +232,62 @@ def get_current_user():
     """
     token = None
     
+    # Log ALL cookies and headers for debugging
+    current_app.logger.info(f"🔍 AUTH_MIDDLEWARE_CHECK", extra={
+        'request_path': request.path,
+        'request_method': request.method,
+        'request_origin': request.headers.get('Origin'),
+        'request_host': request.headers.get('Host'),
+        'request_referer': request.headers.get('Referer'),
+        'all_cookies': list(request.cookies.keys()),
+        'has_session_cookie': 'session' in request.cookies,
+        'has_refresh_cookie': 'refresh_token' in request.cookies,
+        'has_auth_header': bool(request.headers.get('Authorization')),
+        'cookie_count': len(request.cookies)
+    })
+    
     # Try to get token from HttpOnly cookie first (preferred method)
     session_cookie = request.cookies.get('session')
     if session_cookie:
         token = session_cookie
-        current_app.logger.debug("Using token from HttpOnly cookie")
+        current_app.logger.info(f"✅ AUTH_TOKEN_FROM_COOKIE", extra={
+            'token_length': len(token),
+            'token_prefix': token[:20] + '...' if len(token) > 20 else token,
+            'cookie_source': 'session'
+        })
     else:
+        current_app.logger.warning(f"⚠️ AUTH_NO_SESSION_COOKIE", extra={
+            'available_cookies': list(request.cookies.keys()),
+            'trying_auth_header': True
+        })
         # Fallback to Authorization header for backward compatibility
         auth = request.headers.get("Authorization", "")
         parts = auth.split()
         if len(parts) == 2 and parts[0].lower() == "bearer":
             token = parts[1]
-            current_app.logger.debug("Using token from Authorization header")
+            current_app.logger.info(f"✅ AUTH_TOKEN_FROM_HEADER", extra={
+                'token_length': len(token),
+                'token_prefix': token[:20] + '...' if len(token) > 20 else token
+            })
         else:
             if not auth:
+                current_app.logger.error(f"❌ AUTH_MISSING_TOKEN", extra={
+                    'cookies_present': list(request.cookies.keys()),
+                    'headers_checked': ['Cookie', 'Authorization']
+                })
                 log_security_event('auth_missing_token')
                 raise SecurityException(SecurityError.UNAUTHORIZED)
+            current_app.logger.error(f"❌ AUTH_INVALID_HEADER_FORMAT", extra={
+                'auth_header': auth[:50] + '...' if len(auth) > 50 else auth
+            })
             log_security_event('auth_invalid_header_format')
             raise SecurityException(SecurityError.INVALID_TOKEN)
     
     if not token:
+        current_app.logger.error(f"❌ AUTH_NO_TOKEN_FOUND", extra={
+            'session_cookie_present': bool(session_cookie),
+            'auth_header_present': bool(request.headers.get('Authorization'))
+        })
         log_security_event('auth_missing_token')
         raise SecurityException(SecurityError.UNAUTHORIZED)
 
@@ -301,18 +346,18 @@ def get_current_user():
             log_security_event('auth_missing_sub')
             raise SecurityException(SecurityError.INVALID_TOKEN)
 
-        user = User.query.filter_by(AWS_COGNITO_id=sub).first()
+        user = User.query.filter_by(cognito_id=sub).first()
         if not user:
             user_email = claims.get('email')
             if user_email:
-                # Try to find by email, then link AWS_COGNITO_id
+                # Try to find by email, then link cognito_id
                 user = User.query.filter_by(email=user_email).first()
                 if user:
-                    user.AWS_COGNITO_id = sub
+                    user.cognito_id = sub
                     db.session.commit()
 
         if not user:
-            log_security_event('auth_user_not_found', {'AWS_COGNITO_id': f"{sub[:8]}..."})
+            log_security_event('auth_user_not_found', {'cognito_id': f"{sub[:8]}..."})
             raise SecurityException(SecurityError.UNAUTHORIZED)
 
         return user
@@ -330,6 +375,15 @@ def get_current_user():
         raise SecurityException(SecurityError.INVALID_TOKEN)
 
     except Exception as e:
+        # Don't catch database errors - let them propagate to proper error handlers
+        from sqlalchemy.exc import SQLAlchemyError
+        if isinstance(e, SQLAlchemyError):
+            current_app.logger.error(f"❌ DATABASE_ERROR_IN_AUTH", extra={
+                'error_type': type(e).__name__,
+                'error': str(e)
+            })
+            raise  # Re-raise DB errors so they get proper 500 handling
+        
         # Includes TypeError from unexpected jose versions in other places
         log_security_event('auth_unexpected_error', {'error_type': type(e).__name__})
         raise SecurityException(SecurityError.UNAUTHORIZED)
@@ -354,6 +408,15 @@ def require_auth(f):
             return security_error_response(se.error_tuple)
 
         except Exception as e:
+            # Don't catch database errors - let them propagate to proper error handlers
+            from sqlalchemy.exc import SQLAlchemyError
+            if isinstance(e, SQLAlchemyError):
+                logger.error("DATABASE_ERROR_IN_AUTH_DECORATOR", extra={
+                    'error_type': type(e).__name__,
+                    'error': str(e)
+                })
+                raise  # Re-raise DB errors so they get proper 500 handling
+            
             log_security_event('auth_decorator_error', {'error': str(e)})
             return security_error_response(SecurityError.UNAUTHORIZED)
 

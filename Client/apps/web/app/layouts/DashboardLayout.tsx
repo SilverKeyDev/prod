@@ -17,6 +17,7 @@ import TimelineChecklist from "../../features/dashboard/DashboardButtonHeader.ts
 // Page components - Dashboard
 // Page components - Search
 // Page components - Decide
+import BuyerChecklists from "../../pages/Close/BuyerChecklists.tsx";
 import ClosingMovingIn from "../../pages/Close/ClosingMovingIn.tsx";
 import EscrowLegalLogistics from "../../pages/Close/EscrowLegalLogistics.tsx";
 import FinancingInsurance from "../../pages/Close/FinancingInsurance.tsx";
@@ -68,6 +69,7 @@ const PAGE_WIDTH_CONFIG: PageWidthConfig = {
   "/compare-reports": 90,
   "/generate-report": 75,
   "/dashboard": 100,
+  "/buyer-checklists": 100,
 };
 
 export default function DashboardLayout({
@@ -91,7 +93,7 @@ export default function DashboardLayout({
 
     // Find matching page configuration
     const configPath = Object.keys(PAGE_WIDTH_CONFIG).find((configPath) =>
-      path.startsWith(configPath),
+      path.startsWith(configPath)
     );
 
     // Use page-specific width or default to maxWidth (defaulting to 85)
@@ -102,7 +104,9 @@ export default function DashboardLayout({
     const path = location.pathname;
     if (header) return header;
 
-    if (path.startsWith("/close/escrow-legal-logistics")) {
+    if (path.startsWith("/buyer-checklists")) {
+      return { type: "none", title: "Buyer Checklists" };
+    } else if (path.startsWith("/close/escrow-legal-logistics")) {
       return { type: "none", title: "Escrow & Legal" };
     } else if (path.startsWith("/close/inspections-due-diligence")) {
       return { type: "none", title: "Inspections" };
@@ -254,7 +258,7 @@ export default function DashboardLayout({
     };
 
     const override = Object.keys(mobileOverrides).find((key) =>
-      path.startsWith(key),
+      path.startsWith(key)
     );
     if (override) return mobileOverrides[override];
 
@@ -323,18 +327,22 @@ export default function DashboardLayout({
           className={`mx-auto w-full ${
             location.pathname.startsWith("/search")
               ? "h-[calc(100vh-80px)] lg:h-[calc(100vh-0px)]" // Full height for search page
-              : `p-4 sm:p-6 lg:p-8 mt-4 lg:mt-0 ${
-                  (location.pathname.startsWith(
-                    "/close/escrow-legal-logistics",
-                  ) ??
-                  location.pathname.startsWith(
-                    "/close/inspections-due-diligence",
-                  ) ??
-                  (location.pathname.startsWith("/close/financing-insurance") ||
-                    location.pathname.startsWith("/close/closing-moving-in")))
-                    ? ""
-                    : "lg:pt-8"
-                }`
+              : location.pathname.startsWith("/buyer-checklists")
+                ? "" // No padding for buyer checklists page
+                : `p-4 sm:p-6 lg:p-8 mt-4 lg:mt-0 ${
+                    (location.pathname.startsWith(
+                      "/close/escrow-legal-logistics"
+                    ) ??
+                    location.pathname.startsWith(
+                      "/close/inspections-due-diligence"
+                    ) ??
+                    (location.pathname.startsWith(
+                      "/close/financing-insurance"
+                    ) ||
+                      location.pathname.startsWith("/close/closing-moving-in")))
+                      ? ""
+                      : "lg:pt-8"
+                  }`
           }`}
           style={{
             maxWidth: `${getPageWidth()}vw`,
@@ -359,6 +367,9 @@ export default function DashboardLayout({
           )}
           {location.pathname.startsWith("/negotiation-strategy") && (
             <NegotiationStrategy />
+          )}
+          {location.pathname.startsWith("/buyer-checklists") && (
+            <BuyerChecklists />
           )}
           {location.pathname.startsWith("/close/escrow-legal-logistics") && (
             <EscrowLegalLogistics

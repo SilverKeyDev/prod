@@ -2,14 +2,18 @@ import { useState, useEffect, useCallback } from "react";
 
 import SavedLayout, { type ViewMode } from "../../app/layouts/SavedLayout";
 import { PropertyCard } from "../../components/cards";
+import ReportCard from "../../components/cards/ReportCard";
 import {
   CardHeartSave,
   CardViewDetailsButton,
 } from "../../components/cards/base";
+import DeleteModal from "../../components/modals/DeleteModal";
+import PdfModal from "../../components/modals/PdfModal";
 import PropertyDetailsModal from "../../components/modals/PropertyDetailsModal";
 import { KeyTurnLoader } from "../../components/ui";
-import { userApi } from "../../../../packages/config/api";
-import type { SavedHome } from "../../../../packages/schemas";
+import { userApi, reportApi } from "../../../../packages/config/api";
+import { useDocumentActions } from "../../../../packages/hooks/data/useDocumentActions";
+import type { SavedHome, Report } from "../../../../packages/schemas";
 import { useUIStore, useNegotiationStore } from "../../../../packages/store";
 
 export default function SavedHomes() {
@@ -17,13 +21,32 @@ export default function SavedHomes() {
   const [searchTerm, setSearchTerm] = useState("");
   const [refreshing, setRefreshing] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState<SavedHome | null>(
-    null,
+    null
   );
   const [homes, setHomes] = useState<SavedHome[]>([]);
+  const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [viewType, setViewType] = useState<"homes" | "reports">("homes");
   const enqueueToast = useUIStore((s) => s.enqueueToast);
   const { setSelectedHome } = useNegotiationStore();
+
+  // Use centralized document actions for reports
+  const {
+    loadingUrls,
+    handleViewDocument,
+    handleDownloadDocument,
+    handleShareDocument,
+    currentPdf,
+    currentDocumentName,
+    closePdfModal,
+  } = useDocumentActions();
+
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [reportToDelete, setReportToDelete] = useState<{
+    id: string;
+    s3Key: string | null | undefined;
+  } | null>(null);
 
   // Fetch saved homes using userApi.getFavoriteHomes() - copied from Dashboard
   const fetchSavedHomes = useCallback(async () => {
@@ -53,7 +76,7 @@ export default function SavedHomes() {
             lng: (home.lng as number) ?? 0,
             // Any other HomeUniversal fields can be passed through
             ...home,
-          }),
+          })
         );
         setHomes(homeObjects);
       } else {
@@ -65,17 +88,43 @@ export default function SavedHomes() {
     setLoading(false);
   }, []);
 
-  // Load saved homes when page loads
+  // Fetch reports using reportApi.getAll()
+  const fetchReports = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await reportApi.getAll();
+      if (res.success && res.reports) {
+        setReports(res.reports as Report[]);
+      } else {
+        void void setError(res.error ?? "Failed to load reports");
+      }
+    } catch {
+      void void setError("Failed to load reports");
+    }
+    setLoading(false);
+  }, []);
+
+  // Load data when page loads or view type changes
   useEffect(() => {
-    void fetchSavedHomes();
-    // Optionally expose refresh in dev
-    (window as unknown as { refreshFavorites?: () => void }).refreshFavorites =
-      () => void fetchSavedHomes();
-  }, [fetchSavedHomes]);
+    if (viewType === "homes") {
+      void fetchSavedHomes();
+      // Optionally expose refresh in dev
+      (
+        window as unknown as { refreshFavorites?: () => void }
+      ).refreshFavorites = () => void fetchSavedHomes();
+    } else {
+      void fetchReports();
+    }
+  }, [fetchSavedHomes, fetchReports, viewType]);
 
   const refresh = async () => {
     setRefreshing(true);
-    await fetchSavedHomes();
+    if (viewType === "homes") {
+      await fetchSavedHomes();
+    } else {
+      await fetchReports();
+    }
     setRefreshing(false);
   };
 
@@ -127,7 +176,7 @@ export default function SavedHomes() {
         message: `Selected ${home.address || home.description} for negotiation`,
       });
     },
-    [setSelectedHome, enqueueToast],
+    [setSelectedHome, enqueueToast]
   );
 
   // Check if a home is saved (for modal)
@@ -139,10 +188,10 @@ export default function SavedHomes() {
             home.id === homeId ||
             home.zpid === homeId ||
             home.zpid?.toString() === homeId) ??
-          home.address === homeId,
+          home.address === homeId
       );
     },
-    [homes],
+    [homes]
   );
 
   // Save home for modal - use exact same format as working Dashboard
@@ -174,6 +223,73 @@ export default function SavedHomes() {
     );
   });
 
+  const filteredReports = reports.filter((r: Report) =>
+    r.address?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Handle report actions
+  const handleShareReport = useCallback(
+    async (report: Report) => {
+      const result = await handleShareDocument(report.id, report.address);
+      if (result.success)
+        enqueueToast({ type: "success", message: result.message });
+      else enqueueToast({ type: "error", message: result.message });
+    },
+    [handleShareDocument, enqueueToast]
+  );
+
+  const openDeleteModal = (
+    reportId: string,
+    s3Key: string | null | undefined
+  ) => {
+    setReportToDelete({ id: reportId, s3Key });
+    setDeleteModalOpen(true);
+  };
+
+  const closeDeleteModal = () => {
+    setDeleteModalOpen(false);
+    setReportToDelete(null);
+  };
+
+  const handleDeleteReport = async (
+    reportId: string,
+    s3Key: string | null | undefined
+  ) => {
+    if (!reportId) {
+      console.error("[DELETE] Error: No report ID provided");
+      return;
+    }
+
+    try {
+      if (!s3Key) {
+        console.warn(
+          "[DELETE] No S3 key provided, will only delete from in-memory storage"
+        );
+      }
+
+      await reportApi.delete(reportId, s3Key ?? undefined);
+
+      closeDeleteModal();
+      enqueueToast({ type: "success", message: "Report deleted successfully" });
+
+      // Refresh the reports list
+      await fetchReports();
+    } catch (error: unknown) {
+      console.error("[DELETE] Error deleting report:", {
+        error,
+        reportId,
+        s3Key,
+        stack: error instanceof Error ? error.stack : "No stack trace",
+      });
+
+      enqueueToast({
+        type: "error",
+        message:
+          error instanceof Error ? error.message : "Failed to delete report",
+      });
+    }
+  };
+
   // overlay toast component
   useEffect(() => {
     if (error) enqueueToast({ type: "error", message: error });
@@ -182,149 +298,214 @@ export default function SavedHomes() {
 
   return (
     <div>
+      <PdfModal
+        currentPdf={currentPdf}
+        currentReportAddress={currentDocumentName}
+        onClose={closePdfModal}
+      />
+      <DeleteModal
+        isOpen={deleteModalOpen}
+        onClose={closeDeleteModal}
+        onConfirm={() =>
+          reportToDelete &&
+          handleDeleteReport(reportToDelete.id, reportToDelete.s3Key)
+        }
+      />
       <div className="space-y-8">
         <SavedLayout
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
-          searchPlaceholder="Search saved homes..."
+          searchPlaceholder={
+            viewType === "homes" ? "Search saved homes..." : "Filter by address"
+          }
           viewMode={viewMode}
           onViewModeChange={setViewMode}
-          showViewToggle={false}
+          showViewToggle={viewType === "reports"}
           onRefresh={refresh}
           isRefreshing={refreshing}
           isLoading={loading}
-          refreshTitle="Refresh saved homes"
-          rightText={`${filteredHomes.length} saved`}
+          refreshTitle={
+            viewType === "homes" ? "Refresh saved homes" : "Refresh reports"
+          }
+          rightText={
+            viewType === "homes"
+              ? `${filteredHomes.length} saved`
+              : `${filteredReports.length} report${filteredReports.length !== 1 ? "s" : ""}`
+          }
+          viewType={viewType}
+          onViewTypeChange={setViewType}
         />
 
         {/* Content */}
-        {filteredHomes.length === 0 ? (
+        {viewType === "homes" ? (
+          filteredHomes.length === 0 ? (
+            loading ? (
+              <div className="py-responsive-lg flex justify-center">
+                <KeyTurnLoader message="Loading saved homes..." />
+              </div>
+            ) : (
+              <div className="py-12 text-center">
+                <p className="text-gray-600">You have no saved homes yet.</p>
+              </div>
+            )
+          ) : viewMode === "grid" ? (
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-8 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {filteredHomes.map((home: SavedHome) => (
+                <PropertyCard
+                  key={home.home_id}
+                  id={home.home_id}
+                  imageUrl={home.image_url}
+                  address={
+                    typeof home.address === "string" ||
+                    typeof home.address === "number"
+                      ? home.address.toString()
+                      : (home.description ?? "[Invalid address]")
+                  }
+                  price={
+                    typeof home.price === "string" ||
+                    typeof home.price === "number"
+                      ? home.price.toString()
+                      : "[Invalid price]"
+                  }
+                  bedrooms={home.bedrooms}
+                  bathrooms={home.bathrooms}
+                  sqft={home.sqft}
+                  lotSize={
+                    typeof home.lot_size === "string"
+                      ? home.lot_size
+                      : undefined
+                  }
+                  pricePosition="below-address"
+                  cardType="searchpage"
+                  showScore={false}
+                  topContent={
+                    <CardHeartSave
+                      property={{
+                        id: home.home_id,
+                        address: home.address ?? home.description ?? "",
+                        price: home.price,
+                        bedrooms: home.bedrooms,
+                        bathrooms: home.bathrooms,
+                        sqft: home.sqft,
+                        lat: home.lat,
+                        lng: home.lng,
+                        images: home.image_url ? [home.image_url] : [],
+                      }}
+                      isSaved={true}
+                      onSave={() => saveHome(home)}
+                      onRemove={() => removeSavedHome(home.home_id)}
+                      size="sm"
+                    />
+                  }
+                  bottomContent={
+                    <CardViewDetailsButton
+                      onClick={() => handleUnlockHome(home)}
+                      loading={false}
+                      size="sm"
+                      variant="primary"
+                      fullWidth
+                      text="Unlock"
+                    />
+                  }
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="mobile-container space-y-6">
+              {filteredHomes.map((home: SavedHome) => (
+                <PropertyCard
+                  key={home.home_id}
+                  id={home.home_id}
+                  imageUrl={home.image_url}
+                  address={
+                    typeof home.address === "string" ||
+                    typeof home.address === "number"
+                      ? home.address.toString()
+                      : (home.description ?? "[Invalid address]")
+                  }
+                  price={
+                    typeof home.price === "string" ||
+                    typeof home.price === "number"
+                      ? home.price.toString()
+                      : "[Invalid price]"
+                  }
+                  bedrooms={home.bedrooms}
+                  bathrooms={home.bathrooms}
+                  sqft={home.sqft}
+                  lotSize={
+                    typeof home.lot_size === "string"
+                      ? home.lot_size
+                      : undefined
+                  }
+                  pricePosition="below-address"
+                  cardType="searchpage"
+                  showScore={false}
+                  topContent={
+                    <CardHeartSave
+                      property={{
+                        id: home.home_id,
+                        address: home.address ?? home.description ?? "",
+                        price: home.price,
+                        bedrooms: home.bedrooms,
+                        bathrooms: home.bathrooms,
+                        sqft: home.sqft,
+                        lat: home.lat,
+                        lng: home.lng,
+                        images: home.image_url ? [home.image_url] : [],
+                      }}
+                      isSaved={true}
+                      onSave={() => saveHome(home)}
+                      onRemove={() => removeSavedHome(home.home_id)}
+                      size="sm"
+                    />
+                  }
+                  bottomContent={
+                    <CardViewDetailsButton
+                      onClick={() => handleUnlockHome(home)}
+                      loading={false}
+                      size="sm"
+                      variant="primary"
+                      fullWidth
+                      text="Unlock"
+                    />
+                  }
+                />
+              ))}
+            </div>
+          )
+        ) : /* Reports View */
+        filteredReports.length === 0 ? (
           loading ? (
             <div className="py-responsive-lg flex justify-center">
-              <KeyTurnLoader message="Loading saved homes..." />
+              <KeyTurnLoader message="Loading reports..." />
             </div>
           ) : (
             <div className="py-12 text-center">
-              <p className="text-gray-600">You have no saved homes yet.</p>
+              <p className="text-gray-600">
+                {searchTerm
+                  ? "No reports found matching your search"
+                  : "You have no reports yet."}
+              </p>
             </div>
           )
-        ) : viewMode === "grid" ? (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-8 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {filteredHomes.map((home: SavedHome) => (
-              <PropertyCard
-                key={home.home_id}
-                id={home.home_id}
-                imageUrl={home.image_url}
-                address={
-                  typeof home.address === "string" ||
-                  typeof home.address === "number"
-                    ? home.address.toString()
-                    : (home.description ?? "[Invalid address]")
-                }
-                price={
-                  typeof home.price === "string" ||
-                  typeof home.price === "number"
-                    ? home.price.toString()
-                    : "[Invalid price]"
-                }
-                bedrooms={home.bedrooms}
-                bathrooms={home.bathrooms}
-                sqft={home.sqft}
-                lotSize={
-                  typeof home.lot_size === "string" ? home.lot_size : undefined
-                }
-                pricePosition="below-address"
-                cardType="searchpage"
-                showScore={false}
-                topContent={
-                  <CardHeartSave
-                    property={{
-                      id: home.home_id,
-                      address: home.address ?? home.description ?? "",
-                      price: home.price,
-                      bedrooms: home.bedrooms,
-                      bathrooms: home.bathrooms,
-                      sqft: home.sqft,
-                      lat: home.lat,
-                      lng: home.lng,
-                      images: home.image_url ? [home.image_url] : [],
-                    }}
-                    isSaved={true}
-                    onSave={() => saveHome(home)}
-                    onRemove={() => removeSavedHome(home.home_id)}
-                    size="sm"
-                  />
-                }
-                bottomContent={
-                  <CardViewDetailsButton
-                    onClick={() => handleUnlockHome(home)}
-                    loading={false}
-                    size="sm"
-                    variant="primary"
-                    fullWidth
-                    text="Unlock"
-                  />
-                }
-              />
-            ))}
-          </div>
         ) : (
-          <div className="mobile-container space-y-6">
-            {filteredHomes.map((home: SavedHome) => (
-              <PropertyCard
-                key={home.home_id}
-                id={home.home_id}
-                imageUrl={home.image_url}
-                address={
-                  typeof home.address === "string" ||
-                  typeof home.address === "number"
-                    ? home.address.toString()
-                    : (home.description ?? "[Invalid address]")
-                }
-                price={
-                  typeof home.price === "string" ||
-                  typeof home.price === "number"
-                    ? home.price.toString()
-                    : "[Invalid price]"
-                }
-                bedrooms={home.bedrooms}
-                bathrooms={home.bathrooms}
-                sqft={home.sqft}
-                lotSize={
-                  typeof home.lot_size === "string" ? home.lot_size : undefined
-                }
-                pricePosition="below-address"
-                cardType="searchpage"
-                showScore={false}
-                topContent={
-                  <CardHeartSave
-                    property={{
-                      id: home.home_id,
-                      address: home.address ?? home.description ?? "",
-                      price: home.price,
-                      bedrooms: home.bedrooms,
-                      bathrooms: home.bathrooms,
-                      sqft: home.sqft,
-                      lat: home.lat,
-                      lng: home.lng,
-                      images: home.image_url ? [home.image_url] : [],
-                    }}
-                    isSaved={true}
-                    onSave={() => saveHome(home)}
-                    onRemove={() => removeSavedHome(home.home_id)}
-                    size="sm"
-                  />
-                }
-                bottomContent={
-                  <CardViewDetailsButton
-                    onClick={() => handleUnlockHome(home)}
-                    loading={false}
-                    size="sm"
-                    variant="primary"
-                    fullWidth
-                    text="Unlock"
-                  />
-                }
+          <div
+            className={
+              viewMode === "grid"
+                ? "grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3"
+                : "space-y-3 sm:space-y-4"
+            }
+          >
+            {filteredReports.map((report) => (
+              <ReportCard
+                key={report.id}
+                report={report}
+                loadingUrls={loadingUrls}
+                viewMode={viewMode}
+                onView={handleViewDocument}
+                onDownload={handleDownloadDocument}
+                onShare={() => handleShareReport(report)}
+                onDelete={openDeleteModal}
               />
             ))}
           </div>

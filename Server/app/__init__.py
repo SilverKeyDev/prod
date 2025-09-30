@@ -23,6 +23,8 @@ from flask_executor import Executor
 from .config import Config
 import logging
 from jose.exceptions import ExpiredSignatureError
+from sqlalchemy.exc import ProgrammingError, OperationalError, IntegrityError, DatabaseError
+from werkzeug.exceptions import Unauthorized
 
 # Initialize extensions
 db = SQLAlchemy()
@@ -66,10 +68,10 @@ def create_app(config=None):
     base_origins = Config.CORS_ORIGINS.copy()
     
     # Development origins (only added in non-production environments)
+    # Note: Use localhost consistently for proper cookie behavior
     development_origins = [
         "http://localhost:3000",
-        "http://localhost:5173",
-        "http://127.0.0.1:5173"
+        "http://localhost:5173"
     ]
     
     # Combine origins based on environment
@@ -138,6 +140,33 @@ def create_app(config=None):
         'token_size_reduction': '~71%'
     })
 
+    # Test DB connectivity at startup and log connection details
+    try:
+        from sqlalchemy import text
+        with db.engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        
+        # Log DB connection info (redacted for security)
+        db_uri = app.config.get('SQLALCHEMY_DATABASE_URI', '')
+        # Extract host/port/db without credentials
+        if '@' in db_uri:
+            db_info = db_uri.split('@')[-1]  # Get host:port/db?params only
+        else:
+            db_info = 'local_sqlite'
+        
+        app.logger.info("DATABASE_CONNECTIVITY_CHECK", extra={
+            'status': 'connected',
+            'database_info': db_info,
+            'environment': flask_env
+        })
+    except Exception as e:
+        app.logger.error("DATABASE_CONNECTIVITY_CHECK_FAILED", extra={
+            'status': 'failed',
+            'error': str(e),
+            'error_type': type(e).__name__,
+            'environment': flask_env
+        })
+
     # Register blueprints
     from .routes.report import report_bp
     from .routes.dashboard import dashboard_bp
@@ -169,10 +198,18 @@ def create_app(config=None):
     app.register_blueprint(google_calendar_bp)
     app.register_blueprint(plaid_bp)
 
-    # Health check endpoint
+    # Health check endpoint with DB connectivity test
     @app.route('/healthz', methods=['GET', 'HEAD'])
     def healthz():
-        return jsonify({"status": "ok"}), 200
+        try:
+            from sqlalchemy import text
+            # Test database connectivity
+            with db.engine.connect() as conn:
+                conn.execute(text("SELECT 1"))
+            return jsonify({"status": "ok", "database": "connected"}), 200
+        except Exception as e:
+            app.logger.error(f"Health check failed: {str(e)}")
+            return jsonify({"status": "error", "database": "disconnected", "error": str(e)}), 503
 
 
     # Request/Response logging middleware
@@ -234,7 +271,12 @@ def create_app(config=None):
             request_id = g.request_id
             duration_ms = int((time.time() - g.start_time) * 1000)
             
-            # Log response details
+            # Log CORS and cookie headers
+            cors_origin = response.headers.get('Access-Control-Allow-Origin')
+            cors_credentials = response.headers.get('Access-Control-Allow-Credentials')
+            set_cookie_headers = response.headers.getlist('Set-Cookie')
+            
+            # Log response details with CORS info
             app.logger.info(f"RESPONSE_COMPLETE", extra={
                 'request_id': request_id,
                 'method': request.method,
@@ -245,8 +287,24 @@ def create_app(config=None):
                 'content_type': response.content_type,
                 'content_length': response.content_length,
                 'duration_ms': duration_ms,
-                'timestamp': datetime.utcnow().isoformat()
+                'timestamp': datetime.utcnow().isoformat(),
+                'cors_origin': cors_origin,
+                'cors_credentials': cors_credentials,
+                'set_cookie_count': len(set_cookie_headers),
+                'request_origin': request.headers.get('Origin')
             })
+            
+            # Detailed logging for auth or cookie-related responses
+            if set_cookie_headers or request.endpoint and 'auth' in str(request.endpoint):
+                app.logger.info(f"🔐 RESPONSE_WITH_COOKIES_OR_AUTH", extra={
+                    'request_id': request_id,
+                    'endpoint': request.endpoint,
+                    'request_origin': request.headers.get('Origin'),
+                    'response_cors_origin': cors_origin,
+                    'response_cors_credentials': cors_credentials,
+                    'cookies_being_set': len(set_cookie_headers),
+                    'cookie_names': [c.split('=')[0] for c in set_cookie_headers] if set_cookie_headers else []
+                })
             
             # Enhanced logging for auth endpoints
             if request.endpoint and 'auth' in request.endpoint:
@@ -411,6 +469,130 @@ def create_app(config=None):
             'error': 'GATEWAY_TIMEOUT',
             'message': 'Request timeout. Please try again later.'
         }), 504
+
+    # Database error handlers - DO NOT map these to 401
+    @app.errorhandler(ProgrammingError)
+    def handle_programming_error(error):
+        import traceback
+        from datetime import datetime
+        
+        request_id = getattr(g, 'request_id', 'unknown')
+        error_traceback = traceback.format_exc()
+        
+        app.logger.error(f"DB_PROGRAMMING_ERROR", extra={
+            'request_id': request_id,
+            'error_type': 'ProgrammingError',
+            'error_message': str(error),
+            'traceback': error_traceback,
+            'url': request.url if request else 'unknown',
+            'method': request.method if request else 'unknown',
+            'endpoint': request.endpoint if request else 'unknown',
+            'timestamp': datetime.utcnow().isoformat()
+        })
+        
+        return jsonify({
+            'success': False,
+            'error': 'DATABASE_ERROR',
+            'message': 'Database query error. Please contact support if this persists.'
+        }), 500
+
+    @app.errorhandler(OperationalError)
+    def handle_operational_error(error):
+        import traceback
+        from datetime import datetime
+        
+        request_id = getattr(g, 'request_id', 'unknown')
+        error_traceback = traceback.format_exc()
+        
+        app.logger.error(f"DB_OPERATIONAL_ERROR", extra={
+            'request_id': request_id,
+            'error_type': 'OperationalError',
+            'error_message': str(error),
+            'traceback': error_traceback,
+            'url': request.url if request else 'unknown',
+            'method': request.method if request else 'unknown',
+            'endpoint': request.endpoint if request else 'unknown',
+            'timestamp': datetime.utcnow().isoformat()
+        })
+        
+        return jsonify({
+            'success': False,
+            'error': 'DATABASE_CONNECTION_ERROR',
+            'message': 'Database connection error. Please try again later.'
+        }), 503
+
+    @app.errorhandler(IntegrityError)
+    def handle_integrity_error(error):
+        import traceback
+        from datetime import datetime
+        
+        request_id = getattr(g, 'request_id', 'unknown')
+        error_traceback = traceback.format_exc()
+        
+        app.logger.error(f"DB_INTEGRITY_ERROR", extra={
+            'request_id': request_id,
+            'error_type': 'IntegrityError',
+            'error_message': str(error),
+            'traceback': error_traceback,
+            'url': request.url if request else 'unknown',
+            'method': request.method if request else 'unknown',
+            'endpoint': request.endpoint if request else 'unknown',
+            'timestamp': datetime.utcnow().isoformat()
+        })
+        
+        return jsonify({
+            'success': False,
+            'error': 'DATA_INTEGRITY_ERROR',
+            'message': 'Data integrity constraint violation.'
+        }), 422
+
+    @app.errorhandler(DatabaseError)
+    def handle_database_error(error):
+        import traceback
+        from datetime import datetime
+        
+        request_id = getattr(g, 'request_id', 'unknown')
+        error_traceback = traceback.format_exc()
+        
+        app.logger.error(f"DB_GENERAL_ERROR", extra={
+            'request_id': request_id,
+            'error_type': 'DatabaseError',
+            'error_message': str(error),
+            'traceback': error_traceback,
+            'url': request.url if request else 'unknown',
+            'method': request.method if request else 'unknown',
+            'endpoint': request.endpoint if request else 'unknown',
+            'timestamp': datetime.utcnow().isoformat()
+        })
+        
+        return jsonify({
+            'success': False,
+            'error': 'DATABASE_ERROR',
+            'message': 'Database error occurred. Please try again later.'
+        }), 500
+
+    @app.errorhandler(Unauthorized)
+    def handle_unauthorized(error):
+        import traceback
+        from datetime import datetime
+        
+        request_id = getattr(g, 'request_id', 'unknown')
+        
+        app.logger.warning(f"UNAUTHORIZED_ACCESS", extra={
+            'request_id': request_id,
+            'error_type': 'Unauthorized',
+            'error_message': str(error),
+            'url': request.url if request else 'unknown',
+            'method': request.method if request else 'unknown',
+            'endpoint': request.endpoint if request else 'unknown',
+            'timestamp': datetime.utcnow().isoformat()
+        })
+        
+        return jsonify({
+            'success': False,
+            'error': 'UNAUTHORIZED',
+            'message': 'Authentication required.'
+        }), 401
 
     # Static asset serving
     @app.route('/assets/<path:filename>')

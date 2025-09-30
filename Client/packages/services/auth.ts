@@ -29,15 +29,14 @@ export const authService = {
     try {
       log.security("AUTH_SERVICE", "Logout initiated");
 
-      // 1. Remove auth tokens from all storage locations
+      // 1. Remove non-sensitive user data from storage
+      // Note: Tokens are in HTTP-only cookies and cannot be cleared client-side
       localStorage.removeItem("user");
-      localStorage.removeItem("access_token");
-      localStorage.removeItem("id_token");
       localStorage.removeItem("signupEmail");
-      sessionStorage.removeItem("access_token");
-      sessionStorage.removeItem("refresh_token");
+      sessionStorage.removeItem("user");
+      sessionStorage.removeItem("signupEmail");
 
-      // 2. Clear secure auth tokens via global functions
+      // 2. Clear secure auth tokens via global functions (no-op for HTTP-only cookies)
       const windowWithSecureTokens = window as unknown as {
         clearSecureTokens?: () => void;
       };
@@ -48,9 +47,10 @@ export const authService = {
       // 3. Clear sensitive caches and user context
       clearUserContext();
 
-      // 4. Call backend logout endpoint if available
-      // TODO: Implement backend logout endpoint call when available
-      // await apiPost('/api/v1/auth/logout', {});
+      // 4. Call backend logout endpoint to clear HTTP-only cookies
+      // The backend sets the session and refresh_token cookies to expire immediately
+      // This is done via POST /api/v1/auth/logout
+      // Note: This should be called by the logout hook, not here
 
       // 5. Record security audit log
       reportSecurityEvent({
@@ -82,39 +82,33 @@ export const authService = {
 
   /**
    * Check if user is currently authenticated
+   * With HTTP-only cookies, check if user data exists in sessionStorage
+   * The actual token is in HTTP-only cookie and not accessible to JS
    */
   isAuthenticated: (): boolean => {
-    // Check secure auth first
-    const windowWithSecureAuth = window as unknown as {
-      getSecureAccessToken?: () => string | null;
-    };
-    if (windowWithSecureAuth.getSecureAccessToken) {
-      const token = windowWithSecureAuth.getSecureAccessToken();
-      if (token) return true;
+    // Check if user data exists (stored in auth store)
+    const userData = sessionStorage.getItem(AUTH_CONFIG.STORAGE_KEYS.USER);
+    if (userData) {
+      try {
+        const user = JSON.parse(userData);
+        return !!user && !!user.id;
+      } catch {
+        return false;
+      }
     }
-
-    // Fallback to session storage
-    const sessionToken = sessionStorage.getItem(
-      AUTH_CONFIG.STORAGE_KEYS.ACCESS_TOKEN,
-    );
-    if (sessionToken) return true;
 
     return false;
   },
 
   /**
    * Get current access token for API calls
+   * With HTTP-only cookies, always returns null so Authorization header is not set
+   * Browser automatically sends session cookie with credentials: "include"
    */
   getAccessToken: (): string | null => {
-    // Priority: secure auth -> session storage -> null
-    const windowWithSecureAuth = window as unknown as {
-      getSecureAccessToken?: () => string | null;
-    };
-    if (windowWithSecureAuth.getSecureAccessToken) {
-      const token = windowWithSecureAuth.getSecureAccessToken();
-      if (token) return token;
-    }
-
-    return sessionStorage.getItem(AUTH_CONFIG.STORAGE_KEYS.ACCESS_TOKEN);
+    // HTTP-only cookies: tokens are not accessible to JavaScript
+    // The browser automatically includes the session cookie in requests
+    // Always return null so no Authorization header is added
+    return null;
   },
 };

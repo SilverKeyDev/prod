@@ -48,7 +48,7 @@ def signup():
         # Create user in our database
         user = User(
             id=result['user_sub'],
-            AWS_COGNITO_id=result['user_sub'],
+            cognito_id=result['user_sub'],
             email=data['email'],
             name=data['name'],
             phone=data.get('phone'),
@@ -119,13 +119,13 @@ def verify():
         # Get user data from database for minimal token creation
         try:
             from ..models.user import User
-            user = User.query.filter_by(AWS_COGNITO_id=user_sub).first()
+            user = User.query.filter_by(cognito_id=user_sub).first()
             if not user:
                 # Fallback: try to find by email
                 user = User.query.filter_by(email=data['email']).first()
                 if user:
-                    # Link AWS_COGNITO_id to existing user
-                    user.AWS_COGNITO_id = user_sub
+                    # Link cognito_id to existing user
+                    user.cognito_id = user_sub
                     db.session.commit()
         except Exception as db_error:
             current_app.logger.error(f'Error during user lookup in verification: {str(db_error)}')
@@ -150,18 +150,18 @@ def verify():
             
             # Log token size comparison
             AWS_COGNITO_access_size = len(login_result['tokens']['AccessToken'].encode('utf-8'))
-            AWS_COGNITO_id_size = len(login_result['tokens']['IdToken'].encode('utf-8'))
+            cognito_id_size = len(login_result['tokens']['IdToken'].encode('utf-8'))
             minimal_access_size = len(minimal_access_token.encode('utf-8'))
             minimal_id_size = len(minimal_id_token.encode('utf-8'))
             
             current_app.logger.info(f"VERIFICATION_TOKEN_SIZE_COMPARISON", extra={
                 'AWS_COGNITO_access_size_bytes': AWS_COGNITO_access_size,
-                'AWS_COGNITO_id_size_bytes': AWS_COGNITO_id_size,
+                'cognito_id_size_bytes': cognito_id_size,
                 'minimal_access_size_bytes': minimal_access_size,
                 'minimal_id_size_bytes': minimal_id_size,
                 'access_token_size_reduction_percent': round(((AWS_COGNITO_access_size - minimal_access_size) / AWS_COGNITO_access_size) * 100, 2),
-                'id_token_size_reduction_percent': round(((AWS_COGNITO_id_size - minimal_id_size) / AWS_COGNITO_id_size) * 100, 2),
-                'total_size_reduction_bytes': (AWS_COGNITO_access_size + AWS_COGNITO_id_size) - (minimal_access_size + minimal_id_size)
+                'id_token_size_reduction_percent': round(((cognito_id_size - minimal_id_size) / cognito_id_size) * 100, 2),
+                'total_size_reduction_bytes': (AWS_COGNITO_access_size + cognito_id_size) - (minimal_access_size + minimal_id_size)
             })
             
         except Exception as token_error:
@@ -187,6 +187,17 @@ def verify():
         # Create response object
         resp = make_response(response_data)
         
+        # Log detailed request information BEFORE setting cookies
+        current_app.logger.info(f"🔵 AUTH_VERIFY_SETTING_COOKIES", extra={
+            'request_origin': request.headers.get('Origin'),
+            'request_host': request.headers.get('Host'),
+            'request_referer': request.headers.get('Referer'),
+            'flask_env': os.getenv('FLASK_ENV', 'development'),
+            'secure_flag': os.getenv('FLASK_ENV') == 'production',
+            'session_token_length': len(minimal_access_token),
+            'refresh_token_length': len(login_result['tokens']['RefreshToken'])
+        })
+        
         # Set secure HttpOnly cookies with minimal tokens
         # Use host-only cookies (no domain) and Path=/ for proper scope
         resp.set_cookie(
@@ -208,6 +219,23 @@ def verify():
             path="/",  # Explicit path for all routes
             max_age=60*60*24*30  # 30 days
         )
+        
+        # Log cookie headers that will be sent
+        current_app.logger.info(f"✅ AUTH_VERIFY_COOKIES_SET", extra={
+            'session_cookie_set': True,
+            'refresh_cookie_set': True,
+            'secure_cookies': os.getenv('FLASK_ENV') == 'production',
+            'cookie_config': {
+                'httponly': True,
+                'secure': os.getenv('FLASK_ENV') == 'production',
+                'samesite': 'Lax',
+                'path': '/',
+                'domain': 'none (host-only)',
+                'session_max_age': '8h',
+                'refresh_max_age': '30d'
+            },
+            'set_cookie_headers': [h for h in resp.headers.getlist('Set-Cookie')]
+        })
         
         # Include minimal ID token in response body instead of cookie
         response_data['id_token'] = minimal_id_token
@@ -474,13 +502,13 @@ def login():
         
         try:
             from ..models.user import User
-            user = User.query.filter_by(AWS_COGNITO_id=user_sub).first()
+            user = User.query.filter_by(cognito_id=user_sub).first()
             if not user:
                 # Fallback: try to find by email
                 user = User.query.filter_by(email=data['email']).first()
                 if user:
-                    # Link AWS_COGNITO_id to existing user
-                    user.AWS_COGNITO_id = user_sub
+                    # Link cognito_id to existing user
+                    user.cognito_id = user_sub
                     db.session.commit()
                     current_app.logger.info(f"AUTH_LOGIN_USER_LINKED", extra={
                         'request_id': request_id,
@@ -527,19 +555,19 @@ def login():
             
             # Log token size comparison
             AWS_COGNITO_access_size = len(result['tokens']['AccessToken'].encode('utf-8'))
-            AWS_COGNITO_id_size = len(result['tokens']['IdToken'].encode('utf-8'))
+            cognito_id_size = len(result['tokens']['IdToken'].encode('utf-8'))
             minimal_access_size = len(minimal_access_token.encode('utf-8'))
             minimal_id_size = len(minimal_id_token.encode('utf-8'))
             
             current_app.logger.info(f"AUTH_LOGIN_TOKEN_SIZE_COMPARISON", extra={
                 'request_id': request_id,
                 'AWS_COGNITO_access_size_bytes': AWS_COGNITO_access_size,
-                'AWS_COGNITO_id_size_bytes': AWS_COGNITO_id_size,
+                'cognito_id_size_bytes': cognito_id_size,
                 'minimal_access_size_bytes': minimal_access_size,
                 'minimal_id_size_bytes': minimal_id_size,
                 'access_token_size_reduction_percent': round(((AWS_COGNITO_access_size - minimal_access_size) / AWS_COGNITO_access_size) * 100, 2),
-                'id_token_size_reduction_percent': round(((AWS_COGNITO_id_size - minimal_id_size) / AWS_COGNITO_id_size) * 100, 2),
-                'total_size_reduction_bytes': (AWS_COGNITO_access_size + AWS_COGNITO_id_size) - (minimal_access_size + minimal_id_size)
+                'id_token_size_reduction_percent': round(((cognito_id_size - minimal_id_size) / cognito_id_size) * 100, 2),
+                'total_size_reduction_bytes': (AWS_COGNITO_access_size + cognito_id_size) - (minimal_access_size + minimal_id_size)
             })
             
         except Exception as token_error:
@@ -572,6 +600,18 @@ def login():
         # Set secure HttpOnly cookies with minimal tokens
         # Use host-only cookies (no domain) and Path=/ for proper scope
         try:
+            # Log detailed request information BEFORE setting cookies
+            current_app.logger.info(f"🔵 AUTH_LOGIN_SETTING_COOKIES", extra={
+                'request_id': request_id,
+                'request_origin': request.headers.get('Origin'),
+                'request_host': request.headers.get('Host'),
+                'request_referer': request.headers.get('Referer'),
+                'flask_env': os.getenv('FLASK_ENV', 'development'),
+                'secure_flag': os.getenv('FLASK_ENV') == 'production',
+                'session_token_length': len(minimal_access_token),
+                'refresh_token_length': len(result['tokens']['RefreshToken'])
+            })
+            
             resp.set_cookie(
                 "session", 
                 value=minimal_access_token,
@@ -593,7 +633,8 @@ def login():
                 max_age=60*60*24*30  # 30 days
             )
             
-            current_app.logger.info(f"AUTH_LOGIN_COOKIES_SET", extra={
+            # Log cookie headers that will be sent
+            current_app.logger.info(f"✅ AUTH_LOGIN_COOKIES_SET", extra={
                 'request_id': request_id,
                 'session_cookie_set': True,
                 'refresh_cookie_set': True,
@@ -604,15 +645,17 @@ def login():
                     'secure': os.getenv('FLASK_ENV') == 'production',
                     'samesite': 'Lax',
                     'path': '/',
-                    'domain': 'none',  # Host-only cookies
+                    'domain': 'none (host-only)',
                     'session_max_age': '8h',
                     'refresh_max_age': '30d'
-                }
+                },
+                'set_cookie_headers': [h for h in resp.headers.getlist('Set-Cookie')]
             })
         except Exception as cookie_error:
-            current_app.logger.error(f"AUTH_LOGIN_COOKIE_ERROR", extra={
+            current_app.logger.error(f"❌ AUTH_LOGIN_COOKIE_ERROR", extra={
                 'request_id': request_id,
-                'error': str(cookie_error)
+                'error': str(cookie_error),
+                'error_type': type(cookie_error).__name__
             })
             # Continue even if cookie setting fails
         

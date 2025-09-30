@@ -6,7 +6,7 @@ class User(db.Model):
     __tablename__ = 'users'
     
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    AWS_COGNITO_id = db.Column(db.String(36), unique=True, nullable=False)
+    cognito_id = db.Column(db.String(36), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     name = db.Column(db.String(100), nullable=False)
     phone = db.Column(db.String(20))

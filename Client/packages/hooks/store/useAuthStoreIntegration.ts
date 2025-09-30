@@ -96,24 +96,27 @@ export function useAuthStoreIntegration() {
       return; // Already set up
     }
 
-    // Create a stable function that always returns the current token from sessionStorage
+    // HTTP-only cookies: Always return null so Authorization header is NOT set
+    // Browser automatically sends the session cookie with credentials: "include"
     window.getSecureAccessToken = () => {
-      return sessionStorage.getItem("access_token");
+      return null;
     };
 
     // Create stable logout function that doesn't depend on React state
     window.secureLogout = () => {
-      // Clear all storage
-      sessionStorage.removeItem("access_token");
+      // Clear user data from storage (tokens are in HTTP-only cookies)
       sessionStorage.removeItem("user");
       sessionStorage.removeItem("signupEmail");
 
-      // Navigate to login
+      // Navigate to login (backend will clear HTTP-only cookies via /logout endpoint)
       window.location.href = "/login";
     };
 
+    // HTTP-only cookies: No client-side token clearing needed
+    // Tokens can only be cleared by the server via Set-Cookie with max_age=0
     window.clearSecureTokens = () => {
-      sessionStorage.removeItem("access_token");
+      // No-op: tokens are in HTTP-only cookies, not accessible to JS
+      console.debug("HTTP-only cookies cannot be cleared client-side");
     };
 
     return () => {
