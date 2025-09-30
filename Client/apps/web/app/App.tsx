@@ -21,20 +21,15 @@ function App() {
   const [maintenance, setMaintenance] = useState(false); // Only show maintenance if health check fails
   const [healthCheckComplete, setHealthCheckComplete] = useState(false);
 
-  // Initialize globally needed store integrations
-  // Note: useReportsStoreIntegration is now conditional - only loads on pages that need reports
-  useSavedHomesStoreIntegration();
-  useDocumentsStoreIntegration();
-  useGoogleMapsStoreIntegration();
-  // useBillingStoreIntegration(); // Removed - billing info should only load on billing pages
-  useAuthStoreIntegration();
-
-  // Auth readiness from Zustand store
   const {
     authReady,
     user: authUser,
     logout: authLogout,
   } = useAuthStoreIntegration();
+
+  useSavedHomesStoreIntegration();
+  useDocumentsStoreIntegration();
+  useGoogleMapsStoreIntegration();
 
   const sessionTimeout = useSessionTimeout({
     idleTimeoutMs: 30 * 60 * 1000, // 30 minutes idle

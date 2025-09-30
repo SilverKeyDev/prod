@@ -7,7 +7,6 @@ import {
   ChevronDown,
   ChevronRight,
   LogOut,
-  User as UserIcon,
   MessageCircle,
   Brain,
   Handshake,
@@ -19,6 +18,7 @@ import {
   KeyRound,
   Bookmark,
   ClipboardList,
+  UserPlus,
 } from "lucide-react";
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
@@ -60,16 +60,16 @@ const navigationStructure: NavigationStructure = {
   dashboard: {
     name: "Dashboard",
     icon: Home,
-    items: [{ name: "User Dashboard", href: "/dashboard", icon: UserIcon }],
+    items: [{ name: "Home", href: "/dashboard", icon: Home }],
   },
   onboard: {
     name: "Onboard",
     icon: ClipboardList,
     items: [
       {
-        name: "Personalization",
+        name: "Preferences",
         href: "/personalization",
-        icon: UserIcon,
+        icon: UserPlus,
       },
     ],
   },
@@ -82,7 +82,7 @@ const navigationStructure: NavigationStructure = {
     ],
   },
   decide: {
-    name: "Decide",
+    name: "Find the Best Fit",
     icon: Split,
     items: [
       {
@@ -108,7 +108,7 @@ const navigationStructure: NavigationStructure = {
     icon: Handshake,
     items: [
       {
-        name: "Negotiation Strategy",
+        name: "Negotiation Advisor",
         href: "/negotiation-strategy",
         icon: Brain,
       },
@@ -116,7 +116,7 @@ const navigationStructure: NavigationStructure = {
     ],
   },
   close: {
-    name: "Close",
+    name: "Buyer Checklists",
     icon: Key,
     items: [
       {
@@ -315,48 +315,58 @@ export default function Sidebar({
               {Object.entries(getNavigation()).map(
                 ([categoryKey, category]: [string, NavCategory]) => (
                   <div key={categoryKey}>
-                    {/* Render certain categories as direct links (search, dashboard) */}
-                    {categoryKey === "dashboard" ? (
-                      <Link
-                        to={category.items[0]?.href ?? "/"}
-                        onClick={() => {
-                          console.log(
-                            "[SIDEBAR] 🏠 Dashboard navigation clicked:",
-                            {
-                              href: category.items[0]?.href ?? "/",
-                              userProfile: userProfile
-                                ? {
-                                    id: userProfile.id,
-                                    email: userProfile.email,
-                                  }
-                                : null,
-                            },
-                          );
-                          onLinkClick?.();
-                        }}
-                        className={`${getButtonStyles(isActive("/"))} ${
-                          !expanded ? "justify-center" : ""
-                        }`}
-                        title={!expanded ? category.name : ""}
-                      >
-                        <category.icon
-                          className={`h-6 w-6 transition-all duration-200 ${
-                            expanded ? "mr-3" : ""
-                          }`}
-                        />
-                        {expanded && (
-                          <span className="text-sm font-medium">
-                            {category.name}
-                          </span>
-                        )}
-                      </Link>
+                    {/* Render certain categories as direct links (dashboard, onboard, negotiate) */}
+                    {categoryKey === "dashboard" ||
+                    categoryKey === "onboard" ||
+                    categoryKey === "negotiate" ? (
+                      (() => {
+                        const firstItem = category.items[0];
+                        const ItemIcon = firstItem?.icon;
+                        return (
+                          <Link
+                            to={firstItem?.href ?? "/"}
+                            onClick={() => {
+                              console.log(
+                                `[SIDEBAR] ${categoryKey === "dashboard" ? "🏠" : categoryKey === "onboard" ? "📋" : "🤝"} ${firstItem?.name} navigation clicked:`,
+                                {
+                                  href: firstItem?.href ?? "/",
+                                  userProfile: userProfile
+                                    ? {
+                                        id: userProfile.id,
+                                        email: userProfile.email,
+                                      }
+                                    : null,
+                                }
+                              );
+                              onLinkClick?.();
+                            }}
+                            className={`${getButtonStyles(isActive(firstItem?.href ?? "/"))} ${
+                              !expanded ? "justify-center" : ""
+                            }`}
+                            title={!expanded ? firstItem?.name : ""}
+                          >
+                            {ItemIcon && (
+                              <ItemIcon
+                                className={`h-6 w-6 transition-all duration-200 ${
+                                  expanded ? "mr-3" : ""
+                                }`}
+                              />
+                            )}
+                            {expanded && (
+                              <span className="text-sm font-medium">
+                                {firstItem?.name}
+                              </span>
+                            )}
+                          </Link>
+                        );
+                      })()
                     ) : (
                       <>
                         {/* Category Header */}
                         <button
                           onClick={() => toggleCategory(categoryKey)}
                           className={`${getButtonStyles(
-                            isCategoryActive(category.items),
+                            isCategoryActive(category.items)
                           )} group relative ${
                             !expanded ? "justify-center" : "justify-between"
                           } cursor-pointer`}
@@ -426,7 +436,7 @@ export default function Sidebar({
                       </>
                     )}
                   </div>
-                ),
+                )
               )}
             </nav>
           </div>
@@ -437,7 +447,7 @@ export default function Sidebar({
               onClick={handleLogoutClick}
               className={`${getButtonStyles(false).replace(
                 "text-white/70",
-                "text-white",
+                "text-white"
               )} ${!expanded ? "justify-center py-3" : "py-3"} cursor-pointer`}
             >
               <LogOut className={`h-6 w-6 ${expanded ? "mr-3" : ""}`} />

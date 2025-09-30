@@ -1,20 +1,15 @@
 /**
  * Authentication Guard
- * Checks if user is logged in; redirects or shows login if not authenticated
+ * Shows UI based on auth status - NEVER redirects
+ * All redirects are owned by ProtectedRoute or LoginPage
  */
 
 import { Lock, LogIn, Loader2 } from "lucide-react";
 import { type ReactNode } from "react";
-import { Navigate, useLocation } from "react-router-dom";
 
 import Card from "../../components/layout/Card";
 import Button from "../../components/ui/button/Button";
-import {
-  useSessionStore,
-  selectAuthReady,
-  selectIsAuthenticated,
-} from "../../../../packages/store";
-import { useAuth } from "../providers";
+import { useAuth } from "../providers/auth/useAuth";
 
 type AuthGuardProps = {
   children: ReactNode;
@@ -31,25 +26,10 @@ export function AuthGuard({
   fallback,
   requireAuth = true,
 }: AuthGuardProps) {
-  // Prefer Zustand session store if available; fallback to existing provider
-  const storeAuthReady = useSessionStore(selectAuthReady);
-  const storeIsAuthenticated = useSessionStore(selectIsAuthenticated);
-  const { isAuthenticated: ctxIsAuthenticated, authReady: ctxAuthReady } =
-    useAuth() as {
-      isAuthenticated: boolean;
-      authReady: boolean;
-    };
-  const authReady =
-    typeof storeAuthReady === "boolean" ? storeAuthReady : ctxAuthReady;
-  const isAuthenticated =
-    typeof storeIsAuthenticated === "boolean"
-      ? storeIsAuthenticated
-      : ctxIsAuthenticated;
-  const location = useLocation();
+  const { status } = useAuth();
 
-  // Show loading state while checking authentication
-  // This prevents premature redirects during StrictMode double-mount
-  if (!authReady) {
+  // Show loading state while booting
+  if (status === "booting") {
     return (
       fallback ?? (
         <div className="flex min-h-screen items-center justify-center bg-gray-50">
@@ -65,15 +45,8 @@ export function AuthGuard({
   }
 
   // If authentication is required but user is not authenticated
-  if (requireAuth && !isAuthenticated) {
-    // If redirectTo is provided, redirect to login with return URL
-    if (redirectTo) {
-      return (
-        <Navigate to={redirectTo} state={{ from: location.pathname }} replace />
-      );
-    }
-
-    // Otherwise show inline login prompt
+  // Show inline prompt - do NOT redirect (that's ProtectedRoute's job)
+  if (requireAuth && status === "unauthenticated") {
     return (
       fallback ?? (
         <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
@@ -109,11 +82,6 @@ export function AuthGuard({
         </div>
       )
     );
-  }
-
-  // If authentication is not required but user is authenticated (e.g., login page)
-  if (!requireAuth && isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
   }
 
   // User is authenticated or authentication is not required

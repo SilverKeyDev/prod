@@ -52,12 +52,8 @@ export function useIsochroneFlow(params: {
   // Fetch isochrone polygon from backend for map population only (no property search)
   const fetchIsochroneForMapOnly = useCallback(async () => {
     try {
-      // Check auth and redirect if no token found
-      if (!checkAuthAndRedirect(navigate)) {
-        return null;
-      }
-
-      const authToken = getAuthToken();
+      // Auth is handled via HTTP-only cookies
+      // Server will return 401 if not authenticated
 
       const { apiBaseUrl } = params.env;
       const response = await fetch(`${apiBaseUrl}/api/v1/search/isochrone`, {
@@ -65,8 +61,8 @@ export function useIsochroneFlow(params: {
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
-          Authorization: `Bearer ${authToken}`,
         },
+        credentials: "include", // Send HTTP-only cookies
       });
 
       if (response.ok) {
@@ -158,12 +154,8 @@ export function useIsochroneFlow(params: {
   // Fetch isochrone polygon from backend
   const fetchIsochronePolygon = useCallback(async () => {
     try {
-      // Check auth and redirect if no token found
-      if (!checkAuthAndRedirect(navigate)) {
-        return null;
-      }
-
-      const authToken = getAuthToken();
+      // Auth is handled via HTTP-only cookies
+      // Server will return 401 if not authenticated
 
       const { apiBaseUrl } = params.env;
       const response = await fetch(`${apiBaseUrl}/api/v1/search/isochrone`, {
@@ -171,8 +163,8 @@ export function useIsochroneFlow(params: {
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
-          Authorization: `Bearer ${authToken}`,
         },
+        credentials: "include", // Send HTTP-only cookies
       });
 
       if (response.ok) {

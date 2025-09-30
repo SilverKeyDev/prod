@@ -7,6 +7,62 @@ import { queryKeys } from "../../config/query/keys";
 import { useAuth } from "../../contexts";
 import type { SavedHome } from "../../schemas";
 
+// Type definitions for Google Maps API
+interface GoogleMapsGeocoder {
+  geocode(request: { address: string }): Promise<{
+    results: Array<{
+      geometry: {
+        location: {
+          lat: number | (() => number);
+          lng: number | (() => number);
+        };
+      };
+    }>;
+  }>;
+}
+
+interface WindowWithGoogle {
+  google?: {
+    maps?: {
+      Geocoder?: new () => GoogleMapsGeocoder;
+    };
+  };
+}
+
+// Raw home data structure from API
+interface RawHomeData {
+  address?: string;
+  price?: string;
+  beds?: string;
+  baths?: string;
+  sqft?: string;
+  lot_size?: string;
+  image_url?: string;
+  lat?: number | string;
+  lng?: number | string;
+  latitude?: number | string;
+  longitude?: number | string;
+  lon?: number | string;
+  [key: string]: unknown;
+}
+
+// Property data structure for mutations
+interface PropertyData {
+  id?: string;
+  home_id?: string;
+  address?: string;
+  price?: string;
+  bedrooms?: number;
+  bathrooms?: number;
+  sqft?: number;
+  lotSize?: string;
+  imageUrl?: string;
+  image_url?: string;
+  lat?: number;
+  lng?: number;
+  [key: string]: unknown;
+}
+
 /**
  * Map home data to SavedHome format
  */
@@ -72,6 +128,13 @@ export const useSavedHomesData = () => {
   const filters = useFiltersQueryParams();
   const { isAuthenticated, authReady } = useAuth();
 
+  // Additional check to ensure access token is available
+  // This prevents race conditions during login
+  const hasAccessToken =
+    typeof window !== "undefined" &&
+    sessionStorage.getItem("access_token") !== null &&
+    sessionStorage.getItem("access_token") !== "http-only-cookie-auth";
+
   // Saved homes query
   const {
     data: savedHomesData,
@@ -89,7 +152,7 @@ export const useSavedHomesData = () => {
       if (!response.success) {
         throw new Error(response.error ?? "Failed to load favorite homes");
       }
-      const rawHomes = (response.favorites ?? []) as Array<any>;
+      const rawHomes = (response.favorites ?? []) as unknown as RawHomeData[];
       // Only log once per session to avoid spam
       if (!sessionStorage.getItem("saved_homes_loaded_logged")) {
         sessionStorage.setItem("saved_homes_loaded_logged", "true");
@@ -117,12 +180,14 @@ export const useSavedHomesData = () => {
           }
 
           try {
+            const typedWindow = window as unknown as WindowWithGoogle;
             if (
               typeof window !== "undefined" &&
-              (window as any).google?.maps?.Geocoder
+              typedWindow.google?.maps?.Geocoder &&
+              home?.address
             ) {
-              const geocoder = new (window as any).google.maps.Geocoder();
-              const result = await geocoder.geocode({ address: home?.address });
+              const geocoder = new typedWindow.google.maps.Geocoder();
+              const result = await geocoder.geocode({ address: home.address });
               const location = result?.results?.[0]?.geometry?.location;
               if (location) {
                 const lat =
@@ -149,7 +214,7 @@ export const useSavedHomesData = () => {
 
       return enriched.map(mapHomeUniversalToSavedHome);
     },
-    enabled: authReady && isAuthenticated,
+    enabled: authReady && isAuthenticated && hasAccessToken,
     select: (data) => data,
     // Ensure proper deduplication
     staleTime: 3 * 60 * 1000, // 3 minutes - data is fresh for this long
@@ -175,20 +240,20 @@ export const useSavedHomesData = () => {
       ]);
 
       // Convert property to SavedHome format for optimistic update
-      const propertyAsAny = property as any;
+      const propertyData = property as PropertyData;
       const optimisticHome: SavedHome = {
         home_id:
-          propertyAsAny.id || propertyAsAny.home_id || `temp_${Date.now()}`,
-        description: propertyAsAny.address || "",
-        address: propertyAsAny.address || "",
-        price: propertyAsAny.price || "",
-        bedrooms: propertyAsAny.bedrooms || 0,
-        bathrooms: propertyAsAny.bathrooms || 0,
-        sqft: propertyAsAny.sqft || 0,
-        lot_size: propertyAsAny.lotSize || "",
-        image_url: propertyAsAny.imageUrl || propertyAsAny.image_url,
-        lat: propertyAsAny.lat || 0,
-        lng: propertyAsAny.lng || 0,
+          propertyData.id || propertyData.home_id || `temp_${Date.now()}`,
+        description: propertyData.address || "",
+        address: propertyData.address || "",
+        price: propertyData.price || "",
+        bedrooms: propertyData.bedrooms || 0,
+        bathrooms: propertyData.bathrooms || 0,
+        sqft: propertyData.sqft || 0,
+        lot_size: propertyData.lotSize || "",
+        image_url: propertyData.imageUrl || propertyData.image_url,
+        lat: propertyData.lat || 0,
+        lng: propertyData.lng || 0,
       };
 
       queryClient.setQueryData(
@@ -308,31 +373,14 @@ export const useSavedHomesData = () => {
           ...queryKeys.homes.favorites(),
           filters,
         ]) ?? [];
-      console.log("removeSavedHome: Looking for propertyId:", propertyId);
-      console.log("removeSavedHome: Query key:", [
-        ...queryKeys.homes.favorites(),
-        filters,
-      ]);
-      console.log(
-        "removeSavedHome: Available homes:",
-        homes.map((h) => ({ home_id: h.home_id, address: h.address })),
-      );
 
       const home = homes.find((h) => h.home_id === propertyId);
 
       if (!home) {
-        console.error(
-          "removeSavedHome: Property not found in cache. Available home_ids:",
-          homes.map((h) => h.home_id),
-        );
         // Try to get data from any cached favorites query as fallback
         const allCachedData = queryClient.getQueriesData({
           queryKey: queryKeys.homes.favorites(),
         });
-        console.log(
-          "removeSavedHome: All cached favorites data:",
-          allCachedData,
-        );
 
         // Look through all cached data to find the home
         for (const [, cachedHomes] of allCachedData) {
@@ -341,10 +389,6 @@ export const useSavedHomesData = () => {
               (h: SavedHome) => h.home_id === propertyId,
             );
             if (foundHome) {
-              console.log("removeSavedHome: Found home in fallback cache:", {
-                home_id: foundHome.home_id,
-                address: foundHome.address,
-              });
               return removeSavedHomeMutation.mutateAsync({
                 propertyId,
                 address: foundHome.address,
@@ -357,17 +401,8 @@ export const useSavedHomesData = () => {
       }
 
       if (!home.address) {
-        console.error(
-          "removeSavedHome: Property address not found for home:",
-          home,
-        );
         throw new Error("Property address not found");
       }
-
-      console.log("removeSavedHome: Found home:", {
-        home_id: home.home_id,
-        address: home.address,
-      });
       return removeSavedHomeMutation.mutateAsync({
         propertyId,
         address: home.address,

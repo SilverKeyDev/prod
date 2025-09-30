@@ -43,7 +43,7 @@ export function createProtectedRoute(
   user?: UserProfile,
   onLogout?: () => void,
   providerType?: RouteConfig["providerType"],
-  providerLevel: ProviderLevel = "full",
+  providerLevel: ProviderLevel = "full"
 ) {
   const dashboard = (
     <DashboardLayout user={user} onLogout={onLogout ?? (() => {})} />
@@ -75,6 +75,7 @@ export const ROUTE_CONFIGS = {
     "/reports/*",
     "/generate-report/*",
     "/compare-reports/*",
+    "/dashboard",
     "/dashboard/*",
     "/ai-assistant/*",
   ],

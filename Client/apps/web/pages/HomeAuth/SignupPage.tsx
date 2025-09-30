@@ -79,7 +79,7 @@ const formatToE164 = (phoneNumber: string | undefined): string | undefined => {
   if (!/^[+]?[\d]+$/.test(cleaned)) {
     console.log(
       "Phone autofill received invalid format, ignoring:",
-      phoneNumber,
+      phoneNumber
     );
     return undefined;
   }
@@ -109,7 +109,7 @@ export default function SignupPage(_props: SignupPageProps) {
     const nameEl = document.getElementById("name") as HTMLInputElement | null;
     const emailEl = document.getElementById("email") as HTMLInputElement | null;
     const pwdEl = document.getElementById(
-      "password",
+      "password"
     ) as HTMLInputElement | null;
     const phoneEl = document.querySelector("input.PhoneInputInput");
     return { nameEl, emailEl, pwdEl, phoneEl };
@@ -235,7 +235,7 @@ export default function SignupPage(_props: SignupPageProps) {
 
     if (!isPasswordValid) {
       showErrorToast(
-        `Password must meet all requirements: ${Array.isArray(passwordErrors) ? passwordErrors.join(", ") : "Unknown error"}`,
+        `Password must meet all requirements: ${Array.isArray(passwordErrors) ? passwordErrors.join(", ") : "Unknown error"}`
       );
       setLoading(false);
       return;
@@ -259,7 +259,7 @@ export default function SignupPage(_props: SignupPageProps) {
       showErrorToast(
         error instanceof Error
           ? error.message
-          : "Failed to sign up. Please try again.",
+          : "Failed to sign up. Please try again."
       );
     } finally {
       setLoading(false);
@@ -417,7 +417,7 @@ export default function SignupPage(_props: SignupPageProps) {
               syncFromDom("phone");
               // If the wrapper receives focus first, forward it to the input
               const inputEl = e.currentTarget.querySelector(
-                "input.PhoneInputInput",
+                "input.PhoneInputInput"
               ) as HTMLInputElement | null;
               if (inputEl) {
                 inputEl.focus();

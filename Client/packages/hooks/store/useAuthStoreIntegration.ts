@@ -27,7 +27,6 @@ export function useAuthStoreIntegration() {
     setIsLoading,
     setError,
     setAuthStatus,
-    setAuthReady,
     clearError: storeClearError,
   } = useAuthStore();
 
@@ -37,52 +36,40 @@ export function useAuthStoreIntegration() {
   const lastIsLoadingRef = useRef<typeof authIsLoading>();
   const lastErrorRef = useRef<typeof authError>();
 
-  // Handle auth state changes with immediate updates for critical operations
+  // Sync auth state with store - optimized to prevent excessive re-renders
+  // This effect syncs useSecureAuth state to the Zustand store
   useEffect(() => {
-    // For logout operations (user becoming null or unauthenticated), update immediately
-    const isLogoutOperation = authUser === null && lastUserRef.current !== null;
-    const isAuthStateChange =
-      authIsAuthenticated !== lastIsAuthenticatedRef.current;
+    // Only update store if values have actually changed (use refs to track)
+    if (lastUserRef.current !== authUser) {
+      lastUserRef.current = authUser;
+      setUser(authUser);
+    }
 
-    const updateStore = () => {
-      // Only update store if values have actually changed
-      if (lastUserRef.current !== authUser) {
-        lastUserRef.current = authUser;
-        setUser(authUser);
+    if (lastIsAuthenticatedRef.current !== authIsAuthenticated) {
+      lastIsAuthenticatedRef.current = authIsAuthenticated;
+      setIsAuthenticated(authIsAuthenticated);
+
+      // Update auth status based on authentication state
+      // Only update if transitioning TO authenticated
+      // Never downgrade from authenticated to unauthenticated here
+      // (logout should explicitly call setAuthStatus)
+      if (authIsAuthenticated) {
+        setAuthStatus("authenticated");
       }
+      // Note: Don't set to unauthenticated here - it creates race conditions
+      // Auth status should only be set to unauthenticated by:
+      // 1. Initial bootstrap (AuthProvider)
+      // 2. Explicit logout action
+    }
 
-      if (lastIsAuthenticatedRef.current !== authIsAuthenticated) {
-        const previousAuth = lastIsAuthenticatedRef.current;
-        lastIsAuthenticatedRef.current = authIsAuthenticated;
-        setIsAuthenticated(authIsAuthenticated);
+    if (lastIsLoadingRef.current !== authIsLoading) {
+      lastIsLoadingRef.current = authIsLoading;
+      setIsLoading(authIsLoading);
+    }
 
-        // Update auth status based on authentication state
-        if (authIsAuthenticated) {
-          setAuthStatus("authenticated");
-        } else if (previousAuth !== undefined) {
-          // Only set to unauthenticated if we had a previous state (not initial)
-          setAuthStatus("unauthenticated");
-        }
-      }
-
-      if (lastIsLoadingRef.current !== authIsLoading) {
-        lastIsLoadingRef.current = authIsLoading;
-        setIsLoading(authIsLoading);
-      }
-
-      if (lastErrorRef.current !== authError) {
-        lastErrorRef.current = authError;
-        setError(authError);
-      }
-    };
-
-    // For logout operations or auth state changes, update immediately
-    if (isLogoutOperation || isAuthStateChange) {
-      updateStore();
-    } else {
-      // For other changes, use debounce to prevent rapid oscillations
-      const timeoutId = setTimeout(updateStore, 50);
-      return () => clearTimeout(timeoutId);
+    if (lastErrorRef.current !== authError) {
+      lastErrorRef.current = authError;
+      setError(authError);
     }
   }, [
     authUser,
@@ -93,14 +80,11 @@ export function useAuthStoreIntegration() {
     setIsAuthenticated,
     setIsLoading,
     setError,
+    setAuthStatus,
   ]);
 
-  // Set authReady to true once we have initial auth state
-  useEffect(() => {
-    if (!storeAuthReady) {
-      setAuthReady(true);
-    }
-  }, [storeAuthReady, setAuthReady]);
+  // Don't set authReady immediately - let useSecureAuth control when it's ready
+  // This prevents premature re-renders before auth state is fully initialized
 
   // Auth bootstrap is now handled by AuthBootstrap component
   // This hook just syncs the secure auth state with the store
@@ -119,8 +103,6 @@ export function useAuthStoreIntegration() {
 
     // Create stable logout function that doesn't depend on React state
     window.secureLogout = () => {
-      console.log("🔒 [SECURE_AUTH] Logout initiated");
-
       // Clear all storage
       sessionStorage.removeItem("access_token");
       sessionStorage.removeItem("user");

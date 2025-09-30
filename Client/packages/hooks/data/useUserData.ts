@@ -16,6 +16,13 @@ export type UseUserDataReturn = {
 export function useUserData(): UseUserDataReturn {
   const { isAuthenticated, authReady } = useAuth();
 
+  // Additional check to ensure access token is available
+  // This prevents race conditions during login
+  const hasAccessToken =
+    typeof window !== "undefined" &&
+    sessionStorage.getItem("access_token") !== null &&
+    sessionStorage.getItem("access_token") !== "http-only-cookie-auth";
+
   const {
     data: userProfile,
     isLoading: userProfileLoading,
@@ -48,7 +55,7 @@ export function useUserData(): UseUserDataReturn {
 
       return profile;
     },
-    enabled: authReady && isAuthenticated,
+    enabled: authReady && isAuthenticated && hasAccessToken,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
@@ -74,6 +81,13 @@ export type UseUserPreferencesReturn = {
 export function useUserPreferences(): UseUserPreferencesReturn {
   const { isAuthenticated, authReady } = useAuth();
 
+  // Additional check to ensure access token is available
+  // This prevents race conditions during login
+  const hasAccessToken =
+    typeof window !== "undefined" &&
+    sessionStorage.getItem("access_token") !== null &&
+    sessionStorage.getItem("access_token") !== "http-only-cookie-auth";
+
   const {
     data: userPreferences,
     isLoading: preferencesLoading,
@@ -88,7 +102,7 @@ export function useUserPreferences(): UseUserPreferencesReturn {
       }
       return response.preferences;
     },
-    enabled: authReady && isAuthenticated,
+    enabled: authReady && isAuthenticated && hasAccessToken,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 

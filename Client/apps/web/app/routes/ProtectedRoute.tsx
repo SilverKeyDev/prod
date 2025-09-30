@@ -1,21 +1,39 @@
 import type { PropsWithChildren } from "react";
-import { Navigate, useLocation } from "react-router-dom";
+import { Navigate, useLocation, Outlet } from "react-router-dom";
 
 import { useAuth } from "../providers/auth/useAuth";
 
 /**
  * ProtectedRoute component that wraps routes requiring authentication
- * Redirects to login if user is not authenticated, preserving the intended destination
+ * Waits for auth bootstrap to complete, then makes single routing decision
+ * Prevents redirect loops and race conditions
  */
 export const ProtectedRoute: React.FC<PropsWithChildren> = ({ children }) => {
-  const { user } = useAuth();
+  const { status } = useAuth();
   const location = useLocation();
 
-  if (!user) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+  // Debug logging
+  console.log("🔒 [PROTECTED_ROUTE]", {
+    status,
+    pathname: location.pathname,
+    timestamp: new Date().toISOString(),
+  });
+
+  // Wait for bootstrap to complete - prevents early redirects
+  if (status === "booting") {
+    console.log("🔒 [PROTECTED_ROUTE] Still booting, returning null");
+    return null; // or show splash screen
   }
 
-  return <>{children}</>;
+  // Once ready, redirect unauthenticated users to login
+  if (status === "unauthenticated") {
+    console.log("🔒 [PROTECTED_ROUTE] Unauthenticated, redirecting to /login");
+    return <Navigate to="/login" replace state={{ from: location }} />;
+  }
+
+  // User is authenticated, render protected content
+  console.log("🔒 [PROTECTED_ROUTE] Authenticated, rendering children");
+  return children ? <>{children}</> : <Outlet />;
 };
 
 export default ProtectedRoute;

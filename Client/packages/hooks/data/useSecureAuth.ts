@@ -3,11 +3,10 @@
  * Implements secure token storage with memory-based access tokens and HTTP-only refresh tokens
  */
 
-import { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect, useCallback, useRef } from "react";
+// import { useNavigate } from "react-router-dom"; // removed: not needed
 
 import { authApi } from "../../config/api";
-import { AUTH_CONFIG } from "../../config/auth";
 import type { UserProfile } from "../../schemas/user";
 import { reportSecurityEvent } from "../../services/security/errorReporting";
 import { secureLogger } from "../../services/security/secureLogger";
@@ -46,21 +45,26 @@ export function useSecureAuth(): UseSecureAuthReturn {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const navigate = useNavigate();
+  // const navigate = useNavigate(); // removed
 
   // Store access token in memory only (more secure)
   const [accessToken, setAccessToken] = useState<string | null>(null);
+
+  // Track if we're in the middle of a login to prevent premature navigation
+  const isLoggingInRef = useRef(false);
 
   // Get store actions for immediate updates
   const setStoreUser = useAuthStore((s) => s.setUser);
   const setStoreIsAuthenticated = useAuthStore((s) => s.setIsAuthenticated);
   const setStoreAuthStatus = useAuthStore((s) => s.setAuthStatus);
+  const setStoreAuthReady = useAuthStore((s) => s.setAuthReady);
 
   /**
    * Secure login with memory-based token storage
    */
   const login = useCallback(
     async (email: string, password: string): Promise<boolean> => {
+      isLoggingInRef.current = true;
       setIsLoading(true);
       setError(null);
 
@@ -68,49 +72,30 @@ export function useSecureAuth(): UseSecureAuthReturn {
         const response = await authApi.login({ email, password });
 
         if (response.success) {
-          // Store actual tokens from response body
-          // Access token and refresh token are handled via HttpOnly cookies
-          // ID token is returned in response body for client-side use
-          const accessToken = response.access_token || "http-only-cookie-auth";
-          const idToken = response.id_token;
+          // Server uses HTTP-only cookies for access/refresh tokens
+          // Tokens are NEVER stored in sessionStorage or localStorage
+          // The actual access token is in HTTP-only cookie and handled by browser
+          setAccessToken("authenticated");
 
-          // Store access token in memory (primary)
-          setAccessToken(accessToken);
-
-          // Store access token in sessionStorage for persistence across refreshes
-          sessionStorage.setItem(
-            AUTH_CONFIG.STORAGE_KEYS.ACCESS_TOKEN,
-            accessToken,
-          );
-
-          // Store ID token in sessionStorage for client-side use
-          if (idToken) {
-            sessionStorage.setItem("id_token", idToken);
-          }
-
-          // Log token storage with size information
-          const accessTokenSize = accessToken ? accessToken.length : 0;
-          const idTokenSize = idToken ? idToken.length : 0;
-          const totalTokenSize = accessTokenSize + idTokenSize;
-
+          // Log successful authentication (no token storage)
           secureLogger.info(
-            "TOKEN_STORAGE_SUCCESS",
-            "Tokens stored successfully",
+            "AUTH_SUCCESS",
+            "Authentication successful via HTTP-only cookies",
             {
-              accessTokenSize,
-              idTokenSize,
-              totalTokenSize,
-              storageMethod: "sessionStorage",
-              tokenTypes: ["access", "id"],
+              storageMethod: "http_only_cookies",
+              authMethod: "cookie_based",
+              note: "All tokens in secure HTTP-only cookies",
             },
           );
 
-          // Note: Global function will be updated by useEffect to include this token
-
           // Store user data (non-sensitive)
           if (response.user) {
+            // Use user_sub as fallback if id is not available
+            const userId =
+              response.user.id || response.user.user_sub || response.user_sub;
+
             const mappedUser: UserProfile = {
-              id: response.user.id,
+              id: userId || "",
               email: response.user.email,
               name: response.user.name,
               // Best-effort defaults for fields not provided by AuthResponse
@@ -120,47 +105,73 @@ export function useSecureAuth(): UseSecureAuthReturn {
               subscription: null,
               has_preferences: false,
               is_agent: false,
-              // Optional fields can remain undefined
             };
+
+            // Log the mapping for debugging (dev only)
+            if (process.env.NODE_ENV === "development") {
+              secureLogger.debug("SECURE_AUTH_DEV", "User mapping", {
+                responseUserId: response.user.id,
+                responseUserSub: response.user.user_sub,
+                responseUserSubTop: response.user_sub,
+                finalUserId: userId,
+                email: response.user.email,
+                name: response.user.name,
+              });
+            }
+
             setUser(mappedUser);
 
-            // IMMEDIATELY update store to prevent race conditions
+            // Batch all store updates including authReady to prevent race conditions
+            // React's automatic batching ensures these happen together
             setStoreUser(mappedUser);
             setStoreIsAuthenticated(true);
             setStoreAuthStatus("authenticated");
+            setStoreAuthReady(true);
+            isLoggingInRef.current = false;
 
-            // Store user data in sessionStorage for security (non-sensitive but auth-related)
-            sessionStorage.setItem(
-              AUTH_CONFIG.STORAGE_KEYS.USER,
-              JSON.stringify(mappedUser),
-            );
+            // Additional logging to debug the user state (dev only)
+            if (process.env.NODE_ENV === "development") {
+              secureLogger.debug("SECURE_AUTH_DEV", "User state after login", {
+                localUser: mappedUser,
+                localUserId: mappedUser.id,
+                localUserEmail: mappedUser.email,
+              });
+            }
+
+            // User data stored in memory and Zustand store only (no sessionStorage)
+            // All persistence is handled by HTTP-only cookies
+          } else {
+            // Even if no user data, mark auth as ready to prevent infinite loading
+            setStoreIsAuthenticated(true);
+            setStoreAuthStatus("authenticated");
+            setStoreAuthReady(true);
+            isLoggingInRef.current = false;
           }
 
           // Ensure auth state is immediately available for route guards
           // This prevents race conditions where ProtectedRoute checks before state updates
-          secureLogger.security(
-            "SECURE_AUTH",
-            "Auth state updated synchronously",
-            {
-              hasPlaceholderToken: accessToken === "http-only-cookie-auth",
-              hasUser: !!response.user,
-              authMethod: "http-only-cookies",
-            },
-          );
+          if (process.env.NODE_ENV === "development") {
+            secureLogger.security(
+              "SECURE_AUTH",
+              "Auth state updated synchronously",
+              {
+                authenticated: true,
+                hasUser: !!response.user,
+                authMethod: "http-only-cookies",
+              },
+            );
+          }
 
-          // Store refresh token in memory only (secure approach)
-          // Note: In production, refresh tokens should be HTTP-only cookies handled by backend
-
-          // Note: Removed authChange and storage events to prevent conflicts
-          // Auth state changes are now handled reactively through hook state
-
-          secureLogger.security("SECURE_AUTH", "Login successful", {
-            userId: response.user?.user_sub,
-          });
+          if (process.env.NODE_ENV === "development") {
+            secureLogger.security("SECURE_AUTH", "Login successful", {
+              userId: response.user?.user_sub,
+            });
+          }
 
           return true;
         } else {
           setError(response.error ?? "Login failed");
+          isLoggingInRef.current = false;
           return false;
         }
       } catch (err: unknown) {
@@ -175,111 +186,82 @@ export function useSecureAuth(): UseSecureAuthReturn {
           metadata: { email, error: errorMessage },
         });
 
+        isLoggingInRef.current = false;
         return false;
       } finally {
         setIsLoading(false);
       }
     },
-    [],
+    [
+      setStoreUser,
+      setStoreIsAuthenticated,
+      setStoreAuthStatus,
+      setStoreAuthReady,
+    ],
   );
 
   /**
    * Secure logout with complete token cleanup
    */
-  const logout = useCallback(() => {
-    console.log("🔒 [SECURE_AUTH] Logout initiated");
+  const logout = useCallback(async () => {
+    secureLogger.info("SECURE_AUTH", "Logout initiated");
 
-    // Log token cleanup before clearing
-    const accessToken = sessionStorage.getItem(
-      AUTH_CONFIG.STORAGE_KEYS.ACCESS_TOKEN,
-    );
-    const idToken = sessionStorage.getItem("id_token");
-    const userData = sessionStorage.getItem(AUTH_CONFIG.STORAGE_KEYS.USER);
+    try {
+      // Call server logout endpoint to clear HTTP-only cookies
+      await authApi.logout();
+      secureLogger.info("LOGOUT_SUCCESS", "Server logout successful");
+    } catch (error) {
+      // Log error but continue with client cleanup
+      secureLogger.warn("LOGOUT_ERROR", "Server logout failed, continuing with client cleanup", {
+        error: asError(error).message,
+      });
+    }
 
-    const accessTokenSize = accessToken ? accessToken.length : 0;
-    const idTokenSize = idToken ? idToken.length : 0;
-    const userDataSize = userData ? userData.length : 0;
-    const totalClearedSize = accessTokenSize + idTokenSize + userDataSize;
-
-    secureLogger.info("TOKEN_CLEANUP_START", "Starting token cleanup", {
-      accessTokenSize,
-      idTokenSize,
-      userDataSize,
-      totalClearedSize,
-      storageMethod: "sessionStorage",
-    });
-
-    // Clear memory-based tokens
+    // Clear memory-based state
     setAccessToken(null);
     setUser(null);
 
-    // Clear sessionStorage tokens and user data
-    sessionStorage.removeItem(AUTH_CONFIG.STORAGE_KEYS.ACCESS_TOKEN);
-    sessionStorage.removeItem(AUTH_CONFIG.STORAGE_KEYS.USER);
-    sessionStorage.removeItem("id_token");
+    // Clear auth store state
+    setStoreUser(null);
+    setStoreIsAuthenticated(false);
+    setStoreAuthStatus("unauthenticated");
+    setStoreAuthReady(false);
+
+    // Clear only non-sensitive session flags (not tokens - they don't exist in storage)
     sessionStorage.removeItem("signupEmail");
-
-    // Clear auth ready flag so it can be dispatched again on next login
     sessionStorage.removeItem("auth_ready_dispatched");
-
-    // Clear data fetch logging flags so they can be logged again on next login
     sessionStorage.removeItem("reports_fetch_logged");
     sessionStorage.removeItem("reports_loaded_logged");
     sessionStorage.removeItem("saved_homes_fetch_logged");
     sessionStorage.removeItem("saved_homes_loaded_logged");
-
-    // Clear global token functions
-    if (typeof window.clearSecureTokens === "function") {
-      window.clearSecureTokens();
-    }
-
-    // Note: Removed authChange and storage events to prevent conflicts
-    // Auth state changes are now handled reactively through hook state
+    sessionStorage.removeItem("auth_restored_logged");
+    sessionStorage.removeItem("user_restored_logged");
 
     secureLogger.security(
       "SECURE_AUTH",
-      "User logged out with secure token cleanup",
+      "User logged out - HTTP-only cookies cleared by server",
     );
-    secureLogger.info("TOKEN_CLEANUP_SUCCESS", "Token cleanup completed", {
-      totalClearedSize,
-      clearedItems: [
-        "access_token",
-        "id_token",
-        "user_data",
-        "signup_email",
-        "auth_flags",
-      ],
-    });
 
-    console.log("🔒 [SECURE_AUTH] Logout complete, navigating to login");
+    secureLogger.info("SECURE_AUTH", "Logout complete, navigating to /login");
     // Use window.location.href for reliable navigation during logout
     // This prevents AuthGuard redirect loops that can occur with React Router navigation
     window.location.href = "/login";
-  }, [navigate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    setStoreUser,
+    setStoreIsAuthenticated,
+    setStoreAuthStatus,
+    setStoreAuthReady,
+  ]); // include Zustand setters (stable) in deps
 
   /**
    * Refresh access token using refresh token
    */
   const refreshToken = useCallback(async (): Promise<boolean> => {
-    // Log refresh attempt
-    const currentToken = sessionStorage.getItem(
-      AUTH_CONFIG.STORAGE_KEYS.ACCESS_TOKEN,
-    );
-    const tokenSize = currentToken ? currentToken.length : 0;
-
-    secureLogger.info("TOKEN_REFRESH_ATTEMPT", "Attempting token refresh", {
-      currentTokenSize: tokenSize,
-      hasToken: !!currentToken,
-      refreshMethod: "http_only_cookies",
-    });
-
-    // No refresh token storage - tokens are memory-only
-    // In production, refresh would be handled by HTTP-only cookies
-    secureLogger.security("SECURE_AUTH", "Token refresh failed", {
-      error: "Token refresh not implemented",
-      currentTokenSize: tokenSize,
-    });
-    return false;
+    // Token refresh is handled automatically by HTTP-only cookies
+    // The server will manage token expiration and refresh
+    secureLogger.debug("SECURE_AUTH", "Token refresh handled by HTTP-only cookies");
+    return true;
   }, []);
 
   /**
@@ -290,71 +272,23 @@ export function useSecureAuth(): UseSecureAuthReturn {
   }, []);
 
   /**
-   * Initialize token and user from storage on mount
+   * NO initialization from storage - auth state is managed via HTTP-only cookies
+   * The AuthProvider will verify session with server on mount
    */
-  useEffect(() => {
-    const storedToken = sessionStorage.getItem(
-      AUTH_CONFIG.STORAGE_KEYS.ACCESS_TOKEN,
-    );
-    const storedUser = sessionStorage.getItem(AUTH_CONFIG.STORAGE_KEYS.USER);
-    const storedIdToken = sessionStorage.getItem("id_token");
-
-    if (storedToken && !accessToken) {
-      setAccessToken(storedToken);
-      // Only log once per session to avoid verbose logs
-      if (!sessionStorage.getItem("auth_restored_logged")) {
-        const tokenSize = storedToken.length;
-        const idTokenSize = storedIdToken ? storedIdToken.length : 0;
-        const userDataSize = storedUser ? storedUser.length : 0;
-        const totalRestoredSize = tokenSize + idTokenSize + userDataSize;
-
-        secureLogger.info(
-          "TOKEN_RESTORATION_SUCCESS",
-          "Tokens restored from storage",
-          {
-            accessTokenSize: tokenSize,
-            idTokenSize,
-            userDataSize,
-            totalRestoredSize,
-            storageMethod: "sessionStorage",
-          },
-        );
-
-        console.log("🔒 [SECURE_AUTH] Restored token from sessionStorage");
-        sessionStorage.setItem("auth_restored_logged", "true");
-      }
-    }
-
-    if (storedUser && !user) {
-      try {
-        const parsedUser = JSON.parse(storedUser) as UserProfile;
-        setUser(parsedUser);
-        // Only log once per session to avoid verbose logs
-        if (!sessionStorage.getItem("user_restored_logged")) {
-          console.log("🔒 [SECURE_AUTH] Restored user from sessionStorage");
-          sessionStorage.setItem("user_restored_logged", "true");
-        }
-      } catch (error) {
-        console.error("🔒 [SECURE_AUTH] Failed to parse stored user:", error);
-        sessionStorage.removeItem(AUTH_CONFIG.STORAGE_KEYS.USER);
-      }
-    }
-  }, []); // Run only once on mount
 
   /**
    * Auto-refresh token on mount and periodically
    */
   useEffect(() => {
-    const refreshInterval = setInterval(
-      () => {
-        if (accessToken) {
-          void refreshToken();
-        }
-      },
-      14 * 60 * 1000,
-    ); // Refresh every 14 minutes
+    const refreshInterval = setInterval(() => {
+      if (accessToken) {
+        void refreshToken();
+      }
+    }, 14 * 60 * 1000); // Refresh every 14 minutes
 
-    return () => void void clearInterval(refreshInterval);
+    return () => {
+      clearInterval(refreshInterval);
+    };
   }, [accessToken, refreshToken]);
 
   /**
@@ -395,20 +329,36 @@ export function useSecureAuth(): UseSecureAuthReturn {
           const authReadyEvent = new CustomEvent("authReady", {
             detail: { user, accessToken },
           });
-          window.dispatchEvent(authReadyEvent);
-        } catch (error) {
-          // Prevent errors in event dispatch from causing stack traces
-          console.warn("Auth ready event dispatch failed:", error);
+
+          // Use setTimeout to ensure the event is dispatched asynchronously
+          // This prevents the "message channel closed" error
+          setTimeout(() => {
+            try {
+              window.dispatchEvent(authReadyEvent);
+            } catch (dispatchError) {
+              secureLogger.warn(
+                "SECURE_AUTH",
+                "Auth ready event dispatch failed",
+                { error: asError(dispatchError).message },
+              );
+            }
+          }, 0);
+        } catch (eventCreationError) {
+          // Prevent errors in event creation from causing stack traces
+          secureLogger.warn(
+            "SECURE_AUTH",
+            "Auth ready event creation failed",
+            { error: asError(eventCreationError).message },
+          );
         }
 
         // Log auth ready without throwing errors
-        console.log(
-          "🔒 [SECURE_AUTH] Auth ready - data fetch event dispatched",
-          {
-            userId: user.id,
-            userEmail: user.email,
-          },
-        );
+        if (process.env.NODE_ENV === "development") {
+          secureLogger.debug("SECURE_AUTH_DEV", "Auth ready event dispatched", {
+            userId: user?.id || "unknown",
+            userEmail: user?.email || "unknown",
+          });
+        }
 
         // Mark as dispatched to prevent repeated logs
         sessionStorage.setItem("auth_ready_dispatched", "true");
@@ -418,10 +368,13 @@ export function useSecureAuth(): UseSecureAuthReturn {
 
   // Note: Global function setup moved to useAuthStoreIntegration to prevent multiple setups
 
+  // Compute authentication state
+  const isAuthenticated = !!user && !!accessToken;
+
   return {
     // State
     user,
-    isAuthenticated: !!user && !!accessToken,
+    isAuthenticated,
     isLoading,
     error,
 
@@ -492,36 +445,10 @@ export const secureTokenUtils = {
    * Clear all tokens securely
    */
   clearAllTokens: () => {
-    // Log cleanup before clearing
-    const accessToken = sessionStorage.getItem(
-      AUTH_CONFIG.STORAGE_KEYS.ACCESS_TOKEN,
-    );
-    const idToken = sessionStorage.getItem("id_token");
-    const userData = sessionStorage.getItem(AUTH_CONFIG.STORAGE_KEYS.USER);
-
-    const accessTokenSize = accessToken ? accessToken.length : 0;
-    const idTokenSize = idToken ? idToken.length : 0;
-    const userDataSize = userData ? userData.length : 0;
-    const totalClearedSize = accessTokenSize + idTokenSize + userDataSize;
-
-    // Clear secure tokens via global function
-    if (
-      "clearSecureTokens" in window &&
-      typeof (window as { clearSecureTokens: () => void }).clearSecureTokens ===
-        "function"
-    ) {
-      (window as { clearSecureTokens: () => void }).clearSecureTokens();
-    }
-
-    // Clear user data (non-sensitive)
-    sessionStorage.removeItem(AUTH_CONFIG.STORAGE_KEYS.USER);
-
-    secureLogger.security("SECURE_TOKEN_UTILS", "All tokens cleared securely", {
-      accessTokenSize,
-      idTokenSize,
-      userDataSize,
-      totalClearedSize,
-      clearedItems: ["access_token", "id_token", "user_data"],
+    // Tokens are in HTTP-only cookies - no client-side clearing needed
+    // Server must be called to clear cookies via /logout endpoint
+    secureLogger.security("SECURE_TOKEN_UTILS", "Token clearing delegated to server", {
+      note: "HTTP-only cookies can only be cleared by server",
     });
   },
 

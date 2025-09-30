@@ -21,25 +21,23 @@ export function useSearchBootstrap(params: {
         let currentPreferencesVersion = "0"; // Default version
 
         try {
-          const idToken = localStorage.getItem("id_token");
           const { apiBaseUrl } = params.env;
 
-          if (idToken) {
-            const response = await fetch(`${apiBaseUrl}/api/v1/preferences`, {
-              method: "GET",
-              headers: {
-                Authorization: `Bearer ${idToken}`,
-                "Content-Type": "application/json",
-              },
-            });
+          // Use fetch with credentials to send HTTP-only cookies
+          const response = await fetch(`${apiBaseUrl}/api/v1/preferences`, {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include", // Send HTTP-only cookies
+          });
 
-            if (response?.ok) {
-              const data = (await response.json()) as {
-                preferences?: { preferences_version?: string };
-              };
-              currentPreferencesVersion =
-                data.preferences?.preferences_version ?? "1.0";
-            }
+          if (response?.ok) {
+            const data = (await response.json()) as {
+              preferences?: { preferences_version?: string };
+            };
+            currentPreferencesVersion =
+              data.preferences?.preferences_version ?? "1.0";
           }
         } catch (prefError: unknown) {
           const error = asError(prefError);

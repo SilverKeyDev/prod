@@ -68,18 +68,14 @@ const baseCreator: import("zustand").StateCreator<AuthState> = (set) => ({
 
   // Auth actions will be implemented by hooks that use this store
   login: () => {
-    console.warn("login should be implemented by useAuthStoreIntegration hook");
+    // login should be implemented by useAuthStoreIntegration hook
     return Promise.resolve(false);
   },
   logout: () => {
-    console.warn(
-      "logout should be implemented by useAuthStoreIntegration hook",
-    );
+    // logout should be implemented by useAuthStoreIntegration hook
   },
   refreshToken: () => {
-    console.warn(
-      "refreshToken should be implemented by useAuthStoreIntegration hook",
-    );
+    // refreshToken should be implemented by useAuthStoreIntegration hook
     return Promise.resolve(false);
   },
   clearError: () => {
@@ -135,15 +131,15 @@ const withPersist = persistSafe<AuthState>(withReset, {
       return {
         ...base,
         reset: () => {},
-        setUser: base.setUser as any,
-        setIsAuthenticated: base.setIsAuthenticated as any,
-        setIsLoading: base.setIsLoading as any,
-        setError: base.setError as any,
-        setAuthReady: base.setAuthReady as any,
-        login: base.login as any,
-        logout: base.logout as any,
-        refreshToken: base.refreshToken as any,
-        clearError: base.clearError as any,
+        setUser: base.setUser,
+        setIsAuthenticated: base.setIsAuthenticated,
+        setIsLoading: base.setIsLoading,
+        setError: base.setError,
+        setAuthReady: base.setAuthReady,
+        login: base.login,
+        logout: base.logout,
+        refreshToken: base.refreshToken,
+        clearError: base.clearError,
       } as unknown as AuthState;
     const persistedData = persisted as Record<string, unknown>;
     const safe = {

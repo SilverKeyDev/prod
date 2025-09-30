@@ -1,5 +1,5 @@
 import { Mail, Lock } from "lucide-react";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 import { Input } from "../../components/ui";
@@ -17,49 +17,40 @@ export default function LoginPage() {
   // Use secure authentication hook
   const { login, isLoading, error, clearError } = useSecureAuth();
 
-  // Only clear auth data if user is not authenticated and there are stale tokens
-  useEffect(() => {
-    // Check if user is already authenticated via secure auth hook
-    const hasValidAuth = (
-      window as unknown as { getSecureAccessToken?: () => string | null }
-    ).getSecureAccessToken?.();
-
-    // Only clear tokens if there's no valid authentication
-    if (!hasValidAuth) {
-      const hasTokens =
-        sessionStorage.getItem("refresh_token") ??
-        localStorage.getItem("access_token") ??
-        localStorage.getItem("id_token") ??
-        localStorage.getItem("user");
-
-      if (hasTokens) {
-        // Clear stale tokens
-        sessionStorage.removeItem("refresh_token");
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("id_token");
-        localStorage.removeItem("user");
-        clearError();
-      }
-    }
-  }, [clearError]);
+  // No token cleanup needed - auth is managed via HTTP-only cookies
+  // All authentication state is handled by the server
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     clearError();
 
+    console.log("🔐 [LOGIN] Starting login...");
     const success = await login(email, password);
+    console.log("🔐 [LOGIN] Login result:", success);
 
     if (success) {
-      // Get the intended destination from location state or default to dashboard
-      // Type-safe location state access with proper type guards
-      const locationState = location.state as {
-        from?: { pathname?: string };
-      } | null;
-      const from = locationState?.from?.pathname ?? "/dashboard";
-      // Navigate to intended destination or dashboard
-      navigate(from, { replace: true });
+      // Get the "from" location where user tried to go, or default to dashboard
+      const from =
+        (location.state as { from?: { pathname?: string } })?.from?.pathname ||
+        "/dashboard";
+
+      console.log(
+        "🔐 [LOGIN] Navigating to:",
+        from,
+        "Current path:",
+        location.pathname
+      );
+
+      // Only navigate if we're not already at the target
+      if (location.pathname !== from) {
+        console.log("🔐 [LOGIN] Executing navigation...");
+        // Use replace to prevent back button from returning to login
+        navigate(from, { replace: true });
+      } else {
+        console.log("🔐 [LOGIN] Already at target path, skipping navigation");
+      }
     } else {
-      console.log("🔐 [LOGIN] Login failed, staying on login page");
+      console.log("🔐 [LOGIN] Login failed, not navigating");
     }
   };
 

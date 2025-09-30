@@ -15,6 +15,13 @@ export const useChats = () => {
   const filters = useFiltersQueryParams();
   const { isAuthenticated, authReady } = useAuth();
 
+  // Additional check to ensure access token is available
+  // This prevents race conditions during login
+  const hasAccessToken =
+    typeof window !== "undefined" &&
+    sessionStorage.getItem("access_token") !== null &&
+    sessionStorage.getItem("access_token") !== "http-only-cookie-auth";
+
   // Chats query
   const {
     data: chatsData,
@@ -27,7 +34,7 @@ export const useChats = () => {
       const chatsData = await chatService.fetchChats();
       return chatsData;
     },
-    enabled: authReady && isAuthenticated,
+    enabled: authReady && isAuthenticated && hasAccessToken,
     select: (data) => data,
   });
 

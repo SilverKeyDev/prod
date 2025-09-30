@@ -88,7 +88,7 @@ export default function SearchPage({
       };
       await fetchPropertyDetails(propertyForDetails);
     },
-    [fetchPropertyDetails],
+    [fetchPropertyDetails]
   );
 
   // Initialize hooks
@@ -151,7 +151,7 @@ export default function SearchPage({
         focusOnCurrentProperty: mapFocusOnCurrentProperty,
       });
     },
-    [mapFocusOnCurrentProperty, googleMapRef],
+    [mapFocusOnCurrentProperty, googleMapRef]
   );
 
   // Use imported renderImportantLocationMarkers function
@@ -159,7 +159,7 @@ export default function SearchPage({
     (isochroneData: unknown) => {
       if (!googleMapRef.current) {
         console.warn(
-          "❌ Cannot render important location markers: map not available",
+          "❌ Cannot render important location markers: map not available"
         );
         return;
       }
@@ -168,14 +168,14 @@ export default function SearchPage({
         map: googleMapRef.current,
         importantMarkersRef,
         setImportantLocationMarkers: (
-          markers: google.maps.marker.AdvancedMarkerElement[],
+          markers: google.maps.marker.AdvancedMarkerElement[]
         ) => {
           importantMarkersRef.current = markers;
         },
         resetToDefaultZoom,
       });
     },
-    [resetToDefaultZoom, googleMapRef],
+    [resetToDefaultZoom, googleMapRef]
   );
 
   // Save search results to localStorage with preferences version
@@ -186,34 +186,32 @@ export default function SearchPage({
         let preferencesVersion = "1.0"; // Default version
 
         try {
-          const idToken = localStorage.getItem("id_token");
           const { apiBaseUrl } = env;
 
-          if (idToken) {
-            const response = await fetch(`${apiBaseUrl}/api/v1/preferences`, {
-              method: "GET",
-              headers: {
-                Authorization: `Bearer ${idToken}`,
-                "Content-Type": "application/json",
-              },
-            });
+          // Use fetch with credentials to send HTTP-only cookies
+          const response = await fetch(`${apiBaseUrl}/api/v1/preferences`, {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include", // Send HTTP-only cookies
+          });
 
-            if (response?.ok) {
-              const data = (await response.json()) as Record<string, unknown>;
-              preferencesVersion =
-                data.preferences &&
-                typeof data.preferences === "object" &&
-                "preferences_version" in data.preferences
-                  ? (data.preferences as { preferences_version: string })
-                      .preferences_version
-                  : "1.0";
-            }
+          if (response?.ok) {
+            const data = (await response.json()) as Record<string, unknown>;
+            preferencesVersion =
+              data.preferences &&
+              typeof data.preferences === "object" &&
+              "preferences_version" in data.preferences
+                ? (data.preferences as { preferences_version: string })
+                    .preferences_version
+                : "1.0";
           }
         } catch (prefError: unknown) {
           const error = asError(prefError);
           console.warn(
             "⚠️ Could not fetch preferences version, using default:",
-            error,
+            error
           );
         }
 
@@ -234,7 +232,7 @@ export default function SearchPage({
         console.error("❌ Error saving search results to localStorage:", error);
       }
     },
-    [],
+    []
   );
 
   const { primeIsochroneOverlay, runIsochroneSearch } = useIsochroneFlow({
@@ -264,7 +262,7 @@ export default function SearchPage({
         const error = asError(prefError);
         console.warn(
           "⚠️ Could not fetch user preferences, using empty preferences:",
-          error,
+          error
         );
       }
 
@@ -278,7 +276,7 @@ export default function SearchPage({
         setHasSearched,
         setCurrentPage,
         setShowPropertyModals,
-        saveSearchResultsToLocalStorage,
+        saveSearchResultsToLocalStorage
       );
     },
     prefsApi: preferencesApi,
@@ -312,11 +310,11 @@ export default function SearchPage({
         console.error("🗺️ MAP MODAL: Property not found with ID:", propertyId);
         console.error(
           "🗺️ MAP MODAL: Available properties:",
-          currentData.map((p) => ({ id: p.id, address: p.address })),
+          currentData.map((p) => ({ id: p.id, address: p.address }))
         );
       }
     },
-    [activeTab, searchResults, savedHomes, handleViewPropertyDetails],
+    [activeTab, searchResults, savedHomes, handleViewPropertyDetails]
   );
 
   useMarkerUpdates({

@@ -23,7 +23,7 @@ export default function VerificationPage() {
   const location = useLocation();
   const locationState = location.state as LocationState;
   const inputRefs = useRef<Array<HTMLInputElement | null>>(
-    Array(6).fill(null) as Array<HTMLInputElement | null>,
+    Array(6).fill(null) as Array<HTMLInputElement | null>
   );
 
   // Pre-fill email if coming from signup
@@ -76,7 +76,7 @@ export default function VerificationPage() {
   // Handle paste
   const handlePaste = (
     e: React.ClipboardEvent<HTMLInputElement>,
-    index: number,
+    index: number
   ) => {
     e.preventDefault();
     const pasteData = e.clipboardData.getData("text/plain").slice(0, 6);
@@ -103,7 +103,7 @@ export default function VerificationPage() {
   // Handle backspace
   const handleKeyDown = (
     e: React.KeyboardEvent<HTMLInputElement>,
-    index: number,
+    index: number
   ) => {
     if (e.key === "Backspace" && !code[index] && index > 0) {
       // Move to previous input on backspace if current is empty
@@ -170,19 +170,18 @@ export default function VerificationPage() {
       localStorage.removeItem("signupEmail");
       localStorage.removeItem("signupPassword");
 
-      // Store authentication tokens securely
+      // Tokens are now in HTTP-only cookies set by the server
+      // No client-side token storage needed
+
+      // Log successful verification
       secureTokenUtils.storeTokens({
         access_token: response?.access_token,
         id_token: response?.id_token,
         refresh_token: response?.refresh_token,
       });
 
-      // Store user data (non-sensitive)
-      if (response?.user) {
-        localStorage.setItem("user", JSON.stringify(response.user));
-      }
-
       // On success, redirect to onboarding
+      // Auth state will be picked up by AuthProvider via session verification
       navigate("/onboarding");
     } catch (error: unknown) {
       console.error("Verification error:", error);

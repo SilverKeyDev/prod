@@ -215,10 +215,31 @@ export class HttpClient {
 
     try {
       // Log detailed request information before making the request
+      // Mask sensitive token data for security
+      const maskedHeaders = { ...mergedHeaders };
+      if (maskedHeaders.Authorization) {
+        const authValue = maskedHeaders.Authorization;
+        if (authValue.startsWith("Bearer ")) {
+          const tokenPart = authValue.substring(7);
+          maskedHeaders.Authorization = `Bearer ${tokenPart.substring(0, 10)}...${tokenPart.substring(tokenPart.length - 10)}`;
+        }
+      }
+      
+      const authMethod = mergedHeaders.Authorization
+        ? "Authorization header"
+        : includeCredentials
+          ? "HTTP-only cookies"
+          : "none";
+      
       console.log("HTTP_REQUEST_DETAILS", {
         method,
         url,
         headers: Object.keys(mergedHeaders),
+        headerValues: maskedHeaders,
+        authMethod,
+        hasAuthHeader: !!mergedHeaders.Authorization,
+        authHeaderType: mergedHeaders.Authorization?.split(" ")[0] || "none",
+        tokenLength: mergedHeaders.Authorization?.split(" ")[1]?.length || 0,
         hasBody: !!requestOptions.body,
         bodyType: requestOptions.body ? typeof requestOptions.body : "none",
         bodyLength: requestOptions.body
@@ -579,36 +600,35 @@ export class HttpClient {
       .catch(console.error);
 
     try {
-      // Clear all possible token storage locations securely
-      sessionStorage.removeItem("access_token");
-      sessionStorage.removeItem("refresh_token");
-      sessionStorage.removeItem("id_token");
-      sessionStorage.removeItem("user");
-      // Clear legacy localStorage tokens for compatibility
+      // With HTTP-only cookies, we need to call the server logout endpoint
+      // But since we're already in an auth error state, just clear client state
+      // The server will handle cookie clearing when user logs in again
+      
+      // Clear any legacy localStorage tokens for compatibility
       localStorage.removeItem("access_token");
       localStorage.removeItem("token");
       localStorage.removeItem("user");
 
-      // Clear secure auth hook tokens if available
-      if (
-        (window as unknown as { clearSecureTokens?: () => void })
-          .clearSecureTokens
-      ) {
-        (
-          window as unknown as { clearSecureTokens: () => void }
-        ).clearSecureTokens();
-      }
+      // No sessionStorage token cleanup needed - tokens are in HTTP-only cookies
     } catch {
       /* ignore */
     }
 
     // Notify app contexts/listeners
     try {
-      window.dispatchEvent(
-        new CustomEvent("authenticationError", {
-          detail: { errorCode: error.errorCode, message: error.message },
-        }),
-      );
+      const authErrorEvent = new CustomEvent("authenticationError", {
+        detail: { errorCode: error.errorCode, message: error.message },
+      });
+      
+      // Use setTimeout to ensure the event is dispatched asynchronously
+      // This prevents the "message channel closed" error
+      setTimeout(() => {
+        try {
+          window.dispatchEvent(authErrorEvent);
+        } catch (dispatchError) {
+          console.warn("Authentication error event dispatch failed:", dispatchError);
+        }
+      }, 0);
     } catch {
       /* ignore */
     }

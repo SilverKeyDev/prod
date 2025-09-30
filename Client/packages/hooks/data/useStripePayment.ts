@@ -14,6 +14,13 @@ export const useStripePayment = () => {
   const [error, setError] = useState<string | null>(null);
   const { isAuthenticated, authReady } = useAuth();
 
+  // Additional check to ensure access token is available
+  // This prevents race conditions during login
+  const hasAccessToken =
+    typeof window !== "undefined" &&
+    sessionStorage.getItem("access_token") !== null &&
+    sessionStorage.getItem("access_token") !== "http-only-cookie-auth";
+
   // Billing info query
   const {
     data: billingInfo,
@@ -25,7 +32,7 @@ export const useStripePayment = () => {
       const billingData = await paymentApi.getBillingInfo();
       return billingData;
     },
-    enabled: authReady && isAuthenticated,
+    enabled: authReady && isAuthenticated && hasAccessToken,
     select: (data) => data,
   });
 

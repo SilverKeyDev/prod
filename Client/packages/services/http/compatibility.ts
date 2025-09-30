@@ -43,18 +43,10 @@ const localHttpConfig: HttpClientConfig = {
   timeout: parseInt(getEnvVar("VITE_API_TIMEOUT", "30000"), 10),
   retries: parseInt(getEnvVar("VITE_API_RETRIES", "2"), 10),
   authTokenProvider: () => {
-    try {
-      const token = getAuthToken();
-      // For HttpOnly cookie approach, we don't need to send Authorization headers
-      // The browser automatically includes the HttpOnly cookies
-      if (token === "http-only-cookie-auth") {
-        return null; // Don't send Authorization header
-      }
-      return token;
-    } catch (error: unknown) {
-      console.warn("Failed to get auth token:", error);
-      return null;
-    }
+    // With HTTP-only cookies, getAuthToken() always returns null
+    // Browser automatically sends the session cookie with credentials: "include"
+    // No Authorization header needed - tokens are in HTTP-only cookies
+    return getAuthToken();
   },
   onAuthError: (error: Error) => {
     console.warn("Auth error in HTTP client:", error);
@@ -473,39 +465,10 @@ export function legacyApiRequest(
    ========================= */
 
 export function getAuthToken(): string | null {
-  // Use dynamic import for browser compatibility
-  try {
-    // Try to get token from secure auth hook first
-    if ((window as WindowWithEnv).getSecureAccessToken) {
-      const token = (window as WindowWithEnv).getSecureAccessToken?.() ?? null;
-      if (token) {
-        return token;
-      }
-    }
-
-    // Fallback to direct sessionStorage access
-    const sessionToken = sessionStorage.getItem("access_token");
-    if (sessionToken) {
-      return sessionToken;
-    }
-
-    // Additional fallbacks for compatibility
-    const idToken = sessionStorage.getItem("id_token");
-    if (idToken) {
-      return idToken;
-    }
-
-    // Only fallback to localStorage for legacy compatibility
-    const localToken = localStorage.getItem("access_token");
-    if (localToken) {
-      return localToken;
-    }
-
-    return null;
-  } catch (error: unknown) {
-    console.warn("Failed to get auth token:", error);
-    return null;
-  }
+  // With HTTP-only cookies, tokens are never accessible to JavaScript
+  // The browser automatically includes the session cookie in requests
+  // Always return null so Authorization header is not set
+  return null;
 }
 
 // Re-export createAuthHeaders from client.ts for backward compatibility
@@ -583,11 +546,19 @@ export function handleAuthenticationError(error: AuthenticationError) {
 
   // Notify app contexts/listeners
   try {
-    window.dispatchEvent(
-      new CustomEvent("authenticationError", {
-        detail: { errorCode: error.errorCode, message: error.message },
-      }),
-    );
+    const authErrorEvent = new CustomEvent("authenticationError", {
+      detail: { errorCode: error.errorCode, message: error.message },
+    });
+    
+    // Use setTimeout to ensure the event is dispatched asynchronously
+    // This prevents the "message channel closed" error
+    setTimeout(() => {
+      try {
+        window.dispatchEvent(authErrorEvent);
+      } catch (dispatchError) {
+        console.warn("Authentication error event dispatch failed:", dispatchError);
+      }
+    }, 0);
   } catch {
     /* ignore */
   }

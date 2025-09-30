@@ -277,4 +277,62 @@ export const authApi = {
 
     return response;
   },
+
+  /**
+   * Logout user and clear HTTP-only cookies
+   */
+  logout: async (): Promise<AuthResponse> => {
+    try {
+      const response = await apiPost<AuthResponse>("/api/v1/auth/logout", {});
+      
+      if (response.success) {
+        log.info("AUTH_LOGOUT", "Logout successful - cookies cleared");
+      } else {
+        log.warn("AUTH_LOGOUT_FAILED", "Logout request failed", {
+          error: response.error,
+        });
+      }
+
+      return response;
+    } catch (error: any) {
+      log.error("AUTH_LOGOUT_ERROR", "Logout request failed with exception", {
+        errorMessage: error?.message || "Unknown error",
+      });
+      // Return a generic error response
+      return {
+        success: false,
+        error: "LOGOUT_FAILED",
+        message: "Failed to logout",
+      };
+    }
+  },
+
+  /**
+   * Verify current session using HTTP-only cookie
+   */
+  verifySession: async (): Promise<AuthResponse & { user?: any }> => {
+    try {
+      // Import apiGet from compatibility
+      const { apiGet } = await import("../../services/http/compatibility");
+      
+      const response = await apiGet<AuthResponse & { user?: any, data?: any }>(
+        "/api/v1/user/profile",
+      );
+      
+      if (response.success && response.data) {
+        log.info("AUTH_SESSION_VERIFY", "Session verified successfully");
+        return {
+          success: true,
+          user: response.data,
+        };
+      }
+
+      return { success: false };
+    } catch (error: any) {
+      log.debug("AUTH_SESSION_VERIFY_FAILED", "Session verification failed", {
+        error: error?.message || "Unknown error",
+      });
+      return { success: false };
+    }
+  },
 };

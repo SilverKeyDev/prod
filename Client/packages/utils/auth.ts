@@ -92,91 +92,39 @@ export const willTokenExpireSoon = (
    ========================= */
 
 /**
- * Gets authentication token from secure storage
- * Priority: memory → sessionStorage → localStorage (fallback)
- * @returns auth token string or null
+ * Gets authentication token - always returns null for HTTP-only cookie auth
+ * The browser automatically sends the session cookie with requests
+ * @returns null (tokens are in HTTP-only cookies, not accessible to JS)
  */
 export const getAuthToken = (): string | null => {
-  try {
-    // First try to get from secure hook if available
-    if (typeof window !== "undefined") {
-      const windowWithSecureAuth = window as unknown as {
-        getSecureAccessToken?: () => string | null;
-      };
-      if (windowWithSecureAuth.getSecureAccessToken) {
-        const token = windowWithSecureAuth.getSecureAccessToken();
-        if (token) {
-          return token;
-        }
-      }
-    }
-
-    // Fallback to sessionStorage (more secure than localStorage)
-    const sessionToken = sessionStorage.getItem("access_token");
-    if (sessionToken) {
-      return sessionToken;
-    }
-
-    return null;
-  } catch (error: unknown) {
-    console.warn("Error getting auth token:", error);
-    return null;
-  }
+  // With HTTP-only cookies, we never have direct access to tokens
+  // The browser automatically includes the session cookie in requests
+  // Return null so Authorization header is not set
+  return null;
 };
 
 /**
  * Checks if user has a valid authentication token
- * @returns true if valid token exists
+ * With HTTP-only cookies, auth state must be verified by calling the server
+ * This function is deprecated - use server-side session verification instead
+ * @deprecated Use authApi.verifySession() to check auth state
+ * @returns false (client cannot verify HTTP-only cookies)
  */
 export const hasValidAuthToken = (): boolean => {
-  const token = getAuthToken();
-  if (!token) return false;
-
-  // For HttpOnly cookie authentication, we use a placeholder token
-  // The actual authentication is handled by the server via cookies
-  if (token === "http-only-cookie-auth") {
-    return true;
-  }
-
-  if (!isValidJWTFormat(token)) return false;
-
-  return !isTokenExpired(token);
+  // Cannot verify HTTP-only cookies from client-side
+  // Auth state must be checked via server API call
+  return false;
 };
 
 /**
  * Clears all authentication tokens and user data
- * Handles both secure storage and fallback storage
+ * HTTP-only cookies can only be cleared by the server
+ * @deprecated Use authApi.logout() to clear HTTP-only cookies
  */
 export const clearAuthTokens = (): void => {
-  try {
-    // Clear from secure hook if available
-    if (
-      typeof window !== "undefined" &&
-      (window as unknown as { clearSecureAuthTokens?: () => void })
-        .clearSecureAuthTokens
-    ) {
-      (
-        window as unknown as { clearSecureAuthTokens?: () => void }
-      ).clearSecureAuthTokens?.();
-    }
-
-    // Clear from all storage locations
-    const tokenKeys = ["access_token", "refresh_token", "id_token"];
-    const userKeys = ["user", "userProfile"];
-
-    tokenKeys.forEach((key) => {
-      sessionStorage.removeItem(key);
-      localStorage.removeItem(key);
-    });
-
-    userKeys.forEach((key) => {
-      localStorage.removeItem(key);
-    });
-
-    console.log("🧹 All auth tokens cleared");
-  } catch (error: unknown) {
-    console.error("Error clearing auth tokens:", error);
-  }
+  // HTTP-only cookies can only be cleared by calling the server logout endpoint
+  // No client-side token storage to clear
+  console.log("🧹 Auth tokens are in HTTP-only cookies - use authApi.logout() to clear");
 };
 
 /**

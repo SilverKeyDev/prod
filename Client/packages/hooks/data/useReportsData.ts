@@ -98,7 +98,7 @@ export const useReportsData = () => {
     );
   }, [location.pathname]);
 
-  // Simplified enabled condition - use isAuthenticated instead of user?.id to prevent re-renders
+  // Gate on auth readiness - prevent queries before bootstrap completes
   const shouldLoadData = useMemo(() => {
     return shouldLoadReports && authReady && isAuthenticated;
   }, [shouldLoadReports, authReady, isAuthenticated]);
