@@ -31,21 +31,33 @@ export function useSavedHomesStoreIntegration() {
       lastSavedHomesRef.current = savedHomes;
       setSavedHomes(savedHomes);
     }
-  }, [savedHomes, setSavedHomes]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [savedHomes]); // Zustand setters are stable
 
   useEffect(() => {
     if (lastSavedHomesLoadingRef.current !== savedHomesLoading) {
       lastSavedHomesLoadingRef.current = savedHomesLoading;
       setSavedHomesLoading(savedHomesLoading);
     }
-  }, [savedHomesLoading, setSavedHomesLoading]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [savedHomesLoading]); // Zustand setters are stable
 
   useEffect(() => {
     if (lastSavedHomesErrorRef.current !== savedHomesError) {
       lastSavedHomesErrorRef.current = savedHomesError;
       setSavedHomesError(savedHomesError);
     }
-  }, [savedHomesError, setSavedHomesError]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [savedHomesError]); // Zustand setters are stable
+
+  // Override the store's placeholder methods with real implementations
+  useEffect(() => {
+    const store = useSavedHomesStore.getState();
+    // Replace the placeholder methods with real implementations
+    store.refreshSavedHomes = refreshSavedHomes;
+    store.saveHome = saveHome;
+    store.removeSavedHomeAsync = removeSavedHome;
+  }, [refreshSavedHomes, saveHome, removeSavedHome]);
 
   return {
     savedHomes,

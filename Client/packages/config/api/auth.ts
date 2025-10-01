@@ -1,6 +1,7 @@
 import { apiPost } from "../../services/http/compatibility";
 import { reportSecurityEvent } from "../../services/security/errorReporting";
 import { log } from "../../services/security/secureLogger";
+import type { UserProfile } from "../../schemas/user";
 
 // Types for authentication API
 export type SignupData = {
@@ -40,12 +41,14 @@ export type AuthResponse = {
    * These fields are returned for logging/debugging only and should NOT be stored client-side.
    */
   refresh_token?: string;
-  user?: {
-    email: string;
-    user_sub: string;
-    name: string;
-    id: string;
-  };
+  user?:
+    | UserProfile
+    | {
+        email: string;
+        user_sub: string;
+        name: string;
+        id: string;
+      };
   message?: string;
   error?: string;
   user_sub?: string;
@@ -127,8 +130,11 @@ export const authApi = {
 
     try {
       // Get cookies BEFORE the login request
-      const cookiesBefore = document.cookie.split(';').map(c => c.trim().split('=')[0]).filter(Boolean);
-      
+      const cookiesBefore = document.cookie
+        .split(";")
+        .map((c) => c.trim().split("=")[0])
+        .filter(Boolean);
+
       // Log the exact API call being made with detailed info
       const apiUrl = "/api/v1/auth/login";
       console.log("🔵 AUTH_LOGIN_API_CALL", {
@@ -148,8 +154,11 @@ export const authApi = {
       const duration = Date.now() - startTime;
 
       // Get cookies AFTER the login response
-      const cookiesAfter = document.cookie.split(';').map(c => c.trim().split('=')[0]).filter(Boolean);
-      const newCookies = cookiesAfter.filter(c => !cookiesBefore.includes(c));
+      const cookiesAfter = document.cookie
+        .split(";")
+        .map((c) => c.trim().split("=")[0])
+        .filter(Boolean);
+      const newCookies = cookiesAfter.filter((c) => !cookiesBefore.includes(c));
 
       // Log successful response with cookie details
       console.log("✅ AUTH_LOGIN_SUCCESS", {
@@ -193,30 +202,39 @@ export const authApi = {
       }
 
       return response;
-    } catch (error: any) {
+    } catch (error: unknown) {
       const duration = Date.now() - startTime;
+      const err = error as Error & { status?: string; errorCode?: string };
 
       // Log detailed error information
       log.error("AUTH_LOGIN_ERROR", "Login request failed with exception", {
         requestId,
-        errorType: error?.constructor?.name || "Unknown",
-        errorMessage: error?.message || "Unknown error",
-        errorStatus: error?.status || "N/A",
-        errorCode: error?.errorCode || "N/A",
+        errorType: err?.constructor?.name || "Unknown",
+        errorMessage: err?.message || "Unknown error",
+        errorStatus: err?.status || "N/A",
+        errorCode: err?.errorCode || "N/A",
         duration: `${duration}ms`,
         timestamp: new Date().toISOString(),
-        stack: error?.stack?.substring(0, 500) || "No stack trace",
+        stack: err?.stack?.substring(0, 500) || "No stack trace",
       });
 
       // Check for specific error types
-      if (error?.status === 502) {
+      type ErrorWithDetails = Error & {
+        status?: string | number;
+        errorCode?: string;
+        bodyPreview?: string;
+        url?: string;
+      };
+      const errWithDetails = err as ErrorWithDetails;
+
+      if (errWithDetails?.status === "502" || errWithDetails?.status === 502) {
         log.error("AUTH_LOGIN_502_ERROR", "Bad Gateway error during login", {
           requestId,
           errorDetails: {
-            status: error.status,
-            message: error.message,
-            bodyPreview: error.bodyPreview || "No body preview",
-            url: error.url || "Unknown URL",
+            status: errWithDetails.status,
+            message: errWithDetails.message,
+            bodyPreview: errWithDetails.bodyPreview || "No body preview",
+            url: errWithDetails.url || "Unknown URL",
           },
           duration: `${duration}ms`,
           timestamp: new Date().toISOString(),
@@ -228,24 +246,32 @@ export const authApi = {
           description: "Login failed due to server error (502 Bad Gateway)",
           metadata: {
             email: data.email,
-            error: `HTTP ${error.status} for ${error.url}`,
+            error: `HTTP ${errWithDetails.status} for ${errWithDetails.url}`,
             requestId,
             duration: `${duration}ms`,
             serverError: true,
           },
         });
-      } else if (error?.status >= 500) {
+      } else if (
+        errWithDetails?.status &&
+        typeof errWithDetails.status === "number" &&
+        errWithDetails.status >= 500
+      ) {
         log.error("AUTH_LOGIN_SERVER_ERROR", "Server error during login", {
           requestId,
-          status: error.status,
-          message: error.message,
+          status: errWithDetails.status,
+          message: errWithDetails.message,
           duration: `${duration}ms`,
         });
-      } else if (error?.status >= 400) {
+      } else if (
+        errWithDetails?.status &&
+        typeof errWithDetails.status === "number" &&
+        errWithDetails.status >= 400
+      ) {
         log.warn("AUTH_LOGIN_CLIENT_ERROR", "Client error during login", {
           requestId,
-          status: error.status,
-          message: error.message,
+          status: errWithDetails.status,
+          message: errWithDetails.message,
           duration: `${duration}ms`,
         });
       }
@@ -314,7 +340,7 @@ export const authApi = {
   logout: async (): Promise<AuthResponse> => {
     try {
       const response = await apiPost<AuthResponse>("/api/v1/auth/logout", {});
-      
+
       if (response.success) {
         log.info("AUTH_LOGOUT", "Logout successful - cookies cleared");
       } else {
@@ -324,9 +350,10 @@ export const authApi = {
       }
 
       return response;
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as Error;
       log.error("AUTH_LOGOUT_ERROR", "Logout request failed with exception", {
-        errorMessage: error?.message || "Unknown error",
+        errorMessage: err?.message || "Unknown error",
       });
       // Return a generic error response
       return {
@@ -340,27 +367,28 @@ export const authApi = {
   /**
    * Verify current session using HTTP-only cookie
    */
-  verifySession: async (): Promise<AuthResponse & { user?: any }> => {
+  verifySession: async (): Promise<AuthResponse> => {
     try {
       // Import apiGet from compatibility
       const { apiGet } = await import("../../services/http/compatibility");
-      
-      const response = await apiGet<AuthResponse & { user?: any, data?: any }>(
-        "/api/v1/user/profile",
-      );
-      
+
+      const response = await apiGet<
+        AuthResponse & { data?: Record<string, unknown> }
+      >("/api/v1/user/profile");
+
       if (response.success && response.data) {
         log.info("AUTH_SESSION_VERIFY", "Session verified successfully");
         return {
           success: true,
-          user: response.data,
+          user: response.data as UserProfile,
         };
       }
 
       return { success: false };
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as Error;
       log.debug("AUTH_SESSION_VERIFY_FAILED", "Session verification failed", {
-        error: error?.message || "Unknown error",
+        error: err?.message || "Unknown error",
       });
       return { success: false };
     }

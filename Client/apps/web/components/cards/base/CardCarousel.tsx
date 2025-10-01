@@ -69,8 +69,8 @@ export type CardCarouselProps<T> = {
 
   /** Animation handlers */
   animationHandler?: "slide" | "fade";
-  swipeAnimationHandler?: any;
-  stopSwipingHandler?: any;
+  swipeAnimationHandler?: (props: unknown) => React.CSSProperties;
+  stopSwipingHandler?: (props: unknown) => React.CSSProperties;
 
   /** Optional custom UI overrides */
   renderArrowPrev?: (

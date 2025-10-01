@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useMemo,
+} from "react";
 
 export interface PerformanceMetrics {
   /** Render time in milliseconds */
@@ -65,7 +71,10 @@ export function usePerformanceMonitoring({
   const mountTime = useRef<number>(Date.now());
   const lastUpdateTime = useRef<number>(Date.now());
 
-  const finalThresholds = { ...DEFAULT_THRESHOLDS, ...thresholds };
+  const finalThresholds = useMemo(
+    () => ({ ...DEFAULT_THRESHOLDS, ...thresholds }),
+    [thresholds],
+  );
 
   // Measure render time
   const startRender = useCallback(() => {
@@ -104,13 +113,20 @@ export function usePerformanceMonitoring({
 
   // Measure memory usage
   const measureMemoryUsage = useCallback(() => {
+    type PerformanceWithMemory = Performance & {
+      memory?: {
+        usedJSHeapSize: number;
+        totalJSHeapSize: number;
+        jsHeapSizeLimit: number;
+      };
+    };
     if (
       typeof window !== "undefined" &&
       "performance" in window &&
-      "memory" in (window.performance as any)
+      "memory" in (window.performance as PerformanceWithMemory)
     ) {
-      const memory = (window.performance as any).memory;
-      const memoryUsage = memory.usedJSHeapSize;
+      const memory = (window.performance as PerformanceWithMemory).memory;
+      const memoryUsage = memory?.usedJSHeapSize ?? 0;
 
       setMetrics((prev) => ({
         ...prev,

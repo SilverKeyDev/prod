@@ -1,5 +1,4 @@
 import {
-  FileText,
   BarChart2,
   Split,
   Search,
@@ -12,7 +11,6 @@ import {
   Handshake,
   Home,
   FilePlus,
-  Bookmark,
   ClipboardList,
   UserPlus,
 } from "lucide-react";
@@ -72,10 +70,7 @@ const navigationStructure: NavigationStructure = {
   search: {
     name: "Search",
     icon: Search,
-    items: [
-      { name: "Search", href: "/search", icon: Search },
-      { name: "Saved Homes", href: "/saved", icon: Bookmark },
-    ],
+    items: [{ name: "Search", href: "/search", icon: Search }],
   },
   decide: {
     name: "Find the Best Fit",
@@ -86,7 +81,6 @@ const navigationStructure: NavigationStructure = {
         href: "/generate-report",
         icon: FilePlus,
       },
-      { name: "Past Reports", href: "/reports", icon: FileText },
       {
         name: "Compare Reports",
         href: "/compare-reports",
@@ -296,9 +290,10 @@ export default function Sidebar({
               {Object.entries(getNavigation()).map(
                 ([categoryKey, category]: [string, NavCategory]) => (
                   <div key={categoryKey}>
-                    {/* Render certain categories as direct links (dashboard, onboard, negotiate, close) */}
+                    {/* Render certain categories as direct links (dashboard, onboard, search, negotiate, close) */}
                     {categoryKey === "dashboard" ||
                     categoryKey === "onboard" ||
+                    categoryKey === "search" ||
                     categoryKey === "negotiate" ||
                     categoryKey === "close" ? (
                       (() => {
@@ -309,7 +304,7 @@ export default function Sidebar({
                             to={firstItem?.href ?? "/"}
                             onClick={() => {
                               console.log(
-                                `[SIDEBAR] ${categoryKey === "dashboard" ? "🏠" : categoryKey === "onboard" ? "📋" : categoryKey === "negotiate" ? "🤝" : "🔑"} ${firstItem?.name} navigation clicked:`,
+                                `[SIDEBAR] ${categoryKey === "dashboard" ? "🏠" : categoryKey === "onboard" ? "📋" : categoryKey === "search" ? "🔍" : categoryKey === "negotiate" ? "🤝" : "🔑"} ${firstItem?.name} navigation clicked:`,
                                 {
                                   href: firstItem?.href ?? "/",
                                   userProfile: userProfile
@@ -318,7 +313,7 @@ export default function Sidebar({
                                         email: userProfile.email,
                                       }
                                     : null,
-                                }
+                                },
                               );
                               onLinkClick?.();
                             }}
@@ -348,7 +343,7 @@ export default function Sidebar({
                         <button
                           onClick={() => toggleCategory(categoryKey)}
                           className={`${getButtonStyles(
-                            isCategoryActive(category.items)
+                            isCategoryActive(category.items),
                           )} group relative ${
                             !expanded ? "justify-center" : "justify-between"
                           } cursor-pointer`}
@@ -418,7 +413,7 @@ export default function Sidebar({
                       </>
                     )}
                   </div>
-                )
+                ),
               )}
             </nav>
           </div>
@@ -429,7 +424,7 @@ export default function Sidebar({
               onClick={handleLogoutClick}
               className={`${getButtonStyles(false).replace(
                 "text-white/70",
-                "text-white"
+                "text-white",
               )} ${!expanded ? "justify-center py-3" : "py-3"} cursor-pointer`}
             >
               <LogOut className={`h-6 w-6 ${expanded ? "mr-3" : ""}`} />

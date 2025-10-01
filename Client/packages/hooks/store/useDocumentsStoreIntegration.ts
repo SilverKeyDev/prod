@@ -53,49 +53,77 @@ export function useDocumentsStoreIntegration() {
       lastDocumentsRef.current = documents;
       setDocuments(documents);
     }
-  }, [documents, setDocuments]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [documents]); // Zustand setters are stable
 
   useEffect(() => {
     if (lastDocumentCategoriesRef.current !== documentCategories) {
       lastDocumentCategoriesRef.current = documentCategories;
       setDocumentCategories(documentCategories);
     }
-  }, [documentCategories, setDocumentCategories]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [documentCategories]); // Zustand setters are stable
 
   useEffect(() => {
     if (lastUploadedFilesRef.current !== uploadedFiles) {
       lastUploadedFilesRef.current = uploadedFiles;
       setUploadedFiles(uploadedFiles);
     }
-  }, [uploadedFiles, setUploadedFiles]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [uploadedFiles]); // Zustand setters are stable
 
   useEffect(() => {
     if (lastDocumentsLoadingRef.current !== documentsLoading) {
       lastDocumentsLoadingRef.current = documentsLoading;
       setDocumentsLoading(documentsLoading);
     }
-  }, [documentsLoading, setDocumentsLoading]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [documentsLoading]); // Zustand setters are stable
 
   useEffect(() => {
     if (lastCategoriesLoadingRef.current !== categoriesLoading) {
       lastCategoriesLoadingRef.current = categoriesLoading;
       setCategoriesLoading(categoriesLoading);
     }
-  }, [categoriesLoading, setCategoriesLoading]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categoriesLoading]); // Zustand setters are stable
 
   useEffect(() => {
     if (lastDocumentsErrorRef.current !== documentsError) {
       lastDocumentsErrorRef.current = documentsError;
       setDocumentsError(documentsError);
     }
-  }, [documentsError, setDocumentsError]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [documentsError]); // Zustand setters are stable
 
   useEffect(() => {
     if (lastCategoriesErrorRef.current !== categoriesError) {
       lastCategoriesErrorRef.current = categoriesError;
       setCategoriesError(categoriesError);
     }
-  }, [categoriesError, setCategoriesError]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categoriesError]); // Zustand setters are stable
+
+  // Override the store's placeholder methods with real implementations
+  useEffect(() => {
+    const store = useDocumentsStore.getState();
+    // Replace the placeholder methods with real implementations
+    store.uploadDocument = uploadDocument;
+    store.deleteDocument = deleteDocument;
+    store.updateDocumentStatus = updateDocumentStatus;
+    store.signDocument = signDocument;
+    store.downloadDocument = downloadDocument;
+    store.refreshDocuments = refreshDocuments;
+    store.refreshCategories = refreshCategories;
+  }, [
+    uploadDocument,
+    deleteDocument,
+    updateDocumentStatus,
+    signDocument,
+    downloadDocument,
+    refreshDocuments,
+    refreshCategories,
+  ]);
 
   return {
     documents,

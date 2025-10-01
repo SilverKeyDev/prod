@@ -41,7 +41,10 @@ const getEnvVar = (key: string, defaultValue: string): string => {
 const localHttpConfig: HttpClientConfig = {
   // In development: empty string uses Vite proxy
   // In production: full URL to production backend
-  baseUrl: (import.meta.env.DEV ? "" : "https://silverkeyestates.com").replace(/\/+$/, ""),
+  baseUrl: (import.meta.env.DEV ? "" : "https://silverkeyestates.com").replace(
+    /\/+$/,
+    "",
+  ),
   timeout: parseInt(getEnvVar("VITE_API_TIMEOUT", "30000"), 10),
   retries: parseInt(getEnvVar("VITE_API_RETRIES", "2"), 10),
   authTokenProvider: () => {
@@ -138,7 +141,11 @@ export async function apiRequest<T = unknown>(
 
   // Construct full URL (avoid double slashes) - using centralized logic
   const base = normalizeBase(
-    baseUrl ?? (import.meta.env.DEV ? "" : "https://silverkeyestates.com").replace(/\/+$/, ""),
+    baseUrl ??
+      (import.meta.env.DEV ? "" : "https://silverkeyestates.com").replace(
+        /\/+$/,
+        "",
+      ),
   );
   const url = endpoint.startsWith("http")
     ? endpoint
@@ -272,7 +279,11 @@ export async function apiDownloadBlob(
   } = options;
 
   const base = normalizeBase(
-    baseUrl ?? (import.meta.env.DEV ? "" : "https://silverkeyestates.com").replace(/\/+$/, ""),
+    baseUrl ??
+      (import.meta.env.DEV ? "" : "https://silverkeyestates.com").replace(
+        /\/+$/,
+        "",
+      ),
   );
   const url = endpoint.startsWith("http")
     ? endpoint
@@ -396,7 +407,11 @@ export function buildApiUrl(
   baseUrl?: string,
 ): string {
   const base = normalizeBase(
-    baseUrl ?? (import.meta.env.DEV ? "" : "https://silverkeyestates.com").replace(/\/+$/, ""),
+    baseUrl ??
+      (import.meta.env.DEV ? "" : "https://silverkeyestates.com").replace(
+        /\/+$/,
+        "",
+      ),
   );
   const url = endpoint.startsWith("http")
     ? endpoint
@@ -529,14 +544,16 @@ export function handleAuthenticationError(error: AuthenticationError) {
 
   try {
     // Clear all possible token storage locations securely
-    sessionStorage.removeItem("access_token");
-    sessionStorage.removeItem("refresh_token");
-    sessionStorage.removeItem("id_token");
-    sessionStorage.removeItem("user");
+    // Note: With HTTP-only cookies, tokens are NOT stored in sessionStorage/localStorage
+    // These removals are defensive cleanup for legacy code and user data only
+    sessionStorage.removeItem("access_token"); // Legacy - not used with HTTP-only cookies
+    sessionStorage.removeItem("refresh_token"); // Legacy - not used with HTTP-only cookies
+    sessionStorage.removeItem("id_token"); // Legacy - not used with HTTP-only cookies
+    sessionStorage.removeItem("user"); // Clear user data from sessionStorage
     // Clear legacy localStorage tokens for compatibility
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    localStorage.removeItem("access_token"); // Legacy - not used with HTTP-only cookies
+    localStorage.removeItem("token"); // Legacy - not used with HTTP-only cookies
+    localStorage.removeItem("user"); // Clear user data from localStorage
 
     // Clear secure auth hook tokens if available
     if ((window as WindowWithEnv).clearSecureTokens) {
@@ -551,14 +568,17 @@ export function handleAuthenticationError(error: AuthenticationError) {
     const authErrorEvent = new CustomEvent("authenticationError", {
       detail: { errorCode: error.errorCode, message: error.message },
     });
-    
+
     // Use setTimeout to ensure the event is dispatched asynchronously
     // This prevents the "message channel closed" error
     setTimeout(() => {
       try {
         window.dispatchEvent(authErrorEvent);
       } catch (dispatchError) {
-        console.warn("Authentication error event dispatch failed:", dispatchError);
+        console.warn(
+          "Authentication error event dispatch failed:",
+          dispatchError,
+        );
       }
     }, 0);
   } catch {

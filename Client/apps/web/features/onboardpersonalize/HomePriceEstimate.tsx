@@ -69,21 +69,21 @@ const HomePriceEstimate: React.FC<HomePriceEstimateProps> = ({
               <div className="gap-responsive-sm grid grid-cols-1 lg:grid-cols-2">
                 <div>
                   <div className="px-2 py-3 text-center sm:p-4 lg:p-6">
-                    <div className="mb-1 text-xl font-bold text-olive sm:mb-2 sm:text-2xl lg:text-3xl xl:text-4xl">
+                    <div className="mb-0 text-xl font-bold text-olive sm:mb-1 sm:text-2xl lg:text-3xl xl:text-4xl">
                       ${homePriceResult.maxHomePrice.toLocaleString()}
                     </div>
-                    <div className="text-responsive-xs mb-2 text-gray-600 sm:mb-4">
+                    <div className="text-responsive-xs mb-2 text-gray-400 sm:mb-3">
                       Maximum recommended home price
                     </div>
                   </div>
                 </div>
                 <div className="px-2 text-center sm:px-0 lg:text-left">
-                  <p className="text-responsive-xs mb-1 text-black">
-                    Monthly Payment
-                  </p>
                   <p className="text-lg font-bold text-olive sm:text-xl">
                     ${homePriceResult.totalMonthlyHousingCost.toLocaleString()}
                     /mo
+                  </p>
+                  <p className="text-responsive-xs mb-1 text-gray-400">
+                    Monthly Payment
                   </p>
                 </div>
               </div>

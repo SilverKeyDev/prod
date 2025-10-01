@@ -23,7 +23,7 @@ export default function VerificationPage() {
   const location = useLocation();
   const locationState = location.state as LocationState;
   const inputRefs = useRef<Array<HTMLInputElement | null>>(
-    Array(6).fill(null) as Array<HTMLInputElement | null>
+    Array(6).fill(null) as Array<HTMLInputElement | null>,
   );
 
   // Pre-fill email if coming from signup
@@ -76,7 +76,7 @@ export default function VerificationPage() {
   // Handle paste
   const handlePaste = (
     e: React.ClipboardEvent<HTMLInputElement>,
-    index: number
+    index: number,
   ) => {
     e.preventDefault();
     const pasteData = e.clipboardData.getData("text/plain").slice(0, 6);
@@ -103,7 +103,7 @@ export default function VerificationPage() {
   // Handle backspace
   const handleKeyDown = (
     e: React.KeyboardEvent<HTMLInputElement>,
-    index: number
+    index: number,
   ) => {
     if (e.key === "Backspace" && !code[index] && index > 0) {
       // Move to previous input on backspace if current is empty

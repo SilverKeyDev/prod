@@ -24,6 +24,7 @@ export function usePropertyFocus(params: {
     if (selectedProperty && googleMapRef.current) {
       mapFocusOnCurrentProperty();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedProperty, mapFocusOnCurrentProperty]);
 
   // Focus map on current property when page changes (arrow clicks)
@@ -34,6 +35,7 @@ export function usePropertyFocus(params: {
     ) {
       mapFocusOnCurrentProperty();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     currentPage,
     searchResults.length,
@@ -54,6 +56,7 @@ export function usePropertyFocus(params: {
 
       return () => clearTimeout(timeoutId);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     activeTab,
     searchResults.length,

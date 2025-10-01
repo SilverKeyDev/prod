@@ -2,7 +2,10 @@ import { Eye, Download, Share, Trash2, Clock } from "lucide-react";
 import React from "react";
 
 import type { Report } from "../../../../packages/schemas";
-import { formatFilenameToAddress } from "../../../../packages/utils/address";
+import {
+  formatFilenameToAddress,
+  formatDate,
+} from "../../../../packages/utils/address";
 import ActionButton from "../../features/decide/ActionButton";
 import { Card } from "../layout";
 
@@ -67,7 +70,24 @@ const ReportCard: React.FC<ReportCardProps> = ({
       <div className="absolute left-3 top-3 z-10">
         <p className="flex items-center rounded-md bg-white/90 px-2 py-1 text-xs text-black/60 shadow-sm sm:text-sm">
           <Clock className="mr-1 h-3 w-3 sm:h-4 sm:w-4" />
-          {new Date(report.generatedAt).toLocaleDateString()}
+          {(() => {
+            try {
+              // Safely format the date
+              if (
+                report.generatedAt &&
+                typeof report.generatedAt.toISOString === "function"
+              ) {
+                return formatDate(report.generatedAt.toISOString());
+              }
+              // Fallback if generatedAt is not a Date object
+              return formatDate(
+                report.generatedAt?.toString() || new Date().toISOString(),
+              );
+            } catch {
+              // Ultimate fallback
+              return formatDate(new Date().toISOString());
+            }
+          })()}
         </p>
       </div>
 
@@ -158,7 +178,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
                         onDelete(report.id, report.s3Key);
                       }
                     }}
-                    disabled={loadingUrls.has(report.id) ?? !report.s3Key}
+                    disabled={loadingUrls.has(report.id) || !report.s3Key}
                     icon={<Trash2 />}
                     colorClasses="bg-transparent hover:bg-danger/10 text-danger border border-danger"
                     title="Delete report"
@@ -201,7 +221,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
                       onDelete(report.id, report.s3Key);
                     }
                   }}
-                  disabled={loadingUrls.has(report.id) ?? !report.s3Key}
+                  disabled={loadingUrls.has(report.id) || !report.s3Key}
                   icon={<Trash2 />}
                   colorClasses="bg-transparent hover:bg-danger/10 text-danger border border-danger"
                   title="Delete report"
@@ -233,7 +253,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
                   onDelete(report.id, report.s3Key);
                 }
               }}
-              disabled={loadingUrls.has(report.id) ?? !report.s3Key}
+              disabled={loadingUrls.has(report.id) || !report.s3Key}
               className="btn-danger flex w-full items-center justify-center"
             >
               <Trash2 className="mr-1 h-4 w-4" />

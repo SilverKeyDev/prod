@@ -35,6 +35,7 @@ class SecureLogger {
     this.isProduction = isProduction;
     this.currentLevel = this.isProduction ? LOG_LEVELS.WARN : LOG_LEVELS.DEBUG;
     // Store original console methods before they get overridden
+    /* eslint-disable no-console */
     this.originalConsole = {
       log: console.log.bind(console),
       info: console.info.bind(console),
@@ -42,6 +43,7 @@ class SecureLogger {
       error: console.error.bind(console),
       debug: console.debug.bind(console),
     };
+    /* eslint-enable no-console */
   }
 
   /**

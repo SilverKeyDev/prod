@@ -6,7 +6,6 @@ import DashboardLayout from "../layouts/DashboardLayout";
 import { AuthShellProviders } from "../providers/auth/AuthShellProviders";
 import { MinimalAuthProviders } from "../providers/auth/MinimalAuthProviders";
 // Page-specific providers
-import { BillingOnly } from "../providers/page/BillingOnly";
 import { DocsOnly } from "../providers/page/DocsOnly";
 import { MapsOnly } from "../providers/page/MapsOnly";
 import { NegotiationOnly } from "../providers/page/NegotiationOnly";
@@ -30,8 +29,6 @@ function createProviderWrapper(providerType: RouteConfig["providerType"]) {
         return <NegotiationOnly>{children}</NegotiationOnly>;
       case "docs":
         return <DocsOnly>{children}</DocsOnly>;
-      case "billing":
-        return <BillingOnly>{children}</BillingOnly>;
       default:
         return children;
     }
@@ -43,7 +40,7 @@ export function createProtectedRoute(
   user?: UserProfile,
   onLogout?: () => void,
   providerType?: RouteConfig["providerType"],
-  providerLevel: ProviderLevel = "full"
+  providerLevel: ProviderLevel = "full",
 ) {
   const dashboard = (
     <DashboardLayout user={user} onLogout={onLogout ?? (() => {})} />

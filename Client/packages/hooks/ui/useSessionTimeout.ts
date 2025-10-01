@@ -44,12 +44,7 @@ export function useSessionTimeout(
 } {
   const fullConfig = useMemo(
     () => ({ ...DEFAULT_CONFIG, ...config }),
-    [
-      config.idleTimeoutMs,
-      config.maxSessionMs,
-      config.warningTimeMs,
-      config.checkIntervalMs,
-    ],
+    [config],
   );
 
   const [state, setState] = useState<SessionTimeoutState>({
@@ -118,7 +113,7 @@ export function useSessionTimeout(
       showWarning: false,
       sessionExpired: true,
     });
-  }, [sessionStartRef, lastActivityRef]);
+  }, []); // Refs are stable and don't need to be dependencies
 
   // Extend session (reset timers)
   const extendSession = useCallback(() => {
@@ -133,12 +128,7 @@ export function useSessionTimeout(
       showWarning: false,
       timeRemaining: fullConfig.idleTimeoutMs,
     }));
-  }, [
-    fullConfig.idleTimeoutMs,
-    sessionStartRef,
-    lastActivityRef,
-    warningShownRef,
-  ]);
+  }, [fullConfig.idleTimeoutMs]); // Refs are stable and don't need to be dependencies
 
   // Set up activity listeners and session checking
   useEffect(() => {
@@ -216,39 +206,10 @@ export function useSessionTimeout(
     };
   }, [fullConfig, logout]);
 
-  // Listen for cross-tab logout events
-  useEffect(() => {
-    const handleStorageChange = (e: StorageEvent) => {
-      // Listen for multiple token types being removed (secure auth uses different patterns)
-      if (
-        (e.key === "id_token" ||
-          e.key === "access_token" ||
-          e.key === "refresh_token") &&
-        !e.newValue
-      ) {
-        // Token removed in another tab
-        logout();
-      }
-    };
-
-    // Note: Removed handleAuthChange to prevent conflicts during login
-    // Session timeout now only handles actual timeout events, not auth state changes
-
-    window.addEventListener("storage", handleStorageChange);
-    // Note: Removed sessionTimeout listener to prevent circular logout calls
-
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-      // Note: Removed sessionTimeout cleanup since listener was removed
-    };
-  }, [
-    fullConfig.idleTimeoutMs,
-    logout,
-    state.sessionExpired,
-    sessionStartRef,
-    lastActivityRef,
-    warningShownRef,
-  ]); // Add dependencies for proper cleanup
+  // Note: Cross-tab logout events are no longer tracked via sessionStorage tokens
+  // Authentication state is managed via HTTP-only cookies
+  // The AuthContext handles cross-tab auth changes via custom events if needed
+  // Session timeout only handles actual timeout events based on user activity
 
   return {
     ...state,

@@ -68,7 +68,7 @@ export function useMapCleanup({
       markersRef.current.forEach((marker) => {
         try {
           if (marker && typeof marker === "object" && "map" in marker) {
-            (marker as any).map = null;
+            (marker as { map: google.maps.Map | null }).map = null;
           }
         } catch (error) {
           console.warn("⚠️ Error cleaning up marker:", error);
@@ -82,7 +82,7 @@ export function useMapCleanup({
       importantMarkersRef.current.forEach((marker) => {
         try {
           if (marker && typeof marker === "object" && "map" in marker) {
-            (marker as any).map = null;
+            (marker as { map: google.maps.Map | null }).map = null;
           }
         } catch (error) {
           console.warn("⚠️ Error cleaning up important marker:", error);
@@ -98,7 +98,9 @@ export function useMapCleanup({
       overlaysRef.current.forEach((overlay) => {
         try {
           if (overlay && typeof overlay === "object" && "setMap" in overlay) {
-            (overlay as any).setMap(null);
+            (
+              overlay as { setMap: (map: google.maps.Map | null) => void }
+            ).setMap(null);
           }
         } catch (error) {
           console.warn("⚠️ Error cleaning up overlay:", error);
@@ -115,7 +117,9 @@ export function useMapCleanup({
       polygonsRef.current.forEach((polygon) => {
         try {
           if (polygon && typeof polygon === "object" && "setMap" in polygon) {
-            (polygon as any).setMap(null);
+            (
+              polygon as { setMap: (map: google.maps.Map | null) => void }
+            ).setMap(null);
           }
         } catch (error) {
           console.warn("⚠️ Error cleaning up polygon:", error);
@@ -128,7 +132,9 @@ export function useMapCleanup({
       individualPolygonsRef.current.forEach((polygon) => {
         try {
           if (polygon && typeof polygon === "object" && "setMap" in polygon) {
-            (polygon as any).setMap(null);
+            (
+              polygon as { setMap: (map: google.maps.Map | null) => void }
+            ).setMap(null);
           }
         } catch (error) {
           console.warn("⚠️ Error cleaning up individual polygon:", error);
@@ -197,7 +203,7 @@ export function useMapCleanup({
   const forceGC = useCallback(() => {
     if (typeof window !== "undefined" && "gc" in window) {
       try {
-        (window as any).gc();
+        (window as { gc?: () => void }).gc?.();
         console.log("🗑️ Forced garbage collection");
       } catch (error) {
         console.warn("⚠️ Garbage collection not available:", error);
@@ -251,15 +257,22 @@ export function useMemoryMonitoring() {
   });
 
   const checkMemoryUsage = useCallback(() => {
+    type PerformanceWithMemory = Performance & {
+      memory?: {
+        usedJSHeapSize: number;
+        totalJSHeapSize: number;
+        jsHeapSizeLimit: number;
+      };
+    };
     if (
       typeof window !== "undefined" &&
       "performance" in window &&
-      "memory" in (window.performance as any)
+      "memory" in (window.performance as PerformanceWithMemory)
     ) {
-      const { memory } = window.performance as any;
-      const used = memory.usedJSHeapSize;
-      const total = memory.totalJSHeapSize;
-      const percentage = (used / total) * 100;
+      const { memory } = window.performance as PerformanceWithMemory;
+      const used = memory?.usedJSHeapSize ?? 0;
+      const total = memory?.totalJSHeapSize ?? 0;
+      const percentage = total > 0 ? (used / total) * 100 : 0;
 
       setMemoryUsage({ used, total, percentage });
 
@@ -273,7 +286,7 @@ export function useMemoryMonitoring() {
         // Trigger garbage collection if available
         if (typeof window !== "undefined" && "gc" in window) {
           try {
-            (window as any).gc();
+            (window as { gc?: () => void }).gc?.();
             console.log(
               "🗑️ Triggered garbage collection due to high memory usage",
             );

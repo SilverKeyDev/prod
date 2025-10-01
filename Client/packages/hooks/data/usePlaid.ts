@@ -13,7 +13,7 @@ import type {
   PlaidAssetReportData,
 } from "../../schemas/plaid";
 import { queryKeys } from "../../config/query/keys";
-import { useAuth } from "../../contexts";
+import { useAuthStore } from "../../store/auth.slice";
 
 // Types
 export interface UsePlaidItemsReturn {
@@ -60,7 +60,8 @@ export interface UsePlaidStatementsReturn {
  * Get user's linked Plaid items
  */
 export function usePlaidItems(): UsePlaidItemsReturn {
-  const { authReady, user } = useAuth();
+  const authReady = useAuthStore((s) => s.authReady);
+  const user = useAuthStore((s) => s.user);
 
   const {
     data: plaidItems = [],
@@ -96,7 +97,8 @@ export function usePlaidItems(): UsePlaidItemsReturn {
  * Create and manage Plaid Link tokens
  */
 export function usePlaidLinkToken(): UsePlaidLinkTokenReturn {
-  const { authReady, user } = useAuth();
+  const authReady = useAuthStore((s) => s.authReady);
+  const user = useAuthStore((s) => s.user);
   const queryClient = useQueryClient();
 
   const {
@@ -179,7 +181,8 @@ export function usePlaidTokenExchange() {
  * Create asset reports for proof of funds
  */
 export function usePlaidAssetReports(): UsePlaidAssetReportsReturn {
-  const { authReady, user } = useAuth();
+  const authReady = useAuthStore((s) => s.authReady);
+  const user = useAuthStore((s) => s.user);
   const queryClient = useQueryClient();
 
   const {
@@ -308,7 +311,8 @@ export function usePlaidAssetReport(
 export function usePlaidStatements(
   accountId?: string,
 ): UsePlaidStatementsReturn {
-  const { authReady, user } = useAuth();
+  const authReady = useAuthStore((s) => s.authReady);
+  const user = useAuthStore((s) => s.user);
 
   const {
     data: statementsData,

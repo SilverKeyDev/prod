@@ -224,17 +224,20 @@ export class HttpClient {
           maskedHeaders.Authorization = `Bearer ${tokenPart.substring(0, 10)}...${tokenPart.substring(tokenPart.length - 10)}`;
         }
       }
-      
+
       const authMethod = mergedHeaders.Authorization
         ? "Authorization header"
         : includeCredentials
           ? "HTTP-only cookies"
           : "none";
-      
+
       // Get all cookies for debugging
-      const allCookies = document.cookie.split(';').map(c => c.trim().split('=')[0]).filter(Boolean);
+      const allCookies = document.cookie
+        .split(";")
+        .map((c) => c.trim().split("=")[0])
+        .filter(Boolean);
       const hasCookies = document.cookie.length > 0;
-      
+
       console.log("🔵 HTTP_REQUEST_DETAILS", {
         method,
         url,
@@ -271,8 +274,11 @@ export class HttpClient {
       const responseText = await response.text();
 
       // Get cookies AFTER the response to see if any were set
-      const cookiesAfter = document.cookie.split(';').map(c => c.trim().split('=')[0]).filter(Boolean);
-      
+      const cookiesAfter = document.cookie
+        .split(";")
+        .map((c) => c.trim().split("=")[0])
+        .filter(Boolean);
+
       // Log detailed response information with CORS headers
       console.log("✅ HTTP_RESPONSE_DETAILS", {
         method,
@@ -284,26 +290,34 @@ export class HttpClient {
         responsePreview: responseText.substring(0, 200),
         allHeaders: Object.fromEntries(response.headers.entries()),
         corsHeaders: {
-          'access-control-allow-origin': response.headers.get('access-control-allow-origin'),
-          'access-control-allow-credentials': response.headers.get('access-control-allow-credentials'),
-          'access-control-expose-headers': response.headers.get('access-control-expose-headers'),
+          "access-control-allow-origin": response.headers.get(
+            "access-control-allow-origin",
+          ),
+          "access-control-allow-credentials": response.headers.get(
+            "access-control-allow-credentials",
+          ),
+          "access-control-expose-headers": response.headers.get(
+            "access-control-expose-headers",
+          ),
         },
-        setCookieHeader: response.headers.get('set-cookie'),
+        setCookieHeader: response.headers.get("set-cookie"),
         cookiesAfterResponse: cookiesAfter,
         cookieCountAfter: cookiesAfter.length,
         timestamp: new Date().toISOString(),
       });
-      
+
       // Special logging for auth responses
-      if (url.includes('/auth/') || response.status === 401) {
+      if (url.includes("/auth/") || response.status === 401) {
         console.log("🔐 AUTH_RESPONSE_DETECTED", {
           url,
           status: response.status,
           cookiesBefore: allCookies,
           cookiesAfter: cookiesAfter,
-          newCookies: cookiesAfter.filter(c => !allCookies.includes(c)),
-          corsOrigin: response.headers.get('access-control-allow-origin'),
-          corsCredentials: response.headers.get('access-control-allow-credentials'),
+          newCookies: cookiesAfter.filter((c) => !allCookies.includes(c)),
+          corsOrigin: response.headers.get("access-control-allow-origin"),
+          corsCredentials: response.headers.get(
+            "access-control-allow-credentials",
+          ),
         });
       }
 
@@ -332,7 +346,7 @@ export class HttpClient {
                 error: string;
                 message?: string;
               };
-              
+
               console.error("❌ AUTH_ERROR_401", {
                 url,
                 errorCode: errorBody.error,
@@ -340,11 +354,13 @@ export class HttpClient {
                 hasCookies: allCookies.length > 0,
                 cookies: allCookies,
                 requestCredentials: requestOptions.credentials,
-                corsOrigin: response.headers.get('access-control-allow-origin'),
-                corsCredentials: response.headers.get('access-control-allow-credentials'),
+                corsOrigin: response.headers.get("access-control-allow-origin"),
+                corsCredentials: response.headers.get(
+                  "access-control-allow-credentials",
+                ),
                 currentOrigin: window.location.origin,
               });
-              
+
               if (authErrorCodes.includes(errorBody.error)) {
                 const authError = new AuthenticationError(
                   errorBody.error,
@@ -651,7 +667,7 @@ export class HttpClient {
       // With HTTP-only cookies, we need to call the server logout endpoint
       // But since we're already in an auth error state, just clear client state
       // The server will handle cookie clearing when user logs in again
-      
+
       // Clear any legacy localStorage tokens for compatibility
       localStorage.removeItem("access_token");
       localStorage.removeItem("token");
@@ -667,14 +683,17 @@ export class HttpClient {
       const authErrorEvent = new CustomEvent("authenticationError", {
         detail: { errorCode: error.errorCode, message: error.message },
       });
-      
+
       // Use setTimeout to ensure the event is dispatched asynchronously
       // This prevents the "message channel closed" error
       setTimeout(() => {
         try {
           window.dispatchEvent(authErrorEvent);
         } catch (dispatchError) {
-          console.warn("Authentication error event dispatch failed:", dispatchError);
+          console.warn(
+            "Authentication error event dispatch failed:",
+            dispatchError,
+          );
         }
       }, 0);
     } catch {

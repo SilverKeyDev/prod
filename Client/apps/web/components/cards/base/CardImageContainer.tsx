@@ -53,7 +53,6 @@ export default function CardImageContainer({
       <StyledImage
         src={imageUrl ?? undefined}
         alt={alt}
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         variant={imageVariant || "professional"}
         placeholder={placeholder}
         className="h-full w-full"

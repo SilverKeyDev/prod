@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useLocation } from "react-router-dom";
 
-import { useAuth } from "../../contexts";
+import { useAuthStore } from "../../store/auth.slice";
 import { useFiltersQueryParams } from "../../config/query/adapters";
 import { queryKeys } from "../../config/query/keys";
 import type { Document } from "../../schemas";
@@ -16,7 +16,8 @@ type UploadEntry = {
 };
 
 export const useDocuments = () => {
-  const { user, authReady } = useAuth();
+  const user = useAuthStore((s) => s.user);
+  const authReady = useAuthStore((s) => s.authReady);
   const queryClient = useQueryClient();
   const filters = useFiltersQueryParams();
   const location = useLocation();
@@ -304,24 +305,9 @@ export const useDocuments = () => {
     [documentsData],
   );
 
-  // Cross-tab auth changes
-  useEffect(() => {
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === "id_token") {
-        if (e.newValue && user?.id) {
-          void queryClient.invalidateQueries({
-            queryKey: queryKeys.documents.all,
-          });
-        } else {
-          // Clear everything
-          void queryClient.removeQueries({ queryKey: queryKeys.documents.all });
-        }
-      }
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, [user?.id, queryClient]);
+  // Note: Cross-tab auth changes are no longer tracked via sessionStorage tokens
+  // Authentication state is managed via HTTP-only cookies
+  // The AuthContext handles cross-tab auth changes via custom events if needed
 
   // Cleanup completed uploads after 5 minutes
   useEffect(() => {

@@ -4,36 +4,36 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 
 // Components
-import PropertyDetailsModal from "../../components/modals/PropertyDetailsModal";
-import KeyTurnLoader from "../../components/ui/loading/KeyTurnLoader";
+import PropertyDetailsModal from "../components/modals/PropertyDetailsModal";
+import KeyTurnLoader from "../components/ui/loading/KeyTurnLoader";
 // Core
-import { env } from "../../../../packages/config";
-import { preferencesApi } from "../../../../packages/config/api/preferences";
-import { userApi } from "../../../../packages/config/api/user";
-import { useGoogleMaps } from "../../../../packages/hooks/data/useGoogleMaps";
-import { usePropertyDetails } from "../../../../packages/hooks/data/usePropertyDetails";
-import type { SearchResult } from "../../../../packages/schemas/search";
-import { useFiltersStore, useUIStore } from "../../../../packages/store";
-import type { IsochroneData } from "../../../../packages/schemas/api";
-import { asError } from "../../../../packages/utils/error";
+import { env } from "../../../packages/config";
+import { preferencesApi } from "../../../packages/config/api/preferences";
+import { userApi } from "../../../packages/config/api/user";
+import { useGoogleMaps } from "../../../packages/hooks/data/useGoogleMaps";
+import { usePropertyDetails } from "../../../packages/hooks/data/usePropertyDetails";
+import type { SearchResult } from "../../../packages/schemas/search";
+import { useFiltersStore, useUIStore } from "../../../packages/store";
+import type { IsochroneData } from "../../../packages/schemas/api";
+import { asError } from "../../../packages/utils/error";
 // Features
-import { renderImportantLocationMarkers } from "../../features/search/lib/importantLocationRenderer";
-import { renderIsochronePolygon } from "../../features/search/lib/isochroneRenderer";
-import { saveSearchResults } from "../../features/search/lib/localStorage";
-import { useMapZoomController } from "../../features/search/lib/MapZoomController";
-import { MapControls } from "../../features/search/page/components/MapControls";
-import { PropertyCarousel } from "../../features/search/page/components/PropertyCarousel";
-import { SidebarList } from "../../features/search/page/components/SidebarList";
-import { Tabs } from "../../features/search/page/components/Tabs";
-import { useIsochroneFlow } from "../../features/search/page/useIsochroneFlow";
-import { useMapInitAndResize } from "../../features/search/page/useMapInitAndResize";
-import { useMarkerUpdates } from "../../features/search/page/useMarkerUpdates";
-import useMobileHeaderActions from "../../features/search/page/useMobileHeaderActions";
-import { usePropertyFocus } from "../../features/search/page/usePropertyFocus";
-import { useSavedHomes } from "../../features/search/page/useSavedHomes";
-import { useSearchBootstrap } from "../../features/search/page/useSearchBootstrap";
-import SearchHeader from "../../features/search/SearchHeader";
-import { searchPropertiesInIsochrone } from "../../features/search/services/propertySearch";
+import { renderImportantLocationMarkers } from "../features/search/lib/importantLocationRenderer";
+import { renderIsochronePolygon } from "../features/search/lib/isochroneRenderer";
+import { saveSearchResults } from "../features/search/lib/localStorage";
+import { useMapZoomController } from "../features/search/lib/MapZoomController";
+import { MapControls } from "../features/search/page/components/MapControls";
+import { PropertyCarousel } from "../features/search/page/components/PropertyCarousel";
+import { SidebarList } from "../features/search/page/components/SidebarList";
+import { Tabs } from "../features/search/page/components/Tabs";
+import { useIsochroneFlow } from "../features/search/page/useIsochroneFlow";
+import { useMapInitAndResize } from "../features/search/page/useMapInitAndResize";
+import { useMarkerUpdates } from "../features/search/page/useMarkerUpdates";
+import useMobileHeaderActions from "../features/search/page/useMobileHeaderActions";
+import { usePropertyFocus } from "../features/search/page/usePropertyFocus";
+import { useSavedHomes } from "../features/search/page/useSavedHomes";
+import { useSearchBootstrap } from "../features/search/page/useSearchBootstrap";
+import SearchHeader from "../features/search/SearchHeader";
+import { searchPropertiesInIsochrone } from "../features/search/services/propertySearch";
 
 type SearchPageProps = {
   setMobileHeaderActions: React.Dispatch<
@@ -88,7 +88,7 @@ export default function SearchPage({
       };
       await fetchPropertyDetails(propertyForDetails);
     },
-    [fetchPropertyDetails]
+    [fetchPropertyDetails],
   );
 
   // Initialize hooks
@@ -151,7 +151,7 @@ export default function SearchPage({
         focusOnCurrentProperty: mapFocusOnCurrentProperty,
       });
     },
-    [mapFocusOnCurrentProperty, googleMapRef]
+    [mapFocusOnCurrentProperty, googleMapRef],
   );
 
   // Use imported renderImportantLocationMarkers function
@@ -159,7 +159,7 @@ export default function SearchPage({
     (isochroneData: unknown) => {
       if (!googleMapRef.current) {
         console.warn(
-          "❌ Cannot render important location markers: map not available"
+          "❌ Cannot render important location markers: map not available",
         );
         return;
       }
@@ -168,14 +168,14 @@ export default function SearchPage({
         map: googleMapRef.current,
         importantMarkersRef,
         setImportantLocationMarkers: (
-          markers: google.maps.marker.AdvancedMarkerElement[]
+          markers: google.maps.marker.AdvancedMarkerElement[],
         ) => {
           importantMarkersRef.current = markers;
         },
         resetToDefaultZoom,
       });
     },
-    [resetToDefaultZoom, googleMapRef]
+    [resetToDefaultZoom, googleMapRef],
   );
 
   // Save search results to localStorage with preferences version
@@ -211,7 +211,7 @@ export default function SearchPage({
           const error = asError(prefError);
           console.warn(
             "⚠️ Could not fetch preferences version, using default:",
-            error
+            error,
           );
         }
 
@@ -232,7 +232,7 @@ export default function SearchPage({
         console.error("❌ Error saving search results to localStorage:", error);
       }
     },
-    []
+    [],
   );
 
   const { primeIsochroneOverlay, runIsochroneSearch } = useIsochroneFlow({
@@ -262,7 +262,7 @@ export default function SearchPage({
         const error = asError(prefError);
         console.warn(
           "⚠️ Could not fetch user preferences, using empty preferences:",
-          error
+          error,
         );
       }
 
@@ -276,7 +276,7 @@ export default function SearchPage({
         setHasSearched,
         setCurrentPage,
         setShowPropertyModals,
-        saveSearchResultsToLocalStorage
+        saveSearchResultsToLocalStorage,
       );
     },
     prefsApi: preferencesApi,
@@ -310,11 +310,11 @@ export default function SearchPage({
         console.error("🗺️ MAP MODAL: Property not found with ID:", propertyId);
         console.error(
           "🗺️ MAP MODAL: Available properties:",
-          currentData.map((p) => ({ id: p.id, address: p.address }))
+          currentData.map((p) => ({ id: p.id, address: p.address })),
         );
       }
     },
-    [activeTab, searchResults, savedHomes, handleViewPropertyDetails]
+    [activeTab, searchResults, savedHomes, handleViewPropertyDetails],
   );
 
   useMarkerUpdates({
@@ -354,9 +354,14 @@ export default function SearchPage({
     setCurrentPage(0);
   };
 
-  // Initialize isochrone overlay after map is ready
+  // Initialize isochrone overlay after map is ready (only once)
+  const hasInitializedIsochrone = useRef(false);
+
   useEffect(() => {
     if (!isLocalStorageLoaded || !isGoogleMapsLoaded) return;
+    if (hasInitializedIsochrone.current) return;
+
+    hasInitializedIsochrone.current = true;
 
     // ---------- Isochrone overlay logic ----------
     setTimeout(() => {

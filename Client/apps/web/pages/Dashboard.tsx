@@ -17,8 +17,6 @@ import { useSavedHomesData } from "../../../packages/hooks/data/useSavedHomesDat
 import type { Report } from "../../../packages/schemas";
 import { useUIStore } from "../../../packages/store";
 import { asError } from "../../../packages/utils/error";
-// Features
-import TimelineChecklist from "../features/dashboard/DashboardButtonHeader";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -357,11 +355,6 @@ export default function Dashboard() {
           handleDeleteReport(reportToDelete.id, reportToDelete.s3Key)
         }
       />
-      {/* Global toasts shown via ToastsPortal */}
-      {/* Timeline Progress - Full Width (hidden on mobile) */}
-      <div className="-mx-4 mb-8 hidden sm:-mx-6 lg:-mx-8 lg:block">
-        <TimelineChecklist variant="horizontal" completedStepKey="search" />
-      </div>
 
       {/* Favorite Homes */}
       <div className="my-8">

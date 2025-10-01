@@ -23,7 +23,15 @@ export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
 
   const handleGenerateFullReport = () => {
     if (onGenerateReport) {
-      onGenerateReport(formatAddress(propertyAddress as any));
+      onGenerateReport(
+        formatAddress(
+          propertyAddress as
+            | string
+            | import("./utils").AddressObject
+            | null
+            | undefined,
+        ),
+      );
     }
   };
 
@@ -34,7 +42,13 @@ export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
           {formatPrice(propertyPrice as string | number)}
         </h2>
         <p className="text-responsive-xs mt-1 truncate text-gray-600">
-          {formatAddress(propertyAddress as any)}
+          {formatAddress(
+            propertyAddress as
+              | string
+              | import("./utils").AddressObject
+              | null
+              | undefined,
+          )}
         </p>
       </div>
 

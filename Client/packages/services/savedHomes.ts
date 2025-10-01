@@ -7,7 +7,7 @@ import type {
   FavoriteHomeResponse,
 } from "../schemas/api";
 import { isObject, isNumber } from "../utils/typeGuards";
-import { authService } from "./auth";
+import { useAuthStore } from "../store/auth.slice";
 
 import type { AuthenticationError } from "./http";
 import { isAuthenticationError, handleAuthenticationError } from "./http";
@@ -117,7 +117,8 @@ export class SavedHomesService {
    * Check if user is authenticated
    */
   private isUserAuthenticated(): boolean {
-    return authService.isAuthenticated();
+    // Use auth store to check authentication status
+    return useAuthStore.getState().isAuthenticated;
   }
 
   /**

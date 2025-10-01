@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify, current_app, send_from_directory
-from app.utils.auth import require_auth, get_current_user, SecurityException
-from ..utils.auth import get_current_user
+from ..utils.auth import get_current_user, SecurityException
+from ..utils.common_patterns import require_authenticated_user
 from ..utils.security import security_error_response, SecurityError, rate_limit
 from ..utils.secure_errors import SecureErrorHandler
 from jose.exceptions import JWTError, ExpiredSignatureError
@@ -407,7 +407,7 @@ def list_reports_almostall():
         return jsonify({'error': 'Internal server error'}), 500
 
 @report_bp.route('/<report_id>/download-url', methods=['GET'])
-@require_auth
+@require_authenticated_user
 def get_download_url(user, report_id):
     """Generate a fresh presigned URL for downloading a specific report."""
     try:
@@ -460,7 +460,7 @@ def get_download_url(user, report_id):
         return jsonify({'error': 'Internal server error'}), 500
 
 @report_bp.route('/<report_id>/view-url', methods=['GET'])
-@require_auth
+@require_authenticated_user
 def get_view_url(user, report_id):
     """Generate a fresh presigned URL for viewing a specific report inline in browser."""
     try:
@@ -689,17 +689,15 @@ def delete_report(report_id):
         }), 500
 
 
-from ..utils.auth import require_auth
-
 @report_bp.route('/documents', methods=['GET'])
-@require_auth
+@require_authenticated_user
 def get_user_documents(user):
     """
     Get all documents from a user's documents directory.
     Returns all PDF documents and their metadata for the authenticated user.
     """
     try:
-        # user is now passed in from @require_auth
+        # user is now passed in from @require_authenticated_user
         user_id = user.id
         # Query all PDF documents for the user and type
         documents = PDFDocument.query.filter(

@@ -12,9 +12,6 @@ import type { GenerateReportRequest } from "../../../../packages/config/api/repo
 import { useUser } from "../../../../packages/contexts";
 import { useGoogleMaps } from "../../../../packages/hooks/data/useGoogleMaps";
 import { asError } from "../../../../packages/utils/error";
-// import { useData } from "../../../../packages/contexts/DataContext"; // TODO: Fix missing context
-// import { useAuth } from "../../../../packages/contexts/AuthContext"; // TODO: Fix missing context
-// import PageHeader from "../../components/ui/PageHeader"; // TODO: Fix missing component
 
 // Google Maps types are handled by the useGoogleMaps hook
 

@@ -1,7 +1,7 @@
 // Internal API clients
 import { googleCalendarApi } from "../config/api";
 // Internal utilities
-import { getAuthToken } from "../utils/auth";
+import { useAuthStore } from "../store/auth.slice";
 import { asError } from "../utils/error";
 import { isObject, hasProperty } from "../utils/typeGuards";
 
@@ -187,9 +187,9 @@ export class GoogleCalendarService {
     });
 
     try {
-      // Get authentication token
-      const authToken = getAuthToken();
-      if (!authToken) {
+      // Check authentication status using auth store
+      const authStore = useAuthStore.getState();
+      if (!authStore.isAuthenticated) {
         throw new Error("Authentication required. Please log in.");
       }
 
@@ -292,9 +292,9 @@ export class GoogleCalendarService {
     });
 
     try {
-      // Get authentication token
-      const authToken = getAuthToken();
-      if (!authToken) {
+      // Check authentication status using auth store
+      const authStore = useAuthStore.getState();
+      if (!authStore.isAuthenticated) {
         throw new Error("Authentication required. Please log in.");
       }
 
@@ -380,9 +380,9 @@ export class GoogleCalendarService {
     }
 
     try {
-      // Get authentication token
-      const authToken = getAuthToken();
-      if (!authToken) {
+      // Check authentication status using auth store
+      const authStore = useAuthStore.getState();
+      if (!authStore.isAuthenticated) {
         throw new Error("Authentication required. Please log in.");
       }
 
@@ -393,7 +393,9 @@ export class GoogleCalendarService {
             : "Unknown",
       });
 
-      const response = await googleCalendarApi.createEvent(event as any);
+      const response = await googleCalendarApi.createEvent(
+        event as import("../config/api/googleCalendar").GoogleEvent,
+      );
 
       if (!response.success) {
         throw new Error(response.error ?? "Failed to create event");

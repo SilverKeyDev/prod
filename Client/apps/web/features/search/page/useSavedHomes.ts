@@ -1,11 +1,11 @@
 // External libraries
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useNavigate } from "react-router-dom";
 
 // Internal API clients
 import type { userApi } from "../../../../../packages/config/api/user";
 // Internal utilities
 import type { SearchResult } from "../../../../../packages/schemas/search";
+import type { Property } from "../../../../../packages/schemas/property";
 import type {
   HomeUniversal,
   FavoriteHomesResponse,
@@ -13,7 +13,6 @@ import type {
   RemoveFavoriteHomeRequest,
   FavoriteHomeResponse,
 } from "../../../../../packages/schemas/api";
-import { checkAuthAndRedirect } from "../../../../../packages/utils/auth";
 
 // Internal types
 
@@ -24,10 +23,9 @@ export function useSavedHomes(params: {
 }): {
   savedHomes: SearchResult[];
   isHomeSaved: (id: string) => boolean;
-  saveHome: (p: SearchResult) => Promise<void>;
+  saveHome: (p: SearchResult | Property) => Promise<void>;
   removeSavedHome: (id: string) => Promise<void>;
 } {
-  const navigate = useNavigate();
   const [savedHomes, setSavedHomes] = useState<SearchResult[]>([]);
   const hasLoadedRef = useRef(false);
 
@@ -38,12 +36,8 @@ export function useSavedHomes(params: {
     hasLoadedRef.current = true;
     const loadSavedHomes = async () => {
       try {
-        // Check auth and redirect if no token found
-        if (!checkAuthAndRedirect(navigate)) {
-          return;
-        }
-
-        // Step 2: Call the centralized userApi
+        // Auth is handled by ProtectedRoute - HTTP-only cookies are sent automatically
+        // Call the centralized userApi
         const favoritesData =
           (await params.userApi.getFavoriteHomes()) as FavoriteHomesResponse;
 
@@ -147,26 +141,70 @@ export function useSavedHomes(params: {
     };
 
     void loadSavedHomes();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Empty dependency array - only run once on mount
 
   const saveHome = useCallback(
-    async (property: SearchResult) => {
+    async (property: SearchResult | Property) => {
       try {
+        // Normalize the property data to handle both SearchResult and Property types
+        const normalizedProperty: SearchResult = {
+          id: property.id,
+          address: property.address,
+          // Handle price: Property has number, SearchResult has string
+          price:
+            typeof property.price === "number"
+              ? `$${property.price.toLocaleString()}`
+              : property.price,
+          bedrooms: property.bedrooms ?? 0,
+          bathrooms: property.bathrooms ?? 0,
+          sqft: property.sqft ?? 0,
+          lat: property.lat,
+          lng: property.lng,
+          // Handle different field names between types
+          lotSize:
+            "lotSize" in property
+              ? property.lotSize
+              : "lot_size" in property
+                ? property.lot_size
+                : undefined,
+          propertyType:
+            "propertyType" in property
+              ? property.propertyType
+              : "property_type" in property
+                ? property.property_type
+                : "SINGLE_FAMILY",
+          listingStatus:
+            "listingStatus" in property
+              ? property.listingStatus
+              : "listing_status" in property
+                ? property.listing_status
+                : "FOR_SALE",
+          imageUrl:
+            "imageUrl" in property
+              ? property.imageUrl
+              : "images" in property &&
+                  property.images &&
+                  property.images.length > 0
+                ? property.images[0]
+                : undefined,
+        };
+
         // Call backend API to add favorite
         const request: AddFavoriteHomeRequest = {
           home: {
-            id: property.id,
-            address: property.address,
-            price: property.price,
-            bedrooms: property.bedrooms ?? 0,
-            bathrooms: property.bathrooms ?? 0,
-            sqft: property.sqft ?? 0,
-            lat: property.lat,
-            lng: property.lng,
-            lotSize: property.lotSize,
-            propertyType: property.propertyType ?? "SINGLE_FAMILY",
-            listingStatus: property.listingStatus ?? "FOR_SALE",
-            imageUrl: property.imageUrl,
+            id: normalizedProperty.id,
+            address: normalizedProperty.address,
+            price: normalizedProperty.price,
+            bedrooms: normalizedProperty.bedrooms ?? 0,
+            bathrooms: normalizedProperty.bathrooms ?? 0,
+            sqft: normalizedProperty.sqft ?? 0,
+            lat: normalizedProperty.lat,
+            lng: normalizedProperty.lng,
+            lotSize: normalizedProperty.lotSize,
+            propertyType: normalizedProperty.propertyType ?? "SINGLE_FAMILY",
+            listingStatus: normalizedProperty.listingStatus ?? "FOR_SALE",
+            imageUrl: normalizedProperty.imageUrl,
           },
         };
         const response = (await params.userApi.addFavoriteHome(
@@ -175,12 +213,12 @@ export function useSavedHomes(params: {
         if (response.success) {
           // Update local state
           const isAlreadySaved = savedHomes.find(
-            (home) => home.id === property.id,
+            (home) => home.id === normalizedProperty.id,
           );
 
           if (!isAlreadySaved) {
             setSavedHomes((prev) => {
-              const newSavedHomes = [...prev, property];
+              const newSavedHomes = [...prev, normalizedProperty];
               return newSavedHomes;
             });
           }
@@ -196,6 +234,7 @@ export function useSavedHomes(params: {
         console.error("❌ Error adding favorite:", error);
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [params.userApi, params.setFavoriteAddresses, savedHomes],
   );
 
@@ -237,6 +276,7 @@ export function useSavedHomes(params: {
         console.error("❌ Error removing favorite:", error);
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [params.userApi, params.setFavoriteAddresses, savedHomes],
   );
 

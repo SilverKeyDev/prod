@@ -2,11 +2,11 @@
  * Custom hook for managing search results and saved homes state
  */
 
-import { useState, useMemo, useCallback, useEffect, useContext } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 
-import { UserContext } from "../../../../../packages/contexts/UserContext.context";
 import type { SearchResult } from "../../../../../packages/schemas/search";
 import { useFiltersStore } from "../../../../../packages/store/filters.slice";
+import { useUserStore } from "../../../../../packages/store/user.slice";
 import { createGuardedSetter } from "../../../../../packages/utils/array";
 
 type UseSearchResultsReturn = {
@@ -45,13 +45,7 @@ type UseSearchResultsReturn = {
 };
 
 export const useSearchResults = (): UseSearchResultsReturn => {
-  const ctx = useContext(UserContext);
-  const userPreferences =
-    ctx && typeof ctx === "object" && "userPreferences" in ctx
-      ? ((ctx as { userPreferences: unknown }).userPreferences as {
-          preferences_version?: string;
-        } | null)
-      : null;
+  const userPreferences = useUserStore((state) => state.userPreferences);
 
   // Core state
   const [searchResults, _setSearchResults] = useState<SearchResult[]>([]);

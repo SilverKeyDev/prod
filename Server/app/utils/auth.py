@@ -393,6 +393,9 @@ def get_current_user():
 # =========================
 def require_auth(f):
     """
+    @deprecated Use @require_authenticated_user from utils.common_patterns instead.
+    This decorator is kept for backward compatibility but should not be used in new code.
+    
     Decorator to require authentication and handle errors consistently.
     Returns machine-readable error bodies for the frontend to react (e.g., refresh on TOKEN_EXPIRED).
     """

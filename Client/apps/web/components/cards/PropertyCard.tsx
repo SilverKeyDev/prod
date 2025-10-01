@@ -189,21 +189,40 @@ function PropertyCardImpl(props: PropertyCardProps) {
         {/* Price and Heart Section - when price goes below address */}
         {pricePosition === "below-address" && (
           <div className="flex w-full items-center gap-2">
-            <div className="flex flex-1 items-center gap-2">
-              <div className="text-lg font-bold text-brown sm:text-xl">
-                {formatPrice(price)}
-              </div>
-              {showScore && score !== undefined && (
-                <div className="mr-[2px]">
-                  <CardMatchScore
-                    score={score}
-                    size="xs"
-                    useColorStyling={true}
-                  />
+            {showScore && score !== undefined ? (
+              // When there's a score, use the original layout
+              <>
+                <div className="flex flex-1 items-center gap-2">
+                  <div className="text-lg font-bold text-brown sm:text-xl">
+                    {formatPrice(price)}
+                  </div>
+                  <div className="mr-[2px]">
+                    <CardMatchScore
+                      score={score}
+                      size="xs"
+                      useColorStyling={true}
+                    />
+                  </div>
                 </div>
-              )}
-            </div>
-            {topContent && <div className="flex-shrink-0">{topContent}</div>}
+                {topContent && (
+                  <div className="flex-shrink-0">{topContent}</div>
+                )}
+              </>
+            ) : (
+              // When there's no score, center the price
+              <>
+                {topContent && (
+                  <div className="flex-shrink-0">{topContent}</div>
+                )}
+                <div className="flex flex-1 justify-center">
+                  <div className="text-lg font-bold text-brown sm:text-xl">
+                    {formatPrice(price)}
+                  </div>
+                </div>
+                <div className="flex-shrink-0 w-6"></div>{" "}
+                {/* Spacer to balance the heart button */}
+              </>
+            )}
           </div>
         )}
 

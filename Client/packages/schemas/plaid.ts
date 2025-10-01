@@ -118,9 +118,9 @@ export interface ApiResponse<T> {
 // Plaid Link Configuration
 export interface PlaidLinkConfig {
   token: string;
-  onSuccess: (publicToken: string, metadata: any) => void;
-  onExit: (error: any, metadata: any) => void;
-  onEvent?: (eventName: string, metadata: any) => void;
+  onSuccess: (publicToken: string, metadata: Record<string, unknown>) => void;
+  onExit: (error: Error | null, metadata: Record<string, unknown>) => void;
+  onEvent?: (eventName: string, metadata: Record<string, unknown>) => void;
 }
 
 // Utility Types

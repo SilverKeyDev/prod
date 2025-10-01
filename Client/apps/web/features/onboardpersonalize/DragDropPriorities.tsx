@@ -85,11 +85,15 @@ const SortableReportSection: React.FC<SortableReportSectionProps> = ({
       </div>
 
       <div className="flex items-center space-x-2">
-        {priority && { priority }}
+        {priority && (
+          <span className="text-sm font-semibold text-gray-600">
+            {priority}.
+          </span>
+        )}
 
         <label
           htmlFor={id}
-          className="flex flex-1 cursor-pointer items-center space-x-2"
+          className="flex flex-1 cursor-pointer items-center space-x-3"
         >
           <div className="relative">
             <input
@@ -104,7 +108,7 @@ const SortableReportSection: React.FC<SortableReportSectionProps> = ({
             <div
               className={`flex h-4 w-4 items-center justify-center rounded border-2 transition-all duration-200 ${
                 checked
-                  ? "border-brown bg-brown text-white shadow-sm"
+                  ? "border-olive bg-olive text-white shadow-sm"
                   : "border-gray-300 bg-gray-100"
               }`}
             >
@@ -123,7 +127,7 @@ const SortableReportSection: React.FC<SortableReportSectionProps> = ({
               )}
             </div>
           </div>
-          {label}
+          <span className="text-sm text-gray-600">{label}</span>
         </label>
       </div>
     </div>
@@ -223,13 +227,17 @@ const OnPerDragDropPriorities: React.FC<OnPerDragDropPrioritiesProps> = ({
                   }`}
                 >
                   <div className="flex items-center space-x-2">
-                    {priority && { priority }}
+                    {priority && (
+                      <span className="text-sm font-semibold text-gray-600">
+                        {priority}.
+                      </span>
+                    )}
 
                     <div className="relative">
                       <div
                         className={`flex h-4 w-4 items-center justify-center rounded border-2 transition-all duration-200 ${
                           isChecked
-                            ? "border-brown bg-brown text-white shadow-sm"
+                            ? "border-olive bg-olive text-white shadow-sm"
                             : "border-gray-300 bg-gray-100"
                         }`}
                       >
@@ -249,7 +257,9 @@ const OnPerDragDropPriorities: React.FC<OnPerDragDropPrioritiesProps> = ({
                       </div>
                     </div>
 
-                    {section.label}
+                    <span className="text-sm text-gray-600">
+                      {section.label}
+                    </span>
                   </div>
                 </div>
               );

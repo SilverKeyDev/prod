@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 
 // Note: StrictMode is disabled for cleaner development logs
 // Re-enable by wrapping App with <StrictMode> in main.tsx when debugging React issues
@@ -12,6 +12,7 @@ import { useSessionTimeout } from "../../../packages/hooks/ui/useSessionTimeout"
 import type { UserProfile } from "../../../packages/schemas/user";
 import MaintenanceScreen from "../pages/HomeAuth/MaintenanceScreen";
 
+import { useAuthStore } from "../../../packages/store/auth.slice";
 import { useAuthStoreIntegration } from "../../../packages/hooks/store/useAuthStoreIntegration";
 import { AppRoutes } from "./routes";
 
@@ -21,21 +22,28 @@ function App() {
   const [maintenance, setMaintenance] = useState(false); // Only show maintenance if health check fails
   const [healthCheckComplete, setHealthCheckComplete] = useState(false);
 
-  const {
-    authReady,
-    user: authUser,
-    logout: authLogout,
-  } = useAuthStoreIntegration();
+  // Read from auth store directly to avoid multiple instances of useSecureAuth
+  const authReady = useAuthStore((s) => s.authReady);
+  const authUser = useAuthStore((s) => s.user);
+
+  // Get logout function from useAuthStoreIntegration (uses correct useSecureAuth.logout)
+  const { logout: authLogout } = useAuthStoreIntegration();
 
   useSavedHomesStoreIntegration();
   useDocumentsStoreIntegration();
   useGoogleMapsStoreIntegration();
 
-  const sessionTimeout = useSessionTimeout({
-    idleTimeoutMs: 30 * 60 * 1000, // 30 minutes idle
-    maxSessionMs: 8 * 60 * 60 * 1000, // 8 hours max
-    warningTimeMs: 5 * 60 * 1000, // 5 minute warning
-  }) as {
+  // Memoize session timeout config to prevent recreating on every render
+  const sessionTimeoutConfig = useMemo(
+    () => ({
+      idleTimeoutMs: 30 * 60 * 1000, // 30 minutes idle
+      maxSessionMs: 8 * 60 * 60 * 1000, // 8 hours max
+      warningTimeMs: 5 * 60 * 1000, // 5 minute warning
+    }),
+    [],
+  );
+
+  const sessionTimeout = useSessionTimeout(sessionTimeoutConfig) as {
     timeRemaining: number;
     extendSession: () => void;
     showWarning: boolean;

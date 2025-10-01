@@ -82,6 +82,7 @@ export function useSearchBootstrap(params: {
     };
 
     void initializeSearchResults();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.env.apiBaseUrl]);
 
   return { isLocalStorageLoaded };

@@ -13,28 +13,23 @@ import Sidebar from "../../components/widgets/sidebar/Sidebar.tsx";
 import type { UserProfile } from "../../../../packages/schemas/user";
 // Feature components
 import ClosePageHeader from "../../features/close/ClosePageHeader.tsx";
-import TimelineChecklist from "../../features/dashboard/DashboardButtonHeader.tsx";
+import DashboardButtonHeader from "../../features/dashboard/DashboardButtonHeader.tsx";
 // Page components - Dashboard
 // Page components - Search
 // Page components - Decide
-import BuyerChecklists from "../../pages/Close/BuyerChecklists.tsx";
-import ClosingMovingIn from "../../pages/Close/ClosingMovingIn.tsx";
-import EscrowLegalLogistics from "../../pages/Close/EscrowLegalLogistics.tsx";
-import FinancingInsurance from "../../pages/Close/FinancingInsurance.tsx";
-import InspectionsDueDiligence from "../../pages/Close/InspectionsDueDiligence.tsx";
+import BuyerChecklists from "../../pages/BuyerChecklists.tsx";
 import DashboardPage from "../../pages/Dashboard.tsx";
 import AIAssistant from "../../pages/Decide/AIAssistant.tsx";
 import CompareReportsPage from "../../pages/Decide/CompareReportsPage.tsx";
 import GenerateReportPage from "../../pages/Decide/GenerateReportPage.tsx";
-import PastReports from "../../pages/Decide/PastReports.tsx";
 // Page components - Negotiate
-import NegotiationStrategy from "../../pages/Negotiate/NegotiationStrategy.tsx";
+import NegotiationStrategy from "../../pages/Negotiation.tsx";
 // import OfferDraftPage from "../../pages/Negotiate/OfferDraftPage"; // File deleted
 // Page components - Close
 // Page components - Onboard
-import PersonalizationPage from "../../pages/Onboard/PersonalizationPage.tsx";
-import SavedHomes from "../../pages/Search/SavedHomes.tsx";
-import SearchPage from "../../pages/Search/SearchPage.tsx";
+import PersonalizationPage from "../../pages/PersonalizationPage.tsx";
+import SavedHomes from "../../pages/Saved.tsx";
+import SearchPage from "../../pages/SearchPage.tsx";
 import { useViewStore } from "../../../../packages/store/view.slice";
 
 type HeaderConfig = {
@@ -93,7 +88,7 @@ export default function DashboardLayout({
 
     // Find matching page configuration
     const configPath = Object.keys(PAGE_WIDTH_CONFIG).find((configPath) =>
-      path.startsWith(configPath)
+      path.startsWith(configPath),
     );
 
     // Use page-specific width or default to maxWidth (defaulting to 85)
@@ -104,23 +99,7 @@ export default function DashboardLayout({
     const path = location.pathname;
     if (header) return header;
 
-    if (path.startsWith("/buyer-checklists")) {
-      return { type: "none", title: "Buyer Checklists" };
-    } else if (path.startsWith("/close/escrow-legal-logistics")) {
-      return { type: "none", title: "Escrow & Legal" };
-    } else if (path.startsWith("/close/inspections-due-diligence")) {
-      return { type: "none", title: "Inspections" };
-    } else if (path.startsWith("/close/financing-insurance")) {
-      return { type: "none", title: "Financing & Insurance" };
-    } else if (path.startsWith("/close/closing-moving-in")) {
-      return { type: "none", title: "Closing" };
-    } else if (path.startsWith("/generate-report")) {
-      return {
-        type: "rheader",
-        title: "Generate Report",
-        subtitle: "Create comprehensive property analysis reports",
-      };
-    } else if (path.startsWith("/reports")) {
+    if (path.startsWith("/reports")) {
       return {
         type: "rheader",
         title: "Past Reports",
@@ -183,15 +162,14 @@ export default function DashboardLayout({
   const headerContent = useMemo(() => {
     const path = location.pathname;
 
-    // Use ClosePageHeader for Close pages
-    if (
-      closePageHeaderData &&
-      ((path.startsWith("/close/escrow-legal-logistics") ||
-        path.startsWith("/close/inspections-due-diligence")) ??
-        (path.startsWith("/close/financing-insurance") ||
-          path.startsWith("/close/closing-moving-in")))
-    ) {
-      return (
+    // For the dashboard, use DashboardButtonHeader
+    if (path.startsWith("/dashboard")) {
+      return <DashboardButtonHeader variant="horizontal" />;
+    }
+
+    // For buyer-checklists, use ClosePageHeader for desktop
+    if (path.startsWith("/buyer-checklists")) {
+      return closePageHeaderData ? (
         <ClosePageHeader
           title={closePageHeaderData.title}
           subtitle={closePageHeaderData.subtitle}
@@ -199,7 +177,7 @@ export default function DashboardLayout({
           totalCount={closePageHeaderData.totalCount}
           loading={closePageHeaderData.loading}
         />
-      );
+      ) : null;
     }
 
     if (config?.type === "rheader" && config.title) {
@@ -216,15 +194,14 @@ export default function DashboardLayout({
       return mobileHeaderActions;
     }
 
-    // Check for Close pages first - render ClosePageHeader if data is available
-    if (
-      closePageHeaderData &&
-      ((path.startsWith("/close/escrow-legal-logistics") ||
-        path.startsWith("/close/inspections-due-diligence")) ??
-        (path.startsWith("/close/financing-insurance") ||
-          path.startsWith("/close/closing-moving-in")))
-    ) {
-      return (
+    // For the dashboard, use DashboardButtonHeader on mobile
+    if (path.startsWith("/dashboard")) {
+      return <DashboardButtonHeader variant="vertical" />;
+    }
+
+    // For buyer-checklists, use ClosePageHeader for mobile (same as dashboard)
+    if (path.startsWith("/buyer-checklists")) {
+      return closePageHeaderData ? (
         <ClosePageHeader
           title={closePageHeaderData.title}
           subtitle={closePageHeaderData.subtitle}
@@ -232,14 +209,7 @@ export default function DashboardLayout({
           totalCount={closePageHeaderData.totalCount}
           loading={closePageHeaderData.loading}
         />
-      );
-    }
-
-    // For the dashboard, use the timeline checklist as the header
-    if (path.startsWith("/dashboard")) {
-      return (
-        <TimelineChecklist variant="horizontal" completedStepKey="search" />
-      );
+      ) : null;
     }
 
     // For personalization, ensure no other header content is shown when actions are not present
@@ -258,7 +228,7 @@ export default function DashboardLayout({
     };
 
     const override = Object.keys(mobileOverrides).find((key) =>
-      path.startsWith(key)
+      path.startsWith(key),
     );
     if (override) return mobileOverrides[override];
 
@@ -319,7 +289,14 @@ export default function DashboardLayout({
 
         {/* Desktop Header Rendering with consistent width - Hidden on mobile */}
         {!location.pathname.startsWith("/search") && (
-          <div className="hidden pt-8 lg:block">{headerContent}</div>
+          <div
+            className="hidden pt-8 lg:block mx-auto w-full"
+            style={{
+              maxWidth: `${getPageWidth()}vw`,
+            }}
+          >
+            {headerContent}
+          </div>
         )}
 
         {/* Content area with centralized width parameter */}
@@ -331,13 +308,13 @@ export default function DashboardLayout({
                 ? "" // No padding for buyer checklists page
                 : `p-4 sm:p-6 lg:p-8 mt-4 lg:mt-0 ${
                     (location.pathname.startsWith(
-                      "/close/escrow-legal-logistics"
+                      "/close/escrow-legal-logistics",
                     ) ??
                     location.pathname.startsWith(
-                      "/close/inspections-due-diligence"
+                      "/close/inspections-due-diligence",
                     ) ??
                     (location.pathname.startsWith(
-                      "/close/financing-insurance"
+                      "/close/financing-insurance",
                     ) ||
                       location.pathname.startsWith("/close/closing-moving-in")))
                       ? ""
@@ -352,7 +329,6 @@ export default function DashboardLayout({
           {location.pathname.startsWith("/generate-report") && (
             <GenerateReportPage />
           )}
-          {location.pathname.startsWith("/reports") && <PastReports />}
           {location.pathname.startsWith("/compare-reports") && (
             <CompareReportsPage />
           )}
@@ -369,25 +345,7 @@ export default function DashboardLayout({
             <NegotiationStrategy />
           )}
           {location.pathname.startsWith("/buyer-checklists") && (
-            <BuyerChecklists />
-          )}
-          {location.pathname.startsWith("/close/escrow-legal-logistics") && (
-            <EscrowLegalLogistics
-              setClosePageHeaderData={setClosePageHeaderData}
-            />
-          )}
-          {location.pathname.startsWith("/close/inspections-due-diligence") && (
-            <InspectionsDueDiligence
-              setClosePageHeaderData={setClosePageHeaderData}
-            />
-          )}
-          {location.pathname.startsWith("/close/financing-insurance") && (
-            <FinancingInsurance
-              setClosePageHeaderData={setClosePageHeaderData}
-            />
-          )}
-          {location.pathname.startsWith("/close/closing-moving-in") && (
-            <ClosingMovingIn setClosePageHeaderData={setClosePageHeaderData} />
+            <BuyerChecklists setClosePageHeaderData={setClosePageHeaderData} />
           )}
           {location.pathname.startsWith("/saved") && <SavedHomes />}
           {location.pathname.startsWith("/dashboard") && <DashboardPage />}

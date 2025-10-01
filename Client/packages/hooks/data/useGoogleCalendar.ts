@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useState, useMemo } from "react";
 
 import { queryKeys } from "../../config/query/keys";
-import { useAuth } from "../../contexts";
+import { useAuthStore } from "../../store/auth.slice";
 import { googleCalendarService } from "../../services/googleCalendar";
 import type {
   GoogleCalendar,
@@ -21,7 +21,8 @@ export type UseGoogleCalendarReturn = {
 };
 
 export function useGoogleCalendar(): UseGoogleCalendarReturn {
-  const { isAuthenticated, authReady } = useAuth();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const authReady = useAuthStore((s) => s.authReady);
   const queryClient = useQueryClient();
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [calendars, setCalendars] = useState<GoogleCalendar[]>([]);
@@ -127,17 +128,15 @@ export function useGoogleEvents(params?: {
   timeMin?: string;
   timeMax?: string;
 }): UseGoogleEventsReturn {
-  const { isAuthenticated, authReady } = useAuth();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const authReady = useAuthStore((s) => s.authReady);
   const queryClient = useQueryClient();
   const [events, setEvents] = useState<GoogleEvent[]>([]);
   const [eventsLoading, setEventsLoading] = useState<boolean>(false);
   const [eventsError, setEventsError] = useState<string | null>(null);
 
   // Memoize params to prevent unnecessary re-renders
-  const memoizedParams = useMemo(
-    () => params,
-    [params?.calendarId, params?.timeMin, params?.timeMax],
-  );
+  const memoizedParams = useMemo(() => params, [params]);
 
   // Initialize service callbacks for events
   useEffect(() => {

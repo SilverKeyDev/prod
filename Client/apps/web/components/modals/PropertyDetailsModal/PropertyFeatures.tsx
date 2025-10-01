@@ -10,7 +10,7 @@ function isImageFeatures(x: unknown): x is ImageFeatures {
     typeof x === "object" &&
     x !== null &&
     "clean" in x &&
-    Array.isArray((x as any).clean)
+    Array.isArray((x as Record<string, unknown>).clean)
   );
 }
 

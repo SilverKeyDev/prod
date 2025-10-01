@@ -31,20 +31,28 @@ export enum AuthEvents {
  */
 export const AUTH_CONFIG = {
   // Storage Keys (lowercase to match existing usage)
-  // NOTE: With HTTP-only cookie authentication, ACCESS_TOKEN, REFRESH_TOKEN, and ID_TOKEN
-  // keys are NEVER used for storage. They remain here for backward compatibility only.
+  // NOTE: With HTTP-only cookie authentication, token keys are NEVER used.
   // Tokens are stored exclusively in HTTP-only cookies set by the backend.
   STORAGE_KEYS: {
-    ACCESS_TOKEN: "access_token",       // ⚠️ Not used with HTTP-only cookies
-    REFRESH_TOKEN: "refresh_token",     // ⚠️ Not used with HTTP-only cookies
-    ID_TOKEN: "id_token",               // ⚠️ Not used with HTTP-only cookies
-    USER: "user",                       // ✅ Used for non-sensitive user data
-    USER_PROFILE: "userProfile",        // ✅ Used for non-sensitive profile data
+    /**
+     * @deprecated Not used with HTTP-only cookies. Kept for backward compatibility only.
+     */
+    ACCESS_TOKEN: "access_token",
+    /**
+     * @deprecated Not used with HTTP-only cookies. Kept for backward compatibility only.
+     */
+    REFRESH_TOKEN: "refresh_token",
+    /**
+     * @deprecated Not used with HTTP-only cookies. Kept for backward compatibility only.
+     */
+    ID_TOKEN: "id_token",
+    USER: "user", // ✅ Used for non-sensitive user data
+    USER_PROFILE: "userProfile", // ✅ Used for non-sensitive profile data
   },
 
   // Secure Storage Configuration
   SECURE_STORAGE: {
-    // Use sessionStorage for sensitive data (tokens, auth state)
+    // Use sessionStorage for sensitive data (auth state)
     SENSITIVE_STORAGE: "sessionStorage",
     // Use localStorage for non-sensitive data (preferences, UI state)
     NON_SENSITIVE_STORAGE: "localStorage",
@@ -61,22 +69,22 @@ export const AUTH_CONFIG = {
     ],
   },
 
-  // Token Refresh Configuration
+  /**
+   * @deprecated Token refresh is handled by HTTP-only cookies on the backend.
+   * Client-side token refresh is not needed. Kept for backward compatibility only.
+   */
   TOKEN_REFRESH: {
-    // Refresh token 14 minutes before expiration (in milliseconds)
     REFRESH_INTERVAL: 14 * 60 * 1000,
-    // Check for token expiration every 5 minutes
     CHECK_INTERVAL: 5 * 60 * 1000,
-    // Consider token expired if it expires within 5 minutes
     EXPIRY_BUFFER_MINUTES: 5,
   },
 
-  // Session Management
+  // Session Management (used by useSessionTimeout)
   SESSION: {
     // Session timeout warning (25 minutes in milliseconds)
     TIMEOUT_WARNING: 25 * 60 * 1000,
-    // Maximum session duration (30 minutes in milliseconds)
-    MAX_DURATION: 30 * 60 * 1000,
+    // Maximum session duration (8 hours in milliseconds) - matches backend token expiry
+    MAX_DURATION: 8 * 60 * 60 * 1000,
     // Grace period for user interaction (5 minutes in milliseconds)
     GRACE_PERIOD: 5 * 60 * 1000,
   },
@@ -276,40 +284,43 @@ export const authUtils = {
 
   /**
    * Secure storage utilities
+   * @deprecated With HTTP-only cookies, most storage operations are unnecessary.
+   * Tokens are managed by the backend. Use Zustand stores for state management instead.
    */
   secureStorage: {
     /**
-     * Store sensitive data in sessionStorage
+     * @deprecated Use Zustand stores for state management instead
      */
     setSensitive: (key: string, value: string): void => {
       sessionStorage.setItem(key, value);
     },
 
     /**
-     * Get sensitive data from sessionStorage
+     * @deprecated Use Zustand stores for state management instead
      */
     getSensitive: (key: string): string | null => {
       return sessionStorage.getItem(key);
     },
 
     /**
-     * Remove sensitive data from sessionStorage
+     * @deprecated Use Zustand stores for state management instead
      */
     removeSensitive: (key: string): void => {
       sessionStorage.removeItem(key);
     },
 
     /**
-     * Store non-sensitive data in localStorage
+     * Store non-sensitive data in localStorage with validation
      */
     setNonSensitive: (key: string, value: string): void => {
       if (
-        AUTH_CONFIG.SECURE_STORAGE.FORBIDDEN_LOCALSTORAGE_KEYS.includes(
-          key as any,
-        )
+        (
+          AUTH_CONFIG.SECURE_STORAGE
+            .FORBIDDEN_LOCALSTORAGE_KEYS as readonly string[]
+        ).includes(key)
       ) {
         console.warn(
-          `[AUTH_CONFIG] Attempted to store forbidden key "${key}" in localStorage. Use secureStorage.setSensitive() instead.`,
+          `[AUTH_CONFIG] Attempted to store forbidden key "${key}" in localStorage. Use sessionStorage instead.`,
         );
         return;
       }
@@ -332,14 +343,15 @@ export const authUtils = {
 
     /**
      * Clear all auth-related storage
+     * Note: This does NOT clear HTTP-only cookies - use authApi.logout() for that
      */
     clearAll: (): void => {
-      // Clear sessionStorage (sensitive data)
+      // Clear sessionStorage (auth state)
       Object.values(AUTH_CONFIG.STORAGE_KEYS).forEach((key) => {
         sessionStorage.removeItem(key);
       });
 
-      // Clear localStorage (non-sensitive data, but remove forbidden keys)
+      // Clear localStorage (non-sensitive data only)
       Object.values(AUTH_CONFIG.STORAGE_KEYS).forEach((key) => {
         if (
           !AUTH_CONFIG.SECURE_STORAGE.FORBIDDEN_LOCALSTORAGE_KEYS.includes(key)

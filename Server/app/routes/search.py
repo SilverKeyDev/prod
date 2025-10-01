@@ -147,9 +147,11 @@ def get_property_comps():
     try:
         # Get query parameters
         address = request.args.get('address')
+        zpid = request.args.get('zpid')
+        property_url = request.args.get('property_url')
         
         # Validate that at least one parameter is provided
-        if not address:
+        if not address and not zpid and not property_url:
             return jsonify({
                 "success": False, 
                 "error": "BAD_REQUEST",
@@ -845,7 +847,7 @@ def search_properties_by_polygon():
     import time
     start_time = time.time()
     request_id = f"poly_{int(start_time * 1000)}"
-    TARGET_LIMIT = 99  # hard cap on deduped results
+    TARGET_LIMIT = 10  # hard cap on deduped results
 
     try:
         user = get_current_user()

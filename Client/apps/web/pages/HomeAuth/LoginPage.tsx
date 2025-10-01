@@ -38,7 +38,7 @@ export default function LoginPage() {
         "🔐 [LOGIN] Navigating to:",
         from,
         "Current path:",
-        location.pathname
+        location.pathname,
       );
 
       // Only navigate if we're not already at the target

@@ -3,6 +3,7 @@ import {
   useContext,
   useEffect,
   useState,
+  useMemo,
   type ReactNode,
 } from "react";
 
@@ -127,7 +128,10 @@ export function LocalizationProvider({
   });
 
   const [browserLocale, setBrowserLocale] = useState<Locale>("en");
-  const supportedLocales: Locale[] = ["en", "es", "fr", "de"];
+  const supportedLocales: Locale[] = useMemo(
+    () => ["en", "es", "fr", "de"],
+    [],
+  );
 
   // Detect browser locale
   useEffect(() => {
@@ -136,7 +140,7 @@ export function LocalizationProvider({
       ? browserLang
       : "en";
     setBrowserLocale(detectedLocale);
-  }, []);
+  }, [supportedLocales]);
 
   // Set document language
   useEffect(() => {
@@ -215,6 +219,7 @@ export function LocalizationProvider({
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useLocalization() {
   const context = useContext(LocalizationContext);
   if (!context) {

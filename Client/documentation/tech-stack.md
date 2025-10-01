@@ -51,12 +51,6 @@ SilverKey Client is a modern React application built with TypeScript, designed f
 - **React Phone Number Input 3.2.20** - International phone input
 - **React Responsive Carousel 3.2.23** - Image carousel component
 
-### Payment Processing
-
-- **Stripe Integration**
-  - `@stripe/react-stripe-js` (3.7.0)
-  - `@stripe/stripe-js` (7.4.0)
-
 ### Development Tools
 
 - **ESLint 9.9.1** - Code linting with custom configuration

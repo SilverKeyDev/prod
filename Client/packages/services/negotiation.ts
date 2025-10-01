@@ -2,7 +2,7 @@
 import { offerApi, searchApi } from "../config/api";
 // Internal utilities
 import { useNegotiationStore } from "../store/negotiation.slice";
-import { getAuthToken } from "../utils/auth";
+import { useAuthStore } from "../store/auth.slice";
 import { asError } from "../utils/error";
 import { isObject, hasProperty } from "../utils/typeGuards";
 
@@ -133,7 +133,7 @@ export class NegotiationService {
 
     // Update Zustand store
     const store = useNegotiationStore.getState();
-    store.setSelectedHome(home as any);
+    store.setSelectedHome(home as import("../schemas").SavedHome);
     store.setStrategyData(null);
     store.setCompsData(null);
     store.setStrategyTextContent("");
@@ -170,9 +170,9 @@ export class NegotiationService {
     });
 
     try {
-      // Get authentication token
-      const authToken = getAuthToken();
-      if (!authToken) {
+      // Check authentication status using auth store
+      const authStore = useAuthStore.getState();
+      if (!authStore.isAuthenticated) {
         throw new Error("Authentication required. Please log in.");
       }
 

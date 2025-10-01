@@ -50,7 +50,7 @@ export { default as PageHeader } from "../widgets/header/PageHeader";
 export { default as BaseModal } from "../modals/BaseModal";
 
 // Feature Components
-export { default as TimelineChecklist } from "../../features/dashboard/TimelineChecklist";
+export { default as DashboardButtonHeader } from "../../features/dashboard/DashboardButtonHeader";
 
 // Re-export types
 export type { ButtonProps } from "./button/Button";

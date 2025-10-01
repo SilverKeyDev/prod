@@ -105,7 +105,7 @@ const CardViewDetailsButton: React.FC<CardViewDetailsButtonProps> = ({
       ) : (
         <>
           {showIcon && <Eye className={iconClasses} />}
-          {text && { text }}
+          {text}
         </>
       )}
     </button>

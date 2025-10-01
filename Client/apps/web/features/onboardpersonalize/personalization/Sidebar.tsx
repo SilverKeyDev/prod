@@ -9,10 +9,11 @@ import {
   MessageSquare,
   ListOrdered,
 } from "lucide-react";
-import { useState, useEffect } from "react";
 
 import Card from "../../../components/layout/Card";
+import Button from "../../../components/ui/button/Button";
 import type { NavItem } from "../../../../../packages/schemas/navigation";
+import useMobile from "../../../../../packages/hooks/ui/useMobile";
 
 const STEPS: NavItem[] = [
   {
@@ -43,7 +44,7 @@ const STEPS: NavItem[] = [
   {
     key: "communication",
     to: "#communication",
-    label: "Communication Preferences",
+    label: "Communication",
     icon: MessageSquare,
   },
 ];
@@ -67,25 +68,14 @@ export default function PersonalizationSidebar({
   onCancel,
   onScrollToSection,
 }: PersonalizationSidebarProps) {
-  const [isLargeScreen, setIsLargeScreen] = useState(false);
-
-  useEffect(() => {
-    const checkScreenSize = () => {
-      setIsLargeScreen(window.innerWidth >= 1024);
-    };
-
-    checkScreenSize();
-    window.addEventListener("resize", checkScreenSize);
-
-    return () => window.removeEventListener("resize", checkScreenSize);
-  }, []);
+  const isMobile = useMobile(); // Uses "(max-width: 1024px)" by default
+  const isLargeScreen = !isMobile;
 
   return (
     <aside
-      className="fixed z-10 hidden lg:block"
+      className="sticky top-[90px] h-fit shrink-0"
       style={{
-        width: isLargeScreen ? "16rem" : "3rem",
-        top: isLargeScreen ? "1rem" : "6rem",
+        width: isLargeScreen ? "16rem" : "4rem",
       }}
     >
       <Card
@@ -96,47 +86,71 @@ export default function PersonalizationSidebar({
         }
         padding={isLargeScreen ? "md" : "none"}
       >
-        {/* Edit/Save Buttons - Hidden on mobile */}
-        {isLargeScreen && (
-          <div className="mb-8">
-            {!isEditMode ? (
-              <button
-                onClick={onEdit}
-                className="hover:bg-olive-dark flex w-full items-center justify-center gap-2 rounded-lg bg-olive px-3 py-2 text-lg font-medium text-white focus:outline-none focus:ring-2 focus:ring-olive focus:ring-offset-2"
+        {/* Edit/Save Buttons - Full width on desktop, centered on mobile */}
+        <div
+          className={`${isLargeScreen ? "mb-8" : "mb-4"} ${
+            isLargeScreen ? "w-full" : "flex justify-center"
+          }`}
+        >
+          {!isEditMode ? (
+            <Button
+              onClick={onEdit}
+              variant="olive"
+              size="sm"
+              className={`text-xs font-medium p-2 rounded-lg items-center justify-center ${
+                isLargeScreen ? "w-full" : ""
+              }`}
+              icon={<Edit />}
+            >
+              {isLargeScreen ? "Edit" : ""}
+            </Button>
+          ) : (
+            <div
+              className={`flex flex-col space-y-2 ${
+                isLargeScreen ? "w-full" : "items-center w-full"
+              }`}
+            >
+              <Button
+                onClick={onSave}
+                disabled={isSaving}
+                variant="olive"
+                size="sm"
+                className={`text-xs font-medium p-2 rounded-lg items-center justify-center ${
+                  isLargeScreen ? "w-full" : ""
+                }`}
+                icon={<Save />}
+                loading={isSaving}
               >
-                <Edit className="h-5 w-5" />
-                Edit
-              </button>
-            ) : (
-              <div className="flex flex-col space-y-2">
-                <button
-                  onClick={onSave}
-                  disabled={isSaving}
-                  className="hover:bg-olive-dark flex w-full items-center justify-center gap-2 rounded-lg bg-olive px-3 py-2 text-lg font-medium text-white focus:outline-none focus:ring-2 focus:ring-olive focus:ring-offset-2 disabled:bg-gray-400"
-                >
-                  <Save className="h-5 w-5" />
-                  {isSaving ? "Saving..." : "Save"}
-                </button>
-                <button
-                  onClick={onCancel}
-                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-gray-200 px-3 py-2 text-lg font-medium text-gray-700 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
-                >
-                  <X className="h-5 w-5" />
-                  Cancel
-                </button>
-              </div>
-            )}
-          </div>
-        )}
+                {isLargeScreen ? (isSaving ? "Saving..." : "Save") : ""}
+              </Button>
+              <Button
+                onClick={onCancel}
+                variant="outline"
+                size="sm"
+                className={`bg-gray-200 text-gray-700 hover:bg-gray-300 border-gray-200 text-xs font-medium p-2 rounded-lg items-center justify-center ${
+                  isLargeScreen ? "w-full" : ""
+                }`}
+                icon={<X />}
+              >
+                {isLargeScreen ? "Cancel" : ""}
+              </Button>
+            </div>
+          )}
+        </div>
 
-        {/* Navigation Links */}
+        {/* Navigation Links - Left aligned on desktop, icon only on mobile */}
         {STEPS.map((step) => (
           <button
             key={step.key}
             onClick={() => onScrollToSection(step.key)}
             className={`flex w-full items-center rounded-lg px-3 py-2 transition-colors ${
-              window.innerWidth >= 1024 ? "gap-3" : "justify-center"
-            } ${activeSection === step.key ? "bg-gold text-gray-800" : "hover:bg-gold-lighter"}`}
+              isLargeScreen ? "gap-3" : "justify-center"
+            } ${
+              activeSection === step.key
+                ? "bg-gold text-gray-800"
+                : "hover:bg-gold-lighter"
+            }`}
+            title={!isLargeScreen ? step.label : undefined}
           >
             {step.icon && (
               <step.icon
@@ -146,8 +160,14 @@ export default function PersonalizationSidebar({
                 }`}
               />
             )}
-            {window.innerWidth >= 1024 && (
-              <span className="text-sm font-medium">{step.label}</span>
+            {isLargeScreen && (
+              <span
+                className={`text-left text-sm font-medium ${
+                  activeSection === step.key ? "text-gray-800" : "text-gray-500"
+                }`}
+              >
+                {step.label}
+              </span>
             )}
           </button>
         ))}

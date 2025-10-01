@@ -20,7 +20,6 @@ type Suggestion = {
 };
 
 declare global {
-  // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
   interface Window {
     initMapScripts?: () => void;
     google?: typeof google;
@@ -75,17 +74,19 @@ export default function HomePage() {
 
         const { suggestions: fetched } =
           await g.maps.places.AutocompleteSuggestion.fetchAutocompleteSuggestions(
-            request
+            request,
           );
 
         const built = fetched.flatMap(
           (
             s:
               | AutocompleteSuggestion
-              | { placePrediction: google.maps.places.PlacePrediction | null }
+              | { placePrediction: google.maps.places.PlacePrediction | null },
           ) => {
-            const pred = (s as any)
-              .placePrediction as google.maps.places.PlacePrediction | null;
+            const sWithPred = s as {
+              placePrediction: google.maps.places.PlacePrediction | null;
+            };
+            const pred = sWithPred.placePrediction;
             if (!pred) return [];
             return [
               {
@@ -96,7 +97,7 @@ export default function HomePage() {
                 },
               },
             ];
-          }
+          },
         );
         setSuggestions(built);
       } catch (err: unknown) {

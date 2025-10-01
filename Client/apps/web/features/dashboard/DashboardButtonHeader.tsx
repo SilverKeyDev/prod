@@ -4,12 +4,12 @@ import { Link, useLocation } from "react-router-dom";
 
 import { TIMELINE_STEPS } from "./DashboardButtonHeaderConstants";
 
-type TimelineChecklistProps = {
+type DashboardButtonHeaderProps = {
   completedStepKey?: string; // inclusive key of last completed step
   variant?: "horizontal" | "vertical"; // New prop to control layout
 };
 
-const TimelineChecklist: React.FC<TimelineChecklistProps> = ({
+const DashboardButtonHeader: React.FC<DashboardButtonHeaderProps> = ({
   completedStepKey,
   variant = "vertical",
 }) => {
@@ -23,16 +23,16 @@ const TimelineChecklist: React.FC<TimelineChecklistProps> = ({
   // Horizontal timeline progress (from TimelineProgress)
   if (variant === "horizontal") {
     return (
-      <div className="w-full px-2 sm:px-4 md:px-6 lg:px-8">
+      <div className="w-full px-1 sm:px-2 md:px-4 lg:px-6 xl:px-8">
         {/* Timeline grid: each column contains main + substeps */}
-        <div className="flex w-full items-center justify-between sm:items-start">
+        <div className="flex w-full items-center justify-between sm:items-start gap-1 sm:gap-2">
           {TIMELINE_STEPS.map((step, idx) => {
             const StepIcon: LucideIcon = step.icon;
 
             return (
               <React.Fragment key={step.key}>
                 {/* Step column */}
-                <div className="flex flex-shrink-0 flex-col items-center text-center">
+                <div className="flex flex-shrink-0 flex-col items-center text-center min-w-0 flex-1">
                   {/* Main icon */}
                   <Link
                     to={
@@ -42,53 +42,33 @@ const TimelineChecklist: React.FC<TimelineChecklistProps> = ({
                         ? step.subSteps[0].to
                         : "#"
                     }
-                    className="flex h-9 w-9 touch-manipulation items-center justify-center rounded-full bg-olive text-white transition-colors sm:h-8 sm:w-8 md:h-10 md:w-10 lg:h-12 lg:w-12"
+                    className="flex h-8 w-8 touch-manipulation items-center justify-center rounded-full bg-olive text-white transition-colors sm:h-9 sm:w-9 md:h-10 md:w-10 lg:h-12 lg:w-12"
                     title={step.name}
                   >
                     <StepIcon
-                      className="h-[1.125rem] w-[1.125rem] sm:h-4 sm:w-4 md:h-5 md:w-5 lg:h-6 lg:w-6"
+                      className="h-3 w-3 sm:h-[1.125rem] sm:w-[1.125rem] md:h-4 md:w-4 lg:h-5 lg:w-5 xl:h-6 xl:w-6"
                       color="white"
                     />
                   </Link>
-
-                  {/* Step name - compact responsive scaling */}
-
-                  {step.name}
-
-                  {/* Substeps container: responsive width */}
-                  <div className="mt-1 hidden max-w-full flex-wrap justify-center gap-1 sm:flex md:mt-2">
-                    {step.subSteps.map((sub) => {
-                      const SubIcon: LucideIcon = sub.icon;
-                      const isActiveSub = location.pathname === sub.to;
-                      const colorStyles = {
-                        backgroundColor: "#f3f4f6", // light gray
-                        borderColor: "#d1d5db",
-                        color: "#5c4b3b",
-                      };
-                      return (
-                        <Link
-                          key={sub.to || "unknown"}
-                          to={sub.to || "#"}
-                          title={sub.label || "Unknown"}
-                          className={`flex h-3 w-3 touch-manipulation items-center justify-center rounded-full border text-xs transition-colors sm:h-4 sm:w-4 md:h-5 md:w-5 lg:h-6 lg:w-6 ${
-                            isActiveSub ? "ring-1 ring-brown sm:ring-2" : ""
-                          }`}
-                          style={colorStyles}
-                        >
-                          {SubIcon && (
-                            <SubIcon className="hidden h-1.5 w-1.5 sm:block sm:h-2 sm:w-2 md:h-2.5 md:w-2.5 lg:h-3 lg:w-3" />
-                          )}
-                        </Link>
-                      );
-                    })}
+                  {/* Step name with responsive text scaling */}
+                  <div className="mt-1 w-full px-0.5 sm:px-1">
+                    <span
+                      className="block font-medium text-gray-700 truncate overflow-hidden"
+                      style={{
+                        fontSize: "clamp(0.625rem, 1.5vw, 1.125rem)",
+                        lineHeight: "1.1",
+                      }}
+                    >
+                      {step.name}
+                    </span>
                   </div>
                 </div>
 
                 {/* Connector column */}
                 {idx < TIMELINE_STEPS.length - 1 && (
-                  <div className="flex h-6 flex-grow items-center justify-center sm:h-8 md:h-10 lg:h-12">
+                  <div className="flex h-8 flex-grow items-center justify-center sm:h-9 md:h-10 lg:h-12 min-w-0 px-1">
                     <div
-                      className="h-[1px] w-[75%] sm:h-[1px] md:h-[2px] lg:h-[2px]"
+                      className="h-[1px] w-[60%] sm:w-[75%] md:h-[1px] lg:h-[2px]"
                       style={{
                         backgroundColor: "#d1d5db", // light gray
                       }}
@@ -174,4 +154,4 @@ const TimelineChecklist: React.FC<TimelineChecklistProps> = ({
   );
 };
 
-export default TimelineChecklist;
+export default DashboardButtonHeader;

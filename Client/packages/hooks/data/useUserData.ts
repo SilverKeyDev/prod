@@ -3,7 +3,7 @@ import { useCallback } from "react";
 
 import { userApi, preferencesApi } from "../../config/api";
 import { queryKeys } from "../../config/query/keys";
-import { useAuth } from "../../contexts";
+import { useAuthStore } from "../../store/auth.slice";
 import type { UserProfile, UserPreferences } from "../../schemas";
 
 export type UseUserDataReturn = {
@@ -14,14 +14,8 @@ export type UseUserDataReturn = {
 };
 
 export function useUserData(): UseUserDataReturn {
-  const { isAuthenticated, authReady } = useAuth();
-
-  // Additional check to ensure access token is available
-  // This prevents race conditions during login
-  const hasAccessToken =
-    typeof window !== "undefined" &&
-    sessionStorage.getItem("access_token") !== null &&
-    sessionStorage.getItem("access_token") !== "http-only-cookie-auth";
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const authReady = useAuthStore((s) => s.authReady);
 
   const {
     data: userProfile,
@@ -55,8 +49,9 @@ export function useUserData(): UseUserDataReturn {
 
       return profile;
     },
-    enabled: authReady && isAuthenticated && hasAccessToken,
+    enabled: authReady && isAuthenticated,
     staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnMount: false, // Don't refetch if data exists (matches reports)
   });
 
   const refreshUserProfile = useCallback(async () => {
@@ -79,14 +74,8 @@ export type UseUserPreferencesReturn = {
 };
 
 export function useUserPreferences(): UseUserPreferencesReturn {
-  const { isAuthenticated, authReady } = useAuth();
-
-  // Additional check to ensure access token is available
-  // This prevents race conditions during login
-  const hasAccessToken =
-    typeof window !== "undefined" &&
-    sessionStorage.getItem("access_token") !== null &&
-    sessionStorage.getItem("access_token") !== "http-only-cookie-auth";
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const authReady = useAuthStore((s) => s.authReady);
 
   const {
     data: userPreferences,
@@ -102,8 +91,9 @@ export function useUserPreferences(): UseUserPreferencesReturn {
       }
       return response.preferences;
     },
-    enabled: authReady && isAuthenticated && hasAccessToken,
+    enabled: authReady && isAuthenticated,
     staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnMount: false, // Don't refetch if data exists (matches reports)
   });
 
   const refreshUserPreferences = useCallback(async () => {

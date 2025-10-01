@@ -37,21 +37,24 @@ export function useGoogleMapsStoreIntegration() {
       lastDataIsLoadedRef.current = dataIsLoaded;
       setLoaded(dataIsLoaded);
     }
-  }, [dataIsLoaded, setLoaded]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dataIsLoaded]); // Zustand setters are stable
 
   useEffect(() => {
     if (lastDataErrorRef.current !== dataError) {
       lastDataErrorRef.current = dataError;
       setError(dataError);
     }
-  }, [dataError, setError]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dataError]); // Zustand setters are stable
 
   useEffect(() => {
     if (lastDataScriptUrlRef.current !== dataScriptUrl) {
       lastDataScriptUrlRef.current = dataScriptUrl;
       setScriptUrl(dataScriptUrl);
     }
-  }, [dataScriptUrl, setScriptUrl]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dataScriptUrl]); // Zustand setters are stable
 
   // Expose the combined state and actions
   return {

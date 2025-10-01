@@ -14,7 +14,6 @@ type ImportMetaEnv = {
 
 // Extend Window interface for Google Maps global access
 declare global {
-  // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
   interface Window {
     google?: unknown;
   }

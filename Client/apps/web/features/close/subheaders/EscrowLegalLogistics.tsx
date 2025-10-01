@@ -1,6 +1,4 @@
-import CloseLayout, {
-  type ChecklistItem,
-} from "../../features/close/CloseLayout";
+import CloseLayout, { type ChecklistItem } from "../CloseLayout";
 
 type ClosePageHeaderData = {
   title: string;

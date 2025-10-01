@@ -11,8 +11,8 @@ import {
 import React, { useState, useEffect, useCallback } from "react";
 
 // Components
-import AlignedRow from "../../components/layout/AlignedRow";
-import Card from "../../components/layout/Card";
+import AlignedRow from "../components/layout/AlignedRow";
+import Card from "../components/layout/Card";
 import {
   Loading,
   OliveCheckbox,
@@ -20,17 +20,17 @@ import {
   Input,
   Title,
   Subtitle,
-} from "../../components/ui";
+} from "../components/ui";
 // Core
-import { useGoogleMaps } from "../../../../packages/hooks/data/useGoogleMaps";
-import { useUserPreferences } from "../../../../packages/hooks/data/useUserData";
-import useMobile from "../../../../packages/hooks/ui/useMobile";
-import { showErrorToast } from "../../../../packages/hooks/ui/useToast";
+import { useGoogleMapsStore } from "../../../packages/store/googleMaps.slice";
+import { showErrorToast } from "../../../packages/hooks/ui/useToast";
+import { useUserPreferences } from "../../../packages/hooks/data/useUserData";
+import useMobile from "../../../packages/hooks/ui/useMobile";
 // Features
-import OnPerDragDropPriorities from "../../features/onboardpersonalize/DragDropPriorities";
-import HomePriceEstimate from "../../features/onboardpersonalize/HomePriceEstimate";
-import ImportantLocationsInput from "../../features/onboardpersonalize/ImportantLocationsInput";
-import Label from "../../features/onboardpersonalize/Label";
+import OnPerDragDropPriorities from "../features/onboardpersonalize/DragDropPriorities";
+import HomePriceEstimate from "../features/onboardpersonalize/HomePriceEstimate";
+import ImportantLocationsInput from "../features/onboardpersonalize/ImportantLocationsInput";
+import Label from "../features/onboardpersonalize/Label";
 import {
   SECTION_TITLES,
   FIELD_LABELS,
@@ -38,18 +38,18 @@ import {
   HOUSING_TYPE_OPTIONS,
   COMMUNICATION_FREQUENCY_OPTIONS,
   type OnboardingData,
-} from "../../features/onboardpersonalize/lib/constants";
-import { handleDragEnd as handleDragEndUtil } from "../../features/onboardpersonalize/lib/dragEndHandler";
+} from "../features/onboardpersonalize/lib/constants";
+import { handleDragEnd as handleDragEndUtil } from "../features/onboardpersonalize/lib/dragEndHandler";
 import {
   calculateAffordableHomePrice,
   type HomePriceResult,
-} from "../../features/onboardpersonalize/lib/homePriceCalculation";
-import { handleSubmit as handleSubmitUtil } from "../../features/onboardpersonalize/lib/submitHandler";
-import { validateOnboardingData } from "../../features/onboardpersonalize/lib/validation";
-import PersonalizationMobileHeader from "../../features/onboardpersonalize/personalization/MobileHeader";
-import PersonalizationSidebar from "../../features/onboardpersonalize/personalization/Sidebar";
-import PriceRangeSlider from "../../features/onboardpersonalize/PriceRangeSlider";
-import OnPerTagInput from "../../features/onboardpersonalize/TagInput";
+} from "../features/onboardpersonalize/lib/homePriceCalculation";
+import { handleSubmit as handleSubmitUtil } from "../features/onboardpersonalize/lib/submitHandler";
+import { validateOnboardingData } from "../features/onboardpersonalize/lib/validation";
+import PersonalizationMobileHeader from "../features/onboardpersonalize/personalization/MobileHeader";
+import PersonalizationSidebar from "../features/onboardpersonalize/personalization/Sidebar";
+import PriceRangeSlider from "../features/onboardpersonalize/PriceRangeSlider";
+import OnPerTagInput from "../features/onboardpersonalize/TagInput";
 
 // Extend window interface for Google Maps
 declare global {
@@ -134,19 +134,19 @@ export default function PersonalizationPage({
 
   // Default report sections with their labels
   const defaultReportSections = [
-    { key: "neighborhood_overview", label: "Neighborhood Overview" },
-    { key: "safety", label: "Safety & Crime" },
-    { key: "culture_and_events", label: "Culture & Events" },
-    { key: "social_character", label: "Social Character" },
-    { key: "local_amenities", label: "Local Amenities" },
-    { key: "commute", label: "Commute & Transportation" },
-    { key: "family_friendly", label: "Family-Friendly Features" },
-    { key: "nightlife_and_dating", label: "Nightlife & Dating" },
-    { key: "development", label: "Development & Growth" },
-    { key: "environment_utilities", label: "Environment & Utilities" },
-    { key: "financial_information", label: "Cost of Living & Finances" },
-    { key: "schools", label: "Schools & Education" },
-    { key: "extra_tips", label: "Extra Tips & Insights" },
+    { key: "neighborhood_overview", label: "Neighborhood" },
+    { key: "safety", label: "Safety" },
+    { key: "culture_and_events", label: "Events" },
+    { key: "social_character", label: "Community" },
+    { key: "local_amenities", label: "Amenities" },
+    { key: "commute", label: "Commute" },
+    { key: "family_friendly", label: "Family-Friendly" },
+    { key: "nightlife_and_dating", label: "Nightlife" },
+    { key: "development", label: "Development" },
+    { key: "environment_utilities", label: "Utilities" },
+    { key: "financial_information", label: "Finances" },
+    { key: "schools", label: "Schools" },
+    { key: "extra_tips", label: "Extra Tips" },
   ];
 
   // Get ordered report sections based on user preferences
@@ -301,7 +301,7 @@ export default function PersonalizationPage({
 
   // Use centralized Google Maps loading
   const { isLoaded: googleMapsLoaded, error: googleMapsError } =
-    useGoogleMaps();
+    useGoogleMapsStore();
 
   // Update scriptsReady based on centralized Google Maps loading
   useEffect(() => {
@@ -1189,7 +1189,9 @@ export default function PersonalizationPage({
                     formData.has_buyers_agent === "no" ? (
                       <Label>Looking for Agent?</Label>
                     ) : (
-                      <div className="mb-2 block text-sm font-medium text-transparent"></div>
+                      <div className="mb-2 block text-sm font-medium text-transparent">
+                        &nbsp;
+                      </div>
                     ),
                   content:
                     formData.has_buyers_agent === "no" ? (
@@ -1246,11 +1248,15 @@ export default function PersonalizationPage({
                               )}
                             </div>
                           )}
-                          I am looking for a buyer's agent
+                          <span className="select-none">
+                            I am looking for a buyer's agent
+                          </span>
                         </label>
                       </div>
                     ) : (
-                      <div className="mobile-input bg-gray-50 opacity-0"></div>
+                      <div className="mobile-input bg-gray-50 opacity-0">
+                        &nbsp;
+                      </div>
                     ),
                 },
               ]}
@@ -1302,8 +1308,8 @@ export default function PersonalizationPage({
   return (
     <div className="min-h-screen bg-off-white">
       <div className="mx-auto max-w-7xl pb-1 sm:px-6 lg:px-8">
-        <div className="flex flex-row gap-2 md:gap-8">
-          {/* Sidebar */}
+        <div className="flex flex-row gap-6 lg:gap-8">
+          {/* Sidebar - Hidden below lg */}
           <PersonalizationSidebar
             activeSection={activeSection}
             isEditMode={isEditMode}
@@ -1315,7 +1321,7 @@ export default function PersonalizationPage({
           />
 
           {/* Main Content Area */}
-          <main className="flex-1 space-y-8">
+          <main className="w-full flex-1 space-y-8 lg:ml-0">
             {STEPS.map((step) => (
               <section id={step.id} key={step.id}>
                 {renderSectionContent(step.id)}

@@ -99,10 +99,12 @@ const withPersist = persistSafe<SessionState>(withReset, {
         ...base,
         reset: () => {},
         softReset: () => {},
-        setAuthReady: base.setAuthReady as any,
-        setIsAuthenticated: base.setIsAuthenticated as any,
-        setUserMeta: base.setUserMeta as any,
-        setFeatureGates: base.setFeatureGates as any,
+        setAuthReady: base.setAuthReady as (ready: boolean) => void,
+        setIsAuthenticated: base.setIsAuthenticated as (value: boolean) => void,
+        setUserMeta: base.setUserMeta as (meta: UserMeta | null) => void,
+        setFeatureGates: base.setFeatureGates as (
+          flags: Record<string, boolean>,
+        ) => void,
       } as unknown as SessionState;
     const persistedData = persisted as Record<string, unknown>;
     const safe = {

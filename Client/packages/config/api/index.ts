@@ -8,7 +8,6 @@ export { googleCalendarApi } from "./googleCalendar";
 export { homeMatchingApi } from "./homeMatching";
 export { mapsApi } from "./maps";
 export { offerApi } from "./offer";
-export { paymentApi } from "./payment";
 export { preferencesApi } from "./preferences";
 export { reportApi } from "./report";
 export { searchApi } from "./search";
@@ -63,13 +62,6 @@ export type {
   PropertyData,
   CommuteData,
 } from "./offer";
-export type {
-  SubscriptionStatus,
-  CheckoutSessionRequest,
-  CheckoutSessionResponse,
-  PortalSessionResponse,
-  BillingInfo,
-} from "./payment";
 export type {
   PreferencesResponse,
   ClientInfo,

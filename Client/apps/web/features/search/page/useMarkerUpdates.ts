@@ -44,6 +44,7 @@ export function useMarkerUpdates(params: {
       // Clear all markers when user hasn't searched yet or property modals should not be shown
       refreshMarkers();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     params.activeTab,
     params.currentPage,

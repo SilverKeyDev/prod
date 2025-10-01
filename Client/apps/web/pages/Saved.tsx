@@ -1,27 +1,23 @@
 import { useState, useEffect, useCallback } from "react";
 
-import SavedLayout, { type ViewMode } from "../../app/layouts/SavedLayout";
-import { PropertyCard } from "../../components/cards";
-import ReportCard from "../../components/cards/ReportCard";
-import {
-  CardHeartSave,
-  CardViewDetailsButton,
-} from "../../components/cards/base";
-import DeleteModal from "../../components/modals/DeleteModal";
-import PdfModal from "../../components/modals/PdfModal";
-import PropertyDetailsModal from "../../components/modals/PropertyDetailsModal";
-import { KeyTurnLoader } from "../../components/ui";
-import { userApi, reportApi } from "../../../../packages/config/api";
-import { useDocumentActions } from "../../../../packages/hooks/data/useDocumentActions";
-import type { SavedHome, Report } from "../../../../packages/schemas";
-import { useUIStore, useNegotiationStore } from "../../../../packages/store";
+import SavedLayout from "../app/layouts/SavedLayout";
+import { PropertyCard } from "../components/cards";
+import ReportCard from "../components/cards/ReportCard";
+import { CardHeartSave, CardViewDetailsButton } from "../components/cards/base";
+import DeleteModal from "../components/modals/DeleteModal";
+import PdfModal from "../components/modals/PdfModal";
+import PropertyDetailsModal from "../components/modals/PropertyDetailsModal";
+import { KeyTurnLoader } from "../components/ui";
+import { userApi, reportApi } from "../../../packages/config/api";
+import { useDocumentActions } from "../../../packages/hooks/data/useDocumentActions";
+import type { SavedHome, Report } from "../../../packages/schemas";
+import { useUIStore, useNegotiationStore } from "../../../packages/store";
 
 export default function SavedHomes() {
-  const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [searchTerm, setSearchTerm] = useState("");
   const [refreshing, setRefreshing] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState<SavedHome | null>(
-    null
+    null,
   );
   const [homes, setHomes] = useState<SavedHome[]>([]);
   const [reports, setReports] = useState<Report[]>([]);
@@ -76,7 +72,7 @@ export default function SavedHomes() {
             lng: (home.lng as number) ?? 0,
             // Any other HomeUniversal fields can be passed through
             ...home,
-          })
+          }),
         );
         setHomes(homeObjects);
       } else {
@@ -95,7 +91,32 @@ export default function SavedHomes() {
     try {
       const res = await reportApi.getAll();
       if (res.success && res.reports) {
-        setReports(res.reports as Report[]);
+        // Map ReportDocument[] to Report[]
+        const mappedReports: Report[] = res.reports.map((doc) => {
+          // Safely create date, fallback to current date if invalid
+          let generatedAt: Date;
+          try {
+            generatedAt = doc.created_at
+              ? new Date(doc.created_at)
+              : new Date();
+            // Check if the date is valid
+            if (isNaN(generatedAt.getTime())) {
+              generatedAt = new Date();
+            }
+          } catch {
+            generatedAt = new Date();
+          }
+
+          return {
+            id: doc.id,
+            address: doc.primary_address ?? doc.filename ?? "",
+            generatedAt,
+            status: doc.status === "processed" ? "completed" : doc.status,
+            pdfUrl: doc.file_path ?? null,
+            s3Key: doc.file_path ?? null,
+          };
+        });
+        setReports(mappedReports);
       } else {
         void void setError(res.error ?? "Failed to load reports");
       }
@@ -176,7 +197,7 @@ export default function SavedHomes() {
         message: `Selected ${home.address || home.description} for negotiation`,
       });
     },
-    [setSelectedHome, enqueueToast]
+    [setSelectedHome, enqueueToast],
   );
 
   // Check if a home is saved (for modal)
@@ -188,10 +209,10 @@ export default function SavedHomes() {
             home.id === homeId ||
             home.zpid === homeId ||
             home.zpid?.toString() === homeId) ??
-          home.address === homeId
+          home.address === homeId,
       );
     },
-    [homes]
+    [homes],
   );
 
   // Save home for modal - use exact same format as working Dashboard
@@ -224,7 +245,7 @@ export default function SavedHomes() {
   });
 
   const filteredReports = reports.filter((r: Report) =>
-    r.address?.toLowerCase().includes(searchTerm.toLowerCase())
+    r.address?.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   // Handle report actions
@@ -235,12 +256,12 @@ export default function SavedHomes() {
         enqueueToast({ type: "success", message: result.message });
       else enqueueToast({ type: "error", message: result.message });
     },
-    [handleShareDocument, enqueueToast]
+    [handleShareDocument, enqueueToast],
   );
 
   const openDeleteModal = (
     reportId: string,
-    s3Key: string | null | undefined
+    s3Key: string | null | undefined,
   ) => {
     setReportToDelete({ id: reportId, s3Key });
     setDeleteModalOpen(true);
@@ -253,7 +274,7 @@ export default function SavedHomes() {
 
   const handleDeleteReport = async (
     reportId: string,
-    s3Key: string | null | undefined
+    s3Key: string | null | undefined,
   ) => {
     if (!reportId) {
       console.error("[DELETE] Error: No report ID provided");
@@ -263,7 +284,7 @@ export default function SavedHomes() {
     try {
       if (!s3Key) {
         console.warn(
-          "[DELETE] No S3 key provided, will only delete from in-memory storage"
+          "[DELETE] No S3 key provided, will only delete from in-memory storage",
         );
       }
 
@@ -318,9 +339,6 @@ export default function SavedHomes() {
           searchPlaceholder={
             viewType === "homes" ? "Search saved homes..." : "Filter by address"
           }
-          viewMode={viewMode}
-          onViewModeChange={setViewMode}
-          showViewToggle={viewType === "reports"}
           onRefresh={refresh}
           isRefreshing={refreshing}
           isLoading={loading}
@@ -348,70 +366,8 @@ export default function SavedHomes() {
                 <p className="text-gray-600">You have no saved homes yet.</p>
               </div>
             )
-          ) : viewMode === "grid" ? (
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-8 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {filteredHomes.map((home: SavedHome) => (
-                <PropertyCard
-                  key={home.home_id}
-                  id={home.home_id}
-                  imageUrl={home.image_url}
-                  address={
-                    typeof home.address === "string" ||
-                    typeof home.address === "number"
-                      ? home.address.toString()
-                      : (home.description ?? "[Invalid address]")
-                  }
-                  price={
-                    typeof home.price === "string" ||
-                    typeof home.price === "number"
-                      ? home.price.toString()
-                      : "[Invalid price]"
-                  }
-                  bedrooms={home.bedrooms}
-                  bathrooms={home.bathrooms}
-                  sqft={home.sqft}
-                  lotSize={
-                    typeof home.lot_size === "string"
-                      ? home.lot_size
-                      : undefined
-                  }
-                  pricePosition="below-address"
-                  cardType="searchpage"
-                  showScore={false}
-                  topContent={
-                    <CardHeartSave
-                      property={{
-                        id: home.home_id,
-                        address: home.address ?? home.description ?? "",
-                        price: home.price,
-                        bedrooms: home.bedrooms,
-                        bathrooms: home.bathrooms,
-                        sqft: home.sqft,
-                        lat: home.lat,
-                        lng: home.lng,
-                        images: home.image_url ? [home.image_url] : [],
-                      }}
-                      isSaved={true}
-                      onSave={() => saveHome(home)}
-                      onRemove={() => removeSavedHome(home.home_id)}
-                      size="sm"
-                    />
-                  }
-                  bottomContent={
-                    <CardViewDetailsButton
-                      onClick={() => handleUnlockHome(home)}
-                      loading={false}
-                      size="sm"
-                      variant="primary"
-                      fullWidth
-                      text="Unlock"
-                    />
-                  }
-                />
-              ))}
-            </div>
           ) : (
-            <div className="mobile-container space-y-6">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-8 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {filteredHomes.map((home: SavedHome) => (
                 <PropertyCard
                   key={home.home_id}
@@ -489,19 +445,13 @@ export default function SavedHomes() {
             </div>
           )
         ) : (
-          <div
-            className={
-              viewMode === "grid"
-                ? "grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3"
-                : "space-y-3 sm:space-y-4"
-            }
-          >
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
             {filteredReports.map((report) => (
               <ReportCard
                 key={report.id}
                 report={report}
                 loadingUrls={loadingUrls}
-                viewMode={viewMode}
+                viewMode="grid"
                 onView={handleViewDocument}
                 onDownload={handleDownloadDocument}
                 onShare={() => handleShareReport(report)}
@@ -530,24 +480,30 @@ export default function SavedHomes() {
                   images: selectedProperty.image_url
                     ? [selectedProperty.image_url]
                     : [],
-                } as import("../../../../packages/hooks/data/usePropertyDetails").Property)
+                } as import("../../../packages/hooks/data/usePropertyDetails").Property)
               : null
           }
           onClose={() => setSelectedProperty(null)}
           isHomeSaved={isHomeSavedForModal}
           saveHome={async (property) => {
+            type PropertyWithId =
+              import("../../../packages/hooks/data/usePropertyDetails").Property & {
+                home_id?: string;
+                image_url?: string;
+              };
+            const prop = property as PropertyWithId;
             const mapped: SavedHome = {
-              home_id: (property as any).id ?? (property as any).home_id ?? "",
-              address: (property as any).address,
-              price: (property as any).price,
-              bedrooms: (property as any).bedrooms,
-              bathrooms: (property as any).bathrooms,
-              sqft: (property as any).sqft,
-              lat: (property as any).lat,
-              lng: (property as any).lng,
-              image_url: Array.isArray((property as any).images)
-                ? (property as any).images[0]
-                : (property as any).image_url,
+              home_id: prop.id ?? prop.home_id ?? "",
+              address: prop.address,
+              price: prop.price,
+              bedrooms: prop.bedrooms,
+              bathrooms: prop.bathrooms,
+              sqft: prop.sqft,
+              lat: prop.lat,
+              lng: prop.lng,
+              image_url: Array.isArray(prop.images)
+                ? prop.images[0]
+                : prop.image_url,
             };
             await saveHomeForModal(mapped);
           }}

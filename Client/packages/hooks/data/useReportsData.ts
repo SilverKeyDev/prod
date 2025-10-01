@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useLocation } from "react-router-dom";
 
-import { useAuth } from "../../contexts";
+import { useAuthStore } from "../../store/auth.slice";
 import { reportApi } from "../../config/api/report";
 import { useFiltersQueryParams } from "../../config/query/adapters";
 import { queryKeys } from "../../config/query/keys";
@@ -71,16 +71,14 @@ const deserializeCompareReport = (r: unknown): CompareReport => {
  * Hook for managing reports data with React Query
  */
 export const useReportsData = () => {
-  const { authReady, isAuthenticated } = useAuth();
+  const authReady = useAuthStore((s) => s.authReady);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const queryClient = useQueryClient();
   const filters = useFiltersQueryParams();
   const location = useLocation();
 
   // Memoize filters to prevent query key changes
-  const memoizedFilters = useMemo(
-    () => filters,
-    [filters.stage, filters.favorites, filters.page],
-  );
+  const memoizedFilters = useMemo(() => filters, [filters]);
 
   // Use refs to store stable function references
   const refetchReportsRef = useRef<() => Promise<unknown>>();

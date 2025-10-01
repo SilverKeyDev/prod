@@ -362,7 +362,6 @@ export const googleMapsService = GoogleMapsService.getInstance();
 
 // Global type declaration for Google Maps
 declare global {
-  // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
   interface Window {
     google?: typeof google;
   }

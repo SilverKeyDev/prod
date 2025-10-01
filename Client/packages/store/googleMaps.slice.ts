@@ -7,18 +7,8 @@ import { withResettable } from "./middleware/resettable";
 
 // Global type declaration for Google Maps
 declare global {
-  // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
   interface Window {
     google?: typeof google | undefined;
-  }
-  // eslint-disable-next-line @typescript-eslint/no-namespace
-  namespace google {
-    // eslint-disable-next-line @typescript-eslint/no-namespace
-    namespace maps {
-      class GoogleMap {
-        constructor(container: HTMLElement, options?: unknown);
-      }
-    }
   }
 }
 

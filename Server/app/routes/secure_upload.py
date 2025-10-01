@@ -3,7 +3,8 @@ Secure file upload route with enhanced validation and virus scanning.
 """
 from flask import Blueprint, request, jsonify, current_app
 from werkzeug.datastructures import FileStorage
-from ..utils.auth import get_current_user, require_auth
+from ..utils.auth import get_current_user
+from ..utils.common_patterns import require_authenticated_user
 from ..utils.file_security import validate_file_upload, FileSecurityError, create_secure_upload_directory, get_file_hash
 from ..utils.secure_errors import SecureErrorHandler
 from ..services.s3_service import s3_service
@@ -16,7 +17,7 @@ logger = get_logger()
 secure_upload_bp = Blueprint('secure_upload', __name__, url_prefix='/api/v1/upload')
 
 @secure_upload_bp.route('/document', methods=['POST'])
-@require_auth
+@require_authenticated_user
 def upload_document(user):
     """
     Secure document upload endpoint with comprehensive validation.
@@ -122,7 +123,7 @@ def upload_document(user):
         return SecureErrorHandler.create_secure_response('server_error', 500)
 
 @secure_upload_bp.route('/image', methods=['POST'])
-@require_auth
+@require_authenticated_user
 def upload_image(user):
     """
     Secure image upload endpoint with content validation.

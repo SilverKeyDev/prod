@@ -16,6 +16,7 @@ export default function useMobileHeaderActions(params: {
     return () => {
       params.setMobileHeaderActions(null);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.setMobileHeaderActions]);
 
   // Ref to track if we are currently in mobile view to prevent unnecessary updates
@@ -42,6 +43,7 @@ export default function useMobileHeaderActions(params: {
       params.setMobileHeaderActions(newMobileHeaderActions);
       isMobileViewRef.current = isMobile;
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     params.setMobileHeaderActions,
     params.onPreferences,

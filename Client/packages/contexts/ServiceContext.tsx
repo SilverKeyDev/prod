@@ -40,6 +40,7 @@ export function ServiceProvider({ children }: ServiceProviderProps) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useServices() {
   const context = useContext(ServiceContext);
   if (!context) {

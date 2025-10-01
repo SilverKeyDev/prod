@@ -1,10 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useCallback } from "react";
+import { useCallback } from "react";
 
 import { useFiltersQueryParams } from "../../config/query/adapters";
 import { queryKeys } from "../../config/query/keys";
 import { chatService } from "../../services/chats";
-import { useAuth } from "../../contexts";
+import { useAuthStore } from "../../store/auth.slice";
 
 /**
  * Enhanced chat data hook with TanStack Query integration
@@ -13,14 +13,8 @@ import { useAuth } from "../../contexts";
 export const useChats = () => {
   const queryClient = useQueryClient();
   const filters = useFiltersQueryParams();
-  const { isAuthenticated, authReady } = useAuth();
-
-  // Additional check to ensure access token is available
-  // This prevents race conditions during login
-  const hasAccessToken =
-    typeof window !== "undefined" &&
-    sessionStorage.getItem("access_token") !== null &&
-    sessionStorage.getItem("access_token") !== "http-only-cookie-auth";
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const authReady = useAuthStore((s) => s.authReady);
 
   // Chats query
   const {
@@ -34,8 +28,10 @@ export const useChats = () => {
       const chatsData = await chatService.fetchChats();
       return chatsData;
     },
-    enabled: authReady && isAuthenticated && hasAccessToken,
+    enabled: authReady && isAuthenticated,
     select: (data) => data,
+    staleTime: 3 * 60 * 1000, // 3 minutes
+    refetchOnMount: false, // Don't refetch if data exists (matches reports)
   });
 
   // Send message mutation
@@ -62,22 +58,9 @@ export const useChats = () => {
     },
   });
 
-  // Cross-tab auth changes
-  useEffect(() => {
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === "id_token") {
-        if (e.newValue) {
-          void queryClient.invalidateQueries({ queryKey: queryKeys.chats.all });
-        } else {
-          // Clear everything
-          void queryClient.removeQueries({ queryKey: queryKeys.chats.all });
-        }
-      }
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, [queryClient]);
+  // Note: Cross-tab auth changes are no longer tracked via sessionStorage tokens
+  // Authentication state is managed via HTTP-only cookies
+  // The AuthContext handles cross-tab auth changes via custom events if needed
 
   // Public functions
   const sendMessage = useCallback(

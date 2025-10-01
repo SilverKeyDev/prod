@@ -52,6 +52,7 @@ export function useMapInitAndResize(params: {
       window.removeEventListener("resize", onResize);
       window.removeEventListener("orientationchange", onResize);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.createMap, getVisibleMapEl]);
 
   // Initialize Google Maps automatically when conditions are met
@@ -86,6 +87,7 @@ export function useMapInitAndResize(params: {
     if (params.isLocalStorageLoaded && params.isGoogleMapsLoaded) {
       initializeMap();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     params.isLocalStorageLoaded,
     params.isGoogleMapsLoaded,
@@ -117,6 +119,7 @@ export function useMapInitAndResize(params: {
         window.google.maps.event.trigger(googleMapRef.current, "resize");
       }
     }, 100);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     params.isLocalStorageLoaded,
     params.isGoogleMapsLoaded,

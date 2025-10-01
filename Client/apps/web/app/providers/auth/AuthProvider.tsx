@@ -6,9 +6,10 @@
 
 import { useEffect, type ReactNode } from "react";
 
-import { useLogout } from "../../../../../packages/hooks/ui/useLogout";
 import { useAuthStore } from "../../../../../packages/store/auth.slice";
+import { useAuthStoreIntegration } from "../../../../../packages/hooks/store/useAuthStoreIntegration";
 import { secureLogger } from "../../../../../packages/services/security/secureLogger";
+import type { UserProfile } from "../../../../../packages/schemas/user";
 
 import { AuthContext } from "./AuthContext";
 
@@ -22,7 +23,9 @@ export type AuthBootstrapStatus =
   | "unauthenticated";
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const { logout } = useLogout();
+  // Initialize auth system - this calls useSecureAuth() once for the entire app
+  // Get logout from useAuthStoreIntegration which uses the correct useSecureAuth.logout
+  const { logout: authLogout } = useAuthStoreIntegration();
 
   // Get auth state directly from store (not from useAuthState which checks localStorage)
   const user = useAuthStore((s) => s.user);
@@ -31,6 +34,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const storeAuthStatus = useAuthStore((s) => s.authStatus);
   const setStoreAuthStatus = useAuthStore((s) => s.setAuthStatus);
   const setStoreAuthReady = useAuthStore((s) => s.setAuthReady);
+  const setStoreUser = useAuthStore((s) => s.setUser);
+  const setIsAuthenticated = useAuthStore((s) => s.setIsAuthenticated);
 
   // Map store authStatus to bootstrap status
   const status: AuthBootstrapStatus =
@@ -49,16 +54,80 @@ export function AuthProvider({ children }: AuthProviderProps) {
     });
   }, [storeAuthStatus, status]);
 
-  // Initialize auth state without server verification
+  // Initialize auth state with server verification
   useEffect(() => {
-    secureLogger.info("AUTH_BOOTSTRAP", "Initializing auth state");
+    const initializeAuth = async () => {
+      secureLogger.info("AUTH_BOOTSTRAP", "Initializing auth state");
 
-    // Set initial unauthenticated state
-    setStoreAuthStatus("unauthenticated");
-    setStoreAuthReady(true);
+      // Start in checking state while we verify with server
+      setStoreAuthStatus("checking");
+      setStoreAuthReady(false);
 
-    secureLogger.info("AUTH_BOOTSTRAP_COMPLETE", "Auth state initialized");
-  }, [setStoreAuthStatus, setStoreAuthReady]);
+      try {
+        // Import authApi dynamically to avoid circular dependencies
+        const { authApi } = await import(
+          "../../../../../packages/config/api/auth"
+        );
+
+        // Verify session with server using HTTP-only cookies
+        const sessionResult = await authApi.verifySession();
+
+        if (sessionResult.success && sessionResult.user) {
+          // User is authenticated, update store with user data
+          // Check if we have a full UserProfile or just basic user info
+          const user = sessionResult.user;
+          if ("created_at" in user && "is_active" in user) {
+            // Full UserProfile from session verification
+            setStoreUser(user as UserProfile);
+          } else {
+            // Basic user info - this shouldn't happen with session verification
+            // but we'll handle it gracefully
+            secureLogger.warn(
+              "AUTH_BOOTSTRAP_PARTIAL_USER",
+              "Received partial user data",
+            );
+            setStoreUser(null);
+          }
+          setIsAuthenticated(true);
+          setStoreAuthStatus("authenticated");
+          secureLogger.info(
+            "AUTH_BOOTSTRAP_SUCCESS",
+            "User authenticated via session cookies",
+          );
+        } else {
+          // No valid session found
+          setStoreUser(null);
+          setIsAuthenticated(false);
+          setStoreAuthStatus("unauthenticated");
+          secureLogger.info(
+            "AUTH_BOOTSTRAP_NO_SESSION",
+            "No valid session found",
+          );
+        }
+      } catch (error) {
+        // Session verification failed
+        setStoreUser(null);
+        setIsAuthenticated(false);
+        setStoreAuthStatus("unauthenticated");
+        secureLogger.error(
+          "AUTH_BOOTSTRAP_ERROR",
+          "Session verification failed",
+          { error },
+        );
+      } finally {
+        setStoreAuthReady(true);
+        secureLogger.info("AUTH_BOOTSTRAP_COMPLETE", "Auth state initialized");
+      }
+    };
+
+    void initializeAuth();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run only once on mount - Zustand setters are stable
+
+  // Wrap logout to ensure it returns Promise<void> for context type compatibility
+  const logout = async (): Promise<void> => {
+    await authLogout();
+  };
 
   const contextValue = {
     user,

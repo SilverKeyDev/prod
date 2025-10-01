@@ -1,10 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect } from "react";
+import { useCallback } from "react";
 
 import { userApi } from "../../config/api/user";
 import { useFiltersQueryParams } from "../../config/query/adapters";
 import { queryKeys } from "../../config/query/keys";
-import { useAuth } from "../../contexts";
+import { useAuthStore } from "../../store/auth.slice";
 import type { SavedHome } from "../../schemas";
 
 // Type definitions for Google Maps API
@@ -126,14 +126,8 @@ const mapHomeUniversalToSavedHome = (
 export const useSavedHomesData = () => {
   const queryClient = useQueryClient();
   const filters = useFiltersQueryParams();
-  const { isAuthenticated, authReady } = useAuth();
-
-  // Additional check to ensure access token is available
-  // This prevents race conditions during login
-  const hasAccessToken =
-    typeof window !== "undefined" &&
-    sessionStorage.getItem("access_token") !== null &&
-    sessionStorage.getItem("access_token") !== "http-only-cookie-auth";
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const authReady = useAuthStore((s) => s.authReady);
 
   // Saved homes query
   const {
@@ -214,13 +208,13 @@ export const useSavedHomesData = () => {
 
       return enriched.map(mapHomeUniversalToSavedHome);
     },
-    enabled: authReady && isAuthenticated && hasAccessToken,
+    enabled: authReady && isAuthenticated,
     select: (data) => data,
     // Ensure proper deduplication
     staleTime: 3 * 60 * 1000, // 3 minutes - data is fresh for this long
     gcTime: 10 * 60 * 1000, // 10 minutes - keep in cache
     refetchOnWindowFocus: false, // Don't refetch on window focus
-    refetchOnMount: false, // Don't refetch if data exists
+    refetchOnMount: false, // Don't refetch if data exists (matches reports)
   });
 
   // Save home mutation
@@ -331,27 +325,9 @@ export const useSavedHomesData = () => {
     },
   });
 
-  // Handle cross-tab auth changes
-  useEffect(() => {
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === "id_token") {
-        if (e.newValue) {
-          // User logged in, refresh saved homes
-          void queryClient.invalidateQueries({
-            queryKey: queryKeys.homes.favorites(),
-          });
-        } else {
-          // User logged out, clear data
-          void queryClient.removeQueries({
-            queryKey: queryKeys.homes.favorites(),
-          });
-        }
-      }
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, [queryClient]);
+  // Note: Cross-tab auth changes are no longer tracked via sessionStorage tokens
+  // Authentication state is managed via HTTP-only cookies
+  // The AuthContext handles cross-tab auth changes via custom events if needed
 
   // Public methods
   const refreshSavedHomes = useCallback(async () => {

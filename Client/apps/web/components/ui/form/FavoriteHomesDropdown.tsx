@@ -61,17 +61,23 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
               address:
                 typeof typedHome.address === "string" ? typedHome.address : "",
               beds:
-                typeof typedHome.beds === "number"
-                  ? typedHome.beds.toString()
-                  : "0",
+                typeof typedHome.beds === "string"
+                  ? typedHome.beds
+                  : typeof typedHome.beds === "number"
+                    ? typedHome.beds.toString()
+                    : "",
               baths:
-                typeof typedHome.baths === "number"
-                  ? typedHome.baths.toString()
-                  : "0",
+                typeof typedHome.baths === "string"
+                  ? typedHome.baths
+                  : typeof typedHome.baths === "number"
+                    ? typedHome.baths.toString()
+                    : "",
               sqft:
-                typeof typedHome.sqft === "number"
-                  ? typedHome.sqft.toString()
-                  : "0",
+                typeof typedHome.sqft === "string"
+                  ? typedHome.sqft
+                  : typeof typedHome.sqft === "number"
+                    ? typedHome.sqft.toString()
+                    : "",
               lot_size:
                 typeof typedHome.lot_size === "string"
                   ? typedHome.lot_size

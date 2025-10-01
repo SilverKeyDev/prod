@@ -35,7 +35,6 @@ tqdm==4.66.4
 
 # --- PDF, API, and Web ---
 reportlab==4.0.4
-stripe==9.4.0
 requests==2.31.0
 python-dotenv==1.0.0
 gunicorn==21.2.0

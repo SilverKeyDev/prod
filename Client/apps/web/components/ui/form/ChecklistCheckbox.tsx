@@ -32,6 +32,7 @@ const ChecklistCheckbox: React.FC<ChecklistCheckboxProps> = ({
   item,
   checked,
   onToggle,
+  itemLabelClass,
   itemExplanationClass,
   checkboxContainerClass,
 }) => {
@@ -47,18 +48,20 @@ const ChecklistCheckbox: React.FC<ChecklistCheckboxProps> = ({
       />
       {/* visible square checkbox */}
       <div
-        className={`flex h-4 w-4 lg:h-5 lg:w-5 cursor-pointer items-center justify-center rounded border transition-colors ${checked ? "border-olive bg-olive" : "border-beige"}`}
+        className={`flex h-5 w-5 lg:h-6 lg:w-6 cursor-pointer items-center justify-center rounded border transition-colors flex-shrink-0 mt-0.5 ${checked ? "border-olive bg-olive" : "border-beige"}`}
         onClick={onToggle}
       >
         {checked && (
           <Check
-            className="h-[12px] w-[12px] lg:h-[14px] lg:w-[14px] text-white"
+            className="h-[14px] w-[14px] lg:h-[16px] lg:w-[16px] text-white"
             strokeWidth={4}
           />
         )}
       </div>
-      <label htmlFor={`item-${item.id}`} className="flex-1">
-        {item.label}
+      <div className="flex-1">
+        <label htmlFor={`item-${item.id}`} className={itemLabelClass}>
+          {item.label}
+        </label>
         {!checked && (
           <div>
             <p className={itemExplanationClass}>{item.explanation}</p>
@@ -87,7 +90,7 @@ const ChecklistCheckbox: React.FC<ChecklistCheckboxProps> = ({
             )}
           </div>
         )}
-      </label>
+      </div>
     </div>
   );
 };

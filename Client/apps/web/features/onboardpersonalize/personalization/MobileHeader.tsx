@@ -1,5 +1,6 @@
 import { Edit, Save, X } from "lucide-react";
 import React from "react";
+import Button from "../../../components/ui/button/Button";
 
 type PersonalizationMobileHeaderProps = {
   isEditMode: boolean;
@@ -15,34 +16,42 @@ const PersonalizationMobileHeader: React.FC<
   if (!isEditMode) {
     return (
       <div className="flex w-full justify-center px-4">
-        <button
+        <Button
           onClick={onEdit}
-          className="touch-friendly flex w-full max-w-sm items-center justify-center gap-2 rounded-lg bg-olive px-4 py-3 text-sm text-white transition-colors hover:bg-olive/80"
+          variant="olive"
+          size="sm"
+          fullWidth
+          className="max-w-sm"
+          icon={<Edit />}
         >
-          <Edit size={16} />
           Edit
-        </button>
+        </Button>
       </div>
     );
   }
 
   return (
     <div className="mx-auto flex w-full max-w-sm gap-2 px-4">
-      <button
+      <Button
         onClick={onCancel}
-        className="touch-friendly flex flex-1 items-center justify-center gap-1 rounded-lg bg-gray-200 px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-300"
+        variant="outline"
+        size="sm"
+        className="flex-1 bg-gray-200 text-gray-700 hover:bg-gray-300 border-gray-200"
+        icon={<X />}
       >
-        <X size={14} />
         Cancel
-      </button>
-      <button
+      </Button>
+      <Button
         onClick={onSave}
         disabled={isSaving}
-        className="touch-friendly flex flex-1 items-center justify-center gap-1 rounded-lg bg-olive px-3 py-2 text-sm text-white transition-colors hover:bg-olive/80 disabled:opacity-50"
+        variant="olive"
+        size="sm"
+        className="flex-1"
+        icon={<Save />}
+        loading={isSaving}
       >
-        <Save size={14} />
         {isSaving ? "Saving..." : "Save"}
-      </button>
+      </Button>
     </div>
   );
 };

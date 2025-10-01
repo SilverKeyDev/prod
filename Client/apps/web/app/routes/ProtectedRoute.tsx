@@ -12,7 +12,6 @@ export const ProtectedRoute: React.FC<PropsWithChildren> = ({ children }) => {
   const { status } = useAuth();
   const location = useLocation();
 
-
   // Wait for bootstrap to complete - prevents early redirects
   if (status === "booting") {
     return null; // or show splash screen

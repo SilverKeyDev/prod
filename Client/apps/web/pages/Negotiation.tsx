@@ -1,11 +1,14 @@
 import { Lightbulb, Home, Download, Share2 } from "lucide-react";
+// @ts-expect-error - react-fitty has type declaration issues
+import Fitty from "react-fitty";
 
-import { CardCarousel } from "../../components/cards/base";
-import CompCard from "../../components/cards/CompCard";
-import { AlignedRow } from "../../components/layout";
-import { FavoriteHomesDropdown, Loading, Button } from "../../components/ui";
-import { useNegotiation } from "../../../../packages/contexts";
-import { SectionBox, SectionTitle } from "../../features/negotiate";
+import { CardCarousel } from "../components/cards/base";
+import CompCard from "../components/cards/CompCard";
+import { AlignedRow } from "../components/layout";
+import { FavoriteHomesDropdown, Loading, Button } from "../components/ui";
+import { useNegotiationStore } from "../../../packages/store/negotiation.slice";
+import { SectionBox, SectionTitle } from "../features/negotiate";
+import { negotiationService } from "../../../packages/services/negotiation";
 
 // Types for negotiation data
 type FavoriteHome = {
@@ -28,96 +31,30 @@ export default function NegotiationStrategy() {
     selectedHome,
     strategyData,
     compsData,
-    isLoading: isLoadingState,
+    isLoading,
     error,
-    setSelectedHome,
-    setStrategyData,
     setLoading,
     setError,
-  } = useNegotiation();
+  } = useNegotiationStore();
 
-  // Create handler functions
+  // Create handler functions for compatibility
   const handleHomeSelection = (home: unknown) => {
-    // Type assertion to match the negotiation store's SavedHome type
-    setSelectedHome(
-      home as
-        | import("../../../../packages/store/negotiation.slice").SavedHome
-        | null,
-    );
+    negotiationService.selectHome(home);
   };
 
   const handleGenerate = async () => {
-    if (!selectedHome) return;
-
     setLoading(true);
     setError(null);
-
-    try {
-      // TODO: Implement actual strategy generation logic
-      // This would typically call an API service
-      console.log("Generating strategy for:", selectedHome);
-
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      // Mock data for now
-      setStrategyData({
-        marketAnalysis: "Market conditions are favorable for negotiation",
-        recommendedOffer: "Consider offering 5-10% below asking price",
-        negotiationPoints: [
-          "Property has been on market for 45+ days",
-          "Recent comparable sales support lower valuation",
-          "Minor repairs needed could be negotiation leverage",
-        ],
-      });
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to generate strategy",
-      );
-    } finally {
-      setLoading(false);
-    }
+    await negotiationService.generateStrategy();
   };
 
   const handleDownloadJson = () => {
-    if (!strategyData) return;
-
-    const dataStr = JSON.stringify(strategyData, null, 2);
-    const dataBlob = new Blob([dataStr], { type: "application/json" });
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "negotiation-strategy.json";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    negotiationService.downloadStrategyJson();
   };
 
   const handleShareJson = async () => {
-    if (!strategyData) return;
-
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: "Negotiation Strategy",
-          text: "Check out this negotiation strategy",
-          url: window.location.href,
-        });
-      } else {
-        // Fallback: copy to clipboard
-        await navigator.clipboard.writeText(
-          JSON.stringify(strategyData, null, 2),
-        );
-        alert("Strategy data copied to clipboard!");
-      }
-    } catch (err) {
-      console.error("Failed to share:", err);
-    }
+    await negotiationService.shareStrategyJson();
   };
-
-  // Explicitly type the loading state
-  const isLoading: boolean = Boolean(isLoadingState);
 
   // Extract error message for proper type handling
   const errorMessage: string | null =
@@ -166,37 +103,36 @@ export default function NegotiationStrategy() {
               disabled={!selectedHome || isLoading}
               className="h-full whitespace-nowrap"
             >
-              Generate Generate
+              <Fitty maxSize={16} minSize={12} className="hidden md:inline">
+                Generate
+              </Fitty>
+              <Fitty maxSize={14} minSize={10} className="md:hidden">
+                Generate
+              </Fitty>
             </Button>
           </AlignedRow>
         </SectionBox>
 
         {/* Loading state */}
-        {
-          (shouldShowLoading() && (
-            <SectionBox>
-              <div className="flex justify-center">
-                <Loading
-                  message={
-                    "Generating your personalized negotiation strategy..."
-                  }
-                />
-              </div>
-            </SectionBox>
-          )) as any
-        }
+        {isLoading ? (
+          <SectionBox>
+            <div className="flex justify-center">
+              <Loading
+                message={"Generating your personalized negotiation strategy..."}
+              />
+            </div>
+          </SectionBox>
+        ) : null}
 
         {/* Error display */}
-        {
-          (shouldShowError() && (
-            <SectionBox className="border-red-200 bg-red-50">
-              <div className="text-responsive-sm text-center text-red-600">
-                <p className="mb-2 font-semibold">Error Generating Strategy</p>
-                <p className="text-responsive-sm">{errorMessage}</p>
-              </div>
-            </SectionBox>
-          )) as any
-        }
+        {errorMessage ? (
+          <SectionBox className="border-red-200 bg-red-50">
+            <div className="text-responsive-sm text-center text-red-600">
+              <p className="mb-2 font-semibold">Error Generating Strategy</p>
+              <p className="text-responsive-sm">{errorMessage}</p>
+            </div>
+          </SectionBox>
+        ) : null}
 
         {/* Property Comparables CardCarousel */}
         {compsData &&
@@ -212,10 +148,9 @@ export default function NegotiationStrategy() {
               <CardCarousel
                 items={
                   Array.isArray(
-                    (compsData as { data?: { comps?: unknown } })?.data?.comps,
+                    (compsData as { data?: { comps?: unknown } })?.data?.comps
                   )
-                    ? ((compsData as { data: { comps: unknown[] } }).data
-                        .comps as unknown[])
+                    ? (compsData as { data: { comps: unknown[] } }).data.comps
                     : ([] as unknown[])
                 }
                 loading={false}
@@ -225,7 +160,7 @@ export default function NegotiationStrategy() {
                   comp && typeof comp === "object" ? (
                     <CompCard
                       comp={
-                        comp as unknown as import("../../components/cards/CompCard").CompData
+                        comp as unknown as import("../components/cards/CompCard").CompData
                       }
                     />
                   ) : null
@@ -308,8 +243,8 @@ export default function NegotiationStrategy() {
 
                     // Format the value for display with better styling - NO JSON
                     const formatValue = (
-                      val: unknown,
-                    ): JSX.Element | string | null => {
+                      val: unknown
+                    ): JSX.Element | string => {
                       if (typeof val === "object" && val !== null) {
                         if (Array.isArray(val)) {
                           // Format arrays as clean bullet points with modern styling
@@ -320,12 +255,14 @@ export default function NegotiationStrategy() {
                                   key={idx}
                                   className="text-responsive-sm flex items-start gap-2 text-navy/80"
                                 >
-                                  <span className="text-brown">•</span>
+                                  <span className="flex h-5 flex-shrink-0 items-center text-brown">
+                                    <span className="h-px w-2 bg-brown"></span>
+                                  </span>
                                   <span>
                                     {typeof item === "object" && item !== null
                                       ? // Handle objects properly - extract meaningful content
                                         Object.entries(
-                                          item as Record<string, unknown>,
+                                          item as Record<string, unknown>
                                         )
                                           .map(([k, v]) => `${k}: ${String(v)}`)
                                           .join(", ")
@@ -338,7 +275,7 @@ export default function NegotiationStrategy() {
                                           .map(
                                             (word: string) =>
                                               word.charAt(0).toUpperCase() +
-                                              word.slice(1).toLowerCase(),
+                                              word.slice(1).toLowerCase()
                                           )
                                           .join(" ")}
                                   </span>
@@ -359,7 +296,7 @@ export default function NegotiationStrategy() {
                                   .map(
                                     (word: string) =>
                                       word.charAt(0).toUpperCase() +
-                                      word.slice(1),
+                                      word.slice(1)
                                   )
                                   .join(" ");
 
@@ -381,8 +318,8 @@ export default function NegotiationStrategy() {
                                                 key={idx}
                                                 className="text-responsive-sm flex items-start gap-2"
                                               >
-                                                <span className="text-brown">
-                                                  •
+                                                <span className="flex h-5 flex-shrink-0 items-center text-brown">
+                                                  <span className="h-px w-2 bg-brown"></span>
                                                 </span>
                                                 <span>
                                                   {typeof item === "object"
@@ -390,18 +327,18 @@ export default function NegotiationStrategy() {
                                                         item as Record<
                                                           string,
                                                           unknown
-                                                        >,
+                                                        >
                                                       )
                                                         .map(
                                                           ([k, v]) =>
-                                                            `${k.replace(/_/g, " ")}: ${String(v)}`,
+                                                            `${k.replace(/_/g, " ")}: ${String(v)}`
                                                         )
                                                         .join(", ")
                                                     : String(item)
                                                         .replace(/_/g, " ")
                                                         .replace(
                                                           /([a-z])([A-Z])/g,
-                                                          "$1 $2",
+                                                          "$1 $2"
                                                         )}
                                                 </span>
                                               </li>
@@ -414,23 +351,23 @@ export default function NegotiationStrategy() {
                                               subValue as Record<
                                                 string,
                                                 unknown
-                                              >,
+                                              >
                                             ).map(
                                               ([nestedKey, nestedValue]) => (
                                                 <div
                                                   key={nestedKey}
                                                   className="text-responsive-xs flex items-start gap-2"
                                                 >
-                                                  <span className="text-brown">
-                                                    •
+                                                  <span className="flex h-5 flex-shrink-0 items-center text-brown">
+                                                    <span className="h-px w-2 bg-brown"></span>
                                                   </span>
                                                   <div className="flex-1">
-                                                    <span className="font-medium">
+                                                    <span className="font-medium text-brown/80">
                                                       {nestedKey
                                                         .replace(/_/g, " ")
                                                         .replace(
                                                           /([a-z])([A-Z])/g,
-                                                          "$1 $2",
+                                                          "$1 $2"
                                                         )
                                                         .split(" ")
                                                         .map(
@@ -438,12 +375,12 @@ export default function NegotiationStrategy() {
                                                             word
                                                               .charAt(0)
                                                               .toUpperCase() +
-                                                            word.slice(1),
+                                                            word.slice(1)
                                                         )
                                                         .join(" ")}
                                                       :
                                                     </span>{" "}
-                                                    <span>
+                                                    <span className="text-navy/70">
                                                       {typeof nestedValue ===
                                                       "boolean"
                                                         ? nestedValue
@@ -453,29 +390,29 @@ export default function NegotiationStrategy() {
                                                             "number"
                                                           ? nestedValue.toLocaleString()
                                                           : Array.isArray(
-                                                                nestedValue,
+                                                                nestedValue
                                                               )
                                                             ? nestedValue
                                                                 .join(", ")
                                                                 .replace(
                                                                   /_/g,
-                                                                  " ",
+                                                                  " "
                                                                 )
                                                             : (nestedValue
                                                                 ?.toString()
                                                                 .replace(
                                                                   /_/g,
-                                                                  " ",
+                                                                  " "
                                                                 )
                                                                 .replace(
                                                                   /([a-z])([A-Z])/g,
-                                                                  "$1 $2",
+                                                                  "$1 $2"
                                                                 ) ??
                                                               "Not specified")}
                                                     </span>
                                                   </div>
                                                 </div>
-                                              ),
+                                              )
                                             )}
                                           </div>
                                         )
@@ -490,7 +427,9 @@ export default function NegotiationStrategy() {
                                           {subValue ? "Yes" : "No"}
                                         </span>
                                       ) : typeof subValue === "number" ? (
-                                        <span>{subValue.toLocaleString()}</span>
+                                        <span className="font-mono text-brown">
+                                          {subValue.toLocaleString()}
+                                        </span>
                                       ) : (
                                         <p className="leading-relaxed">
                                           {subValue &&
@@ -499,7 +438,7 @@ export default function NegotiationStrategy() {
                                                 .replace(/_/g, " ")
                                                 .replace(
                                                   /([a-z])([A-Z])/g,
-                                                  "$1 $2",
+                                                  "$1 $2"
                                                 )
                                             : subValue &&
                                                 typeof subValue === "number"
@@ -508,7 +447,7 @@ export default function NegotiationStrategy() {
                                                   .replace(/_/g, " ")
                                                   .replace(
                                                     /([a-z])([A-Z])/g,
-                                                    "$1 $2",
+                                                    "$1 $2"
                                                   )
                                               : "Not specified"}
                                         </p>
@@ -533,7 +472,11 @@ export default function NegotiationStrategy() {
                           </span>
                         );
                       } else if (typeof val === "number") {
-                        return <span>{val.toLocaleString()}</span>;
+                        return (
+                          <span className="font-mono text-lg font-semibold text-brown">
+                            {val.toLocaleString()}
+                          </span>
+                        );
                       } else {
                         return (
                           <p className="leading-relaxed text-navy/80">
@@ -585,13 +528,13 @@ export default function NegotiationStrategy() {
                             <p className="text-sm leading-relaxed">
                               {formattedValue}
                             </p>
-                          ) : formattedValue ? (
+                          ) : (
                             <div>{formattedValue}</div>
-                          ) : null}
+                          )}
                         </div>
                       </SectionBox>
                     );
-                  },
+                  }
                 )
               : null}
           </div>

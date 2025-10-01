@@ -128,20 +128,32 @@ export default function HomeCard({
       | import("../../../../packages/schemas/search").SearchResult,
   ) => {
     // Convert Property back to HomeDescription format for onSave
-    const asAny = property as any;
+    type PropertyWithExtras = Property & {
+      latitude?: number;
+      longitude?: number;
+      images?: string[];
+      imageUrl?: string;
+      price?: string | number; // Override price to allow both string and number
+    };
+    const prop = property as PropertyWithExtras;
     const homeDescription: HomeDescription = {
-      home_id: asAny.id,
-      address: asAny.address,
-      price:
-        typeof asAny.price === "number"
-          ? `$${asAny.price.toLocaleString()}`
-          : asAny.price,
-      bedrooms: asAny.bedrooms,
-      bathrooms: asAny.bathrooms,
-      sqft: asAny.sqft,
-      lat: asAny.lat ?? asAny.latitude,
-      lng: asAny.lng ?? asAny.longitude,
-      image_url: asAny.images?.[0] ?? asAny.imageUrl,
+      home_id: prop.id,
+      address: prop.address,
+      price: (() => {
+        if (typeof prop.price === "number") {
+          return `$${(prop.price as number).toLocaleString()}`;
+        } else if (typeof prop.price === "string") {
+          return prop.price;
+        } else {
+          return "Price not available";
+        }
+      })(),
+      bedrooms: prop.bedrooms,
+      bathrooms: prop.bathrooms,
+      sqft: prop.sqft,
+      lat: prop.lat ?? prop.latitude,
+      lng: prop.lng ?? prop.longitude,
+      image_url: prop.images?.[0] ?? prop.imageUrl,
       calculatedScore: home.calculatedScore, // Preserve original score
     };
     await onSave(homeDescription);

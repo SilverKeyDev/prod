@@ -1,14 +1,9 @@
 // External libraries
 import { useCallback } from "react";
-import { useNavigate } from "react-router-dom";
 
 // Internal config and utilities
 import { preferencesApi } from "../../../../../packages/config/api/preferences";
 import type { SearchResult } from "../../../../../packages/schemas/search";
-import {
-  checkAuthAndRedirect,
-  getAuthToken,
-} from "../../../../../packages/utils/auth";
 import { asError } from "../../../../../packages/utils/error";
 
 // Internal features
@@ -47,8 +42,6 @@ export function useIsochroneFlow(params: {
   primeIsochroneOverlay: (hasResults: boolean) => Promise<void>;
   runIsochroneSearch: () => Promise<void>;
 } {
-  const navigate = useNavigate();
-
   // Fetch isochrone polygon from backend for map population only (no property search)
   const fetchIsochroneForMapOnly = useCallback(async () => {
     try {
@@ -56,6 +49,12 @@ export function useIsochroneFlow(params: {
       // Server will return 401 if not authenticated
 
       const { apiBaseUrl } = params.env;
+
+      if (!apiBaseUrl) {
+        console.error("❌ API base URL is not configured");
+        return null;
+      }
+
       const response = await fetch(`${apiBaseUrl}/api/v1/search/isochrone`, {
         method: "GET",
         headers: {
@@ -91,12 +90,17 @@ export function useIsochroneFlow(params: {
         return null;
       }
     } catch (error: unknown) {
+      const err = error as Error;
       if (console && typeof console.error === "function") {
-        console.error("❌ Error fetching isochrone polygon:", error);
+        console.error("❌ Error fetching isochrone polygon:", {
+          message: err.message,
+          name: err.name,
+          apiBaseUrl: params.env.apiBaseUrl,
+        });
       }
       return null;
     }
-  }, [navigate, params.env]);
+  }, [params.env]);
 
   // Automatically search for properties within the isochrone polygon
   const handleSearchPropertiesInIsochrone = useCallback(
@@ -140,6 +144,7 @@ export function useIsochroneFlow(params: {
         params.saveSearchResultsToLocalStorage,
       );
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       params.setSearchStage,
       params.setSearchResults,
@@ -158,6 +163,12 @@ export function useIsochroneFlow(params: {
       // Server will return 401 if not authenticated
 
       const { apiBaseUrl } = params.env;
+
+      if (!apiBaseUrl) {
+        console.error("❌ API base URL is not configured");
+        return null;
+      }
+
       const response = await fetch(`${apiBaseUrl}/api/v1/search/isochrone`, {
         method: "GET",
         headers: {
@@ -201,10 +212,15 @@ export function useIsochroneFlow(params: {
         );
       }
     } catch (error: unknown) {
-      console.error("❌ Error fetching isochrone polygon:", error);
+      const err = error as Error;
+      console.error("❌ Error fetching isochrone polygon:", {
+        message: err.message,
+        name: err.name,
+        apiBaseUrl: params.env.apiBaseUrl,
+      });
     }
     return null;
-  }, [navigate, handleSearchPropertiesInIsochrone, params.env]);
+  }, [handleSearchPropertiesInIsochrone, params.env]);
 
   const primeIsochroneOverlay = useCallback(
     async (hasResults: boolean) => {
@@ -225,6 +241,7 @@ export function useIsochroneFlow(params: {
         }
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       fetchIsochroneForMapOnly,
       fetchIsochronePolygon,

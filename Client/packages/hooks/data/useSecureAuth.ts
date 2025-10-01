@@ -11,6 +11,7 @@ import type { UserProfile } from "../../schemas/user";
 import { reportSecurityEvent } from "../../services/security/errorReporting";
 import { secureLogger } from "../../services/security/secureLogger";
 import { useAuthStore } from "../../store/auth.slice";
+import { useUserStore } from "../../store/user.slice";
 import { asError } from "../../utils/error";
 
 // Augment Window with secure auth helpers
@@ -59,6 +60,9 @@ export function useSecureAuth(): UseSecureAuthReturn {
   const setStoreAuthStatus = useAuthStore((s) => s.setAuthStatus);
   const setStoreAuthReady = useAuthStore((s) => s.setAuthReady);
 
+  // Get user store actions to persist user profile across refreshes
+  const setUserProfile = useUserStore((s) => s.setUserProfile);
+
   /**
    * Secure login with memory-based token storage
    */
@@ -92,7 +96,11 @@ export function useSecureAuth(): UseSecureAuthReturn {
           if (response.user) {
             // Use user_sub as fallback if id is not available
             const userId =
-              response.user.id || response.user.user_sub || response.user_sub;
+              response.user.id ||
+              ("user_sub" in response.user
+                ? response.user.user_sub
+                : undefined) ||
+              response.user_sub;
 
             const mappedUser: UserProfile = {
               id: userId || "",
@@ -111,7 +119,10 @@ export function useSecureAuth(): UseSecureAuthReturn {
             if (process.env.NODE_ENV === "development") {
               secureLogger.debug("SECURE_AUTH_DEV", "User mapping", {
                 responseUserId: response.user.id,
-                responseUserSub: response.user.user_sub,
+                responseUserSub:
+                  "user_sub" in response.user
+                    ? response.user.user_sub
+                    : undefined,
                 responseUserSubTop: response.user_sub,
                 finalUserId: userId,
                 email: response.user.email,
@@ -127,6 +138,11 @@ export function useSecureAuth(): UseSecureAuthReturn {
             setStoreIsAuthenticated(true);
             setStoreAuthStatus("authenticated");
             setStoreAuthReady(true);
+
+            // Also store in user store for sidebar display (persists to localStorage)
+            // This ensures name/email are immediately available and persist across refreshes
+            setUserProfile(mappedUser);
+
             isLoggingInRef.current = false;
 
             // Additional logging to debug the user state (dev only)
@@ -164,7 +180,11 @@ export function useSecureAuth(): UseSecureAuthReturn {
 
           if (process.env.NODE_ENV === "development") {
             secureLogger.security("SECURE_AUTH", "Login successful", {
-              userId: response.user?.user_sub,
+              userId:
+                response.user?.id ||
+                (response.user && "user_sub" in response.user
+                  ? response.user.user_sub
+                  : undefined),
             });
           }
 
@@ -197,6 +217,7 @@ export function useSecureAuth(): UseSecureAuthReturn {
       setStoreIsAuthenticated,
       setStoreAuthStatus,
       setStoreAuthReady,
+      setUserProfile,
     ],
   );
 
@@ -212,9 +233,13 @@ export function useSecureAuth(): UseSecureAuthReturn {
       secureLogger.info("LOGOUT_SUCCESS", "Server logout successful");
     } catch (error) {
       // Log error but continue with client cleanup
-      secureLogger.warn("LOGOUT_ERROR", "Server logout failed, continuing with client cleanup", {
-        error: asError(error).message,
-      });
+      secureLogger.warn(
+        "LOGOUT_ERROR",
+        "Server logout failed, continuing with client cleanup",
+        {
+          error: asError(error).message,
+        },
+      );
     }
 
     // Clear memory-based state
@@ -226,6 +251,9 @@ export function useSecureAuth(): UseSecureAuthReturn {
     setStoreIsAuthenticated(false);
     setStoreAuthStatus("unauthenticated");
     setStoreAuthReady(false);
+
+    // Clear user store state (ensures sidebar is cleared)
+    setUserProfile(null);
 
     // Clear only non-sensitive session flags (not tokens - they don't exist in storage)
     sessionStorage.removeItem("signupEmail");
@@ -246,12 +274,12 @@ export function useSecureAuth(): UseSecureAuthReturn {
     // Use window.location.href for reliable navigation during logout
     // This prevents AuthGuard redirect loops that can occur with React Router navigation
     window.location.href = "/login";
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     setStoreUser,
     setStoreIsAuthenticated,
     setStoreAuthStatus,
     setStoreAuthReady,
+    setUserProfile,
   ]); // include Zustand setters (stable) in deps
 
   /**
@@ -260,7 +288,10 @@ export function useSecureAuth(): UseSecureAuthReturn {
   const refreshToken = useCallback(async (): Promise<boolean> => {
     // Token refresh is handled automatically by HTTP-only cookies
     // The server will manage token expiration and refresh
-    secureLogger.debug("SECURE_AUTH", "Token refresh handled by HTTP-only cookies");
+    secureLogger.debug(
+      "SECURE_AUTH",
+      "Token refresh handled by HTTP-only cookies",
+    );
     return true;
   }, []);
 
@@ -280,11 +311,14 @@ export function useSecureAuth(): UseSecureAuthReturn {
    * Auto-refresh token on mount and periodically
    */
   useEffect(() => {
-    const refreshInterval = setInterval(() => {
-      if (accessToken) {
-        void refreshToken();
-      }
-    }, 14 * 60 * 1000); // Refresh every 14 minutes
+    const refreshInterval = setInterval(
+      () => {
+        if (accessToken) {
+          void refreshToken();
+        }
+      },
+      14 * 60 * 1000,
+    ); // Refresh every 14 minutes
 
     return () => {
       clearInterval(refreshInterval);
@@ -345,11 +379,9 @@ export function useSecureAuth(): UseSecureAuthReturn {
           }, 0);
         } catch (eventCreationError) {
           // Prevent errors in event creation from causing stack traces
-          secureLogger.warn(
-            "SECURE_AUTH",
-            "Auth ready event creation failed",
-            { error: asError(eventCreationError).message },
-          );
+          secureLogger.warn("SECURE_AUTH", "Auth ready event creation failed", {
+            error: asError(eventCreationError).message,
+          });
         }
 
         // Log auth ready without throwing errors
@@ -452,9 +484,13 @@ export const secureTokenUtils = {
   clearAllTokens: () => {
     // Tokens are in HTTP-only cookies - no client-side clearing needed
     // Server must be called to clear cookies via /logout endpoint
-    secureLogger.security("SECURE_TOKEN_UTILS", "Token clearing delegated to server", {
-      note: "HTTP-only cookies can only be cleared by server",
-    });
+    secureLogger.security(
+      "SECURE_TOKEN_UTILS",
+      "Token clearing delegated to server",
+      {
+        note: "HTTP-only cookies can only be cleared by server",
+      },
+    );
   },
 
   /**

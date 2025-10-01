@@ -79,6 +79,14 @@ export function useReportsStoreIntegration() {
     }
   }, [compareReportsError, setCompareReportsError]);
 
+  // Override the store's placeholder methods with real implementations
+  useEffect(() => {
+    const store = useReportsStore.getState();
+    // Replace the placeholder methods with real implementations
+    store.refreshReports = refreshReports;
+    store.refreshCompareReports = refreshCompareReports;
+  }, [refreshReports, refreshCompareReports]);
+
   return {
     reports,
     reportsLoading,

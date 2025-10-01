@@ -143,7 +143,11 @@ export const handleZillowOpen = (property: Property | SearchResult): void => {
     }
     // Fallback to address when neither zillow_url nor zpid is present
     const addr = formatAddress(
-      ((property as unknown as { address?: unknown }).address as any) ?? "",
+      ((property as unknown as { address?: unknown }).address as
+        | string
+        | AddressObject
+        | null
+        | undefined) ?? "",
     );
     window.open(
       `https://www.zillow.com/homes/${encodeURIComponent(addr)}_rb/`,
@@ -152,7 +156,11 @@ export const handleZillowOpen = (property: Property | SearchResult): void => {
     );
   } catch {
     const addr = formatAddress(
-      ((property as unknown as { address?: unknown }).address as any) ?? "",
+      ((property as unknown as { address?: unknown }).address as
+        | string
+        | AddressObject
+        | null
+        | undefined) ?? "",
     );
     window.open(
       `https://www.zillow.com/homes/${encodeURIComponent(addr)}_rb/`,

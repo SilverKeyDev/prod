@@ -71,17 +71,9 @@ export function useAuthStoreIntegration() {
       lastErrorRef.current = authError;
       setError(authError);
     }
-  }, [
-    authUser,
-    authIsAuthenticated,
-    authIsLoading,
-    authError,
-    setUser,
-    setIsAuthenticated,
-    setIsLoading,
-    setError,
-    setAuthStatus,
-  ]);
+    // Zustand setters are stable references and don't need to be in dependencies
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authUser, authIsAuthenticated, authIsLoading, authError]);
 
   // Don't set authReady immediately - let useSecureAuth control when it's ready
   // This prevents premature re-renders before auth state is fully initialized
@@ -116,7 +108,8 @@ export function useAuthStoreIntegration() {
     // Tokens can only be cleared by the server via Set-Cookie with max_age=0
     window.clearSecureTokens = () => {
       // No-op: tokens are in HTTP-only cookies, not accessible to JS
-      console.debug("HTTP-only cookies cannot be cleared client-side");
+      // Commented out debug log to avoid linting warnings
+      // console.debug("HTTP-only cookies cannot be cleared client-side");
     };
 
     return () => {
@@ -128,6 +121,15 @@ export function useAuthStoreIntegration() {
       }
     };
   }, []); // Run only once on mount
+
+  // Override the store's placeholder methods with real implementations
+  useEffect(() => {
+    const store = useAuthStore.getState();
+    // Replace the placeholder methods with real implementations
+    store.login = authLogin;
+    store.logout = authLogout;
+    store.refreshToken = authRefreshToken;
+  }, [authLogin, authLogout, authRefreshToken]);
 
   // Note: Removed storage event handler to prevent page reload conflicts
   // Cross-tab auth changes are handled by the session timeout hook

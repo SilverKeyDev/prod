@@ -121,7 +121,6 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
         ? (placePrediction as { toPlace: () => unknown }).toPlace()
         : null;
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     if (
       isObject(place) &&
       hasProperty(place, "fetchFields") &&

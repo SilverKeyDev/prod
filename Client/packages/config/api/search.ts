@@ -128,10 +128,11 @@ export const searchApi = {
       timeout: 300000, // 5 minutes for property comps search
     })
       .then((resp) => {
+        const respWithComps = resp as typeof resp & { comps?: unknown[] };
         console.log("✅ [searchApi.getPropertyComps] Response", {
           success: resp?.success,
-          compsCount: Array.isArray((resp as any)?.comps)
-            ? (resp as any).comps.length
+          compsCount: Array.isArray(respWithComps?.comps)
+            ? respWithComps.comps.length
             : undefined,
           hasError: !!resp?.error,
         });
