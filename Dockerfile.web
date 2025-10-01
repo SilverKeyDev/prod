@@ -7,33 +7,38 @@
     
     # Install pnpm
     RUN npm install -g pnpm@9.0.0
+    # (Optional) if you have git-based deps, uncomment below
+    # RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates && rm -rf /var/lib/apt/lists/*
     
     # build-time variables
-    ARG VITE_API_BASE_URL
     ARG VITE_GOOGLE_MAPS_ID
     ARG VITE_PLAID_CLIENT_ID
     ARG VITE_GOOGLE_CLIENT_ID
+    
+    ENV VITE_GOOGLE_MAPS_ID=${VITE_GOOGLE_MAPS_ID}
+    ENV VITE_PLAID_CLIENT_ID=${VITE_PLAID_CLIENT_ID}
+    ENV VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID}
+    
     
     # Copy workspace configuration files
     COPY Client/package.json ./
     COPY Client/pnpm-workspace.yaml ./
     COPY Client/pnpm-lock.yaml ./
     
-    # Install dependencies using pnpm
-    RUN pnpm install --frozen-lockfile
+    # Prefetch dependencies using lockfile only (better layer caching for workspaces)
+    RUN pnpm fetch
     
     # Copy rest of client source
     COPY Client/ .
     
-    # build with env vars using pnpm workspace command
-    RUN VITE_API_BASE_URL=$VITE_API_BASE_URL \
-        VITE_GOOGLE_MAPS_ID=$VITE_GOOGLE_MAPS_ID \
-        VITE_PLAID_CLIENT_ID=$VITE_PLAID_CLIENT_ID \
-        VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID \
-        pnpm run build:web
+    # Install dependencies offline based on prefetched store (include dev deps for Vite build)
+    RUN pnpm install --frozen-lockfile --prod=false
     
-    # verify assets exist (Vite outputs to dist/apps/web)
-    RUN test -d dist/apps/web && [ "$(ls -A dist/apps/web)" ] || (echo "❌ dist/apps/web missing or empty!" && exit 1)
+    # build with env vars already promoted to ENV
+    RUN pnpm run build:web
+    
+    # verify assets exist (Vite outDir -> /app/client/dist)
+    RUN test -d dist && [ "$(ls -A dist)" ] || (echo "❌ dist missing or empty!" && exit 1)
     
     # ----------------------------
     # Stage 2: Build Flask backend
@@ -69,8 +74,8 @@
     # ---- app code ----
     COPY Server/ .
     
-    # bring built frontend from stage 1 (Vite outputs to dist/apps/web)
-    COPY --from=frontend /app/client/dist/apps/web /app/Client/dist
+    # bring built frontend from stage 1 (matches Vite outDir)
+    COPY --from=frontend /app/client/dist /app/Client/dist
     
     EXPOSE 5000
     

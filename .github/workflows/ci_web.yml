@@ -1,222 +1,308 @@
-# .github/workflows/deploy.yml
 name: Build and Deploy Docker App to EC2
 
+
 on:
-  push:
-    branches: [main]
-  workflow_dispatch:
-
-concurrency:
-  group: deploy-${{ github.ref }}
-  cancel-in-progress: true
-
-permissions:
-  id-token: write # required for OIDC
-  contents: read
+ push:
+   branches: [main]
+ workflow_dispatch:
 
 env:
-  AWS_REGION: us-east-2
-  ECR_REPO: cre
-  APP_NAME: cre_app
-  CELERY_NAME: cre_worker
-  REDIS_NAME: redis
-  SECRET_ID: silverkey/prod/app # <-- change to your secret path
-  SSM_PARAMS: "/silverkey/prod/API_BASE_URL /silverkey/prod/LOG_LEVEL" # optional; space-separated
-  FRONTEND_DIST_PATH: /app/Client/dist
-  WEB_ROOT: /var/www/html
+ REGION: us-east-2
+ REPO: cre
+ IMAGE_TAG: latest
 
 jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
+ build-and-deploy:
+   runs-on: ubuntu-latest
+   timeout-minutes: 25
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
 
-      - name: Configure AWS Credentials (OIDC)
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: arn:aws:iam::123456789012:role/gh-oidc-deploy # <-- your deploy role
-          aws-region: ${{ env.AWS_REGION }}
+   steps:
+     - name: Checkout code
+       uses: actions/checkout@v4
 
-      - name: Get AWS Account ID
-        id: aws
-        run: echo "account_id=$(aws sts get-caller-identity --query Account --output text)" >> $GITHUB_OUTPUT
 
-      - name: Log in to Amazon ECR
-        uses: aws-actions/amazon-ecr-login@v2
+     # Actions secrets (you noted these live in Actions):
+     # - AWS_ACCESS_KEY_ID
+     # - AWS_SECRET_ACCESS_KEY
+     # - EC2_HOST
+     # - EC2_SSH_KEY
+     # - VITE_GOOGLE_CLIENT_ID
+     # - VITE_GOOGLE_MAPS_ID
+     # - VITE_PLAID_CLIENT_ID
+     - name: Configure AWS Credentials
+       uses: aws-actions/configure-aws-credentials@v4
+       with:
+         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+         aws-region: ${{ env.REGION }}
 
-      - name: Compute image tags
-        id: meta
-        run: |
-          echo "sha_tag=${GITHUB_SHA::12}" >> $GITHUB_OUTPUT
-          echo "image=${{ steps.aws.outputs.account_id }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPO }}" >> $GITHUB_OUTPUT
 
-      - name: Build & Push image
-        run: |
-          IMAGE="${{ steps.meta.outputs.image }}"
-          SHA_TAG="${{ steps.meta.outputs.sha_tag }}"
+     # Load ONLY the keys listed in env.example from AWS Secrets Manager (JSON → env vars)
+     - name: Load app env from AWS Secrets Manager
+       uses: aws-actions/aws-secretsmanager-get-secrets@v2
+       with:
+         secret-ids: |
+           db_url
+           AWS_Access
+           COGNITO
+           gmaps
+           google_calendar
+           census_api
+           mapbox
+           openai
+           perplexity
+           plaid
+           serp
+           rapidapi
+         parse-json-secrets: true
 
-          # Build with public build args if you still need them at build time
-          docker build \
-            --build-arg VITE_PLAID_CLIENT_ID=${{ secrets.VITE_PLAID_CLIENT_ID }} \
-            --build-arg VITE_GOOGLE_MAPS_ID=${{ secrets.VITE_GOOGLE_MAPS_ID }} \
-            --build-arg VITE_GOOGLE_CLIENT_ID=${{ secrets.VITE_GOOGLE_CLIENT_ID }} \
-            -f Dockerfile.web \
-            -t "$IMAGE:$SHA_TAG" \
-            -t "$IMAGE:latest" \
-            .
 
-          docker push "$IMAGE:$SHA_TAG"
-          docker push "$IMAGE:latest"
+     # Normalize any env var names expected by the app (map AWS_COGNITO_* → COGNITO_*)
+     - name: Normalize environment variable names
+       run: |
+         {
+           echo "COGNITO_USER_POOL_ID=${AWS_COGNITO_USER_POOL_ID}"
+           echo "COGNITO_CLIENT_ID=${AWS_COGNITO_CLIENT_ID}"
+           echo "COGNITO_CLIENT_SECRET=${AWS_COGNITO_CLIENT_SECRET}"
+         } >> "$GITHUB_ENV"
 
-      - name: Deploy over SSH (EC2 pulls secrets itself)
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            set -euo pipefail
 
-            echo "🕒 $(date -u +'%Y-%m-%dT%H:%M:%SZ')  Starting EC2 deploy..."
+     - name: Login to ECR
+       run: |
+         ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+         echo "ACCOUNT_ID=$ACCOUNT_ID" >> $GITHUB_ENV
+         aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com 2>/dev/null
 
-            AWS_REGION="${{ env.AWS_REGION }}"
-            ACCOUNT_ID="${{ steps.aws.outputs.account_id }}"
-            ECR_REPO="${{ env.ECR_REPO }}"
-            APP_NAME="${{ env.APP_NAME }}"
-            CELERY_NAME="${{ env.CELERY_NAME }}"
-            REDIS_NAME="${{ env.REDIS_NAME }}"
-            SECRET_ID="${{ env.SECRET_ID }}"
-            SSM_PARAMS="${{ env.SSM_PARAMS }}"
-            FRONTEND_DIST_PATH="${{ env.FRONTEND_DIST_PATH }}"
-            WEB_ROOT="${{ env.WEB_ROOT }}"
 
-            IMAGE="$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:latest"
+     # ⬇️ Keep FRONTEND BUILD THE SAME (as requested) — use the three Vite build args from Actions secrets
+     - name: Build, Tag, and Push Docker Image to ECR
+       env:
+         VITE_GOOGLE_MAPS_ID: ${{ secrets.VITE_GOOGLE_MAPS_ID }}
+         VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
+         VITE_PLAID_CLIENT_ID: ${{ secrets.VITE_PLAID_CLIENT_ID }}
+       run: |
+         docker build --no-cache \
+           -f Dockerfile.web \
+           --build-arg VITE_GOOGLE_MAPS_ID="$VITE_GOOGLE_MAPS_ID" \
+           --build-arg VITE_GOOGLE_CLIENT_ID="$VITE_GOOGLE_CLIENT_ID" \
+           --build-arg VITE_PLAID_CLIENT_ID="$VITE_PLAID_CLIENT_ID" \
+           -t $REPO:$IMAGE_TAG .
+         docker tag $REPO:$IMAGE_TAG $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO:$IMAGE_TAG
+         docker push $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO:$IMAGE_TAG
 
-            echo "📦 Installing Docker & AWS CLI if needed..."
-            if ! command -v docker >/dev/null 2>&1; then
-              sudo apt-get update -y
-              sudo apt-get install -y docker.io
-              sudo usermod -aG docker ubuntu || true
-            fi
-            if ! command -v aws >/dev/null 2>&1; then
-              curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-              sudo apt-get install -y unzip >/dev/null
-              unzip -q awscliv2.zip
-              sudo ./aws/install
-              rm -rf aws awscliv2.zip
-            fi
-            if ! command -v jq >/dev/null 2>&1; then
-              sudo apt-get update -y
-              sudo apt-get install -y jq
-            fi
-            if ! command -v curl >/dev/null 2>&1; then
-              sudo apt-get update -y
-              sudo apt-get install -y curl
-            fi
 
-            echo "🧹 Docker prune (safe)..."
-            sudo docker system prune -af || true
-            sudo docker system prune -af --volumes || true
-            sudo rm -rf /var/lib/docker/tmp/* || true
+     - name: SSH into EC2 and Deploy Container + Copy Frontend
+       uses: appleboy/ssh-action@v1.0.0
+       env:
+         # Region for remote AWS CLI
+         AWS_REGION: ${{ env.REGION }}
 
-            echo "🔐 ECR login..."
-            aws ecr get-login-password --region "$AWS_REGION" \
-            | sudo docker login --username AWS --password-stdin "$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com"
 
-            echo "📥 Pulling image: $IMAGE"
-            sudo docker pull "$IMAGE"
+         # From Secrets Manager: db_url
+         DATABASE_URL: ${{ env.DATABASE_URL }}
 
-            echo "🛑 Stop old containers if present..."
-            for name in "$APP_NAME" "$CELERY_NAME" "$REDIS_NAME"; do
-              if sudo docker ps -a --format '{{.Names}}' | grep -Eq "^$name$"; then
-                sudo docker rm -f "$name" || true
-              fi
-            done
 
-            echo "🚧 Ensure port 6379 is free..."
-            if sudo lsof -i :6379 -sTCP:LISTEN -t >/dev/null 2>&1; then
-              sudo lsof -i :6379 -sTCP:LISTEN -t | xargs -r sudo kill -9
-            fi
+         # From Actions (so CLI on the EC2 host can pull from ECR)
+         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-            echo "📡 Start Redis..."
-            sudo docker run -d --name "$REDIS_NAME" \
-              -p 6379:6379 \
-              --health-cmd="redis-cli ping || exit 1" \
-              --health-interval=30s \
-              --health-timeout=10s \
-              --health-retries=3 \
-              --health-start-period=30s \
-              redis:7
 
-            sleep 2
-            if ! sudo docker ps --format '{{.Names}}' | grep -q "^$REDIS_NAME$"; then
-              echo "::error::Redis failed to start"; sudo docker logs "$REDIS_NAME" || true; exit 1
-            fi
+         # From Secrets Manager: COGNITO (normalized above)
+         COGNITO_USER_POOL_ID: ${{ env.COGNITO_USER_POOL_ID }}
+         COGNITO_CLIENT_ID: ${{ env.COGNITO_CLIENT_ID }}
+         COGNITO_CLIENT_SECRET: ${{ env.COGNITO_CLIENT_SECRET }}
 
-            echo "🧾 Build env file from Secrets Manager + SSM..."
-            sudo mkdir -p /opt/cre
-            ENV_PATH=/opt/cre/.env
 
-            # 1) Pull JSON secret and write KEY=VALUE lines
-            SECRET_JSON=$(aws secretsmanager get-secret-value \
-              --secret-id "$SECRET_ID" \
-              --query SecretString --output text --region "$AWS_REGION")
-            echo "$SECRET_JSON" | jq -r 'to_entries[] | "\(.key)=\(.value)"' | sudo tee "$ENV_PATH" >/dev/null
+         # From Secrets Manager: gmaps
+         GOOGLE_MAPS_API_KEY: ${{ env.GOOGLE_MAPS_API_KEY }}
 
-            # 2) (Optional) Add SSM params (names are last path segment)
-            if [ -n "$SSM_PARAMS" ]; then
-              SSM_JSON=$(aws ssm get-parameters \
-                --names $SSM_PARAMS \
-                --with-decryption \
-                --query 'Parameters[].{Name:Name,Value:Value}' \
-                --output json --region "$AWS_REGION")
-              echo "$SSM_JSON" | jq -r '.[] | "\(.Name | split("/")[-1])=\(.Value)"' | sudo tee -a "$ENV_PATH" >/dev/null
-            fi
 
-            sudo chmod 600 "$ENV_PATH"
+         # From Secrets Manager: google_calendar
+         GOOGLE_CALENDAR_SECRET: ${{ env.GOOGLE_CALENDAR_SECRET }}
+         GOOGLE_CLIENT_ID: ${{ env.GOOGLE_CLIENT_ID }}
 
-            echo "🚀 Start app container with --env-file"
-            sudo docker run -d --name "$APP_NAME" \
-              --env-file "$ENV_PATH" \
-              -p 5000:5000 \
-              --link "$REDIS_NAME":redis \
-              --health-cmd="curl -fsS http://localhost:5000/api/v1/user/profile || exit 1" \
-              --health-interval=30s \
-              --health-timeout=10s \
-              --health-retries=3 \
-              --health-start-period=40s \
-              "$IMAGE"
 
-            echo "🚀 Start Celery worker with same env"
-            sudo docker run -d --name "$CELERY_NAME" \
-              --env-file "$ENV_PATH" \
-              --link "$REDIS_NAME":redis \
-              "$IMAGE" \
-              celery -A app.celery.celery_worker worker --loglevel=info
+         # From Secrets Manager: census_api
+         CENSUS_API_KEY: ${{ env.CENSUS_API_KEY }}
 
-            echo "⏳ Wait a few seconds..."
-            sleep 5
 
-            echo "🗂 Copy frontend build to web root..."
-            sudo mkdir -p "$WEB_ROOT"
-            sudo rm -rf "$WEB_ROOT"/*
-            sudo docker cp "$APP_NAME:$FRONTEND_DIST_PATH/." "$WEB_ROOT/"
-            sudo chown -R www-data:www-data "$WEB_ROOT" || true
+         # From Secrets Manager: mapbox
+         MAPBOX_API_KEY: ${{ env.MAPBOX_API_KEY }}
 
-            echo "🔍 Status & health"
-            sudo docker ps
-            echo "— APP logs (tail 40) —"
-            sudo docker logs --tail 40 "$APP_NAME" || true
-            echo "— Celery health —"
-            sudo docker inspect --format='{{json .State.Health}}' "$CELERY_NAME" || echo "no health info"
-            echo "— Redis health —"
-            sudo docker inspect --format='{{json .State.Health}}' "$REDIS_NAME" || echo "no health info"
 
-            if ! sudo docker ps --format '{{.Names}}' | grep -q "^$APP_NAME$"; then
-              echo "::error::App container not running"; exit 1
-            fi
+         # From Secrets Manager: openai
+         OPENAI_KEY: ${{ env.OPENAI_KEY }}
 
-            echo "✅ Deployment complete."
+
+         # From Secrets Manager: perplexity
+         PERPLEXITY_API_KEY: ${{ env.PERPLEXITY_API_KEY }}
+
+
+         # From Secrets Manager: plaid
+         PLAID_SANDBOX_KEY: ${{ env.PLAID_SANDBOX_KEY }}
+         PLAID_SECRET: ${{ env.PLAID_SECRET }}
+         VITE_PLAID_CLIENT_ID: ${{ env.VITE_PLAID_CLIENT_ID }}
+
+
+         # From Secrets Manager: serp
+         SERP_API: ${{ env.SERP_API }}
+
+
+         # From Secrets Manager: rapidapi
+         RAPIDAPI_KEY: ${{ env.RAPIDAPI_KEY }}
+       with:
+         host: ${{ secrets.EC2_HOST }}
+         username: ubuntu
+         key: ${{ secrets.EC2_SSH_KEY }}
+         envs: >
+           AWS_REGION,AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,
+           DATABASE_URL,
+           COGNITO_USER_POOL_ID,COGNITO_CLIENT_ID,COGNITO_CLIENT_SECRET,
+           GOOGLE_MAPS_API_KEY,GOOGLE_CALENDAR_SECRET,GOOGLE_CLIENT_ID,
+           CENSUS_API_KEY,MAPBOX_API_KEY,OPENAI_KEY,PERPLEXITY_API_KEY,
+           PLAID_SANDBOX_KEY,PLAID_SECRET,VITE_PLAID_CLIENT_ID,
+           SERP_API,RAPIDAPI_KEY
+         script: |
+           set -e
+           echo "🕒 $(date -u +'%Y-%m-%dT%H:%M:%SZ') Starting EC2 deployment..."
+
+
+           REGION="$AWS_REGION"
+           REPO="cre"
+           IMAGE_TAG="latest"
+
+
+           # System prep
+           while sudo fuser /var/lib/apt/lists/lock >/dev/null 2>&1 || sudo fuser /var/lib/dpkg/lock >/dev/null 2>&1; do
+             sleep 3
+           done
+           sudo apt update -y
+           timeout 3m sudo apt install -y docker.io unzip curl > /dev/null
+
+
+           # Clean up docker caches/volumes
+           sudo docker system prune -af || true
+           sudo docker system prune -af --volumes || true
+           sudo rm -rf /var/lib/docker/tmp/*
+
+
+           # AWS CLI (if missing)
+           if ! aws --version | grep -q aws-cli; then
+             curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+             unzip -q awscliv2.zip && sudo ./aws/install && rm -rf aws awscliv2.zip
+           fi
+
+
+           # Pull image from ECR
+           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text --region "$REGION")
+           IMAGE="$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO:$IMAGE_TAG"
+           aws ecr get-login-password --region "$REGION" | sudo docker login --username AWS --password-stdin "$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com" 2>/dev/null
+           sudo docker pull "$IMAGE"
+
+
+           # Stop old containers if present
+           for name in cre_app cre_worker; do
+             if sudo docker ps -a --format '{{.Names}}' | grep -Eq "^${name}\$"; then
+               sudo docker stop "$name" || true
+               sudo docker rm "$name" || true
+             fi
+           done
+
+
+           # Redis fresh
+           if sudo docker ps -a --format '{{.Names}}' | grep -q '^redis$'; then
+             sudo docker rm -f redis || true
+           fi
+           sudo docker run -d --name redis \
+             -p 6379:6379 \
+             --health-cmd="redis-cli ping || exit 1" \
+             --health-interval=30s \
+             --health-timeout=10s \
+             --health-retries=3 \
+             --health-start-period=30s \
+             redis:7-alpine
+           sleep 2
+
+
+           # -------- App container (ONLY envs from env.example) --------
+           sudo docker run -d --name cre_app \
+             -p 5000:5000 \
+             --health-cmd="curl -fsS http://localhost:5000/api/v1/user/profile || exit 1" \
+             --health-interval=30s \
+             --health-timeout=10s \
+             --health-retries=3 \
+             --health-start-period=40s \
+             -e AWS_REGION \
+             -e AWS_ACCESS_KEY_ID \
+             -e AWS_SECRET_ACCESS_KEY \
+             -e DATABASE_URL \
+             -e COGNITO_USER_POOL_ID \
+             -e COGNITO_CLIENT_ID \
+             -e COGNITO_CLIENT_SECRET \
+             -e GOOGLE_MAPS_API_KEY \
+             -e GOOGLE_CALENDAR_SECRET \
+             -e GOOGLE_CLIENT_ID \
+             -e CENSUS_API_KEY \
+             -e MAPBOX_API_KEY \
+             -e OPENAI_KEY \
+             -e PERPLEXITY_API_KEY \
+             -e PLAID_SANDBOX_KEY \
+             -e PLAID_SECRET \
+             -e VITE_PLAID_CLIENT_ID \
+             -e SERP_API \
+             -e RAPIDAPI_KEY \
+             "$IMAGE"
+
+
+           # -------- Celery worker (ONLY envs from env.example) --------
+           sudo docker run -d --name cre_worker \
+             --link redis:redis \
+             --health-cmd="celery -A app.celery.celery_worker inspect ping || exit 1" \
+             --health-interval=60s \
+             --health-timeout=30s \
+             --health-retries=3 \
+             --health-start-period=60s \
+             -e AWS_REGION \
+             -e AWS_ACCESS_KEY_ID \
+             -e AWS_SECRET_ACCESS_KEY \
+             -e DATABASE_URL \
+             -e COGNITO_USER_POOL_ID \
+             -e COGNITO_CLIENT_ID \
+             -e COGNITO_CLIENT_SECRET \
+             -e GOOGLE_MAPS_API_KEY \
+             -e GOOGLE_CALENDAR_SECRET \
+             -e GOOGLE_CLIENT_ID \
+             -e CENSUS_API_KEY \
+             -e MAPBOX_API_KEY \
+             -e OPENAI_KEY \
+             -e PERPLEXITY_API_KEY \
+             -e PLAID_SANDBOX_KEY \
+             -e PLAID_SECRET \
+             -e VITE_PLAID_CLIENT_ID \
+             -e SERP_API \
+             -e RAPIDAPI_KEY \
+             "$IMAGE" \
+             celery -A app.celery.celery_worker worker --loglevel=info
+
+
+           # Export built frontend from container
+           sudo rm -rf /var/www/html/*
+           sudo docker cp cre_app:/app/Client/dist/. /var/www/html/
+           sudo chown -R www-data:www-data /var/www/html
+
+
+           # Health checks
+           if ! sudo docker ps --format '{{.Names}}' | grep -q '^cre_app$'; then
+             echo "❌ cre_app not running"
+             sudo docker logs cre_app || true
+             exit 1
+           fi
+
+
+           echo "cre_app health:"
+           sudo docker inspect --format='{{json .State.Health}}' cre_app || true
+           echo "cre_worker health:"
+           sudo docker inspect --format='{{json .State.Health}}' cre_worker || true
+           echo "redis health:"
+           sudo docker inspect --format='{{json .State.Health}}' redis || true
