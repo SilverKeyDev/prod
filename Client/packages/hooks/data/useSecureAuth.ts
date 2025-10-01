@@ -10,8 +10,8 @@ import { authApi } from "../../config/api";
 import type { UserProfile } from "../../schemas/user";
 import { reportSecurityEvent } from "../../services/security/errorReporting";
 import { secureLogger } from "../../services/security/secureLogger";
-import { useAuthStore } from "../../store/auth.slice";
-import { useUserStore } from "../../store/user.slice";
+import { useAuthStore, type AuthState } from "../../store/auth.slice";
+import { useUserStore, type UserState } from "../../store/user.slice";
 import { asError } from "../../utils/error";
 
 // Augment Window with secure auth helpers
@@ -55,13 +55,13 @@ export function useSecureAuth(): UseSecureAuthReturn {
   const isLoggingInRef = useRef(false);
 
   // Get store actions for immediate updates
-  const setStoreUser = useAuthStore((s) => s.setUser);
-  const setStoreIsAuthenticated = useAuthStore((s) => s.setIsAuthenticated);
-  const setStoreAuthStatus = useAuthStore((s) => s.setAuthStatus);
-  const setStoreAuthReady = useAuthStore((s) => s.setAuthReady);
+  const setStoreUser = useAuthStore((s: AuthState) => s.setUser);
+  const setStoreIsAuthenticated = useAuthStore((s: AuthState) => s.setIsAuthenticated);
+  const setStoreAuthStatus = useAuthStore((s: AuthState) => s.setAuthStatus);
+  const setStoreAuthReady = useAuthStore((s: AuthState) => s.setAuthReady);
 
   // Get user store actions to persist user profile across refreshes
-  const setUserProfile = useUserStore((s) => s.setUserProfile);
+  const setUserProfile = useUserStore((s: UserState) => s.setUserProfile);
 
   /**
    * Secure login with memory-based token storage

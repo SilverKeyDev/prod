@@ -4,13 +4,26 @@
 
 import type { IsochroneData } from "../../../../../packages/schemas/api";
 
+// Google Maps types
+interface GoogleMap {
+  getDiv: () => HTMLElement;
+  setCenter: (center: { lat: number; lng: number }) => void;
+  setZoom: (zoom: number) => void;
+}
+
+interface GoogleAdvancedMarkerElement {
+  map: GoogleMap | null;
+  setMap: (map: GoogleMap | null) => void;
+  position: { lat: number; lng: number };
+  title: string;
+  content: HTMLElement;
+}
+
 export type ImportantLocationRenderOptions = {
-  map: google.maps.Map;
-  importantMarkersRef: React.MutableRefObject<
-    google.maps.marker.AdvancedMarkerElement[]
-  >;
+  map: GoogleMap;
+  importantMarkersRef: React.MutableRefObject<GoogleAdvancedMarkerElement[]>;
   setImportantLocationMarkers?: (
-    markers: google.maps.marker.AdvancedMarkerElement[],
+    markers: GoogleAdvancedMarkerElement[],
   ) => void;
   resetToDefaultZoom: () => void;
 }; // Updated interface - force refresh
@@ -92,6 +105,20 @@ export const renderImportantLocationMarkers = (
     return;
   }
 
+  // Check if Google Maps API and AdvancedMarkerElement are available
+  if (!window.google?.maps?.marker?.AdvancedMarkerElement) {
+    console.warn(
+      "❌ AdvancedMarkerElement not available for important location markers",
+    );
+    console.warn("Google Maps API status:", {
+      google: !!window.google,
+      maps: !!window.google?.maps,
+      marker: !!window.google?.maps?.marker,
+      AdvancedMarkerElement: !!window.google?.maps?.marker?.AdvancedMarkerElement,
+    });
+    return;
+  }
+
   console.log(
     "🎯 [IMPORTANT_LOCATIONS] Starting to render important location markers",
   );
@@ -117,7 +144,7 @@ export const renderImportantLocationMarkers = (
     return;
   }
 
-  const markers: google.maps.marker.AdvancedMarkerElement[] = [];
+  const markers: GoogleAdvancedMarkerElement[] = [];
 
   for (const loc of importantLocations) {
     // Skip locations without coordinates - this is normal and not an error
@@ -197,7 +224,12 @@ export const renderImportantLocationMarkers = (
       transform: translate(-50%, -100%);
     `;
 
-    const marker = new google.maps.marker.AdvancedMarkerElement({
+    const marker = new (window.google.maps.marker.AdvancedMarkerElement as new (options: {
+      map: GoogleMap;
+      position: { lat: number; lng: number };
+      content: HTMLElement;
+      title: string;
+    }) => GoogleAdvancedMarkerElement)({
       map,
       position,
       content: markerElement,

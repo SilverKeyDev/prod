@@ -16,10 +16,26 @@
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
+    "@types/react": "^18.3.5",
+    "@types/react-dom": "^18.3.0",
     "eslint": "^9.9.0",
-    "prettier": "^3.3.3",
-    "typescript": "^5.6.2",
+    "husky": "^9.1.6",
     "lint-staged": "^15.2.7",
-    "husky": "^9.1.6"
+    "prettier": "^3.3.3",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "typescript": "^5.6.2"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.90.2",
+    "@typescript-eslint/eslint-plugin": "^8.45.0",
+    "@typescript-eslint/parser": "^8.45.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.22",
+    "lucide-react": "^0.544.0",
+    "react-router-dom": "^7.9.3",
+    "typescript-eslint": "^8.45.0",
+    "zustand": "^5.0.8"
   }
 }

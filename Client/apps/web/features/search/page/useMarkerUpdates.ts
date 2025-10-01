@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useCallback } from "react";
 
 import type { SearchResult } from "../../../../../packages/schemas/search";
 import type { Property } from "../../../../../packages/schemas/property";
@@ -16,13 +16,23 @@ export function useMarkerUpdates(params: {
   searchResults: SearchResult[];
   savedHomes: SearchResult[];
 }): { refreshMarkers: (current?: SearchResult) => void } {
-  // Simple implementation that doesn't require complex map marker management
-  // This is a placeholder implementation that can be enhanced later
-  const refreshMarkers = (current?: SearchResult) => {
-    // For now, this is a no-op implementation
-    // The actual marker management should be handled by the parent component
-    console.log("refreshMarkers called with:", current);
-  };
+  // Proper implementation that handles marker updates based on current state
+  const refreshMarkers = useCallback((current?: SearchResult) => {
+    if (!params.googleMapRef.current) {
+      console.warn("Map not available for marker refresh");
+      return;
+    }
+
+    // If we have a current property and should show modals, focus on it
+    if (current && params.hasSearched && params.showPropertyModals) {
+      const center = {
+        lat: current.lat + 0.002, // Offset slightly north
+        lng: current.lng,
+      };
+      params.googleMapRef.current.setCenter(center);
+      params.googleMapRef.current.setZoom(13);
+    }
+  }, [params.googleMapRef, params.hasSearched, params.showPropertyModals]);
 
   // Update markers when activeTab, currentPage changes or when hasSearched/showPropertyModals changes
   useEffect(() => {
@@ -52,6 +62,7 @@ export function useMarkerUpdates(params: {
     params.showPropertyModals,
     params.searchResults,
     params.savedHomes,
+    refreshMarkers,
   ]);
 
   return { refreshMarkers };

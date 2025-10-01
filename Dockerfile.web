@@ -5,24 +5,35 @@
 
     WORKDIR /app/client
     
+    # Install pnpm
+    RUN npm install -g pnpm@9.0.0
+    
     # build-time variables
     ARG VITE_API_BASE_URL
     ARG VITE_GOOGLE_MAPS_ID
+    ARG VITE_PLAID_CLIENT_ID
+    ARG VITE_GOOGLE_CLIENT_ID
     
-    # install dependencies
-    COPY Client/package*.json ./
-    RUN npm install
+    # Copy workspace configuration files
+    COPY Client/package.json ./
+    COPY Client/pnpm-workspace.yaml ./
+    COPY Client/pnpm-lock.yaml ./
     
-    # copy rest of client source
+    # Install dependencies using pnpm
+    RUN pnpm install --frozen-lockfile
+    
+    # Copy rest of client source
     COPY Client/ .
     
-    # build with env vars
+    # build with env vars using pnpm workspace command
     RUN VITE_API_BASE_URL=$VITE_API_BASE_URL \
         VITE_GOOGLE_MAPS_ID=$VITE_GOOGLE_MAPS_ID \
-        npm run build
+        VITE_PLAID_CLIENT_ID=$VITE_PLAID_CLIENT_ID \
+        VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID \
+        pnpm run build:web
     
-    # verify assets exist
-    RUN test -d dist/assets && [ "$(ls -A dist/assets)" ] || (echo "❌ dist/assets missing or empty!" && exit 1)
+    # verify assets exist (Vite outputs to dist/apps/web)
+    RUN test -d dist/apps/web && [ "$(ls -A dist/apps/web)" ] || (echo "❌ dist/apps/web missing or empty!" && exit 1)
     
     # ----------------------------
     # Stage 2: Build Flask backend
@@ -58,8 +69,8 @@
     # ---- app code ----
     COPY Server/ .
     
-    # bring built frontend from stage 1
-    COPY --from=frontend /app/client/dist /app/Client/dist
+    # bring built frontend from stage 1 (Vite outputs to dist/apps/web)
+    COPY --from=frontend /app/client/dist/apps/web /app/Client/dist
     
     EXPOSE 5000
     

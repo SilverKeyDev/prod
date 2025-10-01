@@ -3,7 +3,7 @@ name: Build and Deploy Docker App to EC2
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
 
 concurrency:
@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  id-token: write      # required for OIDC
+  id-token: write # required for OIDC
   contents: read
 
 env:
@@ -20,8 +20,8 @@ env:
   APP_NAME: cre_app
   CELERY_NAME: cre_worker
   REDIS_NAME: redis
-  SECRET_ID: silverkey/prod/app                 # <-- change to your secret path
-  SSM_PARAMS: "/silverkey/prod/API_BASE_URL /silverkey/prod/LOG_LEVEL"  # optional; space-separated
+  SECRET_ID: silverkey/prod/app # <-- change to your secret path
+  SSM_PARAMS: "/silverkey/prod/API_BASE_URL /silverkey/prod/LOG_LEVEL" # optional; space-separated
   FRONTEND_DIST_PATH: /app/Client/dist
   WEB_ROOT: /var/www/html
 
@@ -37,7 +37,7 @@ jobs:
       - name: Configure AWS Credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::123456789012:role/gh-oidc-deploy   # <-- your deploy role
+          role-to-assume: arn:aws:iam::123456789012:role/gh-oidc-deploy # <-- your deploy role
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Get AWS Account ID
@@ -63,6 +63,7 @@ jobs:
             --build-arg VITE_PLAID_CLIENT_ID=${{ secrets.VITE_PLAID_CLIENT_ID }} \
             --build-arg VITE_GOOGLE_MAPS_ID=${{ secrets.VITE_GOOGLE_MAPS_ID }} \
             --build-arg VITE_GOOGLE_CLIENT_ID=${{ secrets.VITE_GOOGLE_CLIENT_ID }} \
+            -f Dockerfile.web \
             -t "$IMAGE:$SHA_TAG" \
             -t "$IMAGE:latest" \
             .

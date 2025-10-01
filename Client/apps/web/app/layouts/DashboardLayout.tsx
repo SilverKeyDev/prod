@@ -30,7 +30,10 @@ import NegotiationStrategy from "../../pages/Negotiation.tsx";
 import PersonalizationPage from "../../pages/PersonalizationPage.tsx";
 import SavedHomes from "../../pages/Saved.tsx";
 import SearchPage from "../../pages/SearchPage.tsx";
-import { useViewStore } from "../../../../packages/store/view.slice";
+import {
+  useViewStore,
+  type ViewState,
+} from "../../../../packages/store/view.slice";
 
 type HeaderConfig = {
   type: "rheader" | "none";
@@ -78,8 +81,10 @@ export default function DashboardLayout({
     useState<ReactNode | null>(null);
   const [closePageHeaderData, setClosePageHeaderData] =
     useState<ClosePageHeaderData | null>(null);
-  const sidebarExpanded = useViewStore((s) => s.sidebarExpanded);
-  const setSidebarExpanded = useViewStore((s) => s.setSidebarExpanded);
+  const sidebarExpanded = useViewStore((s: ViewState) => s.sidebarExpanded);
+  const setSidebarExpanded = useViewStore(
+    (s: ViewState) => s.setSidebarExpanded
+  );
   const location = useLocation();
 
   // Get page-specific width configuration based on current route
@@ -88,7 +93,7 @@ export default function DashboardLayout({
 
     // Find matching page configuration
     const configPath = Object.keys(PAGE_WIDTH_CONFIG).find((configPath) =>
-      path.startsWith(configPath),
+      path.startsWith(configPath)
     );
 
     // Use page-specific width or default to maxWidth (defaulting to 85)
@@ -228,7 +233,7 @@ export default function DashboardLayout({
     };
 
     const override = Object.keys(mobileOverrides).find((key) =>
-      path.startsWith(key),
+      path.startsWith(key)
     );
     if (override) return mobileOverrides[override];
 
@@ -308,13 +313,13 @@ export default function DashboardLayout({
                 ? "" // No padding for buyer checklists page
                 : `p-4 sm:p-6 lg:p-8 mt-4 lg:mt-0 ${
                     (location.pathname.startsWith(
-                      "/close/escrow-legal-logistics",
+                      "/close/escrow-legal-logistics"
                     ) ??
                     location.pathname.startsWith(
-                      "/close/inspections-due-diligence",
+                      "/close/inspections-due-diligence"
                     ) ??
                     (location.pathname.startsWith(
-                      "/close/financing-insurance",
+                      "/close/financing-insurance"
                     ) ||
                       location.pathname.startsWith("/close/closing-moving-in")))
                       ? ""

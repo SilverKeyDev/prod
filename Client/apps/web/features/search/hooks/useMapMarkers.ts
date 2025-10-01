@@ -6,8 +6,32 @@ import type { SearchResult } from "../../../../../packages/schemas/search";
 import type { IsochroneData } from "../../../../../packages/schemas/api";
 import { renderImportantLocationMarkers } from "../lib/importantLocationRenderer";
 
+// Google Maps types
+interface GoogleMap {
+  getDiv: () => HTMLElement;
+  setCenter: (center: { lat: number; lng: number }) => void;
+  setZoom: (zoom: number) => void;
+}
+
+interface GoogleMarker {
+  map: GoogleMap | null;
+  setMap: (map: GoogleMap | null) => void;
+}
+
+interface GoogleAdvancedMarkerElement extends GoogleMarker {
+  position: { lat: number; lng: number };
+  title: string;
+  content: HTMLElement;
+}
+
+interface PropertyOverlayInterface {
+  setMap: (map: GoogleMap | null) => void;
+  onAdd: () => void;
+  onRemove: () => void;
+}
+
 type UseMapMarkersProps = {
-  googleMapRef: React.RefObject<google.maps.Map | null>;
+  googleMapRef: React.RefObject<GoogleMap>;
   currentPage: number;
   propertiesPerPage: number;
   isochroneData: unknown;
@@ -23,12 +47,8 @@ type UseMapMarkersReturn = {
   updateMapMarkers: (results: SearchResult[]) => Promise<void>;
   clearMapMarkers: () => void;
   isUpdatingMarkers: boolean;
-  markersRef: React.MutableRefObject<
-    google.maps.marker.AdvancedMarkerElement[]
-  >;
-  importantMarkersRef: React.MutableRefObject<
-    google.maps.marker.AdvancedMarkerElement[]
-  >;
+  markersRef: React.MutableRefObject<GoogleAdvancedMarkerElement[]>;
+  importantMarkersRef: React.MutableRefObject<GoogleAdvancedMarkerElement[]>;
 };
 
 export const useMapMarkers = ({
@@ -43,10 +63,8 @@ export const useMapMarkers = ({
   saveHome,
   removeSavedHome,
 }: UseMapMarkersProps): UseMapMarkersReturn => {
-  const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
-  const importantMarkersRef = useRef<
-    google.maps.marker.AdvancedMarkerElement[]
-  >([]);
+  const markersRef = useRef<GoogleAdvancedMarkerElement[]>([]);
+  const importantMarkersRef = useRef<GoogleAdvancedMarkerElement[]>([]);
   const [isUpdatingMarkers, setIsUpdatingMarkers] = useState(false);
 
   // Handle rendering important location markers
@@ -95,24 +113,34 @@ export const useMapMarkers = ({
 
   // Clear all markers from the map
   const clearMapMarkers = useCallback(() => {
-    // Clear property markers
+    // Clear property markers with improved cleanup
     markersRef.current.forEach((marker) => {
-      if (marker && typeof marker === "object" && "map" in marker) {
-        const markerWithMap = marker as { map: google.maps.Map | null };
-        markerWithMap.map = null;
+      if (marker && typeof marker === "object") {
+        // Remove marker from map
+        if ("map" in marker) {
+          const markerWithMap = marker as { map: GoogleMap | null };
+          markerWithMap.map = null;
+        }
+        
+        // Clean up overlay if it exists
         const markerWithOverlay = marker as unknown as {
-          overlay?: { setMap: (map: google.maps.Map | null) => void };
+          overlay?: { 
+            setMap: (map: GoogleMap | null) => void;
+            onRemove?: () => void;
+          };
         };
         if (
-          markerWithOverlay &&
-          typeof markerWithOverlay === "object" &&
-          "overlay" in markerWithOverlay &&
-          markerWithOverlay.overlay &&
-          typeof markerWithOverlay.overlay === "object" &&
-          "setMap" in markerWithOverlay.overlay &&
-          typeof markerWithOverlay.overlay.setMap === "function"
+          markerWithOverlay?.overlay &&
+          typeof markerWithOverlay.overlay === "object"
         ) {
-          markerWithOverlay.overlay.setMap(null);
+          // Call onRemove if available for proper cleanup
+          if (typeof markerWithOverlay.overlay.onRemove === "function") {
+            markerWithOverlay.overlay.onRemove();
+          }
+          // Remove overlay from map
+          if (typeof markerWithOverlay.overlay.setMap === "function") {
+            markerWithOverlay.overlay.setMap(null);
+          }
         }
       }
     });
@@ -121,12 +149,11 @@ export const useMapMarkers = ({
     // Clear important location markers
     importantMarkersRef.current.forEach((marker) => {
       if (marker && typeof marker === "object" && "map" in marker) {
-        const markerWithMap = marker as { map: google.maps.Map | null };
+        const markerWithMap = marker as { map: GoogleMap | null };
         markerWithMap.map = null;
       }
     });
-    importantMarkersRef.current =
-      [] as google.maps.marker.AdvancedMarkerElement[];
+    importantMarkersRef.current = [];
   }, []);
 
   // Marker color calculation based on property score
@@ -165,43 +192,54 @@ export const useMapMarkers = ({
       return null;
     }
 
-    class PropertyOverlay extends google.maps.OverlayView {
+    class PropertyOverlay implements PropertyOverlayInterface {
       private div: HTMLElement;
-      private position: google.maps.LatLng;
+      private position: { lat: number; lng: number };
+      private map: GoogleMap | null;
 
-      constructor(position: google.maps.LatLng, content: HTMLElement) {
-        super();
+      constructor(position: { lat: number; lng: number }, content: HTMLElement) {
         this.position = position;
         this.div = content;
+        this.map = null;
       }
 
-      onAdd() {
-        const panes = this.getPanes();
-        if (panes) {
-          const overlayMouseTarget = panes.overlayMouseTarget as HTMLElement;
-          overlayMouseTarget.appendChild(this.div);
+      setMap(map: GoogleMap | null) {
+        this.map = map;
+        if (map) {
+          this.onAdd();
+        } else {
+          this.onRemove();
         }
       }
 
-      draw() {
-        const projection = this.getProjection();
-        if (projection) {
-          const point = projection.fromLatLngToDivPixel(this.position);
-          if (point) {
-            this.div.style.left = `${point.x}px`;
-            this.div.style.top = `${point.y}px`;
+      onAdd(): void {
+        // Simple implementation without Google Maps API dependencies
+        if (this.map && this.map.getDiv) {
+          const mapDiv = this.map.getDiv();
+          if (mapDiv) {
+            mapDiv.appendChild(this.div);
           }
         }
       }
 
-      onRemove() {
+      draw(): void {
+        // Simple positioning without Google Maps API dependencies
+        if (this.position && this.div) {
+          this.div.style.position = 'absolute';
+          this.div.style.left = '50%';
+          this.div.style.top = '50%';
+          this.div.style.transform = 'translate(-50%, -50%)';
+        }
+      }
+
+      onRemove(): void {
         if (this.div.parentNode) {
           this.div.parentNode.removeChild(this.div);
         }
       }
     }
 
-    return PropertyOverlay;
+    return PropertyOverlay as new (position: { lat: number; lng: number }, content: HTMLElement) => PropertyOverlayInterface;
   };
 
   // Update map markers with search results
@@ -234,30 +272,42 @@ export const useMapMarkers = ({
 
       // Check if Google Maps API and AdvancedMarkerElement are available
       if (!window.google?.maps?.marker?.AdvancedMarkerElement) {
-        if (console && typeof console.warn === "function") {
-          console.warn(
-            "❌ AdvancedMarkerElement not available, skipping marker update",
-          );
-        }
+        console.warn(
+          "❌ AdvancedMarkerElement not available, skipping marker update",
+        );
+        console.warn("Google Maps API status:", {
+          google: !!window.google,
+          maps: !!window.google?.maps,
+          marker: !!window.google?.maps?.marker,
+          AdvancedMarkerElement: !!window.google?.maps?.marker?.AdvancedMarkerElement,
+        });
         setIsUpdatingMarkers(false);
         return;
       }
 
-      const googleMaps = (
-        window as unknown as {
-          google: {
-            maps: {
-              marker: {
-                AdvancedMarkerElement: typeof google.maps.marker.AdvancedMarkerElement;
-              };
-            };
-          };
-        }
-      ).google;
+      // Additional safety check for OverlayView
+      if (!window.google?.maps?.OverlayView) {
+        console.warn(
+          "❌ OverlayView not available, property overlays will not be rendered",
+        );
+      }
+
+      const googleMaps = (window as { google: { maps: { marker: { AdvancedMarkerElement: new (options: {
+        map: GoogleMap;
+        position: { lat: number; lng: number };
+        title: string;
+        content: HTMLElement;
+      }) => GoogleAdvancedMarkerElement } } } }).google;
       const { AdvancedMarkerElement } = googleMaps.maps.marker;
 
-      // Create markers for each property
-      paginatedData.forEach((result) => {
+      // Create markers for each property with performance optimization
+      // Use requestAnimationFrame for better performance with large datasets
+      const createMarkersBatch = (data: SearchResult[], startIndex = 0) => {
+        const batchSize = 10; // Process markers in batches
+        const endIndex = Math.min(startIndex + batchSize, data.length);
+        
+        for (let i = startIndex; i < endIndex; i++) {
+          const result = data[i];
         const score = calculatePropertyScore(result);
         const { fillColor } = getScoreBasedPinColor(score);
         const isSaved = isHomeSaved(result.id);
@@ -326,7 +376,7 @@ export const useMapMarkers = ({
 
         // Create the marker
         const marker = new AdvancedMarkerElement({
-          map: googleMapRef.current,
+          map: googleMapRef.current!,
           position: { lat: result.lat, lng: result.lng },
           title: result.address,
           content: markerElement,
@@ -372,9 +422,9 @@ export const useMapMarkers = ({
           showScore: !isSaved, // Only show score for non-saved homes
         });
 
-        const position = new google.maps.LatLng(result.lat, result.lng);
+        const position = { lat: result.lat, lng: result.lng };
         const PropertyOverlayClass = createPropertyOverlayClass();
-        let overlay: unknown = null;
+        let overlay: PropertyOverlayInterface | null = null;
         if (PropertyOverlayClass) {
           overlay = new PropertyOverlayClass(position, overlayDiv);
           if (
@@ -384,34 +434,40 @@ export const useMapMarkers = ({
             "setMap" in overlay &&
             typeof overlay.setMap === "function"
           ) {
-            (overlay as { setMap: (map: unknown) => void }).setMap(
-              googleMapRef.current,
-            );
+            overlay.setMap(googleMapRef.current);
           }
         }
 
         // Store overlay reference for cleanup
         if (overlay) {
-          const markerWithOverlay = marker as unknown as { overlay: unknown };
+          const markerWithOverlay = marker as unknown as { overlay: PropertyOverlayInterface };
           markerWithOverlay.overlay = overlay;
         }
         markersRef.current.push(marker);
-      });
-
-      // Fit map to show current page markers with adaptive zoom
-      if (results.length > 0) {
-        const firstProperty = results[0];
-        if (firstProperty && googleMapRef.current) {
-          const center = {
-            lat: firstProperty.lat + 0.002, // Offset slightly north
-            lng: firstProperty.lng,
-          };
-          googleMapRef.current.setCenter(center);
-          googleMapRef.current.setZoom(13);
         }
-      }
-
-      setIsUpdatingMarkers(false);
+        
+        // Continue with next batch if there are more items
+        if (endIndex < data.length) {
+          requestAnimationFrame(() => createMarkersBatch(data, endIndex));
+        } else {
+          // All markers created, fit map to show current page markers
+          if (results.length > 0) {
+            const firstProperty = results[0];
+            if (firstProperty && googleMapRef.current) {
+              const center = {
+                lat: firstProperty.lat + 0.002, // Offset slightly north
+                lng: firstProperty.lng,
+              };
+              googleMapRef.current.setCenter(center);
+              googleMapRef.current.setZoom(13);
+            }
+          }
+          setIsUpdatingMarkers(false);
+        }
+      };
+      
+      // Start batch processing
+      createMarkersBatch(paginatedData);
     },
     [
       googleMapRef,
@@ -438,3 +494,4 @@ export const useMapMarkers = ({
     importantMarkersRef,
   };
 };
+

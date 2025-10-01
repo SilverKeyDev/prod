@@ -10,6 +10,9 @@ import {
 } from "lucide-react";
 import React, { useState, useEffect, useCallback } from "react";
 
+// Google Maps types
+/// <reference types="google.maps" />
+
 // Components
 import AlignedRow from "../components/layout/AlignedRow";
 import Card from "../components/layout/Card";
@@ -51,13 +54,7 @@ import PersonalizationSidebar from "../features/onboardpersonalize/personalizati
 import PriceRangeSlider from "../features/onboardpersonalize/PriceRangeSlider";
 import OnPerTagInput from "../features/onboardpersonalize/TagInput";
 
-// Extend window interface for Google Maps
-declare global {
-  // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-  interface Window {
-    google?: typeof google | undefined;
-  }
-}
+// Google Maps types are handled by the global declaration in packages/services/googleMaps.ts
 
 type PersonalizationPageProps = {
   setMobileHeaderActions: React.Dispatch<
@@ -124,7 +121,7 @@ export default function PersonalizationPage({
       setHomePriceError(
         error instanceof Error
           ? error.message
-          : "Failed to calculate home price",
+          : "Failed to calculate home price"
       );
       setHomePriceResult(null);
     } finally {
@@ -232,7 +229,7 @@ export default function PersonalizationPage({
     if (!checked) {
       // Remove from priorities when unchecked
       const newPriorities = currentPriorities.filter(
-        (key) => key !== sectionKey,
+        (key) => key !== sectionKey
       );
       updateFormData("report_section_priorities", newPriorities);
     } else {
@@ -320,7 +317,7 @@ export default function PersonalizationPage({
     (field: string | number | symbol, value: unknown) => {
       setFormData((prev) => ({ ...prev, [field]: value }));
     },
-    [],
+    []
   );
 
   const handleSaveChanges = useCallback(async () => {
@@ -375,7 +372,7 @@ export default function PersonalizationPage({
           onEdit={() => setIsEditMode(true)}
           onCancel={handleCancel}
           onSave={handleSaveChanges}
-        />,
+        />
       );
     } else {
       setMobileHeaderActions(null);
@@ -431,7 +428,7 @@ export default function PersonalizationPage({
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                         updateFormData(
                           "age",
-                          parseInt(e.target.value) || undefined,
+                          parseInt(e.target.value) || undefined
                         )
                       }
                       placeholder="Enter your age"
@@ -643,7 +640,7 @@ export default function PersonalizationPage({
                       {formData.credit_score_range
                         ? (CREDIT_SCORE_OPTIONS.find(
                             (option) =>
-                              option.value === formData.credit_score_range,
+                              option.value === formData.credit_score_range
                           )?.label ?? "Not specified")
                         : "Not specified"}
                     </div>
@@ -725,7 +722,7 @@ export default function PersonalizationPage({
                       {formData.preferred_housing_type
                         ? (HOUSING_TYPE_OPTIONS.find(
                             (option) =>
-                              option.value === formData.preferred_housing_type,
+                              option.value === formData.preferred_housing_type
                           )?.label ?? "Not specified")
                         : "Not specified"}
                     </div>
@@ -740,7 +737,7 @@ export default function PersonalizationPage({
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                         updateFormData(
                           "preferred_bedrooms",
-                          parseInt(e.target.value) || undefined,
+                          parseInt(e.target.value) || undefined
                         )
                       }
                       placeholder="Number of bedrooms"
@@ -768,7 +765,7 @@ export default function PersonalizationPage({
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                         updateFormData(
                           "preferred_bathrooms",
-                          parseInt(e.target.value) || undefined,
+                          parseInt(e.target.value) || undefined
                         )
                       }
                       placeholder="Number of bathrooms"
@@ -813,7 +810,7 @@ export default function PersonalizationPage({
                               label: "Very Large (1+ acres)",
                             },
                           ].find(
-                            (opt) => opt.value === formData.preferred_lot_size,
+                            (opt) => opt.value === formData.preferred_lot_size
                           )?.label
                         : "Not specified"}
                     </div>
@@ -863,7 +860,7 @@ export default function PersonalizationPage({
                               label: "Historic (50+ years)",
                             },
                           ].find(
-                            (opt) => opt.value === formData.preferred_home_age,
+                            (opt) => opt.value === formData.preferred_home_age
                           )?.label
                         : "Not specified"}
                     </div>
@@ -904,7 +901,7 @@ export default function PersonalizationPage({
                           ].find(
                             (opt) =>
                               opt.value ===
-                              formData.preferred_architectural_style,
+                              formData.preferred_architectural_style
                           )?.label
                         : "Not specified"}
                     </div>
@@ -944,7 +941,7 @@ export default function PersonalizationPage({
                             { value: "complete", label: "Complete Renovation" },
                           ].find(
                             (opt) =>
-                              opt.value === formData.renovation_preference,
+                              opt.value === formData.renovation_preference
                           )?.label
                         : "Not specified"}
                     </div>
@@ -979,7 +976,7 @@ export default function PersonalizationPage({
                             { value: "rental", label: "Rental Property" },
                           ].find(
                             (opt) =>
-                              opt.value === formData.intended_property_use,
+                              opt.value === formData.intended_property_use
                           )?.label
                         : "Not specified"}
                     </div>
@@ -1051,8 +1048,7 @@ export default function PersonalizationPage({
                           },
                           { value: "not_important", label: "Not Important" },
                         ].find(
-                          (opt) =>
-                            opt.value === formData.walkability_importance,
+                          (opt) => opt.value === formData.walkability_importance
                         )?.label
                       : "Not specified"}
                   </div>
@@ -1111,7 +1107,7 @@ export default function PersonalizationPage({
                   {formData.communication_frequency
                     ? (COMMUNICATION_FREQUENCY_OPTIONS.find(
                         (option) =>
-                          option.value === formData.communication_frequency,
+                          option.value === formData.communication_frequency
                       )?.label ?? "Not specified")
                     : "Not specified"}
                 </div>
@@ -1144,8 +1140,7 @@ export default function PersonalizationPage({
                         { value: "detailed", label: "Detailed" },
                         { value: "comprehensive", label: "Comprehensive" },
                       ].find(
-                        (opt) =>
-                          opt.value === formData.information_detail_level,
+                        (opt) => opt.value === formData.information_detail_level
                       )?.label
                     : "Not specified"}
                 </div>
@@ -1178,7 +1173,7 @@ export default function PersonalizationPage({
                             { value: "yes", label: "Yes" },
                             { value: "no", label: "No" },
                           ].find(
-                            (opt) => opt.value === formData.has_buyers_agent,
+                            (opt) => opt.value === formData.has_buyers_agent
                           )?.label
                         : "Not specified"}
                     </div>
@@ -1210,7 +1205,7 @@ export default function PersonalizationPage({
                                 onChange={() =>
                                   updateFormData(
                                     "looking_for_buyers_agent",
-                                    !formData.looking_for_buyers_agent,
+                                    !formData.looking_for_buyers_agent
                                   )
                                 }
                                 aria-label="I am looking for a buyer's agent"
@@ -1220,7 +1215,7 @@ export default function PersonalizationPage({
                                 onToggle={() =>
                                   updateFormData(
                                     "looking_for_buyers_agent",
-                                    !formData.looking_for_buyers_agent,
+                                    !formData.looking_for_buyers_agent
                                   )
                                 }
                               />

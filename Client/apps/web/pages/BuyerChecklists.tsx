@@ -1,6 +1,4 @@
 import { useState } from "react";
-// @ts-expect-error - react-fitty has type declaration issues
-import Fitty from "react-fitty";
 
 import EscrowLegalLogistics from "../features/close/subheaders/EscrowLegalLogistics";
 import InspectionsDueDiligence from "../features/close/subheaders/InspectionsDueDiligence";
@@ -82,9 +80,9 @@ export default function BuyerChecklists({
                       : "text-navy/70 hover:bg-olive/10 hover:text-olive hover:shadow-sm"
                   }`}
                 >
-                  <Fitty maxSize={14} minSize={8} className="text-center">
+                  <div className="text-center text-sm font-medium">
                     {tab.label}
-                  </Fitty>
+                  </div>
                 </button>
                 {index < tabs.length - 1 && (
                   <div className="h-6 w-px bg-gray-300 mx-2" />

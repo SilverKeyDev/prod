@@ -16,12 +16,14 @@ import { asError } from "../../../../packages/utils/error";
 // Google Maps types are handled by the useGoogleMaps hook
 
 // Google Places API types
-type PlacePrediction = {
-  toPlace: () => Place;
+interface GooglePlacePrediction {
   text: {
     text: string;
   };
-};
+  toPlace: () => Place;
+}
+
+type PlacePrediction = GooglePlacePrediction;
 
 type Place = {
   fetchFields: (options: { fields: string[] }) => Promise<{ place: Place }>;
@@ -216,21 +218,23 @@ export default function GenerateReportPage() {
 
         const { suggestions: fetched } =
           await window.google.maps.places.AutocompleteSuggestion.fetchAutocompleteSuggestions(
-            request,
+            request
           );
 
-        const built: Suggestion[] = fetched.flatMap((s) => {
-          const prediction = s.placePrediction;
-          if (!prediction) return [];
-          return [
-            {
-              description: prediction.text.text,
-              // Coerce to the Suggestion's expected prediction type
-              placePrediction:
-                prediction as unknown as Suggestion["placePrediction"],
-            },
-          ];
-        });
+        const built: Suggestion[] = fetched.flatMap(
+          (s: { placePrediction?: GooglePlacePrediction }) => {
+            const prediction = s.placePrediction;
+            if (!prediction) return [];
+            return [
+              {
+                description: prediction.text.text,
+                // Coerce to the Suggestion's expected prediction type
+                placePrediction:
+                  prediction as unknown as Suggestion["placePrediction"],
+              },
+            ];
+          }
+        );
         setSuggestions(built);
       } catch (err: unknown) {
         const error = asError(err);
@@ -267,20 +271,22 @@ export default function GenerateReportPage() {
 
         const { suggestions: fetched } =
           await window.google.maps.places.AutocompleteSuggestion.fetchAutocompleteSuggestions(
-            request,
+            request
           );
 
-        const built: Suggestion[] = fetched.flatMap((s) => {
-          const prediction = s.placePrediction;
-          if (!prediction) return [];
-          return [
-            {
-              description: prediction.text.text,
-              placePrediction:
-                prediction as unknown as Suggestion["placePrediction"],
-            },
-          ];
-        });
+        const built: Suggestion[] = fetched.flatMap(
+          (s: { placePrediction?: GooglePlacePrediction }) => {
+            const prediction = s.placePrediction;
+            if (!prediction) return [];
+            return [
+              {
+                description: prediction.text.text,
+                placePrediction:
+                  prediction as unknown as Suggestion["placePrediction"],
+              },
+            ];
+          }
+        );
         setComparisonSuggestions(built);
       } catch (err: unknown) {
         const error = asError(err);
@@ -300,7 +306,7 @@ export default function GenerateReportPage() {
   };
 
   const handleComparisonInputChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
+    e: React.ChangeEvent<HTMLInputElement>
   ) => {
     setHasSelectedComparison(false);
     setComparisonAddress(e.target.value);
@@ -348,7 +354,7 @@ export default function GenerateReportPage() {
           const error = asError(pollingError);
           console.error(
             `[GenerateReport] ❌ Error calling polling function:`,
-            error,
+            error
           );
         }
       } else {
@@ -378,20 +384,20 @@ export default function GenerateReportPage() {
               console.error(
                 `[GenerateReport] ❌ CRITICAL: Could not find PastReports polling function after ${maxRetries} retries (${
                   maxRetries * 500
-                }ms). Report completion detection will NOT work!`,
+                }ms). Report completion detection will NOT work!`
               );
               console.error(
-                `[GenerateReport] ❌ This means the report will generate but the UI won't refresh automatically.`,
+                `[GenerateReport] ❌ This means the report will generate but the UI won't refresh automatically.`
               );
               console.error(
-                `[GenerateReport] ❌ User will need to manually refresh the reports page.`,
+                `[GenerateReport] ❌ User will need to manually refresh the reports page.`
               );
             }
           } catch (retryError: unknown) {
             const error = asError(retryError);
             console.error(
               `[GenerateReport] ❌ Error during retry ${retryCount}:`,
-              error,
+              error
             );
             if (retryCount < maxRetries) {
               setTimeout(retryPolling, 500);
@@ -405,10 +411,10 @@ export default function GenerateReportPage() {
       const error = asError(setupError);
       console.error(
         `[GenerateReport] ❌ CRITICAL ERROR in setupReportCompletionListener:`,
-        error,
+        error
       );
       console.error(
-        `[GenerateReport] ❌ Report polling will not work. Document ID: ${documentId}`,
+        `[GenerateReport] ❌ Report polling will not work. Document ID: ${documentId}`
       );
     }
   };
@@ -461,12 +467,12 @@ export default function GenerateReportPage() {
     } catch (err: unknown) {
       console.error(
         "❌ Report generation error:",
-        err instanceof Error ? err.message : err,
+        err instanceof Error ? err.message : err
       );
       setError(
         err instanceof Error
           ? err.message
-          : "Failed to generate report. Please try again.",
+          : "Failed to generate report. Please try again."
       );
     } finally {
       setIsGenerating(false);

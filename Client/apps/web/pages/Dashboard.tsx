@@ -15,7 +15,9 @@ import { useDocumentActions } from "../../../packages/hooks/data/useDocumentActi
 import { useReportsData } from "../../../packages/hooks/data/useReportsData";
 import { useSavedHomesData } from "../../../packages/hooks/data/useSavedHomesData";
 import type { Report } from "../../../packages/schemas";
+import type { SavedHome } from "../../../packages/schemas/property";
 import { useUIStore } from "../../../packages/store";
+import type { UIState } from "../../../packages/store/ui.slice";
 import { asError } from "../../../packages/utils/error";
 
 export default function Dashboard() {
@@ -31,22 +33,24 @@ export default function Dashboard() {
   } = useSavedHomesData();
 
   // Convert SavedHome[] to HomeDescription[] for HomeCard compatibility
-  const favoriteHomes: HomeDescription[] = savedHomes.map((home) => ({
-    home_id: home.home_id,
-    description: home.description,
-    address: home.address,
-    price: home.price,
-    bedrooms: home.bedrooms,
-    bathrooms: home.bathrooms,
-    sqft: home.sqft,
-    lot_size:
-      typeof home.lot_size === "string" || typeof home.lot_size === "number"
-        ? (home.lot_size as string | number)
-        : undefined,
-    image_url: home.image_url,
-    lat: home.lat,
-    lng: home.lng,
-  }));
+  const favoriteHomes: HomeDescription[] = savedHomes.map(
+    (home: SavedHome) => ({
+      home_id: home.home_id,
+      description: home.description,
+      address: home.address,
+      price: home.price,
+      bedrooms: home.bedrooms,
+      bathrooms: home.bathrooms,
+      sqft: home.sqft,
+      lot_size:
+        typeof home.lot_size === "string" || typeof home.lot_size === "number"
+          ? (home.lot_size as string | number)
+          : undefined,
+      image_url: home.image_url,
+      lat: home.lat,
+      lng: home.lng,
+    })
+  );
 
   // Use reports data hook
   const { reports, reportsLoading, refreshReports } = useReportsData();
@@ -57,7 +61,7 @@ export default function Dashboard() {
     id: string;
     s3Key: string | null | undefined;
   } | null>(null);
-  const enqueueToast = useUIStore((s) => s.enqueueToast);
+  const enqueueToast = useUIStore((s: UIState) => s.enqueueToast);
 
   // Use centralized document actions
   const {
@@ -116,12 +120,12 @@ export default function Dashboard() {
         enqueueToast({ type: "success", message: result.message });
       else enqueueToast({ type: "error", message: result.message });
     },
-    [handleShareDocument, enqueueToast],
+    [handleShareDocument, enqueueToast]
   );
 
   const openDeleteModal = (
     reportId: string,
-    s3Key: string | null | undefined,
+    s3Key: string | null | undefined
   ) => {
     setReportToDelete({ id: reportId, s3Key });
     setDeleteModalOpen(true);
@@ -134,7 +138,7 @@ export default function Dashboard() {
 
   const handleDeleteReport = async (
     reportId: string,
-    s3Key: string | null | undefined,
+    s3Key: string | null | undefined
   ) => {
     if (!reportId) {
       console.error("[DELETE] Error: No report ID provided");
@@ -144,7 +148,7 @@ export default function Dashboard() {
     try {
       if (!s3Key) {
         console.warn(
-          "[DELETE] No S3 key provided, will only delete from in-memory storage",
+          "[DELETE] No S3 key provided, will only delete from in-memory storage"
         );
       }
 
@@ -208,7 +212,7 @@ export default function Dashboard() {
           lastReportSnapshot = null;
         } else {
           console.error(
-            `[Dashboard] ❌ Initial poll failed: No report data received`,
+            `[Dashboard] ❌ Initial poll failed: No report data received`
           );
           return;
         }
@@ -229,12 +233,12 @@ export default function Dashboard() {
           if (!data.success) {
             consecutiveErrors++;
             console.error(
-              `[Dashboard] ❌ Poll error: API returned unsuccessful response (${consecutiveErrors}/${maxConsecutiveErrors})`,
+              `[Dashboard] ❌ Poll error: API returned unsuccessful response (${consecutiveErrors}/${maxConsecutiveErrors})`
             );
 
             if (consecutiveErrors >= maxConsecutiveErrors) {
               console.error(
-                `[Dashboard] 🚫 Too many consecutive errors (${consecutiveErrors}), aborting poll`,
+                `[Dashboard] 🚫 Too many consecutive errors (${consecutiveErrors}), aborting poll`
               );
               return;
             }
@@ -258,7 +262,7 @@ export default function Dashboard() {
               setTimeout(pollForCompletion, pollInterval);
             } else {
               console.warn(
-                `[Dashboard] ⚠️ TIMEOUT - Report never appeared after ${elapsedTime / 60} mins`,
+                `[Dashboard] ⚠️ TIMEOUT - Report never appeared after ${elapsedTime / 60} mins`
               );
             }
             return;
@@ -288,19 +292,19 @@ export default function Dashboard() {
             console.warn(
               `[Dashboard] ⚠️ TIMEOUT after ${
                 elapsedTime / 60
-              } mins — Report still ${data.report.status}`,
+              } mins — Report still ${data.report.status}`
             );
           }
         } catch (error: unknown) {
           consecutiveErrors++;
           console.error(
             `[Dashboard] ❌ Polling exception (${consecutiveErrors}/${maxConsecutiveErrors}):`,
-            error,
+            error
           );
 
           if (consecutiveErrors >= maxConsecutiveErrors) {
             console.error(
-              `[Dashboard] 🚫 Too many consecutive errors, aborting poll`,
+              `[Dashboard] 🚫 Too many consecutive errors, aborting poll`
             );
             return;
           }
@@ -312,7 +316,7 @@ export default function Dashboard() {
       };
       setTimeout(pollForCompletion, pollInterval);
     },
-    [refreshReports],
+    [refreshReports]
   );
 
   // Event listeners and global function exposure (matching PastReports)
@@ -390,7 +394,7 @@ export default function Dashboard() {
 
       {/* Recent Reports */}
       <div className="my-8">
-        <CardCarousel
+        <CardCarousel<Report>
           items={reports}
           embeddedButton={
             <NavigationButton
@@ -404,7 +408,7 @@ export default function Dashboard() {
           loading={reportsLoading}
           error={null}
           emptyMessage="Generate your first property report to get started"
-          renderItem={(report) => (
+          renderItem={(report: Report) => (
             <ReportCard
               report={report}
               loadingUrls={loadingUrls}
@@ -415,7 +419,7 @@ export default function Dashboard() {
               onDelete={openDeleteModal}
             />
           )}
-          getItemKey={(report) => report.id}
+          getItemKey={(report: Report) => report.id}
           cardMinWidth={280}
           cardGap={16}
           infiniteLoop={false}

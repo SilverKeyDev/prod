@@ -1,6 +1,4 @@
 import { Lightbulb, Home, Download, Share2 } from "lucide-react";
-// @ts-expect-error - react-fitty has type declaration issues
-import Fitty from "react-fitty";
 
 import { CardCarousel } from "../components/cards/base";
 import CompCard from "../components/cards/CompCard";
@@ -103,36 +101,38 @@ export default function NegotiationStrategy() {
               disabled={!selectedHome || isLoading}
               className="h-full whitespace-nowrap"
             >
-              <Fitty maxSize={16} minSize={12} className="hidden md:inline">
-                Generate
-              </Fitty>
-              <Fitty maxSize={14} minSize={10} className="md:hidden">
-                Generate
-              </Fitty>
+              <span className="hidden md:inline">Generate</span>
+              <span className="md:hidden">Generate</span>
             </Button>
           </AlignedRow>
         </SectionBox>
 
         {/* Loading state */}
-        {isLoading ? (
-          <SectionBox>
-            <div className="flex justify-center">
-              <Loading
-                message={"Generating your personalized negotiation strategy..."}
-              />
-            </div>
-          </SectionBox>
-        ) : null}
+        {
+          (shouldShowLoading() && (
+            <SectionBox>
+              <div className="flex justify-center">
+                <Loading
+                  message={
+                    "Generating your personalized negotiation strategy..."
+                  }
+                />
+              </div>
+            </SectionBox>
+          )) as JSX.Element
+        }
 
         {/* Error display */}
-        {errorMessage ? (
-          <SectionBox className="border-red-200 bg-red-50">
-            <div className="text-responsive-sm text-center text-red-600">
-              <p className="mb-2 font-semibold">Error Generating Strategy</p>
-              <p className="text-responsive-sm">{errorMessage}</p>
-            </div>
-          </SectionBox>
-        ) : null}
+        {
+          (shouldShowError() && (
+            <SectionBox className="border-red-200 bg-red-50">
+              <div className="text-responsive-sm text-center text-red-600">
+                <p className="mb-2 font-semibold">Error Generating Strategy</p>
+                <p className="text-responsive-sm">{errorMessage}</p>
+              </div>
+            </SectionBox>
+          )) as any
+        }
 
         {/* Property Comparables CardCarousel */}
         {compsData &&
