@@ -103,7 +103,7 @@ export default function Dashboard() {
   };
 
   const handleDocumentsClick = () => {
-    navigate("/reports");
+    navigate("/saved?view=reports");
   };
 
   useEffect(() => {

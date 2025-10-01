@@ -1,83 +1,104 @@
-# ----------------------------
+# ============================
 # Stage 1: Build Vite frontend
-# ----------------------------
-    FROM node:22-slim AS frontend
+# ============================
+FROM node:22-slim AS frontend
 
-    WORKDIR /app/client
-    
-    # Install pnpm
-    RUN npm install -g pnpm@9.0.0
-    # (Optional) if you have git-based deps, uncomment below
-    # RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates && rm -rf /var/lib/apt/lists/*
-    
-    # build-time variables
-    ARG VITE_GOOGLE_MAPS_ID
-    ARG VITE_PLAID_CLIENT_ID
-    ARG VITE_GOOGLE_CLIENT_ID
-    
-    ENV VITE_GOOGLE_MAPS_ID=${VITE_GOOGLE_MAPS_ID}
-    ENV VITE_PLAID_CLIENT_ID=${VITE_PLAID_CLIENT_ID}
-    ENV VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID}
-    
-    
-    # Copy workspace configuration files
-    COPY Client/package.json ./
-    COPY Client/pnpm-workspace.yaml ./
-    COPY Client/pnpm-lock.yaml ./
-    
-    # Prefetch dependencies using lockfile only (better layer caching for workspaces)
-    RUN pnpm fetch
-    
-    # Copy rest of client source
-    COPY Client/ .
-    
-    # Install dependencies offline based on prefetched store (include dev deps for Vite build)
-    RUN pnpm install --frozen-lockfile --prod=false
-    
-    # build with env vars already promoted to ENV
-    RUN pnpm run build:web
-    
-    # verify assets exist (Vite outDir -> /app/client/dist)
-    RUN test -d dist && [ "$(ls -A dist)" ] || (echo "❌ dist missing or empty!" && exit 1)
-    
-    # ----------------------------
-    # Stage 2: Build Flask backend
-    # ----------------------------
-    FROM python:3.11-slim AS backend
-    
-    ENV PYTHONDONTWRITEBYTECODE=1
-    ENV PYTHONUNBUFFERED=1
-    
-    WORKDIR /app/Server
-    
-    # ---- system packages ----
-    # - build-essential, cmake, libomp-dev: your existing native deps (e.g., lightgbm)
-    # - libmagic1, file: REQUIRED for python-magic (provides libmagic.so + magic DB)
-    # - gdal-bin, libgdal-dev: REQUIRED for fiona/osmnx geospatial libraries
-    RUN apt-get update && apt-get install -y --no-install-recommends \
-        build-essential \
-        libomp-dev \
-        cmake \
-        curl \
-        libmagic1 \
-        file \
-        gdal-bin \
-        libgdal-dev \
-     && rm -rf /var/lib/apt/lists/*
-    
-    # ---- python deps ----
-    # NOTE: requirements.txt should include `python-magic` (NOT the PyPI package named `libmagic`)
-    COPY Server/requirements.txt ./
-    RUN pip install --upgrade pip setuptools wheel \
-     && pip install --no-cache-dir --prefer-binary -r requirements.txt
-    
-    # ---- app code ----
-    COPY Server/ .
-    
-    # bring built frontend from stage 1 (matches Vite outDir)
-    COPY --from=frontend /app/client/dist /app/Client/dist
-    
-    EXPOSE 5000
-    
-    # start Flask with Gunicorn
-    CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "--timeout", "3600", "run:app"]
+ENV PNPM_HOME=/root/.local/share/pnpm \
+    PATH=/root/.local/share/pnpm:$PATH \
+    NODE_ENV=production \
+    NPM_CONFIG_FUND=false \
+    NPM_CONFIG_AUDIT=false
+
+WORKDIR /app/client
+
+# Install pnpm (user-scoped, smaller than global npm install)
+RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
+
+# ---- Build args for Vite ----
+ARG VITE_GOOGLE_MAPS_ID
+ARG VITE_PLAID_CLIENT_ID
+ARG VITE_GOOGLE_CLIENT_ID
+
+ENV VITE_GOOGLE_MAPS_ID=${VITE_GOOGLE_MAPS_ID} \
+    VITE_PLAID_CLIENT_ID=${VITE_PLAID_CLIENT_ID} \
+    VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID}
+
+# Copy only files needed to resolve deps first (better cache)
+COPY Client/package.json ./package.json
+COPY Client/pnpm-lock.yaml ./pnpm-lock.yaml
+COPY Client/pnpm-workspace.yaml ./pnpm-workspace.yaml
+
+# Prefetch deps into a content-addressed store (great for CI layer caching)
+# BuildKit will cache this step well; falls back gracefully if not enabled
+RUN pnpm fetch
+
+# Now copy the rest of the client
+COPY Client/ .
+
+# Install from the prefetched store offline; include dev deps for Vite build
+RUN pnpm install --frozen-lockfile --offline --prod=false
+
+# Build the web app (assumes "build:web" script runs Vite and outputs to /app/client/dist)
+RUN pnpm run build:web
+
+# Trim pnpm caches to keep the stage light (even though we won't copy it forward)
+RUN pnpm store prune && rm -rf /root/.cache ~/.npm
+
+# Verify build artifacts exist
+RUN test -d dist && [ "$(ls -A dist)" ]
+
+
+# ===========================
+# Stage 2: Build Flask backend
+# ===========================
+FROM python:3.11-slim AS backend
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    # Prevent tzdata/etc from prompting
+    DEBIAN_FRONTEND=noninteractive
+
+WORKDIR /app/Server
+
+# ---- System packages ----
+# Keep runtime libs (libmagic1, gdal) and install build deps temporarily.
+# We remove build deps after pip install to slim the image.
+RUN --mount=type=cache,target=/var/cache/apt \
+    apt-get update && apt-get install -y --no-install-recommends \
+      # runtime
+      libmagic1 \
+      gdal-bin \
+      # build deps (removed later)
+      build-essential \
+      libomp-dev \
+      cmake \
+      libgdal-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# ---- Python deps ----
+# requirements.txt should include `python-magic` (not PyPI package `libmagic`)
+COPY Server/requirements.txt ./requirements.txt
+
+# Use BuildKit cache for pip wheels if available (safe if not)
+RUN --mount=type=cache,target=/root/.cache/pip \
+    python -m pip install --upgrade pip setuptools wheel && \
+    pip install --no-cache-dir --prefer-binary -r requirements.txt
+
+# After wheels are installed, purge build deps to reduce size
+RUN apt-get purge -y --auto-remove \
+      build-essential \
+      cmake \
+      libgdal-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# ---- App code ----
+COPY Server/ .
+
+# Bring built frontend from Stage 1 (matches Vite outDir)
+COPY --from=frontend /app/client/dist /app/Client/dist
+
+EXPOSE 5000
+
+# Start Flask app via Gunicorn
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "--timeout", "3600", "run:app"]

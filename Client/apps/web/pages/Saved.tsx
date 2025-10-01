@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import SavedLayout from "../app/layouts/SavedLayout";
 import { PropertyCard } from "../components/cards";
@@ -14,10 +15,12 @@ import type { SavedHome, Report } from "../../../packages/schemas";
 import { useUIStore, useNegotiationStore } from "../../../packages/store";
 
 export default function SavedHomes() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [refreshing, setRefreshing] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState<SavedHome | null>(
-    null,
+    null
   );
   const [homes, setHomes] = useState<SavedHome[]>([]);
   const [reports, setReports] = useState<Report[]>([]);
@@ -72,7 +75,7 @@ export default function SavedHomes() {
             lng: (home.lng as number) ?? 0,
             // Any other HomeUniversal fields can be passed through
             ...home,
-          }),
+          })
         );
         setHomes(homeObjects);
       } else {
@@ -127,6 +130,31 @@ export default function SavedHomes() {
   }, []);
 
   // Load data when page loads or view type changes
+  useEffect(() => {
+    // Initialize from query param on first render
+    const params = new URLSearchParams(location.search);
+    const viewParam = params.get("view");
+    if (viewParam === "reports" || viewParam === "homes") {
+      setViewType(viewParam);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Keep URL in sync when viewType changes
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const current = params.get("view");
+    if (current !== viewType) {
+      params.set("view", viewType);
+      navigate(
+        { pathname: "/saved", search: params.toString() },
+        { replace: true }
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewType]);
+
+  // Fetch data for current view
   useEffect(() => {
     if (viewType === "homes") {
       void fetchSavedHomes();
@@ -197,7 +225,7 @@ export default function SavedHomes() {
         message: `Selected ${home.address || home.description} for negotiation`,
       });
     },
-    [setSelectedHome, enqueueToast],
+    [setSelectedHome, enqueueToast]
   );
 
   // Check if a home is saved (for modal)
@@ -209,10 +237,10 @@ export default function SavedHomes() {
             home.id === homeId ||
             home.zpid === homeId ||
             home.zpid?.toString() === homeId) ??
-          home.address === homeId,
+          home.address === homeId
       );
     },
-    [homes],
+    [homes]
   );
 
   // Save home for modal - use exact same format as working Dashboard
@@ -245,7 +273,7 @@ export default function SavedHomes() {
   });
 
   const filteredReports = reports.filter((r: Report) =>
-    r.address?.toLowerCase().includes(searchTerm.toLowerCase()),
+    r.address?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Handle report actions
@@ -256,12 +284,12 @@ export default function SavedHomes() {
         enqueueToast({ type: "success", message: result.message });
       else enqueueToast({ type: "error", message: result.message });
     },
-    [handleShareDocument, enqueueToast],
+    [handleShareDocument, enqueueToast]
   );
 
   const openDeleteModal = (
     reportId: string,
-    s3Key: string | null | undefined,
+    s3Key: string | null | undefined
   ) => {
     setReportToDelete({ id: reportId, s3Key });
     setDeleteModalOpen(true);
@@ -274,7 +302,7 @@ export default function SavedHomes() {
 
   const handleDeleteReport = async (
     reportId: string,
-    s3Key: string | null | undefined,
+    s3Key: string | null | undefined
   ) => {
     if (!reportId) {
       console.error("[DELETE] Error: No report ID provided");
@@ -284,7 +312,7 @@ export default function SavedHomes() {
     try {
       if (!s3Key) {
         console.warn(
-          "[DELETE] No S3 key provided, will only delete from in-memory storage",
+          "[DELETE] No S3 key provided, will only delete from in-memory storage"
         );
       }
 
