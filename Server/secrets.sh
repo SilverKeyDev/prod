@@ -14,7 +14,7 @@
 set -eu
 
 DEFAULT_SECRETS="
-DATABASE_URL
+db_url
 AWS_Access
 COGNITO
 gmaps

@@ -27,6 +27,11 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.REGION }}
 
+      # Snapshot env keys before pulling secrets (for a safe diff later)
+      - name: Snapshot env (before secrets)
+        run: |
+          printenv | cut -d= -f1 | sort > /tmp/env_before
+
       # Pull selected secrets from AWS Secrets Manager (JSON -> env)
       - name: Load app env from AWS Secrets Manager
         uses: aws-actions/aws-secretsmanager-get-secrets@v2
@@ -46,6 +51,13 @@ jobs:
             rapidapi
           parse-json-secrets: true
 
+      # Log only the names of newly added env vars (no values)
+      - name: List env keys added by Secrets Manager
+        run: |
+          printenv | cut -d= -f1 | sort > /tmp/env_after_secrets
+          echo "New environment variable keys from Secrets Manager (no values):"
+          comm -13 /tmp/env_before /tmp/env_after_secrets || true
+
       # Normalize any names your app expects (example for COGNITO)
       - name: Normalize environment variable names
         run: |
@@ -54,6 +66,13 @@ jobs:
             echo "COGNITO_CLIENT_ID=${AWS_COGNITO_CLIENT_ID}"
             echo "COGNITO_CLIENT_SECRET=${AWS_COGNITO_CLIENT_SECRET}"
           } >> "$GITHUB_ENV"
+
+      # Show which keys were added by the normalization step
+      - name: List env keys added by normalization
+        run: |
+          printenv | cut -d= -f1 | sort > /tmp/env_after_normalize
+          echo "New environment variable keys from normalization (no values):"
+          comm -13 /tmp/env_after_secrets /tmp/env_after_normalize || true
 
       - name: Login to ECR
         run: |
