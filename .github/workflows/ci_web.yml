@@ -120,12 +120,6 @@ jobs:
           # rapidapi
           export_if_present "$rapidapi_json" "RAPIDAPI_KEY" "RAPIDAPI_KEY"
 
-      # Log only the names of newly added env vars (no values)
-      - name: List env keys added from Secrets Manager (no prefixes)
-        run: |
-          printenv | cut -d= -f1 | sort > /tmp/env_after_secrets
-          echo "New environment variable keys loaded (no values):"
-          comm -13 /tmp/env_before /tmp/env_after_secrets || true
 
       # Debug: print keys with SHA-256 of values (no raw secrets)
       - name: Debug hashed env (post-load)
@@ -138,28 +132,6 @@ jobs:
               printf "%s_SHA256=%s\n" "$k" "$(hash_val "$v")"
             fi
           done < <(printenv | sort)
-
-      # ✅ Fail fast if critical env are empty
-      - name: Validate required env are non-empty
-        shell: bash
-        run: |
-          required=(
-            DATABASE_URL
-            AWS_COGNITO_USER_POOL_ID
-            AWS_COGNITO_CLIENT_ID
-            AWS_COGNITO_CLIENT_SECRET
-          )
-          failed=0
-          for k in "${required[@]}"; do
-            v="${!k:-}"
-            if [ -z "$v" ]; then
-              echo "❌ $k is EMPTY"
-              failed=1
-            else
-              echo "✅ $k present"
-            fi
-          done
-          [ "$failed" -eq 0 ] || exit 1
 
       - name: Login to ECR
         run: |

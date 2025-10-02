@@ -70,7 +70,6 @@ class S3Service:
                 aws_access_key = os.getenv('AWS_ACCESS_KEY_ID')
                 aws_secret_key = os.getenv('AWS_SECRET_ACCESS_KEY')
                 s3_region = os.getenv('AWS_REGION', 'us-east-2')
-                bucket_name = os.getenv('S3_BUCKET_NAME_PDFS')
             
             # Validate credentials
             if not aws_access_key or not aws_secret_key:
@@ -82,7 +81,7 @@ class S3Service:
             
             if not bucket_name:
                 logger.error("❌ S3 bucket name not configured")
-                logger.error("   - Set S3_BUCKET_NAME_PDFS in environment or config")
+                logger.error("   - Set S3_BUCKET_NAME_PDFS in Flask config")
             
             # Create S3 client
             self.s3_client = boto3.client(
@@ -173,7 +172,7 @@ class S3Service:
             return None
         
         try:
-            # Use stored bucket name or get from config/environment
+            # Use stored bucket name or get from Flask config
             bucket_name = self.bucket_name
             if not bucket_name:
                 if has_app_context():
@@ -182,9 +181,6 @@ class S3Service:
                         bucket_name = config.get('S3_BUCKET_NAME_PDFS')
                     except Exception:
                         pass
-                
-                if not bucket_name:
-                    bucket_name = os.getenv('S3_BUCKET_NAME_PDFS')
             
             if not bucket_name:
                 logger.error("❌ S3 bucket name not available")
@@ -265,7 +261,7 @@ class S3Service:
             return None
 
         try:
-            # Use stored bucket name or get from config/environment
+            # Use stored bucket name or get from Flask config
             bucket_name = self.bucket_name
             if not bucket_name:
                 if has_app_context():
@@ -274,9 +270,6 @@ class S3Service:
                         bucket_name = config.get('S3_BUCKET_NAME_PDFS')
                     except Exception:
                         pass
-                
-                if not bucket_name:
-                    bucket_name = os.getenv('S3_BUCKET_NAME_PDFS')
             
             # Get expiration from config or use default
             expiration = 3600  # 1 hour default
@@ -363,7 +356,7 @@ class S3Service:
             return None
 
         try:
-            # Use stored bucket name or get from config/environment
+            # Use stored bucket name or get from Flask config
             bucket_name = self.bucket_name
             if not bucket_name:
                 if has_app_context():
@@ -372,9 +365,6 @@ class S3Service:
                         bucket_name = config.get('S3_BUCKET_NAME_PDFS')
                     except Exception:
                         pass
-                
-                if not bucket_name:
-                    bucket_name = os.getenv('S3_BUCKET_NAME_PDFS')
             
             # Get expiration from config or use default
             expiration = 3600  # 1 hour default
@@ -458,7 +448,7 @@ class S3Service:
             return False
         
         try:
-            # Use stored bucket name or get from config/environment
+            # Use stored bucket name or get from Flask config
             bucket_name = self.bucket_name
             if not bucket_name:
                 if has_app_context():
@@ -467,9 +457,6 @@ class S3Service:
                         bucket_name = config.get('S3_BUCKET_NAME_PDFS')
                     except Exception:
                         pass
-                
-                if not bucket_name:
-                    bucket_name = os.getenv('S3_BUCKET_NAME_PDFS')
             
             if not bucket_name:
                 logger.error("❌ S3 bucket name not available for deletion")
@@ -534,7 +521,7 @@ class S3Service:
             return False
         
         try:
-            # Use stored bucket name or get from config/environment
+            # Use stored bucket name or get from Flask config
             bucket_name = self.bucket_name
             if not bucket_name:
                 if has_app_context():
@@ -543,9 +530,6 @@ class S3Service:
                         bucket_name = config.get('S3_BUCKET_NAME_PDFS')
                     except Exception:
                         pass
-                
-                if not bucket_name:
-                    bucket_name = os.getenv('S3_BUCKET_NAME_PDFS', 'pdf-storage-jkdsfiugew')
             
             if not bucket_name:
                 logger.error("❌ S3 bucket name not available for existence check")
@@ -596,7 +580,7 @@ class S3Service:
             return None
         
         try:
-            # Use stored bucket name or get from config/environment
+            # Use stored bucket name or get from Flask config
             bucket_name = self.bucket_name
             if not bucket_name:
                 if has_app_context():
@@ -605,9 +589,6 @@ class S3Service:
                         bucket_name = config.get('S3_BUCKET_NAME_PDFS')
                     except Exception:
                         pass
-                
-                if not bucket_name:
-                    bucket_name = os.getenv('S3_BUCKET_NAME_PDFS', 'pdf-storage-jkdsfiugew')
             
             if not bucket_name:
                 logger.error("❌ S3 bucket name not available for download")
