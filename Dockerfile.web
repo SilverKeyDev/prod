@@ -109,7 +109,7 @@
     # ---- python deps ----
     # NOTE: requirements.txt should include `python-magic` (not the PyPI package named `libmagic`)
     COPY Server/requirements.txt ./
-    RUN echo "== pip install ==", \
+    RUN echo "== pip install ==" \
      && python --version \
      && pip --version \
      && pip install --upgrade pip setuptools wheel \

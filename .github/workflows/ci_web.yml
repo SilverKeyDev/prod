@@ -190,8 +190,8 @@ jobs:
           docker tag $REPO:$IMAGE_TAG $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO:$IMAGE_TAG
           docker push $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO:$IMAGE_TAG
 
-          # Clean up build artifacts immediately after push
-          docker rmi $REPO:$IMAGE_TAG $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO:$IMAGE_TAG || true
+          # Clean up only local build artifacts, keep the pushed image
+          docker rmi $REPO:$IMAGE_TAG || true
           docker system prune -af || true
 
       - name: SSH into EC2 and Deploy Container + Copy Frontend
