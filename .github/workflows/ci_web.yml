@@ -182,7 +182,6 @@ jobs:
           # Build with space optimizations
           docker build --no-cache \
             --compress \
-            --squash \
             -f Dockerfile.web \
             --build-arg VITE_GOOGLE_MAPS_ID="$VITE_GOOGLE_MAPS_ID" \
             --build-arg VITE_GOOGLE_CLIENT_ID="$VITE_GOOGLE_CLIENT_ID" \
