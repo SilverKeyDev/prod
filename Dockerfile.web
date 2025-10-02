@@ -51,7 +51,8 @@
     
     # Install dependencies offline based on prefetched store (include dev deps for Vite build)
     RUN echo "== pnpm install (frozen lock) ==" \
-     && pnpm install --frozen-lockfile --prod=false --reporter=ndjson 2>&1 | tee /tmp/pnpm-install.log
+     && pnpm install --frozen-lockfile --prod=false --reporter=ndjson 2>&1 | tee /tmp/pnpm-install.log \
+     && rm -rf /tmp/* || true
     
     # --- Diagnostics: summarize envs without leaking values (prints length/isset only) ---
     RUN echo "== VITE_* env presence check ==" \
@@ -66,7 +67,8 @@
     # --- Run a verbose Vite build and capture full logs ---
     # The extra flags only increase logging; the build output remains identical.
     RUN echo "== Starting Vite build (verbose) ==" \
-     && pnpm --reporter=ndjson run build:web -- --debug --logLevel info 2>&1 | tee /tmp/vite-build.log
+     && pnpm --reporter=ndjson run build:web -- --debug --logLevel info 2>&1 | tee /tmp/vite-build.log \
+     && rm -rf /tmp/* || true
     
     # verify assets exist (Vite outDir -> /app/client/dist)
     RUN test -d dist && [ "$(ls -A dist)" ] || (echo "❌ dist missing or empty!" && exit 1)
@@ -99,7 +101,10 @@
         file \
         gdal-bin \
         libgdal-dev \
-     && rm -rf /var/lib/apt/lists/*
+     && apt-get clean \
+     && rm -rf /var/lib/apt/lists/* \
+     && rm -rf /tmp/* \
+     && rm -rf /var/tmp/*
     
     # ---- python deps ----
     # NOTE: requirements.txt should include `python-magic` (not the PyPI package named `libmagic`)
@@ -108,7 +113,11 @@
      && python --version \
      && pip --version \
      && pip install --upgrade pip setuptools wheel \
-     && pip install --no-cache-dir --prefer-binary -r requirements.txt
+     && pip install --no-cache-dir --prefer-binary -r requirements.txt \
+     && pip cache purge \
+     && rm -rf /tmp/* \
+     && rm -rf /var/tmp/* \
+     && rm -rf ~/.cache/pip
     
     # ---- app code ----
     COPY Server/ .

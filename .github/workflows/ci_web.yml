@@ -175,7 +175,14 @@ jobs:
           VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
           VITE_PLAID_CLIENT_ID: ${{ secrets.VITE_PLAID_CLIENT_ID }}
         run: |
+          # Clean up any existing images/containers to free space
+          docker system prune -af --volumes || true
+          docker builder prune -af || true
+
+          # Build with space optimizations
           docker build --no-cache \
+            --compress \
+            --squash \
             -f Dockerfile.web \
             --build-arg VITE_GOOGLE_MAPS_ID="$VITE_GOOGLE_MAPS_ID" \
             --build-arg VITE_GOOGLE_CLIENT_ID="$VITE_GOOGLE_CLIENT_ID" \
@@ -183,6 +190,10 @@ jobs:
             -t $REPO:$IMAGE_TAG .
           docker tag $REPO:$IMAGE_TAG $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO:$IMAGE_TAG
           docker push $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO:$IMAGE_TAG
+
+          # Clean up build artifacts immediately after push
+          docker rmi $REPO:$IMAGE_TAG $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO:$IMAGE_TAG || true
+          docker system prune -af || true
 
       - name: SSH into EC2 and Deploy Container + Copy Frontend
         uses: appleboy/ssh-action@v1.0.0
@@ -251,10 +262,16 @@ jobs:
             sudo apt update -y
             timeout 3m sudo apt install -y docker.io unzip curl > /dev/null
 
-            # Clean up docker caches/volumes
-            sudo docker system prune -af || true
+            # Aggressive cleanup of docker caches/volumes/images
             sudo docker system prune -af --volumes || true
-            sudo rm -rf /var/lib/docker/tmp/*
+            sudo docker builder prune -af || true
+            sudo docker image prune -af || true
+            sudo docker container prune -f || true
+            sudo docker network prune -f || true
+            sudo rm -rf /var/lib/docker/tmp/* || true
+            sudo rm -rf /tmp/* || true
+            sudo apt autoremove -y || true
+            sudo apt autoclean || true
 
             # AWS CLI (if missing)
             if ! aws --version | grep -q aws-cli; then
@@ -262,20 +279,30 @@ jobs:
               unzip -q awscliv2.zip && sudo ./aws/install && rm -rf aws awscliv2.zip
             fi
 
-            # Pull image from ECR
+            # Pull image from ECR with space optimization
             ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text --region "$REGION")
             IMAGE="$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO:$IMAGE_TAG"
             aws ecr get-login-password --region "$REGION" \
               | sudo docker login --username AWS --password-stdin "$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com" 2>/dev/null
+
+            # Clean up any existing images before pull
+            sudo docker image prune -af || true
             sudo docker pull "$IMAGE"
 
-            # Stop old containers if present
+            # Clean up unused images after successful pull
+            sudo docker image prune -af || true
+
+            # Stop old containers if present and clean up
             for name in cre_app cre_worker; do
               if sudo docker ps -a --format '{{.Names}}' | grep -Eq "^${name}\$"; then
                 sudo docker stop "$name" || true
                 sudo docker rm "$name" || true
               fi
             done
+
+            # Clean up any dangling containers and images
+            sudo docker container prune -f || true
+            sudo docker image prune -af || true
 
             # Redis fresh
             if sudo docker ps -a --format '{{.Names}}' | grep -q '^redis$'; then
