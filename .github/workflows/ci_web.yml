@@ -19,7 +19,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # AWS creds for this workflow
+      # AWS creds for this workflow (for both ECR and Secrets Manager)
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -27,42 +27,111 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.REGION }}
 
-      # Snapshot env keys before pulling secrets (for a safe diff later)
+      - name: Install jq (for JSON parsing)
+        run: sudo apt-get update -y && sudo apt-get install -y jq
+
+      # Snapshot env keys before loading secrets (for a safe diff later)
       - name: Snapshot env (before secrets)
         run: |
           printenv | cut -d= -f1 | sort > /tmp/env_before
 
-      # Pull selected secrets from AWS Secrets Manager (JSON -> env)
-      - name: Load app env from AWS Secrets Manager
-        uses: aws-actions/aws-secretsmanager-get-secrets@v2
-        with:
-          secret-ids: |
-            db_url
-            AWS_Access
-            cognito
-            gmaps
-            google_calendar
-            census_api
-            mapbox
-            openai
-            perplexity
-            plaid
-            serp
-            rapidapi
-          parse-json-secrets: true
+      # 🔑 Load all app env from Secrets Manager WITHOUT prefixes
+      # We fetch each secret JSON and map keys directly to the names your app expects.
+      - name: Load app env from AWS Secrets Manager (custom, no prefixes)
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          fetch_json () {
+            local id="$1"
+            aws secretsmanager get-secret-value \
+              --secret-id "$id" \
+              --query SecretString \
+              --output text
+          }
+
+          # Pull secret JSON blobs
+          db_url_json="$(fetch_json db_url || echo '{}')"
+          aws_access_json="$(fetch_json AWS_Access || echo '{}')"
+          cognito_json="$(fetch_json cognito || echo '{}')"
+          gmaps_json="$(fetch_json gmaps || echo '{}')"
+          gcal_json="$(fetch_json google_calendar || echo '{}')"
+          census_json="$(fetch_json census_api || echo '{}')"
+          mapbox_json="$(fetch_json mapbox || echo '{}')"
+          openai_json="$(fetch_json openai || echo '{}')"
+          perplexity_json="$(fetch_json perplexity || echo '{}')"
+          plaid_json="$(fetch_json plaid || echo '{}')"
+          serp_json="$(fetch_json serp || echo '{}')"
+          rapidapi_json="$(fetch_json rapidapi || echo '{}')"
+
+          # Helper to export a key if present and non-empty
+          # Usage: export_if_present <json> <json_key> <ENV_NAME>
+          export_if_present () {
+            local json="$1"
+            local jkey="$2"
+            local envname="$3"
+            local val
+            val="$(jq -er --arg k "$jkey" '.[$k] // empty' <<<"$json" || true)"
+            if [ -n "${val:-}" ]; then
+              printf '%s=%s\n' "$envname" "$val" >> "$GITHUB_ENV"
+            fi
+          }
+
+          # ---- Map each secret JSON to EXACT env var names (no prefixes) ----
+          # db_url
+          export_if_present "$db_url_json" "DATABASE_URL" "DATABASE_URL"
+
+          # AWS_Access (only if you want to pass these to EC2 step; otherwise omit)
+          export_if_present "$aws_access_json" "AWS_ACCESS_KEY_ID" "AWS_ACCESS_KEY_ID"
+          export_if_present "$aws_access_json" "AWS_SECRET_ACCESS_KEY" "AWS_SECRET_ACCESS_KEY"
+
+          # cognito
+          export_if_present "$cognito_json" "AWS_COGNITO_USER_POOL_ID" "AWS_COGNITO_USER_POOL_ID"
+          export_if_present "$cognito_json" "AWS_COGNITO_CLIENT_ID" "AWS_COGNITO_CLIENT_ID"
+          export_if_present "$cognito_json" "AWS_COGNITO_CLIENT_SECRET" "AWS_COGNITO_CLIENT_SECRET"
+
+          # gmaps
+          export_if_present "$gmaps_json" "GOOGLE_MAPS_API_KEY" "GOOGLE_MAPS_API_KEY"
+
+          # google_calendar
+          export_if_present "$gcal_json" "GOOGLE_CLIENT_ID" "GOOGLE_CLIENT_ID"
+          export_if_present "$gcal_json" "GOOGLE_CALENDAR_SECRET" "GOOGLE_CALENDAR_SECRET"
+
+          # census_api
+          export_if_present "$census_json" "CENSUS_API_KEY" "CENSUS_API_KEY"
+
+          # mapbox
+          export_if_present "$mapbox_json" "MAPBOX_API_KEY" "MAPBOX_API_KEY"
+
+          # openai
+          export_if_present "$openai_json" "OPENAI_KEY" "OPENAI_KEY"
+
+          # perplexity
+          export_if_present "$perplexity_json" "PERPLEXITY_API_KEY" "PERPLEXITY_API_KEY"
+
+          # plaid
+          export_if_present "$plaid_json" "PLAID_SANDBOX_KEY" "PLAID_SANDBOX_KEY"
+          export_if_present "$plaid_json" "PLAID_SECRET" "PLAID_SECRET"
+          export_if_present "$plaid_json" "VITE_PLAID_CLIENT_ID" "VITE_PLAID_CLIENT_ID"
+
+          # serp
+          export_if_present "$serp_json" "SERP_API" "SERP_API"
+
+          # rapidapi
+          export_if_present "$rapidapi_json" "RAPIDAPI_KEY" "RAPIDAPI_KEY"
 
       # Log only the names of newly added env vars (no values)
-      - name: List env keys added by Secrets Manager
+      - name: List env keys added from Secrets Manager (no prefixes)
         run: |
           printenv | cut -d= -f1 | sort > /tmp/env_after_secrets
-          echo "New environment variable keys from Secrets Manager (no values):"
+          echo "New environment variable keys loaded (no values):"
           comm -13 /tmp/env_before /tmp/env_after_secrets || true
 
       # Debug: print keys with SHA-256 of values (no raw secrets)
-      - name: Debug hashed env from Secrets Manager
+      - name: Debug hashed env (post-load)
+        shell: bash
         run: |
-          echo "Hashed values for new keys from Secrets Manager:"
-          awk 'FNR==NR {a[$0]; next} ($0 in a)' /tmp/env_after_secrets /tmp/env_after_secrets >/dev/null 2>&1 || true
+          echo "Hashed values for new keys:"
           while IFS='=' read -r k v; do
             if grep -qx "$k" /tmp/env_after_secrets && ! grep -qx "$k" /tmp/env_before; then
               hash_val() { printf "%s" "$1" | (command -v sha256sum >/dev/null && sha256sum || shasum -a 256) | awk '{print $1}'; }
@@ -70,47 +139,27 @@ jobs:
             fi
           done < <(printenv | sort)
 
-      # Normalize any names your app expects (example for COGNITO)
-      - name: Normalize environment variable names
+      # ✅ Fail fast if critical env are empty
+      - name: Validate required env are non-empty
+        shell: bash
         run: |
-          {
-            echo "DATABASE_URL=${DB_URL_DATABASE_URL}"
-            echo "GOOGLE_MAPS_API_KEY=${GMAPS_GOOGLE_MAPS_API_KEY}"
-            echo "GOOGLE_CLIENT_ID=${GOOGLE_CALENDAR_GOOGLE_CLIENT_ID}"
-            echo "GOOGLE_CALENDAR_SECRET=${GOOGLE_CALENDAR_GOOGLE_CALENDAR_SECRET}"
-            echo "CENSUS_API_KEY=${CENSUS_API_CENSUS_API_KEY}"
-            echo "MAPBOX_API_KEY=${MAPBOX_MAPBOX_API_KEY}"
-            echo "OPENAI_KEY=${OPENAI_OPENAI_KEY}"
-            echo "PERPLEXITY_API_KEY=${PERPLEXITY_PERPLEXITY_API_KEY}"
-            echo "PLAID_SANDBOX_KEY=${PLAID_PLAID_SANDBOX_KEY}"
-            echo "PLAID_SECRET=${PLAID_PLAID_SECRET}"
-            echo "VITE_PLAID_CLIENT_ID=${PLAID_VITE_PLAID_CLIENT_ID}"
-            echo "SERP_API=${SERP_SERP_API}"
-            echo "RAPIDAPI_KEY=${RAPIDAPI_RAPIDAPI_KEY}"
-
-            # AWS_COGNITO comes from the Secrets Manager secret named AWS_COGNITO
-            echo "AWS_COGNITO_USER_POOL_ID=${AWS_COGNITO_USER_POOL_ID}"
-            echo "AWS_COGNITO_CLIENT_ID=${AWS_COGNITO_CLIENT_ID}"
-            echo "AWS_COGNITO_CLIENT_SECRET=${AWS_COGNITO_CLIENT_SECRET}"
-          } >> "$GITHUB_ENV"
-
-      # Show which keys were added by the normalization step
-      - name: List env keys added by normalization
-        run: |
-          printenv | cut -d= -f1 | sort > /tmp/env_after_normalize
-          echo "New environment variable keys from normalization (no values):"
-          comm -13 /tmp/env_after_secrets /tmp/env_after_normalize || true
-
-      # Debug: print keys with SHA-256 of values (no raw secrets) after normalization
-      - name: Debug hashed env from normalization
-        run: |
-          echo "Hashed values for new keys from normalization:"
-          while IFS='=' read -r k v; do
-            if grep -qx "$k" /tmp/env_after_normalize && ! grep -qx "$k" /tmp/env_after_secrets; then
-              hash_val() { printf "%s" "$1" | (command -v sha256sum >/dev/null && sha256sum || shasum -a 256) | awk '{print $1}'; }
-              printf "%s_SHA256=%s\n" "$k" "$(hash_val "$v")"
+          required=(
+            DATABASE_URL
+            AWS_COGNITO_USER_POOL_ID
+            AWS_COGNITO_CLIENT_ID
+            AWS_COGNITO_CLIENT_SECRET
+          )
+          failed=0
+          for k in "${required[@]}"; do
+            v="${!k:-}"
+            if [ -z "$v" ]; then
+              echo "❌ $k is EMPTY"
+              failed=1
+            else
+              echo "✅ $k present"
             fi
-          done < <(printenv | sort)
+          done
+          [ "$failed" -eq 0 ] || exit 1
 
       - name: Login to ECR
         run: |
@@ -141,46 +190,30 @@ jobs:
           # Region for remote AWS CLI
           AWS_REGION: ${{ env.REGION }}
 
-          # From Secrets Manager: db_url
+          # From Secrets Manager (now already exact names)
           DATABASE_URL: ${{ env.DATABASE_URL }}
 
           # From Actions (so CLI on the EC2 host can pull from ECR)
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-          # From Secrets Manager: AWS_COGNITO (normalized above)
+          # Cognito
           AWS_COGNITO_USER_POOL_ID: ${{ env.AWS_COGNITO_USER_POOL_ID }}
           AWS_COGNITO_CLIENT_ID: ${{ env.AWS_COGNITO_CLIENT_ID }}
           AWS_COGNITO_CLIENT_SECRET: ${{ env.AWS_COGNITO_CLIENT_SECRET }}
 
-          # From Secrets Manager: gmaps
+          # Other APIs
           GOOGLE_MAPS_API_KEY: ${{ env.GOOGLE_MAPS_API_KEY }}
-
-          # From Secrets Manager: google_calendar
           GOOGLE_CALENDAR_SECRET: ${{ env.GOOGLE_CALENDAR_SECRET }}
           GOOGLE_CLIENT_ID: ${{ env.GOOGLE_CLIENT_ID }}
-
-          # From Secrets Manager: census_api
           CENSUS_API_KEY: ${{ env.CENSUS_API_KEY }}
-
-          # From Secrets Manager: mapbox
           MAPBOX_API_KEY: ${{ env.MAPBOX_API_KEY }}
-
-          # From Secrets Manager: openai
           OPENAI_KEY: ${{ env.OPENAI_KEY }}
-
-          # From Secrets Manager: perplexity
           PERPLEXITY_API_KEY: ${{ env.PERPLEXITY_API_KEY }}
-
-          # From Secrets Manager: plaid
           PLAID_SANDBOX_KEY: ${{ env.PLAID_SANDBOX_KEY }}
           PLAID_SECRET: ${{ env.PLAID_SECRET }}
           VITE_PLAID_CLIENT_ID: ${{ env.VITE_PLAID_CLIENT_ID }}
-
-          # From Secrets Manager: serp
           SERP_API: ${{ env.SERP_API }}
-
-          # From Secrets Manager: rapidapi
           RAPIDAPI_KEY: ${{ env.RAPIDAPI_KEY }}
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -201,6 +234,15 @@ jobs:
             REGION="$AWS_REGION"
             REPO="cre"
             IMAGE_TAG="latest"
+
+            # Guard: ensure critical env present on the remote context
+            for k in AWS_COGNITO_USER_POOL_ID AWS_COGNITO_CLIENT_ID AWS_COGNITO_CLIENT_SECRET DATABASE_URL; do
+              if [ -z "${!k:-}" ]; then
+                echo "❌ Missing $k on EC2 context"; exit 1
+              else
+                echo "✅ $k present on EC2 context"
+              fi
+            done
 
             # System prep
             while sudo fuser /var/lib/apt/lists/lock >/dev/null 2>&1 || sudo fuser /var/lib/dpkg/lock >/dev/null 2>&1; do
