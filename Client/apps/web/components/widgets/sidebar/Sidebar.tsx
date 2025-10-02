@@ -1,16 +1,4 @@
-import {
-  Split,
-  Search,
-  Key,
-  ChevronDown,
-  ChevronRight,
-  LogOut,
-  Brain,
-  Handshake,
-  Home,
-  ClipboardList,
-  UserPlus,
-} from "lucide-react";
+import { ChevronDown, ChevronRight, LogOut } from "lucide-react";
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 
@@ -25,6 +13,7 @@ import {
   useViewStore,
   type ViewState,
 } from "../../../../../packages/store/view.slice";
+import { SIDEBAR_TABS } from "../../../../../packages/schemas/sidebar";
 type SidebarProps = {
   user?: UserProfile;
   onLogout: () => void;
@@ -49,60 +38,95 @@ type NavCategory = {
 
 type NavigationStructure = Record<string, NavCategory>;
 
-// Navigation structure with categories and dropdown items
+// Navigation structure with categories and dropdown items based on schema
 const navigationStructure: NavigationStructure = {
   dashboard: {
-    name: "Dashboard",
-    icon: Home,
-    items: [{ name: "Home", href: "/dashboard", icon: Home }],
+    name: SIDEBAR_TABS.dashboard.name,
+    icon: SIDEBAR_TABS.dashboard.icon as unknown as React.FC<{
+      className?: string;
+    }>,
+    items: [
+      {
+        name: SIDEBAR_TABS.dashboard.name,
+        href: SIDEBAR_TABS.dashboard.href,
+        icon: SIDEBAR_TABS.dashboard.icon as unknown as React.FC<{
+          className?: string;
+        }>,
+      },
+    ],
   },
   onboard: {
-    name: "Onboard",
-    icon: ClipboardList,
+    name: SIDEBAR_TABS.onboard.name,
+    icon: SIDEBAR_TABS.onboard.icon as unknown as React.FC<{
+      className?: string;
+    }>,
     items: [
       {
         name: "Preferences",
-        href: "/personalization",
-        icon: UserPlus,
+        href: SIDEBAR_TABS.onboard.href,
+        icon: SIDEBAR_TABS.onboard.icon as unknown as React.FC<{
+          className?: string;
+        }>,
       },
     ],
   },
   search: {
-    name: "Search",
-    icon: Search,
-    items: [{ name: "Search", href: "/search", icon: Search }],
-  },
-  decide: {
-    name: "Find the Best Fit",
-    icon: Split,
+    name: SIDEBAR_TABS.search.name,
+    icon: SIDEBAR_TABS.search.icon as unknown as React.FC<{
+      className?: string;
+    }>,
     items: [
       {
-        name: "Find the Best Fit",
-        href: "/saved?view=reports",
-        icon: Split,
+        name: SIDEBAR_TABS.search.name,
+        href: SIDEBAR_TABS.search.href,
+        icon: SIDEBAR_TABS.search.icon as unknown as React.FC<{
+          className?: string;
+        }>,
+      },
+    ],
+  },
+  decide: {
+    name: SIDEBAR_TABS.decide.name,
+    icon: SIDEBAR_TABS.decide.icon as unknown as React.FC<{
+      className?: string;
+    }>,
+    items: [
+      {
+        name: SIDEBAR_TABS.decide.name,
+        href: SIDEBAR_TABS.decide.href,
+        icon: SIDEBAR_TABS.decide.icon as unknown as React.FC<{
+          className?: string;
+        }>,
       },
     ],
   },
   negotiate: {
-    name: "Negotiate",
-    icon: Handshake,
+    name: SIDEBAR_TABS.negotiate.name,
+    icon: SIDEBAR_TABS.negotiate.icon as unknown as React.FC<{
+      className?: string;
+    }>,
     items: [
       {
         name: "Negotiation Advisor",
-        href: "/negotiation-strategy",
-        icon: Brain,
+        href: SIDEBAR_TABS.negotiate.href,
+        icon: SIDEBAR_TABS.negotiate.icon as unknown as React.FC<{
+          className?: string;
+        }>,
       },
-      /*{ name: "Draft Offer", href: "/dashboard/draft-offer", icon: FileText },*/
     ],
   },
   close: {
-    name: "Buyer Checklists",
-    icon: Key,
+    name: SIDEBAR_TABS.close.name,
+    icon: SIDEBAR_TABS.close.icon as unknown as React.FC<{
+      className?: string;
+    }>,
     items: [
       {
-        name: "Buyer Checklists",
-        href: "/buyer-checklists",
-        icon: Key,
+        name: SIDEBAR_TABS.close.name,
+        href: SIDEBAR_TABS.close.href,
+        icon: SIDEBAR_TABS.close.icon as unknown as React.FC<{
+          className?: string;
+        }>,
       },
     ],
   },

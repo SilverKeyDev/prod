@@ -40,7 +40,7 @@ export function createProtectedRoute(
   user?: UserProfile,
   onLogout?: () => void,
   providerType?: RouteConfig["providerType"],
-  providerLevel: ProviderLevel = "full",
+  providerLevel: ProviderLevel = "full"
 ) {
   const dashboard = (
     <DashboardLayout user={user} onLogout={onLogout ?? (() => {})} />
@@ -81,13 +81,5 @@ export const ROUTE_CONFIGS = {
     { path: "/search/*", providerType: "maps" as const },
     { path: "/negotiation-strategy/*", providerType: "negotiation" as const },
     { path: "/buyer-checklists/*", providerType: "docs" as const },
-    { path: "/close/escrow-legal-logistics/*", providerType: "docs" as const },
-    {
-      path: "/close/inspections-due-diligence/*",
-      providerType: "docs" as const,
-    },
-    { path: "/close/financing-insurance/*", providerType: "billing" as const },
-    { path: "/close/closing-moving-in/*", providerType: "docs" as const },
-    { path: "/subscription/*", providerType: "billing" as const },
   ],
 } as const;

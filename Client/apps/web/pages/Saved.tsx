@@ -10,13 +10,16 @@ import PdfModal from "../components/modals/PdfModal";
 import PropertyDetailsModal from "../components/modals/PropertyDetailsModal";
 import { KeyTurnLoader } from "../components/ui";
 import GenerateReportPage from "../features/decide/generate/GenerateReport";
-import { userApi, reportApi } from "../../../packages/config/api";
+import { reportApi } from "../../../packages/config/api";
 import { useDocumentActions } from "../../../packages/hooks/data/useDocumentActions";
 import { useReportsData } from "../../../packages/hooks/data/useReportsData";
+import { useSavedHomesData } from "../../../packages/hooks/data/useSavedHomesData";
 import type { SavedHome, Report } from "../../../packages/schemas";
 import { useUIStore, useNegotiationStore } from "../../../packages/store";
 import CompareReportsPage from "../features/decide/compare/CompareReportsPage";
 import AIAssistant from "../features/decide/aiAssistant/AIAssistant";
+import Button from "../components/ui/button/Button";
+import { BarChart2, Bot, FileText } from "lucide-react";
 
 export default function SavedHomes() {
   const location = useLocation();
@@ -26,15 +29,23 @@ export default function SavedHomes() {
   const [selectedProperty, setSelectedProperty] = useState<SavedHome | null>(
     null
   );
-  const [homes, setHomes] = useState<SavedHome[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [viewType, setViewType] = useState<"homes" | "reports">("homes");
   const [reportsSubView, setReportsSubView] = useState<
     "reports" | "compare" | "chatbot"
   >("reports");
   const enqueueToast = useUIStore((s) => s.enqueueToast);
   const { setSelectedHome } = useNegotiationStore();
+
+  // Use Zustand store for saved homes data (React Query integration)
+  const {
+    savedHomes: homes,
+    savedHomesLoading: loading,
+    savedHomesError: error,
+    refreshSavedHomes,
+    saveHome,
+    removeSavedHome,
+    isHomeSaved,
+  } = useSavedHomesData();
 
   // Use reports data hook (same as Dashboard)
   const { reports, reportsLoading, refreshReports } = useReportsData();
@@ -55,46 +66,6 @@ export default function SavedHomes() {
     id: string;
     s3Key: string | null | undefined;
   } | null>(null);
-
-  // Fetch saved homes using userApi.getFavoriteHomes() - copied from Dashboard
-  const fetchSavedHomes = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await userApi.getFavoriteHomes();
-      if (res.success) {
-        // Backend returns { favorites: HomeUniversal[] } where each is an object
-        const rawHomes = (Array.isArray(res.favorites)
-          ? (res.favorites as unknown)
-          : []) as unknown[] as Record<string, unknown>[];
-        // Map HomeUniversal fields to SavedHome for compatibility
-        const homeObjects: SavedHome[] = rawHomes.map(
-          (home: Record<string, unknown>, index: number) => ({
-            home_id: (home.address as string) ?? `home_${index}_${Date.now()}`,
-            description: (home.address as string) ?? "",
-            address: (home.address as string) ?? "",
-            price: (home.price as string) ?? "",
-            bedrooms: parseInt((home.beds as string) ?? "0") ?? 0,
-            bathrooms: parseInt((home.baths as string) ?? "0") ?? 0,
-            sqft: parseInt((home.sqft as string) ?? "0") ?? 0,
-            lot_size: (home.lot_size as string) ?? "",
-            image_url:
-              typeof home.image_url === "string" ? home.image_url : undefined,
-            lat: (home.lat as number) ?? 0,
-            lng: (home.lng as number) ?? 0,
-            // Any other HomeUniversal fields can be passed through
-            ...home,
-          })
-        );
-        setHomes(homeObjects);
-      } else {
-        void void setError(res.error ?? "Failed to load favorite homes");
-      }
-    } catch {
-      void void setError("Failed to load favorite homes");
-    }
-    setLoading(false);
-  }, []);
 
   // Load data when page loads or view type changes
   useEffect(() => {
@@ -129,46 +100,23 @@ export default function SavedHomes() {
   // Fetch data for current view
   useEffect(() => {
     if (viewType === "homes") {
-      void fetchSavedHomes();
       // Optionally expose refresh in dev
       (
         window as unknown as { refreshFavorites?: () => void }
-      ).refreshFavorites = () => void fetchSavedHomes();
+      ).refreshFavorites = refreshSavedHomes;
     }
     // Reports are automatically loaded by useReportsData hook
-  }, [fetchSavedHomes, viewType]);
+  }, [refreshSavedHomes, viewType]);
 
   const refresh = async () => {
     setRefreshing(true);
     if (viewType === "homes") {
-      await fetchSavedHomes();
+      await refreshSavedHomes();
     } else {
       await refreshReports();
     }
     setRefreshing(false);
   };
-
-  // Save a home to favorites - use exact same format as working Dashboard
-  const saveHome = useCallback(async (home: SavedHome) => {
-    try {
-      await userApi.addFavoriteHome({ home });
-      // Force refresh like Dashboard does
-      window.location.reload();
-    } catch (error: unknown) {
-      console.error("Error saving home:", error);
-    }
-  }, []);
-
-  // Remove a home from favorites - use exact same format as working Dashboard
-  const removeSavedHome = useCallback(async (homeId: string) => {
-    try {
-      await userApi.removeFavoriteHome({ address: homeId });
-      // Refresh the page like Dashboard does
-      window.location.reload();
-    } catch (error: unknown) {
-      console.error("Error removing home from favorites:", error);
-    }
-  }, []);
 
   // Handle unlocking a home and saving to negotiation store
   const handleUnlockHome = useCallback(
@@ -202,39 +150,50 @@ export default function SavedHomes() {
   // Check if a home is saved (for modal)
   const isHomeSavedForModal = useCallback(
     (homeId: string) => {
-      return homes.some(
-        (home: SavedHome) =>
-          (home.home_id === homeId ||
-            home.id === homeId ||
-            home.zpid === homeId ||
-            home.zpid?.toString() === homeId) ??
-          home.address === homeId
-      );
+      return isHomeSaved(homeId);
     },
-    [homes]
+    [isHomeSaved]
   );
 
-  // Save home for modal - use exact same format as working Dashboard
-  const saveHomeForModal = useCallback(async (property: SavedHome) => {
-    try {
-      await userApi.addFavoriteHome({ home: property });
-      // Force refresh like Dashboard does
-      window.location.reload();
-    } catch (error: unknown) {
-      console.error("Error saving home:", error);
-    }
-  }, []);
+  // Save home for modal - use Zustand hook
+  const saveHomeForModal = useCallback(
+    async (property: SavedHome) => {
+      try {
+        await saveHome(property);
+        enqueueToast({
+          type: "success",
+          message: `Saved ${property.address}`,
+        });
+      } catch (error: unknown) {
+        console.error("Error saving home:", error);
+        enqueueToast({
+          type: "error",
+          message: "Failed to save home",
+        });
+      }
+    },
+    [saveHome, enqueueToast]
+  );
 
-  // Remove saved home for modal - use exact same format as working Dashboard
-  const removeSavedHomeForModal = useCallback(async (homeId: string) => {
-    try {
-      await userApi.removeFavoriteHome({ address: homeId });
-      // Force refresh like Dashboard does
-      window.location.reload();
-    } catch (error: unknown) {
-      console.error("Error removing home from favorites:", error);
-    }
-  }, []);
+  // Remove saved home for modal - use Zustand hook
+  const removeSavedHomeForModal = useCallback(
+    async (homeId: string) => {
+      try {
+        await removeSavedHome(homeId);
+        enqueueToast({
+          type: "success",
+          message: "Removed from favorites",
+        });
+      } catch (error: unknown) {
+        console.error("Error removing home from favorites:", error);
+        enqueueToast({
+          type: "error",
+          message: "Failed to remove home from favorites",
+        });
+      }
+    },
+    [removeSavedHome, enqueueToast]
+  );
 
   const filteredHomes = homes.filter((h: SavedHome) => {
     return (
@@ -349,36 +308,45 @@ export default function SavedHomes() {
           leftContent={
             viewType === "reports" ? (
               <div className="flex items-center gap-2">
-                <button
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  icon={<BarChart2 />}
                   onClick={() => setReportsSubView("compare")}
-                  className={`touch-friendly rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                  className={
                     reportsSubView === "compare"
-                      ? "bg-olive text-white"
-                      : "bg-beige text-white hover:bg-beige/80"
-                  }`}
+                      ? "bg-gold text-gray-300"
+                      : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                  }
                 >
                   Compare
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  icon={<Bot />}
                   onClick={() => setReportsSubView("chatbot")}
-                  className={`touch-friendly rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                  className={
                     reportsSubView === "chatbot"
-                      ? "bg-olive text-white"
-                      : "bg-beige text-white hover:bg-beige/80"
-                  }`}
+                      ? "bg-gold text-gray-300"
+                      : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                  }
                 >
                   Chatbot
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  icon={<FileText />}
                   onClick={() => setReportsSubView("reports")}
-                  className={`touch-friendly rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                  className={
                     reportsSubView === "reports"
-                      ? "bg-olive text-white"
-                      : "bg-beige text-white hover:bg-beige/80"
-                  }`}
+                      ? "bg-gold text-gray-300"
+                      : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                  }
                 >
                   Reports
-                </button>
+                </Button>
               </div>
             ) : null
           }
@@ -453,8 +421,8 @@ export default function SavedHomes() {
                         images: home.image_url ? [home.image_url] : [],
                       }}
                       isSaved={true}
-                      onSave={() => saveHome(home)}
-                      onRemove={() => removeSavedHome(home.home_id)}
+                      onSave={() => void saveHome(home)}
+                      onRemove={() => void removeSavedHome(home.home_id)}
                       size="sm"
                     />
                   }

@@ -1,30 +1,18 @@
 // React imports
 import React, { useState, useMemo, type ReactNode } from "react";
 import { useLocation } from "react-router-dom";
-
-// Types
-// Context and hooks
-// Layout components
 import MobileTopBar from "../../components/widgets/header/MobileTopBar";
 import PageHeader from "../../components/widgets/header/PageHeader.tsx";
 import MobileSidebar from "../../components/widgets/sidebar/MobileSidebar.tsx";
 import Sidebar from "../../components/widgets/sidebar/Sidebar.tsx";
-// import useMobile from '../../../../packages/hooks/ui/useMobile';
 import type { UserProfile } from "../../../../packages/schemas/user";
-// Feature components
 import DashboardButtonHeader from "../../features/dashboard/DashboardButtonHeader.tsx";
-// Page components - Dashboard
-// Page components - Search
-// Page components - Decide
+
 import BuyerChecklists from "../../pages/BuyerChecklists.tsx";
 import DashboardPage from "../../pages/Dashboard.tsx";
-import AIAssistant from "../../features/decide/aiAssistant/AIAssistant.tsx";
-import CompareReportsPage from "../../features/decide/compare/CompareReportsPage.tsx";
-// Page components - Negotiate
+
 import NegotiationStrategy from "../../pages/Negotiation.tsx";
-// import OfferDraftPage from "../../pages/Negotiate/OfferDraftPage"; // File deleted
-// Page components - Close
-// Page components - Onboard
+
 import PersonalizationPage from "../../pages/PersonalizationPage.tsx";
 import SavedHomes from "../../pages/Saved.tsx";
 import SearchPage from "../../pages/SearchPage.tsx";
@@ -32,6 +20,7 @@ import {
   useViewStore,
   type ViewState,
 } from "../../../../packages/store/view.slice";
+import { getTabByPath } from "../../../../packages/schemas/sidebar";
 
 type HeaderConfig = {
   type: "rheader" | "none";
@@ -109,20 +98,24 @@ export default function DashboardLayout({
         subtitle: "View and manage your previous property reports",
       };
     } else if (path.startsWith("/search")) {
-      return { type: "none", title: "Search" };
+      const tab = getTabByPath(path);
+      return { type: "none", title: tab?.name ?? "Search" };
     } else if (path.startsWith("/ai-assistant")) {
       return { type: "none", title: "AI Assistant" };
     } else if (path.startsWith("/personalization")) {
+      const tab = getTabByPath(path);
       return {
         type: "rheader",
-        title: "Personalization",
-        subtitle: "Customize your home search preferences",
+        title: tab?.name ?? "Personalization",
+        subtitle: tab?.description ?? "Customize your home search preferences",
       };
     } else if (path.startsWith("/negotiation-strategy")) {
+      const tab = getTabByPath(path);
       return {
         type: "rheader",
-        title: "Negotiation Strategy",
-        subtitle: "Develop winning strategies for your offers",
+        title: tab?.name ?? "Negotiation Strategy",
+        subtitle:
+          tab?.description ?? "Develop winning strategies for your offers",
       };
     } else if (path.startsWith("/draft-offer")) {
       return {
@@ -156,7 +149,8 @@ export default function DashboardLayout({
         subtitle: "Side-by-side analysis of multiple properties",
       };
     } else {
-      return { type: "none", title: "Dashboard" };
+      const tab = getTabByPath(path);
+      return { type: "none", title: tab?.name ?? "Dashboard" };
     }
   }, [location.pathname, header]);
 
@@ -305,32 +299,15 @@ export default function DashboardLayout({
               ? "h-[calc(100vh-80px)] lg:h-[calc(100vh-0px)]" // Full height for search page
               : location.pathname.startsWith("/buyer-checklists")
                 ? "" // No padding for buyer checklists page
-                : `p-4 sm:p-6 lg:p-8 mt-4 lg:mt-0 ${
-                    (location.pathname.startsWith(
-                      "/close/escrow-legal-logistics"
-                    ) ??
-                    location.pathname.startsWith(
-                      "/close/inspections-due-diligence"
-                    ) ??
-                    (location.pathname.startsWith(
-                      "/close/financing-insurance"
-                    ) ||
-                      location.pathname.startsWith("/close/closing-moving-in")))
-                      ? ""
-                      : "lg:pt-8"
-                  }`
+                : "p-4 sm:p-6 lg:p-8 mt-4 lg:mt-0 lg:pt-8"
           }`}
           style={{
             maxWidth: `${getPageWidth()}vw`,
           }}
         >
-          {location.pathname.startsWith("/compare-reports") && (
-            <CompareReportsPage />
-          )}
           {location.pathname.startsWith("/search") && (
             <SearchPage setMobileHeaderActions={setMobileHeaderActions} />
           )}
-          {location.pathname.startsWith("/ai-assistant") && <AIAssistant />}
           {location.pathname.startsWith("/personalization") && (
             <PersonalizationPage
               setMobileHeaderActions={setMobileHeaderActions}

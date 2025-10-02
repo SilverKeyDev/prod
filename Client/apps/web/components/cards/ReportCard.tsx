@@ -81,7 +81,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
               }
               // Fallback if generatedAt is not a Date object
               return formatDate(
-                report.generatedAt?.toString() || new Date().toISOString(),
+                report.generatedAt?.toString() || new Date().toISOString()
               );
             } catch {
               // Ultimate fallback

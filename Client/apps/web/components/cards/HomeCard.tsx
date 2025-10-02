@@ -1,6 +1,3 @@
-// React import not required with automatic JSX runtime
-import { useNavigate } from "react-router-dom";
-
 import {
   usePropertyDetails,
   type Property,
@@ -16,15 +13,6 @@ import PropertyDetailsModal from "../modals/PropertyDetailsModal";
 import { CardViewDetailsButton, CardHeartSave } from "./base";
 import PropertyCard from "./PropertyCard";
 
-// Safe navigation hook that handles cases outside Router context
-const useSafeNavigate = () => {
-  try {
-    return useNavigate();
-  } catch {
-    // Return a no-op function if outside Router context
-    return () => {};
-  }
-};
 
 export type HomeDescription = {
   home_id: string;
@@ -72,7 +60,6 @@ export default function HomeCard({
   isOnMap = false,
   onFocus,
 }: HomeCardProps) {
-  const navigate = useSafeNavigate();
   const {
     isLoading,
     selectedProperty,
@@ -125,7 +112,7 @@ export default function HomeCard({
   const saveHomeForModal = async (
     property:
       | Property
-      | import("../../../../packages/schemas/search").SearchResult,
+      | import("../../../../packages/schemas/search").SearchResult
   ) => {
     // Convert Property back to HomeDescription format for onSave
     type PropertyWithExtras = Property & {
@@ -174,11 +161,8 @@ export default function HomeCard({
 
     localStorage.setItem(
       "generateReportState",
-      JSON.stringify(generateReportState),
+      JSON.stringify(generateReportState)
     );
-
-    // Navigate to the generate report page
-    navigate("/dashboard/decide/generate-report");
   };
 
   // Handle card click to focus on property
