@@ -14,6 +14,7 @@ export { default as FormField } from "./form/FormField";
 export { default as Input } from "./form/Input";
 export { default as InputStyles } from "./form/InputStyles";
 export { default as OliveCheckbox } from "./form/OliveCheckbox";
+export { default as Toggle } from "./form/Toggle";
 
 // UI Components - Text
 export { default as Label } from "./text/Label";

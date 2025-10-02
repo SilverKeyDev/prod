@@ -12,16 +12,14 @@ import Sidebar from "../../components/widgets/sidebar/Sidebar.tsx";
 // import useMobile from '../../../../packages/hooks/ui/useMobile';
 import type { UserProfile } from "../../../../packages/schemas/user";
 // Feature components
-import ClosePageHeader from "../../features/close/ClosePageHeader.tsx";
 import DashboardButtonHeader from "../../features/dashboard/DashboardButtonHeader.tsx";
 // Page components - Dashboard
 // Page components - Search
 // Page components - Decide
 import BuyerChecklists from "../../pages/BuyerChecklists.tsx";
 import DashboardPage from "../../pages/Dashboard.tsx";
-import AIAssistant from "../../pages/Decide/AIAssistant.tsx";
-import CompareReportsPage from "../../pages/Decide/CompareReportsPage.tsx";
-import GenerateReportPage from "../../pages/Decide/GenerateReportPage.tsx";
+import AIAssistant from "../../features/decide/aiAssistant/AIAssistant.tsx";
+import CompareReportsPage from "../../features/decide/compare/CompareReportsPage.tsx";
 // Page components - Negotiate
 import NegotiationStrategy from "../../pages/Negotiation.tsx";
 // import OfferDraftPage from "../../pages/Negotiate/OfferDraftPage"; // File deleted
@@ -149,9 +147,7 @@ export default function DashboardLayout({
       };
     } else if (path.startsWith("/saved")) {
       return {
-        type: "rheader",
-        title: "Saved Homes",
-        subtitle: "Your bookmarked properties and favorites",
+        type: "none",
       };
     } else if (path.startsWith("/compare-reports")) {
       return {
@@ -169,20 +165,17 @@ export default function DashboardLayout({
 
     // For the dashboard, use DashboardButtonHeader
     if (path.startsWith("/dashboard")) {
-      return <DashboardButtonHeader variant="horizontal" />;
+      return (
+        <DashboardButtonHeader
+          variant="horizontal"
+          completedStepKey={undefined}
+        />
+      );
     }
 
-    // For buyer-checklists, use ClosePageHeader for desktop
+    // For buyer-checklists, let the page component handle its own header
     if (path.startsWith("/buyer-checklists")) {
-      return closePageHeaderData ? (
-        <ClosePageHeader
-          title={closePageHeaderData.title}
-          subtitle={closePageHeaderData.subtitle}
-          completedCount={closePageHeaderData.completedCount}
-          totalCount={closePageHeaderData.totalCount}
-          loading={closePageHeaderData.loading}
-        />
-      ) : null;
+      return null;
     }
 
     if (config?.type === "rheader" && config.title) {
@@ -201,20 +194,17 @@ export default function DashboardLayout({
 
     // For the dashboard, use DashboardButtonHeader on mobile
     if (path.startsWith("/dashboard")) {
-      return <DashboardButtonHeader variant="vertical" />;
+      return (
+        <DashboardButtonHeader
+          variant="vertical"
+          completedStepKey={undefined}
+        />
+      );
     }
 
-    // For buyer-checklists, use ClosePageHeader for mobile (same as dashboard)
+    // For buyer-checklists, let the page component handle its own header
     if (path.startsWith("/buyer-checklists")) {
-      return closePageHeaderData ? (
-        <ClosePageHeader
-          title={closePageHeaderData.title}
-          subtitle={closePageHeaderData.subtitle}
-          completedCount={closePageHeaderData.completedCount}
-          totalCount={closePageHeaderData.totalCount}
-          loading={closePageHeaderData.loading}
-        />
-      ) : null;
+      return null;
     }
 
     // For personalization, ensure no other header content is shown when actions are not present
@@ -259,6 +249,8 @@ export default function DashboardLayout({
           onLogout={onLogout}
           expanded={sidebarExpanded}
           onToggleExpanded={() => setSidebarExpanded(!sidebarExpanded)}
+          isMobile={false}
+          onLinkClick={undefined}
         />
       </div>
 
@@ -295,7 +287,9 @@ export default function DashboardLayout({
         {/* Desktop Header Rendering with consistent width - Hidden on mobile */}
         {!location.pathname.startsWith("/search") && (
           <div
-            className="hidden pt-8 lg:block mx-auto w-full"
+            className={`hidden lg:block mx-auto w-full ${
+              location.pathname.startsWith("/saved") ? "" : "pt-8"
+            }`}
             style={{
               maxWidth: `${getPageWidth()}vw`,
             }}
@@ -330,10 +324,6 @@ export default function DashboardLayout({
             maxWidth: `${getPageWidth()}vw`,
           }}
         >
-          {/* Render component based on current path */}
-          {location.pathname.startsWith("/generate-report") && (
-            <GenerateReportPage />
-          )}
           {location.pathname.startsWith("/compare-reports") && (
             <CompareReportsPage />
           )}

@@ -1,16 +1,13 @@
 import {
-  BarChart2,
   Split,
   Search,
   Key,
   ChevronDown,
   ChevronRight,
   LogOut,
-  MessageCircle,
   Brain,
   Handshake,
   Home,
-  FilePlus,
   ClipboardList,
   UserPlus,
 } from "lucide-react";
@@ -80,19 +77,9 @@ const navigationStructure: NavigationStructure = {
     icon: Split,
     items: [
       {
-        name: "Generate Report",
-        href: "/generate-report",
-        icon: FilePlus,
-      },
-      {
-        name: "Compare Reports",
-        href: "/compare-reports",
-        icon: BarChart2,
-      },
-      {
-        name: "AI Assistant",
-        href: "/ai-assistant",
-        icon: MessageCircle,
+        name: "Find the Best Fit",
+        href: "/saved?view=reports",
+        icon: Split,
       },
     ],
   },
@@ -295,10 +282,11 @@ export default function Sidebar({
               {Object.entries(getNavigation()).map(
                 ([categoryKey, category]: [string, NavCategory]) => (
                   <div key={categoryKey}>
-                    {/* Render certain categories as direct links (dashboard, onboard, search, negotiate, close) */}
+                    {/* Render certain categories as direct links (dashboard, onboard, search, decide, negotiate, close) */}
                     {categoryKey === "dashboard" ||
                     categoryKey === "onboard" ||
                     categoryKey === "search" ||
+                    categoryKey === "decide" ||
                     categoryKey === "negotiate" ||
                     categoryKey === "close" ? (
                       (() => {
@@ -309,7 +297,7 @@ export default function Sidebar({
                             to={firstItem?.href ?? "/"}
                             onClick={() => {
                               console.log(
-                                `[SIDEBAR] ${categoryKey === "dashboard" ? "🏠" : categoryKey === "onboard" ? "📋" : categoryKey === "search" ? "🔍" : categoryKey === "negotiate" ? "🤝" : "🔑"} ${firstItem?.name} navigation clicked:`,
+                                `[SIDEBAR] ${categoryKey === "dashboard" ? "🏠" : categoryKey === "onboard" ? "📋" : categoryKey === "search" ? "🔍" : categoryKey === "decide" ? "📊" : categoryKey === "negotiate" ? "🤝" : "🔑"} ${firstItem?.name} navigation clicked:`,
                                 {
                                   href: firstItem?.href ?? "/",
                                   userProfile: userProfile

@@ -17,7 +17,7 @@ const DashboardButtonHeader: React.FC<DashboardButtonHeaderProps> = ({
   const [openKey, setOpenKey] = useState<string | null>(null);
 
   const completedIndex = TIMELINE_STEPS.findIndex(
-    (s) => s.key === completedStepKey,
+    (s) => s.key === completedStepKey
   );
 
   // Horizontal timeline progress (from TimelineProgress)
@@ -50,18 +50,6 @@ const DashboardButtonHeader: React.FC<DashboardButtonHeaderProps> = ({
                       color="white"
                     />
                   </Link>
-                  {/* Step name with responsive text scaling */}
-                  <div className="mt-1 w-full px-0.5 sm:px-1">
-                    <span
-                      className="block font-medium text-gray-700 truncate overflow-hidden"
-                      style={{
-                        fontSize: "clamp(0.625rem, 1.5vw, 1.125rem)",
-                        lineHeight: "1.1",
-                      }}
-                    >
-                      {step.name}
-                    </span>
-                  </div>
                 </div>
 
                 {/* Connector column */}
@@ -105,8 +93,6 @@ const DashboardButtonHeader: React.FC<DashboardButtonHeaderProps> = ({
             >
               <div className="flex min-w-0 flex-1 items-center space-x-2 sm:space-x-3">
                 <StepIcon className="h-4 w-4 sm:h-5 sm:w-5" color="white" />
-
-                {step.name}
               </div>
               {isOpen ? (
                 <ChevronUp className="h-4 w-4 flex-shrink-0 sm:h-5 sm:w-5" />

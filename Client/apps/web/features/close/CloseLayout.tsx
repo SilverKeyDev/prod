@@ -79,7 +79,7 @@ export default function CloseLayout({
     try {
       setLoading(true);
       const res = await apiRequest<{ success: boolean; data: number[] }>(
-        apiEndpoint,
+        apiEndpoint
       );
 
       // Handle backend response format: {success: true, data: [1, 3, 5]}

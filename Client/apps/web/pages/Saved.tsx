@@ -9,8 +9,10 @@ import DeleteModal from "../components/modals/DeleteModal";
 import PdfModal from "../components/modals/PdfModal";
 import PropertyDetailsModal from "../components/modals/PropertyDetailsModal";
 import { KeyTurnLoader } from "../components/ui";
+import GenerateReportPage from "../features/decide/generate/GenerateReport";
 import { userApi, reportApi } from "../../../packages/config/api";
 import { useDocumentActions } from "../../../packages/hooks/data/useDocumentActions";
+import { useReportsData } from "../../../packages/hooks/data/useReportsData";
 import type { SavedHome, Report } from "../../../packages/schemas";
 import { useUIStore, useNegotiationStore } from "../../../packages/store";
 
@@ -23,12 +25,14 @@ export default function SavedHomes() {
     null
   );
   const [homes, setHomes] = useState<SavedHome[]>([]);
-  const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [viewType, setViewType] = useState<"homes" | "reports">("homes");
   const enqueueToast = useUIStore((s) => s.enqueueToast);
   const { setSelectedHome } = useNegotiationStore();
+
+  // Use reports data hook (same as Dashboard)
+  const { reports, reportsLoading, refreshReports } = useReportsData();
 
   // Use centralized document actions for reports
   const {
@@ -87,48 +91,6 @@ export default function SavedHomes() {
     setLoading(false);
   }, []);
 
-  // Fetch reports using reportApi.getAll()
-  const fetchReports = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await reportApi.getAll();
-      if (res.success && res.reports) {
-        // Map ReportDocument[] to Report[]
-        const mappedReports: Report[] = res.reports.map((doc) => {
-          // Safely create date, fallback to current date if invalid
-          let generatedAt: Date;
-          try {
-            generatedAt = doc.created_at
-              ? new Date(doc.created_at)
-              : new Date();
-            // Check if the date is valid
-            if (isNaN(generatedAt.getTime())) {
-              generatedAt = new Date();
-            }
-          } catch {
-            generatedAt = new Date();
-          }
-
-          return {
-            id: doc.id,
-            address: doc.primary_address ?? doc.filename ?? "",
-            generatedAt,
-            status: doc.status === "processed" ? "completed" : doc.status,
-            pdfUrl: doc.file_path ?? null,
-            s3Key: doc.file_path ?? null,
-          };
-        });
-        setReports(mappedReports);
-      } else {
-        void void setError(res.error ?? "Failed to load reports");
-      }
-    } catch {
-      void void setError("Failed to load reports");
-    }
-    setLoading(false);
-  }, []);
-
   // Load data when page loads or view type changes
   useEffect(() => {
     // Initialize from query param on first render
@@ -162,17 +124,16 @@ export default function SavedHomes() {
       (
         window as unknown as { refreshFavorites?: () => void }
       ).refreshFavorites = () => void fetchSavedHomes();
-    } else {
-      void fetchReports();
     }
-  }, [fetchSavedHomes, fetchReports, viewType]);
+    // Reports are automatically loaded by useReportsData hook
+  }, [fetchSavedHomes, viewType]);
 
   const refresh = async () => {
     setRefreshing(true);
     if (viewType === "homes") {
       await fetchSavedHomes();
     } else {
-      await fetchReports();
+      await refreshReports();
     }
     setRefreshing(false);
   };
@@ -322,7 +283,7 @@ export default function SavedHomes() {
       enqueueToast({ type: "success", message: "Report deleted successfully" });
 
       // Refresh the reports list
-      await fetchReports();
+      await refreshReports();
     } catch (error: unknown) {
       console.error("[DELETE] Error deleting report:", {
         error,
@@ -361,6 +322,13 @@ export default function SavedHomes() {
         }
       />
       <div className="space-y-8">
+        {/* Generate Report Component - Only show when reports view is toggled */}
+        {viewType === "reports" && (
+          <div className="mb-6">
+            <GenerateReportPage />
+          </div>
+        )}
+
         <SavedLayout
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
@@ -369,7 +337,7 @@ export default function SavedHomes() {
           }
           onRefresh={refresh}
           isRefreshing={refreshing}
-          isLoading={loading}
+          isLoading={viewType === "homes" ? loading : reportsLoading}
           refreshTitle={
             viewType === "homes" ? "Refresh saved homes" : "Refresh reports"
           }
@@ -459,7 +427,7 @@ export default function SavedHomes() {
           )
         ) : /* Reports View */
         filteredReports.length === 0 ? (
-          loading ? (
+          reportsLoading ? (
             <div className="py-responsive-lg flex justify-center">
               <KeyTurnLoader message="Loading reports..." />
             </div>

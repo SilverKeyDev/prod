@@ -10,11 +10,11 @@ import {
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
-import MiniLogo from "../../components/ui/asset/MiniLogo";
-import Button from "../../components/ui/button/Button";
-import KeyTurnLoader from "../../components/ui/loading/KeyTurnLoader";
-import { useChats } from "../../../../packages/contexts";
-import type { Chat } from "../../../../packages/schemas";
+import MiniLogo from "../../../components/ui/asset/MiniLogo";
+import Button from "../../../components/ui/button/Button";
+import KeyTurnLoader from "../../../components/ui/loading/KeyTurnLoader";
+import { useChats } from "../../../../../packages/contexts";
+import type { Chat } from "../../../../../packages/schemas";
 
 type ChatMessage = {
   id: string;
@@ -74,12 +74,12 @@ export default function AIAssistant() {
   };
 
   // Load chats from centralized context
-  const loadChatsFromContext = () => {
+  const loadChatsFromContext = React.useCallback(() => {
     try {
       if (chats && chats.length > 0) {
         const updatedChats = chats.map((contextChat: Chat) => {
           const existingChat = localChats.find(
-            (chat: Chat) => chat.id === contextChat.id,
+            (chat: Chat) => chat.id === contextChat.id
           );
           return {
             ...contextChat,
@@ -89,6 +89,7 @@ export default function AIAssistant() {
 
         setLocalChats(updatedChats);
 
+        // Only set activeChatId if we don't have one and there are chats available
         if (!activeChatId && updatedChats.length > 0) {
           setActiveChatId(updatedChats[0].id);
         }
@@ -99,23 +100,23 @@ export default function AIAssistant() {
       if (console && typeof console.error === "function") {
         console.error(
           "[AI_ASSISTANT] Error loading chats from context:",
-          error,
+          error
         );
       }
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [chats, localChats, activeChatId]);
 
   // Refresh on mount
   useEffect(() => {
     void refreshChats();
   }, [refreshChats]);
 
+  // Load chats when chats context changes
   useEffect(() => {
-    void void loadChatsFromContext();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chats]);
+    void loadChatsFromContext();
+  }, [loadChatsFromContext]);
 
   useEffect(() => {
     scrollToBottom();
@@ -129,8 +130,7 @@ export default function AIAssistant() {
         void loadChatHistory(activeChatId);
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeChatId]);
+  }, [activeChatId, chats]);
 
   const loadChatHistory = async (chatId: string) => {
     try {
@@ -250,19 +250,19 @@ export default function AIAssistant() {
                     }
                   })(),
           };
-        },
+        }
       );
 
       setLocalChats((prevChats) =>
         prevChats.map((c: Chat) =>
-          c.id === activeChatId ? { ...c, messages } : c,
-        ),
+          c.id === activeChatId ? { ...c, messages } : c
+        )
       );
     } catch (error: unknown) {
       if (console && typeof console.error === "function") {
         console.error(
           `[AI_ASSISTANT] Failed to load chat history for ${chatId}:`,
-          error,
+          error
         );
       }
     }
@@ -293,8 +293,8 @@ export default function AIAssistant() {
       prev.map((chat) =>
         chat.id === activeChatId
           ? { ...chat, messages: [...chat.messages, newMessage] }
-          : chat,
-      ),
+          : chat
+      )
     );
 
     setMessage("");
@@ -323,8 +323,8 @@ export default function AIAssistant() {
         prev.map((chat) =>
           chat.id === activeChatId
             ? { ...chat, messages: [...chat.messages, aiResponse] }
-            : chat,
-        ),
+            : chat
+        )
       );
     } catch (error: unknown) {
       if (console && typeof console.error === "function") {
@@ -342,8 +342,8 @@ export default function AIAssistant() {
         prev.map((chat) =>
           chat.id === activeChatId
             ? { ...chat, messages: [...chat.messages, errorMessage] }
-            : chat,
-        ),
+            : chat
+        )
       );
     } finally {
       setIsTyping(false);
@@ -555,7 +555,7 @@ export default function AIAssistant() {
                         {formatTime(
                           msg.timestamp instanceof Date
                             ? msg.timestamp
-                            : new Date(),
+                            : new Date()
                         )}
                       </p>
                     </div>

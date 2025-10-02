@@ -3,28 +3,29 @@ import {
   Download,
   Share,
   BarChart2,
-  Check,
   X,
   RefreshCw,
   Settings,
 } from "lucide-react";
 import React, { useState, useEffect, useCallback } from "react";
 
-import { Card } from "../../components/layout";
-import { Title, Subtitle } from "../../components/ui";
+import { Card } from "../../../components/layout";
+import { Title, Subtitle } from "../../../components/ui";
 // Core
-import { ALL_METRIC_KEYS, type Report } from "../../../../packages/schemas";
+import { ALL_METRIC_KEYS, type Report } from "../../../../../packages/schemas";
+// Components
+import { ComparisonSpreadsheet, ManageRowsModal } from ".";
 type ComparisonRow = {
   metric: string;
   [key: string]: string | number | boolean;
 };
-import type { DocumentWithBody } from "../../../../packages/schemas/google-maps";
-import { reportsService } from "../../../../packages/services";
-import { secureClipboardCopy } from "../../../../packages/services/security/clipboardSecurity";
-import { captureError } from "../../../../packages/services/security/errorReporting";
-import { log } from "../../../../packages/services/security/secureLogger";
-import { useReportsStore, useUIStore } from "../../../../packages/store";
-import { formatFilenameToAddress } from "../../../../packages/utils/address";
+import type { DocumentWithBody } from "../../../../../packages/schemas/google-maps";
+import { reportsService } from "../../../../../packages/services";
+import { secureClipboardCopy } from "../../../../../packages/services/security/clipboardSecurity";
+import { captureError } from "../../../../../packages/services/security/errorReporting";
+import { log } from "../../../../../packages/services/security/secureLogger";
+import { useReportsStore, useUIStore } from "../../../../../packages/store";
+import { formatFilenameToAddress } from "../../../../../packages/utils/address";
 
 // Context imports
 
@@ -48,7 +49,7 @@ export default function CompareReportsPage() {
   const [comparisonTable, setComparisonTable] = useState<ComparisonRow[]>([]);
   const [omittedRows, setOmittedRows] = useState<Set<string>>(new Set());
   const [manuallyEnabledRows, setManuallyEnabledRows] = useState<Set<string>>(
-    new Set(),
+    new Set()
   );
 
   // Load comparison state from localStorage on mount
@@ -71,7 +72,7 @@ export default function CompareReportsPage() {
           Array.isArray(parsed.omittedRows)
         ) {
           const omittedRowsArray = (parsed.omittedRows as unknown[]).filter(
-            (item: unknown): item is string => typeof item === "string",
+            (item: unknown): item is string => typeof item === "string"
           );
           setOmittedRows(new Set<string>(omittedRowsArray));
         }
@@ -114,7 +115,7 @@ export default function CompareReportsPage() {
         (str ?? "").toLowerCase().replace(/\s+/g, "_");
       const row = comparisonTable.find(
         (item: ComparisonRow) =>
-          sanitize(item.Address as string) === sanitize(report.address),
+          sanitize(item.Address as string) === sanitize(report.address)
       );
       const value = row ? row[metric] : null;
       // Consider a row to have data if it's not null, undefined, empty string, or just "-"
@@ -143,7 +144,7 @@ export default function CompareReportsPage() {
 
   // Get visible metrics (all metrics minus omitted ones)
   const visibleMetrics = ALL_METRIC_KEYS.filter(
-    (metric) => !allOmittedRows.has(metric),
+    (metric) => !allOmittedRows.has(metric)
   );
 
   // Removed fetchReports - now using preloaded data from context
@@ -169,7 +170,7 @@ export default function CompareReportsPage() {
         setIsLoading(true);
         const response = await reportsService.compareReports(
           selectedReports.map((r) => r.id),
-          keys,
+          keys
         );
 
         if (
@@ -182,7 +183,7 @@ export default function CompareReportsPage() {
         ) {
           const typedTable = response.table.filter(
             (item: unknown): item is ComparisonRow =>
-              typeof item === "object" && item !== null && "metric" in item,
+              typeof item === "object" && item !== null && "metric" in item
           );
           setComparisonTable(typedTable);
         } else {
@@ -205,7 +206,7 @@ export default function CompareReportsPage() {
         setIsLoading(false);
       }
     },
-    [selectedReports, enqueueToast],
+    [selectedReports, enqueueToast]
   );
 
   // Update comparison whenever selectedReports changes
@@ -253,7 +254,7 @@ export default function CompareReportsPage() {
       const values = selectedReports.map((r) => {
         const row = comparisonTable.find(
           (item: ComparisonRow) =>
-            sanitize(item.Address as string) === sanitize(r.address),
+            sanitize(item.Address as string) === sanitize(r.address)
         );
         return row ? ((row[metric] as string | number) ?? "-") : "-";
       });
@@ -262,7 +263,7 @@ export default function CompareReportsPage() {
     const csvRows = [header, ...rows].map((r) =>
       r
         .map((v: string | number) => `"${String(v).replace(/"/g, '""')}"`)
-        .join(","),
+        .join(",")
     );
     const csvContent = csvRows.join("\n");
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
@@ -289,7 +290,7 @@ export default function CompareReportsPage() {
       const values = selectedReports.map((r) => {
         const row = comparisonTable.find(
           (item: ComparisonRow) =>
-            sanitize(item.Address as string) === sanitize(r.address),
+            sanitize(item.Address as string) === sanitize(r.address)
         );
         return row ? ((row[metric] as string | number) ?? "-") : "-";
       });
@@ -298,7 +299,7 @@ export default function CompareReportsPage() {
     const csvRows = [header, ...rows].map((r) =>
       r
         .map((v: string | number) => `"${String(v).replace(/"/g, '""')}"`)
-        .join(","),
+        .join(",")
     );
     const csvContent = csvRows.join("\n");
 
@@ -435,9 +436,6 @@ export default function CompareReportsPage() {
                 ) : (
                   <RefreshCw className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                 )}
-                {!isLoading && (
-                  <RefreshCw className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-                )}
               </button>
             </div>
           </div>
@@ -473,7 +471,7 @@ export default function CompareReportsPage() {
             >
               {reports.map((report: Report) => {
                 const isSelected = selectedReports.some(
-                  (r) => r.id === report.id,
+                  (r) => r.id === report.id
                 );
                 return (
                   <div
@@ -541,77 +539,12 @@ export default function CompareReportsPage() {
         </Card>
 
         {/* Comparison Table */}
-        {selectedReports.length > 0 && (
-          <div className="scrollbar-hide mt-6 w-full overflow-x-auto rounded-lg border sm:mt-10">
-            <table
-              className="w-full border-collapse text-xs"
-              style={{ tableLayout: "fixed" }}
-            >
-              <thead className="bg-beige/30">
-                <tr>
-                  <th
-                    className="sticky left-0 bg-beige/30 px-2 py-2 text-left text-xs font-semibold text-black sm:px-4 sm:py-3"
-                    style={{ width: "25%" }}
-                  >
-                    Metric
-                  </th>
-                  {selectedReports.map((r) => {
-                    const colWidth =
-                      selectedReports.length >= 3
-                        ? "min-w-[120px] sm:min-w-[140px]"
-                        : "min-w-[150px] sm:min-w-[180px]";
-                    return (
-                      <th
-                        key={r.id}
-                        className={`px-2 py-2 text-left text-xs font-semibold text-black sm:px-4 sm:py-3 ${colWidth}`}
-                      >
-                        <div className="truncate" title={r.address}>
-                          {formatFilenameToAddress(r.address)}
-                        </div>
-                      </th>
-                    );
-                  })}
-                </tr>
-              </thead>
-              <tbody>
-                {visibleMetrics.map((metric: string) => (
-                  <tr key={metric} className="odd:bg-beige/10 even:bg-white">
-                    <td
-                      className="sticky left-0 bg-white/80 px-2 py-2 text-xs font-medium text-black backdrop-blur sm:px-4"
-                      style={{ width: "25%" }}
-                    >
-                      {metric}
-                    </td>
-                    {selectedReports.map((r) => {
-                      const sanitize = (str: string) =>
-                        (str ?? "").toLowerCase().replace(/\s+/g, "_");
-                      const row = comparisonTable.find(
-                        (item: ComparisonRow) =>
-                          sanitize(item.Address as string) ===
-                          sanitize(r.address),
-                      );
-                      const value = row ? (row[metric] ?? "-") : "-";
-                      const colWidth =
-                        selectedReports.length >= 3
-                          ? "min-w-[120px] sm:min-w-[140px]"
-                          : "min-w-[150px] sm:min-w-[180px]";
-                      return (
-                        <td
-                          key={r.id + metric}
-                          className={`whitespace-pre-wrap px-2 py-2 text-xs text-black/90 sm:px-4 ${colWidth}`}
-                        >
-                          <div className="max-w-full overflow-hidden">
-                            {value}
-                          </div>
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        <ComparisonSpreadsheet
+          selectedReports={selectedReports}
+          comparisonTable={comparisonTable}
+          visibleMetrics={visibleMetrics}
+          isLoading={isLoading}
+        />
 
         {/* Selection summary */}
         {selectedReports.length > 0 && (
@@ -631,163 +564,16 @@ export default function CompareReportsPage() {
         )}
 
         {/* Row Management Modal */}
-        {showRowModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-            <div className="flex max-h-[80vh] w-full max-w-2xl flex-col rounded-lg bg-white shadow-xl">
-              {/* Modal Header */}
-              <div className="flex items-center justify-between border-b border-gray-200 p-6">
-                <div>
-                  <Title size="md" className="font-semibold">
-                    Manage Comparison Rows
-                  </Title>
-                  <Subtitle size="xs" muted className="mt-1">
-                    Select which metrics to include in your comparison table
-                  </Subtitle>
-                </div>
-                <button
-                  onClick={() => setShowRowModal(false)}
-                  className="rounded-lg p-2 transition-colors hover:bg-gray-100"
-                >
-                  <X className="h-5 w-5 text-black/60" />
-                </button>
-              </div>
-
-              {/* Modal Content */}
-              <div className="flex-1 overflow-hidden p-6">
-                {/* Quick Actions */}
-                <div className="mb-6 flex flex-wrap gap-2">
-                  <button
-                    onClick={() => {
-                      setOmittedRows(new Set());
-                      setManuallyEnabledRows(new Set(ALL_METRIC_KEYS));
-                    }}
-                    className="rounded-lg bg-olive px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-olive-light"
-                  >
-                    Show All ({ALL_METRIC_KEYS.length})
-                  </button>
-                  <button
-                    onClick={() => {
-                      setOmittedRows(new Set(ALL_METRIC_KEYS));
-                      setManuallyEnabledRows(new Set());
-                    }}
-                    className="rounded-lg bg-beige px-4 py-2 text-sm font-medium text-black transition-colors hover:bg-beige/80"
-                  >
-                    Hide All
-                  </button>
-                  <button
-                    onClick={() => {
-                      setOmittedRows(new Set());
-                      setManuallyEnabledRows(new Set());
-                    }}
-                    className="rounded-lg bg-brown px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brown/80"
-                  >
-                    Auto-Hide Empty
-                  </button>
-                  <div className="rounded-lg bg-gray-100 px-4 py-2 text-sm text-black/60">
-                    Showing: {visibleMetrics.length} / {ALL_METRIC_KEYS.length}{" "}
-                    metrics
-                  </div>
-                </div>
-
-                {/* Metrics List */}
-                <div className="overflow-hidden rounded-lg border border-gray-200">
-                  <div className="custom-scrollbar max-h-96 overflow-y-auto">
-                    {ALL_METRIC_KEYS.map((metric, index) => {
-                      const isManuallyOmitted = omittedRows.has(metric);
-                      const isAutoOmitted =
-                        !hasDataForAnyProperty(metric) &&
-                        !manuallyEnabledRows.has(metric);
-                      const isOmitted = isManuallyOmitted ?? isAutoOmitted;
-                      const hasData = hasDataForAnyProperty(metric);
-
-                      return (
-                        <label
-                          key={metric}
-                          className={`flex cursor-pointer items-center space-x-3 p-4 transition-colors hover:bg-beige/20 ${
-                            index !== ALL_METRIC_KEYS.length - 1
-                              ? "border-b border-gray-100"
-                              : ""
-                          }`}
-                        >
-                          <div className="relative">
-                            <input
-                              type="checkbox"
-                              checked={!isOmitted}
-                              onChange={(
-                                e: React.ChangeEvent<HTMLInputElement>,
-                              ) => {
-                                if (e.target.checked) {
-                                  // Enable the row
-                                  const newOmittedRows = new Set(omittedRows);
-                                  newOmittedRows.delete(metric);
-                                  setOmittedRows(newOmittedRows);
-
-                                  // If it was auto-omitted, mark as manually enabled
-                                  if (!hasData) {
-                                    const newManuallyEnabled = new Set(
-                                      manuallyEnabledRows,
-                                    );
-                                    newManuallyEnabled.add(metric);
-                                    setManuallyEnabledRows(newManuallyEnabled);
-                                  }
-                                } else {
-                                  // Disable the row
-                                  const newOmittedRows = new Set(omittedRows);
-                                  newOmittedRows.add(metric);
-                                  setOmittedRows(newOmittedRows);
-
-                                  // Remove from manually enabled if it was there
-                                  const newManuallyEnabled = new Set(
-                                    manuallyEnabledRows,
-                                  );
-                                  newManuallyEnabled.delete(metric);
-                                  setManuallyEnabledRows(newManuallyEnabled);
-                                }
-                              }}
-                              className="sr-only"
-                            />
-                            <div
-                              className={`flex h-5 w-5 items-center justify-center rounded border-2 transition-all duration-200 ${
-                                !isOmitted
-                                  ? "border-brown bg-brown text-white shadow-sm"
-                                  : "border-beige bg-white hover:border-brown/50"
-                              }`}
-                            >
-                              {!isOmitted && (
-                                <Check className="h-3 w-3 fill-current" />
-                              )}
-                            </div>
-                          </div>
-                          <div className="flex-1">
-                            <span
-                              className={`text-sm font-medium transition-colors ${
-                                isOmitted
-                                  ? "text-black/40 line-through"
-                                  : "text-black"
-                              }`}
-                            >
-                              {metric}
-                            </span>
-                            {isAutoOmitted && (
-                              <span className="text-xs text-gray-500">
-                                auto-hidden: no data
-                              </span>
-                            )}
-                            {!hasData && manuallyEnabledRows.has(metric) && (
-                              <span className="text-xs text-gray-500">
-                                manually enabled
-                              </span>
-                            )}
-                          </div>
-                        </label>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        <ManageRowsModal
+          showRowModal={showRowModal}
+          setShowRowModal={setShowRowModal}
+          omittedRows={omittedRows}
+          setOmittedRows={setOmittedRows}
+          manuallyEnabledRows={manuallyEnabledRows}
+          setManuallyEnabledRows={setManuallyEnabledRows}
+          hasDataForAnyProperty={hasDataForAnyProperty}
+          visibleMetrics={visibleMetrics}
+        />
       </div>
     </div>
   );

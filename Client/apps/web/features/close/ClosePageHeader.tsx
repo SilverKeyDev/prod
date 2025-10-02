@@ -1,13 +1,24 @@
 import Card from "../../components/layout/Card";
 import MiniLogo from "../../components/ui/asset/MiniLogo";
 
+type ChecklistTab = "escrow" | "inspections" | "financing" | "closing";
+
 type ClosePageHeaderProps = {
   title: string;
   subtitle: string;
   completedCount: number;
   totalCount: number;
   loading?: boolean;
+  activeTab?: ChecklistTab;
+  onTabChange?: (tab: ChecklistTab) => void;
 };
+
+const tabs: Array<{ id: ChecklistTab; label: string }> = [
+  { id: "escrow", label: "Escrow & Legal" },
+  { id: "inspections", label: "Inspections & Due Diligence" },
+  { id: "financing", label: "Financing & Insurance" },
+  { id: "closing", label: "Closing & Move-In" },
+];
 
 export default function ClosePageHeader({
   title,
@@ -15,75 +26,79 @@ export default function ClosePageHeader({
   completedCount,
   totalCount,
   loading = false,
+  activeTab,
+  onTabChange,
 }: ClosePageHeaderProps) {
   return (
-    <>
-      {/* Desktop Header */}
-      <div className="hidden lg:mx-auto lg:block lg:max-w-[90vw] lg:px-4 xl:px-6 2xl:px-8">
-        <Card className="relative z-30 rounded-b-none rounded-t-2xl border-b border-beige/40 p-2 sm:p-3 lg:p-4">
-          <div className="flex justify-center py-2">
-            <div className="flex flex-col items-center">
-              {/* Title row with logo */}
-              <div className="gap-2 lg:gap-3 xl:gap-4 flex items-center justify-center">
-                <MiniLogo size="sm" className="lg:hidden" />
+    <div className="mx-auto w-full max-w-[90vw] px-4 xl:px-6 2xl:px-8">
+      <Card
+        className="relative z-30 border-b border-beige/40 px-3 pt-3"
+        padding="none"
+      >
+        <div className="flex justify-center">
+          <div className="flex flex-col items-center">
+            {/* Title row with logo */}
+            <div className="flex items-center justify-center">
+              <div className="flex-shrink-0">
+                <MiniLogo size="xs" className="sm:hidden" />
+                <MiniLogo size="sm" className="hidden sm:block lg:hidden" />
                 <MiniLogo size="md" className="hidden lg:block xl:hidden" />
                 <MiniLogo size="lg" className="hidden xl:block" />
-                <h1 className="heading-responsive-md text-navy">{title}</h1>
               </div>
+              <h1 className="text-sm sm:text-base lg:heading-responsive-md font-semibold lg:font-normal text-navy">
+                {title}
+              </h1>
+            </div>
 
-              {/* Subtitle */}
-              <p className="text-responsive-sm text-navy/70 mt-1">{subtitle}</p>
+            {/* Subtitle */}
+            <p className="text-xs sm:text-sm lg:text-responsive-sm text-navy/70 mt-1">
+              {subtitle}
+            </p>
+          </div>
+        </div>
+
+        {/* Progress Bar */}
+        {!loading && (
+          <div className="mt-1 lg:mt-2">
+            <div className="h-1 lg:h-2 w-full rounded bg-beige/30">
+              <div
+                className="h-full rounded bg-olive transition-all duration-500"
+                style={{ width: `${(completedCount / totalCount) * 100}%` }}
+              />
             </div>
           </div>
+        )}
 
-          {/* Progress Bar */}
-          {!loading && (
-            <div className="mt-2">
-              {/* <p className="mb-1 text-center text-xs text-navy/70">
-                {completedCount} of {totalCount} items completed
-              </p> */}
-              <div className="h-2 w-full rounded bg-beige/30">
+        {/* Tabs Bar */}
+        {activeTab && onTabChange && (
+          <div className="mt-2 lg:mt-3">
+            <div className="flex justify-center overflow-x-auto scrollbar-hide">
+              {tabs.map((tab, index) => (
                 <div
-                  className="h-full rounded bg-olive transition-all duration-500"
-                  style={{ width: `${(completedCount / totalCount) * 100}%` }}
-                />
-              </div>
-            </div>
-          )}
-        </Card>
-      </div>
-
-      {/* Mobile Header */}
-      <div className="mx-auto w-full lg:hidden">
-        <Card className="relative z-30 rounded-2xl border-b border-beige/40 p-1 sm:p-2">
-          <div className="flex justify-center py-1">
-            <div className="flex flex-col items-center">
-              {/* Title row with logo */}
-              <div className="flex items-center justify-center gap-2 sm:gap-3">
-                <div className="flex-shrink-0">
-                  <MiniLogo size="xs" className="sm:hidden" />
-                  <MiniLogo size="sm" className="hidden sm:block" />
+                  key={tab.id}
+                  className="flex items-center flex-1 max-w-[23.75%]"
+                >
+                  <button
+                    onClick={() => onTabChange(tab.id)}
+                    className={`w-full px-2 lg:px-responsive-sm py-1 lg:py-responsive-xs text-xs lg:text-sm font-medium transition-all duration-200 mx-1 ${
+                      activeTab === tab.id
+                        ? "text-olive border-b-2 border-olive"
+                        : "text-navy/70 hover:bg-olive/10 hover:text-olive hover:shadow-sm rounded-lg"
+                    }`}
+                  >
+                    <div className="text-center text-xs lg:text-sm font-medium">
+                      {tab.label}
+                    </div>
+                  </button>
+                  {index < tabs.length - 1 && (
+                    <div className="h-4 lg:h-6 w-px bg-gray-300 mx-1 lg:mx-2" />
+                  )}
                 </div>
-                <h1 className="text-sm sm:text-base font-semibold text-navy">
-                  {title}
-                </h1>
-              </div>
+              ))}
             </div>
           </div>
-
-          {/* Progress Bar */}
-          {!loading && (
-            <div className="mt-1">
-              <div className="h-1 w-full rounded bg-beige/30">
-                <div
-                  className="h-full rounded bg-olive transition-all duration-500"
-                  style={{ width: `${(completedCount / totalCount) * 100}%` }}
-                />
-              </div>
-            </div>
-          )}
-        </Card>
-      </div>
-    </>
+        )}
+      </Card>
+    </div>
   );
 }
