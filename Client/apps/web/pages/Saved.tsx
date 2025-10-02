@@ -15,6 +15,8 @@ import { useDocumentActions } from "../../../packages/hooks/data/useDocumentActi
 import { useReportsData } from "../../../packages/hooks/data/useReportsData";
 import type { SavedHome, Report } from "../../../packages/schemas";
 import { useUIStore, useNegotiationStore } from "../../../packages/store";
+import CompareReportsPage from "../features/decide/compare/CompareReportsPage";
+import AIAssistant from "../features/decide/aiAssistant/AIAssistant";
 
 export default function SavedHomes() {
   const location = useLocation();
@@ -28,6 +30,9 @@ export default function SavedHomes() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [viewType, setViewType] = useState<"homes" | "reports">("homes");
+  const [reportsSubView, setReportsSubView] = useState<
+    "reports" | "compare" | "chatbot"
+  >("reports");
   const enqueueToast = useUIStore((s) => s.enqueueToast);
   const { setSelectedHome } = useNegotiationStore();
 
@@ -114,6 +119,11 @@ export default function SavedHomes() {
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewType]);
+
+  // Reset reports subview when switching to homes
+  useEffect(() => {
+    if (viewType === "homes") setReportsSubView("reports");
   }, [viewType]);
 
   // Fetch data for current view
@@ -336,6 +346,42 @@ export default function SavedHomes() {
             viewType === "homes" ? "Search saved homes..." : "Filter by address"
           }
           showSearch={viewType !== "reports"}
+          leftContent={
+            viewType === "reports" ? (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setReportsSubView("compare")}
+                  className={`touch-friendly rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                    reportsSubView === "compare"
+                      ? "bg-olive text-white"
+                      : "bg-beige text-white hover:bg-beige/80"
+                  }`}
+                >
+                  Compare
+                </button>
+                <button
+                  onClick={() => setReportsSubView("chatbot")}
+                  className={`touch-friendly rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                    reportsSubView === "chatbot"
+                      ? "bg-olive text-white"
+                      : "bg-beige text-white hover:bg-beige/80"
+                  }`}
+                >
+                  Chatbot
+                </button>
+                <button
+                  onClick={() => setReportsSubView("reports")}
+                  className={`touch-friendly rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                    reportsSubView === "reports"
+                      ? "bg-olive text-white"
+                      : "bg-beige text-white hover:bg-beige/80"
+                  }`}
+                >
+                  Reports
+                </button>
+              </div>
+            ) : null
+          }
           onRefresh={refresh}
           isRefreshing={refreshing}
           isLoading={viewType === "homes" ? loading : reportsLoading}
@@ -427,7 +473,11 @@ export default function SavedHomes() {
             </div>
           )
         ) : /* Reports View */
-        filteredReports.length === 0 ? (
+        reportsSubView === "compare" ? (
+          <CompareReportsPage />
+        ) : reportsSubView === "chatbot" ? (
+          <AIAssistant />
+        ) : filteredReports.length === 0 ? (
           reportsLoading ? (
             <div className="py-responsive-lg flex justify-center">
               <KeyTurnLoader message="Loading reports..." />

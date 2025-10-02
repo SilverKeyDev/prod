@@ -11,6 +11,7 @@ type SavedLayoutProps = {
   onSearchChange: (value: string) => void;
   searchPlaceholder?: string;
   showSearch?: boolean;
+  leftContent?: React.ReactNode;
   viewMode?: ViewMode;
   onViewModeChange?: (mode: ViewMode) => void;
   showViewToggle?: boolean;
@@ -28,6 +29,7 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
   onSearchChange,
   searchPlaceholder = "Filter by address",
   showSearch = true,
+  leftContent,
   viewMode = "grid",
   onViewModeChange,
   showViewToggle = true,
@@ -72,7 +74,7 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
       <Card className="mb-4">
         <div className="flex min-h-[44px] items-center justify-between gap-4">
           <div className="flex min-w-0 flex-1 items-center gap-4">
-            {showSearch && (
+            {showSearch ? (
               <div className="relative min-w-[200px] flex-1">
                 <Search className="mobile-icon-xs absolute left-3 top-1/2 -translate-y-1/2 transform text-black/40" />
                 <input
@@ -85,6 +87,10 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
                   placeholder={searchPlaceholder}
                 />
               </div>
+            ) : (
+              leftContent && (
+                <div className="min-w-[200px] flex-1">{leftContent}</div>
+              )
             )}
             {rightText && (
               <div className="hidden shrink-0 whitespace-nowrap text-sm text-gray-600 sm:block">
