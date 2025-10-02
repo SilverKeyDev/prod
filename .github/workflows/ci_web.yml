@@ -40,7 +40,7 @@ jobs:
           docker system df || echo "Docker not available yet"
           echo ""
           echo "=== LARGEST DIRECTORIES ==="
-          du -h --max-depth=1 / 2>/dev/null | sort -hr | head -10 || echo "Cannot access root directories"
+          timeout 10s du -h --max-depth=1 /home /var /usr /opt /tmp 2>/dev/null | sort -hr | head -10 || echo "Directory scan timed out or failed"
           echo "================================"
 
       # Snapshot env keys before loading secrets (for a safe diff later)
@@ -216,7 +216,7 @@ jobs:
           docker system df
           echo ""
           echo "=== LARGEST DIRECTORIES AFTER BUILD ==="
-          du -h --max-depth=1 / 2>/dev/null | sort -hr | head -10 || echo "Cannot access root directories"
+          timeout 10s du -h --max-depth=1 /home /var /usr /opt /tmp 2>/dev/null | sort -hr | head -10 || echo "Directory scan timed out or failed"
           echo "=========================================="
 
       - name: SSH into EC2 and Deploy Container + Copy Frontend
@@ -274,7 +274,7 @@ jobs:
             sudo docker system df || echo "Docker not available yet"
             echo ""
             echo "=== LARGEST DIRECTORIES (EC2) ==="
-            sudo du -h --max-depth=1 / 2>/dev/null | sort -hr | head -10 || echo "Cannot access root directories"
+            timeout 10s sudo du -h --max-depth=1 /home /var /usr /opt /tmp 2>/dev/null | sort -hr | head -10 || echo "Directory scan timed out or failed"
             echo "===================================="
 
             REGION="$AWS_REGION"
@@ -438,5 +438,5 @@ jobs:
             sudo docker system df
             echo ""
             echo "=== LARGEST DIRECTORIES (FINAL) ==="
-            sudo du -h --max-depth=1 / 2>/dev/null | sort -hr | head -10 || echo "Cannot access root directories"
+            timeout 10s sudo du -h --max-depth=1 /home /var /usr /opt /tmp 2>/dev/null | sort -hr | head -10 || echo "Directory scan timed out or failed"
             echo "====================================="
