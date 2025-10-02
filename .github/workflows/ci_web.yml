@@ -28,7 +28,20 @@ jobs:
           aws-region: ${{ env.REGION }}
 
       - name: Install jq (for JSON parsing)
-        run: sudo apt-get update -y && sudo apt-get install -y jq
+        run: sudo apt-get update -y && sudo apt-get install -y jq > /dev/null 2>&1
+
+      # Log initial storage usage
+      - name: Log initial storage usage
+        run: |
+          echo "=== INITIAL STORAGE USAGE ==="
+          df -h
+          echo ""
+          echo "=== DOCKER STORAGE BREAKDOWN ==="
+          docker system df || echo "Docker not available yet"
+          echo ""
+          echo "=== LARGEST DIRECTORIES ==="
+          du -h --max-depth=1 / 2>/dev/null | sort -hr | head -10 || echo "Cannot access root directories"
+          echo "================================"
 
       # Snapshot env keys before loading secrets (for a safe diff later)
       - name: Snapshot env (before secrets)
@@ -192,7 +205,19 @@ jobs:
 
           # Clean up only local build artifacts, keep the pushed image
           docker rmi $REPO:$IMAGE_TAG || true
-          docker system prune -af || true
+          # Don't prune all images here - it removes GitHub Actions' Docker images
+          docker system prune -f || true
+
+          # Log storage usage after build
+          echo "=== STORAGE USAGE AFTER BUILD ==="
+          df -h
+          echo ""
+          echo "=== DOCKER STORAGE BREAKDOWN AFTER BUILD ==="
+          docker system df
+          echo ""
+          echo "=== LARGEST DIRECTORIES AFTER BUILD ==="
+          du -h --max-depth=1 / 2>/dev/null | sort -hr | head -10 || echo "Cannot access root directories"
+          echo "=========================================="
 
       - name: SSH into EC2 and Deploy Container + Copy Frontend
         uses: appleboy/ssh-action@v1.0.0
@@ -241,6 +266,17 @@ jobs:
             set -e
             echo "🕒 $(date -u +'%Y-%m-%dT%H:%M:%SZ') Starting EC2 deployment..."
 
+            # Log initial EC2 storage usage
+            echo "=== INITIAL EC2 STORAGE USAGE ==="
+            df -h
+            echo ""
+            echo "=== DOCKER STORAGE BREAKDOWN (EC2) ==="
+            sudo docker system df || echo "Docker not available yet"
+            echo ""
+            echo "=== LARGEST DIRECTORIES (EC2) ==="
+            sudo du -h --max-depth=1 / 2>/dev/null | sort -hr | head -10 || echo "Cannot access root directories"
+            echo "===================================="
+
             REGION="$AWS_REGION"
             REPO="cre"
             IMAGE_TAG="latest"
@@ -258,24 +294,23 @@ jobs:
             while sudo fuser /var/lib/apt/lists/lock >/dev/null 2>&1 || sudo fuser /var/lib/dpkg/lock >/dev/null 2>&1; do
               sleep 3
             done
-            sudo apt update -y
-            timeout 3m sudo apt install -y docker.io unzip curl > /dev/null
+            sudo apt update -y > /dev/null 2>&1
+            timeout 3m sudo apt install -y docker.io unzip curl > /dev/null 2>&1
 
-            # Aggressive cleanup of docker caches/volumes/images
-            sudo docker system prune -af --volumes || true
-            sudo docker builder prune -af || true
-            sudo docker image prune -af || true
+            # Safe cleanup of docker caches/volumes/images (don't remove all images)
+            sudo docker system prune -f --volumes || true
+            sudo docker builder prune -f || true
             sudo docker container prune -f || true
             sudo docker network prune -f || true
             sudo rm -rf /var/lib/docker/tmp/* || true
             sudo rm -rf /tmp/* || true
-            sudo apt autoremove -y || true
-            sudo apt autoclean || true
+            sudo apt autoremove -y > /dev/null 2>&1 || true
+            sudo apt autoclean > /dev/null 2>&1 || true
 
             # AWS CLI (if missing)
             if ! aws --version | grep -q aws-cli; then
               curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-              unzip -q awscliv2.zip && sudo ./aws/install && rm -rf aws awscliv2.zip
+              unzip -q awscliv2.zip && sudo ./aws/install > /dev/null 2>&1 && rm -rf aws awscliv2.zip
             fi
 
             # Pull image from ECR with space optimization
@@ -284,12 +319,12 @@ jobs:
             aws ecr get-login-password --region "$REGION" \
               | sudo docker login --username AWS --password-stdin "$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com" 2>/dev/null
 
-            # Clean up any existing images before pull
-            sudo docker image prune -af || true
+            # Clean up any existing images before pull (safe cleanup)
+            sudo docker image prune -f || true
             sudo docker pull "$IMAGE"
 
-            # Clean up unused images after successful pull
-            sudo docker image prune -af || true
+            # Clean up unused images after successful pull (safe cleanup)
+            sudo docker image prune -f || true
 
             # Stop old containers if present and clean up
             for name in cre_app cre_worker; do
@@ -299,9 +334,9 @@ jobs:
               fi
             done
 
-            # Clean up any dangling containers and images
+            # Clean up any dangling containers and images (safe cleanup)
             sudo docker container prune -f || true
-            sudo docker image prune -af || true
+            sudo docker image prune -f || true
 
             # Redis fresh
             if sudo docker ps -a --format '{{.Names}}' | grep -q '^redis$'; then
@@ -349,7 +384,7 @@ jobs:
             # -------- Celery worker (explicit env values) --------
             sudo docker run -d --name cre_worker \
               --link redis:redis \
-              --health-cmd="celery -A app.celery.celery_worker inspect ping || exit 1" \
+              --health-cmd="celery -A app.celery inspect ping || exit 1" \
               --health-interval=60s \
               --health-timeout=30s \
               --health-retries=3 \
@@ -374,7 +409,7 @@ jobs:
               -e SERP_API="${SERP_API}" \
               -e RAPIDAPI_KEY="${RAPIDAPI_KEY}" \
               "$IMAGE" \
-              celery -A app.celery.celery_worker worker --loglevel=info
+              celery -A app.celery worker --loglevel=info
 
             # (Optional) Export built frontend from container into host path for a future Nginx/Apache
             sudo rm -rf /var/www/html/* || true
@@ -394,3 +429,14 @@ jobs:
             sudo docker inspect --format='{{json .State.Health}}' cre_worker || true
             echo "redis health:"
             sudo docker inspect --format='{{json .State.Health}}' redis || true
+
+            # Log final EC2 storage usage
+            echo "=== FINAL EC2 STORAGE USAGE ==="
+            df -h
+            echo ""
+            echo "=== DOCKER STORAGE BREAKDOWN (FINAL) ==="
+            sudo docker system df
+            echo ""
+            echo "=== LARGEST DIRECTORIES (FINAL) ==="
+            sudo du -h --max-depth=1 / 2>/dev/null | sort -hr | head -10 || echo "Cannot access root directories"
+            echo "====================================="
