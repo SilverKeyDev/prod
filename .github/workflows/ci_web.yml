@@ -88,10 +88,10 @@ jobs:
             echo "SERP_API=${SERP_SERP_API}"
             echo "RAPIDAPI_KEY=${RAPIDAPI_RAPIDAPI_KEY}"
 
-            # COGNITO comes from the Secrets Manager secret named COGNITO
-            echo "COGNITO_USER_POOL_ID=${COGNITO_USER_POOL_ID}"
-            echo "COGNITO_CLIENT_ID=${COGNITO_CLIENT_ID}"
-            echo "COGNITO_CLIENT_SECRET=${COGNITO_CLIENT_SECRET}"
+            # AWS_COGNITO comes from the Secrets Manager secret named AWS_COGNITO
+            echo "AWS_COGNITO_USER_POOL_ID=${AWS_COGNITO_USER_POOL_ID}"
+            echo "AWS_COGNITO_CLIENT_ID=${AWS_COGNITO_CLIENT_ID}"
+            echo "AWS_COGNITO_CLIENT_SECRET=${AWS_COGNITO_CLIENT_SECRET}"
           } >> "$GITHUB_ENV"
 
       # Show which keys were added by the normalization step
@@ -148,10 +148,10 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-          # From Secrets Manager: COGNITO (normalized above)
-          COGNITO_USER_POOL_ID: ${{ env.COGNITO_USER_POOL_ID }}
-          COGNITO_CLIENT_ID: ${{ env.COGNITO_CLIENT_ID }}
-          COGNITO_CLIENT_SECRET: ${{ env.COGNITO_CLIENT_SECRET }}
+          # From Secrets Manager: AWS_COGNITO (normalized above)
+          AWS_COGNITO_USER_POOL_ID: ${{ env.AWS_COGNITO_USER_POOL_ID }}
+          AWS_COGNITO_CLIENT_ID: ${{ env.AWS_COGNITO_CLIENT_ID }}
+          AWS_COGNITO_CLIENT_SECRET: ${{ env.AWS_COGNITO_CLIENT_SECRET }}
 
           # From Secrets Manager: gmaps
           GOOGLE_MAPS_API_KEY: ${{ env.GOOGLE_MAPS_API_KEY }}
@@ -189,7 +189,7 @@ jobs:
           envs: >
             AWS_REGION,AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,
             DATABASE_URL,
-            COGNITO_USER_POOL_ID,COGNITO_CLIENT_ID,COGNITO_CLIENT_SECRET,
+            AWS_COGNITO_USER_POOL_ID,AWS_COGNITO_CLIENT_ID,AWS_COGNITO_CLIENT_SECRET,
             GOOGLE_MAPS_API_KEY,GOOGLE_CALENDAR_SECRET,GOOGLE_CLIENT_ID,
             CENSUS_API_KEY,MAPBOX_API_KEY,OPENAI_KEY,PERPLEXITY_API_KEY,
             PLAID_SANDBOX_KEY,PLAID_SECRET,VITE_PLAID_CLIENT_ID,
@@ -261,9 +261,9 @@ jobs:
               -e AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}" \
               -e AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}" \
               -e DATABASE_URL="${DATABASE_URL}" \
-              -e COGNITO_USER_POOL_ID="${COGNITO_USER_POOL_ID}" \
-              -e COGNITO_CLIENT_ID="${COGNITO_CLIENT_ID}" \
-              -e COGNITO_CLIENT_SECRET="${COGNITO_CLIENT_SECRET}" \
+              -e AWS_COGNITO_USER_POOL_ID="${AWS_COGNITO_USER_POOL_ID}" \
+              -e AWS_COGNITO_CLIENT_ID="${AWS_COGNITO_CLIENT_ID}" \
+              -e AWS_COGNITO_CLIENT_SECRET="${AWS_COGNITO_CLIENT_SECRET}" \
               -e GOOGLE_MAPS_API_KEY="${GOOGLE_MAPS_API_KEY}" \
               -e GOOGLE_CALENDAR_SECRET="${GOOGLE_CALENDAR_SECRET}" \
               -e GOOGLE_CLIENT_ID="${GOOGLE_CLIENT_ID}" \
@@ -290,9 +290,9 @@ jobs:
               -e AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}" \
               -e AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}" \
               -e DATABASE_URL="${DATABASE_URL}" \
-              -e COGNITO_USER_POOL_ID="${COGNITO_USER_POOL_ID}" \
-              -e COGNITO_CLIENT_ID="${COGNITO_CLIENT_ID}" \
-              -e COGNITO_CLIENT_SECRET="${COGNITO_CLIENT_SECRET}" \
+              -e AWS_COGNITO_USER_POOL_ID="${AWS_COGNITO_USER_POOL_ID}" \
+              -e AWS_COGNITO_CLIENT_ID="${AWS_COGNITO_CLIENT_ID}" \
+              -e AWS_COGNITO_CLIENT_SECRET="${AWS_COGNITO_CLIENT_SECRET}" \
               -e GOOGLE_MAPS_API_KEY="${GOOGLE_MAPS_API_KEY}" \
               -e GOOGLE_CALENDAR_SECRET="${GOOGLE_CALENDAR_SECRET}" \
               -e GOOGLE_CLIENT_ID="${GOOGLE_CLIENT_ID}" \
