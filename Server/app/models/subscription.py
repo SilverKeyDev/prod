@@ -7,8 +7,6 @@ class Subscription(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)  # Changed to String to match User.id
-    stripe_subscription_id = db.Column(db.String(255), unique=True, nullable=True)
-    stripe_customer_id = db.Column(db.String(255), unique=True, nullable=True)
     plan_id = db.Column(db.String(50), nullable=False)  # e.g., '5-reports', 'unlimited-monthly'
     status = db.Column(db.String(20), nullable=False)  # active, trialing, past_due, canceled, unpaid
     current_period_start = db.Column(db.DateTime, nullable=True)

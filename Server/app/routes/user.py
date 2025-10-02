@@ -34,49 +34,6 @@ def get_user_profile():
         })
 
 
-@user_bp.route('/billing-info', methods=['GET'])
-@rate_limit(max_requests=50, window_seconds=60)
-def get_billing_info():
-    """Get the current user's subscription and report usage information"""
-    try:
-        user = get_current_user()
-        if not user:
-            return security_error_response(SecurityError.UNAUTHORIZED)
-        
-        # Get subscription info
-        subscription = Subscription.query.filter_by(user_id=user.id).first()
-        subscription_data = None
-        if subscription:
-            subscription_data = {
-                'status': subscription.status,
-                'plan_id': subscription.plan_id,
-                'current_period_end': subscription.current_period_end.isoformat() if subscription.current_period_end else None,
-                'cancel_at_period_end': subscription.cancel_at_period_end,
-                'reports_limit': subscription.reports_limit,
-                'stripe_subscription_id': subscription.stripe_subscription_id
-            }
-
-        
-        return jsonify({
-            'success': True,
-            'data': {
-                'subscription': subscription_data,
-                'has_active_subscription': (
-                    subscription and subscription.status == 'active')
-            }
-        })
-        
-    except (SecurityException, ExpiredSignatureError, JWTError) as e:
-        return jsonify({'success': False, 'error': 'Authentication required'}), 401
-    except Exception as e:
-        return SecureErrorHandler.handle_database_error(e, {
-            'function': 'get_billing_info',
-            'user_id': 'unknown'
-        })
-
-
-
-
 def _parse_checklist(raw_value):
     """Helper to safely parse a stored checklist string back to Python list."""
     if not raw_value:

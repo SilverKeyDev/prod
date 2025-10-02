@@ -130,7 +130,7 @@ export default function InspectionsChecklist({
       ],
       resource: {
         label: "Check Home Data with SilverKey",
-        href: "https://silverkeyestates.com/",
+        href: "https://usesilverkey.com",
       },
     },
   ];

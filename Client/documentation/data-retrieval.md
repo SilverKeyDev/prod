@@ -495,7 +495,7 @@ export function usePropertyDetails(): UsePropertyDetailsReturn {
 The SilverKey application now uses a comprehensive state management architecture with:
 
 - **9 Zustand Stores**: UI, Session, Filters, View, User, Reports, Documents, SavedHomes, Billing, Negotiation
-- **7 TanStack Query Hooks**: Reports, SavedHomes, User, Chats, Documents, PropertyDetails, StripePayment
+- **7 TanStack Query Hooks**: Reports, SavedHomes, User, Chats, Documents, PropertyDetails
 - **3 Middleware Layers**: DevTools, PersistSafe, WithResettable
 - **Comprehensive Query Keys**: Organized by domain with filter integration
 - **Store Integration**: Hooks that sync TanStack Query state to Zustand stores

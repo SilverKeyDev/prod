@@ -126,26 +126,6 @@ def security_headers(response):
     return response
 ```
 
-### CORS Configuration
-
-```python
-# Restricted CORS origins
-CORS(app, resources={
-    r"/*": {
-        "origins": [
-            "https://silverkeyestates.com",
-            "https://www.silverkeyestates.com",
-            "http://localhost:3000",
-            "http://localhost:5173",
-            # Development IPs only
-        ],
-        "supports_credentials": True,
-        "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"],
-        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-    },
-})
-```
-
 ### API Security
 
 - **RESTful Design**: Consistent API patterns
@@ -326,12 +306,11 @@ class SecurityError:
   http-equiv="Content-Security-Policy"
   content="
   default-src 'self';
-  script-src 'self' 'unsafe-inline' 'unsafe-eval' https://maps.googleapis.com https://js.stripe.com;
+  script-src 'self' 'unsafe-inline' 'unsafe-eval' https://maps.googleapis.com;
   style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
   font-src 'self' https://fonts.gstatic.com;
   img-src 'self' data: https: blob:;
-  connect-src 'self' https://api.stripe.com https://maps.googleapis.com;
-  frame-src https://js.stripe.com;
+  connect-src 'self' https://maps.googleapis.com;
   object-src 'none';
   base-uri 'self';
   form-action 'self';
@@ -482,7 +461,6 @@ def log_security_event(event_type, details=None, user_id=None):
 
 For security-related questions, concerns, or to report vulnerabilities:
 
-- **Email**: [security@silverkeyestates.com](mailto:security@silverkeyestates.com)
 - **Response Time**: 24-48 hours for security issues
 - **Vulnerability Reporting**: Please use responsible disclosure practices
 

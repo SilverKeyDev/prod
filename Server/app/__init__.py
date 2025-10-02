@@ -171,7 +171,6 @@ def create_app(config=None):
     from .routes.report import report_bp
     from .routes.dashboard import dashboard_bp
     from .routes.auth import auth_bp
-    from .routes.payment import payment_bp
     from .routes.user import user_bp
     from .routes.preferences import preferences_bp
     from .routes.chatbot import chatbot_bp
@@ -186,7 +185,6 @@ def create_app(config=None):
     app.register_blueprint(report_bp)
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(auth_bp)
-    app.register_blueprint(payment_bp)
     app.register_blueprint(user_bp)
     app.register_blueprint(preferences_bp)
     app.register_blueprint(chatbot_bp)

@@ -84,7 +84,7 @@ class EnvConfig {
     if (this.isDevelopment) {
       return "";
     }
-    return "https://silverkeyestates.com";
+    return "https://usesilverkey.com";
   }
 
   get apiTimeout(): number {

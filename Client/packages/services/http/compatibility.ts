@@ -41,7 +41,7 @@ const getEnvVar = (key: string, defaultValue: string): string => {
 const localHttpConfig: HttpClientConfig = {
   // In development: empty string uses Vite proxy
   // In production: full URL to production backend
-  baseUrl: (import.meta.env.DEV ? "" : "https://silverkeyestates.com").replace(
+  baseUrl: (import.meta.env.DEV ? "" : "https://usesilverkey.com").replace(
     /\/+$/,
     "",
   ),
@@ -142,7 +142,7 @@ export async function apiRequest<T = unknown>(
   // Construct full URL (avoid double slashes) - using centralized logic
   const base = normalizeBase(
     baseUrl ??
-      (import.meta.env.DEV ? "" : "https://silverkeyestates.com").replace(
+      (import.meta.env.DEV ? "" : "https://usesilverkey.com").replace(
         /\/+$/,
         "",
       ),
@@ -280,7 +280,7 @@ export async function apiDownloadBlob(
 
   const base = normalizeBase(
     baseUrl ??
-      (import.meta.env.DEV ? "" : "https://silverkeyestates.com").replace(
+      (import.meta.env.DEV ? "" : "https://usesilverkey.com").replace(
         /\/+$/,
         "",
       ),
@@ -408,7 +408,7 @@ export function buildApiUrl(
 ): string {
   const base = normalizeBase(
     baseUrl ??
-      (import.meta.env.DEV ? "" : "https://silverkeyestates.com").replace(
+      (import.meta.env.DEV ? "" : "https://usesilverkey.com").replace(
         /\/+$/,
         "",
       ),

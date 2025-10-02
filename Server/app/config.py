@@ -117,8 +117,7 @@ class Config:
         flask_env = os.getenv('FLASK_ENV', 'development')
         
         if flask_env == 'production':
-            # Production: use silverkeyestates.com
-            return 'https://silverkeyestates.com/api/v1/google/oauth/callback'
+            return 'https://usesilverkey.com/api/v1/google/oauth/callback'
         else:
             # Development: use localhost with port 5173 (Vite dev server)
             return 'http://localhost:5173/api/v1/google/oauth/callback'
@@ -129,8 +128,7 @@ class Config:
         flask_env = os.getenv('FLASK_ENV', 'development')
         
         if flask_env == 'production':
-            # Production: use silverkeyestates.com
-            return 'https://silverkeyestates.com/api/v1/google/oauth/callback'
+            return 'https://usesilverkey.com/api/v1/google/oauth/callback'
         else:
             # Development: use localhost with port 5173 (Vite dev server)
             return 'http://localhost:5173/api/v1/google/oauth/callback'
@@ -148,8 +146,7 @@ class Config:
         flask_env = os.getenv('FLASK_ENV', 'development')
         
         if flask_env == 'production':
-            # Production: use silverkeyestates.com
-            return 'https://silverkeyestates.com'
+            return 'https://usesilverkey.com'
         else:
             # Development: use localhost with port 5173 (Vite dev server)
             return 'http://localhost:5173'
@@ -160,8 +157,7 @@ class Config:
         flask_env = os.getenv('FLASK_ENV', 'development')
         
         if flask_env == 'production':
-            # Production: use silverkeyestates.com
-            return 'https://silverkeyestates.com'
+            return 'https://usesilverkey.com'
         else:
             # Development: use localhost with port 5173 (Vite dev server)
             return 'http://localhost:5173'
@@ -178,16 +174,16 @@ class Config:
         flask_env = os.getenv('FLASK_ENV', 'development')
         if flask_env == 'production':
             CORS_ORIGINS = [
-                "https://silverkeyestates.com",
-                "https://www.silverkeyestates.com"
+                "https://usesilverkey.com",
+                "https://www.usesilverkey.com"
             ]
         else:
             # Development: include localhost:5173 (Vite dev server)
             CORS_ORIGINS = [
                 "http://localhost:5173",
                 "http://localhost:3000",
-                "https://silverkeyestates.com",
-                "https://www.silverkeyestates.com"
+                "https://usesilverkey.com",
+                "https://www.usesilverkey.com"
             ]
 
     API_VERSION = 'v1'
