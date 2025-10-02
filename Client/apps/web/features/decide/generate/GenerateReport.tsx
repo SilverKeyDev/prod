@@ -5,7 +5,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { Card } from "../../../components/layout";
-import { Input, Toggle } from "../../../components/ui";
+import { Input, OliveCheckbox } from "../../../components/ui";
 import KeyTurnLoader from "../../../components/ui/loading/KeyTurnLoader";
 import { reportApi } from "../../../../../packages/config/api";
 import type { GenerateReportRequest } from "../../../../../packages/config/api/report";
@@ -464,12 +464,11 @@ export default function GenerateReportPage() {
               <span className="text-xs font-medium text-black/70 sm:text-sm">
                 Comparison
               </span>
-              <Toggle
+              <OliveCheckbox
                 checked={isComparison}
-                onChange={() =>
+                onToggle={() =>
                   setReportType(isComparison ? "detailed" : "comparison")
                 }
-                size="sm"
               />
             </div>
           </div>

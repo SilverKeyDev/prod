@@ -44,7 +44,7 @@ export type ApiResponse<T> = ApiSuccess<T> | ApiError;
 export const BASE_URL =
   typeof import.meta !== "undefined" && import.meta.env.DEV
     ? ""
-    : "https://silverkeyestates.com";
+    : "https://usesilverkey.com";
 
 // API response types for type safety
 
