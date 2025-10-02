@@ -16,7 +16,7 @@ set -eu
 DEFAULT_SECRETS="
 db_url
 AWS_Access
-COGNITO
+cognito
 gmaps
 google_calendar
 census_api
