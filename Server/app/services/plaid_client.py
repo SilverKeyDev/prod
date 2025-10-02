@@ -28,8 +28,6 @@ PLAID_WEBHOOK_BASE = os.getenv("PLAID_WEBHOOK_BASE") or None
 PLAID_CONFIGURED = bool(PLAID_CLIENT_ID and PLAID_SECRET)
 
 if not PLAID_CONFIGURED:
-    print("WARNING: Plaid credentials not configured. Set PLAID_CLIENT_ID and PLAID_SECRET environment variables.")
-    print("For development, you can use sandbox credentials from https://dashboard.plaid.com/")
     plaid = None  # Don't create the client if credentials are missing
 else:
     _env_map = {

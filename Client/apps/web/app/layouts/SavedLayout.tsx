@@ -10,6 +10,7 @@ type SavedLayoutProps = {
   searchTerm: string;
   onSearchChange: (value: string) => void;
   searchPlaceholder?: string;
+  showSearch?: boolean;
   viewMode?: ViewMode;
   onViewModeChange?: (mode: ViewMode) => void;
   showViewToggle?: boolean;
@@ -26,6 +27,7 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
   searchTerm,
   onSearchChange,
   searchPlaceholder = "Filter by address",
+  showSearch = true,
   viewMode = "grid",
   onViewModeChange,
   showViewToggle = true,
@@ -70,18 +72,20 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
       <Card className="mb-4">
         <div className="flex min-h-[44px] items-center justify-between gap-4">
           <div className="flex min-w-0 flex-1 items-center gap-4">
-            <div className="relative min-w-[200px] flex-1">
-              <Search className="mobile-icon-xs absolute left-3 top-1/2 -translate-y-1/2 transform text-black/40" />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  onSearchChange(e.target.value)
-                }
-                className="mobile-input w-full pl-9 pr-4 sm:pl-10"
-                placeholder={searchPlaceholder}
-              />
-            </div>
+            {showSearch && (
+              <div className="relative min-w-[200px] flex-1">
+                <Search className="mobile-icon-xs absolute left-3 top-1/2 -translate-y-1/2 transform text-black/40" />
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    onSearchChange(e.target.value)
+                  }
+                  className="mobile-input w-full pl-9 pr-4 sm:pl-10"
+                  placeholder={searchPlaceholder}
+                />
+              </div>
+            )}
             {rightText && (
               <div className="hidden shrink-0 whitespace-nowrap text-sm text-gray-600 sm:block">
                 {rightText}

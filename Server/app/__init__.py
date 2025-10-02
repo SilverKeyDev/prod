@@ -140,33 +140,6 @@ def create_app(config=None):
         'token_size_reduction': '~71%'
     })
 
-    # Test DB connectivity at startup and log connection details
-    try:
-        from sqlalchemy import text
-        with db.engine.connect() as conn:
-            conn.execute(text("SELECT 1"))
-        
-        # Log DB connection info (redacted for security)
-        db_uri = app.config.get('SQLALCHEMY_DATABASE_URI', '')
-        # Extract host/port/db without credentials
-        if '@' in db_uri:
-            db_info = db_uri.split('@')[-1]  # Get host:port/db?params only
-        else:
-            db_info = 'local_sqlite'
-        
-        app.logger.info("DATABASE_CONNECTIVITY_CHECK", extra={
-            'status': 'connected',
-            'database_info': db_info,
-            'environment': flask_env
-        })
-    except Exception as e:
-        app.logger.error("DATABASE_CONNECTIVITY_CHECK_FAILED", extra={
-            'status': 'failed',
-            'error': str(e),
-            'error_type': type(e).__name__,
-            'environment': flask_env
-        })
-
     # Register blueprints
     from .routes.report import report_bp
     from .routes.dashboard import dashboard_bp

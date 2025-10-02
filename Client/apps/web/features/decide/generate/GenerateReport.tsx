@@ -423,21 +423,76 @@ export default function GenerateReportPage() {
         <Card className="space-y-responsive-sm">
           {/* Main input row - address input, generate button, and toggle on one line */}
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
-            {/* Address input */}
+            {/* Address inputs container so both share the same width */}
             <div className="flex-1">
-              <Input
-                id="address-input"
-                ref={inputRef}
-                type="text"
-                value={address}
-                onChange={handleInputChange}
-                placeholder={scriptsReady ? "Enter address..." : "Loading..."}
-                disabled={!scriptsReady || isGenerating}
-                leftIcon={<MapPin className="h-4 w-4 sm:h-5 sm:w-5" />}
-                size="md"
-                autoComplete="off"
-                className="touch-manipulation"
-              />
+              <div className="space-y-3">
+                <Input
+                  id="address-input"
+                  ref={inputRef}
+                  type="text"
+                  value={address}
+                  onChange={handleInputChange}
+                  placeholder={scriptsReady ? "Enter address..." : "Loading..."}
+                  disabled={!scriptsReady || isGenerating}
+                  leftIcon={<MapPin className="h-4 w-4 sm:h-5 sm:w-5" />}
+                  size="md"
+                  autoComplete="off"
+                  className="touch-manipulation"
+                />
+
+                {/* Address suggestions dropdown */}
+                {suggestions.length > 0 && (
+                  <ul className="relative z-50 max-h-60 overflow-hidden overflow-y-auto rounded-md border bg-white shadow-sm">
+                    {suggestions.map((s, idx) => (
+                      <li
+                        key={idx}
+                        onClick={() => handleSelect(s)}
+                        className="touch-friendly cursor-pointer border-b border-gray-100 px-3 py-3 text-sm last:border-b-0 hover:bg-gray-100 sm:px-4 sm:py-2 sm:text-base"
+                      >
+                        {s.description}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                {/* Comparison address input - rendered under the first to keep equal width */}
+                {isComparison && (
+                  <>
+                    <Input
+                      id="comparison-address-input"
+                      ref={comparisonInputRef}
+                      type="text"
+                      value={comparisonAddress}
+                      onChange={handleComparisonInputChange}
+                      placeholder={
+                        scriptsReady
+                          ? "Enter comparison address..."
+                          : "Loading..."
+                      }
+                      disabled={!scriptsReady || isGenerating}
+                      leftIcon={<MapPin className="h-4 w-4 sm:h-5 sm:w-5" />}
+                      size="md"
+                      autoComplete="off"
+                      className="touch-manipulation"
+                    />
+
+                    {/* Comparison address suggestions dropdown */}
+                    {comparisonSuggestions.length > 0 && (
+                      <ul className="relative z-50 max-h-60 overflow-hidden overflow-y-auto rounded-md border bg-white shadow-sm">
+                        {comparisonSuggestions.map((s, idx) => (
+                          <li
+                            key={idx}
+                            onClick={() => handleComparisonSelect(s)}
+                            className="touch-friendly cursor-pointer border-b border-gray-100 px-3 py-3 text-sm last:border-b-0 hover:bg-gray-100 sm:px-4 sm:py-2 sm:text-base"
+                          >
+                            {s.description}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </>
+                )}
+              </div>
             </div>
 
             {/* Generate button */}
@@ -460,7 +515,7 @@ export default function GenerateReportPage() {
             </button>
 
             {/* Comparison mode toggle */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center justify-center gap-2">
               <span className="text-xs font-medium text-black/70 sm:text-sm">
                 Comparison
               </span>
@@ -472,59 +527,6 @@ export default function GenerateReportPage() {
               />
             </div>
           </div>
-
-          {/* Address suggestions dropdown */}
-          {suggestions.length > 0 && (
-            <ul className="relative z-50 max-h-60 overflow-hidden overflow-y-auto rounded-md border bg-white shadow-sm">
-              {suggestions.map((s, idx) => (
-                <li
-                  key={idx}
-                  onClick={() => handleSelect(s)}
-                  className="touch-friendly cursor-pointer border-b border-gray-100 px-3 py-3 text-sm last:border-b-0 hover:bg-gray-100 sm:px-4 sm:py-2 sm:text-base"
-                >
-                  {s.description}
-                </li>
-              ))}
-            </ul>
-          )}
-
-          {/* Comparison address input - only shown when comparison mode is on */}
-          {isComparison && (
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
-              <div className="flex-1">
-                <Input
-                  id="comparison-address-input"
-                  ref={comparisonInputRef}
-                  type="text"
-                  value={comparisonAddress}
-                  onChange={handleComparisonInputChange}
-                  placeholder={
-                    scriptsReady ? "Enter comparison address..." : "Loading..."
-                  }
-                  disabled={!scriptsReady || isGenerating}
-                  leftIcon={<MapPin className="h-4 w-4 sm:h-5 sm:w-5" />}
-                  size="md"
-                  autoComplete="off"
-                  className="touch-manipulation"
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Comparison address suggestions dropdown */}
-          {comparisonSuggestions.length > 0 && (
-            <ul className="relative z-50 max-h-60 overflow-hidden overflow-y-auto rounded-md border bg-white shadow-sm">
-              {comparisonSuggestions.map((s, idx) => (
-                <li
-                  key={idx}
-                  onClick={() => handleComparisonSelect(s)}
-                  className="touch-friendly cursor-pointer border-b border-gray-100 px-3 py-3 text-sm last:border-b-0 hover:bg-gray-100 sm:px-4 sm:py-2 sm:text-base"
-                >
-                  {s.description}
-                </li>
-              ))}
-            </ul>
-          )}
 
           {/* Loading indicator */}
           {!scriptsReady && !loadError && (

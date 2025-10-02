@@ -335,6 +335,7 @@ export default function SavedHomes() {
           searchPlaceholder={
             viewType === "homes" ? "Search saved homes..." : "Filter by address"
           }
+          showSearch={viewType !== "reports"}
           onRefresh={refresh}
           isRefreshing={refreshing}
           isLoading={viewType === "homes" ? loading : reportsLoading}
