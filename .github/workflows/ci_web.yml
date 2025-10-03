@@ -34,10 +34,6 @@ jobs:
       - name: Install jq (for JSON parsing)
         run: sudo apt-get update -y >/dev/null 2>&1 && sudo apt-get install -y jq >/dev/null 2>&1
 
-      - name: Snapshot env (before secrets)
-        run: |
-          printenv | cut -d= -f1 | sort > /tmp/env_before
-
       - name: Load app env from AWS Secrets Manager (custom, no prefixes)
         shell: bash
         run: |
@@ -102,16 +98,6 @@ jobs:
           export_if_present "$serp_json" "SERP_API" "SERP_API"
           export_if_present "$rapidapi_json" "RAPIDAPI_KEY" "RAPIDAPI_KEY"
 
-      - name: List env keys added from Secrets Manager (names only)
-        run: |
-          printenv | cut -d= -f1 | sort > /tmp/env_after_secrets
-          echo "New environment variable keys loaded (no values):"
-          if [ -f /tmp/env_before ]; then
-            comm -13 /tmp/env_before /tmp/env_after_secrets || true
-          else
-            echo "No /tmp/env_before; skipping env diff."
-          fi
-
       - name: Set up Docker Buildx (container driver)
         uses: docker/setup-buildx-action@v3
         with:
@@ -132,7 +118,8 @@ jobs:
           echo "ACCOUNT_ID=$ACCOUNT_ID" >> $GITHUB_ENV
 
           CACHE_REF="$ACCOUNT_ID.dkr.ecr.${{ env.REGION }}.amazonaws.com/${{ env.REPO }}:buildcache"
-          IMAGE_REF="$ACCOUNT_ID.dkr.ecr.${{ env.REGION }}.amazonaws.com/${{ env.REPO }}:${{ env.IMAGE_TAG }}"
+          LATEST_REF="$ACCOUNT_ID.dkr.ecr.${{ env.REGION }}.amazonaws.com/${{ env.REPO }}:latest"
+          WEB_PROD_REF="$ACCOUNT_ID.dkr.ecr.${{ env.REGION }}.amazonaws.com/${{ env.REPO }}:web-prod"
 
           docker system prune -f >/dev/null 2>&1 || true
 
@@ -144,7 +131,8 @@ jobs:
             --build-arg VITE_GOOGLE_MAPS_ID="$VITE_GOOGLE_MAPS_ID" \
             --build-arg VITE_GOOGLE_CLIENT_ID="$VITE_GOOGLE_CLIENT_ID" \
             --build-arg VITE_PLAID_CLIENT_ID="$VITE_PLAID_CLIENT_ID" \
-            --tag "$IMAGE_REF" \
+            --tag "$LATEST_REF" \
+            --tag "$WEB_PROD_REF" \
             --cache-from type=registry,ref="$CACHE_REF" \
             --cache-to type=registry,ref="$CACHE_REF",mode=max \
             --push \
@@ -246,7 +234,7 @@ jobs:
             fi
 
             ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text --region "$REGION")
-            IMAGE="$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO:$IMAGE_TAG"
+            IMAGE="$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO:latest"
 
             aws ecr get-login-password --region "$REGION" \
               | sudo docker login --username AWS --password-stdin "$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com" >/dev/null 2>&1
