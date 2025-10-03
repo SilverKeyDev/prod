@@ -31,74 +31,54 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.REGION }}
 
-      - name: Install jq (for JSON parsing)
+      - name: Install jq
         run: sudo apt-get update -y && sudo apt-get install -y jq > /dev/null 2>&1
 
       - name: Snapshot env (before secrets)
-        run: |
-          printenv | cut -d= -f1 | sort > /tmp/env_before
+        run: printenv | cut -d= -f1 | sort > /tmp/env_before
 
       - name: Load app env from AWS Secrets Manager (custom, no prefixes)
         shell: bash
         run: |
           set -euo pipefail
+          fetch_json () { aws secretsmanager get-secret-value --secret-id "$1" --query SecretString --output text; }
+          safe_fetch () { fetch_json "$1" 2>/dev/null || echo '{}'; }
 
-          fetch_json () {
-            local id="$1"
-            aws secretsmanager get-secret-value \
-              --secret-id "$id" \
-              --query SecretString \
-              --output text
-          }
-
-          db_url_json="$(fetch_json db_url || echo '{}')"
-          aws_access_json="$(fetch_json AWS_Access || echo '{}')"
-          cognito_json="$(fetch_json cognito || echo '{}')"
-          gmaps_json="$(fetch_json gmaps || echo '{}')"
-          gcal_json="$(fetch_json google_calendar || echo '{}')"
-          census_json="$(fetch_json census_api || echo '{}')"
-          mapbox_json="$(fetch_json mapbox || echo '{}')"
-          openai_json="$(fetch_json openai || echo '{}')"
-          perplexity_json="$(fetch_json perplexity || echo '{}')"
-          plaid_json="$(fetch_json plaid || echo '{}')"
-          serp_json="$(fetch_json serp || echo '{}')"
-          rapidapi_json="$(fetch_json rapidapi || echo '{}')"
+          db_url_json="$(safe_fetch db_url)"
+          aws_access_json="$(safe_fetch AWS_Access)"
+          cognito_json="$(safe_fetch cognito)"
+          gmaps_json="$(safe_fetch gmaps)"
+          gcal_json="$(safe_fetch google_calendar)"
+          census_json="$(safe_fetch census_api)"
+          mapbox_json="$(safe_fetch mapbox)"
+          openai_json="$(safe_fetch openai)"
+          perplexity_json="$(safe_fetch perplexity)"
+          plaid_json="$(safe_fetch plaid)"
+          serp_json="$(safe_fetch serp)"
+          rapidapi_json="$(safe_fetch rapidapi)"
 
           export_if_present () {
-            local json="$1"
-            local jkey="$2"
-            local envname="$3"
-            local val
+            local json="$1" jkey="$2" envname="$3" val
             val="$(jq -er --arg k "$jkey" '.[$k] // empty' <<<"$json" || true)"
-            if [ -n "${val:-}" ]; then
-              printf '%s=%s\n' "$envname" "$val" >> "$GITHUB_ENV"
-            fi
+            [ -n "${val:-}" ] && printf '%s=%s\n' "$envname" "$val" >> "$GITHUB_ENV"
           }
 
           export_if_present "$db_url_json" "DATABASE_URL" "DATABASE_URL"
-
           export_if_present "$aws_access_json" "AWS_ACCESS_KEY_ID" "AWS_ACCESS_KEY_ID"
           export_if_present "$aws_access_json" "AWS_SECRET_ACCESS_KEY" "AWS_SECRET_ACCESS_KEY"
-
           export_if_present "$cognito_json" "AWS_COGNITO_USER_POOL_ID" "AWS_COGNITO_USER_POOL_ID"
           export_if_present "$cognito_json" "AWS_COGNITO_CLIENT_ID" "AWS_COGNITO_CLIENT_ID"
           export_if_present "$cognito_json" "AWS_COGNITO_CLIENT_SECRET" "AWS_COGNITO_CLIENT_SECRET"
-
           export_if_present "$gmaps_json" "GOOGLE_MAPS_API_KEY" "GOOGLE_MAPS_API_KEY"
-
           export_if_present "$gcal_json" "GOOGLE_CLIENT_ID" "GOOGLE_CLIENT_ID"
           export_if_present "$gcal_json" "GOOGLE_CALENDAR_SECRET" "GOOGLE_CALENDAR_SECRET"
-
           export_if_present "$census_json" "CENSUS_API_KEY" "CENSUS_API_KEY"
           export_if_present "$mapbox_json" "MAPBOX_API_KEY" "MAPBOX_API_KEY"
-
           export_if_present "$openai_json" "OPENAI_KEY" "OPENAI_KEY"
           export_if_present "$perplexity_json" "PERPLEXITY_API_KEY" "PERPLEXITY_API_KEY"
-
           export_if_present "$plaid_json" "PLAID_SANDBOX_KEY" "PLAID_SANDBOX_KEY"
           export_if_present "$plaid_json" "PLAID_SECRET" "PLAID_SECRET"
           export_if_present "$plaid_json" "VITE_PLAID_CLIENT_ID" "VITE_PLAID_CLIENT_ID"
-
           export_if_present "$serp_json" "SERP_API" "SERP_API"
           export_if_present "$rapidapi_json" "RAPIDAPI_KEY" "RAPIDAPI_KEY"
 
@@ -106,13 +86,9 @@ jobs:
         run: |
           printenv | cut -d= -f1 | sort > /tmp/env_after_secrets
           echo "New environment variable keys loaded (no values):"
-          if [ -f /tmp/env_before ]; then
-            comm -13 /tmp/env_before /tmp/env_after_secrets || true
-          else
-            echo "No /tmp/env_before; skipping env diff."
-          fi
+          comm -13 /tmp/env_before /tmp/env_after_secrets || true
 
-      - name: Set up Docker Buildx (container driver)
+      - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v3
         with:
           driver: docker-container
@@ -121,7 +97,7 @@ jobs:
       - name: Login to ECR
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build & push to ECR (no local load)
+      - name: Build & push image to ECR
         env:
           VITE_GOOGLE_MAPS_ID: ${{ secrets.VITE_GOOGLE_MAPS_ID }}
           VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
@@ -130,12 +106,9 @@ jobs:
           set -euo pipefail
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
           echo "ACCOUNT_ID=$ACCOUNT_ID" >> $GITHUB_ENV
-
           CACHE_REF="$ACCOUNT_ID.dkr.ecr.${{ env.REGION }}.amazonaws.com/${{ env.REPO }}:buildcache"
           IMAGE_REF="$ACCOUNT_ID.dkr.ecr.${{ env.REGION }}.amazonaws.com/${{ env.REPO }}:${{ env.IMAGE_TAG }}"
-
           docker system prune -f || true
-
           docker buildx build \
             --platform linux/amd64 \
             -f Dockerfile.web \
@@ -145,15 +118,14 @@ jobs:
             --tag "$IMAGE_REF" \
             --cache-from type=registry,ref="$CACHE_REF" \
             --cache-to type=registry,ref="$CACHE_REF",mode=max \
-            --push \
-            .
+            --push .
 
       - name: Prune Buildx cache (safe)
         run: |
           docker buildx prune -af || true
           docker system df || true
 
-      - name: SSH into EC2 and Deploy Container + Copy Frontend
+      - name: SSH → EC2 Deploy (network + containers)
         uses: appleboy/ssh-action@v1.0.0
         env:
           AWS_REGION: ${{ env.REGION }}
@@ -180,65 +152,25 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           envs: >
-            AWS_REGION,AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,
-            DATABASE_URL,
+            AWS_REGION,AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,DATABASE_URL,
             AWS_COGNITO_USER_POOL_ID,AWS_COGNITO_CLIENT_ID,AWS_COGNITO_CLIENT_SECRET,
             GOOGLE_MAPS_API_KEY,GOOGLE_CALENDAR_SECRET,GOOGLE_CLIENT_ID,
             CENSUS_API_KEY,MAPBOX_API_KEY,OPENAI_KEY,PERPLEXITY_API_KEY,
-            PLAID_SANDBOX_KEY,PLAID_SECRET,VITE_PLAID_CLIENT_ID,
-            SERP_API,RAPIDAPI_KEY
+            PLAID_SANDBOX_KEY,PLAID_SECRET,VITE_PLAID_CLIENT_ID,SERP_API,RAPIDAPI_KEY
           script: |
-            set -e
-
+            set -euo pipefail
             echo "🕒 $(date -u +'%Y-%m-%dT%H:%M:%SZ') Starting EC2 deployment..."
-            REGION="$AWS_REGION"
-            REPO="cre"
-            IMAGE_TAG="latest"
+            REGION="$AWS_REGION"; REPO="cre"; IMAGE_TAG="latest"
 
-            # --- Ensure Docker is installed AND running BEFORE any docker command ---
+            # Ensure Docker
             if ! command -v docker >/dev/null 2>&1; then
               sudo apt-get update -y > /dev/null 2>&1
               timeout 3m sudo apt-get install -y docker.io unzip curl > /dev/null 2>&1 || true
             fi
             sudo systemctl enable --now docker >/dev/null 2>&1 || sudo service docker start || true
+            docker info >/dev/null 2>&1 || { echo "Docker not running"; sudo journalctl -u docker -n 200 --no-pager || true; exit 1; }
 
-            if ! docker info >/dev/null 2>&1; then
-              echo "❌ Docker daemon not running; attempted to start it but failed."
-              sudo journalctl -u docker -n 200 --no-pager || true
-              exit 1
-            fi
-
-            # Ensure Buildx (avoid legacy builder warnings)
-            docker buildx version || (wget -qO- https://get.docker.com | sh && docker buildx create --use) || true
-
-            # --- Diagnostics & cleanup (guarded) ---
-            echo "🧹 Starting comprehensive disk cleanup..."
-            echo "📊 Disk usage before cleanup:"
-            df -h || true
-            docker system df || true
-            sudo du -xh /var/lib/docker | sort -h | tail -40 || true
-
-            echo "🐳 Docker containers status:"
-            sudo docker ps -a || true
-
-            echo "🗑️ Cleaning Docker resources..."
-            sudo docker rm -f $(docker ps -aq) 2>/dev/null || true
-            sudo docker system prune -af --volumes || true
-            sudo docker builder prune -af || true
-            sudo docker image prune -af || true
-            sudo docker volume prune -f || true
-
-            echo "🧽 Cleaning system caches..."
-            sudo apt-get clean || true
-            sudo rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/* || true
-            sudo journalctl --vacuum-time=3d || true
-            sudo rm -rf ~/.cache /root/.cache /tmp/* /var/tmp/* || true
-
-            echo "📊 Disk usage after cleanup:"
-            df -h || true
-            docker system df || true
-
-            # --- AWS CLI (if missing) ---
+            # AWS CLI (if missing)
             if ! aws --version | grep -q aws-cli; then
               curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
               unzip -q awscliv2.zip && sudo ./aws/install > /dev/null 2>&1 && rm -rf aws awscliv2.zip
@@ -250,54 +182,25 @@ jobs:
             aws ecr get-login-password --region "$REGION" \
               | sudo docker login --username AWS --password-stdin "$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com" 2>/dev/null
 
-            sudo docker image prune -f || true
+            # Clean up old resources
+            sudo docker rm -f cre_app cre_worker redis 2>/dev/null || true
+            sudo docker network inspect appnet >/dev/null 2>&1 || sudo docker network create appnet
+
             sudo docker pull "$IMAGE"
-            sudo docker image prune -f || true
+            sudo docker pull redis:7-alpine
 
-            # Stop/remove old containers if present
-            for name in cre_app cre_worker; do
-              sudo docker rm -f "$name" 2>/dev/null || true
-            done
-
-            # Redis
-            sudo docker rm -f redis 2>/dev/null || true
-            sudo docker run -d --name redis \
+            # Redis on shared network
+            sudo docker run -d --name redis --network appnet \
               -p 6379:6379 \
               --health-cmd="redis-cli ping || exit 1" \
-              --health-interval=30s --health-timeout=10s --health-retries=3 --health-start-period=30s \
+              --health-interval=5s --health-timeout=2s --health-retries=20 --health-start-period=5s \
               redis:7-alpine
 
-            # App
-            sudo docker run -d --name cre_app \
+            # App on shared network (port 5000 for ALB TG)
+            sudo docker run -d --name cre_app --network appnet \
               -p 5000:5000 \
-              --health-cmd="curl -fsS http://localhost:5000/healthz || exit 1" \
-              --health-interval=30s --health-timeout=10s --health-retries=3 --health-start-period=40s \
-              -e AWS_REGION="${AWS_REGION}" \
-              -e AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}" \
-              -e AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}" \
-              -e DATABASE_URL="${DATABASE_URL}" \
-              -e AWS_COGNITO_USER_POOL_ID="${AWS_COGNITO_USER_POOL_ID}" \
-              -e AWS_COGNITO_CLIENT_ID="${AWS_COGNITO_CLIENT_ID}" \
-              -e AWS_COGNITO_CLIENT_SECRET="${AWS_COGNITO_CLIENT_SECRET}" \
-              -e GOOGLE_MAPS_API_KEY="${GOOGLE_MAPS_API_KEY}" \
-              -e GOOGLE_CALENDAR_SECRET="${GOOGLE_CALENDAR_SECRET}" \
-              -e GOOGLE_CLIENT_ID="${GOOGLE_CLIENT_ID}" \
-              -e CENSUS_API_KEY="${CENSUS_API_KEY}" \
-              -e MAPBOX_API_KEY="${MAPBOX_API_KEY}" \
-              -e OPENAI_KEY="${OPENAI_KEY}" \
-              -e PERPLEXITY_API_KEY="${PERPLEXITY_API_KEY}" \
-              -e PLAID_SANDBOX_KEY="${PLAID_SANDBOX_KEY}" \
-              -e PLAID_SECRET="${PLAID_SECRET}" \
-              -e VITE_PLAID_CLIENT_ID="${VITE_PLAID_CLIENT_ID}" \
-              -e SERP_API="${SERP_API}" \
-              -e RAPIDAPI_KEY="${RAPIDAPI_KEY}" \
-              "$IMAGE"
-
-            # Worker (correct Celery target: :celery)
-            sudo docker run -d --name cre_worker \
-              --link redis:redis \
-              --health-cmd="celery -A app.celery.celery_worker:celery inspect ping || exit 1" \
-              --health-interval=60s --health-timeout=30s --health-retries=3 --health-start-period=60s \
+              --health-cmd="sh -lc 'curl -fsS http://localhost:5000/health || curl -fsS http://localhost:5000/'" \
+              --health-interval=10s --health-timeout=3s --health-retries=10 --health-start-period=20s \
               -e AWS_REGION="${AWS_REGION}" \
               -e AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}" \
               -e AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}" \
@@ -318,36 +221,62 @@ jobs:
               -e SERP_API="${SERP_API}" \
               -e RAPIDAPI_KEY="${RAPIDAPI_KEY}" \
               "$IMAGE" \
-              celery -A app.celery.celery_worker:celery worker --loglevel=info
+              sh -lc 'gunicorn -w 4 -b 0.0.0.0:5000 app:app'
 
-            # (Optional) export built frontend
+            # Celery worker with proper target + broker via DNS
+            sudo docker run -d --name cre_worker --network appnet \
+              --health-cmd="celery -A app.celery.celery_worker:celery inspect ping || exit 1" \
+              --health-interval=30s --health-timeout=10s --health-retries=3 --health-start-period=30s \
+              -e AWS_REGION="${AWS_REGION}" \
+              -e AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}" \
+              -e AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}" \
+              -e DATABASE_URL="${DATABASE_URL}" \
+              -e AWS_COGNITO_USER_POOL_ID="${AWS_COGNITO_USER_POOL_ID}" \
+              -e AWS_COGNITO_CLIENT_ID="${AWS_COGNITO_CLIENT_ID}" \
+              -e AWS_COGNITO_CLIENT_SECRET="${AWS_COGNITO_CLIENT_SECRET}" \
+              -e GOOGLE_MAPS_API_KEY="${GOOGLE_MAPS_API_KEY}" \
+              -e GOOGLE_CALENDAR_SECRET="${GOOGLE_CALENDAR_SECRET}" \
+              -e GOOGLE_CLIENT_ID="${GOOGLE_CLIENT_ID}" \
+              -e CENSUS_API_KEY="${CENSUS_API_KEY}" \
+              -e MAPBOX_API_KEY="${MAPBOX_API_KEY}" \
+              -e OPENAI_KEY="${OPENAI_KEY}" \
+              -e PERPLEXITY_API_KEY="${PERPLEXITY_API_KEY}" \
+              -e PLAID_SANDBOX_KEY="${PLAID_SANDBOX_KEY}" \
+              -e PLAID_SECRET="${PLAID_SECRET}" \
+              -e VITE_PLAID_CLIENT_ID="${VITE_PLAID_CLIENT_ID}" \
+              -e SERP_API="${SERP_API}" \
+              -e RAPIDAPI_KEY="${RAPIDAPI_KEY}" \
+              -e CELERY_BROKER_URL="redis://redis:6379/0" \
+              -e CELERY_RESULT_BACKEND="redis://redis:6379/0" \
+              "$IMAGE" \
+              sh -lc 'celery -A app.celery.celery_worker:celery worker --loglevel=info'
+
+            # Optional: export static frontend (if built inside image)
             sudo rm -rf /var/www/html/* || true
             sudo docker cp cre_app:/app/Client/dist/. /var/www/html/ || true
             sudo chown -R www-data:www-data /var/www/html || true
 
-            # Health checks
-            echo "cre_app health:"
-            sudo docker inspect --format='{{json .State.Health}}' cre_app || true
-            echo "cre_worker health:"
-            sudo docker inspect --format='{{json .State.Health}}' cre_worker || true
-            echo "redis health:"
-            sudo docker inspect --format='{{json .State.Health}}' redis || true
+            echo "Health (app):"; sudo docker inspect --format='{{json .State.Health}}' cre_app || true
+            echo "Health (worker):"; sudo docker inspect --format='{{json .State.Health}}' cre_worker || true
+            echo "Health (redis):"; sudo docker inspect --format='{{json .State.Health}}' redis || true
 
-      - name: Final cleanup (safe)
+            echo "DNS within network (app → redis):"
+            sudo docker exec cre_app getent hosts redis || true
+
+            echo "Local curl:"
+            curl -sv http://127.0.0.1:5000/health || curl -sv http://127.0.0.1:5000/ || true
+
+      - name: Final cleanup (runner)
         if: always()
         run: |
-          echo "🧹 Final GitHub Actions runner cleanup..."
           docker buildx prune -af || true
           docker system prune -af --volumes || true
           docker builder prune -af || true
           docker image prune -af || true
           docker volume prune -f || true
-
           sudo apt-get clean || true
           sudo rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/* || true
           sudo journalctl --vacuum-time=1d || true
           sudo rm -rf ~/.cache /root/.cache /tmp/* /var/tmp/* || true
-
-          echo "📊 Final disk usage:"
           df -h
           docker system df || true
