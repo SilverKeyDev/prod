@@ -36,7 +36,7 @@
      && ls -la
     
     # Prefetch dependencies using lockfile only (better layer caching for workspaces)
-    RUN pnpm fetch --reporter=ndjson --no-warn 2>&1 | tee /tmp/pnpm-fetch.log
+    RUN pnpm fetch --reporter=ndjson 2>&1 | tee /tmp/pnpm-fetch.log
     
     # Copy rest of client source
     COPY Client/ .
@@ -51,7 +51,7 @@
     
     # Install dependencies offline based on prefetched store (include dev deps for Vite build)
     RUN echo "== pnpm install (frozen lock) ==" \
-     && pnpm install --frozen-lockfile --prod=false --reporter=ndjson --no-warn 2>&1 | tee /tmp/pnpm-install.log \
+     && pnpm install --frozen-lockfile --prod=false --reporter=ndjson 2>&1 | grep -v "Unsupported platform" | tee /tmp/pnpm-install.log \
      && rm -rf /tmp/* || true
     
     # --- Diagnostics: summarize envs without leaking values (prints length/isset only) ---
@@ -67,7 +67,7 @@
     # --- Run a verbose Vite build and capture full logs ---
     # The extra flags only increase logging; the build output remains identical.
     RUN echo "== Starting Vite build (verbose) ==" \
-     && pnpm --reporter=ndjson --no-warn run build:web -- --debug --logLevel info 2>&1 | tee /tmp/vite-build.log \
+     && pnpm --reporter=ndjson run build:web -- --debug --logLevel info 2>&1 | grep -v "Unsupported platform" | tee /tmp/vite-build.log \
      && rm -rf /tmp/* || true
     
     # verify assets exist (Vite outDir -> /app/client/dist)
