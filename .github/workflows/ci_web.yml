@@ -36,6 +36,9 @@ jobs:
       - name: Install jq (for JSON parsing)
         run: sudo apt-get update -y && sudo apt-get install -y jq > /dev/null 2>&1
 
+      - name: Snapshot env (before secrets)
+        run: |
+          printenv | cut -d= -f1 | sort > /tmp/env_before
 
       # Load all app env from Secrets Manager WITHOUT prefixes (map JSON keys 1:1 to env)
       - name: Load app env from AWS Secrets Manager (custom, no prefixes)
@@ -108,7 +111,12 @@ jobs:
         run: |
           printenv | cut -d= -f1 | sort > /tmp/env_after_secrets
           echo "New environment variable keys loaded (no values):"
-          comm -13 /tmp/env_before /tmp/env_after_secrets || true
+          # Safe diff even if the first file is missing
+          if [ -f /tmp/env_before ]; then
+            comm -13 /tmp/env_before /tmp/env_after_secrets || true
+          else
+            echo "No /tmp/env_before; skipping env diff."
+          fi
 
       # ---------- Buildx flow: container driver + push (no local image) ----------
       - name: Set up Docker Buildx (container driver)
@@ -202,11 +210,41 @@ jobs:
               timeout 3m sudo apt-get install -y docker.io unzip curl > /dev/null 2>&1
             fi
 
-            # Safe cleanup (no -a)
-            sudo docker system prune -f --volumes || true
-            sudo docker builder prune -f || true
-            sudo docker container prune -f || true
-            sudo docker network prune -f || true
+            # Ensure Docker buildx is available (prevents deprecation warnings)
+            docker buildx version || (wget -qO- https://get.docker.com | sh && docker buildx create --use) || true
+
+            # Comprehensive disk cleanup (idempotent and safe)
+            echo "🧹 Starting comprehensive disk cleanup..."
+
+            # 1) See what's full
+            echo "📊 Disk usage before cleanup:"
+            df -h
+            docker system df || true
+            sudo du -xh /var/lib/docker | sort -h | tail -40 || true
+
+            # 2) Stop anything hoarding Docker layers
+            echo "🐳 Docker containers status:"
+            sudo docker ps -a || true
+
+            # 3) Aggressive Docker clean (containers, images, volumes, builders)
+            echo "🗑️ Cleaning Docker resources..."
+            sudo docker rm -f $(docker ps -aq) 2>/dev/null || true
+            sudo docker system prune -af --volumes || true
+            sudo docker builder prune -af || true
+            sudo docker image prune -af || true
+            sudo docker volume prune -f || true
+
+            # 4) Clear apt & journals & misc caches
+            echo "🧽 Cleaning system caches..."
+            sudo apt-get clean || true
+            sudo rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/* || true
+            sudo journalctl --vacuum-time=3d || true  # keep only last 3 days
+            sudo rm -rf ~/.cache /root/.cache /tmp/* /var/tmp/* || true
+
+            # 5) Verify space again
+            echo "📊 Disk usage after cleanup:"
+            df -h
+            docker system df || true
 
             # AWS CLI (if missing)
             if ! aws --version | grep -q aws-cli; then
@@ -302,9 +340,26 @@ jobs:
             echo "redis health:"
             sudo docker inspect --format='{{json .State.Health}}' redis || true
 
-      # Final light cleanup (safe)
+      # Final comprehensive cleanup (safe)
       - name: Final cleanup (safe)
         if: always()
         run: |
+          echo "🧹 Final GitHub Actions runner cleanup..."
+
+          # Docker cleanup
           docker buildx prune -af || true
-          docker system prune -f || true
+          docker system prune -af --volumes || true
+          docker builder prune -af || true
+          docker image prune -af || true
+          docker volume prune -f || true
+
+          # System cleanup
+          sudo apt-get clean || true
+          sudo rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/* || true
+          sudo journalctl --vacuum-time=1d || true  # keep only last day for runner
+          sudo rm -rf ~/.cache /root/.cache /tmp/* /var/tmp/* || true
+
+          # Show final disk usage
+          echo "📊 Final disk usage:"
+          df -h
+          docker system df || true
