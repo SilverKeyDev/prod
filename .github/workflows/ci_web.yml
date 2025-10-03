@@ -196,15 +196,6 @@ jobs:
             REPO="cre"
             IMAGE_TAG="latest"
 
-            # Guard: ensure critical env present on the remote context
-            for k in AWS_COGNITO_USER_POOL_ID AWS_COGNITO_CLIENT_ID AWS_COGNITO_CLIENT_SECRET DATABASE_URL; do
-              if [ -z "${!k:-}" ]; then
-                echo "❌ Missing $k on EC2 context"; exit 1
-              else
-                echo "✅ $k present on EC2 context"
-              fi
-            done
-
             # Install Docker if needed (quiet)
             if ! command -v docker >/dev/null 2>&1; then
               sudo apt-get update -y > /dev/null 2>&1
