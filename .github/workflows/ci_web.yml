@@ -65,7 +65,9 @@ jobs:
           rapidapi_json="$(fetch_json rapidapi || echo '{}')"
 
           export_if_present () {
-            local json="$1"; local jkey="$2"; local envname="$3"
+            local json="$1"
+            local jkey="$2"
+            local envname="$3"
             local val
             val="$(jq -er --arg k "$jkey" '.[$k] // empty' <<<"$json" || true)"
             if [ -n "${val:-}" ]; then
@@ -74,21 +76,29 @@ jobs:
           }
 
           export_if_present "$db_url_json" "DATABASE_URL" "DATABASE_URL"
+
           export_if_present "$aws_access_json" "AWS_ACCESS_KEY_ID" "AWS_ACCESS_KEY_ID"
           export_if_present "$aws_access_json" "AWS_SECRET_ACCESS_KEY" "AWS_SECRET_ACCESS_KEY"
+
           export_if_present "$cognito_json" "AWS_COGNITO_USER_POOL_ID" "AWS_COGNITO_USER_POOL_ID"
           export_if_present "$cognito_json" "AWS_COGNITO_CLIENT_ID" "AWS_COGNITO_CLIENT_ID"
           export_if_present "$cognito_json" "AWS_COGNITO_CLIENT_SECRET" "AWS_COGNITO_CLIENT_SECRET"
+
           export_if_present "$gmaps_json" "GOOGLE_MAPS_API_KEY" "GOOGLE_MAPS_API_KEY"
+
           export_if_present "$gcal_json" "GOOGLE_CLIENT_ID" "GOOGLE_CLIENT_ID"
           export_if_present "$gcal_json" "GOOGLE_CALENDAR_SECRET" "GOOGLE_CALENDAR_SECRET"
+
           export_if_present "$census_json" "CENSUS_API_KEY" "CENSUS_API_KEY"
           export_if_present "$mapbox_json" "MAPBOX_API_KEY" "MAPBOX_API_KEY"
+
           export_if_present "$openai_json" "OPENAI_KEY" "OPENAI_KEY"
           export_if_present "$perplexity_json" "PERPLEXITY_API_KEY" "PERPLEXITY_API_KEY"
+
           export_if_present "$plaid_json" "PLAID_SANDBOX_KEY" "PLAID_SANDBOX_KEY"
           export_if_present "$plaid_json" "PLAID_SECRET" "PLAID_SECRET"
           export_if_present "$plaid_json" "VITE_PLAID_CLIENT_ID" "VITE_PLAID_CLIENT_ID"
+
           export_if_present "$serp_json" "SERP_API" "SERP_API"
           export_if_present "$rapidapi_json" "RAPIDAPI_KEY" "RAPIDAPI_KEY"
 
@@ -124,6 +134,8 @@ jobs:
           CACHE_REF="$ACCOUNT_ID.dkr.ecr.${{ env.REGION }}.amazonaws.com/${{ env.REPO }}:buildcache"
           IMAGE_REF="$ACCOUNT_ID.dkr.ecr.${{ env.REGION }}.amazonaws.com/${{ env.REPO }}:${{ env.IMAGE_TAG }}"
 
+          docker system prune -f || true
+
           docker buildx build \
             --platform linux/amd64 \
             -f Dockerfile.web \
@@ -136,12 +148,12 @@ jobs:
             --push \
             .
 
-      - name: Prune Buildx cache on runner (safe)
+      - name: Prune Buildx cache (safe)
         run: |
           docker buildx prune -af || true
           docker system df || true
 
-      - name: SSH into EC2 and Deploy (networked, ordered startup)
+      - name: SSH into EC2 and Deploy Container + Copy Frontend
         uses: appleboy/ssh-action@v1.0.0
         env:
           AWS_REGION: ${{ env.REGION }}
@@ -183,15 +195,50 @@ jobs:
             REPO="cre"
             IMAGE_TAG="latest"
 
-            # Ensure Docker is installed and running
+            # --- Ensure Docker is installed AND running BEFORE any docker command ---
             if ! command -v docker >/dev/null 2>&1; then
               sudo apt-get update -y > /dev/null 2>&1
               timeout 3m sudo apt-get install -y docker.io unzip curl > /dev/null 2>&1 || true
             fi
             sudo systemctl enable --now docker >/dev/null 2>&1 || sudo service docker start || true
-            docker info >/dev/null 2>&1 || { echo "❌ Docker daemon not running."; exit 1; }
 
-            # Ensure AWS CLI available
+            if ! docker info >/dev/null 2>&1; then
+              echo "❌ Docker daemon not running; attempted to start it but failed."
+              sudo journalctl -u docker -n 200 --no-pager || true
+              exit 1
+            fi
+
+            # Ensure Buildx (avoid legacy builder warnings)
+            docker buildx version || (wget -qO- https://get.docker.com | sh && docker buildx create --use) || true
+
+            # --- Diagnostics & cleanup (guarded) ---
+            echo "🧹 Starting comprehensive disk cleanup..."
+            echo "📊 Disk usage before cleanup:"
+            df -h || true
+            docker system df || true
+            sudo du -xh /var/lib/docker | sort -h | tail -40 || true
+
+            echo "🐳 Docker containers status:"
+            sudo docker ps -a || true
+
+            echo "🗑️ Cleaning Docker resources..."
+            sudo docker rm -f $(docker ps -aq) 2>/dev/null || true
+            sudo docker system prune -af --volumes || true
+            sudo docker builder prune -af || true
+            sudo docker image prune -af || true
+            sudo docker volume prune -f || true
+
+            echo "🧽 Cleaning system caches..."
+            sudo apt-get clean || true
+            sudo rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/* || true
+            sudo journalctl --vacuum-time=3d || true
+            sudo rm -rf ~/.cache /root/.cache /tmp/* /var/tmp/* || true
+
+            echo "📊 Disk usage after cleanup:"
+            df -h || true
+            docker system df || true
+
+            # --- AWS CLI (if missing) ---
             if ! aws --version | grep -q aws-cli; then
               curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
               unzip -q awscliv2.zip && sudo ./aws/install > /dev/null 2>&1 && rm -rf aws awscliv2.zip
@@ -201,36 +248,27 @@ jobs:
             IMAGE="$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO:$IMAGE_TAG"
 
             aws ecr get-login-password --region "$REGION" \
-              | docker login --username AWS --password-stdin "$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com" 2>/dev/null
+              | sudo docker login --username AWS --password-stdin "$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com" 2>/dev/null
 
-            # Pull the new image
-            docker pull "$IMAGE"
+            sudo docker image prune -f || true
+            sudo docker pull "$IMAGE"
+            sudo docker image prune -f || true
 
-            # ---- Network: ensure user-defined network exists ----
-            docker network inspect appnet >/dev/null 2>&1 || docker network create appnet
-
-            # Stop only our app stack containers if they exist (no host-wide nukes)
-            for name in cre_worker cre_app redis; do
-              docker rm -f "$name" 2>/dev/null || true
+            # Stop/remove old containers if present
+            for name in cre_app cre_worker; do
+              sudo docker rm -f "$name" 2>/dev/null || true
             done
 
-            # ---- Start order: redis -> app -> worker ----
-
-            echo "🚀 Starting redis on appnet..."
-            docker run -d --name redis \
-              --network appnet \
+            # Redis
+            sudo docker rm -f redis 2>/dev/null || true
+            sudo docker run -d --name redis \
               -p 6379:6379 \
               --health-cmd="redis-cli ping || exit 1" \
               --health-interval=30s --health-timeout=10s --health-retries=3 --health-start-period=30s \
               redis:7-alpine
 
-            # Wait for redis healthy
-            echo "⏳ Waiting for redis to be healthy..."
-            timeout 120 bash -c 'until [ "$(docker inspect -f {{.State.Health.Status}} redis)" = "healthy" ]; do sleep 3; done'
-
-            echo "🚀 Starting cre_app on appnet..."
-            docker run -d --name cre_app \
-              --network appnet \
+            # App
+            sudo docker run -d --name cre_app \
               -p 5000:5000 \
               --health-cmd="curl -fsS http://localhost:5000/healthz || exit 1" \
               --health-interval=30s --health-timeout=10s --health-retries=3 --health-start-period=40s \
@@ -253,19 +291,11 @@ jobs:
               -e VITE_PLAID_CLIENT_ID="${VITE_PLAID_CLIENT_ID}" \
               -e SERP_API="${SERP_API}" \
               -e RAPIDAPI_KEY="${RAPIDAPI_KEY}" \
-              # Service-name URL for Redis (for intra-container comms)
-              -e REDIS_URL="redis://redis:6379/0" \
-              -e CELERY_BROKER_URL="redis://redis:6379/0" \
-              -e CELERY_RESULT_BACKEND="redis://redis:6379/1" \
               "$IMAGE"
 
-            # Wait for app healthy before starting worker
-            echo "⏳ Waiting for cre_app to be healthy..."
-            timeout 180 bash -c 'until [ "$(docker inspect -f {{.State.Health.Status}} cre_app)" = "healthy" ]; do sleep 3; done'
-
-            echo "🚀 Starting cre_worker on appnet..."
-            docker run -d --name cre_worker \
-              --network appnet \
+            # Worker (correct Celery target: :celery)
+            sudo docker run -d --name cre_worker \
+              --link redis:redis \
               --health-cmd="celery -A app.celery.celery_worker:celery inspect ping || exit 1" \
               --health-interval=60s --health-timeout=30s --health-retries=3 --health-start-period=60s \
               -e AWS_REGION="${AWS_REGION}" \
@@ -287,35 +317,37 @@ jobs:
               -e VITE_PLAID_CLIENT_ID="${VITE_PLAID_CLIENT_ID}" \
               -e SERP_API="${SERP_API}" \
               -e RAPIDAPI_KEY="${RAPIDAPI_KEY}" \
-              # Service-name URLs for broker/results
-              -e CELERY_BROKER_URL="redis://redis:6379/0" \
-              -e CELERY_RESULT_BACKEND="redis://redis:6379/1" \
               "$IMAGE" \
               celery -A app.celery.celery_worker:celery worker --loglevel=info
 
-            # Optional: export built frontend
+            # (Optional) export built frontend
             sudo rm -rf /var/www/html/* || true
-            docker cp cre_app:/app/Client/dist/. /var/www/html/ || true
+            sudo docker cp cre_app:/app/Client/dist/. /var/www/html/ || true
             sudo chown -R www-data:www-data /var/www/html || true
 
-            # Health summaries
+            # Health checks
             echo "cre_app health:"
-            docker inspect --format='{{json .State.Health}}' cre_app || true
+            sudo docker inspect --format='{{json .State.Health}}' cre_app || true
             echo "cre_worker health:"
-            docker inspect --format='{{json .State.Health}}' cre_worker || true
+            sudo docker inspect --format='{{json .State.Health}}' cre_worker || true
             echo "redis health:"
-            docker inspect --format='{{json .State.Health}}' redis || true
+            sudo docker inspect --format='{{json .State.Health}}' redis || true
 
-      - name: Final cleanup on runner (safe)
+      - name: Final cleanup (safe)
         if: always()
         run: |
+          echo "🧹 Final GitHub Actions runner cleanup..."
           docker buildx prune -af || true
           docker system prune -af --volumes || true
           docker builder prune -af || true
           docker image prune -af || true
           docker volume prune -f || true
+
           sudo apt-get clean || true
           sudo rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/* || true
+          sudo journalctl --vacuum-time=1d || true
+          sudo rm -rf ~/.cache /root/.cache /tmp/* /var/tmp/* || true
+
           echo "📊 Final disk usage:"
           df -h
           docker system df || true
