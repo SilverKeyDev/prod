@@ -14,6 +14,10 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    # Optional: cancel superseded runs to save time/resources
+    concurrency:
+      group: prod-deploy
+      cancel-in-progress: true
 
     steps:
       - name: Checkout code
@@ -21,7 +25,7 @@ jobs:
         with:
           fetch-depth: 1
 
-      # AWS creds for this workflow (for both ECR and Secrets Manager)
+      # AWS creds for both Secrets Manager + ECR
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -29,32 +33,8 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.REGION }}
 
-      # Free ~25–35 GB on runner
-      - name: Free up disk space
-        uses: jlumbroso/free-disk-space@main
-        with:
-          tool-cache: true
-          android: true
-          dotnet: true
-          haskell: true
-          large-packages: true
-          swap-storage: true
-
       - name: Install jq (for JSON parsing)
         run: sudo apt-get update -y && sudo apt-get install -y jq > /dev/null 2>&1
-
-      # Log initial storage usage
-      - name: Log initial storage usage
-        run: |
-          echo "=== INITIAL STORAGE USAGE ==="
-          df -h
-          echo ""
-          echo "=== DOCKER STORAGE BREAKDOWN ==="
-          docker system df || echo "Docker not available yet"
-          echo ""
-          echo "=== LARGEST DIRECTORIES ==="
-          timeout 10s du -h --max-depth=1 /home /var /usr /opt /tmp 2>/dev/null | sort -hr | head -10 || echo "Directory scan timed out or failed"
-          echo "================================"
 
       # Snapshot env keys before loading secrets (for a safe diff later)
       - name: Snapshot env (before secrets)
@@ -89,7 +69,6 @@ jobs:
           serp_json="$(fetch_json serp || echo '{}')"
           rapidapi_json="$(fetch_json rapidapi || echo '{}')"
 
-          # Helper to export a key if present and non-empty
           export_if_present () {
             local json="$1"
             local jkey="$2"
@@ -101,7 +80,7 @@ jobs:
             fi
           }
 
-          # ---- Map each secret JSON to EXACT env var names (no prefixes) ----
+          # Map JSON -> env (exact names)
           export_if_present "$db_url_json" "DATABASE_URL" "DATABASE_URL"
 
           export_if_present "$aws_access_json" "AWS_ACCESS_KEY_ID" "AWS_ACCESS_KEY_ID"
@@ -129,41 +108,21 @@ jobs:
           export_if_present "$serp_json" "SERP_API" "SERP_API"
           export_if_present "$rapidapi_json" "RAPIDAPI_KEY" "RAPIDAPI_KEY"
 
-      # Log only the names of newly added env vars (no values)
-      - name: List env keys added from Secrets Manager (no prefixes)
+      - name: List env keys added from Secrets Manager (names only)
         run: |
           printenv | cut -d= -f1 | sort > /tmp/env_after_secrets
           echo "New environment variable keys loaded (no values):"
           comm -13 /tmp/env_before /tmp/env_after_secrets || true
 
-      # Debug: print keys with SHA-256 of values (no raw secrets)
-      - name: Debug hashed env (post-load)
-        shell: bash
-        run: |
-          echo "Hashed values for new keys:"
-          while IFS='=' read -r k v; do
-            if grep -qx "$k" /tmp/env_after_secrets && ! grep -qx "$k" /tmp/env_before; then
-              hash_val() { printf "%s" "$1" | (command -v sha256sum >/dev/null && sha256sum || shasum -a 256) | awk '{print $1}'; }
-              printf "%s_SHA256=%s\n" "$k" "$(hash_val "$v")"
-            fi
-          done < <(printenv | sort)
-
-      # ✅ Fail fast if critical env are empty
       - name: Validate required env are non-empty
         shell: bash
         run: |
-          required=(
-            DATABASE_URL
-            AWS_COGNITO_USER_POOL_ID
-            AWS_COGNITO_CLIENT_ID
-            AWS_COGNITO_CLIENT_SECRET
-          )
+          required=( DATABASE_URL AWS_COGNITO_USER_POOL_ID AWS_COGNITO_CLIENT_ID AWS_COGNITO_CLIENT_SECRET )
           failed=0
           for k in "${required[@]}"; do
             v="${!k:-}"
             if [ -z "$v" ]; then
-              echo "❌ $k is EMPTY"
-              failed=1
+              echo "❌ $k is EMPTY"; failed=1
             else
               echo "✅ $k present"
             fi
@@ -171,11 +130,6 @@ jobs:
           [ "$failed" -eq 0 ] || exit 1
 
       # ---------- Buildx flow: container driver + push (no local image) ----------
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-        with:
-          platforms: linux/amd64
-
       - name: Set up Docker Buildx (container driver)
         uses: docker/setup-buildx-action@v3
         with:
@@ -198,7 +152,7 @@ jobs:
           CACHE_REF="$ACCOUNT_ID.dkr.ecr.${{ env.REGION }}.amazonaws.com/${{ env.REPO }}:buildcache"
           IMAGE_REF="$ACCOUNT_ID.dkr.ecr.${{ env.REGION }}.amazonaws.com/${{ env.REPO }}:${{ env.IMAGE_TAG }}"
 
-          # Light cleanup (safe; do NOT use -a which would remove action images)
+          # Light cleanup (safe; keep action images intact)
           docker system prune -f || true
 
           docker buildx build \
@@ -216,36 +170,19 @@ jobs:
       - name: Prune Buildx cache (safe)
         run: |
           docker buildx prune -af || true
-          echo "=== STORAGE USAGE AFTER BUILD ==="
-          df -h
-          echo ""
-          echo "=== DOCKER STORAGE BREAKDOWN AFTER BUILD ==="
-          docker system df
-          echo ""
-          echo "=== LARGEST DIRECTORIES AFTER BUILD ==="
-          timeout 10s du -h --max-depth=1 /home /var /usr /opt /tmp 2>/dev/null | sort -hr | head -10 || echo "Directory scan timed out or failed"
-          echo "=========================================="
+          docker system df || true
 
       # ---------- Deploy on EC2 ----------
       - name: SSH into EC2 and Deploy Container + Copy Frontend
         uses: appleboy/ssh-action@v1.0.0
         env:
-          # Region for remote AWS CLI
           AWS_REGION: ${{ env.REGION }}
-
-          # From Secrets Manager (now already exact names)
           DATABASE_URL: ${{ env.DATABASE_URL }}
-
-          # From Actions (so CLI on the EC2 host can pull from ECR)
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
-          # Cognito
           AWS_COGNITO_USER_POOL_ID: ${{ env.AWS_COGNITO_USER_POOL_ID }}
           AWS_COGNITO_CLIENT_ID: ${{ env.AWS_COGNITO_CLIENT_ID }}
           AWS_COGNITO_CLIENT_SECRET: ${{ env.AWS_COGNITO_CLIENT_SECRET }}
-
-          # Other APIs
           GOOGLE_MAPS_API_KEY: ${{ env.GOOGLE_MAPS_API_KEY }}
           GOOGLE_CALENDAR_SECRET: ${{ env.GOOGLE_CALENDAR_SECRET }}
           GOOGLE_CLIENT_ID: ${{ env.GOOGLE_CLIENT_ID }}
@@ -274,16 +211,6 @@ jobs:
             set -e
             echo "🕒 $(date -u +'%Y-%m-%dT%H:%M:%SZ') Starting EC2 deployment..."
 
-            echo "=== INITIAL EC2 STORAGE USAGE ==="
-            df -h
-            echo ""
-            echo "=== DOCKER STORAGE BREAKDOWN (EC2) ==="
-            sudo docker system df || echo "Docker not available yet"
-            echo ""
-            echo "=== LARGEST DIRECTORIES (EC2) ==="
-            timeout 10s sudo du -h --max-depth=1 /home /var /usr /opt /tmp 2>/dev/null | sort -hr | head -10 || echo "Directory scan timed out or failed"
-            echo "===================================="
-
             REGION="$AWS_REGION"
             REPO="cre"
             IMAGE_TAG="latest"
@@ -297,22 +224,17 @@ jobs:
               fi
             done
 
-            # System prep
-            while sudo fuser /var/lib/apt/lists/lock >/dev/null 2>&1 || sudo fuser /var/lib/dpkg/lock >/dev/null 2>&1; do
-              sleep 3
-            done
-            sudo apt update -y > /dev/null 2>&1
-            timeout 3m sudo apt install -y docker.io unzip curl > /dev/null 2>&1
+            # Install Docker if needed (quiet)
+            if ! command -v docker >/dev/null 2>&1; then
+              sudo apt-get update -y > /dev/null 2>&1
+              timeout 3m sudo apt-get install -y docker.io unzip curl > /dev/null 2>&1
+            fi
 
             # Safe cleanup (no -a)
             sudo docker system prune -f --volumes || true
             sudo docker builder prune -f || true
             sudo docker container prune -f || true
             sudo docker network prune -f || true
-            sudo rm -rf /var/lib/docker/tmp/* || true
-            sudo rm -rf /tmp/* || true
-            sudo apt autoremove -y > /dev/null 2>&1 || true
-            sudo apt autoclean > /dev/null 2>&1 || true
 
             # AWS CLI (if missing)
             if ! aws --version | grep -q aws-cli; then
@@ -320,7 +242,6 @@ jobs:
               unzip -q awscliv2.zip && sudo ./aws/install > /dev/null 2>&1 && rm -rf aws awscliv2.zip
             fi
 
-            # Pull image from ECR
             ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text --region "$REGION")
             IMAGE="$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO:$IMAGE_TAG"
             aws ecr get-login-password --region "$REGION" \
@@ -330,33 +251,24 @@ jobs:
             sudo docker pull "$IMAGE"
             sudo docker image prune -f || true
 
-            # Stop/remove old containers
+            # Stop/remove old containers if present
             for name in cre_app cre_worker; do
-              if sudo docker ps -a --format '{{.Names}}' | grep -Eq "^${name}\$"; then
-                sudo docker rm -f "$name" || true
-              fi
+              sudo docker rm -f "$name" 2>/dev/null || true
             done
 
-            # Redis fresh
+            # Redis
             sudo docker rm -f redis 2>/dev/null || true
             sudo docker run -d --name redis \
               -p 6379:6379 \
               --health-cmd="redis-cli ping || exit 1" \
-              --health-interval=30s \
-              --health-timeout=10s \
-              --health-retries=3 \
-              --health-start-period=30s \
+              --health-interval=30s --health-timeout=10s --health-retries=3 --health-start-period=30s \
               redis:7-alpine
-            sleep 2
 
-            # -------- App container (explicit env values) --------
+            # App
             sudo docker run -d --name cre_app \
               -p 5000:5000 \
               --health-cmd="curl -fsS http://localhost:5000/healthz || exit 1" \
-              --health-interval=30s \
-              --health-timeout=10s \
-              --health-retries=3 \
-              --health-start-period=40s \
+              --health-interval=30s --health-timeout=10s --health-retries=3 --health-start-period=40s \
               -e AWS_REGION="${AWS_REGION}" \
               -e AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}" \
               -e AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}" \
@@ -378,14 +290,11 @@ jobs:
               -e RAPIDAPI_KEY="${RAPIDAPI_KEY}" \
               "$IMAGE"
 
-            # -------- Celery worker (FIXED target: :celery) --------
+            # Worker (correct Celery target: :celery)
             sudo docker run -d --name cre_worker \
               --link redis:redis \
               --health-cmd="celery -A app.celery.celery_worker:celery inspect ping || exit 1" \
-              --health-interval=60s \
-              --health-timeout=30s \
-              --health-retries=3 \
-              --health-start-period=60s \
+              --health-interval=60s --health-timeout=30s --health-retries=3 --health-start-period=60s \
               -e AWS_REGION="${AWS_REGION}" \
               -e AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}" \
               -e AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}" \
@@ -408,18 +317,12 @@ jobs:
               "$IMAGE" \
               celery -A app.celery.celery_worker:celery worker --loglevel=info
 
-            # (Optional) Export built frontend from container into host path for a future Nginx/Apache
+            # (Optional) export built frontend
             sudo rm -rf /var/www/html/* || true
             sudo docker cp cre_app:/app/Client/dist/. /var/www/html/ || true
             sudo chown -R www-data:www-data /var/www/html || true
 
             # Health checks
-            if ! sudo docker ps --format '{{.Names}}' | grep -q '^cre_app$'; then
-              echo "❌ cre_app not running"
-              sudo docker logs cre_app || true
-              exit 1
-            fi
-
             echo "cre_app health:"
             sudo docker inspect --format='{{json .State.Health}}' cre_app || true
             echo "cre_worker health:"
@@ -427,18 +330,7 @@ jobs:
             echo "redis health:"
             sudo docker inspect --format='{{json .State.Health}}' redis || true
 
-            # Log final EC2 storage usage
-            echo "=== FINAL EC2 STORAGE USAGE ==="
-            df -h
-            echo ""
-            echo "=== DOCKER STORAGE BREAKDOWN (FINAL) ==="
-            sudo docker system df
-            echo ""
-            echo "=== LARGEST DIRECTORIES (FINAL) ==="
-            timeout 10s sudo du -h --max-depth=1 /home /var /usr /opt /tmp 2>/dev/null | sort -hr | head -10 || echo "Directory scan timed out or failed"
-            echo "====================================="
-
-      # Heavy cleanup only after everything is done (optional)
+      # Final light cleanup (safe)
       - name: Final cleanup (safe)
         if: always()
         run: |
