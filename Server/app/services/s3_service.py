@@ -21,8 +21,7 @@ class S3Service:
         self._last_init_attempt = 0
         self._init_retry_delay = 30  # seconds
         
-        # Try initial initialization
-        self._initialize_s3_client()
+        # Don't initialize immediately - wait for Flask app context
     
     def _log_initialization_context(self):
         """Log detailed context information for debugging initialization issues"""
@@ -82,6 +81,8 @@ class S3Service:
             if not bucket_name:
                 logger.error("❌ S3 bucket name not configured")
                 logger.error("   - Set S3_BUCKET_NAME_PDFS in Flask config")
+                logger.error("   - S3 operations will be disabled")
+                return
             
             # Create S3 client
             self.s3_client = boto3.client(
