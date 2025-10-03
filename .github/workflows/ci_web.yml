@@ -134,10 +134,8 @@ jobs:
           CACHE_REF="$ACCOUNT_ID.dkr.ecr.${{ env.REGION }}.amazonaws.com/${{ env.REPO }}:buildcache"
           IMAGE_REF="$ACCOUNT_ID.dkr.ecr.${{ env.REGION }}.amazonaws.com/${{ env.REPO }}:${{ env.IMAGE_TAG }}"
 
-          # Quiet prune
           docker system prune -f >/dev/null 2>&1 || true
 
-          # Use plain progress, filter out layer noise but keep errors
           export DOCKER_BUILDKIT=1
           export BUILDKIT_PROGRESS=plain
           docker buildx build \
@@ -192,7 +190,7 @@ jobs:
             PLAID_SANDBOX_KEY,PLAID_SECRET,VITE_PLAID_CLIENT_ID,
             SERP_API,RAPIDAPI_KEY
           script: |
-            set -e
+            set -euo pipefail
 
             echo "🕒 $(date -u +'%Y-%m-%dT%H:%M:%SZ') Starting EC2 deployment..."
             REGION="$AWS_REGION"
@@ -222,7 +220,10 @@ jobs:
             docker system df || true
 
             echo "🗑️ Cleaning Docker resources..."
-            sudo docker rm -f $(docker ps -aq) 2>/dev/null || true
+            # Only remove ours; avoid nuking host images unnecessarily
+            for name in cre_app cre_worker redis; do
+              sudo docker rm -f "$name" >/dev/null 2>&1 || true
+            done
             sudo docker system prune -af --volumes >/dev/null 2>&1 || true
             sudo docker builder prune -af >/dev/null 2>&1 || true
             sudo docker image prune -af >/dev/null 2>&1 || true
@@ -250,20 +251,13 @@ jobs:
             aws ecr get-login-password --region "$REGION" \
               | sudo docker login --username AWS --password-stdin "$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com" >/dev/null 2>&1
 
-            sudo docker image prune -f >/dev/null 2>&1 || true
             sudo docker pull "$IMAGE" 2>&1 | grep -Ev 'sha256:[0-9a-f]{64}|Pulling fs layer|Waiting|Downloading|Verifying Checksum|Download complete|Extracting' || true
-            sudo docker image prune -f >/dev/null 2>&1 || true
-
-            # Stop/remove old containers if present (quiet)
-            for name in cre_app cre_worker redis; do
-              sudo docker rm -f "$name" >/dev/null 2>&1 || true
-            done
 
             # Create user-defined bridge network
             sudo docker network rm "$NETWORK_NAME" >/dev/null 2>&1 || true
             sudo docker network create "$NETWORK_NAME" >/dev/null 2>&1
 
-            # 1. Start Redis first
+            # 1) Redis
             echo "🚀 Starting Redis..."
             sudo docker run -d \
               --name redis \
@@ -273,11 +267,10 @@ jobs:
               --health-interval=30s --health-timeout=10s --health-retries=3 --health-start-period=30s \
               redis:7-alpine >/dev/null
 
-            # Wait for Redis to be healthy (quiet loop)
             echo "⏳ Waiting for Redis to be healthy..."
             timeout 60s bash -c 'until docker inspect --format="{{.State.Health.Status}}" redis 2>/dev/null | grep -q "healthy"; do sleep 2; done' >/dev/null 2>&1 || echo "Redis health check timeout (continuing anyway)"
 
-            # 2. Start App
+            # 2) App
             echo "🚀 Starting App..."
             sudo docker run -d \
               --name cre_app \
@@ -307,11 +300,10 @@ jobs:
               -e RAPIDAPI_KEY="${RAPIDAPI_KEY}" \
               "$IMAGE" >/dev/null
 
-            # Wait for App to be healthy (quiet loop)
             echo "⏳ Waiting for App to be healthy..."
             timeout 90s bash -c 'until docker inspect --format="{{.State.Health.Status}}" cre_app 2>/dev/null | grep -q "healthy"; do sleep 2; done' >/dev/null 2>&1 || echo "App health check timeout (continuing anyway)"
 
-            # 3. Start Worker
+            # 3) Worker
             echo "🚀 Starting Worker..."
             sudo docker run -d \
               --name cre_worker \
@@ -341,19 +333,25 @@ jobs:
               "$IMAGE" \
               celery -A app.celery.celery_worker:celery worker --loglevel=info >/dev/null 2>&1
 
-            # (Optional) export built frontend (quiet)
-            sudo rm -rf /var/www/html/* >/dev/null 2>&1 || true
-            sudo docker cp cre_app:/app/Client/dist/. /var/www/html/ >/dev/null 2>&1 || true
-            sudo chown -R www-data:www-data /var/www/html >/dev/null 2>&1 || true
+            # ---- Export built frontend WITHOUT docker cp (avoids hangs) ----
+            # Use a bounded tar stream from container -> host; skip if dist missing.
+            echo "📦 Syncing static frontend to /var/www/html (bounded)..."
+            sudo mkdir -p /var/www/html
+            if timeout 5s sudo docker exec cre_app test -d /app/Client/dist; then
+              # stream with timeout to prevent hangs > 20s
+              timeout 20s bash -c \
+                'sudo docker exec cre_app sh -lc "cd /app/Client/dist && tar -cf - ." | sudo tar -C /var/www/html -xf -' \
+                >/dev/null 2>&1 || echo "⚠️ Frontend export timed out or failed (continuing)"
+              sudo chown -R www-data:www-data /var/www/html >/dev/null 2>&1 || true
+            else
+              echo "⚠️ /app/Client/dist not found in container; skipping export."
+            fi
 
             # Health checks (succinct)
             echo "✅ Health status:"
-            echo "Redis:"
-            sudo docker inspect --format='{{.State.Health.Status}}' redis || true
-            echo "App:"
-            sudo docker inspect --format='{{.State.Health.Status}}' cre_app || true
-            echo "Worker:"
-            sudo docker inspect --format='{{.State.Health.Status}}' cre_worker || true
+            echo "Redis:" && sudo docker inspect --format='{{.State.Health.Status}}' redis || true
+            echo "App:" && sudo docker inspect --format='{{.State.Health.Status}}' cre_app || true
+            echo "Worker:" && sudo docker inspect --format='{{.State.Health.Status}}' cre_worker || true
 
             echo "✅ Deployment complete!"
 
@@ -362,7 +360,7 @@ jobs:
         run: |
           echo "🧹 Final GitHub Actions runner cleanup..."
           docker buildx prune -af >/dev/null 2>&1 || true
-          docker system prune -af --volumes >/dev/null 2>&1 || true
+          docker system prune -af --volumes >/devnull 2>&1 || true
           docker builder prune -af >/dev/null 2>&1 || true
           docker image prune -af >/dev/null 2>&1 || true
           docker volume prune -f >/dev/null 2>&1 || true
