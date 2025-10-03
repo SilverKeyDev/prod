@@ -266,6 +266,7 @@ jobs:
               -p 5000:5000 \
               --health-cmd="curl -fsS http://localhost:5000/healthz || exit 1" \
               --health-interval=30s --health-timeout=10s --health-retries=3 --health-start-period=40s \
+              -e FLASK_ENV="production" \
               -e REDIS_URL="redis://redis:6379/0" \
               -e AWS_REGION="${AWS_REGION}" \
               -e AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}" \
@@ -298,6 +299,7 @@ jobs:
               --network "$NETWORK_NAME" \
               --health-cmd="celery -A app.celery.celery_worker:celery inspect ping || exit 1" \
               --health-interval=60s --health-timeout=30s --health-retries=3 --health-start-period=60s \
+              -e FLASK_ENV="production" \
               -e REDIS_URL="redis://redis:6379/0" \
               -e AWS_REGION="${AWS_REGION}" \
               -e AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}" \
