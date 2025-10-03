@@ -17,7 +17,7 @@ os.makedirs(instance_dir, exist_ok=True)
 class Config:
 
     # Celery Configuration
-    CELERY_URL = 'redis://localhost:6379/0'
+    CELERY_URL = 'redis://redis:6379/0'
     CELERY_TRANSPORT_OPTIONS = {
         'visibility_timeout': 900
     }

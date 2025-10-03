@@ -194,6 +194,7 @@ jobs:
             REGION="$AWS_REGION"
             REPO="cre"
             IMAGE_TAG="latest"
+            NETWORK_NAME="cre_network"
 
             # --- Ensure Docker is installed AND running BEFORE any docker command ---
             if ! command -v docker >/dev/null 2>&1; then
@@ -255,23 +256,37 @@ jobs:
             sudo docker image prune -f || true
 
             # Stop/remove old containers if present
-            for name in cre_app cre_worker; do
+            for name in cre_app cre_worker redis; do
               sudo docker rm -f "$name" 2>/dev/null || true
             done
 
-            # Redis
-            sudo docker rm -f redis 2>/dev/null || true
-            sudo docker run -d --name redis \
-              -p 6379:6379 \
+            # Create user-defined bridge network
+            sudo docker network rm "$NETWORK_NAME" 2>/dev/null || true
+            sudo docker network create "$NETWORK_NAME"
+
+            # 1. Start Redis first
+            echo "🚀 Starting Redis..."
+            sudo docker run -d \
+              --name redis \
+              --network "$NETWORK_NAME" \
+              --network-alias redis \
               --health-cmd="redis-cli ping || exit 1" \
               --health-interval=30s --health-timeout=10s --health-retries=3 --health-start-period=30s \
               redis:7-alpine
 
-            # App
-            sudo docker run -d --name cre_app \
+            # Wait for Redis to be healthy
+            echo "⏳ Waiting for Redis to be healthy..."
+            timeout 60s bash -c 'until docker inspect --format="{{.State.Health.Status}}" redis 2>/dev/null | grep -q "healthy"; do sleep 2; done' || echo "Redis health check timeout (continuing anyway)"
+
+            # 2. Start App
+            echo "🚀 Starting App..."
+            sudo docker run -d \
+              --name cre_app \
+              --network "$NETWORK_NAME" \
               -p 5000:5000 \
               --health-cmd="curl -fsS http://localhost:5000/healthz || exit 1" \
               --health-interval=30s --health-timeout=10s --health-retries=3 --health-start-period=40s \
+              -e REDIS_URL="redis://redis:6379/0" \
               -e AWS_REGION="${AWS_REGION}" \
               -e AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}" \
               -e AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}" \
@@ -293,11 +308,18 @@ jobs:
               -e RAPIDAPI_KEY="${RAPIDAPI_KEY}" \
               "$IMAGE"
 
-            # Worker (correct Celery target: :celery)
-            sudo docker run -d --name cre_worker \
-              --link redis:redis \
+            # Wait for App to be healthy
+            echo "⏳ Waiting for App to be healthy..."
+            timeout 90s bash -c 'until docker inspect --format="{{.State.Health.Status}}" cre_app 2>/dev/null | grep -q "healthy"; do sleep 2; done' || echo "App health check timeout (continuing anyway)"
+
+            # 3. Start Worker
+            echo "🚀 Starting Worker..."
+            sudo docker run -d \
+              --name cre_worker \
+              --network "$NETWORK_NAME" \
               --health-cmd="celery -A app.celery.celery_worker:celery inspect ping || exit 1" \
               --health-interval=60s --health-timeout=30s --health-retries=3 --health-start-period=60s \
+              -e REDIS_URL="redis://redis:6379/0" \
               -e AWS_REGION="${AWS_REGION}" \
               -e AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}" \
               -e AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}" \
@@ -326,12 +348,15 @@ jobs:
             sudo chown -R www-data:www-data /var/www/html || true
 
             # Health checks
-            echo "cre_app health:"
-            sudo docker inspect --format='{{json .State.Health}}' cre_app || true
-            echo "cre_worker health:"
-            sudo docker inspect --format='{{json .State.Health}}' cre_worker || true
-            echo "redis health:"
+            echo "✅ Health status:"
+            echo "Redis:"
             sudo docker inspect --format='{{json .State.Health}}' redis || true
+            echo "App:"
+            sudo docker inspect --format='{{json .State.Health}}' cre_app || true
+            echo "Worker:"
+            sudo docker inspect --format='{{json .State.Health}}' cre_worker || true
+
+            echo "✅ Deployment complete!"
 
       - name: Final cleanup (safe)
         if: always()
