@@ -1,98 +1,67 @@
 # ----------------------------
 # Stage 1: Build Vite frontend
 # ----------------------------
-    FROM node:22-slim AS frontend
+  FROM node:22-slim AS frontend
 
-    # Use bash with pipefail so errors inside pipes are not swallowed
-    SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-    
-    WORKDIR /app/client
-    
-    # Install pnpm
-    RUN npm install -g pnpm@9.0.0
-    
-    # build-time variables
-    ARG VITE_GOOGLE_MAPS_ID
-    ARG VITE_PLAID_CLIENT_ID
-    ARG VITE_GOOGLE_CLIENT_ID
-    
-    # Promote to ENV (same behavior as before)
-    ENV VITE_GOOGLE_MAPS_ID=${VITE_GOOGLE_MAPS_ID}
-    ENV VITE_PLAID_CLIENT_ID=${VITE_PLAID_CLIENT_ID}
-    ENV VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID}
-    
-    # --- Diagnostics: tool versions early ---
-    RUN echo "== Node & pnpm versions ==" \
-     && node -v \
-     && pnpm -v
-    
-    # Copy workspace configuration files
-    COPY Client/package.json ./
-    COPY Client/pnpm-workspace.yaml ./
-    COPY Client/pnpm-lock.yaml ./
-    
-    # --- Diagnostics: show workspace root files just copied ---
-    RUN echo "== After copying workspace files ==" \
-     && ls -la
-    
-    # Prefetch dependencies using lockfile only (better layer caching for workspaces)
-    RUN pnpm fetch --reporter=ndjson 2>&1 | tee /tmp/pnpm-fetch.log
-    
-    # Copy rest of client source
-    COPY Client/ .
-    
-    # --- Diagnostics: confirm key paths exist (case/casing issues surface here) ---
-    RUN echo "== Post source copy: tree (top-level) ==" \
-     && ls -la \
-     && echo "== Packages dir (if exists) ==" \
-     && (ls -la packages || true) \
-     && echo "== Packages/styles (if exists) ==" \
-     && (ls -la packages/styles || true)
-    
-    # Install dependencies offline based on prefetched store (include dev deps for Vite build)
-    RUN echo "== pnpm install (frozen lock) ==" \
-     && pnpm install --frozen-lockfile --prod=false --reporter=ndjson 2>&1 | grep -v "Unsupported platform" | tee /tmp/pnpm-install.log \
-     && rm -rf /tmp/* || true
-    
-    # --- Diagnostics: summarize envs without leaking values (prints length/isset only) ---
-    RUN echo "== VITE_* env presence check ==" \
-     && for v in VITE_GOOGLE_MAPS_ID VITE_PLAID_CLIENT_ID VITE_GOOGLE_CLIENT_ID; do \
-          val="${!v}"; \
-          if [[ -z "$val" ]]; then echo "  $v: [EMPTY]"; else echo "  $v: set (len=${#val})"; fi; \
-        done
-    
-    # Optional: bump memory headroom in case Rollup chokes (does not change output)
-    ENV NODE_OPTIONS="--max-old-space-size=3072"
-    
-    # --- Run a verbose Vite build and capture full logs ---
-    # The extra flags only increase logging; the build output remains identical.
-    RUN echo "== Starting Vite build (verbose) ==" \
-     && pnpm --reporter=ndjson run build:web -- --debug --logLevel info 2>&1 | grep -v "Unsupported platform" | tee /tmp/vite-build.log \
-     && rm -rf /tmp/* || true
-    
-    # verify assets exist (Vite outDir -> /app/client/dist)
-    RUN test -d dist && [ "$(ls -A dist)" ] || (echo "❌ dist missing or empty!" && exit 1)
-    
-    # ----------------------------
-    # Stage 2: Build Flask backend
-    # ----------------------------
-    FROM python:3.11-slim AS backend
-    
-    # Use bash with pipefail here as well
-    SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-    
-    ENV PYTHONDONTWRITEBYTECODE=1
-    ENV PYTHONUNBUFFERED=1
-    
-    WORKDIR /app/Server
-    
-    # ---- system packages ----
-    # - build-essential, cmake, libomp-dev: native deps (e.g., lightgbm)
-    # - libmagic1, file: for python-magic (provides libmagic.so + magic DB)
-    # - gdal-bin, libgdal-dev: for fiona/osmnx geospatial libraries
-    RUN echo "== apt-get install system dependencies ==" \
-     && apt-get update -qq \
-     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends -qq \
+  # Use bash with pipefail
+  SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+  
+  WORKDIR /app/client
+  
+  # Install pnpm (quiet)
+  RUN npm install -g pnpm@9.0.0 >/dev/null 2>&1
+  
+  # build-time variables
+  ARG VITE_GOOGLE_MAPS_ID
+  ARG VITE_PLAID_CLIENT_ID
+  ARG VITE_GOOGLE_CLIENT_ID
+  
+  # Promote to ENV
+  ENV VITE_GOOGLE_MAPS_ID=${VITE_GOOGLE_MAPS_ID}
+  ENV VITE_PLAID_CLIENT_ID=${VITE_PLAID_CLIENT_ID}
+  ENV VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID}
+  
+  # Workspace files
+  COPY Client/package.json ./
+  COPY Client/pnpm-workspace.yaml ./
+  COPY Client/pnpm-lock.yaml ./
+  
+  # Prefetch deps using lockfile only (silent)
+  RUN pnpm fetch --reporter=silent >/dev/null 2>&1
+  
+  # Copy rest of client source (exclude mobile app)
+  COPY Client/ .
+  RUN rm -rf apps/mobile
+  
+  # Install deps from store (silent)
+  RUN pnpm install --frozen-lockfile --prod=false --reporter=silent >/dev/null 2>&1 \
+   && rm -rf /tmp/* || true
+  
+  # Headroom for Rollup
+  ENV NODE_OPTIONS="--max-old-space-size=3072"
+  
+  # Vite build (silent)
+  RUN pnpm --reporter=silent run -s build:web -- --logLevel silent >/dev/null 2>&1 \
+   && rm -rf /tmp/* || true
+  
+  # Verify assets exist
+  RUN test -d dist && [ "$(ls -A dist)" ] || (echo "dist missing or empty!" >&2 && exit 1)
+  
+  # ----------------------------
+  # Stage 2: Build Flask backend
+  # ----------------------------
+  FROM python:3.11-slim AS backend
+  
+  SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+  
+  ENV PYTHONDONTWRITEBYTECODE=1
+  ENV PYTHONUNBUFFERED=1
+  
+  WORKDIR /app/Server
+  
+  # System packages (quiet)
+  RUN apt-get update -qq >/dev/null 2>&1 \
+   && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends -qq \
         build-essential \
         libomp-dev \
         cmake \
@@ -100,33 +69,24 @@
         libmagic1 \
         file \
         gdal-bin \
-        libgdal-dev \
-     && apt-get clean \
-     && rm -rf /var/lib/apt/lists/* \
-     && rm -rf /tmp/* \
-     && rm -rf /var/tmp/*
-    
-    # ---- python deps ----
-    # NOTE: requirements.txt should include `python-magic` (not the PyPI package named `libmagic`)
-    COPY Server/requirements.txt ./
-    RUN echo "== pip install ==" \
-     && python --version \
-     && pip --version \
-     && pip install --upgrade pip setuptools wheel --quiet --disable-pip-version-check \
-     && pip install --no-cache-dir --prefer-binary -r requirements.txt --quiet --disable-pip-version-check \
-     && pip cache purge \
-     && rm -rf /tmp/* \
-     && rm -rf /var/tmp/* \
-     && rm -rf ~/.cache/pip
-    
-    # ---- app code ----
-    COPY Server/ .
-    
-    # bring built frontend from stage 1 (matches Vite outDir)
-    COPY --from=frontend /app/client/dist /app/Client/dist
-    
-    EXPOSE 5000
-    
-    # start Flask with Gunicorn
-    CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "--timeout", "3600", "run:app"]
-    
+        libgdal-dev >/dev/null 2>&1 \
+   && apt-get clean >/dev/null 2>&1 \
+   && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+  
+  # Python deps (quiet)
+  COPY Server/requirements.txt ./
+  RUN pip install --upgrade pip setuptools wheel --quiet --disable-pip-version-check \
+   && pip install --no-cache-dir --prefer-binary -r requirements.txt --quiet --disable-pip-version-check \
+   && pip cache purge >/dev/null 2>&1 \
+   && rm -rf /tmp/* /var/tmp/* ~/.cache/pip
+  
+  # App code
+  COPY Server/ .
+  
+  # Bring built frontend from stage 1
+  COPY --from=frontend /app/client/dist /app/Client/dist
+  
+  EXPOSE 5000
+  
+  # Start Flask with Gunicorn
+  CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "--timeout", "3600", "run:app"]  
