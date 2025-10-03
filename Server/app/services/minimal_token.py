@@ -16,15 +16,20 @@ class MinimalTokenService:
     """Service for generating minimal JWT tokens with only essential claims"""
     
     def __init__(self):
-        # Use environment variable for secret key (required in production)
-        self.secret_key = os.getenv('MINIMAL_TOKEN_SECRET')
+        # Use the main application secret key for consistency
+        # This avoids requiring a separate MINIMAL_TOKEN_SECRET environment variable
+        from flask import current_app
+        try:
+            # Try to get the secret key from Flask app context
+            self.secret_key = current_app.config.get('SECRET_KEY')
+        except RuntimeError:
+            # If not in app context, get from environment directly
+            self.secret_key = os.getenv('AWS_SECRET_ACCESS_KEY')
+        
         if not self.secret_key:
-            if os.getenv('FLASK_ENV') == 'production':
-                raise RuntimeError("MINIMAL_TOKEN_SECRET environment variable must be set in production")
-            else:
-                # Development fallback
-                self.secret_key = 'silverkey-minimal-token-secret-key-2024-dev'
-                logger.warning("Using development secret key for minimal tokens")
+            # Final fallback for development
+            self.secret_key = 'silverkey-minimal-token-secret-key-2024-dev'
+            logger.warning("Using development secret key for minimal tokens")
         
         self.algorithm = 'HS256'  # Simpler than RS256, smaller tokens
         

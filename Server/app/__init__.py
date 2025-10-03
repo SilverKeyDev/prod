@@ -128,13 +128,13 @@ def create_app(config=None):
     # Log minimal token mode configuration at startup
     from .services.minimal_token import minimal_token_service
     flask_env = os.getenv('FLASK_ENV', 'development')
-    has_minimal_secret = bool(os.getenv('MINIMAL_TOKEN_SECRET'))
+    has_secret_key = bool(app.config.get('SECRET_KEY'))
     
     app.logger.info("MINIMAL_TOKEN_MODE_CONFIGURATION", extra={
         'environment': flask_env,
         'minimal_token_mode': 'ENABLED',
-        'has_minimal_secret': has_minimal_secret,
-        'secret_source': 'environment' if has_minimal_secret else 'development_fallback',
+        'has_secret_key': has_secret_key,
+        'secret_source': 'app_config' if has_secret_key else 'development_fallback',
         'production_mode': flask_env == 'production',
         'cookie_optimization': 'ACTIVE',
         'token_size_reduction': '~71%'
