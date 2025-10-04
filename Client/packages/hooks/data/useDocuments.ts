@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { useLocation } from "react-router-dom";
 
 import { useAuthStore } from "../../store/auth.slice";
 import { useFiltersQueryParams } from "../../config/query/adapters";
@@ -20,16 +19,13 @@ export const useDocuments = () => {
   const authReady = useAuthStore((s) => s.authReady);
   const queryClient = useQueryClient();
   const filters = useFiltersQueryParams();
-  const location = useLocation();
-
+  
   // Upload state
   const [uploadedFiles, setUploadedFiles] = useState<UploadEntry[]>([]);
 
   // Only load documents data on pages that need it
-  const shouldLoadDocuments = useMemo(() => {
-    const path = location.pathname;
-    return path.startsWith("/forms"); //this will change this currently doesn't exist
-  }, [location.pathname]);
+  // For now, always load documents since we don't have a forms page yet
+  const shouldLoadDocuments = true;
 
   // Documents query
   const {
