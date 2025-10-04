@@ -11,13 +11,9 @@ export function useUserStoreIntegration() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const authReady = useAuthStore((s) => s.authReady);
 
-  // Only call useUserData when user is authenticated to prevent API calls on home page
-  const userDataResult = isAuthenticated && authReady ? useUserData() : {
-    userProfile: null,
-    userProfileLoading: false,
-    userProfileError: null,
-    refreshUserProfile: async () => {},
-  };
+  // Always call useUserData to maintain hook order consistency
+  // The hook itself will handle the authentication requirements via React Query's enabled option
+  const userDataResult = useUserData();
 
   const {
     userProfile: dataUserProfile,

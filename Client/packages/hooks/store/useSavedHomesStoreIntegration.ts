@@ -12,17 +12,9 @@ export function useSavedHomesStoreIntegration() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const authReady = useAuthStore((s) => s.authReady);
 
-  // Only call useSavedHomesData when user is authenticated to prevent API calls on home page
-  const savedHomesResult = isAuthenticated && authReady ? useSavedHomesData() : {
-    savedHomes: [],
-    savedHomesLoading: false,
-    savedHomesError: null,
-    refreshSavedHomes: async () => {},
-    saveHome: async () => {},
-    removeSavedHome: async () => {},
-    isHomeSaved: () => false,
-    getSavedHome: () => undefined,
-  };
+  // Always call useSavedHomesData to maintain hook order consistency
+  // The hook itself will handle the authentication requirements via React Query's enabled option
+  const savedHomesResult = useSavedHomesData();
 
   const {
     savedHomes,
@@ -70,7 +62,9 @@ export function useSavedHomesStoreIntegration() {
   useEffect(() => {
     const store = useSavedHomesStore.getState();
     // Replace the placeholder methods with real implementations
-    store.refreshSavedHomes = refreshSavedHomes;
+    store.refreshSavedHomes = async () => {
+      await refreshSavedHomes();
+    };
     store.saveHome = saveHome;
     store.removeSavedHomeAsync = removeSavedHome;
   }, [refreshSavedHomes, saveHome, removeSavedHome]);
