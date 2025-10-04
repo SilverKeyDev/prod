@@ -1,18 +1,30 @@
 import { useEffect, useRef } from "react";
 import { useUserStore } from "../../store/user.slice";
 import { useUserData } from "../data/useUserData";
+import { useAuthStore } from "../../store/auth.slice";
 
 /**
  * Hook that integrates useUserData with useUserStore
  * This replaces the UserProvider functionality
  */
 export function useUserStoreIntegration() {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const authReady = useAuthStore((s) => s.authReady);
+
+  // Only call useUserData when user is authenticated to prevent API calls on home page
+  const userDataResult = isAuthenticated && authReady ? useUserData() : {
+    userProfile: null,
+    userProfileLoading: false,
+    userProfileError: null,
+    refreshUserProfile: async () => {},
+  };
+
   const {
     userProfile: dataUserProfile,
     userProfileLoading: dataUserProfileLoading,
     userProfileError: dataUserProfileError,
     refreshUserProfile: dataRefreshUserProfile,
-  } = useUserData();
+  } = userDataResult;
 
   const {
     userProfile,

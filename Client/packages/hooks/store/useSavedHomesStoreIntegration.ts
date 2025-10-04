@@ -2,12 +2,28 @@ import { useEffect, useRef } from "react";
 
 import { useSavedHomesStore } from "../../store/savedHomes.slice";
 import { useSavedHomesData } from "../data/useSavedHomesData";
+import { useAuthStore } from "../../store/auth.slice";
 
 /**
  * Hook that integrates useSavedHomesData with useSavedHomesStore
  * This replaces the SavedHomesContext functionality
  */
 export function useSavedHomesStoreIntegration() {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const authReady = useAuthStore((s) => s.authReady);
+
+  // Only call useSavedHomesData when user is authenticated to prevent API calls on home page
+  const savedHomesResult = isAuthenticated && authReady ? useSavedHomesData() : {
+    savedHomes: [],
+    savedHomesLoading: false,
+    savedHomesError: null,
+    refreshSavedHomes: async () => {},
+    saveHome: async () => {},
+    removeSavedHome: async () => {},
+    isHomeSaved: () => false,
+    getSavedHome: () => undefined,
+  };
+
   const {
     savedHomes,
     savedHomesLoading,
@@ -15,7 +31,7 @@ export function useSavedHomesStoreIntegration() {
     refreshSavedHomes,
     saveHome,
     removeSavedHome,
-  } = useSavedHomesData();
+  } = savedHomesResult;
 
   const { setSavedHomes, setSavedHomesLoading, setSavedHomesError } =
     useSavedHomesStore();

@@ -16,11 +16,20 @@ import { useAuthStore } from "../../../packages/store/auth.slice";
 import { useAuthStoreIntegration } from "../../../packages/hooks/store/useAuthStoreIntegration";
 import { AppRoutes } from "./routes";
 
+// Component that handles store integrations after Router is ready
+function StoreIntegrations() {
+  useSavedHomesStoreIntegration();
+  useDocumentsStoreIntegration();
+  useGoogleMapsStoreIntegration();
+  return null;
+}
+
 function App() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [maintenance, setMaintenance] = useState(false); // Only show maintenance if health check fails
   const [healthCheckComplete, setHealthCheckComplete] = useState(false);
+  const [routerReady, setRouterReady] = useState(false);
 
   // Read from auth store directly to avoid multiple instances of useSecureAuth
   const authReady = useAuthStore((s) => s.authReady);
@@ -29,9 +38,13 @@ function App() {
   // Get logout function from useAuthStoreIntegration (uses correct useSecureAuth.logout)
   const { logout: authLogout } = useAuthStoreIntegration();
 
-  useSavedHomesStoreIntegration();
-  useDocumentsStoreIntegration();
-  useGoogleMapsStoreIntegration();
+  // Wait for Router context to be ready before calling store integrations
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setRouterReady(true);
+    }, 0);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Memoize session timeout config to prevent recreating on every render
   const sessionTimeoutConfig = useMemo(
@@ -40,7 +53,7 @@ function App() {
       maxSessionMs: 8 * 60 * 60 * 1000, // 8 hours max
       warningTimeMs: 5 * 60 * 1000, // 5 minute warning
     }),
-    [],
+    []
   );
 
   const sessionTimeout = useSessionTimeout(sessionTimeoutConfig) as {
@@ -127,6 +140,9 @@ function App() {
 
   return (
     <>
+      {/* Store integrations - only render after Router is ready */}
+      {routerReady && <StoreIntegrations />}
+
       {isLoading ? (
         <div className="flex min-h-screen items-center justify-center bg-off-white">
           <div className="shimmer h-8 w-32 rounded-lg"></div>

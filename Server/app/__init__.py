@@ -81,8 +81,6 @@ def create_app(config=None):
         # Add development origins to base origins for non-production
         cors_origins = base_origins + development_origins
     
-    # Log CORS configuration for debugging
-    logging.getLogger(__name__).info(f"CORS configured for {flask_env} environment with origins: {cors_origins}")
     
     CORS(app, resources={
         r"/*": {
@@ -128,17 +126,6 @@ def create_app(config=None):
     # Log minimal token mode configuration at startup
     from .services.minimal_token import minimal_token_service
     flask_env = os.getenv('FLASK_ENV', 'development')
-    has_secret_key = bool(app.config.get('SECRET_KEY'))
-    
-    app.logger.info("MINIMAL_TOKEN_MODE_CONFIGURATION", extra={
-        'environment': flask_env,
-        'minimal_token_mode': 'ENABLED',
-        'has_secret_key': has_secret_key,
-        'secret_source': 'app_config' if has_secret_key else 'development_fallback',
-        'production_mode': flask_env == 'production',
-        'cookie_optimization': 'ACTIVE',
-        'token_size_reduction': '~71%'
-    })
 
     # Register blueprints
     from .routes.report import report_bp
