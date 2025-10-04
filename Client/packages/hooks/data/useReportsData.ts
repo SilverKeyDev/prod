@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef } from "react";
-import { useLocation } from "react-router-dom";
 
 import { useAuthStore } from "../../store/auth.slice";
 import { reportApi } from "../../config/api/report";
@@ -75,7 +74,6 @@ export const useReportsData = () => {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const queryClient = useQueryClient();
   const filters = useFiltersQueryParams();
-  const location = useLocation();
 
   // Memoize filters to prevent query key changes
   const memoizedFilters = useMemo(() => filters, [filters]);
@@ -84,17 +82,8 @@ export const useReportsData = () => {
   const refetchReportsRef = useRef<() => Promise<unknown>>();
   const refetchCompareReportsRef = useRef<() => Promise<unknown>>();
 
-  // Only load reports data on pages that need it
-  const shouldLoadReports = useMemo(() => {
-    const path = location.pathname;
-    return (
-      path.startsWith("/dashboard") ||
-      path.startsWith("/reports") ||
-      path.startsWith("/generate-report") ||
-      path.startsWith("/compare-reports") ||
-      path.startsWith("/ai-assistant")
-    );
-  }, [location.pathname]);
+  // Always load reports data - removed location-based conditional loading
+  const shouldLoadReports = true;
 
   // Gate on auth readiness - prevent queries before bootstrap completes
   const shouldLoadData = useMemo(() => {
