@@ -1,15 +1,12 @@
 import { useEffect, useRef } from "react";
 import { useUserStore } from "../../store/user.slice";
 import { useUserData } from "../data/useUserData";
-import { useAuthStore } from "../../store/auth.slice";
 
 /**
  * Hook that integrates useUserData with useUserStore
  * This replaces the UserProvider functionality
  */
 export function useUserStoreIntegration() {
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const authReady = useAuthStore((s) => s.authReady);
 
   // Always call useUserData to maintain hook order consistency
   // The hook itself will handle the authentication requirements via React Query's enabled option

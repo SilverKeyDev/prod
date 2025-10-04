@@ -1,3 +1,5 @@
+/// <reference types="google.maps" />
+
 import {
   Building2,
   BarChart2,
@@ -74,14 +76,14 @@ export default function HomePage() {
 
         const { suggestions: fetched } =
           await g.maps.places.AutocompleteSuggestion.fetchAutocompleteSuggestions(
-            request,
+            request
           );
 
         const built = fetched.flatMap(
           (
             s:
               | AutocompleteSuggestion
-              | { placePrediction: google.maps.places.PlacePrediction | null },
+              | { placePrediction: google.maps.places.PlacePrediction | null }
           ) => {
             const sWithPred = s as {
               placePrediction: google.maps.places.PlacePrediction | null;
@@ -97,7 +99,7 @@ export default function HomePage() {
                 },
               },
             ];
-          },
+          }
         );
         setSuggestions(built);
       } catch (err: unknown) {

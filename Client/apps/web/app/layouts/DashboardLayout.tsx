@@ -190,7 +190,7 @@ export default function DashboardLayout({
     if (path.startsWith("/dashboard")) {
       return (
         <DashboardButtonHeader
-          variant="vertical"
+          variant="horizontal"
           completedStepKey={undefined}
         />
       );

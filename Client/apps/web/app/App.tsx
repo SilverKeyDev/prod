@@ -24,12 +24,27 @@ function StoreIntegrations() {
   return null;
 }
 
+// Wrapper component that ensures StoreIntegrations runs within Router context
+function AppWithStoreIntegrations({
+  user,
+  handleLogout,
+}: {
+  user: UserProfile | null;
+  handleLogout: () => void;
+}) {
+  return (
+    <>
+      <StoreIntegrations />
+      <AppRoutes user={user} handleLogout={handleLogout} />
+    </>
+  );
+}
+
 function App() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [maintenance, setMaintenance] = useState(false); // Only show maintenance if health check fails
   const [healthCheckComplete, setHealthCheckComplete] = useState(false);
-  const [routerReady, setRouterReady] = useState(false);
 
   // Read from auth store directly to avoid multiple instances of useSecureAuth
   const authReady = useAuthStore((s) => s.authReady);
@@ -37,14 +52,6 @@ function App() {
 
   // Get logout function from useAuthStoreIntegration (uses correct useSecureAuth.logout)
   const { logout: authLogout } = useAuthStoreIntegration();
-
-  // Wait for Router context to be ready before calling store integrations
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setRouterReady(true);
-    }, 0);
-    return () => clearTimeout(timer);
-  }, []);
 
   // Memoize session timeout config to prevent recreating on every render
   const sessionTimeoutConfig = useMemo(
@@ -140,9 +147,6 @@ function App() {
 
   return (
     <>
-      {/* Store integrations - only render after Router is ready */}
-      {routerReady && <StoreIntegrations />}
-
       {isLoading ? (
         <div className="flex min-h-screen items-center justify-center bg-off-white">
           <div className="shimmer h-8 w-32 rounded-lg"></div>
@@ -151,7 +155,7 @@ function App() {
         <MaintenanceScreen />
       ) : (
         <div className="min-h-screen bg-off-white">
-          <AppRoutes user={user} handleLogout={logout} />
+          <AppWithStoreIntegrations user={user} handleLogout={logout} />
 
           {/* Session timeout warning for authenticated users */}
           {user && (
