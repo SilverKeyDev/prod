@@ -43,10 +43,7 @@ class ErrorReporter {
         ? import.meta.env
         : {};
     this.isProduction = "MODE" in env && env.MODE === "production";
-    this.buildVersion =
-      "VITE_BUILD_VERSION" in env && typeof env.VITE_BUILD_VERSION === "string"
-        ? env.VITE_BUILD_VERSION
-        : "unknown";
+    this.buildVersion = "unknown"; // Build version not available in client
     this.sessionId = this.generateSessionId();
   }
 

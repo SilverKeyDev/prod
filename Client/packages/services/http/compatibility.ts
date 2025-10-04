@@ -31,13 +31,6 @@ type WindowWithEnv = {
   clearSecureTokens?: () => void;
 } & Window;
 
-const getEnvVar = (key: string, defaultValue: string): string => {
-  if (typeof window !== "undefined" && (window as WindowWithEnv).__ENV__) {
-    return (window as WindowWithEnv).__ENV__?.[key] ?? defaultValue;
-  }
-  return defaultValue;
-};
-
 const localHttpConfig: HttpClientConfig = {
   // In development: empty string uses Vite proxy
   // In production: full URL to production backend
@@ -45,8 +38,8 @@ const localHttpConfig: HttpClientConfig = {
     /\/+$/,
     "",
   ),
-  timeout: parseInt(getEnvVar("VITE_API_TIMEOUT", "30000"), 10),
-  retries: parseInt(getEnvVar("VITE_API_RETRIES", "2"), 10),
+  timeout: 30000, // 30 second timeout
+  retries: 2, // 2 retries
   authTokenProvider: () => {
     // With HTTP-only cookies, getAuthToken() always returns null
     // Browser automatically sends the session cookie with credentials: "include"

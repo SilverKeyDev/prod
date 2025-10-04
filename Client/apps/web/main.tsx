@@ -9,9 +9,10 @@ import "../../packages/styles/index.css";
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement,
 );
+
 root.render(
   <React.StrictMode>
-    <BrowserRouter>
+    <BrowserRouter future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
       <CoreProviders>
         <App />
       </CoreProviders>

@@ -6,6 +6,7 @@ export default defineConfig({
   root: __dirname,
   base: "/",
   plugins: [react()],
+  envDir: path.resolve(__dirname, "../.."), // Look for .env in Client directory
   publicDir: path.resolve(__dirname, "../../public"),
   css: {
     postcss: "./postcss.config.js",

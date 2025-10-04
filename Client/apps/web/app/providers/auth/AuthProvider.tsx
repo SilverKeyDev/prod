@@ -70,6 +70,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         );
 
         // Verify session with server using HTTP-only cookies
+        // This will gracefully handle unauthenticated users without throwing errors
         const sessionResult = await authApi.verifySession();
 
         if (sessionResult.success && sessionResult.user) {
@@ -84,7 +85,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
             // but we'll handle it gracefully
             secureLogger.warn(
               "AUTH_BOOTSTRAP_PARTIAL_USER",
-              "Received partial user data",
+              "Received partial user data"
             );
             setStoreUser(null);
           }
@@ -92,27 +93,27 @@ export function AuthProvider({ children }: AuthProviderProps) {
           setStoreAuthStatus("authenticated");
           secureLogger.info(
             "AUTH_BOOTSTRAP_SUCCESS",
-            "User authenticated via session cookies",
+            "User authenticated via session cookies"
           );
         } else {
-          // No valid session found
+          // No valid session found - this is normal for unauthenticated users
           setStoreUser(null);
           setIsAuthenticated(false);
           setStoreAuthStatus("unauthenticated");
           secureLogger.info(
             "AUTH_BOOTSTRAP_NO_SESSION",
-            "No valid session found",
+            "No valid session found - user is not authenticated"
           );
         }
       } catch (error) {
-        // Session verification failed
+        // Session verification failed - treat as unauthenticated
         setStoreUser(null);
         setIsAuthenticated(false);
         setStoreAuthStatus("unauthenticated");
-        secureLogger.error(
+        secureLogger.info(
           "AUTH_BOOTSTRAP_ERROR",
-          "Session verification failed",
-          { error },
+          "Session verification failed - treating as unauthenticated",
+          { error: error instanceof Error ? error.message : "Unknown error" }
         );
       } finally {
         setStoreAuthReady(true);

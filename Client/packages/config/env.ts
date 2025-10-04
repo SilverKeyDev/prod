@@ -7,6 +7,7 @@
  */
 type ImportMetaEnv = {
   readonly VITE_GOOGLE_MAPS_ID: string;
+  readonly VITE_GOOGLE_CLIENT_ID: string;
   readonly VITE_PLAID_CLIENT_ID: string;
 
   // Development
@@ -22,6 +23,7 @@ class EnvConfig {
   private env: ImportMetaEnv;
   private static readonly STATIC = {
     GOOGLE_MAPS_ID: "",
+    GOOGLE_CLIENT_ID: "",
     PLAID_CLIENT_ID: "",
     // API_BASE_URL is set dynamically based on environment
   } as const;
@@ -44,6 +46,7 @@ class EnvConfig {
   private validateRequiredEnvVars(): void {
     const required: Array<keyof ImportMetaEnv> = [
       "VITE_GOOGLE_MAPS_ID",
+      "VITE_GOOGLE_CLIENT_ID",
       "VITE_PLAID_CLIENT_ID",
     ];
 
@@ -64,6 +67,18 @@ class EnvConfig {
       );
     }
     return mapId;
+  }
+
+  get googleClientId(): string | null {
+    const clientId =
+      EnvConfig.STATIC.GOOGLE_CLIENT_ID || this.env.VITE_GOOGLE_CLIENT_ID;
+    if (!clientId) {
+      console.warn(
+        "VITE_GOOGLE_CLIENT_ID not configured - Google services integration may be limited",
+      );
+      return null;
+    }
+    return clientId;
   }
 
   get plaidClientId(): string | null {
@@ -130,4 +145,5 @@ export const getDefaultRetries = () => env.apiRetries;
 
 // Explicit exports for third-party keys
 export const googleMapsId = env.googleMapsId;
+export const googleClientId = env.googleClientId;
 export const plaidClientId = env.plaidClientId;

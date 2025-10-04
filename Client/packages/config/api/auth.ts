@@ -366,9 +366,39 @@ export const authApi = {
 
   /**
    * Verify current session using HTTP-only cookie
+   * This method gracefully handles unauthenticated users without throwing errors
+   * Checks for session cookies before making API call to avoid unnecessary requests
    */
   verifySession: async (): Promise<AuthResponse> => {
     try {
+      // Check for session-related cookies before making API call
+      // We can't read HTTP-only cookies, but we can check if any cookies exist
+      const hasCookies = document.cookie.length > 0;
+      const cookieNames = document.cookie
+        .split(";")
+        .map((c) => c.trim().split("=")[0])
+        .filter(Boolean);
+      
+      // If no cookies exist at all, user is definitely not authenticated
+      if (!hasCookies) {
+        log.debug("AUTH_SESSION_VERIFY_NO_COOKIES", "No cookies found - user not authenticated");
+        return { success: false };
+      }
+      
+      // Check if we have session-related cookies (not just third-party cookies)
+      const hasSessionCookie = cookieNames.some(name => 
+        name === "session" || 
+        name === "refresh_token" || 
+        name.startsWith("auth") ||
+        name.includes("session")
+      );
+      
+      // If we only have third-party cookies (like __stripe_mid), skip the API call
+      if (!hasSessionCookie && cookieNames.length === 1 && cookieNames[0] === "__stripe_mid") {
+        log.debug("AUTH_SESSION_VERIFY_ONLY_THIRD_PARTY", "Only third-party cookies found - skipping API call");
+        return { success: false };
+      }
+
       // Import apiGet from compatibility
       const { apiGet } = await import("../../services/http/compatibility");
 
@@ -384,10 +414,22 @@ export const authApi = {
         };
       }
 
+      // If response is not successful, user is not authenticated
+      log.debug("AUTH_SESSION_VERIFY_NO_SESSION", "No valid session found");
       return { success: false };
     } catch (error: unknown) {
       const err = error as Error;
-      log.debug("AUTH_SESSION_VERIFY_FAILED", "Session verification failed", {
+      
+      // Check if this is an authentication error (401/403)
+      if (err.message.includes("401") || err.message.includes("403") || 
+          err.message.includes("Authentication required") || 
+          err.message.includes("UNAUTHORIZED")) {
+        log.debug("AUTH_SESSION_VERIFY_UNAUTHENTICATED", "User is not authenticated");
+        return { success: false };
+      }
+      
+      // For other errors, log them but still return false gracefully
+      log.debug("AUTH_SESSION_VERIFY_ERROR", "Session verification failed with error", {
         error: err?.message || "Unknown error",
       });
       return { success: false };

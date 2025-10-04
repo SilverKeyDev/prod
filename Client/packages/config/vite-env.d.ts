@@ -5,6 +5,7 @@
 type ImportMetaEnv = {
   // Third-party Services
   readonly VITE_GOOGLE_MAPS_ID: string;
+  readonly VITE_GOOGLE_CLIENT_ID: string;
   readonly VITE_PLAID_CLIENT_ID: string;
 
   // Development
