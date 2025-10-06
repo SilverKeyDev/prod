@@ -69,8 +69,7 @@ class GoogleCalendarService:
             logger.error(f"Google Calendar service missing required environment variables: {', '.join(missing_vars)}")
             raise ValueError(f"Missing required environment variables: {', '.join(missing_vars)}")
         
-        logger.info("Google Calendar service configuration validated successfully")
-    
+            
     def _initialize_session(self):
         """Initialize requests session with retry logic"""
         import requests

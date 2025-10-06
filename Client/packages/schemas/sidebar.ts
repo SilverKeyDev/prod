@@ -1,5 +1,4 @@
 import {
-  Brain,
   ClipboardList,
   Handshake,
   Home,
@@ -17,21 +16,35 @@ export type SidebarTabKey =
   | "negotiate"
   | "close";
 
+export type SidebarSubStep = {
+  label: string;
+  to: string;
+  icon?: LucideIcon;
+};
+
 export type SidebarTab = {
   key: SidebarTabKey;
   name: string;
   description: string;
   icon: LucideIcon;
   href: string;
+  subSteps?: SidebarSubStep[];
 };
 
 export const SIDEBAR_TABS: Record<SidebarTabKey, SidebarTab> = {
   dashboard: {
     key: "dashboard",
-    name: "Dashboard",
+    name: "Home",
     description: "Overview and quick access to key actions",
     icon: Home,
     href: "/dashboard",
+    subSteps: [
+      {
+        label: "Home",
+        to: "/dashboard",
+        icon: Home,
+      },
+    ],
   },
   onboard: {
     key: "onboard",
@@ -39,6 +52,13 @@ export const SIDEBAR_TABS: Record<SidebarTabKey, SidebarTab> = {
     description: "Set preferences and get ready to search",
     icon: ClipboardList,
     href: "/personalization",
+    subSteps: [
+      {
+        label: "Preferences",
+        to: "/personalization",
+        icon: ClipboardList,
+      },
+    ],
   },
   search: {
     key: "search",
@@ -46,13 +66,27 @@ export const SIDEBAR_TABS: Record<SidebarTabKey, SidebarTab> = {
     description: "Explore homes and neighborhoods",
     icon: Search,
     href: "/search",
+    subSteps: [
+      {
+        label: "Find Homes",
+        to: "/search",
+        icon: Search,
+      },
+    ],
   },
   decide: {
     key: "decide",
-    name: "Find the Best Fit",
+    name: "Decide the Best Fit",
     description: "Compare and pick your best options",
     icon: Split,
     href: "/saved?view=reports",
+    subSteps: [
+      {
+        label: "Compare Reports",
+        to: "/saved?view=reports",
+        icon: Split,
+      },
+    ],
   },
   negotiate: {
     key: "negotiate",
@@ -60,6 +94,13 @@ export const SIDEBAR_TABS: Record<SidebarTabKey, SidebarTab> = {
     description: "Plan strategy and craft compelling offers",
     icon: Handshake,
     href: "/negotiation-strategy",
+    subSteps: [
+      {
+        label: "Negotiation Advisor",
+        to: "/negotiation-strategy",
+        icon: Handshake,
+      },
+    ],
   },
   close: {
     key: "close",
@@ -67,6 +108,13 @@ export const SIDEBAR_TABS: Record<SidebarTabKey, SidebarTab> = {
     description: "Track steps to close confidently",
     icon: Key,
     href: "/buyer-checklists",
+    subSteps: [
+      {
+        label: "Closing Checklist",
+        to: "/buyer-checklists",
+        icon: Key,
+      },
+    ],
   },
 };
 

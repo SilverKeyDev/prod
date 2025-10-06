@@ -2,7 +2,12 @@ import { ChevronDown, ChevronUp, type LucideIcon } from "lucide-react";
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 
-import { TIMELINE_STEPS } from "./DashboardButtonHeaderConstants";
+import { SIDEBAR_TABS } from "../../../../packages/schemas/sidebar";
+
+// Exclude dashboard since users are already on the dashboard when they see this component
+const TIMELINE_STEPS = Object.values(SIDEBAR_TABS).filter(
+  (step) => step.key !== "dashboard"
+);
 
 type DashboardButtonHeaderProps = {
   completedStepKey?: string; // inclusive key of last completed step
@@ -40,7 +45,7 @@ const DashboardButtonHeader: React.FC<DashboardButtonHeaderProps> = ({
                       step.subSteps.length > 0 &&
                       step.subSteps[0]?.to
                         ? step.subSteps[0].to
-                        : "#"
+                        : step.href
                     }
                     className="flex h-8 w-8 touch-manipulation items-center justify-center rounded-full bg-olive text-white transition-colors sm:h-9 sm:w-9 md:h-10 md:w-10 lg:h-12 lg:w-12"
                     title={step.name}
@@ -110,7 +115,7 @@ const DashboardButtonHeader: React.FC<DashboardButtonHeaderProps> = ({
             />
 
             {/* Sub-steps */}
-            {isOpen && (
+            {isOpen && step.subSteps && (
               <div className="ml-6 mt-2 w-full space-y-1 sm:ml-8 sm:space-y-2">
                 {step.subSteps.map((sub) => {
                   const SubIcon = sub.icon;

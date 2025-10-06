@@ -29,25 +29,26 @@ export default function LoginPage() {
     console.log("🔐 [LOGIN] Login result:", success);
 
     if (success) {
-      // Get the "from" location where user tried to go, or default to dashboard
+      // Read intended destination from state, sanitize, and fallback
       const from =
-        (location.state as { from?: { pathname?: string } })?.from?.pathname ||
-        "/dashboard";
+        (location.state as { from?: { pathname?: string } } | null)?.from
+          ?.pathname ?? "/dashboard";
+      const safe =
+        typeof from === "string" &&
+        from.startsWith("/") &&
+        !from.startsWith("/login")
+          ? from
+          : "/dashboard";
 
       console.log(
         "🔐 [LOGIN] Navigating to:",
-        from,
+        safe,
         "Current path:",
-        location.pathname,
+        location.pathname
       );
 
-      // Only navigate if we're not already at the target
-      if (location.pathname !== from) {
-        console.log("🔐 [LOGIN] Executing navigation...");
-        // Use replace to prevent back button from returning to login
-        navigate(from, { replace: true });
-      } else {
-        console.log("🔐 [LOGIN] Already at target path, skipping navigation");
+      if (location.pathname !== safe) {
+        navigate(safe, { replace: true });
       }
     } else {
       console.log("🔐 [LOGIN] Login failed, not navigating");

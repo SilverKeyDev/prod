@@ -9,17 +9,30 @@ import { useAuth } from "../providers/auth/useAuth";
  * Prevents redirect loops and race conditions
  */
 export const ProtectedRoute: React.FC<PropsWithChildren> = ({ children }) => {
-  const { status } = useAuth();
+  const { status, authReady } = useAuth();
   const location = useLocation();
 
-  // Wait for bootstrap to complete - prevents early redirects
-  if (status === "booting") {
-    return null; // or show splash screen
+  // Wait for bootstrap to complete - prevents early redirects and flicker
+  if (!authReady || status === "booting") {
+    return null; // Could render a full-page skeleton here
   }
 
   // Once ready, redirect unauthenticated users to login
   if (status === "unauthenticated") {
-    return <Navigate to="/login" replace state={{ from: location }} />;
+    // Build intended path from current location (pathname + search + hash)
+    const intended =
+      typeof location.pathname === "string" && location.pathname.startsWith("/")
+        ? `${location.pathname}${location.search ?? ""}${location.hash ?? ""}`
+        : "/";
+    // Never set /login as a return target
+    const safeIntended = intended.startsWith("/login") ? "/" : intended;
+    return (
+      <Navigate
+        to="/login"
+        replace
+        state={{ from: { pathname: safeIntended } }}
+      />
+    );
   }
 
   // User is authenticated, render protected content

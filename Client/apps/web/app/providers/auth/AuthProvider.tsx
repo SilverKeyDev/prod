@@ -125,6 +125,32 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Run only once on mount - Zustand setters are stable
 
+  // Cross-tab logout sync via BroadcastChannel
+  useEffect(() => {
+    let bc: BroadcastChannel | null = null;
+    try {
+      bc = new BroadcastChannel("auth");
+      bc.onmessage = (e) => {
+        if (e?.data?.type === "logout") {
+          // Perform local logout cleanup without server call
+          setStoreUser(null);
+          setIsAuthenticated(false);
+          setStoreAuthStatus("unauthenticated");
+          setStoreAuthReady(false);
+        }
+      };
+    } catch {
+      // BroadcastChannel not supported; ignore
+    }
+    return () => {
+      try {
+        bc?.close();
+      } catch {
+        /* ignore */
+      }
+    };
+  }, [setIsAuthenticated, setStoreAuthReady, setStoreAuthStatus, setStoreUser]);
+
   // Wrap logout to ensure it returns Promise<void> for context type compatibility
   const logout = async (): Promise<void> => {
     await authLogout();

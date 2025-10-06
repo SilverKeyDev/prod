@@ -20,7 +20,10 @@ import {
   useViewStore,
   type ViewState,
 } from "../../../../packages/store/view.slice";
-import { getTabByPath } from "../../../../packages/schemas/sidebar";
+import {
+  getTabByPath,
+  SIDEBAR_TABS,
+} from "../../../../packages/schemas/sidebar";
 
 type HeaderConfig = {
   type: "rheader" | "none";
@@ -117,6 +120,12 @@ export default function DashboardLayout({
         subtitle:
           tab?.description ?? "Develop winning strategies for your offers",
       };
+    } else if (path.startsWith("/buyer-checklists")) {
+      return {
+        type: "rheader",
+        title: SIDEBAR_TABS.close.name,
+        subtitle: SIDEBAR_TABS.close.description,
+      };
     } else if (path.startsWith("/draft-offer")) {
       return {
         type: "rheader",
@@ -167,9 +176,14 @@ export default function DashboardLayout({
       );
     }
 
-    // For buyer-checklists, let the page component handle its own header
+    // For buyer-checklists, use titles/descriptions from sidebar schema
     if (path.startsWith("/buyer-checklists")) {
-      return null;
+      return (
+        <PageHeader
+          title={SIDEBAR_TABS.close.name}
+          subtitle={SIDEBAR_TABS.close.description}
+        />
+      );
     }
 
     if (config?.type === "rheader" && config.title) {
@@ -196,9 +210,9 @@ export default function DashboardLayout({
       );
     }
 
-    // For buyer-checklists, let the page component handle its own header
+    // For buyer-checklists, use titles from sidebar schema
     if (path.startsWith("/buyer-checklists")) {
-      return null;
+      return <PageHeader title={SIDEBAR_TABS.close.name} />;
     }
 
     // For personalization, ensure no other header content is shown when actions are not present

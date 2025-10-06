@@ -10,6 +10,23 @@
 // Note: getAuthToken will be used by the configured client in config.ts
 import { asError } from "../../utils/error";
 
+// Module-scope single-flight verification state and auth event broadcast
+let verifyingPromise: Promise<{ success?: boolean } | null> | null = null;
+let lastAuthEventAt = 0;
+const AUTH_COOLDOWN_MS = 3000;
+const isAuthEndpoint = (url: string): boolean =>
+  /\/api\/v1\/(auth\/(verify|login|logout)|user\/profile)/.test(url);
+let authBroadcastChannel: BroadcastChannel | null = null;
+function getAuthBC(): BroadcastChannel | null {
+  if (authBroadcastChannel) return authBroadcastChannel;
+  try {
+    authBroadcastChannel = new BroadcastChannel("auth");
+  } catch {
+    authBroadcastChannel = null;
+  }
+  return authBroadcastChannel;
+}
+
 /* =========================
    Types & Interfaces
    ========================= */
@@ -182,9 +199,26 @@ export class HttpClient {
     const requestOptions: RequestInit = {
       ...fetchOptions,
       headers: mergedHeaders,
-      mode: useCors ? "cors" : fetchOptions.mode,
-      credentials: includeCredentials ? "include" : fetchOptions.credentials,
+      mode: useCors ? "cors" : (fetchOptions.mode ?? "same-origin"),
+      credentials: includeCredentials
+        ? "include"
+        : (fetchOptions.credentials ?? "same-origin"),
     };
+
+    // CSRF protection: add X-CSRF-Token for unsafe methods when a meta token is present
+    try {
+      const methodUpper = (requestOptions.method ?? "GET").toUpperCase();
+      const isStateChanging = /^(POST|PUT|PATCH|DELETE)$/.test(methodUpper);
+      const csrf =
+        typeof document !== "undefined"
+          ? (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null)?.content
+          : undefined;
+      if (isStateChanging && csrf) {
+        (requestOptions.headers as Record<string, string>)["X-CSRF-Token"] = csrf;
+      }
+    } catch {
+      // best-effort; never throw from CSRF header injection
+    }
 
     // Log request
     const method = (requestOptions.method ?? "GET").toUpperCase();
@@ -259,16 +293,38 @@ export class HttpClient {
         bodyLength: requestOptions.body
           ? String(requestOptions.body).length
           : 0,
-        credentials: requestOptions.credentials,
-        mode: requestOptions.mode,
         signal: !!signal,
         timestamp: new Date().toISOString(),
       });
 
-      const response = await fetch(url, {
+      let response = await fetch(url, {
         ...requestOptions,
         signal,
       });
+
+      // Centralized 401 handling with single-flight re-verify; avoid loops on auth endpoints
+      if (response.status === 401 && !isAuthEndpoint(url)) {
+        const now = Date.now();
+        if (!verifyingPromise && now - lastAuthEventAt > AUTH_COOLDOWN_MS) {
+          lastAuthEventAt = now;
+          verifyingPromise = import("../../config/api/auth")
+            .then(({ authApi }) => authApi.verifySession())
+            .catch(() => null)
+            .finally(() => {
+              verifyingPromise = null;
+            });
+          verifyingPromise.then((v) => {
+            if (!v?.success) {
+              try {
+                getAuthBC()?.postMessage({ type: "logout" });
+              } catch {
+                /* ignore */
+              }
+            }
+          });
+        }
+        // Return original 401; callers handle unauthenticated state
+      }
 
       const contentType = response.headers.get("content-type") ?? "";
       const responseText = await response.text();
@@ -700,7 +756,15 @@ export class HttpClient {
       /* ignore */
     }
 
-    // Redirect to login after a brief delay to allow cleanup
+    // Broadcast logout event to other tabs and redirect after brief delay
+    try {
+      const bc = new BroadcastChannel("auth");
+      bc.postMessage({ type: "logout" });
+      // It's okay to leave channel for GC
+    } catch {
+      /* ignore */
+    }
+
     setTimeout(() => {
       if (typeof window !== "undefined") {
         window.location.href = "/login";

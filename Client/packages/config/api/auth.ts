@@ -366,69 +366,47 @@ export const authApi = {
 
   /**
    * Verify current session using HTTP-only cookie
-   * This method gracefully handles unauthenticated users without throwing errors
-   * Checks for session cookies before making API call to avoid unnecessary requests
+   * Always ask the server; do not rely on document.cookie heuristics
    */
   verifySession: async (): Promise<AuthResponse> => {
     try {
-      // Check for session-related cookies before making API call
-      // We can't read HTTP-only cookies, but we can check if any cookies exist
-      const hasCookies = document.cookie.length > 0;
-      const cookieNames = document.cookie
-        .split(";")
-        .map((c) => c.trim().split("=")[0])
-        .filter(Boolean);
-      
-      // If no cookies exist at all, user is definitely not authenticated
-      if (!hasCookies) {
-        log.debug("AUTH_SESSION_VERIFY_NO_COOKIES", "No cookies found - user not authenticated");
-        return { success: false };
-      }
-      
-      // Check if we have session-related cookies (not just third-party cookies)
-      const hasSessionCookie = cookieNames.some(name => 
-        name === "session" || 
-        name === "refresh_token" || 
-        name.startsWith("auth") ||
-        name.includes("session")
-      );
-      
-      // If we only have third-party cookies (like __stripe_mid), skip the API call
-      if (!hasSessionCookie && cookieNames.length === 1 && cookieNames[0] === "__stripe_mid") {
-        log.debug("AUTH_SESSION_VERIFY_ONLY_THIRD_PARTY", "Only third-party cookies found - skipping API call");
-        return { success: false };
-      }
-
-      // Import apiGet from compatibility
       const { apiGet } = await import("../../services/http/compatibility");
+
+      // Prefer dedicated verify endpoint; fall back to profile if needed
+      try {
+        const verify = await apiGet<AuthResponse>("/api/v1/auth/verify", {
+          includeCredentials: true,
+          includeAuth: false,
+          useCors: false,
+        } as unknown as import("../../services/http/compatibility").ApiRequestOptions);
+        if (verify?.success && verify.user) {
+          log.info("AUTH_SESSION_VERIFY", "Session verified successfully (verify endpoint)");
+          return { success: true, user: verify.user as UserProfile };
+        }
+      } catch {
+        // Fallback to profile endpoint
+      }
 
       const response = await apiGet<
         AuthResponse & { data?: Record<string, unknown> }
-      >("/api/v1/user/profile");
+      >("/api/v1/user/profile", {
+        includeCredentials: true,
+        includeAuth: false,
+        useCors: false,
+      } as unknown as import("../../services/http/compatibility").ApiRequestOptions);
 
       if (response.success && response.data) {
-        log.info("AUTH_SESSION_VERIFY", "Session verified successfully");
+        log.info("AUTH_SESSION_VERIFY", "Session verified successfully (profile endpoint)");
         return {
           success: true,
           user: response.data as UserProfile,
         };
       }
 
-      // If response is not successful, user is not authenticated
       log.debug("AUTH_SESSION_VERIFY_NO_SESSION", "No valid session found");
       return { success: false };
     } catch (error: unknown) {
       const err = error as Error;
-      
-      // Check if this is an authentication error (401/403)
-      if (err.message.includes("401") || err.message.includes("403") || 
-          err.message.includes("Authentication required") || 
-          err.message.includes("UNAUTHORIZED")) {
-        log.debug("AUTH_SESSION_VERIFY_UNAUTHENTICATED", "User is not authenticated");
-        return { success: false };
-      }
-      
-      // For other errors, log them but still return false gracefully
       log.debug("AUTH_SESSION_VERIFY_ERROR", "Session verification failed with error", {
         error: err?.message || "Unknown error",
       });

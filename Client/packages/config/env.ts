@@ -25,7 +25,6 @@ class EnvConfig {
     GOOGLE_MAPS_ID: "",
     GOOGLE_CLIENT_ID: "",
     PLAID_CLIENT_ID: "",
-    // API_BASE_URL is set dynamically based on environment
   } as const;
 
   private constructor() {

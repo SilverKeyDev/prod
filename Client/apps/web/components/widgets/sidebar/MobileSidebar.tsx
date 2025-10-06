@@ -1,5 +1,5 @@
 import { Menu, X } from "lucide-react";
-
+import Sidebar from "./Sidebar";
 import type { UserProfile } from "../../../../../packages/schemas/user";
 
 type MobileSidebarProps = {
@@ -8,8 +8,6 @@ type MobileSidebarProps = {
   expanded: boolean;
   onToggleExpanded: () => void;
 };
-
-import Sidebar from "./Sidebar";
 
 export default function MobileSidebar({
   user,
