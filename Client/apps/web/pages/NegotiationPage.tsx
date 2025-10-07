@@ -94,15 +94,14 @@ export default function NegotiationStrategy() {
             />
             <Button
               variant="olive"
-              size="md"
+              hideTextBelow="md"
               loading={isLoading}
               icon={<Lightbulb className="mobile-icon-sm" />}
               onClick={handleGenerate}
               disabled={!selectedHome || isLoading}
               className="h-full whitespace-nowrap"
             >
-              <span className="hidden md:inline">Generate</span>
-              <span className="md:hidden">Generate</span>
+              Generate
             </Button>
           </AlignedRow>
         </SectionBox>

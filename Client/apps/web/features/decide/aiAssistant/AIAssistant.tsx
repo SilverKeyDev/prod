@@ -8,7 +8,6 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import React, { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
 
 import MiniLogo from "../../../components/ui/asset/MiniLogo";
 import Button from "../../../components/ui/button/Button";
@@ -24,7 +23,6 @@ type ChatMessage = {
 };
 
 export default function AIAssistant() {
-  const navigate = useNavigate();
   const {
     chats,
     refreshChats,
@@ -41,6 +39,7 @@ export default function AIAssistant() {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const lastChatsSignatureRef = useRef<string>("");
 
   // Load AI assistant state from localStorage on mount
   useEffect(() => {
@@ -76,7 +75,19 @@ export default function AIAssistant() {
   // Sync chats from centralized context without causing a render loop
   useEffect(() => {
     try {
-      if (chats && chats.length > 0) {
+      const hasChats = Array.isArray(chats) && chats.length > 0;
+
+      if (hasChats) {
+        // Build a stable signature from chat ids and titles only (avoid unstable references)
+        const nextSignature = JSON.stringify(
+          chats.map((c: Chat) => ({ id: c.id, title: c.title }))
+        );
+
+        // If signature hasn't changed, skip updating local state to avoid infinite renders
+        if (nextSignature === lastChatsSignatureRef.current) {
+          return;
+        }
+
         setLocalChats((previousChats) => {
           const previousMessagesById = new Map(
             previousChats.map((c: Chat) => [
@@ -84,16 +95,24 @@ export default function AIAssistant() {
               Array.isArray(c.messages) ? c.messages : [],
             ])
           );
-          return chats.map((contextChat: Chat) => ({
+          const mapped = chats.map((contextChat: Chat) => ({
             ...contextChat,
             messages: previousMessagesById.get(contextChat.id) || [],
           }));
+          // Update last signature only when we actually change local state
+          lastChatsSignatureRef.current = nextSignature;
+          return mapped;
         });
 
+        // Only set activeChatId if we don't have one and there are chats available
+        // This prevents the infinite loop by not including activeChatId in dependencies
         if (!activeChatId) {
           setActiveChatId(chats[0].id);
         }
       } else {
+        if (lastChatsSignatureRef.current !== "") {
+          lastChatsSignatureRef.current = "";
+        }
         setLocalChats([]);
       }
     } catch (error: unknown) {
@@ -106,7 +125,7 @@ export default function AIAssistant() {
     } finally {
       setIsLoading(false);
     }
-  }, [chats, activeChatId]);
+  }, [chats]); // Removed activeChatId from dependencies to prevent infinite loop
 
   // Refresh on mount (avoid unstable dependency causing re-renders)
   useEffect(() => {
@@ -116,8 +135,21 @@ export default function AIAssistant() {
 
   // (Removed loadChatsFromContext effect; handled by chats-dependent effect above)
 
+  // Only scroll to bottom when new messages are added, not on initial load
+  const previousMessageCountRef = useRef<number>(0);
   useEffect(() => {
-    scrollToBottom();
+    const currentMessageCount = activeChat?.messages?.length || 0;
+    const previousMessageCount = previousMessageCountRef.current;
+
+    // Only scroll if messages were added (not on initial load)
+    if (
+      currentMessageCount > previousMessageCount &&
+      previousMessageCount > 0
+    ) {
+      scrollToBottom();
+    }
+
+    previousMessageCountRef.current = currentMessageCount;
   }, [activeChat?.messages]);
 
   // Load chat history when active chat changes
@@ -399,13 +431,8 @@ export default function AIAssistant() {
               )}
             </div>
             <p className="text-sm text-black/60">
-              <button
-                onClick={() => navigate("/generate-report")}
-                className="cursor-pointer font-bold underline transition-colors hover:text-brown"
-              >
-                Generate a report
-              </button>{" "}
-              to be able to ask questions about your future home
+              Generate a report to be able to ask questions about your future
+              home
             </p>
           </div>
 

@@ -58,7 +58,7 @@ export default function LoginPage() {
   return (
     <AuthPageLayout
       title="Welcome back"
-      subtitle="Generate premium property reports with AI"
+      subtitle="Continue your home search journey"
       logoSize="lg"
       error={error ?? undefined}
     >

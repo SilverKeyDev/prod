@@ -29,23 +29,23 @@ const CardAddressDisplay: React.FC<CardAddressDisplayProps> = ({
   // Size variants with consistent height scaling
   const sizeStyles = {
     xs: {
-      primary: "text-xs sm:text-sm",
+      primary: "text-xs",
       secondary: "text-xs",
       minHeight: "1.5rem", // Minimal space for xs/sm
     },
     sm: {
-      primary: "text-sm sm:text-base",
-      secondary: "text-xs sm:text-sm",
+      primary: "text-xs sm:text-sm",
+      secondary: "text-xs",
       minHeight: "1.75rem", // Minimal space for sm/base
     },
     md: {
-      primary: "text-base sm:text-lg",
-      secondary: "text-sm sm:text-base",
+      primary: "text-sm sm:text-base",
+      secondary: "text-xs sm:text-sm",
       minHeight: "2rem", // Minimal space for base/lg
     },
     lg: {
-      primary: "text-lg sm:text-xl",
-      secondary: "text-base sm:text-lg",
+      primary: "text-base sm:text-lg",
+      secondary: "text-sm sm:text-base",
       minHeight: "2.25rem", // Minimal space for lg/xl
     },
   };

@@ -1,12 +1,11 @@
 export {};
 
-import { MapPin, AlertCircle } from "lucide-react";
+import { MapPin, AlertCircle, Lightbulb } from "lucide-react";
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { Card } from "../../../components/layout";
-import { Input, OliveCheckbox } from "../../../components/ui";
-import KeyTurnLoader from "../../../components/ui/loading/KeyTurnLoader";
+import { Input, OliveCheckbox, Button } from "../../../components/ui";
 import { reportApi } from "../../../../../packages/config/api";
 import type { GenerateReportRequest } from "../../../../../packages/config/api/report";
 import { useUser } from "../../../../../packages/contexts";
@@ -27,7 +26,7 @@ type PlacePrediction = GooglePlacePrediction;
 
 type Place = {
   fetchFields: (options: { fields: string[] }) => Promise<{ place: Place }>;
-  formattedAddress: string;
+  formattedAddress?: string | null;
 };
 
 type Suggestion = {
@@ -150,20 +149,20 @@ export default function GenerateReportPage() {
             request
           );
 
-        const built: Suggestion[] = fetched.flatMap(
-          (s: { placePrediction?: GooglePlacePrediction }) => {
-            const prediction = s.placePrediction;
-            if (!prediction) return [];
-            return [
-              {
-                description: prediction.text.text,
-                // Coerce to the Suggestion's expected prediction type
-                placePrediction:
-                  prediction as unknown as Suggestion["placePrediction"],
-              },
-            ];
-          }
-        );
+        const built: Suggestion[] = (
+          fetched as Array<{ placePrediction: GooglePlacePrediction | null }>
+        ).flatMap((s) => {
+          const prediction = s.placePrediction;
+          if (!prediction) return [];
+          return [
+            {
+              description: prediction.text.text,
+              // Coerce to the Suggestion's expected prediction type
+              placePrediction:
+                prediction as unknown as Suggestion["placePrediction"],
+            },
+          ];
+        });
         setSuggestions(built);
       } catch (err: unknown) {
         const error = asError(err);
@@ -203,19 +202,19 @@ export default function GenerateReportPage() {
             request
           );
 
-        const built: Suggestion[] = fetched.flatMap(
-          (s: { placePrediction?: GooglePlacePrediction }) => {
-            const prediction = s.placePrediction;
-            if (!prediction) return [];
-            return [
-              {
-                description: prediction.text.text,
-                placePrediction:
-                  prediction as unknown as Suggestion["placePrediction"],
-              },
-            ];
-          }
-        );
+        const built: Suggestion[] = (
+          fetched as Array<{ placePrediction: GooglePlacePrediction | null }>
+        ).flatMap((s) => {
+          const prediction = s.placePrediction;
+          if (!prediction) return [];
+          return [
+            {
+              description: prediction.text.text,
+              placePrediction:
+                prediction as unknown as Suggestion["placePrediction"],
+            },
+          ];
+        });
         setComparisonSuggestions(built);
       } catch (err: unknown) {
         const error = asError(err);
@@ -422,10 +421,10 @@ export default function GenerateReportPage() {
       <div>
         <Card className="space-y-responsive-sm">
           {/* Main input row - address input, generate button, and toggle on one line */}
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
-            {/* Address inputs container so both share the same width */}
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:gap-4">
+            {/* Address inputs container */}
             <div className="flex-1">
-              <div className="space-y-3">
+              <div className="relative space-y-3">
                 <Input
                   id="address-input"
                   ref={inputRef}
@@ -442,7 +441,7 @@ export default function GenerateReportPage() {
 
                 {/* Address suggestions dropdown */}
                 {suggestions.length > 0 && (
-                  <ul className="relative z-50 max-h-60 overflow-hidden overflow-y-auto rounded-md border bg-white shadow-sm">
+                  <ul className="absolute z-50 max-h-60 w-full overflow-hidden overflow-y-auto rounded-md border bg-white shadow-lg">
                     {suggestions.map((s, idx) => (
                       <li
                         key={idx}
@@ -455,76 +454,69 @@ export default function GenerateReportPage() {
                   </ul>
                 )}
 
-                {/* Comparison address input - rendered under the first to keep equal width */}
-                {isComparison && (
-                  <>
-                    <Input
-                      id="comparison-address-input"
-                      ref={comparisonInputRef}
-                      type="text"
-                      value={comparisonAddress}
-                      onChange={handleComparisonInputChange}
-                      placeholder={
-                        scriptsReady
-                          ? "Enter comparison address..."
-                          : "Loading..."
-                      }
-                      disabled={!scriptsReady || isGenerating}
-                      leftIcon={<MapPin className="h-4 w-4 sm:h-5 sm:w-5" />}
-                      size="md"
-                      autoComplete="off"
-                      className="touch-manipulation"
-                    />
+                {/* Comparison address input - always rendered but hidden when not in comparison mode */}
+                <div className={isComparison ? "block" : "hidden"}>
+                  <Input
+                    id="comparison-address-input"
+                    ref={comparisonInputRef}
+                    type="text"
+                    value={comparisonAddress}
+                    onChange={handleComparisonInputChange}
+                    placeholder={
+                      scriptsReady
+                        ? "Enter comparison address..."
+                        : "Loading..."
+                    }
+                    disabled={!scriptsReady || isGenerating}
+                    leftIcon={<MapPin className="h-4 w-4 sm:h-5 sm:w-5" />}
+                    size="md"
+                    autoComplete="off"
+                    className="touch-manipulation"
+                  />
 
-                    {/* Comparison address suggestions dropdown */}
-                    {comparisonSuggestions.length > 0 && (
-                      <ul className="relative z-50 max-h-60 overflow-hidden overflow-y-auto rounded-md border bg-white shadow-sm">
-                        {comparisonSuggestions.map((s, idx) => (
-                          <li
-                            key={idx}
-                            onClick={() => handleComparisonSelect(s)}
-                            className="touch-friendly cursor-pointer border-b border-gray-100 px-3 py-3 text-sm last:border-b-0 hover:bg-gray-100 sm:px-4 sm:py-2 sm:text-base"
-                          >
-                            {s.description}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </>
-                )}
+                  {/* Comparison address suggestions dropdown */}
+                  {comparisonSuggestions.length > 0 && (
+                    <ul className="absolute z-50 max-h-60 w-full overflow-hidden overflow-y-auto rounded-md border bg-white shadow-lg">
+                      {comparisonSuggestions.map((s, idx) => (
+                        <li
+                          key={idx}
+                          onClick={() => handleComparisonSelect(s)}
+                          className="touch-friendly cursor-pointer border-b border-gray-100 px-3 py-3 text-sm last:border-b-0 hover:bg-gray-100 sm:px-4 sm:py-2 sm:text-base"
+                        >
+                          {s.description}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
               </div>
             </div>
 
-            {/* Generate button */}
-            <button
-              onClick={handleGenerate}
-              disabled={isButtonDisabled}
-              className={`min-h-12 flex-shrink-0 touch-manipulation rounded-lg px-4 py-3 text-base font-medium transition-all duration-200 sm:min-h-14 sm:px-6 sm:py-4 sm:text-lg ${
-                isButtonDisabled
-                  ? "cursor-not-allowed bg-gray-300 text-gray-500"
-                  : "bg-olive text-white hover:bg-olive-light hover:shadow-lg active:scale-[0.98] active:transform"
-              }`}
-            >
-              {isGenerating ? (
-                <KeyTurnLoader message="Generating..." />
-              ) : (
-                <span>
-                  {isComparison ? "Generate Comparison" : "Generate Report"}
-                </span>
-              )}
-            </button>
+            {/* Generate button and comparison toggle inline */}
+            <div className="flex items-center justify-center gap-3">
+              <Button
+                onClick={handleGenerate}
+                disabled={isButtonDisabled}
+                loading={isGenerating}
+                icon={<Lightbulb className="mobile-icon-sm" />}
+                className="h-12 sm:h-14 px-4 text-xs sm:text-sm md:text-base leading-tight"
+                variant="olive"
+              >
+                Generate
+              </Button>
 
-            {/* Comparison mode toggle */}
-            <div className="flex items-center justify-center gap-2">
-              <span className="text-xs font-medium text-black/70 sm:text-sm">
-                Comparison
-              </span>
-              <OliveCheckbox
-                checked={isComparison}
-                onToggle={() =>
-                  setReportType(isComparison ? "detailed" : "comparison")
-                }
-              />
+              {/* Comparison mode toggle */}
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium text-black/70 sm:text-sm">
+                  Comparison
+                </span>
+                <OliveCheckbox
+                  checked={isComparison}
+                  onToggle={() =>
+                    setReportType(isComparison ? "detailed" : "comparison")
+                  }
+                />
+              </div>
             </div>
           </div>
 

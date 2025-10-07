@@ -1,6 +1,10 @@
 import React from "react";
 
 import CloseLayout, { type ChecklistItem } from "../CloseLayout";
+import {
+  CHECKLIST_TITLES,
+  CHECKLIST_SUBTITLES,
+} from "../../../../../packages/schemas";
 
 type ClosePageHeaderData = {
   title: string;
@@ -171,8 +175,8 @@ export default function ClosingMovingIn({
 
   return (
     <CloseLayout
-      title="Closing & Moving In"
-      subtitle="Track your progress toward a smooth transition into your new home"
+      title={CHECKLIST_TITLES.closing}
+      subtitle={CHECKLIST_SUBTITLES.closing}
       sectionTitle="To-Do Items"
       apiEndpoint="/api/v1/user/close?type=closing"
       items={items}

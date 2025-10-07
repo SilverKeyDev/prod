@@ -16,11 +16,11 @@ const VerificationPage = lazy(
 const OnboardingPage = lazy(
   () => import("../../pages/HomeAuth/OnboardingPage"),
 );
-const PrivacyPolicy = lazy(() => import("../../pages/HomeAuth/PrivacyPolicy"));
+const PrivacyPolicy = lazy(() => import("../../pages/HomeAuth/PrivacyPolicyPage"));
 const TermsOfService = lazy(
-  () => import("../../pages/HomeAuth/TermsOfService"),
+  () => import("../../pages/HomeAuth/TermsOfServicePage"),
 );
-const ContactUs = lazy(() => import("../../pages/HomeAuth/ContactUs"));
+const ContactUs = lazy(() => import("../../pages/HomeAuth/ContactUsPage"));
 
 export function PublicRoutes() {
   return [

@@ -93,7 +93,7 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
               )
             )}
             {rightText && (
-              <div className="hidden shrink-0 whitespace-nowrap text-sm text-gray-600 sm:block">
+              <div className="hidden shrink-0 whitespace-nowrap text-sm text-gray-600 sm:block mr-3">
                 {rightText}
               </div>
             )}

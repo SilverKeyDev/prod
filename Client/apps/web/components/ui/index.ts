@@ -38,9 +38,6 @@ export { default as PropertyCard } from "../cards/PropertyCard";
 export { default as ImportantLocationsInput } from "../../features/onboardpersonalize/ImportantLocationsInput";
 export { default as PriceRangeSlider } from "../../features/onboardpersonalize/PriceRangeSlider";
 
-// Close
-export { default as ClosePageHeader } from "../../features/close/ClosePageHeader";
-
 // Home Auth
 export { default as RippleBackground } from "../../features/homeauth/RippleBackground";
 

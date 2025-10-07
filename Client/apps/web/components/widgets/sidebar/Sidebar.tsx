@@ -445,7 +445,7 @@ export default function Sidebar({
               )} ${!expanded ? "justify-center py-3" : "py-3"} cursor-pointer`}
             >
               <LogOut className={`h-6 w-6 ${expanded ? "mr-3" : ""}`} />
-              Logout
+              {expanded && <span>Logout</span>}
             </button>
 
             <ConfirmationDialog

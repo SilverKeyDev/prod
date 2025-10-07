@@ -1,14 +1,11 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect } from "react";
+import useMobile from "../../../packages/hooks/ui/useMobile";
 
 import EscrowLegalLogistics from "../features/close/subheaders/EscrowLegalLogistics";
 import InspectionsDueDiligence from "../features/close/subheaders/InspectionsDueDiligence";
 import FinancingInsurance from "../features/close/subheaders/FinancingInsurance";
 import ClosingMovingIn from "../features/close/subheaders/ClosingMovingIn";
-import ClosePageHeader from "../features/close/ClosePageHeader";
-import {
-  useViewStore,
-  type ViewState,
-} from "../../../packages/store/view.slice";
+// Removed store coupling; tab state is now managed by DashboardLayout
 
 type ClosePageHeaderData = {
   title: string;
@@ -24,48 +21,23 @@ type BuyerChecklistsProps = {
   setClosePageHeaderData: React.Dispatch<
     React.SetStateAction<ClosePageHeaderData | null>
   >;
+  activeTab: ChecklistTab;
+  onTabChange?: React.Dispatch<React.SetStateAction<ChecklistTab>>;
 };
 
 export default function BuyerChecklists({
   setClosePageHeaderData,
+  activeTab,
+  onTabChange: _onTabChange,
 }: BuyerChecklistsProps) {
-  const persistedTab = useViewStore(
-    (s: ViewState) =>
-      s.dropdownSelections["buyerChecklists.activeTab"] as
-        | ChecklistTab
-        | undefined
-  );
-  const setDropdownSelection = useViewStore(
-    (s: ViewState) => s.setDropdownSelection
-  );
-
-  const initialTab = useMemo<ChecklistTab>(() => {
-    return persistedTab &&
-      ["escrow", "inspections", "financing", "closing"].includes(persistedTab)
-      ? persistedTab
-      : "escrow";
-  }, [persistedTab]);
-
-  const [activeTab, setActiveTab] = useState<ChecklistTab>(initialTab);
+  const isMobile = useMobile();
   const [closePageHeaderData, setClosePageHeaderDataState] =
-    useState<ClosePageHeaderData | null>(null);
+    React.useState<ClosePageHeaderData | null>(null);
 
   // Update the parent component's header data
   useEffect(() => {
     setClosePageHeaderData(closePageHeaderData);
   }, [closePageHeaderData, setClosePageHeaderData]);
-
-  // Sync local state when persisted value changes (e.g., after hydration)
-  useEffect(() => {
-    if (persistedTab && persistedTab !== activeTab) {
-      setActiveTab(persistedTab);
-    }
-  }, [persistedTab]);
-
-  // Persist tab changes
-  useEffect(() => {
-    setDropdownSelection("buyerChecklists.activeTab", activeTab);
-  }, [activeTab, setDropdownSelection]);
 
   // Render the active tab content
   const renderTabContent = () => {
@@ -100,20 +72,7 @@ export default function BuyerChecklists({
   };
 
   return (
-    <div className="h-full w-full bg-off-white">
-      {/* Header with tabs */}
-      {closePageHeaderData && (
-        <ClosePageHeader
-          title={closePageHeaderData.title}
-          subtitle={closePageHeaderData.subtitle}
-          completedCount={closePageHeaderData.completedCount}
-          totalCount={closePageHeaderData.totalCount}
-          loading={closePageHeaderData.loading}
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-        />
-      )}
-
+    <div className={`h-full w-full bg-off-white ${isMobile ? "mt-14" : ""}`}>
       {/* Content */}
       <div className="mx-auto w-full max-w-7xl mt-6">{renderTabContent()}</div>
     </div>

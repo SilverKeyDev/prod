@@ -1,4 +1,8 @@
 import CloseLayout, { type ChecklistItem } from "../CloseLayout";
+import {
+  CHECKLIST_TITLES,
+  CHECKLIST_SUBTITLES,
+} from "../../../../../packages/schemas";
 
 type ClosePageHeaderData = {
   title: string;
@@ -148,8 +152,8 @@ export default function FinancingInsurance({
 
   return (
     <CloseLayout
-      title="Financing & Insurance Checklist"
-      subtitle="Stay on top of your loan and insurance tasks"
+      title={CHECKLIST_TITLES.financing}
+      subtitle={CHECKLIST_SUBTITLES.financing}
       sectionTitle="Loan & Insurance Tasks"
       apiEndpoint="/api/v1/user/close?type=financing"
       items={items}

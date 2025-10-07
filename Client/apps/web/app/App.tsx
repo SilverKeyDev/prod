@@ -8,7 +8,7 @@ import { SessionTimeoutWarning } from "../components/security/SessionTimeoutWarn
 import { useGoogleMapsStoreIntegration } from "../../../packages/hooks/store/useGoogleMapsStoreIntegration";
 import { useSessionTimeout } from "../../../packages/hooks/ui/useSessionTimeout";
 import type { UserProfile } from "../../../packages/schemas/user";
-import MaintenanceScreen from "../pages/HomeAuth/MaintenanceScreen";
+import MaintenanceScreen from "../pages/HomeAuth/MaintenanceScreenPage";
 
 import { useAuthStore } from "../../../packages/store/auth.slice";
 import { useAuthStoreIntegration } from "../../../packages/hooks/store/useAuthStoreIntegration";

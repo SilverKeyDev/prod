@@ -22,9 +22,7 @@ const HomePriceEstimate: React.FC<HomePriceEstimateProps> = ({
 }) => {
   return (
     <div
-      className={`col-span-1 mt-4 rounded-lg border border-olive bg-white px-3 py-4 sm:mt-6 sm:p-4 md:col-span-2 ${
-        isAffordabilityCollapsed ? "pb-4 sm:pb-6" : ""
-      }`}
+      className={`col-span-1 mt-4 rounded-lg border border-olive bg-white px-3 py-4 sm:mt-6 sm:p-4 md:col-span-2`}
     >
       <div
         className={`touch-friendly -m-2 flex cursor-pointer items-center justify-between rounded-lg p-2 transition-colors duration-150 hover:bg-olive/5 ${
@@ -105,7 +103,7 @@ const HomePriceEstimate: React.FC<HomePriceEstimateProps> = ({
                         undefined,
                         {
                           maximumFractionDigits: 0,
-                        },
+                        }
                       )}
                     </strong>
                   </p>
@@ -121,7 +119,7 @@ const HomePriceEstimate: React.FC<HomePriceEstimateProps> = ({
                       $
                       {Math.round(
                         (homePriceResult.netAnnualIncome / 12) *
-                          (homePriceResult.dtiUsed / 100),
+                          (homePriceResult.dtiUsed / 100)
                       ).toLocaleString()}
                     </strong>
                   </p>

@@ -11,7 +11,7 @@ export default function PageHeader({ title, subtitle }: PageHeaderProps) {
   return (
     <>
       {/* Desktop Header */}
-      <div className="hidden sm:mx-auto sm:block sm:max-w-[90vw] sm:px-4 md:px-6 lg:px-8">
+      <div className="hidden lg:block lg:max-w-[90vw]">
         <Card
           className="relative z-30 rounded-b-none rounded-t-2xl border-b border-beige/40"
           padding="sm"
@@ -34,17 +34,15 @@ export default function PageHeader({ title, subtitle }: PageHeaderProps) {
 
       {/* Mobile Header */}
       <Card
-        className="relative z-30 rounded-2xl border-b border-beige/40 sm:hidden"
+        className="relative z-30 w-full rounded-2xl border-b border-beige/40 lg:hidden"
         padding="sm"
       >
-        <div className="gap-responsive-sm flex items-center">
+        <div className="flex items-center">
           <MiniLogo size="md" />
-          <div className="min-w-0 flex-1">
-            <h1 className="heading-responsive-sm truncate text-navy">
-              {title}
-            </h1>
-            {/* No subtitle on mobile - following ClosePageHeader pattern */}
-          </div>
+          <h1 className="heading-responsive-sm truncate text-navy ml-3 flex-1">
+            {title}
+          </h1>
+          {/* No subtitle on mobile - following ClosePageHeader pattern */}
         </div>
       </Card>
     </>

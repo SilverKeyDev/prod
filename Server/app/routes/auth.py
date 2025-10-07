@@ -309,19 +309,6 @@ def login():
     request_id = f"login_{int(time.time() * 1000)}_{random.randint(1000, 9999)}"
     start_time = time.time()
     
-    # Log request details
-    current_app.logger.info(f"AUTH_LOGIN_REQUEST_START", extra={
-        'request_id': request_id,
-        'method': request.method,
-        'endpoint': request.endpoint,
-        'remote_addr': request.remote_addr,
-        'user_agent': request.headers.get('User-Agent', 'unknown'),
-        'content_type': request.content_type,
-        'content_length': request.content_length,
-        'has_json': request.is_json,
-        'timestamp': datetime.utcnow().isoformat()
-    })
-    
     try:
         data = request.get_json()
         

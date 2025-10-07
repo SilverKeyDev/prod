@@ -167,21 +167,6 @@ def create_app(config=None):
         g.start_time = time.time()
         g.request_id = request_id
         
-        # Log request details
-        app.logger.info(f"REQUEST_START", extra={
-            'request_id': request_id,
-            'method': request.method,
-            'url': request.url,
-            'endpoint': request.endpoint,
-            'remote_addr': request.remote_addr,
-            'user_agent': request.headers.get('User-Agent', 'unknown'),
-            'content_type': request.content_type,
-            'content_length': request.content_length,
-            'has_json': request.is_json,
-            'headers': dict(request.headers),
-            'timestamp': datetime.utcnow().isoformat()
-        })
-        
         # Log request data for auth endpoints
         if request.endpoint and 'auth' in request.endpoint:
             try:
@@ -220,25 +205,7 @@ def create_app(config=None):
             cors_origin = response.headers.get('Access-Control-Allow-Origin')
             cors_credentials = response.headers.get('Access-Control-Allow-Credentials')
             set_cookie_headers = response.headers.getlist('Set-Cookie')
-            
-            # Log response details with CORS info
-            app.logger.info(f"RESPONSE_COMPLETE", extra={
-                'request_id': request_id,
-                'method': request.method,
-                'url': request.url,
-                'endpoint': request.endpoint,
-                'status_code': response.status_code,
-                'status_text': response.status,
-                'content_type': response.content_type,
-                'content_length': response.content_length,
-                'duration_ms': duration_ms,
-                'timestamp': datetime.utcnow().isoformat(),
-                'cors_origin': cors_origin,
-                'cors_credentials': cors_credentials,
-                'set_cookie_count': len(set_cookie_headers),
-                'request_origin': request.headers.get('Origin')
-            })
-            
+
             # Detailed logging for auth or cookie-related responses
             if set_cookie_headers or request.endpoint and 'auth' in str(request.endpoint):
                 app.logger.info(f"🔐 RESPONSE_WITH_COOKIES_OR_AUTH", extra={
@@ -283,16 +250,6 @@ def create_app(config=None):
                         'error': str(e),
                         'duration_ms': duration_ms
                     })
-            
-            # Log slow requests
-            if duration_ms > 5000:  # 5 seconds
-                app.logger.warning(f"SLOW_REQUEST", extra={
-                    'request_id': request_id,
-                    'method': request.method,
-                    'url': request.url,
-                    'duration_ms': duration_ms,
-                    'status_code': response.status_code
-                })
             
             # Log 502 errors specifically
             if response.status_code == 502:

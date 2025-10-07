@@ -259,43 +259,11 @@ export class HttpClient {
         }
       }
 
-      const authMethod = mergedHeaders.Authorization
-        ? "Authorization header"
-        : includeCredentials
-          ? "HTTP-only cookies"
-          : "none";
-
       // Get all cookies for debugging
       const allCookies = document.cookie
         .split(";")
         .map((c) => c.trim().split("=")[0])
         .filter(Boolean);
-      const hasCookies = document.cookie.length > 0;
-
-      console.log("🔵 HTTP_REQUEST_DETAILS", {
-        method,
-        url,
-        currentLocation: window.location.origin,
-        currentHref: window.location.href,
-        headers: Object.keys(mergedHeaders),
-        headerValues: maskedHeaders,
-        authMethod,
-        hasAuthHeader: !!mergedHeaders.Authorization,
-        authHeaderType: mergedHeaders.Authorization?.split(" ")[0] || "none",
-        tokenLength: mergedHeaders.Authorization?.split(" ")[1]?.length || 0,
-        credentials: requestOptions.credentials,
-        mode: requestOptions.mode,
-        hasCookies,
-        allCookies,
-        cookieCount: allCookies.length,
-        hasBody: !!requestOptions.body,
-        bodyType: requestOptions.body ? typeof requestOptions.body : "none",
-        bodyLength: requestOptions.body
-          ? String(requestOptions.body).length
-          : 0,
-        signal: !!signal,
-        timestamp: new Date().toISOString(),
-      });
 
       let response = await fetch(url, {
         ...requestOptions,
@@ -334,33 +302,6 @@ export class HttpClient {
         .split(";")
         .map((c) => c.trim().split("=")[0])
         .filter(Boolean);
-
-      // Log detailed response information with CORS headers
-      console.log("✅ HTTP_RESPONSE_DETAILS", {
-        method,
-        url,
-        status: response.status,
-        statusText: response.statusText,
-        contentType,
-        responseLength: responseText.length,
-        responsePreview: responseText.substring(0, 200),
-        allHeaders: Object.fromEntries(response.headers.entries()),
-        corsHeaders: {
-          "access-control-allow-origin": response.headers.get(
-            "access-control-allow-origin",
-          ),
-          "access-control-allow-credentials": response.headers.get(
-            "access-control-allow-credentials",
-          ),
-          "access-control-expose-headers": response.headers.get(
-            "access-control-expose-headers",
-          ),
-        },
-        setCookieHeader: response.headers.get("set-cookie"),
-        cookiesAfterResponse: cookiesAfter,
-        cookieCountAfter: cookiesAfter.length,
-        timestamp: new Date().toISOString(),
-      });
 
       // Special logging for auth responses
       if (url.includes("/auth/") || response.status === 401) {

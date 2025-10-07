@@ -30,7 +30,7 @@ const DashboardButtonHeader: React.FC<DashboardButtonHeaderProps> = ({
     return (
       <div className="w-full px-1 sm:px-2 md:px-4 lg:px-6 xl:px-8">
         {/* Timeline grid: each column contains main + substeps */}
-        <div className="flex w-full items-center justify-between sm:items-start gap-1 sm:gap-2">
+        <div className="flex w-full items-center justify-between sm:items-start gap-0.5 sm:gap-1">
           {TIMELINE_STEPS.map((step, idx) => {
             const StepIcon: LucideIcon = step.icon;
 
@@ -47,11 +47,11 @@ const DashboardButtonHeader: React.FC<DashboardButtonHeaderProps> = ({
                         ? step.subSteps[0].to
                         : step.href
                     }
-                    className="flex h-8 w-8 touch-manipulation items-center justify-center rounded-full bg-olive text-white transition-colors sm:h-9 sm:w-9 md:h-10 md:w-10 lg:h-12 lg:w-12"
+                    className="flex h-7 w-7 touch-manipulation items-center justify-center rounded-full bg-olive text-white transition-colors sm:h-8 sm:w-8 md:h-9 md:w-9 lg:h-11 lg:w-11"
                     title={step.name}
                   >
                     <StepIcon
-                      className="h-3 w-3 sm:h-[1.125rem] sm:w-[1.125rem] md:h-4 md:w-4 lg:h-5 lg:w-5 xl:h-6 xl:w-6"
+                      className="h-2.5 w-2.5 sm:h-4 sm:w-4 md:h-3.5 md:w-3.5 lg:h-4 lg:w-4 xl:h-5 xl:w-5"
                       color="white"
                     />
                   </Link>
@@ -59,9 +59,9 @@ const DashboardButtonHeader: React.FC<DashboardButtonHeaderProps> = ({
 
                 {/* Connector column */}
                 {idx < TIMELINE_STEPS.length - 1 && (
-                  <div className="flex h-8 flex-grow items-center justify-center sm:h-9 md:h-10 lg:h-12 min-w-0 px-1">
+                  <div className="flex h-7 flex-grow items-center justify-center sm:h-8 md:h-9 lg:h-11 min-w-0 px-0.5">
                     <div
-                      className="h-[1px] w-[60%] sm:w-[75%] md:h-[1px] lg:h-[2px]"
+                      className="h-[1px] w-[50%] sm:w-[65%] md:h-[1px] lg:h-[2px]"
                       style={{
                         backgroundColor: "#d1d5db", // light gray
                       }}

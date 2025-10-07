@@ -232,29 +232,11 @@ def get_current_user():
     """
     token = None
     
-    # Log ALL cookies and headers for debugging
-    current_app.logger.info(f"🔍 AUTH_MIDDLEWARE_CHECK", extra={
-        'request_path': request.path,
-        'request_method': request.method,
-        'request_origin': request.headers.get('Origin'),
-        'request_host': request.headers.get('Host'),
-        'request_referer': request.headers.get('Referer'),
-        'all_cookies': list(request.cookies.keys()),
-        'has_session_cookie': 'session' in request.cookies,
-        'has_refresh_cookie': 'refresh_token' in request.cookies,
-        'has_auth_header': bool(request.headers.get('Authorization')),
-        'cookie_count': len(request.cookies)
-    })
-    
     # Try to get token from HttpOnly cookie first (preferred method)
     session_cookie = request.cookies.get('session')
     if session_cookie:
         token = session_cookie
-        current_app.logger.info(f"✅ AUTH_TOKEN_FROM_COOKIE", extra={
-            'token_length': len(token),
-            'token_prefix': token[:20] + '...' if len(token) > 20 else token,
-            'cookie_source': 'session'
-        })
+
     else:
         current_app.logger.warning(f"⚠️ AUTH_NO_SESSION_COOKIE", extra={
             'available_cookies': list(request.cookies.keys()),

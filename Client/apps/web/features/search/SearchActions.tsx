@@ -16,7 +16,7 @@ export default function SearchActions({
 }: SearchActionsProps) {
   if (variant === "mobile") {
     return (
-      <div className="flex w-full gap-2">
+      <div className="flex w-full gap-2 mt-4 mb-2">
         <NavigationButton
           onClick={() => onUpdatePreferences()}
           size="md"

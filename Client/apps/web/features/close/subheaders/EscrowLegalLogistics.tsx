@@ -1,4 +1,8 @@
 import CloseLayout, { type ChecklistItem } from "../CloseLayout";
+import {
+  CHECKLIST_TITLES,
+  CHECKLIST_SUBTITLES,
+} from "../../../../../packages/schemas";
 
 type ClosePageHeaderData = {
   title: string;
@@ -150,8 +154,8 @@ export default function EscrowLegalLogistics({
 
   return (
     <CloseLayout
-      title="Escrow & Legal"
-      subtitle="Stay on top of the escrow and legal process"
+      title={CHECKLIST_TITLES.escrow}
+      subtitle={CHECKLIST_SUBTITLES.escrow}
       sectionTitle="Legal & Title Tasks"
       apiEndpoint="/api/v1/user/close?type=escrow"
       items={items}

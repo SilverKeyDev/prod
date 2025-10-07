@@ -20,10 +20,12 @@ import CompareReportsPage from "../features/decide/compare/CompareReportsPage";
 import AIAssistant from "../features/decide/aiAssistant/AIAssistant";
 import Button from "../components/ui/button/Button";
 import { BarChart2, Bot, FileText } from "lucide-react";
+import useMobile from "../../../packages/hooks/ui/useMobile";
 
 export default function SavedHomes() {
   const location = useLocation();
   const navigate = useNavigate();
+  const isMobile = useMobile();
   const [searchTerm, setSearchTerm] = useState("");
   const [refreshing, setRefreshing] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState<SavedHome | null>(
@@ -291,8 +293,8 @@ export default function SavedHomes() {
         }
       />
       <div className="space-y-8">
-        {/* Generate Report Component - Only show when reports view is toggled */}
-        {viewType === "reports" && (
+        {/* Generate Report Component - Show on desktop when reports view is active */}
+        {viewType === "reports" && !isMobile && (
           <div className="mb-6">
             <GenerateReportPage />
           </div>
@@ -312,10 +314,11 @@ export default function SavedHomes() {
                   variant="ghost"
                   size="sm"
                   icon={<BarChart2 />}
+                  hideTextBelow="md"
                   onClick={() => setReportsSubView("compare")}
                   className={
                     reportsSubView === "compare"
-                      ? "bg-gold text-gray-300"
+                      ? "bg-gold text-white"
                       : "bg-gray-100 text-gray-800 hover:bg-gray-200"
                   }
                 >
@@ -325,10 +328,11 @@ export default function SavedHomes() {
                   variant="ghost"
                   size="sm"
                   icon={<Bot />}
+                  hideTextBelow="md"
                   onClick={() => setReportsSubView("chatbot")}
                   className={
                     reportsSubView === "chatbot"
-                      ? "bg-gold text-gray-300"
+                      ? "bg-gold text-white"
                       : "bg-gray-100 text-gray-800 hover:bg-gray-200"
                   }
                 >
@@ -338,10 +342,11 @@ export default function SavedHomes() {
                   variant="ghost"
                   size="sm"
                   icon={<FileText />}
+                  hideTextBelow="md"
                   onClick={() => setReportsSubView("reports")}
                   className={
                     reportsSubView === "reports"
-                      ? "bg-gold text-gray-300"
+                      ? "bg-gold text-white"
                       : "bg-gray-100 text-gray-800 hover:bg-gray-200"
                   }
                 >

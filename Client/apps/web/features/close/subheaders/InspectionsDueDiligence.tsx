@@ -1,4 +1,8 @@
 import CloseLayout, { type ChecklistItem } from "../CloseLayout";
+import {
+  CHECKLIST_TITLES,
+  CHECKLIST_SUBTITLES,
+} from "../../../../../packages/schemas";
 
 type ClosePageHeaderData = {
   title: string;
@@ -137,8 +141,8 @@ export default function InspectionsChecklist({
 
   return (
     <CloseLayout
-      title="Inspection & Due Diligence"
-      subtitle="Follow these steps to make an informed decision before closing"
+      title={CHECKLIST_TITLES.inspections}
+      subtitle={CHECKLIST_SUBTITLES.inspections}
       sectionTitle="To-Do Items"
       apiEndpoint="/api/v1/user/close?type=insurance"
       items={items}

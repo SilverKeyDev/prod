@@ -1,7 +1,9 @@
 import Card from "../../components/layout/Card";
 import MiniLogo from "../../components/ui/asset/MiniLogo";
-
-type ChecklistTab = "escrow" | "inspections" | "financing" | "closing";
+import {
+  CHECKLIST_TITLES,
+  type ChecklistTab,
+} from "../../../../packages/schemas";
 
 type ClosePageHeaderProps = {
   title: string;
@@ -14,15 +16,15 @@ type ClosePageHeaderProps = {
 };
 
 const tabs: Array<{ id: ChecklistTab; label: string }> = [
-  { id: "escrow", label: "Escrow & Legal" },
-  { id: "inspections", label: "Inspections & Due Diligence" },
-  { id: "financing", label: "Financing & Insurance" },
-  { id: "closing", label: "Closing & Move-In" },
+  { id: "escrow", label: CHECKLIST_TITLES.escrow },
+  { id: "inspections", label: CHECKLIST_TITLES.inspections },
+  { id: "financing", label: CHECKLIST_TITLES.financing },
+  { id: "closing", label: CHECKLIST_TITLES.closing },
 ];
 
 export default function ClosePageHeader({
   title,
-  subtitle,
+  subtitle: _subtitle, // hidden below the main title per design
   completedCount,
   totalCount,
   loading = false,
@@ -50,9 +52,9 @@ export default function ClosePageHeader({
               </h1>
             </div>
 
-            {/* Subtitle */}
-            <p className="text-xs sm:text-sm lg:text-responsive-sm text-navy/70 mt-1">
-              {subtitle}
+            {/* Subtitle visible on sm+ screens, hidden on small */}
+            <p className="hidden sm:block text-sm lg:text-responsive-sm text-navy/70 mt-1">
+              {_subtitle}
             </p>
           </div>
         </div>
@@ -80,13 +82,13 @@ export default function ClosePageHeader({
                 >
                   <button
                     onClick={() => onTabChange(tab.id)}
-                    className={`w-full px-2 lg:px-responsive-sm py-1 lg:py-responsive-xs text-xs lg:text-sm font-medium transition-all duration-200 mx-1 ${
+                    className={`w-full px-2 lg:px-responsive-xs py-0.5 lg:py-responsive-2xs text-[10px] lg:text-xs font-medium transition-all duration-200 mx-1 ${
                       activeTab === tab.id
                         ? "text-olive border-b-2 border-olive"
                         : "text-navy/70 hover:bg-olive/10 hover:text-olive hover:shadow-sm rounded-lg"
                     }`}
                   >
-                    <div className="text-center text-xs lg:text-sm font-medium">
+                    <div className="text-center text-[10px] lg:text-xs font-medium">
                       {tab.label}
                     </div>
                   </button>

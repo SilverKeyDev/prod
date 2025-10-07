@@ -138,6 +138,17 @@ export const renderImportantLocationMarkers = (
   console.log(
     `🎯 [IMPORTANT_LOCATIONS] Found ${importantLocations.length} important locations to render`,
   );
+  if (importantLocations.length > 0) {
+    // Detailed per-location logging to aid debugging and verification
+    console.groupCollapsed("🎯 [IMPORTANT_LOCATIONS] Locations detail");
+    importantLocations.forEach((loc, index) => {
+      const commute = loc.commute_tolerance ?? 30;
+      console.log(
+        `${index + 1}. ${loc.name} — ${loc.address} | coords: (${loc.lat ?? "n/a"}, ${loc.lng ?? "n/a"}) | commute: ${commute} min`,
+      );
+    });
+    console.groupEnd();
+  }
 
   if (importantLocations.length === 0) {
     console.log("🎯 [IMPORTANT_LOCATIONS] No important locations to render");
