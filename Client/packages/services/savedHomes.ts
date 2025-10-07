@@ -61,8 +61,14 @@ const mapToAddFavoriteHomePayload = (
   const obj = (input ?? {}) as Record<string, unknown>;
   const getString = (v: unknown, fallback = ""): string =>
     typeof v === "string" ? v : typeof v === "number" ? String(v) : fallback;
-  const getNumber = (v: unknown, fallback = 0): number =>
-    typeof v === "number" ? v : fallback;
+  const getNumber = (v: unknown, fallback = 0): number => {
+    if (typeof v === "number") return v;
+    if (typeof v === "string") {
+      const parsed = parseInt(v.replace(/,/g, ''), 10);
+      return isNaN(parsed) ? fallback : parsed;
+    }
+    return fallback;
+  };
 
   const id = getString(obj.id ?? obj.address ?? obj.home_id);
   const address = getString(obj.address ?? obj.description);

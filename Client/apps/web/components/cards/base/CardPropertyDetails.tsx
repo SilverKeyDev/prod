@@ -36,7 +36,7 @@ const CardPropertyDetails: React.FC<CardPropertyDetailsProps> = ({
       bedrooms,
       bathrooms,
       hideSquareFootage ? undefined : sqft,
-    ].filter((val) => val !== undefined && val > 0).length;
+    ].filter((val) => val !== undefined && Number(val) > 0).length;
 
     // Aggressive scaling - prioritize fitting everything in one line
     if (contentCount >= 3) return "xs"; // All three items - smallest
@@ -105,7 +105,7 @@ const CardPropertyDetails: React.FC<CardPropertyDetailsProps> = ({
 
   return (
     <div className={containerClasses}>
-      {bedrooms !== undefined && (
+      {bedrooms !== undefined && Number(bedrooms) > 0 && (
         <div className="flex flex-shrink-0 items-center">
           {showIcons && (
             <Bed
@@ -119,7 +119,7 @@ const CardPropertyDetails: React.FC<CardPropertyDetailsProps> = ({
         </div>
       )}
 
-      {bathrooms !== undefined && (
+      {bathrooms !== undefined && Number(bathrooms) > 0 && (
         <div className="flex flex-shrink-0 items-center">
           {showIcons && (
             <Bath
@@ -134,14 +134,14 @@ const CardPropertyDetails: React.FC<CardPropertyDetailsProps> = ({
       )}
 
       {/* Square Footage - Inline Implementation */}
-      {sqft && sqft > 0 && !hideSquareFootage && (
+      {sqft && Number(sqft) > 0 && !hideSquareFootage && (
         <div className="flex flex-shrink-0 items-center">
           {variant === "modal" ? (
             <div className="text-center">
               <div
                 className={`font-bold ${currentSizeStyles.text} text-gray-600`}
               >
-                {Math.round(sqft).toLocaleString()}
+                {Math.round(Number(sqft)).toLocaleString()}
               </div>
               <div className="mt-1 text-sm text-gray-600">Sq Ft</div>
             </div>
@@ -152,7 +152,7 @@ const CardPropertyDetails: React.FC<CardPropertyDetailsProps> = ({
                   className={`${currentSizeStyles.icon} mr-1 flex-shrink-0 text-brown`}
                 />
               )}
-              {Math.round(sqft).toLocaleString()} sqft
+              {Math.round(Number(sqft)).toLocaleString()} sqft
             </>
           )}
         </div>

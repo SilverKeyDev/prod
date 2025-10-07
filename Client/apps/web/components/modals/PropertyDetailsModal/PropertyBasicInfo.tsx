@@ -76,20 +76,24 @@ export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({
 
         {/* Right Side - Property Specs */}
         <div className="flex flex-col items-end space-y-4">
-          <div className="text-right">
-            <div className="text-3xl font-bold text-gray-900">
-              {propertyBedrooms ?? "—"}
+          {propertyBedrooms && Number(propertyBedrooms) > 0 && (
+            <div className="text-right">
+              <div className="text-3xl font-bold text-gray-900">
+                {propertyBedrooms}
+              </div>
+              <div className="text-sm text-gray-600">beds</div>
             </div>
-            <div className="text-sm text-gray-600">beds</div>
-          </div>
-          <div className="text-right">
-            <div className="text-3xl font-bold text-gray-900">
-              {propertyBathrooms ?? "—"}
+          )}
+          {propertyBathrooms && Number(propertyBathrooms) > 0 && (
+            <div className="text-right">
+              <div className="text-3xl font-bold text-gray-900">
+                {propertyBathrooms}
+              </div>
+              <div className="text-sm text-gray-600 border-b border-dashed border-gray-400">
+                baths
+              </div>
             </div>
-            <div className="text-sm text-gray-600 border-b border-dashed border-gray-400">
-              baths
-            </div>
-          </div>
+          )}
           {propertySqft && Number(propertySqft) > 0 && (
             <div className="text-right">
               <div className="text-3xl font-bold text-gray-900">
@@ -116,27 +120,43 @@ export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({
           Property Details
         </h3>
         <div className="space-y-3">
-          <div className="flex justify-between">
-            Year Built:
-            {propertyYearBuilt != null ? String(propertyYearBuilt) : "N/A"}
-          </div>
-          {(typeof propertyLotSize === "number" ||
-            typeof propertyLotSize === "string") && (
+          {propertyYearBuilt && Number(propertyYearBuilt) > 0 ? (
+            <div className="flex justify-between">
+              Year Built:
+              {String(propertyYearBuilt)}
+            </div>
+          ) : null}
+          {propertyLotSize &&
+          ((typeof propertyLotSize === "number" && propertyLotSize > 0) ||
+            (typeof propertyLotSize === "string" &&
+              propertyLotSize !== "0" &&
+              propertyLotSize.trim() !== "")) ? (
             <div className="flex justify-between">
               Lot Size:
               {String(propertyLotSize)}
             </div>
-          )}
-          <div className="flex justify-between">
-            Property Type:
-            {formatPropertyType(
-              (propertyHomeType as string) ??
-                (propertyPropertyType as string) ??
-                ""
-            )}
-          </div>
-          {(typeof propertyPricePerSquareFoot === "number" ||
-            typeof propertyPricePerSquareFoot === "string") && (
+          ) : null}
+          {(propertyHomeType &&
+            propertyHomeType !== "" &&
+            propertyHomeType !== "0") ||
+          (propertyPropertyType &&
+            propertyPropertyType !== "" &&
+            propertyPropertyType !== "0") ? (
+            <div className="flex justify-between">
+              Property Type:
+              {formatPropertyType(
+                (propertyHomeType as string) ??
+                  (propertyPropertyType as string) ??
+                  ""
+              )}
+            </div>
+          ) : null}
+          {propertyPricePerSquareFoot &&
+          ((typeof propertyPricePerSquareFoot === "number" &&
+            propertyPricePerSquareFoot > 0) ||
+            (typeof propertyPricePerSquareFoot === "string" &&
+              propertyPricePerSquareFoot !== "0" &&
+              propertyPricePerSquareFoot.trim() !== "")) ? (
             <div className="flex justify-between">
               Price per Sq Ft: $
               {(() => {
@@ -147,7 +167,7 @@ export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({
                 return "";
               })()}
             </div>
-          )}
+          ) : null}
           {((typeof propertyGarageSpaces === "number" &&
             propertyGarageSpaces > 0) ||
             (typeof propertyParking === "number" && propertyParking > 0)) && (
@@ -161,13 +181,17 @@ export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({
                   : "N/A"}
             </div>
           )}
-          {(typeof propertyDaysOnZillow === "number" ||
-            typeof propertyDaysOnZillow === "string") && (
+          {propertyDaysOnZillow &&
+          ((typeof propertyDaysOnZillow === "number" &&
+            propertyDaysOnZillow > 0) ||
+            (typeof propertyDaysOnZillow === "string" &&
+              propertyDaysOnZillow !== "0" &&
+              propertyDaysOnZillow.trim() !== "")) ? (
             <div className="flex justify-between">
               Days on Market:
               {String(propertyDaysOnZillow)} days
             </div>
-          )}
+          ) : null}
           {typeof propertyZestimate === "number" && propertyZestimate > 0 && (
             <div className="flex justify-between">
               Estimate: ${propertyZestimate.toLocaleString()}

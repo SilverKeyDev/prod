@@ -61,37 +61,28 @@ def create_app(config=None):
         from .models.chat_history import ChatHistory
         db.create_all()
 
-    # Environment-aware CORS Configuration
-    flask_env = os.getenv('FLASK_ENV', 'development')
+    # CORS Configuration with runtime origins list
+    # comma-separated env, e.g. "http://localhost:5173,https://usesilverkey.com"
+    raw = os.getenv("CORS_ALLOWED_ORIGINS", "")
+    ALLOWED = [o.strip() for o in raw.split(",") if o.strip()]
     
-    # Get base origins from config (supports CORS_ORIGINS environment variable)
-    base_origins = Config.CORS_ORIGINS.copy()
+    # sensible dev defaults if env not set
+    if not ALLOWED:
+        ALLOWED = [
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+            "https://usesilverkey.com",
+        ]
     
-    # Development origins (only added in non-production environments)
-    # Note: Use localhost consistently for proper cookie behavior
-    development_origins = [
-        "http://localhost:3000",
-        "http://localhost:5173"
-    ]
-    
-    # Combine origins based on environment
-    if flask_env == 'production':
-        cors_origins = base_origins
-    else:
-        # Add development origins to base origins for non-production
-        cors_origins = base_origins + development_origins
-    
-    
-    CORS(app, resources={
-        r"/*": {
-            "origins": cors_origins,
-            "supports_credentials": True,
-            "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"],
-            "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-            "expose_headers": ["Content-Type", "X-CSRFToken"],
-            "max_age": 600
-        },
-    })
+    CORS(
+        app,
+        resources={r"/api/*": {"origins": ALLOWED}},
+        supports_credentials=True,
+        expose_headers=["Content-Type", "X-CSRFToken"],
+        allow_headers=["Content-Type", "X-CSRFToken"],
+        methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+        vary_header=True,  # ensures Vary: Origin
+    )
 
     # Register login manager loader
     from .models.user import User
@@ -314,6 +305,29 @@ def create_app(config=None):
                     'response_headers': dict(response.headers),
                     'response_data': response.get_data(as_text=True)[:500] if response.get_data() else 'empty'
                 })
+        
+        # Add security headers including permissions policy
+        # Permissions Policy to control browser features
+        permissions_policy = (
+            "camera=(), "
+            "microphone=(), "
+            "geolocation=(), "
+            "fullscreen=(self \"https://*.amazonaws.com\"), "
+            "payment=(), "
+            "usb=(), "
+            "magnetometer=(), "
+            "gyroscope=(), "
+            "accelerometer=(), "
+            "ambient-light-sensor=()"
+        )
+        response.headers['Permissions-Policy'] = permissions_policy
+        
+        # Additional security headers
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        response.headers['X-Frame-Options'] = 'DENY'
+        response.headers['X-XSS-Protection'] = '1; mode=block'
+        response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+        response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
         
         return response
 

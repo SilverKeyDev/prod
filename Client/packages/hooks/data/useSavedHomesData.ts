@@ -110,8 +110,10 @@ const mapHomeUniversalToSavedHome = (
       return isNaN(parsed) ? undefined : parsed;
     })(),
     sqft: (() => {
-      const parsed = Number.parseInt(homeData.sqft ?? "0");
-      return isNaN(parsed) ? undefined : parsed;
+      const rawSqft = homeData.sqft ?? "";
+      if (typeof rawSqft === "string" && rawSqft.trim() === "") return undefined;
+      const parsed = Number.parseInt(rawSqft.replace(/,/g, ''), 10);
+      return isNaN(parsed) || parsed <= 0 ? undefined : parsed;
     })(),
     lot_size: homeData.lot_size ?? "",
     image_url: homeData.image_url ?? undefined,

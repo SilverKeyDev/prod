@@ -41,7 +41,7 @@ export default function Dashboard() {
       price: home.price,
       bedrooms: home.bedrooms,
       bathrooms: home.bathrooms,
-      sqft: home.sqft,
+      sqft: home.sqft && home.sqft > 0 ? home.sqft : undefined,
       lot_size:
         typeof home.lot_size === "string" || typeof home.lot_size === "number"
           ? (home.lot_size as string | number)

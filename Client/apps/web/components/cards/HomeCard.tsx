@@ -13,7 +13,6 @@ import PropertyDetailsModal from "../modals/PropertyDetailsModal";
 import { CardViewDetailsButton, CardHeartSave } from "./base";
 import PropertyCard from "./PropertyCard";
 
-
 export type HomeDescription = {
   home_id: string;
   description?: string;
@@ -195,7 +194,7 @@ export default function HomeCard({
         }
         bedrooms={home.bedrooms as number | undefined}
         bathrooms={home.bathrooms as number | undefined}
-        sqft={home.sqft as number | undefined}
+        sqft={home.sqft && home.sqft > 0 ? home.sqft : undefined}
         lotSize={formatLotSize(home.lot_size as string | number | undefined)}
         pricePosition="below-address"
         loading={isLoading}

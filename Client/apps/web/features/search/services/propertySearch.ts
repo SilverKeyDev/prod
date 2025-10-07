@@ -130,7 +130,11 @@ export const searchPropertiesInIsochrone = async (
         : "Price not available",
       bedrooms: property.bedrooms ?? 0,
       bathrooms: property.bathrooms ?? 0,
-      sqft: property.livingArea ?? 0,
+      sqft: typeof property.livingArea === 'number' 
+        ? property.livingArea 
+        : typeof property.livingArea === 'string' 
+          ? parseInt(property.livingArea.replace(/,/g, '')) || 0
+          : 0,
       lat:
         property.latitude ??
         isochroneData.center.lat + (Math.random() - 0.5) * 0.01,

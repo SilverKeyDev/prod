@@ -398,7 +398,7 @@ export default function SavedHomes() {
                   }
                   bedrooms={home.bedrooms}
                   bathrooms={home.bathrooms}
-                  sqft={home.sqft}
+                  sqft={home.sqft && home.sqft > 0 ? home.sqft : undefined}
                   lotSize={
                     typeof home.lot_size === "string"
                       ? home.lot_size

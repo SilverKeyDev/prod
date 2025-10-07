@@ -12,4 +12,7 @@ export * from "./errorHandling";
 // Array utilities
 export * from "./array";
 
+// PDF utilities
+export * from "./pdf";
+
 // The wildcard exports above are sufficient and avoid duplicate identifier re-exports
