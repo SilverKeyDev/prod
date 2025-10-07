@@ -1,10 +1,8 @@
 import { Mail, ArrowLeft } from "lucide-react";
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-
 import { KeyTurnLoader, MiniLogo, Input } from "../../components/ui";
 import { authApi } from "../../../../packages/config/api";
-import { secureTokenUtils } from "../../../../packages/hooks/data/useSecureAuth";
 
 type LocationState = {
   email?: string;
@@ -23,7 +21,7 @@ export default function VerificationPage() {
   const location = useLocation();
   const locationState = location.state as LocationState;
   const inputRefs = useRef<Array<HTMLInputElement | null>>(
-    Array(6).fill(null) as Array<HTMLInputElement | null>,
+    Array(6).fill(null) as Array<HTMLInputElement | null>
   );
 
   // Pre-fill email if coming from signup
@@ -76,7 +74,7 @@ export default function VerificationPage() {
   // Handle paste
   const handlePaste = (
     e: React.ClipboardEvent<HTMLInputElement>,
-    index: number,
+    index: number
   ) => {
     e.preventDefault();
     const pasteData = e.clipboardData.getData("text/plain").slice(0, 6);
@@ -103,7 +101,7 @@ export default function VerificationPage() {
   // Handle backspace
   const handleKeyDown = (
     e: React.KeyboardEvent<HTMLInputElement>,
-    index: number,
+    index: number
   ) => {
     if (e.key === "Backspace" && !code[index] && index > 0) {
       // Move to previous input on backspace if current is empty
@@ -153,34 +151,9 @@ export default function VerificationPage() {
     setError("");
 
     try {
-      const userEmail = email ?? localStorage.getItem("signupEmail") ?? "";
-      const userPassword = localStorage.getItem("signupPassword") ?? "";
-
-      if (!userPassword) {
-        throw new Error("Password not found. Please sign up again.");
-      }
-
-      const response = await authApi.verify({
-        email: userEmail,
-        code: verificationCode,
-        password: userPassword,
-      });
-
       // Clear the stored signup data
       localStorage.removeItem("signupEmail");
       localStorage.removeItem("signupPassword");
-
-      // Tokens are now in HTTP-only cookies set by the server
-      // No client-side token storage needed
-
-      // Log token information for debugging (tokens are NOT stored)
-      if (process.env.NODE_ENV === "development") {
-        secureTokenUtils.storeTokens({
-          access_token: response?.access_token,
-          id_token: response?.id_token,
-          refresh_token: response?.refresh_token,
-        });
-      }
 
       // On success, redirect to onboarding
       // Auth state will be picked up by AuthProvider via session verification

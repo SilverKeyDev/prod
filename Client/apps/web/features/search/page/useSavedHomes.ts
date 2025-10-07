@@ -29,10 +29,10 @@ export function useSavedHomes(params: {
   const [savedHomes, setSavedHomes] = useState<SearchResult[]>([]);
   const hasLoadedRef = useRef(false);
 
-  // Load saved homes from user's favorite_home_ids on component mount
+  // Load saved homes once Google Maps is ready so we can geocode if needed
   useEffect(() => {
-    // Prevent multiple API calls
-    if (hasLoadedRef.current) return;
+    // Wait until Google Maps is loaded, and prevent multiple API calls
+    if (hasLoadedRef.current || !params.isGoogleMapsLoaded) return;
     hasLoadedRef.current = true;
     const loadSavedHomes = async () => {
       try {
@@ -142,7 +142,7 @@ export function useSavedHomes(params: {
 
     void loadSavedHomes();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Empty dependency array - only run once on mount
+  }, [params.isGoogleMapsLoaded]);
 
   const saveHome = useCallback(
     async (property: SearchResult | Property) => {

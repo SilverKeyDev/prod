@@ -100,17 +100,13 @@ def create_app(config=None):
     def load_user(user_id):
         return User.query.get(int(user_id))
 
-    # Initialize S3 service
+    # Initialize S3 service silently
     with app.app_context():
         try:
             from .services.s3_service import s3_service
-            from .utils.app_logging import get_logger
-            logger = get_logger()
-        except Exception as e:
-            from .utils.app_logging import get_logger
-            logger = get_logger()
-            logger.error(f"Failed to initialize S3 service: {str(e)}")
-            logger.error("Application will continue with local storage fallback")
+            s3_service._initialize_s3_client(force_retry=True)
+        except Exception:
+            pass  # S3 will be initialized on first use if needed
 
     # Validate environment variables at startup
     from .utils.env_validator import validate_environment, check_api_keys

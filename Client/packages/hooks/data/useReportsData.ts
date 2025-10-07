@@ -6,6 +6,7 @@ import { reportApi } from "../../config/api/report";
 import { useFiltersQueryParams } from "../../config/query/adapters";
 import { queryKeys } from "../../config/query/keys";
 import type { Report, CompareReport } from "../../schemas";
+import { log } from "../../services/security/secureLogger";
 
 // Simple deserialization functions
 const deserializeReport = (r: unknown): Report => {
@@ -103,7 +104,22 @@ export const useReportsData = () => {
         sessionStorage.setItem("reports_fetch_logged", "true");
       }
       const response = await reportApi.getAll();
+      // PII-safe logging of route output
+      try {
+        log.info("REPORTS_QUERY", "Fetched /api/v1/report/all", {
+          success: response.success,
+          count: Array.isArray(response.reports) ? response.reports.length : 0,
+          sampleIds: Array.isArray(response.reports)
+            ? response.reports.slice(0, 3).map((r) => (r as { id?: string }).id)
+            : [],
+        });
+      } catch {}
       if (!response.success || !response.reports) {
+        try {
+          log.error("REPORTS_QUERY", "Reports fetch failed", {
+            error: response.error ?? "Unknown error",
+          });
+        } catch {}
         throw new Error(response.error ?? "Failed to fetch reports");
       }
       // Only log once per session to avoid spam
@@ -114,10 +130,11 @@ export const useReportsData = () => {
     },
     enabled: shouldLoadData,
     // Ensure proper deduplication
-    staleTime: 3 * 60 * 1000, // 3 minutes - data is fresh for this long
-    gcTime: 10 * 60 * 1000, // 10 minutes - keep in cache
+    staleTime: 5 * 60 * 1000, // 5 minutes - data is fresh for this long
+    gcTime: 15 * 60 * 1000, // 15 minutes - keep in cache longer
     refetchOnWindowFocus: false, // Don't refetch on window focus
     refetchOnMount: false, // Don't refetch if data exists
+    refetchOnReconnect: false, // Don't refetch on reconnect
   });
 
   // Update refs when functions change

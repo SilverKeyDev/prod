@@ -24,13 +24,8 @@ class S3Service:
         # Don't initialize immediately - wait for Flask app context
     
     def _log_initialization_context(self):
-        """Log detailed context information for debugging initialization issues"""
-      
-        if has_app_context():
-            try:
-                current_app.config
-            except Exception as e:
-                logger.warning(f"   - Could not access Flask config: {e}")
+        """Log minimal context information for debugging initialization issues"""
+        pass  # Removed verbose logging
     
     def _initialize_s3_client(self, force_retry=False):
         """Initialize the S3 client with credentials from config or environment"""
@@ -44,8 +39,6 @@ class S3Service:
         
         self._last_init_attempt = current_time
         self.initialization_attempted = True
-        
-        self._log_initialization_context()
         
         try:
             # Try to get credentials from Flask config first, then fall back to environment
@@ -61,8 +54,8 @@ class S3Service:
                     aws_secret_key = config.get('AWS_SECRET_ACCESS_KEY')
                     s3_region = config.get('AWS_REGION', 'us-east-2')
                     bucket_name = config.get('S3_BUCKET_NAME_PDFS')
-                except Exception as e:
-                    logger.warning(f"⚠️ Could not access Flask config: {e}")
+                except Exception:
+                    pass
             
             # Fallback to environment variables
             if not aws_access_key or not aws_secret_key:
@@ -70,18 +63,18 @@ class S3Service:
                 aws_secret_key = os.getenv('AWS_SECRET_ACCESS_KEY')
                 s3_region = os.getenv('AWS_REGION', 'us-east-2')
             
+            # If bucket name not found in Flask config, use the hardcoded default from config.py
+            if not bucket_name:
+                bucket_name = 'pdf-storage-jkdsfiugew'
+            
             # Validate credentials
-            if not aws_access_key or not aws_secret_key:
-                logger.error("❌ AWS credentials not found in config or environment")
-                logger.error(f"   - AWS_ACCESS_KEY_ID: {'✅ Present' if aws_access_key else '❌ Missing'}")
-                logger.error(f"   - AWS_SECRET_ACCESS_KEY: {'✅ Present' if aws_secret_key else '❌ Missing'}")
-                logger.error("   - S3 operations will be disabled")
+            if not aws_access_key or not aws_secret_key or not bucket_name:
+                logger.error("S3 credentials not configured - S3 operations will be disabled")
                 return
             
-            if not bucket_name:
-                logger.error("❌ S3 bucket name not configured")
-                logger.error("   - Set S3_BUCKET_NAME_PDFS in Flask config")
-                logger.error("   - S3 operations will be disabled")
+            # Validate credential format (basic checks)
+            if len(aws_access_key) < 16 or len(aws_secret_key) < 20:
+                logger.error("S3 credentials appear invalid - S3 operations will be disabled")
                 return
             
             # Create S3 client
@@ -93,50 +86,50 @@ class S3Service:
             )
             
             # Test the connection and bucket access
-            self.s3_client.head_bucket(Bucket=bucket_name)
+            try:
+                self.s3_client.head_bucket(Bucket=bucket_name)
+            except Exception as bucket_test_error:
+                logger.error(f"S3 bucket access test failed: {str(bucket_test_error)}")
+                raise bucket_test_error
             
             # Store bucket name for later use
             self.bucket_name = bucket_name
             self.initialization_successful = True
             
         except NoCredentialsError as e:
-            logger.error("❌ AWS credentials not found or invalid")
-            logger.error(f"   - NoCredentialsError details: {str(e)}")
-            logger.error("   - Check AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY")
+            logger.error("AWS credentials not found or invalid")
             self.s3_client = None
         except ClientError as e:
             error_code = e.response['Error']['Code']
             error_message = e.response['Error']['Message']
-            logger.error(f"❌ S3 client initialization failed with ClientError")
-            logger.error(f"   - Error code: {error_code}")
-            logger.error(f"   - Error message: {error_message}")
-            
-            if error_code == '404':
-                logger.error(f"   - S3 bucket '{bucket_name}' not found")
-                logger.error("   - Verify bucket name and region")
-            elif error_code == '403':
-                logger.error("   - Access denied to S3 bucket")
-                logger.error("   - Check IAM permissions for the AWS credentials")
-            elif error_code == 'NoSuchBucket':
-                logger.error(f"   - S3 bucket '{bucket_name}' does not exist")
-                logger.error("   - Create the bucket or update configuration")
-            elif error_code == 'InvalidAccessKeyId':
-                logger.error("   - Invalid AWS Access Key ID")
-            elif error_code == 'SignatureDoesNotMatch':
-                logger.error("   - Invalid AWS Secret Access Key")
-            
+            logger.error(f"S3 client initialization failed: {error_code} - {error_message}")
             self.s3_client = None
         except Exception as e:
-            logger.error(f"❌ Unexpected error initializing S3 client: {str(e)}")
-            logger.error(f"   - Exception type: {type(e).__name__}")
-            logger.error(f"   - Traceback: {traceback.format_exc()}")
+            logger.error(f"Unexpected error initializing S3 client: {str(e)}")
             self.s3_client = None
     
     def _ensure_s3_client(self):
         """Ensure S3 client is initialized, with retry logic"""
         if self.s3_client is None and not self.initialization_successful:
-            self._initialize_s3_client(force_retry=True)
+            try:
+                self._initialize_s3_client(force_retry=True)
+            except Exception as e:
+                logger.error(f"S3 client initialization failed: {str(e)}")
+                return False
         
+        if self.s3_client is None:
+            logger.warning("S3 client initialization failed - operations will be disabled")
+            return False
+        
+        return True
+    
+    def force_reinitialize(self):
+        """Force reinitialize the S3 client (useful for debugging)"""
+        self.s3_client = None
+        self.bucket_name = None
+        self.initialization_attempted = False
+        self.initialization_successful = False
+        self._initialize_s3_client(force_retry=True)
         return self.s3_client is not None
     
     def upload_pdf(self, file_data: bytes, filename: str, content_type: str) -> Optional[str]:
@@ -154,22 +147,12 @@ class S3Service:
         
         # Ensure S3 client is available
         if not self._ensure_s3_client():
-            logger.error("❌ S3 client not initialized - cannot upload PDF")
-            logger.error("   - Check AWS credentials and configuration")
-            logger.error("   - PDF will not be uploaded to S3")
+            logger.error("S3 client not initialized - cannot upload PDF")
             return None
         
         # Validate input parameters
-        if not file_data:
-            logger.error("❌ No file data provided for upload")
-            return None
-        
-        if not filename:
-            logger.error("❌ No filename provided for upload")
-            return None
-        
-        if len(file_data) == 0:
-            logger.error("❌ File data is empty")
+        if not file_data or not filename or len(file_data) == 0:
+            logger.error("Invalid file data or filename provided for upload")
             return None
         
         try:
@@ -184,7 +167,7 @@ class S3Service:
                         pass
             
             if not bucket_name:
-                logger.error("❌ S3 bucket name not available")
+                logger.error("S3 bucket name not available")
                 return None
             
                         
@@ -207,36 +190,13 @@ class S3Service:
         except ClientError as e:
             error_code = e.response['Error']['Code']
             error_message = e.response['Error']['Message']
-            logger.error(f"❌ Failed to upload PDF to S3: {filename}")
-            logger.error(f"   - ClientError code: {error_code}")
-            logger.error(f"   - ClientError message: {error_message}")
-            
-            if error_code == 'NoSuchBucket':
-                logger.error(f"   - S3 bucket '{bucket_name}' does not exist")
-                logger.error("   - Create the bucket or verify configuration")
-            elif error_code == 'AccessDenied':
-                logger.error("   - Access denied to S3 bucket")
-                logger.error("   - Check IAM permissions for the AWS credentials")
-            elif error_code == 'InvalidAccessKeyId':
-                logger.error("   - Invalid AWS access key ID")
-            elif error_code == 'SignatureDoesNotMatch':
-                logger.error("   - AWS signature mismatch - check secret access key")
-            elif error_code == 'InvalidBucketName':
-                logger.error(f"   - Invalid bucket name: {bucket_name}")
-            elif error_code == 'EntityTooLarge':
-                logger.error("   - File too large for S3 upload")
-            
+            logger.error(f"Failed to upload PDF to S3: {filename} - {error_code}: {error_message}")
             return None
         except ParamValidationError as e:
-            logger.error(f"❌ Parameter validation error uploading PDF: {str(e)}")
-            logger.error("   - Check file data and parameters")
+            logger.error(f"Parameter validation error uploading PDF: {str(e)}")
             return None
         except Exception as e:
-            logger.error(f"❌ Unexpected error uploading PDF to S3: {str(e)}")
-            logger.error(f"   - Exception type: {type(e).__name__}")
-            logger.error(f"   - Filename: {filename}")
-            logger.error(f"   - Bucket: {bucket_name}")
-            logger.error(f"   - Traceback: {traceback.format_exc()}")
+            logger.error(f"Unexpected error uploading PDF to S3: {str(e)}")
             return None
     
     def generate_presigned_url(self, s3_key: str, operation: str = 'get_object', download_filename: Optional[str] = None) -> Optional[str]:
@@ -253,12 +213,11 @@ class S3Service:
         """        
         # Ensure S3 client is available
         if not self._ensure_s3_client():
-            logger.error("❌ S3 client not initialized - cannot generate presigned URL")
-            logger.error("   - Check AWS credentials and configuration")
+            logger.error("S3 client not initialized - cannot generate presigned URL")
             return None
 
         if not s3_key:
-            logger.error("❌ No S3 key provided for presigned URL generation")
+            logger.error("No S3 key provided for presigned URL generation")
             return None
 
         try:
@@ -305,33 +264,15 @@ class S3Service:
         except ClientError as e:
             error_code = e.response['Error']['Code']
             error_message = e.response['Error']['Message']
-            logger.error(f"❌ Failed to generate presigned URL for {s3_key}")
-            logger.error(f"   - ClientError code: {error_code}")
-            logger.error(f"   - ClientError message: {error_message}")
-
-            if error_code == 'NoSuchKey':
-                logger.error(f"   - S3 object '{s3_key}' does not exist in bucket '{bucket_name}'")
-                logger.error("   - Verify the file was uploaded successfully")
-            elif error_code == 'NoSuchBucket':
-                logger.error(f"   - S3 bucket '{bucket_name}' does not exist")
-                logger.error("   - Check bucket configuration")
-            elif error_code == 'AccessDenied':
-                logger.error("   - Access denied to S3 bucket")
-                logger.error("   - Check IAM permissions for the AWS credentials")
-
+            logger.error(f"Failed to generate presigned URL for {s3_key}: {error_code} - {error_message}")
             return None
 
         except ParamValidationError as e:
-            logger.error(f"❌ Parameter validation error generating presigned URL: {str(e)}")
-            logger.error("   - Check S3 key and operation parameters")
+            logger.error(f"Parameter validation error generating presigned URL: {str(e)}")
             return None
 
         except Exception as e:
-            logger.error(f"❌ Unexpected error generating presigned URL: {str(e)}")
-            logger.error(f"   - Exception type: {type(e).__name__}")
-            logger.error(f"   - S3 Key: {s3_key}")
-            logger.error(f"   - Operation: {operation}")
-            logger.error(f"   - Traceback: {traceback.format_exc()}")
+            logger.error(f"Unexpected error generating presigned URL: {str(e)}")
             return None
     
     def generate_view_url(self, s3_key: str, operation: str = 'get_object') -> Optional[str]:
@@ -348,12 +289,11 @@ class S3Service:
         
         # Ensure S3 client is available
         if not self._ensure_s3_client():
-            logger.error("❌ S3 client not initialized - cannot generate view URL")
-            logger.error("   - Check AWS credentials and configuration")
+            logger.error("S3 client not initialized - cannot generate view URL")
             return None
 
         if not s3_key:
-            logger.error("❌ No S3 key provided for view URL generation")
+            logger.error("No S3 key provided for view URL generation")
             return None
 
         try:
@@ -398,33 +338,15 @@ class S3Service:
         except ClientError as e:
             error_code = e.response['Error']['Code']
             error_message = e.response['Error']['Message']
-            logger.error(f"❌ Failed to generate view URL for {s3_key}")
-            logger.error(f"   - ClientError code: {error_code}")
-            logger.error(f"   - ClientError message: {error_message}")
-
-            if error_code == 'NoSuchKey':
-                logger.error(f"   - S3 object '{s3_key}' does not exist in bucket '{bucket_name}'")
-                logger.error("   - Verify the file was uploaded successfully")
-            elif error_code == 'NoSuchBucket':
-                logger.error(f"   - S3 bucket '{bucket_name}' does not exist")
-                logger.error("   - Check bucket configuration")
-            elif error_code == 'AccessDenied':
-                logger.error("   - Access denied to S3 bucket")
-                logger.error("   - Check IAM permissions for the AWS credentials")
-
+            logger.error(f"Failed to generate view URL for {s3_key}: {error_code} - {error_message}")
             return None
 
         except ParamValidationError as e:
-            logger.error(f"❌ Parameter validation error generating view URL: {str(e)}")
-            logger.error("   - Check S3 key and operation parameters")
+            logger.error(f"Parameter validation error generating view URL: {str(e)}")
             return None
 
         except Exception as e:
-            logger.error(f"❌ Unexpected error generating view URL: {str(e)}")
-            logger.error(f"   - Exception type: {type(e).__name__}")
-            logger.error(f"   - S3 Key: {s3_key}")
-            logger.error(f"   - Operation: {operation}")
-            logger.error(f"   - Traceback: {traceback.format_exc()}")
+            logger.error(f"Unexpected error generating view URL: {str(e)}")
             return None
     
     def delete_pdf(self, s3_key: str) -> bool:
@@ -440,12 +362,11 @@ class S3Service:
         
         # Ensure S3 client is available
         if not self._ensure_s3_client():
-            logger.error("❌ S3 client not initialized - cannot delete PDF")
-            logger.error("   - Check AWS credentials and configuration")
+            logger.error("S3 client not initialized - cannot delete PDF")
             return False
         
         if not s3_key:
-            logger.error("❌ No S3 key provided for deletion")
+            logger.error("No S3 key provided for deletion")
             return False
         
         try:
@@ -460,7 +381,7 @@ class S3Service:
                         pass
             
             if not bucket_name:
-                logger.error("❌ S3 bucket name not available for deletion")
+                logger.error("S3 bucket name not available for deletion")
                 return False
             
             self.s3_client.delete_object(
@@ -473,31 +394,18 @@ class S3Service:
         except ClientError as e:
             error_code = e.response['Error']['Code']
             error_message = e.response['Error']['Message']
-            logger.error(f"❌ Failed to delete PDF from S3: {s3_key}")
-            logger.error(f"   - ClientError code: {error_code}")
-            logger.error(f"   - ClientError message: {error_message}")
+            logger.error(f"Failed to delete PDF from S3: {s3_key} - {error_code}: {error_message}")
             
             if error_code == 'NoSuchKey':
-                logger.warning(f"⚠️ S3 object '{s3_key}' does not exist (already deleted?)")
+                logger.warning(f"S3 object '{s3_key}' does not exist (already deleted?)")
                 return True  # Consider this a success since the goal is achieved
-            elif error_code == 'NoSuchBucket':
-                logger.error(f"   - S3 bucket '{bucket_name}' does not exist")
-                logger.error("   - Check bucket configuration")
-            elif error_code == 'AccessDenied':
-                logger.error("   - Access denied to S3 bucket")
-                logger.error("   - Check IAM permissions for the AWS credentials")
             
             return False
         except ParamValidationError as e:
-            logger.error(f"❌ Parameter validation error deleting PDF: {str(e)}")
-            logger.error("   - Check S3 key parameter")
+            logger.error(f"Parameter validation error deleting PDF: {str(e)}")
             return False
         except Exception as e:
-            logger.error(f"❌ Unexpected error deleting PDF from S3: {str(e)}")
-            logger.error(f"   - Exception type: {type(e).__name__}")
-            logger.error(f"   - S3 Key: {s3_key}")
-            logger.error(f"   - Bucket: {bucket_name}")
-            logger.error(f"   - Traceback: {traceback.format_exc()}")
+            logger.error(f"Unexpected error deleting PDF from S3: {str(e)}")
             return False
     
     def file_exists(self, s3_key: str) -> bool:
@@ -513,12 +421,11 @@ class S3Service:
         
         # Ensure S3 client is available
         if not self._ensure_s3_client():
-            logger.error("❌ S3 client not initialized - cannot check file existence")
-            logger.error("   - Check AWS credentials and configuration")
+            logger.error("S3 client not initialized - cannot check file existence")
             return False
         
         if not s3_key:
-            logger.error("❌ No S3 key provided for existence check")
+            logger.error("No S3 key provided for existence check")
             return False
         
         try:
@@ -533,7 +440,7 @@ class S3Service:
                         pass
             
             if not bucket_name:
-                logger.error("❌ S3 bucket name not available for existence check")
+                logger.error("S3 bucket name not available for existence check")
                 return False
                         
             self.s3_client.head_object(Bucket=bucket_name, Key=s3_key)
@@ -546,17 +453,10 @@ class S3Service:
                 return False
             else:
                 error_message = e.response['Error']['Message']
-                logger.error(f"❌ Error checking if file exists in S3: {s3_key}")
-                logger.error(f"   - ClientError code: {error_code}")
-                logger.error(f"   - ClientError message: {error_message}")
-                logger.error(f"   - Bucket: {bucket_name}")
+                logger.error(f"Error checking if file exists in S3: {s3_key} - {error_code}: {error_message}")
                 return False
         except Exception as e:
-            logger.error(f"❌ Unexpected error checking file existence: {str(e)}")
-            logger.error(f"   - Exception type: {type(e).__name__}")
-            logger.error(f"   - S3 Key: {s3_key}")
-            logger.error(f"   - Bucket: {bucket_name}")
-            logger.error(f"   - Traceback: {traceback.format_exc()}")
+            logger.error(f"Unexpected error checking file existence: {str(e)}")
             return False
     
     def get_pdf(self, s3_key: str) -> Optional[bytes]:
@@ -572,12 +472,11 @@ class S3Service:
         
         # Ensure S3 client is available
         if not self._ensure_s3_client():
-            logger.error("❌ S3 client not initialized - cannot download PDF")
-            logger.error("   - Check AWS credentials and configuration")
+            logger.error("S3 client not initialized - cannot download PDF")
             return None
         
         if not s3_key:
-            logger.error("❌ No S3 key provided for download")
+            logger.error("No S3 key provided for download")
             return None
         
         try:
@@ -592,7 +491,7 @@ class S3Service:
                         pass
             
             if not bucket_name:
-                logger.error("❌ S3 bucket name not available for download")
+                logger.error("S3 bucket name not available for download")
                 return None
             
             
@@ -607,27 +506,10 @@ class S3Service:
         except ClientError as e:
             error_code = e.response['Error']['Code']
             error_message = e.response['Error']['Message']
-            logger.error(f"❌ Failed to download PDF from S3: {s3_key}")
-            logger.error(f"   - ClientError code: {error_code}")
-            logger.error(f"   - ClientError message: {error_message}")
-            
-            if error_code == 'NoSuchKey':
-                logger.error(f"   - S3 object '{s3_key}' does not exist in bucket '{bucket_name}'")
-                logger.error("   - Verify the file was uploaded successfully")
-            elif error_code == 'NoSuchBucket':
-                logger.error(f"   - S3 bucket '{bucket_name}' does not exist")
-                logger.error("   - Check bucket configuration")
-            elif error_code == 'AccessDenied':
-                logger.error("   - Access denied to S3 bucket")
-                logger.error("   - Check IAM permissions for the AWS credentials")
-            
+            logger.error(f"Failed to download PDF from S3: {s3_key} - {error_code}: {error_message}")
             return None
         except Exception as e:
-            logger.error(f"❌ Unexpected error downloading PDF from S3: {str(e)}")
-            logger.error(f"   - Exception type: {type(e).__name__}")
-            logger.error(f"   - S3 Key: {s3_key}")
-            logger.error(f"   - Bucket: {bucket_name}")
-            logger.error(f"   - Traceback: {traceback.format_exc()}")
+            logger.error(f"Unexpected error downloading PDF from S3: {str(e)}")
             return None
     
     def add_local_fallback_mechanism(self):
@@ -663,10 +545,7 @@ class S3Service:
             return local_file_path
             
         except Exception as e:
-            logger.error(f"❌ Failed to save PDF locally: {str(e)}")
-            logger.error(f"   - Exception type: {type(e).__name__}")
-            logger.error(f"   - Filename: {filename}")
-            logger.error(f"   - Traceback: {traceback.format_exc()}")
+            logger.error(f"Failed to save PDF locally: {str(e)}")
             return None
 
 # Global S3 service instance

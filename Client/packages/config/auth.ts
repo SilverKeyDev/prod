@@ -92,7 +92,6 @@ export const AUTH_CONFIG = {
   // API Endpoints (lowercase to match existing usage)
   endpoints: {
     signup: "/api/v1/auth/signup",
-    verify: "/api/v1/auth/verify",
     resendCode: "/api/v1/auth/resend-code",
     login: "/api/v1/auth/login",
     forgotPassword: "/api/v1/auth/forgot-password",

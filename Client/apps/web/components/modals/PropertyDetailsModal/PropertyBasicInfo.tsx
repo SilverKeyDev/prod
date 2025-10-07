@@ -1,6 +1,7 @@
 import React from "react";
 
 import Card from "../../layout/Card";
+import { formatStructuredAddress } from "../../../../../packages/utils/address";
 
 import type { PropertyComponentProps } from "./types";
 import { formatPrice, formatPropertyType } from "./utils";
@@ -42,7 +43,34 @@ export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({
             {formatPrice(propertyPrice)}
           </div>
           <div className="text-lg text-gray-700">
-            {property.address || "Address not available"}
+            {(() => {
+              const addr = (property as unknown as { address?: unknown })
+                .address;
+              if (!addr) return "Address not available";
+              if (typeof addr === "string") return addr;
+              if (
+                typeof addr === "object" &&
+                addr !== null &&
+                "streetAddress" in addr &&
+                "city" in addr &&
+                "state" in addr &&
+                "zipcode" in addr
+              ) {
+                return formatStructuredAddress(
+                  addr as {
+                    streetAddress: string;
+                    city: string;
+                    state: string;
+                    zipcode: string;
+                  }
+                );
+              }
+              try {
+                return JSON.stringify(addr);
+              } catch {
+                return "Address not available";
+              }
+            })()}
           </div>
         </div>
 
@@ -104,7 +132,7 @@ export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({
             {formatPropertyType(
               (propertyHomeType as string) ??
                 (propertyPropertyType as string) ??
-                "",
+                ""
             )}
           </div>
           {(typeof propertyPricePerSquareFoot === "number" ||

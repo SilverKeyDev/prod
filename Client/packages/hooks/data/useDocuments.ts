@@ -47,6 +47,12 @@ export const useDocuments = () => {
     },
     enabled: shouldLoadDocuments && authReady && !!user?.id,
     select: (data) => data,
+    // Ensure proper deduplication
+    staleTime: 5 * 60 * 1000, // 5 minutes - data is fresh for this long
+    gcTime: 15 * 60 * 1000, // 15 minutes - keep in cache longer
+    refetchOnWindowFocus: false, // Don't refetch on window focus
+    refetchOnMount: false, // Don't refetch if data exists
+    refetchOnReconnect: false, // Don't refetch on reconnect
   });
 
   // Categories query
@@ -71,6 +77,12 @@ export const useDocuments = () => {
     },
     enabled: shouldLoadDocuments && authReady && !!user?.id,
     select: (data) => data,
+    // Ensure proper deduplication
+    staleTime: 5 * 60 * 1000, // 5 minutes - data is fresh for this long
+    gcTime: 15 * 60 * 1000, // 15 minutes - keep in cache longer
+    refetchOnWindowFocus: false, // Don't refetch on window focus
+    refetchOnMount: false, // Don't refetch if data exists
+    refetchOnReconnect: false, // Don't refetch on reconnect
   });
 
   // Upload document mutation

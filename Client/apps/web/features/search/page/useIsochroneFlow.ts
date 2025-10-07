@@ -49,13 +49,8 @@ export function useIsochroneFlow(params: {
       // Server will return 401 if not authenticated
 
       const { apiBaseUrl } = params.env;
-
-      if (!apiBaseUrl) {
-        console.error("❌ API base URL is not configured");
-        return null;
-      }
-
-      const response = await fetch(`${apiBaseUrl}/api/v1/search/isochrone`, {
+      const base = apiBaseUrl || ""; // In dev, empty string uses Vite proxy
+      const response = await fetch(`${base}/api/v1/search/isochrone`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -163,13 +158,8 @@ export function useIsochroneFlow(params: {
       // Server will return 401 if not authenticated
 
       const { apiBaseUrl } = params.env;
-
-      if (!apiBaseUrl) {
-        console.error("❌ API base URL is not configured");
-        return null;
-      }
-
-      const response = await fetch(`${apiBaseUrl}/api/v1/search/isochrone`, {
+      const base = apiBaseUrl || ""; // In dev, empty string uses Vite proxy
+      const response = await fetch(`${base}/api/v1/search/isochrone`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

@@ -105,7 +105,7 @@ export const usePdfModal = (): PdfModalHooks => {
         const downloadUrl = await getFreshDownloadUrl(documentId);
         if (downloadUrl) {
           const filename = `${documentName.replace(/[^a-z0-9]/gi, "_").toLowerCase()}.pdf`;
-          void void downloadFile(downloadUrl, filename);
+          downloadFile(downloadUrl, filename);
         } else {
           console.error("Failed to get PDF download URL");
         }

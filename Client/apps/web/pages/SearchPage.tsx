@@ -17,7 +17,10 @@ import { useFiltersStore, useUIStore } from "../../../packages/store";
 import type { IsochroneData } from "../../../packages/schemas/api";
 import { asError } from "../../../packages/utils/error";
 // Features
-import { renderImportantLocationMarkers } from "../features/search/lib/importantLocationRenderer";
+import {
+  renderImportantLocationMarkers,
+  type GoogleAdvancedMarkerElement,
+} from "../features/search/lib/importantLocationRenderer";
 import { renderIsochronePolygon } from "../features/search/lib/isochroneRenderer";
 import { saveSearchResults } from "../features/search/lib/localStorage";
 import { useMapZoomController } from "../features/search/lib/MapZoomController";
@@ -88,7 +91,7 @@ export default function SearchPage({
       };
       await fetchPropertyDetails(propertyForDetails);
     },
-    [fetchPropertyDetails],
+    [fetchPropertyDetails]
   );
 
   // Initialize hooks
@@ -104,9 +107,7 @@ export default function SearchPage({
   const desktopMapRef = useRef<HTMLDivElement>(null);
   const polygonRef = useRef<google.maps.Polygon | null>(null);
   const individualPolygonsRef = useRef<google.maps.Polygon[]>([]);
-  const importantMarkersRef = useRef<
-    google.maps.marker.AdvancedMarkerElement[]
-  >([]);
+  const importantMarkersRef = useRef<GoogleAdvancedMarkerElement[]>([]);
 
   const { googleMapRef } = useMapInitAndResize({
     isLocalStorageLoaded,
@@ -151,7 +152,7 @@ export default function SearchPage({
         focusOnCurrentProperty: mapFocusOnCurrentProperty,
       });
     },
-    [mapFocusOnCurrentProperty, googleMapRef],
+    [mapFocusOnCurrentProperty, googleMapRef]
   );
 
   // Use imported renderImportantLocationMarkers function
@@ -159,7 +160,7 @@ export default function SearchPage({
     (isochroneData: unknown) => {
       if (!googleMapRef.current) {
         console.warn(
-          "❌ Cannot render important location markers: map not available",
+          "❌ Cannot render important location markers: map not available"
         );
         return;
       }
@@ -168,14 +169,14 @@ export default function SearchPage({
         map: googleMapRef.current,
         importantMarkersRef,
         setImportantLocationMarkers: (
-          markers: google.maps.marker.AdvancedMarkerElement[],
+          markers: GoogleAdvancedMarkerElement[]
         ) => {
           importantMarkersRef.current = markers;
         },
         resetToDefaultZoom,
       });
     },
-    [resetToDefaultZoom, googleMapRef],
+    [resetToDefaultZoom, googleMapRef]
   );
 
   // Save search results to localStorage with preferences version
@@ -211,7 +212,7 @@ export default function SearchPage({
           const error = asError(prefError);
           console.warn(
             "⚠️ Could not fetch preferences version, using default:",
-            error,
+            error
           );
         }
 
@@ -232,7 +233,7 @@ export default function SearchPage({
         console.error("❌ Error saving search results to localStorage:", error);
       }
     },
-    [],
+    []
   );
 
   const { primeIsochroneOverlay, runIsochroneSearch } = useIsochroneFlow({
@@ -262,7 +263,7 @@ export default function SearchPage({
         const error = asError(prefError);
         console.warn(
           "⚠️ Could not fetch user preferences, using empty preferences:",
-          error,
+          error
         );
       }
 
@@ -276,7 +277,7 @@ export default function SearchPage({
         setHasSearched,
         setCurrentPage,
         setShowPropertyModals,
-        saveSearchResultsToLocalStorage,
+        saveSearchResultsToLocalStorage
       );
     },
     prefsApi: preferencesApi,
@@ -310,11 +311,11 @@ export default function SearchPage({
         console.error("🗺️ MAP MODAL: Property not found with ID:", propertyId);
         console.error(
           "🗺️ MAP MODAL: Available properties:",
-          currentData.map((p) => ({ id: p.id, address: p.address })),
+          currentData.map((p) => ({ id: p.id, address: p.address }))
         );
       }
     },
-    [activeTab, searchResults, savedHomes, handleViewPropertyDetails],
+    [activeTab, searchResults, savedHomes, handleViewPropertyDetails]
   );
 
   useMarkerUpdates({
@@ -380,41 +381,48 @@ export default function SearchPage({
       <div className="flex h-full flex-col md:hidden">
         {/* Mobile Carousel for Properties */}
         <div className="flex-shrink-0 border-b border-gray-200 bg-white">
-          {/* Tab Navigation */}
-          <Tabs
-            active={activeTab}
-            onChange={(tab) => {
-              handleTabChange(tab);
-              if (
-                tab === "results" &&
-                hasSearched &&
-                searchResults.length > 0
-              ) {
-                setShowPropertyModals(true);
-              } else if (tab === "saved" && savedHomes.length > 0) {
-                setShowPropertyModals(true);
-                setHasSearched(true);
-              }
-            }}
-            counts={{ results: searchResults.length, saved: savedHomes.length }}
-            compact
-          />
+          {/* Tab Navigation with Expand Button */}
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <Tabs
+                active={activeTab}
+                onChange={(tab) => {
+                  handleTabChange(tab);
+                  if (
+                    tab === "results" &&
+                    hasSearched &&
+                    searchResults.length > 0
+                  ) {
+                    setShowPropertyModals(true);
+                  } else if (tab === "saved" && savedHomes.length > 0) {
+                    setShowPropertyModals(true);
+                    setHasSearched(true);
+                  }
+                }}
+                counts={{
+                  results: searchResults.length,
+                  saved: savedHomes.length,
+                }}
+                compact
+              />
+            </div>
 
-          {/* Collapse/Expand Button */}
-          <div className="flex justify-center">
-            <button
-              onClick={() => setIsCarouselCollapsed(!isCarouselCollapsed)}
-              className="cursor-help-hint p-1 text-gray-500 transition-colors hover:text-gray-700"
-              title={
-                isCarouselCollapsed ? "Expand carousel" : "Collapse carousel"
-              }
-            >
-              {isCarouselCollapsed ? (
-                <ChevronDown className="h-4 w-4" />
-              ) : (
-                <ChevronUp className="h-4 w-4" />
-              )}
-            </button>
+            {/* Collapse/Expand Button */}
+            <div className="px-4">
+              <button
+                onClick={() => setIsCarouselCollapsed(!isCarouselCollapsed)}
+                className="cursor-help-hint p-1 text-gray-500 transition-colors hover:text-gray-700"
+                title={
+                  isCarouselCollapsed ? "Expand carousel" : "Collapse carousel"
+                }
+              >
+                {isCarouselCollapsed ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronUp className="h-4 w-4" />
+                )}
+              </button>
+            </div>
           </div>
 
           {/* Mobile Property Carousel */}

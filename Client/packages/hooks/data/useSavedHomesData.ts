@@ -211,10 +211,11 @@ export const useSavedHomesData = () => {
     enabled: authReady && isAuthenticated,
     select: (data) => data,
     // Ensure proper deduplication
-    staleTime: 3 * 60 * 1000, // 3 minutes - data is fresh for this long
-    gcTime: 10 * 60 * 1000, // 10 minutes - keep in cache
+    staleTime: 5 * 60 * 1000, // 5 minutes - data is fresh for this long
+    gcTime: 15 * 60 * 1000, // 15 minutes - keep in cache longer
     refetchOnWindowFocus: false, // Don't refetch on window focus
     refetchOnMount: false, // Don't refetch if data exists (matches reports)
+    refetchOnReconnect: false, // Don't refetch on reconnect
   });
 
   // Save home mutation

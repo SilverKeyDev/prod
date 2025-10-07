@@ -62,12 +62,12 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
         const request = {
           input: locationAddress,
           sessionToken,
-          componentRestrictions: { country: "US" },
+          includedRegionCodes: ["US"],
         };
 
         const { suggestions: fetched } =
           await googleMapsWindow.google.maps.places.AutocompleteSuggestion.fetchAutocompleteSuggestions(
-            request,
+            request
           );
 
         setSuggestions(
@@ -83,12 +83,12 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
                 typeof s.placePrediction.text === "object" &&
                 hasProperty(s.placePrediction.text, "text") &&
                 typeof (s.placePrediction.text as Record<string, unknown>)
-                  .text === "string",
+                  .text === "string"
             )
             .map((s: AutocompleteSuggestion) => ({
               description: s.placePrediction.text.text,
               placePrediction: s.placePrediction,
-            })),
+            }))
         );
       } catch (err: unknown) {
         const error = asError(err);

@@ -11,7 +11,7 @@ interface GoogleMap {
   setZoom: (zoom: number) => void;
 }
 
-interface GoogleAdvancedMarkerElement {
+export interface GoogleAdvancedMarkerElement {
   map: GoogleMap | null;
   setMap: (map: GoogleMap | null) => void;
   position: { lat: number; lng: number };
@@ -224,13 +224,16 @@ export const renderImportantLocationMarkers = (
       transform: translate(-50%, -100%);
     `;
 
-    const marker = new (window.google.maps.marker.AdvancedMarkerElement as new (options: {
-      map: GoogleMap;
-      position: { lat: number; lng: number };
-      content: HTMLElement;
-      title: string;
-    }) => GoogleAdvancedMarkerElement)({
-      map,
+    const AdvancedMarkerCtor =
+      window.google.maps.marker.AdvancedMarkerElement as unknown as new (options: {
+        map: any;
+        position: { lat: number; lng: number };
+        content: HTMLElement;
+        title: string;
+      }) => GoogleAdvancedMarkerElement;
+
+    const marker = new AdvancedMarkerCtor({
+      map: map as unknown as any,
       position,
       content: markerElement,
       title: `${name} - ${address}`,

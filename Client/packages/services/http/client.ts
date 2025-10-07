@@ -475,6 +475,54 @@ export class HttpClient {
         const responseData = JSON.parse(responseText) as T;
         const duration = Date.now() - startTime;
         this.logApiResponse(method, url, response.status, duration);
+
+        // PII-safe response body logging for specific endpoint
+        if (/\/api\/v1\/report\/all(?:[?#]|$)/.test(url) && method === "GET") {
+          try {
+            // Dynamically import to avoid circular deps
+            const { log } = await import("../security/secureLogger");
+            const body = responseData as unknown as {
+              success?: boolean;
+              reports?: Array<{
+                id?: string;
+                status?: string;
+                created_at?: string;
+                updated_at?: string;
+              }> | unknown;
+              error?: string;
+              message?: string;
+            };
+
+            const reportsArray = Array.isArray(body?.reports)
+              ? (body.reports as Array<Record<string, unknown>>)
+              : [];
+
+            // Only include non-PII fields
+            const summary = {
+              success: !!body?.success,
+              count: reportsArray.length,
+              sample: reportsArray.slice(0, 3).map((r) => ({
+                id: typeof r.id === "string" ? r.id : undefined,
+                status: typeof r.status === "string" ? r.status : undefined,
+              })),
+            };
+
+            log.info("API_RESPONSE", "GET /api/v1/report/all body", summary);
+
+            // Dev-only console preview for rapid debugging (truncated)
+            if (import.meta.env.DEV) {
+              const preview = {
+                ...summary,
+                previewIds: reportsArray.slice(0, 10).map((r) => r.id).filter(Boolean),
+              };
+              // eslint-disable-next-line no-console
+              console.debug("🟢 API_RESPONSE_BODY /api/v1/report/all", preview);
+            }
+          } catch {
+            // Best-effort logging; never block response
+          }
+        }
+
         return responseData;
       } catch {
         const duration = Date.now() - startTime;

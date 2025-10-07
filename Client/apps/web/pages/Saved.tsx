@@ -29,7 +29,7 @@ export default function SavedHomes() {
   const [selectedProperty, setSelectedProperty] = useState<SavedHome | null>(
     null
   );
-  const [viewType, setViewType] = useState<"homes" | "reports">("homes");
+  const [viewType, setViewType] = useState<"homes" | "reports">("reports");
   const [reportsSubView, setReportsSubView] = useState<
     "reports" | "compare" | "chatbot"
   >("reports");

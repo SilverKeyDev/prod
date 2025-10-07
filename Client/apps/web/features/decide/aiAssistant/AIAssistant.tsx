@@ -73,25 +73,25 @@ export default function AIAssistant() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  // Load chats from centralized context
-  const loadChatsFromContext = React.useCallback(() => {
+  // Sync chats from centralized context without causing a render loop
+  useEffect(() => {
     try {
       if (chats && chats.length > 0) {
-        const updatedChats = chats.map((contextChat: Chat) => {
-          const existingChat = localChats.find(
-            (chat: Chat) => chat.id === contextChat.id
+        setLocalChats((previousChats) => {
+          const previousMessagesById = new Map(
+            previousChats.map((c: Chat) => [
+              c.id,
+              Array.isArray(c.messages) ? c.messages : [],
+            ])
           );
-          return {
+          return chats.map((contextChat: Chat) => ({
             ...contextChat,
-            messages: existingChat ? existingChat.messages : [],
-          };
+            messages: previousMessagesById.get(contextChat.id) || [],
+          }));
         });
 
-        setLocalChats(updatedChats);
-
-        // Only set activeChatId if we don't have one and there are chats available
-        if (!activeChatId && updatedChats.length > 0) {
-          setActiveChatId(updatedChats[0].id);
+        if (!activeChatId) {
+          setActiveChatId(chats[0].id);
         }
       } else {
         setLocalChats([]);
@@ -106,31 +106,41 @@ export default function AIAssistant() {
     } finally {
       setIsLoading(false);
     }
-  }, [chats, localChats, activeChatId]);
+  }, [chats, activeChatId]);
 
-  // Refresh on mount
+  // Refresh on mount (avoid unstable dependency causing re-renders)
   useEffect(() => {
     void refreshChats();
-  }, [refreshChats]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // Load chats when chats context changes
-  useEffect(() => {
-    void loadChatsFromContext();
-  }, [loadChatsFromContext]);
+  // (Removed loadChatsFromContext effect; handled by chats-dependent effect above)
 
   useEffect(() => {
     scrollToBottom();
   }, [activeChat?.messages]);
 
   // Load chat history when active chat changes
+  // Guard against loops by looking at local state and tracking loaded ids
+  const loadedHistoryIdsRef = useRef<Set<string>>(new Set());
   useEffect(() => {
-    if (activeChatId) {
-      const currentChat = chats.find((chat: Chat) => chat.id === activeChatId);
-      if (currentChat && currentChat.messages.length === 0) {
-        void loadChatHistory(activeChatId);
-      }
+    if (!activeChatId) return;
+
+    if (loadedHistoryIdsRef.current.has(activeChatId)) return;
+
+    const localCurrentChat = localChats.find(
+      (chat: Chat) => chat.id === activeChatId
+    );
+
+    if (
+      localCurrentChat &&
+      (!Array.isArray(localCurrentChat.messages) ||
+        localCurrentChat.messages.length === 0)
+    ) {
+      loadedHistoryIdsRef.current.add(activeChatId);
+      void loadChatHistory(activeChatId);
     }
-  }, [activeChatId, chats]);
+  }, [activeChatId, localChats]);
 
   const loadChatHistory = async (chatId: string) => {
     try {

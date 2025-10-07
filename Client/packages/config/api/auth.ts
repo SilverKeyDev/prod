@@ -12,12 +12,6 @@ export type SignupData = {
   agency_name?: string;
 };
 
-export type VerifyData = {
-  email: string;
-  code: string;
-  password: string;
-};
-
 export type LoginData = {
   email: string;
   password: string;
@@ -75,26 +69,6 @@ export const authApi = {
         type: "authentication_failure",
         severity: "medium",
         description: "User signup failed",
-        metadata: { email: data.email, error: response.error },
-      });
-    }
-
-    return response;
-  },
-
-  /**
-   * Verify user's email with code and automatically log them in
-   */
-  verify: async (data: VerifyData): Promise<AuthResponse> => {
-    const response = await apiPost<AuthResponse>("/api/v1/auth/verify", data);
-
-    if (response.success && response.verification_complete) {
-      // Verification successful
-    } else {
-      reportSecurityEvent({
-        type: "authentication_failure",
-        severity: "medium",
-        description: "Email verification failed",
         metadata: { email: data.email, error: response.error },
       });
     }
@@ -371,22 +345,7 @@ export const authApi = {
   verifySession: async (): Promise<AuthResponse> => {
     try {
       const { apiGet } = await import("../../services/http/compatibility");
-
-      // Prefer dedicated verify endpoint; fall back to profile if needed
-      try {
-        const verify = await apiGet<AuthResponse>("/api/v1/auth/verify", {
-          includeCredentials: true,
-          includeAuth: false,
-          useCors: false,
-        } as unknown as import("../../services/http/compatibility").ApiRequestOptions);
-        if (verify?.success && verify.user) {
-          log.info("AUTH_SESSION_VERIFY", "Session verified successfully (verify endpoint)");
-          return { success: true, user: verify.user as UserProfile };
-        }
-      } catch {
-        // Fallback to profile endpoint
-      }
-
+      // Use profile endpoint to verify session
       const response = await apiGet<
         AuthResponse & { data?: Record<string, unknown> }
       >("/api/v1/user/profile", {

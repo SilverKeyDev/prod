@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 /* =========================
    Type-Safe Environment Configuration
    ========================= */

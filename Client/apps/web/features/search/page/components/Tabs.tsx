@@ -14,14 +14,14 @@ export function Tabs(props: {
           onClick={() => onChange("results")}
           className={`px-responsive-sm py-responsive-sm text-responsive-sm border-b-2 font-medium transition-colors ${
             active === "results"
-              ? "border-brown text-brown"
+              ? "border-olive text-olive"
               : "border-transparent text-gray-500 hover:text-gray-700"
           }`}
         >
           <div className="flex items-center gap-2">
             Search
             {counts.results > 0 && (
-              <span className="ml-1 text-xs bg-brown text-white rounded-full px-2 py-1">
+              <span className="ml-1 text-xs bg-olive text-white rounded-full px-2 py-1">
                 {counts.results}
               </span>
             )}
@@ -31,14 +31,14 @@ export function Tabs(props: {
           onClick={() => onChange("saved")}
           className={`px-responsive-sm py-responsive-sm text-responsive-sm border-b-2 font-medium transition-colors ${
             active === "saved"
-              ? "border-brown text-brown"
+              ? "border-olive text-olive"
               : "border-transparent text-gray-500 hover:text-gray-700"
           }`}
         >
           <div className="flex items-center gap-2">
             Saved
             {counts.saved > 0 && (
-              <span className="ml-1 text-xs bg-brown text-white rounded-full px-2 py-1">
+              <span className="ml-1 text-xs bg-olive text-white rounded-full px-2 py-1">
                 {counts.saved}
               </span>
             )}
@@ -55,14 +55,14 @@ export function Tabs(props: {
         onClick={() => onChange("results")}
         className={`flex-1 border-b-2 px-4 py-2 text-sm font-medium transition-colors ${
           active === "results"
-            ? "border-brown text-brown"
+            ? "border-olive text-olive"
             : "border-transparent text-gray-500 hover:text-gray-700"
         }`}
       >
         <div className="flex items-center gap-2">
           Search
           {counts.results > 0 && (
-            <span className="ml-1 text-xs bg-brown text-white rounded-full px-2 py-1">
+            <span className="ml-1 text-xs bg-olive text-white rounded-full px-2 py-1">
               {counts.results}
             </span>
           )}
@@ -72,14 +72,14 @@ export function Tabs(props: {
         onClick={() => onChange("saved")}
         className={`flex-1 border-b-2 px-4 py-2 text-sm font-medium transition-colors ${
           active === "saved"
-            ? "border-brown text-brown"
+            ? "border-olive text-olive"
             : "border-transparent text-gray-500 hover:text-gray-700"
         }`}
       >
         <div className="flex items-center gap-2">
           Saved
           {counts.saved > 0 && (
-            <span className="ml-1 text-xs bg-brown text-white rounded-full px-2 py-1">
+            <span className="ml-1 text-xs bg-olive text-white rounded-full px-2 py-1">
               {counts.saved}
             </span>
           )}

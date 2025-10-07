@@ -1,10 +1,14 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 import EscrowLegalLogistics from "../features/close/subheaders/EscrowLegalLogistics";
 import InspectionsDueDiligence from "../features/close/subheaders/InspectionsDueDiligence";
 import FinancingInsurance from "../features/close/subheaders/FinancingInsurance";
 import ClosingMovingIn from "../features/close/subheaders/ClosingMovingIn";
 import ClosePageHeader from "../features/close/ClosePageHeader";
+import {
+  useViewStore,
+  type ViewState,
+} from "../../../packages/store/view.slice";
 
 type ClosePageHeaderData = {
   title: string;
@@ -25,14 +29,43 @@ type BuyerChecklistsProps = {
 export default function BuyerChecklists({
   setClosePageHeaderData,
 }: BuyerChecklistsProps) {
-  const [activeTab, setActiveTab] = useState<ChecklistTab>("escrow");
+  const persistedTab = useViewStore(
+    (s: ViewState) =>
+      s.dropdownSelections["buyerChecklists.activeTab"] as
+        | ChecklistTab
+        | undefined
+  );
+  const setDropdownSelection = useViewStore(
+    (s: ViewState) => s.setDropdownSelection
+  );
+
+  const initialTab = useMemo<ChecklistTab>(() => {
+    return persistedTab &&
+      ["escrow", "inspections", "financing", "closing"].includes(persistedTab)
+      ? persistedTab
+      : "escrow";
+  }, [persistedTab]);
+
+  const [activeTab, setActiveTab] = useState<ChecklistTab>(initialTab);
   const [closePageHeaderData, setClosePageHeaderDataState] =
     useState<ClosePageHeaderData | null>(null);
 
   // Update the parent component's header data
-  React.useEffect(() => {
+  useEffect(() => {
     setClosePageHeaderData(closePageHeaderData);
   }, [closePageHeaderData, setClosePageHeaderData]);
+
+  // Sync local state when persisted value changes (e.g., after hydration)
+  useEffect(() => {
+    if (persistedTab && persistedTab !== activeTab) {
+      setActiveTab(persistedTab);
+    }
+  }, [persistedTab]);
+
+  // Persist tab changes
+  useEffect(() => {
+    setDropdownSelection("buyerChecklists.activeTab", activeTab);
+  }, [activeTab, setDropdownSelection]);
 
   // Render the active tab content
   const renderTabContent = () => {

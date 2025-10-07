@@ -14,6 +14,7 @@ from app.services.s3_service import s3_service
 from ..utils.app_logging import get_logger
 import traceback
 import uuid
+import time
 
 # Get logger using centralized utility
 logger = get_logger()
@@ -159,6 +160,72 @@ def list_all_reports():
     """Get all reports for the current user - alias for /list endpoint"""
     return list_reports()
 
+@report_bp.route('/s3-diagnostic', methods=['GET'])
+def s3_diagnostic():
+    """Diagnostic endpoint to check S3 service status and configuration"""
+    try:
+        diagnostics = {
+            'timestamp': time.time(),
+            's3_service_status': {
+                'client_initialized': s3_service.s3_client is not None,
+                'initialization_attempted': s3_service.initialization_attempted,
+                'initialization_successful': s3_service.initialization_successful,
+                'bucket_name': s3_service.bucket_name,
+                'last_init_attempt': s3_service._last_init_attempt
+            },
+            'config_values': {},
+            'environment_variables': {},
+            'errors': []
+        }
+        
+        # Check Flask config values
+        try:
+            config = current_app.config
+            diagnostics['config_values'] = {
+                'AWS_ACCESS_KEY_ID': '***' if config.get('AWS_ACCESS_KEY_ID') else None,
+                'AWS_SECRET_ACCESS_KEY': '***' if config.get('AWS_SECRET_ACCESS_KEY') else None,
+                'AWS_REGION': config.get('AWS_REGION'),
+                'S3_BUCKET_NAME_PDFS': config.get('S3_BUCKET_NAME_PDFS'),
+                'S3_PRESIGNED_URL_EXPIRATION': config.get('S3_PRESIGNED_URL_EXPIRATION')
+            }
+        except Exception as e:
+            diagnostics['errors'].append(f"Could not access Flask config: {str(e)}")
+        
+        # Check environment variables
+        diagnostics['environment_variables'] = {
+            'AWS_ACCESS_KEY_ID': '***' if os.getenv('AWS_ACCESS_KEY_ID') else None,
+            'AWS_SECRET_ACCESS_KEY': '***' if os.getenv('AWS_SECRET_ACCESS_KEY') else None,
+            'AWS_REGION': os.getenv('AWS_REGION'),
+            'S3_PRESIGNED_URL_EXPIRATION': os.getenv('S3_PRESIGNED_URL_EXPIRATION'),
+            'FLASK_ENV': os.getenv('FLASK_ENV')
+        }
+        
+        # Test S3 connection if client exists
+        if s3_service.s3_client:
+            try:
+                bucket_name = current_app.config.get("S3_BUCKET_NAME_PDFS")
+                if bucket_name:
+                    s3_service.s3_client.head_bucket(Bucket=bucket_name)
+                    diagnostics['s3_service_status']['bucket_access_test'] = 'success'
+                else:
+                    diagnostics['errors'].append("S3_BUCKET_NAME_PDFS not configured")
+            except Exception as e:
+                diagnostics['s3_service_status']['bucket_access_test'] = f'failed: {str(e)}'
+                diagnostics['errors'].append(f"S3 bucket access test failed: {str(e)}")
+        
+        return jsonify({
+            'success': True,
+            'diagnostics': diagnostics
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"❌ S3 diagnostic error: {str(e)}")
+        logger.error(traceback.format_exc())
+        return jsonify({
+            'success': False,
+            'error': f'S3 diagnostic failed: {str(e)}'
+        }), 500
+
 @report_bp.route('/db-diagnostic', methods=['GET'])
 def db_diagnostic():
     """Diagnostic endpoint to check database connectivity and table status"""
@@ -243,10 +310,24 @@ def list_reports():
         # Get completed reports from S3 using prefix filtering for new tree structure
         s3_client = s3_service.s3_client
         if s3_client:
-            bucket_name = current_app.config.get("S3_BUCKET_NAME_PDFS")
-            # Use prefix to only list objects under this user's directory
-            user_prefix = f"{user.id}/reports/"
-            response = s3_client.list_objects_v2(Bucket=bucket_name, Prefix=user_prefix)
+            try:
+                bucket_name = current_app.config.get("S3_BUCKET_NAME_PDFS")
+                if not bucket_name:
+                    logger.error("❌ S3_BUCKET_NAME_PDFS not configured in Flask config")
+                    logger.error("   - Check config.py S3_BUCKET_NAME_PDFS setting")
+                    logger.error("   - Traceback: " + traceback.format_exc())
+                else:
+                    # Use prefix to only list objects under this user's directory
+                    user_prefix = f"{user.id}/reports/"
+                    logger.debug(f"🔍 Listing S3 objects with prefix: {user_prefix}")
+                    response = s3_client.list_objects_v2(Bucket=bucket_name, Prefix=user_prefix)
+            except Exception as s3_error:
+                logger.error(f"❌ S3 list_objects_v2 operation failed: {str(s3_error)}")
+                logger.error(f"   - Exception type: {type(s3_error).__name__}")
+                logger.error(f"   - Bucket: {bucket_name}")
+                logger.error(f"   - User prefix: {user_prefix}")
+                logger.error(f"   - Traceback: {traceback.format_exc()}")
+                # Continue execution to return database reports only
 
             for obj in response.get("Contents", []):
                 s3_key = obj["Key"]
@@ -279,6 +360,43 @@ def list_reports():
 
         else:
             logger.warning("S3 client not initialized, cannot list bucket")
+            logger.warning("=" * 80)
+            logger.warning("🔍 EXTREMELY DETAILED S3 DEBUG INFO (DEV ONLY)")
+            logger.warning("=" * 80)
+            logger.warning("   - S3 service status:")
+            logger.warning(f"     * Client initialized: {s3_service.s3_client is not None}")
+            logger.warning(f"     * Initialization attempted: {s3_service.initialization_attempted}")
+            logger.warning(f"     * Initialization successful: {s3_service.initialization_successful}")
+            logger.warning(f"     * Bucket name: {s3_service.bucket_name}")
+            logger.warning(f"     * Last init attempt: {s3_service._last_init_attempt}")
+            logger.warning(f"     * Init retry delay: {s3_service._init_retry_delay}")
+            
+            # Log Flask config details
+            try:
+                config = current_app.config
+                logger.warning("   - Flask Config Details (DETAILED - DEV ONLY):")
+                logger.warning(f"     * AWS_ACCESS_KEY_ID: {config.get('AWS_ACCESS_KEY_ID')}")
+                logger.warning(f"     * AWS_SECRET_ACCESS_KEY: {config.get('AWS_SECRET_ACCESS_KEY')}")
+                logger.warning(f"     * AWS_REGION: {config.get('AWS_REGION')}")
+                logger.warning(f"     * S3_BUCKET_NAME_PDFS: {config.get('S3_BUCKET_NAME_PDFS')}")
+                logger.warning(f"     * S3_PRESIGNED_URL_EXPIRATION: {config.get('S3_PRESIGNED_URL_EXPIRATION')}")
+            except Exception as e:
+                logger.warning(f"   - Could not access Flask config: {e}")
+            
+            # Log environment variables
+            logger.warning("   - Environment Variables (DETAILED - DEV ONLY):")
+            logger.warning(f"     * AWS_ACCESS_KEY_ID: {os.getenv('AWS_ACCESS_KEY_ID')}")
+            logger.warning(f"     * AWS_SECRET_ACCESS_KEY: {os.getenv('AWS_SECRET_ACCESS_KEY')}")
+            logger.warning(f"     * AWS_REGION: {os.getenv('AWS_REGION')}")
+            logger.warning(f"     * FLASK_ENV: {os.getenv('FLASK_ENV')}")
+            
+            logger.warning("   - Possible causes:")
+            logger.warning("     * Missing AWS credentials (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)")
+            logger.warning("     * Invalid AWS credentials or insufficient permissions")
+            logger.warning("     * S3 bucket does not exist or is not accessible")
+            logger.warning("     * Network connectivity issues")
+            logger.warning("     * Flask app context not available during S3 initialization")
+            logger.warning("=" * 80)
 
         # Sort reports with generating ones first, using default timestamp if missing
         reports_list.sort(key=lambda x: (x['status'] != 'generating', x.get('generatedAt', 0)), reverse=True)
@@ -395,6 +513,43 @@ def list_reports_almostall():
 
         else:
             logger.warning("S3 client not initialized, cannot list bucket")
+            logger.warning("=" * 80)
+            logger.warning("🔍 EXTREMELY DETAILED S3 DEBUG INFO (DEV ONLY)")
+            logger.warning("=" * 80)
+            logger.warning("   - S3 service status:")
+            logger.warning(f"     * Client initialized: {s3_service.s3_client is not None}")
+            logger.warning(f"     * Initialization attempted: {s3_service.initialization_attempted}")
+            logger.warning(f"     * Initialization successful: {s3_service.initialization_successful}")
+            logger.warning(f"     * Bucket name: {s3_service.bucket_name}")
+            logger.warning(f"     * Last init attempt: {s3_service._last_init_attempt}")
+            logger.warning(f"     * Init retry delay: {s3_service._init_retry_delay}")
+            
+            # Log Flask config details
+            try:
+                config = current_app.config
+                logger.warning("   - Flask Config Details (DETAILED - DEV ONLY):")
+                logger.warning(f"     * AWS_ACCESS_KEY_ID: {config.get('AWS_ACCESS_KEY_ID')}")
+                logger.warning(f"     * AWS_SECRET_ACCESS_KEY: {config.get('AWS_SECRET_ACCESS_KEY')}")
+                logger.warning(f"     * AWS_REGION: {config.get('AWS_REGION')}")
+                logger.warning(f"     * S3_BUCKET_NAME_PDFS: {config.get('S3_BUCKET_NAME_PDFS')}")
+                logger.warning(f"     * S3_PRESIGNED_URL_EXPIRATION: {config.get('S3_PRESIGNED_URL_EXPIRATION')}")
+            except Exception as e:
+                logger.warning(f"   - Could not access Flask config: {e}")
+            
+            # Log environment variables
+            logger.warning("   - Environment Variables (DETAILED - DEV ONLY):")
+            logger.warning(f"     * AWS_ACCESS_KEY_ID: {os.getenv('AWS_ACCESS_KEY_ID')}")
+            logger.warning(f"     * AWS_SECRET_ACCESS_KEY: {os.getenv('AWS_SECRET_ACCESS_KEY')}")
+            logger.warning(f"     * AWS_REGION: {os.getenv('AWS_REGION')}")
+            logger.warning(f"     * FLASK_ENV: {os.getenv('FLASK_ENV')}")
+            
+            logger.warning("   - Possible causes:")
+            logger.warning("     * Missing AWS credentials (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)")
+            logger.warning("     * Invalid AWS credentials or insufficient permissions")
+            logger.warning("     * S3 bucket does not exist or is not accessible")
+            logger.warning("     * Network connectivity issues")
+            logger.warning("     * Flask app context not available during S3 initialization")
+            logger.warning("=" * 80)
 
         # Sort reports with generating ones first, using default timestamp if missing
         reports_list.sort(key=lambda x: (x['status'] != 'generating', x.get('generatedAt', 0)), reverse=True)

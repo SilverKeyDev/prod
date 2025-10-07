@@ -5,8 +5,6 @@ import { useState, useEffect, useMemo } from "react";
 
 import ToastsPortal from "../components/feedback/ToastsPortal";
 import { SessionTimeoutWarning } from "../components/security/SessionTimeoutWarning";
-import { useSavedHomesStoreIntegration } from "../../../packages/hooks/store/useSavedHomesStoreIntegration";
-import { useDocumentsStoreIntegration } from "../../../packages/hooks/store/useDocumentsStoreIntegration";
 import { useGoogleMapsStoreIntegration } from "../../../packages/hooks/store/useGoogleMapsStoreIntegration";
 import { useSessionTimeout } from "../../../packages/hooks/ui/useSessionTimeout";
 import type { UserProfile } from "../../../packages/schemas/user";
@@ -18,8 +16,6 @@ import { AppRoutes } from "./routes";
 
 // Component that handles store integrations after Router is ready
 function StoreIntegrations() {
-  useSavedHomesStoreIntegration();
-  useDocumentsStoreIntegration();
   useGoogleMapsStoreIntegration();
   return null;
 }
