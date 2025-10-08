@@ -63,6 +63,7 @@ const PAGE_WIDTH_CONFIG: PageWidthConfig = {
   "/buyer-checklists": 95,
   "/negotiation-strategy": 80,
   "/personalization": 80,
+  "/saved": 80,
 };
 
 // Buyer checklist tabs

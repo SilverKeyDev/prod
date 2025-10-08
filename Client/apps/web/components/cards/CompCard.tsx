@@ -1,4 +1,4 @@
-import { Bed, Bath, Square, MapPin, User, Building } from "lucide-react";
+import { Bed, Bath, Square, MapPin, User } from "lucide-react";
 
 import {
   formatPrice,
@@ -151,14 +151,6 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
                 Agent: {formatAgentName(comp.attributionInfo.agentName)}
               </span>
             </div>
-            {comp.attributionInfo?.brokerName && (
-              <div className="flex items-center gap-1">
-                <Building className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-gray-400 flex-shrink-0" />
-                <span className="text-xs sm:text-sm text-gray-500">
-                  {comp.attributionInfo.brokerName}
-                </span>
-              </div>
-            )}
           </div>
         )}
       </div>

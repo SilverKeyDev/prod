@@ -29,16 +29,30 @@ export type Strategy = {
   id: string;
   property_address: string;
   strategy_type: "negotiation" | "offer" | "inspection";
-  recommendations: {
-    title: string;
-    description: string;
-    priority: "high" | "medium" | "low";
-    action_items: string[];
-  }[];
-  market_analysis: {
-    comparable_sales: unknown[];
-    market_trends: string;
-    pricing_strategy: string;
+  price_section: {
+    max_price: number;
+    opening_offer: number;
+    price_rationale: string;
+    credits_and_terms: string[];
+    inspection_plan: string;
+    timeline: string;
+    offer_strength: string;
+  };
+  counter_section: {
+    max_rounds: number;
+    concessions_you_can_make: string[];
+    escalation_strategy: string;
+    emotion_control_notes: string;
+  };
+  market_section: {
+    local_market_stats: string[];
+    buyer_leverage: string;
+    comps: string[];
+    national_snapshot: string;
+  };
+  copy_paste_section: {
+    offer_text: string;
+    key_talking_points: string[];
   };
   created_at: Date;
 };

@@ -417,7 +417,7 @@ export default function GenerateReportPage() {
     (userProfile?.is_agent && !selectedClientId);
 
   return (
-    <div className="w-full px-2 sm:px-3">
+    <div className="w-full">
       <div className="w-full">
         <Card className="space-y-responsive-sm w-full">
           {/* Main input row - address input, generate button, and toggle on one line */}
