@@ -12,7 +12,7 @@ export default function HomeConcierge() {
             className="w-[112px] md:w-[120px] rounded-lg border border-beige/30 mb-responsive-sm mx-auto md:mx-0"
             loading="lazy"
           />
-          <div className="flex-1 min-w-0 max-w-[72ch] mx-auto md:mx-0">
+          <div className="flex-1 min-w-0 max-w-[72ch]">
             <Subtitle
               size="sm"
               muted

@@ -362,6 +362,7 @@ export default function PersonalizationPage({
 
   // Handle mobile header actions based on screen size
   const isMobile = useMobile();
+  const isUltraSmallScreen = useMobile("(max-width: 768px)"); // Hide sidebar on ultra small screens
 
   useEffect(() => {
     if (isMobile) {
@@ -1304,19 +1305,23 @@ export default function PersonalizationPage({
     <div className="min-h-screen bg-off-white">
       <div className="mx-auto max-w-7xl pb-1 sm:px-6 lg:px-8">
         <div className="flex flex-row gap-6 lg:gap-8">
-          {/* Sidebar - Hidden below lg */}
-          <PersonalizationSidebar
-            activeSection={activeSection}
-            isEditMode={isEditMode}
-            isSaving={isSaving}
-            onEdit={() => setIsEditMode(true)}
-            onSave={handleSaveChanges}
-            onCancel={handleCancel}
-            onScrollToSection={scrollToSection}
-          />
+          {/* Sidebar - Hidden below lg, completely hidden on ultra small screens */}
+          {!isUltraSmallScreen && (
+            <PersonalizationSidebar
+              activeSection={activeSection}
+              isEditMode={isEditMode}
+              isSaving={isSaving}
+              onEdit={() => setIsEditMode(true)}
+              onSave={handleSaveChanges}
+              onCancel={handleCancel}
+              onScrollToSection={scrollToSection}
+            />
+          )}
 
           {/* Main Content Area */}
-          <main className="w-full flex-1 space-y-8 lg:ml-0">
+          <main
+            className={`w-full flex-1 space-y-8 ${!isUltraSmallScreen ? "lg:ml-0" : ""}`}
+          >
             {STEPS.map((step) => (
               <section id={step.id} key={step.id}>
                 {renderSectionContent(step.id)}

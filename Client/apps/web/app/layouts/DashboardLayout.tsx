@@ -66,6 +66,15 @@ const PAGE_WIDTH_CONFIG: PageWidthConfig = {
   "/saved": 80,
 };
 
+// Mobile-specific width configuration
+const MOBILE_WIDTH_CONFIG: PageWidthConfig = {
+  "/search": 100,
+  "/buyer-checklists": 95,
+  "/negotiation-strategy": 95,
+  "/personalization": 95,
+  "/saved": 95,
+};
+
 // Buyer checklist tabs
 type ChecklistTab = "escrow" | "inspections" | "financing" | "closing";
 const CHECKLIST_TABS: ChecklistTab[] = [
@@ -163,12 +172,11 @@ export default function DashboardLayout({
 
   // Page width (vw)
   const computedMaxWidthVW = useMemo(() => {
-    const configPath = Object.keys(PAGE_WIDTH_CONFIG).find((p) =>
-      path.startsWith(p)
-    );
-    const width = configPath ? PAGE_WIDTH_CONFIG[configPath] : (maxWidth ?? 85);
+    const config = isMobile ? MOBILE_WIDTH_CONFIG : PAGE_WIDTH_CONFIG;
+    const configPath = Object.keys(config).find((p) => path.startsWith(p));
+    const width = configPath ? config[configPath] : (maxWidth ?? 85);
     return Math.max(0, Math.min(100, width)); // Clamp to [0,100]
-  }, [path, maxWidth]);
+  }, [path, maxWidth, isMobile]);
 
   // Header configuration (stable default)
   const config: HeaderConfig = useMemo(() => {
@@ -385,21 +393,23 @@ export default function DashboardLayout({
       >
         {/* Mobile Header - Hidden on desktop */}
         <div className="lg:hidden">
-          <MobileTopBar
-            sidebarExpanded={sidebarExpanded}
-            dynamicHeight={isSavedReportsView}
-          >
-            {/* Center the dynamic header content between the back/menu + actions, like in the reference */}
-            <div
-              className={`flex flex-grow items-center justify-center text-center ${MOBILE_SIDE_PX}`}
+          <div className="mx-auto" style={{ maxWidth: "95vw" }}>
+            <MobileTopBar
+              sidebarExpanded={sidebarExpanded}
+              dynamicHeight={isSavedReportsView}
             >
-              {isSavedReportsView ? (
-                <GenerateReportPage />
-              ) : (
-                (mobileHeaderContent ?? <PageHeader title="SilverKey" />)
-              )}
-            </div>
-          </MobileTopBar>
+              {/* Center the dynamic header content between the back/menu + actions, like in the reference */}
+              <div
+                className={`flex flex-grow items-center justify-center text-center ${MOBILE_SIDE_PX}`}
+              >
+                {isSavedReportsView ? (
+                  <GenerateReportPage />
+                ) : (
+                  (mobileHeaderContent ?? <PageHeader title="SilverKey" />)
+                )}
+              </div>
+            </MobileTopBar>
+          </div>
 
           {/* Spacer to keep content clear of the fixed MobileTopBar */}
           <div

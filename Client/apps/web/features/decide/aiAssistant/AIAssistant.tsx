@@ -442,7 +442,9 @@ export default function AIAssistant() {
                   )}
                 </button>
 
-                <h3 className="text-lg font-medium text-black">
+                <h3
+                  className={`text-sm font-medium text-black transition-opacity duration-200 ${isSidebarExpanded ? "opacity-0" : "opacity-100"}`}
+                >
                   {activeChat
                     ? (activeChat.title ?? "AI Assistant")
                     : "AI Assistant"}
