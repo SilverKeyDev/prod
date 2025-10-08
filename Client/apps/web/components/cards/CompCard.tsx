@@ -121,11 +121,18 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
                 </span>
               </div>
             )}
-            {comp.livingArea > 0 && (
+            {comp.livingArea > 0 ? (
               <div className="flex items-center gap-1">
                 <Square className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-gray-400 flex-shrink-0" />
                 <span className="text-xs sm:text-sm text-gray-500">
                   {Math.round(comp.livingArea).toLocaleString()} sqft
+                </span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1">
+                <Square className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-transparent flex-shrink-0" />
+                <span className="text-xs sm:text-sm text-transparent">
+                  {" ".repeat(8)}sqft
                 </span>
               </div>
             )}
@@ -133,14 +140,23 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
         </div>
 
         {/* Lot Size - underneath bed/bath/sqft */}
-        {lotSizeDisplay && (
-          <div className="flex items-center gap-1 mb-3 text-left">
-            <MapPin className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-gray-400 flex-shrink-0" />
-            <span className="text-xs sm:text-sm text-gray-500">
-              Lot: {lotSizeDisplay}
-            </span>
-          </div>
-        )}
+        <div className="flex items-center gap-1 mb-3 text-left">
+          {lotSizeDisplay ? (
+            <>
+              <MapPin className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-gray-400 flex-shrink-0" />
+              <span className="text-xs sm:text-sm text-gray-500">
+                Lot: {lotSizeDisplay}
+              </span>
+            </>
+          ) : (
+            <>
+              <MapPin className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-transparent flex-shrink-0" />
+              <span className="text-xs sm:text-sm text-transparent">
+                Lot: {" ".repeat(6)}
+              </span>
+            </>
+          )}
+        </div>
 
         {/* Agent and Brokerage Info */}
         {comp.attributionInfo?.agentName && (

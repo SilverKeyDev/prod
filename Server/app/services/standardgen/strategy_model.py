@@ -126,9 +126,18 @@ class NegotiationStrategy(BaseModel):
             except (json.JSONDecodeError, TypeError):
                 return []
         
-        # Extract key data
+        # Extract key data with validation
         home_budget = user_preferences.get('home_budget', 500000)
-        max_price = Decimal(str(home_budget))
+        if not isinstance(home_budget, (int, float, str)):
+            home_budget = 500000
+        
+        try:
+            max_price = Decimal(str(home_budget))
+            if max_price <= 0:
+                max_price = Decimal('500000')
+        except (ValueError, TypeError):
+            max_price = Decimal('500000')
+            
         opening_offer = max_price * Decimal('0.95')  # Start at 95% of max
         
         # Create PriceSection
@@ -162,12 +171,18 @@ class NegotiationStrategy(BaseModel):
         
         # Offer strength
         down_payment = user_preferences.get('down_payment', 0)
-        if down_payment > home_budget * 0.2:
+        try:
+            down_payment = float(down_payment) if down_payment is not None else 0
+        except (ValueError, TypeError):
+            down_payment = 0
+            
+        if down_payment > float(home_budget) * 0.2:
             offer_strength = "Strong down payment (>20%) with pre-approval eliminates financing risk"
         else:
             offer_strength = "Pre-approved financing with competitive down payment"
         
         price_section = PriceSection(
+            max_price=max_price,
             opening_offer=opening_offer,
             price_rationale=f"Opening at ${opening_offer:,.0f} (95% of max budget). Based on comparable sales in the area.",
             credits_and_terms=credits_and_terms,
@@ -182,7 +197,7 @@ class NegotiationStrategy(BaseModel):
             concessions_you_can_make.append("Flexible closing date (seller chooses within 60 days)")
         if user_preferences.get('home_buying_experience') == 'experienced':
             concessions_you_can_make.append("Shortened inspection period (5 days vs 10)")
-        if down_payment > home_budget * 0.5:
+        if down_payment > float(home_budget) * 0.5:
             concessions_you_can_make.append("Waive financing contingency")
         
         counter_section = CounterSection(
@@ -215,38 +230,6 @@ class NegotiationStrategy(BaseModel):
             national_snapshot="National housing market showing signs of stabilization with regional variations"
         )
         
-        # Create CopyPasteSection
-        offer_text = f"""Subject: Offer for [Property Address]
-
-Dear [Seller/Agent],
-
-We are pleased to submit our offer for the above property:
-
-OFFER DETAILS:
-• Purchase Price: ${opening_offer:,.0f}
-• Earnest Money: ${max(5000, max_price * Decimal('0.01')):,.0f}
-• Closing Timeline: {timeline}
-• Financing: Pre-approved conventional loan
-
-KEY TERMS:
-• Inspection period: 7 days
-• Appraisal contingency: 14 days
-• Closing costs: {credits_and_terms[0] if credits_and_terms else 'Standard'}
-
-This offer reflects current market conditions and comparable sales in the area. We are committed buyers with strong financing and flexible timeline.
-
-Please let us know if you have any questions.
-
-Best regards,
-[Buyer Name]"""
-
-        key_talking_points = [
-            f"Strong offer at ${opening_offer:,.0f} based on market comps",
-            "Pre-approved financing eliminates risk",
-            "Flexible timeline accommodates seller needs",
-            "Competitive earnest money shows commitment"
-        ]
-        
         # Apply any overrides
         data = {
             'price_section': price_section,
@@ -256,3 +239,26 @@ Best regards,
         }
         
         return cls(**data)
+    
+    def validate_strategy(self) -> bool:
+        """Validate that the strategy has all required components"""
+        try:
+            # Check that all sections exist
+            if not self.price_section or not self.counter_section or not self.market_section:
+                return False
+            
+            # Check that price section has required fields
+            if not self.price_section.max_price or not self.price_section.opening_offer:
+                return False
+            
+            # Check that opening offer is less than max price
+            if self.price_section.opening_offer >= self.price_section.max_price:
+                return False
+                
+            # Check that market section has some data
+            if not self.market_section.local_market_stats and not self.market_section.comps:
+                return False
+                
+            return True
+        except Exception:
+            return False

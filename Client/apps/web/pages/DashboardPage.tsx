@@ -100,7 +100,7 @@ export default function Dashboard() {
 
   // Navigation handlers
   const handleSavedHomesClick = () => {
-    navigate("/saved");
+    navigate("/saved?view=homes");
   };
 
   const handleDocumentsClick = () => {

@@ -486,7 +486,6 @@ def _render_pdf_or_placeholder(
             # fall through to placeholder
     
     # Generate placeholder PDF as fallback
-    logger.warning("⚠️ Using placeholder PDF - actual PDF generation unavailable")
     placeholder_content = create_placeholder_pdf()
 
     return False

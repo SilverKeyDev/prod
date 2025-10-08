@@ -6,7 +6,7 @@ export { default as CompCard } from "./CompCard";
 export { default as PropertyCard } from "./PropertyCard";
 export { default as HomeCard } from "./HomeCard";
 export { default as MapPropertyCard } from "./MapPropertyCard";
-export { renderMapPropertyCard } from "./MapPropertyCardUtils";
+export { renderMapPropertyCard, cleanupMapPropertyCard } from "./MapPropertyCardUtils";
 
 // Standardized card elements
 export * from "./base";

@@ -1,6 +1,6 @@
 import { useRef, useCallback, useState } from "react";
 
-import { renderMapPropertyCard } from "../../../components/cards";
+import { renderMapPropertyCard, cleanupMapPropertyCard } from "../../../components/cards";
 import type { Property } from "../../../../../packages/schemas/property";
 import type { SearchResult } from "../../../../../packages/schemas/search";
 import type { IsochroneData } from "../../../../../packages/schemas/api";
@@ -86,10 +86,8 @@ export const useMapMarkers = ({
         map: googleMapRef.current,
         importantMarkersRef,
         setImportantLocationMarkers: (markers) => {
-          console.log("🗺️ [IMPORTANT MARKERS] Setting important markers:", markers);
           if (Array.isArray(markers)) {
             importantMarkersRef.current = markers;
-            console.log(`🗺️ [IMPORTANT MARKERS] Set ${markers.length} important markers`);
           }
         },
         resetToDefaultZoom: () => {
@@ -108,6 +106,12 @@ export const useMapMarkers = ({
     // Clear property markers with improved cleanup
     markersRef.current.forEach((marker) => {
       if (marker && typeof marker === "object") {
+        // Clean up React root for the marker content
+        const markerWithContent = marker as unknown as { content?: HTMLElement };
+        if (markerWithContent.content && markerWithContent.content instanceof HTMLElement) {
+          cleanupMapPropertyCard(markerWithContent.content);
+        }
+        
         // Remove marker from map
         if ("map" in marker) {
           const markerWithMap = marker as { map: GoogleMap | null };
@@ -157,11 +161,12 @@ export const useMapMarkers = ({
       }
 
       // Check if we actually need to update (same data)
-      const currentResultsCount = markersRef.current.length;
       const newResultsCount = results?.length || 0;
       
-      if (currentResultsCount === newResultsCount && newResultsCount > 0) {
-        // Same number of results, likely same data - skip update
+      // Only skip update if we have no results to show
+      if (newResultsCount === 0) {
+        clearMapMarkers();
+        setIsUpdatingMarkers(false);
         return;
       }
 
@@ -185,56 +190,42 @@ export const useMapMarkers = ({
       const startIndex = currentPage * propertiesPerPage;
       const endIndex = startIndex + propertiesPerPage;
       const paginatedData = results.slice(startIndex, endIndex);
-      console.log("🗺️ [MAP MARKERS] Pagination:", {
+      
+      console.log("📍 [MARKER POSITION UPDATE] Starting marker update:", {
         currentPage,
-        propertiesPerPage,
-        startIndex,
-        endIndex,
         totalResults: results.length,
-        paginatedCount: paginatedData.length
+        paginatedCount: paginatedData.length,
+        firstPropertyPosition: paginatedData[0] ? { lat: paginatedData[0].lat, lng: paginatedData[0].lng, address: paginatedData[0].address } : null
       });
 
       // Check if Google Maps API and AdvancedMarkerElement are available
-      console.log("🗺️ [MAP MARKERS] Checking Google Maps API availability");
-      console.log("🗺️ [MAP MARKERS] window.google:", !!window.google);
-      console.log("🗺️ [MAP MARKERS] window.google.maps:", !!window.google?.maps);
-      console.log("🗺️ [MAP MARKERS] window.google.maps.marker:", !!window.google?.maps?.marker);
-      console.log("🗺️ [MAP MARKERS] AdvancedMarkerElement:", !!window.google?.maps?.marker?.AdvancedMarkerElement);
 
       if (!window.google?.maps?.marker?.AdvancedMarkerElement) {
-        console.error("❌ [MAP MARKERS] AdvancedMarkerElement not available, skipping marker update");
+        console.error("❌ [MARKER POSITION UPDATE] AdvancedMarkerElement not available, skipping marker update");
         setIsUpdatingMarkers(false);
         return;
       }
 
       const { AdvancedMarkerElement } = (window as any).google.maps.marker;
-      console.log("🗺️ [MAP MARKERS] AdvancedMarkerElement constructor:", AdvancedMarkerElement);
 
       // Create markers for each property with performance optimization
       // Use requestAnimationFrame for better performance with large datasets
       const createMarkersBatch = (data: SearchResult[], startIndex = 0) => {
-        console.log("🗺️ [MAP MARKERS] Creating markers batch:", {
-          dataLength: data.length,
-          startIndex,
-          batchSize: 10
-        });
-        
         const batchSize = 10; // Process markers in batches
         const endIndex = Math.min(startIndex + batchSize, data.length);
         
         for (let i = startIndex; i < endIndex; i++) {
           const result = data[i];
-          console.log(`🗺️ [MAP MARKERS] Processing property ${i + 1}/${data.length}:`, {
+          
+          console.log(`📍 [MARKER POSITION UPDATE] Creating marker ${i + 1}/${data.length}:`, {
             id: result.id,
             address: result.address,
-            lat: result.lat,
-            lng: result.lng,
+            position: { lat: result.lat, lng: result.lng },
             price: result.price
           });
 
           const score = calculatePropertyScore(result);
           const isSaved = isHomeSaved(result.id);
-          console.log(`🗺️ [MAP MARKERS] Property ${i + 1} - Score: ${score}, Saved: ${isSaved}`);
 
           // Create marker container for MapPropertyCard
           const markerElement = document.createElement("div");
@@ -242,8 +233,8 @@ export const useMapMarkers = ({
           markerElement.style.cssText = `
             position: relative;
             transform: translate(-50%, -100%);
+            z-index: 1000;
           `;
-          console.log(`🗺️ [MAP MARKERS] Created marker element for property ${i + 1}`);
 
           // Convert SearchResult to MapPropertyCard format
           const propertyData = {
@@ -260,33 +251,39 @@ export const useMapMarkers = ({
             images: result.imageUrl ? [result.imageUrl] : undefined,
             calculatedScore: score,
           };
-          console.log(`🗺️ [MAP MARKERS] Property data for ${i + 1}:`, propertyData);
 
           // Render MapPropertyCard directly into the marker element
-          console.log(`🗺️ [MAP MARKERS] Rendering MapPropertyCard for property ${i + 1}`);
           try {
-            (
-              renderMapPropertyCard as (
-                element: HTMLElement,
-                props: Record<string, unknown>,
-              ) => void
-            )(markerElement, {
+            renderMapPropertyCard(markerElement, {
               property: propertyData,
               isSaved,
               onSave: () => saveHome(result),
               onUnsave: () => removeSavedHome(result.id),
               showScore: !isSaved, // Only show score for non-saved homes
             });
-            console.log(`🗺️ [MAP MARKERS] Successfully rendered MapPropertyCard for property ${i + 1}`);
           } catch (error) {
-            console.error(`🗺️ [MAP MARKERS] Error rendering MapPropertyCard for property ${i + 1}:`, error);
+            console.error(`❌ [MARKER POSITION UPDATE] Error rendering MapPropertyCard for property ${i + 1}:`, error);
+            // Create fallback content if rendering fails
+            markerElement.innerHTML = `
+              <div style="background: white; border: 1px solid #ccc; border-radius: 8px; padding: 8px; min-width: 120px;">
+                <div style="font-weight: bold; font-size: 12px;">${result.address}</div>
+                <div style="color: #666; font-size: 11px;">${result.price}</div>
+              </div>
+            `;
           }
 
-          // Create the marker
-          console.log(`🗺️ [MAP MARKERS] Creating AdvancedMarkerElement for property ${i + 1}`);
-          console.log(`🗺️ [MAP MARKERS] Map ref for marker:`, googleMapRef.current);
-          console.log(`🗺️ [MAP MARKERS] Marker position:`, { lat: result.lat, lng: result.lng });
-          
+          // Validate position data before creating marker
+          if (typeof result.lat !== 'number' || typeof result.lng !== 'number' || 
+              isNaN(result.lat) || isNaN(result.lng)) {
+            console.error(`❌ [MARKER POSITION UPDATE] Invalid position data for property ${i + 1}:`, {
+              lat: result.lat,
+              lng: result.lng,
+              address: result.address
+            });
+            continue;
+          }
+
+          // Create the marker with position logging
           try {
             const marker = new AdvancedMarkerElement({
               map: googleMapRef.current! as any,
@@ -295,11 +292,18 @@ export const useMapMarkers = ({
               content: markerElement,
             }) as unknown as GoogleAdvancedMarkerElement;
             
-            console.log(`🗺️ [MAP MARKERS] Successfully created marker for property ${i + 1}:`, marker);
+            console.log(`✅ [MARKER POSITION UPDATE] Successfully created marker ${i + 1} at position:`, {
+              lat: result.lat,
+              lng: result.lng,
+              address: result.address,
+              markerId: result.id
+            });
+            
             markersRef.current.push(marker);
-            console.log(`🗺️ [MAP MARKERS] Added marker to markersRef. Total markers: ${markersRef.current.length}`);
           } catch (error) {
-            console.error(`🗺️ [MAP MARKERS] Error creating marker for property ${i + 1}:`, error);
+            console.error(`❌ [MARKER POSITION UPDATE] Error creating marker for property ${i + 1}:`, error);
+            // Clean up the marker element if marker creation fails
+            cleanupMapPropertyCard(markerElement);
           }
         }
         
@@ -315,10 +319,24 @@ export const useMapMarkers = ({
                 lat: firstProperty.lat + 0.002, // Offset slightly north
                 lng: firstProperty.lng,
               };
+              
+              console.log("📍 [MARKER POSITION UPDATE] Setting map center to:", {
+                center,
+                firstPropertyAddress: firstProperty.address,
+                totalMarkersCreated: markersRef.current.length
+              });
+              
               googleMapRef.current.setCenter(center);
               googleMapRef.current.setZoom(13);
             }
           }
+          
+          console.log("✅ [MARKER POSITION UPDATE] Marker update completed:", {
+            totalMarkers: markersRef.current.length,
+            currentPage,
+            propertiesPerPage
+          });
+          
           setIsUpdatingMarkers(false);
         }
       };
