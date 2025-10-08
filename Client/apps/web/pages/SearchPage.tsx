@@ -82,7 +82,16 @@ export default function SearchPage({
 
   // Mobile header button handlers
   const handlePreferences = useCallback(() => {
-    navigate("/dashboard/personalization");
+    console.log("🔧 [SEARCH_PAGE] handlePreferences called");
+
+    // Use a more direct approach for mobile navigation
+    if (window.innerWidth < 1024) {
+      // For mobile, use window.location to ensure navigation works
+      window.location.href = "/dashboard/personalization";
+    } else {
+      // For desktop, use React Router
+      navigate("/dashboard/personalization");
+    }
   }, [navigate]);
 
   const activeTab = useFiltersStore((s) => s.activeTab);
@@ -258,28 +267,6 @@ export default function SearchPage({
         return;
       }
 
-      console.log(
-        "🎯 [IMPORTANT_LOCATIONS] Rendering important location markers:",
-        {
-          hasData: !!isochroneData,
-          dataType: typeof isochroneData,
-          dataKeys:
-            isochroneData && typeof isochroneData === "object"
-              ? Object.keys(isochroneData as Record<string, unknown>)
-              : [],
-          mapAvailable: !!googleMapRef.current,
-          mapCenter: googleMapRef.current.getCenter?.()
-            ? {
-                lat: googleMapRef.current.getCenter()?.lat(),
-                lng: googleMapRef.current.getCenter()?.lng(),
-              }
-            : null,
-          zoom: googleMapRef.current.getZoom?.(),
-          existingMarkersCount: importantMarkersRef.current.length,
-          timestamp: new Date().toISOString(),
-        }
-      );
-
       renderImportantLocationMarkers(isochroneData as IsochroneData, {
         map: googleMapRef.current,
         importantMarkersRef,
@@ -440,21 +427,14 @@ export default function SearchPage({
     } else {
       console.log("🔍 [SEARCH_TRIGGER] Search already in progress, skipping");
     }
-  }, [
-    isSearching,
-    runIsochroneSearch,
-    onSearchProperties,
-    activeTab,
-    currentPage,
-    googleMapRef,
-  ]);
+  }, [isSearching, onSearchProperties, activeTab, currentPage]);
 
   // Memoize the search function to prevent unnecessary re-exposure
   const memoizedSearchFunction = React.useCallback(async () => {
     if (!isSearching) {
       await runIsochroneSearch();
     }
-  }, [isSearching, runIsochroneSearch]);
+  }, [isSearching]);
 
   // Expose search function through ref (reduced logging)
   React.useEffect(() => {
@@ -463,7 +443,7 @@ export default function SearchPage({
         triggerSearch: memoizedSearchFunction,
       };
     }
-  }, [searchRef, memoizedSearchFunction]);
+  }, [searchRef]); // Remove memoizedSearchFunction from dependencies
 
   // Create stable callback for opening property details
   const handleOpenPropertyDetails = useCallback(
@@ -606,41 +586,7 @@ export default function SearchPage({
         page: currentPage,
       });
     }
-  }, [activeTab, currentPage, searchResults, savedHomes, isHomeSaved]);
-
-  // Log map initialization and marker rendering setup
-  useEffect(() => {
-    console.log(
-      "🗺️ [MAP_INIT] useEffect triggered - Map initialization check:",
-      {
-        hasMapInstance: !!googleMapRef.current,
-        timestamp: new Date().toISOString(),
-      }
-    );
-
-    if (googleMapRef.current) {
-      console.log("🗺️ [MAP_INIT] Google Map initialized:", {
-        mapCenter: googleMapRef.current.getCenter?.()
-          ? {
-              lat: googleMapRef.current.getCenter()?.lat(),
-              lng: googleMapRef.current.getCenter()?.lng(),
-            }
-          : null,
-        zoom: googleMapRef.current.getZoom?.(),
-        mapBounds: googleMapRef.current.getBounds?.()
-          ? {
-              north: googleMapRef.current.getBounds()?.getNorthEast()?.lat(),
-              south: googleMapRef.current.getBounds()?.getSouthWest()?.lat(),
-              east: googleMapRef.current.getBounds()?.getNorthEast()?.lng(),
-              west: googleMapRef.current.getBounds()?.getSouthWest()?.lng(),
-            }
-          : null,
-        timestamp: new Date().toISOString(),
-      });
-    } else {
-      console.log("🗺️ [MAP_INIT] No map instance available yet");
-    }
-  }, [googleMapRef.current]); // Only trigger when map instance changes
+  }, [activeTab, currentPage, searchResults, savedHomes]);
 
   // Log search results updates
   useEffect(() => {
@@ -717,7 +663,7 @@ export default function SearchPage({
         timestamp: new Date().toISOString(),
       });
     }
-  }, [selectedProperty, googleMapRef.current]);
+  }, [selectedProperty]);
 
   // Reduced map operation logging
   const logMapOperation = useCallback(
@@ -748,7 +694,7 @@ export default function SearchPage({
         totalProperties: currentData.length,
       });
     }
-  }, [activeTab, currentPage, searchResults, savedHomes, logMapOperation]);
+  }, [activeTab, currentPage, searchResults, savedHomes]);
 
   useMobileHeaderActions({
     setMobileHeaderActions,
@@ -800,12 +746,7 @@ export default function SearchPage({
     setTimeout(() => {
       void primeIsochroneOverlay(searchResults.length > 0);
     }, 100);
-  }, [
-    isLocalStorageLoaded,
-    isGoogleMapsLoaded,
-    primeIsochroneOverlay,
-    searchResults.length,
-  ]);
+  }, [isLocalStorageLoaded, isGoogleMapsLoaded, searchResults.length]);
 
   return (
     <div className="h-full">
@@ -899,7 +840,6 @@ export default function SearchPage({
             {/* Mobile Map Controls */}
             {!isSearching && (
               <MapControls
-                variant="mobile"
                 page={currentPage}
                 total={
                   activeTab === "results"
@@ -1006,7 +946,6 @@ export default function SearchPage({
               {/* Desktop Map Controls - hidden during search */}
               {!isSearching && (
                 <MapControls
-                  variant="desktop"
                   page={currentPage}
                   total={
                     activeTab === "results"

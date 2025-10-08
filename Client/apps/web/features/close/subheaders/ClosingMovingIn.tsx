@@ -1,6 +1,7 @@
 import React from "react";
 
 import CloseLayout, { type ChecklistItem } from "../CloseLayout";
+import HomeConcierge from "../HomeConcierge";
 import {
   CHECKLIST_TITLES,
   CHECKLIST_SUBTITLES,
@@ -182,6 +183,8 @@ export default function ClosingMovingIn({
       items={items}
       showLoadingScreen={true}
       setClosePageHeaderData={setClosePageHeaderData}
-    />
+    >
+      <HomeConcierge />
+    </CloseLayout>
   );
 }

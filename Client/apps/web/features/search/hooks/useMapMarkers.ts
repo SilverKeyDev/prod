@@ -109,7 +109,10 @@ export const useMapMarkers = ({
         // Clean up React root for the marker content
         const markerWithContent = marker as unknown as { content?: HTMLElement };
         if (markerWithContent.content && markerWithContent.content instanceof HTMLElement) {
-          cleanupMapPropertyCard(markerWithContent.content);
+          // Use setTimeout to defer cleanup and avoid race conditions during React rendering
+          setTimeout(() => {
+            cleanupMapPropertyCard(markerWithContent.content!);
+          }, 0);
         }
         
         // Remove marker from map
@@ -190,13 +193,6 @@ export const useMapMarkers = ({
       const startIndex = currentPage * propertiesPerPage;
       const endIndex = startIndex + propertiesPerPage;
       const paginatedData = results.slice(startIndex, endIndex);
-      
-      console.log("📍 [MARKER POSITION UPDATE] Starting marker update:", {
-        currentPage,
-        totalResults: results.length,
-        paginatedCount: paginatedData.length,
-        firstPropertyPosition: paginatedData[0] ? { lat: paginatedData[0].lat, lng: paginatedData[0].lng, address: paginatedData[0].address } : null
-      });
 
       // Check if Google Maps API and AdvancedMarkerElement are available
 
@@ -216,23 +212,24 @@ export const useMapMarkers = ({
         
         for (let i = startIndex; i < endIndex; i++) {
           const result = data[i];
-          
-          console.log(`📍 [MARKER POSITION UPDATE] Creating marker ${i + 1}/${data.length}:`, {
-            id: result.id,
-            address: result.address,
-            position: { lat: result.lat, lng: result.lng },
-            price: result.price
-          });
-
-          const score = calculatePropertyScore(result);
+          // Use backend ML score (_score) to match HomeCard behavior
+          const score = result._score ?? 0;
           const isSaved = isHomeSaved(result.id);
+          
+          // Add logging for score calculation debugging
+          console.log("📍 [MARKER SCORE] Using backend ML score:", {
+            propertyId: result.id,
+            address: result.address,
+            backendScore: result._score,
+            finalScore: score,
+            showScore: !isSaved,
+          });
 
           // Create marker container for MapPropertyCard
           const markerElement = document.createElement("div");
           markerElement.className = "property-location-marker";
           markerElement.style.cssText = `
             position: relative;
-            transform: translate(-50%, -100%);
             z-index: 1000;
           `;
 
@@ -251,6 +248,13 @@ export const useMapMarkers = ({
             images: result.imageUrl ? [result.imageUrl] : undefined,
             calculatedScore: score,
           };
+
+          console.log("📍 [MARKER DATA] Property data for MapPropertyCard:", {
+            propertyId: result.id,
+            calculatedScore: propertyData.calculatedScore,
+            showScore: !isSaved,
+            backendScore: result._score,
+          });
 
           // Render MapPropertyCard directly into the marker element
           try {
@@ -292,18 +296,14 @@ export const useMapMarkers = ({
               content: markerElement,
             }) as unknown as GoogleAdvancedMarkerElement;
             
-            console.log(`✅ [MARKER POSITION UPDATE] Successfully created marker ${i + 1} at position:`, {
-              lat: result.lat,
-              lng: result.lng,
-              address: result.address,
-              markerId: result.id
-            });
-            
             markersRef.current.push(marker);
           } catch (error) {
             console.error(`❌ [MARKER POSITION UPDATE] Error creating marker for property ${i + 1}:`, error);
             // Clean up the marker element if marker creation fails
-            cleanupMapPropertyCard(markerElement);
+            // Defer cleanup to avoid race conditions during React rendering
+            setTimeout(() => {
+              cleanupMapPropertyCard(markerElement);
+            }, 0);
           }
         }
         
@@ -316,27 +316,15 @@ export const useMapMarkers = ({
             const firstProperty = results[0];
             if (firstProperty && googleMapRef.current) {
               const center = {
-                lat: firstProperty.lat + 0.002, // Offset slightly north
+                lat: firstProperty.lat,
                 lng: firstProperty.lng,
               };
-              
-              console.log("📍 [MARKER POSITION UPDATE] Setting map center to:", {
-                center,
-                firstPropertyAddress: firstProperty.address,
-                totalMarkersCreated: markersRef.current.length
-              });
               
               googleMapRef.current.setCenter(center);
               googleMapRef.current.setZoom(13);
             }
           }
-          
-          console.log("✅ [MARKER POSITION UPDATE] Marker update completed:", {
-            totalMarkers: markersRef.current.length,
-            currentPage,
-            propertiesPerPage
-          });
-          
+
           setIsUpdatingMarkers(false);
         }
       };

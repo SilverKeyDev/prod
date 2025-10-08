@@ -30,7 +30,50 @@ const MapPropertyCard: React.FC<MapPropertyCardProps> = ({
   onUnsave,
   showScore = true,
 }) => {
+  // Add comprehensive logging for debugging score issues
+  console.log("🗺️ [MAP PROPERTY CARD] Rendering MapPropertyCard:", {
+    propertyId: property.id,
+    address: property.address,
+    calculatedScore: property.calculatedScore,
+    scoreType: typeof property.calculatedScore,
+    showScore,
+    isSaved,
+    price: property.price,
+  });
+
   try {
+    // Validate and normalize the calculated score
+    let normalizedScore = property.calculatedScore;
+
+    // Check if score is valid
+    if (normalizedScore !== undefined && normalizedScore !== null) {
+      if (typeof normalizedScore !== "number" || isNaN(normalizedScore)) {
+        console.warn("🗺️ [MAP PROPERTY CARD] Invalid score type detected:", {
+          propertyId: property.id,
+          originalScore: property.calculatedScore,
+          scoreType: typeof property.calculatedScore,
+        });
+        normalizedScore = undefined;
+      } else if (normalizedScore < 0 || normalizedScore > 100) {
+        console.warn(
+          "🗺️ [MAP PROPERTY CARD] Score out of valid range (0-100):",
+          {
+            propertyId: property.id,
+            score: normalizedScore,
+          }
+        );
+        // Clamp score to valid range
+        normalizedScore = Math.max(0, Math.min(100, normalizedScore));
+      }
+    }
+
+    console.log("🗺️ [MAP PROPERTY CARD] Normalized score:", {
+      propertyId: property.id,
+      originalScore: property.calculatedScore,
+      normalizedScore,
+      willShowScore: showScore && normalizedScore !== undefined,
+    });
+
     // Convert property to HomeDescription format
     const homeData = {
       home_id: property.id,
@@ -44,7 +87,7 @@ const MapPropertyCard: React.FC<MapPropertyCardProps> = ({
       lat: property.lat,
       lng: property.lng,
       address: property.address,
-      calculatedScore: property.calculatedScore,
+      calculatedScore: normalizedScore,
     };
 
     return (

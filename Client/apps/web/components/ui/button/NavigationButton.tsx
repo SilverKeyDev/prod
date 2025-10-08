@@ -74,9 +74,26 @@ const NavigationButton: React.FC<NavigationButtonProps> = ({
     .filter(Boolean)
     .join(" ");
 
+  const handleClick = () => {
+    console.log("🔧 [NAVIGATION_BUTTON] Button clicked:", {
+      children: typeof children === "string" ? children : "React element",
+      disabled,
+      loading,
+      timestamp: new Date().toISOString(),
+    });
+
+    if (!disabled && !loading) {
+      onClick();
+    } else {
+      console.log(
+        "🔧 [NAVIGATION_BUTTON] Click ignored - button disabled or loading"
+      );
+    }
+  };
+
   return (
     <button
-      onClick={onClick}
+      onClick={handleClick}
       disabled={disabled ?? loading}
       className={buttonClasses}
     >

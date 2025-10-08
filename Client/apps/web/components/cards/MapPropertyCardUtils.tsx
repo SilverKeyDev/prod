@@ -13,7 +13,13 @@ export const renderMapPropertyCard = (
   // Clean up existing root if it exists
   const existingRoot = rootMap.get(container);
   if (existingRoot) {
-    existingRoot.unmount();
+    // Use immediate unmount for render function since we're replacing content
+    try {
+      existingRoot.unmount();
+    } catch (error) {
+      console.warn("Error unmounting existing MapPropertyCard root:", error);
+    }
+    rootMap.delete(container);
   }
 
   // Create new root and store it
@@ -28,7 +34,17 @@ export const renderMapPropertyCard = (
 export const cleanupMapPropertyCard = (container: HTMLElement): void => {
   const root = rootMap.get(container);
   if (root) {
-    root.unmount();
-    rootMap.delete(container);
+    // Defer unmount to avoid race condition with React's rendering cycle
+    // Use setTimeout to ensure unmount happens after current render completes
+    setTimeout(() => {
+      try {
+        root.unmount();
+        rootMap.delete(container);
+      } catch (error) {
+        console.warn("Error during MapPropertyCard cleanup:", error);
+        // Still remove from map even if unmount fails
+        rootMap.delete(container);
+      }
+    }, 0);
   }
 };

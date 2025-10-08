@@ -1,5 +1,3 @@
-import React from "react";
-
 import {
   formatFilenameToAddress,
   truncateText,
@@ -89,6 +87,17 @@ export default function MapHomeCard({
 
   // Use pre-calculated score if available
   const score = showScore ? home.calculatedScore : undefined;
+
+  // Add logging for score debugging
+  console.log("🏠 [MAP HOME CARD] Score processing:", {
+    homeId: home.home_id,
+    address: home.address,
+    calculatedScore: home.calculatedScore,
+    scoreType: typeof home.calculatedScore,
+    showScore,
+    finalScore: score,
+    willDisplayScore: showScore && score !== undefined,
+  });
 
   // Handle card click to focus on property
   const handleCardClick = () => {

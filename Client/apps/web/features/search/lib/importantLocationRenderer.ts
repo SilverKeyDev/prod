@@ -119,9 +119,6 @@ export const renderImportantLocationMarkers = (
     return;
   }
 
-  console.log(
-    "🎯 [IMPORTANT_LOCATIONS] Starting to render important location markers",
-  );
 
   // Clear existing important location markers
   if (importantMarkersRef.current) {
@@ -135,23 +132,7 @@ export const renderImportantLocationMarkers = (
   }
 
   const importantLocations = buildImportantLocationsList(isochroneData);
-  console.log(
-    `🎯 [IMPORTANT_LOCATIONS] Found ${importantLocations.length} important locations to render`,
-  );
-  if (importantLocations.length > 0) {
-    // Detailed per-location logging to aid debugging and verification
-    console.groupCollapsed("🎯 [IMPORTANT_LOCATIONS] Locations detail");
-    importantLocations.forEach((loc, index) => {
-      const commute = loc.commute_tolerance ?? 30;
-      console.log(
-        `${index + 1}. ${loc.name} — ${loc.address} | coords: (${loc.lat ?? "n/a"}, ${loc.lng ?? "n/a"}) | commute: ${commute} min`,
-      );
-    });
-    console.groupEnd();
-  }
-
   if (importantLocations.length === 0) {
-    console.log("🎯 [IMPORTANT_LOCATIONS] No important locations to render");
     return;
   }
 
@@ -160,18 +141,11 @@ export const renderImportantLocationMarkers = (
   for (const loc of importantLocations) {
     // Skip locations without coordinates - this is normal and not an error
     if (!loc.lat || !loc.lng) {
-      console.log(
-        `🎯 [IMPORTANT_LOCATIONS] Skipping ${loc.name} - no coordinates available`,
-      );
       continue;
     }
 
     const { name, address } = loc;
     const position = { lat: loc.lat, lng: loc.lng };
-
-    console.log(
-      `🎯 [IMPORTANT_LOCATIONS] Creating marker for: ${name} at (${loc.lat}, ${loc.lng})`,
-    );
 
     // Create marker box with triangle pointer
     const markerElement = document.createElement("div");
@@ -232,7 +206,6 @@ export const renderImportantLocationMarkers = (
 
     markerElement.style.cssText = `
       position: relative;
-      transform: translate(-50%, -100%);
     `;
 
     const AdvancedMarkerCtor =

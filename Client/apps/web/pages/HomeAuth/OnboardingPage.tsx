@@ -685,7 +685,8 @@ export default function OnboardingPage() {
             {/* Important Locations Section */}
             <div>
               <RequiredLabel>Important Locations</RequiredLabel>
-              <p className="mb-4 text-xs text-black/60 sm:text-sm md:text-base">
+              <p className="mb-4 text-xs text-
+              black/60 sm:text-sm md:text-base">
                 Add work, family, or frequently visited places. We'll find homes
                 with reasonable commute times to these locations.
               </p>
