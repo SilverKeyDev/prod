@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 // Components
 import PropertyDetailsModal from "../components/modals/PropertyDetailsModal";
 import KeyTurnLoader from "../components/ui/loading/KeyTurnLoader";
+
 // Core
 import { env } from "../../../packages/config";
 import { preferencesApi } from "../../../packages/config/api/preferences";
@@ -16,6 +17,7 @@ import type { SearchResult } from "../../../packages/schemas/search";
 import { useFiltersStore, useUIStore } from "../../../packages/store";
 import type { IsochroneData } from "../../../packages/schemas/api";
 import { asError } from "../../../packages/utils/error";
+
 // Features
 import {
   renderImportantLocationMarkers,
@@ -678,23 +680,11 @@ export default function SearchPage({
   const hasInitializedIsochrone = useRef(false);
 
   useEffect(() => {
-    console.log("🗺️ [ISOCHRONE_INIT] Checking initialization conditions:", {
-      isLocalStorageLoaded,
-      isGoogleMapsLoaded,
-      hasInitialized: hasInitializedIsochrone.current,
-      searchResultsCount: searchResults.length,
-      mapAvailable: !!googleMapRef.current,
-      timestamp: new Date().toISOString(),
-    });
 
     if (!isLocalStorageLoaded || !isGoogleMapsLoaded) return;
     if (hasInitializedIsochrone.current) return;
 
     hasInitializedIsochrone.current = true;
-    console.log("🗺️ [ISOCHRONE_INIT] Initializing isochrone overlay:", {
-      hasSearchResults: searchResults.length > 0,
-      timestamp: new Date().toISOString(),
-    });
 
     // ---------- Isochrone overlay logic ----------
     setTimeout(() => {

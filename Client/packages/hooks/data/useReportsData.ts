@@ -76,8 +76,12 @@ export const useReportsData = () => {
   const queryClient = useQueryClient();
   const filters = useFiltersQueryParams();
 
-  // Memoize filters to prevent query key changes
-  const memoizedFilters = useMemo(() => filters, [filters]);
+  // Memoize filters to prevent query key changes, but exclude page for reports
+  // since reports don't need to refetch when navigating between properties
+  const memoizedFilters = useMemo(() => {
+    const { page, ...reportsFilters } = filters;
+    return reportsFilters;
+  }, [filters]);
 
   // Use refs to store stable function references
   const refetchReportsRef = useRef<() => Promise<unknown>>();

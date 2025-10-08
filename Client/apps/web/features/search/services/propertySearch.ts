@@ -131,9 +131,9 @@ export const searchPropertiesInIsochrone = async (
       bedrooms: property.bedrooms ?? 0,
       bathrooms: property.bathrooms ?? 0,
       sqft: typeof property.livingArea === 'number' 
-        ? property.livingArea 
-        : typeof property.livingArea === 'string' 
-          ? parseInt(property.livingArea.replace(/,/g, '')) || 0
+        ? property.livingArea
+        : typeof property.livingArea === 'string'
+          ? parseInt((property.livingArea as string).replace(/,/g, '')) || 0
           : 0,
       lat:
         property.latitude ??

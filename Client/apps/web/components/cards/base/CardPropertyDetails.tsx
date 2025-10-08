@@ -74,12 +74,12 @@ const CardPropertyDetails: React.FC<CardPropertyDetailsProps> = ({
     },
   };
 
-  // Centered single-row layout for all variants
+  // Two-row layout: bedrooms/bathrooms on top, sqft on bottom
   const layoutStyles = {
-    horizontal: "flex items-center justify-center flex-nowrap",
-    vertical: "flex items-center justify-center flex-nowrap",
-    grid: "flex items-center justify-center flex-nowrap",
-    modal: "flex items-center justify-center flex-nowrap",
+    horizontal: "flex flex-col items-center justify-center",
+    vertical: "flex flex-col items-center justify-center",
+    grid: "flex flex-col items-center justify-center",
+    modal: "flex flex-col items-center justify-center",
   };
 
   const currentSizeStyles = sizeStyles[optimalSize];
@@ -105,58 +105,73 @@ const CardPropertyDetails: React.FC<CardPropertyDetailsProps> = ({
 
   return (
     <div className={containerClasses}>
-      {bedrooms !== undefined && Number(bedrooms) > 0 && (
-        <div className="flex flex-shrink-0 items-center">
-          {showIcons && (
-            <Bed
-              className={`${currentSizeStyles.icon} mr-1 flex-shrink-0 text-brown`}
-            />
-          )}
+      {/* First row: bedrooms and bathrooms */}
+      <div className="flex items-center justify-center flex-nowrap gap-1 sm:gap-1.5">
+        {bedrooms !== undefined && Number(bedrooms) > 0 && (
+          <div className="flex flex-shrink-0 items-center">
+            {showIcons && (
+              <Bed
+                className={`${currentSizeStyles.icon} mr-1 flex-shrink-0 text-brown`}
+              />
+            )}
 
-          {variant === "modal"
-            ? bedrooms
-            : `${bedrooms} bed${bedrooms !== 1 ? "s" : ""}`}
-        </div>
-      )}
+            {variant === "modal"
+              ? bedrooms
+              : `${bedrooms} bed${bedrooms !== 1 ? "s" : ""}`}
+          </div>
+        )}
 
-      {bathrooms !== undefined && Number(bathrooms) > 0 && (
-        <div className="flex flex-shrink-0 items-center">
-          {showIcons && (
-            <Bath
-              className={`${currentSizeStyles.icon} mr-1 flex-shrink-0 text-brown`}
-            />
-          )}
+        {bathrooms !== undefined && Number(bathrooms) > 0 && (
+          <div className="flex flex-shrink-0 items-center">
+            {showIcons && (
+              <Bath
+                className={`${currentSizeStyles.icon} mr-1 flex-shrink-0 text-brown`}
+              />
+            )}
 
-          {variant === "modal"
-            ? bathrooms
-            : `${bathrooms} bath${bathrooms !== 1 ? "s" : ""}`}
-        </div>
-      )}
+            {variant === "modal"
+              ? bathrooms
+              : `${bathrooms} bath${bathrooms !== 1 ? "s" : ""}`}
+          </div>
+        )}
+      </div>
 
-      {/* Square Footage - Inline Implementation */}
-      {sqft && Number(sqft) > 0 && !hideSquareFootage && (
-        <div className="flex flex-shrink-0 items-center">
-          {variant === "modal" ? (
-            <div className="text-center">
-              <div
-                className={`font-bold ${currentSizeStyles.text} text-gray-600`}
-              >
-                {Math.round(Number(sqft)).toLocaleString()}
+      {/* Second row: square footage (always present to maintain spacing) */}
+      <div className="flex flex-shrink-0 items-center justify-center">
+        {sqft && Number(sqft) > 0 && !hideSquareFootage ? (
+          <>
+            {variant === "modal" ? (
+              <div className="text-center">
+                <div
+                  className={`font-bold ${currentSizeStyles.text} text-gray-600`}
+                >
+                  {Math.round(Number(sqft)).toLocaleString()}
+                </div>
+                <div className="mt-1 text-sm text-gray-600">Sq Ft</div>
               </div>
-              <div className="mt-1 text-sm text-gray-600">Sq Ft</div>
-            </div>
-          ) : (
-            <>
-              {showIcons && (
-                <Square
-                  className={`${currentSizeStyles.icon} mr-1 flex-shrink-0 text-brown`}
-                />
-              )}
-              {Math.round(Number(sqft)).toLocaleString()} sqft
-            </>
-          )}
-        </div>
-      )}
+            ) : (
+              <>
+                {showIcons && (
+                  <Square
+                    className={`${currentSizeStyles.icon} mr-1 flex-shrink-0 text-brown`}
+                  />
+                )}
+                {Math.round(Number(sqft)).toLocaleString()} sqft
+              </>
+            )}
+          </>
+        ) : (
+          /* Invisible placeholder to maintain spacing */
+          <div className="invisible">
+            {showIcons && (
+              <Square
+                className={`${currentSizeStyles.icon} mr-1 flex-shrink-0 text-brown`}
+              />
+            )}
+            <span className={currentSizeStyles.text}>0 sqft</span>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
