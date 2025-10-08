@@ -450,15 +450,6 @@ export class HttpClient {
 
             log.info("API_RESPONSE", "GET /api/v1/report/all body", summary);
 
-            // Dev-only console preview for rapid debugging (truncated)
-            if (import.meta.env.DEV) {
-              const preview = {
-                ...summary,
-                previewIds: reportsArray.slice(0, 10).map((r) => r.id).filter(Boolean),
-              };
-              // eslint-disable-next-line no-console
-              console.debug("🟢 API_RESPONSE_BODY /api/v1/report/all", preview);
-            }
           } catch {
             // Best-effort logging; never block response
           }

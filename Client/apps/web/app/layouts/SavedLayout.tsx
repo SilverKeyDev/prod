@@ -74,7 +74,7 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
       <Card className="mb-4">
         {/* Main row - always visible */}
         <div className="flex min-h-[44px] flex-wrap items-center justify-between gap-4">
-          <div className="flex min-w-0 flex-1 items-center gap-4">
+          <div className="flex min-w-0 flex-1 items-center gap-4 w-full sm:w-auto justify-center sm:justify-start">
             {showSearch ? (
               <div className="relative min-w-[200px] flex-1">
                 <Search className="mobile-icon-xs absolute left-3 top-1/2 -translate-y-1/2 transform text-black/40" />
@@ -90,7 +90,9 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
               </div>
             ) : (
               leftContent && (
-                <div className="min-w-[200px] flex-1">{leftContent}</div>
+                <div className="min-w-[200px] flex-1 flex justify-center sm:justify-start">
+                  {leftContent}
+                </div>
               )
             )}
             {rightText && viewType !== "reports" && (
@@ -209,7 +211,7 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
             </div>
           ) : (
             // For non-reports view: show view toggle, refresh, and dropdown in main row
-            <div className="flex shrink-0 items-center gap-3">
+            <div className="flex shrink-0 items-center gap-3 w-full sm:w-auto justify-center sm:justify-end flex-wrap">
               {/* View Toggle Buttons - Desktop Only */}
               {showViewToggle && onViewModeChange && (
                 <div className="hidden items-center gap-2 sm:flex">

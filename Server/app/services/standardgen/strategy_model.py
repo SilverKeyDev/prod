@@ -233,10 +233,6 @@ class EscalationClause(BaseModel):
         return v
 
 
-class ContingenciesAndInspections(BaseModel):
-    """Merged contingency and inspection strategy"""
-    inspection_and_contingency_plan: str = Field(..., description="Combined inspection types and credit thresholds in narrative form")
-
 
 class OfferStructure(BaseModel):
     """Structure and timing of the offer"""
@@ -484,7 +480,6 @@ class NegotiationStrategy(BaseModel):
     # Group 3: Offer Structure & Terms
     offer_structure: OfferStructure
     offer_terms: OfferTerms
-    contingencies_and_inspections: ContingenciesAndInspections
     
     # Group 4: Negotiation Approach
     personal_priorities: PersonalPriorities
@@ -545,17 +540,7 @@ class NegotiationStrategy(BaseModel):
         
         # Create consolidated ContingenciesAndInspections
         renovation_pref = user_preferences.get('renovation_preference', 'minor')
-        if renovation_pref == 'none':
-            inspection_plan = "Full inspection (general, sewer, roof, HVAC, electrical, plumbing) with $1,000 single-item and ${:,.0f} cumulative credit thresholds".format(max_price * 0.02)
-        elif renovation_pref in ['major', 'complete']:
-            inspection_plan = "Limited inspection (general, sewer only) with $5,000 single-item and ${:,.0f} cumulative credit thresholds for major issues only".format(max_price * 0.02)
-        else:
-            inspection_plan = "Standard inspection (general, sewer, roof, HVAC) with $500 single-item and ${:,.0f} cumulative credit thresholds".format(max_price * 0.02)
-        
-        contingencies_and_inspections = ContingenciesAndInspections(
-            inspection_and_contingency_plan=inspection_plan
-        )
-        
+       
         # Create OfferStructure with tightened expiration
         urgency_level = personal_priorities.urgency_level
         expiration_hours = 24 if urgency_level == 'high' else 48 if urgency_level == 'moderate' else 36
@@ -615,7 +600,6 @@ class NegotiationStrategy(BaseModel):
             'market_conditions': market_conditions,
             'price_strategy': price_strategy,
             'personal_priorities': personal_priorities,
-            'contingencies_and_inspections': contingencies_and_inspections,
             'offer_structure': offer_structure,
             'offer_terms': offer_terms,
             'initial_offer_approach': initial_offer_approach,

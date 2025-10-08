@@ -110,14 +110,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setStoreUser(null);
         setIsAuthenticated(false);
         setStoreAuthStatus("unauthenticated");
-        secureLogger.info(
-          "AUTH_BOOTSTRAP_ERROR",
-          "Session verification failed - treating as unauthenticated",
-          { error: error instanceof Error ? error.message : "Unknown error" }
-        );
       } finally {
         setStoreAuthReady(true);
-        secureLogger.info("AUTH_BOOTSTRAP_COMPLETE", "Auth state initialized");
       }
     };
 

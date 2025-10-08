@@ -50,7 +50,20 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     const textVisibilityClass = useMemo(() => {
       if (!children) return "";
       if (!hideTextBelow) return "";
-      return `hidden ${hideTextBelow}:inline`;
+
+      // Use explicit mappings so Tailwind JIT can detect all classes at build time
+      const visibilityByBreakpoint: Record<
+        NonNullable<typeof hideTextBelow>,
+        string
+      > = {
+        sm: "hidden sm:inline-flex",
+        md: "hidden md:inline-flex",
+        lg: "hidden lg:inline-flex",
+        xl: "hidden xl:inline-flex",
+        "2xl": "hidden 2xl:inline-flex",
+      };
+
+      return visibilityByBreakpoint[hideTextBelow];
     }, [children, hideTextBelow]);
 
     // Base styles that apply to all buttons
@@ -153,13 +166,21 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           <div className="flex items-center justify-center whitespace-nowrap">
             {loading && (
               <div
-                className={
-                  children
-                    ? hideTextBelow
-                      ? `mr-1 ${hideTextBelow}:mr-2`
-                      : "mr-1 sm:mr-2"
-                    : ""
-                }
+                className={(() => {
+                  if (!children) return "";
+                  if (!hideTextBelow) return "mr-1 sm:mr-2";
+                  const rightMarginByBreakpoint: Record<
+                    NonNullable<typeof hideTextBelow>,
+                    string
+                  > = {
+                    sm: "mr-1 sm:mr-2",
+                    md: "mr-1 md:mr-2",
+                    lg: "mr-1 lg:mr-2",
+                    xl: "mr-1 xl:mr-2",
+                    "2xl": "mr-1 2xl:mr-2",
+                  };
+                  return rightMarginByBreakpoint[hideTextBelow];
+                })()}
               >
                 <KeyTurnLoader message="" />
               </div>
@@ -167,13 +188,21 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
             {!loading && icon && iconPosition === "left" && (
               <div
-                className={
-                  children
-                    ? hideTextBelow
-                      ? `mr-1 ${hideTextBelow}:mr-2`
-                      : "mr-1 sm:mr-2"
-                    : ""
-                }
+                className={(() => {
+                  if (!children) return "";
+                  if (!hideTextBelow) return "mr-1 sm:mr-2";
+                  const rightMarginByBreakpoint: Record<
+                    NonNullable<typeof hideTextBelow>,
+                    string
+                  > = {
+                    sm: "mr-1 sm:mr-2",
+                    md: "mr-1 md:mr-2",
+                    lg: "mr-1 lg:mr-2",
+                    xl: "mr-1 xl:mr-2",
+                    "2xl": "mr-1 2xl:mr-2",
+                  };
+                  return rightMarginByBreakpoint[hideTextBelow];
+                })()}
               >
                 {getResponsiveIconClass(icon)}
               </div>
@@ -192,13 +221,21 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
             {!loading && icon && iconPosition === "right" && (
               <div
-                className={
-                  children
-                    ? hideTextBelow
-                      ? `ml-1 ${hideTextBelow}:ml-2`
-                      : "ml-1 sm:ml-2"
-                    : ""
-                }
+                className={(() => {
+                  if (!children) return "";
+                  if (!hideTextBelow) return "ml-1 sm:ml-2";
+                  const leftMarginByBreakpoint: Record<
+                    NonNullable<typeof hideTextBelow>,
+                    string
+                  > = {
+                    sm: "ml-1 sm:ml-2",
+                    md: "ml-1 md:ml-2",
+                    lg: "ml-1 lg:ml-2",
+                    xl: "ml-1 xl:ml-2",
+                    "2xl": "ml-1 2xl:ml-2",
+                  };
+                  return leftMarginByBreakpoint[hideTextBelow];
+                })()}
               >
                 {getResponsiveIconClass(icon)}
               </div>

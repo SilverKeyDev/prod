@@ -113,7 +113,7 @@ export default function NegotiationStrategy() {
               <div className="flex justify-center">
                 <Loading
                   message={
-                    "Our AI is working on your personalized negotiation strategy, don't close this page..."
+                    "Our AI is expensive! Please consider booking your move with our link :)"
                   }
                 />
               </div>

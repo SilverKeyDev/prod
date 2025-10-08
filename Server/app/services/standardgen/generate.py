@@ -10,7 +10,7 @@ from typing import Dict, Optional
 
 import requests
 from requests.adapters import HTTPAdapter
-from requests.packages.urllib3.util.retry import Retry  # OK to keep for req==2.x
+from requests.packages.urllib3.util.retry import Retry
 
 # --- ReportLab (for placeholder PDF only) ---
 try:

@@ -7,7 +7,13 @@ import {
   ChevronLeft,
   ArrowLeft,
 } from "lucide-react";
-import React, { useState, useEffect, useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useMemo,
+  useCallback,
+} from "react";
 
 import MiniLogo from "../../../components/ui/asset/MiniLogo";
 import Button from "../../../components/ui/button/Button";
@@ -29,6 +35,7 @@ export default function AIAssistant() {
     sendMessage: contextSendMessage,
     getChatHistory,
   } = useChats();
+
   const [localChats, setLocalChats] = useState<Chat[]>([]);
   const [activeChatId, setActiveChatId] = useState<string>("");
   const [message, setMessage] = useState("");
@@ -39,291 +46,206 @@ export default function AIAssistant() {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const lastChatsSignatureRef = useRef<string>("");
 
-  // Load AI assistant state from localStorage on mount
+  // Gates to prevent once-only transitions from re-triggering
+  const hasFinishedInitialSyncRef = useRef(false);
+  const loadedHistoryIdsRef = useRef<Set<string>>(new Set());
+  const previousMessageCountRef = useRef<number>(0);
+
+  // ---------- Load persisted UI state on mount ----------
   useEffect(() => {
     const savedState = localStorage.getItem("aiAssistantState");
-    if (savedState) {
-      try {
-        const parsed = JSON.parse(savedState) as Record<string, unknown>;
-        if (parsed.activeChatId && typeof parsed.activeChatId === "string") {
-          setActiveChatId(parsed.activeChatId);
-        }
-        if (parsed.message) setMessage(parsed.message as string);
-      } catch {
-        if (console && typeof console.warn === "function") {
-          console.warn("Invalid AI assistant state data");
-        }
-        localStorage.removeItem("aiAssistantState");
+    if (!savedState) return;
+    try {
+      const parsed = JSON.parse(savedState) as Record<string, unknown>;
+      if (typeof parsed.activeChatId === "string") {
+        setActiveChatId(parsed.activeChatId);
       }
+      if (typeof parsed.message === "string") {
+        setMessage(parsed.message);
+      }
+    } catch {
+      console.warn("Invalid AI assistant state data");
+      localStorage.removeItem("aiAssistantState");
     }
   }, []);
 
-  // Save AI assistant state
+  // ---------- Persist minimal UI state (exclude highly volatile bits like isTyping) ----------
   useEffect(() => {
-    const stateToSave = { activeChatId, message, isTyping };
+    const stateToSave = { activeChatId, message };
     localStorage.setItem("aiAssistantState", JSON.stringify(stateToSave));
-  }, [activeChatId, message, isTyping]);
+  }, [activeChatId, message]);
 
-  const activeChat = localChats.find((chat: Chat) => chat.id === activeChatId);
+  // Active chat derived from local (stable) list
+  const activeChat = useMemo(
+    () => localChats.find((c) => c.id === activeChatId),
+    [localChats, activeChatId]
+  );
 
-  const scrollToBottom = () => {
+  const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  }, []);
 
-  // Sync chats from centralized context without causing a render loop
+  // ---------- Compute a stable signature from context chats (ids + titles only) ----------
+  const contextSignature = useMemo(() => {
+    if (!Array.isArray(chats) || chats.length === 0) return "";
+    // sort to avoid order-based churn if upstream array order is unstable
+    const normalized = [...chats]
+      .map((c) => ({ id: c.id, title: c.title ?? "" }))
+      .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+    return JSON.stringify(normalized);
+  }, [chats]);
+
+  // ---------- Sync from context CHATS → local state WITHOUT loops ----------
   useEffect(() => {
-    try {
-      const hasChats = Array.isArray(chats) && chats.length > 0;
-
-      if (hasChats) {
-        // Build a stable signature from chat ids and titles only (avoid unstable references)
-        const nextSignature = JSON.stringify(
-          chats.map((c: Chat) => ({ id: c.id, title: c.title }))
-        );
-
-        // If signature hasn't changed, skip updating local state to avoid infinite renders
-        if (nextSignature === lastChatsSignatureRef.current) {
-          return;
-        }
-
-        setLocalChats((previousChats) => {
-          const previousMessagesById = new Map(
-            previousChats.map((c: Chat) => [
-              c.id,
-              Array.isArray(c.messages) ? c.messages : [],
-            ])
-          );
-          const mapped = chats.map((contextChat: Chat) => ({
-            ...contextChat,
-            messages: previousMessagesById.get(contextChat.id) || [],
-          }));
-          // Update last signature only when we actually change local state
-          lastChatsSignatureRef.current = nextSignature;
-          return mapped;
-        });
-
-        // Only set activeChatId if we don't have one and there are chats available
-        // This prevents the infinite loop by not including activeChatId in dependencies
-        if (!activeChatId) {
-          setActiveChatId(chats[0].id);
-        }
-      } else {
-        if (lastChatsSignatureRef.current !== "") {
-          lastChatsSignatureRef.current = "";
-        }
-        setLocalChats([]);
+    // If there are no chats yet, just clear local list and finish initial loading once
+    if (!Array.isArray(chats) || chats.length === 0) {
+      // Only update if we actually need to clear something
+      setLocalChats((prev) => (prev.length ? [] : prev));
+      if (!hasFinishedInitialSyncRef.current) {
+        hasFinishedInitialSyncRef.current = true;
+        setIsLoading(false);
       }
-    } catch (error: unknown) {
-      if (console && typeof console.error === "function") {
-        console.error(
-          "[AI_ASSISTANT] Error loading chats from context:",
-          error
-        );
-      }
-    } finally {
-      setIsLoading(false);
+      return;
     }
-  }, [chats]); // Removed activeChatId from dependencies to prevent infinite loop
 
-  // Refresh on mount (avoid unstable dependency causing re-renders)
+    // Map context chats to local while preserving any existing local messages by id
+    setLocalChats((prevChats) => {
+      const prevMessagesById = new Map<string, ChatMessage[]>(
+        prevChats.map((c) => [
+          c.id,
+          Array.isArray(c.messages) ? (c.messages as ChatMessage[]) : [],
+        ])
+      );
+
+      // Build the new array
+      const nextLocal = chats.map((ctx) => {
+        const preservedMsgs = prevMessagesById.get(ctx.id) ?? [];
+        // IMPORTANT: return same messages array reference if unchanged to avoid downstream deps firing
+        return { ...ctx, messages: preservedMsgs };
+      });
+
+      // Initialize active chat if not set
+      if (!activeChatId && nextLocal.length > 0) {
+        // We can safely set it here via a microtask to avoid double render within this reducer phase.
+        queueMicrotask(() => {
+          setActiveChatId((curr) => (curr ? curr : nextLocal[0].id));
+        });
+      }
+
+      // Finish initial loading exactly once
+      if (!hasFinishedInitialSyncRef.current) {
+        hasFinishedInitialSyncRef.current = true;
+        setIsLoading(false);
+      }
+
+      return nextLocal;
+    });
+  }, [contextSignature]); // <- only runs when ids/titles change, not on every new array identity
+
+  // ---------- Kick off a refresh on mount ----------
   useEffect(() => {
     void refreshChats();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // (Removed loadChatsFromContext effect; handled by chats-dependent effect above)
-
-  // Only scroll to bottom when new messages are added, not on initial load
-  const previousMessageCountRef = useRef<number>(0);
+  // ---------- Scroll only when new messages are appended (not on initial load) ----------
   useEffect(() => {
-    const currentMessageCount = activeChat?.messages?.length || 0;
-    const previousMessageCount = previousMessageCountRef.current;
-
-    // Only scroll if messages were added (not on initial load)
-    if (
-      currentMessageCount > previousMessageCount &&
-      previousMessageCount > 0
-    ) {
+    const count = activeChat?.messages?.length ?? 0;
+    const prev = previousMessageCountRef.current;
+    if (count > prev && prev > 0) {
       scrollToBottom();
     }
+    previousMessageCountRef.current = count;
+  }, [activeChat?.messages, scrollToBottom]);
 
-    previousMessageCountRef.current = currentMessageCount;
-  }, [activeChat?.messages]);
+  // ---------- Load chat history once per active chat (if messages empty) ----------
+  const loadChatHistory = useCallback(
+    async (chatId: string) => {
+      try {
+        const data = await getChatHistory(chatId);
+        if (!data || typeof data !== "object") {
+          throw new Error("Invalid chat history response");
+        }
+        const responseData = data as Record<string, unknown>;
+        if (!Array.isArray(responseData.messages)) {
+          throw new Error("Invalid messages array in chat history");
+        }
 
-  // Load chat history when active chat changes
-  // Guard against loops by looking at local state and tracking loaded ids
-  const loadedHistoryIdsRef = useRef<Set<string>>(new Set());
+        const messages: ChatMessage[] = responseData.messages.map(
+          (msg: any) => {
+            const id =
+              typeof msg?.id === "string"
+                ? msg.id
+                : typeof msg?.id !== "undefined"
+                  ? JSON.stringify(msg.id)
+                  : String(Date.now());
+            const content =
+              typeof msg?.message === "string"
+                ? msg.message
+                : typeof msg?.message !== "undefined"
+                  ? JSON.stringify(msg.message)
+                  : "";
+            const role =
+              msg?.role === "assistant" || msg?.role === "user"
+                ? msg.role
+                : "user";
+            const ts =
+              typeof msg?.timestamp === "string" ||
+              msg?.timestamp instanceof Date
+                ? new Date(msg.timestamp)
+                : new Date();
+
+            return { id, content, role, timestamp: ts };
+          }
+        );
+
+        // Apply in one pass; only touch the one chat we fetched
+        setLocalChats((prev) =>
+          prev.map((c) => (c.id === chatId ? { ...c, messages } : c))
+        );
+      } catch (err) {
+        console.error(
+          `[AI_ASSISTANT] Failed to load chat history for ${chatId}:`,
+          err
+        );
+      }
+    },
+    [getChatHistory]
+  );
+
   useEffect(() => {
     if (!activeChatId) return;
 
     if (loadedHistoryIdsRef.current.has(activeChatId)) return;
 
-    const localCurrentChat = localChats.find(
-      (chat: Chat) => chat.id === activeChatId
-    );
+    const localCurrent = localChats.find((c) => c.id === activeChatId);
+    const hasMsgs =
+      !!localCurrent &&
+      Array.isArray(localCurrent.messages) &&
+      localCurrent.messages.length > 0;
 
-    if (
-      localCurrentChat &&
-      (!Array.isArray(localCurrentChat.messages) ||
-        localCurrentChat.messages.length === 0)
-    ) {
+    if (!hasMsgs) {
       loadedHistoryIdsRef.current.add(activeChatId);
       void loadChatHistory(activeChatId);
     }
-  }, [activeChatId, localChats]);
+  }, [activeChatId, localChats, loadChatHistory]);
 
-  const loadChatHistory = async (chatId: string) => {
-    try {
-      const data = await getChatHistory(chatId);
-      if (!data || typeof data !== "object") {
-        throw new Error("Invalid chat history response");
-      }
-      const responseData = data as Record<string, unknown>;
-      if (!Array.isArray(responseData.messages)) {
-        throw new Error("Invalid messages array in chat history");
-      }
-      const messages: ChatMessage[] = responseData.messages.map(
-        (msg: unknown) => {
-          // Type-safe message mapping with proper type guards
-          if (!msg || typeof msg !== "object") {
-            throw new Error("Invalid message object");
-          }
-          const msgObj = msg as Record<string, unknown>;
-          return {
-            id:
-              typeof msgObj.id === "string"
-                ? msgObj.id
-                : typeof msgObj.id === "object" && msgObj.id !== null
-                  ? (() => {
-                      try {
-                        return JSON.stringify(msgObj.id);
-                      } catch {
-                        return "[Object]";
-                      }
-                    })()
-                  : (() => {
-                      try {
-                        if (typeof msgObj.id === "string") return msgObj.id;
-                        if (typeof msgObj.id === "number")
-                          return String(msgObj.id);
-                        if (typeof msgObj.id === "boolean")
-                          return String(msgObj.id);
-                        if (msgObj.id === null || msgObj.id === undefined)
-                          return "";
-                        return "[Unknown]";
-                      } catch {
-                        return "[Unknown]";
-                      }
-                    })(),
-            content:
-              typeof msgObj.message === "string"
-                ? msgObj.message
-                : typeof msgObj.message === "object" && msgObj.message !== null
-                  ? (() => {
-                      try {
-                        return JSON.stringify(msgObj.message);
-                      } catch {
-                        return "[Object]";
-                      }
-                    })()
-                  : (() => {
-                      try {
-                        if (typeof msgObj.message === "string")
-                          return msgObj.message;
-                        if (typeof msgObj.message === "number")
-                          return String(msgObj.message);
-                        if (typeof msgObj.message === "boolean")
-                          return String(msgObj.message);
-                        if (
-                          msgObj.message === null ||
-                          msgObj.message === undefined
-                        )
-                          return "";
-                        return "[Unknown]";
-                      } catch {
-                        return "[Unknown]";
-                      }
-                    })(),
-            role:
-              typeof msgObj.role === "string" &&
-              (msgObj.role === "user" || msgObj.role === "assistant")
-                ? msgObj.role
-                : "user",
-            timestamp:
-              msgObj.timestamp instanceof Date
-                ? msgObj.timestamp
-                : (() => {
-                    try {
-                      const timestampStr =
-                        typeof msgObj.timestamp === "string"
-                          ? msgObj.timestamp
-                          : typeof msgObj.timestamp === "object" &&
-                              msgObj.timestamp !== null
-                            ? (() => {
-                                try {
-                                  return JSON.stringify(msgObj.timestamp);
-                                } catch {
-                                  return "[Object]";
-                                }
-                              })()
-                            : (() => {
-                                try {
-                                  if (typeof msgObj.timestamp === "string")
-                                    return msgObj.timestamp;
-                                  if (typeof msgObj.timestamp === "number")
-                                    return String(msgObj.timestamp);
-                                  if (typeof msgObj.timestamp === "boolean")
-                                    return String(msgObj.timestamp);
-                                  if (
-                                    msgObj.timestamp === null ||
-                                    msgObj.timestamp === undefined
-                                  )
-                                    return "";
-                                  return "[Unknown]";
-                                } catch {
-                                  return "[Unknown]";
-                                }
-                              })();
-                      return new Date(timestampStr);
-                    } catch {
-                      return new Date();
-                    }
-                  })(),
-          };
-        }
-      );
-
-      setLocalChats((prevChats) =>
-        prevChats.map((c: Chat) =>
-          c.id === activeChatId ? { ...c, messages } : c
-        )
-      );
-    } catch (error: unknown) {
-      if (console && typeof console.error === "function") {
-        console.error(
-          `[AI_ASSISTANT] Failed to load chat history for ${chatId}:`,
-          error
-        );
-      }
+  // ---------- Send message ----------
+  const sendMessage = useCallback(async () => {
+    if (!message.trim()) {
+      console.warn(`[AI_ASSISTANT] Send message aborted: empty message`);
+      return;
     }
-  };
-
-  const sendMessage = async () => {
-    if (!message.trim() || !activeChat) {
-      if (console && typeof console.warn === "function") {
-        console.warn(`[AI_ASSISTANT] Send message aborted:`, {
-          hasMessage: !!message.trim(),
-          hasActiveChat: !!activeChat,
-          activeChatId,
-        });
-      }
+    const currentActive = localChats.find((c) => c.id === activeChatId);
+    if (!currentActive) {
+      console.warn(`[AI_ASSISTANT] Send message aborted: no active chat`, {
+        activeChatId,
+      });
       return;
     }
 
     const userMessage = message.trim();
-
     const newMessage: ChatMessage = {
       id: Date.now().toString(),
       content: userMessage,
@@ -331,11 +253,12 @@ export default function AIAssistant() {
       timestamp: new Date(),
     };
 
-    setLocalChats((prev: Chat[]) =>
-      prev.map((chat) =>
-        chat.id === activeChatId
-          ? { ...chat, messages: [...chat.messages, newMessage] }
-          : chat
+    // Optimistic append
+    setLocalChats((prev) =>
+      prev.map((c) =>
+        c.id === activeChatId
+          ? { ...c, messages: [...(c.messages as ChatMessage[]), newMessage] }
+          : c
       )
     );
 
@@ -344,7 +267,6 @@ export default function AIAssistant() {
 
     try {
       const data = await contextSendMessage(activeChatId, userMessage);
-
       const dataObj = (
         data && typeof data === "object"
           ? (data as Record<string, unknown>)
@@ -361,17 +283,15 @@ export default function AIAssistant() {
         timestamp: new Date(),
       };
 
-      setLocalChats((prev: Chat[]) =>
-        prev.map((chat) =>
-          chat.id === activeChatId
-            ? { ...chat, messages: [...chat.messages, aiResponse] }
-            : chat
+      setLocalChats((prev) =>
+        prev.map((c) =>
+          c.id === activeChatId
+            ? { ...c, messages: [...(c.messages as ChatMessage[]), aiResponse] }
+            : c
         )
       );
-    } catch (error: unknown) {
-      if (console && typeof console.error === "function") {
-        console.error(`[AI_ASSISTANT] Network error sending message:`, error);
-      }
+    } catch (error) {
+      console.error(`[AI_ASSISTANT] Network error sending message:`, error);
       const errorMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         content:
@@ -379,32 +299,34 @@ export default function AIAssistant() {
         role: "assistant",
         timestamp: new Date(),
       };
-
-      setLocalChats((prev: Chat[]) =>
-        prev.map((chat) =>
-          chat.id === activeChatId
-            ? { ...chat, messages: [...chat.messages, errorMessage] }
-            : chat
+      setLocalChats((prev) =>
+        prev.map((c) =>
+          c.id === activeChatId
+            ? {
+                ...c,
+                messages: [...(c.messages as ChatMessage[]), errorMessage],
+              }
+            : c
         )
       );
     } finally {
       setIsTyping(false);
     }
-  };
+  }, [activeChatId, contextSendMessage, localChats, message]);
 
   const formatTime = (date: Date) => {
-    // Ensure we have a valid Date object
-    const validDate =
+    const d =
       date instanceof Date && !isNaN(date.getTime()) ? date : new Date();
-    return validDate.toLocaleTimeString("en-US", {
+    return d.toLocaleTimeString("en-US", {
       hour: "numeric",
       minute: "2-digit",
       hour12: true,
     });
   };
 
+  // ---------- JSX ----------
   return (
-    <div className="mx-auto mt-8 h-[calc(100vh-8rem)] max-w-7xl md:mt-0">
+    <div className="mx-auto mt-8 h-[calc(100vh-10rem)] max-w-7xl md:mt-0">
       <div className="relative flex h-full overflow-hidden rounded-xl shadow-lg">
         {/* Sidebar (Chat list) */}
         <aside
@@ -453,45 +375,48 @@ export default function AIAssistant() {
                 </p>
               </div>
             ) : (
-              localChats.map((chat: Chat) => (
-                <div
-                  key={chat.id}
-                  onClick={() => {
-                    setActiveChatId(chat.id);
-                    // Close sidebar on mobile after selecting chat
-                    setIsSidebarExpanded(false);
-                  }}
-                  className={`group cursor-pointer border-b border-beige/50 p-3 transition-colors hover:bg-beige/10 ${activeChatId === chat.id ? "bg-beige/20" : ""} `}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="min-w-0 flex-1">
-                      <h3 className="mb-1 truncate text-sm font-medium text-black">
-                        {chat.title}
-                      </h3>
-                      {Array.isArray(chat.messages) &&
-                        chat.messages.length > 0 && (
-                          <p className="truncate text-xs text-black/50">
-                            {(() => {
-                              const last = chat.messages[
-                                chat.messages.length - 1
-                              ] as unknown;
-                              if (
-                                last &&
-                                typeof last === "object" &&
-                                "content" in last
-                              ) {
-                                const c = (last as { content?: unknown })
-                                  .content;
-                                return typeof c === "string" ? c : "";
-                              }
-                              return "";
-                            })()}
-                          </p>
-                        )}
+              localChats
+                .filter((chat: Chat) => {
+                  const title = (chat?.title ?? "").toString();
+                  const addr = (chat?.propertyAddress ?? "").toString();
+                  return (
+                    !/[_-]vs[_-]/i.test(title) &&
+                    !/\svs\s/i.test(title) &&
+                    !/[_-]vs[_-]/i.test(addr) &&
+                    !/\svs\s/i.test(addr)
+                  );
+                })
+                .map((chat: Chat) => (
+                  <div
+                    key={chat.id}
+                    onClick={() => {
+                      setActiveChatId(chat.id);
+                      setIsSidebarExpanded(false);
+                    }}
+                    className={`group cursor-pointer border-b border-beige/50 p-3 transition-colors hover:bg-beige/10 ${
+                      activeChatId === chat.id ? "bg-beige/20" : ""
+                    } `}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="min-w-0 flex-1">
+                        <h3 className="mb-1 truncate text-sm font-medium text-black">
+                          {chat.title}
+                        </h3>
+                        {Array.isArray(chat.messages) &&
+                          (chat.messages as ChatMessage[]).length > 0 && (
+                            <p className="truncate text-xs text-black/50">
+                              {(() => {
+                                const last = (chat.messages as ChatMessage[])[
+                                  (chat.messages as ChatMessage[]).length - 1
+                                ];
+                                return last?.content ?? "";
+                              })()}
+                            </p>
+                          )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))
+                ))
             )}
           </div>
         </aside>
@@ -505,160 +430,160 @@ export default function AIAssistant() {
         )}
 
         {/* Main Chat Section */}
-        <section className="flex flex-1 flex-col rounded-r-xl bg-white">
-          {/* Chat Header (title + mobile menu button in the same line) */}
-          <div className="flex items-center justify-between border-b border-beige bg-white p-3">
-            <div className="flex items-center gap-2">
-              {/* MOBILE-ONLY MENU/BACK BUTTON (no background color, ChatGPT-like) */}
-              <button
-                onClick={() => setIsSidebarExpanded((v) => !v)}
-                className="inline-flex items-center justify-center rounded-lg p-2 focus:outline-none md:hidden"
-                aria-label={
-                  isSidebarExpanded ? "Close chat list" : "Open chat list"
-                }
-                aria-expanded={isSidebarExpanded}
-              >
-                {isSidebarExpanded ? (
-                  <ArrowLeft className="h-5 w-5 text-black" />
-                ) : (
-                  <Menu className="h-5 w-5 text-black" />
-                )}
-              </button>
+        <section className="relative flex flex-1 flex-col rounded-r-xl bg-white">
+          {isSidebarExpanded && (
+            <div className="pointer-events-none absolute inset-0 z-10 rounded-r-xl bg-gray-200/60" />
+          )}
 
-              <h3 className="text-lg font-medium text-black">
-                {activeChat ? activeChat.title : "AI Assistant"}
-              </h3>
+          <div
+            className={`${isSidebarExpanded ? "pointer-events-none blur-sm" : ""}`}
+          >
+            {/* Chat Header (title + mobile menu button in the same line) */}
+            <div className="flex items-center justify-between border-b border-beige bg-white p-3">
+              <div className="flex items-center gap-2">
+                {/* MOBILE-ONLY MENU/BACK BUTTON */}
+                <button
+                  onClick={() => setIsSidebarExpanded((v) => !v)}
+                  className="inline-flex items-center justify-center rounded-lg p-2 focus:outline-none md:hidden"
+                  aria-label={
+                    isSidebarExpanded ? "Close chat list" : "Open chat list"
+                  }
+                  aria-expanded={isSidebarExpanded}
+                >
+                  {isSidebarExpanded ? (
+                    <ArrowLeft className="h-5 w-5 text-black" />
+                  ) : (
+                    <Menu className="h-5 w-5 text-black" />
+                  )}
+                </button>
+
+                <h3 className="text-lg font-medium text-black">
+                  {activeChat
+                    ? (activeChat.title ?? "AI Assistant")
+                    : "AI Assistant"}
+                </h3>
+              </div>
             </div>
-          </div>
 
-          {/* Messages */}
-          <div className="scrollbar-hide flex-1 space-y-3 overflow-y-auto p-3">
-            {!activeChat ? (
-              <div className="flex flex-1 items-center justify-center">
-                <div className="text-center">
-                  <MessageCircle className="mx-auto mb-3 h-16 w-16 text-black/40" />
+            {/* Messages */}
+            <div className="scrollbar-hide flex-1 space-y-3 overflow-y-auto p-3">
+              {!activeChat ? (
+                <div className="flex flex-1 items-center justify-center">
+                  <div className="text-center">
+                    <MessageCircle className="mx-auto mb-3 h-16 w-16 text-black/40" />
+                    <h3 className="mb-2 text-lg font-medium text-black">
+                      No conversation selected
+                    </h3>
+                    <p className="text-sm text-black/60">
+                      Choose a conversation or start a new one
+                    </p>
+                  </div>
+                </div>
+              ) : (activeChat.messages as ChatMessage[]).length === 0 ? (
+                <div className="py-8 text-center">
+                  <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-beige/30">
+                    <MessageCircle className="h-8 w-8 text-black/40" />
+                  </div>
                   <h3 className="mb-2 text-lg font-medium text-black">
-                    No conversation selected
+                    Start a conversation
                   </h3>
-                  <p className="text-sm text-black/60">
-                    Choose a conversation or start a new one
+                  <p className="mx-auto max-w-md text-sm text-black/60">
+                    Ask away!
                   </p>
                 </div>
-              </div>
-            ) : activeChat.messages.length === 0 ? (
-              <div className="py-8 text-center">
-                <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-beige/30">
-                  <MessageCircle className="h-8 w-8 text-black/40" />
-                </div>
-                <h3 className="mb-2 text-lg font-medium text-black">
-                  Start a conversation
-                </h3>
-                <p className="mx-auto max-w-md text-sm text-black/60">
-                  Ask away!
-                </p>
-              </div>
-            ) : (
-              <>
-                {(activeChat.messages as ChatMessage[]).map((msg) => (
-                  <div
-                    key={msg.id}
-                    className={`flex items-center gap-2 ${
-                      msg.role === "user" ? "justify-end" : "justify-start"
-                    }`}
-                  >
-                    {msg.role === "assistant" && (
+              ) : (
+                <>
+                  {(activeChat.messages as ChatMessage[]).map((msg) => (
+                    <div
+                      key={msg.id}
+                      className={`flex items-center gap-2 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+                    >
+                      {msg.role === "assistant" && (
+                        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gold">
+                          <Bot className="h-4 w-4 text-black" />
+                        </div>
+                      )}
+
+                      <div
+                        className={`max-w-lg rounded-xl px-4 py-3 ${
+                          msg.role === "user"
+                            ? "bg-olive text-white"
+                            : "bg-gray-100 text-black"
+                        } `}
+                      >
+                        <p className="whitespace-pre-line text-sm">
+                          {msg.content}
+                        </p>
+                        <p
+                          className={`mt-2 text-xs ${msg.role === "user" ? "text-white/70" : "text-black/60"}`}
+                        >
+                          {formatTime(msg.timestamp)}
+                        </p>
+                      </div>
+
+                      {msg.role === "user" && (
+                        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-beige">
+                          <UserIcon className="h-4 w-4 text-black" />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+
+                  {isTyping && (
+                    <div className="flex items-center gap-2">
                       <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gold">
                         <Bot className="h-4 w-4 text-black" />
                       </div>
-                    )}
-
-                    <div
-                      className={`max-w-lg rounded-xl px-4 py-3 ${
-                        msg.role === "user"
-                          ? "bg-olive text-white"
-                          : "bg-gray-100 text-black"
-                      } `}
-                    >
-                      <p className="whitespace-pre-line text-sm">
-                        {msg.content}
-                      </p>
-                      <p
-                        className={`mt-2 text-xs ${
-                          msg.role === "user"
-                            ? "text-white/70"
-                            : "text-black/60"
-                        }`}
-                      >
-                        {formatTime(
-                          msg.timestamp instanceof Date
-                            ? msg.timestamp
-                            : new Date()
-                        )}
-                      </p>
-                    </div>
-
-                    {msg.role === "user" && (
-                      <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-beige">
-                        <UserIcon className="h-4 w-4 text-black" />
-                      </div>
-                    )}
-                  </div>
-                ))}
-
-                {isTyping && (
-                  <div className="flex items-center gap-2">
-                    <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gold">
-                      <Bot className="h-4 w-4 text-black" />
-                    </div>
-                    <div className="rounded-xl border border-beige bg-white px-3 py-2">
-                      <div className="flex gap-1">
-                        <div className="h-2 w-2 animate-bounce rounded-full bg-navy/40"></div>
-                        <div
-                          className="h-2 w-2 animate-bounce rounded-full bg-navy/40"
-                          style={{ animationDelay: "0.1s" }}
-                        ></div>
-                        <div
-                          className="h-2 w-2 animate-bounce rounded-full bg-navy/40"
-                          style={{ animationDelay: "0.2s" }}
-                        ></div>
+                      <div className="rounded-xl border border-beige bg-white px-3 py-2">
+                        <div className="flex gap-1">
+                          <div className="h-2 w-2 animate-bounce rounded-full bg-navy/40"></div>
+                          <div
+                            className="h-2 w-2 animate-bounce rounded-full bg-navy/40"
+                            style={{ animationDelay: "0.1s" }}
+                          ></div>
+                          <div
+                            className="h-2 w-2 animate-bounce rounded-full bg-navy/40"
+                            style={{ animationDelay: "0.2s" }}
+                          ></div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
-              </>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
+                  )}
+                </>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
 
-          {/* Message Input */}
-          <div className="border-t border-beige bg-white p-3">
-            <div className="flex items-stretch gap-2">
-              <div className="flex flex-1 flex-grow items-center">
-                <textarea
-                  value={message}
-                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                    setMessage(e.target.value)
-                  }
-                  onKeyPress={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      void sendMessage();
+            {/* Message Input */}
+            <div className="border-t border-beige bg-white p-3">
+              <div className="flex items-stretch gap-2">
+                <div className="flex flex-1 flex-grow items-center">
+                  <textarea
+                    value={message}
+                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                      setMessage(e.target.value)
                     }
-                  }}
-                  placeholder="Ask about this prooperty!"
-                  className="scrollbar-hide h-full w-full resize-none rounded-lg border border-beige px-3 py-2.5 text-sm transition-colors duration-150 focus:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 md:py-3 md:text-base"
-                  disabled={isTyping}
-                  rows={1}
-                />
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        void sendMessage();
+                      }
+                    }}
+                    placeholder="Ask about this property!"
+                    className="scrollbar-hide h-full w-full resize-none rounded-lg border border-beige px-3 py-2.5 text-sm transition-colors duration-150 focus:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 md:py-3 md:text-base"
+                    disabled={isTyping}
+                    rows={1}
+                  />
+                </div>
+                <Button
+                  onClick={sendMessage}
+                  disabled={!message.trim() || isTyping}
+                  variant="primary"
+                  className="self-stretch px-4"
+                >
+                  <Send className="h-4 w-4 md:h-5 md:w-5" />
+                </Button>
               </div>
-              <Button
-                onClick={sendMessage}
-                disabled={!message.trim() || isTyping}
-                variant="primary"
-                className="self-stretch px-4"
-              >
-                <Send className="h-4 w-4 md:h-5 md:w-5" />
-              </Button>
             </div>
           </div>
         </section>

@@ -16,8 +16,8 @@ import { ALL_METRIC_KEYS, type Report } from "../../../../../packages/schemas";
 // Components
 import { ComparisonSpreadsheet, ManageRowsModal } from ".";
 type ComparisonRow = {
-  metric: string;
-  [key: string]: string | number | boolean;
+  Address?: string;
+  [key: string]: string | number | boolean | undefined;
 };
 import type { DocumentWithBody } from "../../../../../packages/schemas/google-maps";
 import { reportsService } from "../../../../../packages/services";
@@ -40,7 +40,12 @@ export default function CompareReportsPage() {
   }, [refreshCompareReports]);
 
   // Backend now filters to only return standard ('detailed') reports
-  const reports = compareReports ?? [];
+  // Extra client-side guard: filter out any comparison reports that may slip through
+  const reports = (compareReports ?? []).filter((r) => {
+    const address = (r?.address ?? "").toString();
+    // Exclude filenames/addresses that look like comparison outputs
+    return !/[_-]vs[_-]/i.test(address) && !/\svs\s/i.test(address);
+  });
 
   const [selectedReports, setSelectedReports] = useState<Report[]>([]);
   const [isLoading, setIsLoading] = useState(false); // Only for comparison loading
@@ -168,6 +173,10 @@ export default function CompareReportsPage() {
 
       try {
         setIsLoading(true);
+        log.info("COMPARE_REPORTS", "Requesting comparison", {
+          selectedReportIds: selectedReports.map((r) => r.id),
+          keysCount: keys.length,
+        });
         const response = await reportsService.compareReports(
           selectedReports.map((r) => r.id),
           keys
@@ -181,11 +190,22 @@ export default function CompareReportsPage() {
           "table" in response &&
           Array.isArray(response.table)
         ) {
-          const typedTable = response.table.filter(
-            (item: unknown): item is ComparisonRow =>
-              typeof item === "object" && item !== null && "metric" in item
-          );
-          setComparisonTable(typedTable);
+          const normalized = (response.table as unknown[])
+            .filter(
+              (item: unknown) => typeof item === "object" && item !== null
+            )
+            .map((row: unknown) => {
+              const obj = row as Record<string, unknown>;
+              if (!("Address" in obj) && typeof obj["address"] === "string") {
+                obj["Address"] = obj["address"];
+              }
+              return obj as ComparisonRow;
+            });
+          log.info("COMPARE_REPORTS", "Received comparison table", {
+            rows: normalized.length,
+            columns: normalized[0] ? Object.keys(normalized[0]) : [],
+          });
+          setComparisonTable(normalized);
         } else {
           const errorMessage =
             response &&
@@ -197,7 +217,7 @@ export default function CompareReportsPage() {
           throw new Error(errorMessage);
         }
       } catch (error: unknown) {
-        console.error(error);
+        log.error("COMPARE_REPORTS", "Comparison request failed", error);
         enqueueToast({
           type: "error",
           message: error instanceof Error ? error.message : "Comparison failed",
@@ -211,6 +231,12 @@ export default function CompareReportsPage() {
 
   // Update comparison whenever selectedReports changes
   useEffect(() => {
+    // No selection: clear table and exit quietly
+    if (selectedReports.length === 0) {
+      setComparisonTable([]);
+      return;
+    }
+
     const pdfKeys = selectedReports.map((r) => r.s3Key ?? "");
     // Simple transformation - use s3Key as jsonKey if available
     const jsonKeys = pdfKeys.filter((key) => key && key.length > 0);
@@ -218,6 +244,10 @@ export default function CompareReportsPage() {
     if (jsonKeys.length > 0) {
       void fetchComparison(jsonKeys);
     } else {
+      // Only warn when user has selected reports but we cannot derive keys
+      log.warn("COMPARE_REPORTS", "No s3 keys for selected reports", {
+        selectedCount: selectedReports.length,
+      });
       setComparisonTable([]);
     }
   }, [selectedReports, fetchComparison]);
@@ -386,8 +416,8 @@ export default function CompareReportsPage() {
         {/* Global toasts shown via ToastsPortal */}
 
         {/* Reports Selection */}
-        <Card className="mb-20 sm:mb-8">
-          <div className="mb-3 flex flex-col space-y-6 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+        <Card className="mb-8 sm:mb-8">
+          <div className="mb-2 flex flex-col space-y-4 sm:mb-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
             <div className="hidden sm:block">
               <Title size="md" className="font-medium">
                 Your Property Reports
@@ -396,12 +426,11 @@ export default function CompareReportsPage() {
                 {selectedReports.length} of {reports.length} selected
               </Subtitle>
             </div>
-            <div className="flex w-full items-center justify-between gap-2 sm:w-auto sm:justify-start sm:gap-3"></div>
-            <div className="flex w-full items-center justify-between gap-2 sm:w-auto sm:justify-start sm:gap-3">
+            <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:flex-nowrap sm:gap-3">
               <button
                 onClick={() => setSelectedReports([])}
                 disabled={selectedReports.length === 0}
-                className="touch-friendly flex items-center justify-center rounded-lg border border-gray-300 bg-gray-100 px-2 py-1.5 text-xs font-medium text-black/70 transition-colors hover:border-gray-400 hover:bg-gray-200 disabled:cursor-not-allowed disabled:border-transparent disabled:bg-gray-200 disabled:text-gray-500 sm:justify-start sm:px-3 sm:py-2 sm:text-sm"
+                className="touch-friendly flex w-full flex-1 items-center justify-center rounded-lg border border-gray-300 bg-gray-100 px-2 py-1.5 text-xs font-medium text-black/70 transition-colors hover:border-gray-400 hover:bg-gray-200 disabled:cursor-not-allowed disabled:border-transparent disabled:bg-gray-200 disabled:text-gray-500 sm:w-auto sm:flex-none sm:justify-start sm:px-3 sm:py-2 sm:text-sm"
               >
                 <X className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                 Clear
@@ -411,7 +440,7 @@ export default function CompareReportsPage() {
                 disabled={
                   selectedReports.length === 0 || comparisonTable.length === 0
                 }
-                className="touch-friendly flex items-center justify-center rounded-lg bg-olive px-2 py-1.5 text-xs font-medium text-white transition-colors hover:bg-olive-light disabled:cursor-not-allowed disabled:opacity-50 sm:justify-start sm:px-3 sm:py-2 sm:text-sm"
+                className="touch-friendly flex w-full flex-1 items-center justify-center rounded-lg bg-olive px-2 py-1.5 text-xs font-medium text-white transition-colors hover:bg-olive-light disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:flex-none sm:justify-start sm:px-3 sm:py-2 sm:text-sm"
               >
                 <Download className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                 Export
@@ -421,7 +450,7 @@ export default function CompareReportsPage() {
                 disabled={
                   selectedReports.length === 0 || comparisonTable.length === 0
                 }
-                className="touch-friendly flex items-center justify-center rounded-lg bg-beige px-2 py-1.5 text-xs font-medium text-gray-100 transition-colors hover:bg-beige/80 disabled:cursor-not-allowed disabled:opacity-50 sm:justify-start sm:px-3 sm:py-2 sm:text-sm"
+                className="touch-friendly flex w-full flex-1 items-center justify-center rounded-lg bg-beige px-2 py-1.5 text-xs font-medium text-gray-100 transition-colors hover:bg-beige/80 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:flex-none sm:justify-start sm:px-3 sm:py-2 sm:text-sm"
               >
                 <Share className="h-4 w-4" />
                 Share
@@ -429,7 +458,7 @@ export default function CompareReportsPage() {
               <button
                 onClick={refreshReportsData}
                 disabled={isLoading}
-                className="touch-friendly flex items-center justify-center rounded-lg bg-beige/30 px-2 py-1.5 text-xs font-medium text-black/70 transition-colors hover:bg-beige/50 disabled:cursor-not-allowed disabled:opacity-50 sm:justify-start sm:px-3 sm:py-2 sm:text-sm"
+                className="touch-friendly flex w-full flex-1 items-center justify-center rounded-lg bg-beige/30 px-2 py-1.5 text-xs font-medium text-black/70 transition-colors hover:bg-beige/50 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:flex-none sm:justify-start sm:px-3 sm:py-2 sm:text-sm"
               >
                 {isLoading ? (
                   <RefreshCw className="h-3 w-3 animate-spin sm:h-3.5 sm:w-3.5" />
