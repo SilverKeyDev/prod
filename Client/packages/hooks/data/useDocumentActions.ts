@@ -9,6 +9,7 @@ import { showErrorToast } from "../ui/useToast";
 
 export type PdfModalHooks = {
   currentPdf: string | null;
+  currentDocumentId: string | null;
   currentDocumentName: string | null;
   isOpen: boolean;
   openModal: () => void;
@@ -22,7 +23,7 @@ export type PdfModalHooks = {
     documentName: string,
   ) => Promise<{ success: boolean; message: string }>;
   downloadFile: (url: string, filename: string) => void;
-  openPdfModal: (pdfUrl: string, documentName?: string) => void;
+  openPdfModal: (pdfUrl: string, documentName?: string, documentId?: string) => void;
   closePdfModal: () => void;
   loadingUrls: Set<string>;
   handleViewDocument: (
@@ -41,6 +42,7 @@ export type PdfModalHooks = {
 
 export const usePdfModal = (): PdfModalHooks => {
   const [currentPdf, setCurrentPdf] = useState<string | null>(null);
+  const [currentDocumentId, setCurrentDocumentId] = useState<string | null>(null);
   const [currentDocumentName, setCurrentDocumentName] = useState<string | null>(
     null,
   );
@@ -73,8 +75,12 @@ export const usePdfModal = (): PdfModalHooks => {
   const getFreshViewUrl = useCallback(
     async (documentId: string): Promise<string | null> => {
       try {
-        const response = await reportApi.getViewUrl(documentId);
-        return response.success ? (response.viewUrl ?? null) : null;
+        // Instead of calling the old API, return our proxy URL directly
+        if (typeof window !== 'undefined') {
+          const baseUrl = window.location.origin;
+          return `${baseUrl}/api/v1/report/${documentId}/view`;
+        }
+        return null;
       } catch (err: unknown) {
         const error = asError(err);
         console.error("Failed to get fresh view URL", error);
@@ -128,8 +134,9 @@ export const usePdfModal = (): PdfModalHooks => {
   );
 
   const openPdfModal = useCallback(
-    (pdfUrl: string, documentName?: string) => {
+    (pdfUrl: string, documentName?: string, documentId?: string) => {
       setCurrentPdf(pdfUrl);
+      setCurrentDocumentId(documentId ?? null);
       setCurrentDocumentName(documentName ?? null);
       open();
     },
@@ -142,7 +149,7 @@ export const usePdfModal = (): PdfModalHooks => {
       try {
         const pdfUrl = await getFreshViewUrl(documentId);
         if (pdfUrl) {
-          openPdfModal(pdfUrl, documentName);
+          openPdfModal(pdfUrl, documentName, documentId);
         } else {
           console.error("Failed to get PDF view URL for document:", documentId);
           // Show user-friendly error message
@@ -193,12 +200,14 @@ export const usePdfModal = (): PdfModalHooks => {
 
   const closePdfModal = useCallback(() => {
     setCurrentPdf(null);
+    setCurrentDocumentId(null);
     setCurrentDocumentName(null);
     close();
   }, [close]);
 
   return {
     currentPdf,
+    currentDocumentId,
     currentDocumentName,
     isOpen,
     openModal: open,

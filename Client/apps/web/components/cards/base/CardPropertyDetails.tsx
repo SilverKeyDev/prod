@@ -31,45 +31,33 @@ const CardPropertyDetails: React.FC<CardPropertyDetailsProps> = ({
   className = "",
 }) => {
   // Dynamic size calculation based on content length for optimal single-line fit
-  const calculateOptimalSize = () => {
-    const contentCount = [
-      bedrooms,
-      bathrooms,
-      hideSquareFootage ? undefined : sqft,
-    ].filter((val) => val !== undefined && Number(val) > 0).length;
+  // Only move sqft to second level if it would cause overflow (within 10px of edge)
+  const hasSqft = !hideSquareFootage; // Always show sqft unless explicitly hidden
+  const contentCount = [bedrooms, bathrooms].filter(
+    (val) => val !== undefined && Number(val) > 0
+  ).length;
+  const shouldMoveSqftToSecondRow = hasSqft && contentCount >= 2; // Move to second row if 2+ items + sqft
 
-    // Aggressive scaling - prioritize fitting everything in one line
-    if (contentCount >= 3) return "xs"; // All three items - smallest
-    if (contentCount === 2) return "sm"; // Two items - medium
-    return "lg"; // Single item - can be largest
+  const calculateOptimalSize = () => {
+    // Scale based on bedrooms/bathrooms only, sqft goes to second level if needed
+    if (contentCount >= 2) return "sm"; // Two items - medium
+    return "md"; // Single item - comfortable size
   };
 
   const optimalSize = calculateOptimalSize();
 
-  // Size variants optimized for single-line fit with 1px margins and text scaling
+  // Size variants with smaller icons and light gray styling
   const sizeStyles = {
-    xs: {
-      text: "text-[10px] sm:text-xs", // Very small text for tight fit
-      icon: "w-2.5 h-2.5 sm:w-3 sm:h-3",
-      gap: "gap-0.5 sm:gap-1",
-      spacing: "px-[1px]", // 1px margin on each side
-    },
     sm: {
-      text: "text-xs sm:text-sm", // Small text for medium fit
-      icon: "w-3 h-3 sm:w-3.5 sm:h-3.5",
+      text: "text-xs sm:text-sm text-gray-500", // Small text with light gray
+      icon: "w-2.5 h-2.5 sm:w-3 sm:h-3 text-gray-400", // Smaller icons with light gray
       gap: "gap-1 sm:gap-1.5",
       spacing: "px-[1px]", // 1px margin on each side
     },
     md: {
-      text: "text-sm sm:text-base", // Medium text for comfortable fit
-      icon: "w-3.5 h-3.5 sm:w-4 sm:h-4",
+      text: "text-sm sm:text-base text-gray-500", // Medium text with light gray
+      icon: "w-3 h-3 sm:w-3.5 sm:h-3.5 text-gray-400", // Smaller icons with light gray
       gap: "gap-1.5 sm:gap-2",
-      spacing: "px-[1px]", // 1px margin on each side
-    },
-    lg: {
-      text: "text-base sm:text-lg", // Larger text for single item
-      icon: "w-4 h-4 sm:w-5 sm:h-5",
-      gap: "gap-2 sm:gap-2.5",
       spacing: "px-[1px]", // 1px margin on each side
     },
   };
@@ -105,14 +93,14 @@ const CardPropertyDetails: React.FC<CardPropertyDetailsProps> = ({
 
   return (
     <div className={containerClasses}>
-      {/* First row: bedrooms and bathrooms */}
+      {/* First row: bedrooms, bathrooms, and optionally sqft */}
       <div className="flex items-center justify-center flex-nowrap gap-1 sm:gap-1.5">
         {bedrooms !== undefined && Number(bedrooms) > 0 && (
-          <div className="flex flex-shrink-0 items-center">
+          <div
+            className={`flex flex-shrink-0 items-center ${currentSizeStyles.text}`}
+          >
             {showIcons && (
-              <Bed
-                className={`${currentSizeStyles.icon} mr-1 flex-shrink-0 text-brown`}
-              />
+              <Bed className={`${currentSizeStyles.icon} mr-1 flex-shrink-0`} />
             )}
 
             {variant === "modal"
@@ -122,10 +110,12 @@ const CardPropertyDetails: React.FC<CardPropertyDetailsProps> = ({
         )}
 
         {bathrooms !== undefined && Number(bathrooms) > 0 && (
-          <div className="flex flex-shrink-0 items-center">
+          <div
+            className={`flex flex-shrink-0 items-center ${currentSizeStyles.text}`}
+          >
             {showIcons && (
               <Bath
-                className={`${currentSizeStyles.icon} mr-1 flex-shrink-0 text-brown`}
+                className={`${currentSizeStyles.icon} mr-1 flex-shrink-0`}
               />
             )}
 
@@ -134,44 +124,57 @@ const CardPropertyDetails: React.FC<CardPropertyDetailsProps> = ({
               : `${bathrooms} bath${bathrooms !== 1 ? "s" : ""}`}
           </div>
         )}
-      </div>
 
-      {/* Second row: square footage (always present to maintain spacing) */}
-      <div className="flex flex-shrink-0 items-center justify-center">
-        {sqft && Number(sqft) > 0 && !hideSquareFootage ? (
-          <>
-            {variant === "modal" ? (
-              <div className="text-center">
-                <div
-                  className={`font-bold ${currentSizeStyles.text} text-gray-600`}
-                >
-                  {Math.round(Number(sqft)).toLocaleString()}
-                </div>
-                <div className="mt-1 text-sm text-gray-600">Sq Ft</div>
-              </div>
-            ) : (
-              <>
-                {showIcons && (
-                  <Square
-                    className={`${currentSizeStyles.icon} mr-1 flex-shrink-0 text-brown`}
-                  />
-                )}
-                {Math.round(Number(sqft)).toLocaleString()} sqft
-              </>
-            )}
-          </>
-        ) : (
-          /* Invisible placeholder to maintain spacing */
-          <div className="invisible">
+        {/* Sqft on same line if it fits, otherwise it goes to second row */}
+        {hasSqft && !shouldMoveSqftToSecondRow && (
+          <div
+            className={`flex flex-shrink-0 items-center ${currentSizeStyles.text}`}
+          >
             {showIcons && (
               <Square
-                className={`${currentSizeStyles.icon} mr-1 flex-shrink-0 text-brown`}
+                className={`${currentSizeStyles.icon} mr-1 flex-shrink-0`}
               />
             )}
-            <span className={currentSizeStyles.text}>0 sqft</span>
+            <span>
+              {sqft === undefined || Number(sqft) <= 0
+                ? "n/a sqft"
+                : `${Math.round(Number(sqft)).toLocaleString()} sqft`}
+            </span>
           </div>
         )}
       </div>
+
+      {/* Second row: square footage (only if moved here for spacing) */}
+      {shouldMoveSqftToSecondRow && (
+        <div className="flex flex-shrink-0 items-center justify-center">
+          <div
+            className={`flex flex-shrink-0 items-center ${currentSizeStyles.text}`}
+          >
+            {showIcons && (
+              <Square
+                className={`${currentSizeStyles.icon} mr-1 flex-shrink-0`}
+              />
+            )}
+            <span>
+              {sqft === undefined || Number(sqft) <= 0
+                ? "n/a sqft"
+                : `${Math.round(Number(sqft)).toLocaleString()} sqft`}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Modal variant handling */}
+      {variant === "modal" && hasSqft && (
+        <div className="text-center">
+          <div className={`font-bold text-gray-500`}>
+            {sqft === undefined || Number(sqft) <= 0
+              ? "n/a"
+              : Math.round(Number(sqft)).toLocaleString()}
+          </div>
+          <div className="mt-1 text-sm text-gray-500">Sq Ft</div>
+        </div>
+      )}
     </div>
   );
 };

@@ -16,6 +16,7 @@ export { default as CardPriceBubble } from "./CardPriceBubble";
 export { default as CardImageContainer } from "./CardImageContainer";
 export { default as CardContentContainer } from "./CardContentContainer";
 export { default as CardMatchScore } from "./CardMatchScore";
+export { default as TrianglePointer } from "./TrianglePointer";
 
 // Export types
 export type { CardAddressDisplayProps } from "./CardAddressDisplay";

@@ -24,6 +24,9 @@ import {
 } from "../../../../packages/store/view.slice";
 import { useFiltersStore } from "../../../../packages/store";
 
+// Hooks
+import useMobile from "../../../../packages/hooks/ui/useMobile";
+
 // Sidebar
 import {
   getTabByPath,
@@ -58,6 +61,8 @@ type PageWidthConfig = Record<string, number>;
 const PAGE_WIDTH_CONFIG: PageWidthConfig = {
   "/search": 100,
   "/buyer-checklists": 95,
+  "/negotiation-strategy": 80,
+  "/personalization": 80,
 };
 
 // Buyer checklist tabs
@@ -84,6 +89,7 @@ export default function DashboardLayout({
   const navigate = useNavigate();
   const path = location.pathname;
   const search = location.search;
+  const isMobile = useMobile();
 
   // Route helpers
   const isSearch = path.startsWith("/search");
@@ -283,6 +289,11 @@ export default function DashboardLayout({
       return mobileHeaderActions;
     }
 
+    // For Search pages on mobile, don't show fallback header while waiting for mobile actions
+    if (isSearch && isMobile && !mobileHeaderActions) {
+      return null;
+    }
+
     if (mobileHeaderActions) return mobileHeaderActions;
 
     if (isDashboard) {
@@ -330,6 +341,7 @@ export default function DashboardLayout({
     return null;
   }, [
     isSearch,
+    isMobile,
     mobileHeaderActions,
     isDashboard,
     isBuyerChecklists,

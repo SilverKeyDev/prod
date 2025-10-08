@@ -53,6 +53,8 @@ export type PropertyCardProps = {
   showTrianglePointer?: boolean;
   /** Whether this card is displayed on the map */
   isOnMap?: boolean;
+  /** Whether to hide the image section (for mobile carousel) */
+  hideImage?: boolean;
 };
 
 function PropertyCardImpl(props: PropertyCardProps) {
@@ -78,6 +80,7 @@ function PropertyCardImpl(props: PropertyCardProps) {
     hideSquareFootage = false,
     showTrianglePointer = false,
     isOnMap = false,
+    hideImage = false,
   } = props;
 
   if (import.meta.env.DEV) {
@@ -111,8 +114,8 @@ function PropertyCardImpl(props: PropertyCardProps) {
       className={className}
       onClick={onClick}
     >
-      {/* Image container - only render if imageUrl is provided */}
-      {imageUrl && (
+      {/* Image container - only render if imageUrl is provided and not hidden */}
+      {imageUrl && !hideImage && (
         <div
           className={`relative overflow-hidden ${
             cardType === "searchpage"
@@ -170,6 +173,16 @@ function PropertyCardImpl(props: PropertyCardProps) {
       )}
 
       <div className="space-y-2 p-3 sm:space-y-3 sm:p-4">
+        {/* Price display when image is hidden - show prominently at top */}
+        {hideImage && (
+          <div className="flex w-full items-center justify-between">
+            <div className="text-lg font-bold text-brown sm:text-xl">
+              {formatPrice(price)}
+            </div>
+            {topContent && <div className="flex-shrink-0">{topContent}</div>}
+          </div>
+        )}
+
         {/* Address row: full width + proper truncate - hide on map */}
         {!isOnMap && (
           <div className="w-full">

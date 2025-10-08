@@ -18,7 +18,7 @@ export function SidebarList(props: {
   isLoading: boolean;
   isHomeSaved: (id: string) => boolean;
   onSave: (p: SearchResult) => void;
-  onViewDetails: (p: SearchResult) => void;
+  onNavigateToProperty: (p: SearchResult) => void;
   removeSavedHome: (id: string) => void;
   activeTab: "results" | "saved";
 }): JSX.Element {
@@ -28,7 +28,7 @@ export function SidebarList(props: {
     isLoading,
     isHomeSaved,
     onSave,
-    onViewDetails,
+    onNavigateToProperty,
     removeSavedHome,
     activeTab,
   } = props;
@@ -69,7 +69,7 @@ export function SidebarList(props: {
               ? "border-brown bg-brown/5"
               : "border-gray-200 hover:border-brown/50 hover:bg-gray-50"
           }`}
-          onClick={() => onViewDetails(property)}
+          onClick={() => onNavigateToProperty(property)}
         >
           {/* Loading overlay */}
           {isLoading && (

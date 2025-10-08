@@ -1,5 +1,7 @@
 import { useCallback, useRef, useEffect, useState } from "react";
 
+import { googleMapsService } from "../../services/googleMaps";
+
 export type MapCleanupOptions = {
   /** Google Maps instance reference */
   googleMapRef: React.MutableRefObject<google.maps.Map | null>;
@@ -64,83 +66,110 @@ export function useMapCleanup({
 
   // Clean up markers
   const cleanupMarkers = useCallback(() => {
+    console.log("🧹 [MAP_CLEANUP] Starting marker cleanup:", {
+      markersCount: markersRef?.current?.length || 0,
+      importantMarkersCount: importantMarkersRef?.current?.length || 0,
+      timestamp: new Date().toISOString(),
+    });
+
     if (markersRef?.current) {
-      markersRef.current.forEach((marker) => {
+      markersRef.current.forEach((marker, index) => {
         try {
           if (marker && typeof marker === "object" && "map" in marker) {
             (marker as { map: google.maps.Map | null }).map = null;
+            console.log(`✅ [MAP_CLEANUP] Cleaned up marker ${index + 1}`);
           }
         } catch (error) {
-          console.warn("⚠️ Error cleaning up marker:", error);
+          console.warn(`⚠️ [MAP_CLEANUP] Error cleaning up marker ${index + 1}:`, error);
         }
       });
       markersRef.current = [];
       memoryStatsRef.current.markers = 0;
+      console.log("✅ [MAP_CLEANUP] All markers cleaned up");
     }
 
     if (importantMarkersRef?.current) {
-      importantMarkersRef.current.forEach((marker) => {
+      importantMarkersRef.current.forEach((marker, index) => {
         try {
           if (marker && typeof marker === "object" && "map" in marker) {
             (marker as { map: google.maps.Map | null }).map = null;
+            console.log(`✅ [MAP_CLEANUP] Cleaned up important marker ${index + 1}`);
           }
         } catch (error) {
-          console.warn("⚠️ Error cleaning up important marker:", error);
+          console.warn(`⚠️ [MAP_CLEANUP] Error cleaning up important marker ${index + 1}:`, error);
         }
       });
       importantMarkersRef.current = [];
+      console.log("✅ [MAP_CLEANUP] All important markers cleaned up");
     }
   }, [markersRef, importantMarkersRef]);
 
   // Clean up overlays
   const cleanupOverlays = useCallback(() => {
+    console.log("🧹 [MAP_CLEANUP] Starting overlay cleanup:", {
+      overlaysCount: overlaysRef?.current?.length || 0,
+      timestamp: new Date().toISOString(),
+    });
+
     if (overlaysRef?.current) {
-      overlaysRef.current.forEach((overlay) => {
+      overlaysRef.current.forEach((overlay, index) => {
         try {
           if (overlay && typeof overlay === "object" && "setMap" in overlay) {
             (
               overlay as { setMap: (map: google.maps.Map | null) => void }
             ).setMap(null);
+            console.log(`✅ [MAP_CLEANUP] Cleaned up overlay ${index + 1}`);
           }
         } catch (error) {
-          console.warn("⚠️ Error cleaning up overlay:", error);
+          console.warn(`⚠️ [MAP_CLEANUP] Error cleaning up overlay ${index + 1}:`, error);
         }
       });
       overlaysRef.current = [];
       memoryStatsRef.current.overlays = 0;
+      console.log("✅ [MAP_CLEANUP] All overlays cleaned up");
     }
   }, [overlaysRef]);
 
   // Clean up polygons
   const cleanupPolygons = useCallback(() => {
+    console.log("🧹 [MAP_CLEANUP] Starting polygon cleanup:", {
+      polygonsCount: polygonsRef?.current?.length || 0,
+      individualPolygonsCount: individualPolygonsRef?.current?.length || 0,
+      timestamp: new Date().toISOString(),
+    });
+
     if (polygonsRef?.current) {
-      polygonsRef.current.forEach((polygon) => {
+      polygonsRef.current.forEach((polygon, index) => {
         try {
           if (polygon && typeof polygon === "object" && "setMap" in polygon) {
             (
               polygon as { setMap: (map: google.maps.Map | null) => void }
             ).setMap(null);
+            console.log(`✅ [MAP_CLEANUP] Cleaned up polygon ${index + 1}`);
           }
         } catch (error) {
-          console.warn("⚠️ Error cleaning up polygon:", error);
+          console.warn(`⚠️ [MAP_CLEANUP] Error cleaning up polygon ${index + 1}:`, error);
         }
       });
       polygonsRef.current = [];
+      console.log("✅ [MAP_CLEANUP] All polygons cleaned up");
     }
 
     if (individualPolygonsRef?.current) {
-      individualPolygonsRef.current.forEach((polygon) => {
+      individualPolygonsRef.current.forEach((polygon, index) => {
         try {
           if (polygon && typeof polygon === "object" && "setMap" in polygon) {
             (
               polygon as { setMap: (map: google.maps.Map | null) => void }
             ).setMap(null);
+            console.log(`✅ [MAP_CLEANUP] Cleaned up individual polygon ${index + 1}`);
           }
         } catch (error) {
-          console.warn("⚠️ Error cleaning up individual polygon:", error);
+          console.warn(`⚠️ [MAP_CLEANUP] Error cleaning up individual polygon ${index + 1}:`, error);
         }
       });
       individualPolygonsRef.current = [];
+      console.log("✅ [MAP_CLEANUP] All individual polygons cleaned up");
     }
 
     memoryStatsRef.current.polygons = 0;
@@ -148,15 +177,26 @@ export function useMapCleanup({
 
   // Complete cleanup
   const cleanup = useCallback(() => {
-    console.log("🧹 Starting map cleanup...");
+    console.log("🧹 [MAP_CLEANUP] Starting complete map cleanup:", {
+      hasMapInstance: !!googleMapRef.current,
+      mapInstanceStats: googleMapRef.current ? {
+        mapId: googleMapRef.current.getMapId?.() || 'unknown',
+        container: googleMapRef.current.getDiv(),
+        zoom: googleMapRef.current.getZoom(),
+        center: googleMapRef.current.getCenter(),
+      } : null,
+      timestamp: new Date().toISOString(),
+    });
 
     // Clear any pending cleanup
     if (cleanupTimeoutRef.current) {
       clearTimeout(cleanupTimeoutRef.current);
       cleanupTimeoutRef.current = null;
+      console.log("✅ [MAP_CLEANUP] Cleared pending cleanup timeout");
     }
 
     // Clean up all elements
+    console.log("🧹 [MAP_CLEANUP] Cleaning up map elements...");
     cleanupMarkers();
     cleanupOverlays();
     cleanupPolygons();
@@ -164,22 +204,28 @@ export function useMapCleanup({
     // Clear the map reference
     if (googleMapRef.current) {
       try {
-        // Clear all event listeners
-        if (window.google?.maps?.event) {
-          window.google.maps.event.clearInstanceListeners(googleMapRef.current);
-        }
+        console.log("🧹 [MAP_CLEANUP] Clearing map instance and event listeners");
+        
+        // Use the service's cleanup method for proper cleanup
+        googleMapsService.cleanupMapInstance(googleMapRef.current);
+        console.log("✅ [MAP_CLEANUP] Used service cleanup method");
 
-        // Clear the map
+        // Clear the map reference
         googleMapRef.current = null;
+        console.log("✅ [MAP_CLEANUP] Cleared map reference");
       } catch (error) {
-        console.warn("⚠️ Error clearing map reference:", error);
+        console.warn("⚠️ [MAP_CLEANUP] Error clearing map reference:", error);
       }
+    } else {
+      console.log("ℹ️ [MAP_CLEANUP] No map instance to clear");
     }
 
     // Update memory stats
     memoryStatsRef.current.totalElements = 0;
 
-    console.log("✅ Map cleanup completed");
+    console.log("✅ [MAP_CLEANUP] Complete map cleanup finished:", {
+      timestamp: new Date().toISOString(),
+    });
   }, [googleMapRef, cleanupMarkers, cleanupOverlays, cleanupPolygons]);
 
   // Get memory statistics

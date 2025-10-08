@@ -161,8 +161,6 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
                     ? address.substring(0, lastCommaIndex)
                     : address;
                 })()}
-
-                {selectedHome.address}
               </div>
               <div className="text-responsive-xs hidden text-gray-500 sm:block">
                 {selectedHome.beds && selectedHome.baths
@@ -209,7 +207,7 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
                       : "text-black hover:bg-brown/5"
                   }`}
                 >
-                  <div className="text-responsive-xs font-medium">
+                  <div className="text-responsive-xs">
                     {(() => {
                       const { address } = home;
                       const lastCommaIndex = address.lastIndexOf(",");
@@ -217,8 +215,6 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
                         ? address.substring(0, lastCommaIndex)
                         : address;
                     })()}
-
-                    {home.address}
                   </div>
                   <div className="text-responsive-xs mt-1 hidden text-gray-500 sm:block">
                     {home.beds && home.baths

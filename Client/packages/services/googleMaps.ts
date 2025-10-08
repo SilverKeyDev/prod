@@ -13,6 +13,8 @@ export class GoogleMapsService {
   private scriptUrl: string | null = null;
   private mapId: string | undefined;
   private loadPromise: Promise<void> | null = null;
+  private static mapInstanceCount = 0;
+  private static activeMapInstances = new Set<google.maps.Map>();
 
   private constructor() {
     this.mapId = this.getMapId();
@@ -290,6 +292,9 @@ export class GoogleMapsService {
       windowGoogleMapsMapTypeControlStyle:
         typeof window.google?.maps?.MapTypeControlStyle !== "undefined",
       windowGoogleMapsGeocoder: !!window.google?.maps?.Geocoder,
+      currentMapInstanceCount: GoogleMapsService.mapInstanceCount,
+      activeMapInstancesCount: GoogleMapsService.activeMapInstances.size,
+      timestamp: new Date().toISOString(),
     });
 
     if (!this.isGoogleMapsReady()) {
@@ -297,6 +302,22 @@ export class GoogleMapsService {
         "🗺️ [GMAPS_SERVICE] Google Maps not ready yet - missing required APIs",
       );
       return null;
+    }
+
+    // Check if container already has a map instance
+    const existingMapInstance = Array.from(GoogleMapsService.activeMapInstances).find(
+      map => map.getDiv() === container
+    );
+    
+    if (existingMapInstance) {
+      console.log("✅ [GMAPS_SERVICE] Container already has a map instance - reusing existing map:", {
+        container,
+        existingMapInstance,
+        timestamp: new Date().toISOString(),
+      });
+      
+      // Return the existing map instance instead of creating a new one
+      return existingMapInstance;
     }
 
     try {
@@ -317,6 +338,18 @@ export class GoogleMapsService {
         // Note: NO mapTypeId override - let cloud styling control the default
       });
 
+      // Track the new map instance
+      GoogleMapsService.mapInstanceCount++;
+      GoogleMapsService.activeMapInstances.add(map);
+      
+      console.log("✅ [GMAPS_SERVICE] Map instance created successfully:", {
+        mapInstance: map,
+        mapInstanceCount: GoogleMapsService.mapInstanceCount,
+        activeMapInstancesCount: GoogleMapsService.activeMapInstances.size,
+        container,
+        timestamp: new Date().toISOString(),
+      });
+
       return map;
     } catch (err: unknown) {
       const error = asError(err);
@@ -332,6 +365,101 @@ export class GoogleMapsService {
     if (window.google?.maps?.event && map) {
       window.google.maps.event.trigger(map, "resize");
     }
+  }
+
+  /**
+   * Clean up a map instance and remove it from tracking
+   */
+  public cleanupMapInstance(map: google.maps.Map): void {
+    console.log("🧹 [GMAPS_SERVICE] Cleaning up map instance:", {
+      mapInstance: map,
+      mapInstanceCount: GoogleMapsService.mapInstanceCount,
+      activeMapInstancesCount: GoogleMapsService.activeMapInstances.size,
+      timestamp: new Date().toISOString(),
+    });
+
+    try {
+      // Clear all event listeners first
+      if (window.google?.maps?.event) {
+        window.google.maps.event.clearInstanceListeners(map);
+        console.log("✅ [GMAPS_SERVICE] Cleared all event listeners");
+      }
+
+      // Remove from tracking
+      if (GoogleMapsService.activeMapInstances.has(map)) {
+        GoogleMapsService.activeMapInstances.delete(map);
+        console.log("✅ [GMAPS_SERVICE] Map instance removed from tracking:", {
+          remainingInstances: GoogleMapsService.activeMapInstances.size,
+          timestamp: new Date().toISOString(),
+        });
+      } else {
+        console.warn("⚠️ [GMAPS_SERVICE] Map instance not found in tracking:", {
+          mapInstance: map,
+          timestamp: new Date().toISOString(),
+        });
+      }
+    } catch (error) {
+      console.warn("⚠️ [GMAPS_SERVICE] Error during map cleanup:", error);
+    }
+  }
+
+  /**
+   * Clean up all map instances for a specific container
+   */
+  public cleanupContainerMaps(container: HTMLElement): void {
+    console.log("🧹 [GMAPS_SERVICE] Cleaning up all maps for container:", {
+      container,
+      timestamp: new Date().toISOString(),
+    });
+
+    const mapsToCleanup = Array.from(GoogleMapsService.activeMapInstances).filter(
+      map => map.getDiv() === container
+    );
+
+    console.log("🔍 [GMAPS_SERVICE] Found maps to cleanup:", {
+      count: mapsToCleanup.length,
+      maps: mapsToCleanup,
+    });
+
+    mapsToCleanup.forEach(map => {
+      this.cleanupMapInstance(map);
+    });
+
+    // Clear the container to ensure clean state
+    container.innerHTML = "";
+  }
+
+  /**
+   * Check if a container already has a map instance
+   */
+  public hasMapInContainer(container: HTMLElement): boolean {
+    return Array.from(GoogleMapsService.activeMapInstances).some(
+      map => map.getDiv() === container
+    );
+  }
+
+  /**
+   * Get the map instance for a specific container, if it exists
+   */
+  public getMapForContainer(container: HTMLElement): google.maps.Map | null {
+    return Array.from(GoogleMapsService.activeMapInstances).find(
+      map => map.getDiv() === container
+    ) || null;
+  }
+
+  /**
+   * Get current map instance statistics
+   */
+  public getMapInstanceStats(): {
+    totalCreated: number;
+    activeInstances: number;
+    activeMapInstances: google.maps.Map[];
+  } {
+    return {
+      totalCreated: GoogleMapsService.mapInstanceCount,
+      activeInstances: GoogleMapsService.activeMapInstances.size,
+      activeMapInstances: Array.from(GoogleMapsService.activeMapInstances),
+    };
   }
 
   /**

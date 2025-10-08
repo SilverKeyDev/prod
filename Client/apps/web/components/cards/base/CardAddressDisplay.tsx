@@ -26,27 +26,27 @@ const CardAddressDisplay: React.FC<CardAddressDisplayProps> = ({
   className = "",
   onClick,
 }) => {
-  // Size variants with consistent height scaling
+  // Size variants with larger fonts and single line display
   const sizeStyles = {
     xs: {
-      primary: "text-xs",
-      secondary: "text-xs",
-      minHeight: "1.5rem", // Minimal space for xs/sm
+      primary: "text-sm",
+      secondary: "text-sm",
+      minHeight: "1.25rem", // Single line height
     },
     sm: {
-      primary: "text-xs sm:text-sm",
-      secondary: "text-xs",
-      minHeight: "1.75rem", // Minimal space for sm/base
+      primary: "text-sm sm:text-base",
+      secondary: "text-sm",
+      minHeight: "1.25rem", // Single line height
     },
     md: {
-      primary: "text-sm sm:text-base",
-      secondary: "text-xs sm:text-sm",
-      minHeight: "2rem", // Minimal space for base/lg
-    },
-    lg: {
       primary: "text-base sm:text-lg",
       secondary: "text-sm sm:text-base",
-      minHeight: "2.25rem", // Minimal space for lg/xl
+      minHeight: "1.5rem", // Single line height
+    },
+    lg: {
+      primary: "text-lg sm:text-xl",
+      secondary: "text-base sm:text-lg",
+      minHeight: "1.75rem", // Single line height
     },
   };
 
@@ -62,6 +62,7 @@ const CardAddressDisplay: React.FC<CardAddressDisplayProps> = ({
 
   const containerClasses = [
     currentLayoutStyles,
+    "px-1.5", // 6px padding from card edges
     onClick
       ? "cursor-pointer hover:text-brown transition-colors touch-friendly"
       : "",
@@ -74,15 +75,11 @@ const CardAddressDisplay: React.FC<CardAddressDisplayProps> = ({
     <div className={containerClasses} onClick={onClick}>
       {/* Primary Address */}
       <h3
-        className={`${currentSizeStyles.primary} overflow-hidden font-medium text-black`}
+        className={`${currentSizeStyles.primary} overflow-hidden font-medium text-black whitespace-nowrap`}
         title={address}
         style={{
-          display: "-webkit-box",
-          WebkitLineClamp: 2,
-          WebkitBoxOrient: "vertical" as const,
-          wordBreak: "break-word",
-          hyphens: "auto",
-          minHeight: "3rem", // Reserve space for 2 lines at text-sm/base
+          textOverflow: "ellipsis",
+          minHeight: currentSizeStyles.minHeight,
         }}
       >
         {address}
@@ -91,14 +88,11 @@ const CardAddressDisplay: React.FC<CardAddressDisplayProps> = ({
       {/* Secondary Address */}
       {secondaryAddress && (
         <p
-          className={`${currentSizeStyles.secondary} text-black/60 ${variant === "compact" ? "ml-1" : ""} overflow-hidden leading-4`}
+          className={`${currentSizeStyles.secondary} text-black/60 ${variant === "compact" ? "ml-1" : ""} overflow-hidden whitespace-nowrap`}
           title={secondaryAddress}
           style={{
-            display: "-webkit-box",
-            WebkitLineClamp: 1,
-            WebkitBoxOrient: "vertical" as const,
-            wordBreak: "break-word",
-            hyphens: "auto",
+            textOverflow: "ellipsis",
+            minHeight: currentSizeStyles.minHeight,
           }}
         >
           {secondaryAddress}
@@ -108,14 +102,11 @@ const CardAddressDisplay: React.FC<CardAddressDisplayProps> = ({
       {/* Region */}
       {region && (
         <p
-          className={`${currentSizeStyles.secondary} font-medium text-brown ${variant === "detailed" ? "mt-1" : ""} overflow-hidden leading-4`}
+          className={`${currentSizeStyles.secondary} font-medium text-brown ${variant === "detailed" ? "mt-1" : ""} overflow-hidden whitespace-nowrap`}
           title={region}
           style={{
-            display: "-webkit-box",
-            WebkitLineClamp: 1,
-            WebkitBoxOrient: "vertical" as const,
-            wordBreak: "break-word",
-            hyphens: "auto",
+            textOverflow: "ellipsis",
+            minHeight: currentSizeStyles.minHeight,
           }}
         >
           {region}

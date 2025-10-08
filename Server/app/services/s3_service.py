@@ -319,12 +319,15 @@ class S3Service:
             if not expiration:
                 expiration = int(os.getenv('S3_PRESIGNED_URL_EXPIRATION', '3600'))
 
-            # For inline viewing, set Content-Disposition to inline
+            # For inline viewing, set Content-Disposition to inline and allow iframe embedding
             params = {
                 'Bucket': bucket_name,
                 'Key': s3_key,
                 'ResponseContentDisposition': 'inline',
-                'ResponseContentType': 'application/pdf'
+                'ResponseContentType': 'application/pdf',
+                # Allow iframe embedding by setting permissive headers
+                'ResponseCacheControl': 'public, max-age=3600',
+                'ResponseContentEncoding': 'identity'
             }
 
             presigned_url = self.s3_client.generate_presigned_url(

@@ -59,6 +59,7 @@ export default function SavedHomes() {
     handleDownloadDocument,
     handleShareDocument,
     currentPdf,
+    currentDocumentId,
     currentDocumentName,
     closePdfModal,
   } = useDocumentActions();
@@ -282,6 +283,7 @@ export default function SavedHomes() {
       <PdfModal
         currentPdf={currentPdf}
         currentReportAddress={currentDocumentName}
+        reportId={currentDocumentId}
         onClose={closePdfModal}
       />
       <DeleteModal

@@ -4,14 +4,26 @@ import type { SearchResult } from "../../../../../../packages/schemas/search";
 
 export function PropertyCarousel(props: {
   items: SearchResult[];
-  perPage: number;
   currentPage: number;
   isHomeSaved: (id: string) => boolean;
   onSave: (p: SearchResult) => void;
   onViewDetails: (p: SearchResult) => void;
+  onSlideChange?: (index: number) => void;
+  cardMinWidth?: number;
+  cardGap?: number;
+  infiniteLoop?: boolean;
 }): JSX.Element {
-  const { items, perPage, currentPage, isHomeSaved, onSave, onViewDetails } =
-    props;
+  const {
+    items,
+    currentPage,
+    isHomeSaved,
+    onSave,
+    onViewDetails,
+    onSlideChange,
+    cardMinWidth,
+    cardGap,
+    infiniteLoop,
+  } = props;
 
   if (items.length === 0) {
     return (
@@ -28,7 +40,7 @@ export function PropertyCarousel(props: {
 
   return (
     <CardCarousel
-      items={items.slice(currentPage * perPage, (currentPage + 1) * perPage)}
+      items={items}
       renderItem={(property: SearchResult, _index: number) => (
         <PropertyCard
           id={property.id}
@@ -52,9 +64,17 @@ export function PropertyCarousel(props: {
           onSave={() => onSave(property)}
           onViewDetails={() => onViewDetails(property)}
           cardType="searchpage"
+          hideImage={true}
         />
       )}
       getItemKey={(property: SearchResult, _index: number) => property.id}
+      cardMinWidth={cardMinWidth}
+      cardGap={cardGap}
+      infiniteLoop={infiniteLoop}
+      centerMode={false}
+      selectedItem={currentPage}
+      onSlideChange={onSlideChange}
+      key={`carousel-${items.length}`}
     />
   );
 }

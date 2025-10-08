@@ -1,16 +1,11 @@
-import {
-  usePropertyDetails,
-  type Property,
-} from "../../../../packages/hooks/data/usePropertyDetails";
+import React from "react";
+
 import {
   formatFilenameToAddress,
   truncateText,
   formatLotSize,
 } from "../../../../packages/utils/address";
-import ModalPortal from "../modals/ModalPortal";
-import PropertyDetailsModal from "../modals/PropertyDetailsModal";
-
-import { CardViewDetailsButton, CardHeartSave, TrianglePointer } from "./base";
+import { CardHeartSave, CardViewDetailsButton, TrianglePointer } from "./base";
 import PropertyCard from "./PropertyCard";
 
 export type HomeDescription = {
@@ -30,7 +25,7 @@ export type HomeDescription = {
   [key: string]: unknown; // allow additional properties for future use
 };
 
-type HomeCardProps = {
+type MapHomeCardProps = {
   home: HomeDescription;
   /** Function to check if home is saved */
   isHomeSaved?: (homeId: string) => boolean;
@@ -43,14 +38,16 @@ type HomeCardProps = {
   /** Whether this card is displayed on the map (adds triangle pointer) */
   isOnMap?: boolean;
   /** Function to focus on this property in the map/search */
-  onFocus?: (property: Property) => void;
+  onFocus?: (property: any) => void;
+  /** Loading state for the card */
+  loading?: boolean;
 };
 
 /**
- * Simple presentation component to display a saved home.
- * Can be enhanced later with images, price, address, etc.
+ * Pure presentational MapHomeCard that looks exactly like HomeCard but without React Query hooks
+ * All data fetching should be done in parent components that are inside QueryClientProvider
  */
-export default function HomeCard({
+export default function MapHomeCard({
   home,
   isHomeSaved = () => true, // Default to true since these are saved homes
   onSave = () => {},
@@ -58,14 +55,8 @@ export default function HomeCard({
   showScore = false,
   isOnMap = false,
   onFocus,
-}: HomeCardProps) {
-  const {
-    isLoading,
-    selectedProperty,
-    fetchPropertyDetails,
-    clearSelectedProperty,
-  } = usePropertyDetails();
-
+  loading = false,
+}: MapHomeCardProps) {
   // Use actual address if available, otherwise format home_id
   const formattedAddress = formatFilenameToAddress(home.home_id);
   const actualAddress = home.address ?? formattedAddress;
@@ -73,7 +64,7 @@ export default function HomeCard({
   const displayName = truncateText(rawDisplayName, 35);
 
   // Convert HomeDescription to Property format for API call
-  const convertToProperty = (homeDesc: HomeDescription): Property => {
+  const convertToProperty = (homeDesc: HomeDescription) => {
     const lat = homeDesc.lat ?? 37.7749;
     const lng = homeDesc.lng ?? -122.4194;
     return {
@@ -98,71 +89,6 @@ export default function HomeCard({
 
   // Use pre-calculated score if available
   const score = showScore ? home.calculatedScore : undefined;
-
-  // Handle Unlock button click
-  const handleViewDetails = async () => {
-    const propertyData = convertToProperty(home);
-    // Use address instead of zpid for HomeCard
-    await fetchPropertyDetails(propertyData);
-  };
-
-  // Modal functions for property details
-  const isHomeSavedForModal = (propertyId: string) => isHomeSaved(propertyId);
-  const saveHomeForModal = async (
-    property:
-      | Property
-      | import("../../../../packages/schemas/search").SearchResult
-  ) => {
-    // Convert Property back to HomeDescription format for onSave
-    type PropertyWithExtras = Property & {
-      latitude?: number;
-      longitude?: number;
-      images?: string[];
-      imageUrl?: string;
-      price?: string | number; // Override price to allow both string and number
-    };
-    const prop = property as PropertyWithExtras;
-    const homeDescription: HomeDescription = {
-      home_id: prop.id,
-      address: prop.address,
-      price: (() => {
-        if (typeof prop.price === "number") {
-          return `$${(prop.price as number).toLocaleString()}`;
-        } else if (typeof prop.price === "string") {
-          return prop.price;
-        } else {
-          return "Price not available";
-        }
-      })(),
-      bedrooms: prop.bedrooms,
-      bathrooms: prop.bathrooms,
-      sqft: prop.sqft,
-      lat: prop.lat ?? prop.latitude,
-      lng: prop.lng ?? prop.longitude,
-      image_url: prop.images?.[0] ?? prop.imageUrl,
-      calculatedScore: home.calculatedScore, // Preserve original score
-    };
-    await onSave(homeDescription);
-  };
-  const removeSavedHomeForModal = async (propertyId: string) => {
-    await onRemove(propertyId);
-  };
-
-  // Handle generate report navigation
-  const handleGenerateReport = (address: string) => {
-    // Save the address to localStorage for the GenerateReportPage
-    const generateReportState = {
-      address,
-      comparisonAddress: "",
-      reportType: "detailed",
-      selectedClientId: "",
-    };
-
-    localStorage.setItem(
-      "generateReportState",
-      JSON.stringify(generateReportState)
-    );
-  };
 
   // Handle card click to focus on property
   const handleCardClick = () => {
@@ -193,7 +119,7 @@ export default function HomeCard({
         sqft={home.sqft && home.sqft > 0 ? home.sqft : undefined}
         lotSize={formatLotSize(home.lot_size as string | number | undefined)}
         pricePosition="below-address"
-        loading={isLoading}
+        loading={loading}
         cardType="searchpage"
         score={score}
         showScore={showScore}
@@ -203,7 +129,7 @@ export default function HomeCard({
             property={convertToProperty(home)}
             isSaved={isHomeSaved(home.home_id)}
             onSave={async (property) => {
-              const prop = property as Property;
+              const prop = property as any;
               const homeDesc: HomeDescription = {
                 home_id: prop.id,
                 address: prop.address,
@@ -224,8 +150,12 @@ export default function HomeCard({
         }
         bottomContent={
           <CardViewDetailsButton
-            onClick={handleViewDetails}
-            loading={isLoading}
+            onClick={() => {
+              // For map cards, we don't have modal functionality
+              // This could trigger a different action or be disabled
+              console.log("View details clicked for map card");
+            }}
+            loading={loading}
             size="sm"
             variant="primary"
             fullWidth
@@ -233,20 +163,6 @@ export default function HomeCard({
           />
         }
       />
-
-      {/* Property Details Modal */}
-      {selectedProperty && (
-        <ModalPortal>
-          <PropertyDetailsModal
-            property={selectedProperty}
-            onClose={clearSelectedProperty}
-            isHomeSaved={isHomeSavedForModal}
-            saveHome={saveHomeForModal}
-            removeSavedHome={removeSavedHomeForModal}
-            onGenerateReport={handleGenerateReport}
-          />
-        </ModalPortal>
-      )}
     </div>
   );
 }

@@ -33,6 +33,43 @@ export const useMapInitialization = ({
   const resizeObserverRef = useRef<ResizeObserver | null>(null);
   const mqlRef = useRef<MediaQueryList | null>(null);
 
+  // Add render tracking
+  const renderCountRef = useRef(0);
+  const lastRenderDepsRef = useRef<{
+    isLocalStorageLoaded: boolean;
+    isGoogleMapsLoaded: boolean;
+  } | null>(null);
+
+  renderCountRef.current++;
+  
+  console.log("🔄 [MAP_INITIALIZATION] Hook render:", {
+    renderCount: renderCountRef.current,
+    isLocalStorageLoaded,
+    isGoogleMapsLoaded,
+    isInitialized: isInitializedRef.current,
+    currentContainer: currentContainerRef.current,
+    hasMapInstance: !!googleMapRef.current,
+    mapInstanceStats: googleMapsService.getMapInstanceStats(),
+    timestamp: new Date().toISOString(),
+  });
+
+  // Track dependency changes
+  const currentDeps = { isLocalStorageLoaded, isGoogleMapsLoaded };
+  if (lastRenderDepsRef.current) {
+    const depsChanged = Object.keys(currentDeps).some(
+      key => lastRenderDepsRef.current![key as keyof typeof currentDeps] !== currentDeps[key as keyof typeof currentDeps]
+    );
+    
+    if (depsChanged) {
+      console.log("📊 [MAP_INITIALIZATION] Dependencies changed:", {
+        previous: lastRenderDepsRef.current,
+        current: currentDeps,
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }
+  lastRenderDepsRef.current = currentDeps;
+
   const getVisibleContainer = () => {
     if (typeof window === "undefined") return null;
     const isDesktop = window.matchMedia(DESKTOP_QUERY).matches;
@@ -66,37 +103,89 @@ export const useMapInitialization = ({
   };
 
   const createInContainer = (container: HTMLDivElement) => {
-    // Clean the container to prevent stacking multiple canvases if reusing a node
-    container.innerHTML = "";
+    console.log("🏗️ [MAP_INITIALIZATION] Creating map in container:", {
+      container,
+      containerVisible: container.offsetWidth > 0 && container.offsetHeight > 0,
+      containerBounds: container.getBoundingClientRect(),
+      isInitialized: isInitializedRef.current,
+      currentContainer: currentContainerRef.current,
+      hasExistingMap: !!googleMapRef.current,
+      mapInstanceStats: googleMapsService.getMapInstanceStats(),
+      timestamp: new Date().toISOString(),
+    });
+
+    // Clean up any existing maps in this container before creating a new one
+    googleMapsService.cleanupContainerMaps(container);
 
     const map = googleMapsService.createMap(container);
     if (!map) {
-      console.error("❌ Failed to create Google Map");
+      console.error("❌ [MAP_INITIALIZATION] Failed to create Google Map");
       return null;
     }
+    
+    console.log("✅ [MAP_INITIALIZATION] Map created successfully:", {
+      mapInstance: map,
+      container,
+      timestamp: new Date().toISOString(),
+    });
+
     googleMapRef.current = map;
     currentContainerRef.current = container;
 
     // Kick a resize after initial paint for tiles/layout correctness
     setTimeout(() => {
       if (googleMapRef.current) {
+        console.log("🔄 [MAP_INITIALIZATION] Triggering initial map resize");
         googleMapsService.triggerMapResize(googleMapRef.current);
       }
     }, 60);
 
     attachResizeObserver(container);
 
-    if (onMapReady) onMapReady(map);
+    if (onMapReady) {
+      console.log("🎯 [MAP_INITIALIZATION] Calling onMapReady callback");
+      onMapReady(map);
+    }
     return map;
   };
 
   // Initial create when both prerequisites are ready
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    console.log("🎯 [MAP_INITIALIZATION] Initial useEffect triggered:", {
+      isLocalStorageLoaded,
+      isGoogleMapsLoaded,
+      isInitialized: isInitializedRef.current,
+      currentContainer: currentContainerRef.current,
+      hasMapInstance: !!googleMapRef.current,
+      timestamp: new Date().toISOString(),
+    });
 
-    if (!isLocalStorageLoaded || !isGoogleMapsLoaded) return;
+    if (typeof window === "undefined") {
+      console.log("🌐 [MAP_INITIALIZATION] Skipping - window undefined (SSR)");
+      return;
+    }
+
+    if (!isLocalStorageLoaded || !isGoogleMapsLoaded) {
+      console.log("⏳ [MAP_INITIALIZATION] Prerequisites not ready:", {
+        isLocalStorageLoaded,
+        isGoogleMapsLoaded,
+      });
+      return;
+    }
+    
     const container = getVisibleContainer();
-    if (!container) return;
+    if (!container) {
+      console.log("❌ [MAP_INITIALIZATION] No visible container found");
+      return;
+    }
+
+    console.log("🔍 [MAP_INITIALIZATION] Checking if already initialized:", {
+      isInitialized: isInitializedRef.current,
+      currentContainer: currentContainerRef.current,
+      targetContainer: container,
+      containersMatch: currentContainerRef.current === container,
+      hasMapInstance: !!googleMapRef.current,
+    });
 
     // If already initialized into this same container, skip
     if (
@@ -104,9 +193,11 @@ export const useMapInitialization = ({
       currentContainerRef.current === container &&
       googleMapRef.current
     ) {
+      console.log("✅ [MAP_INITIALIZATION] Already initialized in same container - skipping");
       return;
     }
 
+    console.log("🚀 [MAP_INITIALIZATION] Proceeding with map initialization");
     isInitializedRef.current = true;
     createInContainer(container);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -114,25 +205,53 @@ export const useMapInitialization = ({
 
   // React to breakpoint changes (mobile <-> desktop)
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    console.log("📱 [MAP_INITIALIZATION] Breakpoint useEffect triggered");
+    
+    if (typeof window === "undefined") {
+      console.log("🌐 [MAP_INITIALIZATION] Skipping breakpoint setup - window undefined (SSR)");
+      return;
+    }
 
     const mql = window.matchMedia(DESKTOP_QUERY);
     mqlRef.current = mql;
 
+    console.log("📊 [MAP_INITIALIZATION] Setting up media query listener:", {
+      query: DESKTOP_QUERY,
+      matches: mql.matches,
+      currentContainer: currentContainerRef.current,
+      hasMapInstance: !!googleMapRef.current,
+    });
+
     const handleChange = () => {
+      console.log("📱 [MAP_INITIALIZATION] Breakpoint changed:", {
+        query: DESKTOP_QUERY,
+        matches: mql.matches,
+        currentContainer: currentContainerRef.current,
+        hasMapInstance: !!googleMapRef.current,
+        timestamp: new Date().toISOString(),
+      });
+
       const nextContainer = getVisibleContainer();
-      if (!nextContainer) return;
+      if (!nextContainer) {
+        console.log("❌ [MAP_INITIALIZATION] No container found for new breakpoint");
+        return;
+      }
 
       // If the map is already in the right container, just trigger resize
       if (
         currentContainerRef.current === nextContainer &&
         googleMapRef.current
       ) {
+        console.log("🔄 [MAP_INITIALIZATION] Map already in correct container - triggering resize");
         googleMapsService.triggerMapResize(googleMapRef.current);
         return;
       }
 
       // Otherwise, (re)create the map in the new container
+      console.log("🔄 [MAP_INITIALIZATION] Moving map to new container:", {
+        fromContainer: currentContainerRef.current,
+        toContainer: nextContainer,
+      });
       createInContainer(nextContainer);
     };
 

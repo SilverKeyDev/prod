@@ -7,6 +7,7 @@
  * Generate optimized PDF viewer URL with performance parameters
  * @param pdfUrl - The base PDF URL
  * @param options - Optional configuration for the PDF viewer
+ * @param reportId - Optional report ID to use proxy endpoint for iframe-friendly viewing
  * @returns Optimized PDF viewer URL
  */
 export const generateOptimizedPdfUrl = (
@@ -17,14 +18,20 @@ export const generateOptimizedPdfUrl = (
     disableScrollbars?: boolean;
     viewMode?: 'FitH' | 'FitV' | 'Fit' | 'FitB';
     enableFullscreen?: boolean;
-  } = {}
+  } = {},
+  reportId?: string
 ): string => {
+  // If we have a reportId, use the proxy endpoint for iframe-friendly viewing
+  if (reportId && typeof window !== 'undefined') {
+    const baseUrl = window.location.origin;
+    return `${baseUrl}/api/v1/report/${reportId}/view`;
+  }
+
   const {
     disableToolbar = true,
     disableNavPanes = true,
     disableScrollbars = true,
     viewMode = 'FitH',
-    enableFullscreen = true,
   } = options;
 
   const params = new URLSearchParams();
@@ -47,7 +54,7 @@ export const generateOptimizedPdfUrl = (
  * Balances security with functionality needed for PDF viewing
  */
 export const getPdfIframeSandbox = (): string => {
-  return 'allow-same-origin allow-scripts allow-forms allow-downloads allow-popups allow-popups-to-escape-sandbox';
+  return 'allow-same-origin allow-scripts allow-forms allow-downloads allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation';
 };
 
 /**

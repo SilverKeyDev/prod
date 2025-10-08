@@ -13,6 +13,7 @@ import MiniLogo from "../ui/asset/MiniLogo";
 export type PdfModalProps = {
   currentPdf: string | null;
   currentReportAddress: string | null;
+  reportId?: string | null;
   onClose: () => void;
   onShare?: () => void;
   // reports?: unknown[]; // Optional, not used in modal rendering
@@ -21,6 +22,7 @@ export type PdfModalProps = {
 const PdfModal: React.FC<PdfModalProps> = ({
   currentPdf,
   currentReportAddress,
+  reportId,
   onClose,
   onShare,
 }) => {
@@ -62,6 +64,12 @@ const PdfModal: React.FC<PdfModalProps> = ({
     }
   };
 
+  const handleOpenInNewTab = () => {
+    if (currentPdf) {
+      window.open(currentPdf, "_blank", "noopener,noreferrer");
+    }
+  };
+
   if (!currentPdf) return null;
 
   return (
@@ -85,20 +93,20 @@ const PdfModal: React.FC<PdfModalProps> = ({
           style={{ borderRadius: "24px 24px 0 0" }}
         >
           {/* Logo and Address Title */}
-          <div className="gap-responsive-sm flex items-center">
+          <div className="gap-responsive-sm flex items-center min-w-0 flex-1">
             <div
-              className="text-white"
+              className="text-white flex-shrink-0"
               style={{ filter: "brightness(0) invert(1)" }}
             >
               <MiniLogo className="mobile-icon-lg" />
             </div>
-            <h2 className="text-responsive-lg truncate font-semibold text-white">
+            <h2 className="text-responsive-lg truncate font-semibold text-white min-w-0">
               {getReportTitle()}
             </h2>
           </div>
 
           {/* Action Buttons */}
-          <div className="gap-responsive-sm flex items-center">
+          <div className="gap-responsive-sm flex items-center flex-shrink-0">
             {/* Download Button (Desktop only) */}
             <button
               onClick={handleDownload}
@@ -106,6 +114,27 @@ const PdfModal: React.FC<PdfModalProps> = ({
               title="Download PDF"
             >
               <Download className="h-6 w-6 text-white transition-transform duration-200 group-hover:scale-110" />
+            </button>
+
+            {/* Open in New Tab Button (Desktop only) */}
+            <button
+              onClick={handleOpenInNewTab}
+              className="group hidden rounded-lg p-2 transition-colors duration-200 hover:bg-white/10 sm:flex"
+              title="Open in New Tab"
+            >
+              <svg
+                className="h-6 w-6 text-white transition-transform duration-200 group-hover:scale-110"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                />
+              </svg>
             </button>
 
             {/* Share Button (Desktop only) */}
@@ -133,11 +162,12 @@ const PdfModal: React.FC<PdfModalProps> = ({
         {/* PDF Content */}
         <div className="flex-1 overflow-hidden" style={getPdfViewerStyles()}>
           <iframe
-            src={generateOptimizedPdfUrl(currentPdf)}
+            src={generateOptimizedPdfUrl(currentPdf, {}, reportId || undefined)}
             className="h-full w-full border-0"
             title="PDF Viewer"
             allow={getPdfIframeAllow()}
             sandbox={getPdfIframeSandbox()}
+            referrerPolicy="no-referrer"
             onLoad={() => {
               /* PDF loaded successfully */
             }}
@@ -193,6 +223,10 @@ const PdfModal: React.FC<PdfModalProps> = ({
                 description.textContent =
                   "The PDF couldn't be displayed in the browser. You can download it directly instead.";
 
+                const buttonContainer = document.createElement("div");
+                buttonContainer.style.cssText =
+                  "display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;";
+
                 const downloadLink = document.createElement("a");
                 downloadLink.href = currentPdf;
                 downloadLink.download = "";
@@ -204,8 +238,23 @@ const PdfModal: React.FC<PdfModalProps> = ({
                 downloadLink.onmouseout = () =>
                   (downloadLink.style.background = "#A47551");
 
+                const openTabButton = document.createElement("button");
+                openTabButton.style.cssText =
+                  "background: #6B7280; color: white; padding: 12px 24px; border: none; border-radius: 8px; font-weight: 500; cursor: pointer; transition: background 0.2s;";
+                openTabButton.textContent = "Open in New Tab";
+                openTabButton.onclick = () => {
+                  window.open(currentPdf, "_blank", "noopener,noreferrer");
+                };
+                openTabButton.onmouseover = () =>
+                  (openTabButton.style.background = "#4B5563");
+                openTabButton.onmouseout = () =>
+                  (openTabButton.style.background = "#6B7280");
+
+                buttonContainer.appendChild(downloadLink);
+                buttonContainer.appendChild(openTabButton);
+
                 contentDiv.appendChild(description);
-                contentDiv.appendChild(downloadLink);
+                contentDiv.appendChild(buttonContainer);
 
                 iframe.contentDocument.body.textContent = "";
                 iframe.contentDocument.body.appendChild(errorDiv);

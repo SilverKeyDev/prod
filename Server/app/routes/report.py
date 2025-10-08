@@ -654,6 +654,88 @@ def get_view_url(user, report_id):
         logger.error(f"Traceback: {traceback.format_exc()}")
         return jsonify({'error': 'Internal server error'}), 500
 
+@report_bp.route('/<report_id>/view', methods=['GET'])
+@require_authenticated_user
+def view_pdf_inline(user, report_id):
+    """Serve PDF with iframe-friendly headers for inline viewing."""
+    try:
+        logger.info(f"PDF view request for report_id: {report_id}, user: {user.id if user else 'None'}")
+        
+        if not report_id:
+            logger.error("No report ID provided")
+            return jsonify({'error': 'Report ID is required'}), 400
+
+        # Get current user for authorization
+        user = get_current_user()
+        if not user:
+            logger.error("No authenticated user found")
+            return jsonify({'error': 'Authentication required'}), 401
+
+        # Fetch report from DB with user ownership validation
+        report = PDFDocument.query.filter_by(id=report_id, user_id=user.id).first()
+        if not report:
+            logger.error(f"Report not found or access denied for ID: {report_id}, user: {user.id}")
+            return jsonify({'error': 'Report not found'}), 404
+
+        logger.info(f"Found report: {report.filename}, file_path: {report.file_path}")
+
+        pdf_url = report.file_path
+        if not pdf_url:
+            logger.error(f"PDF URL or S3 key missing for report: {report_id}")
+            return jsonify({'error': 'PDF not found for this report'}), 404
+
+        # Get PDF content from S3
+        pdf_data = None
+        if pdf_url.startswith("http"):
+            # If it's already a presigned URL, fetch the content
+            try:
+                import requests
+                logger.info(f"Fetching PDF from presigned URL: {pdf_url[:100]}...")
+                response = requests.get(pdf_url, timeout=30)
+                if response.status_code == 200:
+                    pdf_data = response.content
+                    logger.info(f"Successfully fetched PDF content, size: {len(pdf_data)} bytes")
+                else:
+                    logger.error(f"Failed to fetch PDF from URL: {response.status_code}")
+                    return jsonify({'error': 'Failed to fetch PDF content'}), 500
+            except Exception as e:
+                logger.error(f"Error fetching PDF from URL: {str(e)}")
+                return jsonify({'error': 'Failed to fetch PDF content'}), 500
+        else:
+            # Get from S3 using the S3 key
+            logger.info(f"Fetching PDF from S3 with key: {pdf_url}")
+            pdf_data = s3_service.get_pdf(pdf_url)
+            if not pdf_data:
+                logger.error(f"Failed to get PDF data from S3 for key: {pdf_url}")
+                return jsonify({'error': 'Failed to retrieve PDF content'}), 500
+            logger.info(f"Successfully fetched PDF from S3, size: {len(pdf_data)} bytes")
+
+        # Serve PDF with iframe-friendly headers
+        from flask import Response
+        logger.info("Serving PDF with iframe-friendly headers")
+        response = Response(
+            pdf_data,
+            mimetype='application/pdf',
+            headers={
+                'Content-Type': 'application/pdf',
+                'Content-Disposition': f'inline; filename="{report.filename}"',
+                # Allow iframe embedding
+                'X-Frame-Options': 'SAMEORIGIN',
+                'Content-Security-Policy': "frame-ancestors 'self'",
+                'Cache-Control': 'public, max-age=3600',
+            }
+        )
+        
+        return response
+
+    except (SecurityException, ExpiredSignatureError, JWTError) as e:
+        logger.error(f"Authentication error in view_pdf_inline: {str(e)}")
+        return jsonify({'success': False, 'error': 'Authentication required'}), 401
+    except Exception as e:
+        logger.error(f"Error serving PDF for report {report_id}: {str(e)}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        return jsonify({'error': 'Internal server error'}), 500
+
 @report_bp.route('/compare', methods=['POST'])
 def compare_reports_endpoint():
     """Compare multiple report JSON files and return flattened table data."""

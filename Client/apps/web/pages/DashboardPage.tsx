@@ -70,6 +70,7 @@ export default function Dashboard() {
     handleDownloadDocument,
     handleShareDocument,
     currentPdf,
+    currentDocumentId,
     currentDocumentName,
     closePdfModal,
   } = useDocumentActions();
@@ -348,6 +349,7 @@ export default function Dashboard() {
         <PdfModal
           currentPdf={currentPdf}
           currentReportAddress={currentDocumentName}
+          reportId={currentDocumentId}
           onClose={closePdfModal}
         />
       )}
@@ -360,71 +362,74 @@ export default function Dashboard() {
         }
       />
 
-      {/* Favorite Homes */}
-      <div className="my-8">
-        <CardCarousel
-          items={favoriteHomes}
-          embeddedButton={
-            <NavigationButton
-              onClick={handleSavedHomesClick}
-              size="md"
-              arrowType="chevron"
-            >
-              Your Saved Homes
-            </NavigationButton>
-          }
-          loading={favLoading}
-          error={favError}
-          emptyMessage="Save your first home today"
-          renderItem={(home) => (
-            <HomeCard
-              home={home}
-              isHomeSaved={isHomeSaved}
-              onSave={handleSaveHome}
-              onRemove={handleRemoveHome}
-            />
-          )}
-          getItemKey={(home) => home.home_id}
-          cardMinWidth={280}
-          cardGap={16}
-          infiniteLoop={false}
-          ariaLabel="Saved homes carousel"
-        />
-      </div>
+      {/* Dashboard Sections */}
+      <div className="mx-4">
+        {/* Favorite Homes */}
+        <div className="my-8">
+          <CardCarousel
+            items={favoriteHomes}
+            embeddedButton={
+              <NavigationButton
+                onClick={handleSavedHomesClick}
+                size="md"
+                arrowType="chevron"
+              >
+                Your Saved Homes
+              </NavigationButton>
+            }
+            loading={favLoading}
+            error={favError}
+            emptyMessage="Save your first home today"
+            renderItem={(home) => (
+              <HomeCard
+                home={home}
+                isHomeSaved={isHomeSaved}
+                onSave={handleSaveHome}
+                onRemove={handleRemoveHome}
+              />
+            )}
+            getItemKey={(home) => home.home_id}
+            cardMinWidth={280}
+            cardGap={16}
+            infiniteLoop={false}
+            ariaLabel="Saved homes carousel"
+          />
+        </div>
 
-      {/* Recent Reports */}
-      <div className="my-8">
-        <CardCarousel<Report>
-          items={reports}
-          embeddedButton={
-            <NavigationButton
-              onClick={handleDocumentsClick}
-              size="md"
-              arrowType="chevron"
-            >
-              Your Reports
-            </NavigationButton>
-          }
-          loading={reportsLoading}
-          error={null}
-          emptyMessage="Generate your first property report to get started"
-          renderItem={(report: Report) => (
-            <ReportCard
-              report={report}
-              loadingUrls={loadingUrls}
-              viewMode="grid"
-              onView={handleViewDocument}
-              onDownload={handleDownloadDocument}
-              onShare={() => handleShareReport(report)}
-              onDelete={openDeleteModal}
-            />
-          )}
-          getItemKey={(report: Report) => report.id}
-          cardMinWidth={280}
-          cardGap={16}
-          infiniteLoop={false}
-          ariaLabel="Recent reports carousel"
-        />
+        {/* Recent Reports */}
+        <div className="my-8">
+          <CardCarousel<Report>
+            items={reports}
+            embeddedButton={
+              <NavigationButton
+                onClick={handleDocumentsClick}
+                size="md"
+                arrowType="chevron"
+              >
+                Your Reports
+              </NavigationButton>
+            }
+            loading={reportsLoading}
+            error={null}
+            emptyMessage="Generate your first property report to get started"
+            renderItem={(report: Report) => (
+              <ReportCard
+                report={report}
+                loadingUrls={loadingUrls}
+                viewMode="grid"
+                onView={handleViewDocument}
+                onDownload={handleDownloadDocument}
+                onShare={() => handleShareReport(report)}
+                onDelete={openDeleteModal}
+              />
+            )}
+            getItemKey={(report: Report) => report.id}
+            cardMinWidth={280}
+            cardGap={16}
+            infiniteLoop={false}
+            ariaLabel="Recent reports carousel"
+          />
+        </div>
       </div>
     </div>
   );

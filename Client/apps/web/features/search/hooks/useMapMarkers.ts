@@ -24,11 +24,7 @@ interface GoogleAdvancedMarkerElement extends GoogleMarker {
   content: HTMLElement;
 }
 
-interface PropertyOverlayInterface {
-  setMap: (map: GoogleMap | null) => void;
-  onAdd: () => void;
-  onRemove: () => void;
-}
+
 
 type UseMapMarkersProps = {
   googleMapRef: React.RefObject<GoogleMap>;
@@ -70,24 +66,18 @@ export const useMapMarkers = ({
   // Handle rendering important location markers
   const handleRenderImportantLocationMarkers = useCallback(
     (data: unknown) => {
-      if (!googleMapRef.current) return;
+      if (!googleMapRef.current) {
+        return;
+      }
 
       // Validate data before passing to render function
       if (!data || typeof data !== "object") {
-        if (console && typeof console.warn === "function") {
-          console.warn("Invalid isochrone data for rendering markers");
-        }
         return;
       }
 
       // Type guard to ensure data has required IsochroneData properties
       const isochroneData = data as IsochroneData;
       if (!isochroneData.center || !isochroneData.locations) {
-        if (console && typeof console.warn === "function") {
-          console.warn(
-            "Invalid isochrone data structure for rendering markers",
-          );
-        }
         return;
       }
 
@@ -96,8 +86,10 @@ export const useMapMarkers = ({
         map: googleMapRef.current,
         importantMarkersRef,
         setImportantLocationMarkers: (markers) => {
+          console.log("🗺️ [IMPORTANT MARKERS] Setting important markers:", markers);
           if (Array.isArray(markers)) {
             importantMarkersRef.current = markers;
+            console.log(`🗺️ [IMPORTANT MARKERS] Set ${markers.length} important markers`);
           }
         },
         resetToDefaultZoom: () => {
@@ -156,96 +148,20 @@ export const useMapMarkers = ({
     importantMarkersRef.current = [];
   }, []);
 
-  // Marker color calculation based on property score
-  const getScoreBasedPinColor = (score: number) => {
-    const normalizedScore = Math.max(0, Math.min(100, score)) / 100;
-
-    const highColor = { r: 123, g: 158, b: 124 }; // #7B9E7C
-    const midColor = { r: 240, g: 233, b: 210 }; // #F0E9D2
-    const lowColor = { r: 216, g: 140, b: 140 }; // #D88C8C
-
-    let r: number, g: number, b: number;
-
-    if (normalizedScore >= 0.5) {
-      const t = (normalizedScore - 0.5) * 2;
-      r = Math.round(midColor.r + (highColor.r - midColor.r) * t);
-      g = Math.round(midColor.g + (highColor.g - midColor.g) * t);
-      b = Math.round(midColor.b + (highColor.b - midColor.b) * t);
-    } else {
-      const t = normalizedScore * 2;
-      r = Math.round(lowColor.r + (midColor.r - lowColor.r) * t);
-      g = Math.round(lowColor.g + (midColor.g - lowColor.g) * t);
-      b = Math.round(lowColor.b + (midColor.b - lowColor.b) * t);
-    }
-
-    const fillColor = `rgb(${r}, ${g}, ${b})`;
-    const strokeColor = `rgb(${Math.round(r * 0.75)}, ${Math.round(
-      g * 0.75,
-    )}, ${Math.round(b * 0.75)})`;
-
-    return { fillColor, strokeColor };
-  };
-
-  // Factory function to create PropertyOverlay class when Google Maps is loaded
-  const createPropertyOverlayClass = () => {
-    if (!window.google?.maps?.OverlayView) {
-      return null;
-    }
-
-    class PropertyOverlay implements PropertyOverlayInterface {
-      private div: HTMLElement;
-      private position: { lat: number; lng: number };
-      private map: GoogleMap | null;
-
-      constructor(position: { lat: number; lng: number }, content: HTMLElement) {
-        this.position = position;
-        this.div = content;
-        this.map = null;
-      }
-
-      setMap(map: GoogleMap | null) {
-        this.map = map;
-        if (map) {
-          this.onAdd();
-        } else {
-          this.onRemove();
-        }
-      }
-
-      onAdd(): void {
-        // Simple implementation without Google Maps API dependencies
-        if (this.map && this.map.getDiv) {
-          const mapDiv = this.map.getDiv();
-          if (mapDiv) {
-            mapDiv.appendChild(this.div);
-          }
-        }
-      }
-
-      draw(): void {
-        // Simple positioning without Google Maps API dependencies
-        if (this.position && this.div) {
-          this.div.style.position = 'absolute';
-          this.div.style.left = '50%';
-          this.div.style.top = '50%';
-          this.div.style.transform = 'translate(-50%, -50%)';
-        }
-      }
-
-      onRemove(): void {
-        if (this.div.parentNode) {
-          this.div.parentNode.removeChild(this.div);
-        }
-      }
-    }
-
-    return PropertyOverlay as new (position: { lat: number; lng: number }, content: HTMLElement) => PropertyOverlayInterface;
-  };
-
   // Update map markers with search results
   const updateMapMarkers = useCallback(
     async (results: SearchResult[]) => {
+      // Prevent duplicate calls
       if (!googleMapRef.current || isUpdatingMarkers) {
+        return;
+      }
+
+      // Check if we actually need to update (same data)
+      const currentResultsCount = markersRef.current.length;
+      const newResultsCount = results?.length || 0;
+      
+      if (currentResultsCount === newResultsCount && newResultsCount > 0) {
+        // Same number of results, likely same data - skip update
         return;
       }
 
@@ -269,181 +185,122 @@ export const useMapMarkers = ({
       const startIndex = currentPage * propertiesPerPage;
       const endIndex = startIndex + propertiesPerPage;
       const paginatedData = results.slice(startIndex, endIndex);
+      console.log("🗺️ [MAP MARKERS] Pagination:", {
+        currentPage,
+        propertiesPerPage,
+        startIndex,
+        endIndex,
+        totalResults: results.length,
+        paginatedCount: paginatedData.length
+      });
 
       // Check if Google Maps API and AdvancedMarkerElement are available
+      console.log("🗺️ [MAP MARKERS] Checking Google Maps API availability");
+      console.log("🗺️ [MAP MARKERS] window.google:", !!window.google);
+      console.log("🗺️ [MAP MARKERS] window.google.maps:", !!window.google?.maps);
+      console.log("🗺️ [MAP MARKERS] window.google.maps.marker:", !!window.google?.maps?.marker);
+      console.log("🗺️ [MAP MARKERS] AdvancedMarkerElement:", !!window.google?.maps?.marker?.AdvancedMarkerElement);
+
       if (!window.google?.maps?.marker?.AdvancedMarkerElement) {
-        console.warn(
-          "❌ AdvancedMarkerElement not available, skipping marker update",
-        );
-        console.warn("Google Maps API status:", {
-          google: !!window.google,
-          maps: !!window.google?.maps,
-          marker: !!window.google?.maps?.marker,
-          AdvancedMarkerElement: !!window.google?.maps?.marker?.AdvancedMarkerElement,
-        });
+        console.error("❌ [MAP MARKERS] AdvancedMarkerElement not available, skipping marker update");
         setIsUpdatingMarkers(false);
         return;
       }
 
-      // Additional safety check for OverlayView
-      if (!window.google?.maps?.OverlayView) {
-        console.warn(
-          "❌ OverlayView not available, property overlays will not be rendered",
-        );
-      }
-
-      const googleMaps = (window as { google: { maps: { marker: { AdvancedMarkerElement: new (options: {
-        map: GoogleMap;
-        position: { lat: number; lng: number };
-        title: string;
-        content: HTMLElement;
-      }) => GoogleAdvancedMarkerElement } } } }).google;
-      const { AdvancedMarkerElement } = googleMaps.maps.marker;
+      const { AdvancedMarkerElement } = (window as any).google.maps.marker;
+      console.log("🗺️ [MAP MARKERS] AdvancedMarkerElement constructor:", AdvancedMarkerElement);
 
       // Create markers for each property with performance optimization
       // Use requestAnimationFrame for better performance with large datasets
       const createMarkersBatch = (data: SearchResult[], startIndex = 0) => {
+        console.log("🗺️ [MAP MARKERS] Creating markers batch:", {
+          dataLength: data.length,
+          startIndex,
+          batchSize: 10
+        });
+        
         const batchSize = 10; // Process markers in batches
         const endIndex = Math.min(startIndex + batchSize, data.length);
         
         for (let i = startIndex; i < endIndex; i++) {
           const result = data[i];
-        const score = calculatePropertyScore(result);
-        const { fillColor } = getScoreBasedPinColor(score);
-        const isSaved = isHomeSaved(result.id);
+          console.log(`🗺️ [MAP MARKERS] Processing property ${i + 1}/${data.length}:`, {
+            id: result.id,
+            address: result.address,
+            lat: result.lat,
+            lng: result.lng,
+            price: result.price
+          });
 
-        // Create marker box with triangle pointer (similar to important locations)
-        const markerElement = document.createElement("div");
-        markerElement.className = "property-location-marker";
+          const score = calculatePropertyScore(result);
+          const isSaved = isHomeSaved(result.id);
+          console.log(`🗺️ [MAP MARKERS] Property ${i + 1} - Score: ${score}, Saved: ${isSaved}`);
 
-        // Format price for display
-        const formattedPrice =
-          result.price && typeof result.price === "number"
-            ? `$${(result.price / 1000).toFixed(0)}k`
-            : "Price N/A";
+          // Create marker container for MapPropertyCard
+          const markerElement = document.createElement("div");
+          markerElement.className = "property-location-marker";
+          markerElement.style.cssText = `
+            position: relative;
+            transform: translate(-50%, -100%);
+          `;
+          console.log(`🗺️ [MAP MARKERS] Created marker element for property ${i + 1}`);
 
-        markerElement.innerHTML = `
-        <div style="
-          padding: 3px 6px;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-          background: ${fillColor};
-          border: 1px solid rgba(0, 0, 0, 0.2);
-          border-radius: 4px;
-          box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-          cursor: pointer;
-          transition: all 0.2s ease;
-          position: relative;
-          white-space: nowrap;
-          ${isSaved ? "border: 2px solid #4A90E2;" : ""}
-        ">
-          <div style="
-            color: #2C3E50; 
-            font-size: 10px; 
-            font-weight: 600;
-            text-shadow: 0 1px 1px rgba(255,255,255,0.8);
-          ">${formattedPrice}</div>
-          
-          <!-- Triangle pointer -->
-          <div style="
-            position: absolute;
-            bottom: -5px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 0;
-            height: 0;
-            border-left: 5px solid transparent;
-            border-right: 5px solid transparent;
-            border-top: 5px solid ${fillColor};
-          "></div>
-          <div style="
-            position: absolute;
-            bottom: -6px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 0;
-            height: 0;
-            border-left: 6px solid transparent;
-            border-right: 6px solid transparent;
-            border-top: 6px solid rgba(0, 0, 0, 0.2);
-          "></div>
-        </div>
-      `;
+          // Convert SearchResult to MapPropertyCard format
+          const propertyData = {
+            id: result.id,
+            address: result.address,
+            price: result.price,
+            bedrooms: result.bedrooms,
+            bathrooms: result.bathrooms,
+            sqft: result.sqft,
+            lotSize: result.lotSize,
+            propertyType: result.propertyType,
+            lat: result.lat,
+            lng: result.lng,
+            images: result.imageUrl ? [result.imageUrl] : undefined,
+            calculatedScore: score,
+          };
+          console.log(`🗺️ [MAP MARKERS] Property data for ${i + 1}:`, propertyData);
 
-        markerElement.style.cssText = `
-        position: relative;
-        transform: translate(-50%, -100%);
-      `;
-
-        // Create the marker
-        const marker = new AdvancedMarkerElement({
-          map: googleMapRef.current!,
-          position: { lat: result.lat, lng: result.lng },
-          title: result.address,
-          content: markerElement,
-        });
-
-        // Create property overlay using MapPropertyCard component
-        const overlayDiv = document.createElement("div");
-        overlayDiv.style.cssText = `
-        position: absolute;
-        transform: translate(-50%, -100%);
-        margin-top: -8px;
-        z-index: 1000;
-        pointer-events: auto;
-      `;
-
-        // Convert SearchResult to MapPropertyCard format
-        const propertyData = {
-          id: result.id,
-          address: result.address,
-          price: result.price,
-          bedrooms: result.bedrooms,
-          bathrooms: result.bathrooms,
-          sqft: result.sqft,
-          lotSize: result.lotSize,
-          propertyType: result.propertyType,
-          lat: result.lat,
-          lng: result.lng,
-          images: result.imageUrl ? [result.imageUrl] : undefined,
-          calculatedScore: score,
-        };
-
-        // Render MapPropertyCard into the overlay div
-        (
-          renderMapPropertyCard as (
-            element: HTMLElement,
-            props: Record<string, unknown>,
-          ) => void
-        )(overlayDiv, {
-          property: propertyData,
-          isSaved,
-          onSave: () => saveHome(result),
-          onUnsave: () => removeSavedHome(result.id),
-          showScore: !isSaved, // Only show score for non-saved homes
-        });
-
-        const position = { lat: result.lat, lng: result.lng };
-        const PropertyOverlayClass = createPropertyOverlayClass();
-        let overlay: PropertyOverlayInterface | null = null;
-        if (PropertyOverlayClass) {
-          overlay = new PropertyOverlayClass(position, overlayDiv);
-          if (
-            overlay &&
-            typeof overlay === "object" &&
-            overlay !== null &&
-            "setMap" in overlay &&
-            typeof overlay.setMap === "function"
-          ) {
-            overlay.setMap(googleMapRef.current);
+          // Render MapPropertyCard directly into the marker element
+          console.log(`🗺️ [MAP MARKERS] Rendering MapPropertyCard for property ${i + 1}`);
+          try {
+            (
+              renderMapPropertyCard as (
+                element: HTMLElement,
+                props: Record<string, unknown>,
+              ) => void
+            )(markerElement, {
+              property: propertyData,
+              isSaved,
+              onSave: () => saveHome(result),
+              onUnsave: () => removeSavedHome(result.id),
+              showScore: !isSaved, // Only show score for non-saved homes
+            });
+            console.log(`🗺️ [MAP MARKERS] Successfully rendered MapPropertyCard for property ${i + 1}`);
+          } catch (error) {
+            console.error(`🗺️ [MAP MARKERS] Error rendering MapPropertyCard for property ${i + 1}:`, error);
           }
-        }
 
-        // Store overlay reference for cleanup
-        if (overlay) {
-          const markerWithOverlay = marker as unknown as { overlay: PropertyOverlayInterface };
-          markerWithOverlay.overlay = overlay;
-        }
-        markersRef.current.push(marker);
+          // Create the marker
+          console.log(`🗺️ [MAP MARKERS] Creating AdvancedMarkerElement for property ${i + 1}`);
+          console.log(`🗺️ [MAP MARKERS] Map ref for marker:`, googleMapRef.current);
+          console.log(`🗺️ [MAP MARKERS] Marker position:`, { lat: result.lat, lng: result.lng });
+          
+          try {
+            const marker = new AdvancedMarkerElement({
+              map: googleMapRef.current! as any,
+              position: { lat: result.lat, lng: result.lng },
+              title: result.address,
+              content: markerElement,
+            }) as unknown as GoogleAdvancedMarkerElement;
+            
+            console.log(`🗺️ [MAP MARKERS] Successfully created marker for property ${i + 1}:`, marker);
+            markersRef.current.push(marker);
+            console.log(`🗺️ [MAP MARKERS] Added marker to markersRef. Total markers: ${markersRef.current.length}`);
+          } catch (error) {
+            console.error(`🗺️ [MAP MARKERS] Error creating marker for property ${i + 1}:`, error);
+          }
         }
         
         // Continue with next batch if there are more items

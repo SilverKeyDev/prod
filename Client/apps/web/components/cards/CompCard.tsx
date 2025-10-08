@@ -79,7 +79,7 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
           {/* Recently Sold Badge - reduced padding, aligned in same row */}
           <div
             className={`rounded-full px-2 py-1 text-xs font-medium ${getStatusColor(
-              comp.homeStatus,
+              comp.homeStatus
             )}`}
           >
             {formatHomeStatus(comp.homeStatus)}
@@ -92,12 +92,12 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
         {/* Address */}
         <div className="mb-3 text-left">
           <div className="flex items-center gap-1 mb-1">
-            <MapPin className="w-3 h-3 text-brown flex-shrink-0" />
-            <h3 className="text-sm font-medium text-brown truncate">
+            <MapPin className="w-3 h-3 text-gray-400 flex-shrink-0" />
+            <h3 className="text-sm sm:text-base font-medium text-black truncate">
               {comp.address.streetAddress}
             </h3>
           </div>
-          <p className="text-xs text-brown/80 truncate ml-4">
+          <p className="text-xs sm:text-sm text-black/60 truncate ml-4">
             {comp.address.city}, {comp.address.state} {comp.address.zipcode}
           </p>
         </div>
@@ -107,20 +107,26 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
           <div className="flex flex-wrap gap-x-4 gap-y-2">
             {comp.bedrooms > 0 && (
               <div className="flex items-center gap-1">
-                <Bed className="w-3 h-3 text-brown flex-shrink-0" />
-                {comp.bedrooms} bed{comp.bedrooms !== 1 ? "s" : ""}
+                <Bed className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-gray-400 flex-shrink-0" />
+                <span className="text-xs sm:text-sm text-gray-500">
+                  {comp.bedrooms} bed{comp.bedrooms !== 1 ? "s" : ""}
+                </span>
               </div>
             )}
             {comp.bathrooms > 0 && (
               <div className="flex items-center gap-1">
-                <Bath className="w-3 h-3 text-brown flex-shrink-0" />
-                {comp.bathrooms} bath{comp.bathrooms !== 1 ? "s" : ""}
+                <Bath className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-gray-400 flex-shrink-0" />
+                <span className="text-xs sm:text-sm text-gray-500">
+                  {comp.bathrooms} bath{comp.bathrooms !== 1 ? "s" : ""}
+                </span>
               </div>
             )}
             {comp.livingArea > 0 && (
               <div className="flex items-center gap-1">
-                <Square className="w-3 h-3 text-brown flex-shrink-0" />
-                {Math.round(comp.livingArea).toLocaleString()} sqft
+                <Square className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-gray-400 flex-shrink-0" />
+                <span className="text-xs sm:text-sm text-gray-500">
+                  {Math.round(comp.livingArea).toLocaleString()} sqft
+                </span>
               </div>
             )}
           </div>
@@ -129,8 +135,10 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
         {/* Lot Size - underneath bed/bath/sqft */}
         {lotSizeDisplay && (
           <div className="flex items-center gap-1 mb-3 text-left">
-            <MapPin className="w-3 h-3 text-brown flex-shrink-0" />
-            Lot: {lotSizeDisplay}
+            <MapPin className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-gray-400 flex-shrink-0" />
+            <span className="text-xs sm:text-sm text-gray-500">
+              Lot: {lotSizeDisplay}
+            </span>
           </div>
         )}
 
@@ -138,14 +146,17 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
         {comp.attributionInfo?.agentName && (
           <div className="space-y-2 text-left mt-auto">
             <div className="flex items-center gap-1">
-              <User className="w-3 h-3 text-brown flex-shrink-0" />
-              Agent: {formatAgentName(comp.attributionInfo.agentName)}
+              <User className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-gray-400 flex-shrink-0" />
+              <span className="text-xs sm:text-sm text-gray-500">
+                Agent: {formatAgentName(comp.attributionInfo.agentName)}
+              </span>
             </div>
             {comp.attributionInfo?.brokerName && (
               <div className="flex items-center gap-1">
-                <Building className="w-3 h-3 text-brown flex-shrink-0" />
-
-                {comp.attributionInfo.brokerName}
+                <Building className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-gray-400 flex-shrink-0" />
+                <span className="text-xs sm:text-sm text-gray-500">
+                  {comp.attributionInfo.brokerName}
+                </span>
               </div>
             )}
           </div>

@@ -1,6 +1,6 @@
 export {};
 
-import { MapPin, AlertCircle, Lightbulb } from "lucide-react";
+import { MapPin, AlertCircle, Lightbulb, GitCompare } from "lucide-react";
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -417,9 +417,9 @@ export default function GenerateReportPage() {
     (userProfile?.is_agent && !selectedClientId);
 
   return (
-    <div>
-      <div>
-        <Card className="space-y-responsive-sm">
+    <div className="w-full px-2 sm:px-3">
+      <div className="w-full">
+        <Card className="space-y-responsive-sm w-full">
           {/* Main input row - address input, generate button, and toggle on one line */}
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:gap-4">
             {/* Address inputs container */}
@@ -436,7 +436,7 @@ export default function GenerateReportPage() {
                   leftIcon={<MapPin className="h-4 w-4 sm:h-5 sm:w-5" />}
                   size="md"
                   autoComplete="off"
-                  className="touch-manipulation"
+                  className="touch-manipulation px-2 sm:px-3"
                 />
 
                 {/* Address suggestions dropdown */}
@@ -471,7 +471,7 @@ export default function GenerateReportPage() {
                     leftIcon={<MapPin className="h-4 w-4 sm:h-5 sm:w-5" />}
                     size="md"
                     autoComplete="off"
-                    className="touch-manipulation"
+                    className="touch-manipulation px-2 sm:px-3"
                   />
 
                   {/* Comparison address suggestions dropdown */}
@@ -507,9 +507,7 @@ export default function GenerateReportPage() {
 
               {/* Comparison mode toggle */}
               <div className="flex items-center gap-2">
-                <span className="text-xs font-medium text-black/70 sm:text-sm">
-                  Comparison
-                </span>
+                <GitCompare className="h-4 w-4 text-black/70" />
                 <OliveCheckbox
                   checked={isComparison}
                   onToggle={() =>

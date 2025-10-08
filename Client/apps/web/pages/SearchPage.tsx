@@ -32,6 +32,7 @@ import { SidebarList } from "../features/search/page/components/SidebarList";
 import { Tabs } from "../features/search/page/components/Tabs";
 import { useIsochroneFlow } from "../features/search/page/useIsochroneFlow";
 import { useMapInitAndResize } from "../features/search/page/useMapInitAndResize";
+import { useMapMarkers } from "../features/search/hooks/useMapMarkers";
 import { useMarkerUpdates } from "../features/search/page/useMarkerUpdates";
 import useMobileHeaderActions from "../features/search/page/useMobileHeaderActions";
 import { usePropertyFocus } from "../features/search/page/usePropertyFocus";
@@ -70,13 +71,14 @@ export default function SearchPage({
     clearSelectedProperty,
   } = usePropertyDetails();
   const [hasSearched, setHasSearched] = useState(false);
+  const [isochroneData, setIsochroneData] = useState<unknown>(null);
   const currentPage = useFiltersStore((s) => s.currentPage);
   const setCurrentPage = useFiltersStore((s) => s.setCurrentPage);
   const showPropertyModals = useUIStore((s) => s.showPropertyModals);
   const setShowPropertyModals = useUIStore((s) => s.setShowPropertyModals);
   const isCarouselCollapsed = useUIStore((s) => s.isCarouselCollapsed);
   const setIsCarouselCollapsed = useUIStore((s) => s.setCarouselCollapsed);
-  const PROPERTIES_PER_PAGE = 1;
+  const PROPERTIES_PER_PAGE = 1; // Keep at 1 for mobile single-property navigation
 
   // Mobile header button handlers
   const handlePreferences = useCallback(() => {
@@ -143,7 +145,6 @@ export default function SearchPage({
   const desktopMapRef = useRef<HTMLDivElement>(null);
   const polygonRef = useRef<google.maps.Polygon | null>(null);
   const individualPolygonsRef = useRef<google.maps.Polygon[]>([]);
-  const importantMarkersRef = useRef<GoogleAdvancedMarkerElement[]>([]);
 
   const { googleMapRef } = useMapInitAndResize({
     isLocalStorageLoaded,
@@ -158,6 +159,44 @@ export default function SearchPage({
     setFavoriteAddresses,
     isGoogleMapsLoaded,
   });
+
+  // Handle navigation to property (focus on property instead of opening details)
+  const handleNavigateToProperty = useCallback(
+    (property: SearchResult) => {
+      console.log("🎯 [PROPERTY_NAVIGATION] Navigating to property:", {
+        propertyId: property.id,
+        address: property.address,
+        coordinates: { lat: property.lat, lng: property.lng },
+        activeTab,
+        timestamp: new Date().toISOString(),
+      });
+
+      // Find the property index in the current data
+      const currentData = activeTab === "results" ? searchResults : savedHomes;
+      const propertyIndex = currentData.findIndex((p) => p.id === property.id);
+
+      if (propertyIndex !== -1) {
+        console.log("🎯 [PROPERTY_NAVIGATION] Found property at index:", {
+          propertyIndex,
+          totalProperties: currentData.length,
+          timestamp: new Date().toISOString(),
+        });
+        setCurrentPage(propertyIndex);
+      } else {
+        console.error(
+          "🎯 [PROPERTY_NAVIGATION] Property not found in current data:",
+          {
+            propertyId: property.id,
+            activeTab,
+            searchResultsCount: searchResults.length,
+            savedHomesCount: savedHomes.length,
+            timestamp: new Date().toISOString(),
+          }
+        );
+      }
+    },
+    [activeTab, searchResults, savedHomes, setCurrentPage]
+  );
 
   // Initialize MapZoomController
   const {
@@ -320,7 +359,11 @@ export default function SearchPage({
     []
   );
 
-  const { primeIsochroneOverlay, runIsochroneSearch } = useIsochroneFlow({
+  const {
+    primeIsochroneOverlay,
+    runIsochroneSearch,
+    fetchIsochroneForMapOnly,
+  } = useIsochroneFlow({
     env,
     googleMapRef,
     renderIsochronePolygon: renderIsochronePolygonWrapper,
@@ -406,18 +449,21 @@ export default function SearchPage({
     googleMapRef,
   ]);
 
-  // Expose search function through ref
+  // Memoize the search function to prevent unnecessary re-exposure
+  const memoizedSearchFunction = React.useCallback(async () => {
+    if (!isSearching) {
+      await runIsochroneSearch();
+    }
+  }, [isSearching, runIsochroneSearch]);
+
+  // Expose search function through ref (reduced logging)
   React.useEffect(() => {
     if (searchRef) {
       searchRef.current = {
-        triggerSearch: async () => {
-          if (!isSearching) {
-            await runIsochroneSearch();
-          }
-        },
+        triggerSearch: memoizedSearchFunction,
       };
     }
-  }, [searchRef, isSearching, runIsochroneSearch]);
+  }, [searchRef, memoizedSearchFunction]);
 
   // Create stable callback for opening property details
   const handleOpenPropertyDetails = useCallback(
@@ -453,58 +499,125 @@ export default function SearchPage({
     savedHomes,
   });
 
-  // Log marker rendering parameters and state changes
-  useEffect(() => {
-    console.log("🏠 [MARKER_RENDERING] State change detected:", {
-      activeTab,
-      currentPage,
-      hasSearched,
-      showPropertyModals,
-      searchResultsCount: searchResults.length,
-      savedHomesCount: savedHomes.length,
-      mapAvailable: !!googleMapRef.current,
-      timestamp: new Date().toISOString(),
-    });
+  // Calculate property score for markers
+  const calculatePropertyScore = useCallback(
+    (property: SearchResult): number => {
+      // Simple scoring algorithm - can be enhanced later
+      let score = 0;
 
-    // Log current property data being rendered
+      // Price scoring (lower is better)
+      if (property.price) {
+        const price =
+          typeof property.price === "string"
+            ? parseFloat(property.price)
+            : property.price;
+        if (!isNaN(price)) {
+          if (price < 300000) score += 30;
+          else if (price < 500000) score += 20;
+          else if (price < 750000) score += 10;
+        }
+      }
+
+      // Bedrooms scoring
+      if (property.bedrooms) {
+        if (property.bedrooms >= 3) score += 20;
+        else if (property.bedrooms >= 2) score += 10;
+      }
+
+      // Bathrooms scoring
+      if (property.bathrooms) {
+        if (property.bathrooms >= 2) score += 15;
+        else if (property.bathrooms >= 1.5) score += 10;
+      }
+
+      // Square footage scoring
+      if (property.sqft) {
+        if (property.sqft >= 2000) score += 20;
+        else if (property.sqft >= 1500) score += 15;
+        else if (property.sqft >= 1000) score += 10;
+      }
+
+      return Math.min(score, 100); // Cap at 100
+    },
+    []
+  );
+
+  // Use the map markers hook to actually create property markers
+  const { updateMapMarkers, importantMarkersRef } = useMapMarkers({
+    googleMapRef,
+    currentPage,
+    propertiesPerPage: PROPERTIES_PER_PAGE,
+    isochroneData,
+    setIsochroneData,
+    fetchIsochroneForMapOnly,
+    calculatePropertyScore,
+    isHomeSaved,
+    saveHome,
+    removeSavedHome,
+  });
+
+  // Update markers when search results change
+  useEffect(() => {
+    console.log(
+      "🏠 [PROPERTY_MARKERS] useEffect triggered - Updating property markers:",
+      {
+        searchResultsCount: searchResults.length,
+        savedHomesCount: savedHomes.length,
+        activeTab,
+        hasMapInstance: !!googleMapRef.current,
+        timestamp: new Date().toISOString(),
+      }
+    );
+
+    if (
+      googleMapRef.current &&
+      (searchResults.length > 0 || savedHomes.length > 0)
+    ) {
+      const currentData = activeTab === "results" ? searchResults : savedHomes;
+      console.log("🏠 [PROPERTY_MARKERS] Calling updateMapMarkers with:", {
+        dataCount: currentData.length,
+        activeTab,
+        timestamp: new Date().toISOString(),
+      });
+      updateMapMarkers(currentData);
+    } else {
+      console.log("🏠 [PROPERTY_MARKERS] Skipping marker update:", {
+        hasMap: !!googleMapRef.current,
+        searchResultsCount: searchResults.length,
+        savedHomesCount: savedHomes.length,
+      });
+    }
+  }, [searchResults, savedHomes, activeTab, updateMapMarkers]);
+
+  // Track marker rendering state changes (reduced logging)
+  useEffect(() => {
+    // Only log significant state changes, not every render
     const currentData = activeTab === "results" ? searchResults : savedHomes;
     const currentProperty = currentData[currentPage];
 
-    if (currentProperty) {
-      console.log("🏠 [MARKER_RENDERING] Current property details:", {
+    // Only log when property changes or significant state changes occur
+    if (currentProperty && (activeTab === "results" || activeTab === "saved")) {
+      // Reduced logging - only log essential info
+      console.log("🏠 [MARKER_RENDERING] Property focus:", {
         id: currentProperty.id,
         address: currentProperty.address,
         price: currentProperty.price,
-        coordinates: { lat: currentProperty.lat, lng: currentProperty.lng },
-        bedrooms: currentProperty.bedrooms,
-        bathrooms: currentProperty.bathrooms,
-        sqft: currentProperty.sqft,
-        propertyType: currentProperty.propertyType,
-        isSaved: isHomeSaved(currentProperty.id),
         tab: activeTab,
         page: currentPage,
-        timestamp: new Date().toISOString(),
-      });
-    } else {
-      console.log("🏠 [MARKER_RENDERING] No current property found:", {
-        activeTab,
-        currentPage,
-        dataLength: currentData.length,
-        timestamp: new Date().toISOString(),
       });
     }
-  }, [
-    activeTab,
-    currentPage,
-    hasSearched,
-    showPropertyModals,
-    searchResults,
-    savedHomes,
-    isHomeSaved,
-  ]);
+  }, [activeTab, currentPage, searchResults, savedHomes, isHomeSaved]);
 
   // Log map initialization and marker rendering setup
   useEffect(() => {
+    console.log(
+      "🗺️ [MAP_INIT] useEffect triggered - Map initialization check:",
+      {
+        hasMapInstance: !!googleMapRef.current,
+        timestamp: new Date().toISOString(),
+      }
+    );
+
     if (googleMapRef.current) {
       console.log("🗺️ [MAP_INIT] Google Map initialized:", {
         mapCenter: googleMapRef.current.getCenter?.()
@@ -524,8 +637,10 @@ export default function SearchPage({
           : null,
         timestamp: new Date().toISOString(),
       });
+    } else {
+      console.log("🗺️ [MAP_INIT] No map instance available yet");
     }
-  }, [googleMapRef.current]);
+  }, [googleMapRef.current]); // Only trigger when map instance changes
 
   // Log search results updates
   useEffect(() => {
@@ -604,22 +719,18 @@ export default function SearchPage({
     }
   }, [selectedProperty, googleMapRef.current]);
 
-  // Log map zoom and pan operations
+  // Reduced map operation logging
   const logMapOperation = useCallback(
     (operation: string, details: Record<string, unknown>) => {
-      console.log(`🗺️ [MAP_OPERATION] ${operation}:`, {
-        ...details,
-        mapCenter: googleMapRef.current?.getCenter?.()
-          ? {
-              lat: googleMapRef.current.getCenter()?.lat(),
-              lng: googleMapRef.current.getCenter()?.lng(),
-            }
-          : null,
-        zoom: googleMapRef.current?.getZoom?.(),
-        timestamp: new Date().toISOString(),
-      });
+      // Only log significant operations, not every property change
+      if (operation === "Auto-focus on property change") {
+        console.log(`🗺️ [MAP_OPERATION] ${operation}:`, {
+          propertyId: details.propertyId,
+          address: details.address,
+        });
+      }
     },
-    [googleMapRef]
+    []
   );
 
   // Log map focus operations
@@ -680,7 +791,6 @@ export default function SearchPage({
   const hasInitializedIsochrone = useRef(false);
 
   useEffect(() => {
-
     if (!isLocalStorageLoaded || !isGoogleMapsLoaded) return;
     if (hasInitializedIsochrone.current) return;
 
@@ -704,33 +814,31 @@ export default function SearchPage({
         {/* Mobile Carousel for Properties */}
         <div className="flex-shrink-0 border-b border-gray-200 bg-white">
           {/* Tab Navigation with Expand Button */}
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <Tabs
-                active={activeTab}
-                onChange={(tab) => {
-                  handleTabChange(tab);
-                  if (
-                    tab === "results" &&
-                    hasSearched &&
-                    searchResults.length > 0
-                  ) {
-                    setShowPropertyModals(true);
-                  } else if (tab === "saved" && savedHomes.length > 0) {
-                    setShowPropertyModals(true);
-                    setHasSearched(true);
-                  }
-                }}
-                counts={{
-                  results: searchResults.length,
-                  saved: savedHomes.length,
-                }}
-                compact
-              />
-            </div>
+          <div className="flex items-center justify-center border-b border-gray-200">
+            <Tabs
+              active={activeTab}
+              onChange={(tab) => {
+                handleTabChange(tab);
+                if (
+                  tab === "results" &&
+                  hasSearched &&
+                  searchResults.length > 0
+                ) {
+                  setShowPropertyModals(true);
+                } else if (tab === "saved" && savedHomes.length > 0) {
+                  setShowPropertyModals(true);
+                  setHasSearched(true);
+                }
+              }}
+              counts={{
+                results: searchResults.length,
+                saved: savedHomes.length,
+              }}
+              compact
+            />
 
-            {/* Collapse/Expand Button */}
-            <div className="px-4">
+            {/* Collapse/Expand Button - positioned after saved tab */}
+            <div className="ml-4 px-2">
               <button
                 onClick={() => setIsCarouselCollapsed(!isCarouselCollapsed)}
                 className="cursor-help-hint p-1 text-gray-500 transition-colors hover:text-gray-700"
@@ -755,11 +863,14 @@ export default function SearchPage({
           >
             <PropertyCarousel
               items={activeTab === "results" ? searchResults : savedHomes}
-              perPage={PROPERTIES_PER_PAGE}
               currentPage={currentPage}
               isHomeSaved={isHomeSaved}
               onSave={saveHome}
               onViewDetails={handleViewPropertyDetails}
+              onSlideChange={(index) => setCurrentPage(index)}
+              cardMinWidth={280}
+              cardGap={16}
+              infiniteLoop={false}
             />
           </div>
         </div>
@@ -842,7 +953,7 @@ export default function SearchPage({
                 isLoading={isLoadingPropertyDetails}
                 isHomeSaved={isHomeSaved}
                 onSave={saveHome}
-                onViewDetails={handleViewPropertyDetails}
+                onNavigateToProperty={handleNavigateToProperty}
                 removeSavedHome={removeSavedHome}
                 activeTab={activeTab}
               />

@@ -41,6 +41,7 @@ export function useIsochroneFlow(params: {
 }): {
   primeIsochroneOverlay: (hasResults: boolean) => Promise<void>;
   runIsochroneSearch: () => Promise<void>;
+  fetchIsochroneForMapOnly: () => Promise<Record<string, unknown> | null>;
 } {
   // Fetch isochrone polygon from backend for map population only (no property search)
   const fetchIsochroneForMapOnly = useCallback(async () => {
@@ -247,5 +248,6 @@ export function useIsochroneFlow(params: {
   return {
     primeIsochroneOverlay,
     runIsochroneSearch,
+    fetchIsochroneForMapOnly,
   };
 }

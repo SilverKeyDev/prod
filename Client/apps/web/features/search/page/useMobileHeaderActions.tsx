@@ -38,8 +38,11 @@ export default function useMobileHeaderActions(params: {
       );
     }
 
-    // Only update state if the mobile view status has changed
-    if (isMobile !== isMobileViewRef.current) {
+    // Update state if mobile view status has changed OR if this is the initial load
+    if (
+      isMobile !== isMobileViewRef.current ||
+      isMobileViewRef.current === null
+    ) {
       params.setMobileHeaderActions(newMobileHeaderActions);
       isMobileViewRef.current = isMobile;
     }
