@@ -1,3 +1,5 @@
+import { useNavigate } from "react-router-dom";
+
 import {
   usePropertyDetails,
   type Property,
@@ -148,6 +150,8 @@ export default function HomeCard({
     await onRemove(propertyId);
   };
 
+  const navigate = useNavigate();
+
   // Handle generate report navigation
   const handleGenerateReport = (address: string) => {
     // Save the address to localStorage for the GenerateReportPage
@@ -162,6 +166,9 @@ export default function HomeCard({
       "generateReportState",
       JSON.stringify(generateReportState)
     );
+
+    // Navigate to the reports page
+    navigate("/saved?view=reports");
   };
 
   // Handle card click to focus on property

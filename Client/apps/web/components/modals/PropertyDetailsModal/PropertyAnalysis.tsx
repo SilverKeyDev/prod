@@ -124,11 +124,11 @@ export const PropertyAnalysis: React.FC<PropertyComponentProps> = ({
                   : ""
               }`}
             >
-              <h4 className="mb-3 flex items-center gap-2 font-medium text-green-700">
-                <CheckCircle className="h-4 w-4 flex-shrink-0" />
+              <h4 className="mb-3 flex items-center gap-2 font-medium text-gray-600">
+                <CheckCircle className="h-4 w-4 flex-shrink-0 text-green-600" />
                 Pros
                 {pros && (
-                  <span className="ml-1 text-xs text-green-600">
+                  <span className="ml-1 text-xs text-gray-500">
                     ({pros.length})
                   </span>
                 )}
@@ -138,7 +138,7 @@ export const PropertyAnalysis: React.FC<PropertyComponentProps> = ({
                   pros.map((pro: string, i: number) => (
                     <div
                       key={i}
-                      className="flex items-start gap-2 text-sm text-green-700"
+                      className="flex items-start gap-2 text-sm text-gray-700"
                     >
                       <CheckCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-green-600" />
                       {pro}
@@ -161,11 +161,11 @@ export const PropertyAnalysis: React.FC<PropertyComponentProps> = ({
                   : ""
               }`}
             >
-              <h4 className="mb-3 flex items-center gap-2 font-medium text-red-700">
-                <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+              <h4 className="mb-3 flex items-center gap-2 font-medium text-gray-600">
+                <AlertTriangle className="h-4 w-4 flex-shrink-0 text-red-600" />
                 Cons
                 {cons && (
-                  <span className="ml-1 text-xs text-red-600">
+                  <span className="ml-1 text-xs text-gray-500">
                     ({cons.length})
                   </span>
                 )}
@@ -175,7 +175,7 @@ export const PropertyAnalysis: React.FC<PropertyComponentProps> = ({
                   cons.map((con: string, i: number) => (
                     <div
                       key={i}
-                      className="flex items-start gap-2 text-sm text-red-700"
+                      className="flex items-start gap-2 text-sm text-gray-700"
                     >
                       <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-red-600" />
                       {con}
@@ -286,7 +286,7 @@ export const PropertyAnalysis: React.FC<PropertyComponentProps> = ({
                           {gentrificationIndex.indicators.map(
                             (ind: string, i: number) => (
                               <p key={i}>{ind}</p>
-                            ),
+                            )
                           )}
                         </div>
                       </div>

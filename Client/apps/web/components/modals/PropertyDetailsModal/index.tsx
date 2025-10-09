@@ -55,7 +55,7 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
         <PropertyCommute property={property} />
 
         {/* Agent & Schools */}
-        <div className="mb-6 grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2">
+        <div className="mb-6 mx-6 grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2">
           <PropertyAgent property={property} />
           <PropertySchools property={property} />
         </div>

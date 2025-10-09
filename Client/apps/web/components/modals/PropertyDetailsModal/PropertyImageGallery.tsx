@@ -17,7 +17,7 @@ export const PropertyImageGallery: React.FC<PropertyImageGalleryProps> = ({
     onImageChange((currentImageIndex + 1) % propertyImages.length);
   const prevImage = () =>
     onImageChange(
-      (currentImageIndex - 1 + propertyImages.length) % propertyImages.length,
+      (currentImageIndex - 1 + propertyImages.length) % propertyImages.length
     );
   const goToImage = (index: number) => onImageChange(index);
 
@@ -58,9 +58,9 @@ export const PropertyImageGallery: React.FC<PropertyImageGalleryProps> = ({
           </div>
         </div>
 
-        {/* Thumbnail Grid - Right 1/3 */}
+        {/* Thumbnail Grid - Right 1/3 - Hidden on mobile */}
         {propertyImages.length > 1 && (
-          <div className="w-1/3 bg-white p-2">
+          <div className="hidden md:block w-1/3 bg-white p-2">
             <div className="grid h-full grid-cols-2 gap-1">
               {propertyImages.slice(0, 4).map((image, index) => (
                 <button

@@ -39,10 +39,10 @@ export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({
       <div className="mb-6 flex items-start justify-between">
         {/* Left Side - Price and Address */}
         <div className="flex-1">
-          <div className="mb-2 text-4xl font-bold text-gray-900">
+          <div className="mb-2 text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">
             {formatPrice(propertyPrice)}
           </div>
-          <div className="text-lg text-gray-700">
+          <div className="text-sm sm:text-base md:text-lg text-gray-700">
             {(() => {
               const addr = (property as unknown as { address?: unknown })
                 .address;
@@ -75,31 +75,31 @@ export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({
         </div>
 
         {/* Right Side - Property Specs */}
-        <div className="flex flex-col items-end space-y-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           {propertyBedrooms && Number(propertyBedrooms) > 0 && (
-            <div className="text-right">
-              <div className="text-3xl font-bold text-gray-900">
+            <div className="text-center">
+              <div className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
                 {propertyBedrooms}
               </div>
-              <div className="text-sm text-gray-600">beds</div>
+              <div className="text-xs sm:text-sm text-gray-600">beds</div>
             </div>
           )}
           {propertyBathrooms && Number(propertyBathrooms) > 0 && (
-            <div className="text-right">
-              <div className="text-3xl font-bold text-gray-900">
+            <div className="text-center">
+              <div className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
                 {propertyBathrooms}
               </div>
-              <div className="text-sm text-gray-600 border-b border-dashed border-gray-400">
+              <div className="text-xs sm:text-sm text-gray-600 border-b border-dashed border-gray-400">
                 baths
               </div>
             </div>
           )}
           {propertySqft && Number(propertySqft) > 0 && (
-            <div className="text-right">
-              <div className="text-3xl font-bold text-gray-900">
+            <div className="text-center">
+              <div className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
                 {Math.round(Number(propertySqft)).toLocaleString()}
               </div>
-              <div className="text-sm text-gray-600">sqft</div>
+              <div className="text-xs sm:text-sm text-gray-600">sqft</div>
             </div>
           )}
         </div>
