@@ -48,7 +48,7 @@ export const DEFAULT_REPORT_SECTIONS = [
   {
     id: "neighborhood_analysis",
     key: "neighborhood_analysis",
-    label: "Neighborhood Analysis",
+    label: "Neighborhood",
     priority: 3,
   },
   {
@@ -256,3 +256,43 @@ export const INFORMATION_DETAIL_OPTIONS: DropdownOption[] = [
   { value: "low", label: "Low Detail" },
   { value: "summary", label: "Summary Only" },
 ];
+
+// Required fields mapping - used to determine if a field needs RequiredLabel or OptionalLabel
+export const REQUIRED_FIELDS: Record<string, boolean> = {
+  // Demographics
+  age: true,
+  gender: false,
+  occupation: false,
+  pets: false,
+  marital_status: false,
+  children_count: false,
+
+  // Financial
+  gross_income: false,
+  home_budget: true,
+  down_payment: false,
+  credit_score_range: false,
+  ideal_zip_code: false,
+
+  // Housing
+  preferred_housing_type: false,
+  preferred_bedrooms: true,
+  preferred_bathrooms: true,
+  preferred_lot_size: false,
+  preferred_home_age: false,
+  preferred_architectural_style: false,
+  renovation_preference: false,
+  intended_property_use: false,
+  preferred_home_features: false,
+  deal_breakers: false,
+
+  // Location
+  important_locations: true,
+  walkability_importance: false,
+
+  // Communication
+  communication_frequency: false,
+  information_detail_level: false,
+  has_buyers_agent: false,
+  looking_for_buyers_agent: false,
+} as const;

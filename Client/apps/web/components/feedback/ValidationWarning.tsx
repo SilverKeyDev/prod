@@ -13,7 +13,6 @@ type ValidationWarningProps = {
 const ValidationWarning: React.FC<ValidationWarningProps> = ({
   isVisible,
   onClose,
-  onReview,
   missingFields,
   errors,
 }) => {
@@ -107,17 +106,10 @@ const ValidationWarning: React.FC<ValidationWarningProps> = ({
           <div className="flex flex-col justify-center gap-3 sm:flex-row">
             <button
               type="button"
-              onClick={onReview}
-              className="touch-friendly inline-flex min-w-[140px] justify-center rounded-md border border-transparent bg-brown px-6 py-3 text-sm font-medium text-white shadow-sm transition-colors hover:bg-brown/90 focus:outline-none focus:ring-2 focus:ring-brown/50 focus:ring-offset-2"
-            >
-              Review Information
-            </button>
-            <button
-              type="button"
               onClick={onClose}
               className="touch-friendly inline-flex min-w-[100px] justify-center rounded-md border border-gray-300 bg-white px-6 py-3 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500/50 focus:ring-offset-2"
             >
-              Cancel
+              Review Information
             </button>
           </div>
         </div>

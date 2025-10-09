@@ -127,13 +127,10 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
       isFunction(place.fetchFields)
     ) {
       try {
-        // Use dynamic method call to avoid TypeScript unsafe call warning
+        // Call fetchFields with proper 'this' binding to preserve Google Maps context
         const fetchFieldsMethod = place.fetchFields;
         if (typeof fetchFieldsMethod === "function") {
-          const typedMethod = fetchFieldsMethod as (options: {
-            fields: string[];
-          }) => Promise<void>;
-          await typedMethod({
+          await fetchFieldsMethod.call(place, {
             fields: ["displayName", "formattedAddress"],
           });
         }

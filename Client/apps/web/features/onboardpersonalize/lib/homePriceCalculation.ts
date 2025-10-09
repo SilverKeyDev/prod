@@ -20,18 +20,20 @@ export type HomePriceError = {
 };
 
 // Credit score mapping utility
+// Maps credit score ranges from constants.ts to numeric values for calculations
 export const mapCreditScoreToNumber = (creditScoreRange?: string): number => {
   switch (creditScoreRange) {
-    case "poor":
-      return 550;
-    case "fair":
-      return 630;
-    case "good":
-      return 700;
-    case "very_good":
-      return 770;
-    case "excellent":
+    case "excellent": // 750+
       return 800;
+    case "good": // 700-749
+      return 725;
+    case "fair": // 650-699
+      return 675;
+    case "poor": // 600-649
+      return 625;
+    case "very-poor": // <600
+      return 550;
+    case "unknown":
     default:
       return 700; // Default to good credit
   }

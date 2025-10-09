@@ -40,6 +40,7 @@ import {
   CREDIT_SCORE_OPTIONS,
   HOUSING_TYPE_OPTIONS,
   COMMUNICATION_FREQUENCY_OPTIONS,
+  DEFAULT_REPORT_SECTIONS,
   type OnboardingData,
 } from "../features/onboardpersonalize/lib/constants";
 import { handleDragEnd as handleDragEndUtil } from "../features/onboardpersonalize/lib/dragEndHandler";
@@ -129,22 +130,8 @@ export default function PersonalizationPage({
     }
   }, [formData]);
 
-  // Default report sections with their labels
-  const defaultReportSections = [
-    { key: "neighborhood_overview", label: "Neighborhood" },
-    { key: "safety", label: "Safety" },
-    { key: "culture_and_events", label: "Events" },
-    { key: "social_character", label: "Community" },
-    { key: "local_amenities", label: "Amenities" },
-    { key: "commute", label: "Commute" },
-    { key: "family_friendly", label: "Family-Friendly" },
-    { key: "nightlife_and_dating", label: "Nightlife" },
-    { key: "development", label: "Development" },
-    { key: "environment_utilities", label: "Utilities" },
-    { key: "financial_information", label: "Finances" },
-    { key: "schools", label: "Schools" },
-    { key: "extra_tips", label: "Extra Tips" },
-  ];
+  // Use the default report sections from constants
+  const defaultReportSections = DEFAULT_REPORT_SECTIONS;
 
   // Get ordered report sections based on user preferences
   const getOrderedReportSections = () => {
@@ -627,13 +614,7 @@ export default function PersonalizationPage({
                       onChange={(value) =>
                         updateFormData("credit_score_range", value)
                       }
-                      options={[
-                        { value: "poor", label: "Poor (300-579)" },
-                        { value: "fair", label: "Fair (580-669)" },
-                        { value: "good", label: "Good (670-739)" },
-                        { value: "very_good", label: "Very Good (740-799)" },
-                        { value: "excellent", label: "Excellent (800-850)" },
-                      ]}
+                      options={CREDIT_SCORE_OPTIONS}
                       placeholder="Select..."
                     />
                   ) : (

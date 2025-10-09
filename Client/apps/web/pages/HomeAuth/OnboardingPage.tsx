@@ -41,15 +41,13 @@ import {
   PROPERTY_USE_OPTIONS,
   SECTION_TITLES,
   FIELD_LABELS,
+  REQUIRED_FIELDS,
 } from "../../features/onboardpersonalize/lib/constants";
 import { handleDragEnd as handleDragEndUtil } from "../../features/onboardpersonalize/lib/dragEndHandler";
 import { calculateAffordableHomePrice } from "../../features/onboardpersonalize/lib/homePriceCalculation";
 import { handleSubmit as handleSubmitUtil } from "../../features/onboardpersonalize/lib/submitHandler";
 import OnboardingHeader from "../../features/onboardpersonalize/onboard/Header";
-import {
-  RequiredLabel,
-  OptionalLabel,
-} from "../../features/onboardpersonalize/OnPerLabel";
+import OnPerLabel from "../../features/onboardpersonalize/OnPerLabel";
 import PriceRangeSlider from "../../features/onboardpersonalize/PriceRangeSlider";
 import OnPerTagInput from "../../features/onboardpersonalize/TagInput";
 
@@ -113,7 +111,7 @@ export default function OnboardingPage() {
       setHomePriceError(
         error instanceof Error
           ? error.message
-          : "Failed to calculate home price",
+          : "Failed to calculate home price"
       );
       setHomePriceResult(null);
     } finally {
@@ -202,7 +200,7 @@ export default function OnboardingPage() {
     if (!checked) {
       // Remove from priorities when unchecked
       const newPriorities = currentPriorities.filter(
-        (key) => key !== sectionKey,
+        (key) => key !== sectionKey
       );
       updateFormData("report_section_priorities", newPriorities);
     } else {
@@ -301,40 +299,17 @@ export default function OnboardingPage() {
     const firstMissingField = validationResult.missingFields[0];
     if (firstMissingField) {
       // Try to determine which step contains the missing field and navigate there
-      if (
-        firstMissingField.includes("Age") ??
-        firstMissingField.includes("Gender") ??
-        firstMissingField.includes("Occupation") ??
-        firstMissingField.includes("Pet")
-      ) {
+      if (firstMissingField.includes("Age")) {
         setCurrentStep(0); // Demographics
-      } else if (
-        firstMissingField.includes("income") ??
-        firstMissingField.includes("budget") ??
-        firstMissingField.includes("credit") ??
-        firstMissingField.includes("payment")
-      ) {
+      } else if (firstMissingField.includes("budget")) {
         setCurrentStep(1); // Financial
       } else if (
-        firstMissingField.includes("housing") ??
         firstMissingField.includes("bedroom") ??
-        firstMissingField.includes("bathroom") ??
-        firstMissingField.includes("lot") ??
-        firstMissingField.includes("home") ??
-        firstMissingField.includes("renovation") ??
-        firstMissingField.includes("property")
+        firstMissingField.includes("bathroom")
       ) {
         setCurrentStep(2); // Housing
-      } else if (
-        firstMissingField.includes("location") ??
-        firstMissingField.includes("walkability")
-      ) {
+      } else if (firstMissingField.includes("location")) {
         setCurrentStep(3); // Location
-      } else if (
-        firstMissingField.includes("communication") ??
-        firstMissingField.includes("agent")
-      ) {
-        setCurrentStep(4); // Communication
       } else if (firstMissingField.includes("report")) {
         setCurrentStep(5); // Report Customization
       }
@@ -354,7 +329,7 @@ export default function OnboardingPage() {
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <div>
-                <RequiredLabel>Age</RequiredLabel>
+                <OnPerLabel required={REQUIRED_FIELDS.age}>Age</OnPerLabel>
                 <Input
                   variant="mobile"
                   type="number"
@@ -369,7 +344,9 @@ export default function OnboardingPage() {
               </div>
 
               <div>
-                <RequiredLabel>Gender</RequiredLabel>
+                <OnPerLabel required={REQUIRED_FIELDS.gender}>
+                  Gender
+                </OnPerLabel>
                 <Dropdown
                   value={formData.gender ?? ""}
                   onChange={(value) => updateFormData("gender", value)}
@@ -379,7 +356,9 @@ export default function OnboardingPage() {
               </div>
 
               <div>
-                <RequiredLabel>Occupation</RequiredLabel>
+                <OnPerLabel required={REQUIRED_FIELDS.occupation}>
+                  Occupation
+                </OnPerLabel>
                 <Input
                   variant="mobile"
                   type="text"
@@ -392,7 +371,9 @@ export default function OnboardingPage() {
               </div>
 
               <div>
-                <OptionalLabel>Pet Ownership Status</OptionalLabel>
+                <OnPerLabel required={REQUIRED_FIELDS.pets}>
+                  Pet Ownership Status
+                </OnPerLabel>
                 <Dropdown
                   value={formData.pets ?? ""}
                   onChange={(value) => updateFormData("pets", value)}
@@ -451,7 +432,9 @@ export default function OnboardingPage() {
               </div>
 
               <div>
-                <OptionalLabel>{FIELD_LABELS.IDEAL_ZIP_CODE}</OptionalLabel>
+                <OnPerLabel required={REQUIRED_FIELDS.ideal_zip_code}>
+                  {FIELD_LABELS.IDEAL_ZIP_CODE}
+                </OnPerLabel>
                 <Input
                   variant="mobile"
                   type="text"
@@ -464,7 +447,9 @@ export default function OnboardingPage() {
               </div>
 
               <div>
-                <OptionalLabel>{FIELD_LABELS.CREDIT_SCORE_RANGE}</OptionalLabel>
+                <OnPerLabel required={REQUIRED_FIELDS.credit_score_range}>
+                  {FIELD_LABELS.CREDIT_SCORE_RANGE}
+                </OnPerLabel>
                 <Dropdown
                   value={formData.credit_score_range ?? ""}
                   onChange={(value) =>
@@ -520,9 +505,50 @@ export default function OnboardingPage() {
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <div>
-                <RequiredLabel>
+                <OnPerLabel required={REQUIRED_FIELDS.preferred_bedrooms}>
+                  {FIELD_LABELS.PREFERRED_BEDROOMS}
+                </OnPerLabel>
+                <Input
+                  variant="mobile"
+                  type="number"
+                  value={formData.preferred_bedrooms?.toString() ?? ""}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    updateFormData(
+                      "preferred_bedrooms",
+                      parseInt(e.target.value) || undefined
+                    )
+                  }
+                  min={1}
+                  max={10}
+                  placeholder="Number of bedrooms"
+                />
+              </div>
+
+              <div>
+                <OnPerLabel required={REQUIRED_FIELDS.preferred_bathrooms}>
+                  {FIELD_LABELS.PREFERRED_BATHROOMS}
+                </OnPerLabel>
+                <Input
+                  variant="mobile"
+                  type="number"
+                  value={formData.preferred_bathrooms?.toString() ?? ""}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    updateFormData(
+                      "preferred_bathrooms",
+                      parseFloat(e.target.value) || undefined
+                    )
+                  }
+                  min={1}
+                  max={10}
+                  step={0.5}
+                  placeholder="Number of bathrooms"
+                />
+              </div>
+
+              <div>
+                <OnPerLabel required={REQUIRED_FIELDS.preferred_housing_type}>
                   {FIELD_LABELS.PREFERRED_HOUSING_TYPE}
-                </RequiredLabel>
+                </OnPerLabel>
                 <Dropdown
                   value={formData.preferred_housing_type ?? ""}
                   onChange={(value) =>
@@ -534,46 +560,9 @@ export default function OnboardingPage() {
               </div>
 
               <div>
-                <RequiredLabel>{FIELD_LABELS.PREFERRED_BEDROOMS}</RequiredLabel>
-                <Input
-                  variant="mobile"
-                  type="number"
-                  value={formData.preferred_bedrooms?.toString() ?? ""}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    updateFormData(
-                      "preferred_bedrooms",
-                      parseInt(e.target.value) || undefined,
-                    )
-                  }
-                  min={1}
-                  max={10}
-                  placeholder="Number of bedrooms"
-                />
-              </div>
-
-              <div>
-                <RequiredLabel>
-                  {FIELD_LABELS.PREFERRED_BATHROOMS}
-                </RequiredLabel>
-                <Input
-                  variant="mobile"
-                  type="number"
-                  value={formData.preferred_bathrooms?.toString() ?? ""}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    updateFormData(
-                      "preferred_bathrooms",
-                      parseFloat(e.target.value) || undefined,
-                    )
-                  }
-                  min={1}
-                  max={10}
-                  step={0.5}
-                  placeholder="Number of bathrooms"
-                />
-              </div>
-
-              <div>
-                <OptionalLabel>Preferred Lot Size</OptionalLabel>
+                <OnPerLabel required={REQUIRED_FIELDS.preferred_lot_size}>
+                  Preferred Lot Size
+                </OnPerLabel>
                 <Dropdown
                   value={formData.preferred_lot_size ?? ""}
                   onChange={(value) =>
@@ -585,7 +574,9 @@ export default function OnboardingPage() {
               </div>
 
               <div>
-                <OptionalLabel>Preferred Home Age</OptionalLabel>
+                <OnPerLabel required={REQUIRED_FIELDS.preferred_home_age}>
+                  Preferred Home Age
+                </OnPerLabel>
                 <Dropdown
                   value={formData.preferred_home_age ?? ""}
                   onChange={(value) =>
@@ -597,7 +588,11 @@ export default function OnboardingPage() {
               </div>
 
               <div>
-                <OptionalLabel>Preferred Architectural Style</OptionalLabel>
+                <OnPerLabel
+                  required={REQUIRED_FIELDS.preferred_architectural_style}
+                >
+                  Preferred Architectural Style
+                </OnPerLabel>
                 <Dropdown
                   value={formData.preferred_architectural_style ?? ""}
                   onChange={(value) =>
@@ -609,7 +604,9 @@ export default function OnboardingPage() {
               </div>
 
               <div>
-                <OptionalLabel>Renovation Willingness</OptionalLabel>
+                <OnPerLabel required={REQUIRED_FIELDS.renovation_preference}>
+                  Renovation Willingness
+                </OnPerLabel>
                 <Dropdown
                   value={formData.renovation_preference ?? ""}
                   onChange={(value) =>
@@ -621,7 +618,9 @@ export default function OnboardingPage() {
               </div>
 
               <div>
-                <OptionalLabel>Intended Property Use</OptionalLabel>
+                <OnPerLabel required={REQUIRED_FIELDS.intended_property_use}>
+                  Intended Property Use
+                </OnPerLabel>
                 <Dropdown
                   value={formData.intended_property_use ?? ""}
                   onChange={(value) =>
@@ -633,7 +632,9 @@ export default function OnboardingPage() {
               </div>
 
               <div>
-                <OptionalLabel>Preferred Home Features</OptionalLabel>
+                <OnPerLabel required={REQUIRED_FIELDS.preferred_home_features}>
+                  Preferred Home Features
+                </OnPerLabel>
                 <OnPerTagInput
                   value={(formData.preferred_home_features as string[]) ?? []}
                   onChange={(value: string[]) =>
@@ -644,7 +645,9 @@ export default function OnboardingPage() {
               </div>
 
               <div>
-                <OptionalLabel>Deal Breakers</OptionalLabel>
+                <OnPerLabel required={REQUIRED_FIELDS.deal_breakers}>
+                  Deal Breakers
+                </OnPerLabel>
                 <OnPerTagInput
                   value={(formData.deal_breakers as string[]) ?? []}
                   onChange={(value: string[]) =>
@@ -664,9 +667,41 @@ export default function OnboardingPage() {
               Location Preferences
             </Title>
 
+            {/* Important Locations Section */}
+            <div>
+              <OnPerLabel required={REQUIRED_FIELDS.important_locations}>
+                Important Locations
+              </OnPerLabel>
+              <p
+                className="mb-4 text-xs text-
+              black/60 sm:text-sm md:text-base"
+              >
+                Add work, family, or frequently visited places. We'll find homes
+                with reasonable commute times to these locations.
+              </p>
+              <ImportantLocationsInput
+                locations={formData.important_locations ?? []}
+                onChange={(
+                  locations: {
+                    name: string;
+                    address: string;
+                    commute_tolerance?: number;
+                  }[]
+                ) => {
+                  updateFormData("important_locations", locations);
+                }}
+                scriptsReady={scriptsReady}
+              />
+              {loadError && (
+                <p className="mt-2 text-xs text-red-500">{loadError}</p>
+              )}
+            </div>
+
             <div className="grid grid-cols-1 gap-4 sm:gap-6">
               <div>
-                <OptionalLabel>Walkability Importance</OptionalLabel>
+                <OnPerLabel required={REQUIRED_FIELDS.walkability_importance}>
+                  Walkability Importance
+                </OnPerLabel>
                 <p className="mb-4 text-xs text-black/60 sm:text-sm md:text-base">
                   How important is it to walk to nearby amenities? Used to
                   filter neighborhoods in search results.
@@ -681,32 +716,6 @@ export default function OnboardingPage() {
                 />
               </div>
             </div>
-
-            {/* Important Locations Section */}
-            <div>
-              <RequiredLabel>Important Locations</RequiredLabel>
-              <p className="mb-4 text-xs text-
-              black/60 sm:text-sm md:text-base">
-                Add work, family, or frequently visited places. We'll find homes
-                with reasonable commute times to these locations.
-              </p>
-              <ImportantLocationsInput
-                locations={formData.important_locations ?? []}
-                onChange={(
-                  locations: {
-                    name: string;
-                    address: string;
-                    commute_tolerance?: number;
-                  }[],
-                ) => {
-                  updateFormData("important_locations", locations);
-                }}
-                scriptsReady={scriptsReady}
-              />
-              {loadError && (
-                <p className="mt-2 text-xs text-red-500">{loadError}</p>
-              )}
-            </div>
           </div>
         );
 
@@ -719,9 +728,9 @@ export default function OnboardingPage() {
 
             {/* Communication Preference */}
             <div>
-              <RequiredLabel>
+              <OnPerLabel required={REQUIRED_FIELDS.communication_frequency}>
                 {FIELD_LABELS.COMMUNICATION_FREQUENCY}
-              </RequiredLabel>
+              </OnPerLabel>
               <Dropdown
                 value={formData.communication_frequency ?? ""}
                 onChange={(value) =>
@@ -734,7 +743,9 @@ export default function OnboardingPage() {
 
             {/* Information Detail Level */}
             <div>
-              <RequiredLabel>Information Detail Level</RequiredLabel>
+              <OnPerLabel required={REQUIRED_FIELDS.information_detail_level}>
+                Information Detail Level
+              </OnPerLabel>
               <Dropdown
                 value={formData.information_detail_level ?? ""}
                 onChange={(value) =>

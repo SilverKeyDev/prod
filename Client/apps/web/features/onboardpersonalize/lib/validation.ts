@@ -1,4 +1,5 @@
 import type { OnboardingData } from "./constants";
+import { REQUIRED_FIELDS, FIELD_LABELS } from "./constants";
 
 export type ValidationResult = {
   isValid: boolean;
@@ -6,9 +7,34 @@ export type ValidationResult = {
   errors: string[];
 };
 
+// Mapping of field keys to user-friendly display names
+const FIELD_DISPLAY_NAMES: Record<string, string> = {
+  age: FIELD_LABELS.AGE,
+  gender: FIELD_LABELS.GENDER,
+  occupation: FIELD_LABELS.OCCUPATION,
+  pets: FIELD_LABELS.PETS,
+  gross_income: FIELD_LABELS.GROSS_INCOME,
+  home_budget: FIELD_LABELS.HOME_BUDGET,
+  credit_score_range: FIELD_LABELS.CREDIT_SCORE_RANGE,
+  down_payment: FIELD_LABELS.DOWN_PAYMENT,
+  preferred_housing_type: FIELD_LABELS.PREFERRED_HOUSING_TYPE,
+  preferred_bedrooms: FIELD_LABELS.PREFERRED_BEDROOMS,
+  preferred_bathrooms: FIELD_LABELS.PREFERRED_BATHROOMS,
+  preferred_lot_size: FIELD_LABELS.PREFERRED_LOT_SIZE,
+  preferred_home_age: FIELD_LABELS.PREFERRED_HOME_AGE,
+  preferred_architectural_style: FIELD_LABELS.PREFERRED_ARCHITECTURAL_STYLE,
+  renovation_preference: FIELD_LABELS.RENOVATION_PREFERENCE,
+  intended_property_use: FIELD_LABELS.INTENDED_PROPERTY_USE,
+  important_locations: FIELD_LABELS.IMPORTANT_LOCATIONS,
+  walkability_importance: FIELD_LABELS.WALKABILITY_IMPORTANCE,
+  communication_frequency: FIELD_LABELS.COMMUNICATION_FREQUENCY,
+  information_detail_level: FIELD_LABELS.INFORMATION_DETAIL_LEVEL,
+};
+
 /**
  * Shared validation function for onboarding and personalization forms
  * Used by both OnboardingPage and PersonalizationPage
+ * Uses REQUIRED_FIELDS constant to determine which fields are required
  */
 export const validateOnboardingData = (
   formData: OnboardingData,
@@ -16,118 +42,89 @@ export const validateOnboardingData = (
   const missingFields: string[] = [];
   const errors: string[] = [];
 
-  // Demographics - Required fields
-  if (!formData.age || formData.age <= 0) {
-    missingFields.push("Age");
-  }
-  if (!formData.gender || formData.gender.trim() === "") {
-    missingFields.push("Gender");
-  }
-  if (!formData.occupation || formData.occupation.trim() === "") {
-    missingFields.push("Occupation");
-  }
-  if (!formData.pets || formData.pets.trim() === "") {
-    missingFields.push("Pet ownership status");
-  }
+  // Validate numeric fields
+  const numericFields = [
+    "age",
+    "gross_income",
+    "home_budget",
+    "preferred_bedrooms",
+    "preferred_bathrooms",
+  ] as const;
 
-  // Financial - Required fields
-  if (!formData.gross_income || formData.gross_income <= 0) {
-    missingFields.push("Gross income");
-  }
-  if (!formData.home_budget || formData.home_budget <= 0) {
-    missingFields.push("Home budget");
-  }
-  if (
-    !formData.credit_score_range ||
-    formData.credit_score_range.trim() === ""
-  ) {
-    missingFields.push("Credit score range");
-  }
-  if (!formData.down_payment || formData.down_payment < 0) {
-    missingFields.push("Down payment");
-  }
-
-  // Housing - Required fields
-  if (
-    !formData.preferred_housing_type ||
-    formData.preferred_housing_type.trim() === ""
-  ) {
-    missingFields.push("Preferred housing type");
-  }
-  if (!formData.preferred_bedrooms || formData.preferred_bedrooms <= 0) {
-    missingFields.push("Preferred bedrooms");
-  }
-  if (!formData.preferred_bathrooms || formData.preferred_bathrooms <= 0) {
-    missingFields.push("Preferred bathrooms");
-  }
-  if (
-    !formData.preferred_lot_size ||
-    formData.preferred_lot_size.trim() === ""
-  ) {
-    missingFields.push("Preferred lot size");
-  }
-  if (
-    !formData.preferred_home_age ||
-    formData.preferred_home_age.trim() === ""
-  ) {
-    missingFields.push("Preferred home age");
-  }
-  if (
-    !formData.renovation_preference ||
-    formData.renovation_preference.trim() === ""
-  ) {
-    missingFields.push("Renovation preference");
-  }
-  if (
-    !formData.intended_property_use ||
-    formData.intended_property_use.trim() === ""
-  ) {
-    missingFields.push("Intended property use");
-  }
-
-  // Location - Required fields
-  if (
-    !formData.important_locations ||
-    formData.important_locations.length === 0
-  ) {
-    missingFields.push("At least one important location");
-  } else {
-    // Validate each important location has required fields
-    formData.important_locations.forEach((location, index: number) => {
-      if (!location.name || location.name.trim() === "") {
-        missingFields.push(`Important location ${index + 1} name`);
+  numericFields.forEach((field) => {
+    if (REQUIRED_FIELDS[field]) {
+      const value = formData[field];
+      if (!value || (typeof value === "number" && value <= 0)) {
+        missingFields.push(
+          FIELD_DISPLAY_NAMES[field] || field.replace(/_/g, " "),
+        );
       }
-      if (!location.address || location.address.trim() === "") {
-        missingFields.push(`Important location ${index + 1} address`);
-      }
-      if (!location.commute_tolerance || location.commute_tolerance <= 0) {
-        missingFields.push(`Important location ${index + 1} commute tolerance`);
-      }
-    });
+    }
+  });
+
+  // Validate down_payment (can be 0, so just check if undefined/null)
+  if (REQUIRED_FIELDS.down_payment) {
+    if (
+      formData.down_payment === undefined ||
+      formData.down_payment === null ||
+      formData.down_payment < 0
+    ) {
+      missingFields.push(FIELD_DISPLAY_NAMES.down_payment);
+    }
   }
 
-  if (
-    !formData.walkability_importance ||
-    formData.walkability_importance.trim() === ""
-  ) {
-    missingFields.push("Walkability importance");
-  }
+  // Validate string fields
+  const stringFields = [
+    "gender",
+    "occupation",
+    "pets",
+    "credit_score_range",
+    "preferred_housing_type",
+    "preferred_lot_size",
+    "preferred_home_age",
+    "preferred_architectural_style",
+    "renovation_preference",
+    "intended_property_use",
+    "walkability_importance",
+    "communication_frequency",
+    "information_detail_level",
+    "has_buyers_agent",
+  ] as const;
 
-  // Communication - Required fields
-  if (
-    !formData.communication_frequency ||
-    formData.communication_frequency.trim() === ""
-  ) {
-    missingFields.push("Communication frequency");
-  }
-  if (
-    !formData.information_detail_level ||
-    formData.information_detail_level.trim() === ""
-  ) {
-    missingFields.push("Information detail level");
-  }
-  if (!formData.has_buyers_agent || formData.has_buyers_agent.trim() === "") {
-    missingFields.push("Buyers agent status");
+  stringFields.forEach((field) => {
+    if (REQUIRED_FIELDS[field]) {
+      const value = formData[field];
+      if (!value || (typeof value === "string" && value.trim() === "")) {
+        missingFields.push(
+          FIELD_DISPLAY_NAMES[field] || field.replace(/_/g, " "),
+        );
+      }
+    }
+  });
+
+  // Location - Important locations validation
+  if (REQUIRED_FIELDS.important_locations) {
+    if (
+      !formData.important_locations ||
+      formData.important_locations.length === 0
+    ) {
+      missingFields.push("At least one important location");
+    } else {
+      // Validate each important location has required fields
+      formData.important_locations.forEach((location, index: number) => {
+        if (!location.name || location.name.trim() === "") {
+          missingFields.push(`Important location ${index + 1} name`);
+        }
+        if (!location.address || location.address.trim() === "") {
+          missingFields.push(`Important location ${index + 1} address`);
+        }
+        if (!location.commute_tolerance || location.commute_tolerance <= 0) {
+          missingFields.push(
+            `Important location ${index + 1} commute tolerance`,
+          );
+        }
+      });
+    }
   }
 
   // Report Customization - At least one section must be selected

@@ -1,6 +1,7 @@
 import React from "react";
 
 import Dropdown from "../../components/ui/form/Dropdown";
+import { RequiredLabel } from "./OnPerLabel";
 
 type OnPerBuyersAgentProps = {
   hasBuyersAgent: string;
@@ -24,9 +25,9 @@ const OnPerBuyersAgent: React.FC<OnPerBuyersAgentProps> = ({
     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
       {/* Buyer's Agent Dropdown */}
       <div>
-        <label className="mb-2 block text-xs font-medium text-black sm:text-sm md:text-base">
+        <RequiredLabel className="mb-2 block text-xs font-medium text-black sm:text-sm md:text-base">
           Do you currently have a buyer's agent?
-        </label>
+        </RequiredLabel>
         <Dropdown
           value={hasBuyersAgent}
           onChange={onHasBuyersAgentChange}
