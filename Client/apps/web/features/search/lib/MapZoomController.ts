@@ -30,23 +30,17 @@ export const calculatePropertyCardCenter = (lat: number, lng: number, propertyId
     }
   }
 
-  // Position marker lower on screen (toward bottom) by moving map center north
-  // Moving center north makes the property appear south (lower) on screen
-  const latOffset = 0.012; // Offset to position marker in lower portion of screen
-  
   const center = {
-    lat: lat + latOffset,  // Move center north so marker appears lower
-    lng: lng,              // Keep longitude centered
+    lat: lat,  // Use exact property coordinates
+    lng: lng,  // Use exact property coordinates
   };
 
   console.log("🗺️ [CENTER CALCULATION]", {
     propertyId: propertyId || "none",
     baseLat: lat,
     baseLng: lng,
-    latOffset: latOffset,
     finalLat: center.lat,
     finalLng: center.lng,
-    note: "Center moved north to position marker lower on screen",
   });
 
   // Cache the center if we have a property ID

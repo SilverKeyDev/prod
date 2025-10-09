@@ -1029,13 +1029,19 @@ def search_properties_by_polygon():
                     llm_provider="openai"
                 )
                 
+                current_app.logger.info(f"[POLYGON_SEARCH] ✅ {request_id} - Scored {len(scored_matches)} properties via ML matching")
+                
                 # Use Redis sorted set for efficient sorting by score
                 redis_client = None
                 try:
                     # Connect to Redis
+                    redis_host = os.getenv('REDIS_HOST', 'localhost')
+                    redis_port = int(os.getenv('REDIS_PORT', 6379))
+                    current_app.logger.info(f"[POLYGON_SEARCH] 🔄 {request_id} - Attempting Redis connection to {redis_host}:{redis_port}")
+                    
                     redis_client = redis.Redis(
-                        host=os.getenv('REDIS_HOST', 'localhost'),
-                        port=int(os.getenv('REDIS_PORT', 6379)),
+                        host=redis_host,
+                        port=redis_port,
                         db=0,
                         decode_responses=False
                     )
@@ -1085,14 +1091,21 @@ def search_properties_by_polygon():
                     # Clean up Redis key
                     redis_client.delete(sort_key)
                     
+                    current_app.logger.info(f"[POLYGON_SEARCH] ✅ {request_id} - Successfully sorted {len(scored_properties)} properties using Redis")
+                    
                 except Exception as redis_error:
                     current_app.logger.warning(f"[POLYGON_SEARCH] ⚠️ Redis sorting failed: {str(redis_error)}, falling back to Python sort")
                     
                     # Fallback to Python sorting if Redis fails
                     score_map = {}
                     for match in scored_matches:
-                        zpid = match.get("zpid")
-                        score = match.get("_score", 0.0)
+                        # Extract zpid from home_data within the match result (same as Redis path)
+                        home_data = match.get("home_data", {})
+                        zpid = home_data.get("zpid")
+                        
+                        # Get the final ensemble score (same as Redis path)
+                        score = match.get("final_score", 0.0)
+                        
                         if zpid:
                             score_map[zpid] = score
                     
@@ -1104,6 +1117,8 @@ def search_properties_by_polygon():
                     
                     # Sort properties by score (highest first)
                     scored_properties.sort(key=lambda x: x.get("_score", 0.0), reverse=True)
+                    
+                    current_app.logger.info(f"[POLYGON_SEARCH] ✅ {request_id} - Successfully sorted {len(scored_properties)} properties using Python fallback")
                 
                 finally:
                     # Ensure Redis connection is closed
@@ -1124,6 +1139,11 @@ def search_properties_by_polygon():
             current_app.logger.warning(f"[POLYGON_SEARCH] ⚠️ {request_id} - No properties found to score")
             scored_properties = all_properties
 
+        # Log sample scores for debugging
+        if scored_properties:
+            sample_scores = [(p.get("zpid"), p.get("_score", 0.0)) for p in scored_properties[:3]]
+            current_app.logger.info(f"[POLYGON_SEARCH] 📊 {request_id} - Sample scores (first 3): {sample_scores}")
+        
         total_time = time.time() - start_time
         response_data = {
             "success": True,
@@ -1137,9 +1157,9 @@ def search_properties_by_polygon():
                 "status_type": status_type,
                 "pagesTried": per_pages + 1,
                 "searchTime": round(total_time, 2),
+                "scored": len(scored_properties) > 0 and scored_properties[0].get("_score", 0.0) > 0,
                 "requestId": request_id,
-                "limit": TARGET_LIMIT,
-                "scored": len(scored_properties) > 0 and scored_properties[0].get("_score", 0.0) > 0
+                "limit": TARGET_LIMIT
             }
         }
         

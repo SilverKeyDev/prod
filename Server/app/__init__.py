@@ -284,8 +284,7 @@ def create_app(config=None):
                 "usb=(), "
                 "magnetometer=(), "
                 "gyroscope=(), "
-                "accelerometer=(), "
-                "ambient-light-sensor=()"
+                "accelerometer=()"
             )
         else:
             # Restrictive policy for other endpoints
@@ -298,8 +297,7 @@ def create_app(config=None):
                 "usb=(), "
                 "magnetometer=(), "
                 "gyroscope=(), "
-                "accelerometer=(), "
-                "ambient-light-sensor=()"
+                "accelerometer=()"
             )
         response.headers['Permissions-Policy'] = permissions_policy
         
@@ -553,6 +551,15 @@ def create_app(config=None):
             'error': 'UNAUTHORIZED',
             'message': 'Authentication required.'
         }), 401
+
+    # Favicon handling - browsers always request this
+    @app.route('/favicon.ico')
+    def favicon():
+        # Try to serve favicon.ico if it exists, otherwise return 204 No Content
+        favicon_path = os.path.join(app.static_folder, 'favicon.ico')
+        if os.path.exists(favicon_path):
+            return send_from_directory(app.static_folder, 'favicon.ico')
+        return ('', 204)
 
     # Static asset serving
     @app.route('/assets/<path:filename>')
