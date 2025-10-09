@@ -82,8 +82,6 @@ export default function SearchPage({
 
   // Mobile header button handlers
   const handlePreferences = useCallback(() => {
-    console.log("🔧 [SEARCH_PAGE] handlePreferences called");
-
     // Use a more direct approach for mobile navigation
     if (window.innerWidth < 1024) {
       // For mobile, use window.location to ensure navigation works
@@ -100,17 +98,6 @@ export default function SearchPage({
   // Handle property details search using the hook with enhanced logging
   const handleViewPropertyDetails = useCallback(
     async (property: SearchResult) => {
-      console.log("🏠 [PROPERTY_DETAILS] Fetching property details:", {
-        propertyId: property.id,
-        address: property.address,
-        price: property.price,
-        coordinates: { lat: property.lat, lng: property.lng },
-        bedrooms: property.bedrooms,
-        bathrooms: property.bathrooms,
-        sqft: property.sqft,
-        propertyType: property.propertyType,
-        timestamp: new Date().toISOString(),
-      });
 
       // Map SearchResult to Property format for the hook
       const propertyForDetails = {
@@ -123,10 +110,6 @@ export default function SearchPage({
 
       try {
         await fetchPropertyDetails(propertyForDetails);
-        console.log(
-          "🏠 [PROPERTY_DETAILS] Successfully fetched property details for:",
-          property.id
-        );
       } catch (error) {
         console.error(
           "🏠 [PROPERTY_DETAILS] Failed to fetch property details:",
@@ -172,24 +155,12 @@ export default function SearchPage({
   // Handle navigation to property (focus on property instead of opening details)
   const handleNavigateToProperty = useCallback(
     (property: SearchResult) => {
-      console.log("🎯 [PROPERTY_NAVIGATION] Navigating to property:", {
-        propertyId: property.id,
-        address: property.address,
-        coordinates: { lat: property.lat, lng: property.lng },
-        activeTab,
-        timestamp: new Date().toISOString(),
-      });
 
       // Find the property index in the current data
       const currentData = activeTab === "results" ? searchResults : savedHomes;
       const propertyIndex = currentData.findIndex((p) => p.id === property.id);
 
       if (propertyIndex !== -1) {
-        console.log("🎯 [PROPERTY_NAVIGATION] Found property at index:", {
-          propertyIndex,
-          totalProperties: currentData.length,
-          timestamp: new Date().toISOString(),
-        });
         setCurrentPage(propertyIndex);
       } else {
         console.error(
@@ -229,23 +200,6 @@ export default function SearchPage({
         return;
       }
 
-      console.log("🗺️ [ISOCHRONE_POLYGON] Rendering isochrone polygon:", {
-        hasData: !!isochroneData,
-        dataType: typeof isochroneData,
-        dataKeys:
-          isochroneData && typeof isochroneData === "object"
-            ? Object.keys(isochroneData as Record<string, unknown>)
-            : [],
-        mapAvailable: !!googleMapRef.current,
-        mapCenter: googleMapRef.current.getCenter?.()
-          ? {
-              lat: googleMapRef.current.getCenter()?.lat(),
-              lng: googleMapRef.current.getCenter()?.lng(),
-            }
-          : null,
-        zoom: googleMapRef.current.getZoom?.(),
-        timestamp: new Date().toISOString(),
-      });
 
       renderIsochronePolygon(isochroneData as IsochroneData, {
         map: googleMapRef.current,
@@ -273,14 +227,6 @@ export default function SearchPage({
         setImportantLocationMarkers: (
           markers: GoogleAdvancedMarkerElement[]
         ) => {
-          console.log("🎯 [IMPORTANT_LOCATIONS] Markers set:", {
-            markersCount: markers.length,
-            markerDetails: markers.map((marker) => ({
-              position: marker.position,
-              title: marker.title,
-            })),
-            timestamp: new Date().toISOString(),
-          });
           importantMarkersRef.current = markers;
         },
         resetToDefaultZoom,
@@ -407,26 +353,15 @@ export default function SearchPage({
 
   // Update handleSearch to use runIsochroneSearch or external handler with enhanced logging
   const handleSearchUpdated = useCallback(async () => {
-    console.log("🔍 [SEARCH_TRIGGER] Search triggered:", {
-      isSearching,
-      hasExternalHandler: !!onSearchProperties,
-      mapAvailable: !!googleMapRef.current,
-      currentTab: activeTab,
-      currentPage,
-      timestamp: new Date().toISOString(),
-    });
 
     if (!isSearching) {
       if (onSearchProperties) {
-        console.log("🔍 [SEARCH_TRIGGER] Using external search handler");
         await onSearchProperties();
       } else {
-        console.log("🔍 [SEARCH_TRIGGER] Using internal isochrone search");
         await runIsochroneSearch();
       }
-    } else {
-      console.log("🔍 [SEARCH_TRIGGER] Search already in progress, skipping");
     }
+    
   }, [isSearching, onSearchProperties, activeTab, currentPage]);
 
   // Memoize the search function to prevent unnecessary re-exposure
@@ -540,103 +475,16 @@ export default function SearchPage({
 
   // Update markers when search results change
   useEffect(() => {
-    console.log(
-      "🏠 [PROPERTY_MARKERS] useEffect triggered - Updating property markers:",
-      {
-        searchResultsCount: searchResults.length,
-        savedHomesCount: savedHomes.length,
-        activeTab,
-        hasMapInstance: !!googleMapRef.current,
-        timestamp: new Date().toISOString(),
-      }
-    );
 
     if (
       googleMapRef.current &&
       (searchResults.length > 0 || savedHomes.length > 0)
     ) {
       const currentData = activeTab === "results" ? searchResults : savedHomes;
-      console.log("🏠 [PROPERTY_MARKERS] Calling updateMapMarkers with:", {
-        dataCount: currentData.length,
-        activeTab,
-        timestamp: new Date().toISOString(),
-      });
+
       updateMapMarkers(currentData);
-    } else {
-      console.log("🏠 [PROPERTY_MARKERS] Skipping marker update:", {
-        hasMap: !!googleMapRef.current,
-        searchResultsCount: searchResults.length,
-        savedHomesCount: savedHomes.length,
-      });
     }
   }, [searchResults, savedHomes, activeTab, updateMapMarkers]);
-
-  // Track marker rendering state changes (reduced logging)
-  useEffect(() => {
-    // Only log significant state changes, not every render
-    const currentData = activeTab === "results" ? searchResults : savedHomes;
-    const currentProperty = currentData[currentPage];
-
-    // Only log when property changes or significant state changes occur
-    if (currentProperty && (activeTab === "results" || activeTab === "saved")) {
-      // Reduced logging - only log essential info
-      console.log("🏠 [MARKER_RENDERING] Property focus:", {
-        id: currentProperty.id,
-        address: currentProperty.address,
-        price: currentProperty.price,
-        tab: activeTab,
-        page: currentPage,
-      });
-    }
-  }, [activeTab, currentPage, searchResults, savedHomes]);
-
-  // Log search results updates
-  useEffect(() => {
-    if (searchResults.length > 0) {
-      console.log("🔍 [SEARCH_RESULTS] New search results received:", {
-        totalResults: searchResults.length,
-        firstResult: searchResults[0]
-          ? {
-              id: searchResults[0].id,
-              address: searchResults[0].address,
-              price: searchResults[0].price,
-              coordinates: {
-                lat: searchResults[0].lat,
-                lng: searchResults[0].lng,
-              },
-            }
-          : null,
-        lastResult: searchResults[searchResults.length - 1]
-          ? {
-              id: searchResults[searchResults.length - 1].id,
-              address: searchResults[searchResults.length - 1].address,
-              price: searchResults[searchResults.length - 1].price,
-              coordinates: {
-                lat: searchResults[searchResults.length - 1].lat,
-                lng: searchResults[searchResults.length - 1].lng,
-              },
-            }
-          : null,
-        timestamp: new Date().toISOString(),
-      });
-    }
-  }, [searchResults]);
-
-  // Log saved homes updates
-  useEffect(() => {
-    if (savedHomes.length > 0) {
-      console.log("💾 [SAVED_HOMES] Saved homes updated:", {
-        totalSaved: savedHomes.length,
-        savedHomes: savedHomes.map((home) => ({
-          id: home.id,
-          address: home.address,
-          price: home.price,
-          coordinates: { lat: home.lat, lng: home.lng },
-        })),
-        timestamp: new Date().toISOString(),
-      });
-    }
-  }, [savedHomes]);
 
   usePropertyFocus({
     googleMapRef,
@@ -648,55 +496,6 @@ export default function SearchPage({
     selectedProperty,
   });
 
-  // Log property focus changes
-  useEffect(() => {
-    if (selectedProperty && googleMapRef.current) {
-      console.log("🎯 [PROPERTY_FOCUS] Property selected for focus:", {
-        propertyId: selectedProperty.id,
-        address: selectedProperty.address,
-        coordinates: { lat: selectedProperty.lat, lng: selectedProperty.lng },
-        mapCenter: googleMapRef.current.getCenter?.()
-          ? {
-              lat: googleMapRef.current.getCenter()?.lat(),
-              lng: googleMapRef.current.getCenter()?.lng(),
-            }
-          : null,
-        zoom: googleMapRef.current.getZoom?.(),
-        timestamp: new Date().toISOString(),
-      });
-    }
-  }, [selectedProperty]);
-
-  // Reduced map operation logging
-  const logMapOperation = useCallback(
-    (operation: string, details: Record<string, unknown>) => {
-      // Only log significant operations, not every property change
-      if (operation === "Auto-focus on property change") {
-        console.log(`🗺️ [MAP_OPERATION] ${operation}:`, {
-          propertyId: details.propertyId,
-          address: details.address,
-        });
-      }
-    },
-    []
-  );
-
-  // Log map focus operations
-  useEffect(() => {
-    const currentData = activeTab === "results" ? searchResults : savedHomes;
-    const currentProperty = currentData[currentPage];
-
-    if (currentProperty && googleMapRef.current) {
-      logMapOperation("Auto-focus on property change", {
-        propertyId: currentProperty.id,
-        address: currentProperty.address,
-        coordinates: { lat: currentProperty.lat, lng: currentProperty.lng },
-        activeTab,
-        currentPage,
-        totalProperties: currentData.length,
-      });
-    }
-  }, [activeTab, currentPage, searchResults, savedHomes]);
 
   useMobileHeaderActions({
     setMobileHeaderActions,
@@ -707,32 +506,11 @@ export default function SearchPage({
 
   // Reset to first page when switching tabs and save to localStorage with enhanced logging
   const handleTabChange = (tab: "results" | "saved") => {
-    console.log("📑 [TAB_CHANGE] Switching tabs:", {
-      fromTab: activeTab,
-      toTab: tab,
-      currentPage,
-      searchResultsCount: searchResults.length,
-      savedHomesCount: savedHomes.length,
-      timestamp: new Date().toISOString(),
-    });
 
     setActiveTab(tab);
     setCurrentPage(0);
 
-    // Log the new tab's data
-    const newTabData = tab === "results" ? searchResults : savedHomes;
-    console.log("📑 [TAB_CHANGE] New tab data:", {
-      tab,
-      dataCount: newTabData.length,
-      firstItem: newTabData[0]
-        ? {
-            id: newTabData[0].id,
-            address: newTabData[0].address,
-            coordinates: { lat: newTabData[0].lat, lng: newTabData[0].lng },
-          }
-        : null,
-      timestamp: new Date().toISOString(),
-    });
+
   };
 
   // Initialize isochrone overlay after map is ready (only once) with enhanced logging

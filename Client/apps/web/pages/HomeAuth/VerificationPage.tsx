@@ -217,7 +217,7 @@ export default function VerificationPage() {
   };
 
   const renderCodeInputs = () => (
-    <div className="gap-responsive-xs space-y-responsive-lg flex justify-center">
+    <div className="flex justify-center gap-3">
       {code.map((digit, index) => (
         <input
           key={index}
@@ -232,7 +232,7 @@ export default function VerificationPage() {
           }
           onPaste={(e) => handlePaste(e, index)}
           onKeyDown={(e) => handleKeyDown(e, index)}
-          className="mobile-icon-md btn-responsive-lg text-responsive-lg rounded-lg border-2 border-olive text-center font-bold focus:border-transparent focus:outline-none focus:ring-2 focus:ring-olive"
+          className="h-12 w-12 rounded-lg border-2 border-olive text-center text-lg font-bold text-gray-500 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-olive disabled:cursor-not-allowed disabled:opacity-50"
           disabled={loading}
         />
       ))}
@@ -245,26 +245,28 @@ export default function VerificationPage() {
         {/* Back Button */}
         <button
           onClick={handleBack}
-          className="space-y-responsive-md flex items-center text-black/60 transition-colors hover:text-black"
+          className="space-y-responsive-md flex items-center text-black/60 transition-colors hover:text-black ml-4"
         >
           <ArrowLeft className="mobile-icon-sm mr-1" />
           Back
         </button>
 
         {/* Header */}
-        <div className="space-y-responsive-lg text-center">
-          <h2 className="text-responsive-xl space-y-responsive-xs gap-responsive-xs flex items-center justify-center font-serif text-black">
+        <div className="text-center">
+          <h2 className="text-responsive-xl space-y-responsive-xs gap-responsive-xs flex items-center justify-center font-serif text-black mb-4">
             <MiniLogo size="md" />
             {activeStep === "email"
               ? "Verify your email"
               : "Enter verification code"}
           </h2>
-          <p className="text-responsive-sm font-light text-black/60">
-            {activeStep === "email"
-              ? "We'll send you a code to verify your email"
-              : `Enter the 6-digit code sent to ${email}`}
-          </p>
         </div>
+
+        {/* Instructions */}
+        <p className="text-responsive-sm font-light text-black/60 text-center mb-4">
+          {activeStep === "email"
+            ? "We'll send you a code to verify your email"
+            : `Enter the 6-digit code sent to ${email}`}
+        </p>
 
         {/* Error Message */}
         {error && (
@@ -344,23 +346,25 @@ export default function VerificationPage() {
               </button>
             </div>
 
-            <button
-              type="button"
-              onClick={handleVerify}
-              disabled={loading ?? code.join("").length !== 6}
-              className="btn-primary w-full disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {loading ? (
-                <div className="flex items-center justify-center">
-                  <div className="mr-2">
-                    <KeyTurnLoader message="" />
+            <div className="flex justify-center mt-6">
+              <button
+                type="button"
+                onClick={handleVerify}
+                disabled={loading ?? code.join("").length !== 6}
+                className="btn-primary w-72 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {loading ? (
+                  <div className="flex items-center justify-center">
+                    <div className="mr-2">
+                      <KeyTurnLoader message="" />
+                    </div>
+                    Verifying...
                   </div>
-                  Verifying...
-                </div>
-              ) : (
-                "Verify and continue"
-              )}
-            </button>
+                ) : (
+                  "Verify"
+                )}
+              </button>
+            </div>
           </form>
         )}
       </div>
