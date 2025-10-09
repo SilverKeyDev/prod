@@ -1,24 +1,14 @@
 // React imports
-import {
-  Download,
-  Share,
-  BarChart2,
-  X,
-  RefreshCw,
-  Settings,
-} from "lucide-react";
+import { Download, Share, BarChart2, X, Settings } from "lucide-react";
 import React, { useState, useEffect, useCallback } from "react";
 
 import { Card } from "../../../components/layout";
 import { Title, Subtitle } from "../../../components/ui";
+import Button from "../../../components/ui/button/Button";
 // Core
 import { ALL_METRIC_KEYS, type Report } from "../../../../../packages/schemas";
 // Components
-import { ComparisonSpreadsheet, ManageRowsModal } from ".";
-type ComparisonRow = {
-  Address?: string;
-  [key: string]: string | number | boolean | undefined;
-};
+import { ComparisonSpreadsheet, ManageRowsModal, type ComparisonRow } from ".";
 import type { DocumentWithBody } from "../../../../../packages/schemas/google-maps";
 import { reportsService } from "../../../../../packages/services";
 import { secureClipboardCopy } from "../../../../../packages/services/security/clipboardSecurity";
@@ -32,12 +22,6 @@ import { formatFilenameToAddress } from "../../../../../packages/utils/address";
 export default function CompareReportsPage() {
   // Use Reports store for reports management
   const compareReports = useReportsStore((s) => s.compareReports);
-  const refreshCompareReports = useReportsStore((s) => s.refreshCompareReports);
-
-  // Refresh data when page loads to ensure latest updates
-  useEffect(() => {
-    void refreshCompareReports();
-  }, [refreshCompareReports]);
 
   // Backend now filters to only return standard ('detailed') reports
   // Extra client-side guard: filter out any comparison reports that may slip through
@@ -173,10 +157,7 @@ export default function CompareReportsPage() {
 
       try {
         setIsLoading(true);
-        log.info("COMPARE_REPORTS", "Requesting comparison", {
-          selectedReportIds: selectedReports.map((r) => r.id),
-          keysCount: keys.length,
-        });
+
         const response = await reportsService.compareReports(
           selectedReports.map((r) => r.id),
           keys
@@ -201,10 +182,6 @@ export default function CompareReportsPage() {
               }
               return obj as ComparisonRow;
             });
-          log.info("COMPARE_REPORTS", "Received comparison table", {
-            rows: normalized.length,
-            columns: normalized[0] ? Object.keys(normalized[0]) : [],
-          });
           setComparisonTable(normalized);
         } else {
           const errorMessage =
@@ -368,7 +345,6 @@ export default function CompareReportsPage() {
 
       const success = await secureClipboardCopy(shareText);
       if (success) {
-        log.info("COMPARE_REPORTS", "CSV share link copied to clipboard");
         enqueueToast({
           type: "success",
           message: "Share link copied to clipboard",
@@ -390,25 +366,6 @@ export default function CompareReportsPage() {
     }
   };
 
-  const refreshReportsData = () => {
-    try {
-      setIsLoading(true);
-      // TODO: Implement actual report fetching when context is available
-      void enqueueToast({
-        type: "success",
-        message: "Reports refreshed successfully",
-      });
-    } catch (error: unknown) {
-      console.error("❌ Failed to refresh reports:", error);
-      void enqueueToast({
-        type: "error",
-        message:
-          error instanceof Error ? error.message : "Failed to refresh reports",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   return (
     <div>
@@ -427,45 +384,40 @@ export default function CompareReportsPage() {
               </Subtitle>
             </div>
             <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:flex-nowrap sm:gap-3">
-              <button
+              <Button
                 onClick={() => setSelectedReports([])}
                 disabled={selectedReports.length === 0}
-                className="touch-friendly flex w-full flex-1 items-center justify-center rounded-lg border border-gray-300 bg-gray-100 px-2 py-1.5 text-xs font-medium text-black/70 transition-colors hover:border-gray-400 hover:bg-gray-200 disabled:cursor-not-allowed disabled:border-transparent disabled:bg-gray-200 disabled:text-gray-500 sm:w-auto sm:flex-none sm:justify-start sm:px-3 sm:py-2 sm:text-sm"
+                variant="outline"
+                size="sm"
+                icon={<X />}
+                className="w-full flex-1 sm:w-auto sm:flex-none"
               >
-                <X className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                 Clear
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={exportToExcel}
                 disabled={
                   selectedReports.length === 0 || comparisonTable.length === 0
                 }
-                className="touch-friendly flex w-full flex-1 items-center justify-center rounded-lg bg-olive px-2 py-1.5 text-xs font-medium text-white transition-colors hover:bg-olive-light disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:flex-none sm:justify-start sm:px-3 sm:py-2 sm:text-sm"
+                variant="olive"
+                size="sm"
+                icon={<Download />}
+                className="w-full flex-1 sm:w-auto sm:flex-none"
               >
-                <Download className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                 Export
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={shareCSV}
                 disabled={
                   selectedReports.length === 0 || comparisonTable.length === 0
                 }
-                className="touch-friendly flex w-full flex-1 items-center justify-center rounded-lg bg-beige px-2 py-1.5 text-xs font-medium text-gray-100 transition-colors hover:bg-beige/80 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:flex-none sm:justify-start sm:px-3 sm:py-2 sm:text-sm"
+                variant="filter"
+                size="sm"
+                icon={<Share />}
+                className="w-full flex-1 sm:w-auto sm:flex-none"
               >
-                <Share className="h-4 w-4" />
                 Share
-              </button>
-              <button
-                onClick={refreshReportsData}
-                disabled={isLoading}
-                className="touch-friendly flex w-full flex-1 items-center justify-center rounded-lg bg-beige/30 px-2 py-1.5 text-xs font-medium text-black/70 transition-colors hover:bg-beige/50 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:flex-none sm:justify-start sm:px-3 sm:py-2 sm:text-sm"
-              >
-                {isLoading ? (
-                  <RefreshCw className="h-3 w-3 animate-spin sm:h-3.5 sm:w-3.5" />
-                ) : (
-                  <RefreshCw className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-                )}
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -557,13 +509,15 @@ export default function CompareReportsPage() {
                 metrics
               </Subtitle>
             </div>
-            <button
+            <Button
               onClick={() => setShowRowModal(true)}
-              className="px-responsive-sm py-responsive-xs text-responsive-sm touch-friendly flex items-center rounded-lg bg-brown font-medium text-white transition-colors hover:bg-brown/80"
+              variant="secondary"
+              size="sm"
+              icon={<Settings />}
+              className="text-white"
             >
-              <Settings className="mr-2 h-4 w-4" />
               Manage Rows
-            </button>
+            </Button>
           </div>
         </Card>
 

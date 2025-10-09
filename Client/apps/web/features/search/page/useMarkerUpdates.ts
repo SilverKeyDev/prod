@@ -2,6 +2,7 @@ import React, { useEffect, useCallback } from "react";
 
 import type { SearchResult } from "../../../../../packages/schemas/search";
 import type { Property } from "../../../../../packages/schemas/property";
+import { calculatePropertyCardCenter } from "../lib/MapZoomController";
 
 export function useMarkerUpdates(params: {
   googleMapRef: React.MutableRefObject<google.maps.Map | null>;
@@ -25,10 +26,7 @@ export function useMarkerUpdates(params: {
 
     // If we have a current property and should show modals, focus on it
     if (current && params.hasSearched && params.showPropertyModals) {
-      const center = {
-        lat: current.lat + 0.002, // Offset slightly north
-        lng: current.lng,
-      };
+      const center = calculatePropertyCardCenter(current.lat, current.lng);
       params.googleMapRef.current.setCenter(center);
       params.googleMapRef.current.setZoom(13);
     }

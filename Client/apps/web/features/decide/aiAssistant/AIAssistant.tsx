@@ -330,7 +330,11 @@ export default function AIAssistant() {
       <div className="relative flex h-full overflow-hidden rounded-xl shadow-lg">
         {/* Sidebar (Chat list) */}
         <aside
-          className={`${isSidebarExpanded ? "flex" : "hidden"} flex-col xl:flex xl:w-80`}
+          className={`${
+            isSidebarExpanded
+              ? "flex translate-x-0"
+              : "hidden -translate-x-full"
+          } flex-col transition-transform duration-300 ease-in-out xl:flex xl:w-80 xl:translate-x-0`}
         >
           {/* Fixed Header */}
           <div className="flex-shrink-0 rounded-t-xl border-b border-beige bg-white p-3">
@@ -420,7 +424,9 @@ export default function AIAssistant() {
 
         {/* Main Chat Section */}
         <section
-          className={`relative flex flex-1 flex-col rounded-r-xl bg-white ${isSidebarExpanded ? "hidden xl:flex" : "flex"}`}
+          className={`relative flex flex-1 flex-col rounded-r-xl bg-white transition-all duration-300 ease-in-out ${
+            isSidebarExpanded ? "hidden xl:flex" : "flex"
+          }`}
         >
           <div className="flex h-full flex-col">
             {/* Chat Header (title + mobile menu button in the same line) */}
@@ -443,7 +449,7 @@ export default function AIAssistant() {
                 </button>
 
                 <h3
-                  className={`text-sm font-medium text-black transition-opacity duration-200 ${isSidebarExpanded ? "opacity-0" : "opacity-100"}`}
+                  className={`text-sm font-medium text-black transition-opacity duration-300 ease-in-out ${isSidebarExpanded ? "opacity-0" : "opacity-100"}`}
                 >
                   {activeChat
                     ? (activeChat.title ?? "AI Assistant")

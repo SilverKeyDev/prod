@@ -43,7 +43,7 @@ const initialState = (): Omit<
   | "setPersonalizationActiveSection"
   | "reset"
 > => ({
-  sidebarExpanded: true,
+  sidebarExpanded: false, // Default to closed for better mobile UX
   openCategories: {
     onboard: false,
     search: false,

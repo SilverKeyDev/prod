@@ -1,11 +1,7 @@
 import React from "react";
 import { type Report } from "../../../../../packages/schemas";
 import { formatFilenameToAddress } from "../../../../../packages/utils/address";
-
-type ComparisonRow = {
-  metric: string;
-  [key: string]: string | number | boolean;
-};
+import { type ComparisonRow } from ".";
 
 interface ComparisonSpreadsheetProps {
   selectedReports: Report[];

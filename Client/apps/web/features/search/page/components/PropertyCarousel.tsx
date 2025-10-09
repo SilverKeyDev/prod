@@ -68,8 +68,8 @@ export function PropertyCarousel(props: {
         />
       )}
       getItemKey={(property: SearchResult, _index: number) => property.id}
-      cardMinWidth={cardMinWidth}
-      cardGap={cardGap}
+      cardMinWidth={240}
+      cardGap={12}
       infiniteLoop={infiniteLoop}
       centerMode={false}
       selectedItem={currentPage}

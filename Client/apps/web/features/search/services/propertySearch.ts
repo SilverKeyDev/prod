@@ -126,7 +126,7 @@ export const searchPropertiesInIsochrone = async (
       id: property.zpid ?? `${Date.now()}-${index}`,
       address: property.address ?? "Address not available",
       price: property.price
-        ? `$${property.price.toLocaleString()}`
+        ? property.price.toLocaleString()
         : "Price not available",
       bedrooms: property.bedrooms ?? 0,
       bathrooms: property.bathrooms ?? 0,

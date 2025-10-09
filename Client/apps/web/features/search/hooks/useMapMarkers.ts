@@ -5,6 +5,7 @@ import type { Property } from "../../../../../packages/schemas/property";
 import type { SearchResult } from "../../../../../packages/schemas/search";
 import type { IsochroneData } from "../../../../../packages/schemas/api";
 import { renderImportantLocationMarkers } from "../lib/importantLocationRenderer";
+import { calculatePropertyCardCenter } from "../lib/MapZoomController";
 
 // Google Maps types
 interface GoogleMap {
@@ -22,6 +23,7 @@ interface GoogleAdvancedMarkerElement extends GoogleMarker {
   position: { lat: number; lng: number };
   title: string;
   content: HTMLElement;
+  addListener: (eventName: string, handler: () => void) => void;
 }
 
 
@@ -37,6 +39,8 @@ type UseMapMarkersProps = {
   isHomeSaved: (propertyId: string) => boolean;
   saveHome: (property: SearchResult | Property) => Promise<void>;
   removeSavedHome: (propertyId: string) => Promise<void>;
+  onMarkerClick?: (property: SearchResult) => void;
+  onUnlockClick?: (property: SearchResult) => void;
 };
 
 type UseMapMarkersReturn = {
@@ -58,6 +62,8 @@ export const useMapMarkers = ({
   isHomeSaved,
   saveHome,
   removeSavedHome,
+  onMarkerClick,
+  onUnlockClick,
 }: UseMapMarkersProps): UseMapMarkersReturn => {
   const markersRef = useRef<GoogleAdvancedMarkerElement[]>([]);
   const importantMarkersRef = useRef<GoogleAdvancedMarkerElement[]>([]);
@@ -216,15 +222,6 @@ export const useMapMarkers = ({
           const score = result._score ?? 0;
           const isSaved = isHomeSaved(result.id);
           
-          // Add logging for score calculation debugging
-          console.log("📍 [MARKER SCORE] Using backend ML score:", {
-            propertyId: result.id,
-            address: result.address,
-            backendScore: result._score,
-            finalScore: score,
-            showScore: !isSaved,
-          });
-
           // Create marker container for MapPropertyCard
           const markerElement = document.createElement("div");
           markerElement.className = "property-location-marker";
@@ -263,7 +260,15 @@ export const useMapMarkers = ({
               isSaved,
               onSave: () => saveHome(result),
               onUnsave: () => removeSavedHome(result.id),
+              onUnlock: onUnlockClick ? () => onUnlockClick(result) : undefined,
               showScore: !isSaved, // Only show score for non-saved homes
+            }, (property) => {
+              // Callback to reposition map when MapPropertyCard is rendered
+              if (googleMapRef.current && property.lat && property.lng) {
+                const center = calculatePropertyCardCenter(property.lat, property.lng);
+                googleMapRef.current.setCenter(center);
+                googleMapRef.current.setZoom(13);
+              }
             });
           } catch (error) {
             console.error(`❌ [MARKER POSITION UPDATE] Error rendering MapPropertyCard for property ${i + 1}:`, error);
@@ -296,6 +301,21 @@ export const useMapMarkers = ({
               content: markerElement,
             }) as unknown as GoogleAdvancedMarkerElement;
             
+            // Add proper click event listener using addListener()
+            marker.addListener('click', () => {
+              console.log('🗺️ [MARKER_CLICK] Marker clicked:', {
+                propertyId: result.id,
+                address: result.address,
+                coordinates: { lat: result.lat, lng: result.lng },
+                timestamp: new Date().toISOString(),
+              });
+              
+              // Call the marker click handler if provided
+              if (onMarkerClick) {
+                onMarkerClick(result);
+              }
+            });
+            
             markersRef.current.push(marker);
           } catch (error) {
             console.error(`❌ [MARKER POSITION UPDATE] Error creating marker for property ${i + 1}:`, error);
@@ -315,11 +335,7 @@ export const useMapMarkers = ({
           if (results.length > 0) {
             const firstProperty = results[0];
             if (firstProperty && googleMapRef.current) {
-              const center = {
-                lat: firstProperty.lat,
-                lng: firstProperty.lng,
-              };
-              
+              const center = calculatePropertyCardCenter(firstProperty.lat, firstProperty.lng);
               googleMapRef.current.setCenter(center);
               googleMapRef.current.setZoom(13);
             }
@@ -343,6 +359,8 @@ export const useMapMarkers = ({
       isHomeSaved,
       saveHome,
       removeSavedHome,
+      onMarkerClick,
+      onUnlockClick,
       isUpdatingMarkers,
       clearMapMarkers,
       handleRenderImportantLocationMarkers,

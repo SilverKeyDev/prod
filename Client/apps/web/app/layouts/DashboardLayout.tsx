@@ -338,7 +338,6 @@ export default function DashboardLayout({
 
     // Mobile overrides placeholder (extend as needed)
     const mobileOverrides: Record<string, React.ReactNode> = {
-      // "/search": <SearchHeaderComponent />,
     };
     const overrideKey = Object.keys(mobileOverrides).find((k) =>
       path.startsWith(k)
@@ -429,7 +428,7 @@ export default function DashboardLayout({
 
         {/* Content area with centralized width parameter */}
         <div
-          className={`mx-auto w-full ${
+          className={`dashboard-content mx-auto w-full ${
             isSearch
               ? // Full-height search canvas; add mobile horizontal padding to align with top bar button
                 `h-[calc(100vh-80px)] lg:h-[calc(100vh-0px)] ${MOBILE_SIDE_PX} lg:px-0`
@@ -439,7 +438,11 @@ export default function DashboardLayout({
                 : // Default pages: standard padding on desktop; on mobile align with top bar button
                   `mt-4 lg:mt-0 p-4 sm:p-6 lg:p-8 lg:pt-8 ${MOBILE_SIDE_PX} lg:px-0`
           }`}
-          style={{ maxWidth: `${computedMaxWidthVW}vw` }}
+          style={
+            {
+              "--max-width-desktop": `${computedMaxWidthVW}vw`,
+            } as React.CSSProperties & { "--max-width-desktop": string }
+          }
         >
           {isSearch && (
             <SearchPage

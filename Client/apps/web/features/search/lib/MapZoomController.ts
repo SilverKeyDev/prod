@@ -12,6 +12,18 @@ export type MapZoomControllerProps = {
 
 export const DEFAULT_ZOOM = 13;
 
+// Utility function to calculate map center for property card positioning
+export const calculatePropertyCardCenter = (lat: number, lng: number) => {
+  // Position card 25% up from bottom with random left/right offset
+  const latOffset = 0.015; // 25% up from bottom
+  const offset = (Math.random() - 0.5) * 0.002; // Random left/right offset (-0.001 to +0.001)
+  
+  return {
+    lat: lat + latOffset - offset,
+    lng: lng + offset,
+  };
+};
+
 export const useMapZoomController = ({
   googleMapRef,
   activeTab,
@@ -19,23 +31,16 @@ export const useMapZoomController = ({
   savedHomes,
   currentPage,
 }: MapZoomControllerProps) => {
-  // Calculate map center positioned slightly above the property marker
+  // Calculate map center positioned so property card appears 25% up from bottom with random left/right offset
   const calculateMapCenter = useCallback(() => {
     if (!googleMapRef.current) return null;
 
     const currentData = activeTab === "results" ? searchResults : savedHomes;
     const currentProperty = currentData[currentPage];
 
-    // If we have a current property, center slightly above it
+    // If we have a current property, center so the card appears 25% up from bottom
     if (currentProperty?.lat && currentProperty?.lng) {
-      // Offset the latitude slightly north to position map above the marker
-      // At zoom level 13, approximately 0.002 degrees latitude = ~220 meters
-      const latOffset = 0.002;
-
-      return {
-        lat: currentProperty.lat + latOffset,
-        lng: currentProperty.lng,
-      };
+      return calculatePropertyCardCenter(currentProperty.lat, currentProperty.lng);
     }
 
     return null;

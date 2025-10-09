@@ -76,18 +76,18 @@ export type CardCarouselProps<T> = {
   renderArrowPrev?: (
     clickHandler: () => void,
     hasPrev: boolean,
-    label: string,
+    label: string
   ) => ReactNode;
   renderArrowNext?: (
     clickHandler: () => void,
     hasNext: boolean,
-    label: string,
+    label: string
   ) => ReactNode;
   renderIndicator?: (
     clickHandler: (e: React.MouseEvent | React.KeyboardEvent) => void,
     isSelected: boolean,
     index: number,
-    label: string,
+    label: string
   ) => ReactNode;
 
   /** Width of the carousel container (passed through to component) */
@@ -169,7 +169,7 @@ function CardCarousel<T>({
         onSlideChange(index);
       }
     },
-    [onSlideChange],
+    [onSlideChange]
   );
 
   // Handle animation start/end for visibility timing
@@ -306,7 +306,7 @@ function CardCarousel<T>({
             item: labels.item ?? "slide item",
           }
         : undefined,
-    [labels],
+    [labels]
   );
 
   // Calculate which cards should be visible (all cards on current page)
@@ -327,7 +327,7 @@ function CardCarousel<T>({
         globalIndex <= currentPageEndIndex
       );
     },
-    [isAnimating, currentSlideIndex, computedCols],
+    [isAnimating, currentSlideIndex, computedCols]
   );
 
   /** Memoized navigation arrows to prevent re-creation on every render */
@@ -350,7 +350,7 @@ function CardCarousel<T>({
         <ChevronLeft className="h-5 w-5" />
       </button>
     ),
-    [handleAnimationStart],
+    [handleAnimationStart]
   );
 
   const RightArrow = useMemo(
@@ -372,7 +372,7 @@ function CardCarousel<T>({
         <ChevronRight className="h-5 w-5" />
       </button>
     ),
-    [handleAnimationStart],
+    [handleAnimationStart]
   );
 
   // Add animation end handler with delay to ensure animation completes
@@ -389,8 +389,12 @@ function CardCarousel<T>({
   return (
     <div aria-label={ariaLabel} className="sk-carousel">
       {embeddedButton && (
-        <div className="mb-3 flex w-full items-center justify-between sm:mb-4">
-          <div className="flex h-10 items-center">{embeddedButton}</div>
+        <div className="mb-6 flex w-full items-center justify-between sm:mb-8">
+          <div className="flex h-10 items-center">
+            <div className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-gray-800 hover:text-gray-900 transition-colors duration-200">
+              {embeddedButton}
+            </div>
+          </div>
         </div>
       )}
 

@@ -2,6 +2,7 @@ import { Search, RefreshCw, ChevronDown } from "lucide-react";
 import React, { useState, useRef, useEffect } from "react";
 
 import Card from "../../components/layout/Card.tsx";
+import { RefreshButton } from "../../components/ui";
 
 export type ViewMode = "grid" | "list";
 export type SortBy = "date" | "address";
@@ -150,24 +151,14 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
 
               {/* Refresh button */}
               {onRefresh && (
-                <button
+                <RefreshButton
                   onClick={handleRefresh}
                   disabled={isRefreshing ?? isLoading}
-                  className={`touch-friendly flex shrink-0 items-center justify-center rounded px-3 py-2.5 transition-colors duration-200 ${
-                    isRefreshing
-                      ? "cursor-not-allowed bg-gray-300 text-gray-600"
-                      : "bg-gray-300 text-gray-600 hover:bg-gray-500 hover:text-white"
-                  }`}
-                  title={
-                    (isRefreshing ?? isLoading) ? "Refreshing..." : refreshTitle
-                  }
-                >
-                  <RefreshCw
-                    className={`h-4 w-4 transition-transform duration-200 ${
-                      isRefreshing ? "animate-spin" : ""
-                    }`}
-                  />
-                </button>
+                  loading={isRefreshing ?? isLoading}
+                  title={refreshTitle}
+                  size="md"
+                  variant="default"
+                />
               )}
 
               {/* View Type Dropdown */}

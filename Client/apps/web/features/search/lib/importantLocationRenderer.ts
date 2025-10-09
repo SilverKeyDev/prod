@@ -17,6 +17,7 @@ export interface GoogleAdvancedMarkerElement {
   position: { lat: number; lng: number };
   title: string;
   content: HTMLElement;
+  addListener: (eventName: string, handler: () => void) => void;
 }
 
 export type ImportantLocationRenderOptions = {

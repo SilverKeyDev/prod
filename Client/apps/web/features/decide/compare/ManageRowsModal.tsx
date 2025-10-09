@@ -3,11 +3,6 @@ import { Check, X } from "lucide-react";
 import { Title, Subtitle } from "../../../components/ui";
 import { ALL_METRIC_KEYS } from "../../../../../packages/schemas";
 
-type ComparisonRow = {
-  metric: string;
-  [key: string]: string | number | boolean;
-};
-
 interface ManageRowsModalProps {
   showRowModal: boolean;
   setShowRowModal: (show: boolean) => void;

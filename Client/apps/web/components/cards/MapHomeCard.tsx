@@ -37,6 +37,8 @@ type MapHomeCardProps = {
   isOnMap?: boolean;
   /** Function to focus on this property in the map/search */
   onFocus?: (property: any) => void;
+  /** Function to handle unlock/view details click */
+  onUnlock?: (home: HomeDescription) => void;
   /** Loading state for the card */
   loading?: boolean;
 };
@@ -53,6 +55,7 @@ export default function MapHomeCard({
   showScore = false,
   isOnMap = false,
   onFocus,
+  onUnlock,
   loading = false,
 }: MapHomeCardProps) {
   // Use actual address if available, otherwise format home_id
@@ -72,7 +75,7 @@ export default function MapHomeCard({
         typeof homeDesc.price === "string"
           ? homeDesc.price
           : typeof homeDesc.price === "number"
-            ? `$${homeDesc.price.toLocaleString()}`
+            ? homeDesc.price.toLocaleString()
             : "Price not available",
       bedrooms: homeDesc.bedrooms ?? 3,
       bathrooms: homeDesc.bathrooms ?? 2,
@@ -87,17 +90,6 @@ export default function MapHomeCard({
 
   // Use pre-calculated score if available
   const score = showScore ? home.calculatedScore : undefined;
-
-  // Add logging for score debugging
-  console.log("🏠 [MAP HOME CARD] Score processing:", {
-    homeId: home.home_id,
-    address: home.address,
-    calculatedScore: home.calculatedScore,
-    scoreType: typeof home.calculatedScore,
-    showScore,
-    finalScore: score,
-    willDisplayScore: showScore && score !== undefined,
-  });
 
   // Handle card click to focus on property
   const handleCardClick = () => {
@@ -120,7 +112,7 @@ export default function MapHomeCard({
         address={displayName}
         price={
           typeof home.price === "number"
-            ? `$${home.price.toLocaleString()}`
+            ? home.price.toLocaleString()
             : (home.price ?? "N/A")
         }
         bedrooms={home.bedrooms as number | undefined}
@@ -160,9 +152,10 @@ export default function MapHomeCard({
         bottomContent={
           <CardViewDetailsButton
             onClick={() => {
-              // For map cards, we don't have modal functionality
-              // This could trigger a different action or be disabled
               console.log("View details clicked for map card");
+              if (onUnlock) {
+                onUnlock(home);
+              }
             }}
             loading={loading}
             size="sm"

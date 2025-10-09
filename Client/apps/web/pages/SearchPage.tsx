@@ -87,10 +87,10 @@ export default function SearchPage({
     // Use a more direct approach for mobile navigation
     if (window.innerWidth < 1024) {
       // For mobile, use window.location to ensure navigation works
-      window.location.href = "/dashboard/personalization";
+      window.location.href = "/personalization";
     } else {
       // For desktop, use React Router
-      navigate("/dashboard/personalization");
+      navigate("/personalization");
     }
   }, [navigate]);
 
@@ -534,6 +534,8 @@ export default function SearchPage({
     isHomeSaved,
     saveHome,
     removeSavedHome,
+    onMarkerClick: handleNavigateToProperty,
+    onUnlockClick: handleViewPropertyDetails,
   });
 
   // Update markers when search results change
@@ -802,17 +804,17 @@ export default function SearchPage({
               isCarouselCollapsed ? "max-h-0" : "max-h-96"
             }`}
           >
-            <PropertyCarousel
-              items={activeTab === "results" ? searchResults : savedHomes}
-              currentPage={currentPage}
-              isHomeSaved={isHomeSaved}
-              onSave={saveHome}
-              onViewDetails={handleViewPropertyDetails}
-              onSlideChange={(index) => setCurrentPage(index)}
-              cardMinWidth={280}
-              cardGap={16}
-              infiniteLoop={false}
-            />
+            <div className="py-3">
+              <PropertyCarousel
+                items={activeTab === "results" ? searchResults : savedHomes}
+                currentPage={currentPage}
+                isHomeSaved={isHomeSaved}
+                onSave={saveHome}
+                onViewDetails={handleViewPropertyDetails}
+                onSlideChange={(index) => setCurrentPage(index)}
+                infiniteLoop={false}
+              />
+            </div>
           </div>
         </div>
 

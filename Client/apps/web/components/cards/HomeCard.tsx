@@ -83,7 +83,7 @@ export default function HomeCard({
         typeof homeDesc.price === "string"
           ? homeDesc.price
           : typeof homeDesc.price === "number"
-            ? `$${homeDesc.price.toLocaleString()}`
+            ? homeDesc.price.toLocaleString()
             : "Price not available",
       bedrooms: homeDesc.bedrooms ?? 3,
       bathrooms: homeDesc.bathrooms ?? 2,
@@ -127,7 +127,7 @@ export default function HomeCard({
       address: prop.address,
       price: (() => {
         if (typeof prop.price === "number") {
-          return `$${(prop.price as number).toLocaleString()}`;
+          return (prop.price as number).toLocaleString();
         } else if (typeof prop.price === "string") {
           return prop.price;
         } else {
@@ -185,7 +185,7 @@ export default function HomeCard({
         address={displayName}
         price={
           typeof home.price === "number"
-            ? `$${home.price.toLocaleString()}`
+            ? home.price.toLocaleString()
             : (home.price ?? "N/A")
         }
         bedrooms={home.bedrooms as number | undefined}

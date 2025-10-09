@@ -8,9 +8,9 @@ import {
 } from "../../../../packages/utils/address";
 import ActionButton from "../../features/decide/ActionButton";
 import { Card } from "../layout";
+import StatusBadge from "../ui/asset/StatusBadge";
 
 import { getInteractiveCardClasses } from "./base/CardHoverStyles";
-import CardPriceBubble from "./base/CardPriceBubble";
 
 export type ReportCardProps = {
   report: Report;
@@ -31,16 +31,18 @@ const ReportCard: React.FC<ReportCardProps> = ({
   onShare,
   onDelete,
 }) => {
-  const getStatusColor = (status: string) => {
+  const getStatusVariant = (
+    status: string
+  ): "success" | "warning" | "error" | "info" | "processing" | "default" => {
     switch (status) {
       case "completed":
-        return "text-green-600 bg-green-50";
+        return "success";
       case "generating":
-        return "text-gold bg-gold/10";
+        return "processing";
       case "error":
-        return "text-red-600 bg-red-50";
+        return "error";
       default:
-        return "text-black/60 bg-beige/20";
+        return "default";
     }
   };
 
@@ -65,6 +67,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
           : "relative flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0"
       }
       hover={true}
+      padding="md"
     >
       {/* Date in top left */}
       <div className="absolute left-3 top-3 z-10">
@@ -91,13 +94,14 @@ const ReportCard: React.FC<ReportCardProps> = ({
         </p>
       </div>
 
-      {/* Status Bubble in top right */}
-      <CardPriceBubble
-        price={getStatusText(report.status)}
-        position="top-right"
-        size="sm"
-        className={`${getStatusColor(report.status)} border-0`}
-      />
+      {/* Status Badge in top right - hidden on mobile */}
+      <div className="absolute top-3 right-3 z-10 hidden sm:block">
+        <StatusBadge
+          text={getStatusText(report.status)}
+          variant={getStatusVariant(report.status)}
+          size="sm"
+        />
+      </div>
 
       <div className="flex flex-grow flex-col">
         {viewMode === "grid" ? (
@@ -114,6 +118,8 @@ const ReportCard: React.FC<ReportCardProps> = ({
                     wordBreak: "break-word",
                     hyphens: "auto",
                     minHeight: "3rem", // Reserve space for 2 lines at text-sm/base
+                    maxHeight: "3rem", // Enforce maximum height to prevent overflow
+                    lineHeight: "1.5", // Ensure consistent line height
                   }}
                 >
                   {formatFilenameToAddress(report.address)}
@@ -134,6 +140,8 @@ const ReportCard: React.FC<ReportCardProps> = ({
                 wordBreak: "break-word",
                 hyphens: "auto",
                 minHeight: "2.4rem", // Reserve space for 2 lines
+                maxHeight: "2.4rem", // Enforce maximum height to prevent overflow
+                lineHeight: "1.2", // Ensure consistent line height
               }}
             >
               {formatFilenameToAddress(report.address)}

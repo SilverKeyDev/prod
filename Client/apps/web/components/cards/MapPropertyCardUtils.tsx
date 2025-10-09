@@ -8,7 +8,8 @@ const rootMap = new WeakMap<HTMLElement, Root>();
 // Helper function to render MapPropertyCard into a DOM element
 export const renderMapPropertyCard = (
   container: HTMLElement,
-  props: MapPropertyCardProps
+  props: MapPropertyCardProps,
+  onCardRendered?: (property: MapPropertyCardProps["property"]) => void
 ): void => {
   // Clean up existing root if it exists
   const existingRoot = rootMap.get(container);
@@ -26,8 +27,8 @@ export const renderMapPropertyCard = (
   const root = createRoot(container);
   rootMap.set(container, root);
 
-  // Render the component
-  root.render(<MapPropertyCard {...props} />);
+  // Render the component with the callback
+  root.render(<MapPropertyCard {...props} onCardRendered={onCardRendered} />);
 };
 
 // Helper function to clean up React root for a container

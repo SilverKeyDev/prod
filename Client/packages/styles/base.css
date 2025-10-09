@@ -41,6 +41,17 @@
     -webkit-text-size-adjust: 100%;
   }
 
+  /* Responsive max-width for dashboard content */
+  .dashboard-content {
+    max-width: 100%;
+  }
+  
+  @media (min-width: 1024px) {
+    .dashboard-content {
+      max-width: var(--max-width-desktop, 85vw);
+    }
+  }
+
   /* Note: Mobile input zoom prevention moved to mobile.css to avoid duplication */
 
   h1,

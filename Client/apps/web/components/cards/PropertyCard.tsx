@@ -101,7 +101,9 @@ function PropertyCardImpl(props: PropertyCardProps) {
     if (typeof price === "number") {
       return `$${price.toLocaleString()}`;
     }
-    return price.toString();
+    // If price is already a string and starts with $, don't add another $
+    const priceStr = price.toString();
+    return priceStr.startsWith("$") ? priceStr : `$${priceStr}`;
   };
 
   return (
@@ -175,11 +177,13 @@ function PropertyCardImpl(props: PropertyCardProps) {
       <div className="space-y-2 p-3 sm:space-y-3 sm:p-4">
         {/* Price display when image is hidden - show prominently at top */}
         {hideImage && (
-          <div className="flex w-full items-center justify-between">
+          <div className="flex w-full items-center justify-center relative">
             <div className="text-lg font-bold text-brown sm:text-xl">
               {formatPrice(price)}
             </div>
-            {topContent && <div className="flex-shrink-0">{topContent}</div>}
+            {topContent && (
+              <div className="absolute right-0 flex-shrink-0">{topContent}</div>
+            )}
           </div>
         )}
 

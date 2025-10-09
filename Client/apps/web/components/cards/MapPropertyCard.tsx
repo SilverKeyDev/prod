@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 import MapHomeCard from "./MapHomeCard";
 
@@ -20,7 +20,9 @@ export type MapPropertyCardProps = {
   isSaved?: boolean;
   onSave?: () => void;
   onUnsave?: () => void;
+  onUnlock?: (property: any) => void;
   showScore?: boolean;
+  onCardRendered?: (property: MapPropertyCardProps["property"]) => void;
 };
 
 const MapPropertyCard: React.FC<MapPropertyCardProps> = ({
@@ -28,8 +30,17 @@ const MapPropertyCard: React.FC<MapPropertyCardProps> = ({
   isSaved = false,
   onSave,
   onUnsave,
+  onUnlock,
   showScore = true,
+  onCardRendered,
 }) => {
+  // Trigger map repositioning when the card is rendered or updated
+  useEffect(() => {
+    if (onCardRendered) {
+      onCardRendered(property);
+    }
+  }, [property, onCardRendered]);
+
   // Add comprehensive logging for debugging score issues
   console.log("🗺️ [MAP PROPERTY CARD] Rendering MapPropertyCard:", {
     propertyId: property.id,
@@ -102,6 +113,26 @@ const MapPropertyCard: React.FC<MapPropertyCardProps> = ({
           }}
           onRemove={(_homeId) => {
             onUnsave?.();
+          }}
+          onUnlock={(home) => {
+            if (onUnlock) {
+              // Convert home data back to property format
+              const propertyData = {
+                id: home.home_id,
+                address: home.address,
+                price: home.price,
+                bedrooms: home.bedrooms,
+                bathrooms: home.bathrooms,
+                sqft: home.sqft,
+                lotSize: home.lot_size,
+                propertyType: home.propertyType,
+                lat: home.lat,
+                lng: home.lng,
+                images: home.image_url ? [home.image_url] : undefined,
+                calculatedScore: home.calculatedScore,
+              };
+              onUnlock(propertyData);
+            }
           }}
         />
       </div>

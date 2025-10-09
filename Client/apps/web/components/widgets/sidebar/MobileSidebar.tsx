@@ -1,4 +1,6 @@
 import { Menu, X } from "lucide-react";
+import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import type { UserProfile } from "../../../../../packages/schemas/user";
 
@@ -15,6 +17,15 @@ export default function MobileSidebar({
   expanded,
   onToggleExpanded,
 }: MobileSidebarProps) {
+  const location = useLocation();
+
+  // Auto-close mobile sidebar when navigating to a different page
+  useEffect(() => {
+    if (expanded) {
+      onToggleExpanded();
+    }
+  }, [location.pathname]); // Only depend on pathname to avoid unnecessary re-renders
+
   return (
     <>
       {/* Toggle Button */}

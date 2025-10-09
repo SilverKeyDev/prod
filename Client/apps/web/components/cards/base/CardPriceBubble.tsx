@@ -38,7 +38,9 @@ const CardPriceBubble: React.FC<CardPriceBubbleProps> = ({
     if (typeof price === "number") {
       return `$${price.toLocaleString()}`;
     }
-    return price.toString();
+    // If price is already a string and starts with $, don't add another $
+    const priceStr = price.toString();
+    return priceStr.startsWith("$") ? priceStr : `$${priceStr}`;
   };
 
   const bubbleClass = BUBBLE_SIZE[size];

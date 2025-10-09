@@ -344,7 +344,7 @@ export default function Dashboard() {
   }, [pollForReportCompletion, refreshReports]);
 
   return (
-    <div className="-mt-8">
+    <div className="-mt-16">
       {currentPdf && (
         <PdfModal
           currentPdf={currentPdf}
@@ -371,7 +371,7 @@ export default function Dashboard() {
             embeddedButton={
               <NavigationButton
                 onClick={handleSavedHomesClick}
-                size="md"
+                size="sm"
                 arrowType="chevron"
               >
                 Your Saved Homes
@@ -389,8 +389,8 @@ export default function Dashboard() {
               />
             )}
             getItemKey={(home) => home.home_id}
-            cardMinWidth={280}
-            cardGap={16}
+            cardMinWidth={240}
+            cardGap={12}
             infiniteLoop={false}
             ariaLabel="Saved homes carousel"
           />
@@ -403,7 +403,7 @@ export default function Dashboard() {
             embeddedButton={
               <NavigationButton
                 onClick={handleDocumentsClick}
-                size="md"
+                size="sm"
                 arrowType="chevron"
               >
                 Your Reports
@@ -424,8 +424,8 @@ export default function Dashboard() {
               />
             )}
             getItemKey={(report: Report) => report.id}
-            cardMinWidth={280}
-            cardGap={16}
+            cardMinWidth={240}
+            cardGap={12}
             infiniteLoop={false}
             ariaLabel="Recent reports carousel"
           />

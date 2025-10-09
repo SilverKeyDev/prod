@@ -364,9 +364,11 @@ export default function SavedHomes() {
             viewType === "homes" ? "Refresh saved homes" : "Refresh reports"
           }
           rightText={
-            viewType === "homes"
-              ? `${filteredHomes.length} saved`
-              : `${filteredReports.length} report${filteredReports.length !== 1 ? "s" : ""}`
+            isMobile
+              ? ""
+              : viewType === "homes"
+                ? `${filteredHomes.length} saved`
+                : `${filteredReports.length} report${filteredReports.length !== 1 ? "s" : ""}`
           }
           viewType={viewType}
           onViewTypeChange={setViewType}

@@ -9,7 +9,7 @@ export type NavigationButtonProps = {
   /** Loading state */
   loading?: boolean;
   /** Button size */
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl";
   /** Button text */
   children: React.ReactNode;
   /** Show arrow icon */
@@ -51,6 +51,26 @@ const NavigationButton: React.FC<NavigationButtonProps> = ({
       text: "text-lg",
       icon: "w-5 h-5",
       spacing: "gap-2",
+    },
+    xl: {
+      text: "text-2xl",
+      icon: "w-6 h-6",
+      spacing: "gap-3",
+    },
+    "2xl": {
+      text: "text-4xl",
+      icon: "w-8 h-8",
+      spacing: "gap-4",
+    },
+    "3xl": {
+      text: "text-6xl",
+      icon: "w-10 h-10",
+      spacing: "gap-5",
+    },
+    "4xl": {
+      text: "text-8xl",
+      icon: "w-12 h-12",
+      spacing: "gap-6",
     },
   };
 

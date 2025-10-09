@@ -110,7 +110,7 @@ export function useSavedHomes(params: {
               return {
                 id: homeData.address ?? `saved_${index + 1}`,
                 address: homeData.address ?? "Address not available",
-                price: `$${homeData.price?.toLocaleString() ?? "N/A"}`,
+                price: homeData.price ?? "N/A",
                 bedrooms: parseInt(homeData.beds ?? "0") ?? 0,
                 bathrooms: parseInt(homeData.baths ?? "0") ?? 0,
                 sqft: parseInt(homeData.sqft ?? "0") ?? 0,
@@ -154,7 +154,7 @@ export function useSavedHomes(params: {
           // Handle price: Property has number, SearchResult has string
           price:
             typeof property.price === "number"
-              ? `$${property.price.toLocaleString()}`
+              ? property.price.toLocaleString()
               : property.price,
           bedrooms: property.bedrooms ?? 0,
           bathrooms: property.bathrooms ?? 0,
