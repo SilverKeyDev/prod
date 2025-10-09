@@ -345,14 +345,12 @@ export default function Dashboard() {
 
   return (
     <div className="-mt-16">
-      {currentPdf && (
-        <PdfModal
-          currentPdf={currentPdf}
-          currentReportAddress={currentDocumentName}
-          reportId={currentDocumentId}
-          onClose={closePdfModal}
-        />
-      )}
+      <PdfModal
+        currentPdf={currentPdf}
+        currentReportAddress={currentDocumentName}
+        reportId={currentDocumentId}
+        onClose={closePdfModal}
+      />
       <DeleteModal
         isOpen={deleteModalOpen}
         onClose={closeDeleteModal}

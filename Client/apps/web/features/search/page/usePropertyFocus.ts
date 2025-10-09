@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 export function usePropertyFocus(params: {
   googleMapRef: React.MutableRefObject<google.maps.Map | null>;
@@ -19,48 +19,46 @@ export function usePropertyFocus(params: {
     selectedProperty,
   } = params;
 
+  // Track previous values to avoid unnecessary focusing
+  const prevPageRef = useRef(currentPage);
+  const prevTabRef = useRef(activeTab);
+  const hasDataRef = useRef(false);
+
+  // Update data availability flag without triggering effects
+  const hasData = searchResults.length > 0 || savedHomes.length > 0;
+  hasDataRef.current = hasData;
+
   // Auto-zoom to selected property when it changes
   useEffect(() => {
     if (selectedProperty && googleMapRef.current) {
       mapFocusOnCurrentProperty();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedProperty, mapFocusOnCurrentProperty]);
+  }, [selectedProperty]);
 
-  // Focus map on current property when page changes (arrow clicks)
+  // Focus map when currentPage or activeTab changes (consolidated effect)
   useEffect(() => {
-    if (
-      googleMapRef.current &&
-      (searchResults.length > 0 || savedHomes.length > 0)
-    ) {
-      mapFocusOnCurrentProperty();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    currentPage,
-    searchResults.length,
-    savedHomes.length,
-    mapFocusOnCurrentProperty,
-  ]);
+    if (!googleMapRef.current || !hasDataRef.current) return;
 
-  // Focus map on current property when tab changes
-  useEffect(() => {
-    if (
-      googleMapRef.current &&
-      (searchResults.length > 0 || savedHomes.length > 0)
-    ) {
-      // Use MapZoomController to focus on current property after tab switch
+    const pageChanged = prevPageRef.current !== currentPage;
+    const tabChanged = prevTabRef.current !== activeTab;
+
+
+    // Only focus if page or tab actually changed
+    if (pageChanged || tabChanged) {
+      // Add small delay for tab changes to ensure UI is ready
+      const delay = tabChanged ? 100 : 0;
+      
       const timeoutId = setTimeout(() => {
         mapFocusOnCurrentProperty();
-      }, 100); // Small delay to ensure tab switch is complete
+      }, delay);
+
+      // Update previous values
+      prevPageRef.current = currentPage;
+      prevTabRef.current = activeTab;
 
       return () => clearTimeout(timeoutId);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    activeTab,
-    searchResults.length,
-    savedHomes.length,
-    mapFocusOnCurrentProperty,
-  ]);
+  }, [currentPage, activeTab]);
 }

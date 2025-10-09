@@ -184,14 +184,57 @@ export const searchApi = {
     data: PolygonSearchRequest,
   ): Promise<PolygonSearchResponse> => {
     const url = "/api/v1/search/properties-by-polygon";
+    const isDev = typeof import.meta !== 'undefined' && import.meta.env?.DEV;
+    const apiBaseUrl = isDev ? "localhost:5000" : "https://usesilverkey.com";
+    
+    console.log("🔎 [searchApi.searchByPolygon] Request", { 
+      environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
+      apiBaseUrl,
+      url,
+      userPreferences: {
+        budget: data.user_preferences?.home_budget,
+        bedrooms: data.user_preferences?.preferred_bedrooms,
+        bathrooms: data.user_preferences?.preferred_bathrooms,
+        locationsCount: data.user_preferences?.important_locations?.length,
+      },
+    });
+    
     return apiPost<PolygonSearchResponse>(url, data, {
       timeout: 300000, // 5 minutes for polygon search
     })
       .then((resp) => {
+        // Log the raw API response to inspect _score field
+        const respWithProps = resp as typeof resp & { properties?: unknown[]; meta?: unknown };
+        console.log("✅ [searchApi.searchByPolygon] Raw API Response", {
+          environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
+          apiBaseUrl,
+          success: resp?.success,
+          propertiesCount: Array.isArray(respWithProps?.properties) ? respWithProps.properties.length : 0,
+          hasProperties: !!respWithProps?.properties,
+          meta: respWithProps?.meta,
+          hasError: !!resp?.error,
+        });
+        
+        // Log first property to inspect structure
+        if (Array.isArray(respWithProps?.properties) && respWithProps.properties.length > 0) {
+          const firstProp = respWithProps.properties[0] as Record<string, unknown>;
+          console.log("📊 [searchApi.searchByPolygon] First Property from API:", {
+            environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
+            _score: firstProp._score,
+            scoreType: typeof firstProp._score,
+            hasScore: firstProp._score !== undefined && firstProp._score !== null,
+            zpid: firstProp.zpid,
+            address: firstProp.address,
+            allKeys: Object.keys(firstProp),
+          });
+        }
+        
         return resp;
       })
       .catch((error) => {
         console.error("❌ [searchApi.searchByPolygon] Error", {
+          environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
+          apiBaseUrl,
           message: String(error),
         });
         throw error;

@@ -119,37 +119,75 @@ export const searchPropertiesInIsochrone = async (
 
     setSearchStage("Scoring homes based on your preferences...");
 
+    // Log environment and API response details
+    const isDev = import.meta.env.DEV;
+    const apiBaseUrl = isDev ? "localhost:5000" : "https://usesilverkey.com";
+    console.log("🔍 [PROPERTY SEARCH] Environment Details:", {
+      environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
+      apiBaseUrl,
+      propertiesReceived: searchResult.properties?.length ?? 0,
+      hasScoring: searchResult.meta?.scored,
+      requestId: searchResult.meta?.requestId,
+    });
+
+    // Log first property raw data to inspect _score field
+    if (searchResult.properties && searchResult.properties.length > 0) {
+      const firstProp = searchResult.properties[0];
+      console.log("📊 [PROPERTY SEARCH] First Property Raw Data:", {
+        zpid: firstProp.zpid,
+        address: firstProp.address,
+        _score: firstProp._score,
+        scoreType: typeof firstProp._score,
+        hasScore: firstProp._score !== undefined && firstProp._score !== null,
+        allKeys: Object.keys(firstProp),
+      });
+    }
+
     // Transform API results to SearchResult format
     const transformedResults: SearchResult[] = (
       searchResult.properties ?? []
-    ).map((property: PropertySearchResult, index: number) => ({
-      id: property.zpid ?? `${Date.now()}-${index}`,
-      address: property.address ?? "Address not available",
-      price: property.price
-        ? property.price.toLocaleString()
-        : "Price not available",
-      bedrooms: property.bedrooms ?? 0,
-      bathrooms: property.bathrooms ?? 0,
-      sqft: typeof property.livingArea === 'number' 
-        ? property.livingArea
-        : typeof property.livingArea === 'string'
-          ? parseInt((property.livingArea as string).replace(/,/g, '')) || 0
-          : 0,
-      lat:
-        property.latitude ??
-        isochroneData.center.lat + (Math.random() - 0.5) * 0.01,
-      lng:
-        property.longitude ??
-        isochroneData.center.lng + (Math.random() - 0.5) * 0.01,
-      lotSize:
-        property.lotAreaValue && property.lotAreaUnit
-          ? `${property.lotAreaValue.toLocaleString()} ${property.lotAreaUnit}`
-          : undefined,
-      propertyType: property.propertyType ?? "Single Family",
-      listingStatus: property.listingStatus ?? "For Sale",
-      imageUrl: property.imgSrc ?? "/default-home.jpg",
-      _score: property._score ?? 0, // Backend ML match score
-    }));
+    ).map((property: PropertySearchResult, index: number) => {
+      const score = property._score ?? 0;
+      
+      // Log any properties with missing or zero scores
+      if (score === 0 || score === undefined || score === null) {
+        console.warn("⚠️ [PROPERTY SEARCH] Property missing score:", {
+          zpid: property.zpid,
+          address: property.address,
+          _score: property._score,
+          scoreType: typeof property._score,
+        });
+      }
+
+      return {
+        id: property.zpid ?? `${Date.now()}-${index}`,
+        address: property.address ?? "Address not available",
+        price: property.price
+          ? property.price.toLocaleString()
+          : "Price not available",
+        bedrooms: property.bedrooms ?? 0,
+        bathrooms: property.bathrooms ?? 0,
+        sqft: typeof property.livingArea === 'number' 
+          ? property.livingArea
+          : typeof property.livingArea === 'string'
+            ? parseInt((property.livingArea as string).replace(/,/g, '')) || 0
+            : 0,
+        lat:
+          property.latitude ??
+          isochroneData.center.lat + (Math.random() - 0.5) * 0.01,
+        lng:
+          property.longitude ??
+          isochroneData.center.lng + (Math.random() - 0.5) * 0.01,
+        lotSize:
+          property.lotAreaValue && property.lotAreaUnit
+            ? `${property.lotAreaValue.toLocaleString()} ${property.lotAreaUnit}`
+            : undefined,
+        propertyType: property.propertyType ?? "Single Family",
+        listingStatus: property.listingStatus ?? "For Sale",
+        imageUrl: property.imgSrc ?? "/default-home.jpg",
+        _score: score, // Backend ML match score
+      };
+    });
 
     setSearchStage("Extracting property images...");
     await new Promise((resolve) => setTimeout(resolve, 800));

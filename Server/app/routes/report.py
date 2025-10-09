@@ -719,13 +719,14 @@ def view_pdf_inline(user, report_id):
             headers={
                 'Content-Type': 'application/pdf',
                 'Content-Disposition': f'inline; filename="{report.filename}"',
-                # Allow iframe embedding
-                'X-Frame-Options': 'SAMEORIGIN',
+                # Allow same-origin iframe embedding
+                # X-Frame-Options: SAMEORIGIN is set by global after_request handler
                 'Content-Security-Policy': "frame-ancestors 'self'",
                 'Cache-Control': 'public, max-age=3600',
             }
         )
         
+        logger.info(f"PDF response headers: {dict(response.headers)}")
         return response
 
     except (SecurityException, ExpiredSignatureError, JWTError) as e:

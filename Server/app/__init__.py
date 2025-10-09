@@ -263,25 +263,60 @@ def create_app(config=None):
                     'response_data': response.get_data(as_text=True)[:500] if response.get_data() else 'empty'
                 })
         
+        # Detect PDF viewer endpoints for special security header handling
+        is_pdf_viewer = (
+            request.endpoint and 
+            ('view_pdf_inline' in str(request.endpoint) or 
+             '/view' in request.path or
+             request.path.endswith('/view'))
+        )
+        
         # Add security headers including permissions policy
         # Permissions Policy to control browser features
-        permissions_policy = (
-            "camera=(), "
-            "microphone=(), "
-            "geolocation=(), "
-            "fullscreen=(self \"https://*.amazonaws.com\"), "
-            "payment=(), "
-            "usb=(), "
-            "magnetometer=(), "
-            "gyroscope=(), "
-            "accelerometer=(), "
-            "ambient-light-sensor=()"
-        )
+        if is_pdf_viewer:
+            # More permissive policy for PDF viewers
+            permissions_policy = (
+                "camera=(), "
+                "microphone=(), "
+                "geolocation=(), "
+                "fullscreen=*, "  # Allow fullscreen for PDF viewer
+                "payment=(), "
+                "usb=(), "
+                "magnetometer=(), "
+                "gyroscope=(), "
+                "accelerometer=(), "
+                "ambient-light-sensor=()"
+            )
+        else:
+            # Restrictive policy for other endpoints
+            permissions_policy = (
+                "camera=(), "
+                "microphone=(), "
+                "geolocation=(), "
+                "fullscreen=(self \"https://*.amazonaws.com\"), "
+                "payment=(), "
+                "usb=(), "
+                "magnetometer=(), "
+                "gyroscope=(), "
+                "accelerometer=(), "
+                "ambient-light-sensor=()"
+            )
         response.headers['Permissions-Policy'] = permissions_policy
         
         # Additional security headers
         response.headers['X-Content-Type-Options'] = 'nosniff'
-        response.headers['X-Frame-Options'] = 'DENY'
+        
+        # X-Frame-Options: Only block framing for non-PDF endpoints
+        # PDF viewer endpoints need to be embeddable in iframes for the modal viewer
+        
+        if not is_pdf_viewer:
+            # Block framing for all other endpoints
+            response.headers['X-Frame-Options'] = 'DENY'
+        else:
+            # For PDF viewer endpoints, use SAMEORIGIN to allow same-origin iframe embedding
+            # This is more compatible than relying solely on CSP frame-ancestors
+            response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+        
         response.headers['X-XSS-Protection'] = '1; mode=block'
         response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
         response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
@@ -529,6 +564,11 @@ def create_app(config=None):
     @app.route("/", defaults={"path": ""})
     @app.route("/<path:path>")
     def catch_all(path):
+        # Protect API routes and healthz from being caught by SPA fallback
+        if path.startswith("api/") or path.startswith("healthz"):
+            print(f"CATCH_ALL: Rejecting API/health path: {path}")
+            return jsonify({"error": "Not Found"}), 404
+        
         if path == "":
             print("CATCH_ALL: Serving index.html for root path")
             return send_from_directory(app.static_folder, "index.html")

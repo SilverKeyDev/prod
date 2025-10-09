@@ -52,8 +52,17 @@ export const generateOptimizedPdfUrl = (
 /**
  * Get iframe sandbox attributes for PDF viewing
  * Balances security with functionality needed for PDF viewing
+ * For same-origin PDFs served through our API, we use undefined (no sandbox)
+ * to avoid Chrome blocking the content
  */
-export const getPdfIframeSandbox = (): string => {
+export const getPdfIframeSandbox = (isSameOrigin: boolean = true): string | undefined => {
+  // For same-origin PDFs, don't use sandbox to avoid Chrome blocking
+  // The server-side security headers (X-Frame-Options: SAMEORIGIN, CSP) provide protection
+  if (isSameOrigin) {
+    return undefined;
+  }
+  
+  // For cross-origin PDFs (e.g., S3 presigned URLs), use restrictive sandbox
   return 'allow-same-origin allow-scripts allow-forms allow-downloads allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation';
 };
 

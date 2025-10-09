@@ -154,7 +154,16 @@ const ReportCard: React.FC<ReportCardProps> = ({
             (viewMode === "grid" ? (
               <div className="flex flex-col gap-2">
                 <ActionButton
-                  onClick={() => onView(report.id, report.address)}
+                  onClick={() => {
+                    console.log("[ReportCard] View button clicked", {
+                      reportId: report.id,
+                      address: report.address,
+                      s3Key: report.s3Key,
+                      status: report.status,
+                      timestamp: new Date().toISOString(),
+                    });
+                    onView(report.id, report.address);
+                  }}
                   disabled={loadingUrls.has(report.id)}
                   icon={<Eye />}
                   text="View"
@@ -207,7 +216,19 @@ const ReportCard: React.FC<ReportCardProps> = ({
                   hideTextOnMobile
                 />
                 <ActionButton
-                  onClick={() => onView(report.id, report.address)}
+                  onClick={() => {
+                    console.log(
+                      "[ReportCard] View button clicked (list mode)",
+                      {
+                        reportId: report.id,
+                        address: report.address,
+                        s3Key: report.s3Key,
+                        status: report.status,
+                        timestamp: new Date().toISOString(),
+                      }
+                    );
+                    onView(report.id, report.address);
+                  }}
                   disabled={loadingUrls.has(report.id)}
                   icon={<Eye />}
                   text="View"

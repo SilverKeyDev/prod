@@ -3,8 +3,6 @@ import { useState, useCallback } from "react";
 
 import { reportApi } from "../../config/api";
 import { asError } from "../../utils/error";
-import { useModal } from "../ui/useModal";
-
 import { showErrorToast } from "../ui/useToast";
 
 export type PdfModalHooks = {
@@ -15,7 +13,7 @@ export type PdfModalHooks = {
   openModal: () => void;
   closeModal: () => void;
   toggleModal: () => void;
-  getFreshViewUrl: (documentId: string) => Promise<string | null>;
+  getFreshViewUrl: (documentId: string) => string | null;
   getFreshDownloadUrl: (documentId: string) => Promise<string | null>;
   downloadDocument: (documentId: string, documentName: string) => Promise<void>;
   shareDocument: (
@@ -29,7 +27,7 @@ export type PdfModalHooks = {
   handleViewDocument: (
     documentId: string,
     documentName: string,
-  ) => Promise<void>;
+  ) => void;
   handleDownloadDocument: (
     documentId: string,
     documentName: string,
@@ -47,7 +45,24 @@ export const usePdfModal = (): PdfModalHooks => {
     null,
   );
   const [loadingUrls, setLoadingUrls] = useState<Set<string>>(new Set());
-  const { isOpen, open, close, toggle } = useModal();
+  
+  // Simple modal state management without the extra useModal hook
+  const [isOpen, setIsOpen] = useState(false);
+  
+  const open = useCallback(() => {
+    setIsOpen(true);
+    document.body.style.overflow = "hidden";
+  }, []);
+
+  const close = useCallback(() => {
+    setIsOpen(false);
+    document.body.style.overflow = "auto";
+  }, []);
+
+  const toggle = useCallback(() => {
+    setIsOpen((prev) => !prev);
+    document.body.style.overflow = isOpen ? "auto" : "hidden";
+  }, [isOpen]);
 
   // File download functionality - moved from useFileDownload
   const downloadFile = useCallback((url: string, filename: string) => {
@@ -73,17 +88,29 @@ export const usePdfModal = (): PdfModalHooks => {
   }, []);
 
   const getFreshViewUrl = useCallback(
-    async (documentId: string): Promise<string | null> => {
+    (documentId: string): string | null => {
       try {
         // Instead of calling the old API, return our proxy URL directly
         if (typeof window !== 'undefined') {
           const baseUrl = window.location.origin;
-          return `${baseUrl}/api/v1/report/${documentId}/view`;
+          const viewUrl = `${baseUrl}/api/v1/report/${documentId}/view`;
+          console.log("[useDocumentActions] Generated view URL", {
+            documentId,
+            baseUrl,
+            viewUrl,
+            timestamp: new Date().toISOString(),
+          });
+          return viewUrl;
         }
+        console.warn("[useDocumentActions] Window is undefined, cannot generate URL");
         return null;
       } catch (err: unknown) {
         const error = asError(err);
-        console.error("Failed to get fresh view URL", error);
+        console.error("[useDocumentActions] Failed to get fresh view URL", {
+          error,
+          documentId,
+          timestamp: new Date().toISOString(),
+        });
         return null;
       }
     },
@@ -135,35 +162,68 @@ export const usePdfModal = (): PdfModalHooks => {
 
   const openPdfModal = useCallback(
     (pdfUrl: string, documentName?: string, documentId?: string) => {
+      console.log("[useDocumentActions] Opening PDF modal - START", {
+        pdfUrl,
+        documentName,
+        documentId,
+        urlLength: pdfUrl.length,
+        urlStartsWith: pdfUrl.substring(0, 50),
+        timestamp: new Date().toISOString(),
+      });
+      
+      // Set all states synchronously - React will batch these updates
       setCurrentPdf(pdfUrl);
       setCurrentDocumentId(documentId ?? null);
       setCurrentDocumentName(documentName ?? null);
-      open();
+      setIsOpen(true);
+      document.body.style.overflow = "hidden";
+      
+      console.log("[useDocumentActions] Opening PDF modal - COMPLETE", {
+        documentId,
+        timestamp: new Date().toISOString(),
+      });
     },
-    [open],
+    [],
   );
 
   const handleViewDocument = useCallback(
-    async (documentId: string, documentName: string) => {
-      setLoadingUrls((prev) => new Set(prev).add(documentId));
+    (documentId: string, documentName: string) => {
+      console.log("[useDocumentActions] handleViewDocument called", {
+        documentId,
+        documentName,
+        timestamp: new Date().toISOString(),
+      });
+      
       try {
-        const pdfUrl = await getFreshViewUrl(documentId);
+        // Generate URL synchronously (no await needed)
+        const pdfUrl = getFreshViewUrl(documentId);
+        console.log("[useDocumentActions] Got PDF URL", {
+          documentId,
+          pdfUrl,
+          success: !!pdfUrl,
+          timestamp: new Date().toISOString(),
+        });
+        
         if (pdfUrl) {
+          // Open modal immediately - no async delays
           openPdfModal(pdfUrl, documentName, documentId);
         } else {
-          console.error("Failed to get PDF view URL for document:", documentId);
-          // Show user-friendly error message
+          console.error("[useDocumentActions] Failed to get PDF view URL for document:", {
+            documentId,
+            documentName,
+            timestamp: new Date().toISOString(),
+          });
           showErrorToast("Unable to view document. Please try again later.");
         }
       } catch (error: unknown) {
-        console.error("Error viewing document:", error);
-        showErrorToast("Error viewing document. Please try again later.");
-      } finally {
-        setLoadingUrls((prev) => {
-          const newSet = new Set(prev);
-          newSet.delete(documentId);
-          return newSet;
+        console.error("[useDocumentActions] Error viewing document:", {
+          error,
+          documentId,
+          documentName,
+          stack: error instanceof Error ? error.stack : "No stack trace",
+          timestamp: new Date().toISOString(),
         });
+        showErrorToast("Error viewing document. Please try again later.");
       }
     },
     [getFreshViewUrl, openPdfModal],
@@ -202,8 +262,9 @@ export const usePdfModal = (): PdfModalHooks => {
     setCurrentPdf(null);
     setCurrentDocumentId(null);
     setCurrentDocumentName(null);
-    close();
-  }, [close]);
+    setIsOpen(false);
+    document.body.style.overflow = "auto";
+  }, []);
 
   return {
     currentPdf,

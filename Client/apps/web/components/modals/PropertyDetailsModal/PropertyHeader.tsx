@@ -76,8 +76,8 @@ export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
           variant="outline"
           size="sm"
           onClick={() => handleZillowOpen(property)}
-          icon={<ExternalLink className="h-4 w-4 text-blue-600" />}
-          className="border-blue-600 text-blue-600 hover:bg-blue-50"
+          icon={<ExternalLink className="h-4 w-4 text-gray-600" />}
+          className="border-gray-600 text-gray-600 hover:bg-gray-50"
         >
           Zillow
         </Button>

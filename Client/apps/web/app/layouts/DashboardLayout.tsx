@@ -337,8 +337,7 @@ export default function DashboardLayout({
     if (mobileHeader) return mobileHeader;
 
     // Mobile overrides placeholder (extend as needed)
-    const mobileOverrides: Record<string, React.ReactNode> = {
-    };
+    const mobileOverrides: Record<string, React.ReactNode> = {};
     const overrideKey = Object.keys(mobileOverrides).find((k) =>
       path.startsWith(k)
     );

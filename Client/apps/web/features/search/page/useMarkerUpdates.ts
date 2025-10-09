@@ -18,19 +18,16 @@ export function useMarkerUpdates(params: {
   savedHomes: SearchResult[];
 }): { refreshMarkers: (current?: SearchResult) => void } {
   // Proper implementation that handles marker updates based on current state
+  // NOTE: This hook should NOT control map position/zoom - that's handled by usePropertyFocus
   const refreshMarkers = useCallback((current?: SearchResult) => {
     if (!params.googleMapRef.current) {
       console.warn("Map not available for marker refresh");
       return;
     }
 
-    // If we have a current property and should show modals, focus on it
-    if (current && params.hasSearched && params.showPropertyModals) {
-      const center = calculatePropertyCardCenter(current.lat, current.lng);
-      params.googleMapRef.current.setCenter(center);
-      params.googleMapRef.current.setZoom(13);
-    }
-  }, [params.googleMapRef, params.hasSearched, params.showPropertyModals]);
+    // Marker refresh logic only - no map repositioning
+    // Map focusing is handled by usePropertyFocus hook to avoid jittering
+  }, [params.googleMapRef]);
 
   // Update markers when activeTab, currentPage changes or when hasSearched/showPropertyModals changes
   useEffect(() => {

@@ -28,6 +28,121 @@ const PdfModal: React.FC<PdfModalProps> = ({
 }) => {
   const modalRef = useRef<HTMLDivElement>(null);
 
+  // Monitor network requests to diagnose PDF loading issues
+  useEffect(() => {
+    if (!currentPdf || !reportId) return;
+
+    console.log("[PdfModal] Testing server endpoint accessibility", {
+      currentPdf,
+      reportId,
+      timestamp: new Date().toISOString(),
+    });
+
+    // Test if the URL is accessible by making a fetch request
+    const testUrl = async () => {
+      try {
+        const url = `${window.location.origin}/api/v1/report/${reportId}/view`;
+        console.log("[PdfModal] Fetching URL to test accessibility:", url);
+
+        const response = await fetch(url, {
+          method: "HEAD", // Use HEAD to avoid downloading the full PDF
+          credentials: "include",
+        });
+
+        console.log("[PdfModal] Server response", {
+          url,
+          status: response.status,
+          statusText: response.statusText,
+          ok: response.ok,
+          headers: {
+            contentType: response.headers.get("content-type"),
+            contentLength: response.headers.get("content-length"),
+            contentDisposition: response.headers.get("content-disposition"),
+            xFrameOptions: response.headers.get("x-frame-options"),
+            contentSecurityPolicy: response.headers.get(
+              "content-security-policy"
+            ),
+            accessControlAllowOrigin: response.headers.get(
+              "access-control-allow-origin"
+            ),
+          },
+          timestamp: new Date().toISOString(),
+        });
+
+        // Enhanced header validation with graceful fallback
+        const xfo = (
+          response.headers.get("x-frame-options") || ""
+        ).toUpperCase();
+        const csp = response.headers.get("content-security-policy") || "";
+        const contentType = response.headers.get("content-type") || "";
+        const contentDisposition =
+          response.headers.get("content-disposition") || "";
+
+        // Check if CSP blocks framing
+        const cspBlocks =
+          /\bframe-ancestors\s+['"]?none['"]?/i.test(csp) ||
+          (/\bframe-ancestors\b/i.test(csp) &&
+            !/frame-ancestors[^;]*'self'/i.test(csp));
+
+        // Determine if iframe embedding will work
+        if (xfo === "DENY") {
+          console.error(
+            "[PdfModal] ❌ X-Frame-Options is DENY - PDF will be blocked in iframe!"
+          );
+          console.warn(
+            "[PdfModal] 🔄 Note: iframe will likely fail, but keeping modal open. User can use 'Open in New Tab' button."
+          );
+          // Don't auto-close - let the user control it
+        } else if (cspBlocks) {
+          console.error(
+            "[PdfModal] ❌ CSP frame-ancestors blocks iframe embedding!"
+          );
+          console.warn(
+            "[PdfModal] 🔄 Note: iframe will likely fail, but keeping modal open. User can use 'Open in New Tab' button."
+          );
+          // Don't auto-close - let the user control it
+        } else if (xfo) {
+          console.log(`[PdfModal] ✅ X-Frame-Options is ${xfo} - should work`);
+        } else {
+          console.log(
+            "[PdfModal] ✅ X-Frame-Options not set - relying on CSP (good)"
+          );
+        }
+
+        // Verify Content-Type
+        if (!contentType.includes("application/pdf")) {
+          console.warn(
+            `[PdfModal] ⚠️ Content-Type is ${contentType}, expected application/pdf`
+          );
+        }
+
+        // Verify Content-Disposition is inline
+        if (!contentDisposition.includes("inline")) {
+          console.warn(
+            `[PdfModal] ⚠️ Content-Disposition is ${contentDisposition}, should include "inline"`
+          );
+        }
+
+        if (!response.ok) {
+          console.error("[PdfModal] Server returned error status", {
+            status: response.status,
+            statusText: response.statusText,
+            url,
+          });
+        }
+      } catch (error) {
+        console.error("[PdfModal] Failed to fetch URL", {
+          error,
+          currentPdf,
+          reportId,
+          timestamp: new Date().toISOString(),
+        });
+      }
+    };
+
+    void testUrl();
+  }, [currentPdf, reportId]);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -71,6 +186,15 @@ const PdfModal: React.FC<PdfModalProps> = ({
   };
 
   if (!currentPdf) return null;
+
+  console.log("[PdfModal] Rendering modal", {
+    currentPdf,
+    currentReportAddress,
+    reportId,
+    pdfUrlLength: currentPdf.length,
+    pdfUrlStart: currentPdf.substring(0, 100),
+    timestamp: new Date().toISOString(),
+  });
 
   return (
     <div className="space-responsive-sm fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
@@ -162,18 +286,100 @@ const PdfModal: React.FC<PdfModalProps> = ({
         {/* PDF Content */}
         <div className="flex-1 overflow-hidden" style={getPdfViewerStyles()}>
           <iframe
-            src={generateOptimizedPdfUrl(currentPdf, {}, reportId || undefined)}
+            src={(() => {
+              const optimizedUrl = generateOptimizedPdfUrl(
+                currentPdf,
+                {},
+                reportId || undefined
+              );
+              console.log("[PdfModal] Generated optimized URL for iframe", {
+                originalUrl: currentPdf,
+                optimizedUrl,
+                reportId,
+                timestamp: new Date().toISOString(),
+              });
+              return optimizedUrl;
+            })()}
             className="h-full w-full border-0"
             title="PDF Viewer"
             allow={getPdfIframeAllow()}
-            sandbox={getPdfIframeSandbox()}
+            {...(reportId
+              ? {} // No sandbox for same-origin API PDFs
+              : { sandbox: getPdfIframeSandbox(false) })} // Sandbox for external PDFs
             referrerPolicy="no-referrer"
-            onLoad={() => {
-              /* PDF loaded successfully */
+            onLoad={(e) => {
+              const iframe = e.target as HTMLIFrameElement;
+              console.log("[PdfModal] iframe onLoad event fired", {
+                src: iframe.src,
+                reportId,
+                currentReportAddress,
+                timestamp: new Date().toISOString(),
+              });
+
+              // Try to detect if Chrome blocked the PDF
+              setTimeout(() => {
+                try {
+                  // If we can access contentDocument, check what's in it
+                  const doc =
+                    iframe.contentDocument || iframe.contentWindow?.document;
+                  if (doc) {
+                    const bodyText = doc.body?.innerText || "";
+                    console.log("[PdfModal] iframe content accessible", {
+                      bodyText: bodyText.substring(0, 200),
+                      hasError:
+                        bodyText.includes("blocked") ||
+                        bodyText.includes("error"),
+                    });
+
+                    if (
+                      bodyText.includes("blocked") ||
+                      bodyText.includes("ERR_")
+                    ) {
+                      console.error(
+                        "[PdfModal] ❌ Chrome blocked the iframe content!"
+                      );
+                      console.warn(
+                        "[PdfModal] Note: User can use 'Open in New Tab' button to view PDF"
+                      );
+                      // Don't auto-close - let user control it
+                    }
+                  } else {
+                    // Cross-origin, which is expected for PDFs from S3
+                    console.log(
+                      "[PdfModal] ✅ iframe is cross-origin (expected for PDF viewing)"
+                    );
+                  }
+                } catch (err) {
+                  // Cross-origin access blocked - this is actually good, means PDF is loading
+                  console.log(
+                    "[PdfModal] ✅ Cannot access iframe content (cross-origin) - PDF should be rendering"
+                  );
+                }
+              }, 100);
             }}
             onError={(e) => {
+              console.error("[PdfModal] iframe onError event fired", {
+                src: (e.target as HTMLIFrameElement).src,
+                reportId,
+                currentReportAddress,
+                error: e,
+                timestamp: new Date().toISOString(),
+              });
               const iframe = e.target as HTMLIFrameElement;
-              if (iframe?.contentDocument?.body) {
+
+              // Only try to access contentDocument if it's same-origin
+              // For cross-origin PDFs, the browser blocks this access
+              let canAccessContent = false;
+              try {
+                canAccessContent = iframe?.contentDocument?.body != null;
+              } catch {
+                // Cross-origin access blocked - this is expected
+                console.log(
+                  "[PdfModal] Cannot access iframe content (cross-origin), skipping error UI injection"
+                );
+              }
+
+              if (canAccessContent && iframe?.contentDocument?.body) {
                 // Create error content safely using DOM methods
                 const errorDiv = document.createElement("div");
                 errorDiv.style.cssText =

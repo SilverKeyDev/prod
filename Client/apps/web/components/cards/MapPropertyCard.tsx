@@ -42,24 +42,31 @@ const MapPropertyCard: React.FC<MapPropertyCardProps> = ({
   }, [property, onCardRendered]);
 
   // Add comprehensive logging for debugging score issues
+  const isDev = typeof import.meta !== "undefined" && import.meta.env?.DEV;
   console.log("🗺️ [MAP PROPERTY CARD] Rendering MapPropertyCard:", {
+    environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
     propertyId: property.id,
-    address: property.address,
+    address: property.address?.substring(0, 40) + "...",
     calculatedScore: property.calculatedScore,
     scoreType: typeof property.calculatedScore,
     showScore,
     isSaved,
     price: property.price,
+    hasValidScore:
+      property.calculatedScore !== undefined &&
+      property.calculatedScore !== null &&
+      property.calculatedScore > 0,
   });
 
   try {
     // Validate and normalize the calculated score
     let normalizedScore = property.calculatedScore;
 
-    // Check if score is valid
+    // Check if score is valid (only validate if a score was provided)
     if (normalizedScore !== undefined && normalizedScore !== null) {
       if (typeof normalizedScore !== "number" || isNaN(normalizedScore)) {
         console.warn("🗺️ [MAP PROPERTY CARD] Invalid score type detected:", {
+          environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
           propertyId: property.id,
           originalScore: property.calculatedScore,
           scoreType: typeof property.calculatedScore,
@@ -69,20 +76,37 @@ const MapPropertyCard: React.FC<MapPropertyCardProps> = ({
         console.warn(
           "🗺️ [MAP PROPERTY CARD] Score out of valid range (0-100):",
           {
+            environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
             propertyId: property.id,
             score: normalizedScore,
           }
         );
         // Clamp score to valid range
         normalizedScore = Math.max(0, Math.min(100, normalizedScore));
+      } else if (normalizedScore === 0) {
+        // Treat 0 as "no score" rather than showing a zero score
+        console.log(
+          "🗺️ [MAP PROPERTY CARD] Score is zero, treating as undefined:",
+          {
+            environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
+            propertyId: property.id,
+          }
+        );
+        normalizedScore = undefined;
       }
     }
 
+    const willShowScore =
+      showScore && normalizedScore !== undefined && normalizedScore > 0;
     console.log("🗺️ [MAP PROPERTY CARD] Normalized score:", {
+      environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
       propertyId: property.id,
+      address: property.address?.substring(0, 30) + "...",
       originalScore: property.calculatedScore,
       normalizedScore,
-      willShowScore: showScore && normalizedScore !== undefined,
+      showScore,
+      willShowScore,
+      hasScore: normalizedScore !== undefined && normalizedScore !== null,
     });
 
     // Convert property to HomeDescription format

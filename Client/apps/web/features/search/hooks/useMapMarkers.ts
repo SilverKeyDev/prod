@@ -222,6 +222,20 @@ export const useMapMarkers = ({
           const score = result._score ?? 0;
           const isSaved = isHomeSaved(result.id);
           
+          // Log score issues for debugging
+          const isDev = typeof import.meta !== 'undefined' && import.meta.env?.DEV;
+          if (score === 0 || score === undefined || score === null) {
+            console.warn("⚠️ [MARKER DATA] Property has no score:", {
+              environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
+              propertyId: result.id,
+              address: result.address,
+              _score: result._score,
+              scoreType: typeof result._score,
+              isSaved,
+              willShowScore: !isSaved && score > 0,
+            });
+          }
+          
           // Create marker container for MapPropertyCard
           const markerElement = document.createElement("div");
           markerElement.className = "property-location-marker";
@@ -231,6 +245,8 @@ export const useMapMarkers = ({
           `;
 
           // Convert SearchResult to MapPropertyCard format
+          // Only pass score if it's a valid number > 0
+          const hasValidScore = typeof score === 'number' && score > 0;
           const propertyData = {
             id: result.id,
             address: result.address,
@@ -243,14 +259,19 @@ export const useMapMarkers = ({
             lat: result.lat,
             lng: result.lng,
             images: result.imageUrl ? [result.imageUrl] : undefined,
-            calculatedScore: score,
+            calculatedScore: hasValidScore ? score : undefined,
           };
 
           console.log("📍 [MARKER DATA] Property data for MapPropertyCard:", {
+            environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
             propertyId: result.id,
+            address: result.address?.substring(0, 30) + "...",
             calculatedScore: propertyData.calculatedScore,
-            showScore: !isSaved,
+            showScore: !isSaved && hasValidScore,
             backendScore: result._score,
+            scoreType: typeof result._score,
+            hasValidScore,
+            isSaved,
           });
 
           // Render MapPropertyCard directly into the marker element
@@ -261,13 +282,15 @@ export const useMapMarkers = ({
               onSave: () => saveHome(result),
               onUnsave: () => removeSavedHome(result.id),
               onUnlock: onUnlockClick ? () => onUnlockClick(result) : undefined,
-              showScore: !isSaved, // Only show score for non-saved homes
+              showScore: !isSaved && hasValidScore, // Only show score for non-saved homes with valid scores
             }, (property) => {
               // Callback to reposition map when MapPropertyCard is rendered
+              console.log("📍 [useMapMarkers] MapPropertyCard callback - repositioning map for property:", property.id);
               if (googleMapRef.current && property.lat && property.lng) {
-                const center = calculatePropertyCardCenter(property.lat, property.lng);
+                const center = calculatePropertyCardCenter(property.lat, property.lng, property.id);
                 googleMapRef.current.setCenter(center);
                 googleMapRef.current.setZoom(13);
+                console.log("📍 [useMapMarkers] Map repositioned via MapPropertyCard callback");
               }
             });
           } catch (error) {
@@ -335,9 +358,11 @@ export const useMapMarkers = ({
           if (results.length > 0) {
             const firstProperty = results[0];
             if (firstProperty && googleMapRef.current) {
-              const center = calculatePropertyCardCenter(firstProperty.lat, firstProperty.lng);
+              console.log("📍 [useMapMarkers] All markers created - centering on first property:", firstProperty.id);
+              const center = calculatePropertyCardCenter(firstProperty.lat, firstProperty.lng, firstProperty.id);
               googleMapRef.current.setCenter(center);
               googleMapRef.current.setZoom(13);
+              console.log("📍 [useMapMarkers] Map centered on first property after marker creation");
             }
           }
 

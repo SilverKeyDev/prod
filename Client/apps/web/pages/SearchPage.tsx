@@ -98,7 +98,6 @@ export default function SearchPage({
   // Handle property details search using the hook with enhanced logging
   const handleViewPropertyDetails = useCallback(
     async (property: SearchResult) => {
-
       // Map SearchResult to Property format for the hook
       const propertyForDetails = {
         ...property,
@@ -155,7 +154,6 @@ export default function SearchPage({
   // Handle navigation to property (focus on property instead of opening details)
   const handleNavigateToProperty = useCallback(
     (property: SearchResult) => {
-
       // Find the property index in the current data
       const currentData = activeTab === "results" ? searchResults : savedHomes;
       const propertyIndex = currentData.findIndex((p) => p.id === property.id);
@@ -199,7 +197,6 @@ export default function SearchPage({
         console.warn("❌ Google Map not initialized yet");
         return;
       }
-
 
       renderIsochronePolygon(isochroneData as IsochroneData, {
         map: googleMapRef.current,
@@ -353,7 +350,6 @@ export default function SearchPage({
 
   // Update handleSearch to use runIsochroneSearch or external handler with enhanced logging
   const handleSearchUpdated = useCallback(async () => {
-
     if (!isSearching) {
       if (onSearchProperties) {
         await onSearchProperties();
@@ -361,7 +357,6 @@ export default function SearchPage({
         await runIsochroneSearch();
       }
     }
-    
   }, [isSearching, onSearchProperties, activeTab, currentPage]);
 
   // Memoize the search function to prevent unnecessary re-exposure
@@ -473,18 +468,47 @@ export default function SearchPage({
     onUnlockClick: handleViewPropertyDetails,
   });
 
+  // Track previous data to avoid unnecessary marker updates
+  const prevDataRef = useRef<{
+    resultsLength: number;
+    savedLength: number;
+    activeTab: string;
+  }>({
+    resultsLength: 0,
+    savedLength: 0,
+    activeTab: "results",
+  });
+
   // Update markers when search results change
   useEffect(() => {
+    if (!googleMapRef.current) return;
 
-    if (
-      googleMapRef.current &&
-      (searchResults.length > 0 || savedHomes.length > 0)
-    ) {
-      const currentData = activeTab === "results" ? searchResults : savedHomes;
+    const currentData = activeTab === "results" ? searchResults : savedHomes;
+    const hasData = searchResults.length > 0 || savedHomes.length > 0;
 
-      updateMapMarkers(currentData);
+    // Check if data actually changed
+    const dataChanged =
+      prevDataRef.current.resultsLength !== searchResults.length ||
+      prevDataRef.current.savedLength !== savedHomes.length ||
+      prevDataRef.current.activeTab !== activeTab;
+
+    if (hasData && dataChanged) {
+      void updateMapMarkers(currentData);
+
+      // Update previous data
+      prevDataRef.current = {
+        resultsLength: searchResults.length,
+        savedLength: savedHomes.length,
+        activeTab,
+      };
     }
-  }, [searchResults, savedHomes, activeTab, updateMapMarkers]);
+  }, [
+    searchResults.length,
+    savedHomes.length,
+    activeTab,
+    googleMapRef,
+    updateMapMarkers,
+  ]);
 
   usePropertyFocus({
     googleMapRef,
@@ -496,7 +520,6 @@ export default function SearchPage({
     selectedProperty,
   });
 
-
   useMobileHeaderActions({
     setMobileHeaderActions,
     isSearching,
@@ -506,11 +529,8 @@ export default function SearchPage({
 
   // Reset to first page when switching tabs and save to localStorage with enhanced logging
   const handleTabChange = (tab: "results" | "saved") => {
-
     setActiveTab(tab);
     setCurrentPage(0);
-
-
   };
 
   // Initialize isochrone overlay after map is ready (only once) with enhanced logging

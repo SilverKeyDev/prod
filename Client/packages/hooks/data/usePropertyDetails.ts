@@ -47,15 +47,9 @@ export function usePropertyDetails(): UsePropertyDetailsReturn {
         address: property.address,
       });
 
-      console.log("🔍 [USE_PROPERTY_DETAILS] Full API response:", response);
-
       // The backend returns property data in response.data, not response.property
       const detailedPropertyData = response.data ?? {};
 
-      console.log(
-        "🔍 [USE_PROPERTY_DETAILS] Detailed property data:",
-        detailedPropertyData,
-      );
 
       const enhancedProperty = {
         ...property,
@@ -69,10 +63,6 @@ export function usePropertyDetails(): UsePropertyDetailsReturn {
         features: response.features,
       };
 
-      console.log(
-        "🔍 [USE_PROPERTY_DETAILS] Enhanced property for modal:",
-        enhancedProperty,
-      );
       return enhancedProperty;
     },
     onSuccess: (enhancedProperty) => {
