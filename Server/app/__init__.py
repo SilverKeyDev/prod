@@ -561,31 +561,31 @@ def create_app(config=None):
             return send_from_directory(app.static_folder, 'favicon.ico')
         return ('', 204)
 
-    # Static asset serving
-    @app.route('/assets/<path:filename>')
-    def serve_assets(filename):
-        path = os.path.join(app.static_folder, "assets")
-        print(f"Serving from {path} filename={filename}")
-        return send_from_directory(path, filename)
-
+    # SPA catch-all route - must be registered last
+    # This handles both static file serving and SPA routing
     @app.route("/", defaults={"path": ""})
     @app.route("/<path:path>")
     def catch_all(path):
         # Protect API routes and healthz from being caught by SPA fallback
         if path.startswith("api/") or path.startswith("healthz"):
-            print(f"CATCH_ALL: Rejecting API/health path: {path}")
             return jsonify({"error": "Not Found"}), 404
         
+        # Serve index.html for root path
         if path == "":
-            print("CATCH_ALL: Serving index.html for root path")
             return send_from_directory(app.static_folder, "index.html")
 
-        requested_file = os.path.join(app.static_folder, path)
-        if os.path.isfile(requested_file):
-            print(f"CATCH_ALL: Serving static file: {path}")
-            return send_from_directory(app.static_folder, path)
-        else:
-            print(f"CATCH_ALL: Path not found: {path} — serving index.html fallback")
-            return send_from_directory(app.static_folder, "index.html")
+        # Try to serve the requested file (handles assets, images, etc.)
+        try:
+            requested_file = os.path.join(app.static_folder, path)
+            # Security: Ensure the file is within the static folder
+            if os.path.commonpath([app.static_folder, requested_file]) == app.static_folder:
+                if os.path.isfile(requested_file):
+                    return send_from_directory(app.static_folder, path)
+        except (ValueError, OSError):
+            pass  # Fall through to SPA fallback
+        
+        # For SPA routing, serve index.html for any non-existent path
+        # This allows client-side routing to work (e.g., /login, /dashboard, etc.)
+        return send_from_directory(app.static_folder, "index.html")
 
     return app

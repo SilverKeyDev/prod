@@ -283,15 +283,6 @@ export const useMapMarkers = ({
               onUnsave: () => removeSavedHome(result.id),
               onUnlock: onUnlockClick ? () => onUnlockClick(result) : undefined,
               showScore: !isSaved && hasValidScore, // Only show score for non-saved homes with valid scores
-            }, (property) => {
-              // Callback to reposition map when MapPropertyCard is rendered
-              console.log("📍 [useMapMarkers] MapPropertyCard callback - repositioning map for property:", property.id);
-              if (googleMapRef.current && property.lat && property.lng) {
-                const center = calculatePropertyCardCenter(property.lat, property.lng, property.id);
-                googleMapRef.current.setCenter(center);
-                googleMapRef.current.setZoom(13);
-                console.log("📍 [useMapMarkers] Map repositioned via MapPropertyCard callback");
-              }
             });
           } catch (error) {
             console.error(`❌ [MARKER POSITION UPDATE] Error rendering MapPropertyCard for property ${i + 1}:`, error);
@@ -358,11 +349,9 @@ export const useMapMarkers = ({
           if (results.length > 0) {
             const firstProperty = results[0];
             if (firstProperty && googleMapRef.current) {
-              console.log("📍 [useMapMarkers] All markers created - centering on first property:", firstProperty.id);
               const center = calculatePropertyCardCenter(firstProperty.lat, firstProperty.lng, firstProperty.id);
               googleMapRef.current.setCenter(center);
               googleMapRef.current.setZoom(13);
-              console.log("📍 [useMapMarkers] Map centered on first property after marker creation");
             }
           }
 
