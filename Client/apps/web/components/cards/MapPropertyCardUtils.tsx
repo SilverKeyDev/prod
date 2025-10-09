@@ -27,8 +27,16 @@ export const renderMapPropertyCard = (
   const root = createRoot(container);
   rootMap.set(container, root);
 
-  // Render the component with the callback
-  root.render(<MapPropertyCard {...props} onCardRendered={onCardRendered} />);
+  // Render the component with the callback and a unique key to force proper updates
+  // Key combines property ID and saved state to ensure re-rendering when either changes
+  const componentKey = `${props.property.id}-${props.isSaved ? "saved" : "unsaved"}-${props.showScore ? "scored" : "unscored"}`;
+  root.render(
+    <MapPropertyCard
+      key={componentKey}
+      {...props}
+      onCardRendered={onCardRendered}
+    />
+  );
 };
 
 // Helper function to clean up React root for a container

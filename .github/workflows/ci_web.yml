@@ -267,6 +267,7 @@ jobs:
               --health-cmd="curl -fsS http://localhost:5000/healthz || exit 1" \
               --health-interval=30s --health-timeout=10s --health-retries=3 --health-start-period=40s \
               -e FLASK_ENV="production" \
+              -e CORS_ALLOWED_ORIGINS="https://usesilverkey.com,https://www.usesilverkey.com" \
               -e REDIS_URL="redis://redis:6379/0" \
               -e AWS_REGION="${AWS_REGION}" \
               -e AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}" \

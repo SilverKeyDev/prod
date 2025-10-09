@@ -473,24 +473,27 @@ export default function SearchPage({
     resultsLength: number;
     savedLength: number;
     activeTab: string;
+    currentPage: number;
   }>({
     resultsLength: 0,
     savedLength: 0,
     activeTab: "results",
+    currentPage: 0,
   });
 
-  // Update markers when search results change
+  // Update markers when search results, saved homes, or active tab changes
   useEffect(() => {
     if (!googleMapRef.current) return;
 
     const currentData = activeTab === "results" ? searchResults : savedHomes;
     const hasData = searchResults.length > 0 || savedHomes.length > 0;
 
-    // Check if data actually changed
+    // Check if data actually changed (including tab changes even with same lengths)
     const dataChanged =
       prevDataRef.current.resultsLength !== searchResults.length ||
       prevDataRef.current.savedLength !== savedHomes.length ||
-      prevDataRef.current.activeTab !== activeTab;
+      prevDataRef.current.activeTab !== activeTab ||
+      prevDataRef.current.currentPage !== currentPage;
 
     if (hasData && dataChanged) {
       void updateMapMarkers(currentData);
@@ -500,12 +503,16 @@ export default function SearchPage({
         resultsLength: searchResults.length,
         savedLength: savedHomes.length,
         activeTab,
+        currentPage,
       };
     }
   }, [
     searchResults.length,
     savedHomes.length,
+    searchResults,
+    savedHomes,
     activeTab,
+    currentPage,
     googleMapRef,
     updateMapMarkers,
   ]);

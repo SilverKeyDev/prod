@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 
 import MapHomeCard from "./MapHomeCard";
 
@@ -39,7 +39,8 @@ const MapPropertyCard: React.FC<MapPropertyCardProps> = ({
     if (onCardRendered) {
       onCardRendered(property);
     }
-  }, [property, onCardRendered]);
+    // Depend on property.id and key props to ensure re-execution when property changes
+  }, [property.id, isSaved, showScore, onCardRendered]);
 
   // Add comprehensive logging for debugging score issues
   const isDev = typeof import.meta !== "undefined" && import.meta.env?.DEV;
@@ -106,24 +107,42 @@ const MapPropertyCard: React.FC<MapPropertyCardProps> = ({
       normalizedScore,
       showScore,
       willShowScore,
+      isSaved,
       hasScore: normalizedScore !== undefined && normalizedScore !== null,
     });
 
     // Convert property to HomeDescription format
-    const homeData = {
-      home_id: property.id,
-      image_url: property.images?.[0],
-      price: property.price,
-      bedrooms: property.bedrooms,
-      bathrooms: property.bathrooms,
-      sqft: property.sqft,
-      lot_size: property.lotSize,
-      propertyType: property.propertyType,
-      lat: property.lat,
-      lng: property.lng,
-      address: property.address,
-      calculatedScore: normalizedScore,
-    };
+    // Memoize to prevent unnecessary re-renders
+    const homeData = useMemo(
+      () => ({
+        home_id: property.id,
+        image_url: property.images?.[0],
+        price: property.price,
+        bedrooms: property.bedrooms,
+        bathrooms: property.bathrooms,
+        sqft: property.sqft,
+        lot_size: property.lotSize,
+        propertyType: property.propertyType,
+        lat: property.lat,
+        lng: property.lng,
+        address: property.address,
+        calculatedScore: normalizedScore,
+      }),
+      [
+        property.id,
+        property.images,
+        property.price,
+        property.bedrooms,
+        property.bathrooms,
+        property.sqft,
+        property.lotSize,
+        property.propertyType,
+        property.lat,
+        property.lng,
+        property.address,
+        normalizedScore,
+      ]
+    );
 
     return (
       <div className="relative w-48">
