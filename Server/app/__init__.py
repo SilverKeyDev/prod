@@ -37,7 +37,8 @@ def create_app(config=None):
 
     # STATIC FOLDER: matches Docker
     STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../Client/dist")
-    app = Flask(__name__, static_folder=STATIC_DIR, static_url_path="")
+    # IMPORTANT: move Flask's built-in static off "/" to avoid intercepting SPA routes like /login
+    app = Flask(__name__, static_folder=STATIC_DIR, static_url_path="/static")
 
     # Load config
     app.config.from_object(Config)
@@ -561,20 +562,15 @@ def create_app(config=None):
             return send_from_directory(app.static_folder, 'favicon.ico')
         return ('', 204)
 
-    # SPA catch-all route - must be registered last
-    # This handles both static file serving and SPA routing
-    @app.route("/", defaults={"path": ""})
-    @app.route("/<path:path>")
+    # --- SPA catch-all route (MUST be registered last) ---
+    @app.route("/", defaults={"path": ""}, methods=["GET", "HEAD"])
+    @app.route("/<path:path>", methods=["GET", "HEAD"])
     def catch_all(path):
-        # Protect API routes and healthz from being caught by SPA fallback
-        if path.startswith("api/") or path.startswith("healthz"):
+        # Protect API and explicit static resources from being hijacked
+        if path.startswith(("api/", "static/", "assets/")) or path in ("healthz", "favicon.ico"):
             return jsonify({"error": "Not Found"}), 404
-        
-        # Serve index.html for root path
-        if path == "":
-            return send_from_directory(app.static_folder, "index.html")
 
-        # Try to serve the requested file (handles assets, images, etc.)
+        # Try to serve the requested file (robots.txt, manifest.json, assets, images, etc.)
         try:
             requested_file = os.path.join(app.static_folder, path)
             # Security: Ensure the file is within the static folder
@@ -582,10 +578,10 @@ def create_app(config=None):
                 if os.path.isfile(requested_file):
                     return send_from_directory(app.static_folder, path)
         except (ValueError, OSError):
-            pass  # Fall through to SPA fallback
-        
-        # For SPA routing, serve index.html for any non-existent path
-        # This allows client-side routing to work (e.g., /login, /dashboard, etc.)
+            # Fall through to SPA fallback
+            pass
+
+        # SPA routing: serve index.html for any non-existent path (e.g., /login, /dashboard)
         return send_from_directory(app.static_folder, "index.html")
 
     return app
