@@ -840,7 +840,7 @@ export default function OnboardingPage() {
           {renderStepContent()}
 
           {/* Navigation Buttons */}
-          <div className="mt-8 border-t border-beige/30 px-4 pb-1 pt-6 sm:mt-10 sm:px-6 sm:pb-2 sm:pt-8">
+          <div className="mt-10 border-t border-beige/30 px-4 pb-1 pt-8 sm:px-6 sm:pb-2">
             <NavigationButtons
               currentStep={currentStep}
               totalSteps={STEPS.length}

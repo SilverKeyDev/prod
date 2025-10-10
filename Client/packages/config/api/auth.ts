@@ -83,6 +83,120 @@ export const authApi = {
     apiPost<AuthResponse>("/api/v1/auth/resend-code", { email }),
 
   /**
+   * Verify user's email with verification code
+   */
+  verify: async (
+    email: string,
+    code: string,
+    password: string,
+  ): Promise<AuthResponse> => {
+    const startTime = Date.now();
+    const requestId = `verify_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+    // Log detailed verification request
+    log.info("AUTH_VERIFY_REQUEST", "Starting email verification request", {
+      requestId,
+      email: email
+        ? `${email.substring(0, 3)}***${email.substring(email.length - 3)}`
+        : "missing",
+      codeLength: code?.length || 0,
+      hasPassword: !!password,
+      timestamp: new Date().toISOString(),
+    });
+
+    console.log("🔵 AUTH_VERIFY_API_CALL", {
+      requestId,
+      url: "/api/v1/auth/verify",
+      method: "POST",
+      email,
+      codeLength: code?.length,
+      hasPassword: !!password,
+      timestamp: new Date().toISOString(),
+    });
+
+    try {
+      const response = await apiPost<AuthResponse>("/api/v1/auth/verify", {
+        email,
+        code,
+        password,
+      });
+      const duration = Date.now() - startTime;
+
+      console.log("✅ AUTH_VERIFY_RESPONSE", {
+        requestId,
+        success: response.success,
+        verificationComplete: response.verification_complete,
+        loginFailed: response.login_failed,
+        hasAccessToken: !!response.access_token,
+        hasUser: !!response.user,
+        duration: `${duration}ms`,
+        timestamp: new Date().toISOString(),
+      });
+
+      if (response.success) {
+        log.info("AUTH_VERIFY_SUCCESS", "Email verification successful", {
+          requestId,
+          verificationComplete: response.verification_complete,
+          loginFailed: response.login_failed,
+          duration: `${duration}ms`,
+        });
+      } else {
+        log.warn("AUTH_VERIFY_FAILED", "Email verification failed", {
+          requestId,
+          error: response.error,
+          message: response.message,
+          duration: `${duration}ms`,
+        });
+
+        reportSecurityEvent({
+          type: "authentication_failure",
+          severity: "medium",
+          description: "Email verification failed",
+          metadata: {
+            email,
+            error: response.error,
+            requestId,
+            duration: `${duration}ms`,
+          },
+        });
+      }
+
+      return response;
+    } catch (error: unknown) {
+      const duration = Date.now() - startTime;
+      const err = error as Error;
+
+      console.error("❌ AUTH_VERIFY_ERROR", {
+        requestId,
+        errorType: err?.constructor?.name || "Unknown",
+        errorMessage: err?.message || "Unknown error",
+        duration: `${duration}ms`,
+        timestamp: new Date().toISOString(),
+      });
+
+      log.error("AUTH_VERIFY_ERROR", "Verification request failed with exception", {
+        requestId,
+        errorMessage: err?.message || "Unknown error",
+        duration: `${duration}ms`,
+      });
+
+      reportSecurityEvent({
+        type: "authentication_failure",
+        severity: "high",
+        description: "Email verification exception",
+        metadata: {
+          email,
+          error: err?.message,
+          requestId,
+          duration: `${duration}ms`,
+        },
+      });
+
+      throw error;
+    }
+  },
+
+  /**
    * Authenticate user and return Cognito JWT tokens
    */
   login: async (data: LoginData): Promise<AuthResponse> => {

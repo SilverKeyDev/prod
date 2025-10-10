@@ -2,6 +2,7 @@ from datetime import datetime
 from flask import Blueprint, request, jsonify, current_app, make_response
 import os
 import jwt
+import traceback
 from .. import db
 from ..models.user import User
 from ..services.auth import AWS_COGNITO_service
@@ -73,22 +74,68 @@ def signup():
 @auth_bp.route('/verify', methods=['POST'])
 def verify():
     """Verify user's email with code and automatically log them in"""
+    import time
+    start_time = time.time()
+    request_id = f"verify_{int(time.time() * 1000)}_{os.urandom(4).hex()}"
+    
+    current_app.logger.info(f"🔵 AUTH_VERIFY_ENDPOINT_CALLED", extra={
+        'request_id': request_id,
+        'method': request.method,
+        'path': request.path,
+        'origin': request.headers.get('Origin'),
+        'user_agent': request.headers.get('User-Agent'),
+        'timestamp': time.strftime('%Y-%m-%d %H:%M:%S')
+    })
+    
     data = request.get_json()
+    
+    current_app.logger.info(f"🔍 AUTH_VERIFY_REQUEST_DATA", extra={
+        'request_id': request_id,
+        'has_email': bool(data.get('email') if data else False),
+        'has_code': bool(data.get('code') if data else False),
+        'has_password': bool(data.get('password') if data else False),
+        'email': data.get('email')[:3] + '***' + data.get('email')[-3:] if data and data.get('email') else 'missing',
+        'code_length': len(data.get('code', '')) if data else 0
+    })
 
     if not all(field in data for field in ['email', 'code', 'password']):
+        current_app.logger.warning(f"❌ AUTH_VERIFY_MISSING_FIELDS", extra={
+            'request_id': request_id,
+            'has_email': 'email' in data if data else False,
+            'has_code': 'code' in data if data else False,
+            'has_password': 'password' in data if data else False
+        })
         return jsonify({
             'success': False,
             'error': 'MISSING_FIELDS',
             'message': 'Email, verification code, and password are required'
         }), 400
 
+    current_app.logger.info(f"🔍 AUTH_VERIFY_CALLING_COGNITO_CONFIRM", extra={
+        'request_id': request_id,
+        'email': data['email'][:3] + '***' + data['email'][-3:]
+    })
+
     # First verify the email
     result = AWS_COGNITO_service.confirm_sign_up(
         username=data['email'],
         confirmation_code=data['code']
     )
+    
+    current_app.logger.info(f"🔍 AUTH_VERIFY_COGNITO_CONFIRM_RESULT", extra={
+        'request_id': request_id,
+        'success': result.get('success'),
+        'error': result.get('error'),
+        'result_message': result.get('message')
+    })
 
     if not result['success']:
+        current_app.logger.warning(f"❌ AUTH_VERIFY_COGNITO_CONFIRM_FAILED", extra={
+            'request_id': request_id,
+            'error': result.get('error'),
+            'result_message': result.get('message'),
+            'duration_ms': int((time.time() - start_time) * 1000)
+        })
         return jsonify({
             'success': False,
             'error': result.get('error', 'VERIFICATION_FAILED'),
@@ -97,13 +144,29 @@ def verify():
 
     # After successful verification, automatically log the user in
     try:
+        current_app.logger.info(f"🔍 AUTH_VERIFY_CALLING_COGNITO_SIGNIN", extra={
+            'request_id': request_id,
+            'email': data['email'][:3] + '***' + data['email'][-3:]
+        })
+        
         login_result = AWS_COGNITO_service.sign_in(
             username=data['email'],
             password=data['password']
         )
+        
+        current_app.logger.info(f"🔍 AUTH_VERIFY_COGNITO_SIGNIN_RESULT", extra={
+            'request_id': request_id,
+            'success': login_result.get('success'),
+            'has_tokens': bool(login_result.get('tokens'))
+        })
 
         if not login_result['success']:
             # Verification succeeded but login failed
+            current_app.logger.warning(f"⚠️ AUTH_VERIFY_LOGIN_FAILED_AFTER_VERIFICATION", extra={
+                'request_id': request_id,
+                'email': data['email'][:3] + '***' + data['email'][-3:],
+                'duration_ms': int((time.time() - start_time) * 1000)
+            })
             return jsonify({
                 'success': True,
                 'message': 'Email verified successfully. Please log in manually.',
@@ -189,13 +252,15 @@ def verify():
         
         # Log detailed request information BEFORE setting cookies
         current_app.logger.info(f"🔵 AUTH_VERIFY_SETTING_COOKIES", extra={
+            'request_id': request_id,
             'request_origin': request.headers.get('Origin'),
             'request_host': request.headers.get('Host'),
             'request_referer': request.headers.get('Referer'),
             'flask_env': os.getenv('FLASK_ENV', 'development'),
             'secure_flag': os.getenv('FLASK_ENV') == 'production',
             'session_token_length': len(minimal_access_token),
-            'refresh_token_length': len(login_result['tokens']['RefreshToken'])
+            'refresh_token_length': len(login_result['tokens']['RefreshToken']),
+            'user_sub': user_sub[:8] + '***' if user_sub else 'missing'
         })
         
         # Set secure HttpOnly cookies with minimal tokens
@@ -222,6 +287,7 @@ def verify():
         
         # Log cookie headers that will be sent
         current_app.logger.info(f"✅ AUTH_VERIFY_COOKIES_SET", extra={
+            'request_id': request_id,
             'session_cookie_set': True,
             'refresh_cookie_set': True,
             'secure_cookies': os.getenv('FLASK_ENV') == 'production',
@@ -240,10 +306,27 @@ def verify():
         # Include minimal ID token in response body instead of cookie
         response_data['id_token'] = minimal_id_token
         
+        duration_ms = int((time.time() - start_time) * 1000)
+        current_app.logger.info(f"✅ AUTH_VERIFY_SUCCESS_COMPLETE", extra={
+            'request_id': request_id,
+            'email': data['email'][:3] + '***' + data['email'][-3:],
+            'user_sub': user_sub[:8] + '***' if user_sub else 'missing',
+            'has_user_record': bool(user),
+            'duration_ms': duration_ms,
+            'timestamp': time.strftime('%Y-%m-%d %H:%M:%S')
+        })
+        
         return resp
 
     except Exception as e:
-        current_app.logger.error(f'Error during auto-login after verification: {str(e)}')
+        duration_ms = int((time.time() - start_time) * 1000)
+        current_app.logger.error(f'❌ AUTH_VERIFY_EXCEPTION', extra={
+            'request_id': request_id,
+            'error': str(e),
+            'error_type': type(e).__name__,
+            'duration_ms': duration_ms,
+            'traceback': traceback.format_exc()[:500]
+        })
         # Verification succeeded but auto-login failed
         return jsonify({
             'success': True,

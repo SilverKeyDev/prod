@@ -47,7 +47,7 @@ const NavigationButtons: React.FC<NavigationButtonsProps> = ({
   nextText = "Next",
   submitText = "Complete",
   layout = "centered",
-  size = "md",
+  size = "lg",
   className,
 }) => {
   const isFirstStep = currentStep === 0;
@@ -79,9 +79,9 @@ const NavigationButtons: React.FC<NavigationButtonsProps> = ({
         size={size}
         onClick={onPrevious}
         disabled={isFirstStep ?? disablePrevious}
-        icon={<ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />}
+        icon={<ChevronLeft />}
         iconPosition="left"
-        className={`w-[100px] sm:w-[110px] ${
+        className={`w-[120px] sm:w-[140px] md:w-[160px] xs:w-[90px] ${
           (isFirstStep ?? disablePrevious)
             ? "cursor-not-allowed bg-gray-300 text-gray-500 hover:bg-gray-300"
             : "bg-gray-200 text-gray-700 hover:bg-gray-300"
@@ -101,11 +101,9 @@ const NavigationButtons: React.FC<NavigationButtonsProps> = ({
           onClick={onSubmit}
           disabled={loading ?? disableNext}
           loading={loading}
-          icon={
-            !loading ? <Check className="h-3 w-3 sm:h-4 sm:w-4" /> : undefined
-          }
+          icon={!loading ? <Check /> : undefined}
           iconPosition="right"
-          className="w-[100px] font-bold sm:w-[110px]"
+          className="w-[120px] font-bold sm:w-[140px] md:w-[160px]"
         >
           {loading ? "Saving..." : submitText}
         </Button>
@@ -115,9 +113,9 @@ const NavigationButtons: React.FC<NavigationButtonsProps> = ({
           size={size}
           onClick={onNext}
           disabled={disableNext}
-          icon={<ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />}
+          icon={<ChevronRight />}
           iconPosition="right"
-          className="w-[100px] bg-olive/60 font-bold hover:bg-olive/70 sm:w-[110px]"
+          className="w-[120px] font-bold sm:w-[140px] md:w-[160px]"
         >
           {nextText}
         </Button>

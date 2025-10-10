@@ -243,8 +243,6 @@ const OnboardingHeader: React.FC<OnboardingHeaderProps> = ({
                                   top: "50%",
                                   left: "50%",
                                   transform: "translate(-50%, -50%)",
-                                  background:
-                                    "radial-gradient(50% 50% at 50% 50%, rgba(88,67,57,0.22) 0%, rgba(88,67,57,0) 70%)",
                                   filter: "blur(2px)",
                                 }}
                                 initial={{ opacity: 0, scale: 0.85 }}
