@@ -14,7 +14,8 @@ const FIELD_DISPLAY_NAMES: Record<string, string> = {
   occupation: FIELD_LABELS.OCCUPATION,
   pets: FIELD_LABELS.PETS,
   gross_income: FIELD_LABELS.GROSS_INCOME,
-  home_budget: FIELD_LABELS.HOME_BUDGET,
+  home_budget_min: "Home Budget Minimum",
+  home_budget_max: "Home Budget Maximum",
   credit_score_range: FIELD_LABELS.CREDIT_SCORE_RANGE,
   down_payment: FIELD_LABELS.DOWN_PAYMENT,
   preferred_housing_type: FIELD_LABELS.PREFERRED_HOUSING_TYPE,
@@ -46,7 +47,8 @@ export const validateOnboardingData = (
   const numericFields = [
     "age",
     "gross_income",
-    "home_budget",
+    "home_budget_min",
+    "home_budget_max",
     "preferred_bedrooms",
     "preferred_bathrooms",
   ] as const;
@@ -138,8 +140,8 @@ export const validateOnboardingData = (
   // Additional validation rules
   if (
     formData.down_payment &&
-    formData.home_budget &&
-    formData.down_payment > formData.home_budget
+    formData.home_budget_max &&
+    formData.down_payment > formData.home_budget_max
   ) {
     errors.push("Down payment cannot be higher than home budget.");
   }

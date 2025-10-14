@@ -14,7 +14,8 @@ export type OnboardingData = {
 
   // Financial
   gross_income?: number;
-  home_budget?: number;
+  home_budget_min?: number;
+  home_budget_max?: number;
   credit_score_range?: string;
   down_payment?: number;
   ideal_zip_code?: string;

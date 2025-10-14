@@ -36,7 +36,8 @@ export type PropertyResponse = {
 
 export type PolygonSearchRequest = {
   user_preferences: {
-    home_budget?: number;
+    home_budget_min?: number;
+    home_budget_max?: number;
     preferred_bedrooms?: number;
     preferred_bathrooms?: number;
     preferred_housing_type?: string;
@@ -192,7 +193,7 @@ export const searchApi = {
       apiBaseUrl,
       url,
       userPreferences: {
-        budget: data.user_preferences?.home_budget,
+        budget: data.user_preferences?.home_budget_max,
         bedrooms: data.user_preferences?.preferred_bedrooms,
         bathrooms: data.user_preferences?.preferred_bathrooms,
         locationsCount: data.user_preferences?.important_locations?.length,

@@ -15,7 +15,10 @@ import { useGoogleMaps } from "../../../packages/hooks/data/useGoogleMaps";
 import { usePropertyDetails } from "../../../packages/hooks/data/usePropertyDetails";
 import type { SearchResult } from "../../../packages/schemas/search";
 import { useFiltersStore, useUIStore } from "../../../packages/store";
-import type { IsochroneData } from "../../../packages/schemas/api";
+import type {
+  IsochroneData,
+  UserPreferencesData,
+} from "../../../packages/schemas/api";
 import { asError } from "../../../packages/utils/error";
 
 // Features
@@ -303,7 +306,7 @@ export default function SearchPage({
     },
     searchPropertiesInIsochrone: async (isochroneData: unknown) => {
       // Get user preferences for the search
-      let userPrefs = {};
+      let userPrefs: UserPreferencesData = {};
       try {
         const response = await preferencesApi.get();
         if (
@@ -314,7 +317,13 @@ export default function SearchPage({
           "preferences" in response &&
           response.preferences
         ) {
-          userPrefs = response.preferences;
+          userPrefs = response.preferences as UserPreferencesData;
+          console.log("🔍 [SEARCH] Loaded user preferences:", {
+            hasBudgetMin: !!userPrefs.home_budget_min,
+            hasBudgetMax: !!userPrefs.home_budget_max,
+            budgetMin: userPrefs.home_budget_min,
+            budgetMax: userPrefs.home_budget_max,
+          });
         }
       } catch (prefError: unknown) {
         const error = asError(prefError);

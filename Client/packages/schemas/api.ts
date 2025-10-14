@@ -102,6 +102,8 @@ export type IsochroneData = {
 };
 
 export type UserPreferencesData = {
+  home_budget_min?: number;
+  home_budget_max?: number;
   priceRange?: {
     min?: number;
     max?: number;
@@ -111,7 +113,8 @@ export type UserPreferencesData = {
 
 export type SearchByPolygonRequest = {
   user_preferences: {
-    home_budget: number;
+    home_budget_min: number;
+    home_budget_max: number;
     preferred_bedrooms: number;
     preferred_bathrooms: number;
     preferred_housing_type: string;

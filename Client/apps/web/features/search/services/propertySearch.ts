@@ -29,7 +29,8 @@ export type SearchResult = {
 };
 
 export type UserPreferences = {
-  home_budget: number;
+  home_budget_min: number;
+  home_budget_max: number;
   preferred_bedrooms: number;
   preferred_bathrooms: number;
   preferred_housing_type: string;
@@ -80,10 +81,14 @@ export const searchPropertiesInIsochrone = async (
 
   try {
     // Map current userPreferences to the backend format
-    const { priceRange } = userPreferences;
+    // Prioritize home_budget_min/max from stored preferences, fall back to priceRange, then to defaults
+    const budgetMin = userPreferences.home_budget_min ?? userPreferences.priceRange?.min ?? 0;
+    const budgetMax = userPreferences.home_budget_max ?? userPreferences.priceRange?.max ?? 0;
     const { preferredBedrooms } = userPreferences;
+    
     const searchUserPreferences: UserPreferences = {
-      home_budget: priceRange?.max ?? 500000,
+      home_budget_min: budgetMin,
+      home_budget_max: budgetMax,
       preferred_bedrooms: preferredBedrooms ?? 3,
       preferred_bathrooms: Math.floor((preferredBedrooms ?? 3) / 2) + 1,
       preferred_housing_type: "single_family",
@@ -94,6 +99,12 @@ export const searchPropertiesInIsochrone = async (
       // Use ALL important_locations from the isochrone response
       important_locations: isochroneData.locations ?? [],
     };
+    
+    console.log("🔍 [PROPERTY SEARCH] Using budget range:", {
+      min: budgetMin,
+      max: budgetMax,
+      source: userPreferences.home_budget_min ? "stored preferences" : userPreferences.priceRange ? "priceRange" : "defaults"
+    });
 
     setSearchStage("Extracting property data...");
 
@@ -119,16 +130,7 @@ export const searchPropertiesInIsochrone = async (
 
     setSearchStage("Scoring homes based on your preferences...");
 
-    // Log environment and API response details
-    const isDev = import.meta.env.DEV;
-    const apiBaseUrl = isDev ? "localhost:5000" : "https://usesilverkey.com";
-    console.log("🔍 [PROPERTY SEARCH] Environment Details:", {
-      environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
-      apiBaseUrl,
-      propertiesReceived: searchResult.properties?.length ?? 0,
-      hasScoring: searchResult.meta?.scored,
-      requestId: searchResult.meta?.requestId,
-    });
+
 
     // Log first property raw data to inspect _score field
     if (searchResult.properties && searchResult.properties.length > 0) {

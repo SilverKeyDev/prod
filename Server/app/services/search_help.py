@@ -504,7 +504,14 @@ def analyze_property_with_sonar_pro(user_preferences: Dict[str, Any], home_objec
         property_type = home_object.get('propertyType', home_object.get('homeType', 'Unknown'))
         
         # Extract user preferences for context
-        budget = user_preferences.get('home_budget', 'Not specified')
+        budget_min = user_preferences.get('home_budget_min')
+        budget_max = user_preferences.get('home_budget_max')
+        if budget_min and budget_max:
+            budget = f"${int(budget_min):,} - ${int(budget_max):,}"
+        elif budget_max:
+            budget = f"Up to ${int(budget_max):,}"
+        else:
+            budget = 'Not specified'
         occupation = user_preferences.get('occupation', 'Not specified')
         age = user_preferences.get('age', 'Not specified')
         important_locations = user_preferences.get('important_locations', [])

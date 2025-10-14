@@ -296,16 +296,33 @@ def _build_payload(
         
         if user_preferences:
             # Extract key preferences for strategy personalization
-            budget = user_preferences.get('home_budget', 'Not specified')
+            budget_min = user_preferences.get('home_budget_min')
+            budget_max = user_preferences.get('home_budget_max')
+            
+            # Store numeric budget for calculations
+            budget_numeric = budget_max if budget_max else 0
+            
+            # Format budget string for display
+            if budget_min and budget_max:
+                budget = f"${int(budget_min):,} - ${int(budget_max):,}"
+            elif budget_max:
+                budget = f"Up to ${int(budget_max):,}"
+            else:
+                budget = 'Not specified'
+                
             financing = user_preferences.get('financing_preference', 'conventional')
             timeline = user_preferences.get('desired_closing_date', 'flexible')
             priorities = user_preferences.get('preferred_home_features', [])
             
             # Enhanced buyer profile with urgency and leverage analysis
-            search_stage = user_preferences.get('property_search_stage', 'actively_searching')
-            experience = user_preferences.get('home_buying_experience', 'first_time')
-            down_payment = user_preferences.get('down_payment', 0)
-            credit_score = user_preferences.get('credit_score_range', 'good')
+            search_stage = user_preferences.get('property_search_stage', 'actively_searching') or 'actively_searching'
+            experience = user_preferences.get('home_buying_experience', 'first_time') or 'first_time'
+            down_payment = user_preferences.get('down_payment', 0) or 0
+            credit_score = user_preferences.get('credit_score_range', 'good') or 'good'
+            
+            # Ensure all values are not None
+            financing = financing or 'conventional'
+            timeline = timeline or 'flexible'
             
             # Determine buyer urgency level for strategy
             urgency_level = 'moderate'
@@ -314,18 +331,25 @@ def _build_payload(
             elif search_stage == 'just_looking':
                 urgency_level = 'low'
             
+            # Calculate down payment percentage
+            down_payment_pct = 'Unknown'
+            if isinstance(down_payment, (int, float)) and down_payment > 0 and budget_numeric > 0:
+                down_payment_pct = f"{int((down_payment/budget_numeric)*100)}%"
+            
+            # Format down payment display
+            down_payment_display = f"${down_payment:,.0f}" if isinstance(down_payment, (int, float)) else "Not specified"
+            
             user_preferences_text = f"""
             
 Buyer Profile & Strategy Context:
 - Budget: {budget}
 - Financing: {financing} 
-- Timeline: {timeline}
 - Experience: {experience}
-- Down Payment: ${down_payment:,} ({int((down_payment/budget)*100) if isinstance(down_payment, (int, float)) and budget != 'Not specified' else 'Unknown'}% down)
+- Down Payment: {down_payment_display} ({down_payment_pct} down)
 - Credit Score: {credit_score}
 - Search Stage: {search_stage}
 - URGENCY LEVEL: {urgency_level} (low = slow-play for concessions, high = accelerate timeline)
-- Renovation Preference: {user_preferences.get('renovation_preference', 'minor')} (affects condition tolerance)
+- Renovation Preference: {user_preferences.get('renovation_preference', 'minor') or 'minor'} (affects condition tolerance)
 - Key Priorities: {', '.join(priorities) if priorities else 'Not specified'}
 """
         

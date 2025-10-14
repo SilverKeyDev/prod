@@ -56,7 +56,8 @@ class Marketing(BaseModel):
         age = user_preferences.get("age", 35) if user_preferences else 35
         pets = user_preferences.get("pets", "none") if user_preferences else "none"
         housing_type = user_preferences.get("housing_type", "house") if user_preferences else "house"
-        home_budget = user_preferences.get("home_budget", 500000) if user_preferences else 500000
+        # Get budget range
+        home_budget = user_preferences.get("home_budget_max", 500000) if user_preferences else 500000
         
         # Customize based on actual user profile
         has_pets = pets and pets.lower() not in ["none", "no pets", ""]

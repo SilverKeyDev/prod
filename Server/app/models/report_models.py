@@ -890,7 +890,14 @@ class FinancialInformation(BaseModel):
     def get_example(cls, user_preferences: Dict[str, Any]) -> Dict[str, Any]:
         """Generate example FinancialInformation data based on user preferences."""
         income = user_preferences.get("gross_income", 'middle')
-        price_range = user_preferences.get("home_budget", '$300,000-$500,000')
+        
+        # Get budget range
+        budget_min = user_preferences.get("home_budget_min")
+        budget_max = user_preferences.get("home_budget_max")
+        if budget_min and budget_max:
+            price_range = f"${int(budget_min):,}-${int(budget_max):,}"
+        else:
+            price_range = '$300,000-$500,000'
         
         if income in ['high', 'very_high']:
             return {
@@ -921,7 +928,17 @@ class FinancialInformation(BaseModel):
     def get_description(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, str]:
         """Generate personalized field descriptions based on user preferences"""
         gross_income = user_preferences.get("gross_income", '$50,000-$75,000') if user_preferences else '$50,000-$75,000'
-        home_budget = user_preferences.get("home_budget", '$300,000-$500,000') if user_preferences else '$300,000-$500,000'
+        
+        # Get budget range
+        if user_preferences:
+            budget_min = user_preferences.get("home_budget_min")
+            budget_max = user_preferences.get("home_budget_max")
+            if budget_min and budget_max:
+                home_budget = f"${int(budget_min):,}-${int(budget_max):,}"
+            else:
+                home_budget = '$300,000-$500,000'
+        else:
+            home_budget = '$300,000-$500,000'
         
         return {
             "monthly_payment": f"Estimated monthly mortgage payment for typical home in the area. Consider user's income range ({gross_income}) and preferred price range ({home_budget}) when providing context.",

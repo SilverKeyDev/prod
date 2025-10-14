@@ -334,12 +334,24 @@ export default function Dashboard() {
       window as unknown as { pollForReportCompletion: unknown }
     ).pollForReportCompletion = pollForReportCompletion;
 
+    // Expose refresh function for GenerateReportPage auto-refresh
+    (
+      window as unknown as {
+        refreshReportsAfterGenerate?: () => Promise<unknown>;
+      }
+    ).refreshReportsAfterGenerate = refreshReports;
+
     // Cleanup on unmount
     return () => {
       window.removeEventListener("reportGenerated", handleReportGenerated);
       // Clean up global function references
       delete (window as unknown as { pollForReportCompletion: unknown })
         .pollForReportCompletion;
+      delete (
+        window as unknown as {
+          refreshReportsAfterGenerate?: () => Promise<unknown>;
+        }
+      ).refreshReportsAfterGenerate;
     };
   }, [pollForReportCompletion, refreshReports]);
 

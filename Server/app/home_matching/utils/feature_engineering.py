@@ -20,15 +20,21 @@ class FeatureEngineer:
         """Calculate price-related features."""
         features = []
         
-        # Extract budget from user preferences - handle different formats
-        home_budget = user_prefs.get('home_budget', 0)
-        if home_budget <= 0:
-            budget_min = user_prefs.get('budget_min', 500000)
-            budget_max = user_prefs.get('budget_max', 1000000)
+        # Get budget range from user preferences
+        budget_min_pref = user_prefs.get('home_budget_min') or user_prefs.get('budget_min', 0)
+        budget_max_pref = user_prefs.get('home_budget_max') or user_prefs.get('budget_max', 0)
+        
+        if budget_max_pref and budget_max_pref > 0:
+            # Use the range provided by user
+            budget_max = float(budget_max_pref)
+            if budget_min_pref and budget_min_pref > 0:
+                budget_min = float(budget_min_pref)
+            else:
+                budget_min = budget_max * 0.7  # Default to 70% if min not specified
         else:
-            # Use home_budget as max, calculate min as 70% of budget
-            budget_max = float(home_budget)
-            budget_min = budget_max * 0.7
+            # Default budget fallback if not provided
+            budget_min = 500000
+            budget_max = 1000000
         
         home_price = home_data.get('price', 0)
         

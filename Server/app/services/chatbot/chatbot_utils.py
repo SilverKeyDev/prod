@@ -153,8 +153,12 @@ def generate_action_plan(user_preferences, client_name):
             # Financial (using actual fields)
             if user_preferences.get('gross_income'):
                 context_parts.append(f"Gross income: ${user_preferences['gross_income']:,.0f}")
-            if user_preferences.get('home_budget'):
-                context_parts.append(f"Home budget: ${user_preferences['home_budget']:,.0f}")
+            budget_min = user_preferences.get('home_budget_min')
+            budget_max = user_preferences.get('home_budget_max')
+            if budget_min and budget_max:
+                context_parts.append(f"Home budget: ${budget_min:,.0f} - ${budget_max:,.0f}")
+            elif budget_max:
+                context_parts.append(f"Home budget: Up to ${budget_max:,.0f}")
             if user_preferences.get('credit_score_range'):
                 context_parts.append(f"Credit score range: {user_preferences['credit_score_range']}")
             if user_preferences.get('down_payment'):

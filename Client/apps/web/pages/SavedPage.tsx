@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import SavedLayout from "../app/layouts/SavedLayout";
@@ -107,9 +107,16 @@ export default function SavedHomes() {
       (
         window as unknown as { refreshFavorites?: () => void }
       ).refreshFavorites = refreshSavedHomes;
+    } else if (viewType === "reports") {
+      // Expose refreshReports for GenerateReportPage to call (mobile + desktop)
+      (
+        window as unknown as {
+          refreshReportsAfterGenerate?: () => Promise<unknown>;
+        }
+      ).refreshReportsAfterGenerate = refreshReports;
     }
     // Reports are automatically loaded by useReportsData hook
-  }, [refreshSavedHomes, viewType]);
+  }, [refreshSavedHomes, refreshReports, viewType]);
 
   const refresh = async () => {
     setRefreshing(true);
@@ -120,6 +127,58 @@ export default function SavedHomes() {
     }
     setRefreshing(false);
   };
+
+  // Polling interval ref for report generation
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Clear polling interval on unmount
+  useEffect(() => {
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+      }
+    };
+  }, []);
+
+  // Handle report generation - auto-refresh reports list
+  const handleReportGenerated = useCallback(
+    async (documentId: string) => {
+      console.log(
+        `[SavedPage] Report generation started for document ID: ${documentId}`
+      );
+
+      // Clear any existing polling interval
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
+      }
+
+      // Initial refresh after 0.5 seconds
+      setTimeout(async () => {
+        console.log("[SavedPage] Initial refresh after report generation");
+        await refreshReports();
+      }, 500);
+
+      // Set up periodic polling every 30 seconds
+      pollingIntervalRef.current = setInterval(async () => {
+        console.log("[SavedPage] Periodic refresh for pending report");
+        await refreshReports();
+
+        // Check if the report is now complete
+        // This will be checked in the next interval cycle
+      }, 30000); // 30 seconds
+
+      // Stop polling after 10 minutes (reports typically take ~5 minutes)
+      setTimeout(() => {
+        if (pollingIntervalRef.current) {
+          console.log("[SavedPage] Stopping periodic refresh after 10 minutes");
+          clearInterval(pollingIntervalRef.current);
+          pollingIntervalRef.current = null;
+        }
+      }, 600000); // 10 minutes
+    },
+    [refreshReports]
+  );
 
   // Handle unlocking a home and saving to negotiation store
   const handleUnlockHome = useCallback(
@@ -298,7 +357,7 @@ export default function SavedHomes() {
         {/* Generate Report Component - Show on desktop when reports view is active */}
         {viewType === "reports" && !isMobile && (
           <div className="mb-6">
-            <GenerateReportPage />
+            <GenerateReportPage onReportGenerated={handleReportGenerated} />
           </div>
         )}
 
@@ -312,6 +371,20 @@ export default function SavedHomes() {
           leftContent={
             viewType === "reports" ? (
               <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  icon={<FileText />}
+                  hideTextBelow="md"
+                  onClick={() => setReportsSubView("reports")}
+                  className={
+                    reportsSubView === "reports"
+                      ? "bg-gold text-white"
+                      : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                  }
+                >
+                  Reports
+                </Button>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -339,20 +412,6 @@ export default function SavedHomes() {
                   }
                 >
                   Chatbot
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  icon={<FileText />}
-                  hideTextBelow="md"
-                  onClick={() => setReportsSubView("reports")}
-                  className={
-                    reportsSubView === "reports"
-                      ? "bg-gold text-white"
-                      : "bg-gray-100 text-gray-800 hover:bg-gray-200"
-                  }
-                >
-                  Reports
                 </Button>
               </div>
             ) : null

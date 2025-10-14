@@ -49,6 +49,7 @@ import { handleSubmit as handleSubmitUtil } from "../../features/onboardpersonal
 import OnboardingHeader from "../../features/onboardpersonalize/onboard/Header";
 import OnPerLabel from "../../features/onboardpersonalize/OnPerLabel";
 import PriceRangeSlider from "../../features/onboardpersonalize/PriceRangeSlider";
+import BudgetRangeSlider from "../../features/onboardpersonalize/BudgetRangeSlider";
 import OnPerTagInput from "../../features/onboardpersonalize/TagInput";
 
 // Utility functions
@@ -464,15 +465,18 @@ export default function OnboardingPage() {
                 <label className="text-responsive-xl space-y-responsive-xs block w-full text-center font-bold text-gray-700">
                   {FIELD_LABELS.HOME_BUDGET} *
                 </label>
-                <PriceRangeSlider
+                <BudgetRangeSlider
                   tickValues={[
                     200000, 500000, 1000000, 2000000, 5000000, 10000000,
                   ]}
-                  value={formData.home_budget ?? 500000}
-                  onChange={(value) => {
+                  minValue={formData.home_budget_min ?? 200000}
+                  maxValue={formData.home_budget_max ?? 1000000}
+                  onChange={(minValue, maxValue) => {
                     // Round to nearest $25,000 increment
-                    const roundedValue = Math.round(value / 25000) * 25000;
-                    updateFormData("home_budget", roundedValue);
+                    const roundedMin = Math.round(minValue / 25000) * 25000;
+                    const roundedMax = Math.round(maxValue / 25000) * 25000;
+                    updateFormData("home_budget_min", roundedMin);
+                    updateFormData("home_budget_max", roundedMax);
                   }}
                   formatPrefix="$"
                   className="mt-2"

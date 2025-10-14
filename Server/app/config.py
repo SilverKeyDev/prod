@@ -17,7 +17,11 @@ os.makedirs(instance_dir, exist_ok=True)
 class Config:
 
     # Celery Configuration
-    CELERY_URL = 'redis://redis:6379/0'
+    # Use environment variable or detect based on FLASK_ENV
+    # In development (local), use localhost; in production (Docker), use redis
+    flask_env = os.getenv('FLASK_ENV', 'development')
+    redis_host = 'localhost' if flask_env == 'development' else 'redis'
+    CELERY_URL = os.getenv('CELERY_URL', f'redis://{redis_host}:6379/0')
     CELERY_TRANSPORT_OPTIONS = {
         'visibility_timeout': 900
     }

@@ -16,33 +16,45 @@ branch_labels = None
 depends_on = None
 
 def upgrade():
-    # First, add the new id column as nullable
-    op.add_column('home_universal', sa.Column('id', sa.String(36), nullable=True))
-    
-    # Populate existing rows with UUIDs
+    # Check if the id column already exists
     connection = op.get_bind()
-    connection.execute(
-        sa.text("UPDATE home_universal SET id = :uuid WHERE id IS NULL"),
-        {"uuid": str(uuid.uuid4())}
-    )
+    inspector = sa.inspect(connection)
+    columns = [col['name'] for col in inspector.get_columns('home_universal')]
     
-    # For each existing row, generate a unique UUID
-    result = connection.execute(sa.text("SELECT user_id FROM home_universal"))
-    for row in result:
+    if 'id' not in columns:
+        # First, add the new id column as nullable
+        op.add_column('home_universal', sa.Column('id', sa.String(36), nullable=True))
+        
+        # Populate existing rows with UUIDs
         connection.execute(
-            sa.text("UPDATE home_universal SET id = :uuid WHERE user_id = :user_id AND id IS NULL"),
-            {"uuid": str(uuid.uuid4()), "user_id": row[0]}
+            sa.text("UPDATE home_universal SET id = gen_random_uuid()::text WHERE id IS NULL")
         )
-    
-    # Drop the old primary key constraint
-    op.drop_constraint('home_universal_pkey', 'home_universal', type_='primary')
-    
-    # Make the new id column non-nullable and set it as primary key
-    op.alter_column('home_universal', 'id', nullable=False)
-    op.create_primary_key('home_universal_pkey', 'home_universal', ['id'])
-    
-    # Make user_id non-nullable but not primary key
-    op.alter_column('home_universal', 'user_id', nullable=False)
+        
+        # Drop the old primary key constraint if it exists
+        try:
+            op.drop_constraint('home_universal_pkey', 'home_universal', type_='primary')
+        except:
+            pass  # Constraint might not exist
+        
+        # Make the new id column non-nullable and set it as primary key
+        op.alter_column('home_universal', 'id', nullable=False)
+        op.create_primary_key('home_universal_pkey', 'home_universal', ['id'])
+        
+        # Make user_id non-nullable but not primary key
+        try:
+            op.alter_column('home_universal', 'user_id', nullable=False)
+        except:
+            pass  # Column might already be non-nullable
+    else:
+        # Column exists, just ensure constraints are correct
+        try:
+            # Check if id is already primary key
+            pk_constraint = inspector.get_pk_constraint('home_universal')
+            if pk_constraint and pk_constraint['constrained_columns'] != ['id']:
+                op.drop_constraint('home_universal_pkey', 'home_universal', type_='primary')
+                op.create_primary_key('home_universal_pkey', 'home_universal', ['id'])
+        except:
+            pass
 
 def downgrade():
     # Remove the id column and restore user_id as primary key

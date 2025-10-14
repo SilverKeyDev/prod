@@ -166,7 +166,8 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
                 {selectedHome.beds && selectedHome.baths
                   ? `${selectedHome.beds} bed, ${selectedHome.baths} bath`
                   : "Selected Property"}
-                {selectedHome.price && ` • ${selectedHome.price}`}
+                {selectedHome.price &&
+                  ` • ${selectedHome.price.startsWith("$") ? selectedHome.price : `$${selectedHome.price}`}`}
               </div>
             </div>
           ) : (
@@ -223,7 +224,8 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
                     {home.sqft &&
                       Number(home.sqft) > 0 &&
                       ` • ${Math.round(Number(home.sqft)).toLocaleString()} sqft`}
-                    {home.price && ` • ${home.price}`}
+                    {home.price &&
+                      ` • ${home.price.startsWith("$") ? home.price : `$${home.price}`}`}
                   </div>
                 </button>
               );

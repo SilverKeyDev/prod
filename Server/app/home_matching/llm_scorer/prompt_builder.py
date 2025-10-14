@@ -91,8 +91,8 @@ Provide your assessment as a JSON object with the required fields."""
         essential_reqs = []
         
         # Budget information - Always show
-        budget_min = preferences.get('budget_min', 0) or preferences.get('home_budget', 0)
-        budget_max = preferences.get('budget_max', 0) or preferences.get('home_budget', 0)
+        budget_min = preferences.get('budget_min', 0) or preferences.get('home_budget_min', 0)
+        budget_max = preferences.get('budget_max', 0) or preferences.get('home_budget_max', 0)
         if budget_max > 0:
             if budget_min > 0 and budget_min != budget_max:
                 essential_reqs.append(f"Budget: ${budget_min:,} - ${budget_max:,}")

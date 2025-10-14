@@ -30,7 +30,8 @@ class UserPreferences(db.Model):
 
     # === Financial ===
     gross_income = db.Column(db.Float)
-    home_budget = db.Column(db.Float)
+    home_budget_min = db.Column(db.Float)
+    home_budget_max = db.Column(db.Float)
     credit_score_range = db.Column(db.String(20))
     down_payment = db.Column(db.Float)
     ideal_zip_code = db.Column(db.String(10))
@@ -99,7 +100,8 @@ class UserPreferences(db.Model):
 
         # Financial
         'gross_income': self.gross_income,
-        'home_budget': self.home_budget,
+        'home_budget_min': self.home_budget_min,
+        'home_budget_max': self.home_budget_max,
         'credit_score_range': self.credit_score_range,
         'down_payment': self.down_payment,
         'ideal_zip_code': self.ideal_zip_code,

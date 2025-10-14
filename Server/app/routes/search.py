@@ -381,7 +381,8 @@ def get_property_via_address():
             if user_preferences:
                 # Convert user preferences to dict format
                 user_prefs_dict = user_preferences.to_dict() if hasattr(user_preferences, 'to_dict') else {
-                    'home_budget': user_preferences.home_budget,
+                    'home_budget_min': user_preferences.home_budget_min,
+                    'home_budget_max': user_preferences.home_budget_max,
                     'occupation': user_preferences.occupation,
                     'age': user_preferences.age,
                     'important_locations': user_preferences.important_locations,
@@ -770,15 +771,23 @@ def map_user_preferences_to_filters(user_preferences: Dict[str, Any], status_typ
     """Map user preferences to Zillow API filters."""
     filters = {}
     
-    # Map budget to price filters
-    if user_preferences.get('home_budget'):
-        budget = user_preferences['home_budget']
+    # Map budget to price filters using range
+    budget_min = user_preferences.get('home_budget_min')
+    budget_max = user_preferences.get('home_budget_max')
+    
+    if budget_max:
         if status_type == "ForRent":
-            filters['rentMaxPrice'] = int(budget / 12)  # Convert annual to monthly
-            filters['rentMinPrice'] = int(budget * 0.7 / 12)
+            filters['rentMaxPrice'] = int(budget_max / 12)  # Convert annual to monthly
+            if budget_min:
+                filters['rentMinPrice'] = int(budget_min / 12)
+            else:
+                filters['rentMinPrice'] = int(budget_max * 0.7 / 12)
         else:
-            filters['maxPrice'] = budget
-            filters['minPrice'] = int(budget * 0.65)
+            filters['maxPrice'] = int(budget_max)
+            if budget_min:
+                filters['minPrice'] = int(budget_min)
+            else:
+                filters['minPrice'] = int(budget_max * 0.65)
     
     # Map preferred bedrooms
     if user_preferences.get('preferred_bedrooms'):
@@ -894,18 +903,8 @@ def search_properties_by_polygon():
         # ---- Filters ----
         filters = map_user_preferences_to_filters(user_preferences, status_type)
 
-        # Apply min/max price from home_budget
-        home_budget = user_preferences.get("home_budget")
-        if home_budget:
-            try:
-                hb_val = float(home_budget)
-                filters["minPrice"] = int(hb_val * 0.6)
-                filters["maxPrice"] = int(hb_val * 1.05)
-
-            except (TypeError, ValueError):
-                current_app.logger.warning(
-                    f"[POLYGON_SEARCH] ⚠️ {request_id} - home_budget value invalid: {home_budget}"
-                )
+        # Apply min/max price from budget range (already handled in map_user_preferences_to_filters)
+        # This section can be removed as the budget range is now properly handled above
         
 
         headers = {

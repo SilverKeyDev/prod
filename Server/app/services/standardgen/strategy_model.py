@@ -127,12 +127,13 @@ class NegotiationStrategy(BaseModel):
                 return []
         
         # Extract key data with validation
-        home_budget = user_preferences.get('home_budget', 500000)
-        if not isinstance(home_budget, (int, float, str)):
-            home_budget = 500000
+        home_budget_max = user_preferences.get('home_budget_max', 500000)
+        
+        if not isinstance(home_budget_max, (int, float, str)):
+            home_budget_max = 500000
         
         try:
-            max_price = Decimal(str(home_budget))
+            max_price = Decimal(str(home_budget_max))
             if max_price <= 0:
                 max_price = Decimal('500000')
         except (ValueError, TypeError):
@@ -176,7 +177,7 @@ class NegotiationStrategy(BaseModel):
         except (ValueError, TypeError):
             down_payment = 0
             
-        if down_payment > float(home_budget) * 0.2:
+        if down_payment > float(home_budget_max) * 0.2:
             offer_strength = "Strong down payment (>20%) with pre-approval eliminates financing risk"
         else:
             offer_strength = "Pre-approved financing with competitive down payment"
@@ -197,7 +198,7 @@ class NegotiationStrategy(BaseModel):
             concessions_you_can_make.append("Flexible closing date (seller chooses within 60 days)")
         if user_preferences.get('home_buying_experience') == 'experienced':
             concessions_you_can_make.append("Shortened inspection period (5 days vs 10)")
-        if down_payment > float(home_budget) * 0.5:
+        if down_payment > float(home_budget_max) * 0.5:
             concessions_you_can_make.append("Waive financing contingency")
         
         counter_section = CounterSection(

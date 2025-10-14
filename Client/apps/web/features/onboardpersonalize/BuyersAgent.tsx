@@ -48,7 +48,7 @@ const OnPerBuyersAgent: React.FC<OnPerBuyersAgentProps> = ({
             <div
               className={`flex h-5 w-5 items-center justify-center rounded border-2 transition-all duration-200 ${
                 lookingForBuyersAgent
-                  ? "border-brown bg-brown text-white shadow-sm"
+                  ? "border-olive bg-olive text-white shadow-sm"
                   : "border-gray-300 bg-gray-100 hover:border-gray-400"
               }`}
             >

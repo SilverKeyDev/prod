@@ -73,9 +73,11 @@ export default function MapHomeCard({
       address: homeDesc.address ?? formattedAddress ?? homeDesc.home_id,
       price:
         typeof homeDesc.price === "string"
-          ? homeDesc.price
+          ? homeDesc.price.startsWith("$")
+            ? homeDesc.price
+            : `$${homeDesc.price}`
           : typeof homeDesc.price === "number"
-            ? homeDesc.price.toLocaleString()
+            ? `$${homeDesc.price.toLocaleString()}`
             : "Price not available",
       bedrooms: homeDesc.bedrooms ?? 3,
       bathrooms: homeDesc.bathrooms ?? 2,
@@ -112,8 +114,10 @@ export default function MapHomeCard({
         address={displayName}
         price={
           typeof home.price === "number"
-            ? home.price.toLocaleString()
-            : (home.price ?? "N/A")
+            ? `$${home.price.toLocaleString()}`
+            : typeof home.price === "string" && !home.price.startsWith("$")
+              ? `$${home.price}`
+              : (home.price ?? "N/A")
         }
         bedrooms={home.bedrooms as number | undefined}
         bathrooms={home.bathrooms as number | undefined}

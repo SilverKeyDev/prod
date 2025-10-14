@@ -1,8 +1,7 @@
 export {};
 
 import { MapPin, AlertCircle, Lightbulb, GitCompare } from "lucide-react";
-import React, { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 
 import { Card } from "../../../components/layout";
 import { Input, OliveCheckbox, Button } from "../../../components/ui";
@@ -39,8 +38,13 @@ type Suggestion = {
 
 // Removed CustomDropdown; switching to inline toggle for comparison mode
 
-export default function GenerateReportPage() {
-  const navigate = useNavigate();
+type GenerateReportPageProps = {
+  onReportGenerated?: (documentId: string) => void;
+};
+
+export default function GenerateReportPage({
+  onReportGenerated,
+}: GenerateReportPageProps = {}) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const comparisonInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -261,6 +265,57 @@ export default function GenerateReportPage() {
     setComparisonSuggestions([]);
   };
 
+  // Start auto-refresh after report generation
+  const startAutoRefresh = useCallback(
+    (documentId: string) => {
+      console.log(
+        `[GenerateReport] Starting auto-refresh for document ID: ${documentId}`
+      );
+
+      // Try callback prop first (preferred method)
+      if (onReportGenerated) {
+        onReportGenerated(documentId);
+        return;
+      }
+
+      // Fallback to window function (for mobile/DashboardLayout)
+      const refreshFn = (
+        window as unknown as {
+          refreshReportsAfterGenerate?: () => Promise<unknown>;
+        }
+      ).refreshReportsAfterGenerate;
+
+      if (refreshFn) {
+        // Initial refresh after 0.5 seconds
+        setTimeout(() => {
+          console.log("[GenerateReport] Initial refresh after generation");
+          void refreshFn();
+        }, 500);
+
+        // Set up periodic polling every 30 seconds for up to 10 minutes
+        let pollCount = 0;
+        const maxPolls = 20; // 20 * 30s = 10 minutes
+        const pollInterval = setInterval(() => {
+          pollCount++;
+          console.log(
+            `[GenerateReport] Periodic refresh ${pollCount}/${maxPolls}`
+          );
+          void refreshFn();
+
+          if (pollCount >= maxPolls) {
+            clearInterval(pollInterval);
+            console.log("[GenerateReport] Stopping periodic refresh");
+          }
+        }, 30000); // 30 seconds
+      } else {
+        console.warn(
+          "[GenerateReport] No refresh function available (prop or window)"
+        );
+      }
+    },
+    [onReportGenerated]
+  );
+
   // Start polling for report completion using PastReports polling function
   const setupReportCompletionListener = (documentId: string) => {
     try {
@@ -288,7 +343,7 @@ export default function GenerateReportPage() {
       } else {
         // PastReports component might not be mounted yet, retry a few times
         let retryCount = 0;
-        const maxRetries = 20; // Try for 10 seconds (20 * 500ms)
+        const maxRetries = 200; // Try for 10 seconds (20 * 500ms)
 
         const retryPolling = () => {
           retryCount++;
@@ -388,10 +443,9 @@ export default function GenerateReportPage() {
       // Set up listener for when report generation actually completes (~5 minutes)
       if (data.document_id) {
         setupReportCompletionListener(data.document_id);
+        // Start auto-refresh of reports list
+        startAutoRefresh(data.document_id);
       }
-
-      // Navigate after successful API call
-      navigate("/dashboard/reports");
     } catch (err: unknown) {
       console.error(
         "❌ Report generation error:",

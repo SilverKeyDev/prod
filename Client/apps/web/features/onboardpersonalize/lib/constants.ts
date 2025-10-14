@@ -34,91 +34,79 @@ export const PERSONALIZATION_STEPS: StepConfig[] = [
 
 export const DEFAULT_REPORT_SECTIONS = [
   {
-    id: "market_overview",
-    key: "market_overview",
-    label: "Market Overview",
+    id: "safety",
+    key: "safety",
+    label: "Crime & Safety",
     priority: 1,
   },
   {
-    id: "property_details",
-    key: "property_details",
-    label: "Property Details",
+    id: "culture_and_events",
+    key: "culture_and_events",
+    label: "Culture & Events",
     priority: 2,
   },
   {
-    id: "neighborhood_analysis",
-    key: "neighborhood_analysis",
-    label: "Neighborhood",
+    id: "social_character",
+    key: "social_character",
+    label: "Social Character",
     priority: 3,
-  },
-  {
-    id: "comparable_sales",
-    key: "comparable_sales",
-    label: "Comparable Sales",
-    priority: 4,
-  },
-  {
-    id: "investment_analysis",
-    key: "investment_analysis",
-    label: "Investment Analysis",
-    priority: 5,
-  },
-  {
-    id: "risk_assessment",
-    key: "risk_assessment",
-    label: "Risk Assessment",
-    priority: 6,
-  },
-  {
-    id: "recommendations",
-    key: "recommendations",
-    label: "Recommendations",
-    priority: 7,
-  },
-  {
-    id: "financial_projections",
-    key: "financial_projections",
-    label: "Financial Projections",
-    priority: 8,
   },
   {
     id: "local_amenities",
     key: "local_amenities",
     label: "Local Amenities",
+    priority: 4,
+  },
+  {
+    id: "commute",
+    key: "commute",
+    label: "Commute & Transportation",
+    priority: 5,
+  },
+  {
+    id: "family_friendly",
+    key: "family_friendly",
+    label: "Family Friendliness",
+    priority: 6,
+  },
+  {
+    id: "nightlife_and_dating",
+    key: "nightlife_and_dating",
+    label: "Nightlife & Dating",
+    priority: 7,
+  },
+  {
+    id: "development",
+    key: "development",
+    label: "Future Development",
+    priority: 8,
+  },
+  {
+    id: "environment_utilities",
+    key: "environment_utilities",
+    label: "Environment & Utilities",
     priority: 9,
   },
   {
-    id: "transportation",
-    key: "transportation",
-    label: "Transportation",
+    id: "financial_information",
+    key: "financial_information",
+    label: "Financial Information",
     priority: 10,
   },
-  { id: "schools", key: "schools", label: "Schools", priority: 11 },
   {
-    id: "crime_safety",
-    key: "crime_safety",
-    label: "Crime & Safety",
+    id: "schools",
+    key: "schools",
+    label: "Schools",
+    priority: 11,
+  },
+  {
+    id: "extra_tips",
+    key: "extra_tips",
+    label: "Tips & Recommendations",
     priority: 12,
   },
-  {
-    id: "environmental_factors",
-    key: "environmental_factors",
-    label: "Environmental Factors",
-    priority: 13,
-  },
-  {
-    id: "future_development",
-    key: "future_development",
-    label: "Future Development",
-    priority: 14,
-  },
-  {
-    id: "tax_information",
-    key: "tax_information",
-    label: "Tax Information",
-    priority: 15,
-  },
 ];
+
 
 // Shared section titles and labels
 export const SECTION_TITLES = {
@@ -142,7 +130,7 @@ export const FIELD_LABELS = {
 
   // Financial
   GROSS_INCOME: "Gross Annual Income",
-  HOME_BUDGET: "Home Budget",
+  HOME_BUDGET: "Home Budget Range",
   CREDIT_SCORE_RANGE: "Credit Score Range",
   DOWN_PAYMENT: "Down Payment",
   IDEAL_ZIP_CODE: "Ideal Zip Code",
@@ -269,7 +257,8 @@ export const REQUIRED_FIELDS: Record<string, boolean> = {
 
   // Financial
   gross_income: false,
-  home_budget: true,
+  home_budget_min: true,
+  home_budget_max: true,
   down_payment: false,
   credit_score_range: false,
   ideal_zip_code: false,
