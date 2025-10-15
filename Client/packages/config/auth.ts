@@ -158,7 +158,7 @@ export const AUTH_CONFIG = {
     AFTER_LOGIN: "/dashboard",
     AFTER_LOGOUT: "/login",
     AFTER_SIGNUP: "/verification",
-    AFTER_VERIFICATION: "/onboarding",
+    AFTER_VERIFICATION: "/dashboard",
     AFTER_ONBOARDING: "/dashboard",
     UNAUTHORIZED: "/login",
   },

@@ -7,6 +7,7 @@ import { useSecureAuth } from "../../../../packages/hooks/data/useSecureAuth";
 import AuthButton from "../../features/homeauth/Auth/Button";
 import AuthLink from "../../features/homeauth/Auth/Link";
 import AuthPageLayout from "../../features/homeauth/Auth/PageLayout";
+import GoogleSignInButton from "../../components/auth/GoogleSignInButton";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -100,6 +101,19 @@ export default function LoginPage() {
         <AuthButton type="submit" loading={isLoading} disabled={isLoading}>
           Login
         </AuthButton>
+
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-300" />
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="bg-white px-2 text-gray-500">
+              Or continue with
+            </span>
+          </div>
+        </div>
+
+        <GoogleSignInButton text="Sign in with Google" />
 
         <div className="gap-responsive-md text-responsive-sm flex items-center justify-center">
           <AuthLink to="/signup" variant="inline">

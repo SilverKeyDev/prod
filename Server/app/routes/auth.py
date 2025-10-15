@@ -1,5 +1,5 @@
 from datetime import datetime
-from flask import Blueprint, request, jsonify, current_app, make_response
+from flask import Blueprint, request, jsonify, current_app, make_response, redirect, session
 import os
 import jwt
 import traceback
@@ -7,6 +7,7 @@ from .. import db
 from ..models.user import User
 from ..services.auth import AWS_COGNITO_service
 from ..services.minimal_token import minimal_token_service
+from ..services.google_oauth_service import google_oauth_service
 
 # Blueprint setup
 auth_bp = Blueprint('auth', __name__, url_prefix='/api/v1/auth')
@@ -859,3 +860,220 @@ def logout():
             'error': 'LOGOUT_FAILED',
             'message': 'Failed to logout user'
         }), 500
+
+@auth_bp.route('/google/start', methods=['GET'])
+def google_oauth_start():
+    """Start Google OAuth flow for authentication"""
+    import time
+    request_id = f"google_oauth_{int(time.time() * 1000)}_{os.urandom(4).hex()}"
+    
+    try:
+        current_app.logger.info(f"GOOGLE_OAUTH_START", extra={
+            'request_id': request_id,
+            'origin': request.headers.get('Origin'),
+            'referer': request.headers.get('Referer')
+        })
+        
+        # Generate auth URL and state
+        auth_url, state = google_oauth_service.build_auth_url()
+        session['google_oauth_state'] = state
+        
+        current_app.logger.info(f"GOOGLE_OAUTH_REDIRECT", extra={
+            'request_id': request_id,
+            'auth_url': auth_url[:100] + '...',  # Log truncated URL
+            'state_set': True
+        })
+        
+        return redirect(auth_url)
+        
+    except Exception as e:
+        current_app.logger.error(f"GOOGLE_OAUTH_START_ERROR", extra={
+            'request_id': request_id,
+            'error': str(e),
+            'traceback': traceback.format_exc()[:500]
+        })
+        return jsonify({
+            'success': False,
+            'error': 'GOOGLE_OAUTH_FAILED',
+            'message': 'Failed to initiate Google OAuth'
+        }), 500
+
+@auth_bp.route('/google/callback', methods=['GET'])
+def google_oauth_callback():
+    """Handle Google OAuth callback and sign in/sign up user"""
+    import time
+    import uuid as uuid_lib
+    request_id = f"google_callback_{int(time.time() * 1000)}_{os.urandom(4).hex()}"
+    
+    try:
+        current_app.logger.info(f"GOOGLE_OAUTH_CALLBACK_START", extra={
+            'request_id': request_id,
+            'has_code': bool(request.args.get('code')),
+            'has_state': bool(request.args.get('state')),
+            'has_error': bool(request.args.get('error'))
+        })
+        
+        # Check for OAuth errors
+        error = request.args.get('error')
+        if error:
+            current_app.logger.warning(f"GOOGLE_OAUTH_ERROR", extra={
+                'request_id': request_id,
+                'error': error
+            })
+            # Redirect to frontend with error
+            from app.config import Config
+            return redirect(f"{Config.FRONTEND_URL}/login?error=google_oauth_failed")
+        
+        # Get and validate state
+        state = request.args.get('state')
+        session_state = session.get('google_oauth_state')
+        
+        if not google_oauth_service.validate_state(state, session_state):
+            current_app.logger.warning(f"GOOGLE_OAUTH_INVALID_STATE", extra={
+                'request_id': request_id,
+                'has_session_state': bool(session_state)
+            })
+            from app.config import Config
+            return redirect(f"{Config.FRONTEND_URL}/login?error=invalid_state")
+        
+        # Exchange code for tokens
+        code = request.args.get('code')
+        tokens = google_oauth_service.exchange_code_for_tokens(code)
+        
+        # Get user info from Google
+        user_info = google_oauth_service.get_user_info(tokens['access_token'])
+        
+        current_app.logger.info(f"GOOGLE_USERINFO_RECEIVED", extra={
+            'request_id': request_id,
+            'email': user_info.get('email', '')[:3] + '***',
+            'verified': user_info.get('verified_email'),
+            'has_name': bool(user_info.get('name'))
+        })
+        
+        # Check if email is verified
+        if not user_info.get('verified_email'):
+            current_app.logger.warning(f"GOOGLE_EMAIL_NOT_VERIFIED", extra={
+                'request_id': request_id,
+                'email': user_info.get('email', '')[:3] + '***'
+            })
+            from app.config import Config
+            return redirect(f"{Config.FRONTEND_URL}/login?error=email_not_verified")
+        
+        google_id = user_info['id']
+        email = user_info['email']
+        name = user_info.get('name', email.split('@')[0])
+        
+        # Check if user exists by google_id or email
+        user = User.query.filter_by(google_id=google_id).first()
+        
+        if not user:
+            # Check if user exists with same email (from Cognito signup)
+            user = User.query.filter_by(email=email).first()
+            
+            if user:
+                # Link Google account to existing user
+                user.google_id = google_id
+                user.updated_at = datetime.utcnow()
+                db.session.commit()
+                
+                current_app.logger.info(f"GOOGLE_ACCOUNT_LINKED", extra={
+                    'request_id': request_id,
+                    'user_id': user.id,
+                    'email': email[:3] + '***'
+                })
+            else:
+                # Create new user
+                user = User(
+                    id=str(uuid_lib.uuid4()),
+                    google_id=google_id,
+                    email=email,
+                    name=name,
+                    created_at=datetime.utcnow(),
+                    updated_at=datetime.utcnow(),
+                    is_active=True
+                )
+                db.session.add(user)
+                db.session.commit()
+                
+                current_app.logger.info(f"GOOGLE_USER_CREATED", extra={
+                    'request_id': request_id,
+                    'user_id': user.id,
+                    'email': email[:3] + '***'
+                })
+        
+        # Create minimal tokens for session
+        try:
+            # Generate minimal access token
+            minimal_access_token = minimal_token_service.create_minimal_access_token(
+                user_id=str(user.id),
+                user_email=email,
+                expires_in_hours=8
+            )
+            
+            # Generate minimal ID token
+            minimal_id_token = minimal_token_service.create_minimal_id_token(
+                user_id=str(user.id),
+                user_email=email,
+                user_name=user.name,
+                expires_in_hours=8
+            )
+            
+            current_app.logger.info(f"GOOGLE_TOKENS_CREATED", extra={
+                'request_id': request_id,
+                'user_id': user.id
+            })
+            
+        except Exception as token_error:
+            current_app.logger.error(f"GOOGLE_TOKEN_CREATION_ERROR", extra={
+                'request_id': request_id,
+                'error': str(token_error)
+            })
+            from app.config import Config
+            return redirect(f"{Config.FRONTEND_URL}/login?error=token_creation_failed")
+        
+        # Create response and redirect to frontend
+        from app.config import Config
+        resp = make_response(redirect(f"{Config.FRONTEND_URL}/dashboard?google=success"))
+        
+        # Set secure HttpOnly cookies
+        resp.set_cookie(
+            "session",
+            value=minimal_access_token,
+            httponly=True,
+            secure=os.getenv('FLASK_ENV') == 'production',
+            samesite="Lax",
+            path="/",
+            max_age=60*60*8  # 8 hours
+        )
+        
+        # Note: Google OAuth doesn't provide a long-lived refresh token with access_type=online
+        # For now, we'll create a pseudo refresh token using the access token
+        # In production, consider using access_type=offline to get a refresh token
+        resp.set_cookie(
+            "refresh_token",
+            value=minimal_access_token,  # Use same token for now
+            httponly=True,
+            secure=os.getenv('FLASK_ENV') == 'production',
+            samesite="Lax",
+            path="/",
+            max_age=60*60*24*7  # 7 days
+        )
+        
+        current_app.logger.info(f"GOOGLE_OAUTH_SUCCESS", extra={
+            'request_id': request_id,
+            'user_id': user.id,
+            'email': email[:3] + '***',
+            'new_user': user.created_at >= datetime.utcnow().replace(second=0, microsecond=0)
+        })
+        
+        return resp
+        
+    except Exception as e:
+        current_app.logger.error(f"GOOGLE_OAUTH_CALLBACK_ERROR", extra={
+            'request_id': request_id,
+            'error': str(e),
+            'error_type': type(e).__name__,
+            'traceback': traceback.format_exc()[:500]
+        })
+        from app.config import Config
+        return redirect(f"{Config.FRONTEND_URL}/login?error=google_oauth_failed")

@@ -15,6 +15,7 @@ import { showErrorToast } from "../../../../packages/hooks/ui/useToast";
 import AuthButton from "../../features/homeauth/Auth/Button";
 import AuthLink from "../../features/homeauth/Auth/Link";
 import AuthPageLayout from "../../features/homeauth/Auth/PageLayout";
+import GoogleSignInButton from "../../components/auth/GoogleSignInButton";
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 type SignupPageProps = {
@@ -79,7 +80,7 @@ const formatToE164 = (phoneNumber: string | undefined): string | undefined => {
   if (!/^[+]?[\d]+$/.test(cleaned)) {
     console.log(
       "Phone autofill received invalid format, ignoring:",
-      phoneNumber,
+      phoneNumber
     );
     return undefined;
   }
@@ -109,7 +110,7 @@ export default function SignupPage(_props: SignupPageProps) {
     const nameEl = document.getElementById("name") as HTMLInputElement | null;
     const emailEl = document.getElementById("email") as HTMLInputElement | null;
     const pwdEl = document.getElementById(
-      "password",
+      "password"
     ) as HTMLInputElement | null;
     const phoneEl = document.querySelector("input.PhoneInputInput");
     return { nameEl, emailEl, pwdEl, phoneEl };
@@ -235,7 +236,7 @@ export default function SignupPage(_props: SignupPageProps) {
 
     if (!isPasswordValid) {
       showErrorToast(
-        `Password must meet all requirements: ${Array.isArray(passwordErrors) ? passwordErrors.join(", ") : "Unknown error"}`,
+        `Password must meet all requirements: ${Array.isArray(passwordErrors) ? passwordErrors.join(", ") : "Unknown error"}`
       );
       setLoading(false);
       return;
@@ -259,7 +260,7 @@ export default function SignupPage(_props: SignupPageProps) {
       showErrorToast(
         error instanceof Error
           ? error.message
-          : "Failed to sign up. Please try again.",
+          : "Failed to sign up. Please try again."
       );
     } finally {
       setLoading(false);
@@ -417,7 +418,7 @@ export default function SignupPage(_props: SignupPageProps) {
               syncFromDom("phone");
               // If the wrapper receives focus first, forward it to the input
               const inputEl = e.currentTarget.querySelector(
-                "input.PhoneInputInput",
+                "input.PhoneInputInput"
               ) as HTMLInputElement | null;
               if (inputEl) {
                 inputEl.focus();
@@ -459,6 +460,19 @@ export default function SignupPage(_props: SignupPageProps) {
         <AuthButton type="submit" loading={loading} disabled={loading}>
           Create account
         </AuthButton>
+
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-300" />
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="bg-white px-2 text-gray-500">
+              Or continue with
+            </span>
+          </div>
+        </div>
+
+        <GoogleSignInButton text="Sign up with Google" />
 
         <div className="text-center text-signup-mid">
           Already have an account?
