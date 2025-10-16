@@ -16,8 +16,6 @@ export function PropertyCarousel(props: {
     currentPage,
     onViewDetails,
     onSlideChange,
-    cardMinWidth,
-    cardGap,
     infiniteLoop,
   } = props;
 

@@ -1,7 +1,7 @@
 """Add google_id and make cognito_id nullable for OAuth users
 
-Revision ID: i8j9k0l1m2n3
-Revises: h3a4b5c6d7e8
+Revision ID: f1a2b3c4d5e6
+Revises: 13bb2089ef63
 Create Date: 2025-10-15 12:00:00.000000
 
 """
@@ -10,8 +10,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'i8j9k0l1m2n3'
-down_revision = 'h3a4b5c6d7e8'
+revision = 'f1a2b3c4d5e6'
+down_revision = '13bb2089ef63'
 branch_labels = None
 depends_on = None
 

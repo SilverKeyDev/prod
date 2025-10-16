@@ -5,7 +5,6 @@ import requests
 import logging
 from jose import jwk, jwt as jose_jwt
 from jose.exceptions import JWTError, JWTClaimsError, ExpiredSignatureError
-import jwt as pyjwt  # PyJWT for unverified decoding
 from ..models.user import User
 from .. import db
 from .security import SecurityError, log_security_event, safe_user_lookup_error, security_error_response
@@ -71,31 +70,15 @@ def get_signing_key(token: str):
     """Resolve signing key for the token, refreshing JWKS once on miss."""
     try:
         headers = jose_jwt.get_unverified_header(token)
-        
-        logger.info(f"🔍 AUTH_GET_SIGNING_KEY_HEADER", extra={
-            'alg': headers.get('alg'),
-            'typ': headers.get('typ'),
-            'kid': headers.get('kid', 'missing')[:20] + '...' if headers.get('kid') and len(headers.get('kid', '')) > 20 else headers.get('kid'),
-            'full_header': headers
-        })
 
         # Pin algorithm to prevent header tampering
         alg = headers.get("alg")
         if alg != "RS256":
-            logger.error(f"❌ AUTH_INVALID_ALG_REJECTED", extra={
-                'alg': alg,
-                'expected': 'RS256',
-                'token_preview': token[:30] + '...' if len(token) > 30 else token,
-                'headers': headers
-            })
             log_security_event("auth_invalid_alg", {"alg": alg})
             raise JWTError("Invalid JWT alg")
 
         key_id = headers.get('kid')
         if not key_id:
-            logger.error(f"❌ AUTH_MISSING_KID", extra={
-                'headers': headers
-            })
             raise JWTError("Missing kid in token header")
 
         jwks = _load_jwks()
@@ -190,26 +173,12 @@ def _verify_minimal_token(token: str) -> User:
         SecurityException: If token is invalid or user not found
     """
     try:
-        logger.info(f"🔍 AUTH_VERIFY_MINIMAL_TOKEN_START", extra={
-            'token_preview': token[:30] + '...' if len(token) > 30 else token
-        })
-        
         # Verify minimal token
         claims = minimal_token_service.verify_minimal_token(token)
-        
-        logger.info(f"🔍 AUTH_MINIMAL_TOKEN_CLAIMS", extra={
-            'sub': claims.get('sub'),
-            'email': claims.get('email', '')[:3] + '***' if claims.get('email') else 'missing',
-            'type': claims.get('type'),
-            'iss': claims.get('iss')
-        })
         
         # Get user ID from token
         user_id = claims.get('sub')
         if not user_id:
-            logger.error(f"❌ AUTH_MINIMAL_TOKEN_MISSING_SUB", extra={
-                'claims_keys': list(claims.keys())
-            })
             log_security_event('auth_minimal_token_missing_sub')
             raise SecurityException(SecurityError.INVALID_TOKEN)
         
@@ -264,27 +233,9 @@ def get_current_user():
     token = None
     
     # Try to get token from HttpOnly cookie first (preferred method)
-    session_cookie = request.cookies.get('sk_session')
+    session_cookie = request.cookies.get('session')
     if session_cookie:
         token = session_cookie
-        
-        # Log incoming JWT header for diagnostics
-        try:
-            incoming_header = pyjwt.get_unverified_header(token)
-            incoming_payload = pyjwt.decode(token, options={"verify_signature": False})
-            current_app.logger.info(f"🔍 AUTH_INCOMING_JWT_HEADER", extra={
-                'alg': incoming_header.get('alg'),
-                'kid': incoming_header.get('kid', 'missing')[:20] + '...' if incoming_header.get('kid') and len(incoming_header.get('kid', '')) > 20 else incoming_header.get('kid', 'missing'),
-                'typ': incoming_header.get('typ'),
-                'iss': incoming_payload.get('iss', 'missing'),
-                't': incoming_payload.get('t', 'missing'),
-                'token_length': len(token)
-            })
-        except Exception as e:
-            current_app.logger.warning(f"⚠️ AUTH_INCOMING_JWT_PARSE_ERROR", extra={
-                'error': str(e),
-                'token_preview': token[:30] + '...' if len(token) > 30 else token
-            })
 
     else:
         current_app.logger.warning(f"⚠️ AUTH_NO_SESSION_COOKIE", extra={
@@ -316,7 +267,7 @@ def get_current_user():
     
     if not token:
         current_app.logger.error(f"❌ AUTH_NO_TOKEN_FOUND", extra={
-            'sk_session_cookie_present': bool(session_cookie),
+            'session_cookie_present': bool(session_cookie),
             'auth_header_present': bool(request.headers.get('Authorization'))
         })
         log_security_event('auth_missing_token')
@@ -327,87 +278,28 @@ def get_current_user():
         log_security_event('auth_invalid_jwt_format', {'parts_count': token.count(".") + 1})
         raise SecurityException(SecurityError.INVALID_TOKEN)
 
-    # Detect token type by issuer and marker (unverified peek for routing only)
-    # This determines which verification path to use
+    # Try minimal token first (preferred)
     try:
-        # Get header first for logging
-        unverified_header = pyjwt.get_unverified_header(token)
-        alg = unverified_header.get('alg')
-        kid = unverified_header.get('kid', 'missing')
+        # Check if this looks like a minimal token by trying to decode without verification
+        minimal_payload = jose_jwt.decode(token, options={"verify_signature": False})
+        token_type = minimal_payload.get('type')
+        issuer = minimal_payload.get('iss')
         
-        # Cheap unverified peek to route by issuer
-        unverified_payload = pyjwt.decode(token, options={"verify_signature": False})
-        issuer = unverified_payload.get('iss', '')
-        t_marker = unverified_payload.get('t')  # 'min' for minimal/app tokens
-        
-        # Determine token type
-        app_issuer_prod = 'https://usesilverkey.com'
-        app_issuer_dev = 'http://localhost:5000'
-        is_app_token = (issuer in [app_issuer_prod, app_issuer_dev]) or (t_marker == 'min')
-        is_cognito_token = issuer.startswith('https://cognito-idp.') if issuer else False
-        
-        current_app.logger.info(f"🔍 AUTH_ROUTE_INSPECT", extra={
-            'issuer': issuer,
-            't_marker': t_marker,
-            'alg': alg,
-            'kid': kid[:20] + '...' if len(kid) > 20 else kid,
-            'is_app_token': is_app_token,
-            'is_cognito_token': is_cognito_token
-        })
-        
-        # Route 1: App token verification (RS256 via app's own verification)
-        if is_app_token:
-            current_app.logger.info(f"✅ AUTH_ROUTING_TO_APP_PATH", extra={
-                'issuer': issuer,
-                't_marker': t_marker,
-                'alg': alg,
-                'kid': kid[:20] + '...' if len(kid) > 20 else kid
-            })
-            # Use app token verification - does NOT fall back to Cognito
+        # If it's a minimal token, verify it
+        if token_type in ('access', 'id') and issuer == 'silverkey-api':
+            current_app.logger.debug("Detected minimal token, verifying...")
             return _verify_minimal_token(token)
-        
-        # Route 2: Cognito token verification (only if explicitly Cognito issuer)
-        elif is_cognito_token:
-            current_app.logger.info(f"✅ AUTH_ROUTING_TO_COGNITO_PATH", extra={
-                'issuer': issuer,
-                'alg': alg
-            })
-            # Continue to Cognito verification below
-        
-        # Route 3: Unknown issuer - reject immediately
-        else:
-            current_app.logger.error(f"❌ AUTH_UNKNOWN_ISSUER", extra={
-                'issuer': issuer,
-                'alg': alg,
-                'kid': kid,
-                't_marker': t_marker
-            })
-            log_security_event('auth_unknown_issuer', {'issuer': issuer, 'alg': alg})
-            raise SecurityException(SecurityError.INVALID_TOKEN)
             
-    except SecurityException:
-        # Re-raise security exceptions (don't catch our own rejections)
-        raise
     except Exception as e:
-        current_app.logger.error(f"❌ AUTH_TOKEN_ROUTING_EXCEPTION", extra={
-            'error': str(e),
-            'error_type': type(e).__name__
-        })
-        log_security_event('auth_routing_error', {'error': str(e)})
-        raise SecurityException(SecurityError.INVALID_TOKEN)
+        current_app.logger.debug(f"Token is not a minimal token: {str(e)}")
+        # Continue to Cognito token verification
 
     # Fallback to Cognito token verification
     try:
-        current_app.logger.info(f"🔵 AUTH_ATTEMPTING_COGNITO_VERIFICATION", extra={
-            'token_preview': token[:30] + '...' if len(token) > 30 else token
-        })
+        current_app.logger.debug("Verifying as Cognito token...")
         
         # Resolve signing key
         key = get_signing_key(token)
-        
-        current_app.logger.info(f"✅ AUTH_COGNITO_SIGNING_KEY_RETRIEVED", extra={
-            'key_type': type(key).__name__
-        })
 
         # Decode + validate with leeway to tolerate small skew (version-compatible)
         claims = _decode_with_leeway(

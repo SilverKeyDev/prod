@@ -3,8 +3,8 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 
 import Button from "../../ui/button/Button";
-import { useSavedHomesData } from "../../../../../../packages/hooks/data/useSavedHomesData";
-import { useUIStore } from "../../../../../../packages/store";
+import { useSavedHomesData } from "../../../../../packages/hooks/data/useSavedHomesData";
+import { useUIStore } from "../../../../../packages/store";
 
 import type { PropertyHeaderProps } from "./types";
 import { formatAddress, formatPrice, handleZillowOpen } from "./utils";
