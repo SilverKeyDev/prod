@@ -1,15 +1,11 @@
 import React, { useEffect, useCallback } from "react";
 
 import type { SearchResult } from "../../../../../packages/schemas/search";
-import type { Property } from "../../../../../packages/schemas/property";
 import { calculatePropertyCardCenter } from "../lib/MapZoomController";
 
 export function useMarkerUpdates(params: {
   googleMapRef: React.MutableRefObject<google.maps.Map | null>;
   onOpenDetails: (id: string) => void;
-  isHomeSaved: (id: string) => boolean;
-  saveHome: (p: SearchResult | Property) => Promise<void>;
-  removeSavedHome: (id: string) => Promise<void>;
   activeTab: "results" | "saved";
   currentPage: number;
   hasSearched: boolean;

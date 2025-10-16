@@ -28,11 +28,8 @@ export type PropertyCardProps = {
   lotSize?: string;
   status?: { text: string; className: string };
   /** Card actions */
-  onSave?: () => void;
-  onUnsave?: () => void;
   onViewDetails?: () => void;
   /** Card state */
-  isSaved?: boolean;
   loading?: boolean;
   /** Card type for appropriate sizing */
   cardType?: "searchpage" | "regular";

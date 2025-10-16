@@ -1,13 +1,18 @@
 import { Heart, Sparkles } from "lucide-react";
 import React from "react";
 
-import { getCardBubbleSizeClasses } from "./CardBubbleStyles.tsx";
+import { getCardBubbleSizeClasses } from "../../cards/base/CardBubbleStyles.tsx";
+import { useSavedHomesData } from "../../../../../packages/hooks/data/useSavedHomesData";
+import { useUIStore } from "../../../../../packages/store";
 
 export type CardHeartSaveProps = {
   property: { id: string; address: string; [key: string]: unknown };
-  isSaved: boolean;
-  onSave: (property: unknown) => void | Promise<void>;
-  onRemove: (propertyId: string) => void | Promise<void>;
+  /** @deprecated isSaved is now handled internally */
+  isSaved?: boolean;
+  /** @deprecated onSave is now handled internally */
+  onSave?: (property: unknown) => void | Promise<void>;
+  /** @deprecated onRemove is now handled internally */
+  onRemove?: (propertyId: string) => void | Promise<void>;
   position?: "top-left" | "top-right" | "bottom-left" | "bottom-right";
   size?: "xs" | "sm" | "md" | "lg";
   className?: string;
@@ -43,19 +48,39 @@ const POSITION_MAP: Record<
 
 const CardHeartSave: React.FC<CardHeartSaveProps> = ({
   property,
-  isSaved,
-  onSave,
-  onRemove,
+  isSaved: _deprecatedIsSaved,
+  onSave: _deprecatedOnSave,
+  onRemove: _deprecatedOnRemove,
   position = "top-right",
   size = "md",
   className = "",
   ariaLabel,
 }) => {
+  // Use internal hooks for save/remove functionality
+  const { saveHome, removeSavedHome, isHomeSaved } = useSavedHomesData();
+  const enqueueToast = useUIStore((s) => s.enqueueToast);
+
+  // Determine if home is saved - use internal hook or fallback to deprecated prop
+  const isSaved = isHomeSaved(property.id);
+
   const handleClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
     try {
-      if (isSaved) await onRemove(property.id);
-      else await onSave(property);
+      if (isSaved) {
+        // Remove from saved homes
+        await removeSavedHome(property.id);
+        enqueueToast({
+          type: "success",
+          message: `Removed ${property.address} from favorites`,
+        });
+      } else {
+        // Save home
+        await saveHome(property);
+        enqueueToast({
+          type: "success",
+          message: `Saved ${property.address}`,
+        });
+      }
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
@@ -65,6 +90,10 @@ const CardHeartSave: React.FC<CardHeartSaveProps> = ({
         action: isSaved ? "remove" : "add",
         error: errorMessage,
         timestamp: new Date().toISOString(),
+      });
+      enqueueToast({
+        type: "error",
+        message: `Failed to ${isSaved ? "remove" : "save"} home`,
       });
     }
   };

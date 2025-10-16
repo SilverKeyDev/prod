@@ -488,16 +488,12 @@ export default function SavedHomes() {
                         lng: home.lng,
                         images: home.image_url ? [home.image_url] : [],
                       }}
-                      isSaved={true}
-                      onSave={() => void saveHome(home)}
-                      onRemove={() => void removeSavedHome(home.home_id)}
                       size="sm"
                     />
                   }
                   bottomContent={
                     <CardViewDetailsButton
                       onClick={() => handleUnlockHome(home)}
-                      loading={false}
                       size="sm"
                       variant="primary"
                       fullWidth

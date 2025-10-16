@@ -25,12 +25,6 @@ export type HomeDescription = {
 
 type MapHomeCardProps = {
   home: HomeDescription;
-  /** Function to check if home is saved */
-  isHomeSaved?: (homeId: string) => boolean;
-  /** Function to save the home */
-  onSave?: (home: HomeDescription) => void | Promise<void>;
-  /** Function to remove the home */
-  onRemove?: (homeId: string) => void | Promise<void>;
   /** Whether to show the match score next to price */
   showScore?: boolean;
   /** Whether this card is displayed on the map (adds triangle pointer) */
@@ -39,8 +33,6 @@ type MapHomeCardProps = {
   onFocus?: (property: any) => void;
   /** Function to handle unlock/view details click */
   onUnlock?: (home: HomeDescription) => void;
-  /** Loading state for the card */
-  loading?: boolean;
 };
 
 /**
@@ -49,14 +41,10 @@ type MapHomeCardProps = {
  */
 export default function MapHomeCard({
   home,
-  isHomeSaved = () => true, // Default to true since these are saved homes
-  onSave = () => {},
-  onRemove = () => {},
   showScore = false,
   isOnMap = false,
   onFocus,
   onUnlock,
-  loading = false,
 }: MapHomeCardProps) {
   // Use actual address if available, otherwise format home_id
   const formattedAddress = formatFilenameToAddress(home.home_id);
@@ -124,34 +112,12 @@ export default function MapHomeCard({
         sqft={home.sqft && home.sqft > 0 ? home.sqft : undefined}
         lotSize={formatLotSize(home.lot_size as string | number | undefined)}
         pricePosition="below-address"
-        loading={loading}
         cardType="searchpage"
         score={score}
         showScore={showScore}
         isOnMap={isOnMap}
         topContent={
-          <CardHeartSave
-            property={convertToProperty(home)}
-            isSaved={isHomeSaved(home.home_id)}
-            onSave={async (property) => {
-              const prop = property as any;
-              const homeDesc: HomeDescription = {
-                home_id: prop.id,
-                address: prop.address,
-                price: prop.price,
-                bedrooms: prop.bedrooms,
-                bathrooms: prop.bathrooms,
-                sqft: prop.sqft,
-                lat: prop.lat ?? prop.latitude,
-                lng: prop.lng ?? prop.longitude,
-                image_url: prop.images?.[0],
-                calculatedScore: home.calculatedScore,
-              };
-              await onSave(homeDesc);
-            }}
-            onRemove={onRemove}
-            size="sm"
-          />
+          <CardHeartSave property={convertToProperty(home)} size="sm" />
         }
         bottomContent={
           <CardViewDetailsButton
@@ -161,7 +127,6 @@ export default function MapHomeCard({
                 onUnlock(home);
               }
             }}
-            loading={loading}
             size="sm"
             variant="primary"
             fullWidth

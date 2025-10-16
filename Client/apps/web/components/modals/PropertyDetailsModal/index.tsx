@@ -13,9 +13,6 @@ import type { PropertyDetailsModalProps } from "./types";
 const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
   property,
   onClose,
-  isHomeSaved,
-  saveHome,
-  removeSavedHome,
   onGenerateReport,
 }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -29,9 +26,6 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
         <PropertyHeader
           property={property}
           onClose={onClose}
-          isHomeSaved={isHomeSaved}
-          saveHome={saveHome}
-          removeSavedHome={removeSavedHome}
           onGenerateReport={onGenerateReport}
         />
 

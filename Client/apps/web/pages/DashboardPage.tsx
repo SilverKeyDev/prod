@@ -28,8 +28,6 @@ export default function Dashboard() {
     savedHomes,
     savedHomesLoading: favLoading,
     savedHomesError: favError,
-    saveHome: saveHomeToContext,
-    removeSavedHome: removeHomeFromContext,
   } = useSavedHomesData();
 
   // Convert SavedHome[] to HomeDescription[] for HomeCard compatibility
@@ -74,29 +72,6 @@ export default function Dashboard() {
     currentDocumentName,
     closePdfModal,
   } = useDocumentActions();
-
-  // Helper function to check if a home is saved
-  const isHomeSaved = (homeId: string): boolean => {
-    return favoriteHomes.some((home) => home.home_id === homeId);
-  };
-
-  // Handle saving a home
-  const handleSaveHome = async (property: unknown) => {
-    try {
-      await saveHomeToContext(property);
-    } catch (error: unknown) {
-      console.error("Error saving home:", error);
-    }
-  };
-
-  // Handle removing a saved home
-  const handleRemoveHome = async (homeId: string) => {
-    try {
-      await removeHomeFromContext(homeId);
-    } catch (error: unknown) {
-      console.error("Error removing home from favorites:", error);
-    }
-  };
 
   // Navigation handlers
   const handleSavedHomesClick = () => {
@@ -390,14 +365,7 @@ export default function Dashboard() {
             loading={favLoading}
             error={favError}
             emptyMessage="Save your first home today"
-            renderItem={(home) => (
-              <HomeCard
-                home={home}
-                isHomeSaved={isHomeSaved}
-                onSave={handleSaveHome}
-                onRemove={handleRemoveHome}
-              />
-            )}
+            renderItem={(home) => <HomeCard home={home} />}
             getItemKey={(home) => home.home_id}
             cardMinWidth={240}
             cardGap={12}

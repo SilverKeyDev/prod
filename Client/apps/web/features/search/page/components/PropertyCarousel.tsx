@@ -5,8 +5,6 @@ import type { SearchResult } from "../../../../../../packages/schemas/search";
 export function PropertyCarousel(props: {
   items: SearchResult[];
   currentPage: number;
-  isHomeSaved: (id: string) => boolean;
-  onSave: (p: SearchResult) => void;
   onViewDetails: (p: SearchResult) => void;
   onSlideChange?: (index: number) => void;
   cardMinWidth?: number;
@@ -16,8 +14,6 @@ export function PropertyCarousel(props: {
   const {
     items,
     currentPage,
-    isHomeSaved,
-    onSave,
     onViewDetails,
     onSlideChange,
     cardMinWidth,
@@ -60,8 +56,6 @@ export function PropertyCarousel(props: {
           bedrooms={property.bedrooms}
           bathrooms={property.bathrooms}
           sqft={property.sqft}
-          isSaved={isHomeSaved(property.id)}
-          onSave={() => onSave(property)}
           onViewDetails={() => onViewDetails(property)}
           cardType="searchpage"
           hideImage={true}

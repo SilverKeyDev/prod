@@ -18,8 +18,6 @@ export type MapPropertyCardProps = {
     calculatedScore?: number;
   };
   isSaved?: boolean;
-  onSave?: () => void;
-  onUnsave?: () => void;
   onUnlock?: (property: any) => void;
   showScore?: boolean;
   onCardRendered?: (property: MapPropertyCardProps["property"]) => void;
@@ -28,8 +26,6 @@ export type MapPropertyCardProps = {
 const MapPropertyCard: React.FC<MapPropertyCardProps> = ({
   property,
   isSaved = false,
-  onSave,
-  onUnsave,
   onUnlock,
   showScore = true,
   onCardRendered,
@@ -150,13 +146,6 @@ const MapPropertyCard: React.FC<MapPropertyCardProps> = ({
           home={homeData}
           showScore={showScore}
           isOnMap={true}
-          isHomeSaved={(_homeId) => isSaved}
-          onSave={() => {
-            onSave?.();
-          }}
-          onRemove={(_homeId) => {
-            onUnsave?.();
-          }}
           onUnlock={(home) => {
             if (onUnlock) {
               // Convert home data back to property format

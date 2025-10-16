@@ -5,6 +5,7 @@ import requests
 import logging
 from jose import jwk, jwt as jose_jwt
 from jose.exceptions import JWTError, JWTClaimsError, ExpiredSignatureError
+import jwt as pyjwt  # PyJWT for unverified decoding
 from ..models.user import User
 from .. import db
 from .security import SecurityError, log_security_event, safe_user_lookup_error, security_error_response
@@ -269,8 +270,8 @@ def get_current_user():
         
         # Log incoming JWT header for diagnostics
         try:
-            incoming_header = jose_jwt.get_unverified_header(token)
-            incoming_payload = jose_jwt.decode(token, options={"verify_signature": False})
+            incoming_header = pyjwt.get_unverified_header(token)
+            incoming_payload = pyjwt.decode(token, options={"verify_signature": False})
             current_app.logger.info(f"🔍 AUTH_INCOMING_JWT_HEADER", extra={
                 'alg': incoming_header.get('alg'),
                 'kid': incoming_header.get('kid', 'missing')[:20] + '...' if incoming_header.get('kid') and len(incoming_header.get('kid', '')) > 20 else incoming_header.get('kid', 'missing'),
@@ -330,12 +331,12 @@ def get_current_user():
     # This determines which verification path to use
     try:
         # Get header first for logging
-        unverified_header = jose_jwt.get_unverified_header(token)
+        unverified_header = pyjwt.get_unverified_header(token)
         alg = unverified_header.get('alg')
         kid = unverified_header.get('kid', 'missing')
         
         # Cheap unverified peek to route by issuer
-        unverified_payload = jose_jwt.decode(token, options={"verify_signature": False})
+        unverified_payload = pyjwt.decode(token, options={"verify_signature": False})
         issuer = unverified_payload.get('iss', '')
         t_marker = unverified_payload.get('t')  # 'min' for minimal/app tokens
         

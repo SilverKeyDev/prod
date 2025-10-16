@@ -34,12 +34,6 @@ export type HomeDescription = {
 
 type HomeCardProps = {
   home: HomeDescription;
-  /** Function to check if home is saved */
-  isHomeSaved?: (homeId: string) => boolean;
-  /** Function to save the home */
-  onSave?: (home: HomeDescription) => void | Promise<void>;
-  /** Function to remove the home */
-  onRemove?: (homeId: string) => void | Promise<void>;
   /** Whether to show the match score next to price */
   showScore?: boolean;
   /** Whether this card is displayed on the map (adds triangle pointer) */
@@ -54,19 +48,12 @@ type HomeCardProps = {
  */
 export default function HomeCard({
   home,
-  isHomeSaved = () => true, // Default to true since these are saved homes
-  onSave = () => {},
-  onRemove = () => {},
   showScore = false,
   isOnMap = false,
   onFocus,
 }: HomeCardProps) {
-  const {
-    isLoading,
-    selectedProperty,
-    fetchPropertyDetails,
-    clearSelectedProperty,
-  } = usePropertyDetails();
+  const { selectedProperty, fetchPropertyDetails, clearSelectedProperty } =
+    usePropertyDetails();
 
   // Use actual address if available, otherwise format home_id
   const formattedAddress = formatFilenameToAddress(home.home_id);
@@ -108,48 +95,6 @@ export default function HomeCard({
     const propertyData = convertToProperty(home);
     // Use address instead of zpid for HomeCard
     await fetchPropertyDetails(propertyData);
-  };
-
-  // Modal functions for property details
-  const isHomeSavedForModal = (propertyId: string) => isHomeSaved(propertyId);
-  const saveHomeForModal = async (
-    property:
-      | Property
-      | import("../../../../packages/schemas/search").SearchResult
-  ) => {
-    // Convert Property back to HomeDescription format for onSave
-    type PropertyWithExtras = Property & {
-      latitude?: number;
-      longitude?: number;
-      images?: string[];
-      imageUrl?: string;
-      price?: string | number; // Override price to allow both string and number
-    };
-    const prop = property as PropertyWithExtras;
-    const homeDescription: HomeDescription = {
-      home_id: prop.id,
-      address: prop.address,
-      price: (() => {
-        if (typeof prop.price === "number") {
-          return (prop.price as number).toLocaleString();
-        } else if (typeof prop.price === "string") {
-          return prop.price;
-        } else {
-          return "Price not available";
-        }
-      })(),
-      bedrooms: prop.bedrooms,
-      bathrooms: prop.bathrooms,
-      sqft: prop.sqft,
-      lat: prop.lat ?? prop.latitude,
-      lng: prop.lng ?? prop.longitude,
-      image_url: prop.images?.[0] ?? prop.imageUrl,
-      calculatedScore: home.calculatedScore, // Preserve original score
-    };
-    await onSave(homeDescription);
-  };
-  const removeSavedHomeForModal = async (propertyId: string) => {
-    await onRemove(propertyId);
   };
 
   const navigate = useNavigate();
@@ -204,39 +149,16 @@ export default function HomeCard({
         sqft={home.sqft && home.sqft > 0 ? home.sqft : undefined}
         lotSize={formatLotSize(home.lot_size as string | number | undefined)}
         pricePosition="below-address"
-        loading={isLoading}
         cardType="searchpage"
         score={score}
         showScore={showScore}
         isOnMap={isOnMap}
         topContent={
-          <CardHeartSave
-            property={convertToProperty(home)}
-            isSaved={isHomeSaved(home.home_id)}
-            onSave={async (property) => {
-              const prop = property as Property;
-              const homeDesc: HomeDescription = {
-                home_id: prop.id,
-                address: prop.address,
-                price: prop.price,
-                bedrooms: prop.bedrooms,
-                bathrooms: prop.bathrooms,
-                sqft: prop.sqft,
-                lat: prop.lat ?? prop.latitude,
-                lng: prop.lng ?? prop.longitude,
-                image_url: prop.images?.[0],
-                calculatedScore: home.calculatedScore,
-              };
-              await onSave(homeDesc);
-            }}
-            onRemove={onRemove}
-            size="sm"
-          />
+          <CardHeartSave property={convertToProperty(home)} size="sm" />
         }
         bottomContent={
           <CardViewDetailsButton
             onClick={handleViewDetails}
-            loading={isLoading}
             size="sm"
             variant="primary"
             fullWidth
@@ -251,9 +173,6 @@ export default function HomeCard({
           <PropertyDetailsModal
             property={selectedProperty}
             onClose={clearSelectedProperty}
-            isHomeSaved={isHomeSavedForModal}
-            saveHome={saveHomeForModal}
-            removeSavedHome={removeSavedHomeForModal}
             onGenerateReport={handleGenerateReport}
           />
         </ModalPortal>

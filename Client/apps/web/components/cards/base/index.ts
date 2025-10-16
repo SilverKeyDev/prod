@@ -3,7 +3,7 @@ export { default as CardAddressDisplay } from "./CardAddressDisplay";
 export { default as CardPropertyDetails } from "./CardPropertyDetails";
 export { default as CardViewDetailsButton } from "./CardViewDetailsButton";
 export { default as CardViewButton } from "./CardViewButton";
-export { default as CardHeartSave } from "./CardHeartSave";
+export { default as CardHeartSave } from "../../ui/button/HeartSave";
 export { default as CardCarousel } from "./CardCarousel";
 export { StyledImage } from "./CardImageStyles";
 export {

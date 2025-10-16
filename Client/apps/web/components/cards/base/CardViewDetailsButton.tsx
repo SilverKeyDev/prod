@@ -1,13 +1,11 @@
 import { Eye } from "lucide-react";
-import React from "react";
+import React, { useState } from "react";
 
 import KeyTurnLoader from "../../ui/loading/KeyTurnLoader";
 
 export type CardViewDetailsButtonProps = {
-  /** Click handler */
-  onClick: () => void;
-  /** Loading state */
-  loading?: boolean;
+  /** Click handler - can be async */
+  onClick: () => void | Promise<void>;
   /** Button size */
   size?: "sm" | "md" | "lg";
   /** Button variant */
@@ -26,15 +24,15 @@ export type CardViewDetailsButtonProps = {
 
 const CardViewDetailsButton: React.FC<CardViewDetailsButtonProps> = ({
   onClick,
-  loading = false,
   size = "md",
   variant = "primary",
   fullWidth = false,
-  text = "==Unlock",
+  text = "Unlock",
   showIcon = true,
   disabled = false,
   className = "",
 }) => {
+  const [isUnlocking, setIsUnlocking] = useState(false);
   // Size variants using utilities.css classes
   const sizeStyles = {
     sm: {
@@ -78,18 +76,28 @@ const CardViewDetailsButton: React.FC<CardViewDetailsButtonProps> = ({
 
   const iconClasses = `${currentSizeStyles.icon} ${showIcon && text ? "mr-1 sm:mr-2" : ""}`;
 
-  const handleClick = (e: React.MouseEvent) => {
+  const handleClick = async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent event from bubbling up to parent card
-    onClick();
+
+    if (disabled || isUnlocking) return;
+
+    try {
+      setIsUnlocking(true);
+      await onClick();
+    } catch (error) {
+      console.error("Error during unlock:", error);
+    } finally {
+      setIsUnlocking(false);
+    }
   };
 
   return (
     <button
       onClick={handleClick}
-      disabled={disabled ?? loading}
+      disabled={disabled || isUnlocking}
       className={buttonClasses}
     >
-      {loading ? (
+      {isUnlocking ? (
         <div
           style={{
             transform:

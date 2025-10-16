@@ -16,22 +16,11 @@ export function SidebarList(props: {
   items: SearchResult[];
   selectedId?: string;
   isLoading: boolean;
-  isHomeSaved: (id: string) => boolean;
-  onSave: (p: SearchResult) => void;
   onNavigateToProperty: (p: SearchResult) => void;
-  removeSavedHome: (id: string) => void;
   activeTab: "results" | "saved";
 }): JSX.Element {
-  const {
-    items,
-    selectedId,
-    isLoading,
-    isHomeSaved,
-    onSave,
-    onNavigateToProperty,
-    removeSavedHome,
-    activeTab,
-  } = props;
+  const { items, selectedId, isLoading, onNavigateToProperty, activeTab } =
+    props;
 
   // Use centralized score calculation
   const calculatePropertyScore = (property: SearchResult) => {
@@ -144,13 +133,7 @@ export function SidebarList(props: {
                 />
               </div>
               {activeTab === "results" && (
-                <CardHeartSave
-                  property={property}
-                  isSaved={isHomeSaved(property.id)}
-                  onSave={(prop: unknown) => onSave(prop as SearchResult)}
-                  onRemove={removeSavedHome}
-                  size="sm"
-                />
+                <CardHeartSave property={property} size="sm" />
               )}
             </div>
           </div>

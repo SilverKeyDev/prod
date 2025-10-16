@@ -36,9 +36,6 @@ type UseMapMarkersProps = {
   setIsochroneData: (data: unknown) => void;
   fetchIsochroneForMapOnly: () => Promise<unknown>;
   calculatePropertyScore: (property: SearchResult) => number;
-  isHomeSaved: (propertyId: string) => boolean;
-  saveHome: (property: SearchResult | Property) => Promise<void>;
-  removeSavedHome: (propertyId: string) => Promise<void>;
   onMarkerClick?: (property: SearchResult) => void;
   onUnlockClick?: (property: SearchResult) => void;
 };
@@ -59,9 +56,6 @@ export const useMapMarkers = ({
   setIsochroneData,
   fetchIsochroneForMapOnly,
   calculatePropertyScore,
-  isHomeSaved,
-  saveHome,
-  removeSavedHome,
   onMarkerClick,
   onUnlockClick,
 }: UseMapMarkersProps): UseMapMarkersReturn => {
@@ -220,7 +214,6 @@ export const useMapMarkers = ({
           const result = data[i];
           // Use backend ML score (_score) to match HomeCard behavior
           const score = result._score ?? 0;
-          const isSaved = isHomeSaved(result.id);
           
           // Log score issues for debugging
           const isDev = typeof import.meta !== 'undefined' && import.meta.env?.DEV;
@@ -231,8 +224,7 @@ export const useMapMarkers = ({
               address: result.address,
               _score: result._score,
               scoreType: typeof result._score,
-              isSaved,
-              willShowScore: !isSaved && score > 0,
+              willShowScore: score > 0,
             });
           }
           
@@ -267,22 +259,18 @@ export const useMapMarkers = ({
             propertyId: result.id,
             address: result.address?.substring(0, 30) + "...",
             calculatedScore: propertyData.calculatedScore,
-            showScore: !isSaved && hasValidScore,
+            showScore: hasValidScore,
             backendScore: result._score,
             scoreType: typeof result._score,
             hasValidScore,
-            isSaved,
           });
 
           // Render MapPropertyCard directly into the marker element
           try {
             renderMapPropertyCard(markerElement, {
               property: propertyData,
-              isSaved,
-              onSave: () => saveHome(result),
-              onUnsave: () => removeSavedHome(result.id),
               onUnlock: onUnlockClick ? () => onUnlockClick(result) : undefined,
-              showScore: !isSaved && hasValidScore, // Only show score for non-saved homes with valid scores
+              showScore: hasValidScore, // Show score for properties with valid scores
             });
           } catch (error) {
             console.error(`❌ [MARKER POSITION UPDATE] Error rendering MapPropertyCard for property ${i + 1}:`, error);

@@ -148,7 +148,7 @@ export default function SearchPage({
     desktopMapRef,
   });
 
-  const { savedHomes, isHomeSaved, saveHome, removeSavedHome } = useSavedHomes({
+  const { savedHomes } = useSavedHomes({
     userApi,
     setFavoriteAddresses,
     isGoogleMapsLoaded,
@@ -407,9 +407,6 @@ export default function SearchPage({
   useMarkerUpdates({
     googleMapRef,
     onOpenDetails: handleOpenPropertyDetails,
-    isHomeSaved,
-    saveHome,
-    removeSavedHome,
     activeTab,
     currentPage,
     hasSearched,
@@ -470,9 +467,6 @@ export default function SearchPage({
     setIsochroneData,
     fetchIsochroneForMapOnly,
     calculatePropertyScore,
-    isHomeSaved,
-    saveHome,
-    removeSavedHome,
     onMarkerClick: handleNavigateToProperty,
     onUnlockClick: handleViewPropertyDetails,
   });
@@ -622,8 +616,6 @@ export default function SearchPage({
               <PropertyCarousel
                 items={activeTab === "results" ? searchResults : savedHomes}
                 currentPage={currentPage}
-                isHomeSaved={isHomeSaved}
-                onSave={saveHome}
                 onViewDetails={handleViewPropertyDetails}
                 onSlideChange={(index) => setCurrentPage(index)}
                 infiniteLoop={false}
@@ -707,10 +699,7 @@ export default function SearchPage({
                 items={activeTab === "results" ? searchResults : savedHomes}
                 selectedId={selectedProperty?.id}
                 isLoading={isLoadingPropertyDetails}
-                isHomeSaved={isHomeSaved}
-                onSave={saveHome}
                 onNavigateToProperty={handleNavigateToProperty}
-                removeSavedHome={removeSavedHome}
                 activeTab={activeTab}
               />
             </div>
@@ -785,9 +774,6 @@ export default function SearchPage({
       <PropertyDetailsModal
         property={selectedProperty}
         onClose={clearSelectedProperty}
-        isHomeSaved={isHomeSaved}
-        saveHome={saveHome}
-        removeSavedHome={removeSavedHome}
       />
     </div>
   );
