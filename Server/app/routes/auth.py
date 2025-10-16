@@ -1014,7 +1014,7 @@ def google_oauth_callback():
             minimal_id_token = minimal_token_service.create_minimal_id_token(
                 user_id=str(user.id),
                 user_email=email,
-                user_name=user.name,
+                user_name=user.name or name or email.split('@')[0],  # Fallback if user.name is None
                 expires_in_hours=8
             )
             
@@ -1026,7 +1026,11 @@ def google_oauth_callback():
         except Exception as token_error:
             current_app.logger.error(f"GOOGLE_TOKEN_CREATION_ERROR", extra={
                 'request_id': request_id,
-                'error': str(token_error)
+                'error': str(token_error),
+                'error_type': type(token_error).__name__,
+                'user_name': user.name if user else 'no_user',
+                'user_id': user.id if user else 'no_user',
+                'traceback': traceback.format_exc()[:500]
             })
             from app.config import Config
             return redirect(f"{Config.FRONTEND_URL}/login?error=token_creation_failed")

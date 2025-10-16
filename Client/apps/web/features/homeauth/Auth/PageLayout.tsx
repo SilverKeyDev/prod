@@ -10,6 +10,7 @@ type AuthPageLayoutProps = {
   title: string;
   subtitle?: string;
   logoSize?: "xs" | "sm" | "md" | "lg" | "header";
+  showHeader?: boolean;
 
   // Layout configuration
   variant?: "default" | "wide";
@@ -31,6 +32,7 @@ export default function AuthPageLayout({
   title,
   subtitle,
   logoSize = "lg",
+  showHeader = true,
   variant = "default",
   titleClassName = "text-responsive-2xl font-serif text-black mb-2 flex items-center justify-center",
   subtitleClassName = "text-black/60 font-light text-responsive-xs mb-8",
@@ -47,14 +49,16 @@ export default function AuthPageLayout({
     <div className="px-responsive-sm py-responsive-md flex min-h-screen items-center justify-center bg-off-white">
       <div className={containerWidth}>
         {/* Header */}
-        <AuthHeader
-          title={title}
-          subtitle={subtitle}
-          logoSize={logoSize}
-          titleClassName={titleClassName}
-          subtitleClassName={subtitleClassName}
-          containerClassName={headerContainerClassName}
-        />
+        {showHeader && (
+          <AuthHeader
+            title={title}
+            subtitle={subtitle}
+            logoSize={logoSize}
+            titleClassName={titleClassName}
+            subtitleClassName={subtitleClassName}
+            containerClassName={headerContainerClassName}
+          />
+        )}
 
         {/* Error Message */}
         {error && <div className={errorClassName}>{error}</div>}

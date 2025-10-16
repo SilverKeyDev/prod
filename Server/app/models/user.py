@@ -9,8 +9,8 @@ class User(db.Model):
     cognito_id = db.Column(db.String(36), unique=True, nullable=True)  # Made nullable for Google OAuth users
     google_id = db.Column(db.String(255), unique=True, nullable=True)  # Google OAuth ID
     email = db.Column(db.String(120), unique=True, nullable=False)
-    name = db.Column(db.String(100), nullable=False)
-    phone = db.Column(db.String(20))
+    name = db.Column(db.String(100), nullable=True)  # Made nullable for Google OAuth users who may not have name
+    phone = db.Column(db.String(20), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     is_active = db.Column(db.Boolean, default=True)
@@ -38,10 +38,20 @@ class User(db.Model):
             print(f"[DEBUG] Existing User ID: {self.id}")
     
     def to_dict(self):
+        # Determine auth method
+        if self.google_id and not self.cognito_id:
+            auth_method = 'google'
+        elif self.cognito_id and not self.google_id:
+            auth_method = 'cognito'
+        elif self.google_id and self.cognito_id:
+            auth_method = 'both'
+        else:
+            auth_method = 'unknown'
+        
         return {
             'id': self.id,
             'email': self.email,
-            'name': self.name,
+            'name': self.name or 'Unknown User',  # Fallback for null names
             'phone': self.phone,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'is_active': self.is_active,
@@ -55,4 +65,5 @@ class User(db.Model):
             'closing_checklist': self.closing_checklist,
             'timeline_checklist': self.timeline_checklist,
             'insurance_checklist': self.insurance_checklist,
+            'auth_method': auth_method,  # NEW: Indicate authentication method
         }

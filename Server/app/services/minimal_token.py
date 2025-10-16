@@ -16,22 +16,26 @@ class MinimalTokenService:
     """Service for generating minimal JWT tokens with only essential claims"""
     
     def __init__(self):
-        # Use the main application secret key for consistency
-        # This avoids requiring a separate MINIMAL_TOKEN_SECRET environment variable
-        from flask import current_app
-        try:
-            # Try to get the secret key from Flask app context
-            self.secret_key = current_app.config.get('SECRET_KEY')
-        except RuntimeError:
-            # If not in app context, get from environment directly
-            self.secret_key = os.getenv('AWS_SECRET_ACCESS_KEY')
-        
-        if not self.secret_key:
-            # Final fallback for development
-            self.secret_key = 'silverkey-minimal-token-secret-key-2024-dev'
-            logger.warning("Using development secret key for minimal tokens")
-        
+        self._secret_key = None
         self.algorithm = 'HS256'  # Simpler than RS256, smaller tokens
+    
+    @property
+    def secret_key(self):
+        """Lazy-load secret key to avoid app context issues at import time"""
+        if self._secret_key is None:
+            try:
+                # Try to get the secret key from Flask app context
+                self._secret_key = current_app.config.get('SECRET_KEY')
+            except (RuntimeError, AttributeError):
+                # If not in app context, get from environment directly
+                self._secret_key = os.getenv('AWS_SECRET_ACCESS_KEY')
+            
+            if not self._secret_key:
+                # Final fallback for development
+                self._secret_key = 'silverkey-minimal-token-secret-key-2024-dev'
+                logger.warning("Using development secret key for minimal tokens")
+        
+        return self._secret_key
         
     def create_minimal_access_token(self, user_id: str, user_email: str, expires_in_hours: int = 8) -> str:
         """
@@ -100,11 +104,14 @@ class MinimalTokenService:
             now = datetime.utcnow()
             exp_time = now + timedelta(hours=expires_in_hours)
             
+            # Ensure user_name is not None
+            safe_name = user_name or 'Unknown User'
+            
             # Minimal ID token payload
             payload = {
                 'sub': user_id,           # Subject (user ID)
                 'email': user_email,      # User email
-                'name': user_name,        # User name
+                'name': safe_name,        # User name
                 'iat': int(now.timestamp()),  # Issued at
                 'exp': int(exp_time.timestamp()),  # Expiration
                 'type': 'id',            # Token type
@@ -118,7 +125,7 @@ class MinimalTokenService:
             logger.info("MINIMAL_ID_TOKEN_CREATED", extra={
                 'user_id': user_id,
                 'email': user_email[:3] + '***' + user_email[-3:] if user_email else 'missing',
-                'name': user_name[:10] + '***' if user_name else 'missing',
+                'name': safe_name[:10] + '***' if safe_name and len(safe_name) > 10 else safe_name,
                 'token_size_bytes': token_size,
                 'expires_in_hours': expires_in_hours,
                 'expires_at': exp_time.isoformat(),
@@ -131,7 +138,7 @@ class MinimalTokenService:
             logger.error("MINIMAL_ID_TOKEN_CREATION_ERROR", extra={
                 'user_id': user_id,
                 'email': user_email[:3] + '***' + user_email[-3:] if user_email else 'missing',
-                'name': user_name[:10] + '***' if user_name else 'missing',
+                'name': str(user_name)[:10] + '***' if user_name and len(str(user_name)) > 10 else str(user_name),
                 'error': str(e),
                 'error_type': type(e).__name__
             })

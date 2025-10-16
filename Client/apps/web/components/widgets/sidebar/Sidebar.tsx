@@ -261,9 +261,6 @@ export default function Sidebar({
                     <div className="flex items-center">
                       <WhiteLogo size="sm" className="ml-1" />
                       <div className="ml-3">
-                        <p className="line-clamp-1 text-sm font-medium text-white">
-                          {displayUser?.name ?? "Unknown User"}
-                        </p>
                         <p className="line-clamp-1 text-xs text-white/80">
                           {displayUser?.email ?? "No email"}
                         </p>

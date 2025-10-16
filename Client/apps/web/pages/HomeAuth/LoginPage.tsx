@@ -61,6 +61,7 @@ export default function LoginPage() {
       title="Welcome back"
       subtitle="Continue your home search journey"
       logoSize="lg"
+      showHeader={false}
       error={error ?? undefined}
     >
       {/* Login Form */}

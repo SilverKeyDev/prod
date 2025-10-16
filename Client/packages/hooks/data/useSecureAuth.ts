@@ -105,7 +105,8 @@ export function useSecureAuth(): UseSecureAuthReturn {
             const mappedUser: UserProfile = {
               id: userId || "",
               email: response.user.email,
-              name: response.user.name,
+              name: response.user.name || "Unknown User",  // Fallback for null names
+              phone: ("phone" in response.user ? response.user.phone : undefined) as string | null | undefined,
               // Best-effort defaults for fields not provided by AuthResponse
               created_at: null,
               is_active: true,
@@ -113,6 +114,7 @@ export function useSecureAuth(): UseSecureAuthReturn {
               subscription: null,
               has_preferences: false,
               is_agent: false,
+              auth_method: ("auth_method" in response.user ? response.user.auth_method : undefined) as "cognito" | "google" | "both" | "unknown" | undefined,
             };
 
             // Log the mapping for debugging (dev only)

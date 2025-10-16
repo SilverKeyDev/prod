@@ -279,6 +279,7 @@ export default function SignupPage(_props: SignupPageProps) {
       title="Create your account"
       subtitle="Join thousands of users making smarter property decisions"
       logoSize="lg"
+      showHeader={false}
       variant="wide"
     >
       {/* Inline style block for autofill color + clickability fixes */}
