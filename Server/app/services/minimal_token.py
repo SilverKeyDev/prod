@@ -12,6 +12,19 @@ from flask import current_app
 
 logger = logging.getLogger(__name__)
 
+# Reserved LogRecord attributes that cannot be used in extra dict
+_RESERVED_LOG_KEYS = {
+    "name", "msg", "args", "levelname", "levelno", "pathname", "filename", "module",
+    "exc_info", "exc_text", "stack_info", "lineno", "funcName", "created", "msecs",
+    "relativeCreated", "thread", "threadName", "processName", "process"
+}
+
+def _safe_extra(extra: dict) -> dict:
+    """Sanitize extra dict to avoid overwriting reserved LogRecord attributes"""
+    if not extra:
+        return {}
+    return {(f"user_{k}" if k in _RESERVED_LOG_KEYS else k): v for k, v in extra.items()}
+
 class MinimalTokenService:
     """Service for generating minimal JWT tokens with only essential claims"""
     
@@ -89,28 +102,31 @@ class MinimalTokenService:
                 'token_length': len(token)
             })
             
-            # Log token creation with size info
-            token_size = len(token.encode('utf-8'))
-            logger.info("MINIMAL_ACCESS_TOKEN_CREATED", extra={
-                'user_id': user_id,
-                'email': user_email[:3] + '***' + user_email[-3:] if user_email else 'missing',
-                'token_size_bytes': token_size,
-                'expires_in_hours': expires_in_hours,
-                'expires_at': exp_time.isoformat(),
-                'algorithm': self.algorithm
-            })
+            # Log token creation with size info (wrap in try to never break flow)
+            try:
+                token_size = len(token.encode('utf-8'))
+                logger.info("MINIMAL_ACCESS_TOKEN_CREATED", extra=_safe_extra({
+                    'user_id': user_id,
+                    'email': user_email[:3] + '***' + user_email[-3:] if user_email else 'missing',
+                    'token_size_bytes': token_size,
+                    'expires_in_hours': expires_in_hours,
+                    'expires_at': exp_time.isoformat(),
+                    'algorithm': self.algorithm
+                }))
+            except Exception:
+                logger.error("MINIMAL_ACCESS_TOKEN_LOGGING_ERROR", exc_info=True)
             
             return token
             
         except Exception as e:
             import traceback
-            logger.error("❌ MINIMAL_ACCESS_TOKEN_CREATION_ERROR", extra={
+            logger.error("❌ MINIMAL_ACCESS_TOKEN_CREATION_ERROR", extra=_safe_extra({
                 'user_id': user_id,
                 'email': user_email[:3] + '***' + user_email[-3:] if user_email else 'missing',
                 'error': str(e),
                 'error_type': type(e).__name__,
                 'traceback': traceback.format_exc()
-            })
+            }), exc_info=True)
             logger.error(f"MINIMAL_ACCESS_TOKEN_FULL_TRACEBACK:\n{traceback.format_exc()}")
             raise
     
@@ -172,30 +188,33 @@ class MinimalTokenService:
                 'token_length': len(token)
             })
             
-            # Log token creation with size info
-            token_size = len(token.encode('utf-8'))
-            logger.info("MINIMAL_ID_TOKEN_CREATED", extra={
-                'user_id': user_id,
-                'email': user_email[:3] + '***' + user_email[-3:] if user_email else 'missing',
-                'name': safe_name[:10] + '***' if safe_name and len(safe_name) > 10 else safe_name,
-                'token_size_bytes': token_size,
-                'expires_in_hours': expires_in_hours,
-                'expires_at': exp_time.isoformat(),
-                'algorithm': self.algorithm
-            })
+            # Log token creation with size info (wrap in try to never break flow)
+            try:
+                token_size = len(token.encode('utf-8'))
+                logger.info("MINIMAL_ID_TOKEN_CREATED", extra=_safe_extra({
+                    'user_id': user_id,
+                    'email': user_email[:3] + '***' + user_email[-3:] if user_email else 'missing',
+                    'name': safe_name[:10] + '***' if safe_name and len(safe_name) > 10 else safe_name,  # Will be renamed to user_name
+                    'token_size_bytes': token_size,
+                    'expires_in_hours': expires_in_hours,
+                    'expires_at': exp_time.isoformat(),
+                    'algorithm': self.algorithm
+                }))
+            except Exception:
+                logger.error("MINIMAL_ID_TOKEN_LOGGING_ERROR", exc_info=True)
             
             return token
             
         except Exception as e:
             import traceback
-            logger.error("❌ MINIMAL_ID_TOKEN_CREATION_ERROR", extra={
+            logger.error("❌ MINIMAL_ID_TOKEN_CREATION_ERROR", extra=_safe_extra({
                 'user_id': user_id,
                 'email': user_email[:3] + '***' + user_email[-3:] if user_email else 'missing',
-                'name': str(user_name)[:10] + '***' if user_name and len(str(user_name)) > 10 else str(user_name),
+                'name': str(user_name)[:10] + '***' if user_name and len(str(user_name)) > 10 else str(user_name),  # Will be renamed to user_name
                 'error': str(e),
                 'error_type': type(e).__name__,
                 'traceback': traceback.format_exc()
-            })
+            }), exc_info=True)
             logger.error(f"MINIMAL_ID_TOKEN_FULL_TRACEBACK:\n{traceback.format_exc()}")
             raise
     
@@ -228,14 +247,17 @@ class MinimalTokenService:
             
             payload = jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
             
-            # Log token verification
-            logger.info("✅ MINIMAL_TOKEN_VERIFIED_SUCCESS", extra={
-                'token_type': payload.get('type', 'unknown'),
-                'user_id': payload.get('sub', 'missing'),
-                'email': payload.get('email', 'missing')[:3] + '***' + payload.get('email', 'missing')[-3:] if payload.get('email') else 'missing',
-                'expires_at': datetime.fromtimestamp(payload.get('exp', 0)).isoformat() if payload.get('exp') else 'missing',
-                'issuer': payload.get('iss', 'unknown')
-            })
+            # Log token verification (wrap in try to never break flow)
+            try:
+                logger.info("✅ MINIMAL_TOKEN_VERIFIED_SUCCESS", extra=_safe_extra({
+                    'token_type': payload.get('type', 'unknown'),
+                    'user_id': payload.get('sub', 'missing'),
+                    'email': payload.get('email', 'missing')[:3] + '***' + payload.get('email', 'missing')[-3:] if payload.get('email') else 'missing',
+                    'expires_at': datetime.fromtimestamp(payload.get('exp', 0)).isoformat() if payload.get('exp') else 'missing',
+                    'issuer': payload.get('iss', 'unknown')
+                }))
+            except Exception:
+                logger.error("MINIMAL_TOKEN_VERIFICATION_LOGGING_ERROR", exc_info=True)
             
             return payload
             

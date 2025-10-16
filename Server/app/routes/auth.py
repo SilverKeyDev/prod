@@ -1145,6 +1145,21 @@ def google_oauth_callback():
             max_age=60*60*24*7  # 7 days
         )
         
+        # Log successful cookie setting (wrap in try to never break flow)
+        try:
+            current_app.logger.info(f"✅ GOOGLE_COOKIES_SET_SUCCESS", extra={
+                'request_id': request_id,
+                'sk_session_token_length': len(minimal_access_token),
+                'sk_refresh_token_length': len(minimal_access_token),
+                'httponly': True,
+                'secure': os.getenv('FLASK_ENV') == 'production',
+                'samesite': 'Lax',
+                'max_age_session': 60*60*8,
+                'max_age_refresh': 60*60*24*7
+            })
+        except Exception:
+            current_app.logger.error("GOOGLE_COOKIE_LOGGING_ERROR", exc_info=True)
+        
         current_app.logger.info(f"GOOGLE_OAUTH_SUCCESS_COMPLETE", extra={
             'request_id': request_id,
             'user_id': user.id,
