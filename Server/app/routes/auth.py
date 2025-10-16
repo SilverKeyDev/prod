@@ -1002,7 +1002,17 @@ def google_oauth_callback():
                 })
         
         # Create minimal tokens for session
+        minimal_access_token = None
+        minimal_id_token = None
+        
         try:
+            current_app.logger.info(f"GOOGLE_TOKEN_CREATION_START", extra={
+                'request_id': request_id,
+                'user_id': user.id,
+                'user_email': email[:3] + '***',
+                'user_name': (user.name or 'None')[:10] + '***' if user.name else 'None'
+            })
+            
             # Generate minimal access token
             minimal_access_token = minimal_token_service.create_minimal_access_token(
                 user_id=str(user.id),
@@ -1010,17 +1020,31 @@ def google_oauth_callback():
                 expires_in_hours=8
             )
             
-            # Generate minimal ID token
+            current_app.logger.info(f"GOOGLE_ACCESS_TOKEN_CREATED", extra={
+                'request_id': request_id,
+                'token_length': len(minimal_access_token)
+            })
+            
+            # Generate minimal ID token with comprehensive fallbacks
+            safe_name = user.name or name or email.split('@')[0] or 'Unknown User'
+            
+            current_app.logger.info(f"GOOGLE_ID_TOKEN_START", extra={
+                'request_id': request_id,
+                'safe_name': safe_name[:10] + '***'
+            })
+            
             minimal_id_token = minimal_token_service.create_minimal_id_token(
                 user_id=str(user.id),
                 user_email=email,
-                user_name=user.name or name or email.split('@')[0],  # Fallback if user.name is None
+                user_name=safe_name,
                 expires_in_hours=8
             )
             
-            current_app.logger.info(f"GOOGLE_TOKENS_CREATED", extra={
+            current_app.logger.info(f"GOOGLE_TOKENS_CREATED_SUCCESS", extra={
                 'request_id': request_id,
-                'user_id': user.id
+                'user_id': user.id,
+                'access_token_length': len(minimal_access_token),
+                'id_token_length': len(minimal_id_token)
             })
             
         except Exception as token_error:
@@ -1030,7 +1054,52 @@ def google_oauth_callback():
                 'error_type': type(token_error).__name__,
                 'user_name': user.name if user else 'no_user',
                 'user_id': user.id if user else 'no_user',
-                'traceback': traceback.format_exc()[:500]
+                'has_access_token': minimal_access_token is not None,
+                'traceback': traceback.format_exc()
+            })
+            
+            # FALLBACK: Try to create basic tokens as last resort
+            try:
+                current_app.logger.warning(f"GOOGLE_ATTEMPTING_FALLBACK_TOKENS", extra={
+                    'request_id': request_id,
+                    'user_id': user.id
+                })
+                
+                # If we have access token but ID token failed, reuse access token
+                if minimal_access_token and not minimal_id_token:
+                    minimal_id_token = minimal_access_token
+                    current_app.logger.info(f"GOOGLE_USING_ACCESS_TOKEN_AS_ID_TOKEN", extra={
+                        'request_id': request_id
+                    })
+                # If both failed, create minimal access token and reuse it
+                elif not minimal_access_token:
+                    minimal_access_token = minimal_token_service.create_minimal_access_token(
+                        user_id=str(user.id),
+                        user_email=email,
+                        expires_in_hours=8
+                    )
+                    minimal_id_token = minimal_access_token
+                    current_app.logger.info(f"GOOGLE_CREATED_FALLBACK_TOKENS", extra={
+                        'request_id': request_id,
+                        'token_length': len(minimal_access_token)
+                    })
+                
+            except Exception as fallback_error:
+                current_app.logger.error(f"GOOGLE_FALLBACK_TOKEN_ERROR", extra={
+                    'request_id': request_id,
+                    'error': str(fallback_error),
+                    'error_type': type(fallback_error).__name__,
+                    'traceback': traceback.format_exc()
+                })
+                from app.config import Config
+                return redirect(f"{Config.FRONTEND_URL}/login?error=token_creation_failed")
+        
+        # Validate we have both tokens before proceeding
+        if not minimal_access_token or not minimal_id_token:
+            current_app.logger.error(f"GOOGLE_MISSING_TOKENS_AFTER_CREATION", extra={
+                'request_id': request_id,
+                'has_access_token': minimal_access_token is not None,
+                'has_id_token': minimal_id_token is not None
             })
             from app.config import Config
             return redirect(f"{Config.FRONTEND_URL}/login?error=token_creation_failed")
@@ -1038,6 +1107,13 @@ def google_oauth_callback():
         # Create response and redirect to frontend
         from app.config import Config
         resp = make_response(redirect(f"{Config.FRONTEND_URL}/dashboard?google=success"))
+        
+        current_app.logger.info(f"GOOGLE_SETTING_COOKIES", extra={
+            'request_id': request_id,
+            'access_token_length': len(minimal_access_token),
+            'id_token_length': len(minimal_id_token),
+            'user_id': user.id
+        })
         
         # Set secure HttpOnly cookies
         resp.set_cookie(
@@ -1063,11 +1139,13 @@ def google_oauth_callback():
             max_age=60*60*24*7  # 7 days
         )
         
-        current_app.logger.info(f"GOOGLE_OAUTH_SUCCESS", extra={
+        current_app.logger.info(f"GOOGLE_OAUTH_SUCCESS_COMPLETE", extra={
             'request_id': request_id,
             'user_id': user.id,
             'email': email[:3] + '***',
-            'new_user': user.created_at >= datetime.utcnow().replace(second=0, microsecond=0)
+            'new_user': user.created_at >= datetime.utcnow().replace(second=0, microsecond=0),
+            'cookies_set': True,
+            'redirect_url': f"{Config.FRONTEND_URL}/dashboard?google=success"
         })
         
         return resp
