@@ -13,6 +13,7 @@ import { getSharedInputTextStyles } from "../../components/ui/form/InputStyleUti
 import { authApi } from "../../../../packages/config/api";
 import { showErrorToast } from "../../../../packages/hooks/ui/useToast";
 import AuthButton from "../../features/homeauth/Auth/Button";
+import AuthDivider from "../../features/homeauth/Auth/Divider";
 import AuthLink from "../../features/homeauth/Auth/Link";
 import AuthPageLayout from "../../features/homeauth/Auth/PageLayout";
 import GoogleSignInButton from "../../components/auth/GoogleSignInButton";
@@ -461,6 +462,8 @@ export default function SignupPage(_props: SignupPageProps) {
         <AuthButton type="submit" loading={loading} disabled={loading}>
           Create account
         </AuthButton>
+
+        <AuthDivider />
 
         <GoogleSignInButton text="Sign up with Google" />
 

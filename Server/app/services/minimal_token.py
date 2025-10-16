@@ -50,6 +50,13 @@ class MinimalTokenService:
             Minimal JWT token string
         """
         try:
+            logger.info(f"🔍 MINIMAL_ACCESS_TOKEN_CREATION_START", extra={
+                'user_id': user_id,
+                'email': user_email[:3] + '***' if user_email else 'missing',
+                'algorithm': self.algorithm,
+                'expires_in_hours': expires_in_hours
+            })
+            
             now = datetime.utcnow()
             exp_time = now + timedelta(hours=expires_in_hours)
             
@@ -62,6 +69,13 @@ class MinimalTokenService:
                 'type': 'access',        # Token type
                 'iss': 'silverkey-api'   # Issuer
             }
+            
+            logger.info(f"🔍 MINIMAL_ACCESS_TOKEN_PAYLOAD", extra={
+                'payload_keys': list(payload.keys()),
+                'iss': payload.get('iss'),
+                'type': payload.get('type'),
+                'algorithm_to_use': self.algorithm
+            })
             
             token = jwt.encode(payload, self.secret_key, algorithm=self.algorithm)
             
@@ -101,6 +115,13 @@ class MinimalTokenService:
             Minimal JWT ID token string
         """
         try:
+            logger.info(f"🔍 MINIMAL_ID_TOKEN_CREATION_START", extra={
+                'user_id': user_id,
+                'email': user_email[:3] + '***' if user_email else 'missing',
+                'algorithm': self.algorithm,
+                'expires_in_hours': expires_in_hours
+            })
+            
             now = datetime.utcnow()
             exp_time = now + timedelta(hours=expires_in_hours)
             
@@ -117,6 +138,13 @@ class MinimalTokenService:
                 'type': 'id',            # Token type
                 'iss': 'silverkey-api'   # Issuer
             }
+            
+            logger.info(f"🔍 MINIMAL_ID_TOKEN_PAYLOAD", extra={
+                'payload_keys': list(payload.keys()),
+                'iss': payload.get('iss'),
+                'type': payload.get('type'),
+                'algorithm_to_use': self.algorithm
+            })
             
             token = jwt.encode(payload, self.secret_key, algorithm=self.algorithm)
             
@@ -158,10 +186,23 @@ class MinimalTokenService:
             jwt.InvalidTokenError: If token is invalid
         """
         try:
+            logger.info(f"🔍 MINIMAL_TOKEN_VERIFICATION_START", extra={
+                'algorithm': self.algorithm,
+                'token_preview': token[:30] + '...' if len(token) > 30 else token
+            })
+            
+            # First decode header to verify
+            header = jwt.get_unverified_header(token)
+            logger.info(f"🔍 MINIMAL_TOKEN_HEADER", extra={
+                'alg': header.get('alg'),
+                'typ': header.get('typ'),
+                'expected_alg': self.algorithm
+            })
+            
             payload = jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
             
             # Log token verification
-            logger.debug("MINIMAL_TOKEN_VERIFIED", extra={
+            logger.info("✅ MINIMAL_TOKEN_VERIFIED_SUCCESS", extra={
                 'token_type': payload.get('type', 'unknown'),
                 'user_id': payload.get('sub', 'missing'),
                 'email': payload.get('email', 'missing')[:3] + '***' + payload.get('email', 'missing')[-3:] if payload.get('email') else 'missing',

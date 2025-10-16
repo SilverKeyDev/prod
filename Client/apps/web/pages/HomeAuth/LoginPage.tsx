@@ -5,6 +5,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Input } from "../../components/ui";
 import { useSecureAuth } from "../../../../packages/hooks/data/useSecureAuth";
 import AuthButton from "../../features/homeauth/Auth/Button";
+import AuthDivider from "../../features/homeauth/Auth/Divider";
 import AuthLink from "../../features/homeauth/Auth/Link";
 import AuthPageLayout from "../../features/homeauth/Auth/PageLayout";
 import GoogleSignInButton from "../../components/auth/GoogleSignInButton";
@@ -103,16 +104,7 @@ export default function LoginPage() {
           Login
         </AuthButton>
 
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300" />
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="bg-white px-2 text-gray-500">
-              Or continue with
-            </span>
-          </div>
-        </div>
+        <AuthDivider />
 
         <GoogleSignInButton text="Sign in with Google" />
 

@@ -267,7 +267,7 @@ def verify():
         # Set secure HttpOnly cookies with minimal tokens
         # Use host-only cookies (no domain) and Path=/ for proper scope
         resp.set_cookie(
-            "session", 
+            "sk_session", 
             value=minimal_access_token,
             httponly=True, 
             secure=os.getenv('FLASK_ENV') == 'production',
@@ -277,7 +277,7 @@ def verify():
         )
         
         resp.set_cookie(
-            "refresh_token",
+            "sk_refresh",
             value=login_result['tokens']['RefreshToken'],
             httponly=True,
             secure=os.getenv('FLASK_ENV') == 'production',
@@ -644,7 +644,9 @@ def login():
         except Exception as token_error:
             current_app.logger.error(f"AUTH_LOGIN_MINIMAL_TOKEN_ERROR", extra={
                 'request_id': request_id,
-                'error': str(token_error)
+                'error': str(token_error),
+                'error_type': type(token_error).__name__,
+                'traceback': traceback.format_exc()
             })
             # Fallback to Cognito tokens if minimal token creation fails
             minimal_access_token = result['tokens']['AccessToken']
@@ -684,7 +686,7 @@ def login():
             })
             
             resp.set_cookie(
-                "session", 
+                "sk_session", 
                 value=minimal_access_token,
                 httponly=True, 
                 secure=os.getenv('FLASK_ENV') == 'production',  # Only secure in production
@@ -695,7 +697,7 @@ def login():
             
             # Set refresh token cookie (longer expiry) - keep Cognito refresh token for now
             resp.set_cookie(
-                "refresh_token",
+                "sk_refresh",
                 value=result['tokens']['RefreshToken'],
                 httponly=True,
                 secure=os.getenv('FLASK_ENV') == 'production',
@@ -830,7 +832,7 @@ def logout():
         # Clear all authentication cookies
         # Use same path as login to ensure proper clearing
         resp.set_cookie(
-            "session",
+            "sk_session",
             value="",
             httponly=True,
             secure=os.getenv('FLASK_ENV') == 'production',
@@ -840,7 +842,7 @@ def logout():
         )
         
         resp.set_cookie(
-            "refresh_token",
+            "sk_refresh",
             value="",
             httponly=True,
             secure=os.getenv('FLASK_ENV') == 'production',
@@ -874,14 +876,16 @@ def google_oauth_start():
             'referer': request.headers.get('Referer')
         })
         
-        # Generate auth URL and state
-        auth_url, state = google_oauth_service.build_auth_url()
+        # Generate auth URL, state, and nonce
+        auth_url, state, nonce = google_oauth_service.build_auth_url()
         session['google_oauth_state'] = state
+        session['google_oauth_nonce'] = nonce
         
         current_app.logger.info(f"GOOGLE_OAUTH_REDIRECT", extra={
             'request_id': request_id,
             'auth_url': auth_url[:100] + '...',  # Log truncated URL
-            'state_set': True
+            'state_set': True,
+            'nonce_set': True
         })
         
         return redirect(auth_url)
@@ -927,6 +931,7 @@ def google_oauth_callback():
         # Get and validate state
         state = request.args.get('state')
         session_state = session.get('google_oauth_state')
+        session_nonce = session.get('google_oauth_nonce')
         
         if not google_oauth_service.validate_state(state, session_state):
             current_app.logger.warning(f"GOOGLE_OAUTH_INVALID_STATE", extra={
@@ -936,32 +941,68 @@ def google_oauth_callback():
             from app.config import Config
             return redirect(f"{Config.FRONTEND_URL}/login?error=invalid_state")
         
+        if not session_nonce:
+            current_app.logger.warning(f"GOOGLE_OAUTH_MISSING_NONCE", extra={
+                'request_id': request_id
+            })
+            from app.config import Config
+            return redirect(f"{Config.FRONTEND_URL}/login?error=missing_nonce")
+        
         # Exchange code for tokens
         code = request.args.get('code')
         tokens = google_oauth_service.exchange_code_for_tokens(code)
         
-        # Get user info from Google
-        user_info = google_oauth_service.get_user_info(tokens['access_token'])
-        
-        current_app.logger.info(f"GOOGLE_USERINFO_RECEIVED", extra={
+        current_app.logger.info(f"🔍 GOOGLE_TOKEN_EXCHANGE_KEYS", extra={
             'request_id': request_id,
-            'email': user_info.get('email', '')[:3] + '***',
-            'verified': user_info.get('verified_email'),
-            'has_name': bool(user_info.get('name'))
+            'token_keys': list(tokens.keys()),
+            'has_id_token': 'id_token' in tokens,
+            'has_access_token': 'access_token' in tokens,
+            'id_token_length': len(tokens.get('id_token', '')) if 'id_token' in tokens else 0,
+            'access_token_length': len(tokens.get('access_token', '')) if 'access_token' in tokens else 0
         })
         
+        # Verify the ID token (RS256 from Google)
+        if 'id_token' not in tokens:
+            current_app.logger.error(f"GOOGLE_MISSING_ID_TOKEN_IN_RESPONSE", extra={
+                'request_id': request_id
+            })
+            from app.config import Config
+            return redirect(f"{Config.FRONTEND_URL}/login?error=missing_id_token")
+        
+        try:
+            # Verify Google's RS256 ID token
+            google_claims = google_oauth_service.verify_id_token(
+                tokens['id_token'],
+                session_nonce
+            )
+            
+            current_app.logger.info(f"GOOGLE_ID_TOKEN_VERIFIED", extra={
+                'request_id': request_id,
+                'sub': google_claims.get('sub')[:10] + '***' if google_claims.get('sub') else 'missing',
+                'email': google_claims.get('email', '')[:3] + '***',
+                'verified': google_claims.get('email_verified')
+            })
+        except Exception as verify_error:
+            current_app.logger.error(f"GOOGLE_ID_TOKEN_VERIFICATION_FAILED", extra={
+                'request_id': request_id,
+                'error': str(verify_error)
+            })
+            from app.config import Config
+            return redirect(f"{Config.FRONTEND_URL}/login?error=id_token_verification_failed")
+        
+        # Use verified claims from ID token
+        google_id = google_claims['sub']
+        email = google_claims['email']
+        name = google_claims.get('name', email.split('@')[0])
+        
         # Check if email is verified
-        if not user_info.get('verified_email'):
+        if not google_claims.get('email_verified'):
             current_app.logger.warning(f"GOOGLE_EMAIL_NOT_VERIFIED", extra={
                 'request_id': request_id,
-                'email': user_info.get('email', '')[:3] + '***'
+                'email': email[:3] + '***'
             })
             from app.config import Config
             return redirect(f"{Config.FRONTEND_URL}/login?error=email_not_verified")
-        
-        google_id = user_info['id']
-        email = user_info['email']
-        name = user_info.get('name', email.split('@')[0])
         
         # Check if user exists by google_id or email
         user = User.query.filter_by(google_id=google_id).first()
@@ -1001,16 +1042,11 @@ def google_oauth_callback():
                     'email': email[:3] + '***'
                 })
         
-        # Create minimal tokens for session
-        minimal_access_token = None
-        minimal_id_token = None
-        
+        # Create minimal tokens for session (HS256 for internal use)
         try:
-            current_app.logger.info(f"GOOGLE_TOKEN_CREATION_START", extra={
+            current_app.logger.info(f"GOOGLE_MINIMAL_TOKEN_CREATION_START", extra={
                 'request_id': request_id,
-                'user_id': user.id,
-                'user_email': email[:3] + '***',
-                'user_name': (user.name or 'None')[:10] + '***' if user.name else 'None'
+                'user_id': user.id
             })
             
             # Generate minimal access token
@@ -1020,27 +1056,43 @@ def google_oauth_callback():
                 expires_in_hours=8
             )
             
-            current_app.logger.info(f"GOOGLE_ACCESS_TOKEN_CREATED", extra={
+            # Decode header to verify algorithm
+            access_token_header = jwt.get_unverified_header(minimal_access_token)
+            current_app.logger.info(f"🔍 GOOGLE_MINIMAL_ACCESS_TOKEN_HEADER", extra={
                 'request_id': request_id,
-                'token_length': len(minimal_access_token)
+                'alg': access_token_header.get('alg'),
+                'typ': access_token_header.get('typ'),
+                'full_header': access_token_header
             })
             
-            # Generate minimal ID token with comprehensive fallbacks
-            safe_name = user.name or name or email.split('@')[0] or 'Unknown User'
-            
-            current_app.logger.info(f"GOOGLE_ID_TOKEN_START", extra={
-                'request_id': request_id,
-                'safe_name': safe_name[:10] + '***'
-            })
-            
+            # Generate minimal ID token
             minimal_id_token = minimal_token_service.create_minimal_id_token(
                 user_id=str(user.id),
                 user_email=email,
-                user_name=safe_name,
+                user_name=user.name or name,
                 expires_in_hours=8
             )
             
-            current_app.logger.info(f"GOOGLE_TOKENS_CREATED_SUCCESS", extra={
+            # Decode header to verify algorithm
+            id_token_header = jwt.get_unverified_header(minimal_id_token)
+            current_app.logger.info(f"🔍 GOOGLE_MINIMAL_ID_TOKEN_HEADER", extra={
+                'request_id': request_id,
+                'alg': id_token_header.get('alg'),
+                'typ': id_token_header.get('typ'),
+                'full_header': id_token_header
+            })
+            
+            # Decode payload to verify issuer and type
+            access_token_payload = jwt.decode(minimal_access_token, options={"verify_signature": False})
+            current_app.logger.info(f"🔍 GOOGLE_MINIMAL_ACCESS_TOKEN_PAYLOAD", extra={
+                'request_id': request_id,
+                'iss': access_token_payload.get('iss'),
+                'type': access_token_payload.get('type'),
+                'sub': access_token_payload.get('sub'),
+                'email': access_token_payload.get('email', '')[:3] + '***'
+            })
+            
+            current_app.logger.info(f"GOOGLE_MINIMAL_TOKENS_CREATED", extra={
                 'request_id': request_id,
                 'user_id': user.id,
                 'access_token_length': len(minimal_access_token),
@@ -1048,58 +1100,11 @@ def google_oauth_callback():
             })
             
         except Exception as token_error:
-            current_app.logger.error(f"GOOGLE_TOKEN_CREATION_ERROR", extra={
+            # NO FALLBACK - fail the login if we can't create minimal tokens
+            current_app.logger.error(f"GOOGLE_MINIMAL_TOKEN_CREATION_FAILED", extra={
                 'request_id': request_id,
                 'error': str(token_error),
-                'error_type': type(token_error).__name__,
-                'user_name': user.name if user else 'no_user',
-                'user_id': user.id if user else 'no_user',
-                'has_access_token': minimal_access_token is not None,
                 'traceback': traceback.format_exc()
-            })
-            
-            # FALLBACK: Try to create basic tokens as last resort
-            try:
-                current_app.logger.warning(f"GOOGLE_ATTEMPTING_FALLBACK_TOKENS", extra={
-                    'request_id': request_id,
-                    'user_id': user.id
-                })
-                
-                # If we have access token but ID token failed, reuse access token
-                if minimal_access_token and not minimal_id_token:
-                    minimal_id_token = minimal_access_token
-                    current_app.logger.info(f"GOOGLE_USING_ACCESS_TOKEN_AS_ID_TOKEN", extra={
-                        'request_id': request_id
-                    })
-                # If both failed, create minimal access token and reuse it
-                elif not minimal_access_token:
-                    minimal_access_token = minimal_token_service.create_minimal_access_token(
-                        user_id=str(user.id),
-                        user_email=email,
-                        expires_in_hours=8
-                    )
-                    minimal_id_token = minimal_access_token
-                    current_app.logger.info(f"GOOGLE_CREATED_FALLBACK_TOKENS", extra={
-                        'request_id': request_id,
-                        'token_length': len(minimal_access_token)
-                    })
-                
-            except Exception as fallback_error:
-                current_app.logger.error(f"GOOGLE_FALLBACK_TOKEN_ERROR", extra={
-                    'request_id': request_id,
-                    'error': str(fallback_error),
-                    'error_type': type(fallback_error).__name__,
-                    'traceback': traceback.format_exc()
-                })
-                from app.config import Config
-                return redirect(f"{Config.FRONTEND_URL}/login?error=token_creation_failed")
-        
-        # Validate we have both tokens before proceeding
-        if not minimal_access_token or not minimal_id_token:
-            current_app.logger.error(f"GOOGLE_MISSING_TOKENS_AFTER_CREATION", extra={
-                'request_id': request_id,
-                'has_access_token': minimal_access_token is not None,
-                'has_id_token': minimal_id_token is not None
             })
             from app.config import Config
             return redirect(f"{Config.FRONTEND_URL}/login?error=token_creation_failed")
@@ -1115,9 +1120,9 @@ def google_oauth_callback():
             'user_id': user.id
         })
         
-        # Set secure HttpOnly cookies
+        # Set secure HttpOnly cookies with minimal tokens (HS256)
         resp.set_cookie(
-            "session",
+            "sk_session",
             value=minimal_access_token,
             httponly=True,
             secure=os.getenv('FLASK_ENV') == 'production',
@@ -1126,11 +1131,10 @@ def google_oauth_callback():
             max_age=60*60*8  # 8 hours
         )
         
-        # Note: Google OAuth doesn't provide a long-lived refresh token with access_type=online
-        # For now, we'll create a pseudo refresh token using the access token
-        # In production, consider using access_type=offline to get a refresh token
+        # For Google OAuth, create a refresh-like token using the same minimal access token
+        # In production with offline access, you'd store Google's refresh_token separately
         resp.set_cookie(
-            "refresh_token",
+            "sk_refresh",
             value=minimal_access_token,  # Use same token for now
             httponly=True,
             secure=os.getenv('FLASK_ENV') == 'production',
@@ -1143,10 +1147,12 @@ def google_oauth_callback():
             'request_id': request_id,
             'user_id': user.id,
             'email': email[:3] + '***',
-            'new_user': user.created_at >= datetime.utcnow().replace(second=0, microsecond=0),
-            'cookies_set': True,
-            'redirect_url': f"{Config.FRONTEND_URL}/dashboard?google=success"
+            'cookies_set': True
         })
+        
+        # Clean up session
+        session.pop('google_oauth_state', None)
+        session.pop('google_oauth_nonce', None)
         
         return resp
         
