@@ -12,6 +12,20 @@ from ..services.google_oauth_service import google_oauth_service
 # Blueprint setup
 auth_bp = Blueprint('auth', __name__, url_prefix='/api/v1/auth')
 
+@auth_bp.route('/.well-known/jwks.json', methods=['GET'])
+def jwks():
+    """Serve JWKS (JSON Web Key Set) for app's RS256 tokens"""
+    try:
+        jwks_data = minimal_token_service.get_jwks()
+        current_app.logger.info("✅ JWKS_SERVED", extra={
+            'keys_count': len(jwks_data.get('keys', [])),
+            'kid': jwks_data.get('keys', [{}])[0].get('kid') if jwks_data.get('keys') else 'none'
+        })
+        return jsonify(jwks_data), 200
+    except Exception as e:
+        current_app.logger.error(f"❌ JWKS_ERROR: {str(e)}", exc_info=True)
+        return jsonify({'error': 'Failed to generate JWKS'}), 500
+
 @auth_bp.route('/signup', methods=['POST'])
 def signup():
     """Register a new user"""

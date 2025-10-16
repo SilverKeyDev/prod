@@ -312,32 +312,36 @@ def get_current_user():
         log_security_event('auth_invalid_jwt_format', {'parts_count': token.count(".") + 1})
         raise SecurityException(SecurityError.INVALID_TOKEN)
 
-    # Try minimal token first (preferred)
+    # Detect token type by issuer and marker (unverified peek for routing only)
     try:
-        # Check if this looks like a minimal token by trying to decode without verification
-        minimal_payload = jose_jwt.decode(token, options={"verify_signature": False})
-        token_type = minimal_payload.get('type')
-        issuer = minimal_payload.get('iss')
+        # Cheap unverified peek to route by issuer
+        unverified_payload = jose_jwt.decode(token, options={"verify_signature": False})
+        issuer = unverified_payload.get('iss', '')
+        t_marker = unverified_payload.get('t')  # 'min' for minimal/app tokens
+        
+        # Determine if this is an app token
+        app_issuer_prod = 'https://usesilverkey.com'
+        app_issuer_dev = 'http://localhost:5000'
+        is_app_token = (issuer in [app_issuer_prod, app_issuer_dev]) or (t_marker == 'min')
         
         current_app.logger.info(f"🔍 AUTH_TOKEN_DETECTION", extra={
-            'token_type': token_type,
             'issuer': issuer,
-            'has_type': bool(token_type),
-            'has_issuer': bool(issuer),
-            'is_minimal': token_type in ('access', 'id') and issuer == 'silverkey-api',
+            't_marker': t_marker,
+            'is_app_token': is_app_token,
+            'is_cognito_token': issuer.startswith('https://cognito-idp.') if issuer else False,
             'token_preview': token[:30] + '...' if len(token) > 30 else token
         })
         
-        # If it's a minimal token, verify it
-        if token_type in ('access', 'id') and issuer == 'silverkey-api':
-            current_app.logger.info(f"✅ AUTH_MINIMAL_TOKEN_DETECTED", extra={
-                'token_type': token_type,
-                'issuer': issuer
+        # Route to app token verification (RS256 via app JWKS)
+        if is_app_token:
+            current_app.logger.info(f"✅ AUTH_APP_TOKEN_DETECTED", extra={
+                'issuer': issuer,
+                't_marker': t_marker
             })
             return _verify_minimal_token(token)
             
     except Exception as e:
-        current_app.logger.info(f"⚠️ AUTH_TOKEN_NOT_MINIMAL", extra={
+        current_app.logger.info(f"⚠️ AUTH_TOKEN_ROUTING_ERROR", extra={
             'error': str(e),
             'error_type': type(e).__name__,
             'will_try_cognito': True
