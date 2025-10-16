@@ -266,10 +266,24 @@ def get_current_user():
     session_cookie = request.cookies.get('sk_session')
     if session_cookie:
         token = session_cookie
-        current_app.logger.info(f"🔍 AUTH_TOKEN_FROM_COOKIE", extra={
-            'token_length': len(token),
-            'token_preview': token[:30] + '...' if len(token) > 30 else token
-        })
+        
+        # Log incoming JWT header for diagnostics
+        try:
+            incoming_header = jose_jwt.get_unverified_header(token)
+            incoming_payload = jose_jwt.decode(token, options={"verify_signature": False})
+            current_app.logger.info(f"🔍 AUTH_INCOMING_JWT_HEADER", extra={
+                'alg': incoming_header.get('alg'),
+                'kid': incoming_header.get('kid', 'missing')[:20] + '...' if incoming_header.get('kid') and len(incoming_header.get('kid', '')) > 20 else incoming_header.get('kid', 'missing'),
+                'typ': incoming_header.get('typ'),
+                'iss': incoming_payload.get('iss', 'missing'),
+                't': incoming_payload.get('t', 'missing'),
+                'token_length': len(token)
+            })
+        except Exception as e:
+            current_app.logger.warning(f"⚠️ AUTH_INCOMING_JWT_PARSE_ERROR", extra={
+                'error': str(e),
+                'token_preview': token[:30] + '...' if len(token) > 30 else token
+            })
 
     else:
         current_app.logger.warning(f"⚠️ AUTH_NO_SESSION_COOKIE", extra={
@@ -313,40 +327,73 @@ def get_current_user():
         raise SecurityException(SecurityError.INVALID_TOKEN)
 
     # Detect token type by issuer and marker (unverified peek for routing only)
+    # This determines which verification path to use
     try:
+        # Get header first for logging
+        unverified_header = jose_jwt.get_unverified_header(token)
+        alg = unverified_header.get('alg')
+        kid = unverified_header.get('kid', 'missing')
+        
         # Cheap unverified peek to route by issuer
         unverified_payload = jose_jwt.decode(token, options={"verify_signature": False})
         issuer = unverified_payload.get('iss', '')
         t_marker = unverified_payload.get('t')  # 'min' for minimal/app tokens
         
-        # Determine if this is an app token
+        # Determine token type
         app_issuer_prod = 'https://usesilverkey.com'
         app_issuer_dev = 'http://localhost:5000'
         is_app_token = (issuer in [app_issuer_prod, app_issuer_dev]) or (t_marker == 'min')
+        is_cognito_token = issuer.startswith('https://cognito-idp.') if issuer else False
         
-        current_app.logger.info(f"🔍 AUTH_TOKEN_DETECTION", extra={
+        current_app.logger.info(f"🔍 AUTH_ROUTE_INSPECT", extra={
             'issuer': issuer,
             't_marker': t_marker,
+            'alg': alg,
+            'kid': kid[:20] + '...' if len(kid) > 20 else kid,
             'is_app_token': is_app_token,
-            'is_cognito_token': issuer.startswith('https://cognito-idp.') if issuer else False,
-            'token_preview': token[:30] + '...' if len(token) > 30 else token
+            'is_cognito_token': is_cognito_token
         })
         
-        # Route to app token verification (RS256 via app JWKS)
+        # Route 1: App token verification (RS256 via app's own verification)
         if is_app_token:
-            current_app.logger.info(f"✅ AUTH_APP_TOKEN_DETECTED", extra={
+            current_app.logger.info(f"✅ AUTH_ROUTING_TO_APP_PATH", extra={
                 'issuer': issuer,
+                't_marker': t_marker,
+                'alg': alg,
+                'kid': kid[:20] + '...' if len(kid) > 20 else kid
+            })
+            # Use app token verification - does NOT fall back to Cognito
+            return _verify_minimal_token(token)
+        
+        # Route 2: Cognito token verification (only if explicitly Cognito issuer)
+        elif is_cognito_token:
+            current_app.logger.info(f"✅ AUTH_ROUTING_TO_COGNITO_PATH", extra={
+                'issuer': issuer,
+                'alg': alg
+            })
+            # Continue to Cognito verification below
+        
+        # Route 3: Unknown issuer - reject immediately
+        else:
+            current_app.logger.error(f"❌ AUTH_UNKNOWN_ISSUER", extra={
+                'issuer': issuer,
+                'alg': alg,
+                'kid': kid,
                 't_marker': t_marker
             })
-            return _verify_minimal_token(token)
+            log_security_event('auth_unknown_issuer', {'issuer': issuer, 'alg': alg})
+            raise SecurityException(SecurityError.INVALID_TOKEN)
             
+    except SecurityException:
+        # Re-raise security exceptions (don't catch our own rejections)
+        raise
     except Exception as e:
-        current_app.logger.info(f"⚠️ AUTH_TOKEN_ROUTING_ERROR", extra={
+        current_app.logger.error(f"❌ AUTH_TOKEN_ROUTING_EXCEPTION", extra={
             'error': str(e),
-            'error_type': type(e).__name__,
-            'will_try_cognito': True
+            'error_type': type(e).__name__
         })
-        # Continue to Cognito token verification
+        log_security_event('auth_routing_error', {'error': str(e)})
+        raise SecurityException(SecurityError.INVALID_TOKEN)
 
     # Fallback to Cognito token verification
     try:

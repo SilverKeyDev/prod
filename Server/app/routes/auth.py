@@ -1070,13 +1070,21 @@ def google_oauth_callback():
                 expires_in_hours=8
             )
             
-            # Decode header to verify algorithm
+            # Decode and log header + payload to verify what we're minting
             access_token_header = jwt.get_unverified_header(minimal_access_token)
-            current_app.logger.info(f"🔍 GOOGLE_MINIMAL_ACCESS_TOKEN_HEADER", extra={
+            access_token_payload = jwt.decode(minimal_access_token, options={"verify_signature": False})
+            
+            current_app.logger.info(f"🔍 GOOGLE_MINTED_ACCESS_TOKEN_DETAILS", extra={
                 'request_id': request_id,
-                'alg': access_token_header.get('alg'),
-                'typ': access_token_header.get('typ'),
-                'full_header': access_token_header
+                'header_alg': access_token_header.get('alg'),
+                'header_kid': access_token_header.get('kid'),
+                'header_typ': access_token_header.get('typ'),
+                'payload_iss': access_token_payload.get('iss'),
+                'payload_t': access_token_payload.get('t'),
+                'payload_sub': access_token_payload.get('sub'),
+                'payload_aud': access_token_payload.get('aud'),
+                'payload_email': access_token_payload.get('email', '')[:3] + '***',
+                'token_length': len(minimal_access_token)
             })
             
             # Generate minimal ID token
@@ -1087,23 +1095,20 @@ def google_oauth_callback():
                 expires_in_hours=8
             )
             
-            # Decode header to verify algorithm
+            # Decode and log ID token details
             id_token_header = jwt.get_unverified_header(minimal_id_token)
-            current_app.logger.info(f"🔍 GOOGLE_MINIMAL_ID_TOKEN_HEADER", extra={
-                'request_id': request_id,
-                'alg': id_token_header.get('alg'),
-                'typ': id_token_header.get('typ'),
-                'full_header': id_token_header
-            })
+            id_token_payload = jwt.decode(minimal_id_token, options={"verify_signature": False})
             
-            # Decode payload to verify issuer and type
-            access_token_payload = jwt.decode(minimal_access_token, options={"verify_signature": False})
-            current_app.logger.info(f"🔍 GOOGLE_MINIMAL_ACCESS_TOKEN_PAYLOAD", extra={
+            current_app.logger.info(f"🔍 GOOGLE_MINTED_ID_TOKEN_DETAILS", extra={
                 'request_id': request_id,
-                'iss': access_token_payload.get('iss'),
-                'type': access_token_payload.get('type'),
-                'sub': access_token_payload.get('sub'),
-                'email': access_token_payload.get('email', '')[:3] + '***'
+                'header_alg': id_token_header.get('alg'),
+                'header_kid': id_token_header.get('kid'),
+                'header_typ': id_token_header.get('typ'),
+                'payload_iss': id_token_payload.get('iss'),
+                'payload_t': id_token_payload.get('t'),
+                'payload_sub': id_token_payload.get('sub'),
+                'payload_aud': id_token_payload.get('aud'),
+                'token_length': len(minimal_id_token)
             })
             
             current_app.logger.info(f"GOOGLE_MINIMAL_TOKENS_CREATED", extra={

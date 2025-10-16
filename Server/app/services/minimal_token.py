@@ -41,6 +41,12 @@ class MinimalTokenService:
         self.issuer = os.getenv('FLASK_ENV', 'development') == 'production' \
             and 'https://usesilverkey.com' or 'http://localhost:5000'
         self.kid = 'sk-2025-10-16'  # Key ID for rotation
+        
+        logger.info("🔧 MINIMAL_TOKEN_SERVICE_INIT", extra={
+            'algorithm': self.algorithm,
+            'issuer': self.issuer,
+            'kid': self.kid
+        })
     
     @property
     def private_key(self):
@@ -120,9 +126,12 @@ class MinimalTokenService:
                 }]
             }
             
-            logger.info("✅ Generated JWKS", extra={
+            logger.info("✅ JWKS_GENERATED", extra={
                 'kid': self.kid,
-                'alg': 'RS256'
+                'alg': 'RS256',
+                'kty': 'RSA',
+                'use': 'sig',
+                'keys_count': len(self._jwks.get('keys', []))
             })
         
         return self._jwks
