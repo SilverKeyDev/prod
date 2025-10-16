@@ -77,7 +77,17 @@ class MinimalTokenService:
                 'algorithm_to_use': self.algorithm
             })
             
+            logger.info(f"🔍 MINIMAL_ACCESS_TOKEN_ENCODING_START", extra={
+                'algorithm': self.algorithm,
+                'has_secret_key': bool(self.secret_key),
+                'secret_key_length': len(self.secret_key) if self.secret_key else 0
+            })
+            
             token = jwt.encode(payload, self.secret_key, algorithm=self.algorithm)
+            
+            logger.info(f"✅ MINIMAL_ACCESS_TOKEN_ENCODING_SUCCESS", extra={
+                'token_length': len(token)
+            })
             
             # Log token creation with size info
             token_size = len(token.encode('utf-8'))
@@ -93,12 +103,15 @@ class MinimalTokenService:
             return token
             
         except Exception as e:
-            logger.error("MINIMAL_ACCESS_TOKEN_CREATION_ERROR", extra={
+            import traceback
+            logger.error("❌ MINIMAL_ACCESS_TOKEN_CREATION_ERROR", extra={
                 'user_id': user_id,
                 'email': user_email[:3] + '***' + user_email[-3:] if user_email else 'missing',
                 'error': str(e),
-                'error_type': type(e).__name__
+                'error_type': type(e).__name__,
+                'traceback': traceback.format_exc()
             })
+            logger.error(f"MINIMAL_ACCESS_TOKEN_FULL_TRACEBACK:\n{traceback.format_exc()}")
             raise
     
     def create_minimal_id_token(self, user_id: str, user_email: str, user_name: str, expires_in_hours: int = 8) -> str:
@@ -146,7 +159,18 @@ class MinimalTokenService:
                 'algorithm_to_use': self.algorithm
             })
             
+            logger.info(f"🔍 MINIMAL_ID_TOKEN_ENCODING_START", extra={
+                'payload': payload,
+                'algorithm': self.algorithm,
+                'has_secret_key': bool(self.secret_key),
+                'secret_key_length': len(self.secret_key) if self.secret_key else 0
+            })
+            
             token = jwt.encode(payload, self.secret_key, algorithm=self.algorithm)
+            
+            logger.info(f"✅ MINIMAL_ID_TOKEN_ENCODING_SUCCESS", extra={
+                'token_length': len(token)
+            })
             
             # Log token creation with size info
             token_size = len(token.encode('utf-8'))
@@ -163,13 +187,16 @@ class MinimalTokenService:
             return token
             
         except Exception as e:
-            logger.error("MINIMAL_ID_TOKEN_CREATION_ERROR", extra={
+            import traceback
+            logger.error("❌ MINIMAL_ID_TOKEN_CREATION_ERROR", extra={
                 'user_id': user_id,
                 'email': user_email[:3] + '***' + user_email[-3:] if user_email else 'missing',
                 'name': str(user_name)[:10] + '***' if user_name and len(str(user_name)) > 10 else str(user_name),
                 'error': str(e),
-                'error_type': type(e).__name__
+                'error_type': type(e).__name__,
+                'traceback': traceback.format_exc()
             })
+            logger.error(f"MINIMAL_ID_TOKEN_FULL_TRACEBACK:\n{traceback.format_exc()}")
             raise
     
     def verify_minimal_token(self, token: str) -> Dict[str, Any]:

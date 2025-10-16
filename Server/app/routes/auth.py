@@ -1101,11 +1101,13 @@ def google_oauth_callback():
             
         except Exception as token_error:
             # NO FALLBACK - fail the login if we can't create minimal tokens
-            current_app.logger.error(f"GOOGLE_MINIMAL_TOKEN_CREATION_FAILED", extra={
+            current_app.logger.error(f"❌ GOOGLE_MINIMAL_TOKEN_CREATION_FAILED", extra={
                 'request_id': request_id,
                 'error': str(token_error),
+                'error_type': type(token_error).__name__,
                 'traceback': traceback.format_exc()
             })
+            current_app.logger.error(f"GOOGLE_MINIMAL_TOKEN_FULL_TRACEBACK:\n{traceback.format_exc()}")
             from app.config import Config
             return redirect(f"{Config.FRONTEND_URL}/login?error=token_creation_failed")
         
