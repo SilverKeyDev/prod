@@ -11,13 +11,13 @@ const root = ReactDOM.createRoot(
 );
 
 root.render(
-  <React.StrictMode>
-    <BrowserRouter
-      future={{ v7_relativeSplatPath: true, v7_startTransition: true }}
-    >
-      <CoreProviders>
-        <App />
-      </CoreProviders>
-    </BrowserRouter>
-  </React.StrictMode>
+  // Temporarily removed React.StrictMode to prevent double bootstrap calls in development
+  // TODO: Re-enable after auth debugging is complete
+  <BrowserRouter
+    future={{ v7_relativeSplatPath: true, v7_startTransition: true }}
+  >
+    <CoreProviders>
+      <App />
+    </CoreProviders>
+  </BrowserRouter>
 );

@@ -457,8 +457,47 @@ export const authApi = {
    * Always ask the server; do not rely on document.cookie heuristics
    */
   verifySession: async (): Promise<AuthResponse> => {
+    const requestId = `verify_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
     try {
+      // Log detailed cookie information before making the request
+      const allCookies = document.cookie
+        .split(";")
+        .map((c) => c.trim().split("=")[0])
+        .filter(Boolean);
+      
+      const sessionCookie = document.cookie
+        .split(";")
+        .find(c => c.trim().startsWith("session="));
+      
+      const refreshCookie = document.cookie
+        .split(";")
+        .find(c => c.trim().startsWith("refresh_token="));
+      
+      log.info("🔍 FRONTEND_VERIFY_SESSION_START", "Starting session verification", {
+        requestId,
+        allCookies,
+        cookieCount: allCookies.length,
+        hasSessionCookie: !!sessionCookie,
+        hasRefreshCookie: !!refreshCookie,
+        sessionCookiePreview: sessionCookie ? sessionCookie.substring(0, 30) + '...' : 'none',
+        refreshCookiePreview: refreshCookie ? refreshCookie.substring(0, 30) + '...' : 'none',
+        currentUrl: window.location.href,
+        timestamp: new Date().toISOString()
+      });
+      
       const { apiGet } = await import("../../services/http/compatibility");
+      
+      // Log the exact API call being made
+      log.info("🔍 FRONTEND_VERIFY_API_CALL", "Making verify session API call", {
+        requestId,
+        url: "/api/v1/user/profile",
+        method: "GET",
+        includeCredentials: true,
+        includeAuth: false,
+        useCors: false
+      });
+      
       // Use profile endpoint to verify session
       const response = await apiGet<
         AuthResponse & { data?: Record<string, unknown> }
@@ -468,20 +507,56 @@ export const authApi = {
         useCors: false,
       } as unknown as import("../../services/http/compatibility").ApiRequestOptions);
 
+      // Log cookies after the response
+      const cookiesAfter = document.cookie
+        .split(";")
+        .map((c) => c.trim().split("=")[0])
+        .filter(Boolean);
+      
+      const newCookies = cookiesAfter.filter((c) => !allCookies.includes(c));
+
       if (response.success && response.data) {
-        log.info("AUTH_SESSION_VERIFY", "Session verified successfully (profile endpoint)");
+        log.info("🔍 FRONTEND_VERIFY_SUCCESS", "Session verified successfully", {
+          requestId,
+          hasUserData: !!response.data,
+          userEmail: (response.data as UserProfile)?.email ? 
+            `${(response.data as UserProfile).email.substring(0, 3)}***${(response.data as UserProfile).email.substring((response.data as UserProfile).email.length - 3)}` : 
+            'missing',
+          cookiesAfter,
+          newCookies,
+          cookieCountAfter: cookiesAfter.length
+        });
         return {
           success: true,
           user: response.data as UserProfile,
         };
       }
 
-      log.debug("AUTH_SESSION_VERIFY_NO_SESSION", "No valid session found");
+      log.info("🔍 FRONTEND_VERIFY_NO_SESSION", "No valid session found", {
+        requestId,
+        responseSuccess: response.success,
+        hasData: !!response.data,
+        cookiesAfter,
+        newCookies,
+        cookieCountAfter: cookiesAfter.length
+      });
       return { success: false };
     } catch (error: unknown) {
       const err = error as Error;
-      log.debug("AUTH_SESSION_VERIFY_ERROR", "Session verification failed with error", {
+      
+      // Log cookies after error
+      const cookiesAfterError = document.cookie
+        .split(";")
+        .map((c) => c.trim().split("=")[0])
+        .filter(Boolean);
+      
+      log.error("🔍 FRONTEND_VERIFY_ERROR", "Session verification failed with error", {
+        requestId,
         error: err?.message || "Unknown error",
+        errorType: err?.constructor?.name || "Unknown",
+        cookiesAfterError,
+        cookieCountAfterError: cookiesAfterError.length,
+        currentUrl: window.location.href
       });
       return { success: false };
     }

@@ -66,16 +66,19 @@ def _find_key(jwks: dict, kid: str):
             return k
     return None
 
-def get_signing_key(token: str):
-    """Resolve signing key for the token, refreshing JWKS once on miss."""
+def get_signing_key_for_cognito_rs256(token: str):
+    """
+    Resolve signing key for a Cognito token.
+    IMPORTANT: Only call this for tokens you already determined are Cognito (i.e., NOT your minimal HS256 tokens).
+    """
     try:
         headers = jose_jwt.get_unverified_header(token)
 
-        # Pin algorithm to prevent header tampering
+        # Pin algorithm to prevent header tampering for Cognito path
         alg = headers.get("alg")
         if alg != "RS256":
             log_security_event("auth_invalid_alg", {"alg": alg})
-            raise JWTError("Invalid JWT alg")
+            raise JWTError("Invalid JWT alg for Cognito (expected RS256)")
 
         key_id = headers.get('kid')
         if not key_id:
@@ -100,13 +103,13 @@ def get_signing_key(token: str):
 # =========================
 # jose version compatibility: decode with leeway
 # =========================
-def _decode_with_leeway(token: str, key, audience: str, issuer: str, leeway_seconds: int):
+def _decode_with_leeway(token: str, key, issuer: str, leeway_seconds: int, verify_aud: bool = False, audience: str | None = None):
     """
     Try python-jose decode with leeway as kwarg; if TypeError, retry with options['leeway'].
-    This makes us compatible with older python-jose versions.
+    We default verify_aud to False so we can read token_use first, then enforce audience/client checks manually.
     """
     base_opts = {
-        "verify_aud": True,
+        "verify_aud": verify_aud,
         "verify_iss": True,
         "verify_signature": True
     }
@@ -116,9 +119,9 @@ def _decode_with_leeway(token: str, key, audience: str, issuer: str, leeway_seco
             token,
             key=key,
             algorithms=["RS256"],
-            audience=audience,
             issuer=issuer,
             options=base_opts,
+            audience=audience,
             leeway=leeway_seconds
         )
     except TypeError:
@@ -129,9 +132,9 @@ def _decode_with_leeway(token: str, key, audience: str, issuer: str, leeway_seco
             token,
             key=key,
             algorithms=["RS256"],
-            audience=audience,
             issuer=issuer,
-            options=opts
+            options=opts,
+            audience=audience
         )
 
 # =========================
@@ -157,73 +160,94 @@ def _log_expired_once(ip: str, endpoint: str, interval: int = 60):
         cache[key] = now
 
 # =========================
+# Token classification (centralized routing logic)
+# =========================
+def _classify_token(token: str) -> str:
+    """
+    Classify token type to prevent HS256 → Cognito routing.
+    Returns: 'minimal', 'cognito', 'reject_cognito_alg', or 'unknown'
+    """
+    try:
+        # Use jose_jwt for consistent header/claims reading
+        header = jose_jwt.get_unverified_header(token)
+        alg = header.get("alg")
+        
+        try:
+            claims = jose_jwt.get_unverified_claims(token)
+            iss = claims.get("iss")
+            typ = claims.get("type")
+        except Exception:
+            iss, typ = None, None
+        
+        # Check for Cognito tokens first
+        if iss and "cognito-idp." in iss:
+            return "cognito" if alg == "RS256" else "reject_cognito_alg"
+        
+        # Check for minimal tokens
+        if (typ == "access" and iss == "silverkey:minimal") or alg == "HS256":
+            return "minimal"
+        
+        return "unknown"
+        
+    except Exception:
+        return "unknown"
+
+# =========================
+# Helpers: safe unverified peek
+# =========================
+def _peek_claims_unverified(token: str) -> dict:
+    """
+    Safely read claims without verifying signature to decide routing (minimal vs Cognito).
+    Uses jose_jwt.get_unverified_claims which does not require a key.
+    """
+    try:
+        return jose_jwt.get_unverified_claims(token)
+    except Exception as e:
+        # Return empty dict so caller falls back to Cognito path
+        logger.debug("Unverified claims peek failed: %s", e)
+        return {}
+
+# =========================
 # Core: current user resolver
 # =========================
 def _verify_minimal_token(token: str) -> User:
     """
     Verify a minimal token and return the associated user
-    
-    Args:
-        token: Minimal JWT token string
-        
-    Returns:
-        User object
-        
-    Raises:
-        SecurityException: If token is invalid or user not found
     """
-    try:
-        # Verify minimal token
-        claims = minimal_token_service.verify_minimal_token(token)
-        
-        # Get user ID from token
-        user_id = claims.get('sub')
-        if not user_id:
-            log_security_event('auth_minimal_token_missing_sub')
-            raise SecurityException(SecurityError.INVALID_TOKEN)
-        
-        # Find user by ID (minimal tokens use database ID as sub)
-        user = User.query.filter_by(id=user_id).first()
-        if not user:
-            # Fallback: try to find by email
-            user_email = claims.get('email')
-            if user_email:
-                user = User.query.filter_by(email=user_email).first()
-                if user:
-                    # Update user ID to match token
-                    user.id = user_id
-                    db.session.commit()
-        
-        if not user:
-            log_security_event('auth_minimal_token_user_not_found', {'user_id': f"{user_id[:8]}..."})
-            raise SecurityException(SecurityError.UNAUTHORIZED)
-        
-        # Log successful minimal token verification
-        logger.debug("MINIMAL_TOKEN_VERIFIED_SUCCESSFULLY", extra={
-            'user_id': user.id,
-            'email': user.email[:3] + '***' + user.email[-3:] if user.email else 'missing',
-            'token_type': claims.get('type', 'unknown'),
-            'expires_at': claims.get('exp', 'unknown')
-        })
-        
-        return user
-        
-    except Exception as e:
-        # Don't catch database errors - let them propagate to proper error handlers
-        from sqlalchemy.exc import SQLAlchemyError
-        if isinstance(e, SQLAlchemyError):
-            logger.error("DATABASE_ERROR_IN_MINIMAL_TOKEN_VERIFICATION", extra={
-                'error': str(e),
-                'error_type': type(e).__name__
-            })
-            raise  # Re-raise DB errors so they get proper 500 handling
-            
-        logger.error("MINIMAL_TOKEN_VERIFICATION_ERROR", extra={
-            'error': str(e),
-            'error_type': type(e).__name__,
-            'token_preview': token[:20] + '...' if len(token) > 20 else token
-        })
+    # Verify minimal token
+    claims = minimal_token_service.verify_minimal_token(token)
+
+    # Get user ID from token
+    user_id = claims.get('sub')
+    if not user_id:
+        log_security_event('auth_minimal_token_missing_sub')
         raise SecurityException(SecurityError.INVALID_TOKEN)
+
+    # Find user by ID (minimal tokens use database ID as sub)
+    user = User.query.filter_by(id=user_id).first()
+    if not user:
+        # Fallback: try to find by email
+        user_email = claims.get('email')
+        if user_email:
+            user = User.query.filter_by(email=user_email).first()
+            if user:
+                # Update user ID to match token (only if your schema supports this)
+                user.id = user_id
+                db.session.commit()
+
+    if not user:
+        log_security_event('auth_minimal_token_user_not_found', {'user_id': f"{str(user_id)[:8]}..."})
+        raise SecurityException(SecurityError.UNAUTHORIZED)
+
+    # Log successful minimal token verification
+    logger.debug("MINIMAL_TOKEN_VERIFIED_SUCCESSFULLY", extra={
+        'user_id': getattr(user, "id", None),
+        'email': (user.email[:3] + '***' + user.email[-3:]) if getattr(user, "email", None) else 'missing',
+        'token_type': claims.get('type', 'unknown'),
+        'expires_at': claims.get('exp', 'unknown')
+    })
+
+    return user
 
 def get_current_user():
     """
@@ -232,41 +256,67 @@ def get_current_user():
     """
     token = None
     
+    # Enhanced logging for debugging authentication issues
+    current_app.logger.info("🔍 AUTH_VERIFICATION_START", extra={
+        'endpoint': request.endpoint,
+        'method': request.method,
+        'path': request.path,
+        'origin': request.headers.get('Origin'),
+        'referer': request.headers.get('Referer'),
+        'user_agent': request.headers.get('User-Agent', '')[:50] + '...' if request.headers.get('User-Agent') else 'missing',
+        'available_cookies': list(request.cookies.keys()),
+        'cookie_count': len(request.cookies),
+        'has_authorization_header': bool(request.headers.get('Authorization')),
+        'verification_timestamp': int(time.time()),
+        'timing_context': 'auth_verification'
+    })
+    
     # Try to get token from HttpOnly cookie first (preferred method)
     session_cookie = request.cookies.get('session')
     if session_cookie:
         token = session_cookie
-
+        current_app.logger.info("🔍 AUTH_TOKEN_FROM_SESSION_COOKIE", extra={
+            'cookie_length': len(session_cookie),
+            'cookie_preview': session_cookie[:20] + '...' if len(session_cookie) > 20 else session_cookie,
+            'endpoint': request.endpoint
+        })
     else:
-        current_app.logger.warning(f"⚠️ AUTH_NO_SESSION_COOKIE", extra={
+        current_app.logger.warning("⚠️ AUTH_NO_SESSION_COOKIE", extra={
             'available_cookies': list(request.cookies.keys()),
-            'trying_auth_header': True
+            'cookie_values': {k: (v[:10] + '...') if isinstance(v, str) and len(v) > 10 else v for k, v in request.cookies.items()},
+            'trying_auth_header': True,
+            'endpoint': request.endpoint
         })
         # Fallback to Authorization header for backward compatibility
         auth = request.headers.get("Authorization", "")
         parts = auth.split()
         if len(parts) == 2 and parts[0].lower() == "bearer":
             token = parts[1]
-            current_app.logger.info(f"✅ AUTH_TOKEN_FROM_HEADER", extra={
+            current_app.logger.info("✅ AUTH_TOKEN_FROM_HEADER", extra={
                 'token_length': len(token),
-                'token_prefix': token[:20] + '...' if len(token) > 20 else token
+                'token_prefix': token[:20] + '...' if len(token) > 20 else token,
+                'endpoint': request.endpoint
             })
         else:
             if not auth:
-                current_app.logger.error(f"❌ AUTH_MISSING_TOKEN", extra={
+                current_app.logger.error("❌ AUTH_MISSING_TOKEN", extra={
                     'cookies_present': list(request.cookies.keys()),
-                    'headers_checked': ['Cookie', 'Authorization']
+                    'cookie_values': {k: (v[:10] + '...') if isinstance(v, str) and len(v) > 10 else v for k, v in request.cookies.items()},
+                    'headers_checked': ['Cookie', 'Authorization'],
+                    'endpoint': request.endpoint,
+                    'path': request.path
                 })
                 log_security_event('auth_missing_token')
                 raise SecurityException(SecurityError.UNAUTHORIZED)
-            current_app.logger.error(f"❌ AUTH_INVALID_HEADER_FORMAT", extra={
-                'auth_header': auth[:50] + '...' if len(auth) > 50 else auth
+            current_app.logger.error("❌ AUTH_INVALID_HEADER_FORMAT", extra={
+                'auth_header': auth[:50] + '...' if len(auth) > 50 else auth,
+                'endpoint': request.endpoint
             })
             log_security_event('auth_invalid_header_format')
             raise SecurityException(SecurityError.INVALID_TOKEN)
     
     if not token:
-        current_app.logger.error(f"❌ AUTH_NO_TOKEN_FOUND", extra={
+        current_app.logger.error("❌ AUTH_NO_TOKEN_FOUND", extra={
             'session_cookie_present': bool(session_cookie),
             'auth_header_present': bool(request.headers.get('Authorization'))
         })
@@ -278,51 +328,153 @@ def get_current_user():
         log_security_event('auth_invalid_jwt_format', {'parts_count': token.count(".") + 1})
         raise SecurityException(SecurityError.INVALID_TOKEN)
 
-    # Try minimal token first (preferred)
+    # -------- Centralized token classification (prevents HS256 → Cognito routing) --------
     try:
-        # Check if this looks like a minimal token by trying to decode without verification
-        minimal_payload = jose_jwt.decode(token, options={"verify_signature": False})
-        token_type = minimal_payload.get('type')
-        issuer = minimal_payload.get('iss')
+        token_kind = _classify_token(token)
         
-        # If it's a minimal token, verify it
-        if token_type in ('access', 'id') and issuer == 'silverkey-api':
-            current_app.logger.debug("Detected minimal token, verifying...")
-            return _verify_minimal_token(token)
-            
-    except Exception as e:
-        current_app.logger.debug(f"Token is not a minimal token: {str(e)}")
-        # Continue to Cognito token verification
+        current_app.logger.info("🔍 AUTH_CLASSIFY_START", extra={
+            'endpoint': request.endpoint,
+            'has_token': bool(token),
+            'token_kind': token_kind
+        })
 
-    # Fallback to Cognito token verification
+        if token_kind == "minimal":
+            current_app.logger.info("🔍 AUTH_DECISION", extra={
+                'kind': token_kind,
+                'action': 'minimal_verify'
+            })
+            try:
+                return _verify_minimal_token(token)
+            except Exception as minimal_verify_error:
+                error_type = type(minimal_verify_error).__name__
+                current_app.logger.error("🔍 MINIMAL_TOKEN_VERIFICATION_FAILED", extra={
+                    'error': str(minimal_verify_error),
+                    'error_type': error_type,
+                    'note': 'Minimal token verification failed - NO fallback to Cognito'
+                })
+                
+                # Log specific error types for debugging
+                if error_type == 'ImmatureSignatureError':
+                    # Enhanced logging for ImmatureSignatureError
+                    current_app.logger.error("🔍 IMMATURE_SIGNATURE_ERROR_DETAILED", extra={
+                        'error': str(minimal_verify_error),
+                        'error_type': error_type,
+                        'verification_timestamp': int(time.time()),
+                        'endpoint': request.endpoint,
+                        'path': request.path,
+                        'referer': request.headers.get('Referer'),
+                        'user_agent': request.headers.get('User-Agent', '')[:50] + '...' if request.headers.get('User-Agent') else 'missing',
+                        'timing_context': 'auth_verification',
+                        'note': 'Token nbf/iat is in the future - possible clock skew or immediate usage'
+                    })
+                    log_security_event('auth_minimal_token_immature', {
+                        'error_type': error_type,
+                        'note': 'Token nbf/iat is in the future - possible clock skew',
+                        'verification_timestamp': int(time.time()),
+                        'endpoint': request.endpoint
+                    })
+                else:
+                    log_security_event('auth_minimal_token_verification_failed', {
+                        'error_type': error_type
+                    })
+                
+                # CRITICAL: Never fall back to Cognito for minimal tokens
+                raise SecurityException(SecurityError.INVALID_TOKEN)
+
+        elif token_kind == "reject_cognito_alg":
+            # HS256 token claiming to be Cognito - reject immediately
+            current_app.logger.info("🔍 AUTH_DECISION", extra={
+                'kind': token_kind,
+                'action': 'reject_cognito_alg'
+            })
+            log_security_event('auth_cognito_wrong_algorithm', {
+                'alg': 'HS256',
+                'expected': 'RS256',
+                'note': 'HS256 token incorrectly routed to Cognito validation'
+            })
+            raise SecurityException(SecurityError.INVALID_TOKEN)
+
+        elif token_kind == "cognito":
+            current_app.logger.info("🔍 AUTH_DECISION", extra={
+                'kind': token_kind,
+                'action': 'cognito_verify'
+            })
+            # Continue to Cognito verification below
+        else:
+            # Unknown token kind
+            current_app.logger.warning("🔍 AUTH_UNKNOWN_TOKEN_KIND", extra={
+                'token_kind': token_kind
+            })
+            log_security_event('auth_unknown_token_kind', {
+                'token_kind': token_kind
+            })
+            raise SecurityException(SecurityError.INVALID_TOKEN)
+
+    except SecurityException:
+        # Re-raise security exceptions
+        raise
+    except Exception as e:
+        current_app.logger.error("🔍 AUTH_CLASSIFICATION_FAILED", extra={
+            'error': str(e),
+            'error_type': type(e).__name__
+        })
+        raise SecurityException(SecurityError.INVALID_TOKEN)
+
+    # -------- Cognito verification path (RS256) --------
     try:
         current_app.logger.debug("Verifying as Cognito token...")
-        
-        # Resolve signing key
-        key = get_signing_key(token)
 
-        # Decode + validate with leeway to tolerate small skew (version-compatible)
+        # GUARDRAIL: Check algorithm before attempting Cognito validation
+        # This should never be reached now due to centralized classification, but keep as safety net
+        try:
+            unverified_header = jose_jwt.get_unverified_header(token)
+            alg = unverified_header.get('alg')
+            if alg != 'RS256':
+                log_security_event('auth_cognito_wrong_algorithm', {
+                    'alg': alg,
+                    'expected': 'RS256',
+                    'note': 'HS256 token incorrectly routed to Cognito validation (should not happen with new classification)'
+                })
+                raise SecurityException(SecurityError.INVALID_TOKEN)
+        except Exception as header_error:
+            current_app.logger.error("Failed to read token header: %s", header_error, extra={
+                'token_present': bool(token),
+                'token_length': len(token) if token else 0
+            })
+            raise SecurityException(SecurityError.INVALID_TOKEN)
+
+        # Resolve signing key (also enforces alg == RS256)
+        key = get_signing_key_for_cognito_rs256(token)
+
+        # Decode WITHOUT audience verification; then validate based on token_use
         claims = _decode_with_leeway(
             token=token,
             key=key,
-            audience=AWS_COGNITO_CLIENT_ID,   # Valid for ID tokens
             issuer=AWS_COGNITO_ISSUER,
-            leeway_seconds=60
+            leeway_seconds=60,
+            verify_aud=False,
+            audience=None
         )
 
-        # Guard against mixing token types
         token_use = claims.get("token_use")
         if token_use not in ("id", "access"):
             log_security_event("auth_invalid_token_use", {"token_use": token_use})
             raise SecurityException(SecurityError.INVALID_TOKEN)
 
-        if token_use == "access":
-            # Access tokens validate client_id, not aud
+        if token_use == "id":
+            # For ID tokens: require aud == client_id (Cognito puts client_id in 'aud')
+            aud = claims.get("aud")
+            if aud != AWS_COGNITO_CLIENT_ID:
+                log_security_event("auth_invalid_audience", {"aud": aud})
+                raise SecurityException(SecurityError.INVALID_TOKEN)
+
+        elif token_use == "access":
+            # For access tokens: require client_id claim equals client
             if claims.get("client_id") != AWS_COGNITO_CLIENT_ID:
                 log_security_event("auth_invalid_client_id")
                 raise SecurityException(SecurityError.INVALID_TOKEN)
 
-        # Resolve user: prefer sub, fallback to email
+        # Resolve user: prefer Cognito sub, fallback to email
         sub = claims.get('sub')
         if not sub:
             log_security_event('auth_missing_sub')
@@ -360,7 +512,7 @@ def get_current_user():
         # Don't catch database errors - let them propagate to proper error handlers
         from sqlalchemy.exc import SQLAlchemyError
         if isinstance(e, SQLAlchemyError):
-            current_app.logger.error(f"❌ DATABASE_ERROR_IN_AUTH", extra={
+            current_app.logger.error("❌ DATABASE_ERROR_IN_AUTH", extra={
                 'error_type': type(e).__name__,
                 'error': str(e)
             })

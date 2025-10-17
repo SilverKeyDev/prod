@@ -27,13 +27,18 @@ export default defineConfig({
     },
     proxy: {
       "/api": {
-        target: "http://localhost:5000", // Changed from 127.0.0.1 to localhost
+        target: "http://localhost:5000",
         changeOrigin: true,
         secure: false,
-        cookieDomainRewrite: "localhost", // Ensure cookies are rewritten for localhost
+        configure: (proxy) => {
+          proxy.on("proxyRes", (proxyRes) => {
+            // Ensure Set-Cookie headers pass through unmodified
+            // Do NOT use cookieDomainRewrite as it can interfere with localhost cookies
+          });
+        },
       },
       "/healthz": {
-        target: "http://localhost:5000", // Changed from 127.0.0.1 to localhost
+        target: "http://localhost:5000",
         changeOrigin: true,
         secure: false,
       },

@@ -34,6 +34,7 @@ class GoogleOAuthService:
             self.redirect_uri = 'https://usesilverkey.com/api/v1/auth/google/callback'
         else:
             # Backend URL for OAuth callback (not frontend)
+            # This must match what's configured in Google Cloud Console
             self.redirect_uri = 'http://localhost:5000/api/v1/auth/google/callback'
         
         # OAuth scopes for user profile and email
@@ -159,7 +160,10 @@ class GoogleOAuthService:
             logger.info(f"GOOGLE_TOKEN_EXCHANGE_SUCCESS", extra={
                 'request_id': request_id,
                 'has_access_token': bool(tokens.get("access_token")),
-                'expires_in': tokens.get("expires_in")
+                'has_id_token': bool(tokens.get("id_token")),
+                'has_refresh_token': bool(tokens.get("refresh_token")),
+                'expires_in': tokens.get("expires_in"),
+                'response_keys': list(tokens.keys())
             })
             
             return tokens

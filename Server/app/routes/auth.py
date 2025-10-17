@@ -197,12 +197,28 @@ def verify():
         
         # Create minimal tokens instead of using large Cognito tokens
         try:
+            current_app.logger.info(f"🔧 VERIFY_TOKEN_CREATION_START", extra={
+                'request_id': request_id,
+                'user_id': str(user.id) if user else user_sub,
+                'user_email': data['email'][:3] + '***' + data['email'][-3:] if data['email'] else 'missing',
+                'user_name': user.name[:10] + '***' if user and user.name else 'missing',
+                'minimal_token_service_available': bool(minimal_token_service),
+                'secret_key_available': bool(getattr(minimal_token_service, 'secret_key', None))
+            })
+            
             # Generate minimal access token
             minimal_access_token = minimal_token_service.create_minimal_access_token(
                 user_id=str(user.id) if user else user_sub,
                 user_email=data['email'],
                 expires_in_hours=8
             )
+            
+            current_app.logger.info(f"🔧 VERIFY_ACCESS_TOKEN_CREATED", extra={
+                'request_id': request_id,
+                'user_id': str(user.id) if user else user_sub,
+                'token_length': len(minimal_access_token),
+                'token_preview': minimal_access_token[:20] + '...' if len(minimal_access_token) > 20 else minimal_access_token
+            })
             
             # Generate minimal ID token
             minimal_id_token = minimal_token_service.create_minimal_id_token(
@@ -211,6 +227,13 @@ def verify():
                 user_name=user.name if user else 'Unknown User',
                 expires_in_hours=8
             )
+            
+            current_app.logger.info(f"🔧 VERIFY_ID_TOKEN_CREATED", extra={
+                'request_id': request_id,
+                'user_id': str(user.id) if user else user_sub,
+                'token_length': len(minimal_id_token),
+                'token_preview': minimal_id_token[:20] + '...' if len(minimal_id_token) > 20 else minimal_id_token
+            })
             
             # Log token size comparison
             AWS_COGNITO_access_size = len(login_result['tokens']['AccessToken'].encode('utf-8'))
@@ -229,8 +252,12 @@ def verify():
             })
             
         except Exception as token_error:
-            current_app.logger.error(f"VERIFICATION_MINIMAL_TOKEN_ERROR", extra={
-                'error': str(token_error)
+            current_app.logger.error(f"🔧 VERIFICATION_MINIMAL_TOKEN_ERROR", extra={
+                'request_id': request_id,
+                'user_id': str(user.id) if user else user_sub,
+                'error': str(token_error),
+                'error_type': type(token_error).__name__,
+                'traceback': traceback.format_exc()[:500]
             })
             # Fallback to Cognito tokens if minimal token creation fails
             minimal_access_token = login_result['tokens']['AccessToken']
@@ -604,8 +631,13 @@ def login():
             user = None
 
         # Create minimal tokens instead of using large Cognito tokens
-        current_app.logger.info(f"AUTH_LOGIN_PHASE_MINIMAL_TOKEN_CREATION", extra={
-            'request_id': request_id
+        current_app.logger.info(f"🔧 LOGIN_TOKEN_CREATION_START", extra={
+            'request_id': request_id,
+            'user_id': str(user.id) if user else user_sub,
+            'user_email': data['email'][:3] + '***' + data['email'][-3:] if data['email'] else 'missing',
+            'user_name': user.name[:10] + '***' if user and user.name else 'missing',
+            'minimal_token_service_available': bool(minimal_token_service),
+            'secret_key_available': bool(getattr(minimal_token_service, 'secret_key', None))
         })
         
         try:
@@ -616,6 +648,13 @@ def login():
                 expires_in_hours=8
             )
             
+            current_app.logger.info(f"🔧 LOGIN_ACCESS_TOKEN_CREATED", extra={
+                'request_id': request_id,
+                'user_id': str(user.id) if user else user_sub,
+                'token_length': len(minimal_access_token),
+                'token_preview': minimal_access_token[:20] + '...' if len(minimal_access_token) > 20 else minimal_access_token
+            })
+            
             # Generate minimal ID token
             minimal_id_token = minimal_token_service.create_minimal_id_token(
                 user_id=str(user.id) if user else user_sub,
@@ -623,6 +662,13 @@ def login():
                 user_name=user.name if user else 'Unknown User',
                 expires_in_hours=8
             )
+            
+            current_app.logger.info(f"🔧 LOGIN_ID_TOKEN_CREATED", extra={
+                'request_id': request_id,
+                'user_id': str(user.id) if user else user_sub,
+                'token_length': len(minimal_id_token),
+                'token_preview': minimal_id_token[:20] + '...' if len(minimal_id_token) > 20 else minimal_id_token
+            })
             
             # Log token size comparison
             AWS_COGNITO_access_size = len(result['tokens']['AccessToken'].encode('utf-8'))
@@ -642,9 +688,12 @@ def login():
             })
             
         except Exception as token_error:
-            current_app.logger.error(f"AUTH_LOGIN_MINIMAL_TOKEN_ERROR", extra={
+            current_app.logger.error(f"🔧 LOGIN_MINIMAL_TOKEN_ERROR", extra={
                 'request_id': request_id,
-                'error': str(token_error)
+                'user_id': str(user.id) if user else user_sub,
+                'error': str(token_error),
+                'error_type': type(token_error).__name__,
+                'traceback': traceback.format_exc()[:500]
             })
             # Fallback to Cognito tokens if minimal token creation fails
             minimal_access_token = result['tokens']['AccessToken']
@@ -961,7 +1010,19 @@ def google_oauth_callback():
         
         google_id = user_info['id']
         email = user_info['email']
-        name = user_info.get('name', email.split('@')[0])
+        # Ensure name is not empty - use email prefix as fallback
+        name = user_info.get('name', '').strip() if user_info.get('name') else email.split('@')[0]
+        if not name or not name.strip():
+            name = email.split('@')[0] if email and '@' in email else "User"
+        
+        current_app.logger.info(f"🔧 GOOGLE_USER_INFO_PROCESSED", extra={
+            'request_id': request_id,
+            'google_id': google_id[:10] + '***',
+            'email': email[:3] + '***',
+            'name_from_google': user_info.get('name', 'missing'),
+            'name_final': name[:10] + '***' if name else 'missing',
+            'name_length': len(name) if name else 0
+        })
         
         # Check if user exists by google_id or email
         user = User.query.filter_by(google_id=google_id).first()
@@ -1003,6 +1064,13 @@ def google_oauth_callback():
         
         # Create minimal tokens for session
         try:
+            current_app.logger.info(f"🔧 GOOGLE_TOKEN_CREATION_START", extra={
+                'request_id': request_id,
+                'user_id': str(user.id),
+                'user_email': email[:3] + '***',
+                'user_name': user.name[:10] + '***' if user.name else 'missing'
+            })
+            
             # Generate minimal access token
             minimal_access_token = minimal_token_service.create_minimal_access_token(
                 user_id=str(user.id),
@@ -1010,60 +1078,188 @@ def google_oauth_callback():
                 expires_in_hours=8
             )
             
-            # Generate minimal ID token
-            minimal_id_token = minimal_token_service.create_minimal_id_token(
-                user_id=str(user.id),
-                user_email=email,
-                user_name=user.name,
-                expires_in_hours=8
-            )
-            
-            current_app.logger.info(f"GOOGLE_TOKENS_CREATED", extra={
+            current_app.logger.info(f"🔧 GOOGLE_ACCESS_TOKEN_CREATED", extra={
                 'request_id': request_id,
-                'user_id': user.id
+                'user_id': str(user.id),
+                'token_length': len(minimal_access_token),
+                'token_preview': minimal_access_token[:20] + '...' if len(minimal_access_token) > 20 else minimal_access_token,
+                'creation_timestamp': int(time.time()),
+                'note': 'Token created with 60s backdating for immediate usage',
+                'timing_context': 'google_oauth_callback'
+            })
+            
+            # Generate minimal ID token
+            # Use email prefix as fallback if name is missing, with additional fallbacks
+            user_name = user.name if user.name and user.name.strip() else email.split('@')[0]
+            
+            # Additional fallback: if email prefix is empty, use a default
+            if not user_name or not user_name.strip():
+                user_name = "User"
+            
+            # Ensure user_name is not None and not empty
+            user_name = user_name.strip() if user_name else "User"
+            
+            current_app.logger.info(f"🔧 GOOGLE_ID_TOKEN_CREATION_START", extra={
+                'request_id': request_id,
+                'user_id': str(user.id),
+                'user_email': email[:3] + '***',
+                'user_name_source': 'user.name' if (user.name and user.name.strip()) else 'email_prefix' if email.split('@')[0] else 'default',
+                'user_name_value': user_name[:10] + '***' if user_name else 'missing',
+                'user_name_length': len(user_name) if user_name else 0,
+                'user_name_is_empty': not user_name or not user_name.strip()
+            })
+            
+            # ID token creation - optional (don't block cookie issuance)
+            minimal_id_token = None
+            try:
+                minimal_id_token = minimal_token_service.create_minimal_id_token(
+                    user_id=str(user.id),
+                    user_email=email,
+                    user_name=user_name,
+                    expires_in_hours=8
+                )
+                
+                current_app.logger.info(f"🔧 GOOGLE_ID_TOKEN_CREATED", extra={
+                    'request_id': request_id,
+                    'user_id': str(user.id),
+                    'token_length': len(minimal_id_token),
+                    'token_preview': minimal_id_token[:20] + '...' if len(minimal_id_token) > 20 else minimal_id_token
+                })
+                
+            except Exception as id_token_error:
+                # Log info (not warning/error) - ID token is optional, access token is sufficient
+                current_app.logger.info(f"🔧 GOOGLE_ID_TOKEN_OPTIONAL_MISSING", extra={
+                    'request_id': request_id,
+                    'user_id': str(user.id),
+                    'user_email': email[:3] + '***',
+                    'user_name': user_name[:10] + '***' if user_name else 'missing',
+                    'user_name_length': len(user_name) if user_name else 0,
+                    'error': str(id_token_error),
+                    'error_type': type(id_token_error).__name__,
+                    'note': 'ID token creation skipped - access token is sufficient for authentication'
+                })
+                # Continue without ID token - access token is sufficient
+            
+            current_app.logger.info(f"🔧 GOOGLE_TOKENS_CREATION_SUCCESS", extra={
+                'request_id': request_id,
+                'user_id': str(user.id),
+                'access_token_size': len(minimal_access_token),
+                'id_token_size': len(minimal_id_token) if minimal_id_token else 0,
+                'id_token_created': minimal_id_token is not None,
+                'note': 'Access token created successfully, ID token optional'
             })
             
         except Exception as token_error:
-            current_app.logger.error(f"GOOGLE_TOKEN_CREATION_ERROR", extra={
+            current_app.logger.error(f"🔧 GOOGLE_TOKEN_CREATION_ERROR", extra={
                 'request_id': request_id,
-                'error': str(token_error)
+                'user_id': str(user.id) if user else 'unknown',
+                'error': str(token_error),
+                'error_type': type(token_error).__name__,
+                'traceback': traceback.format_exc()[:500]
             })
             from app.config import Config
             return redirect(f"{Config.FRONTEND_URL}/login?error=token_creation_failed")
         
-        # Create response and redirect to frontend
+        # Create redirect response FIRST, then attach cookies to it
         from app.config import Config
-        resp = make_response(redirect(f"{Config.FRONTEND_URL}/dashboard?google=success"))
+        resp = redirect(f"{Config.FRONTEND_URL}/dashboard?google=success")
         
-        # Set secure HttpOnly cookies
-        resp.set_cookie(
-            "session",
-            value=minimal_access_token,
-            httponly=True,
-            secure=os.getenv('FLASK_ENV') == 'production',
-            samesite="Lax",
-            path="/",
-            max_age=60*60*8  # 8 hours
-        )
+        # Small delay to ensure token has time to "age" before immediate verification
+        import time
+        time.sleep(0.1)  # 100ms delay
         
-        # Note: Google OAuth doesn't provide a long-lived refresh token with access_type=online
-        # For now, we'll create a pseudo refresh token using the access token
-        # In production, consider using access_type=offline to get a refresh token
-        resp.set_cookie(
-            "refresh_token",
-            value=minimal_access_token,  # Use same token for now
-            httponly=True,
-            secure=os.getenv('FLASK_ENV') == 'production',
-            samesite="Lax",
-            path="/",
-            max_age=60*60*24*7  # 7 days
-        )
-        
-        current_app.logger.info(f"GOOGLE_OAUTH_SUCCESS", extra={
+        current_app.logger.info(f"🔧 GOOGLE_COOKIE_SETTING_START", extra={
             'request_id': request_id,
-            'user_id': user.id,
+            'user_id': str(user.id),
+            'flask_env': os.getenv('FLASK_ENV', 'development'),
+            'is_production': os.getenv('FLASK_ENV') == 'production',
+            'frontend_url': Config.FRONTEND_URL,
+            'redirect_url': f"{Config.FRONTEND_URL}/dashboard?google=success"
+        })
+        
+        # Set cookies on the redirect response (GOOD pattern)
+        try:
+            # Session cookie - consistent with login route
+            resp.set_cookie(
+                "session",
+                value=minimal_access_token,
+                httponly=True,
+                secure=os.getenv('FLASK_ENV') == 'production',  # Only secure in production
+                samesite="Lax",
+                path="/",  # Explicit path for all routes
+                max_age=60*60*8  # 8 hours
+            )
+            
+            current_app.logger.info(f"🔧 GOOGLE_SESSION_COOKIE_SET", extra={
+                'request_id': request_id,
+                'user_id': str(user.id),
+                'cookie_value_length': len(minimal_access_token),
+                'cookie_value_preview': minimal_access_token[:20] + '...' if len(minimal_access_token) > 20 else minimal_access_token,
+                'secure': os.getenv('FLASK_ENV') == 'production',
+                'samesite': 'Lax',
+                'path': '/',
+                'max_age': 60*60*8,
+                'cookie_set_timestamp': int(time.time()),
+                'timing_context': 'google_oauth_callback'
+            })
+            
+        except Exception as session_cookie_error:
+            current_app.logger.error(f"🔧 GOOGLE_SESSION_COOKIE_ERROR", extra={
+                'request_id': request_id,
+                'user_id': str(user.id),
+                'error': str(session_cookie_error),
+                'error_type': type(session_cookie_error).__name__
+            })
+        
+        # Refresh token cookie - consistent with login route
+        try:
+            resp.set_cookie(
+                "refresh_token",
+                value=tokens.get('refresh_token', minimal_access_token),  # Use Google refresh token if available
+                httponly=True,
+                secure=os.getenv('FLASK_ENV') == 'production',
+                samesite="Lax",
+                path="/",  # Explicit path for all routes
+                max_age=60*60*24*30  # 30 days (match Cognito)
+            )
+            
+            current_app.logger.info(f"🔧 GOOGLE_REFRESH_COOKIE_SET", extra={
+                'request_id': request_id,
+                'user_id': str(user.id),
+                'cookie_value_length': len(tokens.get('refresh_token', minimal_access_token)),
+                'using_google_refresh_token': bool(tokens.get('refresh_token')),
+                'secure': os.getenv('FLASK_ENV') == 'production',
+                'samesite': 'Lax',
+                'path': '/',
+                'max_age': 60*60*24*30
+            })
+            
+        except Exception as refresh_cookie_error:
+            current_app.logger.error(f"🔧 GOOGLE_REFRESH_COOKIE_ERROR", extra={
+                'request_id': request_id,
+                'user_id': str(user.id),
+                'error': str(refresh_cookie_error),
+                'error_type': type(refresh_cookie_error).__name__
+            })
+        
+        current_app.logger.info(f"🔧 GOOGLE_RESPONSE_CREATED", extra={
+            'request_id': request_id,
+            'user_id': str(user.id),
+            'response_type': type(resp).__name__,
+            'response_status_code': resp.status_code,
+            'response_headers': dict(resp.headers),
+            'cookies_set': len(resp.headers.getlist('Set-Cookie')),
+            'set_cookie_headers': resp.headers.getlist('Set-Cookie')
+        })
+        
+        current_app.logger.info(f"✅ GOOGLE_OAUTH_SUCCESS", extra={
+            'request_id': request_id,
+            'user_id': str(user.id),
             'email': email[:3] + '***',
-            'new_user': user.created_at >= datetime.utcnow().replace(second=0, microsecond=0)
+            'new_user': user.created_at >= datetime.utcnow().replace(second=0, microsecond=0),
+            'access_token_created': True,
+            'id_token_created': minimal_id_token is not None,
+            'cookies_attached_to_redirect': True
         })
         
         return resp
