@@ -317,18 +317,6 @@ export default function Sidebar({
                           <Link
                             to={firstItem?.href ?? "/"}
                             onClick={() => {
-                              console.log(
-                                `[SIDEBAR] ${categoryKey === "dashboard" ? "🏠" : categoryKey === "onboard" ? "📋" : categoryKey === "search" ? "🔍" : categoryKey === "decide" ? "📊" : categoryKey === "negotiate" ? "🤝" : "🔑"} ${firstItem?.name} navigation clicked:`,
-                                {
-                                  href: firstItem?.href ?? "/",
-                                  userProfile: userProfile
-                                    ? {
-                                        id: userProfile.id,
-                                        email: userProfile.email,
-                                      }
-                                    : null,
-                                }
-                              );
                               onLinkClick?.();
                             }}
                             className={`${getButtonStyles(isActive(firstItem?.href ?? "/"))} ${

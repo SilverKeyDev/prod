@@ -256,70 +256,30 @@ def get_current_user():
     """
     token = None
     
-    # Enhanced logging for debugging authentication issues
-    current_app.logger.info("🔍 AUTH_VERIFICATION_START", extra={
+    # Log only essential authentication attempts
+    current_app.logger.info("AUTH_VERIFICATION_START", extra={
         'endpoint': request.endpoint,
-        'method': request.method,
-        'path': request.path,
-        'origin': request.headers.get('Origin'),
-        'referer': request.headers.get('Referer'),
-        'user_agent': request.headers.get('User-Agent', '')[:50] + '...' if request.headers.get('User-Agent') else 'missing',
-        'available_cookies': list(request.cookies.keys()),
-        'cookie_count': len(request.cookies),
-        'has_authorization_header': bool(request.headers.get('Authorization')),
-        'verification_timestamp': int(time.time()),
-        'timing_context': 'auth_verification'
+        'path': request.path
     })
     
     # Try to get token from HttpOnly cookie first (preferred method)
     session_cookie = request.cookies.get('session')
     if session_cookie:
         token = session_cookie
-        current_app.logger.info("🔍 AUTH_TOKEN_FROM_SESSION_COOKIE", extra={
-            'cookie_length': len(session_cookie),
-            'cookie_preview': session_cookie[:20] + '...' if len(session_cookie) > 20 else session_cookie,
-            'endpoint': request.endpoint
-        })
     else:
-        current_app.logger.warning("⚠️ AUTH_NO_SESSION_COOKIE", extra={
-            'available_cookies': list(request.cookies.keys()),
-            'cookie_values': {k: (v[:10] + '...') if isinstance(v, str) and len(v) > 10 else v for k, v in request.cookies.items()},
-            'trying_auth_header': True,
-            'endpoint': request.endpoint
-        })
         # Fallback to Authorization header for backward compatibility
         auth = request.headers.get("Authorization", "")
         parts = auth.split()
         if len(parts) == 2 and parts[0].lower() == "bearer":
             token = parts[1]
-            current_app.logger.info("✅ AUTH_TOKEN_FROM_HEADER", extra={
-                'token_length': len(token),
-                'token_prefix': token[:20] + '...' if len(token) > 20 else token,
-                'endpoint': request.endpoint
-            })
         else:
             if not auth:
-                current_app.logger.error("❌ AUTH_MISSING_TOKEN", extra={
-                    'cookies_present': list(request.cookies.keys()),
-                    'cookie_values': {k: (v[:10] + '...') if isinstance(v, str) and len(v) > 10 else v for k, v in request.cookies.items()},
-                    'headers_checked': ['Cookie', 'Authorization'],
-                    'endpoint': request.endpoint,
-                    'path': request.path
-                })
                 log_security_event('auth_missing_token')
                 raise SecurityException(SecurityError.UNAUTHORIZED)
-            current_app.logger.error("❌ AUTH_INVALID_HEADER_FORMAT", extra={
-                'auth_header': auth[:50] + '...' if len(auth) > 50 else auth,
-                'endpoint': request.endpoint
-            })
             log_security_event('auth_invalid_header_format')
             raise SecurityException(SecurityError.INVALID_TOKEN)
     
     if not token:
-        current_app.logger.error("❌ AUTH_NO_TOKEN_FOUND", extra={
-            'session_cookie_present': bool(session_cookie),
-            'auth_header_present': bool(request.headers.get('Authorization'))
-        })
         log_security_event('auth_missing_token')
         raise SecurityException(SecurityError.UNAUTHORIZED)
 
@@ -332,17 +292,8 @@ def get_current_user():
     try:
         token_kind = _classify_token(token)
         
-        current_app.logger.info("🔍 AUTH_CLASSIFY_START", extra={
-            'endpoint': request.endpoint,
-            'has_token': bool(token),
-            'token_kind': token_kind
-        })
 
         if token_kind == "minimal":
-            current_app.logger.info("🔍 AUTH_DECISION", extra={
-                'kind': token_kind,
-                'action': 'minimal_verify'
-            })
             try:
                 return _verify_minimal_token(token)
             except Exception as minimal_verify_error:

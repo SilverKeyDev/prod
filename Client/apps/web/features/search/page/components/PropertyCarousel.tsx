@@ -11,13 +11,8 @@ export function PropertyCarousel(props: {
   cardGap?: number;
   infiniteLoop?: boolean;
 }): JSX.Element {
-  const {
-    items,
-    currentPage,
-    onViewDetails,
-    onSlideChange,
-    infiniteLoop,
-  } = props;
+  const { items, currentPage, onViewDetails, onSlideChange, infiniteLoop } =
+    props;
 
   if (items.length === 0) {
     return (

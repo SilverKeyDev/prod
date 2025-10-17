@@ -33,6 +33,10 @@ type MapHomeCardProps = {
   onFocus?: (property: any) => void;
   /** Function to handle unlock/view details click */
   onUnlock?: (home: HomeDescription) => void;
+  /** Optional save state functions for use outside React context (e.g., map markers) */
+  isHomeSaved?: (propertyId: string) => boolean;
+  saveHome?: (property: unknown) => Promise<void>;
+  removeSavedHome?: (propertyId: string) => Promise<void>;
 };
 
 /**
@@ -45,6 +49,9 @@ export default function MapHomeCard({
   isOnMap = false,
   onFocus,
   onUnlock,
+  isHomeSaved,
+  saveHome,
+  removeSavedHome,
 }: MapHomeCardProps) {
   // Use actual address if available, otherwise format home_id
   const formattedAddress = formatFilenameToAddress(home.home_id);
@@ -117,7 +124,13 @@ export default function MapHomeCard({
         showScore={showScore}
         isOnMap={isOnMap}
         topContent={
-          <CardHeartSave property={convertToProperty(home)} size="sm" />
+          <CardHeartSave
+            property={convertToProperty(home)}
+            size="sm"
+            isHomeSaved={isHomeSaved}
+            saveHome={saveHome}
+            removeSavedHome={removeSavedHome}
+          />
         }
         bottomContent={
           <CardViewDetailsButton

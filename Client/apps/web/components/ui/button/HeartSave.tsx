@@ -13,6 +13,10 @@ export type CardHeartSaveProps = {
   onSave?: (property: unknown) => void | Promise<void>;
   /** @deprecated onRemove is now handled internally */
   onRemove?: (propertyId: string) => void | Promise<void>;
+  /** Optional save state functions for use outside React context (e.g., map markers) */
+  isHomeSaved?: (propertyId: string) => boolean;
+  saveHome?: (property: unknown) => Promise<void>;
+  removeSavedHome?: (propertyId: string) => Promise<void>;
   position?: "top-left" | "top-right" | "bottom-left" | "bottom-right";
   size?: "xs" | "sm" | "md" | "lg";
   className?: string;
@@ -51,35 +55,47 @@ const CardHeartSave: React.FC<CardHeartSaveProps> = ({
   isSaved: _deprecatedIsSaved,
   onSave: _deprecatedOnSave,
   onRemove: _deprecatedOnRemove,
+  isHomeSaved: providedIsHomeSaved,
+  saveHome: providedSaveHome,
+  removeSavedHome: providedRemoveSavedHome,
   position = "top-right",
   size = "md",
   className = "",
   ariaLabel,
 }) => {
-  // Use internal hooks for save/remove functionality
-  const { saveHome, removeSavedHome, isHomeSaved } = useSavedHomesData();
+  // Use provided functions if available (for map markers), otherwise use hooks
+  const hookData = providedIsHomeSaved ? null : useSavedHomesData();
   const enqueueToast = useUIStore((s) => s.enqueueToast);
 
-  // Determine if home is saved - use internal hook or fallback to deprecated prop
-  const isSaved = isHomeSaved(property.id);
+  // Use provided functions or fall back to hook functions
+  const isHomeSaved = providedIsHomeSaved || hookData?.isHomeSaved;
+  const saveHome = providedSaveHome || hookData?.saveHome;
+  const removeSavedHome = providedRemoveSavedHome || hookData?.removeSavedHome;
+
+  // Determine if home is saved
+  const isSaved = isHomeSaved ? isHomeSaved(property.id) : false;
 
   const handleClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
     try {
       if (isSaved) {
         // Remove from saved homes
-        await removeSavedHome(property.id);
-        enqueueToast({
-          type: "success",
-          message: `Removed ${property.address} from favorites`,
-        });
+        if (removeSavedHome) {
+          await removeSavedHome(property.id);
+          enqueueToast({
+            type: "success",
+            message: `Removed ${property.address} from favorites`,
+          });
+        }
       } else {
         // Save home
-        await saveHome(property);
-        enqueueToast({
-          type: "success",
-          message: `Saved ${property.address}`,
-        });
+        if (saveHome) {
+          await saveHome(property);
+          enqueueToast({
+            type: "success",
+            message: `Saved ${property.address}`,
+          });
+        }
       }
     } catch (error: unknown) {
       const errorMessage =

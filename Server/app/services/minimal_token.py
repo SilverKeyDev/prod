@@ -201,18 +201,6 @@ class MinimalTokenService:
             nbf_age_seconds = current_time - token_nbf
             exp_remaining_seconds = token_exp - current_time
             
-            logger.info("MINIMAL_TOKEN_TIMING_ANALYSIS", extra={
-                'current_time': current_time,
-                'token_iat': token_iat,
-                'token_nbf': token_nbf,
-                'token_exp': token_exp,
-                'iat_age_seconds': iat_age_seconds,
-                'nbf_age_seconds': nbf_age_seconds,
-                'exp_remaining_seconds': exp_remaining_seconds,
-                'leeway_seconds': self._SKEW_SECONDS,
-                'is_immature': nbf_age_seconds < 0,
-                'immaturity_seconds': abs(nbf_age_seconds) if nbf_age_seconds < 0 else 0
-            })
 
             payload = jwt.decode(
                 token,
@@ -233,16 +221,6 @@ class MinimalTokenService:
             if not str(payload.get("ver", "")).startswith(self._VERSION):
                 raise jwt.InvalidTokenError("Minimal token has unexpected version")
 
-            logger.debug(
-                "MINIMAL_TOKEN_VERIFIED_HS256",
-                extra={
-                    "user_id": payload.get("sub", "missing"),
-                    "algorithm": self._ALG_ACCESS,
-                    "issuer": payload.get("iss"),
-                    "audience": payload.get("aud"),
-                    "version": payload.get("ver"),
-                },
-            )
             return payload
 
         except jwt.ExpiredSignatureError:

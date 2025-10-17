@@ -148,7 +148,7 @@ export default function SearchPage({
     desktopMapRef,
   });
 
-  const { savedHomes } = useSavedHomes({
+  const { savedHomes, isHomeSaved, saveHome, removeSavedHome } = useSavedHomes({
     userApi,
     setFavoriteAddresses,
     isGoogleMapsLoaded,
@@ -467,6 +467,9 @@ export default function SearchPage({
     setIsochroneData,
     fetchIsochroneForMapOnly,
     calculatePropertyScore,
+    isHomeSaved,
+    saveHome,
+    removeSavedHome,
     onMarkerClick: handleNavigateToProperty,
     onUnlockClick: handleViewPropertyDetails,
   });

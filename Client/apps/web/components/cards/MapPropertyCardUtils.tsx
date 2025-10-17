@@ -1,6 +1,8 @@
 import { createRoot, Root } from "react-dom/client";
+import { QueryClientProvider } from "@tanstack/react-query";
 
 import MapPropertyCard, { type MapPropertyCardProps } from "./MapPropertyCard";
+import { queryClient } from "../../../../packages/config/query/queryClient";
 
 // Store React roots to manage them properly
 const rootMap = new WeakMap<HTMLElement, Root>();
@@ -31,11 +33,13 @@ export const renderMapPropertyCard = (
   // Key combines property ID and saved state to ensure re-rendering when either changes
   const componentKey = `${props.property.id}-${props.isSaved ? "saved" : "unsaved"}-${props.showScore ? "scored" : "unscored"}`;
   root.render(
-    <MapPropertyCard
-      key={componentKey}
-      {...props}
-      onCardRendered={onCardRendered}
-    />
+    <QueryClientProvider client={queryClient}>
+      <MapPropertyCard
+        key={componentKey}
+        {...props}
+        onCardRendered={onCardRendered}
+      />
+    </QueryClientProvider>
   );
 };
 

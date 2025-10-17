@@ -79,25 +79,14 @@ def verify():
     start_time = time.time()
     request_id = f"verify_{int(time.time() * 1000)}_{os.urandom(4).hex()}"
     
-    current_app.logger.info(f"🔵 AUTH_VERIFY_ENDPOINT_CALLED", extra={
+    # Log only critical verification attempts
+    current_app.logger.info(f"AUTH_VERIFY_START", extra={
         'request_id': request_id,
-        'method': request.method,
-        'path': request.path,
-        'origin': request.headers.get('Origin'),
-        'user_agent': request.headers.get('User-Agent'),
-        'timestamp': time.strftime('%Y-%m-%d %H:%M:%S')
+        'email': data.get('email')[:3] + '***' + data.get('email')[-3:] if data and data.get('email') else 'missing'
     })
     
     data = request.get_json()
     
-    current_app.logger.info(f"🔍 AUTH_VERIFY_REQUEST_DATA", extra={
-        'request_id': request_id,
-        'has_email': bool(data.get('email') if data else False),
-        'has_code': bool(data.get('code') if data else False),
-        'has_password': bool(data.get('password') if data else False),
-        'email': data.get('email')[:3] + '***' + data.get('email')[-3:] if data and data.get('email') else 'missing',
-        'code_length': len(data.get('code', '')) if data else 0
-    })
 
     if not all(field in data for field in ['email', 'code', 'password']):
         current_app.logger.warning(f"❌ AUTH_VERIFY_MISSING_FIELDS", extra={
@@ -112,10 +101,6 @@ def verify():
             'message': 'Email, verification code, and password are required'
         }), 400
 
-    current_app.logger.info(f"🔍 AUTH_VERIFY_CALLING_COGNITO_CONFIRM", extra={
-        'request_id': request_id,
-        'email': data['email'][:3] + '***' + data['email'][-3:]
-    })
 
     # First verify the email
     result = AWS_COGNITO_service.confirm_sign_up(
@@ -123,12 +108,6 @@ def verify():
         confirmation_code=data['code']
     )
     
-    current_app.logger.info(f"🔍 AUTH_VERIFY_COGNITO_CONFIRM_RESULT", extra={
-        'request_id': request_id,
-        'success': result.get('success'),
-        'error': result.get('error'),
-        'result_message': result.get('message')
-    })
 
     if not result['success']:
         current_app.logger.warning(f"❌ AUTH_VERIFY_COGNITO_CONFIRM_FAILED", extra={
@@ -145,21 +124,12 @@ def verify():
 
     # After successful verification, automatically log the user in
     try:
-        current_app.logger.info(f"🔍 AUTH_VERIFY_CALLING_COGNITO_SIGNIN", extra={
-            'request_id': request_id,
-            'email': data['email'][:3] + '***' + data['email'][-3:]
-        })
         
         login_result = AWS_COGNITO_service.sign_in(
             username=data['email'],
             password=data['password']
         )
         
-        current_app.logger.info(f"🔍 AUTH_VERIFY_COGNITO_SIGNIN_RESULT", extra={
-            'request_id': request_id,
-            'success': login_result.get('success'),
-            'has_tokens': bool(login_result.get('tokens'))
-        })
 
         if not login_result['success']:
             # Verification succeeded but login failed
@@ -197,14 +167,6 @@ def verify():
         
         # Create minimal tokens instead of using large Cognito tokens
         try:
-            current_app.logger.info(f"🔧 VERIFY_TOKEN_CREATION_START", extra={
-                'request_id': request_id,
-                'user_id': str(user.id) if user else user_sub,
-                'user_email': data['email'][:3] + '***' + data['email'][-3:] if data['email'] else 'missing',
-                'user_name': user.name[:10] + '***' if user and user.name else 'missing',
-                'minimal_token_service_available': bool(minimal_token_service),
-                'secret_key_available': bool(getattr(minimal_token_service, 'secret_key', None))
-            })
             
             # Generate minimal access token
             minimal_access_token = minimal_token_service.create_minimal_access_token(
@@ -213,12 +175,6 @@ def verify():
                 expires_in_hours=8
             )
             
-            current_app.logger.info(f"🔧 VERIFY_ACCESS_TOKEN_CREATED", extra={
-                'request_id': request_id,
-                'user_id': str(user.id) if user else user_sub,
-                'token_length': len(minimal_access_token),
-                'token_preview': minimal_access_token[:20] + '...' if len(minimal_access_token) > 20 else minimal_access_token
-            })
             
             # Generate minimal ID token
             minimal_id_token = minimal_token_service.create_minimal_id_token(
@@ -228,12 +184,6 @@ def verify():
                 expires_in_hours=8
             )
             
-            current_app.logger.info(f"🔧 VERIFY_ID_TOKEN_CREATED", extra={
-                'request_id': request_id,
-                'user_id': str(user.id) if user else user_sub,
-                'token_length': len(minimal_id_token),
-                'token_preview': minimal_id_token[:20] + '...' if len(minimal_id_token) > 20 else minimal_id_token
-            })
             
             # Log token size comparison
             AWS_COGNITO_access_size = len(login_result['tokens']['AccessToken'].encode('utf-8'))
@@ -241,15 +191,6 @@ def verify():
             minimal_access_size = len(minimal_access_token.encode('utf-8'))
             minimal_id_size = len(minimal_id_token.encode('utf-8'))
             
-            current_app.logger.info(f"VERIFICATION_TOKEN_SIZE_COMPARISON", extra={
-                'AWS_COGNITO_access_size_bytes': AWS_COGNITO_access_size,
-                'cognito_id_size_bytes': cognito_id_size,
-                'minimal_access_size_bytes': minimal_access_size,
-                'minimal_id_size_bytes': minimal_id_size,
-                'access_token_size_reduction_percent': round(((AWS_COGNITO_access_size - minimal_access_size) / AWS_COGNITO_access_size) * 100, 2),
-                'id_token_size_reduction_percent': round(((cognito_id_size - minimal_id_size) / cognito_id_size) * 100, 2),
-                'total_size_reduction_bytes': (AWS_COGNITO_access_size + cognito_id_size) - (minimal_access_size + minimal_id_size)
-            })
             
         except Exception as token_error:
             current_app.logger.error(f"🔧 VERIFICATION_MINIMAL_TOKEN_ERROR", extra={
@@ -278,18 +219,6 @@ def verify():
         # Create response object
         resp = make_response(response_data)
         
-        # Log detailed request information BEFORE setting cookies
-        current_app.logger.info(f"🔵 AUTH_VERIFY_SETTING_COOKIES", extra={
-            'request_id': request_id,
-            'request_origin': request.headers.get('Origin'),
-            'request_host': request.headers.get('Host'),
-            'request_referer': request.headers.get('Referer'),
-            'flask_env': os.getenv('FLASK_ENV', 'development'),
-            'secure_flag': os.getenv('FLASK_ENV') == 'production',
-            'session_token_length': len(minimal_access_token),
-            'refresh_token_length': len(login_result['tokens']['RefreshToken']),
-            'user_sub': user_sub[:8] + '***' if user_sub else 'missing'
-        })
         
         # Set secure HttpOnly cookies with minimal tokens
         # Use host-only cookies (no domain) and Path=/ for proper scope
@@ -313,35 +242,15 @@ def verify():
             max_age=60*60*24*30  # 30 days
         )
         
-        # Log cookie headers that will be sent
-        current_app.logger.info(f"✅ AUTH_VERIFY_COOKIES_SET", extra={
-            'request_id': request_id,
-            'session_cookie_set': True,
-            'refresh_cookie_set': True,
-            'secure_cookies': os.getenv('FLASK_ENV') == 'production',
-            'cookie_config': {
-                'httponly': True,
-                'secure': os.getenv('FLASK_ENV') == 'production',
-                'samesite': 'Lax',
-                'path': '/',
-                'domain': 'none (host-only)',
-                'session_max_age': '8h',
-                'refresh_max_age': '30d'
-            },
-            'set_cookie_headers': [h for h in resp.headers.getlist('Set-Cookie')]
-        })
         
         # Include minimal ID token in response body instead of cookie
         response_data['id_token'] = minimal_id_token
         
         duration_ms = int((time.time() - start_time) * 1000)
-        current_app.logger.info(f"✅ AUTH_VERIFY_SUCCESS_COMPLETE", extra={
+        current_app.logger.info(f"AUTH_VERIFY_SUCCESS", extra={
             'request_id': request_id,
             'email': data['email'][:3] + '***' + data['email'][-3:],
-            'user_sub': user_sub[:8] + '***' if user_sub else 'missing',
-            'has_user_record': bool(user),
-            'duration_ms': duration_ms,
-            'timestamp': time.strftime('%Y-%m-%d %H:%M:%S')
+            'duration_ms': duration_ms
         })
         
         return resp
@@ -509,43 +418,15 @@ def login():
         })
 
         if not success_value:
-            current_app.logger.info(f"AUTH_LOGIN_ENTERING_FAILURE_BRANCH", extra={
-                'request_id': request_id
+            duration_ms = int((time.time() - start_time) * 1000)
+            error_message = 'Invalid email or password'
+            if result.get('error') == 'NotAuthorizedException':
+                error_message = 'Incorrect email or password. Please try again.'
+            
+            current_app.logger.warning(f"AUTH_LOGIN_FAILED", extra={
+                'request_id': request_id,
+                'duration_ms': duration_ms
             })
-            
-            try:
-                duration_ms = int((time.time() - start_time) * 1000)
-                current_app.logger.info(f"AUTH_LOGIN_DURATION_CALCULATED", extra={
-                    'request_id': request_id,
-                    'duration_ms': duration_ms
-                })
-            except Exception as duration_error:
-                current_app.logger.error(f"AUTH_LOGIN_DURATION_ERROR", extra={
-                    'request_id': request_id,
-                    'error': str(duration_error)
-                })
-                duration_ms = 0
-            
-            try:
-                error_message = 'Invalid email or password'
-                if result.get('error') == 'NotAuthorizedException':
-                    error_message = 'Incorrect email or password. Please try again.'
-                current_app.logger.info(f"AUTH_LOGIN_ERROR_MESSAGE_SET", extra={
-                    'request_id': request_id,
-                    'error_message': error_message
-                })
-            except Exception as error_msg_error:
-                current_app.logger.error(f"AUTH_LOGIN_ERROR_MESSAGE_ERROR", extra={
-                    'request_id': request_id,
-                    'error': str(error_msg_error)
-                })
-                error_message = 'Authentication failed'
-            
-            # Simple logging to avoid any serialization issues
-            current_app.logger.warning(f"AUTH_LOGIN_AWS_COGNITO_FAILED - request_id: {request_id}, duration_ms: {duration_ms}")
-            current_app.logger.info(f"AUTH_LOGIN_AWS_COGNITO_FAILED_LOGGED - request_id: {request_id}")
-            
-            current_app.logger.info(f"AUTH_LOGIN_RETURNING_401 - request_id: {request_id}")
             
             return jsonify({
                 'success': False,
@@ -553,33 +434,13 @@ def login():
                 'message': result.get('message', error_message)
             }), 401
 
-        # Log successful Cognito authentication
-        current_app.logger.info(f"AUTH_LOGIN_AWS_COGNITO_SUCCESS", extra={
-            'request_id': request_id,
-            'has_access_token': 'AccessToken' in result['tokens'],
-            'has_id_token': 'IdToken' in result['tokens'],
-            'has_refresh_token': 'RefreshToken' in result['tokens'],
-            'token_type': result['tokens'].get('TokenType', 'unknown'),
-            'expires_in': result['tokens'].get('ExpiresIn', 'unknown')
-        })
 
-        # Decode IdToken to get Cognito user_sub
-        current_app.logger.info(f"AUTH_LOGIN_PHASE_TOKEN_DECODE", extra={
-            'request_id': request_id
-        })
         
         try:
             id_token = result['tokens']['IdToken']
             decoded_id_token = jwt.decode(id_token, options={"verify_signature": False})
             user_sub = decoded_id_token['sub']
             
-            current_app.logger.info(f"AUTH_LOGIN_TOKEN_DECODED", extra={
-                'request_id': request_id,
-                'user_sub': user_sub[:10] + '***' if user_sub else 'missing',
-                'token_issuer': decoded_id_token.get('iss', 'unknown'),
-                'token_audience': decoded_id_token.get('aud', 'unknown'),
-                'token_exp': decoded_id_token.get('exp', 'unknown')
-            })
         except Exception as token_error:
             duration_ms = int((time.time() - start_time) * 1000)
             current_app.logger.error(f"AUTH_LOGIN_TOKEN_DECODE_ERROR", extra={
@@ -593,10 +454,6 @@ def login():
                 'message': 'Failed to process authentication token'
             }), 500
 
-        # Get user data from database
-        current_app.logger.info(f"AUTH_LOGIN_PHASE_USER_LOOKUP", extra={
-            'request_id': request_id
-        })
         
         try:
             from ..models.user import User
@@ -918,20 +775,13 @@ def google_oauth_start():
     
     try:
         current_app.logger.info(f"GOOGLE_OAUTH_START", extra={
-            'request_id': request_id,
-            'origin': request.headers.get('Origin'),
-            'referer': request.headers.get('Referer')
+            'request_id': request_id
         })
         
         # Generate auth URL and state
         auth_url, state = google_oauth_service.build_auth_url()
         session['google_oauth_state'] = state
         
-        current_app.logger.info(f"GOOGLE_OAUTH_REDIRECT", extra={
-            'request_id': request_id,
-            'auth_url': auth_url[:100] + '...',  # Log truncated URL
-            'state_set': True
-        })
         
         return redirect(auth_url)
         
@@ -955,10 +805,9 @@ def google_oauth_callback():
     request_id = f"google_callback_{int(time.time() * 1000)}_{os.urandom(4).hex()}"
     
     try:
-        current_app.logger.info(f"GOOGLE_OAUTH_CALLBACK_START", extra={
+        current_app.logger.info(f"GOOGLE_OAUTH_CALLBACK", extra={
             'request_id': request_id,
             'has_code': bool(request.args.get('code')),
-            'has_state': bool(request.args.get('state')),
             'has_error': bool(request.args.get('error'))
         })
         

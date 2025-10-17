@@ -113,10 +113,6 @@ class GoogleOAuthService:
             "prompt": "select_account"  # Always show account selection
         }
         
-        logger.info(f"GOOGLE_AUTH_URL_GENERATED", extra={
-            'redirect_uri': self.redirect_uri,
-            'scopes': self.scopes
-        })
         
         return f"{self.auth_endpoint}?{urlencode(params)}", state
     
@@ -124,11 +120,6 @@ class GoogleOAuthService:
         """Exchange authorization code for access tokens"""
         request_id = str(uuid.uuid4())[:8]
         
-        logger.info(f"GOOGLE_TOKEN_EXCHANGE_START", extra={
-            'request_id': request_id,
-            'has_code': bool(code),
-            'code_length': len(code) if code else 0
-        })
         
         try:
             token_data = {
@@ -141,11 +132,6 @@ class GoogleOAuthService:
             
             response = self.session.post(self.token_endpoint, data=token_data)
             
-            logger.info(f"GOOGLE_TOKEN_EXCHANGE_RESPONSE", extra={
-                'request_id': request_id,
-                'status_code': response.status_code,
-                'response_size': len(response.text)
-            })
             
             if response.status_code != 200:
                 logger.error(f"GOOGLE_TOKEN_EXCHANGE_FAILED", extra={
@@ -157,14 +143,6 @@ class GoogleOAuthService:
             
             tokens = response.json()
             
-            logger.info(f"GOOGLE_TOKEN_EXCHANGE_SUCCESS", extra={
-                'request_id': request_id,
-                'has_access_token': bool(tokens.get("access_token")),
-                'has_id_token': bool(tokens.get("id_token")),
-                'has_refresh_token': bool(tokens.get("refresh_token")),
-                'expires_in': tokens.get("expires_in"),
-                'response_keys': list(tokens.keys())
-            })
             
             return tokens
             
@@ -179,10 +157,6 @@ class GoogleOAuthService:
         """Get user information from Google"""
         request_id = str(uuid.uuid4())[:8]
         
-        logger.info(f"GOOGLE_USERINFO_REQUEST_START", extra={
-            'request_id': request_id,
-            'has_access_token': bool(access_token)
-        })
         
         try:
             headers = {
@@ -191,10 +165,6 @@ class GoogleOAuthService:
             
             response = self.session.get(self.userinfo_endpoint, headers=headers)
             
-            logger.info(f"GOOGLE_USERINFO_RESPONSE", extra={
-                'request_id': request_id,
-                'status_code': response.status_code
-            })
             
             if response.status_code != 200:
                 logger.error(f"GOOGLE_USERINFO_FAILED", extra={
@@ -206,12 +176,6 @@ class GoogleOAuthService:
             
             user_info = response.json()
             
-            logger.info(f"GOOGLE_USERINFO_SUCCESS", extra={
-                'request_id': request_id,
-                'has_email': bool(user_info.get('email')),
-                'email_verified': user_info.get('verified_email'),
-                'has_name': bool(user_info.get('name'))
-            })
             
             return user_info
             

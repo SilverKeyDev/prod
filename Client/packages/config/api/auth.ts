@@ -203,66 +203,23 @@ export const authApi = {
     const startTime = Date.now();
     const requestId = `login_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-    // Log detailed request information
+    // Log only essential login request
     log.info("AUTH_LOGIN_REQUEST", "Starting login request", {
       requestId,
       email: data.email
         ? `${data.email.substring(0, 3)}***${data.email.substring(data.email.length - 3)}`
-        : "missing",
-      hasPassword: !!data.password,
-      passwordLength: data.password?.length || 0,
-      timestamp: new Date().toISOString(),
-      userAgent: navigator.userAgent,
-      url: window.location.href,
+        : "missing"
     });
 
     try {
-      // Get cookies BEFORE the login request
-      const cookiesBefore = document.cookie
-        .split(";")
-        .map((c) => c.trim().split("=")[0])
-        .filter(Boolean);
-
-      // Log the exact API call being made with detailed info
       const apiUrl = "/api/v1/auth/login";
-      console.log("🔵 AUTH_LOGIN_API_CALL", {
-        requestId,
-        url: apiUrl,
-        fullUrl: window.location.origin + apiUrl,
-        method: "POST",
-        hasCredentials: true,
-        contentType: "application/json",
-        currentOrigin: window.location.origin,
-        currentHref: window.location.href,
-        cookiesBefore,
-        cookieCountBefore: cookiesBefore.length,
-      });
-
       const response = await apiPost<AuthResponse>(apiUrl, data);
       const duration = Date.now() - startTime;
 
-      // Get cookies AFTER the login response
-      const cookiesAfter = document.cookie
-        .split(";")
-        .map((c) => c.trim().split("=")[0])
-        .filter(Boolean);
-      const newCookies = cookiesAfter.filter((c) => !cookiesBefore.includes(c));
-
-      // Log successful response with cookie details
-      console.log("✅ AUTH_LOGIN_SUCCESS", {
+      // Log successful response
+      log.info("AUTH_LOGIN_SUCCESS", "Login successful", {
         requestId,
-        success: response.success,
-        hasAccessToken: !!response.access_token,
-        hasIdToken: !!response.id_token,
-        hasRefreshToken: !!response.refresh_token,
-        hasUser: !!response.user,
-        duration: `${duration}ms`,
-        cookiesBefore,
-        cookiesAfter,
-        newCookies,
-        cookieCountBefore: cookiesBefore.length,
-        cookieCountAfter: cookiesAfter.length,
-        timestamp: new Date().toISOString(),
+        duration: `${duration}ms`
       });
 
       // Only report authentication failure when the response explicitly indicates failure

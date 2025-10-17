@@ -1,7 +1,6 @@
 import { useRef, useCallback, useState } from "react";
 
 import { renderMapPropertyCard, cleanupMapPropertyCard } from "../../../components/cards";
-import type { Property } from "../../../../../packages/schemas/property";
 import type { SearchResult } from "../../../../../packages/schemas/search";
 import type { IsochroneData } from "../../../../../packages/schemas/api";
 import { renderImportantLocationMarkers } from "../lib/importantLocationRenderer";
@@ -36,6 +35,9 @@ type UseMapMarkersProps = {
   setIsochroneData: (data: unknown) => void;
   fetchIsochroneForMapOnly: () => Promise<unknown>;
   calculatePropertyScore: (property: SearchResult) => number;
+  isHomeSaved: (propertyId: string) => boolean;
+  saveHome: (property: unknown) => Promise<void>;
+  removeSavedHome: (propertyId: string) => Promise<void>;
   onMarkerClick?: (property: SearchResult) => void;
   onUnlockClick?: (property: SearchResult) => void;
 };
@@ -56,6 +58,9 @@ export const useMapMarkers = ({
   setIsochroneData,
   fetchIsochroneForMapOnly,
   calculatePropertyScore,
+  isHomeSaved,
+  saveHome,
+  removeSavedHome,
   onMarkerClick,
   onUnlockClick,
 }: UseMapMarkersProps): UseMapMarkersReturn => {
@@ -269,8 +274,12 @@ export const useMapMarkers = ({
           try {
             renderMapPropertyCard(markerElement, {
               property: propertyData,
+              isSaved: isHomeSaved(result.id),
               onUnlock: onUnlockClick ? () => onUnlockClick(result) : undefined,
               showScore: hasValidScore, // Show score for properties with valid scores
+              isHomeSaved,
+              saveHome,
+              removeSavedHome,
             });
           } catch (error) {
             console.error(`❌ [MARKER POSITION UPDATE] Error rendering MapPropertyCard for property ${i + 1}:`, error);

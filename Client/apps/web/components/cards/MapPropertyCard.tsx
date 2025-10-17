@@ -21,6 +21,10 @@ export type MapPropertyCardProps = {
   onUnlock?: (property: any) => void;
   showScore?: boolean;
   onCardRendered?: (property: MapPropertyCardProps["property"]) => void;
+  /** Optional save state functions for use outside React context (e.g., map markers) */
+  isHomeSaved?: (propertyId: string) => boolean;
+  saveHome?: (property: unknown) => Promise<void>;
+  removeSavedHome?: (propertyId: string) => Promise<void>;
 };
 
 const MapPropertyCard: React.FC<MapPropertyCardProps> = ({
@@ -29,6 +33,9 @@ const MapPropertyCard: React.FC<MapPropertyCardProps> = ({
   onUnlock,
   showScore = true,
   onCardRendered,
+  isHomeSaved,
+  saveHome,
+  removeSavedHome,
 }) => {
   // Trigger map repositioning when the card is rendered or updated
   useEffect(() => {
@@ -146,6 +153,9 @@ const MapPropertyCard: React.FC<MapPropertyCardProps> = ({
           home={homeData}
           showScore={showScore}
           isOnMap={true}
+          isHomeSaved={isHomeSaved}
+          saveHome={saveHome}
+          removeSavedHome={removeSavedHome}
           onUnlock={(home) => {
             if (onUnlock) {
               // Convert home data back to property format

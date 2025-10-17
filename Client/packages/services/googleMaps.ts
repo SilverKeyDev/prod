@@ -280,27 +280,8 @@ export class GoogleMapsService {
    * Create a Google Map instance
    */
   public createMap(container: HTMLElement): google.maps.Map | null {
-    console.log("🔍 [GMAPS_SERVICE] createMap called with:", {
-      container,
-      containerVisible: container.offsetWidth > 0 && container.offsetHeight > 0,
-      containerBounds: container.getBoundingClientRect(),
-      isGoogleMapsReady: this.isGoogleMapsReady(),
-      windowGoogle: !!window.google,
-      windowGoogleMaps: !!window.google?.maps,
-      windowGoogleMapsMap: !!window.google?.maps?.Map,
-      windowGoogleMapsControlPosition: !!window.google?.maps?.ControlPosition,
-      windowGoogleMapsMapTypeControlStyle:
-        typeof window.google?.maps?.MapTypeControlStyle !== "undefined",
-      windowGoogleMapsGeocoder: !!window.google?.maps?.Geocoder,
-      currentMapInstanceCount: GoogleMapsService.mapInstanceCount,
-      activeMapInstancesCount: GoogleMapsService.activeMapInstances.size,
-      timestamp: new Date().toISOString(),
-    });
-
     if (!this.isGoogleMapsReady()) {
-      console.error(
-        "🗺️ [GMAPS_SERVICE] Google Maps not ready yet - missing required APIs",
-      );
+      console.error("Google Maps not ready yet - missing required APIs");
       return null;
     }
 
@@ -310,12 +291,6 @@ export class GoogleMapsService {
     );
     
     if (existingMapInstance) {
-      console.log("✅ [GMAPS_SERVICE] Container already has a map instance - reusing existing map:", {
-        container,
-        existingMapInstance,
-        timestamp: new Date().toISOString(),
-      });
-      
       // Return the existing map instance instead of creating a new one
       return existingMapInstance;
     }
@@ -342,18 +317,10 @@ export class GoogleMapsService {
       GoogleMapsService.mapInstanceCount++;
       GoogleMapsService.activeMapInstances.add(map);
       
-      console.log("✅ [GMAPS_SERVICE] Map instance created successfully:", {
-        mapInstance: map,
-        mapInstanceCount: GoogleMapsService.mapInstanceCount,
-        activeMapInstancesCount: GoogleMapsService.activeMapInstances.size,
-        container,
-        timestamp: new Date().toISOString(),
-      });
-
       return map;
     } catch (err: unknown) {
       const error = asError(err);
-      console.error("🗺️ [GMAPS_SERVICE] ❌ Error creating Google Map:", error);
+      console.error("Error creating Google Map:", error);
       return null;
     }
   }

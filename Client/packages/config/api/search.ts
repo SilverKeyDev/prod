@@ -204,40 +204,10 @@ export const searchApi = {
       timeout: 300000, // 5 minutes for polygon search
     })
       .then((resp) => {
-        // Log the raw API response to inspect _score field
-        const respWithProps = resp as typeof resp & { properties?: unknown[]; meta?: unknown };
-        console.log("✅ [searchApi.searchByPolygon] Raw API Response", {
-          environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
-          apiBaseUrl,
-          success: resp?.success,
-          propertiesCount: Array.isArray(respWithProps?.properties) ? respWithProps.properties.length : 0,
-          hasProperties: !!respWithProps?.properties,
-          meta: respWithProps?.meta,
-          hasError: !!resp?.error,
-        });
-        
-        // Log first property to inspect structure
-        if (Array.isArray(respWithProps?.properties) && respWithProps.properties.length > 0) {
-          const firstProp = respWithProps.properties[0] as Record<string, unknown>;
-          console.log("📊 [searchApi.searchByPolygon] First Property from API:", {
-            environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
-            _score: firstProp._score,
-            scoreType: typeof firstProp._score,
-            hasScore: firstProp._score !== undefined && firstProp._score !== null,
-            zpid: firstProp.zpid,
-            address: firstProp.address,
-            allKeys: Object.keys(firstProp),
-          });
-        }
-        
         return resp;
       })
       .catch((error) => {
-        console.error("❌ [searchApi.searchByPolygon] Error", {
-          environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
-          apiBaseUrl,
-          message: String(error),
-        });
+        console.error("Search API error:", error);
         throw error;
       });
   },
@@ -247,24 +217,14 @@ export const searchApi = {
    */
   getIsochrone: (): Promise<IsochroneResponse> => {
     const url = "/api/v1/search/isochrone";
-    console.log("🔎 [searchApi.getIsochrone] Request", { url });
     return apiGet<IsochroneResponse>(url, {
       timeout: 300000, // 5 minutes for isochrone generation
     })
       .then((resp) => {
-        console.log("✅ [searchApi.getIsochrone] Response", {
-          success: resp?.success,
-          hasData: !!resp?.data,
-          hasIsochrone: !!resp?.data?.isochrone,
-          locationsCount: resp?.data?.locations?.length,
-          hasError: !!resp?.error,
-        });
         return resp;
       })
       .catch((error) => {
-        console.error("❌ [searchApi.getIsochrone] Error", {
-          message: String(error),
-        });
+        console.error("Isochrone API error:", error);
         throw error;
       });
   },
