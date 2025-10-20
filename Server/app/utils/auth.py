@@ -256,11 +256,6 @@ def get_current_user():
     """
     token = None
     
-    # Log only essential authentication attempts
-    current_app.logger.info("AUTH_VERIFICATION_START", extra={
-        'endpoint': request.endpoint,
-        'path': request.path
-    })
     
     # Try to get token from HttpOnly cookie first (preferred method)
     session_cookie = request.cookies.get('session')
@@ -334,10 +329,7 @@ def get_current_user():
 
         elif token_kind == "reject_cognito_alg":
             # HS256 token claiming to be Cognito - reject immediately
-            current_app.logger.info("🔍 AUTH_DECISION", extra={
-                'kind': token_kind,
-                'action': 'reject_cognito_alg'
-            })
+
             log_security_event('auth_cognito_wrong_algorithm', {
                 'alg': 'HS256',
                 'expected': 'RS256',

@@ -13,7 +13,7 @@ import { NavigationButton } from "../components/ui";
 import { reportApi } from "../../../packages/config/api";
 import { useDocumentActions } from "../../../packages/hooks/data/useDocumentActions";
 import { useReportsData } from "../../../packages/hooks/data/useReportsData";
-import { useSavedHomesData } from "../../../packages/hooks/data/useSavedHomesData";
+import { useSavedHomesStoreIntegration } from "../../../packages/hooks/store/useSavedHomesStoreIntegration";
 import type { Report } from "../../../packages/schemas";
 import type { SavedHome } from "../../../packages/schemas/property";
 import { useUIStore } from "../../../packages/store";
@@ -28,7 +28,7 @@ export default function Dashboard() {
     savedHomes,
     savedHomesLoading: favLoading,
     savedHomesError: favError,
-  } = useSavedHomesData();
+  } = useSavedHomesStoreIntegration();
 
   // Convert SavedHome[] to HomeDescription[] for HomeCard compatibility
   const favoriteHomes: HomeDescription[] = savedHomes.map(

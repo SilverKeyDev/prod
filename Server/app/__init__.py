@@ -196,21 +196,7 @@ def create_app(config=None):
     def log_response_info(response):
         import time
         if hasattr(g, 'request_id') and hasattr(g, 'start_time'):
-            request_id = g.request_id
-            duration_ms = int((time.time() - g.start_time) * 1000)
-            cors_origin = response.headers.get('Access-Control-Allow-Origin')
-            cors_credentials = response.headers.get('Access-Control-Allow-Credentials')
-            set_cookie_headers = response.headers.getlist('Set-Cookie')
-            if set_cookie_headers or request.endpoint and 'auth' in str(request.endpoint):
-                app.logger.info("🔐 RESPONSE_WITH_COOKIES_OR_AUTH", extra={
-                    'request_id': request_id,
-                    'endpoint': request.endpoint,
-                    'request_origin': request.headers.get('Origin'),
-                    'response_cors_origin': cors_origin,
-                    'response_cors_credentials': cors_credentials,
-                    'cookies_being_set': len(set_cookie_headers),
-                    'cookie_names': [c.split('=')[0] for c in set_cookie_headers] if set_cookie_headers else []
-                })
+      
             # Security headers (unchanged from your version)
             is_pdf_viewer = (
                 request.endpoint and 

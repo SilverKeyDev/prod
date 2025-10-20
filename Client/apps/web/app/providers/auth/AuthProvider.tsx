@@ -54,6 +54,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
     });
   }, [storeAuthStatus, status]);
 
+  // Debug logging for user changes
+  useEffect(() => {
+    console.log("🔐 [AUTH_PROVIDER] User updated:", {
+      hasUser: !!user,
+      userEmail: user?.email
+        ? `${user.email.substring(0, 3)}***${user.email.substring(user.email.length - 3)}`
+        : "missing",
+      userId: user?.id || "missing",
+      timestamp: new Date().toISOString(),
+    });
+  }, [user]);
+
   // Initialize auth state with server verification
   useEffect(() => {
     // Guard against double bootstrap calls
@@ -132,7 +144,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
           const user = sessionResult.user;
           if ("created_at" in user && "is_active" in user) {
             // Full UserProfile from session verification
+            console.log("🔐 [AUTH_PROVIDER] About to setStoreUser:", {
+              requestId,
+              userEmail: user.email
+                ? `${user.email.substring(0, 3)}***${user.email.substring(user.email.length - 3)}`
+                : "missing",
+              userId: user.id,
+            });
             setStoreUser(user as UserProfile);
+            console.log("🔐 [AUTH_PROVIDER] setStoreUser called:", {
+              requestId,
+              userEmail: user.email
+                ? `${user.email.substring(0, 3)}***${user.email.substring(user.email.length - 3)}`
+                : "missing",
+              userId: user.id,
+            });
             secureLogger.info(
               "🔍 FRONTEND_AUTH_BOOTSTRAP_FULL_USER",
               "Setting full user profile",

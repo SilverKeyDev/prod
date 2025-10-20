@@ -63,7 +63,6 @@ class MinimalTokenService:
                     )
             # Do not log or preview secret material
             self._hs_secret = secret
-            logger.info("MINIMAL_TOKEN_SECRET_KEY_LOADED")
         return self._hs_secret
 
     def _get_rs256_config(self):
@@ -75,15 +74,6 @@ class MinimalTokenService:
             self._id_issuer = os.getenv(self._ENV_ISSUER, "silverkey-api")
             self._id_audience = os.getenv(self._ENV_AUDIENCE, "usesilverkey-web")
 
-            logger.info(
-                "MINIMAL_TOKEN_RS256_CONFIG_LOADED",
-                extra={
-                    "has_rsa_private_key": bool(self._rsa_private_key),
-                    "kid": self._kid,
-                    "issuer": self._id_issuer,
-                    "audience": self._id_audience,
-                },
-            )
         return self._rsa_private_key, self._kid, self._id_issuer, self._id_audience
 
     # ---- Public helpers -------------------------------------------------------
@@ -165,18 +155,6 @@ class MinimalTokenService:
 
         token = jwt.encode(payload, hs_secret, algorithm=self._ALG_ACCESS)
 
-        logger.info(
-            "MINIMAL_ACCESS_TOKEN_CREATED",
-            extra={
-                "user_id": user_id,
-                "email_masked": f"{user_email[:3]}***{user_email[-3:]}" if user_email else "missing",
-                "expires_at": exp_time.isoformat(),
-                "algorithm": self._ALG_ACCESS,
-                "issuer": self._ISSUER,
-                "audience": self._AUDIENCE,
-                "version": self._VERSION,
-            },
-        )
         return token
 
     def verify_minimal_token(self, token: str) -> Dict[str, Any]:
@@ -293,10 +271,7 @@ class MinimalTokenService:
         rsa_private_key, kid, issuer, audience = self._get_rs256_config()
         if not rsa_private_key.strip():
             # Refuse to mint HS256 ID tokens; they can be mistaken for Cognito/Google.
-            logger.info("MINIMAL_ID_TOKEN_RS256_OPTIONAL_MISSING", extra={
-                'missing_env_var': self._ENV_RS_PRIV,
-                'note': 'RS256 private key not configured - ID token creation skipped (optional)'
-            })
+
             raise RuntimeError(
                 "RS256 private key not configured; refusing to mint HS256 ID token. "
                 "Use the provider's ID token or configure AUTH_RS256_PRIVATE_KEY_PEM."
@@ -324,19 +299,7 @@ class MinimalTokenService:
         headers = {"kid": kid}
         token = jwt.encode(payload, rsa_private_key, algorithm=self._ALG_ID, headers=headers)
 
-        logger.info(
-            "MINIMAL_ID_TOKEN_CREATED_RS256",
-            extra={
-                "user_id": user_id,
-                "email_masked": f"{user_email[:3]}***{user_email[-3:]}",
-                "name_masked": (user_name[:8] + "***") if user_name else "missing",
-                "expires_at": exp_time.isoformat(),
-                "algorithm": self._ALG_ID,
-                "issuer": issuer,
-                "audience": audience,
-                "kid": kid,
-            },
-        )
+     
         return token
 
     # ---- Utilities ------------------------------------------------------------

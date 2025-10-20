@@ -3,8 +3,6 @@ import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 
 import { useAuth } from "../../../app/providers/auth/useAuth";
-import { useUser } from "../../../../../packages/contexts";
-import type { UserProfile } from "../../../../../packages/schemas/user";
 import ConfirmationDialog from "../../modals/ConfirmationDialog";
 import WhiteLogo from "../../ui/asset/WhiteLogo";
 
@@ -15,7 +13,6 @@ import {
 } from "../../../../../packages/store/view.slice";
 import { SIDEBAR_TABS } from "../../../../../packages/schemas/sidebar";
 type SidebarProps = {
-  user?: UserProfile;
   onLogout: () => void;
   expanded: boolean;
   onToggleExpanded: () => void;
@@ -179,14 +176,27 @@ export default function Sidebar({
   onLinkClick,
 }: SidebarProps) {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  // Get user data from auth context (already available from login)
-  const { user: authUser } = useAuth();
-  // Use userProfile from UserContext for all user info
-  const { userProfile, userLoading: userProfileLoading } = useUser();
+  // Get user from AuthProvider which uses /api/v1/user/profile during bootstrap
+  const { user: authUser, authReady, status } = useAuth();
 
-  // Prioritize complete userProfile data over incomplete authUser
-  const displayUser = userProfile ?? authUser;
-  const isLoading = userProfileLoading && !userProfile;
+  const displayUser = authUser;
+  const isLoading = status === "booting" || !authReady;
+
+  // Debug logging for auth state
+  React.useEffect(() => {
+    if (import.meta.env?.DEV) {
+      const emailPreview = authUser?.email
+        ? `${authUser.email.substring(0, 3)}***${authUser.email.substring(Math.max(0, authUser.email.length - 3))}`
+        : null;
+      console.log("[SIDEBAR] auth state", {
+        status,
+        authReady,
+        isLoading,
+        hasUser: !!authUser,
+        userEmailPreview: emailPreview,
+      });
+    }
+  }, [status, authReady, isLoading, authUser]);
 
   const openCategories = useViewStore((s: ViewState) => s.openCategories);
   const toggleCategoryInStore = useViewStore(

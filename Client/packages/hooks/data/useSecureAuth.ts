@@ -43,13 +43,20 @@ export type UseSecureAuthReturn = {} & SecureAuthState & SecureAuthActions;
  * Secure authentication hook with memory-based token storage
  */
 export function useSecureAuth(): UseSecureAuthReturn {
-  const [user, setUser] = useState<UserProfile | null>(null);
+  // Initialize from store to prevent overriding session-verified users
+  // This ensures that users authenticated via HTTP-only cookies (AuthProvider)
+  // are not overridden by null values from useSecureAuth initialization
+  const storeUser = useAuthStore((s: AuthState) => s.user);
+  const storeIsAuthenticated = useAuthStore((s: AuthState) => s.isAuthenticated);
+  
+  const [user, setUser] = useState<UserProfile | null>(storeUser);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // const navigate = useNavigate(); // removed
 
   // Store access token in memory only (more secure)
-  const [accessToken, setAccessToken] = useState<string | null>(null);
+  // Initialize based on store state to match session-verified authentication
+  const [accessToken, setAccessToken] = useState<string | null>(storeIsAuthenticated ? "authenticated" : null);
 
   // Track if we're in the middle of a login to prevent premature navigation
   const isLoggingInRef = useRef(false);
@@ -117,6 +124,12 @@ export function useSecureAuth(): UseSecureAuthReturn {
               auth_method: ("auth_method" in response.user ? response.user.auth_method : undefined) as "cognito" | "google" | "both" | "unknown" | undefined,
             };
 
+            // Convert to user store format to fix type compatibility
+            const userStoreProfile = {
+              ...mappedUser,
+              name: mappedUser.name || undefined, // Convert null to undefined for user store
+            };
+
             // Log the mapping for debugging (dev only)
             if (process.env.NODE_ENV === "development") {
               secureLogger.debug("SECURE_AUTH_DEV", "User mapping", {
@@ -143,7 +156,7 @@ export function useSecureAuth(): UseSecureAuthReturn {
 
             // Also store in user store for sidebar display (persists to localStorage)
             // This ensures name/email are immediately available and persist across refreshes
-            setUserProfile(mappedUser);
+            setUserProfile(userStoreProfile);
 
             isLoggingInRef.current = false;
 

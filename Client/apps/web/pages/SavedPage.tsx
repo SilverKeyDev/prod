@@ -13,7 +13,7 @@ import GenerateReportPage from "../features/decide/generate/GenerateReport";
 import { reportApi } from "../../../packages/config/api";
 import { useDocumentActions } from "../../../packages/hooks/data/useDocumentActions";
 import { useReportsData } from "../../../packages/hooks/data/useReportsData";
-import { useSavedHomesData } from "../../../packages/hooks/data/useSavedHomesData";
+import { useSavedHomesStoreIntegration } from "../../../packages/hooks/store/useSavedHomesStoreIntegration";
 import type { SavedHome, Report } from "../../../packages/schemas";
 import { useUIStore, useNegotiationStore } from "../../../packages/store";
 import CompareReportsPage from "../features/decide/compare/CompareReportsPage";
@@ -47,7 +47,7 @@ export default function SavedHomes() {
     saveHome,
     removeSavedHome,
     isHomeSaved,
-  } = useSavedHomesData();
+  } = useSavedHomesStoreIntegration();
 
   // Use reports data hook (same as Dashboard)
   const { reports, reportsLoading, refreshReports } = useReportsData();
