@@ -277,7 +277,12 @@ def _build_payload(
             f"Generate a comprehensive negotiation strategy for the property at {address}. "
             "Focus on practical, actionable advice with comp-based rationale and seller pain point leverage. "
             "\n\nCRITICAL REQUIREMENTS:\n"
-            "1. COMP-BASED OPENING RATIONALE: Reference specific comparable sales data (e.g., 'Comps in original condition within 0.5 miles sold $515k-$540k, supporting this opening'). "
+            "1. DETAILED COMP-BASED OPENING RATIONALE: Create sophisticated price rationale that references specific comparable properties with detailed comparisons. Include:\n"
+            "   - Specific addresses and sale prices of comparable properties\n"
+            "   - Detailed property comparisons (bedrooms, bathrooms, square footage differences)\n"
+            "   - Price positioning analysis (above/below/within comp range)\n"
+            "   - Market rationale supporting the opening offer amount\n"
+            "   Example: 'Opening at $525,000 based on detailed comparable analysis: 123 Main St sold $540,000 (+1 bed, +200 sqft), 456 Oak Ave sold $510,000 (-1 bath, -150 sqft). This positioning at $525,000 represents competitive pricing within the $510k-$540k comp range.'\n"
             "2. SELLER PAIN POINT CONCESSIONS: Tie each concession directly to seller pain points with give-to-get logic (e.g., 'If seller covers demo permit fees, buyer closes in 30 days'). "
             "3. AGGRESSIVE HOLDING COST LEVERAGE: Work holding costs into negotiation sequence - 'Every 30 days costs seller ~$5k, use after round one to pressure acceptance'. "
             "4. ACTIONABLE URGENCY STRATEGY: Clear actions like 'Slow-play negotiations to increase holding cost pressure' or 'Accelerate timeline to close before year-end'. "
@@ -437,7 +442,7 @@ Generate a negotiation strategy for: {address}
 {property_analysis_text}
 
 CRITICAL: Provide strategy with these specific improvements:
-1. COMP-BASED OPENING: Reference specific comparable sales in opening offer rationale
+1. DETAILED COMP-BASED OPENING: Create sophisticated price rationale that references specific comparable properties with detailed comparisons. Include specific addresses, sale prices, and property differences (bedrooms, bathrooms, sqft) compared to the target property. Show price positioning analysis and market rationale.
 2. SELLER PAIN POINT CONCESSIONS: Link each concession to seller pain points with clear give-to-get value
 3. HOLDING COST SEQUENCE: Specify how to use holding costs in negotiation rounds (not just opening)
 4. ACTIONABLE URGENCY: Clear strategy like 'slow-play' or 'accelerate timeline' based on buyer urgency

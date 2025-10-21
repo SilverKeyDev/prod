@@ -60,7 +60,6 @@ class Comp(BaseModel):
 
 class PriceSection(BaseModel):
     """Price + credits/terms, inspection plan, timeline, strength"""
-    max_price: Decimal = Field(..., description="Maximum price willing to pay")
     opening_offer: Decimal = Field(..., description="Initial offer amount")
     price_rationale: str = Field(..., description="Justification for opening offer based on comps")
     credits_and_terms: List[str] = Field(default_factory=list, description="Requested seller credits and terms")
@@ -69,41 +68,16 @@ class PriceSection(BaseModel):
     offer_strength: str = Field(..., description="What makes this offer strong")
 
 
-class CounterSection(BaseModel):
-    """Counteroffer strategy and tactics"""
-    max_rounds: int = Field(default=3, ge=1, le=5)
-    concessions_you_can_make: List[str] = Field(
-        default_factory=list,
-        description="What you're willing to give up in negotiations"
-    )
-    escalation_strategy: str = Field(
-        default="No escalation - use comp-based rationale and holding cost pressure instead",
-        description="When/how to escalate your offer, if at all"
-    )
-    emotion_control_notes: str = Field(
-        default="Stay calm, cite comps and market data, avoid emotional attachment",
-        description="Reminders to stay objective and data-driven"
-    )
-
-
 class MarketSection(BaseModel):
-    """Local market with comps + national snapshot"""
+    """Local market with national snapshot"""
     local_market_stats: List[str] = Field(..., description="3-4 key local market statistics")
     buyer_leverage: str = Field(..., description="Overall buyer leverage assessment")
-    comps: List[str] = Field(default_factory=list, description="List of comparable sales as readable strings")
     national_snapshot: str = Field(..., description="Brief national market context")
 
 
-class CopyPasteSection(BaseModel):
-    """Ready-to-send offer blurb"""
-    offer_text: str = Field(..., description="Complete offer text ready to send")
-    key_talking_points: List[str] = Field(default_factory=list, description="Key points to emphasize when presenting")
-
-
 class NegotiationStrategy(BaseModel):
-    """Complete negotiation strategy with 4 core sections"""
+    """Complete negotiation strategy with core sections"""
     price_section: PriceSection
-    counter_section: CounterSection
     market_section: MarketSection
     
     @classmethod
@@ -111,6 +85,7 @@ class NegotiationStrategy(BaseModel):
         cls,
         user_preferences: Dict[str, Any],
         market_data: Dict[str, Any],
+        property_data: Optional[Dict[str, Any]] = None,
         **overrides
     ) -> "NegotiationStrategy":
         """Create a personalized NegotiationStrategy from user preferences"""
@@ -133,13 +108,119 @@ class NegotiationStrategy(BaseModel):
             home_budget_max = 500000
         
         try:
-            max_price = Decimal(str(home_budget_max))
-            if max_price <= 0:
-                max_price = Decimal('500000')
+            budget_max = Decimal(str(home_budget_max))
+            if budget_max <= 0:
+                budget_max = Decimal('500000')
         except (ValueError, TypeError):
-            max_price = Decimal('500000')
+            budget_max = Decimal('500000')
             
-        opening_offer = max_price * Decimal('0.95')  # Start at 95% of max
+        opening_offer = budget_max * Decimal('0.95')  # Start at 95% of budget
+        
+        # Create sophisticated price rationale with specific comp comparisons
+        def create_detailed_price_rationale(target_property: Optional[Dict], comps: List[Dict], opening_amount: Decimal) -> str:
+            """Create detailed price rationale referencing specific comparable properties"""
+            
+            if not comps or len(comps) == 0:
+                return f"Opening at ${opening_amount:,.0f} (95% of budget). Based on comparable sales in the area."
+            
+            # Extract target property details
+            target_price = None
+            target_beds = None
+            target_baths = None
+            target_sqft = None
+            target_address = "this property"
+            
+            if target_property:
+                target_price = target_property.get('price') or target_property.get('listPrice')
+                target_beds = target_property.get('bedrooms') or target_property.get('beds')
+                target_baths = target_property.get('bathrooms') or target_property.get('baths')
+                target_sqft = target_property.get('livingArea') or target_property.get('sqft')
+                target_address = target_property.get('address', 'this property')
+            
+            # Analyze comps and create detailed comparisons
+            comp_analysis = []
+            price_range = []
+            
+            for i, comp in enumerate(comps[:3]):  # Limit to top 3 comps
+                if not isinstance(comp, dict):
+                    continue
+                    
+                comp_address = comp.get('address', f'Comp {i+1}')
+                comp_price = comp.get('sold_price', comp.get('price', 0))
+                comp_beds = comp.get('beds', comp.get('bedrooms'))
+                comp_baths = comp.get('baths', comp.get('bathrooms'))
+                comp_sqft = comp.get('living_sqft', comp.get('sqft', comp.get('livingArea')))
+                comp_date = comp.get('sold_date', comp.get('date'))
+                
+                if comp_price:
+                    price_range.append(float(comp_price))
+                
+                # Create detailed comparison
+                comparison_details = []
+                
+                if target_beds and comp_beds:
+                    bed_diff = target_beds - comp_beds
+                    if bed_diff > 0:
+                        comparison_details.append(f"+{bed_diff:.0f} bed")
+                    elif bed_diff < 0:
+                        comparison_details.append(f"{bed_diff:.0f} bed")
+                
+                if target_baths and comp_baths:
+                    bath_diff = target_baths - comp_baths
+                    if bath_diff > 0:
+                        comparison_details.append(f"+{bath_diff:.0f} bath")
+                    elif bath_diff < 0:
+                        comparison_details.append(f"{bath_diff:.0f} bath")
+                
+                if target_sqft and comp_sqft:
+                    sqft_diff = target_sqft - comp_sqft
+                    sqft_diff_pct = (sqft_diff / comp_sqft) * 100 if comp_sqft > 0 else 0
+                    if abs(sqft_diff_pct) > 5:  # Only mention if >5% difference
+                        if sqft_diff > 0:
+                            comparison_details.append(f"+{sqft_diff_pct:.0f}% sqft")
+                        else:
+                            comparison_details.append(f"{sqft_diff_pct:.0f}% sqft")
+                
+                # Format comparison text
+                comparison_text = ""
+                if comparison_details:
+                    comparison_text = f" ({', '.join(comparison_details)})"
+                
+                comp_analysis.append(f"• {comp_address}: ${comp_price:,.0f}{comparison_text}")
+            
+            # Calculate price range and positioning
+            if price_range:
+                min_price = min(price_range)
+                max_price = max(price_range)
+                avg_price = sum(price_range) / len(price_range)
+                
+                # Determine positioning relative to comps
+                if target_price:
+                    if opening_amount < min_price:
+                        positioning = f"aggressive below-market positioning (${min_price - opening_amount:,.0f} below lowest comp)"
+                    elif opening_amount > max_price:
+                        positioning = f"above-market positioning (${opening_amount - max_price:,.0f} above highest comp)"
+                    else:
+                        positioning = f"competitive positioning within comp range"
+                else:
+                    positioning = f"strategic positioning at 95% of budget"
+                
+                rationale = f"Opening at ${opening_amount:,.0f} based on detailed comparable analysis:\n\n"
+                rationale += f"COMPARABLE SALES ANALYSIS:\n"
+                rationale += "\n".join(comp_analysis)
+                rationale += f"\n\nPRICE POSITIONING: {positioning}\n"
+                rationale += f"Comp range: ${min_price:,.0f} - ${max_price:,.0f} (avg: ${avg_price:,.0f})\n"
+                rationale += f"Market rationale: Recent sales support this opening offer with {len(comps)} comparable properties analyzed."
+                
+                return rationale
+            else:
+                return f"Opening at ${opening_amount:,.0f} (95% of budget). Based on comparable sales in the area."
+        
+        # Get comps from market data
+        comps = market_data.get('comps', [])
+        
+        # Create detailed price rationale
+        detailed_rationale = create_detailed_price_rationale(property_data, comps, opening_offer)
         
         # Create PriceSection
         renovation_pref = user_preferences.get('renovation_preference', 'minor')
@@ -183,29 +264,12 @@ class NegotiationStrategy(BaseModel):
             offer_strength = "Pre-approved financing with competitive down payment"
         
         price_section = PriceSection(
-            max_price=max_price,
             opening_offer=opening_offer,
-            price_rationale=f"Opening at ${opening_offer:,.0f} (95% of max budget). Based on comparable sales in the area.",
+            price_rationale=detailed_rationale,
             credits_and_terms=credits_and_terms,
             inspection_plan=inspection_plan,
             timeline=timeline,
             offer_strength=offer_strength
-        )
-        
-        # Create CounterSection
-        concessions_you_can_make = []
-        if user_preferences.get('desired_closing_date') is None:
-            concessions_you_can_make.append("Flexible closing date (seller chooses within 60 days)")
-        if user_preferences.get('home_buying_experience') == 'experienced':
-            concessions_you_can_make.append("Shortened inspection period (5 days vs 10)")
-        if down_payment > float(home_budget_max) * 0.5:
-            concessions_you_can_make.append("Waive financing contingency")
-        
-        counter_section = CounterSection(
-            max_rounds=3,
-            concessions_you_can_make=concessions_you_can_make,
-            escalation_strategy="No escalation - use comp-based rationale and holding cost pressure instead",
-            emotion_control_notes="Stay calm, cite comps and market data, avoid emotional attachment"
         )
         
         # Create MarketSection
@@ -217,24 +281,15 @@ class NegotiationStrategy(BaseModel):
         if market_data.get('market_trend'):
             local_stats.append(f"Market trend: {market_data['market_trend']}")
         
-        # Convert comps to readable strings
-        comp_strings = []
-        comps = market_data.get('comps', [])
-        for comp in comps[:3]:  # Limit to 3 comps
-            if isinstance(comp, dict) and comp.get('address') and comp.get('sold_price'):
-                comp_strings.append(f"{comp['address']}: ${comp['sold_price']:,.0f}")
-        
         market_section = MarketSection(
             local_market_stats=local_stats[:4],  # Limit to 4 stats
             buyer_leverage="Market conditions provide moderate buyer leverage with opportunity for strategic negotiations",
-            comps=comp_strings,
             national_snapshot="National housing market showing signs of stabilization with regional variations"
         )
         
         # Apply any overrides
         data = {
             'price_section': price_section,
-            'counter_section': counter_section,
             'market_section': market_section,
             **overrides
         }
@@ -245,19 +300,15 @@ class NegotiationStrategy(BaseModel):
         """Validate that the strategy has all required components"""
         try:
             # Check that all sections exist
-            if not self.price_section or not self.counter_section or not self.market_section:
+            if not self.price_section or not self.market_section:
                 return False
             
             # Check that price section has required fields
-            if not self.price_section.max_price or not self.price_section.opening_offer:
-                return False
-            
-            # Check that opening offer is less than max price
-            if self.price_section.opening_offer >= self.price_section.max_price:
+            if not self.price_section.opening_offer:
                 return False
                 
             # Check that market section has some data
-            if not self.market_section.local_market_stats and not self.market_section.comps:
+            if not self.market_section.local_market_stats:
                 return False
                 
             return True

@@ -159,16 +159,17 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
         </div>
 
         {/* Agent and Brokerage Info */}
-        {comp.attributionInfo?.agentName && (
-          <div className="space-y-2 text-left mt-auto">
-            <div className="flex items-center gap-1">
-              <User className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-gray-400 flex-shrink-0" />
-              <span className="text-xs sm:text-sm text-gray-500">
-                Agent: {formatAgentName(comp.attributionInfo.agentName)}
-              </span>
-            </div>
+        <div className="space-y-2 text-left mt-auto">
+          <div className="flex items-center gap-1">
+            <User className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-gray-400 flex-shrink-0" />
+            <span className="text-xs sm:text-sm text-gray-500">
+              Agent:{" "}
+              {comp.attributionInfo?.agentName
+                ? formatAgentName(comp.attributionInfo.agentName)
+                : "N/A"}
+            </span>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

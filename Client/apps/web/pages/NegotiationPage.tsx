@@ -133,6 +133,69 @@ export default function NegotiationStrategy() {
           )) as any
         }
 
+        {/* Recommended Opening Offer - Displayed above comps */}
+        {(() => {
+          // Handle nested data structure - check if data is under a 'data' property
+          const actualData =
+            strategyData &&
+            typeof strategyData === "object" &&
+            !Array.isArray(strategyData)
+              ? (strategyData as Record<string, unknown>).data &&
+                typeof (strategyData as Record<string, unknown>).data ===
+                  "object"
+                ? ((strategyData as Record<string, unknown>).data as Record<
+                    string,
+                    unknown
+                  >)
+                : (strategyData as Record<string, unknown>)
+              : null;
+
+          const priceSection = actualData?.price_section;
+
+          if (
+            priceSection &&
+            typeof priceSection === "object" &&
+            priceSection !== null
+          ) {
+            const openingOffer = (priceSection as Record<string, unknown>)
+              .opening_offer;
+
+            // Handle different data types for opening offer
+            let offerValue: number | null = null;
+            if (typeof openingOffer === "number") {
+              offerValue = openingOffer;
+            } else if (typeof openingOffer === "string") {
+              const parsed = parseFloat(openingOffer);
+              if (!isNaN(parsed)) {
+                offerValue = parsed;
+              }
+            }
+
+            if (offerValue !== null && offerValue > 0) {
+              return (
+                <div className="mb-8">
+                  <div className="rounded-lg bg-olive/10 p-6">
+                    <div className="flex items-center gap-3">
+                      <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-olive text-white">
+                        <span className="text-lg font-bold">$</span>
+                      </span>
+                      <div>
+                        <div className="text-sm font-medium text-olive uppercase tracking-wide">
+                          Recommended Opening Offer
+                        </div>
+                        <div className="mt-1 text-3xl font-bold text-olive sm:text-4xl lg:text-5xl">
+                          ${offerValue.toLocaleString()}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+          }
+          return null;
+        })()}
+
         {/* Property Comparables CardCarousel */}
         {compsData &&
           typeof compsData === "object" &&
@@ -217,8 +280,25 @@ export default function NegotiationStrategy() {
             {strategyData &&
             typeof strategyData === "object" &&
             !Array.isArray(strategyData)
-              ? Object.entries(strategyData as Record<string, unknown>).map(
-                  ([key, value], index) => {
+              ? Object.entries(
+                  // Handle nested data structure - check if data is under a 'data' property
+                  (strategyData as Record<string, unknown>).data &&
+                    typeof (strategyData as Record<string, unknown>).data ===
+                      "object"
+                    ? ((strategyData as Record<string, unknown>).data as Record<
+                        string,
+                        unknown
+                      >)
+                    : (strategyData as Record<string, unknown>)
+                )
+                  .sort(([keyA], [keyB]) => {
+                    // Always show price_section first
+                    if (keyA === "price_section") return -1;
+                    if (keyB === "price_section") return 1;
+                    // Keep other sections in their original order
+                    return 0;
+                  })
+                  .map(([key, value], index) => {
                     // Skip empty or null values
                     if (
                       !value ||
@@ -238,6 +318,21 @@ export default function NegotiationStrategy() {
                     ];
                     if (metadataFields.includes(key.toLowerCase())) {
                       return null;
+                    }
+
+                    // Skip opening_offer from price_section since it's displayed above
+                    if (
+                      key === "price_section" &&
+                      typeof value === "object" &&
+                      value !== null
+                    ) {
+                      const priceSectionObj = value as Record<string, unknown>;
+                      if (priceSectionObj.opening_offer) {
+                        // Create a new object without opening_offer
+                        const { opening_offer, ...priceSectionWithoutOffer } =
+                          priceSectionObj;
+                        value = priceSectionWithoutOffer;
+                      }
                     }
 
                     // Format the value for display with better styling - NO JSON
@@ -429,6 +524,32 @@ export default function NegotiationStrategy() {
                                         <span className="font-mono text-brown">
                                           {subValue.toLocaleString()}
                                         </span>
+                                      ) : // Special formatting for price rationale
+                                      subKey === "price_rationale" &&
+                                        typeof subValue === "string" ? (
+                                        <div className="space-y-2">
+                                          {subValue
+                                            .split(". ")
+                                            .filter(
+                                              (sentence) =>
+                                                sentence.trim().length > 0
+                                            )
+                                            .map((sentence, idx) => (
+                                              <div
+                                                key={idx}
+                                                className="flex items-start gap-2"
+                                              >
+                                                <span className="flex h-5 flex-shrink-0 items-center text-brown mt-1">
+                                                  <span className="h-px w-2 bg-brown"></span>
+                                                </span>
+                                                <span className="text-responsive-sm text-navy/80 leading-relaxed">
+                                                  {sentence.trim()}
+                                                  {!sentence.endsWith(".") &&
+                                                    "."}
+                                                </span>
+                                              </div>
+                                            ))}
+                                        </div>
                                       ) : (
                                         <p className="leading-relaxed">
                                           {subValue &&
@@ -533,8 +654,7 @@ export default function NegotiationStrategy() {
                         </div>
                       </SectionBox>
                     );
-                  }
-                )
+                  })
               : null}
           </div>
         )}
