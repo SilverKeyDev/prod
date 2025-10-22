@@ -79,13 +79,13 @@ def verify():
     start_time = time.time()
     request_id = f"verify_{int(time.time() * 1000)}_{os.urandom(4).hex()}"
     
+    data = request.get_json()
+    
     # Log only critical verification attempts
     current_app.logger.info(f"AUTH_VERIFY_START", extra={
         'request_id': request_id,
         'email': data.get('email')[:3] + '***' + data.get('email')[-3:] if data and data.get('email') else 'missing'
     })
-    
-    data = request.get_json()
     
 
     if not all(field in data for field in ['email', 'code', 'password']):

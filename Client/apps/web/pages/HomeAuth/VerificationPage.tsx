@@ -206,9 +206,11 @@ export default function VerificationPage() {
       localStorage.removeItem("signupEmail");
       localStorage.removeItem("signupPassword");
 
-      // On success, redirect to dashboard
+      // On success, redirect to dashboard after a brief delay
       // Auth state will be picked up by AuthProvider via session verification
-      navigate("/dashboard");
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 500);
     } catch (error: unknown) {
       console.error("❌ VERIFICATION_PAGE: Verification error:", error);
       const errorMessage =
