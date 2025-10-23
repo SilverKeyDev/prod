@@ -206,10 +206,10 @@ export default function VerificationPage() {
       localStorage.removeItem("signupEmail");
       localStorage.removeItem("signupPassword");
 
-      // On success, redirect to dashboard after a brief delay
+      // On success, redirect to onboarding after a brief delay
       // Auth state will be picked up by AuthProvider via session verification
       setTimeout(() => {
-        navigate("/dashboard");
+        navigate("/onboarding");
       }, 500);
     } catch (error: unknown) {
       console.error("❌ VERIFICATION_PAGE: Verification error:", error);

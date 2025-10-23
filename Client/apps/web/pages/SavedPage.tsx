@@ -35,6 +35,7 @@ export default function SavedHomes() {
   const [reportsSubView, setReportsSubView] = useState<
     "reports" | "compare" | "chatbot"
   >("reports");
+  const [isComparisonMode, setIsComparisonMode] = useState(false);
   const enqueueToast = useUIStore((s) => s.enqueueToast);
   const { setSelectedHome } = useNegotiationStore();
 
@@ -79,6 +80,43 @@ export default function SavedHomes() {
       setViewType(viewParam);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Monitor comparison mode state from localStorage
+  useEffect(() => {
+    const checkComparisonMode = () => {
+      try {
+        const savedState = localStorage.getItem("generateReportState");
+        if (savedState) {
+          const parsed = JSON.parse(savedState) as {
+            reportType?: string;
+          };
+          setIsComparisonMode(parsed.reportType === "comparison");
+        }
+      } catch {
+        // Ignore parsing errors
+      }
+    };
+
+    // Check initially
+    checkComparisonMode();
+
+    // Listen for storage changes (when GenerateReportPage updates localStorage)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "generateReportState") {
+        checkComparisonMode();
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    // Also poll periodically to catch changes from same tab
+    const interval = setInterval(checkComparisonMode, 1000);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      clearInterval(interval);
+    };
   }, []);
 
   // Keep URL in sync when viewType changes
@@ -356,7 +394,7 @@ export default function SavedHomes() {
       <div className="space-y-8">
         {/* Generate Report Component - Show on desktop when reports view is active */}
         {viewType === "reports" && !isMobile && (
-          <div className="mb-6">
+          <div className={`mb-6 ${isComparisonMode ? "-mt-16" : ""}`}>
             <GenerateReportPage onReportGenerated={handleReportGenerated} />
           </div>
         )}
@@ -380,7 +418,7 @@ export default function SavedHomes() {
                   className={
                     reportsSubView === "reports"
                       ? "bg-gold text-white"
-                      : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                      : "bg-gray-100 text-gray-800 hover:bg-beige/90 hover:border-brown"
                   }
                 >
                   Reports
@@ -394,7 +432,7 @@ export default function SavedHomes() {
                   className={
                     reportsSubView === "compare"
                       ? "bg-gold text-white"
-                      : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                      : "bg-gray-100 text-gray-800 hover:bg-beige/90 hover:border-brown"
                   }
                 >
                   Compare
@@ -408,7 +446,7 @@ export default function SavedHomes() {
                   className={
                     reportsSubView === "chatbot"
                       ? "bg-gold text-white"
-                      : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                      : "bg-gray-100 text-gray-800 hover:bg-beige/90 hover:border-brown"
                   }
                 >
                   Chatbot

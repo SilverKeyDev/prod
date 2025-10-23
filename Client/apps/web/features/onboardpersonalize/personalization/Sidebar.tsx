@@ -1,53 +1,15 @@
-import {
-  Edit,
-  Save,
-  X,
-  User,
-  Building,
-  Home,
-  MapPin,
-  MessageSquare,
-  ListOrdered,
-} from "lucide-react";
+import { Edit, Save, X } from "lucide-react";
 
 import Card from "../../../components/layout/Card";
 import Button from "../../../components/ui/button/Button";
 import type { NavItem } from "../../../../../packages/schemas/navigation";
 import useMobile from "../../../../../packages/hooks/ui/useMobile";
+import {
+  getPersonalizationSteps,
+  convertStepsToNavItems,
+} from "../lib/constants";
 
-const STEPS: NavItem[] = [
-  {
-    key: "reportcustomization",
-    to: "#reportcustomization",
-    label: "Report Customization",
-    icon: ListOrdered,
-  },
-  {
-    key: "demographics",
-    to: "#demographics",
-    label: "Demographics",
-    icon: User,
-  },
-  {
-    key: "financial",
-    to: "#financial",
-    label: "Financial Profile",
-    icon: Building,
-  },
-  { key: "housing", to: "#housing", label: "Housing Preferences", icon: Home },
-  {
-    key: "location",
-    to: "#location",
-    label: "Location Preferences",
-    icon: MapPin,
-  },
-  {
-    key: "communication",
-    to: "#communication",
-    label: "Communication",
-    icon: MessageSquare,
-  },
-];
+const STEPS: NavItem[] = convertStepsToNavItems(getPersonalizationSteps());
 
 type PersonalizationSidebarProps = {
   activeSection: string;
@@ -97,7 +59,7 @@ export default function PersonalizationSidebar({
               onClick={onEdit}
               variant="olive"
               size="sm"
-              className={`text-xs font-medium p-2 rounded-lg items-center justify-center ${
+              className={`text-sm font-medium p-2 rounded-lg items-center justify-center ${
                 isLargeScreen ? "w-full" : ""
               }`}
               icon={<Edit />}
@@ -115,7 +77,7 @@ export default function PersonalizationSidebar({
                 disabled={isSaving}
                 variant="olive"
                 size="sm"
-                className={`text-xs font-medium p-2 rounded-lg items-center justify-center ${
+                className={`text-sm font-medium p-2 rounded-lg items-center justify-center ${
                   isLargeScreen ? "w-full" : ""
                 }`}
                 icon={<Save />}
@@ -127,7 +89,7 @@ export default function PersonalizationSidebar({
                 onClick={onCancel}
                 variant="outline"
                 size="sm"
-                className={`bg-gray-200 text-gray-700 hover:bg-gray-300 border-gray-200 text-xs font-medium p-2 rounded-lg items-center justify-center ${
+                className={`bg-gray-200 text-gray-700 hover:bg-gray-300 border-gray-200 text-sm font-medium p-2 rounded-lg items-center justify-center ${
                   isLargeScreen ? "w-full" : ""
                 }`}
                 icon={<X />}
@@ -143,27 +105,31 @@ export default function PersonalizationSidebar({
           <button
             key={step.key}
             onClick={() => onScrollToSection(step.key)}
-            className={`flex w-full items-center rounded-lg px-3 py-2 transition-colors ${
+            className={`group flex w-full items-center rounded-lg px-3 py-2 transition-colors ${
               isLargeScreen ? "gap-3" : "justify-center"
             } ${
               activeSection === step.key
-                ? "bg-gold text-gray-800"
-                : "hover:bg-gold-lighter"
+                ? "bg-gold text-off-white"
+                : "hover:bg-gold-lighter hover:text-off-white"
             }`}
             title={!isLargeScreen ? step.label : undefined}
           >
             {step.icon && (
               <step.icon
                 size={20}
-                className={`flex-shrink-0 ${
-                  activeSection === step.key ? "text-gray-800" : "text-gray-500"
+                className={`flex-shrink-0 transition-colors ${
+                  activeSection === step.key
+                    ? "text-off-white"
+                    : "text-gray-500 group-hover:text-off-white"
                 }`}
               />
             )}
             {isLargeScreen && (
               <span
-                className={`text-left text-sm font-medium ${
-                  activeSection === step.key ? "text-gray-800" : "text-gray-500"
+                className={`text-left text-sm font-medium transition-colors ${
+                  activeSection === step.key
+                    ? "text-off-white"
+                    : "text-gray-500 group-hover:text-off-white"
                 }`}
               >
                 {step.label}

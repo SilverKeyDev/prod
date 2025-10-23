@@ -1,6 +1,6 @@
 import { useEffect, useCallback } from "react";
 
-import SearchMobileHeader from "../SearchMobileHeader";
+import SearchMobileHeader from "../components/SearchMobileHeader";
 
 export default function useMobileHeaderActions(params: {
   setMobileHeaderActions: React.Dispatch<
@@ -17,7 +17,6 @@ export default function useMobileHeaderActions(params: {
 
   // Mobile header actions setup
   useEffect(() => {
-
     // Cleanup actions when component unmounts
     return () => {
       params.setMobileHeaderActions(null);
@@ -39,7 +38,6 @@ export default function useMobileHeaderActions(params: {
           isSearching={params.isSearching}
         />
       );
-
     }
 
     // Always update mobile header actions when screen size changes
@@ -56,14 +54,11 @@ export default function useMobileHeaderActions(params: {
 
   // Handle mobile header actions based on screen size (SSR-safe)
   useEffect(() => {
-
-
     // Set initial state immediately
     handleResize();
 
     // Also set it after a small delay to ensure it's set even if resize doesn't fire
     const timeoutId = setTimeout(() => {
-
       handleResize();
     }, 100);
 
@@ -72,7 +67,6 @@ export default function useMobileHeaderActions(params: {
 
     // Cleanup
     return () => {
-
       clearTimeout(timeoutId);
       window.removeEventListener("resize", handleResize);
     };

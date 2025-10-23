@@ -145,7 +145,7 @@ export const AUTH_CONFIG = {
     "/past-reports",
     "/compare-reports",
     "/saved-homes",
-    "/personalization",
+    "/settings",
     "/generate-report",
     "/onboarding",
     "/offer-draft",

@@ -52,21 +52,6 @@ const navigationStructure: NavigationStructure = {
       },
     ],
   },
-  onboard: {
-    name: SIDEBAR_TABS.onboard.name,
-    icon: SIDEBAR_TABS.onboard.icon as unknown as React.FC<{
-      className?: string;
-    }>,
-    items: [
-      {
-        name: "Preferences",
-        href: SIDEBAR_TABS.onboard.href,
-        icon: SIDEBAR_TABS.onboard.icon as unknown as React.FC<{
-          className?: string;
-        }>,
-      },
-    ],
-  },
   search: {
     name: SIDEBAR_TABS.search.name,
     icon: SIDEBAR_TABS.search.icon as unknown as React.FC<{
@@ -127,6 +112,21 @@ const navigationStructure: NavigationStructure = {
       },
     ],
   },
+  settings: {
+    name: SIDEBAR_TABS.settings.name,
+    icon: SIDEBAR_TABS.settings.icon as unknown as React.FC<{
+      className?: string;
+    }>,
+    items: [
+      {
+        name: "Preferences",
+        href: SIDEBAR_TABS.settings.href,
+        icon: SIDEBAR_TABS.settings.icon as unknown as React.FC<{
+          className?: string;
+        }>,
+      },
+    ],
+  },
 };
 
 // Function to generate navigation array based on user type
@@ -137,11 +137,6 @@ const getNavigation = (): NavigationStructure => {
       name: navigationStructure.dashboard.name,
       icon: navigationStructure.dashboard.icon,
       items: [...navigationStructure.dashboard.items],
-    },
-    onboard: {
-      name: navigationStructure.onboard.name,
-      icon: navigationStructure.onboard.icon,
-      items: [...navigationStructure.onboard.items],
     },
     search: {
       name: navigationStructure.search.name,
@@ -162,6 +157,11 @@ const getNavigation = (): NavigationStructure => {
       name: navigationStructure.close.name,
       icon: navigationStructure.close.icon,
       items: [...navigationStructure.close.items],
+    },
+    settings: {
+      name: navigationStructure.settings.name,
+      icon: navigationStructure.settings.icon,
+      items: [...navigationStructure.settings.items],
     },
   };
 
@@ -313,13 +313,13 @@ export default function Sidebar({
               {Object.entries(getNavigation()).map(
                 ([categoryKey, category]: [string, NavCategory]) => (
                   <div key={categoryKey}>
-                    {/* Render certain categories as direct links (dashboard, onboard, search, decide, negotiate, close) */}
+                    {/* Render certain categories as direct links (dashboard, search, decide, negotiate, close, settings) */}
                     {categoryKey === "dashboard" ||
-                    categoryKey === "onboard" ||
                     categoryKey === "search" ||
                     categoryKey === "decide" ||
                     categoryKey === "negotiate" ||
-                    categoryKey === "close" ? (
+                    categoryKey === "close" ||
+                    categoryKey === "settings" ? (
                       (() => {
                         const firstItem = category.items[0];
                         const ItemIcon = firstItem?.icon;

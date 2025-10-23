@@ -25,24 +25,24 @@ import { asError } from "../../../packages/utils/error";
 import {
   renderImportantLocationMarkers,
   type GoogleAdvancedMarkerElement,
-} from "../features/search/lib/importantLocationRenderer";
-import { renderIsochronePolygon } from "../features/search/lib/isochroneRenderer";
-import { saveSearchResults } from "../features/search/lib/localStorage";
-import { useMapZoomController } from "../features/search/lib/MapZoomController";
-import { MapControls } from "../features/search/page/components/MapControls";
-import { PropertyCarousel } from "../features/search/page/components/PropertyCarousel";
-import { SidebarList } from "../features/search/page/components/SidebarList";
-import { Tabs } from "../features/search/page/components/Tabs";
-import { useIsochroneFlow } from "../features/search/page/useIsochroneFlow";
-import { useMapInitAndResize } from "../features/search/page/useMapInitAndResize";
+} from "../features/search/utils/importantLocationRenderer";
+import { renderIsochronePolygon } from "../features/search/utils/isochroneRenderer";
+import { saveSearchResults } from "../features/search/utils/localStorage";
+import { useMapZoomController } from "../features/search/utils/MapZoomController";
+import { MapControls } from "../features/search/components/MapControls";
+import { PropertyCarousel } from "../features/search/components/PropertyCarousel";
+import { SidebarList } from "../features/search/components/SidebarList";
+import { Tabs } from "../features/search/components/Tabs";
+import { useIsochroneFlow } from "../features/search/utils/useIsochroneFlow";
+import { useMapInitAndResize } from "../features/search/utils/useMapInitAndResize";
 import { useMapMarkers } from "../features/search/hooks/useMapMarkers";
-import { useMarkerUpdates } from "../features/search/page/useMarkerUpdates";
-import useMobileHeaderActions from "../features/search/page/useMobileHeaderActions";
-import { usePropertyFocus } from "../features/search/page/usePropertyFocus";
-import { useSavedHomes } from "../features/search/page/useSavedHomes";
-import { useSearchBootstrap } from "../features/search/page/useSearchBootstrap";
+import { useMarkerUpdates } from "../features/search/utils/useMarkerUpdates";
+import useMobileHeaderActions from "../features/search/utils/useMobileHeaderActions";
+import { usePropertyFocus } from "../features/search/utils/usePropertyFocus";
+import { useSavedHomes } from "../features/search/utils/useSavedHomes";
+import { useSearchBootstrap } from "../features/search/utils/useSearchBootstrap";
 import { searchPropertiesInIsochrone } from "../features/search/services/propertySearch";
-import SearchHeader from "../features/search/SearchHeader";
+import SearchHeader from "../features/search/components/SearchHeader";
 
 type SearchPageProps = {
   setMobileHeaderActions: React.Dispatch<
@@ -88,10 +88,10 @@ export default function SearchPage({
     // Use a more direct approach for mobile navigation
     if (window.innerWidth < 1024) {
       // For mobile, use window.location to ensure navigation works
-      window.location.href = "/personalization";
+      window.location.href = "/settings";
     } else {
       // For desktop, use React Router
-      navigate("/personalization");
+      navigate("/settings");
     }
   }, [navigate]);
 

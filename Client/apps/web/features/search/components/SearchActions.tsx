@@ -1,5 +1,5 @@
-import NavigationButton from "../../components/ui/button/NavigationButton";
-import KeyTurnLoader from "../../components/ui/loading/KeyTurnLoader";
+import NavigationButton from "../../../components/ui/button/NavigationButton";
+import KeyTurnLoader from "../../../components/ui/loading/KeyTurnLoader";
 
 type SearchActionsProps = {
   onUpdatePreferences: () => void;

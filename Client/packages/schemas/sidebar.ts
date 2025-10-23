@@ -4,17 +4,18 @@ import {
   Home,
   Key,
   Search,
+  Settings,
   Split,
   type LucideIcon,
 } from "lucide-react";
 
 export type SidebarTabKey =
   | "dashboard"
-  | "onboard"
   | "search"
   | "decide"
   | "negotiate"
-  | "close";
+  | "close"
+  | "settings";
 
 export type SidebarSubStep = {
   label: string;
@@ -43,20 +44,6 @@ export const SIDEBAR_TABS: Record<SidebarTabKey, SidebarTab> = {
         label: "Home",
         to: "/dashboard",
         icon: Home,
-      },
-    ],
-  },
-  onboard: {
-    key: "onboard",
-    name: "Onboard",
-    description: "Set preferences and get ready to search",
-    icon: ClipboardList,
-    href: "/personalization",
-    subSteps: [
-      {
-        label: "Preferences",
-        to: "/personalization",
-        icon: ClipboardList,
       },
     ],
   },
@@ -116,11 +103,25 @@ export const SIDEBAR_TABS: Record<SidebarTabKey, SidebarTab> = {
       },
     ],
   },
+  settings: {
+    key: "settings",
+    name: "Settings",
+    description: "Manage your preferences and account settings",
+    icon: Settings,
+    href: "/settings",
+    subSteps: [
+      {
+        label: "Preferences",
+        to: "/settings",
+        icon: Settings,
+      },
+    ],
+  },
 };
 
 export const getTabByPath = (pathname: string): SidebarTab | undefined => {
   if (pathname.startsWith("/dashboard")) return SIDEBAR_TABS.dashboard;
-  if (pathname.startsWith("/personalization")) return SIDEBAR_TABS.onboard;
+  if (pathname.startsWith("/settings")) return SIDEBAR_TABS.settings;
   if (pathname.startsWith("/search")) return SIDEBAR_TABS.search;
   if (pathname.startsWith("/saved") || pathname.startsWith("/compare-reports"))
     return SIDEBAR_TABS.decide;

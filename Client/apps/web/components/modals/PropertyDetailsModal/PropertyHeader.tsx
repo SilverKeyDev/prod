@@ -1,10 +1,9 @@
-import { X, Heart, FileText, ExternalLink } from "lucide-react";
+import { X, FileText, ExternalLink } from "lucide-react";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
 import Button from "../../ui/button/Button";
-import { useSavedHomesData } from "../../../../../packages/hooks/data/useSavedHomesData";
-import { useUIStore } from "../../../../../packages/store";
+import { CardHeartSave } from "../../cards/base";
 
 import type { PropertyHeaderProps } from "./types";
 import { formatAddress, formatPrice, handleZillowOpen } from "./utils";
@@ -16,12 +15,6 @@ export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
 }) => {
   const navigate = useNavigate();
 
-  // Use internal hooks for save/remove functionality
-  const { saveHome, removeSavedHome, isHomeSaved } = useSavedHomesData();
-  const enqueueToast = useUIStore((s) => s.enqueueToast);
-
-  const propertyId = (property as unknown as { id: unknown }).id as string;
-  const isSaved = isHomeSaved(propertyId);
   const propertyAddress = (property as unknown as { address: unknown }).address;
   const propertyPrice = (property as unknown as { price: unknown }).price;
 
@@ -95,49 +88,11 @@ export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
           </Button>
         )}
 
-        <button
-          onClick={async () => {
-            try {
-              if (isSaved) {
-                await removeSavedHome(propertyId);
-                enqueueToast({
-                  type: "success",
-                  message: `Removed ${formatAddress(
-                    propertyAddress as
-                      | string
-                      | import("./utils").AddressObject
-                      | null
-                      | undefined
-                  )} from favorites`,
-                });
-              } else {
-                await saveHome(property);
-                enqueueToast({
-                  type: "success",
-                  message: `Saved ${formatAddress(
-                    propertyAddress as
-                      | string
-                      | import("./utils").AddressObject
-                      | null
-                      | undefined
-                  )}`,
-                });
-              }
-            } catch (error: unknown) {
-              console.error("Error updating favorites:", error);
-              enqueueToast({
-                type: "error",
-                message: `Failed to ${isSaved ? "remove" : "save"} home`,
-              });
-            }
-          }}
-          className="p-2 hover:bg-gray-100 rounded-md transition-colors"
-          aria-label={isSaved ? "Remove from saved" : "Save home"}
-        >
-          <Heart
-            className={`h-5 w-5 ${isSaved ? "fill-red-500 text-red-500" : "text-gray-400 hover:text-red-500"}`}
-          />
-        </button>
+        <CardHeartSave
+          property={property}
+          size="sm"
+          className="border border-gray-300 text-gray-600 hover:bg-gray-50 rounded-md transition-colors"
+        />
 
         <button
           onClick={onClose}

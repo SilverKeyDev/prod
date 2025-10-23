@@ -45,11 +45,12 @@ const initialState = (): Omit<
 > => ({
   sidebarExpanded: false, // Default to closed for better mobile UX
   openCategories: {
-    onboard: false,
+    dashboard: false,
     search: false,
     decide: false,
     negotiate: false,
     close: false,
+    settings: false,
   },
   dropdownSelections: {},
   personalizationEditMode: false,

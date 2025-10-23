@@ -5,12 +5,12 @@ import {
   CardPropertyDetails,
   CardMatchScore,
   CardHeartSave,
-} from "../../../../components/cards/base";
-import { KeyTurnLoader } from "../../../../components/ui";
+} from "../../../components/cards/base";
+import { KeyTurnLoader } from "../../../components/ui";
 import {
   getMatchScore,
   type SearchResult,
-} from "../../../../../../packages/schemas/search";
+} from "../../../../../packages/schemas/search";
 
 export function SidebarList(props: {
   items: SearchResult[];

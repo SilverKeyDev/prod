@@ -23,7 +23,6 @@ export const RequiredLabel: React.FC<OnPerLabelProps> = ({
       strokeWidth={3}
       aria-hidden="true"
     />
-    (required)
   </label>
 );
 

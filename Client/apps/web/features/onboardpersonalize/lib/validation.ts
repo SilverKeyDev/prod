@@ -14,10 +14,11 @@ const FIELD_DISPLAY_NAMES: Record<string, string> = {
   occupation: FIELD_LABELS.OCCUPATION,
   pets: FIELD_LABELS.PETS,
   gross_income: FIELD_LABELS.GROSS_INCOME,
-  home_budget_min: "Home Budget Minimum",
-  home_budget_max: "Home Budget Maximum",
+  home_budget_min: `${FIELD_LABELS.HOME_BUDGET} Minimum`,
+  home_budget_max: `${FIELD_LABELS.HOME_BUDGET} Maximum`,
   credit_score_range: FIELD_LABELS.CREDIT_SCORE_RANGE,
   down_payment: FIELD_LABELS.DOWN_PAYMENT,
+  ideal_zip_code: FIELD_LABELS.IDEAL_ZIP_CODE,
   preferred_housing_type: FIELD_LABELS.PREFERRED_HOUSING_TYPE,
   preferred_bedrooms: FIELD_LABELS.PREFERRED_BEDROOMS,
   preferred_bathrooms: FIELD_LABELS.PREFERRED_BATHROOMS,
@@ -26,10 +27,13 @@ const FIELD_DISPLAY_NAMES: Record<string, string> = {
   preferred_architectural_style: FIELD_LABELS.PREFERRED_ARCHITECTURAL_STYLE,
   renovation_preference: FIELD_LABELS.RENOVATION_PREFERENCE,
   intended_property_use: FIELD_LABELS.INTENDED_PROPERTY_USE,
+  preferred_home_features: FIELD_LABELS.PREFERRED_HOME_FEATURES,
+  deal_breakers: FIELD_LABELS.DEAL_BREAKERS,
   important_locations: FIELD_LABELS.IMPORTANT_LOCATIONS,
   walkability_importance: FIELD_LABELS.WALKABILITY_IMPORTANCE,
   communication_frequency: FIELD_LABELS.COMMUNICATION_FREQUENCY,
   information_detail_level: FIELD_LABELS.INFORMATION_DETAIL_LEVEL,
+  has_buyers_agent: FIELD_LABELS.HAS_BUYERS_AGENT,
 };
 
 /**
@@ -110,19 +114,19 @@ export const validateOnboardingData = (
       !formData.important_locations ||
       formData.important_locations.length === 0
     ) {
-      missingFields.push("At least one important location");
+      missingFields.push(`At least one ${FIELD_LABELS.IMPORTANT_LOCATIONS.toLowerCase()}`);
     } else {
       // Validate each important location has required fields
       formData.important_locations.forEach((location, index: number) => {
         if (!location.name || location.name.trim() === "") {
-          missingFields.push(`Important location ${index + 1} name`);
+          missingFields.push(`${FIELD_LABELS.IMPORTANT_LOCATIONS} ${index + 1} name`);
         }
         if (!location.address || location.address.trim() === "") {
-          missingFields.push(`Important location ${index + 1} address`);
+          missingFields.push(`${FIELD_LABELS.IMPORTANT_LOCATIONS} ${index + 1} address`);
         }
         if (!location.commute_tolerance || location.commute_tolerance <= 0) {
           missingFields.push(
-            `Important location ${index + 1} commute tolerance`,
+            `${FIELD_LABELS.IMPORTANT_LOCATIONS} ${index + 1} commute tolerance`,
           );
         }
       });

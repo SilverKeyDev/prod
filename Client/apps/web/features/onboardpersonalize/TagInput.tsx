@@ -84,14 +84,14 @@ const OnPerTagInput: React.FC<OnPerTagInputProps> = ({
           {value.map((tag, index) => (
             <div
               key={index}
-              className="inline-flex items-center rounded-full bg-beige px-3 py-1 text-sm text-black"
+              className="inline-flex items-center rounded-full bg-gold px-3 py-1 text-sm text-off-white"
             >
               {tag}
               <button
                 type="button"
                 onClick={() => handleRemoveTag(tag)}
                 disabled={disabled}
-                className="ml-2 text-black/60 hover:text-black disabled:cursor-not-allowed disabled:text-black/30"
+                className="ml-2 text-off-white/60 hover:text-off-white disabled:cursor-not-allowed disabled:text-off-white/30"
               >
                 <X className="h-3 w-3" />
               </button>

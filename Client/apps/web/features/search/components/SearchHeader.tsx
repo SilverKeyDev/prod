@@ -1,5 +1,5 @@
 import SearchActions from "./SearchActions";
-import Card from "../../components/layout/Card";
+import Card from "../../../components/layout/Card";
 
 type SearchHeaderProps = {
   onUpdatePreferences: () => void;

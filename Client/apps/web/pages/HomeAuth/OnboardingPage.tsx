@@ -16,6 +16,7 @@ import {
   Subtitle,
   NavigationButtons,
 } from "../../components/ui";
+import { SkipButton } from "../../components/ui/button/NavigationButtons";
 // Core
 import { useGoogleMaps } from "../../../../packages/hooks/data/useGoogleMaps";
 // Features
@@ -25,7 +26,7 @@ import HomePriceEstimate from "../../features/onboardpersonalize/HomePriceEstima
 import type { HomePriceResult } from "../../features/onboardpersonalize/lib/homePriceCalculation";
 import ImportantLocationsInput from "../../features/onboardpersonalize/ImportantLocationsInput";
 import {
-  ONBOARDING_STEPS,
+  getOnboardingSteps,
   DEFAULT_REPORT_SECTIONS,
   GENDER_OPTIONS,
   type OnboardingData,
@@ -35,7 +36,6 @@ import {
   LOT_SIZE_OPTIONS,
   WALKABILITY_OPTIONS,
   COMMUNICATION_FREQUENCY_OPTIONS,
-  INFORMATION_DETAIL_OPTIONS,
   HOME_AGE_OPTIONS,
   RENOVATION_PREFERENCE_OPTIONS,
   PROPERTY_USE_OPTIONS,
@@ -56,15 +56,17 @@ import OnPerTagInput from "../../features/onboardpersonalize/TagInput";
 
 // Google Maps types are declared in googleMaps.ts
 
-const STEPS = ONBOARDING_STEPS;
+const STEPS = getOnboardingSteps();
 
 const REPORT_SECTIONS = DEFAULT_REPORT_SECTIONS;
 
 export default function OnboardingPage() {
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<OnboardingData>({
-    // Initialize report customization with empty array - users will select their own priorities
-    report_section_priorities: [],
+    // Initialize report customization with first 6 priorities auto-selected
+    report_section_priorities: DEFAULT_REPORT_SECTIONS.slice(0, 6).map(
+      (section) => section.key
+    ),
     important_locations: [],
   });
   const [loading, setLoading] = useState(false);
@@ -229,6 +231,15 @@ export default function OnboardingPage() {
       } catch {
         console.warn("Invalid onboarding draft data");
       }
+    } else {
+      // If no draft exists, initialize with first 6 priorities auto-selected
+      const initialData: OnboardingData = {
+        report_section_priorities: DEFAULT_REPORT_SECTIONS.slice(0, 6).map(
+          (section) => section.key
+        ),
+        important_locations: [],
+      };
+      setFormData(initialData);
     }
   }, []);
 
@@ -277,6 +288,10 @@ export default function OnboardingPage() {
     setCurrentStep(stepIndex);
   };
 
+  const handleSkip = () => {
+    navigate("/dashboard");
+  };
+
   const handleSubmit = async () => {
     await handleSubmitUtil({
       formData,
@@ -312,7 +327,7 @@ export default function OnboardingPage() {
       } else if (firstMissingField.includes("location")) {
         setCurrentStep(3); // Location
       } else if (firstMissingField.includes("report")) {
-        setCurrentStep(5); // Report Customization
+        setCurrentStep(4); // Report Customization
       }
     }
   };
@@ -330,7 +345,9 @@ export default function OnboardingPage() {
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <div>
-                <OnPerLabel required={REQUIRED_FIELDS.age}>Age</OnPerLabel>
+                <OnPerLabel required={REQUIRED_FIELDS.age}>
+                  {FIELD_LABELS.AGE}
+                </OnPerLabel>
                 <Input
                   variant="mobile"
                   type="number"
@@ -346,7 +363,7 @@ export default function OnboardingPage() {
 
               <div>
                 <OnPerLabel required={REQUIRED_FIELDS.gender}>
-                  Gender
+                  {FIELD_LABELS.GENDER}
                 </OnPerLabel>
                 <Dropdown
                   value={formData.gender ?? ""}
@@ -358,7 +375,7 @@ export default function OnboardingPage() {
 
               <div>
                 <OnPerLabel required={REQUIRED_FIELDS.occupation}>
-                  Occupation
+                  {FIELD_LABELS.OCCUPATION}
                 </OnPerLabel>
                 <Input
                   variant="mobile"
@@ -373,7 +390,7 @@ export default function OnboardingPage() {
 
               <div>
                 <OnPerLabel required={REQUIRED_FIELDS.pets}>
-                  Pet Ownership Status
+                  {FIELD_LABELS.PETS}
                 </OnPerLabel>
                 <Dropdown
                   value={formData.pets ?? ""}
@@ -382,6 +399,20 @@ export default function OnboardingPage() {
                   placeholder="Select pet status"
                 />
               </div>
+            </div>
+
+            {/* Buyer's Agent Section */}
+            <div className="mt-6">
+              <OnPerBuyersAgent
+                hasBuyersAgent={formData.has_buyers_agent ?? ""}
+                lookingForBuyersAgent={!!formData.looking_for_buyers_agent}
+                onHasBuyersAgentChange={(value: string) =>
+                  updateFormData("has_buyers_agent", value)
+                }
+                onLookingForBuyersAgentChange={(value: boolean) =>
+                  updateFormData("looking_for_buyers_agent", value)
+                }
+              />
             </div>
           </div>
         );
@@ -392,7 +423,28 @@ export default function OnboardingPage() {
             <Title size="lg" className="mb-4 sm:mb-6">
               {SECTION_TITLES.FINANCIAL_PROFILE}
             </Title>
-
+            <div className="col-span-1 flex flex-col items-center md:col-span-2">
+              <label className="text-responsive-xl space-y-responsive-xs block w-full text-center font-bold text-gray-700">
+                {FIELD_LABELS.HOME_BUDGET} *
+              </label>
+              <BudgetRangeSlider
+                tickValues={[
+                  200000, 400000, 600000, 1000000, 1500000, 2500000, 4000000,
+                  6000000, 10000000,
+                ]}
+                minValue={formData.home_budget_min ?? 200000}
+                maxValue={formData.home_budget_max ?? 1000000}
+                onChange={(minValue, maxValue) => {
+                  // Round to nearest $25,000 increment
+                  const roundedMin = Math.round(minValue / 25000) * 25000;
+                  const roundedMax = Math.round(maxValue / 25000) * 25000;
+                  updateFormData("home_budget_min", roundedMin);
+                  updateFormData("home_budget_max", roundedMax);
+                }}
+                formatPrefix="$"
+                className="mt-2"
+              />
+            </div>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <div className="mx-auto w-4/5">
                 <label className="mb-1 block w-full text-center text-xs font-normal text-gray-700 sm:text-sm md:text-base">
@@ -458,28 +510,6 @@ export default function OnboardingPage() {
                   }
                   options={CREDIT_SCORE_OPTIONS}
                   placeholder="Select credit score range"
-                />
-              </div>
-
-              <div className="col-span-1 flex flex-col items-center md:col-span-2">
-                <label className="text-responsive-xl space-y-responsive-xs block w-full text-center font-bold text-gray-700">
-                  {FIELD_LABELS.HOME_BUDGET} *
-                </label>
-                <BudgetRangeSlider
-                  tickValues={[
-                    200000, 500000, 1000000, 2000000, 5000000, 10000000,
-                  ]}
-                  minValue={formData.home_budget_min ?? 200000}
-                  maxValue={formData.home_budget_max ?? 1000000}
-                  onChange={(minValue, maxValue) => {
-                    // Round to nearest $25,000 increment
-                    const roundedMin = Math.round(minValue / 25000) * 25000;
-                    const roundedMax = Math.round(maxValue / 25000) * 25000;
-                    updateFormData("home_budget_min", roundedMin);
-                    updateFormData("home_budget_max", roundedMax);
-                  }}
-                  formatPrefix="$"
-                  className="mt-2"
                 />
               </div>
 
@@ -565,7 +595,7 @@ export default function OnboardingPage() {
 
               <div>
                 <OnPerLabel required={REQUIRED_FIELDS.preferred_lot_size}>
-                  Preferred Lot Size
+                  {FIELD_LABELS.PREFERRED_LOT_SIZE}
                 </OnPerLabel>
                 <Dropdown
                   value={formData.preferred_lot_size ?? ""}
@@ -579,7 +609,7 @@ export default function OnboardingPage() {
 
               <div>
                 <OnPerLabel required={REQUIRED_FIELDS.preferred_home_age}>
-                  Preferred Home Age
+                  {FIELD_LABELS.PREFERRED_HOME_AGE}
                 </OnPerLabel>
                 <Dropdown
                   value={formData.preferred_home_age ?? ""}
@@ -595,7 +625,7 @@ export default function OnboardingPage() {
                 <OnPerLabel
                   required={REQUIRED_FIELDS.preferred_architectural_style}
                 >
-                  Preferred Architectural Style
+                  {FIELD_LABELS.PREFERRED_ARCHITECTURAL_STYLE}
                 </OnPerLabel>
                 <Dropdown
                   value={formData.preferred_architectural_style ?? ""}
@@ -609,7 +639,7 @@ export default function OnboardingPage() {
 
               <div>
                 <OnPerLabel required={REQUIRED_FIELDS.renovation_preference}>
-                  Renovation Willingness
+                  {FIELD_LABELS.RENOVATION_PREFERENCE}
                 </OnPerLabel>
                 <Dropdown
                   value={formData.renovation_preference ?? ""}
@@ -623,7 +653,7 @@ export default function OnboardingPage() {
 
               <div>
                 <OnPerLabel required={REQUIRED_FIELDS.intended_property_use}>
-                  Intended Property Use
+                  {FIELD_LABELS.INTENDED_PROPERTY_USE}
                 </OnPerLabel>
                 <Dropdown
                   value={formData.intended_property_use ?? ""}
@@ -637,7 +667,7 @@ export default function OnboardingPage() {
 
               <div>
                 <OnPerLabel required={REQUIRED_FIELDS.preferred_home_features}>
-                  Preferred Home Features
+                  {FIELD_LABELS.PREFERRED_HOME_FEATURES}
                 </OnPerLabel>
                 <OnPerTagInput
                   value={(formData.preferred_home_features as string[]) ?? []}
@@ -650,7 +680,7 @@ export default function OnboardingPage() {
 
               <div>
                 <OnPerLabel required={REQUIRED_FIELDS.deal_breakers}>
-                  Deal Breakers
+                  {FIELD_LABELS.DEAL_BREAKERS}
                 </OnPerLabel>
                 <OnPerTagInput
                   value={(formData.deal_breakers as string[]) ?? []}
@@ -658,6 +688,24 @@ export default function OnboardingPage() {
                     updateFormData("deal_breakers", value)
                   }
                   placeholder="e.g., No parking, Busy road, Old plumbing"
+                />
+              </div>
+
+              <div>
+                <OnPerLabel required={REQUIRED_FIELDS.walkability_importance}>
+                  {FIELD_LABELS.WALKABILITY_IMPORTANCE}
+                </OnPerLabel>
+                <p className="mb-4 text-xs text-black/60 sm:text-sm md:text-base">
+                  How important is it to walk to nearby amenities? Used to
+                  filter neighborhoods in search results.
+                </p>
+                <Dropdown
+                  value={formData.walkability_importance ?? ""}
+                  onChange={(value) =>
+                    updateFormData("walkability_importance", value)
+                  }
+                  options={WALKABILITY_OPTIONS}
+                  placeholder="Select..."
                 />
               </div>
             </div>
@@ -674,7 +722,7 @@ export default function OnboardingPage() {
             {/* Important Locations Section */}
             <div>
               <OnPerLabel required={REQUIRED_FIELDS.important_locations}>
-                Important Locations
+                {FIELD_LABELS.IMPORTANT_LOCATIONS}
               </OnPerLabel>
               <p
                 className="mb-4 text-xs text-
@@ -700,76 +748,6 @@ export default function OnboardingPage() {
                 <p className="mt-2 text-xs text-red-500">{loadError}</p>
               )}
             </div>
-
-            <div className="grid grid-cols-1 gap-4 sm:gap-6">
-              <div>
-                <OnPerLabel required={REQUIRED_FIELDS.walkability_importance}>
-                  Walkability Importance
-                </OnPerLabel>
-                <p className="mb-4 text-xs text-black/60 sm:text-sm md:text-base">
-                  How important is it to walk to nearby amenities? Used to
-                  filter neighborhoods in search results.
-                </p>
-                <Dropdown
-                  value={formData.walkability_importance ?? ""}
-                  onChange={(value) =>
-                    updateFormData("walkability_importance", value)
-                  }
-                  options={WALKABILITY_OPTIONS}
-                  placeholder="Select..."
-                />
-              </div>
-            </div>
-          </div>
-        );
-
-      case "communication":
-        return (
-          <div className="space-y-6">
-            <Title size="lg" className="mb-4 sm:mb-6">
-              {SECTION_TITLES.COMMUNICATION_PREFERENCES}
-            </Title>
-
-            {/* Communication Preference */}
-            <div>
-              <OnPerLabel required={REQUIRED_FIELDS.communication_frequency}>
-                {FIELD_LABELS.COMMUNICATION_FREQUENCY}
-              </OnPerLabel>
-              <Dropdown
-                value={formData.communication_frequency ?? ""}
-                onChange={(value) =>
-                  updateFormData("communication_frequency", value)
-                }
-                options={COMMUNICATION_FREQUENCY_OPTIONS}
-                placeholder="Select..."
-              />
-            </div>
-
-            {/* Information Detail Level */}
-            <div>
-              <OnPerLabel required={REQUIRED_FIELDS.information_detail_level}>
-                Information Detail Level
-              </OnPerLabel>
-              <Dropdown
-                value={formData.information_detail_level ?? ""}
-                onChange={(value) =>
-                  updateFormData("information_detail_level", value)
-                }
-                options={INFORMATION_DETAIL_OPTIONS}
-                placeholder="Select..."
-              />
-            </div>
-
-            <OnPerBuyersAgent
-              hasBuyersAgent={formData.has_buyers_agent ?? ""}
-              lookingForBuyersAgent={!!formData.looking_for_buyers_agent}
-              onHasBuyersAgentChange={(value: string) =>
-                updateFormData("has_buyers_agent", value)
-              }
-              onLookingForBuyersAgentChange={(value: boolean) =>
-                updateFormData("looking_for_buyers_agent", value)
-              }
-            />
           </div>
         );
 
@@ -826,8 +804,8 @@ export default function OnboardingPage() {
             className="h-6 sm:h-8 md:h-10"
           />
         </div>
-        <div className="flex items-center">
-          Step {currentStep + 1} of {STEPS.length}
+        <div className="flex items-center gap-4">
+          <SkipButton onSkip={handleSkip} size="sm" />
         </div>
       </div>
 
@@ -839,7 +817,7 @@ export default function OnboardingPage() {
       />
 
       {/* Step Content */}
-      <div className="mx-auto max-w-[85vw] overflow-hidden rounded-2xl bg-white shadow-sm">
+      <div className="mx-auto max-w-[85vw] rounded-2xl bg-white shadow-sm">
         <Card className="pb-8 sm:pb-12">
           {renderStepContent()}
 

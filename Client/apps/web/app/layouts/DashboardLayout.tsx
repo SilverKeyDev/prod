@@ -62,7 +62,7 @@ const PAGE_WIDTH_CONFIG: PageWidthConfig = {
   "/search": 100,
   "/buyer-checklists": 95,
   "/negotiation-strategy": 80,
-  "/personalization": 80,
+  "/settings": 80,
   "/saved": 80,
 };
 
@@ -71,7 +71,7 @@ const MOBILE_WIDTH_CONFIG: PageWidthConfig = {
   "/search": 100,
   "/buyer-checklists": 95,
   "/negotiation-strategy": 95,
-  "/personalization": 95,
+  "/settings": 95,
   "/saved": 95,
 };
 
@@ -105,7 +105,7 @@ export default function DashboardLayout({
   const isSearch = path.startsWith("/search");
   const isBuyerChecklists = path.startsWith("/buyer-checklists");
   const isDashboard = path.startsWith("/dashboard");
-  const isPersonalization = path.startsWith("/personalization");
+  const isPersonalization = path.startsWith("/settings");
   const isNegotiation = path.startsWith("/negotiation-strategy");
   const isSaved = path.startsWith("/saved");
 
@@ -160,7 +160,7 @@ export default function DashboardLayout({
 
   // Search handlers
   const handleUpdatePreferences = useCallback(() => {
-    navigate("/dashboard/personalization");
+    navigate("/settings");
   }, [navigate]);
 
   const handleSearchProperties = useCallback(async () => {

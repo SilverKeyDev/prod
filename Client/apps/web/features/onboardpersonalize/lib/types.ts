@@ -20,7 +20,7 @@ export type OnboardingData = {
   down_payment?: number;
   ideal_zip_code?: string;
 
-  // Home Buying Process
+  // Housing
   preferred_housing_type?: string;
   preferred_bathrooms?: number;
   preferred_bedrooms?: number;

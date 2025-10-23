@@ -179,9 +179,7 @@ const OnPerDragDropPriorities: React.FC<OnPerDragDropPrioritiesProps> = ({
         Priorities
       </h2>
       <p className="mb-3 text-sm text-gray-600">
-        {isEditMode
-          ? "Customize your report sections below:"
-          : "Choose which sections to include in your property reports. All sections are enabled by default, but you can customize them to focus on what matters most to you."}
+        Section selection and order impacts your home-scoring algorithm and neighborhood reports
       </p>
 
       <DndContext

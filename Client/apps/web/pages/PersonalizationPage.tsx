@@ -1,13 +1,5 @@
 // React imports
 import type { DragEndEvent } from "@dnd-kit/core";
-import {
-  User,
-  Building,
-  Home,
-  MapPin,
-  MessageSquare,
-  ListOrdered,
-} from "lucide-react";
 import React, { useState, useEffect, useCallback } from "react";
 
 // Google Maps types
@@ -24,17 +16,20 @@ import {
   Title,
   Subtitle,
 } from "../components/ui";
+
 // Core
 import { useGoogleMapsStore } from "../../../packages/store/googleMaps.slice";
 import { showErrorToast } from "../../../packages/hooks/ui/useToast";
 import { useUserPreferences } from "../../../packages/hooks/data/useUserData";
 import useMobile from "../../../packages/hooks/ui/useMobile";
+
 // Features
 import OnPerDragDropPriorities from "../features/onboardpersonalize/DragDropPriorities";
 import HomePriceEstimate from "../features/onboardpersonalize/HomePriceEstimate";
 import ImportantLocationsInput from "../features/onboardpersonalize/ImportantLocationsInput";
 import Label from "../features/onboardpersonalize/Label";
 import {
+  getPersonalizationSteps,
   SECTION_TITLES,
   FIELD_LABELS,
   CREDIT_SCORE_OPTIONS,
@@ -64,22 +59,7 @@ type PersonalizationPageProps = {
   >;
 };
 
-const STEPS = [
-  {
-    id: "reportcustomization",
-    title: SECTION_TITLES.REPORT_CUSTOMIZATION,
-    icon: ListOrdered,
-  },
-  { id: "demographics", title: SECTION_TITLES.DEMOGRAPHICS, icon: User },
-  { id: "financial", title: SECTION_TITLES.FINANCIAL_PROFILE, icon: Building },
-  { id: "housing", title: SECTION_TITLES.HOUSING_PREFERENCES, icon: Home },
-  { id: "location", title: SECTION_TITLES.LOCATION_PREFERENCES, icon: MapPin },
-  {
-    id: "communication",
-    title: SECTION_TITLES.COMMUNICATION_PREFERENCES,
-    icon: MessageSquare,
-  },
-];
+const STEPS = getPersonalizationSteps();
 
 export default function PersonalizationPage({
   setMobileHeaderActions,
@@ -90,7 +70,7 @@ export default function PersonalizationPage({
   const [isEditMode, setIsEditMode] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [activeSection, setActiveSection] = useState("demographics");
+  const [activeSection, setActiveSection] = useState("");
   // Modal state variables removed - modals not currently implemented
   const [scriptsReady, setScriptsReady] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -263,12 +243,51 @@ export default function PersonalizationPage({
     }
   }, [userPreferences, loadUserPreferencesFromContext]);
 
+  // Initialize active section based on current scroll position
+  useEffect(() => {
+    const initializeActiveSection = () => {
+      const sections = STEPS.map((step) => step.id);
+      const scrollPosition = window.scrollY + 200; // Offset for header
+      const documentHeight = document.documentElement.scrollHeight;
+      const windowHeight = window.innerHeight;
+      const scrollBottom = scrollPosition + windowHeight;
+
+      // If user is near the bottom of the page, highlight the last section
+      if (scrollBottom >= documentHeight - 100) {
+        setActiveSection(sections[sections.length - 1]);
+        return;
+      }
+
+      // Otherwise, use the normal logic
+      for (let i = sections.length - 1; i >= 0; i--) {
+        const element = document.getElementById(sections[i]);
+        if (element && element.offsetTop <= scrollPosition) {
+          setActiveSection(sections[i]);
+          break;
+        }
+      }
+    };
+
+    // Initialize on mount
+    initializeActiveSection();
+  }, []);
+
   // Track scroll position to update active section
   useEffect(() => {
     const handleScroll = () => {
       const sections = STEPS.map((step) => step.id);
       const scrollPosition = window.scrollY + 200; // Offset for header
+      const documentHeight = document.documentElement.scrollHeight;
+      const windowHeight = window.innerHeight;
+      const scrollBottom = scrollPosition + windowHeight;
 
+      // If user is near the bottom of the page, highlight the last section
+      if (scrollBottom >= documentHeight - 100) {
+        setActiveSection(sections[sections.length - 1]);
+        return;
+      }
+
+      // Otherwise, use the normal logic
       for (let i = sections.length - 1; i >= 0; i--) {
         const element = document.getElementById(sections[i]);
         if (element && element.offsetTop <= scrollPosition) {
@@ -396,138 +415,43 @@ export default function PersonalizationPage({
   const renderSectionContent = (sectionId: string) => {
     // Render content for each section based on sectionId
     switch (sectionId) {
-      case "demographics":
-        return (
-          <Card className="space-y-6">
-            <Title size="md" className="mb-6">
-              Tell us about yourself
-            </Title>
-
-            <AlignedRow
-              breakIntoRows="md"
-              gap="lg"
-              justify="start"
-              items={[
-                {
-                  title: <Label>Age</Label>,
-                  content: isEditMode ? (
-                    <Input
-                      type="number"
-                      value={formData.age?.toString() ?? ""}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        updateFormData(
-                          "age",
-                          parseInt(e.target.value) || undefined
-                        )
-                      }
-                      placeholder="Enter your age"
-                    />
-                  ) : (
-                    <div className="mobile-input bg-gray-50">
-                      {formData.age ?? "Not specified"}
-                    </div>
-                  ),
-                },
-                {
-                  title: <Label>Gender</Label>,
-                  content: isEditMode ? (
-                    <Dropdown
-                      value={formData.gender ?? ""}
-                      onChange={(value) => updateFormData("gender", value)}
-                      options={[
-                        { value: "male", label: "Male" },
-                        { value: "female", label: "Female" },
-                        { value: "non-binary", label: "Non-binary" },
-                        {
-                          value: "prefer_not_to_say",
-                          label: "Prefer not to say",
-                        },
-                      ]}
-                      placeholder="Select..."
-                    />
-                  ) : (
-                    <div className="mobile-input bg-gray-50">
-                      {formData.gender
-                        ? [
-                            { value: "male", label: "Male" },
-                            { value: "female", label: "Female" },
-                            { value: "non-binary", label: "Non-binary" },
-                            {
-                              value: "prefer_not_to_say",
-                              label: "Prefer not to say",
-                            },
-                          ].find((opt) => opt.value === formData.gender)?.label
-                        : "Not specified"}
-                    </div>
-                  ),
-                },
-              ]}
-            />
-
-            <AlignedRow
-              breakIntoRows="md"
-              gap="lg"
-              justify="start"
-              items={[
-                {
-                  title: <Label>Do you have pets?</Label>,
-                  content: isEditMode ? (
-                    <Dropdown
-                      value={formData.pets ?? ""}
-                      onChange={(value) => updateFormData("pets", value)}
-                      options={[
-                        { value: "yes", label: "Yes" },
-                        { value: "no", label: "No" },
-                        {
-                          value: "prefer_not_to_say",
-                          label: "Prefer not to say",
-                        },
-                      ]}
-                      placeholder="Select..."
-                    />
-                  ) : (
-                    <div className="mobile-input bg-gray-50">
-                      {formData.pets
-                        ? [
-                            { value: "yes", label: "Yes" },
-                            { value: "no", label: "No" },
-                            {
-                              value: "prefer_not_to_say",
-                              label: "Prefer not to say",
-                            },
-                          ].find((opt) => opt.value === formData.pets)?.label
-                        : "Not specified"}
-                    </div>
-                  ),
-                },
-                {
-                  title: <Label>Occupation</Label>,
-                  content: isEditMode ? (
-                    <Input
-                      type="text"
-                      value={formData.occupation ?? ""}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        updateFormData("occupation", e.target.value)
-                      }
-                      placeholder="Your job title"
-                    />
-                  ) : (
-                    <div className="mobile-input bg-gray-50">
-                      {formData.occupation ?? "Not specified"}
-                    </div>
-                  ),
-                },
-              ]}
-            />
-          </Card>
-        );
-
       case "financial":
         return (
           <Card className="space-y-6">
             <Title size="md" className="mb-6">
               Financial Information
             </Title>
+            <div className="col-span-1 flex flex-col items-center md:col-span-2">
+              <Title size="sm" className="mb-2 w-full text-center">
+                {FIELD_LABELS.HOME_BUDGET}
+              </Title>
+              {isEditMode ? (
+                <BudgetRangeSlider
+                  tickValues={[
+                    200000, 400000, 600000, 1000000, 1500000, 2500000, 4000000,
+                    6000000, 10000000,
+                  ]}
+                  minValue={formData.home_budget_min ?? 200000}
+                  maxValue={formData.home_budget_max ?? 1000000}
+                  onChange={(minValue, maxValue) => {
+                    // Round to nearest $25,000 increment
+                    const roundedMin = Math.round(minValue / 25000) * 25000;
+                    const roundedMax = Math.round(maxValue / 25000) * 25000;
+                    updateFormData("home_budget_min", roundedMin);
+                    updateFormData("home_budget_max", roundedMax);
+                  }}
+                  formatPrefix="$"
+                  className="mt-2"
+                />
+              ) : (
+                <div className="mobile-input mt-2 bg-gray-50 text-center">
+                  <div className="text-lg font-normal">
+                    ${(formData.home_budget_min ?? 0).toLocaleString()} - $
+                    {(formData.home_budget_max ?? 0).toLocaleString()}
+                  </div>
+                </div>
+              )}
+            </div>
 
             <AlignedRow
               breakIntoRows="md"
@@ -633,37 +557,6 @@ export default function PersonalizationPage({
             />
 
             <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
-              <div className="col-span-1 flex flex-col items-center md:col-span-2">
-                <Title size="md" className="mb-2 w-full text-center font-bold">
-                  Home Budget Range
-                </Title>
-                {isEditMode ? (
-                  <BudgetRangeSlider
-                    tickValues={[
-                      200000, 500000, 1000000, 2000000, 5000000, 10000000,
-                    ]}
-                    minValue={formData.home_budget_min ?? 200000}
-                    maxValue={formData.home_budget_max ?? 1000000}
-                    onChange={(minValue, maxValue) => {
-                      // Round to nearest $25,000 increment
-                      const roundedMin = Math.round(minValue / 25000) * 25000;
-                      const roundedMax = Math.round(maxValue / 25000) * 25000;
-                      updateFormData("home_budget_min", roundedMin);
-                      updateFormData("home_budget_max", roundedMax);
-                    }}
-                    formatPrefix="$"
-                    className="mt-2"
-                  />
-                ) : (
-                  <div className="mobile-input mt-2 bg-gray-50 text-center">
-                    <Title size="md" className="font-bold">
-                      ${(formData.home_budget_min ?? 0).toLocaleString()} - $
-                      {(formData.home_budget_max ?? 0).toLocaleString()}
-                    </Title>
-                  </div>
-                )}
-              </div>
-
               <HomePriceEstimate
                 homePriceLoading={homePriceLoading}
                 homePriceError={homePriceError}
@@ -716,7 +609,7 @@ export default function PersonalizationPage({
                   ),
                 },
                 {
-                  title: <Label>Preferred Bedrooms</Label>,
+                  title: <Label>{FIELD_LABELS.PREFERRED_BEDROOMS}</Label>,
                   content: isEditMode ? (
                     <Input
                       type="number"
@@ -744,7 +637,7 @@ export default function PersonalizationPage({
               justify="start"
               items={[
                 {
-                  title: <Label>Preferred Bathrooms</Label>,
+                  title: <Label>{FIELD_LABELS.PREFERRED_BATHROOMS}</Label>,
                   content: isEditMode ? (
                     <Input
                       type="number"
@@ -764,7 +657,7 @@ export default function PersonalizationPage({
                   ),
                 },
                 {
-                  title: <Label>Preferred Lot Size</Label>,
+                  title: <Label>{FIELD_LABELS.PREFERRED_LOT_SIZE}</Label>,
                   content: isEditMode ? (
                     <Dropdown
                       value={formData.preferred_lot_size ?? ""}
@@ -812,7 +705,7 @@ export default function PersonalizationPage({
               justify="start"
               items={[
                 {
-                  title: <Label>Preferred Home Age</Label>,
+                  title: <Label>{FIELD_LABELS.PREFERRED_HOME_AGE}</Label>,
                   content: isEditMode ? (
                     <Dropdown
                       value={formData.preferred_home_age ?? ""}
@@ -854,7 +747,9 @@ export default function PersonalizationPage({
                   ),
                 },
                 {
-                  title: <Label>Preferred Architectural Style</Label>,
+                  title: (
+                    <Label>{FIELD_LABELS.PREFERRED_ARCHITECTURAL_STYLE}</Label>
+                  ),
                   content: isEditMode ? (
                     <Dropdown
                       value={formData.preferred_architectural_style ?? ""}
@@ -903,7 +798,7 @@ export default function PersonalizationPage({
               justify="start"
               items={[
                 {
-                  title: <Label>Renovation Willingness</Label>,
+                  title: <Label>{FIELD_LABELS.RENOVATION_PREFERENCE}</Label>,
                   content: isEditMode ? (
                     <Dropdown
                       value={formData.renovation_preference ?? ""}
@@ -935,7 +830,7 @@ export default function PersonalizationPage({
                   ),
                 },
                 {
-                  title: <Label>Intended Property Use</Label>,
+                  title: <Label>{FIELD_LABELS.INTENDED_PROPERTY_USE}</Label>,
                   content: isEditMode ? (
                     <Dropdown
                       value={formData.intended_property_use ?? ""}
@@ -972,9 +867,68 @@ export default function PersonalizationPage({
               ]}
             />
 
+            <AlignedRow
+              breakIntoRows="md"
+              gap="lg"
+              justify="start"
+              items={[
+                {
+                  title: <Label>{FIELD_LABELS.WALKABILITY_IMPORTANCE}</Label>,
+                  content: isEditMode ? (
+                    <Dropdown
+                      value={formData.walkability_importance ?? ""}
+                      onChange={(value) =>
+                        updateFormData("walkability_importance", value)
+                      }
+                      options={[
+                        { value: "very_important", label: "Very Important" },
+                        {
+                          value: "somewhat_important",
+                          label: "Somewhat Important",
+                        },
+                        { value: "not_important", label: "Not Important" },
+                      ]}
+                      placeholder="Select..."
+                    />
+                  ) : (
+                    <div className="mobile-input bg-gray-50">
+                      {formData.walkability_importance
+                        ? [
+                            {
+                              value: "very_important",
+                              label: "Very Important",
+                            },
+                            {
+                              value: "somewhat_important",
+                              label: "Somewhat Important",
+                            },
+                            { value: "not_important", label: "Not Important" },
+                          ].find(
+                            (opt) =>
+                              opt.value === formData.walkability_importance
+                          )?.label
+                        : "Not specified"}
+                    </div>
+                  ),
+                },
+                {
+                  title: (
+                    <div className="mb-2 block text-sm font-medium text-transparent">
+                      &nbsp;
+                    </div>
+                  ),
+                  content: (
+                    <div className="mobile-input bg-gray-50 opacity-0">
+                      &nbsp;
+                    </div>
+                  ),
+                },
+              ]}
+            />
+
             <div className="space-y-6">
               <div>
-                <Label>Preferred Home Features</Label>
+                <Label>{FIELD_LABELS.PREFERRED_HOME_FEATURES}</Label>
                 <OnPerTagInput
                   value={(formData.preferred_home_features as string[]) ?? []}
                   onChange={(value: string[]) =>
@@ -985,7 +939,7 @@ export default function PersonalizationPage({
               </div>
 
               <div>
-                <Label>Deal Breakers</Label>
+                <Label>{FIELD_LABELS.DEAL_BREAKERS}</Label>
                 <OnPerTagInput
                   value={(formData.deal_breakers as string[]) ?? []}
                   onChange={(value: string[]) =>
@@ -1000,53 +954,15 @@ export default function PersonalizationPage({
 
       case "location":
         return (
-          <Card className="space-y-6">
+          <Card className="space-y-6 mb-64">
             <Title size="md" className="mb-6">
               Location Preferences
             </Title>
 
-            <div className="grid grid-cols-1 gap-6">
-              <div>
-                <Label>Walkability Importance</Label>
-                {isEditMode ? (
-                  <Dropdown
-                    value={formData.walkability_importance ?? ""}
-                    onChange={(value) =>
-                      updateFormData("walkability_importance", value)
-                    }
-                    options={[
-                      { value: "very_important", label: "Very Important" },
-                      {
-                        value: "somewhat_important",
-                        label: "Somewhat Important",
-                      },
-                      { value: "not_important", label: "Not Important" },
-                    ]}
-                    placeholder="Select..."
-                  />
-                ) : (
-                  <div className="mobile-input bg-gray-50">
-                    {formData.walkability_importance
-                      ? [
-                          { value: "very_important", label: "Very Important" },
-                          {
-                            value: "somewhat_important",
-                            label: "Somewhat Important",
-                          },
-                          { value: "not_important", label: "Not Important" },
-                        ].find(
-                          (opt) => opt.value === formData.walkability_importance
-                        )?.label
-                      : "Not specified"}
-                  </div>
-                )}
-              </div>
-            </div>
-
             {/* Important Locations for Commute */}
             <div className="flex w-full flex-col gap-6 md:flex-row">
               <div className="flex-1">
-                <Label>Important Locations</Label>
+                <Label>{FIELD_LABELS.IMPORTANT_LOCATIONS}</Label>
                 <p className="mb-4 text-xs text-black/60">
                   Add locations important to you (workplace, gym, family, etc.).
                   We use these to create travel time maps and find properties
@@ -1103,7 +1019,7 @@ export default function PersonalizationPage({
 
             {/* Information Detail Level */}
             <div>
-              <Label>Information Detail Level</Label>
+              <Label>{FIELD_LABELS.INFORMATION_DETAIL_LEVEL}</Label>
               {isEditMode ? (
                 <Dropdown
                   value={formData.information_detail_level ?? ""}
@@ -1140,7 +1056,7 @@ export default function PersonalizationPage({
               justify="start"
               items={[
                 {
-                  title: <Label>Do you currently have a buyer's agent?</Label>,
+                  title: <Label>{FIELD_LABELS.HAS_BUYERS_AGENT}</Label>,
                   content: isEditMode ? (
                     <Dropdown
                       value={formData.has_buyers_agent ?? ""}

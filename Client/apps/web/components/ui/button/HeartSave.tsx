@@ -4,9 +4,11 @@ import React from "react";
 import { getCardBubbleSizeClasses } from "../../cards/base/CardBubbleStyles.tsx";
 import { useSavedHomesData } from "../../../../../packages/hooks/data/useSavedHomesData";
 import { useUIStore } from "../../../../../packages/store";
+import type { SearchResult } from "../../../../../packages/schemas/search";
+import type { Property } from "../../../../../packages/schemas/property";
 
 export type CardHeartSaveProps = {
-  property: { id: string; address: string; [key: string]: unknown };
+  property: SearchResult | Property;
   /** @deprecated isSaved is now handled internally */
   isSaved?: boolean;
   /** @deprecated onSave is now handled internally */
@@ -15,7 +17,7 @@ export type CardHeartSaveProps = {
   onRemove?: (propertyId: string) => void | Promise<void>;
   /** Optional save state functions for use outside React context (e.g., map markers) */
   isHomeSaved?: (propertyId: string) => boolean;
-  saveHome?: (property: unknown) => Promise<void>;
+  saveHome?: (property: SearchResult | Property) => Promise<void>;
   removeSavedHome?: (propertyId: string) => Promise<void>;
   position?: "top-left" | "top-right" | "bottom-left" | "bottom-right";
   size?: "xs" | "sm" | "md" | "lg";
@@ -118,6 +120,34 @@ const CardHeartSave: React.FC<CardHeartSaveProps> = ({
   const circleClass = CIRCLE_SIZE[size];
   const iconSizeClass = sizeConfig?.iconClass ?? ICON_SIZE_FALLBACK[size];
 
+  // Check if this is being used as an inline button (no position specified or position is not absolute)
+  const isInlineButton =
+    !position ||
+    className.includes("border") ||
+    className.includes("rounded-md");
+
+  if (isInlineButton) {
+    // Inline button styling - matches other buttons in PropertyHeader
+    return (
+      <button
+        type="button"
+        onClick={handleClick}
+        aria-pressed={isSaved}
+        className={`group relative inline-flex items-center justify-center transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${isSaved ? "text-red-500 hover:text-red-600" : "text-gray-400 hover:text-red-500"} ${className}`}
+        aria-label={
+          ariaLabel ??
+          (isSaved ? "Remove from saved homes" : "Save to favorites")
+        }
+        title={isSaved ? "Remove from saved homes" : "Save to favorites"}
+      >
+        <Heart
+          className={`${iconSizeClass} ${isSaved ? "fill-current" : ""} transition-transform duration-200`}
+        />
+      </button>
+    );
+  }
+
+  // Original card overlay styling
   return (
     <div
       className={`absolute ${POSITION_MAP[position]} z-10`}

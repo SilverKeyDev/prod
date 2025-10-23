@@ -1,7 +1,7 @@
 import React, { useEffect, useCallback } from "react";
 
 import type { SearchResult } from "../../../../../packages/schemas/search";
-import { calculatePropertyCardCenter } from "../lib/MapZoomController";
+import { calculatePropertyCardCenter } from "./MapZoomController";
 
 export function useMarkerUpdates(params: {
   googleMapRef: React.MutableRefObject<google.maps.Map | null>;

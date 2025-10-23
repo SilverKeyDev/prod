@@ -61,11 +61,7 @@ export function createProtectedRoute(
 
 // Route configurations by category
 export const ROUTE_CONFIGS = {
-  lightweight: [
-    "/personalization/*",
-    "/agent-connection/*",
-    "/client-information/*",
-  ],
+  lightweight: ["/settings/*", "/agent-connection/*", "/client-information/*"],
 
   standard: [
     "/saved/*",

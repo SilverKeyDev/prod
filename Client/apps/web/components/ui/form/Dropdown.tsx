@@ -23,7 +23,6 @@ export type DropdownProps<T = unknown> = {
   clearable?: boolean;
   variant?: "default" | "mobile" | "compact";
   size?: "sm" | "md" | "lg";
-  maxHeight?: string;
   className?: string;
   dropdownClassName?: string;
   onClear?: () => void;
@@ -42,7 +41,6 @@ function Dropdown<T = unknown>({
   clearable = false,
   variant = "default",
   size = "md",
-  maxHeight = "200px",
   className = "",
   dropdownClassName = "",
   onClear,
@@ -58,7 +56,7 @@ function Dropdown<T = unknown>({
   // Filter options based on search term
   const filteredOptions = searchable
     ? options.filter((option) =>
-        option.label.toLowerCase().includes(searchTerm.toLowerCase()),
+        option.label.toLowerCase().includes(searchTerm.toLowerCase())
       )
     : options;
 
@@ -107,7 +105,7 @@ function Dropdown<T = unknown>({
   // Dropdown classes - using exact onboarding styling
   const dropdownClasses = [
     "absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300",
-    "rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto",
+    "rounded-lg shadow-lg z-[9999]",
     dropdownClassName,
   ]
     .filter(Boolean)
@@ -231,7 +229,7 @@ function Dropdown<T = unknown>({
             )}
 
             {/* Options List */}
-            <div className="overflow-y-auto" style={{ maxHeight }}>
+            <div>
               {filteredOptions.length === 0 ? (
                 <div className="px-3 py-2 text-sm text-gray-500">
                   {searchable ? "No options found" : "No options available"}

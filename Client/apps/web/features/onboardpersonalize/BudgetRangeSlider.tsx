@@ -9,6 +9,7 @@ type BudgetRangeSliderProps = {
   formatPrefix?: string;
   className?: string;
   disabled?: boolean;
+  minGap?: number; // Minimum gap between min and max values
 };
 
 const BudgetRangeSlider: React.FC<BudgetRangeSliderProps> = ({
@@ -20,9 +21,16 @@ const BudgetRangeSlider: React.FC<BudgetRangeSliderProps> = ({
   formatPrefix = "$",
   className = "",
   disabled = false,
+  minGap = 50000, // Default minimum gap of $50,000
 }) => {
-  const defaultFormatValue = (val: number) =>
-    `${formatPrefix}${val.toLocaleString()}`;
+  const defaultFormatValue = (val: number) => {
+    if (val >= 1000000) {
+      return `${formatPrefix}${(val / 1000000).toFixed(1)}M`;
+    } else if (val >= 1000) {
+      return `${formatPrefix}${(val / 1000).toFixed(0)}K`;
+    }
+    return `${formatPrefix}${val.toLocaleString()}`;
+  };
   const formattedValue = formatValue ?? defaultFormatValue;
   const [minSliderValue, setMinSliderValue] = useState(0);
   const [maxSliderValue, setMaxSliderValue] = useState(100);
@@ -44,7 +52,7 @@ const BudgetRangeSlider: React.FC<BudgetRangeSliderProps> = ({
       }
       return val <= tickValues[0] ? 0 : 100;
     },
-    [tickValues],
+    [tickValues]
   );
 
   // Maps slider percent to value using linear interpolation in each segment
@@ -53,7 +61,7 @@ const BudgetRangeSlider: React.FC<BudgetRangeSliderProps> = ({
     const segmentSize = 100 / totalSegments;
     const segmentIndex = Math.min(
       Math.floor(percent / segmentSize),
-      totalSegments - 1,
+      totalSegments - 1
     );
 
     const segmentStart = tickValues[segmentIndex];
@@ -61,7 +69,7 @@ const BudgetRangeSlider: React.FC<BudgetRangeSliderProps> = ({
     const percentInSegment =
       (percent - segmentIndex * segmentSize) / segmentSize;
     return Math.round(
-      segmentStart + percentInSegment * (segmentEnd - segmentStart),
+      segmentStart + percentInSegment * (segmentEnd - segmentStart)
     );
   };
 
@@ -70,12 +78,29 @@ const BudgetRangeSlider: React.FC<BudgetRangeSliderProps> = ({
     setMaxSliderValue(toSliderPercent(maxValue));
   }, [minValue, maxValue, tickValues, toSliderPercent]);
 
+  // Validate and correct initial values to maintain minimum gap
+  useEffect(() => {
+    if (maxValue - minValue < minGap) {
+      const correctedMin = Math.max(tickValues[0], maxValue - minGap);
+      const correctedMax = Math.min(
+        tickValues[tickValues.length - 1],
+        minValue + minGap
+      );
+
+      // Only correct if we can maintain the gap within the valid range
+      if (correctedMax - correctedMin >= minGap) {
+        onChange(correctedMin, correctedMax);
+      }
+    }
+  }, [minValue, maxValue, minGap, tickValues, onChange]);
+
   const handleMinSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newSliderPercent = parseFloat(e.target.value);
     const actualValue = fromSliderPercent(newSliderPercent);
-    
-    // Ensure min doesn't exceed max
-    if (actualValue <= maxValue) {
+
+    // Ensure min doesn't exceed max and maintains minimum gap
+    const maxAllowedMin = maxValue - minGap;
+    if (actualValue <= maxAllowedMin) {
       setMinSliderValue(newSliderPercent);
       onChange(actualValue, maxValue);
     }
@@ -84,9 +109,10 @@ const BudgetRangeSlider: React.FC<BudgetRangeSliderProps> = ({
   const handleMaxSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newSliderPercent = parseFloat(e.target.value);
     const actualValue = fromSliderPercent(newSliderPercent);
-    
-    // Ensure max doesn't go below min
-    if (actualValue >= minValue) {
+
+    // Ensure max doesn't go below min and maintains minimum gap
+    const minAllowedMax = minValue + minGap;
+    if (actualValue >= minAllowedMax) {
       setMaxSliderValue(newSliderPercent);
       onChange(minValue, actualValue);
     }
@@ -122,11 +148,11 @@ const BudgetRangeSlider: React.FC<BudgetRangeSliderProps> = ({
         <div className="mb-4 sm:mb-6">
           <div className="relative h-2">
             {/* Track background */}
-            <div className="absolute h-2 w-full rounded-lg bg-beige"></div>
-            
+            <div className="absolute h-2 w-full rounded-lg bg-gray-300"></div>
+
             {/* Active range highlight */}
             <div
-              className="absolute h-2 rounded-lg bg-brown/30"
+              className="absolute h-2 rounded-lg bg-gold"
               style={{
                 left: `${minSliderValue}%`,
                 width: `${maxSliderValue - minSliderValue}%`,
@@ -196,4 +222,3 @@ const BudgetRangeSlider: React.FC<BudgetRangeSliderProps> = ({
 };
 
 export default BudgetRangeSlider;
-

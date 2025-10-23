@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo } from "react";
 
 import MapHomeCard from "./MapHomeCard";
+import type { SearchResult } from "../../../../packages/schemas/search";
+import type { Property } from "../../../../packages/schemas/property";
 
 export type MapPropertyCardProps = {
   property: {
@@ -23,7 +25,7 @@ export type MapPropertyCardProps = {
   onCardRendered?: (property: MapPropertyCardProps["property"]) => void;
   /** Optional save state functions for use outside React context (e.g., map markers) */
   isHomeSaved?: (propertyId: string) => boolean;
-  saveHome?: (property: unknown) => Promise<void>;
+  saveHome?: (property: SearchResult | Property) => Promise<void>;
   removeSavedHome?: (propertyId: string) => Promise<void>;
 };
 

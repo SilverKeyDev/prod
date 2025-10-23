@@ -5,6 +5,8 @@ import {
 } from "../../../../packages/utils/address";
 import { CardHeartSave, CardViewDetailsButton, TrianglePointer } from "./base";
 import PropertyCard from "./PropertyCard";
+import type { SearchResult } from "../../../../packages/schemas/search";
+import type { Property } from "../../../../packages/schemas/property";
 
 export type HomeDescription = {
   home_id: string;
@@ -35,7 +37,7 @@ type MapHomeCardProps = {
   onUnlock?: (home: HomeDescription) => void;
   /** Optional save state functions for use outside React context (e.g., map markers) */
   isHomeSaved?: (propertyId: string) => boolean;
-  saveHome?: (property: unknown) => Promise<void>;
+  saveHome?: (property: SearchResult | Property) => Promise<void>;
   removeSavedHome?: (propertyId: string) => Promise<void>;
 };
 

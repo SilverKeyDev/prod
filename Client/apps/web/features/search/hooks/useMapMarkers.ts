@@ -2,9 +2,10 @@ import { useRef, useCallback, useState } from "react";
 
 import { renderMapPropertyCard, cleanupMapPropertyCard } from "../../../components/cards";
 import type { SearchResult } from "../../../../../packages/schemas/search";
+import type { Property } from "../../../../../packages/schemas/property";
 import type { IsochroneData } from "../../../../../packages/schemas/api";
-import { renderImportantLocationMarkers } from "../lib/importantLocationRenderer";
-import { calculatePropertyCardCenter } from "../lib/MapZoomController";
+import { renderImportantLocationMarkers } from "../utils/importantLocationRenderer";
+import { calculatePropertyCardCenter } from "../utils/MapZoomController";
 
 // Google Maps types
 interface GoogleMap {
@@ -36,7 +37,7 @@ type UseMapMarkersProps = {
   fetchIsochroneForMapOnly: () => Promise<unknown>;
   calculatePropertyScore: (property: SearchResult) => number;
   isHomeSaved: (propertyId: string) => boolean;
-  saveHome: (property: unknown) => Promise<void>;
+  saveHome: (property: SearchResult | Property) => Promise<void>;
   removeSavedHome: (propertyId: string) => Promise<void>;
   onMarkerClick?: (property: SearchResult) => void;
   onUnlockClick?: (property: SearchResult) => void;

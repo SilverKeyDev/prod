@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 // Internal utilities
 import type { SearchResult } from "../../../../../packages/schemas/search";
 import { asError } from "../../../../../packages/utils/error";
-import { loadSearchResults } from "./utils/localStorage";
+import { loadSearchResults } from "./localStorage";
 
 export function useSearchBootstrap(params: {
   env: { apiBaseUrl: string };

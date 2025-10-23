@@ -1,6 +1,6 @@
-import { PropertyCard } from "../../../../components/cards";
-import { CardCarousel } from "../../../../components/cards/base";
-import type { SearchResult } from "../../../../../../packages/schemas/search";
+import { PropertyCard } from "../../../components/cards";
+import { CardCarousel } from "../../../components/cards/base";
+import type { SearchResult } from "../../../../../packages/schemas/search";
 
 export function PropertyCarousel(props: {
   items: SearchResult[];

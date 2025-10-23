@@ -10,93 +10,107 @@ import {
 } from "lucide-react";
 
 import type { StepConfig, OnboardingData, DropdownOption } from "./types";
+import type { NavItem } from "../../../../../packages/schemas/navigation";
 
 // Re-export types for convenience
 export type { OnboardingData, DropdownOption };
 
-export const ONBOARDING_STEPS: StepConfig[] = [
+// Consolidated steps configuration for both onboarding and personalization flows
+export const STEPS: StepConfig[] = [
   { id: "demographics", title: "About You", icon: User },
-  { id: "financial", title: "Financial Profile", icon: Building },
-  { id: "housing", title: "Housing Preferences", icon: Home },
-  { id: "location", title: "Location Preferences", icon: MapPin },
+  { id: "financial", title: "Finances", icon: Building },
+  { id: "housing", title: "Housing", icon: Home },
+  { id: "location", title: "Location", icon: MapPin },
   { id: "communication", title: "Communication", icon: MessageSquare },
-  { id: "reportcustomization", title: "Report Customization", icon: Check },
+  { id: "reportcustomization", title: "Your priorities", icon: Check },
 ];
 
-export const PERSONALIZATION_STEPS: StepConfig[] = [
-  { id: "reportcustomization", title: "Priorities", icon: Building },
-  { id: "demographics", title: "About You", icon: User },
-  { id: "financial", title: "Financial Profile", icon: Building },
-  { id: "housing", title: "Housing Preferences", icon: Home },
-  { id: "location", title: "Location Preferences", icon: MapPin },
-  { id: "communication", title: "Communication", icon: MessageSquare },
+// Helper functions to get steps in different orders for different flows
+export const getOnboardingSteps = (): StepConfig[] => STEPS.filter(step => step.id !== "communication");
+
+export const getPersonalizationSteps = (): StepConfig[] => [
+  STEPS.find(step => step.id === "reportcustomization")!,
+  ...STEPS.filter(step => step.id !== "reportcustomization" && step.id !== "communication" && step.id !== "demographics"),
 ];
+
+// Helper function to convert StepConfig to NavItem for sidebar navigation
+export const convertStepsToNavItems = (steps: StepConfig[]): NavItem[] => 
+  steps.map(step => ({
+    key: step.id,
+    to: `#${step.id}`,
+    label: step.title,
+    icon: step.icon as any, // Type assertion needed due to different icon types
+  }));
+
+// Legacy exports for backward compatibility (deprecated)
+export const ONBOARDING_STEPS = STEPS;
+export const PERSONALIZATION_STEPS = getPersonalizationSteps();
 
 export const DEFAULT_REPORT_SECTIONS = [
   {
-    id: "safety",
-    key: "safety",
-    label: "Crime & Safety",
-    priority: 1,
-  },
-  {
-    id: "culture_and_events",
-    key: "culture_and_events",
-    label: "Culture & Events",
-    priority: 2,
-  },
-  {
-    id: "social_character",
-    key: "social_character",
-    label: "Social Character",
-    priority: 3,
-  },
-  {
-    id: "local_amenities",
-    key: "local_amenities",
-    label: "Local Amenities",
-    priority: 4,
-  },
-  {
     id: "commute",
     key: "commute",
-    label: "Commute & Transportation",
-    priority: 5,
-  },
-  {
-    id: "family_friendly",
-    key: "family_friendly",
-    label: "Family Friendliness",
-    priority: 6,
-  },
-  {
-    id: "nightlife_and_dating",
-    key: "nightlife_and_dating",
-    label: "Nightlife & Dating",
-    priority: 7,
-  },
-  {
-    id: "development",
-    key: "development",
-    label: "Future Development",
-    priority: 8,
-  },
-  {
-    id: "environment_utilities",
-    key: "environment_utilities",
-    label: "Environment & Utilities",
-    priority: 9,
-  },
-  {
-    id: "financial_information",
-    key: "financial_information",
-    label: "Financial Information",
-    priority: 10,
+    label: "Location",
+    priority: 1,
   },
   {
     id: "schools",
     key: "schools",
     label: "Schools",
+    priority: 2,
+  },
+  {
+    id: "safety",
+    key: "safety",
+    label: "Crime & Safety",
+    priority: 3,
+  },
+  {
+    id: "family_friendly",
+    key: "family_friendly",
+    label: "Family Friendly",
+    priority: 4,
+  },
+  {
+    id: "financial_information",
+    key: "financial_information",
+    label: "Financial Information",
+    priority: 5,
+  },
+  {
+    id: "environment_utilities",
+    key: "environment_utilities",
+    label: "Environment & Utilities",
+    priority: 6,
+  },
+  {
+    id: "development",
+    key: "development",
+    label: "Future Development",
+    priority: 7,
+  },
+  {
+    id: "social_character",
+    key: "social_character",
+    label: "Social Character",
+    priority: 8,
+  },
+  {
+    id: "culture_and_events",
+    key: "culture_and_events",
+    label: "Culture & Events",
+    priority: 9,
+  },
+  {
+    id: "local_amenities",
+    key: "local_amenities",
+    label: "Local Amenities",
+    priority: 10,
+  },
+  {
+    id: "nightlife_and_dating",
+    key: "nightlife_and_dating",
+    label: "Nightlife & Dating",
     priority: 11,
   },
   {
@@ -108,9 +122,9 @@ export const DEFAULT_REPORT_SECTIONS = [
 ];
 
 
+
 // Shared section titles and labels
 export const SECTION_TITLES = {
-  DEMOGRAPHICS: "Demographics",
   FINANCIAL_PROFILE: "Finances",
   HOUSING_PREFERENCES: "Housing",
   LOCATION_PREFERENCES: "Location",
@@ -130,7 +144,7 @@ export const FIELD_LABELS = {
 
   // Financial
   GROSS_INCOME: "Gross Annual Income",
-  HOME_BUDGET: "Home Budget Range",
+  HOME_BUDGET: "Budget Range",
   CREDIT_SCORE_RANGE: "Credit Score Range",
   DOWN_PAYMENT: "Down Payment",
   IDEAL_ZIP_CODE: "Ideal Zip Code",
@@ -144,6 +158,8 @@ export const FIELD_LABELS = {
   PREFERRED_ARCHITECTURAL_STYLE: "Architectural Style",
   RENOVATION_PREFERENCE: "Renovation Willingness",
   INTENDED_PROPERTY_USE: "Intended Property Use",
+  PREFERRED_HOME_FEATURES: "Preferred Features",
+  DEAL_BREAKERS: "Deal Breakers",
 
   // Location
   IMPORTANT_LOCATIONS: "Important Locations for Commute",
@@ -161,15 +177,13 @@ export const GENDER_OPTIONS: DropdownOption[] = [
   { value: "male", label: "Male" },
   { value: "female", label: "Female" },
   { value: "non-binary", label: "Non-binary" },
-  { value: "prefer-not-to-say", label: "Prefer not to say" },
+  { value: "prefer_not_to_say", label: "Prefer not to say" },
 ];
 
 export const PETS_OPTIONS: DropdownOption[] = [
-  { value: "none", label: "No pets" },
-  { value: "dog", label: "Dog(s)" },
-  { value: "cat", label: "Cat(s)" },
-  { value: "both", label: "Both dogs and cats" },
-  { value: "other", label: "Other pets" },
+  { value: "yes", label: "Yes" },
+  { value: "no", label: "No" },
+  { value: "prefer_not_to_say", label: "Prefer not to say" },
 ];
 
 export const CREDIT_SCORE_OPTIONS: DropdownOption[] = [

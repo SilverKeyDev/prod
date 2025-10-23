@@ -1,4 +1,9 @@
-import { ChevronLeft, ChevronRight, Check } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Check,
+  ChevronRight as SkipArrow,
+} from "lucide-react";
 import React from "react";
 
 import Button from "./Button";
@@ -129,6 +134,54 @@ const NavigationButtons: React.FC<NavigationButtonsProps> = ({
       {layout === "inline" && renderNextButton()}
       {layout !== "inline" && renderNextButton()}
     </div>
+  );
+};
+
+// Export the skip button as a separate component for external use
+export const SkipButton: React.FC<{
+  onSkip: () => void;
+  skipText?: string;
+  size?: "sm" | "md" | "lg";
+}> = ({ onSkip, skipText = "Skip onboarding for now", size = "md" }) => {
+  // Size variants matching NavigationButton
+  const sizeStyles = {
+    sm: {
+      text: "text-sm",
+      icon: "w-3 h-3",
+      spacing: "gap-1",
+    },
+    md: {
+      text: "text-base",
+      icon: "w-4 h-4",
+      spacing: "gap-2",
+    },
+    lg: {
+      text: "text-lg",
+      icon: "w-5 h-5",
+      spacing: "gap-2",
+    },
+  };
+
+  const currentSizeStyles = sizeStyles[size];
+
+  const buttonClasses = [
+    // Base link-like styling matching NavigationButton
+    "inline-flex items-center justify-center font-medium transition-all duration-200",
+    "text-gray-600 hover:text-gray-800 hover:underline",
+    "cursor-pointer touch-friendly",
+    // Size styles
+    currentSizeStyles.text,
+    currentSizeStyles.spacing,
+    // Custom classes
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  return (
+    <button onClick={onSkip} className={buttonClasses}>
+      {skipText}
+      <SkipArrow className={currentSizeStyles.icon} />
+    </button>
   );
 };
 
