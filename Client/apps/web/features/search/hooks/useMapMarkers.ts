@@ -40,7 +40,7 @@ type UseMapMarkersProps = {
   saveHome: (property: SearchResult | Property) => Promise<void>;
   removeSavedHome: (propertyId: string) => Promise<void>;
   onMarkerClick?: (property: SearchResult) => void;
-  onUnlockClick?: (property: SearchResult) => void;
+  onUnlockClick?: (property: SearchResult) => void | Promise<void>;
 };
 
 type UseMapMarkersReturn = {
@@ -276,7 +276,32 @@ export const useMapMarkers = ({
             renderMapPropertyCard(markerElement, {
               property: propertyData,
               isSaved: isHomeSaved(result.id),
-              onUnlock: onUnlockClick ? () => onUnlockClick(result) : undefined,
+              onUnlock: onUnlockClick ? async () => {
+                console.log("🗺️ [USE MAP MARKERS] Unlock button clicked in map marker:", {
+                  environment: typeof import.meta !== 'undefined' && import.meta.env?.DEV ? "DEVELOPMENT" : "PRODUCTION",
+                  propertyId: result.id,
+                  address: result.address?.substring(0, 30) + "...",
+                  timestamp: new Date().toISOString(),
+                  hasOnUnlockClickCallback: !!onUnlockClick,
+                });
+
+                try {
+                  await onUnlockClick(result);
+                  console.log("🗺️ [USE MAP MARKERS] onUnlockClick completed successfully:", {
+                    environment: typeof import.meta !== 'undefined' && import.meta.env?.DEV ? "DEVELOPMENT" : "PRODUCTION",
+                    propertyId: result.id,
+                    timestamp: new Date().toISOString(),
+                  });
+                } catch (error) {
+                  console.error("🗺️ [USE MAP MARKERS] Error in onUnlockClick:", {
+                    environment: typeof import.meta !== 'undefined' && import.meta.env?.DEV ? "DEVELOPMENT" : "PRODUCTION",
+                    propertyId: result.id,
+                    error: error instanceof Error ? error.message : String(error),
+                    timestamp: new Date().toISOString(),
+                  });
+                  throw error; // Re-throw to ensure CardViewDetailsButton handles the error
+                }
+              } : undefined,
               showScore: hasValidScore, // Show score for properties with valid scores
               isHomeSaved,
               saveHome,

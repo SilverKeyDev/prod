@@ -105,15 +105,6 @@ export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({
         </div>
       </div>
 
-      {/* Estimated Monthly Payment Section */}
-      <div className="mb-6 rounded-lg bg-blue-50 p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">Est.: $3,790/mo</div>
-          <button className="text-sm font-medium text-blue-600 hover:text-blue-800">
-            Get pre-qualified
-          </button>
-        </div>
-      </div>
 
       <Card className="p-4">
         <h3 className="mb-4 text-lg font-semibold text-brown">

@@ -19,7 +19,7 @@ function isFeatures(x: unknown): x is Features {
   // Optional: be strict about value shapes
   return Object.values(x as Record<string, unknown>).every(
     (v) =>
-      Array.isArray(v) && (v as unknown[]).every((s) => typeof s === "string"),
+      Array.isArray(v) && (v as unknown[]).every((s) => typeof s === "string")
   );
 }
 
@@ -48,8 +48,8 @@ export const PropertyFeatures: React.FC<PropertyComponentProps> = ({
       <Card className="p-6 border-r-0">
         {img && img.clean.length > 0 && (
           <div className="mb-4">
-            <h4 className="mb-2 text-sm font-semibold text-brown">
-              AI-Detected Features from Photos
+            <h4 className="mb-2 text-sm font-semibold text-gold">
+              AI-Detected Features
             </h4>
             <div className="text-xs leading-relaxed text-brown/70">
               {img.clean.map((feature, i) => (

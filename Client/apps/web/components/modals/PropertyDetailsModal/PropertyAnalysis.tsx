@@ -30,7 +30,7 @@ export const PropertyAnalysis: React.FC<PropertyComponentProps> = ({
       {roiExplanation && (
         <div className="mb-8">
           <div className="mb-4 flex items-center gap-2">
-            <TrendingUp className="h-5 w-5 text-green-600" />
+            <TrendingUp className="h-5 w-5 text-gray-600" />
             <h3 className="text-lg font-semibold text-brown">
               Investment Analysis
             </h3>
@@ -80,7 +80,7 @@ export const PropertyAnalysis: React.FC<PropertyComponentProps> = ({
       {neighborhoodOverview && (
         <div className="mb-8">
           <div className="mb-4 flex items-center gap-2">
-            <CheckCircle className="h-5 w-5 text-blue-600" />
+            <CheckCircle className="h-5 w-5 text-gray-600" />
             <h3 className="text-lg font-semibold text-brown">
               Neighborhood Overview
             </h3>
@@ -106,7 +106,7 @@ export const PropertyAnalysis: React.FC<PropertyComponentProps> = ({
       {(pros ?? cons) && (
         <div className="mb-8">
           <div className="mb-4 flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5 text-yellow-600" />
+            <AlertTriangle className="h-5 w-5 text-gray-600" />
             <h3 className="text-lg font-semibold text-brown">Pros & Cons</h3>
             {/* Balance indicator */}
             {pros && cons && Math.abs(pros.length - cons.length) > 2 && (
@@ -197,7 +197,7 @@ export const PropertyAnalysis: React.FC<PropertyComponentProps> = ({
       {(crimeStats ?? gentrificationIndex) && (
         <div className="mb-8">
           <div className="mb-4 flex items-center gap-2">
-            <Shield className="h-5 w-5 text-purple-600" />
+            <Shield className="h-5 w-5 text-gray-600" />
             <h3 className="text-lg font-semibold text-brown">
               Safety & Development
             </h3>

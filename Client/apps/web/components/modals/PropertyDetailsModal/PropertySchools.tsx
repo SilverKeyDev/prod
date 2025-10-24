@@ -19,7 +19,7 @@ export const PropertySchools: React.FC<PropertyComponentProps> = ({
   return (
     <div>
       <div className="mb-4 flex items-center gap-2">
-        <GraduationCap className="h-5 w-5 text-blue-600" />
+        <GraduationCap className="h-5 w-5 text-gray-600" />
         <h3 className="text-lg font-semibold text-brown">Nearby Schools</h3>
       </div>
 

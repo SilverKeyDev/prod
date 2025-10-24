@@ -23,7 +23,7 @@ export const PropertyAgent: React.FC<PropertyComponentProps> = ({
   return (
     <div>
       <div className="mb-4 flex items-center gap-2">
-        <User className="h-5 w-5 text-blue-600" />
+        <User className="h-5 w-5 text-gray-600" />
         <h3 className="text-lg font-semibold text-brown">Listing Agent</h3>
       </div>
 
@@ -48,7 +48,7 @@ export const PropertyAgent: React.FC<PropertyComponentProps> = ({
           </div>
 
           <div className="flex-1">
-            <h4 className="text-lg font-medium text-brown">{displayName}</h4>
+            <h4 className="text-lg font-medium text-gold">{displayName}</h4>
             {businessName && <p className="text-brown/70">{businessName}</p>}
             {phone && (
               <div className="mt-2 flex items-center text-brown">

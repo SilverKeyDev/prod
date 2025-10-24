@@ -34,7 +34,7 @@ type MapHomeCardProps = {
   /** Function to focus on this property in the map/search */
   onFocus?: (property: any) => void;
   /** Function to handle unlock/view details click */
-  onUnlock?: (home: HomeDescription) => void;
+  onUnlock?: (home: HomeDescription) => void | Promise<void>;
   /** Optional save state functions for use outside React context (e.g., map markers) */
   isHomeSaved?: (propertyId: string) => boolean;
   saveHome?: (property: SearchResult | Property) => Promise<void>;
@@ -136,10 +136,61 @@ export default function MapHomeCard({
         }
         bottomContent={
           <CardViewDetailsButton
-            onClick={() => {
-              console.log("View details clicked for map card");
+            onClick={async () => {
+              console.log(
+                "🔓 [MAP HOME CARD] View details clicked for map card:",
+                {
+                  environment:
+                    typeof import.meta !== "undefined" && import.meta.env?.DEV
+                      ? "DEVELOPMENT"
+                      : "PRODUCTION",
+                  propertyId: home.home_id,
+                  address: home.address?.substring(0, 30) + "...",
+                  timestamp: new Date().toISOString(),
+                  hasOnUnlockCallback: !!onUnlock,
+                }
+              );
+
               if (onUnlock) {
-                onUnlock(home);
+                try {
+                  await onUnlock(home);
+                  console.log(
+                    "🔓 [MAP HOME CARD] onUnlock completed successfully:",
+                    {
+                      environment:
+                        typeof import.meta !== "undefined" &&
+                        import.meta.env?.DEV
+                          ? "DEVELOPMENT"
+                          : "PRODUCTION",
+                      propertyId: home.home_id,
+                      timestamp: new Date().toISOString(),
+                    }
+                  );
+                } catch (error) {
+                  console.error("🔓 [MAP HOME CARD] Error in onUnlock:", {
+                    environment:
+                      typeof import.meta !== "undefined" && import.meta.env?.DEV
+                        ? "DEVELOPMENT"
+                        : "PRODUCTION",
+                    propertyId: home.home_id,
+                    error:
+                      error instanceof Error ? error.message : String(error),
+                    timestamp: new Date().toISOString(),
+                  });
+                  throw error; // Re-throw to ensure CardViewDetailsButton handles the error
+                }
+              } else {
+                console.warn(
+                  "🔓 [MAP HOME CARD] No onUnlock callback provided:",
+                  {
+                    environment:
+                      typeof import.meta !== "undefined" && import.meta.env?.DEV
+                        ? "DEVELOPMENT"
+                        : "PRODUCTION",
+                    propertyId: home.home_id,
+                    timestamp: new Date().toISOString(),
+                  }
+                );
               }
             }}
             size="sm"

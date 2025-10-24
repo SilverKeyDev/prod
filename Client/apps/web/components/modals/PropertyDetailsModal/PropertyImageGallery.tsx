@@ -68,8 +68,8 @@ export const PropertyImageGallery: React.FC<PropertyImageGalleryProps> = ({
                   onClick={() => goToImage(index)}
                   className={`relative overflow-hidden rounded border-2 transition-colors ${
                     index === currentImageIndex
-                      ? "border-blue-500"
-                      : "border-gray-200 hover:border-gray-300"
+                      ? "border-stone-300"
+                      : "border-stone-100 hover:border-stone-200"
                   }`}
                 >
                   <StyledImage

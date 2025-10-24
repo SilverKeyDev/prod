@@ -5,10 +5,12 @@
  */
 
 import { useEffect, type ReactNode } from "react";
+import { useLocation } from "react-router-dom";
 
 import { useAuthStore } from "../../../../../packages/store/auth.slice";
 import { useAuthStoreIntegration } from "../../../../../packages/hooks/store/useAuthStoreIntegration";
 import { secureLogger } from "../../../../../packages/services/security/secureLogger";
+import { authUtils } from "../../../../../packages/config/auth";
 import type { UserProfile } from "../../../../../packages/schemas/user";
 
 import { AuthContext } from "./AuthContext";
@@ -26,6 +28,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // Initialize auth system - this calls useSecureAuth() once for the entire app
   // Get logout from useAuthStoreIntegration which uses the correct useSecureAuth.logout
   const { logout: authLogout } = useAuthStoreIntegration();
+
+  // Get current location to check if route is public
+  const location = useLocation();
 
   // Get auth state directly from store (not from useAuthState which checks localStorage)
   const user = useAuthStore((s) => s.user);
@@ -87,6 +92,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     const initializeAuth = async () => {
       const requestId = `bootstrap_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const currentPath = location.pathname;
+      const isPublicRoute = authUtils.isPublicRoute(currentPath);
 
       secureLogger.info(
         "🔍 FRONTEND_AUTH_BOOTSTRAP_START",
@@ -94,7 +101,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
         {
           requestId,
           currentUrl: window.location.href,
-          currentPath: window.location.pathname,
+          currentPath,
+          isPublicRoute,
           searchParams: window.location.search,
           timestamp: new Date().toISOString(),
         }
@@ -105,6 +113,26 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setStoreAuthReady(false);
 
       try {
+        // Skip API call for public routes - no need to verify session
+        if (isPublicRoute) {
+          secureLogger.info(
+            "🔍 FRONTEND_AUTH_BOOTSTRAP_SKIP_PUBLIC_ROUTE",
+            "Skipping session verification for public route",
+            {
+              requestId,
+              currentPath,
+              isPublicRoute,
+            }
+          );
+
+          // Set as unauthenticated for public routes
+          setStoreUser(null);
+          setIsAuthenticated(false);
+          setStoreAuthStatus("unauthenticated");
+          setStoreAuthReady(true);
+          return;
+        }
+
         // Import authApi dynamically to avoid circular dependencies
         const { authApi } = await import(
           "../../../../../packages/config/api/auth"
@@ -112,9 +140,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
         secureLogger.info(
           "🔍 FRONTEND_AUTH_BOOTSTRAP_CALLING_VERIFY",
-          "Calling verifySession",
+          "Calling verifySession for protected route",
           {
             requestId,
+            currentPath,
+            isPublicRoute,
             authApiAvailable: !!authApi,
             verifySessionAvailable: !!authApi?.verifySession,
           }
@@ -249,7 +279,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     void initializeAuth();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Run only once on mount - Zustand setters are stable
+  }, [location.pathname]); // Re-run when route changes to handle public/protected route transitions
 
   // Cross-tab logout sync via BroadcastChannel
   useEffect(() => {

@@ -4,9 +4,10 @@ import { useNavigate } from "react-router-dom";
 
 import Button from "../../ui/button/Button";
 import { CardHeartSave } from "../../cards/base";
+import KeyLogo from "../../ui/asset/KeyLogo";
 
 import type { PropertyHeaderProps } from "./types";
-import { formatAddress, formatPrice, handleZillowOpen } from "./utils";
+import { formatAddress, handleZillowOpen } from "./utils";
 
 export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
   property,
@@ -16,7 +17,6 @@ export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
   const navigate = useNavigate();
 
   const propertyAddress = (property as unknown as { address: unknown }).address;
-  const propertyPrice = (property as unknown as { price: unknown }).price;
 
   const handleGenerateFullReport = () => {
     const address = formatAddress(
@@ -51,38 +51,31 @@ export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
 
   return (
     <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-200 bg-white p-4">
-      <div className="flex-1 hidden md:block">
-        <h2 className="text-xl font-bold text-gray-900">
-          {formatPrice(propertyPrice as string | number)}
-        </h2>
-        <p className="text-responsive-xs mt-1 truncate text-gray-600">
-          {formatAddress(
-            propertyAddress as
-              | string
-              | import("./utils").AddressObject
-              | null
-              | undefined
-          )}
-        </p>
+      {/* Left side - Logo */}
+      <div className="flex items-center">
+        <KeyLogo size="sm" />
       </div>
 
-      <div className="flex items-center gap-2">
+      {/* Right side - Action buttons */}
+      <div className="flex items-center gap-3">
         <Button
           variant="outline"
-          size="sm"
+          size="md"
           onClick={() => handleZillowOpen(property)}
-          icon={<ExternalLink className="h-4 w-4 text-gray-600" />}
-          className="border-gray-600 text-gray-600 hover:bg-gray-50"
+          icon={
+            <ExternalLink className="h-5 w-5 text-blue-600 group-hover:text-blue-600" />
+          }
+          className="group border-blue-600 !text-blue-600 hover:bg-blue-50 hover:text-blue-600 transition-all duration-200"
         >
           Zillow
         </Button>
         {onGenerateReport && (
           <Button
             variant="outline"
-            size="sm"
+            size="md"
             onClick={handleGenerateFullReport}
-            icon={<FileText className="h-4 w-4 text-olive" />}
-            className="border-olive text-olive hover:bg-olive/10"
+            icon={<FileText className="h-5 w-5 text-gray-600" />}
+            className="border-gray-600 text-gray-600 hover:bg-gray-50"
           >
             Generate Report
           </Button>
@@ -90,16 +83,16 @@ export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
 
         <CardHeartSave
           property={property}
-          size="sm"
-          className="border border-gray-300 text-gray-600 hover:bg-gray-50 rounded-md transition-colors"
+          size="lg"
+          className="text-gray-600 hover:bg-gray-50 rounded-md transition-colors p-2"
         />
 
         <button
           onClick={onClose}
-          className="p-2 hover:bg-gray-100 rounded-md transition-colors"
+          className="p-2 hover:bg-gray-50 rounded-md transition-colors"
           aria-label="Close modal"
         >
-          <X className="h-5 w-5 text-gray-600" />
+          <X className="h-6 w-6 text-gray-600" />
         </button>
       </div>
     </div>

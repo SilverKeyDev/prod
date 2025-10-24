@@ -20,7 +20,7 @@ export type MapPropertyCardProps = {
     calculatedScore?: number;
   };
   isSaved?: boolean;
-  onUnlock?: (property: any) => void;
+  onUnlock?: (property: any) => void | Promise<void>;
   showScore?: boolean;
   onCardRendered?: (property: MapPropertyCardProps["property"]) => void;
   /** Optional save state functions for use outside React context (e.g., map markers) */
@@ -158,24 +158,75 @@ const MapPropertyCard: React.FC<MapPropertyCardProps> = ({
           isHomeSaved={isHomeSaved}
           saveHome={saveHome}
           removeSavedHome={removeSavedHome}
-          onUnlock={(home) => {
+          onUnlock={async (home) => {
+            console.log("🔓 [MAP PROPERTY CARD] Unlock button clicked:", {
+              environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
+              propertyId: home.home_id,
+              address: home.address?.substring(0, 30) + "...",
+              timestamp: new Date().toISOString(),
+              hasOnUnlockCallback: !!onUnlock,
+            });
+
             if (onUnlock) {
-              // Convert home data back to property format
-              const propertyData = {
-                id: home.home_id,
-                address: home.address,
-                price: home.price,
-                bedrooms: home.bedrooms,
-                bathrooms: home.bathrooms,
-                sqft: home.sqft,
-                lotSize: home.lot_size,
-                propertyType: home.propertyType,
-                lat: home.lat,
-                lng: home.lng,
-                images: home.image_url ? [home.image_url] : undefined,
-                calculatedScore: home.calculatedScore,
-              };
-              onUnlock(propertyData);
+              try {
+                // Convert home data back to property format
+                const propertyData = {
+                  id: home.home_id,
+                  address: home.address,
+                  price: home.price,
+                  bedrooms: home.bedrooms,
+                  bathrooms: home.bathrooms,
+                  sqft: home.sqft,
+                  lotSize: home.lot_size,
+                  propertyType: home.propertyType,
+                  lat: home.lat,
+                  lng: home.lng,
+                  images: home.image_url ? [home.image_url] : undefined,
+                  calculatedScore: home.calculatedScore,
+                };
+
+                console.log(
+                  "🔓 [MAP PROPERTY CARD] Calling onUnlock with property data:",
+                  {
+                    environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
+                    propertyId: propertyData.id,
+                    address: propertyData.address?.substring(0, 30) + "...",
+                    timestamp: new Date().toISOString(),
+                  }
+                );
+
+                await onUnlock(propertyData);
+
+                console.log(
+                  "🔓 [MAP PROPERTY CARD] onUnlock completed successfully:",
+                  {
+                    environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
+                    propertyId: propertyData.id,
+                    timestamp: new Date().toISOString(),
+                  }
+                );
+              } catch (error) {
+                console.error(
+                  "🔓 [MAP PROPERTY CARD] Error in onUnlock callback:",
+                  {
+                    environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
+                    propertyId: home.home_id,
+                    error:
+                      error instanceof Error ? error.message : String(error),
+                    timestamp: new Date().toISOString(),
+                  }
+                );
+                throw error; // Re-throw to ensure CardViewDetailsButton handles the error
+              }
+            } else {
+              console.warn(
+                "🔓 [MAP PROPERTY CARD] No onUnlock callback provided:",
+                {
+                  environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
+                  propertyId: home.home_id,
+                  timestamp: new Date().toISOString(),
+                }
+              );
             }
           }}
         />

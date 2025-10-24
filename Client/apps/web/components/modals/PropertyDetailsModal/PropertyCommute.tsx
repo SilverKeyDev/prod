@@ -36,7 +36,7 @@ export const PropertyCommute: React.FC<PropertyComponentProps> = ({
   return (
     <div className="p-6">
       <div className="mb-4 flex items-center gap-2">
-        <MapPin className="h-5 w-5 text-brown" />
+        <MapPin className="h-5 w-5 text-gray-600" />
         <h3 className="text-lg font-semibold text-brown">
           Commute Information
         </h3>

@@ -101,6 +101,14 @@ export default function SearchPage({
   // Handle property details search using the hook with enhanced logging
   const handleViewPropertyDetails = useCallback(
     async (property: SearchResult) => {
+      const isDev = typeof import.meta !== "undefined" && import.meta.env?.DEV;
+      console.log("🏠 [SEARCH PAGE] handleViewPropertyDetails called:", {
+        environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
+        propertyId: property.id,
+        address: property.address?.substring(0, 30) + "...",
+        timestamp: new Date().toISOString(),
+      });
+
       // Map SearchResult to Property format for the hook
       const propertyForDetails = {
         ...property,
@@ -111,16 +119,30 @@ export default function SearchPage({
       };
 
       try {
+        console.log("🏠 [SEARCH PAGE] Calling fetchPropertyDetails:", {
+          environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
+          propertyId: propertyForDetails.id,
+          timestamp: new Date().toISOString(),
+        });
+
         await fetchPropertyDetails(propertyForDetails);
-      } catch (error) {
-        console.error(
-          "🏠 [PROPERTY_DETAILS] Failed to fetch property details:",
+
+        console.log(
+          "🏠 [SEARCH PAGE] fetchPropertyDetails completed successfully:",
           {
-            propertyId: property.id,
-            error: error instanceof Error ? error.message : String(error),
+            environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
+            propertyId: propertyForDetails.id,
             timestamp: new Date().toISOString(),
           }
         );
+      } catch (error) {
+        console.error("🏠 [SEARCH PAGE] Failed to fetch property details:", {
+          environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
+          propertyId: property.id,
+          error: error instanceof Error ? error.message : String(error),
+          timestamp: new Date().toISOString(),
+        });
+        throw error; // Re-throw to ensure the error propagates up the chain
       }
     },
     [fetchPropertyDetails]
