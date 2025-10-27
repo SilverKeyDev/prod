@@ -50,27 +50,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         ? "authenticated"
         : "unauthenticated";
 
-  // Debug logging for status changes
-  useEffect(() => {
-    console.log("🔐 [AUTH_PROVIDER] Status updated:", {
-      storeAuthStatus,
-      derivedStatus: status,
-      timestamp: new Date().toISOString(),
-    });
-  }, [storeAuthStatus, status]);
-
-  // Debug logging for user changes
-  useEffect(() => {
-    console.log("🔐 [AUTH_PROVIDER] User updated:", {
-      hasUser: !!user,
-      userEmail: user?.email
-        ? `${user.email.substring(0, 3)}***${user.email.substring(user.email.length - 3)}`
-        : "missing",
-      userId: user?.id || "missing",
-      timestamp: new Date().toISOString(),
-    });
-  }, [user]);
-
   // Initialize auth state with server verification
   useEffect(() => {
     // Guard against double bootstrap calls
@@ -174,33 +153,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
           const user = sessionResult.user;
           if ("created_at" in user && "is_active" in user) {
             // Full UserProfile from session verification
-            console.log("🔐 [AUTH_PROVIDER] About to setStoreUser:", {
-              requestId,
-              userEmail: user.email
-                ? `${user.email.substring(0, 3)}***${user.email.substring(user.email.length - 3)}`
-                : "missing",
-              userId: user.id,
-            });
+
             setStoreUser(user as UserProfile);
-            console.log("🔐 [AUTH_PROVIDER] setStoreUser called:", {
-              requestId,
-              userEmail: user.email
-                ? `${user.email.substring(0, 3)}***${user.email.substring(user.email.length - 3)}`
-                : "missing",
-              userId: user.id,
-            });
-            secureLogger.info(
-              "🔍 FRONTEND_AUTH_BOOTSTRAP_FULL_USER",
-              "Setting full user profile",
-              {
-                requestId,
-                userId: user.id,
-                userEmail: user.email
-                  ? `${user.email.substring(0, 3)}***${user.email.substring(user.email.length - 3)}`
-                  : "missing",
-                userName: user.name || "missing",
-              }
-            );
           } else {
             // Basic user info - this shouldn't happen with session verification
             // but we'll handle it gracefully
@@ -279,7 +233,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     void initializeAuth();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.pathname]); // Re-run when route changes to handle public/protected route transitions
+  }, []); // Only run once on mount - no need to re-run on navigation
 
   // Cross-tab logout sync via BroadcastChannel
   useEffect(() => {

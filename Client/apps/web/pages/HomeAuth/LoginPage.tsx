@@ -26,9 +26,7 @@ export default function LoginPage() {
     e.preventDefault();
     clearError();
 
-    console.log("🔐 [LOGIN] Starting login...");
     const success = await login(email, password);
-    console.log("🔐 [LOGIN] Login result:", success);
 
     if (success) {
       // Read intended destination from state, sanitize, and fallback
@@ -42,18 +40,12 @@ export default function LoginPage() {
           ? from
           : "/dashboard";
 
-      console.log(
-        "🔐 [LOGIN] Navigating to:",
-        safe,
-        "Current path:",
-        location.pathname
-      );
 
       if (location.pathname !== safe) {
         navigate(safe, { replace: true });
       }
     } else {
-      console.log("🔐 [LOGIN] Login failed, not navigating");
+      console.error("🔐 [LOGIN] Login failed, not navigating");
     }
   };
 

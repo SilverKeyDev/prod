@@ -1,8 +1,12 @@
 export default function KeyTurnLoader({
   message = "Unlocking...",
+  variant = "default",
 }: {
   message?: string;
+  variant?: "default" | "black";
 }) {
+  const keyColor = variant === "black" ? "#000000" : "#F5F5F0";
+  const fillColor = variant === "black" ? "#000000" : "#F8F8F5";
   const keyframeStyles = `
     @keyframes turnKey {
       0% { transform: rotate(0deg); }
@@ -101,15 +105,15 @@ export default function KeyTurnLoader({
             cx="20"
             cy="32"
             r="8"
-            stroke="#F5F5F0"
+            stroke={keyColor}
             strokeWidth="4"
-            fill="#F8F8F5"
+            fill={fillColor}
           />
           {/* Shaft */}
-          <rect x="28" y="30" width="24" height="4" fill="#F5F5F0" rx="2" />
+          <rect x="28" y="30" width="24" height="4" fill={keyColor} rx="2" />
           {/* Teeth */}
-          <rect x="52" y="30" width="4" height="8" fill="#F5F5F0" rx="1" />
-          <rect x="56" y="30" width="4" height="6" fill="#F5F5F0" rx="1" />
+          <rect x="52" y="30" width="4" height="8" fill={keyColor} rx="1" />
+          <rect x="56" y="30" width="4" height="6" fill={keyColor} rx="1" />
         </svg>
         {message}
       </div>

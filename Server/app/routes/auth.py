@@ -803,6 +803,9 @@ def google_oauth_callback():
         if not name or not name.strip():
             name = email.split('@')[0] if email and '@' in email else "User"
 
+        # Track if this is a new signup to determine redirect destination
+        is_new_signup = False
+        
         # Check if user exists by google_id or email
         user = User.query.filter_by(google_id=google_id).first()
         
@@ -834,6 +837,8 @@ def google_oauth_callback():
                 )
                 db.session.add(user)
                 db.session.commit()
+                
+                is_new_signup = True
                 
                 current_app.logger.info(f"GOOGLE_USER_CREATED", extra={
                     'request_id': request_id,
@@ -901,9 +906,20 @@ def google_oauth_callback():
             from app.config import Config
             return redirect(f"{Config.FRONTEND_URL}/login?error=token_creation_failed")
         
-        # Create redirect response FIRST, then attach cookies to it
+        # Determine redirect destination based on whether this is a new signup
+        # New Google signups should go to onboarding, existing users to dashboard
         from app.config import Config
-        resp = redirect(f"{Config.FRONTEND_URL}/dashboard?google=success")
+        redirect_path = "/onboarding" if is_new_signup else "/dashboard"
+        
+        current_app.logger.info(f"GOOGLE_AUTH_REDIRECT", extra={
+            'request_id': request_id,
+            'user_id': str(user.id),
+            'is_new_signup': is_new_signup,
+            'redirect_to': redirect_path
+        })
+        
+        # Create redirect response FIRST, then attach cookies to it
+        resp = redirect(f"{Config.FRONTEND_URL}{redirect_path}?google=success")
         
         # Small delay to ensure token has time to "age" before immediate verification
         import time

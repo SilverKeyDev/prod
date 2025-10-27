@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 // Components
 import PropertyDetailsModal from "../components/modals/PropertyDetailsModal";
 import KeyTurnLoader from "../components/ui/loading/KeyTurnLoader";
+import RippleBackground from "../features/homeauth/RippleBackground";
 
 // Core
 import { env } from "../../../packages/config";
@@ -653,10 +654,14 @@ export default function SearchPage({
         <div className="relative flex-1">
           {/* Loading overlay - Only show when actively searching */}
           {isSearching && (
-            <div className="absolute inset-0 z-20 flex h-full w-full items-center justify-center bg-gray-50">
-              <div className="gap-responsive-sm flex flex-col items-center">
+            <div className="absolute inset-0 z-20 flex h-full w-full items-center justify-center overflow-hidden rounded-t-2xl">
+              <div className="absolute inset-0 z-0">
+                <RippleBackground />
+              </div>
+              <div className="relative z-10 gap-responsive-sm flex flex-col items-center">
                 <KeyTurnLoader
                   message={searchStage ?? "Searching properties..."}
+                  variant="black"
                 />
               </div>
             </div>
@@ -752,14 +757,18 @@ export default function SearchPage({
               (!hasSearched &&
                 searchResults.length === 0 &&
                 savedHomes.length === 0)) && (
-              <div className="absolute inset-0 z-20 flex h-full w-full items-center justify-center rounded-lg bg-gray-50">
-                <div className="flex flex-col items-center gap-4">
+              <div className="absolute inset-0 z-20 flex h-full w-full items-center justify-center overflow-hidden rounded-lg">
+                <div className="absolute inset-0 z-0">
+                  <RippleBackground />
+                </div>
+                <div className="relative z-10 flex flex-col items-center gap-4">
                   <KeyTurnLoader
                     message={
                       isSearching
                         ? (searchStage ?? "Searching properties...")
                         : "Loading map..."
                     }
+                    variant={isSearching ? "black" : "default"}
                   />
                 </div>
               </div>
