@@ -210,7 +210,7 @@ function PropertyCardImpl(props: PropertyCardProps) {
                   <div className="text-lg font-bold text-brown sm:text-xl">
                     {formatPrice(price)}
                   </div>
-                  <div className="mr-[2px]">
+                  <div className="mr-3 sm:mr-4">
                     <CardMatchScore
                       score={score}
                       size="xs"

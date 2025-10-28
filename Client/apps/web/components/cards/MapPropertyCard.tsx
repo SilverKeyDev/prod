@@ -150,7 +150,7 @@ const MapPropertyCard: React.FC<MapPropertyCardProps> = ({
     );
 
     return (
-      <div className="relative w-48">
+      <div className="relative w-56">
         <MapHomeCard
           home={homeData}
           showScore={showScore}

@@ -107,10 +107,13 @@ export function SidebarList(props: {
                   <p
                     className={`text-responsive-sm flex-1 font-semibold text-brown ${activeTab === "saved" ? "text-responsive-lg mb-2" : ""}`}
                   >
-                    {typeof property.price === "string" ||
-                    typeof property.price === "number"
-                      ? property.price
-                      : "[Invalid price]"}
+                    {typeof property.price === "string"
+                      ? property.price.startsWith("$")
+                        ? property.price
+                        : `$${property.price}`
+                      : typeof property.price === "number"
+                        ? `$${property.price}`
+                        : "[Invalid price]"}
                   </p>
                   {activeTab === "results" && (
                     <CardMatchScore
