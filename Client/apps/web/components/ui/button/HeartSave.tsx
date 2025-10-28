@@ -74,16 +74,18 @@ const CardHeartSave: React.FC<CardHeartSaveProps> = ({
   const saveHome = providedSaveHome || hookData?.saveHome;
   const removeSavedHome = providedRemoveSavedHome || hookData?.removeSavedHome;
 
-  // Determine if home is saved
-  const isSaved = isHomeSaved ? isHomeSaved(property.id) : false;
+  // Determine if home is saved - use address for matching
+  const isSaved = isHomeSaved
+    ? isHomeSaved(property.id, property.address)
+    : false;
 
   const handleClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
     try {
       if (isSaved) {
-        // Remove from saved homes
+        // Remove from saved homes - pass address for better matching
         if (removeSavedHome) {
-          await removeSavedHome(property.id);
+          await removeSavedHome(property.id, property.address);
           enqueueToast({
             type: "success",
             message: `Removed ${property.address} from favorites`,

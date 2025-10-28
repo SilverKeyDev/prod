@@ -24,9 +24,9 @@ export type MapPropertyCardProps = {
   showScore?: boolean;
   onCardRendered?: (property: MapPropertyCardProps["property"]) => void;
   /** Optional save state functions for use outside React context (e.g., map markers) */
-  isHomeSaved?: (propertyId: string) => boolean;
+  isHomeSaved?: (propertyId: string, propertyAddress?: string) => boolean;
   saveHome?: (property: SearchResult | Property) => Promise<void>;
-  removeSavedHome?: (propertyId: string) => Promise<void>;
+  removeSavedHome?: (propertyId: string, propertyAddress?: string) => Promise<void>;
 };
 
 const MapPropertyCard: React.FC<MapPropertyCardProps> = ({

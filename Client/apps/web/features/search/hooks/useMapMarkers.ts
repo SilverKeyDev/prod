@@ -36,9 +36,9 @@ type UseMapMarkersProps = {
   setIsochroneData: (data: unknown) => void;
   fetchIsochroneForMapOnly: () => Promise<unknown>;
   calculatePropertyScore: (property: SearchResult) => number;
-  isHomeSaved: (propertyId: string) => boolean;
+  isHomeSaved: (propertyId: string, propertyAddress?: string) => boolean;
   saveHome: (property: SearchResult | Property) => Promise<void>;
-  removeSavedHome: (propertyId: string) => Promise<void>;
+  removeSavedHome: (propertyId: string, propertyAddress?: string) => Promise<void>;
   onMarkerClick?: (property: SearchResult) => void;
   onUnlockClick?: (property: SearchResult) => void | Promise<void>;
 };
@@ -275,7 +275,7 @@ export const useMapMarkers = ({
           try {
             renderMapPropertyCard(markerElement, {
               property: propertyData,
-              isSaved: isHomeSaved(result.id),
+              isSaved: isHomeSaved(result.id, result.address),
               onUnlock: onUnlockClick ? async () => {
                 console.log("🗺️ [USE MAP MARKERS] Unlock button clicked in map marker:", {
                   environment: typeof import.meta !== 'undefined' && import.meta.env?.DEV ? "DEVELOPMENT" : "PRODUCTION",

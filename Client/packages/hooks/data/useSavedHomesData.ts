@@ -70,6 +70,7 @@ const mapHomeUniversalToSavedHome = (
   index: number,
 ): SavedHome => {
   const homeData = home as {
+    id?: string; // Backend UUID
     address?: string;
     price?: string;
     beds?: string;
@@ -118,6 +119,8 @@ const mapHomeUniversalToSavedHome = (
     image_url: homeData.image_url ?? undefined,
     lat,
     lng,
+    // Store the database ID for later use
+    _databaseId: homeData.id,
   };
 };
 
@@ -345,14 +348,22 @@ export const useSavedHomesData = () => {
   );
 
   const removeSavedHome = useCallback(
-    async (propertyId: string) => {
+    async (propertyId: string, propertyAddress?: string) => {
       // Find the home to get its address - use the same query key structure as the query
       const homes =
         queryClient.getQueryData<SavedHome[]>([
           ...queryKeys.homes.favorites(),
         ]) ?? [];
 
-      const home = homes.find((h) => h.home_id === propertyId);
+      // Try to find by ID first, then by address if provided
+      let home = homes.find((h) => h.home_id === propertyId);
+      
+      if (!home && propertyAddress) {
+        // Try matching by address
+        home = homes.find(
+          (h) => h.address?.toLowerCase() === propertyAddress.toLowerCase()
+        );
+      }
 
       if (!home) {
         // Try to get data from any cached favorites query as fallback
@@ -364,12 +375,15 @@ export const useSavedHomesData = () => {
         for (const [, cachedHomes] of allCachedData) {
           if (Array.isArray(cachedHomes)) {
             const foundHome = cachedHomes.find(
-              (h: SavedHome) => h.home_id === propertyId,
+              (h: SavedHome) =>
+                h.home_id === propertyId ||
+                (propertyAddress &&
+                  h.address?.toLowerCase() === propertyAddress.toLowerCase())
             );
             if (foundHome) {
               return removeSavedHomeMutation.mutateAsync({
                 propertyId,
-                address: foundHome.address,
+                address: foundHome.address || propertyAddress || propertyId,
               });
             }
           }
@@ -390,11 +404,19 @@ export const useSavedHomesData = () => {
   );
 
   const isHomeSaved = useCallback(
-    (propertyId: string) => {
+    (propertyId: string, propertyAddress?: string) => {
       const homes =
         queryClient.getQueryData<SavedHome[]>([
           ...queryKeys.homes.favorites(),
         ]) ?? [];
+      // Try to match by ID first, then by address if provided
+      if (propertyAddress) {
+        return homes.some(
+          (home) =>
+            home.home_id === propertyId ||
+            home.address?.toLowerCase() === propertyAddress.toLowerCase()
+        );
+      }
       return homes.some((home) => home.home_id === propertyId);
     },
     [queryClient],

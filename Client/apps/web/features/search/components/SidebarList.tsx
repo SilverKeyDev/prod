@@ -132,9 +132,7 @@ export function SidebarList(props: {
                   className="mb-2 sm:mb-3"
                 />
               </div>
-              {activeTab === "results" && (
-                <CardHeartSave property={property} size="sm" />
-              )}
+              <CardHeartSave property={property} size="sm" />
             </div>
           </div>
         </div>

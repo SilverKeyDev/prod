@@ -22,9 +22,9 @@ export function useSavedHomes(params: {
   isGoogleMapsLoaded?: boolean;
 }): {
   savedHomes: SearchResult[];
-  isHomeSaved: (id: string) => boolean;
+  isHomeSaved: (id: string, address?: string) => boolean;
   saveHome: (p: SearchResult | Property) => Promise<void>;
-  removeSavedHome: (id: string) => Promise<void>;
+  removeSavedHome: (id: string, address?: string) => Promise<void>;
 } {
   const [savedHomes, setSavedHomes] = useState<SearchResult[]>([]);
   const hasLoadedRef = useRef(false);
@@ -239,14 +239,21 @@ export function useSavedHomes(params: {
   );
 
   const removeSavedHome = useCallback(
-    async (propertyId: string) => {
+    async (propertyId: string, propertyAddress?: string) => {
       try {
         // Find the property to get its address
-        const property = savedHomes.find((home) => home.id === propertyId);
+        let property = savedHomes.find((home) => home.id === propertyId);
+        
+        // If not found by ID, try matching by address if provided
+        if (!property && propertyAddress) {
+          property = savedHomes.find((home) => home.address?.toLowerCase() === propertyAddress.toLowerCase());
+        }
+        
         if (!property) {
           console.error(
             "❌ Property not found in local savedHomes state:",
             propertyId,
+            propertyAddress,
           );
           return;
         }
@@ -281,9 +288,16 @@ export function useSavedHomes(params: {
   );
 
   const isHomeSaved = useCallback(
-    (propertyId: string): boolean => {
-      // Check both local savedHomes and favoriteAddresses from backend
-      return savedHomes.some((home) => home.id === propertyId);
+    (propertyId: string, propertyAddress?: string): boolean => {
+      // Check both local savedHomes by ID
+      const foundById = savedHomes.some((home) => home.id === propertyId);
+      
+      // Also check by address if provided and not found by ID
+      if (!foundById && propertyAddress) {
+        return savedHomes.some((home) => home.address?.toLowerCase() === propertyAddress.toLowerCase());
+      }
+      
+      return foundById;
     },
     [savedHomes],
   );

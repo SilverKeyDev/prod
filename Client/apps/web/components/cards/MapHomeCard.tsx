@@ -36,9 +36,9 @@ type MapHomeCardProps = {
   /** Function to handle unlock/view details click */
   onUnlock?: (home: HomeDescription) => void | Promise<void>;
   /** Optional save state functions for use outside React context (e.g., map markers) */
-  isHomeSaved?: (propertyId: string) => boolean;
+  isHomeSaved?: (propertyId: string, propertyAddress?: string) => boolean;
   saveHome?: (property: SearchResult | Property) => Promise<void>;
-  removeSavedHome?: (propertyId: string) => Promise<void>;
+  removeSavedHome?: (propertyId: string, propertyAddress?: string) => Promise<void>;
 };
 
 /**
