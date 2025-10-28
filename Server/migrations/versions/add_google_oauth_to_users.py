@@ -44,4 +44,3 @@ def downgrade():
         batch_op.drop_column('google_id')
 
     # ### end Alembic commands ###
-

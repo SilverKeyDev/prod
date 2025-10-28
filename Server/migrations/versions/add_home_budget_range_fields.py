@@ -9,8 +9,8 @@ from alembic import op
 import sqlalchemy as sa
 
 
-# revision identifiers, used by Alembic.
-revision = 'f1a2b3c4d5e6'
+# AFTER
+revision = 'b7c8d9e0f1a2'   # <-- NEW id (pick your own 12-hex if you prefer)
 down_revision = 'f9da91fb8590'
 branch_labels = None
 depends_on = None

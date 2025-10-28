@@ -13,6 +13,7 @@ class User(db.Model):
     phone = db.Column(db.String(20))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    last_logged_in = db.Column(db.DateTime, nullable=True)
     is_active = db.Column(db.Boolean, default=True)
     has_preferences = db.Column(db.Boolean, default=False)
     
@@ -44,6 +45,7 @@ class User(db.Model):
             'name': self.name,
             'phone': self.phone,
             'created_at': self.created_at.isoformat() if self.created_at else None,
+            'last_logged_in': self.last_logged_in.isoformat() if self.last_logged_in else None,
             'is_active': self.is_active,
             'has_subscription': self.subscription is not None,
             'subscription': self.subscription.to_dict() if self.subscription else None,
@@ -54,5 +56,7 @@ class User(db.Model):
             'inspections_checklist': self.inspections_checklist,
             'closing_checklist': self.closing_checklist,
             'timeline_checklist': self.timeline_checklist,
+            'financing_checklist': self.financing_checklist,
+            'escrow_checklist': self.escrow_checklist,
             'insurance_checklist': self.insurance_checklist,
         }

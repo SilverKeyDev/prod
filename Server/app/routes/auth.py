@@ -48,14 +48,16 @@ def signup():
 
     try:
         # Create user in our database
+        now = datetime.utcnow()
         user = User(
             id=result['user_sub'],
             cognito_id=result['user_sub'],
             email=data['email'],
             name=data['name'],
             phone=data.get('phone'),
-            created_at=datetime.utcnow(),
-            updated_at=datetime.utcnow(),
+            created_at=now,
+            updated_at=now,
+            last_logged_in=now,
             is_active=True
         )
         db.session.add(user)
@@ -160,7 +162,10 @@ def verify():
                 if user:
                     # Link cognito_id to existing user
                     user.cognito_id = user_sub
-                    db.session.commit()
+            # Update last_logged_in timestamp
+            if user:
+                user.last_logged_in = datetime.utcnow()
+                db.session.commit()
         except Exception as db_error:
             current_app.logger.error(f'Error during user lookup in verification: {str(db_error)}')
             user = None
@@ -436,12 +441,16 @@ def login():
                 if user:
                     # Link cognito_id to existing user
                     user.cognito_id = user_sub
-                    db.session.commit()
-                    current_app.logger.info(f"AUTH_LOGIN_USER_LINKED", extra={
-                        'request_id': request_id,
-                        'user_id': user.id,
-                        'email': data['email'][:3] + '***' + data['email'][-3:]
-                    })
+            
+            # Update last_logged_in timestamp
+            if user:
+                user.last_logged_in = datetime.utcnow()
+                db.session.commit()
+                current_app.logger.info(f"AUTH_LOGIN_USER_LINKED", extra={
+                    'request_id': request_id,
+                    'user_id': user.id,
+                    'email': data['email'][:3] + '***' + data['email'][-3:]
+                })
             
             current_app.logger.info(f"AUTH_LOGIN_USER_LOOKUP", extra={
                 'request_id': request_id,
@@ -789,6 +798,7 @@ def google_oauth_callback():
                 # Link Google account to existing user
                 user.google_id = google_id
                 user.updated_at = datetime.utcnow()
+                user.last_logged_in = datetime.utcnow()
                 db.session.commit()
                 
                 current_app.logger.info(f"GOOGLE_ACCOUNT_LINKED", extra={
@@ -798,13 +808,15 @@ def google_oauth_callback():
                 })
             else:
                 # Create new user
+                now = datetime.utcnow()
                 user = User(
                     id=str(uuid_lib.uuid4()),
                     google_id=google_id,
                     email=email,
                     name=name,
-                    created_at=datetime.utcnow(),
-                    updated_at=datetime.utcnow(),
+                    created_at=now,
+                    updated_at=now,
+                    last_logged_in=now,
                     is_active=True
                 )
                 db.session.add(user)
@@ -817,6 +829,10 @@ def google_oauth_callback():
                     'user_id': user.id,
                     'email': email[:3] + '***'
                 })
+        else:
+            # User exists, update last_logged_in
+            user.last_logged_in = datetime.utcnow()
+            db.session.commit()
         
         # Create minimal tokens for session
         try:
