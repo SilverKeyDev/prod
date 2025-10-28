@@ -338,10 +338,7 @@ def get_current_user():
             raise SecurityException(SecurityError.INVALID_TOKEN)
 
         elif token_kind == "cognito":
-            current_app.logger.info("🔍 AUTH_DECISION", extra={
-                'kind': token_kind,
-                'action': 'cognito_verify'
-            })
+            pass
             # Continue to Cognito verification below
         else:
             # Unknown token kind

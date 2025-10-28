@@ -188,7 +188,6 @@ def create_app(config=None):
                                 sanitized_data[key] = f"[{len(str(value))} chars]"
                             else:
                                 sanitized_data[key] = str(value)[:100]
-                        app.logger.info("AUTH_REQUEST_DATA", extra={'request_id': request_id, 'data': sanitized_data})
             except Exception as e:
                 app.logger.warning("AUTH_REQUEST_DATA_ERROR", extra={'request_id': request_id, 'error': str(e)})
 

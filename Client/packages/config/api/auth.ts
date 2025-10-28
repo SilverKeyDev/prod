@@ -216,12 +216,6 @@ export const authApi = {
       const response = await apiPost<AuthResponse>(apiUrl, data);
       const duration = Date.now() - startTime;
 
-      // Log successful response
-      log.info("AUTH_LOGIN_SUCCESS", "Login successful", {
-        requestId,
-        duration: `${duration}ms`
-      });
-
       // Only report authentication failure when the response explicitly indicates failure
       if (!response.success) {
         log.warn("AUTH_LOGIN_FAILED", "Login request failed", {

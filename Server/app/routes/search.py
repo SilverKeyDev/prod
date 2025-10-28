@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from flask import Blueprint, request, jsonify, current_app
 from app.utils.locationPolygon import isochrone_union_for_addresses
-from app.utils.auth import get_current_user
+from app.utils.auth import get_current_user, SecurityException
 from app.utils.secure_errors import SecureErrorHandler
 import requests
 import os
@@ -295,8 +295,8 @@ def get_property_via_address():
     try:
         try:
             current_user = get_current_user()
-        except tuple:
-            # Silently handle SecurityError tuples for optional user context
+        except SecurityException:
+            # Silently handle SecurityException for optional user context
             current_user = None
         except Exception:
             # Silently handle other auth errors for optional user context
@@ -368,8 +368,8 @@ def get_property_via_address():
     try:
         try:
             current_user = get_current_user()
-        except tuple:
-            # Silently handle SecurityError tuples for optional user context
+        except SecurityException:
+            # Silently handle SecurityException for optional user context
             current_user = None
         except Exception:
             # Silently handle other auth errors for optional user context

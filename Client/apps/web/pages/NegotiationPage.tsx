@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Lightbulb, Home, Download, Share2 } from "lucide-react";
 
 import { CardCarousel } from "../components/cards/base";
@@ -72,6 +73,46 @@ export default function NegotiationStrategy() {
     return Boolean(errorMessage);
   };
 
+  // Debug logging - only log when strategyData changes
+  useEffect(() => {
+    console.log("[PRICE DEBUG] strategyData:", strategyData);
+
+    if (
+      strategyData &&
+      typeof strategyData === "object" &&
+      !Array.isArray(strategyData)
+    ) {
+      const actualData =
+        (strategyData as Record<string, unknown>).data &&
+        typeof (strategyData as Record<string, unknown>).data === "object"
+          ? ((strategyData as Record<string, unknown>).data as Record<
+              string,
+              unknown
+            >)
+          : (strategyData as Record<string, unknown>);
+
+      console.log("[PRICE DEBUG] actualData:", actualData);
+
+      const priceSection = actualData?.price_section;
+      console.log("[PRICE DEBUG] priceSection:", priceSection);
+
+      if (
+        priceSection &&
+        typeof priceSection === "object" &&
+        priceSection !== null
+      ) {
+        const openingOffer = (priceSection as Record<string, unknown>)
+          .opening_offer;
+        console.log(
+          "[PRICE DEBUG] openingOffer:",
+          openingOffer,
+          "type:",
+          typeof openingOffer
+        );
+      }
+    }
+  }, [strategyData]);
+
   return (
     <div>
       {/* Main Content */}
@@ -133,69 +174,6 @@ export default function NegotiationStrategy() {
           )) as any
         }
 
-        {/* Recommended Opening Offer - Displayed above comps */}
-        {(() => {
-          // Handle nested data structure - check if data is under a 'data' property
-          const actualData =
-            strategyData &&
-            typeof strategyData === "object" &&
-            !Array.isArray(strategyData)
-              ? (strategyData as Record<string, unknown>).data &&
-                typeof (strategyData as Record<string, unknown>).data ===
-                  "object"
-                ? ((strategyData as Record<string, unknown>).data as Record<
-                    string,
-                    unknown
-                  >)
-                : (strategyData as Record<string, unknown>)
-              : null;
-
-          const priceSection = actualData?.price_section;
-
-          if (
-            priceSection &&
-            typeof priceSection === "object" &&
-            priceSection !== null
-          ) {
-            const openingOffer = (priceSection as Record<string, unknown>)
-              .opening_offer;
-
-            // Handle different data types for opening offer
-            let offerValue: number | null = null;
-            if (typeof openingOffer === "number") {
-              offerValue = openingOffer;
-            } else if (typeof openingOffer === "string") {
-              const parsed = parseFloat(openingOffer);
-              if (!isNaN(parsed)) {
-                offerValue = parsed;
-              }
-            }
-
-            if (offerValue !== null && offerValue > 0) {
-              return (
-                <div className="mb-8">
-                  <div className="rounded-lg bg-olive/10 p-6">
-                    <div className="flex items-center gap-3">
-                      <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-olive text-white">
-                        <span className="text-lg font-bold">$</span>
-                      </span>
-                      <div>
-                        <div className="text-sm font-medium text-olive uppercase tracking-wide">
-                          Recommended Opening Offer
-                        </div>
-                        <div className="mt-1 text-3xl font-bold text-olive sm:text-4xl lg:text-5xl">
-                          ${offerValue.toLocaleString()}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            }
-          }
-          return null;
-        })()}
-
         {/* Property Comparables CardCarousel */}
         {compsData &&
           typeof compsData === "object" &&
@@ -243,7 +221,72 @@ export default function NegotiationStrategy() {
             </div>
           )}
 
-        {/* Property Comps Debug JSON (fallback) */}
+        {/* Recommended Opening Offer - Displayed after comps */}
+        {(() => {
+          // Handle nested data structure - check if data is under a 'data' property
+          const actualData =
+            strategyData &&
+            typeof strategyData === "object" &&
+            !Array.isArray(strategyData)
+              ? (strategyData as Record<string, unknown>).data &&
+                typeof (strategyData as Record<string, unknown>).data ===
+                  "object"
+                ? ((strategyData as Record<string, unknown>).data as Record<
+                    string,
+                    unknown
+                  >)
+                : (strategyData as Record<string, unknown>)
+              : null;
+
+          const priceSection = actualData?.price_section;
+
+          if (
+            priceSection &&
+            typeof priceSection === "object" &&
+            priceSection !== null
+          ) {
+            const openingOffer = (priceSection as Record<string, unknown>)
+              .opening_offer;
+
+            // Handle different data types for opening offer
+            let offerValue: number | null = null;
+            if (typeof openingOffer === "number") {
+              offerValue = openingOffer;
+            } else if (typeof openingOffer === "string") {
+              // Remove dollar sign, commas, and whitespace before parsing
+              const cleaned = openingOffer.replace(/[\$,\s]/g, "");
+              const parsed = parseFloat(cleaned);
+              if (!isNaN(parsed)) {
+                offerValue = parsed;
+              }
+            }
+
+            if (offerValue !== null && offerValue > 0) {
+              return (
+                <div className="my-responsive-lg">
+                  <div className="rounded-lg bg-olive/10 p-6">
+                    <div className="flex items-center gap-3">
+                      <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-olive text-white">
+                        <span className="text-lg font-bold">$</span>
+                      </span>
+                      <div>
+                        <div className="text-sm font-medium text-olive uppercase tracking-wide">
+                          Recommended Opening Offer
+                        </div>
+                        <div className="mt-1 text-3xl font-bold text-olive sm:text-4xl lg:text-5xl">
+                          ${offerValue.toLocaleString()}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+          }
+          return null;
+        })()}
+
+         {/* Property Comps Debug JSON (fallback) */}
         {Boolean(compsData) &&
           (!(
             compsData &&

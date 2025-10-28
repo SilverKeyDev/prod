@@ -302,9 +302,26 @@ export default function SavedHomes() {
     );
   });
 
-  const filteredReports = reports.filter((r: Report) =>
-    r.address?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Sort reports: generating first, then completed, then error
+  const statusPriority = {
+    generating: 1,
+    completed: 2,
+    error: 3,
+  };
+
+  const filteredReports = reports
+    .filter((r: Report) =>
+      r.address?.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort((a, b) => {
+      const statusA = statusPriority[a.status] || 99;
+      const statusB = statusPriority[b.status] || 99;
+      if (statusA !== statusB) {
+        return statusA - statusB;
+      }
+      // If status is the same, sort by date (most recent first)
+      return b.generatedAt.getTime() - a.generatedAt.getTime();
+    });
 
   // Handle report actions
   const handleShareReport = useCallback(

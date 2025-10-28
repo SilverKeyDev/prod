@@ -1009,12 +1009,17 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                         f"You are a comprehensive PERSONALIZED Marketing report generator. Given an address, {address}, you must provide a detailed property report in valid JSON format.\n\n"
 
                         "RESEARCH:\n"
-                        "Use the recommended sources first in research. If a decent answer is found, do not continue to search the web for that field\n"
+                        "Use the recommended sources first in research. If a decent answer is found, do not continue to search the web for that field.\n\n"
 
                         "CITATIONS:\n"
-                        "Do not include citations in the response\n"
-                
-                        "CRITICAL: Always provide a concrete answer, estimate, or educated guess.\n"
+                        "Do not include citations in the response.\n\n"
+
+                        "CRITICAL:\n"
+                        "Always provide a concrete answer, estimate, or educated guess.\n\n"
+
+                        "STYLE & LENGTH:\n"
+                        "Follow the principle of 'less is more.' Avoid verbose explanations or filler text—prioritize clarity, precision, and high-value insights over long paragraphs. "
+                        "Each field should feel complete but concise: enough detail to inform, never enough to overwhelm.\n"
                     )
                 }, {"role": "user", "content": f"Sell me the property at {address} CRITICAL: Never return 'N/A' for any fields. Always provide a concrete answer, estimate, or educated guess.\n"}
             ],
@@ -1045,6 +1050,9 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
 
                         "CITATIONS:\n"
                         "Do not include citations in the response\n"
+                    
+                        "STYLE & LENGTH:\n"
+                        "Each individual section field must be a maximum of two medium-length sentences. Keep responses concise and focused—prioritize clarity and precision over length.\n"
                     
                         "CRITICAL: Always provide a concrete answer, estimate, or educated guess.\n"
 
@@ -1083,6 +1091,9 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                                
                                 "CITATIONS:\n"
                                 "Do not include citations in the response\n"
+                            
+                                "STYLE & LENGTH:\n"
+                                "Each individual section field must be a maximum of two medium-length sentences. Keep responses concise and focused—prioritize clarity and precision over length.\n"
                             
                                 "CRITICAL: Always provide a concrete answer, estimate, or educated guess.\n"
                             )
@@ -1124,7 +1135,6 @@ def generate_report(address: str, comparison_address: str, filename: str, user_i
                     # Validate payload is a dictionary
                     if not isinstance(payload, dict):
                         error_msg = f"Invalid payload type: expected dict, got {type(payload)}"
-                        logger.error(f"❌ Section {section_name}: {error_safe_parse_json_msg}")
                         logger.error(f"🔍 Section {section_name}: Payload content: {str(payload)[:200]}")
                         return {"section": section_name, "success": False, "error": error_msg}
                     

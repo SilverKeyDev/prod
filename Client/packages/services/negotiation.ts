@@ -255,6 +255,14 @@ export class NegotiationService {
         "strategy" in strategyResponse && strategyResponse.strategy
           ? (strategyResponse.strategy as Record<string, unknown>)
           : {};
+      
+      // Debug logging for price section
+      console.log("[NEGOTIATION SERVICE] strategyResponse.strategy:", strategyResponse.strategy);
+      console.log("[NEGOTIATION SERVICE] parsedStrategyData:", parsedStrategyData);
+      if (parsedStrategyData && typeof parsedStrategyData === "object" && "data" in parsedStrategyData) {
+        console.log("[NEGOTIATION SERVICE] parsedStrategyData.data:", (parsedStrategyData as Record<string, unknown>).data);
+      }
+      
       log.info("NEGOTIATION_SERVICE", "Strategy generated successfully", {
         strategyId:
           "strategy_id" in strategyResponse &&

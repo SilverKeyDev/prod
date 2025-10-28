@@ -52,9 +52,7 @@ class MinimalTokenService:
             if not secret:
                 # Fallback to AWS_SECRET_ACCESS_KEY for backward compatibility
                 secret = os.getenv('AWS_SECRET_ACCESS_KEY')
-                if secret:
-                    logger.info("MINIMAL_TOKEN_USING_AWS_SECRET_ACCESS_KEY_FALLBACK")
-                else:
+                if not secret:
                     # Development fallback with loud warning
                     secret = "silverkey-minimal-token-secret-key-DEV-DO-NOT-USE-IN-PROD"
                     logger.warning(

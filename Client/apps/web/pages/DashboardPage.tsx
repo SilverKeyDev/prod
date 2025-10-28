@@ -1,5 +1,5 @@
 // React imports
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 
 // Components
@@ -52,6 +52,25 @@ export default function Dashboard() {
 
   // Use reports data hook
   const { reports, reportsLoading, refreshReports } = useReportsData();
+
+  // Sort reports: generating first, then completed, then error
+  const sortedReports = useMemo(() => {
+    const statusPriority = {
+      generating: 1,
+      completed: 2,
+      error: 3,
+    };
+
+    return [...reports].sort((a, b) => {
+      const statusA = statusPriority[a.status] || 99;
+      const statusB = statusPriority[b.status] || 99;
+      if (statusA !== statusB) {
+        return statusA - statusB;
+      }
+      // If status is the same, sort by date (most recent first)
+      return b.generatedAt.getTime() - a.generatedAt.getTime();
+    });
+  }, [reports]);
 
   // Delete modal and feedback states (matching PastReports)
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -377,7 +396,7 @@ export default function Dashboard() {
         {/* Recent Reports */}
         <div className="my-8">
           <CardCarousel<Report>
-            items={reports}
+            items={sortedReports}
             embeddedButton={
               <NavigationButton
                 onClick={handleDocumentsClick}

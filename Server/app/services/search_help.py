@@ -518,20 +518,23 @@ def analyze_property_with_sonar_pro(user_preferences: Dict[str, Any], home_objec
         preferred_features = user_preferences.get('preferred_home_features', [])
         deal_breakers = user_preferences.get('deal_breakers', [])
         
+        # Format price with comma separator if numeric
+        price_str = f"${int(price):,}" if isinstance(price, (int, float)) else str(price)
+        
         # Build comprehensive prompt for Sonar Pro
         prompt = f"""
         Analyze this property for a potential buyer with the following profile and preferences:
 
         PROPERTY DETAILS:
         - Address: {address}
-        - Price: ${price:,} if isinstance(price, (int, float)) else {price}
+        - Price: {price_str}
         - Bedrooms: {bedrooms}
         - Bathrooms: {bathrooms}
         - Square Feet: {sqft}
         - Property Type: {property_type}
 
         BUYER PROFILE:
-        - Budget: ${budget:,} if isinstance(budget, (int, float)) else {budget}
+        - Budget: {budget}
         - Occupation: {occupation}
         - Age: {age}
         - Important Locations: {', '.join([loc.get('name', 'Unknown') for loc in important_locations]) if important_locations else 'None specified'}

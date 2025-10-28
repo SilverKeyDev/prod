@@ -440,6 +440,12 @@ export default function GenerateReportPage({
         throw new Error(data.error ?? "Failed to generate report");
       }
 
+      // Clear the input fields after successful generation
+      setAddress("");
+      setComparisonAddress("");
+      setHasSelected(false);
+      setHasSelectedComparison(false);
+
       // Set up listener for when report generation actually completes (~5 minutes)
       if (data.document_id) {
         setupReportCompletionListener(data.document_id);

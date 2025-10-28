@@ -331,23 +331,6 @@ def login():
     
     try:
         data = request.get_json()
-        
-        # Log request data (sanitized)
-        if data:
-            current_app.logger.info(f"AUTH_LOGIN_REQUEST_DATA", extra={
-                'request_id': request_id,
-                'has_email': 'email' in data,
-                'email_preview': data.get('email', '')[:3] + '***' + data.get('email', '')[-3:] if data.get('email') else 'missing',
-                'has_password': 'password' in data,
-                'password_length': len(data.get('password', '')) if data.get('password') else 0,
-                'data_keys': list(data.keys()) if data else []
-            })
-        else:
-            current_app.logger.warning(f"AUTH_LOGIN_NO_JSON_DATA", extra={
-                'request_id': request_id,
-                'content_type': request.content_type,
-                'raw_data': str(request.get_data())[:200] if request.get_data() else 'empty'
-            })
 
         if not data or not all(field in data for field in ['email', 'password']):
             duration_ms = int((time.time() - start_time) * 1000)
@@ -363,17 +346,6 @@ def login():
                 'message': 'Email and password are required'
             }), 400
 
-        # Call Cognito service
-        current_app.logger.info(f"AUTH_LOGIN_PHASE_START", extra={
-            'request_id': request_id,
-            'email': data['email'][:3] + '***' + data['email'][-3:] if data['email'] else 'missing'
-        })
-        
-        current_app.logger.info(f"AUTH_LOGIN_PHASE_AWS_COGNITO_CALL", extra={
-            'request_id': request_id,
-            'username': data['email'][:3] + '***' + data['email'][-3:] if data['email'] else 'missing'
-        })
-        
         result = AWS_COGNITO_service.sign_in(
             username=data['email'],
             password=data['password']
