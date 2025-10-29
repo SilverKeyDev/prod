@@ -1,0 +1,140 @@
+name: Utility - Last Logged In Report
+
+on:
+  workflow_dispatch:
+
+env:
+  REGION: us-east-2
+
+permissions:
+  contents: read
+  # If you switch to OIDC + role assumption, also add:
+  # id-token: write
+
+jobs:
+  run-last-logged-in:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    concurrency:
+      group: utility-last-logged-in
+      cancel-in-progress: true
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      # Current approach using static keys (works, but prefer OIDC+IAM role)
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.REGION }}
+
+      - name: Install jq (for JSON parsing)
+        run: sudo apt-get update -y >/dev/null 2>&1 && sudo apt-get install -y jq >/dev/null 2>&1
+
+      - name: Load app env from AWS Secrets Manager (custom, no prefixes)
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          fetch_json () {
+            local id="$1"
+            aws secretsmanager get-secret-value \
+              --secret-id "$id" \
+              --query SecretString \
+              --output text 2>/dev/null || echo '{}'
+          }
+
+          export_if_present () {
+            local json="$1"
+            local jkey="$2"
+            local envname="$3"
+            local val
+            val="$(jq -er --arg k "$jkey" '.[$k] // empty' <<<"$json" 2>/dev/null || true)"
+            if [ -n "${val:-}" ]; then
+              printf '%s=%s\n' "$envname" "$val" >> "$GITHUB_ENV"
+            fi
+          }
+
+          # Pull only what we need for DB connectivity.
+          # Ensure secret "db_url" exists and contains JSON like: {"DATABASE_URL":"postgresql+psycopg2://..."}
+          db_url_json="$(fetch_json db_url)"
+          export_if_present "$db_url_json" "DATABASE_URL" "DATABASE_URL"
+
+      - name: Validate required envs
+        shell: bash
+        run: |
+          set -euo pipefail
+          for v in DATABASE_URL; do
+            if [ -z "${!v:-}" ]; then
+              echo "Missing required env: $v" >&2
+              exit 1
+            fi
+          done
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: Server/requirements.txt
+
+      - name: Install server dependencies
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip >/dev/null
+          pip install -r Server/requirements.txt
+
+      - name: Run last_logged_in report
+        env:
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+          FLASK_ENV: production
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          import os
+          from Server.app import create_app  # type: ignore
+          from Server.app.services.email.last_logged_in import get_recently_logged_in_users_with_preferences  # type: ignore
+
+          def mask_email(email: str) -> str:
+              try:
+                  local, domain = email.split('@', 1)
+                  if len(local) <= 2:
+                      masked_local = '*'
+                  else:
+                      masked_local = local[:2] + '***' + local[-1]
+                  return masked_local + '@' + domain
+              except Exception:
+                  return '***'
+
+          app = create_app()
+          with app.app_context():
+              users = get_recently_logged_in_users_with_preferences() or []
+              sanitized = [
+                  {
+                      'user_id': str(item.get('user_id', '')),
+                      'email': mask_email(str(item.get('email', ''))),
+                  }
+                  for item in users
+              ]
+              print("Found", len(sanitized), "recently logged-in users with preferences.")
+              print(json.dumps(sanitized, indent=2))
+
+              # Also write a concise Markdown table to the step summary.
+              summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+              if summary_path:
+                  with open(summary_path, "a", encoding="utf-8") as f:
+                      f.write("## Recently Logged-In Users (Masked)\n\n")
+                      if not sanitized:
+                          f.write("_No users found._\n")
+                      else:
+                          f.write("| user_id | masked_email |\n")
+                          f.write("|---|---|\n")
+                          for row in sanitized:
+                              f.write(f"| {row['user_id']} | {row['email']} |\n")
+          PY
