@@ -92,50 +92,27 @@ jobs:
       - name: Run last_logged_in report
         env:
           DATABASE_URL: ${{ env.DATABASE_URL }}
-          FLASK_ENV: production
           PYTHONPATH: Server
         run: |
           set -euo pipefail
           python - <<'PY'
           import json
           import os
-          from app import create_app  # type: ignore
-          from app.services.email.last_logged_in import get_recently_logged_in_users_with_preferences  # type: ignore
+          from flask import Flask  # minimal app to bind SQLAlchemy
+          from app import db  # type: ignore
+          from app.services.email.last_logged_in import (  # type: ignore
+              get_recently_logged_in_users_with_preferences,
+          )
 
-          def mask_email(email: str) -> str:
-              try:
-                  local, domain = email.split('@', 1)
-                  if len(local) <= 2:
-                      masked_local = '*'
-                  else:
-                      masked_local = local[:2] + '***' + local[-1]
-                  return masked_local + '@' + domain
-              except Exception:
-                  return '***'
+          # Create a minimal Flask app and bind the database without registering routes
+          app = Flask(__name__)
+          app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
+          app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+          db.init_app(app)
 
-          app = create_app()
           with app.app_context():
               users = get_recently_logged_in_users_with_preferences() or []
-              sanitized = [
-                  {
-                      'user_id': str(item.get('user_id', '')),
-                      'email': mask_email(str(item.get('email', ''))),
-                  }
-                  for item in users
-              ]
-              print("Found", len(sanitized), "recently logged-in users with preferences.")
-              print(json.dumps(sanitized, indent=2))
 
-              # Also write a concise Markdown table to the step summary.
-              summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
-              if summary_path:
-                  with open(summary_path, "a", encoding="utf-8") as f:
-                      f.write("## Recently Logged-In Users (Masked)\n\n")
-                      if not sanitized:
-                          f.write("_No users found._\n")
-                      else:
-                          f.write("| user_id | masked_email |\n")
-                          f.write("|---|---|\n")
-                          for row in sanitized:
-                              f.write(f"| {row['user_id']} | {row['email']} |\n")
+          print("Found", len(users), "recently logged-in users with preferences.")
+          print(json.dumps(users, indent=2))
           PY
