@@ -5,6 +5,7 @@ import { ProtectedRoute } from "../guards";
 import DashboardLayout from "../layouts/DashboardLayout";
 import { AuthShellProviders } from "../providers/auth/AuthShellProviders";
 import { MinimalAuthProviders } from "../providers/auth/MinimalAuthProviders";
+
 // Page-specific providers
 import { DocsOnly } from "../providers/page/DocsOnly";
 import { MapsOnly } from "../providers/page/MapsOnly";
@@ -61,21 +62,15 @@ export function createProtectedRoute(
 
 // Route configurations by category
 export const ROUTE_CONFIGS = {
-  lightweight: ["/settings/*", "/agent-connection/*", "/client-information/*"],
+  lightweight: ["/settings"],
 
   standard: [
-    "/saved/*",
-    "/reports/*",
-    "/generate-report/*",
-    "/compare-reports/*",
+    "/saved*",
     "/dashboard",
-    "/dashboard/*",
-    "/ai-assistant/*",
   ],
 
   specialized: [
-    { path: "/search/*", providerType: "maps" as const },
+    { path: "/search", providerType: "maps" as const },
     { path: "/negotiation-strategy/*", providerType: "negotiation" as const },
-    { path: "/buyer-checklists/*", providerType: "docs" as const },
   ],
 } as const;

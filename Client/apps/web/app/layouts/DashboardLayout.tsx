@@ -72,7 +72,8 @@ const MOBILE_WIDTH_CONFIG: PageWidthConfig = {
   "/buyer-checklists": 95,
   "/negotiation-strategy": 95,
   "/settings": 95,
-  "/saved": 95,
+  "/saved?view=reports": 95,
+  "/saved?view=homes": 95,
 };
 
 // Buyer checklist tabs

@@ -1,5 +1,4 @@
 import {
-  ClipboardList,
   Handshake,
   Home,
   Key,

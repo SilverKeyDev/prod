@@ -14,13 +14,13 @@ from app.models.user_preferences import UserPreferences
 from app.services.minimal_token import minimal_token_service
 
 
-def _iter_users_with_prefs(limit: Optional[int] = None) -> Iterable[tuple[User, UserPreferences]]:
+def _iter_users_with_prefs(session, limit: Optional[int] = None) -> Iterable[tuple[User, UserPreferences]]:
     """
     Yield (User, UserPreferences) for users who have preferences.
     Optional limit to bound the iteration for testing.
     """
     query = (
-        db.session.query(User, UserPreferences)
+        session.query(User, UserPreferences)
         .join(UserPreferences, UserPreferences.user_id == User.id)
     )
     if isinstance(limit, int) and limit > 0:
@@ -53,8 +53,10 @@ def run_polygon_search_for_all_users(
 
     # Keep the DB/app context alive for the entire run
     with app.app_context():
+        # Ensure db is bound and use an explicit scoped session to avoid context issues
+        session = db.create_scoped_session()
         with app.test_client() as client:
-            for user, prefs in _iter_users_with_prefs(limit=user_limit):
+            for user, prefs in _iter_users_with_prefs(session=session, limit=user_limit):
                 results["total_users"] += 1
 
                 # Build Minimal access token for this user

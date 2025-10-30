@@ -12,7 +12,9 @@ import {
   type ViewState,
 } from "../../../../../packages/store/view.slice";
 import { SIDEBAR_TABS } from "../../../../../packages/schemas/sidebar";
+import type { UserProfile } from "../../../../../packages/schemas/user";
 type SidebarProps = {
+  user?: UserProfile;
   onLogout: () => void;
   expanded: boolean;
   onToggleExpanded: () => void;
