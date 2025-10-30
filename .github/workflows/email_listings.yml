@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     concurrency:
-      group: utility-last-logged-in
+      group: email-listings
       cancel-in-progress: true
 
     steps:
@@ -23,6 +23,13 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Log - Checked out repository
+        run: |
+          {
+            echo "### Step: Checkout"
+            echo "Checked out repository at $GITHUB_SHA from $GITHUB_REPOSITORY."
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -30,8 +37,22 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.REGION }}
 
+      - name: Log - AWS credentials configured
+        run: |
+          {
+            echo "### Step: AWS Credentials"
+            echo "Configured AWS credentials for region '${{ env.REGION }}'."
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Install jq (for JSON parsing)
         run: sudo apt-get update -y >/dev/null 2>&1 && sudo apt-get install -y jq >/dev/null 2>&1
+
+      - name: Log - jq installed
+        run: |
+          {
+            echo "### Step: Tools"
+            echo "Installed jq for JSON parsing."
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Load app env from AWS Secrets Manager (custom, no prefixes)
         shell: bash
@@ -70,6 +91,7 @@ jobs:
           plaid_json="$(fetch_json plaid)"
           serp_json="$(fetch_json serp)"
           rapidapi_json="$(fetch_json rapidapi)"
+          ses_json="$(fetch_json ses)"  # <- optional: a secret named "ses" with SES_SENDER_EMAIL, RECIPIENT_EMAILS
 
           export_if_present "$db_url_json" "DATABASE_URL" "DATABASE_URL"
 
@@ -98,6 +120,21 @@ jobs:
           export_if_present "$serp_json" "SERP_API" "SERP_API"
           export_if_present "$rapidapi_json" "RAPIDAPI_KEY" "RAPIDAPI_KEY"
 
+          # Optional SES-related vars if you keep them in a "ses" secret JSON
+          export_if_present "$ses_json" "SES_SENDER_EMAIL" "SES_SENDER_EMAIL"
+          export_if_present "$ses_json" "RECIPIENT_EMAILS" "RECIPIENT_EMAILS"
+
+          # Allow overriding via GitHub Secrets if you prefer (optional)
+          if [ -n "${{ secrets.SES_SENDER_EMAIL }}" ]; then echo "SES_SENDER_EMAIL=${{ secrets.SES_SENDER_EMAIL }}" >> "$GITHUB_ENV"; fi
+          if [ -n "${{ secrets.RECIPIENT_EMAILS }}" ]; then echo "RECIPIENT_EMAILS=${{ secrets.RECIPIENT_EMAILS }}" >> "$GITHUB_ENV"; fi
+
+      - name: Log - Loaded environment variables
+        run: |
+          {
+            echo "### Step: Env Load"
+            echo "Loaded environment variables from AWS Secrets Manager and GitHub Secrets."
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Validate required envs
         shell: bash
         run: |
@@ -109,6 +146,13 @@ jobs:
             fi
           done
 
+      - name: Log - Validated environment
+        run: |
+          {
+            echo "### Step: Env Validate"
+            echo "Validated required environment variables."
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -116,84 +160,52 @@ jobs:
           cache: "pip"
           cache-dependency-path: Server/requirements.txt
 
+      - name: Log - Python setup complete
+        run: |
+          {
+            echo "### Step: Python Setup"
+            echo "Configured Python 3.11 with pip cache."
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Install server dependencies
         run: |
           set -euo pipefail
           python -m pip install --upgrade pip >/dev/null
           pip install -r Server/requirements.txt
+          pip install boto3 >/dev/null
 
-      - name: Run last_logged_in report
+      - name: Log - Dependencies installed
+        run: |
+          {
+            echo "### Step: Dependencies"
+            echo "Installed server dependencies and boto3."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Run email listings orchestrator (search + email)
         env:
           DATABASE_URL: ${{ env.DATABASE_URL }}
           PYTHONPATH: Server
+          AWS_REGION: ${{ env.REGION }}
+          SES_SENDER_EMAIL: ${{ env.SES_SENDER_EMAIL }}
+          # Optional knobs for throttling and pagination
+          POLY_SEARCH_PAUSE_SECONDS: "5.0"
+          POLY_SEARCH_PER_BUCKET_PAGES: "5"
+          EMAIL_MAX_ITEMS_PER_USER: "10"
         run: |
           set -euo pipefail
-          python - <<'PY' | tee last_logged_in_out.txt
-          import json
-          import os
-          from flask import Flask  # minimal app to bind SQLAlchemy
-          from app import db  # type: ignore
-          from app.services.email.last_logged_in import (  # type: ignore
-              get_recently_logged_in_users_with_preferences,
-          )
-
-          # Create a minimal Flask app and bind the database without registering routes
-          app = Flask(__name__)
-          app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
-          app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-          db.init_app(app)
-
-          with app.app_context():
-              users = get_recently_logged_in_users_with_preferences() or []
-
-          print("Found", len(users), "recently logged-in users with preferences.")
-          print(json.dumps(users, indent=2))
-          PY
+          echo "Starting orchestrator..."
+          python Server/app/services/email/run_email_listings.py | tee orchestrator_out.txt
           {
-            echo "### Last Logged In Report"
+            echo "### Email Listings Orchestrator"
             echo ""
-            echo '```json'
-            cat last_logged_in_out.txt
+            echo '```'
+            cat orchestrator_out.txt
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Run polygon search for all users (throttled)
-        env:
-          DATABASE_URL: ${{ env.DATABASE_URL }}
-          PYTHONPATH: Server
-          RAPIDAPI_KEY: ${{ env.RAPIDAPI_KEY || '' }}
-          GOOGLE_MAPS_API_KEY: ${{ env.GOOGLE_MAPS_API_KEY || '' }}
-          GOOGLE_CLIENT_ID: ${{ env.GOOGLE_CLIENT_ID || '' }}
-          GOOGLE_CALENDAR_SECRET: ${{ env.GOOGLE_CALENDAR_SECRET || '' }}
-          AWS_COGNITO_USER_POOL_ID: ${{ env.AWS_COGNITO_USER_POOL_ID }}
-          AWS_COGNITO_CLIENT_ID: ${{ env.AWS_COGNITO_CLIENT_ID }}
-          AWS_REGION: ${{ env.REGION }}
-          # Tuning knobs (optional)
-          POLY_SEARCH_PAUSE_SECONDS: "5.0"
-          POLY_SEARCH_PER_BUCKET_PAGES: "5"
-          # POLY_SEARCH_USER_LIMIT: "50"  # uncomment to cap for testing
+      - name: Log - Completed workflow
         run: |
-          set -euo pipefail
-          python - <<'PY' | tee poly_search_out.txt
-          import os
-          from app.services.search.run_polygon_for_all_users import run_polygon_search_for_all_users
-
-          pause = float(os.getenv('POLY_SEARCH_PAUSE_SECONDS', '1.0'))
-          pages = int(os.getenv('POLY_SEARCH_PER_BUCKET_PAGES', '5'))
-          limit_env = os.getenv('POLY_SEARCH_USER_LIMIT')
-          limit = int(limit_env) if (limit_env and limit_env.isdigit()) else None
-
-          summary = run_polygon_search_for_all_users(
-              pause_seconds=pause,
-              per_bucket_pages=pages,
-              user_limit=limit,
-          )
-          print("Polygon search summary:", {k: (v if k != 'errors' else f"{len(v)} errors") for k, v in summary.items()})
-          PY
           {
-            echo "### Polygon Search Summary"
-            echo ""
-            echo '```'
-            cat poly_search_out.txt
-            echo '```'
+            echo "### Completed"
+            echo "Email listings workflow completed successfully."
           } >> "$GITHUB_STEP_SUMMARY"
