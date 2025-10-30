@@ -60,10 +60,16 @@ jobs:
             fi
           }
 
-          # Pull only what we need for DB connectivity.
+          # Pull only what we need for DB connectivity and polygon search.
           # Ensure secret "db_url" exists and contains JSON like: {"DATABASE_URL":"postgresql+psycopg2://..."}
           db_url_json="$(fetch_json db_url)"
           export_if_present "$db_url_json" "DATABASE_URL" "DATABASE_URL"
+
+          # Optional: search-related API keys (if present). Expect JSON like:
+          # {"RAPIDAPI_KEY":"...", "GOOGLE_MAPS_API_KEY":"..."}
+          search_keys_json="$(fetch_json search_keys)"
+          export_if_present "$search_keys_json" "RAPIDAPI_KEY" "RAPIDAPI_KEY"
+          export_if_present "$search_keys_json" "GOOGLE_MAPS_API_KEY" "GOOGLE_MAPS_API_KEY"
 
       - name: Validate required envs
         shell: bash
@@ -95,7 +101,7 @@ jobs:
           PYTHONPATH: Server
         run: |
           set -euo pipefail
-          python - <<'PY'
+          python - <<'PY' | tee last_logged_in_out.txt
           import json
           import os
           from flask import Flask  # minimal app to bind SQLAlchemy
@@ -116,3 +122,46 @@ jobs:
           print("Found", len(users), "recently logged-in users with preferences.")
           print(json.dumps(users, indent=2))
           PY
+          {
+            echo "### Last Logged In Report"
+            echo ""
+            echo '```json'
+            cat last_logged_in_out.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Run polygon search for all users (throttled)
+        env:
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+          PYTHONPATH: Server
+          RAPIDAPI_KEY: ${{ env.RAPIDAPI_KEY || '' }}
+          GOOGLE_MAPS_API_KEY: ${{ env.GOOGLE_MAPS_API_KEY || '' }}
+          # Tuning knobs (optional)
+          POLY_SEARCH_PAUSE_SECONDS: "1.0"
+          POLY_SEARCH_PER_BUCKET_PAGES: "5"
+          # POLY_SEARCH_USER_LIMIT: "50"  # uncomment to cap for testing
+        run: |
+          set -euo pipefail
+          python - <<'PY' | tee poly_search_out.txt
+          import os
+          from app.services.search.run_polygon_for_all_users import run_polygon_search_for_all_users
+
+          pause = float(os.getenv('POLY_SEARCH_PAUSE_SECONDS', '1.0'))
+          pages = int(os.getenv('POLY_SEARCH_PER_BUCKET_PAGES', '5'))
+          limit_env = os.getenv('POLY_SEARCH_USER_LIMIT')
+          limit = int(limit_env) if (limit_env and limit_env.isdigit()) else None
+
+          summary = run_polygon_search_for_all_users(
+              pause_seconds=pause,
+              per_bucket_pages=pages,
+              user_limit=limit,
+          )
+          print("Polygon search summary:", {k: (v if k != 'errors' else f"{len(v)} errors") for k, v in summary.items()})
+          PY
+          {
+            echo "### Polygon Search Summary"
+            echo ""
+            echo '```'
+            cat poly_search_out.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
