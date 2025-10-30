@@ -89,7 +89,7 @@ def run_orchestrator():
 
     # Update search information for all users (import lazily to avoid circulars)
     try:
-        from app.services.search.run_polygon_for_all_users import run_polygon_search_for_all_users
+        from app.services.email.run_polygon_for_all_users import run_polygon_search_for_all_users
 
         run_polygon_search_for_all_users(
             pause_seconds=pause_seconds, per_bucket_pages=per_bucket_pages, user_limit=user_limit
