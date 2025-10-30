@@ -1,9 +1,7 @@
 import os
 from typing import Dict, List, Tuple
 
-from flask import Flask
-
-from app import db
+from app import create_app, db
 from app.models.home_universal import HomeUniversal
 from app.services.email.last_logged_in import get_recently_logged_in_users_with_preferences
 from app.services.email.send_test_emails_via_ses import (
@@ -11,15 +9,7 @@ from app.services.email.send_test_emails_via_ses import (
 )
 
 
-def _init_app_from_env() -> Flask:
-    app = Flask(__name__)
-    database_url = os.environ.get("DATABASE_URL")
-    if not database_url:
-        raise RuntimeError("DATABASE_URL is required")
-    app.config["SQLALCHEMY_DATABASE_URI"] = database_url
-    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-    db.init_app(app)
-    return app
+app = create_app()
 
 
 def _format_listings_text(listings: List[HomeUniversal], max_items: int = 10) -> str:
@@ -109,7 +99,6 @@ def run_orchestrator():
 
 
 if __name__ == "__main__":
-    app = _init_app_from_env()
     with app.app_context():
         run_orchestrator()
 
