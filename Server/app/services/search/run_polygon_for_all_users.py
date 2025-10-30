@@ -53,8 +53,8 @@ def run_polygon_search_for_all_users(
 
     # Keep the DB/app context alive for the entire run
     with app.app_context():
-        # Ensure db is bound and use an explicit scoped session to avoid context issues
-        session = db.create_scoped_session()
+        # Use the Flask-SQLAlchemy scoped session (v3+ exposes `db.session`)
+        session = db.session
         with app.test_client() as client:
             for user, prefs in _iter_users_with_prefs(session=session, limit=user_limit):
                 results["total_users"] += 1

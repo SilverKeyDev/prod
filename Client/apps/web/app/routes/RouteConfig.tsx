@@ -67,6 +67,7 @@ export const ROUTE_CONFIGS = {
   standard: [
     "/saved*",
     "/dashboard",
+    "/buyer-checklists",
   ],
 
   specialized: [
