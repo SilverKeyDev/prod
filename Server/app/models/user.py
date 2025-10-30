@@ -17,7 +17,6 @@ class User(db.Model):
     is_active = db.Column(db.Boolean, default=True)
     has_preferences = db.Column(db.Boolean, default=False)
     
-    subscription = db.relationship('Subscription', back_populates='user', uselist=False, lazy='select')
     user_preferences = db.relationship('UserPreferences', back_populates='user', uselist=False, lazy='select')
     is_agent = db.Column(db.Boolean, default=False)
     client_ids = db.Column(db.Text)  # array of ids of clients
@@ -47,8 +46,6 @@ class User(db.Model):
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'last_logged_in': self.last_logged_in.isoformat() if self.last_logged_in else None,
             'is_active': self.is_active,
-            'has_subscription': self.subscription is not None,
-            'subscription': self.subscription.to_dict() if self.subscription else None,
             'has_preferences': self.has_preferences,
             'is_agent': self.is_agent,
             'client_ids': self.client_ids,

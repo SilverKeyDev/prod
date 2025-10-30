@@ -32,6 +32,8 @@ export default function PersonalizationSidebar({
 }: PersonalizationSidebarProps) {
   const isMobile = useMobile(); // Uses "(max-width: 1024px)" by default
   const isLargeScreen = !isMobile;
+  // Default to the first step when no active section is provided
+  const currentActiveSection = activeSection || STEPS[0]?.key;
 
   return (
     <aside
@@ -108,7 +110,7 @@ export default function PersonalizationSidebar({
             className={`group flex w-full items-center rounded-lg px-3 py-2 transition-colors ${
               isLargeScreen ? "gap-3" : "justify-center"
             } ${
-              activeSection === step.key
+              currentActiveSection === step.key
                 ? "bg-gold text-off-white"
                 : "hover:bg-gold-lighter hover:text-off-white"
             }`}
@@ -118,7 +120,7 @@ export default function PersonalizationSidebar({
               <step.icon
                 size={20}
                 className={`flex-shrink-0 transition-colors ${
-                  activeSection === step.key
+                  currentActiveSection === step.key
                     ? "text-off-white"
                     : "text-gray-500 group-hover:text-off-white"
                 }`}
@@ -127,7 +129,7 @@ export default function PersonalizationSidebar({
             {isLargeScreen && (
               <span
                 className={`text-left text-sm font-medium transition-colors ${
-                  activeSection === step.key
+                  currentActiveSection === step.key
                     ? "text-off-white"
                     : "text-gray-500 group-hover:text-off-white"
                 }`}

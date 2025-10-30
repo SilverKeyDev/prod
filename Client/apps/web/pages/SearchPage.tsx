@@ -493,6 +493,7 @@ export default function SearchPage({
     isHomeSaved,
     saveHome,
     removeSavedHome,
+    contextKey: activeTab,
     onMarkerClick: handleNavigateToProperty,
     onUnlockClick: handleViewPropertyDetails,
   });
@@ -567,6 +568,12 @@ export default function SearchPage({
   const handleTabChange = (tab: "results" | "saved") => {
     setActiveTab(tab);
     setCurrentPage(0);
+    // Ensure the map markers always refresh and recompute saved state on tab switch
+    const nextData = tab === "results" ? searchResults : savedHomes;
+    // Schedule after React state updates paint; use rAF for reliable timing
+    requestAnimationFrame(() => {
+      void updateMapMarkers(nextData);
+    });
   };
 
   // Initialize isochrone overlay after map is ready (only once) with enhanced logging
@@ -661,7 +668,7 @@ export default function SearchPage({
               <div className="relative z-10 gap-responsive-sm flex flex-col items-center">
                 <KeyTurnLoader
                   message={searchStage ?? "Searching properties..."}
-                  variant="black"
+                  variant="gray"
                 />
               </div>
             </div>
@@ -731,6 +738,14 @@ export default function SearchPage({
                 isLoading={isLoadingPropertyDetails}
                 onNavigateToProperty={handleNavigateToProperty}
                 activeTab={activeTab}
+                isHomeSaved={isHomeSaved}
+                saveHome={async (p) => {
+                  // Ensure we pass a SearchResult-shaped object
+                  await saveHome(p as SearchResult);
+                }}
+                removeSavedHome={async (id, address) => {
+                  await removeSavedHome(id, address);
+                }}
               />
             </div>
           </div>
@@ -768,7 +783,7 @@ export default function SearchPage({
                         ? (searchStage ?? "Searching properties...")
                         : "Loading map..."
                     }
-                    variant={isSearching ? "black" : "default"}
+                    variant={isSearching ? "gray" : "default"}
                   />
                 </div>
               </div>

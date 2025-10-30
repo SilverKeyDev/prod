@@ -29,10 +29,10 @@ export function useSavedHomes(params: {
   const [savedHomes, setSavedHomes] = useState<SearchResult[]>([]);
   const hasLoadedRef = useRef(false);
 
-  // Load saved homes once Google Maps is ready so we can geocode if needed
+  // Load saved homes immediately (geocoding will gracefully skip until Maps is ready)
   useEffect(() => {
-    // Wait until Google Maps is loaded, and prevent multiple API calls
-    if (hasLoadedRef.current || !params.isGoogleMapsLoaded) return;
+    // Prevent multiple API calls
+    if (hasLoadedRef.current) return;
     hasLoadedRef.current = true;
     const loadSavedHomes = async () => {
       try {
@@ -107,10 +107,13 @@ export function useSavedHomes(params: {
                 }
               }
 
-              return {
+              const mapped: SearchResult = {
                 id: homeData.address ?? `saved_${index + 1}`,
                 address: homeData.address ?? "Address not available",
-                price: homeData.price ?? "N/A",
+                price:
+                  typeof homeData.price === "number"
+                    ? homeData.price.toLocaleString()
+                    : (homeData.price ?? "N/A"),
                 bedrooms: parseInt(homeData.beds ?? "0") ?? 0,
                 bathrooms: parseInt(homeData.baths ?? "0") ?? 0,
                 sqft: parseInt(homeData.sqft ?? "0") ?? 0,
@@ -123,6 +126,7 @@ export function useSavedHomes(params: {
                 listingStatus: homeData.listing_status ?? "FOR_SALE",
                 imageUrl: homeData.image_url ?? undefined,
               };
+              return mapped;
             }),
           );
 
@@ -142,10 +146,13 @@ export function useSavedHomes(params: {
 
     void loadSavedHomes();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params.isGoogleMapsLoaded]);
+  }, []);
 
   const saveHome = useCallback(
     async (property: SearchResult | Property) => {
+      // Optimistic add to local state so UI updates immediately
+      let rollbackNeeded = false;
+      let optimisticAddedId: string | null = null;
       try {
         // Normalize the property data to handle both SearchResult and Property types
         const normalizedProperty: SearchResult = {
@@ -190,6 +197,14 @@ export function useSavedHomes(params: {
                 : undefined,
         };
 
+        // Optimistically update local state and favorite addresses
+        const exists = savedHomes.find((h) => h.id === normalizedProperty.id);
+        if (!exists) {
+          rollbackNeeded = true;
+          optimisticAddedId = normalizedProperty.id;
+          setSavedHomes((prev) => [...prev, normalizedProperty]);
+        }
+
         // Call backend API to add favorite
         const request: AddFavoriteHomeRequest = {
           home: {
@@ -211,27 +226,23 @@ export function useSavedHomes(params: {
           request,
         )) as FavoriteHomeResponse;
         if (response.success) {
-          // Update local state
-          const isAlreadySaved = savedHomes.find(
-            (home) => home.id === normalizedProperty.id,
-          );
-
-          if (!isAlreadySaved) {
-            setSavedHomes((prev) => {
-              const newSavedHomes = [...prev, normalizedProperty];
-              return newSavedHomes;
-            });
-          }
-
-          // Update favorite addresses from backend response
+          // Sync favorite addresses from backend response (source of truth)
           if (response.favorites) {
             params.setFavoriteAddresses(response.favorites);
           }
         } else {
           console.error("❌ Backend API returned failure:", response.error);
+          // Rollback optimistic add
+          if (rollbackNeeded && optimisticAddedId) {
+            setSavedHomes((prev) => prev.filter((h) => h.id !== optimisticAddedId));
+          }
         }
       } catch (error: unknown) {
         console.error("❌ Error adding favorite:", error);
+        // Rollback optimistic add on error
+        if (rollbackNeeded && optimisticAddedId) {
+          setSavedHomes((prev) => prev.filter((h) => h.id !== optimisticAddedId));
+        }
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -240,6 +251,8 @@ export function useSavedHomes(params: {
 
   const removeSavedHome = useCallback(
     async (propertyId: string, propertyAddress?: string) => {
+      // Optimistic removal from local state so UI updates immediately
+      let rollbackSnapshot: SearchResult[] | null = null;
       try {
         // Find the property to get its address
         let property = savedHomes.find((home) => home.id === propertyId);
@@ -258,6 +271,10 @@ export function useSavedHomes(params: {
           return;
         }
 
+        // Take snapshot and remove optimistically
+        rollbackSnapshot = [...savedHomes];
+        setSavedHomes((prev) => prev.filter((home) => home.id !== propertyId));
+
         const request: RemoveFavoriteHomeRequest = {
           address: property.address,
         };
@@ -266,21 +283,23 @@ export function useSavedHomes(params: {
         )) as FavoriteHomeResponse;
 
         if (response.success) {
-          // Update local state
-          setSavedHomes((prev) => {
-            const newSavedHomes = prev.filter((home) => home.id !== propertyId);
-            return newSavedHomes;
-          });
-
-          // Update favorite addresses from backend response
+          // Sync favorite addresses from backend response (source of truth)
           if (response.favorites) {
             params.setFavoriteAddresses(response.favorites);
           }
         } else {
           console.error("❌ Backend API returned failure:", response.error);
+          // Rollback optimistic removal
+          if (rollbackSnapshot) {
+            setSavedHomes(rollbackSnapshot);
+          }
         }
       } catch (error: unknown) {
         console.error("❌ Error removing favorite:", error);
+        // Rollback optimistic removal on error
+        if (rollbackSnapshot) {
+          setSavedHomes(rollbackSnapshot);
+        }
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps

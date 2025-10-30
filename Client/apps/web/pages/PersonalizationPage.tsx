@@ -252,6 +252,12 @@ export default function PersonalizationPage({
       const windowHeight = window.innerHeight;
       const scrollBottom = scrollPosition + windowHeight;
 
+      // If we're at the very top on initial load, select the first section
+      if (window.scrollY <= 5) {
+        setActiveSection(sections[0]);
+        return;
+      }
+
       // If user is near the bottom of the page, highlight the last section
       if (scrollBottom >= documentHeight - 100) {
         setActiveSection(sections[sections.length - 1]);
@@ -280,6 +286,12 @@ export default function PersonalizationPage({
       const documentHeight = document.documentElement.scrollHeight;
       const windowHeight = window.innerHeight;
       const scrollBottom = scrollPosition + windowHeight;
+
+      // If we're at the top, prefer the first section
+      if (window.scrollY <= 5) {
+        setActiveSection(sections[0]);
+        return;
+      }
 
       // If user is near the bottom of the page, highlight the last section
       if (scrollBottom >= documentHeight - 100) {

@@ -356,26 +356,10 @@ def login():
             password=data['password']
         )
         
-        current_app.logger.info(f"AUTH_LOGIN_PHASE_AWS_COGNITO_RESULT", extra={
-            'request_id': request_id,
-            'success': result.get('success', False),
-            'error': result.get('error', 'none'),
-            'login_failed': result.get('login_failed', False)
-        })
-
-        current_app.logger.info(f"AUTH_LOGIN_CHECKING_SUCCESS", extra={
-            'request_id': request_id,
-            'result_success': result.get('success', 'missing'),
-            'result_type': type(result.get('success', 'missing')).__name__
-        })
 
         try:
             success_value = result['success']
-            current_app.logger.info(f"AUTH_LOGIN_SUCCESS_VALUE", extra={
-                'request_id': request_id,
-                'success_value': success_value,
-                'success_type': type(success_value).__name__
-            })
+
         except Exception as key_error:
             current_app.logger.error(f"AUTH_LOGIN_SUCCESS_KEY_ERROR", extra={
                 'request_id': request_id,
@@ -388,11 +372,6 @@ def login():
                 'message': 'Invalid response from authentication service'
             }), 500
 
-        current_app.logger.info(f"AUTH_LOGIN_EVALUATING_SUCCESS", extra={
-            'request_id': request_id,
-            'success_value': success_value,
-            'not_success_value': not success_value
-        })
 
         if not success_value:
             duration_ms = int((time.time() - start_time) * 1000)
@@ -446,18 +425,8 @@ def login():
             if user:
                 user.last_logged_in = datetime.utcnow()
                 db.session.commit()
-                current_app.logger.info(f"AUTH_LOGIN_USER_LINKED", extra={
-                    'request_id': request_id,
-                    'user_id': user.id,
-                    'email': data['email'][:3] + '***' + data['email'][-3:]
-                })
-            
-            current_app.logger.info(f"AUTH_LOGIN_USER_LOOKUP", extra={
-                'request_id': request_id,
-                'user_found': user is not None,
-                'user_id': user.id if user else None,
-                'user_name': user.name if user else 'Unknown User'
-            })
+
+
         except Exception as db_error:
             duration_ms = int((time.time() - start_time) * 1000)
             current_app.logger.error(f"AUTH_LOGIN_DB_ERROR", extra={
@@ -468,16 +437,7 @@ def login():
             # Continue with login even if DB lookup fails
             user = None
 
-        # Create minimal tokens instead of using large Cognito tokens
-        current_app.logger.info(f"🔧 LOGIN_TOKEN_CREATION_START", extra={
-            'request_id': request_id,
-            'user_id': str(user.id) if user else user_sub,
-            'user_email': data['email'][:3] + '***' + data['email'][-3:] if data['email'] else 'missing',
-            'user_name': user.name[:10] + '***' if user and user.name else 'missing',
-            'minimal_token_service_available': bool(minimal_token_service),
-            'secret_key_available': bool(getattr(minimal_token_service, 'secret_key', None))
-        })
-        
+
         try:
             # Generate minimal access token
             minimal_access_token = minimal_token_service.create_minimal_access_token(
@@ -498,13 +458,7 @@ def login():
 
             
         except Exception as token_error:
-            current_app.logger.error(f"🔧 LOGIN_MINIMAL_TOKEN_ERROR", extra={
-                'request_id': request_id,
-                'user_id': str(user.id) if user else user_sub,
-                'error': str(token_error),
-                'error_type': type(token_error).__name__,
-                'traceback': traceback.format_exc()[:500]
-            })
+
             # Fallback to Cognito tokens if minimal token creation fails
             minimal_access_token = result['tokens']['AccessToken']
             minimal_id_token = result['tokens']['IdToken']
@@ -560,14 +514,7 @@ def login():
         response_data['id_token'] = minimal_id_token
         
         duration_ms = int((time.time() - start_time) * 1000)
-        current_app.logger.info(f"AUTH_LOGIN_SUCCESS", extra={
-            'request_id': request_id,
-            'user_email': data['email'][:3] + '***' + data['email'][-3:],
-            'user_sub': user_sub[:10] + '***' if user_sub else 'missing',
-            'duration_ms': duration_ms,
-            'timestamp': datetime.utcnow().isoformat()
-        })
-        
+
         return resp
 
     except Exception as e:

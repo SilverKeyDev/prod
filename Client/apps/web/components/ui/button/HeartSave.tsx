@@ -65,11 +65,11 @@ const CardHeartSave: React.FC<CardHeartSaveProps> = ({
   className = "",
   ariaLabel,
 }) => {
-  // Use provided functions if available (for map markers), otherwise use hooks
-  const hookData = providedIsHomeSaved ? null : useSavedHomesData();
+  // Always call the hook to respect React's Rules of Hooks
+  const hookData = useSavedHomesData();
   const enqueueToast = useUIStore((s) => s.enqueueToast);
 
-  // Use provided functions or fall back to hook functions
+  // Prefer provided functions (e.g., from map markers) but keep hook values as fallback
   const isHomeSaved = providedIsHomeSaved || hookData?.isHomeSaved;
   const saveHome = providedSaveHome || hookData?.saveHome;
   const removeSavedHome = providedRemoveSavedHome || hookData?.removeSavedHome;

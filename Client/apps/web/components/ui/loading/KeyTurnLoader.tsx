@@ -3,10 +3,10 @@ export default function KeyTurnLoader({
   variant = "default",
 }: {
   message?: string;
-  variant?: "default" | "black";
+  variant?: "default" | "gray";
 }) {
-  const keyColor = variant === "black" ? "#000000" : "#F5F5F0";
-  const fillColor = variant === "black" ? "#000000" : "#F8F8F5";
+  const keyColor = variant === "gray" ? "#6B7280" : "#F5F5F0"; // gray-500
+  const fillColor = variant === "gray" ? "#F3F4F6" : "#F8F8F5"; // gray-100
   const keyframeStyles = `
     @keyframes turnKey {
       0% { transform: rotate(0deg); }
@@ -115,7 +115,9 @@ export default function KeyTurnLoader({
           <rect x="52" y="30" width="4" height="8" fill={keyColor} rx="1" />
           <rect x="56" y="30" width="4" height="6" fill={keyColor} rx="1" />
         </svg>
-        {message}
+        <span style={{ color: variant === "gray" ? "#6B7280" : undefined }}>
+          {message}
+        </span>
       </div>
     </>
   );

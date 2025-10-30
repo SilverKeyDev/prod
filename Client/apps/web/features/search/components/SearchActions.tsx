@@ -28,10 +28,10 @@ export default function SearchActions({
         <button
           onClick={onSearchProperties}
           disabled={isSearching}
-          className="touch-friendly flex flex-1 items-center justify-center gap-1 rounded-lg bg-gold px-3 py-2 text-sm text-black transition-colors hover:bg-gold/90 disabled:opacity-50"
+          className="touch-friendly flex flex-1 items-center justify-center gap-1 rounded-lg bg-gold px-3 py-2 text-sm text-gray-600 transition-colors hover:bg-gold/90 disabled:opacity-50"
         >
           {isSearching ? (
-            <KeyTurnLoader message="Searching..." />
+            <KeyTurnLoader message="Searching..." variant="gray" />
           ) : (
             <>
               <svg
@@ -67,10 +67,10 @@ export default function SearchActions({
       <button
         onClick={onSearchProperties}
         disabled={isSearching}
-        className="inline-flex flex-shrink-0 items-center gap-2 rounded-lg bg-gold px-4 py-2 text-black transition-colors hover:bg-gold/90 disabled:cursor-not-allowed disabled:opacity-50"
+        className="inline-flex flex-shrink-0 items-center gap-2 rounded-lg bg-gold px-4 py-2 text-gray-600 transition-colors hover:bg-gold/90 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {isSearching ? (
-          <KeyTurnLoader message="Searching..." />
+          <KeyTurnLoader message="Searching..." variant="gray" />
         ) : (
           <>
             <svg

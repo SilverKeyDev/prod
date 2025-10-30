@@ -78,18 +78,6 @@ class CognitoService:
         request_id = f"AWS_COGNITO_signin_{int(time.time() * 1000)}_{random.randint(1000, 9999)}"
         start_time = time.time()
         
-        logger.info(f"AWS_COGNITO_SIGNIN_START", extra={
-            'request_id': request_id,
-            'username': username[:3] + '***' + username[-3:] if username else 'missing',
-            'has_password': bool(password),
-            'password_length': len(password) if password else 0,
-            'region': self.region,
-            'user_pool_id': self.user_pool_id[:10] + '***' if self.user_pool_id else 'missing',
-            'client_id': self.client_id[:10] + '***' if self.client_id else 'missing',
-            'has_client_secret': bool(self.client_secret),
-            'timestamp': datetime.utcnow().isoformat()
-        })
-        
         try:
             # Validate inputs
             if not username:
@@ -144,13 +132,6 @@ class CognitoService:
                 'SECRET_HASH': secret_hash
             }
             
-            logger.info(f"AWS_COGNITO_AUTH_REQUEST", extra={
-                'request_id': request_id,
-                'auth_flow': 'USER_PASSWORD_AUTH',
-                'auth_params_keys': list(auth_params.keys()),
-                'client_id': self.client_id[:10] + '***' if self.client_id else 'missing'
-            })
-            
             response = self.client.initiate_auth(
                 AuthFlow='USER_PASSWORD_AUTH',
                 AuthParameters=auth_params,
@@ -158,15 +139,6 @@ class CognitoService:
             )
             
             duration_ms = int((time.time() - start_time) * 1000)
-            logger.info(f"AWS_COGNITO_SIGNIN_SUCCESS", extra={
-                'request_id': request_id,
-                'has_access_token': 'AccessToken' in response['AuthenticationResult'],
-                'has_id_token': 'IdToken' in response['AuthenticationResult'],
-                'has_refresh_token': 'RefreshToken' in response['AuthenticationResult'],
-                'token_type': response['AuthenticationResult'].get('TokenType', 'unknown'),
-                'expires_in': response['AuthenticationResult'].get('ExpiresIn', 'unknown'),
-                'duration_ms': duration_ms
-            })
             
             return {
                 'success': True,

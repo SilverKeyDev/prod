@@ -5,8 +5,7 @@ import {
 } from "../../../../packages/utils/address";
 import { CardHeartSave, CardViewDetailsButton, TrianglePointer } from "./base";
 import PropertyCard from "./PropertyCard";
-import type { SearchResult } from "../../../../packages/schemas/search";
-import type { Property } from "../../../../packages/schemas/property";
+// (types removed: SearchResult, Property) - no longer used in props
 
 export type HomeDescription = {
   home_id: string;
@@ -35,10 +34,6 @@ type MapHomeCardProps = {
   onFocus?: (property: any) => void;
   /** Function to handle unlock/view details click */
   onUnlock?: (home: HomeDescription) => void | Promise<void>;
-  /** Optional save state functions for use outside React context (e.g., map markers) */
-  isHomeSaved?: (propertyId: string, propertyAddress?: string) => boolean;
-  saveHome?: (property: SearchResult | Property) => Promise<void>;
-  removeSavedHome?: (propertyId: string, propertyAddress?: string) => Promise<void>;
 };
 
 /**
@@ -51,9 +46,6 @@ export default function MapHomeCard({
   isOnMap = false,
   onFocus,
   onUnlock,
-  isHomeSaved,
-  saveHome,
-  removeSavedHome,
 }: MapHomeCardProps) {
   // Use actual address if available, otherwise format home_id
   const formattedAddress = formatFilenameToAddress(home.home_id);
@@ -126,13 +118,7 @@ export default function MapHomeCard({
         showScore={showScore}
         isOnMap={isOnMap}
         topContent={
-          <CardHeartSave
-            property={convertToProperty(home)}
-            size="sm"
-            isHomeSaved={isHomeSaved}
-            saveHome={saveHome}
-            removeSavedHome={removeSavedHome}
-          />
+          <CardHeartSave property={convertToProperty(home)} size="sm" />
         }
         bottomContent={
           <CardViewDetailsButton

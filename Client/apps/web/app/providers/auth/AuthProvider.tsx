@@ -117,35 +117,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
           "../../../../../packages/config/api/auth"
         );
 
-        secureLogger.info(
-          "🔍 FRONTEND_AUTH_BOOTSTRAP_CALLING_VERIFY",
-          "Calling verifySession for protected route",
-          {
-            requestId,
-            currentPath,
-            isPublicRoute,
-            authApiAvailable: !!authApi,
-            verifySessionAvailable: !!authApi?.verifySession,
-          }
-        );
-
         // Verify session with server using HTTP-only cookies
         // This will gracefully handle unauthenticated users without throwing errors
         const sessionResult = await authApi.verifySession();
-
-        secureLogger.info(
-          "🔍 FRONTEND_AUTH_BOOTSTRAP_VERIFY_RESULT",
-          "Received verifySession result",
-          {
-            requestId,
-            success: sessionResult.success,
-            hasUser: !!sessionResult.user,
-            userEmail: sessionResult.user?.email
-              ? `${sessionResult.user.email.substring(0, 3)}***${sessionResult.user.email.substring(sessionResult.user.email.length - 3)}`
-              : "missing",
-            userId: sessionResult.user?.id || "missing",
-          }
-        );
 
         if (sessionResult.success && sessionResult.user) {
           // User is authenticated, update store with user data
@@ -172,17 +146,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           }
           setIsAuthenticated(true);
           setStoreAuthStatus("authenticated");
-          secureLogger.info(
-            "🔍 FRONTEND_AUTH_BOOTSTRAP_SUCCESS",
-            "User authenticated via session cookies",
-            {
-              requestId,
-              userId: user.id,
-              userEmail: user.email
-                ? `${user.email.substring(0, 3)}***${user.email.substring(user.email.length - 3)}`
-                : "missing",
-            }
-          );
+         
         } else {
           // No valid session found - this is normal for unauthenticated users
           setStoreUser(null);
@@ -218,16 +182,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setStoreAuthReady(true);
         // Clear bootstrap key to allow future bootstrap calls
         sessionStorage.removeItem(bootstrapKey);
-        secureLogger.info(
-          "🔍 FRONTEND_AUTH_BOOTSTRAP_COMPLETE",
-          "Auth bootstrap completed",
-          {
-            requestId,
-            finalStatus: storeAuthStatus,
-            finalAuthenticated: isAuthenticated,
-            authReady: true,
-          }
-        );
+
       }
     };
 

@@ -259,6 +259,123 @@ def get_property_via_address():
         return jsonify({"success": False, "error": "BAD_REQUEST",
                         "message": "Provide one of: zpid, property_url, or address"}), 400
 
+    # Fast-path: if we already have a fully populated HomeUniversal record for this
+    # user and property, return it without calling external APIs or generating extras.
+    try:
+        existing_user = None
+        try:
+            existing_user = get_current_user()
+        except Exception:
+            existing_user = None
+
+        if existing_user:
+            from app.models.home_universal import HomeUniversal
+            from app.utils.address_format import normalize_address
+
+            candidate = None
+            # Attempt match by zpid first if provided
+            zpid_param = params.get("zpid") if isinstance(params, dict) else None
+            if zpid_param:
+                candidate = HomeUniversal.query.filter_by(user_id=str(existing_user.id), zpid=str(zpid_param)).first()
+
+            # Fallback to address match if not found via zpid
+            if not candidate:
+                # Try to build a full address string from request body
+                body_address = None
+                if isinstance(address, str) and address.strip():
+                    body_address = address.strip()
+                # If body address isn't provided, we will try to match later once data computed,
+                # but for cache we need an address now; attempt using provided top-level fields
+                if not body_address:
+                    # nothing to match on
+                    body_address = None
+
+                if body_address:
+                    target_norm = None
+                    try:
+                        target_norm = normalize_address(body_address)
+                    except Exception:
+                        target_norm = body_address.lower()
+
+                    for h in HomeUniversal.query.filter_by(user_id=str(existing_user.id)).all():
+                        if not h.address:
+                            continue
+                        try:
+                            norm_existing = normalize_address(h.address)
+                        except Exception:
+                            norm_existing = h.address.strip().lower()
+                        if norm_existing == target_norm:
+                            candidate = h
+                            break
+
+            # Determine if candidate has enough data for a cache hit
+            # We only need raw_data and basic property info - optional fields can be empty dicts
+            def _is_fully_populated(rec: HomeUniversal) -> bool:
+                if not rec:
+                    return False
+                # Essential fields that must exist
+                essential_fields = [
+                    rec.raw_data is not None,  # Must have raw data
+                    rec.address,  # Must have address
+                    rec.zpid or rec.listing_status or rec.property_type or rec.home_type,  # Some identifier
+                ]
+                
+                if not all(essential_fields):
+                    current_app.logger.debug(f"[PROPERTY] Cache miss - missing essential fields: raw_data={rec.raw_data is not None}, address={bool(rec.address)}, identifier={bool(rec.zpid or rec.listing_status or rec.property_type or rec.home_type)}")
+                    return False
+                
+                # Optional fields can be None, empty dict, or empty list - that's fine
+                # We'll use what's available and generate missing fields only if needed
+                current_app.logger.info(f"[PROPERTY] Cache hit! Found cached property: zpid={rec.zpid}, address={rec.address}")
+                return True
+
+            if candidate and _is_fully_populated(candidate):
+                # If details are incomplete and the property hasn't been recently unlocked (updated),
+                # skip the fast-path so we can regenerate details below.
+                try:
+                    from datetime import datetime, timedelta
+                    details_present = bool(candidate.features) and bool(candidate.property_analysis) and bool(candidate.commute_data)
+                    updated_at = getattr(candidate, 'updated_at', None)
+                    recent_cutoff = datetime.utcnow() - timedelta(days=30)
+                    unlocked_recently = bool(updated_at and updated_at >= recent_cutoff)
+                except Exception:
+                    details_present = True
+                    unlocked_recently = True
+
+                if not details_present and not unlocked_recently:
+                    current_app.logger.info("[PROPERTY] 🔄 Cached record incomplete and not unlocked in last month; regenerating details")
+                else:
+                    # Build response in the same shape as the normal path
+                    # Use cached data, default to empty dict/None for missing optional fields
+                    response_data = {
+                        "success": True,
+                        "query": params,
+                        "data": candidate.raw_data,
+                        "features": candidate.features if candidate.features is not None else {},
+                        "commute_data": candidate.commute_data if candidate.commute_data is not None else {},
+                        "property_analysis": candidate.property_analysis if candidate.property_analysis is not None else {},
+                        "image_features": None,  # not cached; can be added later if desired
+                        "zillow_url": candidate.zillow_url or "",
+                        "images": candidate.image_urls or []
+                    }
+                    elapsed = time.time() - start
+                    current_app.logger.info(f"[PROPERTY] ✅ Returning cached data in {elapsed:.2f}ms (zpid={candidate.zpid})")
+                    return jsonify(response_data), 200
+            elif candidate:
+                # Found a candidate but it's not fully populated - log what's missing
+                missing = []
+                if not candidate.raw_data:
+                    missing.append("raw_data")
+                if not candidate.address:
+                    missing.append("address")
+                if not (candidate.zpid or candidate.listing_status or candidate.property_type or candidate.home_type):
+                    missing.append("identifier")
+                current_app.logger.info(f"[PROPERTY] Cache candidate found but missing fields: {missing}, proceeding to fetch")
+            else:
+                current_app.logger.debug(f"[PROPERTY] No cache candidate found (zpid={zpid_param if isinstance(params, dict) else None}, address={address}), proceeding to fetch")
+    except Exception as cache_err:
+        current_app.logger.warning(f"[PROPERTY] Cache fast-path failed, proceeding to fetch: {cache_err}", exc_info=True)
+
     url = f"https://{RAPI_HOST}/property"
     headers = {
         "x-rapidapi-host": RAPI_HOST,
@@ -274,8 +391,80 @@ def get_property_via_address():
 
     data = r.json()
 
+    # Check if we already have cached commute_data and property_analysis to avoid regenerating
+    cached_commute_data = None
+    cached_property_analysis = None
+    cached_features = None
+    
+    try:
+        existing_user = None
+        try:
+            existing_user = get_current_user()
+        except Exception:
+            existing_user = None
+            
+        if existing_user:
+            from app.models.home_universal import HomeUniversal
+            from app.utils.address_format import normalize_address
+            
+            # Try to find existing record by zpid or address
+            cached_record = None
+            zpid_param = params.get("zpid") if isinstance(params, dict) else None
+            if zpid_param:
+                cached_record = HomeUniversal.query.filter_by(user_id=str(existing_user.id), zpid=str(zpid_param)).first()
+            
+            if not cached_record and address:
+                target_norm = None
+                try:
+                    target_norm = normalize_address(address.strip())
+                except Exception:
+                    target_norm = address.strip().lower()
+                
+                for h in HomeUniversal.query.filter_by(user_id=str(existing_user.id)).all():
+                    if h.address:
+                        try:
+                            norm_existing = normalize_address(h.address)
+                        except Exception:
+                            norm_existing = h.address.strip().lower()
+                        if norm_existing == target_norm:
+                            cached_record = h
+                            break
+            
+            # Extract cached data if it exists and is populated
+            if cached_record:
+                # Determine whether to force regeneration of details if not all present and not recently unlocked
+                from datetime import datetime, timedelta
+                details_commute_present = bool(cached_record.commute_data and isinstance(cached_record.commute_data, dict) and cached_record.commute_data)
+                details_analysis_present = bool(cached_record.property_analysis and isinstance(cached_record.property_analysis, dict) and cached_record.property_analysis)
+                details_features_present = bool(cached_record.features and isinstance(cached_record.features, dict))
+                all_details_present = details_commute_present and details_analysis_present and details_features_present
+
+                updated_at = getattr(cached_record, 'updated_at', None)
+                recent_cutoff = datetime.utcnow() - timedelta(days=30)
+                unlocked_recently = bool(updated_at and updated_at >= recent_cutoff)
+
+                force_regen = (not all_details_present) and (not unlocked_recently)
+
+                if force_regen:
+                    current_app.logger.info("[PROPERTY] 🔄 Forcing regeneration of details (incomplete and not unlocked in last month)")
+                    cached_commute_data = None
+                    cached_property_analysis = None
+                    cached_features = None
+                else:
+                    if details_commute_present:
+                        cached_commute_data = cached_record.commute_data
+                        current_app.logger.info(f"[PROPERTY] ✅ Found cached commute_data for property")
+                    if details_analysis_present:
+                        cached_property_analysis = cached_record.property_analysis
+                        current_app.logger.info(f"[PROPERTY] ✅ Found cached property_analysis for property")
+                    if details_features_present:
+                        cached_features = cached_record.features
+                        current_app.logger.info(f"[PROPERTY] ✅ Found cached features for property")
+    except Exception as cache_check_err:
+        current_app.logger.debug(f"[PROPERTY] Error checking cache for commute/analysis: {cache_check_err}")
+
     # Enhanced: Add commute map visualization data
-    commute_data = {}
+    commute_data = cached_commute_data if cached_commute_data else {}
     map_url = None
     
     # Get the property address for commute calculations
@@ -291,160 +480,169 @@ def get_property_via_address():
         if street and city and state:
             property_address = f"{street}, {city}, {state} {zipcode}".strip()
     
-    # Get user's important locations for commute calculations
-    try:
+    # Only generate commute_data if we don't have it cached
+    if not cached_commute_data:
+        # Get user's important locations for commute calculations
         try:
-            current_user = get_current_user()
-        except SecurityException:
-            # Silently handle SecurityException for optional user context
-            current_user = None
-        except Exception:
-            # Silently handle other auth errors for optional user context
-            current_user = None
-            
-        if current_user and property_address and GOOGLE_MAPS_API_KEY:
-            user_preferences = UserPreferences.query.filter_by(user_id=current_user.id).first()
-            
-            if user_preferences:
-                important_locations = []
-                locations_data = user_preferences.important_locations
+            try:
+                current_user = get_current_user()
+            except SecurityException:
+                # Silently handle SecurityException for optional user context
+                current_user = None
+            except Exception:
+                # Silently handle other auth errors for optional user context
+                current_user = None
                 
-                # Parse important_locations (could be JSON string or list)
-                if isinstance(locations_data, str):
-                    try:
-                        locations_data = json.loads(locations_data)
-                    except json.JSONDecodeError:
-                        current_app.logger.error("🗺️ [PROPERTY] Failed to parse important_locations JSON")
-                        locations_data = []
+            if current_user and property_address and GOOGLE_MAPS_API_KEY:
+                user_preferences = UserPreferences.query.filter_by(user_id=current_user.id).first()
                 
-                if isinstance(locations_data, list):
-                    important_locations = locations_data
-                                
-                # Calculate travel times for each important location
-                travel_times = []
-                secondary_locations = []
+                if user_preferences:
+                    important_locations = []
+                    locations_data = user_preferences.important_locations
+                    
+                    # Parse important_locations (could be JSON string or list)
+                    if isinstance(locations_data, str):
+                        try:
+                            locations_data = json.loads(locations_data)
+                        except json.JSONDecodeError:
+                            current_app.logger.error("🗺️ [PROPERTY] Failed to parse important_locations JSON")
+                            locations_data = []
+                    
+                    if isinstance(locations_data, list):
+                        important_locations = locations_data
+                                    
+                    # Calculate travel times for each important location
+                    travel_times = []
+                    secondary_locations = []
+                    
+                    for i, location in enumerate(important_locations):
+                        if isinstance(location, dict) and 'address' in location:
+                            location_address = location['address']
+                            location_name = location.get('name', f'Location {i+1}')
+                            
+                            # Fetch travel time
+                            travel_time = fetch_travel_time(property_address, location_address, GOOGLE_MAPS_API_KEY)
+                            
+                            travel_times.append({
+                                'name': location_name,
+                                'address': location_address,
+                                'travel_time': travel_time,
+                                'commute_tolerance': location.get('commute_tolerance', 30)
+                            })
+                            
+                            # Prepare for map generation
+                            secondary_locations.append({
+                                'name': location_name,
+                                'address': location_address
+                            })
+                            
+                    
+                    commute_data['travel_times'] = travel_times
+                    
+                    # Generate static map URL with commute routes
+                    if secondary_locations:
+                        try:
+                            map_url = generate_static_map_url(property_address, secondary_locations, GOOGLE_MAPS_API_KEY)
+                        except Exception as e:
+                            current_app.logger.error(f"🗺️ [PROPERTY] Error generating map URL: {e}")
+                    
+                    commute_data['map_url'] = map_url
+                    commute_data['property_address'] = property_address
                 
-                for i, location in enumerate(important_locations):
-                    if isinstance(location, dict) and 'address' in location:
-                        location_address = location['address']
-                        location_name = location.get('name', f'Location {i+1}')
-                        
-                        # Fetch travel time
-                        travel_time = fetch_travel_time(property_address, location_address, GOOGLE_MAPS_API_KEY)
-                        
-                        travel_times.append({
-                            'name': location_name,
-                            'address': location_address,
-                            'travel_time': travel_time,
-                            'commute_tolerance': location.get('commute_tolerance', 30)
-                        })
-                        
-                        # Prepare for map generation
-                        secondary_locations.append({
-                            'name': location_name,
-                            'address': location_address
-                        })
-                        
-                
-                commute_data['travel_times'] = travel_times
-                
-                # Generate static map URL with commute routes
-                if secondary_locations:
-                    try:
-                        map_url = generate_static_map_url(property_address, secondary_locations, GOOGLE_MAPS_API_KEY)
-                    except Exception as e:
-                        current_app.logger.error(f"🗺️ [PROPERTY] Error generating map URL: {e}")
-                
-                commute_data['map_url'] = map_url
-                commute_data['property_address'] = property_address
-                
-    except Exception as e:
-        current_app.logger.error(f"🗺️ [PROPERTY] Error calculating commute data: {e}")
-        # Don't fail the entire request if commute calculation fails
-        commute_data = {'error': 'Failed to calculate commute data'}
+        except Exception as e:
+            current_app.logger.error(f"🗺️ [PROPERTY] Error calculating commute data: {e}")
+            # Don't fail the entire request if commute calculation fails
+            commute_data = {'error': 'Failed to calculate commute data'}
+    else:
+        current_app.logger.info(f"[PROPERTY] ⏭️ Skipping commute_data generation, using cached data")
     
     # Enhanced: Add property analysis using Perplexity Sonar Pro
-    property_analysis = None
-    try:
-        try:
-            current_user = get_current_user()
-        except SecurityException:
-            # Silently handle SecurityException for optional user context
-            current_user = None
-        except Exception:
-            # Silently handle other auth errors for optional user context
-            current_user = None
-            
-        if current_user and data and isinstance(data, dict):
-            user_preferences = UserPreferences.query.filter_by(user_id=current_user.id).first()
-            
-            if user_preferences:
-                # Convert user preferences to dict format
-                user_prefs_dict = user_preferences.to_dict() if hasattr(user_preferences, 'to_dict') else {
-                    'home_budget_min': user_preferences.home_budget_min,
-                    'home_budget_max': user_preferences.home_budget_max,
-                    'occupation': user_preferences.occupation,
-                    'age': user_preferences.age,
-                    'important_locations': user_preferences.important_locations,
-                    'preferred_home_features': user_preferences.preferred_home_features,
-                    'deal_breakers': user_preferences.deal_breakers,
-                    'gross_income': user_preferences.gross_income,
-                    'housing_type': user_preferences.housing_type,
-                }
-                
-                # Parse JSON fields if they're strings
-                for field in ['important_locations', 'preferred_home_features', 'deal_breakers']:
-                    if hasattr(user_preferences, field):
-                        field_value = getattr(user_preferences, field)
-                        if isinstance(field_value, str):
-                            try:
-                                user_prefs_dict[field] = json.loads(field_value)
-                            except json.JSONDecodeError:
-                                user_prefs_dict[field] = []
-                        else:
-                            user_prefs_dict[field] = field_value or []
-                
-                # Prepare home object for analysis
-                home_object = {
-                    'address': property_address or data.get('streetAddress', 'Unknown address'),
-                    'price': data.get('price', data.get('listPrice', 0)),
-                    'bedrooms': data.get('bedrooms', data.get('beds', 0)),
-                    'bathrooms': data.get('bathrooms', data.get('baths', 0)),
-                    'livingArea': data.get('livingArea', data.get('sqft', 0)),
-                    'propertyType': data.get('propertyType', data.get('homeType', 'Unknown')),
-                    'lotAreaValue': data.get('lotAreaValue'),
-                    'lotAreaUnit': data.get('lotAreaUnit'),
-                    'listingStatus': data.get('listingStatus'),
-                    'city': data.get('city'),
-                    'state': data.get('state'),
-                    'zipcode': data.get('zipcode')
-                }
-                                
-                # Call the property analysis function
-                analysis_result = analyze_property_with_sonar_pro(user_prefs_dict, home_object)
-                
-                if analysis_result:
-                    # Convert Pydantic model to dict for JSON response
-                    property_analysis = {
-                        'pros': analysis_result.pros,
-                        'cons': analysis_result.cons,
-                        'neighborhood_overview': analysis_result.neighborhood_overview,
-                        'crime_stats': analysis_result.crime_stats,
-                        'gentrification_index': analysis_result.gentrification_index,
-                        'roi_explanation': analysis_result.roi_explanation
-                    }
-                
-                    if not 'neighborhood_overview' in property_analysis:
-                        current_app.logger.warning(f"⚠️ [PROPERTY] neighborhood_overview missing from response to frontend")
-                else:
-                    current_app.logger.warning(f"⚠️ [PROPERTY] Perplexity analysis returned no results")
-                    
-    except Exception as e:
-        current_app.logger.error(f"🔍 [PROPERTY] Error during property analysis: {e}")
-        # Don't fail the entire request if analysis fails
-        property_analysis = {'error': 'Failed to analyze property'}
+    # Use cached property_analysis if available, otherwise generate
+    property_analysis = cached_property_analysis if cached_property_analysis else None
     
-        # --- Build Zillow URL from payload/zpid/address ---
+    if not cached_property_analysis:
+        try:
+            try:
+                current_user = get_current_user()
+            except SecurityException:
+                # Silently handle SecurityException for optional user context
+                current_user = None
+            except Exception:
+                # Silently handle other auth errors for optional user context
+                current_user = None
+                
+            if current_user and data and isinstance(data, dict):
+                user_preferences = UserPreferences.query.filter_by(user_id=current_user.id).first()
+                
+                if user_preferences:
+                    # Convert user preferences to dict format
+                    user_prefs_dict = user_preferences.to_dict() if hasattr(user_preferences, 'to_dict') else {
+                        'home_budget_min': user_preferences.home_budget_min,
+                        'home_budget_max': user_preferences.home_budget_max,
+                        'occupation': user_preferences.occupation,
+                        'age': user_preferences.age,
+                        'important_locations': user_preferences.important_locations,
+                        'preferred_home_features': user_preferences.preferred_home_features,
+                        'deal_breakers': user_preferences.deal_breakers,
+                        'gross_income': user_preferences.gross_income,
+                        'housing_type': user_preferences.housing_type,
+                    }
+                    
+                    # Parse JSON fields if they're strings
+                    for field in ['important_locations', 'preferred_home_features', 'deal_breakers']:
+                        if hasattr(user_preferences, field):
+                            field_value = getattr(user_preferences, field)
+                            if isinstance(field_value, str):
+                                try:
+                                    user_prefs_dict[field] = json.loads(field_value)
+                                except json.JSONDecodeError:
+                                    user_prefs_dict[field] = []
+                            else:
+                                user_prefs_dict[field] = field_value or []
+                    
+                    # Prepare home object for analysis
+                    home_object = {
+                        'address': property_address or data.get('streetAddress', 'Unknown address'),
+                        'price': data.get('price', data.get('listPrice', 0)),
+                        'bedrooms': data.get('bedrooms', data.get('beds', 0)),
+                        'bathrooms': data.get('bathrooms', data.get('baths', 0)),
+                        'livingArea': data.get('livingArea', data.get('sqft', 0)),
+                        'propertyType': data.get('propertyType', data.get('homeType', 'Unknown')),
+                        'lotAreaValue': data.get('lotAreaValue'),
+                        'lotAreaUnit': data.get('lotAreaUnit'),
+                        'listingStatus': data.get('listingStatus'),
+                        'city': data.get('city'),
+                        'state': data.get('state'),
+                        'zipcode': data.get('zipcode')
+                    }
+                                    
+                    # Call the property analysis function
+                    analysis_result = analyze_property_with_sonar_pro(user_prefs_dict, home_object)
+                    
+                    if analysis_result:
+                        # Convert Pydantic model to dict for JSON response
+                        property_analysis = {
+                            'pros': analysis_result.pros,
+                            'cons': analysis_result.cons,
+                            'neighborhood_overview': analysis_result.neighborhood_overview,
+                            'crime_stats': analysis_result.crime_stats,
+                            'gentrification_index': analysis_result.gentrification_index,
+                            'roi_explanation': analysis_result.roi_explanation
+                        }
+                    
+                        if not 'neighborhood_overview' in property_analysis:
+                            current_app.logger.warning(f"⚠️ [PROPERTY] neighborhood_overview missing from response to frontend")
+                    else:
+                        current_app.logger.warning(f"⚠️ [PROPERTY] Perplexity analysis returned no results")
+                    
+        except Exception as e:
+            current_app.logger.error(f"🔍 [PROPERTY] Error during property analysis: {e}")
+            # Don't fail the entire request if analysis fails
+            property_analysis = {'error': 'Failed to analyze property'}
+    else:
+        current_app.logger.info(f"[PROPERTY] ⏭️ Skipping property_analysis generation, using cached data")
+    
+    # --- Build Zillow URL from payload/zpid/address ---
     zillow_url = None
     zillow_base = "https://www.zillow.com"
 
@@ -534,7 +732,102 @@ def get_property_via_address():
         # Don't fail the entire request if image analysis fails
         image_features = {'error': 'Failed to extract features from images'}
     
-    features = extract_property_features(data)
+    # Use cached features if available, otherwise extract
+    features = cached_features if cached_features else extract_property_features(data)
+    if cached_features:
+        current_app.logger.info(f"[PROPERTY] ⏭️ Skipping features extraction, using cached data")
+
+    # Persist full property details to HomeUniversal for the current user (upsert by normalized address)
+    try:
+        current_user = None
+        try:
+            current_user = get_current_user()
+        except Exception:
+            current_user = None
+
+        if current_user:
+            from app import db
+            from app.models.home_universal import HomeUniversal
+            from app.utils.address_format import normalize_address
+
+            # Derive address parts from payload
+            street, city, state, zipcode = _extract_address_fields_from_data(data)
+            full_address = None
+            if street and city and state:
+                full_address = f"{street}, {city}, {state} {zipcode or ''}".strip()
+            else:
+                full_address = data.get('streetAddress') or address or ''
+
+            # Primary image and list of images
+            primary_image = None
+            if isinstance(zillow_api_images, list) and zillow_api_images:
+                primary_image = zillow_api_images[0]
+            primary_image = primary_image or data.get('imgSrc') or data.get('image') or data.get('image_url') or data.get('imageUrl')
+
+            # Upsert by normalized address
+            target_norm = None
+            try:
+                target_norm = normalize_address(full_address or '')
+            except Exception:
+                target_norm = (full_address or '').strip().lower()
+
+            existing = None
+            if full_address:
+                for h in HomeUniversal.query.filter_by(user_id=str(current_user.id)).all():
+                    if not h.address:
+                        continue
+                    try:
+                        norm_existing = normalize_address(h.address)
+                    except Exception:
+                        norm_existing = h.address.strip().lower()
+                    if norm_existing == target_norm:
+                        existing = h
+                        break
+
+            # Map fields from response
+            from app.utils.currency import format_currency
+            update_fields = {
+                'address': full_address,
+                'city': city or data.get('city'),
+                'state': state or data.get('state'),
+                'zipcode': zipcode or data.get('zipcode') or data.get('zipCode'),
+                'beds': str(data.get('bedrooms', data.get('beds', '') ) or ''),
+                'baths': str(data.get('bathrooms', data.get('baths', '') ) or ''),
+                'sqft': str(data.get('livingArea', data.get('sqft', '') ) or ''),
+                'lot_size': str(data.get('lotAreaValue', '') or ''),
+                'price': format_currency(data.get('price', data.get('listPrice', '') )),
+                'image_url': primary_image or '',
+                'image_urls': zillow_api_images or [],
+                'zpid': str(data.get('zpid') or (params.get('zpid') if isinstance(params, dict) else '') or ''),
+                'listing_status': data.get('listingStatus'),
+                'property_type': data.get('propertyType', data.get('homeType')),
+                'home_type': data.get('homeType'),
+                'year_built': str(data.get('yearBuilt') or ''),
+                'latitude': data.get('latitude'),
+                'longitude': data.get('longitude'),
+                'living_area': str(data.get('livingArea', '') or ''),
+                'lot_area_value': str(data.get('lotAreaValue', '') or ''),
+                'lot_area_unit': data.get('lotAreaUnit'),
+                'features': features,
+                'property_analysis': property_analysis,
+                'commute_data': commute_data,
+                'zillow_url': zillow_url,
+                'raw_data': data,
+            }
+
+            if existing:
+                # Preserve like state
+                for k, v in update_fields.items():
+                    setattr(existing, k, v)
+            else:
+                record = HomeUniversal(user_id=str(current_user.id), **update_fields)
+                db.session.add(record)
+
+            db.session.commit()
+
+    except Exception as persist_err:
+        current_app.logger.error(f"[PROPERTY] ⚠️ Failed to persist property details to HomeUniversal: {persist_err}", exc_info=True)
+
     # Include commute data, property analysis, and image features in response
     response_data = {
         "success": True, 
@@ -1027,17 +1320,13 @@ def search_properties_by_polygon():
                     embedding_provider="sentence_transformer",
                     llm_provider="openai"
                 )
-                
-                current_app.logger.info(f"[POLYGON_SEARCH] ✅ {request_id} - Scored {len(scored_matches)} properties via ML matching")
-                
+                                
                 # Use Redis sorted set for efficient sorting by score
                 redis_client = None
                 try:
                     # Connect to Redis
                     redis_host = os.getenv('REDIS_HOST', 'localhost')
-                    redis_port = int(os.getenv('REDIS_PORT', 6379))
-                    current_app.logger.info(f"[POLYGON_SEARCH] 🔄 {request_id} - Attempting Redis connection to {redis_host}:{redis_port}")
-                    
+                    redis_port = int(os.getenv('REDIS_PORT', 6379))                    
                     redis_client = redis.Redis(
                         host=redis_host,
                         port=redis_port,
@@ -1137,6 +1426,91 @@ def search_properties_by_polygon():
         else:
             current_app.logger.warning(f"[POLYGON_SEARCH] ⚠️ {request_id} - No properties found to score")
             scored_properties = all_properties
+
+        # Persist current search results and prune user's unliked homes not in results
+        try:
+            from app import db
+            from app.models.home_universal import HomeUniversal
+            from app.utils.address_format import normalize_address
+
+            # Build identity sets from current results
+            result_norm_addrs = set()
+            result_zpids = set()
+            for prop in scored_properties:
+                addr = prop.get('address') or ''
+                if isinstance(addr, str) and addr.strip():
+                    try:
+                        result_norm_addrs.add(normalize_address(addr))
+                    except Exception:
+                        result_norm_addrs.add(addr.strip().lower())
+                zpid_val = prop.get('zpid')
+                if zpid_val is not None:
+                    result_zpids.add(str(zpid_val))
+
+            # Index existing homes for this user by normalized address
+            existing = HomeUniversal.query.filter_by(user_id=str(user.id)).all()
+            existing_by_norm = {}
+            for h in existing:
+                if h.address:
+                    try:
+                        existing_by_norm[normalize_address(h.address)] = h
+                    except Exception:
+                        existing_by_norm[h.address.strip().lower()] = h
+
+            # Create any missing records for current results (using shared service)
+            from app.services.search.search_db import add_or_update_home_basic
+            created_count = 0
+            for prop in scored_properties:
+                try:
+                    # add_or_update returns the record; count only creations is tricky without overhead
+                    # We approximate by checking if address not in existing_by_norm prior to call
+                    addr = (prop.get('address') or '').strip()
+                    if not addr:
+                        continue
+                    try:
+                        norm = normalize_address(addr)
+                    except Exception:
+                        norm = addr.lower()
+                    pre_exists = norm in existing_by_norm
+                    # Ensure score is provided under canonical key for persistence
+                    if '_score' in prop and 'score' not in prop:
+                        try:
+                            prop['score'] = float(prop.get('_score') or 0.0)
+                        except Exception:
+                            prop['score'] = None
+                    add_or_update_home_basic(user_id=str(user.id), home=prop, set_liked=False)
+                    if not pre_exists:
+                        created_count += 1
+                except Exception as e:
+                    current_app.logger.warning(f"[POLYGON_SEARCH] Skipped invalid property while persisting: {e}")
+
+            if created_count:
+                db.session.commit()
+                current_app.logger.info(f"[POLYGON_SEARCH] ➕ Inserted {created_count} new search homes for user {user.id}")
+
+            # Remove unliked homes not present in current results
+            removed_count = 0
+            unliked = HomeUniversal.query.filter_by(user_id=str(user.id), is_liked=False).all()
+            for h in unliked:
+                keep = False
+                if getattr(h, 'zpid', None) and str(h.zpid) in result_zpids:
+                    keep = True
+                if not keep and h.address:
+                    try:
+                        h_norm = normalize_address(h.address)
+                    except Exception:
+                        h_norm = h.address.strip().lower()
+                    if h_norm in result_norm_addrs:
+                        keep = True
+                if not keep:
+                    db.session.delete(h)
+                    removed_count += 1
+            if removed_count:
+                db.session.commit()
+                current_app.logger.info(f"[POLYGON_SEARCH] 🧹 Removed {removed_count} unliked homes not in current results for user {user.id}")
+
+        except Exception as persist_err:
+            current_app.logger.error(f"[POLYGON_SEARCH] ⚠️ Persist/prune step failed: {persist_err}", exc_info=True)
 
         # Log sample scores for debugging
         if scored_properties:

@@ -41,6 +41,8 @@ type UseMapMarkersProps = {
   removeSavedHome: (propertyId: string, propertyAddress?: string) => Promise<void>;
   onMarkerClick?: (property: SearchResult) => void;
   onUnlockClick?: (property: SearchResult) => void | Promise<void>;
+  /** External context key to force marker remounts when context changes (e.g., tabs) */
+  contextKey?: string;
 };
 
 type UseMapMarkersReturn = {
@@ -64,6 +66,7 @@ export const useMapMarkers = ({
   removeSavedHome,
   onMarkerClick,
   onUnlockClick,
+  contextKey,
 }: UseMapMarkersProps): UseMapMarkersReturn => {
   const markersRef = useRef<GoogleAdvancedMarkerElement[]>([]);
   const importantMarkersRef = useRef<GoogleAdvancedMarkerElement[]>([]);
@@ -276,6 +279,7 @@ export const useMapMarkers = ({
             renderMapPropertyCard(markerElement, {
               property: propertyData,
               isSaved: isHomeSaved(result.id, result.address),
+              contextKey,
               onUnlock: onUnlockClick ? async () => {
                 console.log("🗺️ [USE MAP MARKERS] Unlock button clicked in map marker:", {
                   environment: typeof import.meta !== 'undefined' && import.meta.env?.DEV ? "DEVELOPMENT" : "PRODUCTION",

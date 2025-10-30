@@ -26,7 +26,12 @@ export type MapPropertyCardProps = {
   /** Optional save state functions for use outside React context (e.g., map markers) */
   isHomeSaved?: (propertyId: string, propertyAddress?: string) => boolean;
   saveHome?: (property: SearchResult | Property) => Promise<void>;
-  removeSavedHome?: (propertyId: string, propertyAddress?: string) => Promise<void>;
+  removeSavedHome?: (
+    propertyId: string,
+    propertyAddress?: string
+  ) => Promise<void>;
+  /** Optional context key to force a remount when external context changes (e.g., tab) */
+  contextKey?: string;
 };
 
 const MapPropertyCard: React.FC<MapPropertyCardProps> = ({
@@ -49,20 +54,6 @@ const MapPropertyCard: React.FC<MapPropertyCardProps> = ({
 
   // Add comprehensive logging for debugging score issues
   const isDev = typeof import.meta !== "undefined" && import.meta.env?.DEV;
-  console.log("🗺️ [MAP PROPERTY CARD] Rendering MapPropertyCard:", {
-    environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
-    propertyId: property.id,
-    address: property.address?.substring(0, 40) + "...",
-    calculatedScore: property.calculatedScore,
-    scoreType: typeof property.calculatedScore,
-    showScore,
-    isSaved,
-    price: property.price,
-    hasValidScore:
-      property.calculatedScore !== undefined &&
-      property.calculatedScore !== null &&
-      property.calculatedScore > 0,
-  });
 
   try {
     // Validate and normalize the calculated score
@@ -91,30 +82,9 @@ const MapPropertyCard: React.FC<MapPropertyCardProps> = ({
         normalizedScore = Math.max(0, Math.min(100, normalizedScore));
       } else if (normalizedScore === 0) {
         // Treat 0 as "no score" rather than showing a zero score
-        console.log(
-          "🗺️ [MAP PROPERTY CARD] Score is zero, treating as undefined:",
-          {
-            environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
-            propertyId: property.id,
-          }
-        );
         normalizedScore = undefined;
       }
     }
-
-    const willShowScore =
-      showScore && normalizedScore !== undefined && normalizedScore > 0;
-    console.log("🗺️ [MAP PROPERTY CARD] Normalized score:", {
-      environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
-      propertyId: property.id,
-      address: property.address?.substring(0, 30) + "...",
-      originalScore: property.calculatedScore,
-      normalizedScore,
-      showScore,
-      willShowScore,
-      isSaved,
-      hasScore: normalizedScore !== undefined && normalizedScore !== null,
-    });
 
     // Convert property to HomeDescription format
     // Memoize to prevent unnecessary re-renders
@@ -159,14 +129,6 @@ const MapPropertyCard: React.FC<MapPropertyCardProps> = ({
           saveHome={saveHome}
           removeSavedHome={removeSavedHome}
           onUnlock={async (home) => {
-            console.log("🔓 [MAP PROPERTY CARD] Unlock button clicked:", {
-              environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
-              propertyId: home.home_id,
-              address: home.address?.substring(0, 30) + "...",
-              timestamp: new Date().toISOString(),
-              hasOnUnlockCallback: !!onUnlock,
-            });
-
             if (onUnlock) {
               try {
                 // Convert home data back to property format
@@ -185,26 +147,7 @@ const MapPropertyCard: React.FC<MapPropertyCardProps> = ({
                   calculatedScore: home.calculatedScore,
                 };
 
-                console.log(
-                  "🔓 [MAP PROPERTY CARD] Calling onUnlock with property data:",
-                  {
-                    environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
-                    propertyId: propertyData.id,
-                    address: propertyData.address?.substring(0, 30) + "...",
-                    timestamp: new Date().toISOString(),
-                  }
-                );
-
                 await onUnlock(propertyData);
-
-                console.log(
-                  "🔓 [MAP PROPERTY CARD] onUnlock completed successfully:",
-                  {
-                    environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
-                    propertyId: propertyData.id,
-                    timestamp: new Date().toISOString(),
-                  }
-                );
               } catch (error) {
                 console.error(
                   "🔓 [MAP PROPERTY CARD] Error in onUnlock callback:",

@@ -75,8 +75,6 @@ export default function NegotiationStrategy() {
 
   // Debug logging - only log when strategyData changes
   useEffect(() => {
-    console.log("[PRICE DEBUG] strategyData:", strategyData);
-
     if (
       strategyData &&
       typeof strategyData === "object" &&
@@ -91,24 +89,14 @@ export default function NegotiationStrategy() {
             >)
           : (strategyData as Record<string, unknown>);
 
-      console.log("[PRICE DEBUG] actualData:", actualData);
-
       const priceSection = actualData?.price_section;
-      console.log("[PRICE DEBUG] priceSection:", priceSection);
 
       if (
         priceSection &&
         typeof priceSection === "object" &&
         priceSection !== null
       ) {
-        const openingOffer = (priceSection as Record<string, unknown>)
-          .opening_offer;
-        console.log(
-          "[PRICE DEBUG] openingOffer:",
-          openingOffer,
-          "type:",
-          typeof openingOffer
-        );
+        // no-op: presence validated; rendering handles opening_offer
       }
     }
   }, [strategyData]);
@@ -154,7 +142,7 @@ export default function NegotiationStrategy() {
               <div className="flex justify-center">
                 <Loading
                   message={
-                    "Our AI is expensive! Please consider booking your move with our link :)"
+                    "We appreciate feedback! Want us to build a new feature, let us know!"
                   }
                 />
               </div>
@@ -286,7 +274,7 @@ export default function NegotiationStrategy() {
           return null;
         })()}
 
-         {/* Property Comps Debug JSON (fallback) */}
+        {/* Property Comps Debug JSON (fallback) */}
         {Boolean(compsData) &&
           (!(
             compsData &&

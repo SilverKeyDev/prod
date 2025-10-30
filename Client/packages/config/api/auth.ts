@@ -416,26 +416,7 @@ export const authApi = {
         .split(";")
         .map((c) => c.trim().split("=")[0])
         .filter(Boolean);
-      
-      const sessionCookie = document.cookie
-        .split(";")
-        .find(c => c.trim().startsWith("session="));
-      
-      const refreshCookie = document.cookie
-        .split(";")
-        .find(c => c.trim().startsWith("refresh_token="));
-      
-      log.info("🔍 FRONTEND_VERIFY_SESSION_START", "Starting session verification", {
-        requestId,
-        allCookies,
-        cookieCount: allCookies.length,
-        hasSessionCookie: !!sessionCookie,
-        hasRefreshCookie: !!refreshCookie,
-        sessionCookiePreview: sessionCookie ? sessionCookie.substring(0, 30) + '...' : 'none',
-        refreshCookiePreview: refreshCookie ? refreshCookie.substring(0, 30) + '...' : 'none',
-        currentUrl: window.location.href,
-        timestamp: new Date().toISOString()
-      });
+    
       
       const { apiGet } = await import("../../services/http/compatibility");
       
@@ -467,16 +448,7 @@ export const authApi = {
       const newCookies = cookiesAfter.filter((c) => !allCookies.includes(c));
 
       if (response.success && response.data) {
-        log.info("🔍 FRONTEND_VERIFY_SUCCESS", "Session verified successfully", {
-          requestId,
-          hasUserData: !!response.data,
-          userEmail: (response.data as UserProfile)?.email ? 
-            `${(response.data as UserProfile).email.substring(0, 3)}***${(response.data as UserProfile).email.substring((response.data as UserProfile).email.length - 3)}` : 
-            'missing',
-          cookiesAfter,
-          newCookies,
-          cookieCountAfter: cookiesAfter.length
-        });
+       
         return {
           success: true,
           user: response.data as UserProfile,

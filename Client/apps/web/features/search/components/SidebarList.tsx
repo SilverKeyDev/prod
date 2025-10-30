@@ -18,9 +18,21 @@ export function SidebarList(props: {
   isLoading: boolean;
   onNavigateToProperty: (p: SearchResult) => void;
   activeTab: "results" | "saved";
+  // Optional saved-home controls from parent to keep UI in sync
+  isHomeSaved?: (id: string, address?: string) => boolean;
+  saveHome?: (p: SearchResult) => Promise<void>;
+  removeSavedHome?: (id: string, address?: string) => Promise<void>;
 }): JSX.Element {
-  const { items, selectedId, isLoading, onNavigateToProperty, activeTab } =
-    props;
+  const {
+    items,
+    selectedId,
+    isLoading,
+    onNavigateToProperty,
+    activeTab,
+    isHomeSaved,
+    saveHome,
+    removeSavedHome,
+  } = props;
 
   // Use centralized score calculation
   const calculatePropertyScore = (property: SearchResult) => {
@@ -135,7 +147,23 @@ export function SidebarList(props: {
                   className="mb-2 sm:mb-3"
                 />
               </div>
-              <CardHeartSave property={property} size="sm" />
+              <CardHeartSave
+                property={property}
+                size="sm"
+                isHomeSaved={isHomeSaved}
+                saveHome={
+                  saveHome
+                    ? async (propertyArg) =>
+                        // property could be SearchResult or Property. Convert Property to SearchResult shape if necessary.
+                        saveHome(
+                          "price" in propertyArg && typeof propertyArg.price === "number"
+                            ? { ...propertyArg, price: propertyArg.price.toString() }
+                            : propertyArg as any
+                        )
+                    : undefined
+                }
+                removeSavedHome={removeSavedHome}
+              />
             </div>
           </div>
         </div>
