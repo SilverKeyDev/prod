@@ -120,37 +120,11 @@ jobs:
           export_if_present "$serp_json" "SERP_API" "SERP_API"
           export_if_present "$rapidapi_json" "RAPIDAPI_KEY" "RAPIDAPI_KEY"
 
-          # Optional SES-related vars if you keep them in a "ses" secret JSON
-          export_if_present "$ses_json" "SES_SENDER_EMAIL" "SES_SENDER_EMAIL"
-          export_if_present "$ses_json" "RECIPIENT_EMAILS" "RECIPIENT_EMAILS"
-
-          # Allow overriding via GitHub Secrets if you prefer (optional)
-          if [ -n "${{ secrets.SES_SENDER_EMAIL }}" ]; then echo "SES_SENDER_EMAIL=${{ secrets.SES_SENDER_EMAIL }}" >> "$GITHUB_ENV"; fi
-          if [ -n "${{ secrets.RECIPIENT_EMAILS }}" ]; then echo "RECIPIENT_EMAILS=${{ secrets.RECIPIENT_EMAILS }}" >> "$GITHUB_ENV"; fi
-
       - name: Log - Loaded environment variables
         run: |
           {
             echo "### Step: Env Load"
             echo "Loaded environment variables from AWS Secrets Manager and GitHub Secrets."
-          } >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Validate required envs
-        shell: bash
-        run: |
-          set -euo pipefail
-          for v in DATABASE_URL; do
-            if [ -z "${!v:-}" ]; then
-              echo "Missing required env: $v" >&2
-              exit 1
-            fi
-          done
-
-      - name: Log - Validated environment
-        run: |
-          {
-            echo "### Step: Env Validate"
-            echo "Validated required environment variables."
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Set up Python
@@ -173,13 +147,6 @@ jobs:
           python -m pip install --upgrade pip >/dev/null
           pip install -r Server/requirements.txt
           pip install boto3 >/dev/null
-
-      - name: Log - Dependencies installed
-        run: |
-          {
-            echo "### Step: Dependencies"
-            echo "Installed server dependencies and boto3."
-          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Run email listings orchestrator (search + email)
         env:

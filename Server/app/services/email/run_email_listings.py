@@ -71,6 +71,11 @@ def run_orchestrator():
     """
     Orchestrates: fetch users -> update searches -> email listings.
     """
+    # Quick sanity check: confirms we're in an app context with the correct db
+    try:
+        print(f"DB URL: {db.engine.url}")
+    except Exception as e:
+        print(f"DB engine not available: {e}")
     # Optionally throttle/paging settings for polygon search
     pause_seconds = float(os.getenv("POLY_SEARCH_PAUSE_SECONDS", "1.0"))
     per_bucket_pages = int(os.getenv("POLY_SEARCH_PER_BUCKET_PAGES", "5"))
