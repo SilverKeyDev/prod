@@ -1,4 +1,4 @@
-name: Utility - Last Logged In Report
+name: Email Listings
 
 on:
   workflow_dispatch:
@@ -8,11 +8,9 @@ env:
 
 permissions:
   contents: read
-  # If you switch to OIDC + role assumption, also add:
-  # id-token: write
 
 jobs:
-  run-last-logged-in:
+  email-listings:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     concurrency:
@@ -25,7 +23,6 @@ jobs:
         with:
           fetch-depth: 1
 
-      # Current approach using static keys (works, but prefer OIDC+IAM role)
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -70,6 +67,12 @@ jobs:
           search_keys_json="$(fetch_json search_keys)"
           export_if_present "$search_keys_json" "RAPIDAPI_KEY" "RAPIDAPI_KEY"
           export_if_present "$search_keys_json" "GOOGLE_MAPS_API_KEY" "GOOGLE_MAPS_API_KEY"
+
+          # Cognito auth configs (for module import requirements). Expect JSON like:
+          # {"AWS_COGNITO_USER_POOL_ID":"us-east-2_XXXX", "AWS_COGNITO_CLIENT_ID":"abc123"}
+          cognito_json="$(fetch_json cognito)"
+          export_if_present "$cognito_json" "AWS_COGNITO_USER_POOL_ID" "AWS_COGNITO_USER_POOL_ID"
+          export_if_present "$cognito_json" "AWS_COGNITO_CLIENT_ID" "AWS_COGNITO_CLIENT_ID"
 
       - name: Validate required envs
         shell: bash
@@ -136,8 +139,11 @@ jobs:
           PYTHONPATH: Server
           RAPIDAPI_KEY: ${{ env.RAPIDAPI_KEY || '' }}
           GOOGLE_MAPS_API_KEY: ${{ env.GOOGLE_MAPS_API_KEY || '' }}
+          AWS_COGNITO_USER_POOL_ID: ${{ env.AWS_COGNITO_USER_POOL_ID }}
+          AWS_COGNITO_CLIENT_ID: ${{ env.AWS_COGNITO_CLIENT_ID }}
+          AWS_REGION: ${{ env.REGION }}
           # Tuning knobs (optional)
-          POLY_SEARCH_PAUSE_SECONDS: "1.0"
+          POLY_SEARCH_PAUSE_SECONDS: "5.0"
           POLY_SEARCH_PER_BUCKET_PAGES: "5"
           # POLY_SEARCH_USER_LIMIT: "50"  # uncomment to cap for testing
         run: |
