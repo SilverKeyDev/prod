@@ -17,7 +17,7 @@ def send_test_emails_via_ses(recipients: Iterable[str]) -> List[str]:
     Send a simple test email with subject/body 'test' to each recipient individually.
     Returns a list of SES MessageId strings for successfully sent emails.
     """
-    sender = os.getenv("SES_SENDER_EMAIL")
+    sender = "noreply@usesilverkey.com"
     if not sender:
         raise RuntimeError("SES_SENDER_EMAIL environment variable is required.")
 
@@ -49,7 +49,7 @@ def send_personalized_emails_via_ses(messages: List[Tuple[str, str, str]]) -> Li
     messages: List of tuples (recipient_email, subject, body_text)
     Returns list of MessageIds for successful sends.
     """
-    sender = os.getenv("SES_SENDER_EMAIL")
+    sender = "noreply@usesilverkey.com"
     if not sender:
         raise RuntimeError("SES_SENDER_EMAIL environment variable is required.")
 
