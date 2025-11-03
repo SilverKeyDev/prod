@@ -1,0 +1,38 @@
+# robots.txt for SilverKey (usesilverkey.com)
+User-agent: *
+Allow: /
+Allow: /login
+Allow: /signup
+Allow: /privacy
+Allow: /terms
+Allow: /contact
+Allow: /about
+
+# Block API endpoints
+Disallow: /api/
+
+# Block protected/authenticated routes
+Disallow: /dashboard
+Disallow: /settings
+Disallow: /search
+Disallow: /saved/
+Disallow: /past-reports
+Disallow: /compare-reports
+Disallow: /saved-homes
+Disallow: /generate-report
+Disallow: /onboarding
+Disallow: /offer-draft
+Disallow: /negotiation
+Disallow: /negotiation-strategy/
+Disallow: /client-intel
+Disallow: /buyer-checklists
+Disallow: /verification
+Disallow: /forgot-password
+Disallow: /reset-password
+
+# Block health check and internal endpoints
+Disallow: /healthz
+
+# Sitemap location
+Sitemap: https://usesilverkey.com/sitemap.xml
+

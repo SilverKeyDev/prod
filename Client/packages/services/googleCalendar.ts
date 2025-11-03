@@ -242,6 +242,21 @@ export class GoogleCalendarService {
         }
       }
 
+      // Check if this is a 401 error - Google Calendar connection is invalid
+      const errorString =
+        err instanceof Error ? err.message : String(err ?? "");
+      const isUnauthorized =
+        errorString.includes("401") || errorString.includes("UNAUTHORIZED");
+
+      if (isUnauthorized) {
+        log.warn(
+          "GOOGLE_CALENDAR_SERVICE",
+          "401 error detected - resetting connection status",
+        );
+        this.setConnectionStatus(false);
+        errorMessage = "Google Calendar connection expired. Please reconnect.";
+      }
+
       this.updateState({
         error: errorMessage,
         isLoading: false,
@@ -345,6 +360,21 @@ export class GoogleCalendarService {
         } else {
           errorMessage = err.message;
         }
+      }
+
+      // Check if this is a 401 error - Google Calendar connection is invalid
+      const errorString =
+        err instanceof Error ? err.message : String(err ?? "");
+      const isUnauthorized =
+        errorString.includes("401") || errorString.includes("UNAUTHORIZED");
+
+      if (isUnauthorized) {
+        log.warn(
+          "GOOGLE_CALENDAR_SERVICE",
+          "401 error detected - resetting connection status",
+        );
+        this.setConnectionStatus(false);
+        errorMessage = "Google Calendar connection expired. Please reconnect.";
       }
 
       this.updateState({

@@ -65,7 +65,7 @@ export const ROUTE_CONFIGS = {
   lightweight: ["/settings"],
 
   standard: [
-    "/saved*",
+    "/saved/*",
     "/dashboard",
     "/buyer-checklists",
   ],

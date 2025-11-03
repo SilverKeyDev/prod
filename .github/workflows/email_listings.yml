@@ -23,13 +23,6 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Log - Checked out repository
-        run: |
-          {
-            echo "### Step: Checkout"
-            echo "Checked out repository at $GITHUB_SHA from $GITHUB_REPOSITORY."
-          } >> "$GITHUB_STEP_SUMMARY"
-
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -37,23 +30,8 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.REGION }}
 
-      - name: Log - AWS credentials configured
-        run: |
-          {
-            echo "### Step: AWS Credentials"
-            echo "Configured AWS credentials for region '${{ env.REGION }}'."
-          } >> "$GITHUB_STEP_SUMMARY"
-
       - name: Install jq (for JSON parsing)
         run: sudo apt-get update -y >/dev/null 2>&1 && sudo apt-get install -y jq >/dev/null 2>&1
-
-      - name: Log - jq installed
-        run: |
-          {
-            echo "### Step: Tools"
-            echo "Installed jq for JSON parsing."
-          } >> "$GITHUB_STEP_SUMMARY"
-
       - name: Load app env from AWS Secrets Manager (custom, no prefixes)
         shell: bash
         run: |
@@ -91,7 +69,6 @@ jobs:
           plaid_json="$(fetch_json plaid)"
           serp_json="$(fetch_json serp)"
           rapidapi_json="$(fetch_json rapidapi)"
-          ses_json="$(fetch_json ses)"  # <- optional: a secret named "ses" with SES_SENDER_EMAIL, RECIPIENT_EMAILS
 
           export_if_present "$db_url_json" "DATABASE_URL" "DATABASE_URL"
 
@@ -153,7 +130,6 @@ jobs:
           DATABASE_URL: ${{ env.DATABASE_URL }}
           PYTHONPATH: Server
           AWS_REGION: ${{ env.REGION }}
-          SES_SENDER_EMAIL: ${{ env.SES_SENDER_EMAIL }}
           # Optional knobs for throttling and pagination
           POLY_SEARCH_PAUSE_SECONDS: "5.0"
           POLY_SEARCH_PER_BUCKET_PAGES: "5"
