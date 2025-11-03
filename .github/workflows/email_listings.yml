@@ -125,6 +125,18 @@ jobs:
           pip install -r Server/requirements.txt
           pip install boto3 >/dev/null
 
+      - name: Check SES identity
+        run: |
+          set -euo pipefail
+          aws sesv2 get-account
+          # Replace with your actual sender (domain or email)
+          SENDER="noreply@usesilverkey.com"
+          if aws sesv2 get-email-identity --email-identity "$SENDER" >/dev/null 2>&1; then
+            echo "SES identity verified for $SENDER"
+          else
+            echo "ERROR: SES identity not verified for $SENDER (region us-east-2)"; exit 1
+          fi
+
       - name: Run email listings orchestrator (search + email)
         env:
           DATABASE_URL: ${{ env.DATABASE_URL }}
