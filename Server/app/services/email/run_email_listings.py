@@ -94,7 +94,9 @@ def run_orchestrator():
 
     # Run polygon search if available
     try:
-        from app.services.email.run_polygon_for_all_users import run_polygon_search_for_all_users
+        from app.services.email.run_polygon_for_all_users import (
+            run_polygon_search_for_all_users_with_context as run_polygon_search_for_all_users,
+        )
         run_polygon_search_for_all_users(
             pause_seconds=pause_seconds,
             per_bucket_pages=per_bucket_pages,

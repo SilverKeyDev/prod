@@ -1,11 +1,10 @@
-from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
 from flask_marshmallow import Marshmallow
 from flask import request, jsonify
+from app import db
 
 # Database
-db = SQLAlchemy()
 
 # Login manager
 login_manager = LoginManager()

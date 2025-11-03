@@ -4,11 +4,10 @@ import os
 import time
 from typing import Iterable, Optional
 
-from flask import Flask
+from flask import current_app
 
 # App imports
 from app import db
-from app.__init__ import create_app
 from app.models.user import User
 from app.models.user_preferences import UserPreferences
 from app.services.minimal_token import minimal_token_service
@@ -40,9 +39,6 @@ def run_polygon_search_for_all_users(
 
     Returns a summary dict with simple counts.
     """
-    # Ensure Flask app with routes registered
-    app: Flask = create_app()
-
     results = {
         "total_users": 0,
         "attempted": 0,
@@ -51,74 +47,88 @@ def run_polygon_search_for_all_users(
         "errors": [],
     }
 
-    # Keep the DB/app context alive for the entire run
-    with app.app_context():
-        # Use the Flask-SQLAlchemy scoped session (v3+ exposes `db.session`)
-        session = db.session
-        with app.test_client() as client:
-            for user, prefs in _iter_users_with_prefs(session=session, limit=user_limit):
-                results["total_users"] += 1
+    # Use the Flask-SQLAlchemy scoped session (assumes app context is active)
+    session = db.session
+    # current_app is valid only if an app context is active
+    with current_app.test_client() as client:
+        for user, prefs in _iter_users_with_prefs(session=session, limit=user_limit):
+            results["total_users"] += 1
 
-                # Build Minimal access token for this user
-                try:
-                    token = minimal_token_service.create_minimal_access_token(
-                        user_id=str(user.id),
-                        user_email=str(user.email or "user@example.com"),
-                        expires_in_hours=8,
-                    )
-                except Exception as e:
+            # Build Minimal access token for this user
+            try:
+                token = minimal_token_service.create_minimal_access_token(
+                    user_id=str(user.id),
+                    user_email=str(user.email or "user@example.com"),
+                    expires_in_hours=8,
+                )
+            except Exception as e:
+                results["failed"] += 1
+                results["errors"].append({
+                    "user_id": str(user.id),
+                    "stage": "token",
+                    "error": str(e)[:300],
+                })
+                continue
+
+            # Prepare request body using stored preferences
+            body = {
+                "user_preferences": prefs.to_dict(),
+                "perBucketPages": int(max(0, min(per_bucket_pages, 20))),
+            }
+
+            headers = {
+                "Authorization": f"Bearer {token}",
+                "Content-Type": "application/json",
+            }
+
+            results["attempted"] += 1
+            try:
+                resp = client.post(
+                    "/api/v1/search/properties-by-polygon",
+                    json=body,
+                    headers=headers,
+                )
+                if resp.status_code == 200 and (resp.is_json or False):
+                    results["succeeded"] += 1
+                else:
                     results["failed"] += 1
                     results["errors"].append({
                         "user_id": str(user.id),
-                        "stage": "token",
-                        "error": str(e)[:300],
+                        "stage": "route",
+                        "status": resp.status_code,
+                        "body": (resp.get_json(silent=True) if hasattr(resp, "get_json") else None),
                     })
-                    continue
+            except Exception as e:
+                results["failed"] += 1
+                results["errors"].append({
+                    "user_id": str(user.id),
+                    "stage": "request",
+                    "error": str(e)[:300],
+                })
 
-                # Prepare request body using stored preferences
-                body = {
-                    "user_preferences": prefs.to_dict(),
-                    "perBucketPages": int(max(0, min(per_bucket_pages, 20))),
-                }
-
-                headers = {
-                    "Authorization": f"Bearer {token}",
-                    "Content-Type": "application/json",
-                }
-
-                results["attempted"] += 1
-                try:
-                    resp = client.post(
-                        "/api/v1/search/properties-by-polygon",
-                        json=body,
-                        headers=headers,
-                    )
-                    if resp.status_code == 200 and (resp.is_json or False):
-                        results["succeeded"] += 1
-                    else:
-                        results["failed"] += 1
-                        results["errors"].append({
-                            "user_id": str(user.id),
-                            "stage": "route",
-                            "status": resp.status_code,
-                            "body": (resp.get_json(silent=True) if hasattr(resp, "get_json") else None),
-                        })
-                except Exception as e:
-                    results["failed"] += 1
-                    results["errors"].append({
-                        "user_id": str(user.id),
-                        "stage": "request",
-                        "error": str(e)[:300],
-                    })
-
-                # Throttle between users to avoid hitting external API limits
-                try:
-                    if pause_seconds and pause_seconds > 0:
-                        time.sleep(pause_seconds)
-                except Exception:
-                    pass
+            # Throttle between users to avoid hitting external API limits
+            try:
+                if pause_seconds and pause_seconds > 0:
+                    time.sleep(pause_seconds)
+            except Exception:
+                pass
 
     return results
+
+
+def run_polygon_search_for_all_users_with_context(*args, **kwargs):
+    """
+    Ensures an app context exists before running. Safe to call with or without
+    an active app context.
+    """
+    try:
+        _ = current_app.name  # raises if no app context
+        return run_polygon_search_for_all_users(*args, **kwargs)
+    except RuntimeError:
+        from app import create_app
+        app = create_app()
+        with app.app_context():
+            return run_polygon_search_for_all_users(*args, **kwargs)
 
 
 if __name__ == "__main__":
@@ -127,7 +137,7 @@ if __name__ == "__main__":
     pages = int(os.getenv("POLY_SEARCH_PER_BUCKET_PAGES", "5"))
     limit = os.getenv("POLY_SEARCH_USER_LIMIT")
     user_limit = int(limit) if (limit and limit.isdigit()) else None
-    summary = run_polygon_search_for_all_users(
+    summary = run_polygon_search_for_all_users_with_context(
         pause_seconds=pause,
         per_bucket_pages=pages,
         user_limit=user_limit,
