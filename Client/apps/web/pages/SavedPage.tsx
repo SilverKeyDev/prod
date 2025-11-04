@@ -45,9 +45,6 @@ export default function SavedHomes() {
     savedHomesLoading: loading,
     savedHomesError: error,
     refreshSavedHomes,
-    saveHome,
-    removeSavedHome,
-    isHomeSaved,
   } = useSavedHomesStoreIntegration();
 
   // Use reports data hook (same as Dashboard)
@@ -247,54 +244,6 @@ export default function SavedHomes() {
     [setSelectedHome, enqueueToast]
   );
 
-  // Check if a home is saved (for modal)
-  const isHomeSavedForModal = useCallback(
-    (homeId: string) => {
-      return isHomeSaved(homeId);
-    },
-    [isHomeSaved]
-  );
-
-  // Save home for modal - use Zustand hook
-  const saveHomeForModal = useCallback(
-    async (property: SavedHome) => {
-      try {
-        await saveHome(property);
-        enqueueToast({
-          type: "success",
-          message: `Saved ${property.address}`,
-        });
-      } catch (error: unknown) {
-        console.error("Error saving home:", error);
-        enqueueToast({
-          type: "error",
-          message: "Failed to save home",
-        });
-      }
-    },
-    [saveHome, enqueueToast]
-  );
-
-  // Remove saved home for modal - use Zustand hook
-  const removeSavedHomeForModal = useCallback(
-    async (homeId: string) => {
-      try {
-        await removeSavedHome(homeId);
-        enqueueToast({
-          type: "success",
-          message: "Removed from favorites",
-        });
-      } catch (error: unknown) {
-        console.error("Error removing home from favorites:", error);
-        enqueueToast({
-          type: "error",
-          message: "Failed to remove home from favorites",
-        });
-      }
-    },
-    [removeSavedHome, enqueueToast]
-  );
-
   const filteredHomes = homes.filter((h: SavedHome) => {
     return (
       h.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -471,18 +420,18 @@ export default function SavedHomes() {
               </div>
             ) : null
           }
-          onRefresh={refresh}
+          onRefresh={!isMobile ? refresh : undefined}
           isRefreshing={refreshing}
           isLoading={viewType === "homes" ? loading : reportsLoading}
           refreshTitle={
             viewType === "homes" ? "Refresh saved homes" : "Refresh reports"
           }
           rightText={
-            isMobile
-              ? ""
-              : viewType === "homes"
+            !isMobile
+              ? viewType === "homes"
                 ? `${filteredHomes.length} saved`
                 : `${filteredReports.length} report${filteredReports.length !== 1 ? "s" : ""}`
+              : undefined
           }
           viewType={viewType}
           onViewTypeChange={setViewType}
@@ -535,12 +484,16 @@ export default function SavedHomes() {
                       property={{
                         id: home.home_id,
                         address: home.address ?? home.description ?? "",
-                        price: home.price,
-                        bedrooms: home.bedrooms,
-                        bathrooms: home.bathrooms,
-                        sqft: home.sqft,
-                        lat: home.lat,
-                        lng: home.lng,
+                        price:
+                          typeof home.price === "string" ||
+                          typeof home.price === "number"
+                            ? String(home.price)
+                            : "",
+                        bedrooms: home.bedrooms ?? 0,
+                        bathrooms: home.bathrooms ?? 0,
+                        sqft: home.sqft ?? 0,
+                        lat: home.lat ?? 0,
+                        lng: home.lng ?? 0,
                         images: home.image_url ? [home.image_url] : [],
                       }}
                       size="sm"
@@ -603,7 +556,11 @@ export default function SavedHomes() {
               ? ({
                   id: selectedProperty.home_id,
                   address: selectedProperty.address ?? "",
-                  price: String(selectedProperty.price ?? ""),
+                  price:
+                    typeof selectedProperty.price === "string" ||
+                    typeof selectedProperty.price === "number"
+                      ? String(selectedProperty.price)
+                      : "",
                   bedrooms: selectedProperty.bedrooms ?? 0,
                   bathrooms: selectedProperty.bathrooms ?? 0,
                   sqft: selectedProperty.sqft ?? 0,
@@ -618,30 +575,6 @@ export default function SavedHomes() {
               : null
           }
           onClose={() => setSelectedProperty(null)}
-          isHomeSaved={isHomeSavedForModal}
-          saveHome={async (property) => {
-            type PropertyWithId =
-              import("../../../packages/hooks/data/usePropertyDetails").Property & {
-                home_id?: string;
-                image_url?: string;
-              };
-            const prop = property as PropertyWithId;
-            const mapped: SavedHome = {
-              home_id: prop.id ?? prop.home_id ?? "",
-              address: prop.address,
-              price: prop.price,
-              bedrooms: prop.bedrooms,
-              bathrooms: prop.bathrooms,
-              sqft: prop.sqft,
-              lat: prop.lat,
-              lng: prop.lng,
-              image_url: Array.isArray(prop.images)
-                ? prop.images[0]
-                : prop.image_url,
-            };
-            await saveHomeForModal(mapped);
-          }}
-          removeSavedHome={removeSavedHomeForModal}
         />
       </div>
     </div>
