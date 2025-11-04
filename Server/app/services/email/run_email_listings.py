@@ -5,6 +5,7 @@ from app import create_app, db
 from app.models.home_universal import HomeUniversal
 from app.services.email.last_logged_in import get_recently_logged_in_users_with_preferences
 from app.services.email.send_test_emails_via_ses import send_personalized_emails_via_ses
+from app.services.email.format_email_content import EmailFormatter
 
 # Optional portability import for ordering; safe to keep even if unused
 try:
@@ -16,35 +17,21 @@ except Exception:
 
 app = create_app()
 
-def _format_listings_text(listings: List[HomeUniversal], max_items: int = 10) -> str:
-    """
-    Produce a simple plaintext summary of listings for email body.
-    """
-    if not listings:
-        return ""
-    lines: List[str] = []
-    for i, home in enumerate(listings, start=1):
-        if i > max_items:
-            break
-        parts = [
-            f"Address: {home.address or 'N/A'}",
-            f"Price: {home.price if home.price is not None else 'N/A'}",
-            f"Beds: {home.beds if home.beds is not None else 'N/A'}",
-            f"Baths: {home.baths if home.baths is not None else 'N/A'}",
-            f"Sqft: {home.sqft if home.sqft is not None else 'N/A'}",
-            f"Score: {home.score if home.score is not None else 'N/A'}",
-        ]
-        if getattr(home, "zillow_url", None):
-            parts.append(f"Link: {home.zillow_url}")
-        lines.append(" | ".join(parts))
-    return "\n".join(lines)
 
-def build_messages_for_recent_users(max_items_per_user: int = 10) -> List[Tuple[str, str, str]]:
+def build_messages_for_recent_users(max_items_per_user: int = 10, use_llm: bool = False) -> List[Tuple[str, str, str]]:
     """
     Build personalized email messages for recently active users with preferences.
     Each tuple is (recipient_email, subject, body_text).
+    
+    Args:
+        max_items_per_user: Maximum number of listings per email
+        use_llm: Whether to use LLM personalization (not yet implemented)
     """
     users = get_recently_logged_in_users_with_preferences() or []
+    
+    # Initialize email formatter
+    formatter = EmailFormatter(use_llm=use_llm)
+    
     messages: List[Tuple[str, str, str]] = []
     for entry in users:
         user_id = str(entry.get("user_id", "") or "")
@@ -66,13 +53,22 @@ def build_messages_for_recent_users(max_items_per_user: int = 10) -> List[Tuple[
 
         listings = q.limit(max_items_per_user).all()
 
-        body = _format_listings_text(listings, max_items=max_items_per_user)
-        if not body:
-            # Skip sending empty emails
+        if not listings:
+            # Skip users with no listings
             continue
 
-        subject = "Your updated listings"
-        messages.append((email, subject, body))
+        # Format email using the new formatter
+        try:
+            message = formatter.format_email_message(
+                recipient_email=email,
+                listings=listings,
+                user_id=user_id,
+                max_items=max_items_per_user,
+            )
+            messages.append(message)
+        except Exception as e:
+            print(f"Failed to format email for {email}: {e}")
+            continue
 
     return messages
 
