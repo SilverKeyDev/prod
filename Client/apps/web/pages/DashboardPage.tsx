@@ -9,7 +9,7 @@ import ReportCard from "../components/cards/ReportCard";
 import DeleteModal from "../components/modals/DeleteModal";
 import PdfModal from "../components/modals/PdfModal";
 import { NavigationButton } from "../components/ui";
-// import { Calendar } from "../features/dashboard/calendar";
+import { Calendar } from "../features/dashboard/calendar";
 // Core
 import { reportApi } from "../../../packages/config/api";
 import { useDocumentActions } from "../../../packages/hooks/data/useDocumentActions";
@@ -429,11 +429,10 @@ export default function Dashboard() {
           />
         </div>
 
-        {/* Calendar
+        {/* Calendar */}
         <div className="my-8">
           <Calendar />
         </div>
-        */}
       </div>
     </div>
   );
