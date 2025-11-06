@@ -1,5 +1,5 @@
 import os
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Optional
 
 from app import create_app, db
 from app.models.home_universal import HomeUniversal
@@ -18,21 +18,26 @@ except Exception:
 app = create_app()
 
 
-def build_messages_for_recent_users(max_items_per_user: int = 10, use_llm: bool = False) -> List[Tuple[str, str, str]]:
+def build_messages_for_recent_users(
+    max_items_per_user: int = 10, 
+    use_llm: bool = False,
+    use_html: bool = True,
+) -> List[Tuple[str, str, str, Optional[str]]]:
     """
     Build personalized email messages for recently active users with preferences.
-    Each tuple is (recipient_email, subject, body_text).
+    Each tuple is (recipient_email, subject, body_text, html_body).
     
     Args:
         max_items_per_user: Maximum number of listings per email
         use_llm: Whether to use LLM personalization (not yet implemented)
+        use_html: If True, render HTML email using React Email (default: True)
     """
     users = get_recently_logged_in_users_with_preferences() or []
     
     # Initialize email formatter
     formatter = EmailFormatter(use_llm=use_llm)
     
-    messages: List[Tuple[str, str, str]] = []
+    messages: List[Tuple[str, str, str, Optional[str]]] = []
     for entry in users:
         user_id = str(entry.get("user_id", "") or "")
         email = (entry.get("email", "") or "").strip()
@@ -64,6 +69,7 @@ def build_messages_for_recent_users(max_items_per_user: int = 10, use_llm: bool 
                 listings=listings,
                 user_id=user_id,
                 max_items=max_items_per_user,
+                use_html=use_html,
             )
             messages.append(message)
         except Exception as e:
@@ -103,7 +109,11 @@ def run_orchestrator():
 
     # Build messages
     max_items = int(os.getenv("EMAIL_MAX_ITEMS_PER_USER", "10"))
-    messages = build_messages_for_recent_users(max_items_per_user=max_items)
+    use_html = os.getenv("EMAIL_USE_HTML", "true").lower() in ("1", "true", "yes")
+    messages = build_messages_for_recent_users(
+        max_items_per_user=max_items,
+        use_html=use_html,
+    )
 
     if not messages:
         print("No messages to send (no eligible users or no listings).")
@@ -114,8 +124,13 @@ def run_orchestrator():
 
     # Respect DRY_RUN for CI
     if os.getenv("DRY_RUN", "false").lower() in ("1", "true", "yes"):
-        print(f"[DRY_RUN] Would send {len(messages)} emails. First 1 preview:\n"
-              f"To: {messages[0][0]}\nSubject: {messages[0][1]}\n\n{messages[0][2][:500]}")
+        if messages:
+            msg = messages[0]
+            html_preview = ""
+            if len(msg) > 3 and msg[3]:
+                html_preview = f"\nHTML Body: {len(msg[3])} chars (preview: {msg[3][:200]}...)"
+            print(f"[DRY_RUN] Would send {len(messages)} emails. First 1 preview:\n"
+                  f"To: {msg[0]}\nSubject: {msg[1]}\n\nText Body: {msg[2][:500]}{html_preview}")
         return
 
     # Send via SES

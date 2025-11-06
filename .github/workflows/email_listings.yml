@@ -111,12 +111,17 @@ jobs:
           cache: "pip"
           cache-dependency-path: Server/requirements.txt
 
-      - name: Log - Python setup complete
-        run: |
-          {
-            echo "### Step: Python Setup"
-            echo "Configured Python 3.11 with pip cache."
-          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+          cache-dependency-path: Client/pnpm-lock.yaml
 
       - name: Install server dependencies
         run: |
@@ -125,18 +130,11 @@ jobs:
           pip install -r Server/requirements.txt
           pip install boto3 >/dev/null
 
-      - name: Check SES identity
+      - name: Install frontend dependencies
+        working-directory: Client
         run: |
           set -euo pipefail
-          aws sesv2 get-account
-          # Replace with your actual sender (domain or email)
-          SENDER="noreply@usesilverkey.com"
-          if aws sesv2 get-email-identity --email-identity "$SENDER" >/dev/null 2>&1; then
-            echo "SES identity verified for $SENDER"
-          else
-            echo "ERROR: SES identity not verified for $SENDER (region us-east-2)"; exit 1
-          fi
-
+          pnpm install --frozen-lockfile
       - name: Run email listings orchestrator (search + email)
         env:
           DATABASE_URL: ${{ env.DATABASE_URL }}
@@ -146,9 +144,15 @@ jobs:
           POLY_SEARCH_PAUSE_SECONDS: "5.0"
           POLY_SEARCH_PER_BUCKET_PAGES: "5"
           EMAIL_MAX_ITEMS_PER_USER: "10"
+          # Enable HTML email rendering (default: true)
+          EMAIL_USE_HTML: "true"
         run: |
           set -euo pipefail
           echo "Starting orchestrator..."
+          echo "Node.js version: $(node --version)"
+          echo "pnpm version: $(pnpm --version)"
+          echo "Checking email render script availability..."
+          test -f Client/apps/web/services/email/render-email.ts && echo "✓ Render script found" || echo "✗ Render script missing"
           python Server/app/services/email/run_email_listings.py | tee orchestrator_out.txt
           {
             echo "### Email Listings Orchestrator"

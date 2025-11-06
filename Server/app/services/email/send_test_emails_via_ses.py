@@ -1,5 +1,5 @@
 import os
-from typing import Dict, Iterable, List, Tuple
+from typing import Dict, Iterable, List, Tuple, Optional
 
 import boto3
 from botocore.exceptions import BotoCoreError, ClientError
@@ -43,10 +43,13 @@ def send_test_emails_via_ses(recipients: Iterable[str]) -> List[str]:
     return message_ids
 
 
-def send_personalized_emails_via_ses(messages: List[Tuple[str, str, str]]) -> List[str]:
+def send_personalized_emails_via_ses(
+    messages: List[Tuple[str, str, str, Optional[str]]]
+) -> List[str]:
     """
     Send personalized emails via SES.
-    messages: List of tuples (recipient_email, subject, body_text)
+    messages: List of tuples (recipient_email, subject, body_text, html_body)
+             html_body is optional - if provided, email will be sent as HTML with text fallback
     Returns list of MessageIds for successful sends.
     """
     sender = "noreply@usesilverkey.com"
@@ -55,16 +58,34 @@ def send_personalized_emails_via_ses(messages: List[Tuple[str, str, str]]) -> Li
 
     ses = _get_ses_client()
     message_ids: List[str] = []
-    for to_address, subject, body_text in messages:
+    for message_tuple in messages:
+        # Support both old format (3 items) and new format (4 items)
+        if len(message_tuple) == 3:
+            to_address, subject, body_text = message_tuple
+            html_body = None
+        else:
+            to_address, subject, body_text, html_body = message_tuple
+        
         if not to_address:
             continue
         try:
+            # Build message body
+            if html_body:
+                # Send as HTML with text fallback
+                body = {
+                    "Text": {"Data": body_text or "", "Charset": "UTF-8"},
+                    "Html": {"Data": html_body, "Charset": "UTF-8"},
+                }
+            else:
+                # Plain text only (backward compatible)
+                body = {"Text": {"Data": body_text or "", "Charset": "UTF-8"}}
+            
             resp = ses.send_email(
                 Source=sender,
                 Destination={"ToAddresses": [to_address]},
                 Message={
                     "Subject": {"Data": subject or "", "Charset": "UTF-8"},
-                    "Body": {"Text": {"Data": body_text or "", "Charset": "UTF-8"}},
+                    "Body": body,
                 },
             )
             mid = resp.get("MessageId")

@@ -3,14 +3,30 @@ Email content formatting module.
 
 Formats email content with hardcoded elements (title, subject, etc.) and provides
 infrastructure for future LLM-based personalization.
+
+Now supports HTML rendering via React Email components.
 """
 
 from typing import List, Tuple, Optional, Dict, Any
 import logging
+import os
 
 from app.models.home_universal import HomeUniversal
 
 logger = logging.getLogger(__name__)
+
+# Import HTML renderer
+try:
+    from app.services.email.render_email_html import (
+        render_email_html,
+        convert_home_universal_to_listing_dict,
+    )
+    HTML_RENDERING_AVAILABLE = True
+except ImportError:
+    HTML_RENDERING_AVAILABLE = False
+    logger.warning(
+        "HTML email rendering not available. Falling back to plain text."
+    )
 
 
 # Hardcoded email configuration
@@ -152,7 +168,8 @@ class EmailFormatter:
         user_id: Optional[str] = None,
         max_items: int = 10,
         custom_subject: Optional[str] = None,
-    ) -> Tuple[str, str, str]:
+        use_html: bool = True,
+    ) -> Tuple[str, str, str, Optional[str]]:
         """
         Format a complete email message.
         
@@ -162,14 +179,47 @@ class EmailFormatter:
             user_id: Optional user ID for future personalization
             max_items: Maximum number of listings to include
             custom_subject: Optional custom subject line (overrides default)
+            use_html: If True, render HTML email using React Email (default: True)
             
         Returns:
-            Tuple of (recipient_email, subject, body_text)
+            Tuple of (recipient_email, subject, body_text, html_body)
+            html_body will be None if HTML rendering is disabled or unavailable
         """
         subject = custom_subject or EMAIL_CONFIG["subject_template"]
-        body = self.format_listings_text(listings, max_items=max_items, user_id=user_id)
+        body_text = self.format_listings_text(listings, max_items=max_items, user_id=user_id)
+        html_body = None
         
-        return (recipient_email, subject, body)
+        # Try to render HTML if requested and available
+        if use_html and HTML_RENDERING_AVAILABLE:
+            try:
+                # Convert listings to dict format for React component
+                listing_dicts = [
+                    convert_home_universal_to_listing_dict(listing)
+                    for listing in listings[:max_items]
+                ]
+                
+                # Render HTML email
+                html_body = render_email_html(
+                    template_name="ListingsEmail",
+                    props={
+                        "recipientEmail": recipient_email,
+                        "listings": listing_dicts,
+                        "maxItems": max_items,
+                    },
+                )
+                logger.info(
+                    f"Successfully rendered HTML email for {recipient_email} "
+                    f"with {len(listing_dicts)} listings"
+                )
+            except Exception as e:
+                logger.warning(
+                    f"Failed to render HTML email for {recipient_email}, "
+                    f"falling back to plain text: {e}"
+                )
+                # Continue with plain text only
+                html_body = None
+        
+        return (recipient_email, subject, body_text, html_body)
 
     def format_email_with_llm(
         self,
@@ -234,7 +284,8 @@ def format_email_messages(
     user_listings: List[Tuple[str, str, List[HomeUniversal]]],
     max_items_per_user: int = 10,
     use_llm: bool = False,
-) -> List[Tuple[str, str, str]]:
+    use_html: bool = True,
+) -> List[Tuple[str, str, str, Optional[str]]]:
     """
     Format email messages for multiple users.
     
@@ -242,12 +293,14 @@ def format_email_messages(
         user_listings: List of tuples (user_id, email, listings)
         max_items_per_user: Maximum listings per email
         use_llm: Whether to use LLM personalization (not yet implemented)
+        use_html: If True, render HTML email using React Email (default: True)
         
     Returns:
-        List of tuples (recipient_email, subject, body_text)
+        List of tuples (recipient_email, subject, body_text, html_body)
+        html_body will be None if HTML rendering is disabled or unavailable
     """
     formatter = EmailFormatter(use_llm=use_llm)
-    messages: List[Tuple[str, str, str]] = []
+    messages: List[Tuple[str, str, str, Optional[str]]] = []
     
     for user_id, email, listings in user_listings:
         if not email or not listings:
@@ -259,6 +312,7 @@ def format_email_messages(
                 listings=listings,
                 user_id=user_id,
                 max_items=max_items_per_user,
+                use_html=use_html,
             )
             messages.append(message)
         except Exception as e:
