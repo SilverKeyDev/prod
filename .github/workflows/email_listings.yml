@@ -97,13 +97,6 @@ jobs:
           export_if_present "$serp_json" "SERP_API" "SERP_API"
           export_if_present "$rapidapi_json" "RAPIDAPI_KEY" "RAPIDAPI_KEY"
 
-      - name: Log - Loaded environment variables
-        run: |
-          {
-            echo "### Step: Env Load"
-            echo "Loaded environment variables from AWS Secrets Manager and GitHub Secrets."
-          } >> "$GITHUB_STEP_SUMMARY"
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
