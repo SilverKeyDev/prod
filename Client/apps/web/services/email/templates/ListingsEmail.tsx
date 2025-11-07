@@ -5,12 +5,9 @@ import {
   Container,
   Section,
   Text,
-  Heading,
   Button,
   Hr,
   Img,
-  Row,
-  Column,
 } from "@react-email/components";
 import { Tailwind } from "@react-email/tailwind";
 import React from "react";
@@ -31,6 +28,7 @@ export type ListingsEmailProps = {
   recipientEmail: string;
   listings: Listing[];
   maxItems?: number;
+  logoUrl?: string;
 };
 
 const formatPrice = (price: string | number): string => {
@@ -52,6 +50,7 @@ export default function ListingsEmail({
   recipientEmail,
   listings,
   maxItems = 10,
+  logoUrl = "https://silverkey.com/logo.png",
 }: ListingsEmailProps) {
   const displayListings = listings.slice(0, maxItems);
 
@@ -73,6 +72,11 @@ export default function ListingsEmail({
                   light: "#97a77b",
                   muted: "hsl(85, 15%, 55%)",
                 },
+                gold: {
+                  DEFAULT: "#D4AF37",
+                  light: "#E5C158",
+                  muted: "hsl(43, 74%, 49%)",
+                },
                 neutral: {
                   50: "hsl(0, 0%, 98%)",
                   100: "hsl(0, 0%, 96%)",
@@ -92,18 +96,22 @@ export default function ListingsEmail({
       >
         <Body className="bg-neutral-100 font-sans">
           <Container className="bg-white max-w-[600px] mx-auto my-8 p-8 rounded-lg shadow-sm">
-            {/* Header */}
-            <Section className="mb-6">
-              <Heading className="text-2xl font-bold text-black mb-2">
-                New Properties Matching Your Preferences
-              </Heading>
-              <Text className="text-base text-neutral-600 mb-4">
-                Hello!
-              </Text>
-              <Text className="text-base text-neutral-700 mb-6">
-                We've found some great properties that match your preferences:
-              </Text>
-            </Section>
+            {/* Logo */}
+            {logoUrl && (
+              <Section className="mb-6 text-center">
+                <Img
+                  src={logoUrl}
+                  alt="SilverKey Logo"
+                  width="200"
+                  height="auto"
+                  className="mx-auto"
+                  style={{
+                    maxWidth: "200px",
+                    height: "auto",
+                  }}
+                />
+              </Section>
+            )}
 
             {/* Listings */}
             {displayListings.map((listing, index) => (
@@ -178,8 +186,14 @@ export default function ListingsEmail({
                   <div className="p-4">
                     {/* Address */}
                     <Text
-                      className="text-base font-semibold text-black mb-2 m-0"
-                      style={{ margin: 0, marginBottom: "8px" }}
+                      className="text-lg font-bold text-gold mb-2 m-0"
+                      style={{ 
+                        color: "#D4AF37",
+                        margin: 0, 
+                        marginBottom: "8px",
+                        fontSize: "18px",
+                        fontWeight: "700",
+                      }}
                     >
                       {listing.address}
                     </Text>
@@ -234,9 +248,9 @@ export default function ListingsEmail({
                     {listing.zillowUrl && (
                       <Button
                         href={listing.zillowUrl}
-                        className="bg-brown text-white no-underline px-4 py-2 rounded-md inline-block text-sm font-medium"
+                        className="bg-olive text-white no-underline px-4 py-2 rounded-md inline-block text-sm font-medium"
                         style={{
-                          backgroundColor: "#8C6F5A",
+                          backgroundColor: "#A3B18A",
                           color: "white",
                           textDecoration: "none",
                           padding: "8px 16px",

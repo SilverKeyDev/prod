@@ -1,4 +1,4 @@
-name: Email Listings
+name: Sunday Newsletter
 
 on:
   workflow_dispatch:
