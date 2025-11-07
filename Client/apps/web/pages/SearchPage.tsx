@@ -10,7 +10,6 @@ import RippleBackground from "../features/homeauth/RippleBackground";
 
 // Core
 import { env } from "../../../packages/config";
-import { preferencesApi } from "../../../packages/config/api/preferences";
 import { userApi } from "../../../packages/config/api/user";
 import { useGoogleMaps } from "../../../packages/hooks/data/useGoogleMaps";
 import { usePropertyDetails } from "../../../packages/hooks/data/usePropertyDetails";
@@ -328,33 +327,9 @@ export default function SearchPage({
       return Promise.resolve();
     },
     searchPropertiesInIsochrone: async (isochroneData: unknown) => {
-      // Get user preferences for the search
-      let userPrefs: UserPreferencesData = {};
-      try {
-        const response = await preferencesApi.get();
-        if (
-          response &&
-          typeof response === "object" &&
-          "success" in response &&
-          response.success &&
-          "preferences" in response &&
-          response.preferences
-        ) {
-          userPrefs = response.preferences as UserPreferencesData;
-          console.log("🔍 [SEARCH] Loaded user preferences:", {
-            hasBudgetMin: !!userPrefs.home_budget_min,
-            hasBudgetMax: !!userPrefs.home_budget_max,
-            budgetMin: userPrefs.home_budget_min,
-            budgetMax: userPrefs.home_budget_max,
-          });
-        }
-      } catch (prefError: unknown) {
-        const error = asError(prefError);
-        console.warn(
-          "⚠️ Could not fetch user preferences, using empty preferences:",
-          error
-        );
-      }
+      // Backend now pulls user preferences from database, so we don't need to fetch them
+      // Pass empty object - backend will use database values
+      const userPrefs: UserPreferencesData = {};
 
       // Use the service function
       await searchPropertiesInIsochrone(
@@ -369,7 +344,6 @@ export default function SearchPage({
         saveSearchResultsToLocalStorage
       );
     },
-    prefsApi: preferencesApi,
     setSearchStage: (stage?: string) => setSearchStage(stage ?? ""),
     setSearchResults,
     setIsSearching,

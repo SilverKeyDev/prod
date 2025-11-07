@@ -12,10 +12,11 @@ import { KeyTurnLoader } from "../components/ui";
 import GenerateReportPage from "../features/decide/generate/GenerateReport";
 import { reportApi } from "../../../packages/config/api";
 import { useDocumentActions } from "../../../packages/hooks/data/useDocumentActions";
+import { usePropertyDetails } from "../../../packages/hooks/data/usePropertyDetails";
 import { useReportsData } from "../../../packages/hooks/data/useReportsData";
 import { useSavedHomesStoreIntegration } from "../../../packages/hooks/store/useSavedHomesStoreIntegration";
 import type { SavedHome, Report } from "../../../packages/schemas";
-import { useUIStore, useNegotiationStore } from "../../../packages/store";
+import { useUIStore } from "../../../packages/store";
 import CompareReportsPage from "../features/decide/compare/CompareReportsPage";
 import AIAssistant from "../features/decide/aiAssistant/AIAssistant";
 import Button from "../components/ui/button/Button";
@@ -28,16 +29,12 @@ export default function SavedHomes() {
   const isMobile = useMobile();
   const [searchTerm, setSearchTerm] = useState("");
   const [refreshing, setRefreshing] = useState(false);
-  const [selectedProperty, setSelectedProperty] = useState<SavedHome | null>(
-    null
-  );
   const [viewType, setViewType] = useState<"homes" | "reports">("reports");
   const [reportsSubView, setReportsSubView] = useState<
     "reports" | "compare" | "chatbot"
   >("reports");
   const [isComparisonMode, setIsComparisonMode] = useState(false);
   const enqueueToast = useUIStore((s) => s.enqueueToast);
-  const { setSelectedHome } = useNegotiationStore();
 
   // Use Zustand store for saved homes data (React Query integration)
   const {
@@ -61,6 +58,10 @@ export default function SavedHomes() {
     currentDocumentName,
     closePdfModal,
   } = useDocumentActions();
+
+  // Use property details hook for unlock functionality
+  const { selectedProperty, fetchPropertyDetails, clearSelectedProperty } =
+    usePropertyDetails();
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [reportToDelete, setReportToDelete] = useState<{
@@ -215,33 +216,35 @@ export default function SavedHomes() {
     [refreshReports]
   );
 
-  // Handle unlocking a home and saving to negotiation store
+  // Handle unlocking a home - opens PropertyDetailsModal
   const handleUnlockHome = useCallback(
-    (home: SavedHome) => {
-      // Convert SavedHome to the format expected by negotiation store
-      const negotiationHome = {
-        user_id: String(home.home_id || home.id || home.zpid?.toString() || ""),
+    async (home: SavedHome) => {
+      // Convert SavedHome to Property format for the hook
+      const propertyData = {
+        id: home.home_id,
         address: String(home.address || home.description || ""),
-        beds: home.bedrooms || 0,
-        baths: home.bathrooms || 0,
-        sqft: home.sqft || 0,
-        lot_size: String(home.lot_size || ""),
-        price: String(home.price || ""),
-        image_url: String(home.image_url || ""),
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        price:
+          typeof home.price === "string"
+            ? home.price.startsWith("$")
+              ? home.price
+              : `$${home.price}`
+            : typeof home.price === "number"
+              ? `$${home.price.toLocaleString()}`
+              : "Price not available",
+        bedrooms: home.bedrooms ?? 0,
+        bathrooms: home.bathrooms ?? 0,
+        sqft: home.sqft ?? 0,
+        lat: home.lat ?? 0,
+        lng: home.lng ?? 0,
+        latitude: home.lat ?? 0,
+        longitude: home.lng ?? 0,
+        images: home.image_url ? [home.image_url] : undefined,
       };
 
-      // Save to negotiation store
-      setSelectedHome(negotiationHome);
-
-      // Show success message
-      enqueueToast({
-        type: "success",
-        message: `Selected ${home.address || home.description} for negotiation`,
-      });
+      // Fetch property details and open modal
+      await fetchPropertyDetails(propertyData);
     },
-    [setSelectedHome, enqueueToast]
+    [fetchPropertyDetails]
   );
 
   const filteredHomes = homes.filter((h: SavedHome) => {
@@ -550,32 +553,12 @@ export default function SavedHomes() {
         {/* Global toasts shown via ToastsPortal */}
 
         {/* Property Details Modal */}
-        <PropertyDetailsModal
-          property={
-            selectedProperty
-              ? ({
-                  id: selectedProperty.home_id,
-                  address: selectedProperty.address ?? "",
-                  price:
-                    typeof selectedProperty.price === "string" ||
-                    typeof selectedProperty.price === "number"
-                      ? String(selectedProperty.price)
-                      : "",
-                  bedrooms: selectedProperty.bedrooms ?? 0,
-                  bathrooms: selectedProperty.bathrooms ?? 0,
-                  sqft: selectedProperty.sqft ?? 0,
-                  lat: selectedProperty.lat ?? 0,
-                  lng: selectedProperty.lng ?? 0,
-                  latitude: selectedProperty.lat ?? 0,
-                  longitude: selectedProperty.lng ?? 0,
-                  images: selectedProperty.image_url
-                    ? [selectedProperty.image_url]
-                    : [],
-                } as import("../../../packages/hooks/data/usePropertyDetails").Property)
-              : null
-          }
-          onClose={() => setSelectedProperty(null)}
-        />
+        {selectedProperty && (
+          <PropertyDetailsModal
+            property={selectedProperty}
+            onClose={clearSelectedProperty}
+          />
+        )}
       </div>
     </div>
   );

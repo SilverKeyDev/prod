@@ -42,6 +42,7 @@ export function useUserData(): UseUserDataReturn {
         subscription: userData.subscription ?? null,
         has_preferences: userData.has_preferences ?? false,
         is_agent: userData.is_agent ?? false,
+        is_closing_mode: userData.is_closing_mode ?? false,
         client_ids: Array.isArray(userData.client_ids)
           ? userData.client_ids.join(",")
           : userData.client_ids,

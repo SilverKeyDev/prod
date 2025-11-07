@@ -112,17 +112,18 @@ export type UserPreferencesData = {
 };
 
 export type SearchByPolygonRequest = {
-  user_preferences: {
-    home_budget_min: number;
-    home_budget_max: number;
-    preferred_bedrooms: number;
-    preferred_bathrooms: number;
-    preferred_housing_type: string;
-    preferred_home_age: string;
-    preferred_lot_size: string;
-    preferred_home_features: string[];
-    deal_breakers: string[];
-    important_locations: Array<{
+  // user_preferences is now optional - backend pulls from database
+  user_preferences?: {
+    home_budget_min?: number;
+    home_budget_max?: number;
+    preferred_bedrooms?: number;
+    preferred_bathrooms?: number;
+    preferred_housing_type?: string;
+    preferred_home_age?: string;
+    preferred_lot_size?: string;
+    preferred_home_features?: string[];
+    deal_breakers?: string[];
+    important_locations?: Array<{
       name: string;
       address: string;
       commute_tolerance: number;

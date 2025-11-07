@@ -6,6 +6,7 @@ export type OnboardingData = {
   preferences_version?: string;
 
   // Demographics
+  is_agent?: string;
   pets?: string;
   age?: number;
   gender?: string;

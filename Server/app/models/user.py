@@ -19,6 +19,7 @@ class User(db.Model):
     
     user_preferences = db.relationship('UserPreferences', back_populates='user', uselist=False, lazy='select')
     is_agent = db.Column(db.Boolean, default=False)
+    is_closing_mode = db.Column(db.Boolean, nullable=False, default=False)
     client_ids = db.Column(db.Text)  # array of ids of clients
     agent_id = db.Column(db.Text)  # array of ids of agents
     inspections_checklist = db.Column(db.Text)  # array of ids of inspections
@@ -48,6 +49,7 @@ class User(db.Model):
             'is_active': self.is_active,
             'has_preferences': self.has_preferences,
             'is_agent': self.is_agent,
+            'is_closing_mode': self.is_closing_mode,
             'client_ids': self.client_ids,
             'agent_id': self.agent_id,
             'inspections_checklist': self.inspections_checklist,

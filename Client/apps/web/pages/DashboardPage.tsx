@@ -9,11 +9,13 @@ import ReportCard from "../components/cards/ReportCard";
 import DeleteModal from "../components/modals/DeleteModal";
 import PdfModal from "../components/modals/PdfModal";
 import { NavigationButton } from "../components/ui";
+import Toggle from "../components/ui/form/Toggle";
 // import { Calendar } from "../features/dashboard/calendar";
 // Core
-import { reportApi } from "../../../packages/config/api";
+import { reportApi, userApi } from "../../../packages/config/api";
 import { useDocumentActions } from "../../../packages/hooks/data/useDocumentActions";
 import { useReportsData } from "../../../packages/hooks/data/useReportsData";
+import { useUserData } from "../../../packages/hooks/data/useUserData";
 import { useSavedHomesStoreIntegration } from "../../../packages/hooks/store/useSavedHomesStoreIntegration";
 import type { Report } from "../../../packages/schemas";
 import type { SavedHome } from "../../../packages/schemas/property";
@@ -23,6 +25,10 @@ import { asError } from "../../../packages/utils/error";
 
 export default function Dashboard() {
   const navigate = useNavigate();
+
+  // Use user data hook for closing mode
+  const { userProfile, refreshUserProfile } = useUserData();
+  const [isUpdatingClosingMode, setIsUpdatingClosingMode] = useState(false);
 
   // Use saved homes data hook
   const {
@@ -80,6 +86,39 @@ export default function Dashboard() {
     s3Key: string | null | undefined;
   } | null>(null);
   const enqueueToast = useUIStore((s: UIState) => s.enqueueToast);
+
+  // Handle closing mode toggle
+  const handleClosingModeToggle = useCallback(
+    async (checked: boolean) => {
+      if (isUpdatingClosingMode) return;
+
+      setIsUpdatingClosingMode(true);
+      try {
+        const response = await userApi.updateClosingMode(checked);
+        if (response.success) {
+          await refreshUserProfile();
+          enqueueToast({
+            type: "success",
+            message: `Closing mode ${checked ? "enabled" : "disabled"}`,
+          });
+        } else {
+          enqueueToast({
+            type: "error",
+            message: response.error ?? "Failed to update closing mode",
+          });
+        }
+      } catch (error: unknown) {
+        const err = asError(error);
+        enqueueToast({
+          type: "error",
+          message: err.message ?? "Failed to update closing mode",
+        });
+      } finally {
+        setIsUpdatingClosingMode(false);
+      }
+    },
+    [isUpdatingClosingMode, refreshUserProfile, enqueueToast]
+  );
 
   // Use centralized document actions
   const {
@@ -369,6 +408,21 @@ export default function Dashboard() {
 
       {/* Dashboard Sections */}
       <div className="mx-4">
+        {/* Closing Mode Toggle */}
+        {userProfile && (
+          <div className="my-6 flex items-center justify-center">
+            <div className="flex items-center gap-3 rounded-lg bg-white px-4 py-3 shadow-md">
+              <Toggle
+                checked={userProfile.is_closing_mode ?? false}
+                onChange={handleClosingModeToggle}
+                label="Closing Mode"
+                disabled={isUpdatingClosingMode}
+                size="md"
+              />
+            </div>
+          </div>
+        )}
+
         {/* Favorite Homes */}
         <div className="my-8">
           <CardCarousel

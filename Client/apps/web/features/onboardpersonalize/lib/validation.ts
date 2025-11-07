@@ -9,6 +9,7 @@ export type ValidationResult = {
 
 // Mapping of field keys to user-friendly display names
 const FIELD_DISPLAY_NAMES: Record<string, string> = {
+  is_agent: FIELD_LABELS.IS_AGENT,
   age: FIELD_LABELS.AGE,
   gender: FIELD_LABELS.GENDER,
   occupation: FIELD_LABELS.OCCUPATION,

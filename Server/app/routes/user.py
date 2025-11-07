@@ -33,6 +33,42 @@ def get_user_profile():
         })
 
 
+@user_bp.route('/closing-mode', methods=['PUT'])
+@rate_limit(max_requests=100, window_seconds=60)
+def update_closing_mode():
+    """Update the user's closing mode status"""
+    try:
+        user = get_current_user()
+        if not user:
+            return security_error_response(SecurityError.UNAUTHORIZED)
+
+        data = request.get_json(force=True)
+        if 'is_closing_mode' not in data:
+            return jsonify({'success': False, 'error': 'is_closing_mode is required'}), 400
+        
+        is_closing_mode = data.get('is_closing_mode')
+        if not isinstance(is_closing_mode, bool):
+            return jsonify({'success': False, 'error': 'is_closing_mode must be a boolean'}), 400
+
+        user.is_closing_mode = is_closing_mode
+        db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'data': {
+                'is_closing_mode': user.is_closing_mode
+            }
+        })
+        
+    except (SecurityException, ExpiredSignatureError, JWTError) as e:
+        return jsonify({'success': False, 'error': 'Authentication required'}), 401
+    except Exception as e:
+        return SecureErrorHandler.handle_database_error(e, {
+            'function': 'update_closing_mode',
+            'user_id': 'unknown'
+        })
+
+
 def _parse_checklist(raw_value):
     """Helper to safely parse a stored checklist string back to Python list."""
     if not raw_value:

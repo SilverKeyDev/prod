@@ -20,8 +20,12 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
   if (!property) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="max-h-[90vh] w-full max-w-6xl overflow-y-auto rounded-lg bg-white shadow-xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Backdrop with blur */}
+      <div className="fixed inset-0 bg-gray-200/40 backdrop-blur-sm" />
+
+      {/* Modal content */}
+      <div className="relative max-h-[90vh] w-full max-w-6xl overflow-y-auto rounded-lg bg-white shadow-xl">
         {/* Header */}
         <PropertyHeader
           property={property}

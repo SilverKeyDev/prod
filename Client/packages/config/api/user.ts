@@ -1,5 +1,5 @@
 import type { SavedHome } from "../../schemas";
-import { apiGet, apiPost } from "../../services/http/compatibility";
+import { apiGet, apiPost, apiPut } from "../../services/http/compatibility";
 
 // Types for user API
 export type User = {
@@ -12,6 +12,7 @@ export type User = {
   updated_at?: string;
   is_active: boolean;
   is_agent?: boolean;
+  is_closing_mode?: boolean;
   client_ids?: string[];
   agency_name?: string;
   has_subscription?: boolean;
@@ -135,6 +136,17 @@ export const userApi = {
     apiPost<{ success: boolean; message?: string }>(
       "/api/v1/user/remove-agent",
       {},
+    ),
+
+  /**
+   * Update user's closing mode status
+   */
+  updateClosingMode: (
+    isClosingMode: boolean,
+  ): Promise<{ success: boolean; data?: { is_closing_mode: boolean }; error?: string }> =>
+    apiPut<{ success: boolean; data?: { is_closing_mode: boolean }; error?: string }>(
+      "/api/v1/user/closing-mode",
+      { is_closing_mode: isClosingMode },
     ),
 
   /**

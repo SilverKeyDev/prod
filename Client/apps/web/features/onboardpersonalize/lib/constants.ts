@@ -135,6 +135,7 @@ export const SECTION_TITLES = {
 // Shared field labels
 export const FIELD_LABELS = {
   // Demographics
+  IS_AGENT: "Are you a real estate agent?",
   AGE: "Age",
   GENDER: "Gender",
   MARITAL_STATUS: "Marital Status",
@@ -173,6 +174,11 @@ export const FIELD_LABELS = {
 } as const;
 
 // Dropdown options
+export const IS_AGENT_OPTIONS: DropdownOption[] = [
+  { value: "yes", label: "Yes" },
+  { value: "no", label: "No" },
+];
+
 export const GENDER_OPTIONS: DropdownOption[] = [
   { value: "male", label: "Male" },
   { value: "female", label: "Female" },
@@ -262,6 +268,7 @@ export const INFORMATION_DETAIL_OPTIONS: DropdownOption[] = [
 // Required fields mapping - used to determine if a field needs RequiredLabel or OptionalLabel
 export const REQUIRED_FIELDS: Record<string, boolean> = {
   // Demographics
+  is_agent: false,
   age: true,
   gender: false,
   occupation: false,

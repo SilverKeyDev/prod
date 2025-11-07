@@ -1112,16 +1112,36 @@ def search_properties_by_polygon():
         return jsonify({"success": False, "error": "AUTH_ERROR", "message": "Authentication failed"}), 401
 
     try:
+        # Get user preferences from the database, not from request body
+        from app.models.user_preferences import UserPreferences
+        user_prefs_obj = UserPreferences.query.filter_by(user_id=user.id).first()
+        
+        if not user_prefs_obj:
+            current_app.logger.error(f"[POLYGON_SEARCH] ❌ {request_id} - User preferences not found in database")
+            return jsonify({
+                "success": False,
+                "error": "NO_PREFERENCES",
+                "message": "User preferences not found. Please complete your profile setup."
+            }), 400
+        
+        user_preferences = user_prefs_obj.to_dict()
+        
+        # Parse JSON fields if they're strings
+        for field in ['important_locations', 'preferred_home_features', 'deal_breakers']:
+            if hasattr(user_prefs_obj, field):
+                field_value = getattr(user_prefs_obj, field)
+                if isinstance(field_value, str):
+                    try:
+                        user_preferences[field] = json.loads(field_value)
+                    except json.JSONDecodeError:
+                        user_preferences[field] = []
+                else:
+                    user_preferences[field] = field_value or []
 
         data = request.get_json(silent=True) or {}
-        user_preferences = data.get("user_preferences") or {}
         status_type = "ForSale"
         per_pages = data.get("perBucketPages", 20)        
         per_pages = max(0, min(int(per_pages), 20))
-
-        if not user_preferences:
-            current_app.logger.error(f"[POLYGON_SEARCH] ❌ {request_id} - No user preferences provided")
-            return jsonify({"success": False, "error": "NO_PREFS", "message": "User preferences are required"}), 400
 
         # ---- Generate polygon ----
         polygon = generate_isochrone_polygon_from_preferences(user_preferences)

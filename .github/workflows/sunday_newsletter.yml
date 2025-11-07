@@ -1,6 +1,9 @@
 name: Sunday Newsletter
 
 on:
+  schedule:
+    # Run every Sunday at 6am Eastern (11am UTC)
+    - cron: "0 11 * * 0"
   workflow_dispatch:
 
 env:

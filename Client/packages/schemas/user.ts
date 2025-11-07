@@ -15,6 +15,7 @@ export type UserProfile = {
   subscription: unknown;
   has_preferences: boolean;
   is_agent: boolean;
+  is_closing_mode?: boolean;
   agent_id?: string;
   client_ids?: string;
   roles?: UserRole[];

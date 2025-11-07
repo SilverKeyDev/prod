@@ -2,8 +2,6 @@ import { Bed, Bath, Square, MapPin, User } from "lucide-react";
 
 import {
   formatPrice,
-  getStatusColor,
-  formatHomeStatus,
   formatAgentName,
   formatLotSize,
 } from "../../../../packages/utils/address";
@@ -50,12 +48,28 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
   const imageUrl = comp.miniCardPhotos?.[0]?.url ?? "/defaut-home.jpg";
 
   // Format lot size for display
-  const lotSizeDisplay =
-    comp.lotAreaValue && comp.lotAreaValue >= 100
-      ? formatLotSize(comp.lotAreaValue)
-      : comp.lotAreaValue && comp.lotAreaValue < 100
-        ? "N/A"
-        : null;
+  // Try lotAreaValue first, then fall back to lotSize
+  const rawLotSize = comp.lotAreaValue ?? comp.lotSize;
+  const lotSizeDisplay = (() => {
+    if (!rawLotSize) return null;
+
+    // Ensure we have a number
+    const lotSizeValue =
+      typeof rawLotSize === "string" ? parseFloat(rawLotSize) : rawLotSize;
+
+    if (isNaN(lotSizeValue) || lotSizeValue <= 0) return null;
+
+    // Check if we need to convert from acres to square feet
+    const unit = comp.lotAreaUnits?.toLowerCase();
+    if (unit?.includes("acre")) {
+      // Convert acres to square feet (1 acre = 43,560 sqft)
+      const sqft = lotSizeValue * 43560;
+      return formatLotSize(sqft);
+    }
+
+    // Otherwise, format as-is (assumed to be in square feet)
+    return formatLotSize(lotSizeValue);
+  })();
 
   return (
     <div
@@ -74,15 +88,6 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
           {/* Price Badge - reduced padding */}
           <div className="rounded-full border border-neutral-200/50 bg-neutral-50/95 px-2 py-1 backdrop-blur-sm">
             {formatPrice(comp.price, comp.currency)}
-          </div>
-
-          {/* Recently Sold Badge - reduced padding, aligned in same row */}
-          <div
-            className={`rounded-full px-2 py-1 text-xs font-medium ${getStatusColor(
-              comp.homeStatus
-            )}`}
-          >
-            {formatHomeStatus(comp.homeStatus)}
           </div>
         </div>
       </div>

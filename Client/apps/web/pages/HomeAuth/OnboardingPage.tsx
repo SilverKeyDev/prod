@@ -28,6 +28,7 @@ import ImportantLocationsInput from "../../features/onboardpersonalize/Important
 import {
   getOnboardingSteps,
   DEFAULT_REPORT_SECTIONS,
+  IS_AGENT_OPTIONS,
   GENDER_OPTIONS,
   type OnboardingData,
   PETS_OPTIONS,
@@ -344,6 +345,24 @@ export default function OnboardingPage() {
             </Title>
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              <div>
+                <OnPerLabel required={REQUIRED_FIELDS.is_agent}>
+                  {FIELD_LABELS.IS_AGENT}
+                </OnPerLabel>
+                <Dropdown
+                  value={formData.is_agent ?? ""}
+                  onChange={(value) => updateFormData("is_agent", value)}
+                  options={IS_AGENT_OPTIONS}
+                  placeholder="Select..."
+                />
+                {formData.is_agent === "yes" && (
+                  <p className="mt-2 text-xs text-black/60 sm:text-sm md:text-base">
+                    You only need to fill out the rest of this information for
+                    toying around or personal use.
+                  </p>
+                )}
+              </div>
+
               <div>
                 <OnPerLabel required={REQUIRED_FIELDS.age}>
                   {FIELD_LABELS.AGE}

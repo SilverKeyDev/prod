@@ -2,9 +2,7 @@
 import { useCallback } from "react";
 
 // Internal config and utilities
-import { preferencesApi } from "../../../../../packages/config/api/preferences";
 import type { SearchResult } from "../../../../../packages/schemas/search";
-import { asError } from "../../../../../packages/utils/error";
 
 // Internal features
 // import { renderImportantLocationMarkers } from "@/features/search/lib/importantLocationRenderer";
@@ -29,7 +27,6 @@ export function useIsochroneFlow(params: {
     setShowPropertyModals: (b: boolean) => void,
     saveSearchResultsToLocalStorage: (r: SearchResult[]) => Promise<void>,
   ) => Promise<void>;
-  prefsApi: typeof preferencesApi;
   setSearchStage: (s?: string) => void;
   setSearchResults: (r: SearchResult[]) => void;
   setIsSearching: (b: boolean) => void;
@@ -101,32 +98,14 @@ export function useIsochroneFlow(params: {
   // Automatically search for properties within the isochrone polygon
   const handleSearchPropertiesInIsochrone = useCallback(
     async (isochroneData: unknown) => {
-      // Get user preferences for the search
-      let userPrefs = {};
-      try {
-        const response = await preferencesApi.get();
-        if (response.success && response.preferences) {
-          userPrefs = response.preferences;
-        }
-      } catch (prefError: unknown) {
-        const error = asError(prefError);
-        if (console && typeof console.warn === "function") {
-          console.warn(
-            "⚠️ Could not fetch user preferences, using empty preferences:",
-            error,
-          );
-        }
-      }
-
+      // Backend now pulls user preferences from database, so we don't need to fetch them
       // Use the injected service function with safe casting
       const isoArg =
         isochroneData && typeof isochroneData === "object"
           ? (isochroneData as Record<string, unknown>)
           : {};
-      const prefsArg =
-        userPrefs && typeof userPrefs === "object"
-          ? (userPrefs as Record<string, unknown>)
-          : {};
+      // Pass empty object for userPreferences - backend will use database values
+      const prefsArg = {};
 
       await params.searchPropertiesInIsochrone(
         isoArg,

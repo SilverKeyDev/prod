@@ -57,10 +57,11 @@ export type SearchByPolygonParams = {
 
 /**
  * Search properties within an isochrone polygon using the backend API
+ * Backend now pulls user preferences from database, so we don't need to send them
  */
 export const searchPropertiesInIsochrone = async (
   isochroneData: IsochroneData,
-  userPreferences: UserPreferencesData,
+  userPreferences: UserPreferencesData, // Kept for backward compatibility but not used
   setSearchStage: (stage: string) => void,
   setSearchResults: (results: SearchResult[]) => void,
   setIsSearching: (searching: boolean) => void,
@@ -80,37 +81,10 @@ export const searchPropertiesInIsochrone = async (
   }
 
   try {
-    // Map current userPreferences to the backend format
-    // Prioritize home_budget_min/max from stored preferences, fall back to priceRange, then to defaults
-    const budgetMin = userPreferences.home_budget_min ?? userPreferences.priceRange?.min ?? 0;
-    const budgetMax = userPreferences.home_budget_max ?? userPreferences.priceRange?.max ?? 0;
-    const { preferredBedrooms } = userPreferences;
-    
-    const searchUserPreferences: UserPreferences = {
-      home_budget_min: budgetMin,
-      home_budget_max: budgetMax,
-      preferred_bedrooms: preferredBedrooms ?? 3,
-      preferred_bathrooms: Math.floor((preferredBedrooms ?? 3) / 2) + 1,
-      preferred_housing_type: "single_family",
-      preferred_home_age: "any",
-      preferred_lot_size: "medium",
-      preferred_home_features: [],
-      deal_breakers: [],
-      // Use ALL important_locations from the isochrone response
-      important_locations: isochroneData.locations ?? [],
-    };
-    
-    console.log("🔍 [PROPERTY SEARCH] Using budget range:", {
-      min: budgetMin,
-      max: budgetMax,
-      source: userPreferences.home_budget_min ? "stored preferences" : userPreferences.priceRange ? "priceRange" : "defaults"
-    });
-
     setSearchStage("Extracting property data...");
 
-    // Call the backend API using the searchApi - backend expects user_preferences format
+    // Backend now pulls user preferences from database, so we only send perBucketPages
     const searchRequest: SearchByPolygonRequest = {
-      user_preferences: searchUserPreferences,
       perBucketPages: 20,
     };
 

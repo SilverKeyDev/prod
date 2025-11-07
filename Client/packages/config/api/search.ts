@@ -35,7 +35,8 @@ export type PropertyResponse = {
 };
 
 export type PolygonSearchRequest = {
-  user_preferences: {
+  // user_preferences is now optional - backend pulls from database
+  user_preferences?: {
     home_budget_min?: number;
     home_budget_max?: number;
     preferred_bedrooms?: number;
