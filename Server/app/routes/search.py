@@ -16,41 +16,13 @@ from requests.adapters import HTTPAdapter
 from ..utils.locationPolygon import isochrone_union_for_addresses
 from ..services.search_help import extract_property_features
 from ..home_matching.app.match import find_best_matches
+from ..services.search.zillow_url import build_zillow_url, extract_address_fields_from_data
 
 RAPI_HOST = "zillow-com1.p.rapidapi.com"
 RAPI_KEY = os.getenv('RAPIDAPI_KEY')
 
 
 
-def _slugify_address(street: str, city: str, state: str, zipcode: str | None = None) -> str:
-    parts = [street or "", city or "", state or ""]
-    if zipcode:
-        parts.append(str(zipcode))
-    base = "-".join(p.strip() for p in parts if p and p.strip())
-    return re.sub(r"[^A-Za-z0-9]+", "-", base).strip("-")
-
-def _extract_address_fields_from_data(data: dict) -> tuple[str, str, str, str | None]:
-    """
-    Prefer data['address'] {...}; fall back to top-level keys.
-    """
-    street = city = state = ""
-    zipcode = None
-
-    addr = data.get("address") or {}
-    if isinstance(addr, dict):
-        street = (addr.get("streetAddress") or "").strip()
-        city   = (addr.get("city") or "").strip()
-        state  = (addr.get("state") or "").strip()
-        zipcode = (addr.get("zipcode") or addr.get("zipCode") or None)
-        zipcode = (str(zipcode).strip() if zipcode else None)
-
-    # fallbacks if nested block was incomplete
-    street = street or (data.get("streetAddress") or "").strip()
-    city   = city   or (data.get("city") or "").strip()
-    state  = state  or (data.get("state") or "").strip()
-    zipcode = zipcode or (str(data.get("zipcode") or data.get("zipCode") or "").strip() or None)
-
-    return street, city, state, zipcode
 
 # Build pooled session with retry/backoff
 def _build_session() -> requests.Session:
@@ -643,44 +615,15 @@ def get_property_via_address():
         current_app.logger.info(f"[PROPERTY] ⏭️ Skipping property_analysis generation, using cached data")
     
     # --- Build Zillow URL from payload/zpid/address ---
-    zillow_url = None
-    zillow_base = "https://www.zillow.com"
-
-    try:
-        if isinstance(data, dict):
-            # 1) Prefer direct/relative URL from payload
-            for key in ("url", "detailUrl", "homeDetailsUrl", "propertyUrl", "hdpUrl"):
-                val = data.get(key)
-                if isinstance(val, str) and val.strip():
-                    if val.startswith("http"):
-                        zillow_url = val
-                    elif val.startswith("/"):
-                        zillow_url = f"{zillow_base}{val}"
-                    # If found anything, stop here
-                    if zillow_url:
-                        break
-
-        # 2) zpid from params or payload
-        zpid_val = None
-        if isinstance(params, dict) and params.get("zpid"):
-            zpid_val = str(params["zpid"]).strip()
-        if not zpid_val and isinstance(data, dict) and data.get("zpid"):
-            zpid_val = str(data["zpid"]).strip()
-
-        # 3) Address parts for slug (from nested 'address' first)
-        street, city, state, zipcode = _extract_address_fields_from_data(data)
-
-        # 4) Construct canonical URL if not provided
-        if not zillow_url and zpid_val and street and city and state:
-            slug = _slugify_address(street, city, state, zipcode)
-            zillow_url = f"{zillow_base}/homedetails/{slug}/{zpid_val}_zpid/"
-
-        # 5) Last-resort: zpid-only homedetails route
-        if not zillow_url and zpid_val:
-            zillow_url = f"{zillow_base}/homedetails/{zpid_val}_zpid/"
-
-    except Exception as e:
-        current_app.logger.warning(f"🔗 [PROPERTY] Failed to build Zillow URL: {e}")
+    # Extract zpid_val for later use (fetching images)
+    zpid_val = None
+    if isinstance(params, dict) and params.get("zpid"):
+        zpid_val = str(params["zpid"]).strip()
+    if not zpid_val and isinstance(data, dict) and data.get("zpid"):
+        zpid_val = str(data["zpid"]).strip()
+    
+    # Build Zillow URL using helper function
+    zillow_url = build_zillow_url(data, params)
     
     # Fetch additional images from Zillow images API if we have a zpid
     zillow_api_images = []
@@ -751,7 +694,7 @@ def get_property_via_address():
             from app.utils.address_format import normalize_address
 
             # Derive address parts from payload
-            street, city, state, zipcode = _extract_address_fields_from_data(data)
+            street, city, state, zipcode = extract_address_fields_from_data(data)
             full_address = None
             if street and city and state:
                 full_address = f"{street}, {city}, {state} {zipcode or ''}".strip()
