@@ -54,7 +54,12 @@ def health_check():
 @google_calendar_bp.route("/oauth/start", methods=["GET"])
 @rate_limit(max_requests=10, window_seconds=60)
 def oauth_start():
-    """Start Google OAuth flow"""
+    """Start Google OAuth flow with incremental authorization
+    
+    Query params:
+        full_scope: If 'true', request full calendar scope (for agent sharing).
+                   Default is False (requests only calendar.events scope).
+    """
     try:
         from ..utils.auth import get_current_user
         user = get_current_user()
@@ -65,8 +70,11 @@ def oauth_start():
         log_oauth_event("start_failed", None, reason="auth_error", error=str(e))
         return security_error_response(SecurityError.UNAUTHORIZED)
     
+    # Check if full scope is requested (for agent sharing)
+    request_full_scope = request.args.get("full_scope", "false").lower() == "true"
+    
     # Generate auth URL and state
-    auth_url, state = google_calendar_service.build_auth_url(str(user_id))
+    auth_url, state = google_calendar_service.build_auth_url(str(user_id), request_full_scope=request_full_scope)
     session["google_oauth_state"] = state
     
     return redirect(auth_url)
@@ -221,6 +229,69 @@ def create_event():
         return SecureErrorHandler.handle_error(e, "Failed to create event")
 
 
+@google_calendar_bp.route("/me/events/<event_id>", methods=["PATCH"])
+@rate_limit(max_requests=50, window_seconds=60)
+def update_event(event_id):
+    """Update an existing event in user's Google calendar"""
+    try:
+        from ..utils.auth import get_current_user
+        user = get_current_user()
+        if not user:
+            return security_error_response(SecurityError.UNAUTHORIZED)
+        user_id = str(user.id)
+    except Exception as e:
+        logger.error(f"Authentication error: {str(e)}")
+        return security_error_response(SecurityError.UNAUTHORIZED)
+    
+    try:
+        # Validate event data
+        event_data = request.get_json()
+        if not validate_event_data(event_data):
+            return make_response(("Invalid event data", 400))
+        
+        calendar_id = event_data.pop("calendarId", "primary")
+        event = google_calendar_service.update_event(user_id, event_id, event_data, calendar_id)
+        return jsonify(event), 200
+        
+    except RuntimeError as e:
+        return make_response((str(e), 401))
+    except HttpError as e:
+        logger.error(f"Google API error in update_event: {str(e)}")
+        return SecureErrorHandler.handle_error(e, "Failed to update event")
+    except Exception as e:
+        logger.error(f"Error updating event: {str(e)}", exc_info=True)
+        return SecureErrorHandler.handle_error(e, "Failed to update event")
+
+
+@google_calendar_bp.route("/me/events/<event_id>", methods=["DELETE"])
+@rate_limit(max_requests=50, window_seconds=60)
+def delete_event(event_id):
+    """Delete an event from user's Google calendar"""
+    try:
+        from ..utils.auth import get_current_user
+        user = get_current_user()
+        if not user:
+            return security_error_response(SecurityError.UNAUTHORIZED)
+        user_id = str(user.id)
+    except Exception as e:
+        logger.error(f"Authentication error: {str(e)}")
+        return security_error_response(SecurityError.UNAUTHORIZED)
+    
+    try:
+        calendar_id = request.args.get("calendarId", "primary")
+        success = google_calendar_service.delete_event(user_id, event_id, calendar_id)
+        return jsonify({"ok": success}), 200
+        
+    except RuntimeError as e:
+        return make_response((str(e), 401))
+    except HttpError as e:
+        logger.error(f"Google API error in delete_event: {str(e)}")
+        return SecureErrorHandler.handle_error(e, "Failed to delete event")
+    except Exception as e:
+        logger.error(f"Error deleting event: {str(e)}", exc_info=True)
+        return SecureErrorHandler.handle_error(e, "Failed to delete event")
+
+
 @google_calendar_bp.route("/oauth/revoke", methods=["POST"])
 @rate_limit(max_requests=10, window_seconds=60)
 def revoke():
@@ -244,6 +315,74 @@ def revoke():
         log_oauth_event("revoke_failed", user_id, reason="exception", error=error_msg)
         logger.error(f"Error revoking access: {error_msg}", exc_info=True)
         return SecureErrorHandler.handle_error(e, "Failed to revoke access")
+
+
+@google_calendar_bp.route("/calendars", methods=["POST"])
+@rate_limit(max_requests=10, window_seconds=60)
+def create_calendar():
+    """Create a secondary calendar (requires full calendar scope)"""
+    try:
+        from ..utils.auth import get_current_user
+        user = get_current_user()
+        if not user:
+            return security_error_response(SecurityError.UNAUTHORIZED)
+        user_id = str(user.id)
+    except Exception as e:
+        logger.error(f"Authentication error: {str(e)}")
+        return security_error_response(SecurityError.UNAUTHORIZED)
+    
+    try:
+        data = request.get_json()
+        calendar_name = data.get("name")
+        if not calendar_name:
+            return make_response(("Calendar name is required", 400))
+        
+        calendar = google_calendar_service.create_calendar(user_id, calendar_name)
+        return jsonify(calendar), 201
+        
+    except RuntimeError as e:
+        return make_response((str(e), 401))
+    except HttpError as e:
+        logger.error(f"Google API error in create_calendar: {str(e)}")
+        return SecureErrorHandler.handle_error(e, "Failed to create calendar")
+    except Exception as e:
+        logger.error(f"Error creating calendar: {str(e)}", exc_info=True)
+        return SecureErrorHandler.handle_error(e, "Failed to create calendar")
+
+
+@google_calendar_bp.route("/calendars/<calendar_id>/acl", methods=["POST"])
+@rate_limit(max_requests=10, window_seconds=60)
+def add_calendar_acl(calendar_id):
+    """Add an ACL rule to a calendar (grant agent access)"""
+    try:
+        from ..utils.auth import get_current_user
+        user = get_current_user()
+        if not user:
+            return security_error_response(SecurityError.UNAUTHORIZED)
+        user_id = str(user.id)
+    except Exception as e:
+        logger.error(f"Authentication error: {str(e)}")
+        return security_error_response(SecurityError.UNAUTHORIZED)
+    
+    try:
+        data = request.get_json()
+        agent_email = data.get("agent_email")
+        role = data.get("role", "writer")
+        
+        if not agent_email:
+            return make_response(("Agent email is required", 400))
+        
+        acl_rule = google_calendar_service.add_calendar_acl(user_id, calendar_id, agent_email, role)
+        return jsonify(acl_rule), 201
+        
+    except RuntimeError as e:
+        return make_response((str(e), 401))
+    except HttpError as e:
+        logger.error(f"Google API error in add_calendar_acl: {str(e)}")
+        return SecureErrorHandler.handle_error(e, "Failed to add calendar ACL")
+    except Exception as e:
+        logger.error(f"Error adding calendar ACL: {str(e)}", exc_info=True)
+        return SecureErrorHandler.handle_error(e, "Failed to add calendar ACL")
 
 
 @google_calendar_bp.route("/calendar/webhook", methods=["POST"])

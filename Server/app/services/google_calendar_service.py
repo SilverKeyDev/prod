@@ -117,21 +117,35 @@ class GoogleCalendarService:
         """Validate OAuth state parameter"""
         return validate_oauth_state(state, session_state)
     
-    def build_auth_url(self, user_id: str) -> str:
-        """Build Google OAuth authorization URL"""
+    def build_auth_url(self, user_id: str, request_full_scope: bool = False) -> str:
+        """Build Google OAuth authorization URL with incremental authorization
+        
+        Args:
+            user_id: User ID
+            request_full_scope: If True, request full calendar scope (for agent sharing).
+                              If False, request only calendar.events scope (default).
+        """
         state = self.generate_state(user_id)
+        
+        # Use incremental authorization: start with calendar.events, only request full calendar scope when needed
+        if request_full_scope:
+            requested_scopes = ["https://www.googleapis.com/auth/calendar"]
+        else:
+            requested_scopes = ["https://www.googleapis.com/auth/calendar.events"]
         
         params = {
             "client_id": self.client_id,
             "redirect_uri": self.redirect_uri,
             "response_type": "code",
-            "scope": " ".join(self.scopes),
+            "scope": " ".join(requested_scopes),
             "access_type": "offline",
-            "include_granted_scopes": "true",
+            "include_granted_scopes": "true",  # Enable incremental authorization
             "state": state,
         }
         
-        log_oauth_event("auth_url_generated", user_id, params=redact_sensitive_data(params))
+        log_oauth_event("auth_url_generated", user_id, 
+                       params=redact_sensitive_data(params),
+                       requested_scopes=requested_scopes)
         return f"{self.auth_endpoint}?{urlencode(params)}", state
     
     def exchange_code_for_tokens(self, code: str, user_id: str) -> Dict[str, Any]:
@@ -171,14 +185,20 @@ class GoogleCalendarService:
             
             tokens = response.json()
             
-            # Store tokens
+            # Get granted scopes from token response (may include previously granted scopes)
+            granted_scopes = tokens.get("scope", "").split() if tokens.get("scope") else []
+            # If no scopes in response, use the requested scopes
+            if not granted_scopes:
+                granted_scopes = self.scopes
+            
+            # Store tokens with actual granted scopes
             token_data = {
                 "access_token": tokens["access_token"],
                 "refresh_token": tokens.get("refresh_token"),
                 "token_uri": self.token_endpoint,
                 "client_id": self.client_id,
                 "client_secret": self.client_secret,
-                "scopes": " ".join(self.scopes),
+                "scopes": " ".join(granted_scopes),
                 "expiry": datetime.now(timezone.utc) + timedelta(seconds=tokens.get("expires_in", 3600))
             }
             
@@ -188,10 +208,11 @@ class GoogleCalendarService:
                 'request_id': request_id,
                 'user_id': user_id,
                 'has_refresh_token': bool(tokens.get("refresh_token")),
-                'expires_in': tokens.get("expires_in")
+                'expires_in': tokens.get("expires_in"),
+                'granted_scopes': granted_scopes
             })
             
-            log_oauth_event("tokens_stored", user_id)
+            log_oauth_event("tokens_stored", user_id, granted_scopes=granted_scopes)
             return tokens
             
         except Exception as e:
@@ -314,6 +335,102 @@ class GoogleCalendarService:
             error_msg = sanitize_error_message(e)
             log_oauth_event("event_create_error", user_id, error=error_msg)
             logger.error(f"Error creating event for user {user_id}: {error_msg}", exc_info=True)
+            raise
+    
+    def update_event(self, user_id: str, event_id: str, event_data: Dict[str, Any],
+                    calendar_id: str = "primary") -> Dict[str, Any]:
+        """Update an existing event in user's Google calendar"""
+        try:
+            # Validate event data
+            if not validate_event_data(event_data):
+                raise ValueError("Invalid event data")
+            
+            creds = self.load_credentials(user_id)
+            service = build("calendar", "v3", credentials=creds, cache_discovery=False)
+            
+            event = service.events().update(
+                calendarId=calendar_id,
+                eventId=event_id,
+                body=event_data
+            ).execute()
+            
+            log_oauth_event("event_updated", user_id, event_id=event.get("id"))
+            return event
+            
+        except Exception as e:
+            error_msg = sanitize_error_message(e)
+            log_oauth_event("event_update_error", user_id, event_id=event_id, error=error_msg)
+            logger.error(f"Error updating event {event_id} for user {user_id}: {error_msg}", exc_info=True)
+            raise
+    
+    def delete_event(self, user_id: str, event_id: str, 
+                    calendar_id: str = "primary") -> bool:
+        """Delete an event from user's Google calendar"""
+        try:
+            creds = self.load_credentials(user_id)
+            service = build("calendar", "v3", credentials=creds, cache_discovery=False)
+            
+            service.events().delete(
+                calendarId=calendar_id,
+                eventId=event_id
+            ).execute()
+            
+            log_oauth_event("event_deleted", user_id, event_id=event_id)
+            return True
+            
+        except Exception as e:
+            error_msg = sanitize_error_message(e)
+            log_oauth_event("event_delete_error", user_id, event_id=event_id, error=error_msg)
+            logger.error(f"Error deleting event {event_id} for user {user_id}: {error_msg}", exc_info=True)
+            raise
+    
+    def create_calendar(self, user_id: str, calendar_name: str) -> Dict[str, Any]:
+        """Create a secondary calendar for the user (requires full calendar scope)"""
+        try:
+            creds = self.load_credentials(user_id)
+            service = build("calendar", "v3", credentials=creds, cache_discovery=False)
+            
+            calendar_body = {
+                "summary": calendar_name,
+                "description": f"Calendar created by SilverKey for {calendar_name}",
+                "timeZone": "America/Los_Angeles"  # Default, can be made configurable
+            }
+            
+            created_calendar = service.calendars().insert(body=calendar_body).execute()
+            
+            log_oauth_event("calendar_created", user_id, calendar_id=created_calendar.get("id"))
+            return created_calendar
+            
+        except Exception as e:
+            error_msg = sanitize_error_message(e)
+            log_oauth_event("calendar_create_error", user_id, error=error_msg)
+            logger.error(f"Error creating calendar for user {user_id}: {error_msg}", exc_info=True)
+            raise
+    
+    def add_calendar_acl(self, user_id: str, calendar_id: str, agent_email: str, 
+                         role: str = "writer") -> Dict[str, Any]:
+        """Add an ACL rule to a calendar (grant agent access)"""
+        try:
+            creds = self.load_credentials(user_id)
+            service = build("calendar", "v3", credentials=creds, cache_discovery=False)
+            
+            acl_rule = {
+                "scope": {
+                    "type": "user",
+                    "value": agent_email
+                },
+                "role": role  # "reader", "writer", "owner"
+            }
+            
+            created_rule = service.acl().insert(calendarId=calendar_id, body=acl_rule).execute()
+            
+            log_oauth_event("calendar_acl_added", user_id, calendar_id=calendar_id, agent_email=agent_email)
+            return created_rule
+            
+        except Exception as e:
+            error_msg = sanitize_error_message(e)
+            log_oauth_event("calendar_acl_error", user_id, calendar_id=calendar_id, error=error_msg)
+            logger.error(f"Error adding ACL to calendar {calendar_id} for user {user_id}: {error_msg}", exc_info=True)
             raise
     
     def revoke_access(self, user_id: str) -> bool:

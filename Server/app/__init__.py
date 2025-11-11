@@ -60,6 +60,7 @@ def create_app(config=None):
     with app.app_context():
         from .models import User, PDFDocument, HomeUniversal, PlaidItem, PlaidAssetReport
         from .models.chat_history import ChatHistory
+        from .models.milestone import Milestone
         db.create_all()
 
     # CORS Configuration with runtime origins list
@@ -125,6 +126,7 @@ def create_app(config=None):
     from .routes.offer import offer_bp
     from .routes.google_calendar import google_calendar_bp
     from .routes.plaid import plaid_bp
+    from .routes.milestones import milestones_bp
 
     app.register_blueprint(report_bp)
     app.register_blueprint(dashboard_bp)
@@ -139,6 +141,7 @@ def create_app(config=None):
     app.register_blueprint(offer_bp)
     app.register_blueprint(google_calendar_bp)
     app.register_blueprint(plaid_bp)
+    app.register_blueprint(milestones_bp)
 
     # ---------- Static asset routes (Vite build) ----------
     # Serve /assets/* out of the Vite dist directory with correct MIME types.

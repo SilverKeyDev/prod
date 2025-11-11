@@ -195,6 +195,101 @@ export const googleCalendarApi = {
   },
 
   /**
+   * Update an existing event
+   */
+  updateEvent: async (
+    eventId: string,
+    event: GoogleEvent,
+  ): Promise<GoogleCalendarApiResponse<GoogleEventCreateResponse>> => {
+    try {
+      const { apiPatch } = await import("../../services/http/compatibility");
+      const response = await apiPatch<
+        GoogleCalendarApiResponse<GoogleEventCreateResponse>
+      >(`/api/v1/google/me/events/${eventId}`, event);
+      return response;
+    } catch (error) {
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : "Failed to update event",
+      };
+    }
+  },
+
+  /**
+   * Delete an event
+   */
+  deleteEvent: async (
+    eventId: string,
+    calendarId?: string,
+  ): Promise<GoogleCalendarApiResponse<{ ok: boolean }>> => {
+    try {
+      const { apiDelete } = await import("../../services/http/compatibility");
+      const queryParams = calendarId ? `?calendarId=${calendarId}` : "";
+      const response = await apiDelete<
+        GoogleCalendarApiResponse<{ ok: boolean }>
+      >(`/api/v1/google/me/events/${eventId}${queryParams}`);
+      return response;
+    } catch (error) {
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : "Failed to delete event",
+      };
+    }
+  },
+
+  /**
+   * Start Google OAuth flow with optional full scope (for agent sharing)
+   */
+  startOAuthWithFullScope: async (): Promise<void> => {
+    window.location.href = "/api/v1/google/oauth/start?full_scope=true";
+  },
+
+  /**
+   * Create a secondary calendar
+   */
+  createCalendar: async (
+    name: string,
+  ): Promise<GoogleCalendarApiResponse<GoogleCalendar>> => {
+    try {
+      const response = await apiPost<
+        GoogleCalendarApiResponse<GoogleCalendar>
+      >("/api/v1/google/calendars", { name });
+      return response;
+    } catch (error) {
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : "Failed to create calendar",
+      };
+    }
+  },
+
+  /**
+   * Add ACL rule to calendar (grant agent access)
+   */
+  addCalendarAcl: async (
+    calendarId: string,
+    agentEmail: string,
+    role: string = "writer",
+  ): Promise<GoogleCalendarApiResponse<any>> => {
+    try {
+      const response = await apiPost<GoogleCalendarApiResponse<any>>(
+        `/api/v1/google/calendars/${calendarId}/acl`,
+        { agent_email: agentEmail, role },
+      );
+      return response;
+    } catch (error) {
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : "Failed to add calendar ACL",
+      };
+    }
+  },
+
+  /**
    * Check if Google Calendar is connected
    */
   isConnected: (): boolean => {

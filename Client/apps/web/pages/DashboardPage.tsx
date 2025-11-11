@@ -409,7 +409,7 @@ export default function Dashboard() {
       {/* Dashboard Sections */}
       <div className="mx-4">
         {/* Closing Mode Toggle */}
-        {userProfile && (
+        {/* {userProfile && (
           <div className="my-6 flex items-center justify-center">
             <div className="flex items-center gap-3 rounded-lg bg-white px-4 py-3 shadow-md">
               <Toggle
@@ -421,7 +421,7 @@ export default function Dashboard() {
               />
             </div>
           </div>
-        )}
+        )} */}
 
         {/* Favorite Homes */}
         <div className="my-8">
