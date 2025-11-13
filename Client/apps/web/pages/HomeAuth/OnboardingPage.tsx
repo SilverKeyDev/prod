@@ -16,7 +16,7 @@ import {
   Subtitle,
   NavigationButtons,
 } from "../../components/ui";
-import { SkipButton } from "../../components/ui/button/NavigationButtons";
+//import { SkipButton } from "../../components/ui/button/NavigationButtons";
 // Core
 import { useGoogleMaps } from "../../../../packages/hooks/data/useGoogleMaps";
 // Features
@@ -29,9 +29,9 @@ import {
   getOnboardingSteps,
   DEFAULT_REPORT_SECTIONS,
   IS_AGENT_OPTIONS,
-  GENDER_OPTIONS,
+  //GENDER_OPTIONS,
   type OnboardingData,
-  PETS_OPTIONS,
+  //PETS_OPTIONS,
   CREDIT_SCORE_OPTIONS,
   HOUSING_TYPE_OPTIONS,
   LOT_SIZE_OPTIONS,
@@ -42,7 +42,7 @@ import {
   PROPERTY_USE_OPTIONS,
   SECTION_TITLES,
   FIELD_LABELS,
-  REQUIRED_FIELDS,
+  REQUIRED_FIELDS_ONBOARDING,
 } from "../../features/onboardpersonalize/lib/constants";
 import { handleDragEnd as handleDragEndUtil } from "../../features/onboardpersonalize/lib/dragEndHandler";
 import { calculateAffordableHomePrice } from "../../features/onboardpersonalize/lib/homePriceCalculation";
@@ -289,9 +289,9 @@ export default function OnboardingPage() {
     setCurrentStep(stepIndex);
   };
 
-  const handleSkip = () => {
+  /*const handleSkip = () => {
     navigate("/dashboard");
-  };
+  };*/
 
   const handleSubmit = async () => {
     await handleSubmitUtil({
@@ -346,7 +346,7 @@ export default function OnboardingPage() {
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <div>
-                <OnPerLabel required={REQUIRED_FIELDS.is_agent}>
+                <OnPerLabel required={REQUIRED_FIELDS_ONBOARDING.is_agent}>
                   {FIELD_LABELS.IS_AGENT}
                 </OnPerLabel>
                 <Dropdown
@@ -364,7 +364,7 @@ export default function OnboardingPage() {
               </div>
 
               <div>
-                <OnPerLabel required={REQUIRED_FIELDS.age}>
+                <OnPerLabel required={REQUIRED_FIELDS_ONBOARDING.age}>
                   {FIELD_LABELS.AGE}
                 </OnPerLabel>
                 <Input
@@ -380,8 +380,8 @@ export default function OnboardingPage() {
                 />
               </div>
 
-              <div>
-                <OnPerLabel required={REQUIRED_FIELDS.gender}>
+              {/* <div>
+                <OnPerLabel required={REQUIRED_FIELDS_ONBOARDING.gender}>
                   {FIELD_LABELS.GENDER}
                 </OnPerLabel>
                 <Dropdown
@@ -390,10 +390,10 @@ export default function OnboardingPage() {
                   options={GENDER_OPTIONS}
                   placeholder="Select gender"
                 />
-              </div>
+              </div> */}
 
-              <div>
-                <OnPerLabel required={REQUIRED_FIELDS.occupation}>
+              {/* <div>
+                <OnPerLabel required={REQUIRED_FIELDS_ONBOARDING.occupation}>
                   {FIELD_LABELS.OCCUPATION}
                 </OnPerLabel>
                 <Input
@@ -405,10 +405,10 @@ export default function OnboardingPage() {
                   }
                   placeholder="Your job title"
                 />
-              </div>
+              </div> */}
 
-              <div>
-                <OnPerLabel required={REQUIRED_FIELDS.pets}>
+              {/* <div>
+                <OnPerLabel required={REQUIRED_FIELDS_ONBOARDING.pets}>
                   {FIELD_LABELS.PETS}
                 </OnPerLabel>
                 <Dropdown
@@ -417,7 +417,7 @@ export default function OnboardingPage() {
                   options={PETS_OPTIONS}
                   placeholder="Select pet status"
                 />
-              </div>
+              </div> */}
             </div>
 
             {/* Buyer's Agent Section */}
@@ -504,7 +504,9 @@ export default function OnboardingPage() {
               </div>
 
               <div>
-                <OnPerLabel required={REQUIRED_FIELDS.ideal_zip_code}>
+                <OnPerLabel
+                  required={REQUIRED_FIELDS_ONBOARDING.ideal_zip_code}
+                >
                   {FIELD_LABELS.IDEAL_ZIP_CODE}
                 </OnPerLabel>
                 <Input
@@ -519,7 +521,9 @@ export default function OnboardingPage() {
               </div>
 
               <div>
-                <OnPerLabel required={REQUIRED_FIELDS.credit_score_range}>
+                <OnPerLabel
+                  required={REQUIRED_FIELDS_ONBOARDING.credit_score_range}
+                >
                   {FIELD_LABELS.CREDIT_SCORE_RANGE}
                 </OnPerLabel>
                 <Dropdown
@@ -558,7 +562,9 @@ export default function OnboardingPage() {
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <div>
-                <OnPerLabel required={REQUIRED_FIELDS.preferred_bedrooms}>
+                <OnPerLabel
+                  required={REQUIRED_FIELDS_ONBOARDING.preferred_bedrooms}
+                >
                   {FIELD_LABELS.PREFERRED_BEDROOMS}
                 </OnPerLabel>
                 <Input
@@ -578,7 +584,9 @@ export default function OnboardingPage() {
               </div>
 
               <div>
-                <OnPerLabel required={REQUIRED_FIELDS.preferred_bathrooms}>
+                <OnPerLabel
+                  required={REQUIRED_FIELDS_ONBOARDING.preferred_bathrooms}
+                >
                   {FIELD_LABELS.PREFERRED_BATHROOMS}
                 </OnPerLabel>
                 <Input
@@ -599,7 +607,9 @@ export default function OnboardingPage() {
               </div>
 
               <div>
-                <OnPerLabel required={REQUIRED_FIELDS.preferred_housing_type}>
+                <OnPerLabel
+                  required={REQUIRED_FIELDS_ONBOARDING.preferred_housing_type}
+                >
                   {FIELD_LABELS.PREFERRED_HOUSING_TYPE}
                 </OnPerLabel>
                 <Dropdown
@@ -613,7 +623,9 @@ export default function OnboardingPage() {
               </div>
 
               <div>
-                <OnPerLabel required={REQUIRED_FIELDS.preferred_lot_size}>
+                <OnPerLabel
+                  required={REQUIRED_FIELDS_ONBOARDING.preferred_lot_size}
+                >
                   {FIELD_LABELS.PREFERRED_LOT_SIZE}
                 </OnPerLabel>
                 <Dropdown
@@ -627,7 +639,9 @@ export default function OnboardingPage() {
               </div>
 
               <div>
-                <OnPerLabel required={REQUIRED_FIELDS.preferred_home_age}>
+                <OnPerLabel
+                  required={REQUIRED_FIELDS_ONBOARDING.preferred_home_age}
+                >
                   {FIELD_LABELS.PREFERRED_HOME_AGE}
                 </OnPerLabel>
                 <Dropdown
@@ -642,7 +656,9 @@ export default function OnboardingPage() {
 
               <div>
                 <OnPerLabel
-                  required={REQUIRED_FIELDS.preferred_architectural_style}
+                  required={
+                    REQUIRED_FIELDS_ONBOARDING.preferred_architectural_style
+                  }
                 >
                   {FIELD_LABELS.PREFERRED_ARCHITECTURAL_STYLE}
                 </OnPerLabel>
@@ -657,7 +673,9 @@ export default function OnboardingPage() {
               </div>
 
               <div>
-                <OnPerLabel required={REQUIRED_FIELDS.renovation_preference}>
+                <OnPerLabel
+                  required={REQUIRED_FIELDS_ONBOARDING.renovation_preference}
+                >
                   {FIELD_LABELS.RENOVATION_PREFERENCE}
                 </OnPerLabel>
                 <Dropdown
@@ -671,7 +689,9 @@ export default function OnboardingPage() {
               </div>
 
               <div>
-                <OnPerLabel required={REQUIRED_FIELDS.intended_property_use}>
+                <OnPerLabel
+                  required={REQUIRED_FIELDS_ONBOARDING.intended_property_use}
+                >
                   {FIELD_LABELS.INTENDED_PROPERTY_USE}
                 </OnPerLabel>
                 <Dropdown
@@ -685,39 +705,12 @@ export default function OnboardingPage() {
               </div>
 
               <div>
-                <OnPerLabel required={REQUIRED_FIELDS.preferred_home_features}>
-                  {FIELD_LABELS.PREFERRED_HOME_FEATURES}
-                </OnPerLabel>
-                <OnPerTagInput
-                  value={(formData.preferred_home_features as string[]) ?? []}
-                  onChange={(value: string[]) =>
-                    updateFormData("preferred_home_features", value)
-                  }
-                  placeholder="e.g., garage, pool, fireplace"
-                />
-              </div>
-
-              <div>
-                <OnPerLabel required={REQUIRED_FIELDS.deal_breakers}>
-                  {FIELD_LABELS.DEAL_BREAKERS}
-                </OnPerLabel>
-                <OnPerTagInput
-                  value={(formData.deal_breakers as string[]) ?? []}
-                  onChange={(value: string[]) =>
-                    updateFormData("deal_breakers", value)
-                  }
-                  placeholder="e.g., No parking, Busy road, Old plumbing"
-                />
-              </div>
-
-              <div>
-                <OnPerLabel required={REQUIRED_FIELDS.walkability_importance}>
+                <OnPerLabel
+                  required={REQUIRED_FIELDS_ONBOARDING.walkability_importance}
+                >
                   {FIELD_LABELS.WALKABILITY_IMPORTANCE}
                 </OnPerLabel>
-                <p className="mb-4 text-xs text-black/60 sm:text-sm md:text-base">
-                  How important is it to walk to nearby amenities? Used to
-                  filter neighborhoods in search results.
-                </p>
+                
                 <Dropdown
                   value={formData.walkability_importance ?? ""}
                   onChange={(value) =>
@@ -726,6 +719,40 @@ export default function OnboardingPage() {
                   options={WALKABILITY_OPTIONS}
                   placeholder="Select..."
                 />
+              </div>
+
+              <div className="flex flex-wrap gap-6 md:col-span-2">
+                <div className="flex-1 min-w-[280px]">
+                  <OnPerLabel
+                    required={REQUIRED_FIELDS_ONBOARDING.deal_breakers}
+                  >
+                    {FIELD_LABELS.DEAL_BREAKERS}
+                  </OnPerLabel>
+                  <OnPerTagInput
+                    value={(formData.deal_breakers as string[]) ?? []}
+                    onChange={(value: string[]) =>
+                      updateFormData("deal_breakers", value)
+                    }
+                    placeholder="e.g., No parking, Busy road, Old plumbing"
+                  />
+                </div>
+
+                <div className="flex-1 min-w-[280px]">
+                  <OnPerLabel
+                    required={
+                      REQUIRED_FIELDS_ONBOARDING.preferred_home_features
+                    }
+                  >
+                    {FIELD_LABELS.PREFERRED_HOME_FEATURES}
+                  </OnPerLabel>
+                  <OnPerTagInput
+                    value={(formData.preferred_home_features as string[]) ?? []}
+                    onChange={(value: string[]) =>
+                      updateFormData("preferred_home_features", value)
+                    }
+                    placeholder="e.g., garage, pool, fireplace"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -740,7 +767,9 @@ export default function OnboardingPage() {
 
             {/* Important Locations Section */}
             <div>
-              <OnPerLabel required={REQUIRED_FIELDS.important_locations}>
+              <OnPerLabel
+                required={REQUIRED_FIELDS_ONBOARDING.important_locations}
+              >
                 {FIELD_LABELS.IMPORTANT_LOCATIONS}
               </OnPerLabel>
               <p
@@ -824,8 +853,9 @@ export default function OnboardingPage() {
           />
         </div>
         <div className="flex items-center gap-4">
-          <SkipButton onSkip={handleSkip} size="sm" />
+          {/*  <SkipButton onSkip={handleSkip} size="sm" />*/}
         </div>
+        */
       </div>
 
       {/* Progress Bar */}

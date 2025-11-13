@@ -44,7 +44,7 @@ import {
   type HomePriceResult,
 } from "../features/onboardpersonalize/lib/homePriceCalculation";
 import { handleSubmit as handleSubmitUtil } from "../features/onboardpersonalize/lib/submitHandler";
-import { validateOnboardingData } from "../features/onboardpersonalize/lib/validation";
+import { validateSettingsData } from "../features/onboardpersonalize/lib/validation";
 import PersonalizationMobileHeader from "../features/onboardpersonalize/personalization/MobileHeader";
 import PersonalizationSidebar from "../features/onboardpersonalize/personalization/Sidebar";
 import PriceRangeSlider from "../features/onboardpersonalize/PriceRangeSlider";
@@ -355,7 +355,7 @@ export default function PersonalizationPage({
     await handleSubmitUtil({
       formData: dataToSave,
       setLoading: setIsSaving,
-      validateFunction: validateOnboardingData,
+      validateFunction: validateSettingsData,
       onSuccess: () => {
         // Update local state with new version
         const updatedFormData = {
@@ -487,7 +487,7 @@ export default function PersonalizationPage({
                       className="mt-2"
                     />
                   ) : (
-                    <div className="mobile-input bg-gray-50 text-center">
+                    <div className="mobile-input bg-gray-50 text-left">
                       {formData.gross_income
                         ? `$${formData.gross_income.toLocaleString()}`
                         : "Not specified"}
@@ -511,7 +511,7 @@ export default function PersonalizationPage({
                       className="mt-2"
                     />
                   ) : (
-                    <div className="mobile-input bg-gray-50 text-center">
+                    <div className="mobile-input bg-gray-50 text-left">
                       {formData.down_payment
                         ? `$${formData.down_payment.toLocaleString()}`
                         : "Not specified"}

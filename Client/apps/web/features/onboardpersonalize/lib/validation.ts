@@ -1,5 +1,9 @@
 import type { OnboardingData } from "./constants";
-import { REQUIRED_FIELDS, FIELD_LABELS } from "./constants";
+import {
+  REQUIRED_FIELDS_ONBOARDING,
+  REQUIRED_FIELDS_SETTINGS,
+  FIELD_LABELS,
+} from "./constants";
 
 export type ValidationResult = {
   isValid: boolean;
@@ -11,9 +15,11 @@ export type ValidationResult = {
 const FIELD_DISPLAY_NAMES: Record<string, string> = {
   is_agent: FIELD_LABELS.IS_AGENT,
   age: FIELD_LABELS.AGE,
-  gender: FIELD_LABELS.GENDER,
-  occupation: FIELD_LABELS.OCCUPATION,
-  pets: FIELD_LABELS.PETS,
+  // gender: FIELD_LABELS.GENDER,
+  // occupation: FIELD_LABELS.OCCUPATION,
+  // pets: FIELD_LABELS.PETS,
+  marital_status: FIELD_LABELS.MARITAL_STATUS,
+  children_count: FIELD_LABELS.CHILDREN_COUNT,
   gross_income: FIELD_LABELS.GROSS_INCOME,
   home_budget_min: `${FIELD_LABELS.HOME_BUDGET} Minimum`,
   home_budget_max: `${FIELD_LABELS.HOME_BUDGET} Maximum`,
@@ -38,12 +44,12 @@ const FIELD_DISPLAY_NAMES: Record<string, string> = {
 };
 
 /**
- * Shared validation function for onboarding and personalization forms
- * Used by both OnboardingPage and PersonalizationPage
- * Uses REQUIRED_FIELDS constant to determine which fields are required
+ * Core validation function that accepts requiredFields configuration
+ * Used internally by validateOnboardingData and validateSettingsData
  */
-export const validateOnboardingData = (
+const validateFormData = (
   formData: OnboardingData,
+  requiredFields: Record<string, boolean>,
 ): ValidationResult => {
   const missingFields: string[] = [];
   const errors: string[] = [];
@@ -59,7 +65,7 @@ export const validateOnboardingData = (
   ] as const;
 
   numericFields.forEach((field) => {
-    if (REQUIRED_FIELDS[field]) {
+    if (requiredFields[field]) {
       const value = formData[field];
       if (!value || (typeof value === "number" && value <= 0)) {
         missingFields.push(
@@ -70,7 +76,7 @@ export const validateOnboardingData = (
   });
 
   // Validate down_payment (can be 0, so just check if undefined/null)
-  if (REQUIRED_FIELDS.down_payment) {
+  if (requiredFields.down_payment) {
     if (
       formData.down_payment === undefined ||
       formData.down_payment === null ||
@@ -82,9 +88,11 @@ export const validateOnboardingData = (
 
   // Validate string fields
   const stringFields = [
-    "gender",
-    "occupation",
-    "pets",
+    "is_agent",
+    // "gender",
+    // "occupation",
+    // "pets",
+    "marital_status",
     "credit_score_range",
     "preferred_housing_type",
     "preferred_lot_size",
@@ -99,7 +107,7 @@ export const validateOnboardingData = (
   ] as const;
 
   stringFields.forEach((field) => {
-    if (REQUIRED_FIELDS[field]) {
+    if (requiredFields[field]) {
       const value = formData[field];
       if (!value || (typeof value === "string" && value.trim() === "")) {
         missingFields.push(
@@ -110,7 +118,7 @@ export const validateOnboardingData = (
   });
 
   // Location - Important locations validation
-  if (REQUIRED_FIELDS.important_locations) {
+  if (requiredFields.important_locations) {
     if (
       !formData.important_locations ||
       formData.important_locations.length === 0
@@ -156,4 +164,24 @@ export const validateOnboardingData = (
     missingFields,
     errors,
   };
+};
+
+/**
+ * Validation function for onboarding forms
+ * Uses REQUIRED_FIELDS_ONBOARDING (age is required)
+ */
+export const validateOnboardingData = (
+  formData: OnboardingData,
+): ValidationResult => {
+  return validateFormData(formData, REQUIRED_FIELDS_ONBOARDING);
+};
+
+/**
+ * Validation function for settings page
+ * Uses REQUIRED_FIELDS_SETTINGS (age is not required)
+ */
+export const validateSettingsData = (
+  formData: OnboardingData,
+): ValidationResult => {
+  return validateFormData(formData, REQUIRED_FIELDS_SETTINGS);
 };

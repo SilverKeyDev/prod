@@ -31,10 +31,11 @@ type SecureAuthState = {
 };
 
 type SecureAuthActions = {
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<{ success: boolean; needsVerification?: boolean }>;
   logout: () => void;
   refreshToken: () => Promise<boolean>;
   clearError: () => void;
+  needsVerification?: boolean;
 };
 
 export type UseSecureAuthReturn = {} & SecureAuthState & SecureAuthActions;
@@ -52,6 +53,7 @@ export function useSecureAuth(): UseSecureAuthReturn {
   const [user, setUser] = useState<UserProfile | null>(storeUser);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [needsVerification, setNeedsVerification] = useState(false);
   // const navigate = useNavigate(); // removed
 
   // Store access token in memory only (more secure)
@@ -74,7 +76,7 @@ export function useSecureAuth(): UseSecureAuthReturn {
    * Secure login with memory-based token storage
    */
   const login = useCallback(
-    async (email: string, password: string): Promise<boolean> => {
+    async (email: string, password: string): Promise<{ success: boolean; needsVerification?: boolean }> => {
       isLoggingInRef.current = true;
       setIsLoading(true);
       setError(null);
@@ -203,17 +205,32 @@ export function useSecureAuth(): UseSecureAuthReturn {
             });
           }
 
-          return true;
+          return { success: true };
         } else {
+          // Check if user needs verification
+          if (response.needs_verification) {
+            // Store email and password for verification flow (same keys as signup uses)
+            localStorage.setItem("signupEmail", email);
+            localStorage.setItem("signupPassword", password);
+            setNeedsVerification(true);
+            setError(response.message ?? "Please verify your email address to continue.");
+            isLoggingInRef.current = false;
+            // Return needsVerification flag so LoginPage can redirect immediately
+            // Don't report as security event - this is expected behavior for unverified users
+            return { success: false, needsVerification: true };
+          }
+          setNeedsVerification(false);
           setError(response.error ?? "Login failed");
           isLoggingInRef.current = false;
-          return false;
+          return { success: false };
         }
       } catch (err: unknown) {
         const error = asError(err);
         const errorMessage = error.message;
         setError(errorMessage);
 
+        // Only report as security event if it's not a verification-needed case
+        // (which should now be handled in the response, not as an exception)
         reportSecurityEvent({
           type: "authentication_failure",
           severity: "high",
@@ -222,7 +239,7 @@ export function useSecureAuth(): UseSecureAuthReturn {
         });
 
         isLoggingInRef.current = false;
-        return false;
+        return { success: false };
       } finally {
         setIsLoading(false);
       }
@@ -315,6 +332,7 @@ export function useSecureAuth(): UseSecureAuthReturn {
    */
   const clearError = useCallback(() => {
     setError(null);
+    setNeedsVerification(false);
   }, []);
 
   /**
@@ -424,6 +442,7 @@ export function useSecureAuth(): UseSecureAuthReturn {
     isAuthenticated,
     isLoading,
     error,
+    needsVerification,
 
     // Actions
     login,

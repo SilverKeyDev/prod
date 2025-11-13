@@ -1,10 +1,10 @@
 export {};
 
-import { MapPin, AlertCircle, Lightbulb, GitCompare } from "lucide-react";
+import { MapPin, AlertCircle, Lightbulb } from "lucide-react";
 import React, { useState, useEffect, useRef, useCallback } from "react";
 
 import { Card } from "../../../components/layout";
-import { Input, OliveCheckbox, Button } from "../../../components/ui";
+import { Input, Button } from "../../../components/ui";
 import { reportApi } from "../../../../../packages/config/api";
 import type { GenerateReportRequest } from "../../../../../packages/config/api/report";
 import { useUser } from "../../../../../packages/contexts";
@@ -566,7 +566,7 @@ export default function GenerateReportPage({
               </Button>
 
               {/* Comparison mode toggle */}
-              <div className="flex items-center gap-2">
+              {/* <div className="flex items-center gap-2">
                 <GitCompare className="h-4 w-4 text-black/70" />
                 <OliveCheckbox
                   checked={isComparison}
@@ -574,7 +574,7 @@ export default function GenerateReportPage({
                     setReportType(isComparison ? "detailed" : "comparison")
                   }
                 />
-              </div>
+              </div> */}
             </div>
           </div>
 

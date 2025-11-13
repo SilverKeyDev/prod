@@ -75,8 +75,10 @@ const CardHeartSave: React.FC<CardHeartSaveProps> = ({
   const removeSavedHome = providedRemoveSavedHome || hookData?.removeSavedHome;
 
   // Determine if home is saved - use address for matching
+  // Ensure address is a string before passing it
+  const propertyAddress = typeof property.address === "string" ? property.address : undefined;
   const isSaved = isHomeSaved
-    ? isHomeSaved(property.id, property.address)
+    ? isHomeSaved(property.id, propertyAddress)
     : false;
 
   const handleClick = async (e: React.MouseEvent) => {
@@ -85,19 +87,21 @@ const CardHeartSave: React.FC<CardHeartSaveProps> = ({
       if (isSaved) {
         // Remove from saved homes - pass address for better matching
         if (removeSavedHome) {
-          await removeSavedHome(property.id, property.address);
+          await removeSavedHome(property.id, propertyAddress);
+          const displayAddress = propertyAddress || property.id;
           enqueueToast({
             type: "success",
-            message: `Removed ${property.address} from favorites`,
+            message: `Removed ${displayAddress} from favorites`,
           });
         }
       } else {
         // Save home
         if (saveHome) {
           await saveHome(property);
+          const displayAddress = propertyAddress || property.id;
           enqueueToast({
             type: "success",
-            message: `Saved ${property.address}`,
+            message: `Saved ${displayAddress}`,
           });
         }
       }
@@ -106,7 +110,7 @@ const CardHeartSave: React.FC<CardHeartSaveProps> = ({
         error instanceof Error ? error.message : "Unknown error";
       console.error("❌ [FAVORITES] Error updating favorites:", {
         propertyId: property.id,
-        address: property.address,
+        address: propertyAddress,
         action: isSaved ? "remove" : "add",
         error: errorMessage,
         timestamp: new Date().toISOString(),

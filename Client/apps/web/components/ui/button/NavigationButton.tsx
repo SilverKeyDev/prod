@@ -129,9 +129,8 @@ const NavigationButton: React.FC<NavigationButtonProps> = ({
                     : "scale(1)",
             }}
           >
-            <KeyTurnLoader message="" />
+            <KeyTurnLoader message="Loading..." />
           </div>
-          Loading...
         </div>
       ) : (
         <>

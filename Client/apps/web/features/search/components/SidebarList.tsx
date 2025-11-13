@@ -75,7 +75,7 @@ export function SidebarList(props: {
           {/* Loading overlay */}
           {isLoading && (
             <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-white/80 backdrop-blur-sm">
-              <KeyTurnLoader message="Loading details..." />
+              <KeyTurnLoader message="Loading details..." variant="gray" />
             </div>
           )}
           {/* Property Image */}

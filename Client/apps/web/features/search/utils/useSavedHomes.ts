@@ -258,8 +258,12 @@ export function useSavedHomes(params: {
         let property = savedHomes.find((home) => home.id === propertyId);
         
         // If not found by ID, try matching by address if provided
-        if (!property && propertyAddress) {
-          property = savedHomes.find((home) => home.address?.toLowerCase() === propertyAddress.toLowerCase());
+        if (!property && propertyAddress && typeof propertyAddress === "string") {
+          const normalizedAddress = propertyAddress.toLowerCase();
+          property = savedHomes.find((home) => {
+            const homeAddress = typeof home.address === "string" ? home.address.toLowerCase() : "";
+            return homeAddress === normalizedAddress;
+          });
         }
         
         if (!property) {
@@ -312,8 +316,12 @@ export function useSavedHomes(params: {
       const foundById = savedHomes.some((home) => home.id === propertyId);
       
       // Also check by address if provided and not found by ID
-      if (!foundById && propertyAddress) {
-        return savedHomes.some((home) => home.address?.toLowerCase() === propertyAddress.toLowerCase());
+      if (!foundById && propertyAddress && typeof propertyAddress === "string") {
+        const normalizedAddress = propertyAddress.toLowerCase();
+        return savedHomes.some((home) => {
+          const homeAddress = typeof home.address === "string" ? home.address.toLowerCase() : "";
+          return homeAddress === normalizedAddress;
+        });
       }
       
       return foundById;

@@ -196,6 +196,19 @@ class CognitoService:
                     'message': 'Too many login attempts. Please try again later.',
                     'login_failed': True
                 }
+            elif error_code == 'UserNotConfirmedException':
+                logger.warning(f"AWS_COGNITO_SIGNIN_USER_NOT_CONFIRMED", extra={
+                    'request_id': request_id,
+                    'username': username[:3] + '***' + username[-3:] if username else 'missing',
+                    'duration_ms': duration_ms
+                })
+                return {
+                    'success': False,
+                    'error': error_code,
+                    'message': 'Please verify your email address to continue.',
+                    'login_failed': True,
+                    'needs_verification': True
+                }
             else:
                 logger.error(f"AWS_COGNITO_SIGNIN_UNKNOWN_ERROR", extra={
                     'request_id': request_id,

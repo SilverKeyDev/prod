@@ -7,6 +7,7 @@ import Card from "../../components/layout/Card";
 
 type LocationState = {
   email?: string;
+  fromLogin?: boolean;
 };
 
 export default function VerificationPage() {
@@ -18,6 +19,7 @@ export default function VerificationPage() {
   const [canResend, setCanResend] = useState(false);
   const [error, setError] = useState("");
   const [isFromSignup, setIsFromSignup] = useState(false);
+  const [isFromLogin, setIsFromLogin] = useState(false);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -26,14 +28,18 @@ export default function VerificationPage() {
     Array(6).fill(null) as Array<HTMLInputElement | null>
   );
 
-  // Pre-fill email if coming from signup
+  // Pre-fill email if coming from signup or login
   useEffect(() => {
     if (locationState?.email) {
       setEmail(locationState.email);
       setActiveStep("code");
-      setIsFromSignup(true);
+      if (locationState.fromLogin) {
+        setIsFromLogin(true);
+      } else {
+        setIsFromSignup(true);
+      }
       startCountdown();
-      // Focus first input field when coming from signup
+      // Focus first input field when coming from signup/login
       setTimeout(() => inputRefs.current[0]?.focus(), 100);
     }
   }, [locationState]);
@@ -323,6 +329,13 @@ export default function VerificationPage() {
               ? "We'll send you a code to verify your email"
               : `Enter the 6-digit code sent to ${email}`}
           </p>
+
+          {/* Warning Message - shown when redirected from login */}
+          {isFromLogin && !error && (
+            <div className="space-y-responsive-md space-responsive-sm text-responsive-sm rounded-md bg-yellow-50 text-yellow-800 p-3">
+              Please verify your email address to continue. A verification code has been sent to your email.
+            </div>
+          )}
 
           {/* Error Message */}
           {error && (

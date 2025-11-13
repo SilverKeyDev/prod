@@ -9,6 +9,10 @@ import React, {
   type ReactNode,
 } from "react";
 import { Carousel } from "react-responsive-carousel";
+import type {
+  SwipeAnimationHandler,
+  StopSwipingHandler,
+} from "react-responsive-carousel/lib/ts/components/Carousel/types";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 import "../../../../../packages/styles/carousel.css";
 
@@ -69,8 +73,8 @@ export type CardCarouselProps<T> = {
 
   /** Animation handlers */
   animationHandler?: "slide" | "fade";
-  swipeAnimationHandler?: (props: unknown) => React.CSSProperties;
-  stopSwipingHandler?: (props: unknown) => React.CSSProperties;
+  swipeAnimationHandler?: SwipeAnimationHandler;
+  stopSwipingHandler?: StopSwipingHandler;
 
   /** Optional custom UI overrides */
   renderArrowPrev?: (

@@ -358,11 +358,13 @@ export const useSavedHomesData = () => {
       // Try to find by ID first, then by address if provided
       let home = homes.find((h) => h.home_id === propertyId);
       
-      if (!home && propertyAddress) {
+      if (!home && propertyAddress && typeof propertyAddress === "string") {
         // Try matching by address
-        home = homes.find(
-          (h) => h.address?.toLowerCase() === propertyAddress.toLowerCase()
-        );
+        const normalizedAddress = propertyAddress.toLowerCase();
+        home = homes.find((h) => {
+          const homeAddress = typeof h.address === "string" ? h.address.toLowerCase() : "";
+          return homeAddress === normalizedAddress;
+        });
       }
 
       if (!home) {
@@ -375,10 +377,15 @@ export const useSavedHomesData = () => {
         for (const [, cachedHomes] of allCachedData) {
           if (Array.isArray(cachedHomes)) {
             const foundHome = cachedHomes.find(
-              (h: SavedHome) =>
-                h.home_id === propertyId ||
-                (propertyAddress &&
-                  h.address?.toLowerCase() === propertyAddress.toLowerCase())
+              (h: SavedHome) => {
+                if (h.home_id === propertyId) return true;
+                if (propertyAddress && typeof propertyAddress === "string") {
+                  const normalizedAddress = propertyAddress.toLowerCase();
+                  const homeAddress = typeof h.address === "string" ? h.address.toLowerCase() : "";
+                  return homeAddress === normalizedAddress;
+                }
+                return false;
+              }
             );
             if (foundHome) {
               return removeSavedHomeMutation.mutateAsync({
@@ -410,11 +417,14 @@ export const useSavedHomesData = () => {
           ...queryKeys.homes.favorites(),
         ]) ?? [];
       // Try to match by ID first, then by address if provided
-      if (propertyAddress) {
+      if (propertyAddress && typeof propertyAddress === "string") {
+        const normalizedAddress = propertyAddress.toLowerCase();
         return homes.some(
-          (home) =>
-            home.home_id === propertyId ||
-            home.address?.toLowerCase() === propertyAddress.toLowerCase()
+          (home) => {
+            if (home.home_id === propertyId) return true;
+            const homeAddress = typeof home.address === "string" ? home.address.toLowerCase() : "";
+            return homeAddress === normalizedAddress;
+          }
         );
       }
       return homes.some((home) => home.home_id === propertyId);

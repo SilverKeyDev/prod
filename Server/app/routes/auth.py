@@ -374,6 +374,39 @@ def login():
 
 
         if not success_value:
+            # Check if user needs verification
+            if result.get('needs_verification') or result.get('error') == 'UserNotConfirmedException':
+                # Automatically send verification code
+                try:
+                    resend_response = AWS_COGNITO_service.client.resend_confirmation_code(
+                        ClientId=os.getenv('AWS_COGNITO_CLIENT_ID'),
+                        SecretHash=AWS_COGNITO_service._get_secret_hash(data['email']),
+                        Username=data['email']
+                    )
+                    current_app.logger.info(f"AUTH_LOGIN_UNVERIFIED_CODE_SENT", extra={
+                        'request_id': request_id,
+                        'email': data['email'][:3] + '***' + data['email'][-3:]
+                    })
+                    return jsonify({
+                        'success': False,
+                        'error': 'USER_NOT_VERIFIED',
+                        'message': 'Please verify your email address. A verification code has been sent to your email.',
+                        'needs_verification': True,
+                        'code_delivery': resend_response.get('CodeDeliveryDetails', {})
+                    }), 401
+                except Exception as resend_error:
+                    current_app.logger.error(f"AUTH_LOGIN_RESEND_CODE_ERROR", extra={
+                        'request_id': request_id,
+                        'error': str(resend_error)
+                    })
+                    # Still return needs_verification even if resend fails
+                    return jsonify({
+                        'success': False,
+                        'error': 'USER_NOT_VERIFIED',
+                        'message': 'Please verify your email address to continue.',
+                        'needs_verification': True
+                    }), 401
+            
             duration_ms = int((time.time() - start_time) * 1000)
             error_message = 'Invalid email or password'
             if result.get('error') == 'NotAuthorizedException':

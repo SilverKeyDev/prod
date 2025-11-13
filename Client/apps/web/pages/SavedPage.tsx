@@ -338,6 +338,18 @@ export default function SavedHomes() {
     }
   };
 
+  // Handler to blur button after click to prevent stuck hover state
+  const handleButtonClick = (
+    e: React.MouseEvent<HTMLButtonElement>,
+    action: () => void
+  ) => {
+    action();
+    // Blur the button after click to prevent hover state from persisting
+    setTimeout(() => {
+      e.currentTarget.blur();
+    }, 0);
+  };
+
   // overlay toast component
   useEffect(() => {
     if (error) enqueueToast({ type: "error", message: error });
@@ -383,11 +395,13 @@ export default function SavedHomes() {
                   size="sm"
                   icon={<FileText />}
                   hideTextBelow="md"
-                  onClick={() => setReportsSubView("reports")}
+                  onClick={(e) =>
+                    handleButtonClick(e, () => setReportsSubView("reports"))
+                  }
                   className={
                     reportsSubView === "reports"
-                      ? "bg-gold text-white"
-                      : "bg-gray-100 text-gray-800 hover:bg-beige/90 hover:border-brown"
+                      ? "bg-gold text-white hover:bg-gold/90"
+                      : "bg-gray-100 text-gray-800 hover:bg-gray-200 active:bg-gray-100 focus:bg-gray-100 focus-visible:bg-gray-100"
                   }
                 >
                   Reports
@@ -397,11 +411,13 @@ export default function SavedHomes() {
                   size="sm"
                   icon={<BarChart2 />}
                   hideTextBelow="md"
-                  onClick={() => setReportsSubView("compare")}
+                  onClick={(e) =>
+                    handleButtonClick(e, () => setReportsSubView("compare"))
+                  }
                   className={
                     reportsSubView === "compare"
-                      ? "bg-gold text-white"
-                      : "bg-gray-100 text-gray-800 hover:bg-beige/90 hover:border-brown"
+                      ? "bg-gold text-white hover:bg-gold/90"
+                      : "bg-gray-100 text-gray-800 hover:bg-gray-200 active:bg-gray-100 focus:bg-gray-100 focus-visible:bg-gray-100"
                   }
                 >
                   Compare
@@ -411,11 +427,13 @@ export default function SavedHomes() {
                   size="sm"
                   icon={<Bot />}
                   hideTextBelow="md"
-                  onClick={() => setReportsSubView("chatbot")}
+                  onClick={(e) =>
+                    handleButtonClick(e, () => setReportsSubView("chatbot"))
+                  }
                   className={
                     reportsSubView === "chatbot"
-                      ? "bg-gold text-white"
-                      : "bg-gray-100 text-gray-800 hover:bg-beige/90 hover:border-brown"
+                      ? "bg-gold text-white hover:bg-gold/90"
+                      : "bg-gray-100 text-gray-800 hover:bg-gray-200 active:bg-gray-100 focus:bg-gray-100 focus-visible:bg-gray-100"
                   }
                 >
                   Chatbot

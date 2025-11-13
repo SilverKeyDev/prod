@@ -17,7 +17,7 @@ export default function LoginPage() {
   const location = useLocation();
 
   // Use secure authentication hook
-  const { login, isLoading, error, clearError } = useSecureAuth();
+  const { login, isLoading, error, clearError, needsVerification } = useSecureAuth();
 
   // No token cleanup needed - auth is managed via HTTP-only cookies
   // All authentication state is handled by the server
@@ -26,9 +26,9 @@ export default function LoginPage() {
     e.preventDefault();
     clearError();
 
-    const success = await login(email, password);
+    const result = await login(email, password);
 
-    if (success) {
+    if (result.success) {
       // Read intended destination from state, sanitize, and fallback
       const from =
         (location.state as { from?: { pathname?: string } } | null)?.from
@@ -44,6 +44,11 @@ export default function LoginPage() {
       if (location.pathname !== safe) {
         navigate(safe, { replace: true });
       }
+    } else if (result.needsVerification) {
+      // Redirect to verification page with email (same pattern as signup)
+      localStorage.setItem("signupEmail", email);
+      localStorage.setItem("signupPassword", password);
+      navigate("/verification", { state: { email, fromLogin: true } });
     } else {
       console.error("🔐 [LOGIN] Login failed, not navigating");
     }

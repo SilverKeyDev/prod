@@ -1,4 +1,5 @@
 import { apiPost } from "../../services/http/compatibility";
+import { HttpError } from "../../services/http/compatibility";
 import { reportSecurityEvent } from "../../services/security/errorReporting";
 import { log } from "../../services/security/secureLogger";
 import type { UserProfile } from "../../schemas/user";
@@ -50,6 +51,7 @@ export type AuthResponse = {
   login_failed?: boolean;
   auto_login_failed?: boolean;
   code_delivery?: unknown;
+  needs_verification?: boolean;
 };
 
 /**
@@ -217,7 +219,8 @@ export const authApi = {
       const duration = Date.now() - startTime;
 
       // Only report authentication failure when the response explicitly indicates failure
-      if (!response.success) {
+      // Skip reporting if user just needs verification (expected behavior)
+      if (!response.success && !response.needs_verification) {
         log.warn("AUTH_LOGIN_FAILED", "Login request failed", {
           requestId,
           error: response.error,
@@ -238,12 +241,43 @@ export const authApi = {
             duration: `${duration}ms`,
           },
         });
+      } else if (response.needs_verification) {
+        log.info("AUTH_LOGIN_NEEDS_VERIFICATION", "User needs email verification", {
+          requestId,
+          email: data.email
+            ? `${data.email.substring(0, 3)}***${data.email.substring(data.email.length - 3)}`
+            : "missing",
+          duration: `${duration}ms`,
+        });
       }
 
       return response;
     } catch (error: unknown) {
       const duration = Date.now() - startTime;
       const err = error as Error & { status?: string; errorCode?: string };
+
+      // Check if this is an HttpError with needs_verification flag
+      if (error instanceof HttpError && error.status === 401 && error.parsedBody) {
+        const parsedBody = error.parsedBody as Record<string, unknown>;
+        if (parsedBody.needs_verification === true) {
+          log.info("AUTH_LOGIN_NEEDS_VERIFICATION", "User needs email verification", {
+            requestId,
+            email: data.email
+              ? `${data.email.substring(0, 3)}***${data.email.substring(data.email.length - 3)}`
+              : "missing",
+            duration: `${duration}ms`,
+          });
+
+          // Return response indicating verification is needed
+          return {
+            success: false,
+            error: parsedBody.error as string || "USER_NOT_VERIFIED",
+            message: parsedBody.message as string || "Please verify your email address to continue.",
+            needs_verification: true,
+            code_delivery: parsedBody.code_delivery,
+          };
+        }
+      }
 
       // Log detailed error information
       log.error("AUTH_LOGIN_ERROR", "Login request failed with exception", {

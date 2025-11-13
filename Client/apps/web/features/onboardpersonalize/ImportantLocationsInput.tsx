@@ -2,10 +2,7 @@ import { MapPin, Plus, X, Clock } from "lucide-react";
 import React, { useState, useRef, useEffect } from "react";
 
 import { Input } from "../../components/ui/form/Input";
-import type {
-  GoogleMapsWindow,
-  AutocompleteSuggestion,
-} from "../../../../packages/schemas/google-maps";
+import type { GoogleMapsWindow } from "../../../../packages/schemas/google-maps";
 import { asError } from "../../../../packages/utils/error";
 import {
   isObject,
@@ -19,8 +16,16 @@ type ImportantLocation = {
   commute_tolerance?: number;
 };
 
+// Google Places API types
+interface GooglePlacePrediction {
+  text: {
+    text: string;
+  };
+  toPlace: () => google.maps.places.Place;
+}
+
 type Suggestion = {
-  placePrediction: unknown;
+  placePrediction: GooglePlacePrediction;
   description: string;
 };
 
@@ -70,26 +75,19 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
             request
           );
 
-        setSuggestions(
-          fetched
-            .filter(
-              (s: AutocompleteSuggestion) =>
-                isObject(s) &&
-                hasProperty(s, "placePrediction") &&
-                s.placePrediction &&
-                typeof s.placePrediction === "object" &&
-                hasProperty(s.placePrediction, "text") &&
-                s.placePrediction.text &&
-                typeof s.placePrediction.text === "object" &&
-                hasProperty(s.placePrediction.text, "text") &&
-                typeof (s.placePrediction.text as Record<string, unknown>)
-                  .text === "string"
-            )
-            .map((s: AutocompleteSuggestion) => ({
-              description: s.placePrediction.text.text,
-              placePrediction: s.placePrediction,
-            }))
-        );
+        const built: Suggestion[] = (
+          fetched as Array<{ placePrediction: GooglePlacePrediction | null }>
+        ).flatMap((s) => {
+          const prediction = s.placePrediction;
+          if (!prediction) return [];
+          return [
+            {
+              description: prediction.text.text,
+              placePrediction: prediction,
+            },
+          ];
+        });
+        setSuggestions(built);
       } catch (err: unknown) {
         const error = asError(err);
         console.error("Autocomplete fetch error:", error);

@@ -107,7 +107,7 @@ export default function KeyTurnLoader({
             r="8"
             stroke={keyColor}
             strokeWidth="4"
-            fill={fillColor}
+            fill="none"
           />
           {/* Shaft */}
           <rect x="28" y="30" width="24" height="4" fill={keyColor} rx="2" />

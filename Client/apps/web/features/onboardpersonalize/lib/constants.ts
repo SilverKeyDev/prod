@@ -266,13 +266,55 @@ export const INFORMATION_DETAIL_OPTIONS: DropdownOption[] = [
 ];
 
 // Required fields mapping - used to determine if a field needs RequiredLabel or OptionalLabel
-export const REQUIRED_FIELDS: Record<string, boolean> = {
+// Base required fields for onboarding (all demographics fields are required)
+export const REQUIRED_FIELDS_ONBOARDING: Record<string, boolean> = {
+  // Demographics
+  is_agent: true,
+  age: true,
+  // gender: true,
+  // occupation: true,
+  // pets: true,
+  marital_status: false,
+  children_count: true,
+
+  // Financial
+  gross_income: false,
+  home_budget_min: true,
+  home_budget_max: true,
+  down_payment: false,
+  credit_score_range: false,
+  ideal_zip_code: false,
+
+  // Housing
+  preferred_housing_type: false,
+  preferred_bedrooms: true,
+  preferred_bathrooms: true,
+  preferred_lot_size: false,
+  preferred_home_age: false,
+  preferred_architectural_style: false,
+  renovation_preference: false,
+  intended_property_use: false,
+  preferred_home_features: false,
+  deal_breakers: false,
+  walkability_importance: false,
+
+  // Location
+  important_locations: true,
+  // Communication
+  communication_frequency: false,
+  information_detail_level: false,
+  has_buyers_agent: false,
+  looking_for_buyers_agent: false,
+} as const;
+
+// Required fields mapping for settings page (age is not required)
+export const REQUIRED_FIELDS_SETTINGS: Record<string, boolean> = {
   // Demographics
   is_agent: false,
-  age: true,
+  age: false,
   gender: false,
   occupation: false,
-  pets: false,
+  // pets: false,
   marital_status: false,
   children_count: false,
 
@@ -295,10 +337,10 @@ export const REQUIRED_FIELDS: Record<string, boolean> = {
   intended_property_use: false,
   preferred_home_features: false,
   deal_breakers: false,
+  walkability_importance: false,
 
   // Location
   important_locations: true,
-  walkability_importance: false,
 
   // Communication
   communication_frequency: false,
@@ -306,3 +348,6 @@ export const REQUIRED_FIELDS: Record<string, boolean> = {
   has_buyers_agent: false,
   looking_for_buyers_agent: false,
 } as const;
+
+// Legacy export for backward compatibility (deprecated - use REQUIRED_FIELDS_ONBOARDING or REQUIRED_FIELDS_SETTINGS)
+export const REQUIRED_FIELDS = REQUIRED_FIELDS_ONBOARDING;

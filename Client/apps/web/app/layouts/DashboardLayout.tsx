@@ -13,7 +13,7 @@ import MobileTopBar from "../../components/widgets/header/MobileTopBar";
 import BuyerChecklists from "../../pages/BuyerChecklistsPage.tsx";
 import DashboardPage from "../../pages/DashboardPage.tsx";
 import NegotiationStrategy from "../../pages/NegotiationPage.tsx";
-import PersonalizationPage from "../../pages/PersonalizationPage.tsx";
+import PersonalizationPage from "../../pages/SettingsPage.tsx";
 import SavedHomes from "../../pages/SavedPage.tsx";
 import SearchPage from "../../pages/SearchPage.tsx";
 

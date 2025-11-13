@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Lightbulb, Home, Download, Share2 } from "lucide-react";
+import { Lightbulb, Home, Share2 } from "lucide-react";
 
 import { CardCarousel } from "../components/cards/base";
 import CompCard from "../components/cards/CompCard";
@@ -45,10 +45,6 @@ export default function NegotiationStrategy() {
     setLoading(true);
     setError(null);
     await negotiationService.generateStrategy();
-  };
-
-  const handleDownloadJson = () => {
-    negotiationService.downloadStrategyJson();
   };
 
   const handleShareJson = async () => {
@@ -643,7 +639,7 @@ export default function NegotiationStrategy() {
 
                     return (
                       <SectionBox key={key}>
-                        {/* Add download/share buttons to the first card */}
+                        {/* Add share button to the first card */}
                         {index === 0 && (
                           <div className="mb-4 flex items-center justify-between border-b border-gray-200 pb-4">
                             <div className="flex items-center gap-3">
@@ -654,15 +650,6 @@ export default function NegotiationStrategy() {
                               />
                             </div>
                             <div className="gap-responsive-sm flex">
-                              <Button
-                                variant="primary"
-                                size="sm"
-                                onClick={handleDownloadJson}
-                                icon={<Download className="mobile-icon-xs" />}
-                                className="bg-brown hover:bg-brown/90"
-                              >
-                                Download JSON
-                              </Button>
                               <Button
                                 variant="olive"
                                 size="sm"
