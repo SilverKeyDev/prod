@@ -135,15 +135,25 @@ export const PropertyImageGallery: React.FC<PropertyImageGalleryProps> = ({
 
                   {/* "See all X photos" button overlay on bottom-right thumbnail */}
                   {index === 3 && propertyImages.length > 4 && (
-                    <button
+                    <div
                       onClick={handleSeeAllClick}
                       className="absolute inset-0 flex items-center justify-center bg-black/50 hover:bg-black/60 transition-colors cursor-pointer"
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setFullGalleryIndex(currentImageIndex);
+                          setShowFullGallery(true);
+                        }
+                      }}
                     >
                       <div className="flex items-center gap-1 rounded bg-white px-2 py-1 text-xs font-medium text-gray-700">
                         <Grid3X3 className="h-3 w-3" />
                         See all {propertyImages.length} photos
                       </div>
-                    </button>
+                    </div>
                   )}
                 </button>
               ))}

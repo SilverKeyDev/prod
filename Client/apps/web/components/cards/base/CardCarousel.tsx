@@ -474,8 +474,6 @@ function CardCarousel<T>({
                               : page.length === computedCols
                                 ? "space-between"
                                 : "flex-start",
-                          paddingLeft: computedCols > 1 ? "0.5rem" : "0",
-                          paddingRight: computedCols > 1 ? "0.5rem" : "0",
                         } as CSSVars
                       }
                     >

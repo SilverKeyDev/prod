@@ -103,7 +103,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
         />
       </div>
 
-      <div className="flex flex-grow flex-col">
+      <div className="flex min-w-0 flex-grow flex-col">
         {viewMode === "grid" ? (
           <div className="flex-grow pt-4">
             <div className="flex items-start justify-between">
@@ -149,10 +149,10 @@ const ReportCard: React.FC<ReportCardProps> = ({
           </div>
         )}
 
-        <div className="mt-auto pt-4">
+        <div className="mt-auto w-full min-w-0 pt-4">
           {report.status === "completed" &&
             (viewMode === "grid" ? (
-              <div className="flex flex-col gap-2">
+              <div className="flex w-full min-w-0 flex-col gap-2">
                 <ActionButton
                   onClick={() => {
                     console.log("[ReportCard] View button clicked", {
@@ -170,7 +170,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
                   colorClasses="bg-olive-muted hover:bg-olive-light text-white"
                   className="w-full"
                 />
-                <div className="flex gap-2">
+                <div className="flex min-w-0 gap-2">
                   <ActionButton
                     onClick={() => onDownload(report.id, report.address)}
                     disabled={loadingUrls.has(report.id)}
@@ -205,14 +205,14 @@ const ReportCard: React.FC<ReportCardProps> = ({
                 </div>
               </div>
             ) : (
-              <div className="flex items-center gap-2">
+              <div className="flex min-w-0 items-center gap-2">
                 <ActionButton
                   onClick={() => onDownload(report.id, report.address)}
                   disabled={loadingUrls.has(report.id)}
                   icon={<Download />}
                   text=""
                   colorClasses="bg-brown-muted hover:bg-brown/90 text-white"
-                  className="flex-1"
+                  className="min-w-0 flex-1"
                   hideTextOnMobile
                 />
                 <ActionButton
@@ -233,7 +233,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
                   icon={<Eye />}
                   text="View"
                   colorClasses="bg-olive-muted hover:bg-olive-light text-white"
-                  className="flex-1"
+                  className="min-w-0 flex-1"
                 />
                 <ActionButton
                   onClick={() => onShare(report)}
@@ -241,7 +241,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
                   icon={<Share />}
                   text=""
                   colorClasses="bg-gold hover:bg-gold/90 text-white"
-                  className="flex-1"
+                  className="min-w-0 flex-1"
                   hideTextOnMobile
                 />
                 <ActionButton
@@ -254,7 +254,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
                   icon={<Trash2 />}
                   colorClasses="bg-transparent hover:bg-danger/10 text-danger border border-danger"
                   title="Delete report"
-                  className="sm:w-auto sm:flex-initial"
+                  className="min-w-0 sm:w-auto sm:flex-initial"
                   hideTextOnMobile
                 />
               </div>

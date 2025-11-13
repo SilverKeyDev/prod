@@ -29,9 +29,18 @@ const ActionButton: React.FC<ActionButtonProps> = ({
     ? "px-responsive-sm py-responsive-xs"
     : "p-responsive-xs";
 
+  // Handler to blur button after click to prevent stuck hover state
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    onClick();
+    // Blur the button after click to prevent hover state from persisting
+    setTimeout(() => {
+      e.currentTarget.blur();
+    }, 0);
+  };
+
   return (
     <button
-      onClick={onClick}
+      onClick={handleClick}
       disabled={disabled}
       className={`${baseClasses} ${paddingClasses} ${colorClasses} ${className}`}
       title={title}
