@@ -167,17 +167,20 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
             {loading && (
               <div
                 className={(() => {
-                  if (!children) return "";
-                  if (!hideTextBelow) return "mr-1 sm:mr-2";
+                  const baseClasses = "scale-75 sm:scale-100 px-1 sm:px-0";
+                  if (!children) return baseClasses;
+                  if (!hideTextBelow) return `${baseClasses} mr-1 sm:mr-2`;
+                  // When hideTextBelow is set, only apply margin when text is visible
+                  // Below the breakpoint, text is hidden so loader should be centered (no margin)
                   const rightMarginByBreakpoint: Record<
                     NonNullable<typeof hideTextBelow>,
                     string
                   > = {
-                    sm: "mr-1 sm:mr-2",
-                    md: "mr-1 md:mr-2",
-                    lg: "mr-1 lg:mr-2",
-                    xl: "mr-1 xl:mr-2",
-                    "2xl": "mr-1 2xl:mr-2",
+                    sm: `${baseClasses} sm:mr-2`,
+                    md: `${baseClasses} md:mr-2`,
+                    lg: `${baseClasses} lg:mr-2`,
+                    xl: `${baseClasses} xl:mr-2`,
+                    "2xl": `${baseClasses} 2xl:mr-2`,
                   };
                   return rightMarginByBreakpoint[hideTextBelow];
                 })()}

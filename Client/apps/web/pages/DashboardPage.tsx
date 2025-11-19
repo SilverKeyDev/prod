@@ -9,7 +9,7 @@ import ReportCard from "../components/cards/ReportCard";
 import DeleteModal from "../components/modals/DeleteModal";
 import PdfModal from "../components/modals/PdfModal";
 import { NavigationButton } from "../components/ui";
-import Toggle from "../components/ui/form/Toggle";
+//import Toggle from "../components/ui/form/Toggle";
 // import { Calendar } from "../features/dashboard/calendar";
 // Core
 import { reportApi, userApi } from "../../../packages/config/api";
@@ -27,7 +27,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
 
   // Use user data hook for closing mode
-  const { userProfile, refreshUserProfile } = useUserData();
+  const { refreshUserProfile } = useUserData();
   const [isUpdatingClosingMode, setIsUpdatingClosingMode] = useState(false);
 
   // Use saved homes data hook
@@ -407,7 +407,7 @@ export default function Dashboard() {
       />
 
       {/* Dashboard Sections */}
-      <div className="mx-4">
+      <div>
         {/* Closing Mode Toggle */}
         {/* {userProfile && (
           <div className="my-6 flex items-center justify-center">

@@ -30,7 +30,7 @@ export {
 } from "../../services/http/compatibility";
 
 // Re-export types from individual API modules
-export type { SignupData, VerifyData, LoginData, AuthResponse } from "./auth";
+export type { SignupData, LoginData, AuthResponse } from "./auth";
 export type {
   ChatMessage,
   ChatResponse,

@@ -26,7 +26,7 @@ type ChecklistCheckboxProps = {
 
 /**
  * Reusable styled checkbox row for checklist pages.
- * Keeps consistent styling across Closing & Moving In, Inspections & Due Diligence, etc.
+ * Keeps consistent styling across Closing & Moving In, Inspections & Inspections, etc.
  */
 const ChecklistCheckbox: React.FC<ChecklistCheckboxProps> = ({
   item,

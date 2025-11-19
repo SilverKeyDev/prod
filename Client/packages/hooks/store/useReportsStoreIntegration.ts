@@ -83,8 +83,13 @@ export function useReportsStoreIntegration() {
   useEffect(() => {
     const store = useReportsStore.getState();
     // Replace the placeholder methods with real implementations
-    store.refreshReports = refreshReports;
-    store.refreshCompareReports = refreshCompareReports;
+    // Wrap to ensure Promise<void> return type
+    store.refreshReports = async () => {
+      await refreshReports();
+    };
+    store.refreshCompareReports = async () => {
+      await refreshCompareReports();
+    };
   }, [refreshReports, refreshCompareReports]);
 
   return {

@@ -62,7 +62,7 @@ export const SIDEBAR_TABS: Record<SidebarTabKey, SidebarTab> = {
   },
   decide: {
     key: "decide",
-    name: "Decide the Best Fit",
+    name: "Research",
     description: "Compare and pick your best options",
     icon: Split,
     href: "/saved?view=reports",

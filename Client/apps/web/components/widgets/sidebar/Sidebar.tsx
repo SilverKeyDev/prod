@@ -173,8 +173,8 @@ const getNavigation = (): NavigationStructure => {
 export default function Sidebar({
   onLogout,
   expanded,
-  onToggleExpanded,
-  isMobile,
+  onToggleExpanded: _onToggleExpanded,
+  isMobile: _isMobile,
   onLinkClick,
 }: SidebarProps) {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -240,7 +240,7 @@ export default function Sidebar({
     <>
       {/* Sidebar */}
       <div
-        className={`safe-top fixed left-0 top-0 z-sidebar h-full bg-brown text-white transition-all duration-300 ease-in-out ${expanded ? "w-64 px-4" : "w-16 px-2"} `}
+        className={`safe-top fixed left-0 top-0 z-sidebar h-full bg-brown text-white transition-all duration-300 ease-in-out ${expanded ? "w-52 px-4" : "w-16 px-2"} `}
       >
         <div
           className="line-clamp-1 flex h-full flex-col overflow-hidden"
@@ -249,7 +249,7 @@ export default function Sidebar({
             maxHeight: "100%",
           }}
         >
-          {/* Header with Logo and Toggle Button */}
+          {/* Header with Logo */}
           <div className="flex flex-shrink-0 items-center justify-between py-2">
             {/* Logo */}
             <div
@@ -282,31 +282,6 @@ export default function Sidebar({
                 </div>
               )}
             </div>
-
-            {/* Toggle Button - Hidden on mobile */}
-            {!isMobile && (
-              <button
-                onClick={onToggleExpanded}
-                className="touch-friendly ml-auto cursor-pointer rounded-lg p-2 text-white/70 transition-all duration-200 hover:-translate-y-0.5 hover:bg-brown-light/30 hover:text-beige active:bg-brown-light/20 active:text-beige"
-                aria-label="Toggle sidebar"
-              >
-                <svg
-                  className={`h-6 w-6 transform ${
-                    expanded ? "rotate-180" : "rotate-0"
-                  } transition-transform duration-200`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-              </button>
-            )}
           </div>
 
           {/* Navigation - Scrollable middle section */}

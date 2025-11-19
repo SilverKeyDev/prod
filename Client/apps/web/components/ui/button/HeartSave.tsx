@@ -98,11 +98,6 @@ const CardHeartSave: React.FC<CardHeartSaveProps> = ({
         // Save home
         if (saveHome) {
           await saveHome(property);
-          const displayAddress = propertyAddress || property.id;
-          enqueueToast({
-            type: "success",
-            message: `Saved ${displayAddress}`,
-          });
         }
       }
     } catch (error: unknown) {

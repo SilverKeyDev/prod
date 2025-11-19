@@ -86,7 +86,7 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
         {/* Price and Status Row */}
         <div className="absolute left-2 right-2 top-2 flex items-center justify-between">
           {/* Price Badge - reduced padding */}
-          <div className="rounded-full border border-neutral-200/50 bg-neutral-50/95 px-2 py-1 backdrop-blur-sm">
+          <div className="rounded-full border border-neutral-200/50 bg-neutral-50/95 px-2 py-1 backdrop-blur-sm text-xs sm:text-sm font-medium">
             {formatPrice(comp.price, comp.currency)}
           </div>
         </div>

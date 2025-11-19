@@ -358,7 +358,8 @@ export async function withRetry<T>(
       return result;
     }
 
-    lastError = result.error;
+    // TypeScript type narrowing: if result.success is false, result must have error property
+    lastError = (result as { success: false; error: AppError }).error;
 
     // Don't retry if it's the last attempt or retry condition is false
     if (attempt === maxRetries || !retryCondition(lastError)) {

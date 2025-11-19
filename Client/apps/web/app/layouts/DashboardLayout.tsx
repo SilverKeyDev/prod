@@ -363,12 +363,12 @@ export default function DashboardLayout({
 
   return (
     <div className="flex min-h-screen bg-off-white">
-      {/* Desktop Sidebar - Hidden on mobile */}
+      {/* Desktop Sidebar - Hidden on mobile, always expanded */}
       <div className="hidden lg:block">
         <Sidebar
           user={user}
           onLogout={onLogout}
-          expanded={sidebarExpanded}
+          expanded={true}
           onToggleExpanded={toggleSidebar}
           isMobile={false}
           onLinkClick={undefined}
@@ -386,9 +386,7 @@ export default function DashboardLayout({
       </div>
 
       <main
-        className={`ml-0 flex-1 transition-all duration-200 ${
-          sidebarExpanded ? "lg:ml-64" : "lg:ml-16"
-        }`}
+        className="ml-0 flex-1 transition-all duration-200 lg:ml-52"
       >
         {/* Mobile Header - Hidden on desktop */}
         <div className="lg:hidden">
@@ -428,20 +426,22 @@ export default function DashboardLayout({
 
         {/* Content area with centralized width parameter */}
         <div
-          className={`dashboard-content mx-auto w-full ${
+          className={`dashboard-content w-full ${
             isSearch
-              ? // Full-height search canvas; add mobile horizontal padding to align with top bar button
-                `h-[calc(100vh-80px)] lg:h-[calc(100vh-0px)] ${MOBILE_SIDE_PX} lg:px-0`
+              ? // Full-height search canvas; full width on mobile and desktop
+                `h-[calc(100vh-80px)] lg:h-[calc(100vh-0px)]`
               : isBuyerChecklists
                 ? // Buyer checklists keeps its own internal spacing; still align sides on mobile
-                  `${MOBILE_SIDE_PX} lg:px-0`
+                  `mx-auto ${MOBILE_SIDE_PX} lg:px-0`
                 : // Default pages: standard padding on desktop; on mobile align with top bar button
-                  `mt-4 lg:mt-0 p-4 sm:p-6 lg:p-8 lg:pt-8 ${MOBILE_SIDE_PX} lg:px-0`
+                  `mx-auto mt-4 lg:mt-0 p-4 sm:p-6 lg:p-8 lg:pt-8 ${MOBILE_SIDE_PX} lg:px-0`
           }`}
           style={
-            {
-              "--max-width-desktop": `${computedMaxWidthVW}vw`,
-            } as React.CSSProperties & { "--max-width-desktop": string }
+            isSearch
+              ? undefined
+              : {
+                  "--max-width-desktop": `${computedMaxWidthVW}vw`,
+                } as React.CSSProperties & { "--max-width-desktop": string }
           }
         >
           {isSearch && (
