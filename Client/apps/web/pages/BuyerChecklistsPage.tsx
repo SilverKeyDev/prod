@@ -1,5 +1,4 @@
 import React, { useEffect } from "react";
-import useMobile from "../../../packages/hooks/ui/useMobile";
 
 import EscrowLegalLogistics from "../features/close/subheaders/EscrowLegalLogistics";
 import InspectionsDueDiligence from "../features/close/subheaders/InspectionsDueDiligence";
@@ -30,7 +29,6 @@ export default function BuyerChecklists({
   activeTab,
   onTabChange: _onTabChange,
 }: BuyerChecklistsProps) {
-  const isMobile = useMobile();
   const [closePageHeaderData, setClosePageHeaderDataState] =
     React.useState<ClosePageHeaderData | null>(null);
 
@@ -72,7 +70,7 @@ export default function BuyerChecklists({
   };
 
   return (
-    <div className={`h-full w-full bg-off-white ${isMobile ? "mt-14" : ""}`}>
+    <div className={`h-full w-full bg-off-white`}>
       {/* Content */}
       <div className="mx-auto w-full max-w-7xl mt-6">{renderTabContent()}</div>
     </div>

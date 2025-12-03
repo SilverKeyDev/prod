@@ -11,7 +11,7 @@ const sectionTitle =
   "text-responsive-sm font-semibold text-navy flex items-center gap-responsive-xs mb-responsive-md";
 const checkboxContainer =
   "flex items-start gap-responsive-xs mt-responsive-sm mb-responsive-md";
-const itemLabel = "font-medium text-navy text-responsive-xs";
+const itemLabel = "font-medium text-navy text-responsive-sm";
 const itemExplanation =
   "text-navy/80 text-responsive-xs mt-1 transition-opacity duration-300 ease-in-out";
 
@@ -182,7 +182,7 @@ export default function CloseLayout({
 
             <fieldset className="mt-responsive-xs">
               <legend className="sr-only">Checklist</legend>
-              <div className="space-y-responsive-sm">
+              <div className="space-y-responsive-md">
                 {items.map((item) => (
                   <ChecklistCheckbox
                     key={item.id}

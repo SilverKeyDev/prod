@@ -382,6 +382,7 @@ export default function PersonalizationPage({
   // Handle mobile header actions based on screen size
   const isMobile = useMobile();
   const isUltraSmallScreen = useMobile("(max-width: 768px)"); // Hide sidebar on ultra small screens
+  const isDesktop = useMobile("(min-width: 768px)"); // Check if we're at or above md breakpoint
 
   useEffect(() => {
     if (isMobile) {
@@ -587,11 +588,6 @@ export default function PersonalizationPage({
             <Title size="md" className="mb-2">
               {SECTION_TITLES.HOUSING_PREFERENCES}
             </Title>
-            <Subtitle size="sm" muted className="mb-6">
-              Tell us about your ideal home. These preferences help our AI
-              understand what features and characteristics matter most to you
-              when matching properties to your lifestyle and needs.
-            </Subtitle>
 
             <AlignedRow
               breakIntoRows="md"
@@ -923,18 +919,23 @@ export default function PersonalizationPage({
                     </div>
                   ),
                 },
-                {
-                  title: (
-                    <div className="mb-2 block text-sm font-medium text-transparent">
-                      &nbsp;
-                    </div>
-                  ),
-                  content: (
-                    <div className="mobile-input bg-gray-50 opacity-0">
-                      &nbsp;
-                    </div>
-                  ),
-                },
+                // Only include spacer on desktop (above md breakpoint) to avoid gap in single column
+                ...(isDesktop
+                  ? [
+                      {
+                        title: (
+                          <div className="mb-2 block text-sm font-medium text-transparent">
+                            &nbsp;
+                          </div>
+                        ),
+                        content: (
+                          <div className="mobile-input bg-gray-50 opacity-0">
+                            &nbsp;
+                          </div>
+                        ),
+                      },
+                    ]
+                  : []),
               ]}
             />
 
@@ -947,6 +948,7 @@ export default function PersonalizationPage({
                     updateFormData("preferred_home_features", value)
                   }
                   placeholder="e.g., garage, pool, fireplace"
+                  isEditMode={isEditMode}
                 />
               </div>
 
@@ -958,6 +960,7 @@ export default function PersonalizationPage({
                     updateFormData("deal_breakers", value)
                   }
                   placeholder="e.g., No parking, Busy road, Old plumbing"
+                  isEditMode={isEditMode}
                 />
               </div>
             </div>
@@ -966,34 +969,26 @@ export default function PersonalizationPage({
 
       case "location":
         return (
-          <Card className="space-y-6 mb-64">
-            <Title size="md" className="mb-6">
-              Location Preferences
-            </Title>
+          <Card className="space-y-2 mb-64">
+            <Title size="md">Location Preferences</Title>
 
             {/* Important Locations for Commute */}
-            <div className="flex w-full flex-col gap-6 md:flex-row">
-              <div className="flex-1">
-                <Label>{FIELD_LABELS.IMPORTANT_LOCATIONS}</Label>
-                <p className="mb-4 text-xs text-black/60">
-                  Add locations important to you (workplace, gym, family, etc.).
-                  We use these to create travel time maps and find properties
-                  within your commute tolerance. Each location helps our AI
-                  match you with homes that fit your lifestyle and daily
-                  routines.
-                </p>
-                <ImportantLocationsInput
-                  locations={formData.important_locations ?? []}
-                  onChange={(locations) =>
-                    updateFormData("important_locations", locations)
-                  }
-                  scriptsReady={scriptsReady}
-                  isEditMode={isEditMode}
-                />
-                {loadError && (
-                  <p className="mt-2 text-xs text-red-500">{loadError}</p>
-                )}
-              </div>
+            <div className="flex w-full flex-col">
+              <Subtitle size="xs" muted className="mb-4">
+                Locations set an exact search range; give work, family, or
+                frequently visited places.
+              </Subtitle>
+              <ImportantLocationsInput
+                locations={formData.important_locations ?? []}
+                onChange={(locations) =>
+                  updateFormData("important_locations", locations)
+                }
+                scriptsReady={scriptsReady}
+                isEditMode={isEditMode}
+              />
+              {loadError && (
+                <p className="mt-2 text-xs text-red-500">{loadError}</p>
+              )}
             </div>
           </Card>
         );

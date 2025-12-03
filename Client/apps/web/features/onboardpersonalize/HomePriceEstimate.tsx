@@ -25,9 +25,8 @@ const HomePriceEstimate: React.FC<HomePriceEstimateProps> = ({
       className={`col-span-1 mt-4 rounded-lg border border-olive bg-white px-3 py-4 sm:mt-6 sm:p-4 md:col-span-2`}
     >
       <div
-        className={`touch-friendly -m-2 flex cursor-pointer items-center justify-between rounded-lg p-2 transition-colors duration-150 hover:bg-olive/5 ${
-          isAffordabilityCollapsed ? "mb-2" : "mb-2"
-        }`}
+        className={`touch-friendly -m-2 flex cursor-pointer items-center justify-between 
+          rounded-lg p-2 transition-colors duration-150 hover:bg-olive/5 `}
         onClick={() => setIsAffordabilityCollapsed(!isAffordabilityCollapsed)}
       >
         <h3 className="text-base font-medium text-olive sm:text-lg">

@@ -479,43 +479,43 @@ export default function GenerateReportPage({
   return (
     <div className="w-full">
       <div className="w-full">
-        <Card className="space-y-responsive-sm w-full">
-          {/* Main input row - address input, generate button, and toggle on one line */}
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:gap-4">
+        <Card padding="none" className="p-3 space-y-responsive-sm w-full">
+          {/* Main input row - address input and generate button inline */}
+          <div className="flex flex-row items-center gap-3 sm:gap-4">
             {/* Address inputs container */}
-            <div className="flex-1">
-              <div className="relative space-y-3">
-                <Input
-                  id="address-input"
-                  ref={inputRef}
-                  type="text"
-                  value={address}
-                  onChange={handleInputChange}
-                  placeholder={scriptsReady ? "Enter address..." : "Loading..."}
-                  disabled={!scriptsReady || isGenerating}
-                  leftIcon={<MapPin className="h-4 w-4 sm:h-5 sm:w-5" />}
-                  size="md"
-                  autoComplete="off"
-                  className="touch-manipulation px-2 sm:px-3"
-                />
+            <div className="flex-1 relative">
+              <Input
+                id="address-input"
+                ref={inputRef}
+                type="text"
+                value={address}
+                onChange={handleInputChange}
+                placeholder={scriptsReady ? "Enter address..." : "Loading..."}
+                disabled={!scriptsReady || isGenerating}
+                leftIcon={<MapPin className="h-4 w-4 sm:h-5 sm:w-5" />}
+                size="md"
+                autoComplete="off"
+                className="touch-manipulation px-2 sm:px-3"
+              />
 
-                {/* Address suggestions dropdown */}
-                {suggestions.length > 0 && (
-                  <ul className="absolute z-50 max-h-60 w-full overflow-hidden overflow-y-auto rounded-md border bg-white shadow-lg">
-                    {suggestions.map((s, idx) => (
-                      <li
-                        key={idx}
-                        onClick={() => handleSelect(s)}
-                        className="touch-friendly cursor-pointer border-b border-gray-100 px-3 py-3 text-sm last:border-b-0 hover:bg-gray-100 sm:px-4 sm:py-2 sm:text-base"
-                      >
-                        {s.description}
-                      </li>
-                    ))}
-                  </ul>
-                )}
+              {/* Address suggestions dropdown */}
+              {suggestions.length > 0 && (
+                <ul className="absolute z-50 max-h-60 w-full overflow-hidden overflow-y-auto rounded-md border bg-white shadow-lg mt-1">
+                  {suggestions.map((s, idx) => (
+                    <li
+                      key={idx}
+                      onClick={() => handleSelect(s)}
+                      className="touch-friendly cursor-pointer border-b border-gray-100 px-3 py-3 text-sm last:border-b-0 hover:bg-gray-100 sm:px-4 sm:py-2 sm:text-base"
+                    >
+                      {s.description}
+                    </li>
+                  ))}
+                </ul>
+              )}
 
-                {/* Comparison address input - always rendered but hidden when not in comparison mode */}
-                <div className={isComparison ? "block" : "hidden"}>
+              {/* Comparison address input - always rendered but hidden when not in comparison mode */}
+              {isComparison && (
+                <div className="mt-3">
                   <Input
                     id="comparison-address-input"
                     ref={comparisonInputRef}
@@ -536,7 +536,7 @@ export default function GenerateReportPage({
 
                   {/* Comparison address suggestions dropdown */}
                   {comparisonSuggestions.length > 0 && (
-                    <ul className="absolute z-50 max-h-60 w-full overflow-hidden overflow-y-auto rounded-md border bg-white shadow-lg">
+                    <ul className="absolute z-50 max-h-60 w-full overflow-hidden overflow-y-auto rounded-md border bg-white shadow-lg mt-1">
                       {comparisonSuggestions.map((s, idx) => (
                         <li
                           key={idx}
@@ -549,33 +549,20 @@ export default function GenerateReportPage({
                     </ul>
                   )}
                 </div>
-              </div>
+              )}
             </div>
 
-            {/* Generate button and comparison toggle inline */}
-            <div className="flex items-center justify-center gap-3">
-              <Button
-                onClick={handleGenerate}
-                disabled={isButtonDisabled}
-                loading={isGenerating}
-                icon={<Lightbulb className="mobile-icon-sm" />}
-                className="h-12 sm:h-14 px-4 text-xs sm:text-sm md:text-base leading-tight"
-                variant="olive"
-              >
-                Generate
-              </Button>
-
-              {/* Comparison mode toggle */}
-              {/* <div className="flex items-center gap-2">
-                <GitCompare className="h-4 w-4 text-black/70" />
-                <OliveCheckbox
-                  checked={isComparison}
-                  onToggle={() =>
-                    setReportType(isComparison ? "detailed" : "comparison")
-                  }
-                />
-              </div> */}
-            </div>
+            {/* Generate button inline with input */}
+            <Button
+              onClick={handleGenerate}
+              disabled={isButtonDisabled}
+              loading={isGenerating}
+              icon={<Lightbulb className="mobile-icon-sm" />}
+              className="h-12 sm:h-14 px-4 text-xs sm:text-sm md:text-base leading-tight shrink-0"
+              variant="olive"
+            >
+              Generate
+            </Button>
           </div>
 
           {/* Loading indicator */}

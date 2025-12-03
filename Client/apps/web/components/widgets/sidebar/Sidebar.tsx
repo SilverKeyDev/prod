@@ -91,7 +91,7 @@ const navigationStructure: NavigationStructure = {
     }>,
     items: [
       {
-        name: "Negotiation Advisor",
+        name: "Negotiation",
         href: SIDEBAR_TABS.negotiate.href,
         icon: SIDEBAR_TABS.negotiate.icon as unknown as React.FC<{
           className?: string;
@@ -225,8 +225,14 @@ export default function Sidebar({
 
   // No local fetchUserData; userProfile is loaded by UserContext on login/app load.
 
-  const isActive = (href: string) =>
-    location.pathname === href || location.pathname.endsWith(href);
+  const isActive = (href: string) => {
+    // Extract pathname from href (remove query parameters and hash)
+    const hrefPathname = href.split("?")[0].split("#")[0];
+    return (
+      location.pathname === hrefPathname ||
+      location.pathname.endsWith(hrefPathname)
+    );
+  };
 
   const toggleCategory = (category: string) => {
     toggleCategoryInStore(category);

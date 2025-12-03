@@ -9,6 +9,7 @@ type OnPerTagInputProps = {
   placeholder: string;
   className?: string;
   disabled?: boolean;
+  isEditMode?: boolean;
 };
 
 const OnPerTagInput: React.FC<OnPerTagInputProps> = ({
@@ -17,6 +18,7 @@ const OnPerTagInput: React.FC<OnPerTagInputProps> = ({
   placeholder,
   className = "",
   disabled = false,
+  isEditMode = true,
 }) => {
   const [draftText, setDraftText] = React.useState("");
 
@@ -54,29 +56,31 @@ const OnPerTagInput: React.FC<OnPerTagInputProps> = ({
 
   return (
     <div className={`${className}`}>
-      {/* Input container with same styling as OnPerDropdown */}
-      <div className="mb-3 flex space-x-2">
-        <Input
-          type="text"
-          value={draftText}
-          onChange={handleInputChange}
-          onKeyPress={handleKeyPress}
-          disabled={disabled}
-          placeholder={placeholder}
-          className="flex-1"
-          variant="default"
-          size="md"
-        />
-        {/* Square olive plus button with centered icon */}
-        <button
-          type="button"
-          onClick={() => handleAddTag(draftText)}
-          disabled={disabled ?? !draftText.trim()}
-          className={`touch-friendly flex h-12 w-12 items-center justify-center rounded-lg bg-olive text-white transition-colors duration-200 hover:bg-olive/80 focus:outline-none focus:ring-2 focus:ring-olive/20 disabled:cursor-not-allowed disabled:bg-olive/50`}
-        >
-          <Plus className="h-4 w-4" />
-        </button>
-      </div>
+      {/* Input container with same styling as OnPerDropdown - only show in edit mode */}
+      {isEditMode && (
+        <div className="mb-3 flex space-x-2">
+          <Input
+            type="text"
+            value={draftText}
+            onChange={handleInputChange}
+            onKeyPress={handleKeyPress}
+            disabled={disabled}
+            placeholder={placeholder}
+            className="flex-1"
+            variant="default"
+            size="md"
+          />
+          {/* Square olive plus button with centered icon */}
+          <button
+            type="button"
+            onClick={() => handleAddTag(draftText)}
+            disabled={disabled ?? !draftText.trim()}
+            className={`touch-friendly flex h-12 w-12 items-center justify-center rounded-lg bg-olive text-white transition-colors duration-200 hover:bg-olive/80 focus:outline-none focus:ring-2 focus:ring-olive/20 disabled:cursor-not-allowed disabled:bg-olive/50`}
+          >
+            <Plus className="h-4 w-4" />
+          </button>
+        </div>
+      )}
 
       {/* Tags display */}
       {value.length > 0 && (
@@ -87,14 +91,16 @@ const OnPerTagInput: React.FC<OnPerTagInputProps> = ({
               className="inline-flex items-center rounded-full bg-gold px-3 py-1 text-sm text-off-white"
             >
               {tag}
-              <button
-                type="button"
-                onClick={() => handleRemoveTag(tag)}
-                disabled={disabled}
-                className="ml-2 text-off-white/60 hover:text-off-white disabled:cursor-not-allowed disabled:text-off-white/30"
-              >
-                <X className="h-3 w-3" />
-              </button>
+              {isEditMode && (
+                <button
+                  type="button"
+                  onClick={() => handleRemoveTag(tag)}
+                  disabled={disabled}
+                  className="ml-2 text-off-white/60 hover:text-off-white disabled:cursor-not-allowed disabled:text-off-white/30"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              )}
             </div>
           ))}
         </div>

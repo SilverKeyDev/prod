@@ -75,7 +75,7 @@ export function SidebarList(props: {
           {/* Loading overlay */}
           {isLoading && (
             <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-white/80 backdrop-blur-sm">
-              <KeyTurnLoader message="Loading details..." variant="gray" />
+              <KeyTurnLoader message="Loading details..." />
             </div>
           )}
           {/* Property Image */}
@@ -156,9 +156,13 @@ export function SidebarList(props: {
                     ? async (propertyArg) =>
                         // property could be SearchResult or Property. Convert Property to SearchResult shape if necessary.
                         saveHome(
-                          "price" in propertyArg && typeof propertyArg.price === "number"
-                            ? { ...propertyArg, price: propertyArg.price.toString() }
-                            : propertyArg as any
+                          "price" in propertyArg &&
+                            typeof propertyArg.price === "number"
+                            ? {
+                                ...propertyArg,
+                                price: propertyArg.price.toString(),
+                              }
+                            : (propertyArg as any)
                         )
                     : undefined
                 }

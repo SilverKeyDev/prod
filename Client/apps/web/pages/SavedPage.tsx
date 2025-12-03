@@ -19,11 +19,18 @@ import type { SavedHome, Report } from "../../../packages/schemas";
 import { useUIStore } from "../../../packages/store";
 import CompareReportsPage from "../features/decide/compare/CompareReportsPage";
 import AIAssistant from "../features/decide/aiAssistant/AIAssistant";
-import Button from "../components/ui/button/Button";
-import { BarChart2, Bot, FileText } from "lucide-react";
+import ReportsSubViewNavigation from "../features/decide/ReportsSubViewNavigation";
 import useMobile from "../../../packages/hooks/ui/useMobile";
 
-export default function SavedHomes() {
+type SavedHomesProps = {
+  setMobileHeaderActions?: React.Dispatch<
+    React.SetStateAction<React.ReactNode | null>
+  >;
+};
+
+export default function SavedHomes({
+  setMobileHeaderActions,
+}: SavedHomesProps = {}) {
   const location = useLocation();
   const navigate = useNavigate();
   const isMobile = useMobile();
@@ -154,7 +161,7 @@ export default function SavedHomes() {
     // Reports are automatically loaded by useReportsData hook
   }, [refreshSavedHomes, refreshReports, viewType]);
 
-  const refresh = async () => {
+  const refresh = useCallback(async () => {
     setRefreshing(true);
     if (viewType === "homes") {
       await refreshSavedHomes();
@@ -162,7 +169,7 @@ export default function SavedHomes() {
       await refreshReports();
     }
     setRefreshing(false);
-  };
+  }, [viewType, refreshSavedHomes, refreshReports]);
 
   // Polling interval ref for report generation
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -338,17 +345,56 @@ export default function SavedHomes() {
     }
   };
 
-  // Handler to blur button after click to prevent stuck hover state
-  const handleButtonClick = (
-    e: React.MouseEvent<HTMLButtonElement>,
-    action: () => void
-  ) => {
-    action();
-    // Blur the button after click to prevent hover state from persisting
-    setTimeout(() => {
-      e.currentTarget.blur();
-    }, 0);
-  };
+  // Set mobile header actions with SavedLayout
+  useEffect(() => {
+    if (isMobile && setMobileHeaderActions) {
+      setMobileHeaderActions(
+        <SavedLayout
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          searchPlaceholder={
+            viewType === "homes" ? "Search saved homes..." : "Filter by address"
+          }
+          showSearch={viewType !== "reports"}
+          leftContent={
+            viewType === "reports" ? (
+              <ReportsSubViewNavigation
+                currentView={reportsSubView}
+                onViewChange={setReportsSubView}
+              />
+            ) : null
+          }
+          onRefresh={refresh}
+          isRefreshing={refreshing}
+          isLoading={viewType === "homes" ? loading : reportsLoading}
+          refreshTitle={
+            viewType === "homes" ? "Refresh saved homes" : "Refresh reports"
+          }
+          rightText={
+            viewType === "homes"
+              ? `${filteredHomes.length} saved`
+              : `${filteredReports.length} report${filteredReports.length !== 1 ? "s" : ""}`
+          }
+          viewType={viewType}
+          onViewTypeChange={setViewType}
+        />
+      );
+    } else if (setMobileHeaderActions) {
+      setMobileHeaderActions(null);
+    }
+  }, [
+    isMobile,
+    setMobileHeaderActions,
+    searchTerm,
+    viewType,
+    reportsSubView,
+    refreshing,
+    loading,
+    reportsLoading,
+    filteredHomes.length,
+    filteredReports.length,
+    refresh,
+  ]);
 
   // overlay toast component
   useEffect(() => {
@@ -373,90 +419,47 @@ export default function SavedHomes() {
         }
       />
       <div className="space-y-8">
-        {/* Generate Report Component - Show on desktop when reports view is active */}
-        {viewType === "reports" && !isMobile && (
+        {/* SavedLayout - Only show on desktop (mobile shows in topbar) */}
+        {!isMobile && (
+          <SavedLayout
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            searchPlaceholder={
+              viewType === "homes"
+                ? "Search saved homes..."
+                : "Filter by address"
+            }
+            showSearch={viewType !== "reports"}
+            leftContent={
+              viewType === "reports" ? (
+                <ReportsSubViewNavigation
+                  currentView={reportsSubView}
+                  onViewChange={setReportsSubView}
+                />
+              ) : null
+            }
+            onRefresh={refresh}
+            isRefreshing={refreshing}
+            isLoading={viewType === "homes" ? loading : reportsLoading}
+            refreshTitle={
+              viewType === "homes" ? "Refresh saved homes" : "Refresh reports"
+            }
+            rightText={
+              viewType === "homes"
+                ? `${filteredHomes.length} saved`
+                : `${filteredReports.length} report${filteredReports.length !== 1 ? "s" : ""}`
+            }
+            viewType={viewType}
+            onViewTypeChange={setViewType}
+          />
+        )}
+
+        {/* Generate Report Component - Show only when Reports button is selected */}
+        {viewType === "reports" && reportsSubView === "reports" && (
           <div className={`mb-6 ${isComparisonMode ? "-mt-16" : ""}`}>
             <GenerateReportPage onReportGenerated={handleReportGenerated} />
           </div>
         )}
-
-        <SavedLayout
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-          searchPlaceholder={
-            viewType === "homes" ? "Search saved homes..." : "Filter by address"
-          }
-          showSearch={viewType !== "reports"}
-          leftContent={
-            viewType === "reports" ? (
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  icon={<FileText />}
-                  hideTextBelow="md"
-                  onClick={(e) =>
-                    handleButtonClick(e, () => setReportsSubView("reports"))
-                  }
-                  className={
-                    reportsSubView === "reports"
-                      ? "bg-gold text-white hover:bg-gold/90"
-                      : "bg-gray-100 text-gray-800 hover:bg-gray-200 active:bg-gray-100 focus:bg-gray-100 focus-visible:bg-gray-100"
-                  }
-                >
-                  Reports
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  icon={<BarChart2 />}
-                  hideTextBelow="md"
-                  onClick={(e) =>
-                    handleButtonClick(e, () => setReportsSubView("compare"))
-                  }
-                  className={
-                    reportsSubView === "compare"
-                      ? "bg-gold text-white hover:bg-gold/90"
-                      : "bg-gray-100 text-gray-800 hover:bg-gray-200 active:bg-gray-100 focus:bg-gray-100 focus-visible:bg-gray-100"
-                  }
-                >
-                  Compare
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  icon={<Bot />}
-                  hideTextBelow="md"
-                  onClick={(e) =>
-                    handleButtonClick(e, () => setReportsSubView("chatbot"))
-                  }
-                  className={
-                    reportsSubView === "chatbot"
-                      ? "bg-gold text-white hover:bg-gold/90"
-                      : "bg-gray-100 text-gray-800 hover:bg-gray-200 active:bg-gray-100 focus:bg-gray-100 focus-visible:bg-gray-100"
-                  }
-                >
-                  Chatbot
-                </Button>
-              </div>
-            ) : null
-          }
-          onRefresh={!isMobile ? refresh : undefined}
-          isRefreshing={refreshing}
-          isLoading={viewType === "homes" ? loading : reportsLoading}
-          refreshTitle={
-            viewType === "homes" ? "Refresh saved homes" : "Refresh reports"
-          }
-          rightText={
-            !isMobile
-              ? viewType === "homes"
-                ? `${filteredHomes.length} saved`
-                : `${filteredReports.length} report${filteredReports.length !== 1 ? "s" : ""}`
-              : undefined
-          }
-          viewType={viewType}
-          onViewTypeChange={setViewType}
-        />
 
         {/* Content */}
         {viewType === "homes" ? (

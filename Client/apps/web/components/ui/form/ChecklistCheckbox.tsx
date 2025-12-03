@@ -66,14 +66,14 @@ const ChecklistCheckbox: React.FC<ChecklistCheckboxProps> = ({
           <div>
             <p className={itemExplanationClass}>{item.explanation}</p>
             {item.bullets && (
-              <ul className="ml-4 mt-2 list-inside list-disc space-y-1 text-sm text-navy/70">
+              <ul className="ml-4 mt-2 list-inside list-disc space-y-1 text-xs text-navy/70">
                 {item.bullets.map((b, idx) => (
                   <li key={idx}>{b}</li>
                 ))}
               </ul>
             )}
             {item.resource && (
-              <p className="mt-2 text-sm text-olive">
+              <p className="mt-2 text-responsive-xs text-olive">
                 {item.resource.href ? (
                   <a
                     href={item.resource.href}

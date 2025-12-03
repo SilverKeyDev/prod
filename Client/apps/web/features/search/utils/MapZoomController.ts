@@ -41,12 +41,6 @@ export const calculatePropertyCardCenter = (lat: number, lng: number, propertyId
   if (cacheKey) {
     const cached = propertyCenterCache.get(cacheKey);
     if (cached) {
-      console.log("🗺️ [CENTER CACHE HIT]", {
-        propertyId,
-        deviceType: isMobile ? "mobile" : "desktop",
-        cachedCenter: cached,
-        cacheSize: propertyCenterCache.size,
-      });
       return cached;
     }
   }
@@ -119,15 +113,13 @@ export const useMapZoomController = ({
 
   // Focus map on current property with default zoom
   const focusOnCurrentProperty = useCallback(() => {
-    console.log("🎯 [FOCUS] focusOnCurrentProperty called");
     if (!googleMapRef.current) return;
 
     const center = calculateMapCenter();
-    console.log("🎯 [FOCUS] Center calculated:", center);
+
     if (center) {
       googleMapRef.current.setCenter(center);
       googleMapRef.current.setZoom(DEFAULT_ZOOM);
-      console.log("🎯 [FOCUS] Map centered and zoomed to", DEFAULT_ZOOM);
     }
   }, [calculateMapCenter, googleMapRef]);
 

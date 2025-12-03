@@ -82,7 +82,7 @@ export const SIDEBAR_TABS: Record<SidebarTabKey, SidebarTab> = {
     href: "/negotiation-strategy",
     subSteps: [
       {
-        label: "Negotiation Advisor",
+        label: "Negotiation",
         to: "/negotiation-strategy",
         icon: Handshake,
       },

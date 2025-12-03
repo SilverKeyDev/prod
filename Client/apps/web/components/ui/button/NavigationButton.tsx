@@ -135,7 +135,9 @@ const NavigationButton: React.FC<NavigationButtonProps> = ({
       ) : (
         <>
           {children}
-          {showArrow && <ArrowIcon className={currentSizeStyles.icon} />}
+          {showArrow && (
+            <ArrowIcon className={`${currentSizeStyles.icon} flex-shrink-0`} />
+          )}
         </>
       )}
     </button>

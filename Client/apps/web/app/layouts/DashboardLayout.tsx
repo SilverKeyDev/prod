@@ -4,7 +4,6 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 // Headers
 import PageHeader from "../../components/widgets/header/PageHeader.tsx";
-import GenerateReportPage from "../../features/decide/generate/GenerateReport.tsx";
 import ClosePageHeader from "../../features/close/ClosePageHeader.tsx";
 import DashboardButtonHeader from "../../features/dashboard/DashboardButtonHeader.tsx";
 import MobileTopBar from "../../components/widgets/header/MobileTopBar";
@@ -60,20 +59,22 @@ type DashboardProps = {
 type PageWidthConfig = Record<string, number>;
 const PAGE_WIDTH_CONFIG: PageWidthConfig = {
   "/search": 100,
-  "/buyer-checklists": 95,
-  "/negotiation-strategy": 80,
-  "/settings": 80,
-  "/saved": 80,
+  "/buyer-checklists": 90,
+  "/dashboard": 90,
+  "/negotiation-strategy": 90,
+  "/settings": 90,
+  "/saved": 90,
 };
 
 // Mobile-specific width configuration
 const MOBILE_WIDTH_CONFIG: PageWidthConfig = {
   "/search": 100,
-  "/buyer-checklists": 95,
-  "/negotiation-strategy": 95,
-  "/settings": 95,
-  "/saved?view=reports": 95,
-  "/saved?view=homes": 95,
+  "/buyer-checklists": 90,
+  "/dashboard": 90,
+  "/negotiation-strategy": 90,
+  "/settings": 90,
+  "/saved?view=reports": 90,
+  "/saved?view=homes": 90,
 };
 
 // Buyer checklist tabs
@@ -171,7 +172,7 @@ export default function DashboardLayout({
     }
   }, []);
 
-  // Page width (vw)
+  // Page width percentage (0-100) - CSS calc() accounts for sidebar on desktop
   const computedMaxWidthVW = useMemo(() => {
     const config = isMobile ? MOBILE_WIDTH_CONFIG : PAGE_WIDTH_CONFIG;
     const configPath = Object.keys(config).find((p) => path.startsWith(p));
@@ -216,15 +217,10 @@ export default function DashboardLayout({
     }
 
     if (isSaved) {
-      const tab = getTabByPath(path);
       const params = new URLSearchParams(search);
       const view = params.get("view");
       if (view === "homes" || view === null) {
-        return {
-          type: "rheader",
-          title: tab?.name ?? "Saved",
-          subtitle: tab?.description ?? undefined,
-        };
+        return { type: "none" };
       }
       return { type: "none" };
     }
@@ -269,7 +265,7 @@ export default function DashboardLayout({
       );
     }
 
-    if (config.type === "rheader" && config.title) {
+    if (config.type === "rheader" && config.title && !isNegotiation) {
       return <PageHeader title={config.title} subtitle={config.subtitle} />;
     }
 
@@ -278,6 +274,7 @@ export default function DashboardLayout({
     isSearch,
     isDashboard,
     isBuyerChecklists,
+    isNegotiation,
     closePageHeaderData,
     buyerChecklistsActiveTab,
     config,
@@ -286,11 +283,7 @@ export default function DashboardLayout({
     isSearching,
   ]);
 
-  const isSavedReportsView = useMemo(() => {
-    if (!isSaved) return false;
-    const params = new URLSearchParams(search);
-    return params.get("view") === "reports";
-  }, [isSaved, search]);
+  // Removed isSavedReportsView - SavedLayout is now shown in mobile topbar via mobileHeaderActions
 
   // Mobile header content
   const mobileHeaderContent = useMemo(() => {
@@ -385,25 +378,19 @@ export default function DashboardLayout({
         />
       </div>
 
-      <main
-        className="ml-0 flex-1 transition-all duration-200 lg:ml-52"
-      >
+      <main className="ml-0 flex-1 transition-all duration-200 lg:ml-52">
         {/* Mobile Header - Hidden on desktop */}
         <div className="lg:hidden">
           <div className="mx-auto" style={{ maxWidth: "95vw" }}>
             <MobileTopBar
               sidebarExpanded={sidebarExpanded}
-              dynamicHeight={isSavedReportsView}
+              dynamicHeight={isSaved && mobileHeaderActions !== null}
             >
               {/* Center the dynamic header content between the back/menu + actions, like in the reference */}
               <div
                 className={`flex flex-grow items-center justify-center text-center ${MOBILE_SIDE_PX}`}
               >
-                {isSavedReportsView ? (
-                  <GenerateReportPage />
-                ) : (
-                  (mobileHeaderContent ?? <PageHeader title="SilverKey" />)
-                )}
+                {mobileHeaderContent ?? <PageHeader title="SilverKey" />}
               </div>
             </MobileTopBar>
           </div>
@@ -411,7 +398,11 @@ export default function DashboardLayout({
           {/* Spacer to keep content clear of the fixed MobileTopBar */}
           <div
             className={`${MOBILE_TOP_SPACER_CLASS} ${
-              sidebarExpanded ? "h-0" : isSavedReportsView ? "h-32" : "h-24"
+              sidebarExpanded
+                ? "h-0"
+                : isSaved && mobileHeaderActions !== null
+                  ? "h-16"
+                  : "h-24"
             }`}
           />
         </div>
@@ -419,7 +410,9 @@ export default function DashboardLayout({
         {/* Desktop Header (consistent width) - Hidden on mobile and search pages */}
         <div
           className={`hidden lg:block mx-auto w-full ${isSaved ? "" : "pt-8"} ${isSearch ? "!hidden" : ""}`}
-          style={{ maxWidth: `${computedMaxWidthVW}vw` }}
+          style={{
+            maxWidth: `calc((100vw - 208px) * ${computedMaxWidthVW} / 100)`,
+          }}
         >
           {headerContent}
         </div>
@@ -434,14 +427,16 @@ export default function DashboardLayout({
                 ? // Buyer checklists keeps its own internal spacing; still align sides on mobile
                   `mx-auto ${MOBILE_SIDE_PX} lg:px-0`
                 : // Default pages: standard padding on desktop; on mobile align with top bar button
-                  `mx-auto mt-4 lg:mt-0 p-4 sm:p-6 lg:p-8 lg:pt-8 ${MOBILE_SIDE_PX} lg:px-0`
+                  `mx-auto p-4 sm:p-6 lg:p-8 lg:pt-8 ${MOBILE_SIDE_PX} lg:px-0`
           }`}
           style={
             isSearch
-              ? undefined
-              : {
-                  "--max-width-desktop": `${computedMaxWidthVW}vw`,
-                } as React.CSSProperties & { "--max-width-desktop": string }
+              ? ({
+                  "--max-width-desktop": "100",
+                } as React.CSSProperties & { "--max-width-desktop": string })
+              : ({
+                  "--max-width-desktop": `${computedMaxWidthVW}`,
+                } as React.CSSProperties & { "--max-width-desktop": string })
           }
         >
           {isSearch && (
@@ -463,7 +458,9 @@ export default function DashboardLayout({
               onTabChange={setBuyerChecklistsActiveTab}
             />
           )}
-          {isSaved && <SavedHomes />}
+          {isSaved && (
+            <SavedHomes setMobileHeaderActions={setMobileHeaderActions} />
+          )}
           {isDashboard && <DashboardPage />}
         </div>
       </main>

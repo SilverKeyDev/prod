@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Lightbulb, Home, Share2 } from "lucide-react";
 
 import { CardCarousel } from "../components/cards/base";
@@ -36,6 +36,10 @@ export default function NegotiationStrategy() {
     setError,
   } = useNegotiationStore();
 
+  // Ref for the price element to scroll to
+  const priceElementRef = useRef<HTMLDivElement>(null);
+  const previousLoadingRef = useRef<boolean>(false);
+
   // Create handler functions for compatibility
   const handleHomeSelection = (home: unknown) => {
     negotiationService.selectHome(home);
@@ -68,6 +72,27 @@ export default function NegotiationStrategy() {
   const shouldShowError = (): boolean => {
     return Boolean(errorMessage);
   };
+
+  // Auto-scroll to price element when strategy finishes loading
+  useEffect(() => {
+    // Check if loading just finished (was true, now false)
+    const loadingJustFinished =
+      previousLoadingRef.current === true && isLoading === false;
+
+    if (loadingJustFinished && priceElementRef.current && strategyData) {
+      // Small delay to ensure DOM is updated
+      setTimeout(() => {
+        priceElementRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+          inline: "nearest",
+        });
+      }, 100);
+    }
+
+    // Update previous loading state
+    previousLoadingRef.current = isLoading;
+  }, [isLoading, strategyData]);
 
   // Debug logging - only log when strategyData changes
   useEffect(() => {
@@ -169,6 +194,9 @@ export default function NegotiationStrategy() {
           "comps" in (compsData as { data: Record<string, unknown> }).data &&
           !isLoading && (
             <div className="my-responsive-lg">
+              <SectionTitle className="!text-brown">
+                Comparable Sales
+              </SectionTitle>
               <CardCarousel
                 items={
                   Array.isArray(
@@ -247,7 +275,7 @@ export default function NegotiationStrategy() {
 
             if (offerValue !== null && offerValue > 0) {
               return (
-                <div className="my-responsive-lg">
+                <div ref={priceElementRef} className="my-responsive-lg">
                   <div className="rounded-lg bg-olive/10 p-6">
                     <div className="flex items-center gap-3">
                       <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-olive text-white">

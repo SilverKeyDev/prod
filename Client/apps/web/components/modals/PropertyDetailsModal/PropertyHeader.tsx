@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import Button from "../../ui/button/Button";
 import { CardHeartSave } from "../../cards/base";
 import KeyLogo from "../../ui/asset/KeyLogo";
+import MiniLogo from "../../ui/asset/MiniLogo";
 
 import type { PropertyHeaderProps } from "./types";
 import { formatAddress, handleZillowOpen } from "./utils";
@@ -53,11 +54,12 @@ export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
     <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-200 bg-white p-4">
       {/* Left side - Logo */}
       <div className="flex items-center">
-        <KeyLogo size="sm" />
+        <MiniLogo size="sm" className="md:hidden" />
+        <KeyLogo size="sm" className="hidden md:block" />
       </div>
 
       {/* Right side - Action buttons */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-0.5 md:gap-3">
         <Button
           variant="outline"
           size="md"
@@ -89,7 +91,7 @@ export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
 
         <button
           onClick={onClose}
-          className="p-2 hover:bg-gray-50 rounded-md transition-colors"
+          className="-ml-1 p-2 hover:bg-gray-50 rounded-md transition-colors md:ml-0"
           aria-label="Close modal"
         >
           <X className="h-6 w-6 text-gray-600" />

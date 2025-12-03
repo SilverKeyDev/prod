@@ -48,7 +48,9 @@
   
   @media (min-width: 1024px) {
     .dashboard-content {
-      max-width: var(--max-width-desktop, 85vw);
+      /* Account for sidebar (208px = w-52): calculate width as percentage of available space */
+      /* Formula: (100vw - 208px) * (width% / 100) */
+      max-width: calc((100vw - 208px) * var(--max-width-desktop, 85) / 100);
     }
   }
 

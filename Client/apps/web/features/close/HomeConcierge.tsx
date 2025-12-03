@@ -5,30 +5,29 @@ export default function HomeConcierge() {
   return (
     <div className="px-responsive-sm mx-auto w-full max-w-none">
       <Card padding="md" className="mb-[8px]">
-        <div className="grid grid-cols-1 md:grid-cols-[auto,1fr] gap-responsive-md items-center text-center md:text-left">
+        <div className="flex flex-row gap-responsive-md items-start text-left">
           <img
             src="/MoveConcierge.jpg"
             alt="Moving Concierge"
-            className="w-[112px] md:w-[120px] rounded-lg border border-beige/30 mb-responsive-sm mx-auto md:mx-0"
+            className="w-[112px] md:w-[120px] rounded-lg border border-beige/30 flex-shrink-0"
             loading="lazy"
           />
-          <div className="flex-1 min-w-0 max-w-[72ch]">
+          <div className="flex flex-col flex-1 min-w-0 max-w-[72ch]">
             <Subtitle
               size="sm"
               muted
-              className="mb-responsive-lg leading-relaxed"
+              className="mb-responsive-lg leading-relaxed md:text-base lg:text-lg"
             >
-              Get a free concierge to compare movers, schedule services,
-              transfer utilities, and handle logistics, all in one 30 minute
-              call
+              Compare movers, schedule services, transfer utilities, and handle
+              logistics, all in one 30 minute call
             </Subtitle>
             <Subtitle
               size="xs"
               muted
-              className="mt-[6px] mb-responsive-md leading-relaxed"
+              className="hidden md:block mt-[6px] mb-responsive-md leading-relaxed md:text-xs lg:text-xs"
             >
               <strong>How is this possible?</strong> MoveConcierge takes
-              commission from service providers, so it’s free for you
+              commission from service providers, so it's free for you
             </Subtitle>
             <NavigationButton
               onClick={() =>

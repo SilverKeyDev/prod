@@ -13,7 +13,6 @@ import {
   Input,
   Dropdown,
   Title,
-  Subtitle,
   NavigationButtons,
 } from "../../components/ui";
 //import { SkipButton } from "../../components/ui/button/NavigationButtons";
@@ -554,11 +553,6 @@ export default function OnboardingPage() {
             <Title size="md" className="mb-2">
               {SECTION_TITLES.HOUSING_PREFERENCES}
             </Title>
-            <Subtitle size="sm" muted className="mb-6">
-              Tell us about your ideal home. These preferences help our AI
-              understand what features and characteristics matter most to you
-              when matching properties to your lifestyle and needs.
-            </Subtitle>
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <div>

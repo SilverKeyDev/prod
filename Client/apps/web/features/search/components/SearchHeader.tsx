@@ -1,5 +1,4 @@
 import SearchActions from "./SearchActions";
-import Card from "../../../components/layout/Card";
 
 type SearchHeaderProps = {
   onUpdatePreferences: () => void;
@@ -19,15 +18,13 @@ export default function SearchHeader({
   isSearching,
 }: SearchHeaderProps) {
   return (
-    <Card className="mb-responsive-md mb-6 flex-shrink-0">
-      <div className="flex items-center justify-end">
-        <SearchActions
-          onUpdatePreferences={onUpdatePreferences}
-          onSearchProperties={onSearchProperties}
-          isSearching={isSearching}
-          variant="desktop"
-        />
-      </div>
-    </Card>
+    <div className="mt-6 mb-responsive-md mb-6 flex-shrink-0 flex items-center justify-end">
+      <SearchActions
+        onUpdatePreferences={onUpdatePreferences}
+        onSearchProperties={onSearchProperties}
+        isSearching={isSearching}
+        variant="desktop"
+      />
+    </div>
   );
 }

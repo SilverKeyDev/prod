@@ -21,6 +21,7 @@ export default function SearchActions({
           onClick={() => onUpdatePreferences()}
           size="md"
           arrowType="chevron"
+          showArrow={true}
           className="touch-friendly flex-1 text-sm"
         >
           Preferences
@@ -56,11 +57,12 @@ export default function SearchActions({
   }
 
   return (
-    <div className="flex flex-shrink-0 mr-4">
+    <div className="flex flex-shrink-0 mr-4 gap-2">
       <NavigationButton
         onClick={() => onUpdatePreferences()}
         size="md"
         arrowType="chevron"
+        showArrow={true}
       >
         Preferences
       </NavigationButton>
@@ -86,7 +88,7 @@ export default function SearchActions({
                 d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
               />
             </svg>
-            Search Properties
+            Search
           </>
         )}
       </button>

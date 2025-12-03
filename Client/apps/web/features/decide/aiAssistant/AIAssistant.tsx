@@ -326,7 +326,7 @@ export default function AIAssistant() {
 
   // ---------- JSX ----------
   return (
-    <div className="mx-auto mt-8 h-[calc(100vh-10rem)] max-w-7xl md:mt-0">
+    <div className="mx-auto h-[calc(100vh-10rem)] max-w-7xl md:mt-0">
       <div className="relative flex h-full overflow-hidden rounded-xl shadow-lg">
         {/* Sidebar (Chat list) */}
         <aside

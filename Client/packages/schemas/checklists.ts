@@ -7,7 +7,7 @@ export type ChecklistTab = "escrow" | "inspections" | "financing" | "closing";
 export const CHECKLIST_TITLES: Record<ChecklistTab, string> = {
   escrow: "Escrow",
   inspections: "Inspections",
-  financing: "Financing",
+  financing: "Loan",
   closing: "Move In",
 };
 
