@@ -104,12 +104,13 @@ jobs:
           driver: docker-container
           install: true
 
-      # New: free up disk on runner before heavy build
+      # Free up disk on runner, but DO NOT prune Docker images (keeps action images like appleboy)
       - name: Free up disk space on runner
         run: |
           echo "🧹 Freeing disk on runner..."
           sudo rm -rf /usr/share/dotnet /opt/ghc /opt/hostedtoolcache /usr/local/lib/android || true
-          docker system prune -af || true
+          # Only clear buildx cache; avoid docker system/image prune here
+          docker buildx prune -af >/dev/null 2>&1 || true
           sudo swapoff -a || true
           sudo rm -f /swapfile || true
           df -h
@@ -133,7 +134,8 @@ jobs:
           CACHE_REF="$BASE_REF:buildcache"
           WEB_PROD_REF="$BASE_REF:web-prod"
 
-          docker system prune -f >/dev/null 2>&1 || true
+          # Optional: only prune build cache, not images
+          docker buildx prune -af >/dev/null 2>&1 || true
 
           export DOCKER_BUILDKIT=1
           export BUILDKIT_PROGRESS=plain
