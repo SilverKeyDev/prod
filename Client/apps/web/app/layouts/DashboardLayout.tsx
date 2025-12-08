@@ -73,8 +73,7 @@ const MOBILE_WIDTH_CONFIG: PageWidthConfig = {
   "/dashboard": 90,
   "/negotiation-strategy": 90,
   "/settings": 90,
-  "/saved?view=reports": 90,
-  "/saved?view=homes": 90,
+  "/saved": 90,
 };
 
 // Buyer checklist tabs
@@ -381,7 +380,10 @@ export default function DashboardLayout({
       <main className="ml-0 flex-1 transition-all duration-200 lg:ml-52">
         {/* Mobile Header - Hidden on desktop */}
         <div className="lg:hidden">
-          <div className="mx-auto" style={{ maxWidth: "95vw" }}>
+          <div
+            className={isSearch ? "w-full" : "mx-auto"}
+            style={isSearch ? {} : { maxWidth: "95vw" }}
+          >
             <MobileTopBar
               sidebarExpanded={sidebarExpanded}
               dynamicHeight={isSaved && mobileHeaderActions !== null}
@@ -421,8 +423,8 @@ export default function DashboardLayout({
         <div
           className={`dashboard-content w-full ${
             isSearch
-              ? // Full-height search canvas; full width on mobile and desktop
-                `h-[calc(100vh-80px)] lg:h-[calc(100vh-0px)]`
+              ? // Full-height search canvas; full width on mobile and desktop, no side margins
+                `h-[calc(100vh-80px)] lg:h-[calc(100vh-0px)] mx-0`
               : isBuyerChecklists
                 ? // Buyer checklists keeps its own internal spacing; still align sides on mobile
                   `mx-auto ${MOBILE_SIDE_PX} lg:px-0`

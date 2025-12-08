@@ -1,4 +1,4 @@
-import { BarChart2, Bot, FileText } from "lucide-react";
+import { BarChart2, Bot, Home } from "lucide-react";
 import Button from "../../components/ui/button/Button";
 
 export type ReportsSubView = "reports" | "compare" | "chatbot";
@@ -37,7 +37,7 @@ export default function ReportsSubViewNavigation({
       <Button
         variant="ghost"
         size="md"
-        icon={<FileText />}
+        icon={<Home />}
         hideTextBelow="md"
         onClick={(e) => handleButtonClick(e, () => onViewChange("reports"))}
         className={`h-11 px-4 py-2 text-sm font-medium ${
@@ -46,7 +46,7 @@ export default function ReportsSubViewNavigation({
             : "bg-gray-100 text-gray-800 hover:bg-gray-200 active:bg-gray-100 focus:bg-gray-100 focus-visible:bg-gray-100"
         }`}
       >
-        Reports
+        Saved
       </Button>
       <Button
         variant="ghost"
@@ -62,7 +62,7 @@ export default function ReportsSubViewNavigation({
       >
         Compare
       </Button>
-      <Button
+      {/* <Button
         variant="ghost"
         size="md"
         icon={<Bot />}
@@ -75,7 +75,7 @@ export default function ReportsSubViewNavigation({
         }`}
       >
         Chatbot
-      </Button>
+      </Button> */}
     </div>
   );
 }

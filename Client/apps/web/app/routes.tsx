@@ -25,7 +25,7 @@ export function AppRoutes({ user, handleLogout }: AppRoutesProps) {
         {DynamicRoutes({ user, handleLogout })}
 
         {/* Legacy redirect */}
-        <Route path="/app/*" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/app/*" element={<Navigate to="/search" replace />} />
 
         {/* 404 catch-all */}
         <Route path="*" element={<Navigate to="/" replace />} />

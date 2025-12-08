@@ -39,21 +39,21 @@ type NavigationStructure = Record<string, NavCategory>;
 
 // Navigation structure with categories and dropdown items based on schema
 const navigationStructure: NavigationStructure = {
-  dashboard: {
-    name: SIDEBAR_TABS.dashboard.name,
-    icon: SIDEBAR_TABS.dashboard.icon as unknown as React.FC<{
-      className?: string;
-    }>,
-    items: [
-      {
-        name: SIDEBAR_TABS.dashboard.name,
-        href: SIDEBAR_TABS.dashboard.href,
-        icon: SIDEBAR_TABS.dashboard.icon as unknown as React.FC<{
-          className?: string;
-        }>,
-      },
-    ],
-  },
+  // dashboard: {
+  //   name: SIDEBAR_TABS.dashboard.name,
+  //   icon: SIDEBAR_TABS.dashboard.icon as unknown as React.FC<{
+  //     className?: string;
+  //   }>,
+  //   items: [
+  //     {
+  //       name: SIDEBAR_TABS.dashboard.name,
+  //       href: SIDEBAR_TABS.dashboard.href,
+  //       icon: SIDEBAR_TABS.dashboard.icon as unknown as React.FC<{
+  //         className?: string;
+  //       }>,
+  //     },
+  //   ],
+  // },
   search: {
     name: SIDEBAR_TABS.search.name,
     icon: SIDEBAR_TABS.search.icon as unknown as React.FC<{
@@ -135,11 +135,11 @@ const navigationStructure: NavigationStructure = {
 const getNavigation = (): NavigationStructure => {
   // Create a proper copy of the navigation structure
   const navigation: NavigationStructure = {
-    dashboard: {
-      name: navigationStructure.dashboard.name,
-      icon: navigationStructure.dashboard.icon,
-      items: [...navigationStructure.dashboard.items],
-    },
+    // dashboard: {
+    //   name: navigationStructure.dashboard.name,
+    //   icon: navigationStructure.dashboard.icon,
+    //   items: [...navigationStructure.dashboard.items],
+    // },
     search: {
       name: navigationStructure.search.name,
       icon: navigationStructure.search.icon,
@@ -297,8 +297,8 @@ export default function Sidebar({
                 ([categoryKey, category]: [string, NavCategory]) => (
                   <div key={categoryKey}>
                     {/* Render certain categories as direct links (dashboard, search, decide, negotiate, close, settings) */}
-                    {categoryKey === "dashboard" ||
-                    categoryKey === "search" ||
+                    {/* categoryKey === "dashboard" || */}
+                    {categoryKey === "search" ||
                     categoryKey === "decide" ||
                     categoryKey === "negotiate" ||
                     categoryKey === "close" ||

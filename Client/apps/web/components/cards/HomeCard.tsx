@@ -114,8 +114,8 @@ export default function HomeCard({
       JSON.stringify(generateReportState)
     );
 
-    // Navigate to the reports page
-    navigate("/saved?view=reports");
+    // Navigate to the saved page
+    navigate("/saved");
   };
 
   // Handle card click to focus on property

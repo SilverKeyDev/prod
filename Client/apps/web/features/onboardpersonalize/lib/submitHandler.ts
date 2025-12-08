@@ -66,7 +66,7 @@ export const handleSubmit = async ({
       localStorage.removeItem("onboardingDraft");
       onSuccess?.();
       if (navigate) {
-        navigate("/dashboard");
+        navigate("/search");
       }
     } else {
       const errorMsg = result.error ?? "Failed to generate report";

@@ -46,8 +46,8 @@ export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
       onGenerateReport(address);
     }
 
-    // Navigate to the reports page
-    navigate("/saved?view=reports");
+    // Navigate to the saved page
+    navigate("/saved");
   };
 
   return (
@@ -64,9 +64,7 @@ export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
           variant="outline"
           size="md"
           onClick={() => handleZillowOpen(property)}
-          icon={
-            <ExternalLink className="h-5 w-5 text-blue-600" />
-          }
+          icon={<ExternalLink className="h-5 w-5 text-blue-600" />}
           className="group border-blue-600 !text-blue-600 hover:!bg-transparent hover:!text-blue-600 transition-all duration-200"
         >
           Zillow

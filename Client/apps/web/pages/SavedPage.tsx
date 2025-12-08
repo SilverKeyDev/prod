@@ -36,7 +36,7 @@ export default function SavedHomes({
   const isMobile = useMobile();
   const [searchTerm, setSearchTerm] = useState("");
   const [refreshing, setRefreshing] = useState(false);
-  const [viewType, setViewType] = useState<"homes" | "reports">("reports");
+  const [viewType, setViewType] = useState<"homes" | "reports">("homes");
   const [reportsSubView, setReportsSubView] = useState<
     "reports" | "compare" | "chatbot"
   >("reports");
@@ -124,19 +124,19 @@ export default function SavedHomes({
     };
   }, []);
 
-  // Keep URL in sync when viewType changes
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const current = params.get("view");
-    if (current !== viewType) {
-      params.set("view", viewType);
-      navigate(
-        { pathname: "/saved", search: params.toString() },
-        { replace: true }
-      );
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [viewType]);
+  // Keep URL in sync when viewType changes (no query params)
+  // useEffect(() => {
+  //   const params = new URLSearchParams(location.search);
+  //   const current = params.get("view");
+  //   if (current !== viewType) {
+  //     params.set("view", viewType);
+  //     navigate(
+  //       { pathname: "/saved", search: params.toString() },
+  //       { replace: true }
+  //     );
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [viewType]);
 
   // Reset reports subview when switching to homes
   useEffect(() => {
@@ -447,7 +447,7 @@ export default function SavedHomes({
             rightText={
               viewType === "homes"
                 ? `${filteredHomes.length} saved`
-                : `${filteredReports.length} report${filteredReports.length !== 1 ? "s" : ""}`
+                : `${filteredReports.length} home${filteredReports.length !== 1 ? "s" : ""}`
             }
             viewType={viewType}
             onViewTypeChange={setViewType}

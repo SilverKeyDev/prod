@@ -17,7 +17,8 @@ export default function LoginPage() {
   const location = useLocation();
 
   // Use secure authentication hook
-  const { login, isLoading, error, clearError, needsVerification } = useSecureAuth();
+  const { login, isLoading, error, clearError, needsVerification } =
+    useSecureAuth();
 
   // No token cleanup needed - auth is managed via HTTP-only cookies
   // All authentication state is handled by the server
@@ -32,14 +33,13 @@ export default function LoginPage() {
       // Read intended destination from state, sanitize, and fallback
       const from =
         (location.state as { from?: { pathname?: string } } | null)?.from
-          ?.pathname ?? "/dashboard";
+          ?.pathname ?? "/search";
       const safe =
         typeof from === "string" &&
         from.startsWith("/") &&
         !from.startsWith("/login")
           ? from
-          : "/dashboard";
-
+          : "/search";
 
       if (location.pathname !== safe) {
         navigate(safe, { replace: true });

@@ -1,4 +1,5 @@
 import {
+  Bookmark,
   Handshake,
   Home,
   Key,
@@ -62,15 +63,15 @@ export const SIDEBAR_TABS: Record<SidebarTabKey, SidebarTab> = {
   },
   decide: {
     key: "decide",
-    name: "Research",
+    name: "Saved",
     description: "Compare and pick your best options",
-    icon: Split,
-    href: "/saved?view=reports",
+    icon: Bookmark,
+    href: "/saved",
     subSteps: [
       {
         label: "Compare Reports",
-        to: "/saved?view=reports",
-        icon: Split,
+        to: "/saved",
+        icon: Bookmark,
       },
     ],
   },

@@ -155,11 +155,11 @@ export const AUTH_CONFIG = {
 
   // Default redirect routes
   REDIRECTS: {
-    AFTER_LOGIN: "/dashboard",
+    AFTER_LOGIN: "/search",
     AFTER_LOGOUT: "/login",
     AFTER_SIGNUP: "/verification",
-    AFTER_VERIFICATION: "/dashboard",
-    AFTER_ONBOARDING: "/dashboard",
+    AFTER_VERIFICATION: "/search",
+    AFTER_ONBOARDING: "/search",
     UNAUTHORIZED: "/login",
   },
 } as const;

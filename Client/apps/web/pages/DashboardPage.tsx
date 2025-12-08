@@ -134,11 +134,11 @@ export default function Dashboard() {
 
   // Navigation handlers
   const handleSavedHomesClick = () => {
-    navigate("/saved?view=homes");
+    navigate("/saved");
   };
 
   const handleDocumentsClick = () => {
-    navigate("/saved?view=reports");
+    navigate("/saved");
   };
 
   useEffect(() => {
