@@ -104,6 +104,16 @@ jobs:
           driver: docker-container
           install: true
 
+      # New: free up disk on runner before heavy build
+      - name: Free up disk space on runner
+        run: |
+          echo "🧹 Freeing disk on runner..."
+          sudo rm -rf /usr/share/dotnet /opt/ghc /opt/hostedtoolcache /usr/local/lib/android || true
+          docker system prune -af || true
+          sudo swapoff -a || true
+          sudo rm -f /swapfile || true
+          df -h
+
       - name: Login to ECR
         uses: aws-actions/amazon-ecr-login@v2
 
@@ -146,6 +156,7 @@ jobs:
           docker system df || true
 
       - name: SSH into EC2 and Deploy Container + Copy Frontend
+        if: ${{ success() }}   # only deploy if build + push succeeded
         uses: appleboy/ssh-action@v1.0.0
         env:
           AWS_REGION: ${{ env.REGION }}
